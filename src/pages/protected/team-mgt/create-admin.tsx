@@ -1,5 +1,4 @@
 import DashboardLayout from "@/components/layout/dashboard-layout";
-import { toast } from "sonner";
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import PromptModal from "@/components/modal/prompt-modal";
@@ -37,9 +36,7 @@ export default function CreateAdmin() {
         .then(() => {
           toggleClick();
         })
-        .catch((err) => {
-          toast.error(err?.data?.message || "Failed to create team member. Please try again.");
-        });
+        .catch(() => {});
     },
   });
 

@@ -53,6 +53,19 @@ const refreshTokenRequest = async (refreshToken?: string) => {
   }
 };
 
+const extractFirstDetailError = (detail: any): string | null => {
+  if (!detail) return null;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) return typeof detail[0] === "string" ? detail[0] : null;
+  if (typeof detail === "object") {
+    for (const key of Object.keys(detail)) {
+      const found = extractFirstDetailError(detail[key]);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
 export const baseQueryInterceptor: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -64,9 +77,9 @@ export const baseQueryInterceptor: BaseQueryFn<
     console.log(res, "api")
     
     if (res?.status === 400) {
-      if (res?.data?.message) {
-        toast.error(res?.data?.message);
-      }
+      const specific = extractFirstDetailError(res?.data?.error?.detail);
+      const message = specific || res?.data?.message;
+      if (message) toast.error(message);
       return result;
     } else if (res?.status === 401) {
       // Get the refresh token from the redux store
