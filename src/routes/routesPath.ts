@@ -3,7 +3,8 @@ export const routesPath = {
     LOGIN: "/login",
     SIGNUP: "/signup",
     FORGOT_PASSWORD: "/forgot-password",
-    RESET_PASSWORD: "/reset-password",
+    RESET_PASSWORD: "/reset-password/:activation_key",
+    RESET_PASSWORD_LINK: (key: string) => `/reset-password/${key}`,
   },
   PROTECTED: {
     OVERVIEW: { INDEX: "/overview" },

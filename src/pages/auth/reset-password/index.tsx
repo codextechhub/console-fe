@@ -1,49 +1,81 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
+import {
+  usePasswordResetConfirmMutation,
+  usePasswordResetPreviewQuery,
+} from "@/redux/services/auth/authApi";
+import { routesPath } from "@/routes/routesPath";
+import { resetPasswordSchema } from "@/schema/auth";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
-import { motion, AnimatePresence } from "motion/react";
+import { Link, useNavigate, useParams } from "react-router";
 import { swipAnimateVariant } from "@/utils/animation";
 import { useFormik } from "formik";
-import { resetPasswordSchema } from "@/schema/auth";
-import { routesPath } from "@/routes/routesPath";
 
 export default function ResetPassword() {
-  const [tab, setTab] = useState(1);
+  const { activation_key } = useParams<{ activation_key: string }>();
   const navigate = useNavigate();
-  const { email, otp } = useLocation().state;
+  const [success, setSuccess] = useState(false);
+
+  const { data: preview, isLoading: previewLoading, isError: previewError } =
+    usePasswordResetPreviewQuery(activation_key!, { skip: !activation_key });
+
+  const [passwordResetConfirm, { isLoading: confirmLoading }] =
+    usePasswordResetConfirmMutation();
 
   const formik = useFormik({
-    initialValues: {
-      password: "",
-      password_confirmation: "",
-      otp: otp || "",
-      email: email || "",
-    },
-    enableReinitialize: true,
+    initialValues: { password: "", confirm_password: "" },
     validationSchema: resetPasswordSchema,
-    onSubmit: () => {
-      setTab(2);
+    onSubmit: (values) => {
+      passwordResetConfirm({ activation_key: activation_key!, ...values })
+        .unwrap()
+        .then(() => setSuccess(true))
+        .catch(() => {});
     },
   });
 
-  const handleNextStep = () => {
-    navigate(routesPath.AUTH.LOGIN, { replace: true });
-  };
-
   useEffect(() => {
-    if (tab === 2) {
-      setTimeout(() => {
-        handleNextStep();
+    if (success) {
+      const t = setTimeout(() => {
+        navigate(routesPath.AUTH.LOGIN, { replace: true });
       }, 7000);
+      return () => clearTimeout(t);
     }
-  }, [tab]);
+  }, [success]);
+
+  if (previewLoading) {
+    return (
+      <div className="text-center space-y-1.5">
+        <p className="text-sm font-medium text-gray-01 font-mont">
+          Verifying your reset link…
+        </p>
+      </div>
+    );
+  }
+
+  if (previewError || !preview?.data) {
+    return (
+      <div className="text-center space-y-4">
+        <h4 className="font-semibold text-2xl text-black-01">Link Expired</h4>
+        <p className="text-sm font-medium text-gray-01 font-mont max-w-72 mx-auto">
+          This password reset link is invalid or has expired. Please request a
+          new one.
+        </p>
+        <Link
+          to={routesPath.AUTH.FORGOT_PASSWORD}
+          className="text-primary font-mont text-sm font-medium block mt-4"
+        >
+          Request new link
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <AnimatePresence mode="wait" custom={1}>
       <motion.div
-        key={tab}
+        key={success ? "success" : "form"}
         custom={1}
         variants={swipAnimateVariant}
         initial="enter"
@@ -54,11 +86,11 @@ export default function ResetPassword() {
           opacity: { duration: 0.2 },
         }}
       >
-        {tab === 1 ? (
-          <form onSubmit={formik.handleSubmit} className="">
+        {!success ? (
+          <form onSubmit={formik.handleSubmit}>
             <div className="text-center space-y-1.5">
               <h4 className="font-semibold text-2xl text-black-01">
-                Set a new Password
+                Set a New Password
               </h4>
               <p className="text-sm font-medium text-gray-01 font-mont max-w-84.5 mx-auto">
                 Your new password must be different from your previously used
@@ -66,40 +98,58 @@ export default function ResetPassword() {
               </p>
             </div>
 
+            <div className="mt-4 space-y-3">
+              <CustomInput
+                label="Name"
+                id="full_name"
+                value={preview.data.full_name}
+                readOnly
+                className="bg-gray-03 h-11 text-gray-01"
+              />
+              <CustomInput
+                label="Email"
+                id="email"
+                value={preview.data.email}
+                readOnly
+                className="bg-gray-03 h-11 text-gray-01"
+              />
+            </div>
+
             <div className="mt-4 mb-9 space-y-4">
               <CustomInput
-                label="Password"
+                label="New Password"
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Enter your new password"
                 className="bg-gray-03 h-11 placeholder:text-[#21212166] placeholder:text-sm"
                 {...formik.getFieldProps("password")}
                 error={formik.touched.password ? formik.errors.password : ""}
               />
               <CustomInput
-                label="Confirm Password "
-                id="password_confirmation"
+                label="Confirm Password"
+                id="confirm_password"
                 type="password"
-                placeholder="Re-enter your password"
+                placeholder="Re-enter your new password"
                 className="bg-gray-03 h-11 placeholder:text-[#21212166] placeholder:text-sm"
-                {...formik.getFieldProps("password_confirmation")}
+                {...formik.getFieldProps("confirm_password")}
                 error={
-                  formik.touched.password_confirmation
-                    ? formik.errors.password_confirmation
+                  formik.touched.confirm_password
+                    ? formik.errors.confirm_password
                     : ""
                 }
               />
             </div>
 
             <Button
-              disabled={!formik.isValid || !formik.dirty}
+              disabled={!formik.isValid || !formik.dirty || confirmLoading}
+              loading={confirmLoading}
               type="submit"
               className="w-full h-11"
             >
-              Reset
+              Reset Password
             </Button>
 
-            <div className=" text-center">
+            <div className="text-center">
               <Link
                 to={routesPath.AUTH.LOGIN}
                 className="font-mont font-medium text-sm text-black-01 inline-flex justify-center items-center mt-6 group"
@@ -112,22 +162,25 @@ export default function ResetPassword() {
             </div>
           </form>
         ) : (
-          <div className="">
+          <div>
             <div className="text-center space-y-1.5">
               <h4 className="font-semibold text-2xl text-black-01">
                 Password Reset!
               </h4>
               <p className="text-sm font-medium text-gray-01 font-mont max-w-75.5 mx-auto">
                 Your password has been successfully reset. Click the button
-                below to Login
+                below to log in.
               </p>
             </div>
 
-            <Button className="w-full h-11 mt-9" onClick={handleNextStep}>
-              Continue
+            <Button
+              className="w-full h-11 mt-9"
+              onClick={() => navigate(routesPath.AUTH.LOGIN, { replace: true })}
+            >
+              Continue to Login
             </Button>
 
-            <div className="text-center space-y-6 mt-6">
+            <div className="text-center mt-6">
               <Link
                 to={routesPath.AUTH.LOGIN}
                 className="font-mont font-medium text-sm text-black-01 inline-flex justify-center items-center group"

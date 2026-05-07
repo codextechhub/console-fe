@@ -40,23 +40,33 @@ export const authApi = baseApi.injectEndpoints({
         }
       },
     }),
-    forgotPassword: builder.mutation({
+    forgotPassword: builder.mutation<{ message: string }, { email: string }>({
       query: (payload) => ({
-        url: `/admin/forgot-password`,
+        url: `/user/auth/password/reset/request/`,
         method: "POST",
         body: payload,
       }),
     }),
-    resetPassword: builder.mutation({
-      query: (payload) => ({
-        url: `/admin/reset-password`,
+    passwordResetPreview: builder.query<{ message: string; data: { email: string; full_name: string } }, string>({
+      query: (activation_key) => ({
+        url: `/user/auth/reset-password/${activation_key}/preview/`,
+        method: "GET",
+      }),
+    }),
+    passwordResetConfirm: builder.mutation<{ message: string }, { activation_key: string; password: string; confirm_password: string }>({
+      query: ({ activation_key, ...body }) => ({
+        url: `/user/auth/password/reset/${activation_key}/confirm/`,
         method: "POST",
-        body: payload,
+        body,
       }),
     }),
   }),
 });
 
 export const {
- useLoginMutation,useLogoutMutation
+  useLoginMutation,
+  useLogoutMutation,
+  useForgotPasswordMutation,
+  usePasswordResetPreviewQuery,
+  usePasswordResetConfirmMutation,
 } = authApi;

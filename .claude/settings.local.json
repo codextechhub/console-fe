@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/Users/mac/Documents/Dev Projects/GitHub/backend"
+    ],
+    "allow": [
+      "Bash(npm run *)"
+    ]
+  }
+}
