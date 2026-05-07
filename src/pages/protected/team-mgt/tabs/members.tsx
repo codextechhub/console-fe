@@ -27,6 +27,7 @@ export default function MembersTab() {
   const navigate = useNavigate();
   const [query, setQuery] = useState({
     page: 1,
+    exclude_status: "PENDING",
   });
 
   useEffect(() => {
