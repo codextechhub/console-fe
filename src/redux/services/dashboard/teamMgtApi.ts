@@ -13,6 +13,7 @@ export const teamMgtApi = baseApi.injectEndpoints({
         url: `/user/users/${generateQueryString(payload)}`,
         method: "GET",
       }),
+      providesTags: ["Users"],
     }),
     getTeamMembersDetails: builder.query<TeamMemberRes, string>({
       query: (user_id) => ({
@@ -32,6 +33,7 @@ export const teamMgtApi = baseApi.injectEndpoints({
         method: "POST",
         body: payload,
       }),
+      invalidatesTags: ["Users"],
     }),
     updateTeamMember: builder.mutation({
       query: (payload) => ({

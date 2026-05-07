@@ -44,7 +44,9 @@ export default function MembersTab() {
     [query, debouncedValue],
   );
 
-  const { data, isFetching } = useGetTeamMembersQuery(params);
+  const { data, isFetching } = useGetTeamMembersQuery(params, {
+    refetchOnMountOrArgChange: true,
+  });
 
   return (
     <>

@@ -48,7 +48,9 @@ export default function InvitesTab() {
     [query, debouncedValue],
   );
 
-  const { data, isFetching } = useGetTeamMembersQuery(params);
+  const { data, isFetching } = useGetTeamMembersQuery(params, {
+    refetchOnMountOrArgChange: true,
+  });
   const [resendInvite] = useResendInviteMutation();
   return (
     <>
