@@ -125,8 +125,8 @@ export default function EditAdmin() {
                   label="Gender"
                   placeholder="Select gender"
                   options={[
-                    { label: "Male", value: "male" },
-                    { label: "Female", value: "female" },
+                    { label: "Male", value: "MALE" },
+                    { label: "Female", value: "FEMALE" },
                   ]}
                   isRequired
                   {...formik.getFieldProps("gender")}

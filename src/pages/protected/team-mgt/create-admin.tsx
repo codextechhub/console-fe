@@ -118,8 +118,8 @@ export default function CreateAdmin() {
                 label="Gender"
                 placeholder="Select gender"
                 options={[
-                  { label: "Male", value: "male" },
-                  { label: "Female", value: "female" },
+                  { label: "Male", value: "MALE" },
+                  { label: "Female", value: "FEMALE" },
                 ]}
                 isRequired
                 {...formik.getFieldProps("gender")}
@@ -148,7 +148,7 @@ export default function CreateAdmin() {
               });
             }}
             title="Invite Successfully Sent!"
-            description="You have successfully sent an invite to the added user, click the button below to continue "
+            description={`You have successfully sent an invite to ${formik.values.first_name} ${formik.values.last_name}, click the button below to continue`}
           />
         </>
       </section>
