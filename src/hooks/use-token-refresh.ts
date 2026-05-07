@@ -1,0 +1,69 @@
+import Cookies from "js-cookie";
+import { useEffect } from "react";
+import { useLocation } from "react-router";
+import { useDispatch } from "react-redux";
+import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
+import { routesPath } from "@/routes/routesPath";
+import { clearStorageItem } from "./use-session-storage";
+
+const REFRESH_BUFFER_SECONDS = 120; // refresh if token expires within 2 minutes
+
+const getTokenExpiry = (token: string): number | null => {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return typeof payload.exp === "number" ? payload.exp : null;
+  } catch {
+    return null;
+  }
+};
+
+const isExpiredOrExpiring = (token: string): boolean => {
+  const exp = getTokenExpiry(token);
+  if (!exp) return true;
+  return Date.now() / 1000 >= exp - REFRESH_BUFFER_SECONDS;
+};
+
+export function useTokenRefresh() {
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+  useEffect(() => {
+    const accessToken = Cookies.get("token") || "";
+    const refreshToken = Cookies.get("refresh_token") || "";
+
+    if (!accessToken || !refreshToken) return;
+    if (!isExpiredOrExpiring(accessToken)) return;
+
+    const doRefresh = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/user/auth/token/refresh/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify({ refresh: refreshToken }),
+        });
+
+        if (!response.ok) throw new Error("Refresh failed");
+
+        const data = await response.json();
+        const newAccess = data?.data?.access;
+
+        if (!newAccess) throw new Error("No access token in response");
+
+        Cookies.set("token", newAccess);
+        dispatch(setToken(newAccess));
+      } catch {
+        dispatch(resetAuth());
+        Cookies.remove("token");
+        Cookies.remove("refresh_token");
+        clearStorageItem();
+        window.location.href = routesPath.AUTH.LOGIN;
+      }
+    };
+
+    doRefresh();
+  }, [location.pathname]);
+}

@@ -126,7 +126,7 @@ const FORMAT_TABLE_DATA = (data?: TeamMember[]) => {
         {item?.status || "---"}
       </Badge>
     ),
-    date: item?.created_at ? format(item?.created_at, "dd MMM, yyyy") : "---",
+    date: item?.created_at ? format(item?.created_at, "do MMMM yyyy") : "---",
     _slug: item?.id,
   }));
 };

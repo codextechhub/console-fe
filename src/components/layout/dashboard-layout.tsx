@@ -7,6 +7,7 @@ import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAppSelector } from "@/redux/store";
 import { returnInitial } from "@/utils/helpers";
+import { useTokenRefresh } from "@/hooks/use-token-refresh";
 
 export default function DashboardLayout({
   children,
@@ -21,6 +22,7 @@ export default function DashboardLayout({
 }) {
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
+  useTokenRefresh();
   return (
     <>
       <SidebarProvider>
