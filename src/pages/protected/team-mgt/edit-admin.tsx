@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { routesPath } from "@/routes/routesPath";
 import { useNavigate, useParams } from "react-router";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
-import { useGetAllRolesQuery } from "@/redux/services/dashboard/roleApi";
 import { useFormik } from "formik";
 import { editTeamMemberSchema } from "@/schema/dashboard/team-mgt";
 import {
@@ -21,7 +20,6 @@ export default function EditAdmin() {
     params?.id || "",
     { skip: !params?.id },
   );
-  const { data: roles } = useGetAllRolesQuery({ page_size: 200 });
   const [updateTeamMember, { isLoading: updating }] =
     useUpdateTeamMemberMutation();
 
@@ -29,7 +27,6 @@ export default function EditAdmin() {
     initialValues: {
       first_name: teamMember?.data?.first_name || "",
       last_name: teamMember?.data?.last_name || "",
-      role: teamMember?.data?.role || "",
       phone: teamMember?.data?.phone || "",
       gender: teamMember?.data?.gender || "",
     },
@@ -42,7 +39,7 @@ export default function EditAdmin() {
           toast.success("Team member updated successfully!");
           navigate(routesPath.PROTECTED.TEAM_MGT.INDEX);
         })
-        .catch();
+        .catch(() => {});
     },
   });
   return (
@@ -98,19 +95,11 @@ export default function EditAdmin() {
                   value={teamMember?.data?.email}
                   disabled
                 />
-                <CustomNativeSelect
+                <CustomInput
                   id="role"
                   label="Role Title"
-                  placeholder="Select role"
-                  options={
-                    roles?.data.map((role) => ({
-                      label: role.name,
-                      value: role.id,
-                    })) || []
-                  }
-                  isRequired
-                  {...formik.getFieldProps("role")}
-                  error={formik.touched.role ? formik.errors.role : undefined}
+                  value={teamMember?.data?.role || ""}
+                  disabled
                 />
                 <CustomInput
                   id="phone"

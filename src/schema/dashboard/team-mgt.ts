@@ -20,7 +20,6 @@ export const editTeamMemberSchema = Yup.object({
    first_name: firstNameSchema,
   last_name: lastNameSchema,
   gender: Yup.string().required("Gender is required"),
-  role: Yup.string().required("Role is required"),
   phone: Yup
     .string()
     .required("Phone number is required")
