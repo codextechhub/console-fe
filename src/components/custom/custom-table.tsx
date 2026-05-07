@@ -165,18 +165,19 @@ const CustomTable = ({
               {tableBodyList?.length > 0 ? (
                 <>
                   {tableBodyList?.map((item: any, rowIndex: any) => {
-                    // to ignore some data that might be needed when accessing row object, table row: value Object.values(item) is changed to FORMATTED_DATA?.map((data) => Object.values(data))
-
-                    //  if tableBodyList object has _slug key it will be ignored when rendering table data
                     const FORMATTED_DATA = Object?.entries(item)
                       .filter(([key]) => {
-                        return key !== "_slug";
+                        return !key.startsWith("_");
                       })
                       ?.map((d) => {
                         return {
                           [d[0]]: d[1],
                         };
                       });
+                    const resolvedDropDownList =
+                      typeof dropDownList === "function"
+                        ? dropDownList(item)
+                        : dropDownList;
                     return (
                       <TableRowComponet
                         key={rowIndex}
@@ -237,27 +238,24 @@ const CustomTable = ({
                                     align="end"
                                     style={{ width: width ? width : "170px" }}
                                   >
-                                    {dropDownList?.length > 0 &&
-                                      dropDownList?.map(
-                                        (child: any, idx: any) => {
-                                          return (
-                                            <DropdownMenuItem
-                                              key={idx}
-                                              onClick={() => {
-                                                if (child?.onActionClick) {
-                                                  child.onActionClick(item);
-                                                }
-                                              }}
-                                              className={cn(
-                                                "font-light text-sm cursor-pointer text-custom-gray-scale-400",
-                                                child?.className,
-                                              )}
-                                            >
-                                              {child?.label}
-                                            </DropdownMenuItem>
-                                          );
-                                        },
-                                      )}
+                                    {resolvedDropDownList?.map(
+                                      (child: any, idx: any) => (
+                                        <DropdownMenuItem
+                                          key={idx}
+                                          onClick={() => {
+                                            if (child?.onActionClick) {
+                                              child.onActionClick(item);
+                                            }
+                                          }}
+                                          className={cn(
+                                            "font-light text-sm cursor-pointer text-custom-gray-scale-400",
+                                            child?.className,
+                                          )}
+                                        >
+                                          {child?.label}
+                                        </DropdownMenuItem>
+                                      ),
+                                    )}
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               )}

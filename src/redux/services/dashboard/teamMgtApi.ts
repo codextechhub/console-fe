@@ -42,6 +42,27 @@ export const teamMgtApi = baseApi.injectEndpoints({
         body: payload.body,
       }),
     }),
+    suspendTeamMember: builder.mutation({
+      query: (user_id) => ({
+        url: `/user/${user_id}/suspend/`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Users"],
+    }),
+    reactivateTeamMember: builder.mutation({
+      query: (user_id) => ({
+        url: `/user/${user_id}/reactivate/`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Users"],
+    }),
+    unlockTeamMember: builder.mutation({
+      query: (user_id) => ({
+        url: `/user/${user_id}/unlock/`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Users"],
+    }),
   }),
 });
 
@@ -51,4 +72,7 @@ export const {
   useCreateTeamMemberMutation,
   useGetTeamMembersDetailsQuery,
   useUpdateTeamMemberMutation,
+  useSuspendTeamMemberMutation,
+  useReactivateTeamMemberMutation,
+  useUnlockTeamMemberMutation,
 } = teamMgtApi;

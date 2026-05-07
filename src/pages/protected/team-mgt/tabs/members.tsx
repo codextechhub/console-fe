@@ -6,11 +6,17 @@ import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import { routesPath } from "@/routes/routesPath";
 import { Link, useNavigate } from "react-router";
-import { useGetTeamMembersQuery } from "@/redux/services/dashboard/teamMgtApi";
+import {
+  useGetTeamMembersQuery,
+  useSuspendTeamMemberMutation,
+  useReactivateTeamMemberMutation,
+  useUnlockTeamMemberMutation,
+} from "@/redux/services/dashboard/teamMgtApi";
 import { useEffect, useMemo, useState } from "react";
 import type { TeamMember } from "@/redux/services/dashboard/type";
 import { format } from "date-fns";
 import { useDebounce } from "react-haiku";
+import { toast } from "sonner";
 
 const tableHeader = [
   "Full Name",
@@ -49,6 +55,10 @@ export default function MembersTab() {
     refetchOnMountOrArgChange: true,
   });
 
+  const [suspendUser] = useSuspendTeamMemberMutation();
+  const [reactivateUser] = useReactivateTeamMemberMutation();
+  const [unlockUser] = useUnlockTeamMemberMutation();
+
   return (
     <>
       <div className="flex items-center justify-between">
@@ -86,26 +96,55 @@ export default function MembersTab() {
         tableHeaderList={tableHeader}
         tableBodyList={FORMAT_TABLE_DATA(data?.data)}
         dropDown
-        dropDownList={[
-          {
-            label: "View Details",
-            className: "",
-            onActionClick: () => {},
-          },
-          {
-            label: "Edit",
-            className: "",
-            onActionClick: (param: { _slug: string }) => {
-              navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(param._slug));
+        dropDownList={(row: { _slug: string; _status: string }) => {
+          const statusAction = () => {
+            if (row._status === "ACTIVE") {
+              return {
+                label: "Suspend",
+                className: "text-destructive focus:text-destructive focus:bg-destructive/10",
+                onActionClick: () =>
+                  suspendUser(row._slug)
+                    .unwrap()
+                    .then(() => toast.success("User suspended successfully."))
+                    .catch(() => {}),
+              };
+            }
+            if (row._status === "SUSPENDED") {
+              return {
+                label: "Reactivate",
+                className: "text-green-600 focus:text-green-600 focus:bg-green-50",
+                onActionClick: () =>
+                  reactivateUser(row._slug)
+                    .unwrap()
+                    .then(() => toast.success("User reactivated successfully."))
+                    .catch(() => {}),
+              };
+            }
+            if (row._status === "LOCKED") {
+              return {
+                label: "Unlock",
+                className: "text-amber-600 focus:text-amber-600 focus:bg-amber-50",
+                onActionClick: () =>
+                  unlockUser(row._slug)
+                    .unwrap()
+                    .then(() => toast.success("User unlocked successfully."))
+                    .catch(() => {}),
+              };
+            }
+            return null;
+          };
+
+          return [
+            { label: "View Details", className: "", onActionClick: () => {} },
+            {
+              label: "Edit",
+              className: "",
+              onActionClick: () =>
+                navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(row._slug)),
             },
-          },
-          {
-            label: "Delete",
-            className:
-              "text-destructive focus:text-destructive focus:bg-destructive/10",
-            onActionClick: () => {},
-          },
-        ]}
+            statusAction(),
+          ].filter(Boolean);
+        }}
         perPage={data?.pagination?.pageSize}
         totalPage={data?.pagination?.totalPages}
         currentPage={data?.pagination?.currentPage}
@@ -122,11 +161,12 @@ const FORMAT_TABLE_DATA = (data?: TeamMember[]) => {
 
     role: item?.role || "---",
     status: (
-      <Badge variant={item.status?.toLowerCase()} className="w-19.25">
+      <Badge variant={item.status?.toLowerCase()} className="min-w-19.25">
         {item?.status || "---"}
       </Badge>
     ),
     date: item?.created_at ? format(item?.created_at, "do MMMM yyyy") : "---",
     _slug: item?.id,
+    _status: item?.status,
   }));
 };

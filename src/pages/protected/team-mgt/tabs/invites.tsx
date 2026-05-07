@@ -123,7 +123,7 @@ const FORMAT_TABLE_DATA = (data?: TeamMember[]) => {
 
     role: item?.role || "---",
     status: (
-      <Badge variant={item.status?.toLowerCase()} className="w-19.25">
+      <Badge variant={item.status?.toLowerCase()} className="min-w-19.25">
         {item?.status || "---"}
       </Badge>
     ),
