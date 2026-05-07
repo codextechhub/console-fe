@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { swipAnimateVariant } from "@/utils/animation";
 import { useFormik } from "formik";
+import { toast } from "sonner";
 
 export default function ForgotPassword() {
   const [submitted, setSubmitted] = useState(false);
@@ -25,7 +26,9 @@ export default function ForgotPassword() {
           setSentEmail(values.email);
           setSubmitted(true);
         })
-        .catch(() => {});
+        .catch(() => {
+          toast.error("Something went wrong. Please try again.");
+        });
     },
   });
 
