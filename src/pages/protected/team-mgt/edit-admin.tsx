@@ -44,7 +44,7 @@ export default function EditAdmin() {
   });
   return (
     <DashboardLayout title="Team Management" hasBack>
-      {!isLoading ? (
+      {!isLoading && teamMember?.data ? (
         <section className="px-4.5 py-6">
           <>
             <form onSubmit={formik.handleSubmit} className="max-w-235">
