@@ -62,11 +62,17 @@ export default function ResetPassword() {
           This password reset link is invalid or has expired. Please request a
           new one.
         </p>
+        <Link to={routesPath.AUTH.FORGOT_PASSWORD} className="block mt-4">
+          <Button className="w-full h-11">Request New Link</Button>
+        </Link>
         <Link
-          to={routesPath.AUTH.FORGOT_PASSWORD}
-          className="text-primary font-mont text-sm font-medium block mt-4"
+          to={routesPath.AUTH.LOGIN}
+          className="font-mont font-medium text-sm text-black-01 inline-flex justify-center items-center mt-2 group"
         >
-          Request new link
+          <figure className="size-fit mr-1.5 group-hover:-translate-x-1 ease-linear transition-all">
+            {svgIcons.arrowLeft}
+          </figure>
+          Back to Log In
         </Link>
       </div>
     );

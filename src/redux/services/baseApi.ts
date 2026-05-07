@@ -113,13 +113,14 @@ export const baseQueryInterceptor: BaseQueryFn<
         return retryResult; // Return the failed retry result
       } else {
         // Refresh failed, force logout
+        const authUrls = ["login", "reset-password", "password/reset", "forgot-password"];
         const isAuthRoute =
           typeof args === "string"
-            ? args.includes("login")
+            ? authUrls.some((u) => args.includes(u))
             : typeof args === "object" &&
                 "url" in args &&
                 typeof args.url === "string"
-              ? args.url.includes("login")
+              ? authUrls.some((u) => (args as { url: string }).url.includes(u))
               : false;
         if (isAuthRoute) {
           // Just show error for auth routes
