@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { routesPath } from "@/routes/routesPath";
 import { useNavigate, useParams } from "react-router";
+import { useSelector } from "react-redux";
+import { selectUser } from "@/redux/features/auth/authSlice";
 import {
   useGetTeamMembersDetailsQuery,
   useSuspendTeamMemberMutation,
@@ -34,6 +36,17 @@ import {
 
 const TABS = ["Overview", "Actions"] as const;
 type Tab = (typeof TABS)[number];
+
+const STATUS_VARIANT = {
+  ACTIVE: "active",
+  SUSPENDED: "suspended",
+  LOCKED: "locked",
+  PENDING: "pending",
+  DEACTIVATED: "deactivated",
+  INACTIVE: "inactive",
+} as const;
+
+type BadgeVariant = (typeof STATUS_VARIANT)[keyof typeof STATUS_VARIANT] | "default";
 
 function InfoRow({
   icon: Icon,
@@ -69,6 +82,7 @@ function ActionCard({
   buttonVariant = "default",
   onClick,
   loading,
+  disabled,
   destructive,
 }: {
   icon: React.ElementType;
@@ -78,6 +92,7 @@ function ActionCard({
   buttonVariant?: "default" | "outline";
   onClick: () => void;
   loading?: boolean;
+  disabled?: boolean;
   destructive?: boolean;
 }) {
   return (
@@ -107,6 +122,7 @@ function ActionCard({
         )}
         onClick={onClick}
         loading={loading}
+        disabled={disabled}
       >
         {buttonLabel}
       </Button>
@@ -118,6 +134,8 @@ export default function ViewAdmin() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
+
+  const currentUser = useSelector(selectUser);
 
   const { data: res, isLoading } = useGetTeamMembersDetailsQuery(id || "", {
     skip: !id,
@@ -175,6 +193,7 @@ export default function ViewAdmin() {
           buttonVariant="outline"
           destructive
           loading={suspending}
+          disabled={String(currentUser?.id) === String(member.id)}
           onClick={() =>
             handleAction(
               () => suspend(member.id).unwrap(),
@@ -234,7 +253,7 @@ export default function ViewAdmin() {
               <h2 className="text-xl font-semibold text-black-01 capitalize">
                 {member.full_name}
               </h2>
-              <Badge variant={member.status?.toLowerCase()}>
+              <Badge variant={(STATUS_VARIANT[member.status as keyof typeof STATUS_VARIANT] ?? "default") as BadgeVariant}>
                 {member.status}
               </Badge>
             </div>

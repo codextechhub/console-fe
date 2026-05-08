@@ -17,6 +17,8 @@ import type { TeamMember } from "@/redux/services/dashboard/type";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
+import { useSelector } from "react-redux";
+import { selectUser } from "@/redux/features/auth/authSlice";
 
 const tableHeader = [
   "Full Name",
@@ -51,7 +53,9 @@ export default function MembersTab() {
     [query, debouncedValue],
   );
 
-  const { data, isLoading, isFetching, isError } = useGetTeamMembersQuery(params, {
+  const currentUser = useSelector(selectUser);
+
+  const { data, isLoading, isError } = useGetTeamMembersQuery(params, {
     refetchOnMountOrArgChange: true,
   });
 
@@ -101,6 +105,7 @@ export default function MembersTab() {
         dropDownList={(row: { _slug: string; _status: string }) => {
           const statusAction = () => {
             if (row._status === "ACTIVE") {
+              if (String(currentUser?.id) === String(row._slug)) return null;
               return {
                 label: "Suspend",
                 className: "text-destructive focus:text-destructive focus:bg-destructive/10",
