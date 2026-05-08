@@ -13,7 +13,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "react-haiku";
 import type { TeamMember } from "@/redux/services/dashboard/type";
-import { format } from "date-fns";
+import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
 
 const tableHeader = [
@@ -127,7 +127,7 @@ const FORMAT_TABLE_DATA = (data?: TeamMember[]) => {
         {item?.status || "---"}
       </Badge>
     ),
-    date: item?.created_at ? format(item?.created_at, "do MMMM yyyy") : "---",
+    date: item?.created_at ? formatRelativeDate(item?.created_at) : "---",
     _slug: item?.id,
   }));
 };
