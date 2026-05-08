@@ -5,6 +5,7 @@ import Login from "@/pages/auth/login";
 import SignUp from "@/pages/auth/signup";
 import ResetPassword from "@/pages/auth/reset-password";
 import ForgotPassword from "@/pages/auth/forgot-password";
+import ActivateAccount from "@/pages/auth/activate";
 
 export const authRoutes = [
   {
@@ -15,6 +16,7 @@ export const authRoutes = [
       { path: routesPath.AUTH.SIGNUP, Component: SignUp },
       { path: routesPath.AUTH.FORGOT_PASSWORD, Component: ForgotPassword },
       { path: routesPath.AUTH.RESET_PASSWORD, Component: ResetPassword },
+      { path: routesPath.AUTH.ACTIVATE, Component: ActivateAccount },
     ],
   },
 ] as RouteObject[];

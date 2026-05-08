@@ -60,6 +60,19 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    activationPreview: builder.query<{ message: string; data: { email: string; full_name: string } }, string>({
+      query: (activation_key) => ({
+        url: `/user/auth/activate/${activation_key}/preview/`,
+        method: "GET",
+      }),
+    }),
+    activateAccount: builder.mutation<LoginResponse, { activation_key: string; password: string; confirm_password: string }>({
+      query: ({ activation_key, ...body }) => ({
+        url: `/user/auth/activate/${activation_key}/`,
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -69,4 +82,6 @@ export const {
   useForgotPasswordMutation,
   usePasswordResetPreviewQuery,
   usePasswordResetConfirmMutation,
+  useActivationPreviewQuery,
+  useActivateAccountMutation,
 } = authApi;
