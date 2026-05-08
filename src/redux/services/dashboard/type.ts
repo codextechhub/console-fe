@@ -5,7 +5,7 @@ export interface TeamMembersRes extends PaginatedResponse {
   data: TeamMember[]
 }
 export interface TeamMember {
-id: number
+  id: string
   email: string
   full_name: string
   first_name?: string
@@ -15,7 +15,16 @@ id: number
   user_type: string
   role: string
   status: string
+  school_id?: string
+  school_name?: string
+  branch_id?: string
+  branch_name?: string
+  invited_by_id?: string
+  invited_by_name?: string
+  password_changed_at?: string
+  last_login_at?: string
   created_at: string
+  updated_at?: string
 }
 
 export interface AllRolesRes extends PaginatedResponse {

@@ -64,6 +64,12 @@ export const teamMgtApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Users"],
     }),
+    adminPasswordReset: builder.mutation({
+      query: (user_id) => ({
+        url: `/user/${user_id}/password-reset/`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -76,4 +82,5 @@ export const {
   useSuspendTeamMemberMutation,
   useReactivateTeamMemberMutation,
   useUnlockTeamMemberMutation,
+  useAdminPasswordResetMutation,
 } = teamMgtApi;

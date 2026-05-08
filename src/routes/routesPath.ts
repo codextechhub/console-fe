@@ -21,6 +21,8 @@ export const routesPath = {
       EDIT_PATH: "/team-management/:id/edit",
       EDIT: (id:string) => `/team-management/${id}/edit`,
       CREATE: "/team-management/create",
+      VIEW_PATH: "/team-management/:id/view",
+      VIEW: (id: string) => `/team-management/${id}/view`,
     }
   },
 };

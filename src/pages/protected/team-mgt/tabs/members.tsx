@@ -137,7 +137,7 @@ export default function MembersTab() {
           };
 
           return [
-            { label: "View Details", className: "", onActionClick: () => {} },
+            { label: "View Details", className: "", onActionClick: () => navigate(routesPath.PROTECTED.TEAM_MGT.VIEW(row._slug)) },
             {
               label: "Edit",
               className: "",
