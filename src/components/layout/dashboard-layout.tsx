@@ -8,6 +8,8 @@ import { useNavigate } from "react-router";
 import { useAppSelector } from "@/redux/store";
 import { returnInitial } from "@/utils/helpers";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
+import { useSessionTimeout } from "@/hooks/use-session-timeout";
+import { SessionTimeoutModal } from "@/components/session-timeout-modal";
 
 export default function DashboardLayout({
   children,
@@ -23,8 +25,16 @@ export default function DashboardLayout({
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
   useTokenRefresh();
+  const { open, secondsLeft, onContinue, onLogout } = useSessionTimeout();
+
   return (
     <>
+      <SessionTimeoutModal
+        open={open}
+        secondsLeft={secondsLeft}
+        onContinue={onContinue}
+        onLogout={onLogout}
+      />
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset className="bg-white-05">
