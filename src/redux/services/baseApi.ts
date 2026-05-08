@@ -135,6 +135,10 @@ export const baseQueryInterceptor: BaseQueryFn<
           window.location.href = routesPath.AUTH.LOGIN;
         }
       }
+    } else if (res?.status === 403) {
+      toast.error("You don't have permission to perform this action.");
+    } else if (res?.status === 404) {
+      toast.error(res?.data?.message || "Resource not found.");
     } else if (res?.status === 405) {
       toast.error("Unauthorized. Please log in again.");
     } else if (res?.status === 413) {
@@ -143,6 +147,10 @@ export const baseQueryInterceptor: BaseQueryFn<
     } else if (res?.status === 405) {
       toast.error(res?.data?.detail || "Something went wrong. Please try again.");
       return result;
+    } else if (typeof res?.status === "number" && res.status >= 500) {
+      toast.error("A server error occurred. Please try again later.");
+    } else if (res?.status === "FETCH_ERROR" || res?.status === "TIMEOUT_ERROR") {
+      toast.error("Network error. Check your connection and try again.");
     }
   }
 

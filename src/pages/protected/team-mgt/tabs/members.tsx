@@ -51,7 +51,7 @@ export default function MembersTab() {
     [query, debouncedValue],
   );
 
-  const { data, isFetching } = useGetTeamMembersQuery(params, {
+  const { data, isLoading, isFetching, isError } = useGetTeamMembersQuery(params, {
     refetchOnMountOrArgChange: true,
   });
 
@@ -94,8 +94,10 @@ export default function MembersTab() {
 
       <CustomTable
         tableHeaderList={tableHeader}
-        tableBodyList={FORMAT_TABLE_DATA(data?.data)}
-        dropDown
+        tableBodyList={isError ? [] : FORMAT_TABLE_DATA(data?.data)}
+        emptyText={isError ? "Failed to load data. Please try again." : undefined}
+        loading={isLoading}
+        dropDown={!isError}
         dropDownList={(row: { _slug: string; _status: string }) => {
           const statusAction = () => {
             if (row._status === "ACTIVE") {
@@ -148,7 +150,6 @@ export default function MembersTab() {
         perPage={data?.pagination?.pageSize}
         totalPage={data?.pagination?.totalPages}
         currentPage={data?.pagination?.currentPage}
-        loading={isFetching}
       />
     </>
   );

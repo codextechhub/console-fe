@@ -48,7 +48,7 @@ export default function InvitesTab() {
     [query, debouncedValue],
   );
 
-  const { data, isFetching } = useGetTeamMembersQuery(params, {
+  const { data, isLoading, isError } = useGetTeamMembersQuery(params, {
     refetchOnMountOrArgChange: true,
   });
   const [resendInvite] = useResendInviteMutation();
@@ -87,8 +87,10 @@ export default function InvitesTab() {
 
       <CustomTable
         tableHeaderList={tableHeader}
-        tableBodyList={FORMAT_TABLE_DATA(data?.data)}
-        dropDown
+        tableBodyList={isError ? [] : FORMAT_TABLE_DATA(data?.data)}
+        emptyText={isError ? "Failed to load data. Please try again." : undefined}
+        loading={isLoading}
+        dropDown={!isError}
         dropDownList={[
           {
             label: "Resend Invite",
@@ -99,10 +101,6 @@ export default function InvitesTab() {
                 success: "Invite resent successfully",
                 error: "Failed to resend invite",
               });
-              // resendInvite(param._slug).unwrap()
-              // .then(() => {
-              //   // Handle success, e.g., show a success message
-              // })
               // .catch(() => {});
             },
           },
@@ -110,7 +108,6 @@ export default function InvitesTab() {
         perPage={data?.pagination?.pageSize}
         totalPage={data?.pagination?.totalPages}
         currentPage={data?.pagination?.currentPage}
-        loading={isFetching}
       />
     </>
   );
