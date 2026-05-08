@@ -5,7 +5,6 @@ import {
   useActivationPreviewQuery,
   useActivateAccountMutation,
 } from "@/redux/services/auth/authApi";
-import { setAuthUser } from "@/redux/features/auth/authSlice";
 import { routesPath } from "@/routes/routesPath";
 import { resetPasswordSchema } from "@/schema/auth";
 import { AnimatePresence, motion } from "motion/react";
@@ -13,13 +12,10 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { swipAnimateVariant } from "@/utils/animation";
 import { useFormik } from "formik";
-import Cookies from "js-cookie";
-import { useDispatch } from "react-redux";
 
 export default function ActivateAccount() {
   const { activation_key } = useParams<{ activation_key: string }>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [success, setSuccess] = useState(false);
 
   const {
@@ -37,12 +33,7 @@ export default function ActivateAccount() {
     onSubmit: (values) => {
       activateAccount({ activation_key: activation_key!, ...values })
         .unwrap()
-        .then((res) => {
-          Cookies.set("token", res.data.access || "");
-          Cookies.set("refresh_token", res.data.refresh || "");
-          dispatch(setAuthUser(res.data));
-          setSuccess(true);
-        })
+        .then(() => setSuccess(true))
         .catch(() => {});
     },
   });
@@ -50,8 +41,8 @@ export default function ActivateAccount() {
   useEffect(() => {
     if (success) {
       const t = setTimeout(() => {
-        navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
-      }, 3000);
+        navigate(routesPath.AUTH.LOGIN, { replace: true });
+      }, 5000);
       return () => clearTimeout(t);
     }
   }, [success]);
@@ -179,18 +170,16 @@ export default function ActivateAccount() {
                 Account Activated!
               </h4>
               <p className="text-sm font-medium text-gray-01 font-mont max-w-75.5 mx-auto">
-                Your account has been successfully activated. Redirecting you
-                to the dashboard…
+                Your account has been successfully activated. You can now log
+                in with your credentials.
               </p>
             </div>
 
             <Button
               className="w-full h-11 mt-9"
-              onClick={() =>
-                navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true })
-              }
+              onClick={() => navigate(routesPath.AUTH.LOGIN, { replace: true })}
             >
-              Go to Dashboard
+              Continue to Login
             </Button>
           </div>
         )}
