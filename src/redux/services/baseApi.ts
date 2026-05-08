@@ -76,7 +76,7 @@ export const baseQueryInterceptor: BaseQueryFn<
     const res: any = result?.error;
     console.log(res, "api")
     
-    if (res?.status === 400) {
+    if (res?.status === 400 || res?.status === 422) {
       const specific = extractFirstDetailError(res?.data?.error?.detail);
       const message = specific || res?.data?.message;
       if (message) toast.error(message);

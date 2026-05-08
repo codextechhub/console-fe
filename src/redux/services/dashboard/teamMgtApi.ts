@@ -26,6 +26,7 @@ export const teamMgtApi = baseApi.injectEndpoints({
         url: `/user/${user_id}/invite/resend/`,
         method: "POST",
       }),
+      invalidatesTags: ["Users"],
     }),
     createTeamMember: builder.mutation({
       query: (payload) => ({
