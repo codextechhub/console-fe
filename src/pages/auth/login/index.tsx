@@ -32,7 +32,7 @@ export default function Login() {
           Login to your Account
         </h4>
         <p className="text-sm font-medium text-gray-01 font-mont">
-          Let's get your school set up in minutes.
+          Sign in to access the admin console.
         </p>
       </div>
 
