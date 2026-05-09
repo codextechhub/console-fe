@@ -71,7 +71,7 @@ export const formatRelativeDate = (dateStr: string): string => {
         : day % 10 === 3 && day !== 13
           ? "rd"
           : "th";
-  const month = date.toLocaleString("en-US", { month: "long" });
+  const month = date.toLocaleString("en-US", { month: "short" });
   const year = date.getFullYear();
   return `${day}${suffix} ${month} ${year}`;
 };
