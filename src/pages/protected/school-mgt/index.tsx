@@ -18,7 +18,7 @@ import {
   useGetSchoolStatsQuery,
 } from "@/redux/services/dashboard/schoolMgtApi";
 import type { School } from "@/redux/services/dashboard/schoolType";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
@@ -42,8 +42,8 @@ export default function SchoolManagement() {
   }
   if (search) queryParams.q = search;
 
-  const { data: schoolsRes, isLoading } = useGetSchoolsQuery(queryParams);
-  const { data: statsRes } = useGetSchoolStatsQuery();
+  const { data: schoolsRes, isLoading, refetch, isFetching } = useGetSchoolsQuery(queryParams);
+  const { data: statsRes, refetch: refetchStats } = useGetSchoolStatsQuery();
 
   const stats = statsRes?.data;
 
@@ -128,6 +128,15 @@ export default function SchoolManagement() {
           <div className="inline-flex items-center gap-3.5">
             <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
               {svgIcons.filterIcon} Filter
+            </Button>
+            <Button
+              variant="white"
+              size="lg"
+              className="[&_svg]:size-5 font-medium font-mont"
+              onClick={() => { refetch(); refetchStats(); }}
+              disabled={isFetching}
+            >
+              <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
             </Button>
             <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
               {svgIcons.exportIcon} Export

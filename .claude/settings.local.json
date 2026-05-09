@@ -4,7 +4,9 @@
       "Bash(npm run *)",
       "Bash(cat)",
       "Read(//tmp/**)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(python manage.py showmigrations vs_schools)",
+      "Bash(xargs cat)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"
