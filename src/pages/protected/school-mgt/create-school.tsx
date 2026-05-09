@@ -74,6 +74,63 @@ const initialPackage: PackageStepData = {
   teacher_capacity: "", admin_capacity: "", subscription_expires_at: "",
 };
 
+export interface PrefillData {
+  school: SchoolStepData;
+  branches: BranchStepItem[];
+  admin: AdminStepData;
+  pkg: PackageStepData;
+}
+
+function generateTestData(): PrefillData {
+  const n = Math.floor(Math.random() * 900) + 100;
+  const slug = `test-school-${n}`;
+  return {
+    school: {
+      name: `Test School ${n}`,
+      slug,
+      code: `TST${n}`,
+      ownership_type: "PRIVATE",
+      address: `${n} Test Avenue, Victoria Island`,
+      website: `https://${slug}.ng`,
+      motto: "Excellence in Learning",
+      term_structure: "3_TERMS",
+      currency: "NGN",
+      registration_id: `REG-${n}`,
+    },
+    branches: [
+      {
+        name: "Main Campus",
+        _type: "Secondary",
+        address: `${n} Test Avenue, Victoria Island`,
+        email: `branch@${slug}.ng`,
+        country: "Nigeria",
+        state: "Lagos",
+        is_main: true,
+        admin_first_name: "Branch",
+        admin_last_name: `Admin${n}`,
+        admin_email: `branchadmin${n}@${slug}.ng`,
+        admin_phone: `+23480${n}0000`,
+        admin_role: "Head Teacher",
+      },
+    ],
+    admin: {
+      first_name: "School",
+      last_name: `Admin${n}`,
+      email: `admin${n}@${slug}.ng`,
+      phone: `+23470${n}0000`,
+      school_role: "IT Head",
+    },
+    pkg: {
+      package_plan: "",
+      enabled_modules: [],
+      student_capacity: 500,
+      teacher_capacity: 50,
+      admin_capacity: 10,
+      subscription_expires_at: "2027-12-31",
+    },
+  };
+}
+
 function buildPayload(
   school: SchoolStepData,
   branches: BranchStepItem[],
@@ -148,6 +205,12 @@ export default function CreateSchool() {
 
   const [createSchool, { isLoading: submitting }] = useCreateSchoolMutation();
 
+  const handlePrefill = (data: PrefillData) => {
+    setBranches(data.branches);
+    setAdminData(data.admin);
+    setPackageData(data.pkg);
+  };
+
   const handleSchoolNext = (data: SchoolStepData) => {
     setSchoolData(data);
     navigate({ search: "?step=branch" });
@@ -183,7 +246,7 @@ export default function CreateSchool() {
       case "plan":
         return <PackageSetup defaultValues={packageData} onSubmit={handleSubmit} isSubmitting={submitting} />;
       default:
-        return <AddSchool defaultValues={schoolData} onNext={handleSchoolNext} />;
+        return <AddSchool defaultValues={schoolData} onNext={handleSchoolNext} onPrefill={handlePrefill} generateTestData={generateTestData} />;
     }
   };
 

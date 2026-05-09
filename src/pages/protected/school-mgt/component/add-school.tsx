@@ -5,14 +5,18 @@ import { Button } from "@/components/ui/button";
 import { schoolStepSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router";
-import type { SchoolStepData } from "../create-school";
+import type { PrefillData, SchoolStepData } from "../create-school";
 
 interface Props {
   defaultValues: SchoolStepData;
   onNext: (data: SchoolStepData) => void;
+  onPrefill: (data: PrefillData) => void;
+  generateTestData: () => PrefillData;
 }
 
-export default function AddSchool({ defaultValues, onNext }: Props) {
+const isDev = import.meta.env.DEV;
+
+export default function AddSchool({ defaultValues, onNext, onPrefill, generateTestData }: Props) {
   const navigate = useNavigate();
 
   const formik = useFormik<SchoolStepData>({
@@ -22,13 +26,32 @@ export default function AddSchool({ defaultValues, onNext }: Props) {
     onSubmit: (values) => onNext(values),
   });
 
+  const handleFillTestData = () => {
+    const data = generateTestData();
+    formik.resetForm({ values: data.school });
+    onPrefill(data);
+  };
+
   return (
     <div className="max-w-235 mt-5">
-      <div className="mb-7 space-y-1.5">
-        <h4 className="font-medium text-xl text-black-01">Add a New School</h4>
-        <p className="text-gray-01 font-mont text-xs">
-          To add a new school fill all the compulsory questions below.
-        </p>
+      <div className="mb-7 space-y-1.5 flex items-start justify-between">
+        <div className="space-y-1.5">
+          <h4 className="font-medium text-xl text-black-01">Add a New School</h4>
+          <p className="text-gray-01 font-mont text-xs">
+            To add a new school fill all the compulsory questions below.
+          </p>
+        </div>
+        {isDev && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-xs shrink-0"
+            onClick={handleFillTestData}
+          >
+            Fill test data
+          </Button>
+        )}
       </div>
 
       <p className="inline-flex items-center text-gray-05 text-sm mb-4">
@@ -129,6 +152,7 @@ export default function AddSchool({ defaultValues, onNext }: Props) {
             id="currency"
             label="Currency"
             placeholder="Select currency"
+            isRequired
             options={[
               { label: "NGN (Naira)", value: "NGN" },
               { label: "USD (Dollar)", value: "USD" },
