@@ -25,15 +25,17 @@ export default function DashboardLayout({
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
   useTokenRefresh();
-  const { open, secondsLeft, onContinue, onLogout } = useSessionTimeout();
+  const { open, secondsLeft, isExpired, onContinue, onLogout, goToLogin } = useSessionTimeout();
 
   return (
     <>
       <SessionTimeoutModal
         open={open}
         secondsLeft={secondsLeft}
+        isExpired={isExpired}
         onContinue={onContinue}
         onLogout={onLogout}
+        goToLogin={goToLogin}
       />
       <SidebarProvider>
         <AppSidebar />

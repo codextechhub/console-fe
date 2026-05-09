@@ -21,6 +21,7 @@ export function useSessionTimeout() {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(WARNING_SECONDS);
+  const [isExpired, setIsExpired] = useState(false);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const openRef = useRef(false); // mirrors `open` without triggering effect re-runs
@@ -32,6 +33,17 @@ export function useSessionTimeout() {
       countdownRef.current = null;
     }
   };
+
+  // Clears auth state but stays on the page — user must click to go to login.
+  const expireSession = useCallback(() => {
+    clearCountdown();
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    Cookies.remove("token");
+    Cookies.remove("refresh_token");
+    clearStorageItem();
+    dispatch(resetAuth());
+    setIsExpired(true);
+  }, [dispatch]);
 
   const logout = useCallback(() => {
     clearCountdown();
@@ -54,7 +66,7 @@ export function useSessionTimeout() {
       countdownRef.current = setInterval(() => {
         setSecondsLeft((s) => {
           if (s <= 1) {
-            logout();
+            expireSession();
             return 0;
           }
           return s - 1;
@@ -112,5 +124,9 @@ export function useSessionTimeout() {
     resetIdleTimer();
   }, [baseUrl, dispatch, logout, resetIdleTimer]);
 
-  return { open, secondsLeft, onContinue, onLogout: logout };
+  const goToLogin = useCallback(() => {
+    window.location.href = routesPath.AUTH.LOGIN;
+  }, []);
+
+  return { open, secondsLeft, isExpired, onContinue, onLogout: logout, goToLogin };
 }
