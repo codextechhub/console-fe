@@ -1,5 +1,4 @@
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2 } from "lucide-react";
