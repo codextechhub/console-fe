@@ -44,7 +44,28 @@ export default function AddSchool({ defaultValues, onNext }: Props) {
             placeholder="e.g., St. Mary's College"
             isRequired
             {...formik.getFieldProps("name")}
+            onChange={(e) => {
+              const name = e.target.value;
+              formik.setFieldValue("name", name);
+              if (!formik.touched.slug) {
+                formik.setFieldValue(
+                  "slug",
+                  name.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-"),
+                );
+              }
+            }}
             error={formik.touched.name ? formik.errors.name : ""}
+          />
+          <CustomInput
+            id="slug"
+            label="School Slug"
+            placeholder="e.g., st-marys-college"
+            {...formik.getFieldProps("slug")}
+            onChange={(e) => {
+              formik.setFieldTouched("slug", true);
+              formik.setFieldValue("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
+            }}
+            error={formik.touched.slug ? formik.errors.slug : ""}
           />
           <CustomInput
             id="address"

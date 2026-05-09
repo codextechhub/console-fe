@@ -7,6 +7,7 @@ const phoneSchema = Yup.string().matches(
 
 export const schoolStepSchema = Yup.object({
   name: Yup.string().required("School name is required"),
+  slug: Yup.string().matches(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   ownership_type: Yup.string().required("Ownership type is required"),
   address: Yup.string().required("Address is required"),
   term_structure: Yup.string().required("Term structure is required"),

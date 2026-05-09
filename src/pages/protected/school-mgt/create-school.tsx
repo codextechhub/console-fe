@@ -11,6 +11,7 @@ import PackageSetup from "./component/package-setup";
 
 export interface SchoolStepData {
   name: string;
+  slug: string;
   code: string;
   ownership_type: string;
   address: string;
@@ -54,7 +55,7 @@ export interface PackageStepData {
 }
 
 const initialSchool: SchoolStepData = {
-  name: "", code: "", ownership_type: "", address: "",
+  name: "", slug: "", code: "", ownership_type: "", address: "",
   website: "", motto: "", term_structure: "", currency: "", registration_id: "",
 };
 
@@ -86,6 +87,7 @@ function buildPayload(
     term_structure: school.term_structure,
     currency: school.currency,
   };
+  if (school.slug) payload.slug = school.slug;
   if (school.code) payload.code = school.code;
   if (school.website) payload.website = school.website;
   if (school.motto) payload.motto = school.motto;
