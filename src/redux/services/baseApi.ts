@@ -161,5 +161,5 @@ export const baseApi = createApi({
   baseQuery: baseQueryInterceptor,
   endpoints: () => ({}),
   reducerPath: "baseApi",
-  tagTypes: ["Users", "Role"],
+  tagTypes: ["Users", "Role", "Schools", "Branches"],
 });

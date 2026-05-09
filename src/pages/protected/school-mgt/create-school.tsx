@@ -1,29 +1,202 @@
 import DashboardLayout from "@/components/layout/dashboard-layout";
-import { useSearchParams } from "react-router";
+import PromptModal from "@/components/modal/prompt-modal";
+import { useCreateSchoolMutation } from "@/redux/services/dashboard/schoolMgtApi";
+import { routesPath } from "@/routes/routesPath";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import AddSchool from "./component/add-school";
 import AddSchoolAdmin from "./component/add-school-admin";
 import AddSchoolBranch from "./component/add-school-branch";
 import PackageSetup from "./component/package-setup";
 
+export interface SchoolStepData {
+  name: string;
+  code: string;
+  ownership_type: string;
+  address: string;
+  website: string;
+  motto: string;
+  term_structure: string;
+  currency: string;
+  registration_id: string;
+}
+
+export interface BranchStepItem {
+  name: string;
+  _type: string;
+  address: string;
+  email: string;
+  country: string;
+  state: string;
+  is_main: boolean;
+  admin_first_name: string;
+  admin_last_name: string;
+  admin_email: string;
+  admin_phone: string;
+  admin_role: string;
+}
+
+export interface AdminStepData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  school_role: string;
+}
+
+export interface PackageStepData {
+  package_plan: string;
+  enabled_modules: string[];
+  student_capacity: number | string;
+  teacher_capacity: number | string;
+  admin_capacity: number | string;
+  subscription_expires_at: string;
+}
+
+const initialSchool: SchoolStepData = {
+  name: "", code: "", ownership_type: "", address: "",
+  website: "", motto: "", term_structure: "", currency: "", registration_id: "",
+};
+
+const initialBranch: BranchStepItem = {
+  name: "", _type: "", address: "", email: "", country: "Nigeria",
+  state: "", is_main: true, admin_first_name: "", admin_last_name: "",
+  admin_email: "", admin_phone: "", admin_role: "",
+};
+
+const initialAdmin: AdminStepData = {
+  first_name: "", last_name: "", email: "", phone: "", school_role: "",
+};
+
+const initialPackage: PackageStepData = {
+  package_plan: "", enabled_modules: [], student_capacity: "",
+  teacher_capacity: "", admin_capacity: "", subscription_expires_at: "",
+};
+
+function buildPayload(
+  school: SchoolStepData,
+  branches: BranchStepItem[],
+  admin: AdminStepData,
+  pkg: PackageStepData,
+) {
+  const payload: Record<string, unknown> = {
+    name: school.name,
+    ownership_type: school.ownership_type,
+    address: school.address,
+    term_structure: school.term_structure,
+    currency: school.currency,
+  };
+  if (school.code) payload.code = school.code;
+  if (school.website) payload.website = school.website;
+  if (school.motto) payload.motto = school.motto;
+  if (school.registration_id) payload.registration_id = school.registration_id;
+
+  if (admin.first_name && admin.email) {
+    payload.primary_admin_data = {
+      full_name: `${admin.first_name} ${admin.last_name}`.trim(),
+      email: admin.email,
+      phone: admin.phone || "",
+      school_role: admin.school_role || "IT Head",
+      role_label: "SCHOOL_ADMIN",
+    };
+  }
+
+  if (branches.length > 0) {
+    payload.branches = branches.map((b) => ({
+      name: b.name,
+      _type: b._type,
+      address: b.address || "",
+      email: b.email || "",
+      country: b.country || "Nigeria",
+      state: b.state || "",
+      is_main: b.is_main,
+      primary_admin_data: {
+        full_name: `${b.admin_first_name} ${b.admin_last_name}`.trim(),
+        email: b.admin_email,
+        phone: b.admin_phone || "",
+        branch_role: b.admin_role || "Head Teacher",
+        role_label: "BRANCH_ADMIN",
+      },
+    }));
+  }
+
+  if (pkg.package_plan) {
+    payload.package_setup_data = {
+      package_plan: pkg.package_plan,
+      enabled_modules: pkg.enabled_modules,
+      student_capacity: Number(pkg.student_capacity),
+      teacher_capacity: Number(pkg.teacher_capacity),
+      admin_capacity: Number(pkg.admin_capacity),
+      ...(pkg.subscription_expires_at ? { subscription_expires_at: pkg.subscription_expires_at } : {}),
+    };
+  }
+
+  return payload;
+}
+
 export default function CreateSchool() {
   const [searchParams] = useSearchParams();
-  const tab = searchParams.get("step");
+  const navigate = useNavigate();
+  const step = searchParams.get("step") ?? "school";
 
-  const getActiveFormTab = () => {
-    switch (tab) {
-      case "admin":
-        return <AddSchoolAdmin />;
+  const [schoolData, setSchoolData] = useState<SchoolStepData>(initialSchool);
+  const [branches, setBranches] = useState<BranchStepItem[]>([{ ...initialBranch }]);
+  const [adminData, setAdminData] = useState<AdminStepData>(initialAdmin);
+  const [packageData, setPackageData] = useState<PackageStepData>(initialPackage);
+
+  const [createSchool, { isLoading: submitting }] = useCreateSchoolMutation();
+
+  const handleSchoolNext = (data: SchoolStepData) => {
+    setSchoolData(data);
+    navigate({ search: "?step=branch" });
+  };
+
+  const handleBranchNext = (data: BranchStepItem[]) => {
+    setBranches(data);
+    navigate({ search: "?step=admin" });
+  };
+
+  const handleAdminNext = (data: AdminStepData) => {
+    setAdminData(data);
+    navigate({ search: "?step=plan" });
+  };
+
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const handleSubmit = (data: PackageStepData) => {
+    setPackageData(data);
+    const payload = buildPayload(schoolData, branches, adminData, data);
+    createSchool(payload)
+      .unwrap()
+      .then(() => setShowSuccess(true))
+      .catch(() => {});
+  };
+
+  const renderStep = () => {
+    switch (step) {
       case "branch":
-        return <AddSchoolBranch />;
+        return <AddSchoolBranch defaultValues={branches} onNext={handleBranchNext} />;
+      case "admin":
+        return <AddSchoolAdmin defaultValues={adminData} onNext={handleAdminNext} />;
       case "plan":
-        return <PackageSetup />;
+        return <PackageSetup defaultValues={packageData} onSubmit={handleSubmit} isSubmitting={submitting} />;
       default:
-        return <AddSchool />;
+        return <AddSchool defaultValues={schoolData} onNext={handleSchoolNext} />;
     }
   };
+
   return (
     <DashboardLayout title="School Management" hasBack>
-      <section className="px-4.5 py-6">{getActiveFormTab()}</section>
+      <section className="px-4.5 py-6">{renderStep()}</section>
+      <PromptModal
+        isOpen={showSuccess}
+        onConfirm={() => {
+          setShowSuccess(false);
+          navigate(routesPath.PROTECTED.SCHOOL_MGT.INDEX + "?status=pending", { replace: true });
+        }}
+        title="School created successfully"
+        description="The school has been set up and invitations have been sent to the administrators. You can continue to the dashboard."
+      />
     </DashboardLayout>
   );
 }

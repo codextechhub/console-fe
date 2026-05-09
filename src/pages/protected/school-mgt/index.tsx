@@ -13,49 +13,64 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routesPath";
+import {
+  useGetSchoolsQuery,
+  useGetSchoolStatsQuery,
+} from "@/redux/services/dashboard/schoolMgtApi";
+import type { School } from "@/redux/services/dashboard/schoolType";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
-const tableHeader = [
-  "S/N",
-  "School Name",
-  "Location",
-  "Total Student",
-  "Type",
-  "Status",
-  "Action",
-];
+const TABLE_HEADERS = ["S/N", "School Name", "Location", "Total Students", "Type", "Status", "Action"];
+
+const STATUS_MAP: Record<string, string> = {
+  active: "ACTIVE",
+  pending: "PENDING",
+  inactive: "INACTIVE",
+};
 
 export default function SchoolManagement() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const filter_status = searchParams.get("status");
-  const metricCard = [
-    {
-      title: "All Schools",
-      value: "790",
-      query: "",
-      active: !filter_status,
-    },
-    {
-      title: "Active Schools",
-      value: "570",
-      query: "active",
-      active: filter_status === "active",
-    },
-    {
-      title: "Pending Schools",
-      value: "210",
-      query: "pending",
-      active: filter_status === "pending",
-    },
-    {
-      title: "Inactive Schools",
-      value: "10",
-      query: "inactive",
-      active: filter_status === "inactive",
-    },
+  const [search, setSearch] = useState("");
+
+  const queryParams: Record<string, string | number> = {};
+  if (filter_status && STATUS_MAP[filter_status]) {
+    queryParams.status = STATUS_MAP[filter_status];
+  }
+  if (search) queryParams.q = search;
+
+  const { data: schoolsRes, isLoading } = useGetSchoolsQuery(queryParams);
+  const { data: statsRes } = useGetSchoolStatsQuery();
+
+  const stats = statsRes?.data;
+
+  const metricCards = [
+    { title: "All Schools", value: stats?.all ?? 0, query: "", active: !filter_status },
+    { title: "Active Schools", value: stats?.active ?? 0, query: "active", active: filter_status === "active" },
+    { title: "Pending Schools", value: stats?.pending ?? 0, query: "pending", active: filter_status === "pending" },
+    { title: "Inactive Schools", value: stats?.inactive ?? 0, query: "inactive", active: filter_status === "inactive" },
   ];
+
+  const tableData = schoolsRes?.data?.map((item: School, idx: number) => ({
+    sn: <p>{idx + 1}</p>,
+    name: <p className="capitalize font-medium">{item.name || "—"}</p>,
+    location: item.main_branch
+      ? [item.main_branch.state, item.main_branch.country].filter(Boolean).join(", ") || "—"
+      : "—",
+    totalStudents: item.total_students ?? "—",
+    type: item.ownership_type
+      ? item.ownership_type.charAt(0) + item.ownership_type.slice(1).toLowerCase().replace("_", " ")
+      : "—",
+    status: (
+      <Badge variant={item.status?.toLowerCase() as "active" | "pending" | "inactive" | "default"}>
+        {item.status}
+      </Badge>
+    ),
+    _slug: item.slug,
+  }));
 
   return (
     <DashboardLayout title="School Management">
@@ -71,9 +86,7 @@ export default function SchoolManagement() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="border rounded-sm">
               <DropdownMenuItem
-                onClick={() => {
-                  navigate(routesPath.PROTECTED.SCHOOL_MGT.CREATE);
-                }}
+                onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.CREATE)}
                 className="text-sm cursor-pointer text-custom-gray-scale-400"
               >
                 Add Manual
@@ -87,23 +100,17 @@ export default function SchoolManagement() {
         </div>
 
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {metricCard.map((item, idx) => (
+          {metricCards.map((item, idx) => (
             <div
+              key={idx}
               className={cn(
                 "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
                 item.active && "bg-pry-01",
               )}
-              key={idx}
-              onClick={() => {
-                setSearchParams({ status: item.query });
-              }}
+              onClick={() => setSearchParams({ status: item.query })}
             >
-              <h5 className="font-mont text-sm font-medium text-gray-01">
-                {item.title}
-              </h5>
-              <p className="font-semibold text-2xl text-[#221122]">
-                {item.value}
-              </p>
+              <h5 className="font-mont text-sm font-medium text-gray-01">{item.title}</h5>
+              <p className="font-semibold text-2xl text-[#221122]">{item.value}</p>
             </div>
           ))}
         </div>
@@ -112,111 +119,39 @@ export default function SchoolManagement() {
           <CustomInput
             id="search"
             canSearch
-            placeholder="Search..."
+            placeholder="Search schools..."
             className="h-10"
             containerClass="max-w-[280px]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
-
           <div className="inline-flex items-center gap-3.5">
-            <Button
-              variant={"white"}
-              size="lg"
-              className="[&_svg]:size-5 font-medium font-mont"
-            >
+            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
               {svgIcons.filterIcon} Filter
             </Button>
-            <Button
-              variant={"white"}
-              size="lg"
-              className="[&_svg]:size-5 font-medium font-mont"
-            >
+            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
               {svgIcons.exportIcon} Export
             </Button>
           </div>
         </div>
 
         <CustomTable
-          tableHeaderList={tableHeader}
-          tableBodyList={FORMAT_TABLE_DATA(dummyData)}
+          tableHeaderList={TABLE_HEADERS}
+          tableBodyList={tableData ?? []}
+          loading={isLoading}
           dropDown
+          dropDownList={(row: { _slug: string }) => [
+            {
+              label: "View Details",
+              onActionClick: () => navigate(routesPath.PROTECTED.SCHOOL_MGT.VIEW(row._slug)),
+            },
+            {
+              label: "Edit School",
+              onActionClick: () => navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT(row._slug)),
+            },
+          ]}
         />
       </main>
     </DashboardLayout>
   );
 }
-
-const FORMAT_TABLE_DATA = (data: any) => {
-  return data?.data?.map((item: any, idx: number) => ({
-    sn: <p className="capitalize">{idx + 1}</p>,
-    name: <p className="capitalize">{item?.schoolName || "---"}</p>,
-    location: item?.location || "---",
-
-    totalStudents: item?.totalStudents || "---",
-    schoolType: item?.schoolType || "---",
-    status: (
-      <Badge variant={item.status?.toLowerCase()} className="w-19.25">
-        {item?.status || "---"}
-      </Badge>
-    ),
-    _slug: item?.id,
-  }));
-};
-
-const dummyData = {
-  success: true,
-  data: [
-    {
-      id: 1,
-      schoolName: "Stars International School",
-      location: "Lagos Island",
-      totalStudents: 120,
-      schoolType: "Primary",
-      status: "Active",
-    },
-    {
-      id: 2,
-      schoolName: "Stars International School",
-      location: "Lagos Island",
-      totalStudents: 200,
-      schoolType: "Secondary",
-      status: "Pending",
-    },
-    {
-      id: 3,
-      schoolName: "Stars International School",
-      location: "Lagos Island",
-      totalStudents: 200,
-      schoolType: "Secondary",
-      status: "Inactive",
-    },
-    {
-      id: 4,
-      schoolName: "Stars International School",
-      location: "Lagos Island",
-      totalStudents: 120,
-      schoolType: "Secondary",
-      status: "Active",
-    },
-    {
-      id: 5,
-      schoolName: "Stars International School",
-      location: "Lagos Island",
-      totalStudents: 120,
-      schoolType: "Primary",
-      status: "Pending",
-    },
-    {
-      id: 6,
-      schoolName: "Stars International School",
-      location: "Lagos Island",
-      totalStudents: 200,
-      schoolType: "Primary",
-      status: "Pending",
-    },
-  ],
-  meta: {
-    total: 6,
-    page: 1,
-    pageSize: 10,
-  },
-};

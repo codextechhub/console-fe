@@ -3,22 +3,47 @@ import { CustomDateInput } from "@/components/custom/custom-date-input";
 import { CustomInput } from "@/components/custom/custom-input";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import { MultiSelectInput } from "@/components/custom/multiselect-input";
-import PromptModal from "@/components/modal/prompt-modal";
 import { Button } from "@/components/ui/button";
-import useToggleModal from "@/hooks/use-toggle";
-import { routesPath } from "@/routes/routesPath";
+import {
+  useGetModulesQuery,
+  useGetPackagePlansQuery,
+} from "@/redux/services/dashboard/schoolMgtApi";
+import { packageStepSchema } from "@/schema/dashboard/school-mgt";
+import { useFormik } from "formik";
 import { useNavigate } from "react-router";
+import type { PackageStepData } from "../create-school";
 
-export default function PackageSetup() {
+interface Props {
+  defaultValues: PackageStepData;
+  onSubmit: (data: PackageStepData) => void;
+  isSubmitting: boolean;
+}
+
+export default function PackageSetup({ defaultValues, onSubmit, isSubmitting }: Props) {
   const navigate = useNavigate();
-  const { isOpen, toggleClick } = useToggleModal(false);
+
+  const { data: plansRes, isLoading: plansLoading } = useGetPackagePlansQuery();
+  const { data: modulesRes, isLoading: modulesLoading } = useGetModulesQuery();
+
+  const planOptions = (plansRes?.data ?? []).map((p) => ({ label: p.name, value: p.code }));
+  const moduleOptions = (modulesRes?.data ?? []).map((m) => ({ label: m.name, value: m.key }));
+
+  const formik = useFormik<PackageStepData>({
+    initialValues: defaultValues,
+    validationSchema: packageStepSchema,
+    enableReinitialize: false,
+    onSubmit: (values) => {
+      onSubmit(values);
+    },
+  });
+
   return (
     <>
       <div className="max-w-235 mt-5">
         <div className="mb-7 space-y-1.5">
           <h4 className="font-medium text-xl text-black-01">Package Setup</h4>
           <p className="text-gray-01 font-mont text-xs">
-            To add a new school fill all the compulsory questions below.
+            Select a package plan and configure the school's module access and capacity limits.
           </p>
         </div>
 
@@ -27,88 +52,87 @@ export default function PackageSetup() {
           <figure className="size-fit ml-2">{svgIcons.infoIcon}</figure>
         </p>
 
-        <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
-          <CustomNativeSelect
-            id="package"
-            label="Package Plan"
-            placeholder="Select package plan"
-            options={[
-              { label: "Basic", value: "basic" },
-              { label: "Standard", value: "standard" },
-              { label: "Premium", value: "premium" },
-              { label: "Enterprise", value: "enterprise" },
-            ]}
-            isRequired
-          />
+        <form onSubmit={formik.handleSubmit}>
+          <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
+            <CustomNativeSelect
+              id="package_plan"
+              label="Package Plan"
+              placeholder={plansLoading ? "Loading..." : "Select package plan"}
+              isRequired
+              options={planOptions}
+              value={formik.values.package_plan}
+              onChange={(e) => formik.setFieldValue("package_plan", e.target.value)}
+              error={formik.touched.package_plan ? formik.errors.package_plan : ""}
+            />
 
-          <MultiSelectInput
-            id="modules"
-            label="Enabled Modules"
-            placeholder="Select modules"
-            options={[
-              { label: "Student Management", value: "student" },
-              { label: "Teacher Management", value: "teacher" },
-              { label: "Parent Portal", value: "parent" },
-              { label: "Finance / Fees", value: "finance" },
-            ]}
-            maxCount={1}
-            isRequired
-            onValueChange={() => {}}
-          />
+            <MultiSelectInput
+              id="enabled_modules"
+              label="Enabled Modules"
+              placeholder={modulesLoading ? "Loading..." : "Select modules"}
+              options={moduleOptions}
+              maxCount={3}
+              isRequired
+              defaultValue={formik.values.enabled_modules as string[]}
+              onValueChange={(vals) => formik.setFieldValue("enabled_modules", vals)}
+              error={
+                formik.touched.enabled_modules
+                  ? (formik.errors.enabled_modules as string)
+                  : ""
+              }
+            />
 
-          <CustomInput
-            id="student"
-            type="number"
-            label="Number of Students"
-            placeholder="Enter student capacity"
-            isRequired
-          />
-          <CustomInput
-            id="teacher"
-            type="number"
-            label="Number of Teachers"
-            placeholder="Enter teacher capacity"
-            isRequired
-          />
-          <CustomInput
-            id="admin"
-            type="number"
-            label="Number of Admins"
-            placeholder="Enter admin capacity"
-            isRequired
-          />
-          <CustomDateInput
-            id="role"
-            label="Subscription Expires"
-            placeholder="Enter expire duration"
-          />
-        </div>
+            <CustomInput
+              id="student_capacity"
+              type="number"
+              label="Number of Students"
+              placeholder="Enter student capacity"
+              isRequired
+              {...formik.getFieldProps("student_capacity")}
+              error={formik.touched.student_capacity ? (formik.errors.student_capacity as string) : ""}
+            />
+            <CustomInput
+              id="teacher_capacity"
+              type="number"
+              label="Number of Teachers"
+              placeholder="Enter teacher capacity"
+              isRequired
+              {...formik.getFieldProps("teacher_capacity")}
+              error={formik.touched.teacher_capacity ? (formik.errors.teacher_capacity as string) : ""}
+            />
+            <CustomInput
+              id="admin_capacity"
+              type="number"
+              label="Number of Admins"
+              placeholder="Enter admin capacity"
+              isRequired
+              {...formik.getFieldProps("admin_capacity")}
+              error={formik.touched.admin_capacity ? (formik.errors.admin_capacity as string) : ""}
+            />
+            <CustomDateInput
+              id="subscription_expires_at"
+              label="Subscription Expires"
+              placeholder="Select expiry date"
+              value={formik.values.subscription_expires_at}
+              onValueChange={(date) => formik.setFieldValue("subscription_expires_at", date)}
+            />
+          </div>
 
-        <div className="mt-10 inline-flex items-center gap-4">
-          <Button variant={"outline-dest"} className="w-37">
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              toggleClick();
-            }}
-            className="w-37"
-          >
-            Continue
-          </Button>
-        </div>
+          <div className="mt-10 inline-flex items-center gap-4">
+            <Button
+              type="button"
+              variant="outline-dest"
+              className="w-37"
+              onClick={() => navigate({ search: "?step=admin" })}
+            >
+              Back
+            </Button>
+            <Button type="submit" className="w-37" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </Button>
+          </div>
+        </form>
       </div>
-      <PromptModal
-        isOpen={isOpen}
-        onConfirm={() => {
-          toggleClick();
-          navigate(routesPath.PROTECTED.SCHOOL_MGT.INDEX + "?status=pending", {
-            replace: true,
-          });
-        }}
-        title="School created successfully"
-        description="The school has been set up and invitations have been sent to the administrators. You can continue to the dashboard."
-      />
+
     </>
   );
 }

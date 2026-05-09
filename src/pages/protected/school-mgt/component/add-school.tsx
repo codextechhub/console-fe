@@ -2,125 +2,138 @@ import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import { Button } from "@/components/ui/button";
+import { schoolStepSchema } from "@/schema/dashboard/school-mgt";
+import { useFormik } from "formik";
 import { useNavigate } from "react-router";
+import type { SchoolStepData } from "../create-school";
 
-export default function AddSchool() {
+interface Props {
+  defaultValues: SchoolStepData;
+  onNext: (data: SchoolStepData) => void;
+}
+
+export default function AddSchool({ defaultValues, onNext }: Props) {
   const navigate = useNavigate();
+
+  const formik = useFormik<SchoolStepData>({
+    initialValues: defaultValues,
+    validationSchema: schoolStepSchema,
+    enableReinitialize: false,
+    onSubmit: (values) => onNext(values),
+  });
+
   return (
-    <>
-      <div className="max-w-235 mt-5">
-        <div className="mb-7 space-y-1.5">
-          <h4 className="font-medium text-xl text-black-01">
-            Add a New School
-          </h4>
-          <p className="text-gray-01 font-mont text-xs">
-            To add a new school fill all the compulsory questions below.
-          </p>
-        </div>
-
-        <p className="inline-flex items-center text-gray-05 text-sm mb-4">
-          School Information
-          <figure className="size-fit ml-2">{svgIcons.infoIcon}</figure>
+    <div className="max-w-235 mt-5">
+      <div className="mb-7 space-y-1.5">
+        <h4 className="font-medium text-xl text-black-01">Add a New School</h4>
+        <p className="text-gray-01 font-mont text-xs">
+          To add a new school fill all the compulsory questions below.
         </p>
+      </div>
 
+      <p className="inline-flex items-center text-gray-05 text-sm mb-4">
+        School Information
+        <figure className="size-fit ml-2">{svgIcons.infoIcon}</figure>
+      </p>
+
+      <form onSubmit={formik.handleSubmit}>
         <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
           <CustomInput
             id="name"
             label="School Name"
-            placeholder="Enter school name e.g., St. Mary’s College"
+            placeholder="e.g., St. Mary's College"
             isRequired
+            {...formik.getFieldProps("name")}
+            error={formik.touched.name ? formik.errors.name : ""}
           />
           <CustomInput
             id="address"
             label="School Address"
             placeholder="Enter school address"
             isRequired
-          />
-          <CustomInput
-            id="name"
-            type="email"
-            label="School Email Address"
-            placeholder="Enter school email e.g., marycollege@gmail.com"
-            isRequired
+            {...formik.getFieldProps("address")}
+            error={formik.touched.address ? formik.errors.address : ""}
           />
           <CustomNativeSelect
-            id="name"
+            id="ownership_type"
             label="Ownership Type"
-            placeholder="Select school type"
-            options={[
-              { label: "Private", value: "private" },
-              { label: "Public", value: "public" },
-              { label: "Faith-based", value: "faith-based" },
-              { label: "NGO / Foundation", value: "NGO-Foundation" },
-            ]}
+            placeholder="Select ownership type"
             isRequired
+            options={[
+              { label: "Private", value: "PRIVATE" },
+              { label: "Public", value: "PUBLIC" },
+              { label: "Faith-Based", value: "FAITH_BASED" },
+              { label: "NGO / Foundation", value: "NGO" },
+            ]}
+            value={formik.values.ownership_type}
+            onChange={(e) => formik.setFieldValue("ownership_type", e.target.value)}
+            error={formik.touched.ownership_type ? formik.errors.ownership_type : ""}
           />
           <CustomInput
             id="code"
             label="School Code"
             placeholder="Enter school code"
-            isRequired
+            {...formik.getFieldProps("code")}
+            error={formik.touched.code ? formik.errors.code : ""}
           />
           <CustomInput
-            id="url"
+            id="website"
             type="url"
             label="School Website"
-            placeholder="Enter website"
+            placeholder="https://example.com"
+            {...formik.getFieldProps("website")}
+            error={formik.touched.website ? formik.errors.website : ""}
           />
           <CustomInput
             id="motto"
-            type="text"
             label="School Motto"
             placeholder="Enter school motto"
+            {...formik.getFieldProps("motto")}
+            error={formik.touched.motto ? formik.errors.motto : ""}
           />
           <CustomNativeSelect
-            id="term"
+            id="term_structure"
             label="Term Structure"
             placeholder="Select term structure"
-            options={[
-              { label: "3 Terms", value: "terms" },
-              { label: "2 Semesters", value: "semesters" },
-            ]}
             isRequired
+            options={[
+              { label: "3 Terms", value: "3_TERMS" },
+              { label: "2 Semesters", value: "2_SEMESTERS" },
+            ]}
+            value={formik.values.term_structure}
+            onChange={(e) => formik.setFieldValue("term_structure", e.target.value)}
+            error={formik.touched.term_structure ? formik.errors.term_structure : ""}
           />
           <CustomNativeSelect
             id="currency"
             label="Currency"
-            placeholder="Select currency type"
+            placeholder="Select currency"
             options={[
-              { label: "NGN (Naira)", value: "ngn" },
-              { label: "USD (Dollars)", value: "usd" },
+              { label: "NGN (Naira)", value: "NGN" },
+              { label: "USD (Dollar)", value: "USD" },
             ]}
+            value={formik.values.currency}
+            onChange={(e) => formik.setFieldValue("currency", e.target.value)}
+            error={formik.touched.currency ? formik.errors.currency : ""}
           />
           <CustomInput
-            id="govt_id"
-            type="text"
+            id="registration_id"
             label="Registration ID"
             placeholder="Enter registration number"
-          />
-          <CustomInput
-            id="logo"
-            type="file"
-            label="School Logo"
-            placeholder="Select file jpg. jpeg. png. files supported "
-            isRequired
+            {...formik.getFieldProps("registration_id")}
+            error={formik.touched.registration_id ? formik.errors.registration_id : ""}
           />
         </div>
 
         <div className="mt-10 inline-flex items-center gap-4">
-          <Button variant={"outline-dest"} className="w-37">
+          <Button type="button" variant="outline-dest" className="w-37" onClick={() => navigate(-1)}>
             Cancel
           </Button>
-          <Button
-            onClick={() => {
-              navigate({ search: "?step=branch" });
-            }}
-            className="w-37"
-          >
+          <Button type="submit" className="w-37">
             Continue
           </Button>
         </div>
-      </div>
-    </>
+      </form>
+    </div>
   );
 }

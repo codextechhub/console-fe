@@ -12,9 +12,11 @@ export const routesPath = {
     OVERVIEW: { INDEX: "/overview" },
     SCHOOL_MGT: {
       INDEX: "/school-management",
-      EDIT_PATH: "/school-management/:id/edit",
-      EDIT: (id:string) => `/school-management/${id}/edit`,
       CREATE: "/school-management/create",
+      VIEW_PATH: "/school-management/:slug/view",
+      VIEW: (slug: string) => `/school-management/${slug}/view`,
+      EDIT_PATH: "/school-management/:slug/edit",
+      EDIT: (slug: string) => `/school-management/${slug}/edit`,
     },
     TEAM_MGT: {
       INDEX: '/team-management',
