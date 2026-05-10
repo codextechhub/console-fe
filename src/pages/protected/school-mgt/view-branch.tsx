@@ -9,11 +9,12 @@ import {
 } from "@/redux/services/dashboard/schoolMgtApi";
 import { routesPath } from "@/routes/routesPath";
 import { formatEnum, formatStartedTime } from "@/utils/helpers";
+import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
-const CLASS_TABLE_HEADERS = ["S/N", "Branch Name", "Branch Code", "School Type", "School Location", "School Address", "Action"];
+const CLASS_TABLE_HEADERS = ["S/N", "Class Name", "Level", "Total Students", "Class Teacher", "Action"];
 
 function InfoRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
@@ -54,6 +55,8 @@ export default function ViewBranch() {
   const school = schoolData?.data;
   const branch = branchData?.data;
   const isLoading = schoolLoading || branchLoading;
+
+  useLoadingCursor(isLoading);
 
   const initials = school?.name
     ?.split(" ")
@@ -110,8 +113,6 @@ export default function ViewBranch() {
                 <InfoRow label="Branch Email" value={branch.email} />
                 <InfoRow label="Branch Code" value={branch.code} />
                 <InfoRow label="State" value={branch.state} />
-                <InfoRow label="Branch Admin" value={branch.primary_admin?.contact.full_name} />
-                <InfoRow label="Branch Admin Email" value={branch.primary_admin?.contact.email} />
                 <InfoRow
                   label="Activation Date"
                   value={branch.activated_at ? formatStartedTime(branch.activated_at) : "Not Activated"}
@@ -120,10 +121,39 @@ export default function ViewBranch() {
               <div className="space-y-5">
                 <InfoRow label="Branch Address" value={branch.address} />
                 <InfoRow label="Country" value={branch.country} />
-                <InfoRow label="Email Address" value={branch.email} />
-                <InfoRow label="Branch Admin Role" value={formatEnum(branch.primary_admin?.role_label)} />
                 <InfoRow label="Branch Type" value={formatEnum(branch._type)} />
               </div>
+            </div>
+
+            {/* Branch Admin Block */}
+            <div className="bg-white rounded-md p-6 space-y-4">
+              <p className="text-sm font-semibold text-gray-05">Branch Admin</p>
+              {branch.primary_admin ? (
+                <div className="grid md:grid-cols-2 gap-x-16 gap-y-5">
+                  <div className="space-y-5">
+                    <InfoRow label="Admin Name"   value={branch.primary_admin.contact.full_name} />
+                    <InfoRow label="Admin Email"  value={branch.primary_admin.contact.email} />
+                    <InfoRow label="Phone Number" value={branch.primary_admin.contact.phone} />
+                  </div>
+                  <div className="space-y-5">
+                    <InfoRow label="Admin Role" value={formatEnum(branch.primary_admin.branch_role)} />
+                    <div className="flex items-start gap-6">
+                      <p className="text-sm text-gray-01 font-mont w-44 shrink-0">Invite Status</p>
+                      <Badge
+                        variant={
+                          branch.primary_admin.invite_status === "SENT" ? "active"
+                          : branch.primary_admin.invite_status === "FAILED" ? "rejected"
+                          : "pending"
+                        }
+                      >
+                        {formatEnum(branch.primary_admin.invite_status)}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-01">No admin assigned.</p>
+              )}
             </div>
 
             {/* Stat Cards */}
@@ -137,10 +167,9 @@ export default function ViewBranch() {
             <TableToolbar
               search={search}
               onSearchChange={setSearch}
-              placeholder="Search..."
+              placeholder="Search classes..."
             />
 
-            {/* Classes Table — empty until backend supports classes */}
             <CustomTable
               tableHeaderList={CLASS_TABLE_HEADERS}
               tableBodyList={[]}

@@ -16,6 +16,7 @@ import {
   useResendInviteMutation,
 } from "@/redux/services/dashboard/teamMgtApi";
 import { returnInitial, formatRelativeDate } from "@/utils/helpers";
+import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { toast } from "sonner";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -149,6 +150,8 @@ export default function ViewAdmin() {
   const [resetPassword, { isLoading: resetting }] =
     useAdminPasswordResetMutation();
   const [resendInvite, { isLoading: resending }] = useResendInviteMutation();
+
+  useLoadingCursor(isLoading || suspending || reactivating || unlocking || resetting || resending);
 
   const handleAction = (
     action: () => Promise<unknown>,

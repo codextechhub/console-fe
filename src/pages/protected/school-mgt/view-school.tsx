@@ -7,6 +7,7 @@ import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/schoolMgtApi
 import type { BranchDetail } from "@/redux/services/dashboard/schoolType";
 import { routesPath } from "@/routes/routesPath";
 import { formatEnum } from "@/utils/helpers";
+import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -44,6 +45,8 @@ export default function ViewSchool() {
   // ── Single API: GET /i/{slug}/ ────────────────────────────────────────────
   const { data, isLoading, isError } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
   const school = data?.data;
+
+  useLoadingCursor(isLoading);
 
   const initials = school?.name
     ?.split(" ")
@@ -116,16 +119,45 @@ export default function ViewSchool() {
             <div className="bg-white rounded-md p-6 grid md:grid-cols-2 gap-x-16 gap-y-5">
               <div className="space-y-5">
                 <InfoRow label="School Type"     value={formatEnum(school.ownership_type)} />
-                <InfoRow label="Contact Number"  value={school.primary_admin?.contact.phone} />
                 <InfoRow label="Website"         value={school.website} />
                 <InfoRow label="State"           value={school.main_branch?.state} />
               </div>
               <div className="space-y-5">
                 <InfoRow label="School Address"  value={school.address} />
                 <InfoRow label="School Category" value={formatEnum(school.term_structure)} />
-                <InfoRow label="Email Address"   value={school.primary_admin?.contact.email} />
                 <InfoRow label="Country"         value={school.main_branch?.country} />
               </div>
+            </div>
+
+            {/* School Admin Block */}
+            <div className="bg-white rounded-md p-6 space-y-4">
+              <p className="text-sm font-semibold text-gray-05">School Admin</p>
+              {school.primary_admin ? (
+                <div className="grid md:grid-cols-2 gap-x-16 gap-y-5">
+                  <div className="space-y-5">
+                    <InfoRow label="Admin Name"   value={school.primary_admin.contact.full_name} />
+                    <InfoRow label="Admin Email"  value={school.primary_admin.contact.email} />
+                    <InfoRow label="Phone Number" value={school.primary_admin.contact.phone} />
+                  </div>
+                  <div className="space-y-5">
+                    <InfoRow label="Admin Role"   value={formatEnum(school.primary_admin.role_label)} />
+                    <div className="flex items-start gap-6">
+                      <p className="text-sm text-gray-01 font-mont w-36 shrink-0">Invite Status</p>
+                      <Badge
+                        variant={
+                          school.primary_admin.invite_status === "SENT" ? "active"
+                          : school.primary_admin.invite_status === "FAILED" ? "rejected"
+                          : "pending"
+                        }
+                      >
+                        {formatEnum(school.primary_admin.invite_status)}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-01">No admin assigned.</p>
+              )}
             </div>
 
             {/* Stat Cards */}
@@ -146,7 +178,6 @@ export default function ViewSchool() {
               placeholder="Search branches..."
             />
 
-            {/* Branches Table — rows come from school.branches[] in GET /i/{slug}/ */}
             <CustomTable
               tableHeaderList={BRANCH_TABLE_HEADERS}
               tableBodyList={tableData}

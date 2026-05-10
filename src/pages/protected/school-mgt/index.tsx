@@ -19,6 +19,7 @@ import {
 } from "@/redux/services/dashboard/schoolMgtApi";
 import type { School } from "@/redux/services/dashboard/schoolType";
 import { formatEnum } from "@/utils/helpers";
+import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { Plus, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -45,6 +46,8 @@ export default function SchoolManagement() {
 
   const { data: schoolsRes, isLoading, refetch, isFetching } = useGetSchoolsQuery(queryParams);
   const { data: statsRes, refetch: refetchStats } = useGetSchoolStatsQuery();
+
+  useLoadingCursor(isLoading || isFetching);
 
   const stats = statsRes?.data;
 

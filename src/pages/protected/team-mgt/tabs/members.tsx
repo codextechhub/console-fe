@@ -15,6 +15,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import type { TeamMember } from "@/redux/services/dashboard/type";
 import { formatRelativeDate } from "@/utils/helpers";
+import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
@@ -59,6 +60,8 @@ export default function MembersTab() {
   const { data, isLoading, isError, refetch, isFetching } = useGetTeamMembersQuery(params, {
     refetchOnMountOrArgChange: true,
   });
+
+  useLoadingCursor(isLoading || isFetching);
 
   const [suspendUser] = useSuspendTeamMemberMutation();
   const [reactivateUser] = useReactivateTeamMemberMutation();

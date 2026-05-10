@@ -9,6 +9,7 @@ import {
   useGetPackagePlansQuery,
 } from "@/redux/services/dashboard/schoolMgtApi";
 import { packageStepSchema } from "@/schema/dashboard/school-mgt";
+import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router";
 import type { PackageStepData } from "../create-school";
@@ -24,6 +25,8 @@ export default function PackageSetup({ defaultValues, onSubmit, isSubmitting }: 
 
   const { data: plansRes, isLoading: plansLoading } = useGetPackagePlansQuery();
   const { data: modulesRes, isLoading: modulesLoading } = useGetModulesQuery();
+
+  useLoadingCursor(plansLoading || modulesLoading || isSubmitting);
 
   const planOptions = (plansRes?.data ?? []).map((p) => ({ label: p.name, value: p.code }));
   const moduleOptions = (modulesRes?.data ?? []).map((m) => ({ label: m.name, value: m.key }));

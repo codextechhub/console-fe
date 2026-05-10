@@ -22,7 +22,7 @@ export default function AddSchool({ defaultValues, onNext, onPrefill, generateTe
   const formik = useFormik<SchoolStepData>({
     initialValues: defaultValues,
     validationSchema: schoolStepSchema,
-    enableReinitialize: false,
+    enableReinitialize: true,
     onSubmit: (values) => onNext(values),
   });
 

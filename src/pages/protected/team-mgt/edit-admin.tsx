@@ -12,6 +12,7 @@ import {
   useGetTeamMembersDetailsQuery,
 } from "@/redux/services/dashboard/teamMgtApi";
 import { toast } from "sonner";
+import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 
 export default function EditAdmin() {
   const navigate = useNavigate();
@@ -22,6 +23,8 @@ export default function EditAdmin() {
   );
   const [updateTeamMember, { isLoading: updating }] =
     useUpdateTeamMemberMutation();
+
+  useLoadingCursor(isLoading || updating);
 
   const formik = useFormik({
     initialValues: {

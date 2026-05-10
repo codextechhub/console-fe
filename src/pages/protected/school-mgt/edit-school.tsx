@@ -9,6 +9,7 @@ import {
 } from "@/redux/services/dashboard/schoolMgtApi";
 import { routesPath } from "@/routes/routesPath";
 import { editSchoolSchema } from "@/schema/dashboard/school-mgt";
+import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -29,6 +30,8 @@ export default function EditSchool() {
 
   const { data, isLoading } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
   const [updateSchool, { isLoading: submitting }] = useUpdateSchoolMutation();
+
+  useLoadingCursor(isLoading || submitting);
 
   const school = data?.data;
 

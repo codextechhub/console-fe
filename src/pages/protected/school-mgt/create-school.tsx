@@ -1,5 +1,7 @@
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import PromptModal from "@/components/modal/prompt-modal";
+import { Button } from "@/components/ui/button";
+import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { useCreateSchoolMutation } from "@/redux/services/dashboard/schoolMgtApi";
 import { routesPath } from "@/routes/routesPath";
 import { useState } from "react";
@@ -199,10 +201,23 @@ export default function CreateSchool() {
 
   const [createSchool, { isLoading: submitting }] = useCreateSchoolMutation();
 
+  useLoadingCursor(submitting);
+
+  const isDev = import.meta.env.DEV;
+
   const handlePrefill = (data: PrefillData) => {
     setBranches(data.branches);
     setAdminData(data.admin);
     setPackageData(data.pkg);
+  };
+
+  const handlePrefillAll = () => {
+    const data = generateTestData();
+    setSchoolData(data.school);
+    setBranches(data.branches);
+    setAdminData(data.admin);
+    setPackageData(data.pkg);
+    navigate({ search: "?step=school" });
   };
 
   const handleSchoolNext = (data: SchoolStepData) => {
@@ -246,6 +261,13 @@ export default function CreateSchool() {
 
   return (
     <DashboardLayout title="School Management" hasBack>
+      {isDev && (
+        <div className="px-4.5 pt-4 flex justify-end">
+          <Button type="button" variant="outline" size="sm" className="text-xs" onClick={handlePrefillAll}>
+            Fill test data
+          </Button>
+        </div>
+      )}
       <section className="px-4.5 py-6">{renderStep()}</section>
       <PromptModal
         isOpen={showSuccess}
