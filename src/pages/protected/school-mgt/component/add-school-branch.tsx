@@ -14,7 +14,7 @@ interface Props {
 const emptyBranch = (): BranchStepItem => ({
   name: "", _type: "", address: "", email: "", country: "Nigeria",
   state: "", is_main: false, admin_first_name: "", admin_last_name: "",
-  admin_email: "", admin_phone: "", admin_role: "",
+  admin_email: "", admin_phone: "",
 });
 
 export default function AddSchoolBranch({ defaultValues, onNext }: Props) {
@@ -176,13 +176,6 @@ export default function AddSchoolBranch({ defaultValues, onNext }: Props) {
               placeholder="+2347033327493"
               value={branch.admin_phone}
               onChange={(e) => update(idx, "admin_phone", e.target.value)}
-            />
-            <CustomInput
-              id={`arole-${idx}`}
-              label="Admin Role"
-              placeholder="e.g., Head Teacher"
-              value={branch.admin_role}
-              onChange={(e) => update(idx, "admin_role", e.target.value)}
             />
 
             <div className="inline-flex items-center gap-6">

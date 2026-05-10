@@ -23,7 +23,6 @@ const branchAdminSchema = Yup.object({
   admin_last_name: Yup.string().required("Admin last name is required"),
   admin_email: Yup.string().email("Invalid email").required("Admin email is required"),
   admin_phone: phoneSchema.optional(),
-  admin_role: Yup.string(),
 });
 
 export const branchItemSchema = Yup.object({
@@ -41,7 +40,6 @@ export const adminStepSchema = Yup.object({
   last_name: Yup.string().required("Last name is required"),
   email: Yup.string().email("Invalid email").required("Email is required"),
   phone: phoneSchema.optional(),
-  school_role: Yup.string(),
 });
 
 export const packageStepSchema = Yup.object({

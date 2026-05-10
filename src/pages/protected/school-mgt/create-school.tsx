@@ -34,7 +34,6 @@ export interface BranchStepItem {
   admin_last_name: string;
   admin_email: string;
   admin_phone: string;
-  admin_role: string;
 }
 
 export interface AdminStepData {
@@ -42,7 +41,6 @@ export interface AdminStepData {
   last_name: string;
   email: string;
   phone: string;
-  school_role: string;
 }
 
 export interface PackageStepData {
@@ -62,11 +60,11 @@ const initialSchool: SchoolStepData = {
 const initialBranch: BranchStepItem = {
   name: "", _type: "", address: "", email: "", country: "Nigeria",
   state: "", is_main: true, admin_first_name: "", admin_last_name: "",
-  admin_email: "", admin_phone: "", admin_role: "",
+  admin_email: "", admin_phone: "",
 };
 
 const initialAdmin: AdminStepData = {
-  first_name: "", last_name: "", email: "", phone: "", school_role: "",
+  first_name: "", last_name: "", email: "", phone: "",
 };
 
 const initialPackage: PackageStepData = {
@@ -110,7 +108,6 @@ function generateTestData(): PrefillData {
         admin_last_name: `Admin${n}`,
         admin_email: `branchadmin${n}@${slug}.ng`,
         admin_phone: `+23480${n}0000`,
-        admin_role: "Head Teacher",
       },
     ],
     admin: {
@@ -118,7 +115,6 @@ function generateTestData(): PrefillData {
       last_name: `Admin${n}`,
       email: `admin${n}@${slug}.ng`,
       phone: `+23470${n}0000`,
-      school_role: "IT Head",
     },
     pkg: {
       package_plan: "",
@@ -155,7 +151,6 @@ function buildPayload(
       full_name: `${admin.first_name} ${admin.last_name}`.trim(),
       email: admin.email,
       phone: admin.phone || "",
-      school_role: admin.school_role || "IT Head",
       role_label: "SCHOOL_ADMIN",
     };
   }
@@ -173,7 +168,6 @@ function buildPayload(
         full_name: `${b.admin_first_name} ${b.admin_last_name}`.trim(),
         email: b.admin_email,
         phone: b.admin_phone || "",
-        branch_role: b.admin_role || "Head Teacher",
         role_label: "BRANCH_ADMIN",
       },
     }));

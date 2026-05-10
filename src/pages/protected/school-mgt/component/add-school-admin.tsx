@@ -63,13 +63,6 @@ export default function AddSchoolAdmin({ defaultValues, onNext }: Props) {
             {...formik.getFieldProps("phone")}
             error={formik.touched.phone ? formik.errors.phone : ""}
           />
-          <CustomInput
-            id="school_role"
-            label="Admin Role"
-            placeholder="e.g., IT Head"
-            {...formik.getFieldProps("school_role")}
-            error={formik.touched.school_role ? formik.errors.school_role : ""}
-          />
         </div>
 
         <div className="mt-10 inline-flex items-center gap-4">
