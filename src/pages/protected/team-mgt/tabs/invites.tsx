@@ -15,6 +15,7 @@ import { useDebounce } from "react-haiku";
 import type { TeamMember } from "@/redux/services/dashboard/type";
 import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
+import { RefreshCw } from "lucide-react";
 
 const tableHeader = [
   "Full Name",
@@ -48,7 +49,7 @@ export default function InvitesTab() {
     [query, debouncedValue],
   );
 
-  const { data, isLoading, isError } = useGetTeamMembersQuery(params, {
+  const { data, isLoading, isError, refetch, isFetching } = useGetTeamMembersQuery(params, {
     refetchOnMountOrArgChange: true,
   });
   const [resendInvite] = useResendInviteMutation();
@@ -75,6 +76,15 @@ export default function InvitesTab() {
         />
 
         <div className="inline-flex items-center gap-3.5">
+          <Button
+            variant="white"
+            size="lg"
+            className="[&_svg]:size-5 font-medium font-mont"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+          </Button>
           <Button
             variant={"white"}
             size="lg"

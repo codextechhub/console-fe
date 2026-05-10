@@ -19,6 +19,7 @@ import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import { selectUser } from "@/redux/features/auth/authSlice";
+import { RefreshCw } from "lucide-react";
 
 const tableHeader = [
   "Full Name",
@@ -55,7 +56,7 @@ export default function MembersTab() {
 
   const currentUser = useSelector(selectUser);
 
-  const { data, isLoading, isError } = useGetTeamMembersQuery(params, {
+  const { data, isLoading, isError, refetch, isFetching } = useGetTeamMembersQuery(params, {
     refetchOnMountOrArgChange: true,
   });
 
@@ -86,6 +87,15 @@ export default function MembersTab() {
         />
 
         <div className="inline-flex items-center gap-3.5">
+          <Button
+            variant="white"
+            size="lg"
+            className="[&_svg]:size-5 font-medium font-mont"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+          </Button>
           <Button
             variant={"white"}
             size="lg"

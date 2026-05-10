@@ -6,7 +6,8 @@
       "Read(//tmp/**)",
       "Bash(npx tsc *)",
       "Bash(python manage.py showmigrations vs_schools)",
-      "Bash(xargs cat)"
+      "Bash(xargs cat)",
+      "Bash(git *)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"

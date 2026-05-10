@@ -1,65 +1,36 @@
+import { svgIcons } from "@/assets/svg";
+import { CustomInput } from "@/components/custom/custom-input";
+import CustomTable from "@/components/custom/custom-table";
 import DashboardLayout from "@/components/layout/dashboard-layout";
-import Tabs from "@/components/custom/tab";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/schoolMgtApi";
 import type { BranchDetail } from "@/redux/services/dashboard/schoolType";
 import { routesPath } from "@/routes/routesPath";
-import { formatDate } from "@/utils/helpers";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { Building2, GraduationCap, LayoutGrid, Plus, Users } from "lucide-react";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router";
 
-const TABS = [
-  { label: "Overview", value: "overview" },
-  { label: "Branches", value: "branches" },
-];
+const BRANCH_TABLE_HEADERS = ["S/N", "Branch Name", "Total Students", "School Type", "School Location", "School Address", "Action"];
 
-function DetailRow({ label, value }: { label: string; value: string | number | null | undefined }) {
+function InfoRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
-    <div className="space-y-1">
-      <p className="text-xs text-gray-01 font-mont">{label}</p>
-      <p className="text-sm font-medium text-black-01">{value ?? "—"}</p>
+    <div className="flex items-start gap-6">
+      <p className="text-sm text-gray-01 font-mont w-36 shrink-0">{label}</p>
+      <p className="text-sm font-semibold text-black-01">{value ?? "—"}</p>
     </div>
   );
 }
 
-function BranchCard({ branch }: { branch: BranchDetail }) {
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <div className="bg-white rounded-md p-5 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <p className="font-medium text-sm text-black-01">{branch.name}</p>
-          {branch.is_main && (
-            <span className="text-xs bg-pry-01 text-primary px-2 py-0.5 rounded-full font-mont">Main</span>
-          )}
-        </div>
-        <Badge variant={branch.status?.toLowerCase() as "active" | "pending" | "inactive" | "default"}>
-          {branch.status}
-        </Badge>
+    <div className="bg-white rounded-md px-5 py-4 flex items-center gap-4">
+      <div className="size-12 rounded-lg bg-gray-100 grid place-content-center text-gray-400 shrink-0">
+        {icon}
       </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <DetailRow label="Type" value={branch._type} />
-        <DetailRow label="Country" value={branch.country} />
-        <DetailRow label="State" value={branch.state} />
-        <DetailRow label="Address" value={branch.address} />
-        <DetailRow label="Email" value={branch.email} />
-        {branch.opened_at && (
-          <DetailRow label="Opened" value={formatDate(new Date(branch.opened_at))} />
-        )}
+      <div>
+        <p className="text-xs text-gray-01 font-mont">{label}</p>
+        <p className="text-2xl font-semibold text-black-01">{value}</p>
       </div>
-
-      {branch.primary_admin && (
-        <div className="pt-3 border-t">
-          <p className="text-xs text-gray-05 font-medium mb-2">Branch Admin</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <DetailRow label="Name" value={branch.primary_admin.contact.full_name} />
-            <DetailRow label="Email" value={branch.primary_admin.contact.email} />
-            <DetailRow label="Phone" value={branch.primary_admin.contact.phone} />
-            <DetailRow label="Role" value={branch.primary_admin.branch_role} />
-            <DetailRow label="Invite Status" value={branch.primary_admin.invite_status} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -67,128 +38,146 @@ function BranchCard({ branch }: { branch: BranchDetail }) {
 export default function ViewSchool() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") ?? "overview";
+  const [search, setSearch] = useState("");
 
-  const { data, isLoading } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
+  // ── Single API: GET /i/{slug}/ ────────────────────────────────────────────
+  const { data, isLoading, isError } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
   const school = data?.data;
+
+  const initials = school?.name
+    ?.split(" ")
+    .slice(0, 2)
+    .map((w: string) => w[0])
+    .join("")
+    .toUpperCase() ?? "";
+
+  const filteredBranches = (school?.branches ?? []).filter((b: BranchDetail) =>
+    !search || b.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const tableData = filteredBranches.map((branch: BranchDetail, idx: number) => ({
+    sn: idx + 1,
+    name: <p className="font-medium capitalize">{branch.name}</p>,
+    totalStudents: "—",           // ❌ not on Branch model yet
+    type: branch._type || "—",
+    location: [branch.state, branch.country].filter(Boolean).join(", ") || "—",
+    address: branch.address || "—",
+    _slug: slug,
+    _code: branch.code,
+  }));
 
   return (
     <DashboardLayout title="School Management" hasBack>
       <main className="px-4.5 py-6 space-y-6 text-black-01">
+
         {isLoading && (
           <div className="grid h-40 place-content-center">
             <div className="loader" />
           </div>
         )}
 
-        {!isLoading && school && (
+        {!isLoading && isError && (
+          <div className="grid h-40 place-content-center text-center space-y-3">
+            <p className="text-sm text-red-500 font-medium">Failed to load school details.</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
+        )}
+
+        {!isLoading && !isError && school && (
           <>
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-3">
-                  <h4 className="font-medium text-xl capitalize">{school.name}</h4>
-                  <Badge variant={school.status?.toLowerCase() as "active" | "pending" | "inactive" | "default"}>
-                    {school.status}
-                  </Badge>
-                </div>
-                <p className="text-xs text-gray-01 font-mont">
-                  Code: {school.code || "—"} &nbsp;·&nbsp;{" "}
-                  {school.ownership_type?.charAt(0) + school.ownership_type?.slice(1).toLowerCase().replace("_", " ")}
-                </p>
-              </div>
-              <Button onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT(slug ?? ""))}>
-                Edit School
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                className="w-24"
+                onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT(slug ?? ""))}
+              >
+                Edit
               </Button>
             </div>
 
-            <Tabs tabs={TABS} tabKey="tab" />
-
-            {/* Overview Tab */}
-            {activeTab === "overview" && (
-              <div className="space-y-6">
-                {/* School Info */}
-                <div className="bg-white rounded-md p-5 space-y-4">
-                  <p className="font-medium text-sm text-gray-05">School Information</p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-5">
-                    <DetailRow label="School Name" value={school.name} />
-                    <DetailRow label="Address" value={school.address} />
-                    <DetailRow label="Ownership Type" value={school.ownership_type} />
-                    <DetailRow label="Term Structure" value={school.term_structure} />
-                    <DetailRow label="Currency" value={school.currency} />
-                    <DetailRow label="Registration ID" value={school.registration_id} />
-                    <DetailRow label="Website" value={school.website} />
-                    <DetailRow label="Motto" value={school.motto} />
-                    {school.activated_at && (
-                      <DetailRow label="Activated" value={formatDate(new Date(school.activated_at))} />
-                    )}
-                  </div>
-                </div>
-
-                {/* Primary Admin */}
-                {school.primary_admin && (
-                  <div className="bg-white rounded-md p-5 space-y-4">
-                    <p className="font-medium text-sm text-gray-05">Primary Admin</p>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-5">
-                      <DetailRow label="Name" value={school.primary_admin.contact.full_name} />
-                      <DetailRow label="Email" value={school.primary_admin.contact.email} />
-                      <DetailRow label="Phone" value={school.primary_admin.contact.phone} />
-                      <DetailRow label="Role" value={school.primary_admin.school_role} />
-                      <DetailRow label="Invite Status" value={school.primary_admin.invite_status} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Package Setup */}
-                {school.package_setup && (
-                  <div className="bg-white rounded-md p-5 space-y-4">
-                    <p className="font-medium text-sm text-gray-05">Package Setup</p>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-5">
-                      <DetailRow label="Plan" value={school.package_setup.package_plan.name} />
-                      <DetailRow label="Billing Cycle" value={school.package_setup.package_plan.billing_cycle} />
-                      <DetailRow label="Student Capacity" value={school.package_setup.student_capacity} />
-                      <DetailRow label="Teacher Capacity" value={school.package_setup.teacher_capacity} />
-                      <DetailRow label="Admin Capacity" value={school.package_setup.admin_capacity} />
-                      <DetailRow
-                        label="Subscription Expires"
-                        value={
-                          school.package_setup.subscription_expires_at
-                            ? formatDate(new Date(school.package_setup.subscription_expires_at))
-                            : "—"
-                        }
-                      />
-                      <div className="col-span-full space-y-1">
-                        <p className="text-xs text-gray-01 font-mont">Enabled Modules</p>
-                        <div className="flex flex-wrap gap-2">
-                          {school.package_setup.enabled_modules.map((m) => (
-                            <span key={m.key} className="text-xs bg-pry-01 text-primary px-2.5 py-1 rounded-full font-mont">
-                              {m.name}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+            {/* Logo + Name */}
+            <div className="flex items-center gap-5">
+              <div className="size-20 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                {school.branding?.logo ? (
+                  <img src={school.branding.logo} alt={school.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xl font-bold text-gray-400">{initials}</span>
                 )}
               </div>
-            )}
+              <h4 className="font-semibold text-2xl capitalize">{school.name}</h4>
+            </div>
 
-            {/* Branches Tab */}
-            {activeTab === "branches" && (
-              <div className="space-y-4">
-                {school.branches.length === 0 && (
-                  <p className="text-sm text-gray-01">No branches found.</p>
-                )}
-                {school.branches.map((branch) => (
-                  <BranchCard key={branch.code} branch={branch} />
-                ))}
+            {/* Info Block — all from GET /i/{slug}/ */}
+            <div className="bg-white rounded-md p-6 grid md:grid-cols-2 gap-x-16 gap-y-5">
+              <div className="space-y-5">
+                <InfoRow label="School Type"     value={school.ownership_type} />
+                <InfoRow label="Contact Number"  value={school.primary_admin?.contact.phone} />
+                <InfoRow label="Website"         value={school.website} />
+                <InfoRow label="State"           value={school.main_branch?.state} />
               </div>
-            )}
+              <div className="space-y-5">
+                <InfoRow label="School Address"  value={school.address} />
+                <InfoRow label="School Category" value={school.term_structure} />
+                <InfoRow label="Email Address"   value={school.primary_admin?.contact.email} />
+                <InfoRow label="Country"         value={school.main_branch?.country} />
+              </div>
+            </div>
+
+            {/* Stat Cards */}
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+              {/* ✅ branches.length from school detail */}
+              <StatCard icon={<Building2 size={22} />}    label="Total Branches" value={school.branches?.length ?? 0} />
+              {/* ❌ no teacher count in backend yet */}
+              <StatCard icon={<LayoutGrid size={22} />}   label="Total Teachers" value="—" />
+              {/* ✅ total_students from school detail */}
+              <StatCard icon={<GraduationCap size={22} />} label="Total Student" value={school.total_students ?? 0} />
+              {/* ❌ no parent count in backend yet */}
+              <StatCard icon={<Users size={22} />}        label="Total Parents"  value="—" />
+            </div>
+
+            {/* Toolbar */}
+            <div className="flex items-center justify-between gap-5">
+              <CustomInput
+                id="search"
+                canSearch
+                placeholder="Search"
+                className="h-10"
+                containerClass="max-w-[280px]"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <div className="inline-flex items-center gap-3.5">
+                <Button size="lg">
+                  <Plus /> Add New Branch
+                </Button>
+                <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
+                  {svgIcons.exportIcon} Export
+                </Button>
+              </div>
+            </div>
+
+            {/* Branches Table — rows come from school.branches[] in GET /i/{slug}/ */}
+            <CustomTable
+              tableHeaderList={BRANCH_TABLE_HEADERS}
+              tableBodyList={tableData}
+              dropDown
+              dropDownList={(row: { _slug: string; _code: number }) => [
+                {
+                  label: "View Details",
+                  onActionClick: () =>
+                    navigate(routesPath.PROTECTED.SCHOOL_MGT.VIEW_BRANCH(row._slug, row._code)),
+                },
+                {
+                  label: "Edit Branch",
+                  onActionClick: () =>
+                    navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT_BRANCH(row._slug, row._code)),
+                },
+              ]}
+            />
           </>
         )}
 
-        {!isLoading && !school && (
+        {!isLoading && !isError && !school && (
           <p className="text-sm text-gray-01">School not found.</p>
         )}
       </main>
