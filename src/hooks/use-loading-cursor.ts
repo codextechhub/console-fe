@@ -6,13 +6,13 @@ export function useLoadingCursor(isLoading: boolean) {
   useEffect(() => {
     if (isLoading) {
       _activeCount++;
-      document.body.style.cursor = "wait";
+      document.body.classList.add("is-loading");
     }
     return () => {
       if (isLoading) {
         _activeCount = Math.max(0, _activeCount - 1);
         if (_activeCount === 0) {
-          document.body.style.cursor = "";
+          document.body.classList.remove("is-loading");
         }
       }
     };
