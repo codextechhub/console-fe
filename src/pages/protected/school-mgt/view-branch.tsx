@@ -121,7 +121,7 @@ export default function ViewBranch() {
                 <InfoRow label="Branch Address" value={branch.address} />
                 <InfoRow label="Country" value={branch.country} />
                 <InfoRow label="Email Address" value={branch.email} />
-                <InfoRow label="Branch Admin Role" value={branch.primary_admin?.branch_role} />
+                <InfoRow label="Branch Admin Role" value={formatEnum(branch.primary_admin?.role_label)} />
                 <InfoRow label="Branch Type" value={formatEnum(branch._type)} />
               </div>
             </div>
