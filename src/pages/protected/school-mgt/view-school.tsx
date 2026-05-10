@@ -85,7 +85,18 @@ export default function ViewSchool() {
 
         {!isLoading && !isError && school && (
           <>
-            <div className="flex justify-end">
+            {/* Logo + Name + Edit on same row */}
+            <div className="flex items-center justify-between gap-5">
+              <div className="flex items-center gap-5">
+                <div className="size-20 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                  {school.branding?.logo ? (
+                    <img src={school.branding.logo} alt={school.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xl font-bold text-gray-400">{initials}</span>
+                  )}
+                </div>
+                <h4 className="font-semibold text-2xl capitalize">{school.name}</h4>
+              </div>
               <Button
                 variant="outline"
                 className="w-24"
@@ -93,18 +104,6 @@ export default function ViewSchool() {
               >
                 Edit
               </Button>
-            </div>
-
-            {/* Logo + Name */}
-            <div className="flex items-center gap-5">
-              <div className="size-20 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
-                {school.branding?.logo ? (
-                  <img src={school.branding.logo} alt={school.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-xl font-bold text-gray-400">{initials}</span>
-                )}
-              </div>
-              <h4 className="font-semibold text-2xl capitalize">{school.name}</h4>
             </div>
 
             {/* Info Block — all from GET /i/{slug}/ */}
