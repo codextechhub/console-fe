@@ -1,16 +1,17 @@
-import { svgIcons } from "@/assets/svg";
-import { CustomInput } from "@/components/custom/custom-input";
+import TableToolbar from "@/components/custom/table-toolbar";
 import CustomTable from "@/components/custom/custom-table";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/schoolMgtApi";
 import type { BranchDetail } from "@/redux/services/dashboard/schoolType";
 import { routesPath } from "@/routes/routesPath";
-import { Building2, GraduationCap, LayoutGrid, Plus, Users } from "lucide-react";
+import { formatEnum } from "@/utils/helpers";
+import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
-const BRANCH_TABLE_HEADERS = ["S/N", "Branch Name", "Total Students", "School Type", "School Location", "School Address", "Action"];
+const BRANCH_TABLE_HEADERS = ["S/N", "Branch Name", "Total Students", "School Type", "School Location", "School Address", "Status", "Action"];
 
 function InfoRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
@@ -58,10 +59,15 @@ export default function ViewSchool() {
   const tableData = filteredBranches.map((branch: BranchDetail, idx: number) => ({
     sn: idx + 1,
     name: <p className="font-medium capitalize">{branch.name}</p>,
-    totalStudents: "—",           // ❌ not on Branch model yet
+    totalStudents: "—",
     type: branch._type || "—",
     location: [branch.state, branch.country].filter(Boolean).join(", ") || "—",
     address: branch.address || "—",
+    status: (
+      <Badge variant={branch.status?.toLowerCase() as any}>
+        {formatEnum(branch.status)}
+      </Badge>
+    ),
     _slug: slug,
     _code: branch.code,
   }));
@@ -109,14 +115,14 @@ export default function ViewSchool() {
             {/* Info Block — all from GET /i/{slug}/ */}
             <div className="bg-white rounded-md p-6 grid md:grid-cols-2 gap-x-16 gap-y-5">
               <div className="space-y-5">
-                <InfoRow label="School Type"     value={school.ownership_type} />
+                <InfoRow label="School Type"     value={formatEnum(school.ownership_type)} />
                 <InfoRow label="Contact Number"  value={school.primary_admin?.contact.phone} />
                 <InfoRow label="Website"         value={school.website} />
                 <InfoRow label="State"           value={school.main_branch?.state} />
               </div>
               <div className="space-y-5">
                 <InfoRow label="School Address"  value={school.address} />
-                <InfoRow label="School Category" value={school.term_structure} />
+                <InfoRow label="School Category" value={formatEnum(school.term_structure)} />
                 <InfoRow label="Email Address"   value={school.primary_admin?.contact.email} />
                 <InfoRow label="Country"         value={school.main_branch?.country} />
               </div>
@@ -134,26 +140,11 @@ export default function ViewSchool() {
               <StatCard icon={<Users size={22} />}        label="Total Parents"  value="—" />
             </div>
 
-            {/* Toolbar */}
-            <div className="flex items-center justify-between gap-5">
-              <CustomInput
-                id="search"
-                canSearch
-                placeholder="Search"
-                className="h-10"
-                containerClass="max-w-[280px]"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <div className="inline-flex items-center gap-3.5">
-                <Button size="lg">
-                  <Plus /> Add New Branch
-                </Button>
-                <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
-                  {svgIcons.exportIcon} Export
-                </Button>
-              </div>
-            </div>
+            <TableToolbar
+              search={search}
+              onSearchChange={setSearch}
+              placeholder="Search branches..."
+            />
 
             {/* Branches Table — rows come from school.branches[] in GET /i/{slug}/ */}
             <CustomTable

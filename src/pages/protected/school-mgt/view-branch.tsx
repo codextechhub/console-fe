@@ -1,14 +1,15 @@
-import { svgIcons } from "@/assets/svg";
-import { CustomInput } from "@/components/custom/custom-input";
+import TableToolbar from "@/components/custom/table-toolbar";
 import CustomTable from "@/components/custom/custom-table";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   useGetBranchDetailQuery,
   useGetSchoolDetailQuery,
 } from "@/redux/services/dashboard/schoolMgtApi";
 import { routesPath } from "@/routes/routesPath";
-import { Building2, GraduationCap, LayoutGrid, Plus, Users } from "lucide-react";
+import { formatEnum, formatStartedTime } from "@/utils/helpers";
+import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
@@ -72,7 +73,26 @@ export default function ViewBranch() {
 
         {!isLoading && branch && (
           <>
-            <div className="flex justify-end">
+            {/* Logo + School Name + Edit on same row */}
+            <div className="flex items-center justify-between gap-5">
+              <div className="flex items-center gap-5">
+                <div className="size-20 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                  {school?.branding?.logo ? (
+                    <img src={school.branding.logo} alt={school.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xl font-bold text-gray-400">{initials}</span>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5">
+                    <h4 className="font-semibold text-2xl capitalize">{branch.name}</h4>
+                    <Badge variant={branch.status?.toLowerCase() as any}>
+                      {formatEnum(branch.status)}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-01 font-mont capitalize">{school?.name ?? "—"}</p>
+                </div>
+              </div>
               <Button
                 variant="outline"
                 className="w-24"
@@ -84,32 +104,25 @@ export default function ViewBranch() {
               </Button>
             </div>
 
-            {/* Logo + School Name */}
-            <div className="flex items-center gap-5">
-              <div className="size-20 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
-                {school?.branding?.logo ? (
-                  <img src={school.branding.logo} alt={school.name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-xl font-bold text-gray-400">{initials}</span>
-                )}
-              </div>
-              <h4 className="font-semibold text-2xl capitalize">{school?.name ?? "—"}</h4>
-            </div>
-
             {/* Info Block */}
             <div className="bg-white rounded-md p-6 grid md:grid-cols-2 gap-x-16 gap-y-5">
               <div className="space-y-5">
                 <InfoRow label="Branch Email" value={branch.email} />
                 <InfoRow label="Branch Code" value={branch.code} />
                 <InfoRow label="State" value={branch.state} />
-                <InfoRow label="Head of Branch" value={branch.primary_admin?.contact.full_name} />
-                <InfoRow label="Head of Branch Email" value={branch.primary_admin?.contact.email} />
+                <InfoRow label="Branch Admin" value={branch.primary_admin?.contact.full_name} />
+                <InfoRow label="Branch Admin Email" value={branch.primary_admin?.contact.email} />
+                <InfoRow
+                  label="Activation Date"
+                  value={branch.activated_at ? formatStartedTime(branch.activated_at) : "Not Activated"}
+                />
               </div>
               <div className="space-y-5">
                 <InfoRow label="Branch Address" value={branch.address} />
                 <InfoRow label="Country" value={branch.country} />
                 <InfoRow label="Email Address" value={branch.email} />
-                <InfoRow label="Head of Branch Role" value={branch.primary_admin?.branch_role} />
+                <InfoRow label="Branch Admin Role" value={branch.primary_admin?.branch_role} />
+                <InfoRow label="Branch Type" value={formatEnum(branch._type)} />
               </div>
             </div>
 
@@ -121,26 +134,11 @@ export default function ViewBranch() {
               <StatCard icon={<Users size={22} />} label="Total Parents" value="—" />
             </div>
 
-            {/* Toolbar */}
-            <div className="flex items-center justify-between gap-5">
-              <CustomInput
-                id="search"
-                canSearch
-                placeholder="Search"
-                className="h-10"
-                containerClass="max-w-[280px]"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <div className="inline-flex items-center gap-3.5">
-                <Button size="lg">
-                  <Plus /> Add Class
-                </Button>
-                <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
-                  {svgIcons.exportIcon} Export
-                </Button>
-              </div>
-            </div>
+            <TableToolbar
+              search={search}
+              onSearchChange={setSearch}
+              placeholder="Search..."
+            />
 
             {/* Classes Table — empty until backend supports classes */}
             <CustomTable

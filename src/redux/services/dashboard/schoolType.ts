@@ -43,6 +43,7 @@ export interface BranchDetail extends Branch {
   address: string
   email: string
   opened_at: string | null
+  activated_at: string | null
   primary_admin: BranchPrimaryAdmin | null
 }
 

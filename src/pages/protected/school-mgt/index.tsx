@@ -18,6 +18,7 @@ import {
   useGetSchoolStatsQuery,
 } from "@/redux/services/dashboard/schoolMgtApi";
 import type { School } from "@/redux/services/dashboard/schoolType";
+import { formatEnum } from "@/utils/helpers";
 import { Plus, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -61,12 +62,10 @@ export default function SchoolManagement() {
       ? [item.main_branch.state, item.main_branch.country].filter(Boolean).join(", ") || "—"
       : "—",
     totalStudents: item.total_students ?? "—",
-    type: item.ownership_type
-      ? item.ownership_type.charAt(0) + item.ownership_type.slice(1).toLowerCase().replace("_", " ")
-      : "—",
+    type: formatEnum(item.ownership_type),
     status: (
       <Badge variant={item.status?.toLowerCase() as "active" | "pending" | "inactive" | "default"}>
-        {item.status}
+        {formatEnum(item.status)}
       </Badge>
     ),
     _slug: item.slug,

@@ -372,6 +372,22 @@ export function assignColors<T>(items: T[]): (T & { fill: string })[] {
   }))
 }
 
+const ENUM_LABEL_MAP: Record<string, string> = {
+  FAITH_BASED: "Faith-Based",
+  NGO: "Non-Governmental Organization",
+  "2_SEMESTERS": "2 Semesters",
+  "3_TERMS": "3 Terms",
+};
+
+export function formatEnum(value: string | null | undefined): string {
+  if (!value) return "—";
+  if (ENUM_LABEL_MAP[value]) return ENUM_LABEL_MAP[value];
+  return value
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export function daysRemaining(targetDateString:string) {
   const targetDate = new Date(targetDateString);
   const today = new Date();
