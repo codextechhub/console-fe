@@ -1,6 +1,5 @@
 ## Undone (Ask questions for clarity where needed)
 
-# 2. Paginate all the tables in the site, you can use a generic function for this if possible.
 # 5. I want to work on the view structure for phone, tabs. That's for other viewing platform. Only the desktop view is okay now.
 
 ## Done

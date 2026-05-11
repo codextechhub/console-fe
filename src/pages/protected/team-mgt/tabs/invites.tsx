@@ -120,6 +120,7 @@ export default function InvitesTab() {
         perPage={data?.pagination?.pageSize}
         totalPage={data?.pagination?.totalPages}
         currentPage={data?.pagination?.currentPage}
+        onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
       />
     </>
   );

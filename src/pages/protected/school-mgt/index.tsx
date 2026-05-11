@@ -36,8 +36,9 @@ export default function SchoolManagement() {
   const [searchParams, setSearchParams] = useSearchParams();
   const filter_status = searchParams.get("status");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
-  const queryParams: Record<string, string | number> = {};
+  const queryParams: Record<string, string | number> = { page };
   if (filter_status && STATUS_MAP[filter_status]) {
     queryParams.status = STATUS_MAP[filter_status];
   }
@@ -107,7 +108,7 @@ export default function SchoolManagement() {
                 "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
                 item.active && "bg-pry-01",
               )}
-              onClick={() => setSearchParams({ status: item.query })}
+              onClick={() => { setPage(1); setSearchParams({ status: item.query }); }}
             >
               <h5 className="font-mont text-sm font-medium text-gray-01">{item.title}</h5>
               <p className="font-semibold text-2xl text-[#221122]">{item.value}</p>
@@ -123,7 +124,7 @@ export default function SchoolManagement() {
             className="h-10"
             containerClass="max-w-[280px]"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setPage(1); setSearch(e.target.value); }}
           />
           <div className="inline-flex items-center gap-3.5">
             <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
@@ -148,6 +149,10 @@ export default function SchoolManagement() {
           tableHeaderList={TABLE_HEADERS}
           tableBodyList={tableData ?? []}
           loading={isLoading}
+          currentPage={schoolsRes?.pagination?.currentPage}
+          totalPage={schoolsRes?.pagination?.totalPages}
+          perPage={schoolsRes?.pagination?.pageSize}
+          onPageChange={(p) => setPage(p as number)}
           dropDown
           dropDownList={(row: { _slug: string }) => [
             {

@@ -40,6 +40,8 @@ export default function ViewSchool() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   // ── Single API: GET /i/{slug}/ ────────────────────────────────────────────
   const { data, isLoading, isError } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
@@ -56,9 +58,11 @@ export default function ViewSchool() {
   const filteredBranches = (school?.branches ?? []).filter((b: BranchDetail) =>
     !search || b.name.toLowerCase().includes(search.toLowerCase())
   );
+  const totalBranchPages = Math.ceil(filteredBranches.length / PAGE_SIZE);
+  const pagedBranches = filteredBranches.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const tableData = filteredBranches.map((branch: BranchDetail, idx: number) => ({
-    sn: idx + 1,
+  const tableData = pagedBranches.map((branch: BranchDetail, idx: number) => ({
+    sn: (page - 1) * PAGE_SIZE + idx + 1,
     name: <p className="font-medium capitalize">{branch.name}</p>,
     totalStudents: "—",
     type: branch._type || "—",
@@ -172,13 +176,16 @@ export default function ViewSchool() {
 
             <TableToolbar
               search={search}
-              onSearchChange={setSearch}
+              onSearchChange={(v) => { setPage(1); setSearch(v); }}
               placeholder="Search branches..."
             />
 
             <CustomTable
               tableHeaderList={BRANCH_TABLE_HEADERS}
               tableBodyList={tableData}
+              currentPage={page}
+              totalPage={totalBranchPages}
+              onPageChange={(p) => setPage(p as number)}
               dropDown
               dropDownList={(row: { _slug: string; _code: number }) => [
                 {
