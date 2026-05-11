@@ -156,36 +156,6 @@
   }
 }
 
-.progress-indeterminate {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 40%;
-  background-color: var(--color-primary);
-  border-radius: 0 2px 2px 0;
-  animation: progress-slide 1.4s ease-in-out infinite;
-}
-
-.progress-complete {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  background-color: var(--color-primary);
-  animation: progress-finish 0.5s ease forwards;
-}
-
-@keyframes progress-slide {
-  0%   { left: -40%; }
-  100% { left: 110%; }
-}
-
-@keyframes progress-finish {
-  0%   { opacity: 1; width: 100%; }
-  80%  { opacity: 1; width: 100%; }
-  100% { opacity: 0; width: 100%; }
-}
-
 /* HTML: <div class="loader"></div> */
 .loader {
   width: 60px;

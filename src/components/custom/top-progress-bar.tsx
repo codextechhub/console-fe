@@ -1,37 +1,64 @@
 import { useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function TopProgressBar() {
   const isActive = useSelector((state: any) => {
     const api = state.baseApi;
     if (!api) return false;
-    const pendingQuery = Object.values(api.queries ?? {}).some((q: any) => q?.status === "pending");
-    const pendingMutation = Object.values(api.mutations ?? {}).some((m: any) => m?.status === "pending");
-    return pendingQuery || pendingMutation;
+    return (
+      Object.values(api.queries ?? {}).some((q: any) => q?.status === "pending") ||
+      Object.values(api.mutations ?? {}).some((m: any) => m?.status === "pending")
+    );
   });
 
   const [visible, setVisible] = useState(false);
-  const [completing, setCompleting] = useState(false);
+  const [width, setWidth] = useState(0);
+  const [opacity, setOpacity] = useState(1);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clear = () => { timers.current.forEach(clearTimeout); timers.current = []; };
+  const after = (ms: number, fn: () => void) => {
+    const t = setTimeout(fn, ms);
+    timers.current.push(t);
+  };
 
   useEffect(() => {
     if (isActive) {
+      clear();
+      setOpacity(1);
+      setWidth(0);
       setVisible(true);
-      setCompleting(false);
+      // tiny delay so the 0% renders before the transition fires
+      after(10, () => setWidth(85));
     } else if (visible) {
-      setCompleting(true);
-      const t = setTimeout(() => {
-        setVisible(false);
-        setCompleting(false);
-      }, 500);
-      return () => clearTimeout(t);
+      clear();
+      setWidth(100);
+      after(300, () => setOpacity(0));
+      after(700, () => { setVisible(false); setWidth(0); setOpacity(1); });
     }
+
+    return clear;
   }, [isActive]);
 
   if (!visible) return null;
 
+  const transition =
+    width === 0   ? "none"
+    : width === 100 ? "width 0.25s ease, opacity 0.35s ease"
+    : "width 8s cubic-bezier(0.05, 0.5, 0.1, 1)";
+
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-[3px] overflow-hidden">
-      <div className={completing ? "progress-complete" : "progress-indeterminate"} />
+    <div className="absolute bottom-0 left-0 right-0 h-[3px]">
+      <div
+        style={{
+          height: "100%",
+          width: `${width}%`,
+          opacity,
+          backgroundColor: "var(--color-primary)",
+          borderRadius: "0 2px 2px 0",
+          transition,
+        }}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 ## Undone
 
 # 1. Deploy backend change: `activated_at` added to BranchDetailSerializer — needs to be pushed to staging/production so the branch detail API returns it.
+# 2. Paginate all the tables in the site
 
 ## Done
 
