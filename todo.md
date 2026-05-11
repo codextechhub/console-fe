@@ -1,11 +1,7 @@
 ## Undone (Ask questions for clarity where needed)
 
 # 2. Paginate all the tables in the site, you can use a generic function for this if possible.
-# 3. The activate account is showung authentication failed when someone new tries to get authenticated. Check what's the problem. Also when someone wants to log in, show error based of what happened, eith credentials failed or network or anything else
-# 4. When a user logs in, I want the welcome back at the top to be Good morning, John or Good afternoon, John.
 # 5. I want to work on the view structure for phone, tabs. That's for other viewing platform. Only the desktop view is okay now.
-# 6. Remove the timer from the continnue session status card. The timer should still count but not visible to the user. Aslo, reduce the timer to 1 min.
-# 7. I need the prefill create school to be also available on the tsaged versioin on render. I see it in dev mode but not when I am acccessing it from the cloud server. Tell/show  me why and fix
 
 ## Done
 

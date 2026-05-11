@@ -113,7 +113,7 @@ export const baseQueryInterceptor: BaseQueryFn<
         return retryResult; // Return the failed retry result
       } else {
         // Refresh failed, force logout
-        const authUrls = ["login", "reset-password", "password/reset", "forgot-password"];
+        const authUrls = ["login", "reset-password", "password/reset", "forgot-password", "activate"];
         const isAuthRoute =
           typeof args === "string"
             ? authUrls.some((u) => args.includes(u))
@@ -123,8 +123,11 @@ export const baseQueryInterceptor: BaseQueryFn<
               ? authUrls.some((u) => (args as { url: string }).url.includes(u))
               : false;
         if (isAuthRoute) {
-          // Just show error for auth routes
-          toast.error(res?.detail || "Authentication failed.");
+          const errorMsg =
+            extractFirstDetailError(res?.data?.error?.detail) ||
+            res?.data?.message ||
+            "Invalid credentials. Please try again.";
+          toast.error(errorMsg);
         } else {
           // Force logout for non-auth routes
 

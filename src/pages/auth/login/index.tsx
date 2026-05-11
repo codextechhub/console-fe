@@ -49,7 +49,7 @@ export default function Login() {
           label="Password"
           id="password"
           type="password"
-          placeholder="Enter your email"
+          placeholder="Enter your password"
           className="bg-gray-03 h-11 placeholder:text-[#21212166] placeholder:text-sm"
           {...formik.getFieldProps("password")}
           error={formik.touched.password ? formik.errors.password : ""}
