@@ -59,13 +59,6 @@ export function SessionTimeoutModal({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex flex-col items-center gap-1 py-2">
-              <span className="text-5xl font-semibold text-black-01 font-mono tracking-widest tabular-nums">
-                {formatTime(secondsLeft)}
-              </span>
-              <span className="text-xs text-gray-01 font-mont">minutes remaining</span>
-            </div>
-
             <DialogFooter className="flex-col gap-2 sm:flex-col">
               <Button className="w-full h-11" onClick={onContinue}>
                 Continue Session

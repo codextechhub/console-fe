@@ -62,7 +62,12 @@ export default function DashboardLayout({
               )}
 
               <h6 className="text-base uppercase font-semibold text-black-01">
-                {title || "Welcome back!!"}
+                {title || (() => {
+                  const h = new Date().getHours();
+                  const period = h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening";
+                  const first = user?.full_name?.split(" ")[0];
+                  return `Good ${period}${first ? `, ${first}` : ""}`;
+                })()}
               </h6>
             </div>
             <TopProgressBar />
