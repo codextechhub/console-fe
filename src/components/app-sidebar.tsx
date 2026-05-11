@@ -9,10 +9,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { svgIcons } from "@/assets/svg";
-import { cn } from "@/lib/utils";
 import {
   HomeIcon,
   LogoutIcon,
@@ -88,21 +86,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
     ],
   };
-  const { state } = useSidebar();
   return (
     <>
       <Sidebar className="bg-white" collapsible="icon" {...props}>
         <SidebarHeader className="bg-white">
           <SidebarMenu>
             <SidebarMenuItem className="mt-2">
-              <SidebarMenuButton
-                size="lg"
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-transparent cursor-pointer mx-auto h-10"
-              >
-                <div className={cn("size-fit mx-auto")}>
-                  {state === "collapsed" ? svgIcons.logo : svgIcons.codexIcon}
-                </div>
-              </SidebarMenuButton>
+              <div className="flex items-center justify-center">
+                <div className="size-fit">{svgIcons.logo}</div>
+              </div>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
