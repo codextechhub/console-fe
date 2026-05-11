@@ -76,7 +76,7 @@ export default function SchoolManagement() {
   return (
     <DashboardLayout title="School Management">
       <main className="px-4.5 py-6 space-y-5 text-black-01">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h4 className="font-medium text-xl">School Onboarding</h4>
 
           <DropdownMenu>
@@ -116,17 +116,17 @@ export default function SchoolManagement() {
           ))}
         </div>
 
-        <div className="flex items-center justify-between mt-8 gap-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-8 gap-3">
           <CustomInput
             id="search"
             canSearch
             placeholder="Search schools..."
             className="h-10"
-            containerClass="max-w-[280px]"
+            containerClass="w-full sm:max-w-[280px]"
             value={search}
             onChange={(e) => { setPage(1); setSearch(e.target.value); }}
           />
-          <div className="inline-flex items-center gap-3.5">
+          <div className="inline-flex items-center gap-3.5 shrink-0">
             <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
               {svgIcons.filterIcon} Filter
             </Button>

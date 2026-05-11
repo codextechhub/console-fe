@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { AppSidebar } from "../app-sidebar";
 import { svgIcons } from "@/assets/svg";
@@ -43,6 +43,8 @@ export default function DashboardLayout({
         <SidebarInset className="bg-white-05">
           <header className="flex justify-between h-15 px-3 lg:px-10 shrink-0 sticky top-0 z-10 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-white border border-l-0 border-white-02 relative">
             <div className="inline-flex items-center gap-2">
+              <SidebarTrigger className="md:hidden size-8" />
+
               {hasBack && (
                 <>
                   <figure
@@ -61,14 +63,18 @@ export default function DashboardLayout({
                 </>
               )}
 
-              <h6 className="text-base uppercase font-semibold text-black-01">
-                {title || (() => {
-                  const h = new Date().getHours();
-                  const period = h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening";
-                  const first = user?.full_name?.split(" ")[0];
-                  return `Good ${period}${first ? `, ${first}` : ""}`;
-                })()}
-              </h6>
+              {title ? (
+                <h6 className="text-base uppercase font-semibold text-black-01">{title}</h6>
+              ) : (
+                <h6 className="font-mont text-lg font-medium text-black-01">
+                  {(() => {
+                    const h = new Date().getHours();
+                    const period = h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening";
+                    const first = user?.full_name?.split(" ")[0];
+                    return `Good ${period}${first ? `, ${first}!` : "!"}`;
+                  })()}
+                </h6>
+              )}
             </div>
             <TopProgressBar />
             <div className="gap-x-3 inline-flex items-center">
@@ -81,17 +87,17 @@ export default function DashboardLayout({
 
               <Separator
                 orientation="vertical"
-                className=" data-[orientation=vertical]:h-7"
+                className="hidden sm:block data-[orientation=vertical]:h-7"
               />
 
-              <figure className="inline-flex items-center gap-x-3 pl-2.5 py-1 ">
+              <figure className="hidden sm:inline-flex items-center gap-x-3 pl-2.5 py-1">
                 <Avatar>
                   <AvatarImage src={"/image/avatar2.png"} />
                   <AvatarFallback>
                     {returnInitial(user?.full_name ?? "O")}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="hidden md:grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">
                     {user?.full_name || ""}
                   </span>

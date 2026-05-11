@@ -97,8 +97,8 @@ export default function ViewSchool() {
         {!isLoading && !isError && school && (
           <>
             {/* Logo + Name + Edit on same row */}
-            <div className="flex items-center justify-between gap-5">
-              <div className="flex items-center gap-5">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
                 <div className="size-20 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                   {school.branding?.logo ? (
                     <img src={school.branding.logo} alt={school.name} className="w-full h-full object-cover" />

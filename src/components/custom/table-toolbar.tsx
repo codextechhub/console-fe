@@ -26,18 +26,18 @@ export default function TableToolbar({
   addButton,
 }: TableToolbarProps) {
   return (
-    <div className="flex items-center justify-between gap-5">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <CustomInput
         id="toolbar-search"
         canSearch
         placeholder={placeholder}
         className="h-10"
-        containerClass="max-w-[280px]"
+        containerClass="w-full sm:max-w-[280px]"
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
       />
 
-      <div className="inline-flex items-center gap-3.5">
+      <div className="inline-flex items-center gap-3.5 shrink-0">
         {addButton && (
           <Button size="lg" onClick={addButton.onClick}>
             <Plus /> {addButton.label}

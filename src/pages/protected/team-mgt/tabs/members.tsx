@@ -76,18 +76,18 @@ export default function MembersTab() {
         </Link>
       </div>
 
-      <div className="flex items-center justify-between mt-8 gap-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-8 gap-3">
         <CustomInput
           id="search"
           canSearch
           placeholder="Search..."
           className="h-10"
-          containerClass="max-w-[280px]"
+          containerClass="w-full sm:max-w-[280px]"
           value={value}
           onChange={(e) => setValue(e.target.value)}
         />
 
-        <div className="inline-flex items-center gap-3.5">
+        <div className="inline-flex items-center gap-3.5 shrink-0">
           <Button
             variant="white"
             size="lg"

@@ -1,6 +1,6 @@
 ## Undone (Ask questions for clarity where needed)
 
-# 5. I want to work on the view structure for phone, tabs. That's for other viewing platform. Only the desktop view is okay now.
+
 
 ## Done
 
