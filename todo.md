@@ -9,6 +9,13 @@
 # 3. Add formatEnum utility — converts raw DB enum keys (e.g. FAITH_BASED, 3_TERMS) to human-readable labels across school management pages.
 # 4. Add activated_at to branch details view — shows formatted date or "Not Activated" when null.
 # 5. Check former school design (commit e970f0ee) vs current — old design had Edit button in a separate row, no Status column, "Add New Branch" button, raw enum values. Current design is the correct improved version; nothing to revert.
-# 6. Add global loading cursor — `useLoadingCursor(isLoading)` hook in `src/hooks/use-loading-cursor.ts`. Applied to all 10 pages that fetch or submit: school-mgt index/view/edit/branch pages, team-mgt tabs and admin pages, package-setup.
-# 7. Prefill create school visible on all wizard steps — "Fill test data" button now lives at the top of the create-school wrapper (always visible in DEV mode regardless of current step); clicking it fills all steps and navigates to step 1.
+# 6. Add global loading cursor — replaced with top progress bar (`TopProgressBar`) in `DashboardLayout` header; detects all RTK Query activity via `state.baseApi` selector. No per-page setup needed.
+# 7. Prefill create school visible on all wizard steps — "Fill test data" button at the top of create-school wrapper, visible when `VITE_SHOW_PREFILL=true` (set in `.env` for staging).
+# 8. Good morning/afternoon/evening greeting — replaces "Welcome back!!" in the dashboard header using the logged-in user's first name. Uses Montserrat font in sentence case.
+# 9. Hide session countdown timer — timer still counts internally (reduced to 1 min) but is no longer shown to the user in the modal.
+# 10. Fix activate account "authentication failed" error — added "activate" to `authUrls` in `baseApi.ts` so 401s on the activation endpoint show a proper error toast instead of force-logging out.
+# 11. Fix login error messages — extracted actual backend error message (`res?.data?.message` / `res?.data?.error?.detail`) instead of always showing "Authentication failed." Also fixed wrong placeholder on the password field.
+# 12. Paginate all tables — Schools index (server-side, page resets on search/filter), Members tab (onPageChange wired), Invites tab (onPageChange wired), view-school branches (client-side, 10 per page with search reset).
+# 13. Responsive views — sidebar hamburger trigger for mobile, toolbars stack vertically on small screens, header user section collapses on mobile, view pages use flex-wrap on header rows.
+# 14. Collapsible sidebar — collapse toggle button on the left border of the sticky header; logo always shows icon-only centered; chevron flips direction on state change; persists across all pages.
  
