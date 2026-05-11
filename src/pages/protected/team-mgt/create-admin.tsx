@@ -11,7 +11,6 @@ import { useGetAllRolesQuery } from "@/redux/services/dashboard/roleApi";
 import { useFormik } from "formik";
 import { createTeamMemberSchema } from "@/schema/dashboard/team-mgt";
 import { useCreateTeamMemberMutation } from "@/redux/services/dashboard/teamMgtApi";
-import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 
 export default function CreateAdmin() {
   const navigate = useNavigate();
@@ -21,7 +20,6 @@ export default function CreateAdmin() {
   const [createTeamMember, { isLoading: creating }] =
     useCreateTeamMemberMutation();
 
-  useLoadingCursor(creating);
 
   const formik = useFormik({
     initialValues: {

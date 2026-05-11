@@ -14,7 +14,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "react-haiku";
 import type { TeamMember } from "@/redux/services/dashboard/type";
 import { formatRelativeDate } from "@/utils/helpers";
-import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
 
@@ -54,7 +53,6 @@ export default function InvitesTab() {
     refetchOnMountOrArgChange: true,
   });
 
-  useLoadingCursor(isLoading || isFetching);
 
   const [resendInvite] = useResendInviteMutation();
   return (

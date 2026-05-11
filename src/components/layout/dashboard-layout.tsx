@@ -10,6 +10,7 @@ import { returnInitial } from "@/utils/helpers";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { SessionTimeoutModal } from "@/components/session-timeout-modal";
+import { TopProgressBar } from "@/components/custom/top-progress-bar";
 
 export default function DashboardLayout({
   children,
@@ -40,7 +41,7 @@ export default function DashboardLayout({
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset className="bg-white-05">
-          <header className="flex justify-between h-15 px-3 lg:px-10 shrink-0 sticky top-0 z-10 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-white border border-l-0 border-white-02">
+          <header className="flex justify-between h-15 px-3 lg:px-10 shrink-0 sticky top-0 z-10 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-white border border-l-0 border-white-02 relative">
             <div className="inline-flex items-center gap-2">
               {hasBack && (
                 <>
@@ -64,6 +65,7 @@ export default function DashboardLayout({
                 {title || "Welcome back!!"}
               </h6>
             </div>
+            <TopProgressBar />
             <div className="gap-x-3 inline-flex items-center">
               <button
                 type="button"

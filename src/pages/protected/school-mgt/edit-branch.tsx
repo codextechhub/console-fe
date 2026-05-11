@@ -8,7 +8,6 @@ import {
   useUpdateBranchMutation,
 } from "@/redux/services/dashboard/schoolMgtApi";
 import { routesPath } from "@/routes/routesPath";
-import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -42,7 +41,6 @@ export default function EditBranch() {
   );
   const [updateBranch, { isLoading: submitting }] = useUpdateBranchMutation();
 
-  useLoadingCursor(isLoading || submitting);
 
   const branch = data?.data;
 

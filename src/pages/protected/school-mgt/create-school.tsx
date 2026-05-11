@@ -1,7 +1,6 @@
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import PromptModal from "@/components/modal/prompt-modal";
 import { Button } from "@/components/ui/button";
-import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { useCreateSchoolMutation } from "@/redux/services/dashboard/schoolMgtApi";
 import { routesPath } from "@/routes/routesPath";
 import { useState } from "react";
@@ -201,7 +200,6 @@ export default function CreateSchool() {
 
   const [createSchool, { isLoading: submitting }] = useCreateSchoolMutation();
 
-  useLoadingCursor(submitting);
 
   const isDev = import.meta.env.DEV;
 

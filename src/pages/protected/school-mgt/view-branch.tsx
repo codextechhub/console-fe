@@ -9,7 +9,6 @@ import {
 } from "@/redux/services/dashboard/schoolMgtApi";
 import { routesPath } from "@/routes/routesPath";
 import { formatEnum, formatStartedTime } from "@/utils/helpers";
-import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -56,7 +55,6 @@ export default function ViewBranch() {
   const branch = branchData?.data;
   const isLoading = schoolLoading || branchLoading;
 
-  useLoadingCursor(isLoading);
 
   const initials = school?.name
     ?.split(" ")

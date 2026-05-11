@@ -7,7 +7,6 @@ import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/schoolMgtApi
 import type { BranchDetail } from "@/redux/services/dashboard/schoolType";
 import { routesPath } from "@/routes/routesPath";
 import { formatEnum } from "@/utils/helpers";
-import { useLoadingCursor } from "@/hooks/use-loading-cursor";
 import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -46,7 +45,6 @@ export default function ViewSchool() {
   const { data, isLoading, isError } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
   const school = data?.data;
 
-  useLoadingCursor(isLoading);
 
   const initials = school?.name
     ?.split(" ")
