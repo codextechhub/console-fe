@@ -1,6 +1,5 @@
 ## Undone (Ask questions for clarity where needed)
 
-# 1. Deploy backend change: `activated_at` added to BranchDetailSerializer — needs to be pushed to staging/production so the branch detail API returns it.
 # 2. Paginate all the tables in the site, you can use a generic function for this if possible.
 # 3. The activate account is showung authentication failed when someone new tries to get authenticated. Check what's the problem. Also when someone wants to log in, show error based of what happened, eith credentials failed or network or anything else
 # 4. When a user logs in, I want the welcome back at the top to be Good morning, John or Good afternoon, John.
