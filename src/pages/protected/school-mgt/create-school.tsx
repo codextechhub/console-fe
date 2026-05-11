@@ -201,7 +201,7 @@ export default function CreateSchool() {
   const [createSchool, { isLoading: submitting }] = useCreateSchoolMutation();
 
 
-  const isDev = import.meta.env.DEV;
+  const isDev = import.meta.env.VITE_SHOW_PREFILL === "true";
 
   const handlePrefill = (data: PrefillData) => {
     setBranches(data.branches);

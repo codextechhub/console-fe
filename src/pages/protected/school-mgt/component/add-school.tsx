@@ -14,7 +14,7 @@ interface Props {
   generateTestData: () => PrefillData;
 }
 
-const isDev = import.meta.env.DEV;
+const isDev = import.meta.env.VITE_SHOW_PREFILL === "true";
 
 export default function AddSchool({ defaultValues, onNext, onPrefill, generateTestData }: Props) {
   const navigate = useNavigate();
