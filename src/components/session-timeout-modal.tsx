@@ -55,7 +55,7 @@ export function SessionTimeoutModal({
               <DialogTitle className="text-xl">Still there?</DialogTitle>
               <DialogDescription className="text-center text-sm font-medium text-gray-01 font-mont">
                 You've been inactive for a while. For your security, you'll be
-                logged out automatically in
+                logged out automatically in {formatTime(secondsLeft)}.
               </DialogDescription>
             </DialogHeader>
 
