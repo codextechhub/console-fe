@@ -262,7 +262,7 @@ export default function ViewAdmin() {
               {member.email}
             </p>
             <p className="text-xs text-gray-01 font-mont mt-1">
-              {member.role || "—"} · {member.user_type || "—"}
+              {member.role || "—"}
             </p>
           </div>
 
