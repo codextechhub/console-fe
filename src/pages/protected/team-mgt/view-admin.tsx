@@ -326,14 +326,13 @@ export default function ViewAdmin() {
               </p>
               <Separator className="mb-2 bg-gray-03" />
               <InfoRow icon={Mail} label="Email" value={member.email} />
-              {member.user_type === "VISION_STAFF" ? (
-                <InfoRow icon={Shield} label="Role" value={member.role} />
-              ) : (
+              {member.user_type !== "VISION_STAFF" && (
                 <>
                   <InfoRow icon={Building2} label="School" value={member.school_name} />
                   <InfoRow icon={Building2} label="Branch" value={member.branch_name} />
                 </>
               )}
+              <InfoRow icon={Shield} label="Role" value={member.role} />
               <InfoRow
                 icon={UserCheck}
                 label="Invited By"
