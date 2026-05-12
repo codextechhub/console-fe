@@ -37,8 +37,8 @@ const tableHeader = [
 
 const INITIAL_FILTERS = {
   role: "",
-  created_at_after: "",
-  created_at_before: "",
+  date_from: "",
+  date_to: "",
   invited_by: "",
 };
 
@@ -203,17 +203,17 @@ export default function InvitesTab() {
             <CustomDateInput
               id="filter-date-from"
               label="Date Created From"
-              value={draftFilters.created_at_after}
+              value={draftFilters.date_from}
               onValueChange={(v) =>
-                setDraftFilters((p) => ({ ...p, created_at_after: v }))
+                setDraftFilters((p) => ({ ...p, date_from: v }))
               }
             />
             <CustomDateInput
               id="filter-date-to"
               label="Date Created To"
-              value={draftFilters.created_at_before}
+              value={draftFilters.date_to}
               onValueChange={(v) =>
-                setDraftFilters((p) => ({ ...p, created_at_before: v }))
+                setDraftFilters((p) => ({ ...p, date_to: v }))
               }
             />
             <CustomInput
