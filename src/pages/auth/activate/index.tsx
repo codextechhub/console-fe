@@ -26,15 +26,23 @@ export default function ActivateAccount() {
 
   const [activateAccount, { isLoading: activating }] =
     useActivateAccountMutation();
+  const [apiError, setApiError] = useState("");
 
   const formik = useFormik({
     initialValues: { password: "", confirm_password: "" },
     validationSchema: resetPasswordSchema,
     onSubmit: (values) => {
+      setApiError("");
       activateAccount({ activation_key: activation_key!, ...values })
         .unwrap()
         .then(() => setSuccess(true))
-        .catch(() => {});
+        .catch((err) => {
+          const msg =
+            err?.data?.message ||
+            err?.data?.error?.detail ||
+            "Activation failed. Please try again.";
+          setApiError(typeof msg === "string" ? msg : "Activation failed. Please try again.");
+        });
     },
   });
 
@@ -125,6 +133,7 @@ export default function ActivateAccount() {
                 placeholder="Enter your password"
                 className="bg-gray-03 h-11 placeholder:text-[#21212166] placeholder:text-sm"
                 {...formik.getFieldProps("password")}
+                onChange={(e) => { setApiError(""); formik.handleChange(e); }}
                 error={formik.touched.password ? formik.errors.password : ""}
               />
               <CustomInput
@@ -134,6 +143,7 @@ export default function ActivateAccount() {
                 placeholder="Re-enter your password"
                 className="bg-gray-03 h-11 placeholder:text-[#21212166] placeholder:text-sm"
                 {...formik.getFieldProps("confirm_password")}
+                onChange={(e) => { setApiError(""); formik.handleChange(e); }}
                 error={
                   formik.touched.confirm_password
                     ? formik.errors.confirm_password
@@ -141,6 +151,10 @@ export default function ActivateAccount() {
                 }
               />
             </div>
+
+            {apiError && (
+              <p className="text-xs font-medium text-destructive/70 -mt-6 mb-2">{apiError}</p>
+            )}
 
             <Button
               disabled={!formik.isValid || !formik.dirty || activating}

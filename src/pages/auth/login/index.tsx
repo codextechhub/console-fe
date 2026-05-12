@@ -4,11 +4,14 @@ import { useLoginMutation } from "@/redux/services/auth/authApi";
 import { routesPath } from "@/routes/routesPath";
 import { loginSchema } from "@/schema/auth";
 import { useFormik } from "formik";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 export default function Login() {
   const navigate = useNavigate();
   const [login, { isLoading }] = useLoginMutation();
+  const [apiError, setApiError] = useState("");
+
   const formik = useFormik({
     initialValues: {
       password: "",
@@ -16,12 +19,19 @@ export default function Login() {
     },
     validationSchema: loginSchema,
     onSubmit: (values) => {
+      setApiError("");
       login(values)
         .unwrap()
         .then(() => {
           navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
         })
-        .catch(() => {});
+        .catch((err) => {
+          const msg =
+            err?.data?.message ||
+            err?.data?.error?.detail ||
+            "Invalid credentials. Please try again.";
+          setApiError(typeof msg === "string" ? msg : "Invalid credentials. Please try again.");
+        });
     },
   });
 
@@ -43,6 +53,7 @@ export default function Login() {
           placeholder="Enter your email"
           className="bg-gray-03 h-11 placeholder:text-[#21212166] placeholder:text-sm"
           {...formik.getFieldProps("email")}
+          onChange={(e) => { setApiError(""); formik.handleChange(e); }}
           error={formik.touched.email ? formik.errors.email : ""}
         />
         <CustomInput
@@ -52,6 +63,7 @@ export default function Login() {
           placeholder="Enter your password"
           className="bg-gray-03 h-11 placeholder:text-[#21212166] placeholder:text-sm"
           {...formik.getFieldProps("password")}
+          onChange={(e) => { setApiError(""); formik.handleChange(e); }}
           error={formik.touched.password ? formik.errors.password : ""}
         />
 
@@ -63,6 +75,10 @@ export default function Login() {
             Forgot password
           </Link>
         </div>
+
+        {apiError && (
+          <p className="text-xs font-medium text-destructive/70 -mt-1">{apiError}</p>
+        )}
 
         <Button
           disabled={!formik.isValid || !formik.dirty || isLoading}
