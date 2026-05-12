@@ -105,6 +105,14 @@ function DashboardHeader({
   );
 }
 
+function getSidebarDefaultOpen(): boolean {
+  const cookie = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("sidebar_state="));
+  if (!cookie) return true;
+  return cookie.split("=")[1] !== "false";
+}
+
 export default function DashboardLayout({
   children,
   hasBack = false,
@@ -129,7 +137,7 @@ export default function DashboardLayout({
         onLogout={onLogout}
         goToLogin={goToLogin}
       />
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={getSidebarDefaultOpen()}>
         <AppSidebar />
         <SidebarInset className="bg-white-05">
           <DashboardHeader hasBack={hasBack} onBack={onBack} title={title} />
