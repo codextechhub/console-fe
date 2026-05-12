@@ -1,7 +1,5 @@
 ## Undone (Ask questions for clarity where needed)
 
-# 1. Functional filter system in team management. Ask me about the structure first.
-
 ## Done
 
 # 1. Remove Admin Role field from Add Branch (branch admin section) — role is prebuilt internally, field removed from UI, interface, validation schema, and API payload.
@@ -18,4 +16,4 @@
 # 12. Paginate all tables — Schools index (server-side, page resets on search/filter), Members tab (onPageChange wired), Invites tab (onPageChange wired), view-school branches (client-side, 10 per page with search reset).
 # 13. Responsive views — sidebar hamburger trigger for mobile, toolbars stack vertically on small screens, header user section collapses on mobile, view pages use flex-wrap on header rows.
 # 14. Collapsible sidebar — collapse toggle button on the left border of the sticky header; logo always shows icon-only centered; chevron flips direction on state change; persists across all pages.
- 
+# 15. Functional filter system in team management — server-side filters on both Members and Invites tabs. Members: Role, Status, Date Created (from/to), Invited By. Invites: Role, Date Created (from/to), Invited By. Filter sheet opens from a "Filters" button with an active-count badge. Draft/applied two-state pattern so changes only take effect on "Apply".
