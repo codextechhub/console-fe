@@ -1,6 +1,6 @@
 ## Undone (Ask questions for clarity where needed)
 
-
+# Functional filte system in team management. Ask me about the structure first.
 
 ## Done
 
