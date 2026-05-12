@@ -139,7 +139,11 @@ export const baseQueryInterceptor: BaseQueryFn<
         }
       }
     } else if (res?.status === 403) {
-      toast.error("You don't have permission to perform this action.");
+      const errorMsg =
+        extractFirstDetailError(res?.data?.error?.detail) ||
+        res?.data?.message ||
+        "You don't have permission to perform this action.";
+      toast.error(errorMsg);
     } else if (res?.status === 404) {
       toast.error(res?.data?.message || "Resource not found.");
     } else if (res?.status === 405) {
