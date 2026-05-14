@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/schoolMgtApi";
 import type { BranchDetail } from "@/redux/services/dashboard/schoolType";
 import { routesPath } from "@/routes/routesPath";
-import { formatEnum } from "@/utils/helpers";
+import { formatEnum, returnInitial } from "@/utils/helpers";
 import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -50,12 +50,7 @@ export default function ViewSchool() {
   const { data, isLoading, isError } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
   const school = data?.data;
 
-  const initials = school?.name
-    ?.split(" ")
-    .slice(0, 2)
-    .map((w: string) => w[0])
-    .join("")
-    .toUpperCase() ?? "";
+  const initials = returnInitial(school?.name ?? "");
 
   const filteredBranches = (school?.branches ?? [])
     .filter((b: BranchDetail) =>

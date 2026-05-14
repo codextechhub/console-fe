@@ -8,7 +8,7 @@ import {
   useGetSchoolDetailQuery,
 } from "@/redux/services/dashboard/schoolMgtApi";
 import { routesPath } from "@/routes/routesPath";
-import { formatEnum, formatStartedTime } from "@/utils/helpers";
+import { formatEnum, formatStartedTime, returnInitial } from "@/utils/helpers";
 import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -57,12 +57,7 @@ export default function ViewBranch() {
   const isLoading = schoolLoading || branchLoading;
 
 
-  const initials = school?.name
-    ?.split(" ")
-    .slice(0, 2)
-    .map((w: string) => w[0])
-    .join("")
-    .toUpperCase() ?? "";
+  const initials = returnInitial(school?.name ?? "");
 
   return (
     <DashboardLayout title="School Management" hasBack>
