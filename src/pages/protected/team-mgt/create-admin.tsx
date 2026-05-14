@@ -126,7 +126,7 @@ export default function CreateAdmin() {
             <div className="mt-10 inline-flex items-center gap-4">
               <Button
                 type="submit"
-                disabled={!formik.isValid || !formik.dirty || creating}
+                disabled={!formik.isValid || creating}
                 loading={creating}
                 className="w-37"
               >

@@ -9,6 +9,7 @@ import { routesPath } from "@/routes/routesPath";
 import { formatEnum, returnInitial } from "@/utils/helpers";
 import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
+import { useDebounce } from "react-haiku";
 import { useNavigate, useParams } from "react-router";
 import { SortBar, handleSortToggle } from "@/components/custom/sort-bar";
 
@@ -41,6 +42,7 @@ export default function ViewSchool() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
   const [sort, setSort] = useState({ sortColumn: "", sortOrder: "" as "asc" | "desc" | "" });
@@ -54,7 +56,7 @@ export default function ViewSchool() {
 
   const filteredBranches = (school?.branches ?? [])
     .filter((b: BranchDetail) =>
-      !search || b.name.toLowerCase().includes(search.toLowerCase())
+      !debouncedSearch || b.name.toLowerCase().includes(debouncedSearch.toLowerCase())
     )
     .sort((a: BranchDetail, b: BranchDetail) => {
       if (!sort.sortColumn) return 0;

@@ -41,6 +41,8 @@ export default function AddSchoolBranch({ defaultValues, onNext }: Props) {
     setBranches(next);
   };
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
     branches.forEach((b, i) => {
@@ -49,7 +51,11 @@ export default function AddSchoolBranch({ defaultValues, onNext }: Props) {
       if (!b.country.trim()) errs[`${i}.country`] = "Country is required";
       if (!b.admin_first_name.trim()) errs[`${i}.admin_first_name`] = "Admin first name is required";
       if (!b.admin_last_name.trim()) errs[`${i}.admin_last_name`] = "Admin last name is required";
-      if (!b.admin_email.trim()) errs[`${i}.admin_email`] = "Admin email is required";
+      if (!b.admin_email.trim()) {
+        errs[`${i}.admin_email`] = "Admin email is required";
+      } else if (!EMAIL_RE.test(b.admin_email)) {
+        errs[`${i}.admin_email`] = "Enter a valid email address";
+      }
     });
     if (!branches.some((b) => b.is_main)) errs["main"] = "One branch must be marked as main";
     setErrors(errs);

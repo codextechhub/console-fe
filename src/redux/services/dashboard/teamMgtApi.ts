@@ -42,6 +42,7 @@ export const teamMgtApi = baseApi.injectEndpoints({
         method: "PATCH",
         body: payload.body,
       }),
+      invalidatesTags: ["Users"],
     }),
     suspendTeamMember: builder.mutation({
       query: (user_id) => ({

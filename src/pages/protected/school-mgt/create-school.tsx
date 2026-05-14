@@ -178,9 +178,9 @@ function buildPayload(
     payload.package_setup_data = {
       package_plan: pkg.package_plan,
       enabled_modules: pkg.enabled_modules,
-      student_capacity: Number(pkg.student_capacity),
-      teacher_capacity: Number(pkg.teacher_capacity),
-      admin_capacity: Number(pkg.admin_capacity),
+      student_capacity: pkg.student_capacity !== "" ? Number(pkg.student_capacity) : undefined,
+      teacher_capacity: pkg.teacher_capacity !== "" ? Number(pkg.teacher_capacity) : undefined,
+      admin_capacity: pkg.admin_capacity !== "" ? Number(pkg.admin_capacity) : undefined,
       ...(pkg.subscription_expires_at ? { subscription_expires_at: pkg.subscription_expires_at } : {}),
     };
   }
