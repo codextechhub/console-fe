@@ -289,8 +289,21 @@ const CustomTable = ({
       </Table>
       {/* table component end here ------ */}
       {/* pagination start here ------ */}
-      {totalPage >= 2 && !hidePagination && (
-        <div className="inline-flex items-center gap-2 ml-auto mt-3.5">
+      {totalPage > 0 && !hidePagination && (
+        <div className="flex items-center justify-end gap-2 mt-3.5">
+          <button
+            onClick={() => { if (onPageChange && currentPage > 1) onPageChange(currentPage - 1); }}
+            disabled={currentPage <= 1}
+            className={cn(
+              "grid h-7.5 px-2.5 place-content-center rounded-md text-sm font-medium transition-colors",
+              currentPage <= 1
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-black-02 hover:bg-gray-100 cursor-pointer",
+            )}
+          >
+            Prev
+          </button>
+
           {getPageNumbers().map((page, index) => {
             if (page === "ellipsis-start" || page === "ellipsis-end") {
               return (
@@ -305,11 +318,7 @@ const CustomTable = ({
             return (
               <button
                 key={`page-${page}`}
-                onClick={() => {
-                  {
-                    if (onPageChange) onPageChange(page as number);
-                  }
-                }}
+                onClick={() => { if (onPageChange) onPageChange(page as number); }}
                 className={cn(
                   "grid size-7.5 place-content-center rounded-md text-sm font-medium transition-colors",
                   isActive
@@ -322,6 +331,19 @@ const CustomTable = ({
               </button>
             );
           })}
+
+          <button
+            onClick={() => { if (onPageChange && currentPage < totalPage) onPageChange(currentPage + 1); }}
+            disabled={currentPage >= totalPage}
+            className={cn(
+              "grid h-7.5 px-2.5 place-content-center rounded-md text-sm font-medium transition-colors",
+              currentPage >= totalPage
+                ? "text-gray-300 cursor-not-allowed"
+                : "text-black-02 hover:bg-gray-100 cursor-pointer",
+            )}
+          >
+            Next
+          </button>
         </div>
       )}
     </>
