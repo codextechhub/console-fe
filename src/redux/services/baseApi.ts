@@ -30,26 +30,32 @@ export const baseQuery = fetchBaseQuery({
   },
 });
 
-// Refresh token request
-const refreshTokenRequest = async (refreshToken?: string) => {
+type RefreshOutcome =
+  | { ok: true; access: string }
+  | { ok: false; reason: "token_invalid" | "network_error" | "server_error" };
+
+const refreshTokenRequest = async (refreshToken?: string): Promise<RefreshOutcome> => {
+  if (!refreshToken) return { ok: false, reason: "token_invalid" };
   const accessToken = getAccessToken();
-  if (!refreshToken) return null;
   try {
     const response = await fetch(`${baseUrl}/user/auth/token/refresh/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         accept: "application/json",
-         redirect: 'follow',
-         Authorization: `Bearer ${accessToken}`,
+        redirect: "follow",
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ refresh: refreshToken }),
     });
-    if (!response.ok) return null;
+    if (response.status >= 500) return { ok: false, reason: "server_error" };
+    if (!response.ok) return { ok: false, reason: "token_invalid" };
     const data = await response.json();
-    return data?.data;
+    const access = data?.data?.access;
+    if (!access) return { ok: false, reason: "token_invalid" };
+    return { ok: true, access };
   } catch {
-    return null;
+    return { ok: false, reason: "network_error" };
   }
 };
 
@@ -88,31 +94,28 @@ export const baseQueryInterceptor: BaseQueryFn<
         Cookies.get("refresh_token") ||
         "";
 
-      // Try refresh token
       const refreshed = await refreshTokenRequest(refreshToken);
 
-      if (
-        refreshed?.detail !== "Invalid or expired token." &&
-        refreshed?.access
-      ) {
-        // Store new tokens
-        Cookies.set("token", refreshed?.access);
-        api.dispatch(setToken(refreshed?.access)); // reset token in store
+      if (refreshed.ok) {
+        Cookies.set("token", refreshed.access);
+        api.dispatch(setToken(refreshed.access));
 
-        // Retry original request with new token
         const retryResult = await baseQuery(args, api, extraOptions);
-        // If still unauthorized, force logout
         if (retryResult?.error?.status === 401) {
           api.dispatch(resetAuth());
           Cookies.remove("token");
           Cookies.remove("refresh_token");
           clearStorageItem();
           window.location.href = routesPath.AUTH.LOGIN;
-          return retryResult; // Return the failed retry result
+          return retryResult;
         }
-        return retryResult; // Return the failed retry result
+        return retryResult;
+      } else if (refreshed.reason === "network_error") {
+        toast.error("Network error. Check your connection and try again.");
+      } else if (refreshed.reason === "server_error") {
+        toast.error("A server error occurred. Please try again later.");
       } else {
-        // Refresh failed, force logout
+        // token_invalid — logout unless on an auth page
         const authUrls = ["login", "reset-password", "password/reset", "forgot-password", "activate", "special_login"];
         const isAuthRoute =
           typeof args === "string"
@@ -129,8 +132,6 @@ export const baseQueryInterceptor: BaseQueryFn<
             "Invalid credentials. Please try again.";
           toast.error(errorMsg);
         } else {
-          // Force logout for non-auth routes
-
           api.dispatch(resetAuth());
           Cookies.remove("token");
           Cookies.remove("refresh_token");
