@@ -21,6 +21,7 @@ import type { School } from "@/redux/services/dashboard/schoolType";
 import { formatEnum } from "@/utils/helpers";
 import { Plus, RefreshCw } from "lucide-react";
 import { useState } from "react";
+import { useDebounce } from "react-haiku";
 import { useNavigate, useSearchParams } from "react-router";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 
@@ -40,6 +41,7 @@ export default function SchoolManagement() {
   const rawStatus = searchParams.get("status") ?? "";
   const filter_status = VALID_STATUSES.has(rawStatus) ? rawStatus : null;
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 600);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState({ sortColumn: "", sortOrder: "" as "asc" | "desc" | "" });
   const onSort = (col: string) => handleSortToggle(col, sort, setSort);
@@ -48,7 +50,7 @@ export default function SchoolManagement() {
   if (filter_status) {
     queryParams.status = STATUS_MAP[filter_status];
   }
-  if (search) queryParams.q = search;
+  if (debouncedSearch) queryParams.q = debouncedSearch;
   const ordering = buildOrdering(sort.sortColumn, sort.sortOrder);
   if (ordering) queryParams.ordering = ordering;
 
@@ -135,9 +137,6 @@ export default function SchoolManagement() {
             onChange={(e) => { setPage(1); setSearch(e.target.value); }}
           />
           <div className="inline-flex items-center gap-3.5 shrink-0">
-            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont" disabled>
-              {svgIcons.filterIcon} Filter
-            </Button>
             <Button
               variant="white"
               size="lg"
@@ -146,6 +145,9 @@ export default function SchoolManagement() {
               disabled={isFetching}
             >
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+            </Button>
+            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont" disabled>
+              {svgIcons.filterIcon} Filter
             </Button>
             <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont" disabled>
               {svgIcons.exportIcon} Export
