@@ -113,7 +113,7 @@ export const baseQueryInterceptor: BaseQueryFn<
         return retryResult; // Return the failed retry result
       } else {
         // Refresh failed, force logout
-        const authUrls = ["login", "reset-password", "password/reset", "forgot-password", "activate"];
+        const authUrls = ["login", "reset-password", "password/reset", "forgot-password", "activate", "special_login"];
         const isAuthRoute =
           typeof args === "string"
             ? authUrls.some((u) => args.includes(u))
@@ -154,7 +154,14 @@ export const baseQueryInterceptor: BaseQueryFn<
         toast.error(errorMsg);
       }
     } else if (res?.status === 404) {
-      toast.error(res?.data?.message || "Resource not found.");
+      const authUrls = ["login", "reset-password", "password/reset", "forgot-password", "activate", "special_login"];
+      const isAuthRoute =
+        typeof args === "string"
+          ? authUrls.some((u) => args.includes(u))
+          : typeof args === "object" && "url" in args && typeof args.url === "string"
+            ? authUrls.some((u) => (args as { url: string }).url.includes(u))
+            : false;
+      if (!isAuthRoute) toast.error(res?.data?.message || "Resource not found.");
     } else if (res?.status === 405) {
       toast.error("Unauthorized. Please log in again.");
     } else if (res?.status === 413) {

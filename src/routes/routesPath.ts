@@ -7,6 +7,8 @@ export const routesPath = {
     RESET_PASSWORD_LINK: (key: string) => `/reset-password/${key}`,
     ACTIVATE: "/activate/:activation_key",
     ACTIVATE_LINK: (key: string) => `/activate/${key}`,
+    SPECIAL_LOGIN: "/:email/login",
+    SPECIAL_LOGIN_LINK: (email: string) => `/${encodeURIComponent(email)}/login`,
   },
   PROTECTED: {
     OVERVIEW: { INDEX: "/overview" },

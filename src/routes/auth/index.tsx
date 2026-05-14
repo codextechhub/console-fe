@@ -6,6 +6,7 @@ import SignUp from "@/pages/auth/signup";
 import ResetPassword from "@/pages/auth/reset-password";
 import ForgotPassword from "@/pages/auth/forgot-password";
 import ActivateAccount from "@/pages/auth/activate";
+import SpecialLogin from "@/pages/auth/special-login";
 
 export const authRoutes = [
   {
@@ -17,6 +18,7 @@ export const authRoutes = [
       { path: routesPath.AUTH.FORGOT_PASSWORD, Component: ForgotPassword },
       { path: routesPath.AUTH.RESET_PASSWORD, Component: ResetPassword },
       { path: routesPath.AUTH.ACTIVATE, Component: ActivateAccount },
+      { path: routesPath.AUTH.SPECIAL_LOGIN, Component: SpecialLogin },
     ],
   },
 ] as RouteObject[];

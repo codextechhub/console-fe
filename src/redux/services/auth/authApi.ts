@@ -73,6 +73,12 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    specialLoginPreview: builder.query<{ message: string; data: { full_name: string } }, string>({
+      query: (email) => ({
+        url: `/user/auth/special_login/preview/?email=${encodeURIComponent(email)}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -84,4 +90,5 @@ export const {
   usePasswordResetConfirmMutation,
   useActivationPreviewQuery,
   useActivateAccountMutation,
+  useSpecialLoginPreviewQuery,
 } = authApi;
