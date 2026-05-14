@@ -25,6 +25,8 @@ export interface TeamMember {
   last_login_at?: string
   created_at: string
   updated_at?: string
+  invitation_email_status?: string
+  invitation_expires_at?: string
 }
 
 export interface AllRolesRes extends PaginatedResponse {

@@ -139,11 +139,20 @@ export const baseQueryInterceptor: BaseQueryFn<
         }
       }
     } else if (res?.status === 403) {
-      const errorMsg =
-        extractFirstDetailError(res?.data?.error?.detail) ||
-        res?.data?.message ||
-        "You don't have permission to perform this action.";
-      toast.error(errorMsg);
+      const authUrls = ["login", "reset-password", "password/reset", "forgot-password", "activate"];
+      const isAuthRoute =
+        typeof args === "string"
+          ? authUrls.some((u) => args.includes(u))
+          : typeof args === "object" && "url" in args && typeof args.url === "string"
+            ? authUrls.some((u) => (args as { url: string }).url.includes(u))
+            : false;
+      if (!isAuthRoute) {
+        const errorMsg =
+          extractFirstDetailError(res?.data?.error?.detail) ||
+          res?.data?.message ||
+          "You don't have permission to perform this action.";
+        toast.error(errorMsg);
+      }
     } else if (res?.status === 404) {
       toast.error(res?.data?.message || "Resource not found.");
     } else if (res?.status === 405) {

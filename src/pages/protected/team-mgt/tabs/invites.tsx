@@ -1,4 +1,5 @@
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
+import type { VariantProps } from "class-variance-authority";
 import { Button } from "@/components/ui/button";
 import { Plus, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { svgIcons } from "@/assets/svg";
@@ -31,6 +32,8 @@ const tableHeader = [
   "Email",
   "Role",
   "Status",
+  "Email Sent",
+  "Days Left",
   "Date Created",
   "Action",
 ];
@@ -246,6 +249,21 @@ export default function InvitesTab() {
   );
 }
 
+type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
+
+const EMAIL_STATUS_VARIANT: Record<string, BadgeVariant> = {
+  SENT: "active",
+  PENDING: "pending",
+  FAILED: "suspended",
+};
+
+const daysLeft = (expiresAt?: string): string => {
+  if (!expiresAt) return "---";
+  const diff = new Date(expiresAt).getTime() - Date.now();
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return days > 0 ? `${days}d left` : "Expired";
+};
+
 const FORMAT_TABLE_DATA = (data?: TeamMember[]) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return data?.map((item: any) => ({
@@ -256,6 +274,27 @@ const FORMAT_TABLE_DATA = (data?: TeamMember[]) => {
       <Badge variant={item.status?.toLowerCase()} className="min-w-19.25">
         {item?.status || "---"}
       </Badge>
+    ),
+    emailSent: item?.invitation_email_status ? (
+      <Badge
+        variant={EMAIL_STATUS_VARIANT[item.invitation_email_status] ?? "pending"}
+        className="min-w-16"
+      >
+        {item.invitation_email_status}
+      </Badge>
+    ) : (
+      "---"
+    ),
+    daysLeft: (
+      <span
+        className={
+          daysLeft(item?.invitation_expires_at) === "Expired"
+            ? "text-destructive font-medium text-xs"
+            : "text-xs"
+        }
+      >
+        {daysLeft(item?.invitation_expires_at)}
+      </span>
     ),
     date: item?.created_at ? formatRelativeDate(item?.created_at) : "---",
     _slug: item?.id,
