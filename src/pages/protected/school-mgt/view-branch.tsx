@@ -152,11 +152,14 @@ export default function ViewBranch() {
 
             {/* Stat Cards */}
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-              <StatCard icon={<Building2 size={22} />} label="Total Class" value="—" />
-              <StatCard icon={<LayoutGrid size={22} />} label="Total Teachers" value="—" />
-              <StatCard icon={<GraduationCap size={22} />} label="Total Student" value="—" />
-              <StatCard icon={<Users size={22} />} label="Total Parents" value="—" />
+              <StatCard icon={<Building2 size={22} />} label="Total Class" value="N/A" />
+              <StatCard icon={<LayoutGrid size={22} />} label="Total Teachers" value="N/A" />
+              <StatCard icon={<GraduationCap size={22} />} label="Total Student" value="N/A" />
+              <StatCard icon={<Users size={22} />} label="Total Parents" value="N/A" />
             </div>
+            <p className="text-xs text-gray-01 font-mont -mt-3">
+              Detailed branch statistics are not yet available.
+            </p>
 
             <TableToolbar
               search={search}

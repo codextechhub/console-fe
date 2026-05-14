@@ -166,7 +166,16 @@ export default function ViewSchool() {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-gray-01">No admin assigned.</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-01">No admin assigned.</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT(slug ?? ""))}
+                  >
+                    Assign Admin
+                  </Button>
+                </div>
               )}
             </div>
 

@@ -135,7 +135,7 @@ export default function SchoolManagement() {
             onChange={(e) => { setPage(1); setSearch(e.target.value); }}
           />
           <div className="inline-flex items-center gap-3.5 shrink-0">
-            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
+            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont" disabled>
               {svgIcons.filterIcon} Filter
             </Button>
             <Button
@@ -147,7 +147,7 @@ export default function SchoolManagement() {
             >
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
             </Button>
-            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
+            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont" disabled>
               {svgIcons.exportIcon} Export
             </Button>
           </div>
