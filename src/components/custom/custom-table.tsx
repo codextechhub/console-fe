@@ -109,11 +109,11 @@ const CustomTable = ({
     >
       {row?.map((cell: any, index: any) => (
         <TableCell
-          className="text-black-01 border-gray-03 font-medium font-mont text-sm border-y-5 overflow-hidden"
+          className="text-black-01 border-gray-03 font-medium font-mont text-sm border-y-5"
           key={index}
           onClick={onClick}
         >
-          <div className="truncate">{cell}</div>
+          {cell}
         </TableCell>
       ))}
       {children}
@@ -123,7 +123,7 @@ const CustomTable = ({
   return (
     <>
       {/* table component start here ------ */}
-      <Table className="table-fixed w-full">
+      <Table>
         {tableHeaderList?.length > 0 && (
           <TableHeader className="border-0">
             <TableRow>
