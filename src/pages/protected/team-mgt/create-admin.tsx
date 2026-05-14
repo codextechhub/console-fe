@@ -37,7 +37,7 @@ export default function CreateAdmin() {
         .then(() => {
           toggleClick();
         })
-        .catch(() => {});
+        .catch(() => {}); // errors are shown by the global baseQueryInterceptor
     },
   });
 

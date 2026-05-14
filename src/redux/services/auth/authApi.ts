@@ -1,5 +1,6 @@
 import { resetAuth, setAuthUser } from "@/redux/features/auth/authSlice";
 import Cookies from "js-cookie";
+import { clearStorageItem } from "@/hooks/use-session-storage";
 import { baseApi } from "../baseApi";
 import { routesPath } from "@/routes/routesPath";
 import type { LoginResponse } from "./type";
@@ -31,12 +32,15 @@ export const authApi = baseApi.injectEndpoints({
       }),
       async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
-            await queryFulfilled;
+          await queryFulfilled;
+        } catch {
+          // Server-side revocation failed — proceed with client-side cleanup anyway.
+        } finally {
           Cookies.remove("token");
           Cookies.remove("refresh_token");
-          window.location.href = routesPath.AUTH.LOGIN;
+          clearStorageItem();
           dispatch(resetAuth());
-        } catch  { 
+          window.location.href = routesPath.AUTH.LOGIN;
         }
       },
     }),

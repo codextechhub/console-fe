@@ -241,7 +241,7 @@ export default function CreateSchool() {
     createSchool(payload)
       .unwrap()
       .then(() => setShowSuccess(true))
-      .catch(() => {});
+      .catch(() => {}); // errors are shown by the global baseQueryInterceptor
   };
 
   const renderStep = () => {

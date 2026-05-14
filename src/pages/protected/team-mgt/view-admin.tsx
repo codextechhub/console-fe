@@ -158,7 +158,7 @@ export default function ViewAdmin() {
   ) => {
     action()
       .then(() => toast.success(successMsg))
-      .catch(() => {});
+      .catch(() => {}); // errors are shown by the global baseQueryInterceptor
   };
 
   if (isLoading) {
