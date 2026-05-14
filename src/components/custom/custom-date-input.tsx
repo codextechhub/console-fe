@@ -33,6 +33,9 @@ export const CustomDateInput = ({
   placeholder,
   disabled,
 }: CustomDateInputProps) => {
+  const parsedDate = value ? new Date(value) : undefined;
+  const validDate = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : undefined;
+
   const formatDateToLocalString = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -60,20 +63,18 @@ export const CustomDateInput = ({
               disabled={disabled}
               className={cn(
                 "w-full h-10.5 border-none justify-between font-normal text-gray-02 hover:bg-white bg-white hover:text-gray-02 group shadow-none rounded-md text-sm",
-                value && "text-black-01",
+                validDate && "text-black-01",
                 className,
               )}
             >
-              {value
-                ? new Date(value).toLocaleDateString()
-                : (placeholder ?? "Select date")}
+              {validDate ? validDate.toLocaleDateString() : (placeholder ?? "Select date")}
               <CalendarDays className="group-hover:text-primary" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto overflow-hidden p-0" align="start">
             <Calendar
               mode="single"
-              selected={value ? new Date(value) : undefined}
+              selected={validDate}
               captionLayout="dropdown"
               onSelect={(date) => {
                 if (date && onValueChange) {

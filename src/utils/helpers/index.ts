@@ -50,6 +50,7 @@ export const isImageFile = (filename: string) => {
 
 export const formatRelativeDate = (dateStr: string): string => {
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "—";
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
@@ -78,6 +79,7 @@ export const formatRelativeDate = (dateStr: string): string => {
 
 export const formatDate = (timestamp: Date): string => {
   const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return "—";
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -95,8 +97,7 @@ export const formatTimeMMSS = (seconds: number) => {
 
 export function formatStartedTime(isoString:string) {
   const date = new Date(isoString);
-
-  // Get parts
+  if (isNaN(date.getTime())) return "—";
   const day = date.getDate();
   const month = date.toLocaleString("en-US", { month: "short" });
   const year = date.getFullYear();
@@ -319,6 +320,7 @@ export type DateType = "daily" | "weekly" | "monthly"
 
 export function getDateDetails(dateString: string, type: DateType): string {
   const date = new Date(dateString)
+  if (isNaN(date.getTime())) return ""
 
   const days = [
     "Sunday",
@@ -390,6 +392,7 @@ export function formatEnum(value: string | null | undefined): string {
 
 export function daysRemaining(targetDateString:string) {
   const targetDate = new Date(targetDateString);
+  if (isNaN(targetDate.getTime())) return "0 days remaining";
   const today = new Date();
 
   // Convert both to midnight to avoid time–of–day issues
