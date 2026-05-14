@@ -185,80 +185,88 @@ export default function MembersTab() {
         className="mt-3"
       />
 
-      <CustomTable
-        tableHeaderList={tableHeader}
-        tableBodyList={isError ? [] : FORMAT_TABLE_DATA(data?.data)}
-        emptyText={
-          isError ? "Failed to load data. Please try again." : undefined
-        }
-        loading={isLoading}
-        dropDown={!isError}
-        dropDownList={(row: { _slug: string; _status: string }) => {
-          const statusAction = () => {
-            if (row._status === "ACTIVE") {
-              if (String(currentUser?.id) === String(row._slug)) return null;
-              return {
-                label: "Suspend",
-                className:
-                  "text-destructive focus:text-destructive focus:bg-destructive/10",
-                onActionClick: () =>
-                  suspendUser(row._slug)
-                    .unwrap()
-                    .then(() => toast.success("User suspended successfully."))
-                    .catch(() => {}),
-              };
-            }
-            if (row._status === "SUSPENDED") {
-              return {
-                label: "Reactivate",
-                className:
-                  "text-green-600 focus:text-green-600 focus:bg-green-50",
-                onActionClick: () =>
-                  reactivateUser(row._slug)
-                    .unwrap()
-                    .then(() => toast.success("User reactivated successfully."))
-                    .catch(() => {}),
-              };
-            }
-            if (row._status === "LOCKED") {
-              return {
-                label: "Unlock",
-                className:
-                  "text-amber-600 focus:text-amber-600 focus:bg-amber-50",
-                onActionClick: () =>
-                  unlockUser(row._slug)
-                    .unwrap()
-                    .then(() => toast.success("User unlocked successfully."))
-                    .catch(() => {}),
-              };
-            }
-            return null;
-          };
+      {isError ? (
+        <div className="flex h-56 flex-col items-center justify-center gap-3">
+          <p className="text-sm font-medium text-destructive">
+            Failed to load members. Please try again.
+          </p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            <RefreshCw className="size-3.5" /> Retry
+          </Button>
+        </div>
+      ) : (
+        <CustomTable
+          tableHeaderList={tableHeader}
+          tableBodyList={FORMAT_TABLE_DATA(data?.data)}
+          loading={isLoading}
+          dropDown
+          dropDownList={(row: { _slug: string; _status: string }) => {
+            const statusAction = () => {
+              if (row._status === "ACTIVE") {
+                if (String(currentUser?.id) === String(row._slug)) return null;
+                return {
+                  label: "Suspend",
+                  className:
+                    "text-destructive focus:text-destructive focus:bg-destructive/10",
+                  onActionClick: () =>
+                    suspendUser(row._slug)
+                      .unwrap()
+                      .then(() => toast.success("User suspended successfully."))
+                      .catch(() => {}),
+                };
+              }
+              if (row._status === "SUSPENDED") {
+                return {
+                  label: "Reactivate",
+                  className:
+                    "text-green-600 focus:text-green-600 focus:bg-green-50",
+                  onActionClick: () =>
+                    reactivateUser(row._slug)
+                      .unwrap()
+                      .then(() => toast.success("User reactivated successfully."))
+                      .catch(() => {}),
+                };
+              }
+              if (row._status === "LOCKED") {
+                return {
+                  label: "Unlock",
+                  className:
+                    "text-amber-600 focus:text-amber-600 focus:bg-amber-50",
+                  onActionClick: () =>
+                    unlockUser(row._slug)
+                      .unwrap()
+                      .then(() => toast.success("User unlocked successfully."))
+                      .catch(() => {}),
+                };
+              }
+              return null;
+            };
 
-          const action = statusAction();
-          return [
-            {
-              label: "View Details",
-              className: "",
-              onActionClick: () =>
-                navigate(routesPath.PROTECTED.TEAM_MGT.VIEW(row._slug)),
-            },
-            {
-              label: "Edit",
-              className: "",
-              onActionClick: () =>
-                navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(row._slug)),
-            },
-            ...(action ? [action] : []),
-          ];
-        }}
-        perPage={data?.pagination?.pageSize}
-        totalPage={data?.pagination?.totalPages}
-        currentPage={data?.pagination?.currentPage}
-        onPageChange={(page) =>
-          setQuery((prev) => ({ ...prev, page: page as number }))
-        }
-      />
+            const action = statusAction();
+            return [
+              {
+                label: "View Details",
+                className: "",
+                onActionClick: () =>
+                  navigate(routesPath.PROTECTED.TEAM_MGT.VIEW(row._slug)),
+              },
+              {
+                label: "Edit",
+                className: "",
+                onActionClick: () =>
+                  navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(row._slug)),
+              },
+              ...(action ? [action] : []),
+            ];
+          }}
+          perPage={data?.pagination?.pageSize}
+          totalPage={data?.pagination?.totalPages}
+          currentPage={data?.pagination?.currentPage}
+          onPageChange={(page) =>
+            setQuery((prev) => ({ ...prev, page: page as number }))
+          }
+        />
+      )}
 
       <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
         <SheetContent className="flex flex-col">
