@@ -286,12 +286,12 @@ const daysLeft = (expiresAt?: string): string => {
 const FORMAT_TABLE_DATA = (data?: TeamMember[]) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return data?.map((item: any) => ({
-    name: <p className="capitalize truncate">{item?.full_name || "---"}</p>,
-    email: item?.email || "---",
-    role: item?.role || "---",
+    name: <p className="capitalize truncate">{item?.full_name?.trim() || "---"}</p>,
+    email: item?.email?.trim() || "---",
+    role: item?.role?.trim() || "---",
     status: (
       <Badge variant={item.status?.toLowerCase()} className="min-w-19.25">
-        {item?.status || "---"}
+        {item?.status?.trim() || "---"}
       </Badge>
     ),
     emailSent: item?.invitation_email_status ? (
