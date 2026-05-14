@@ -278,9 +278,15 @@ const EMAIL_STATUS_VARIANT: Record<string, BadgeVariant> = {
 
 const daysLeft = (expiresAt?: string): string => {
   if (!expiresAt) return "---";
-  const diff = new Date(expiresAt).getTime() - Date.now();
-  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-  return days > 0 ? `${days}d left` : "Expired";
+  const now = new Date();
+  const expiry = new Date(expiresAt);
+  // Floor both to local midnight so comparison is timezone-aware
+  const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const expiryLocal = new Date(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
+  const days = Math.round((expiryLocal.getTime() - todayLocal.getTime()) / 86_400_000);
+  if (days < 0) return "Expired";
+  if (days === 0) return "Today";
+  return `${days}d left`;
 };
 
 const FORMAT_TABLE_DATA = (data?: TeamMember[]) => {
