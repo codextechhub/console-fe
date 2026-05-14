@@ -4,6 +4,7 @@ import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import { Button } from "@/components/ui/button";
 import { schoolStepSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
+import { useRef } from "react";
 import { useNavigate } from "react-router";
 import type { PrefillData, SchoolStepData } from "../create-school";
 
@@ -18,6 +19,7 @@ const isDev = import.meta.env.VITE_SHOW_PREFILL === "true";
 
 export default function AddSchool({ defaultValues, onNext, onPrefill, generateTestData }: Props) {
   const navigate = useNavigate();
+  const slugEditedByUser = useRef(false);
 
   const formik = useFormik<SchoolStepData>({
     initialValues: defaultValues,
@@ -27,6 +29,7 @@ export default function AddSchool({ defaultValues, onNext, onPrefill, generateTe
   });
 
   const handleFillTestData = () => {
+    slugEditedByUser.current = false;
     const data = generateTestData();
     formik.resetForm({ values: data.school });
     onPrefill(data);
@@ -70,7 +73,7 @@ export default function AddSchool({ defaultValues, onNext, onPrefill, generateTe
             onChange={(e) => {
               const name = e.target.value;
               formik.setFieldValue("name", name);
-              if (!formik.touched.slug) {
+              if (!slugEditedByUser.current) {
                 formik.setFieldValue(
                   "slug",
                   name.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-"),
@@ -85,6 +88,7 @@ export default function AddSchool({ defaultValues, onNext, onPrefill, generateTe
             placeholder="e.g., st-marys-college"
             {...formik.getFieldProps("slug")}
             onChange={(e) => {
+              slugEditedByUser.current = true;
               formik.setFieldTouched("slug", true);
               formik.setFieldValue("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
             }}
