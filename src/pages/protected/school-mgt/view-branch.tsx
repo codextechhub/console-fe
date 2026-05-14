@@ -40,6 +40,7 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 
 export default function ViewBranch() {
   const { slug, code } = useParams<{ slug: string; code: string }>();
+  const parsedCode = Number(code);
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
@@ -47,8 +48,8 @@ export default function ViewBranch() {
     skip: !slug,
   });
   const { data: branchData, isLoading: branchLoading } = useGetBranchDetailQuery(
-    { slug: slug ?? "", code: Number(code) },
-    { skip: !slug || !code }
+    { slug: slug ?? "", code: parsedCode },
+    { skip: !slug || !code || isNaN(parsedCode) }
   );
 
   const school = schoolData?.data;
@@ -98,7 +99,7 @@ export default function ViewBranch() {
                 variant="outline"
                 className="w-24"
                 onClick={() =>
-                  navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT_BRANCH(slug ?? "", Number(code)))
+                  navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT_BRANCH(slug ?? "", parsedCode))
                 }
               >
                 Edit
