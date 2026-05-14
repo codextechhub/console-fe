@@ -167,6 +167,7 @@ export default function ViewBranch() {
             <CustomTable
               tableHeaderList={CLASS_TABLE_HEADERS}
               tableBodyList={[]}
+              emptyText="Class data is not yet available."
             />
           </>
         )}

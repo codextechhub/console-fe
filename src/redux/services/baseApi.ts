@@ -12,8 +12,10 @@ import type { RootState } from "../features/root-reducer";
 import { clearStorageItem } from "@/hooks/use-session-storage";
 import { routesPath } from "@/routes/routesPath";
 
-// Helper to get tokens from cookies
-const getAccessToken = () => Cookies.get("token") || "";
+const getAccessToken = () => {
+  const token = Cookies.get("token");
+  return token && token !== "undefined" ? token : "";
+};
 // const getRefreshToken = () => Cookies.get("refresh_token") || ""; // No needed
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
@@ -164,12 +166,9 @@ export const baseQueryInterceptor: BaseQueryFn<
             : false;
       if (!isAuthRoute) toast.error(res?.data?.message || "Resource not found.");
     } else if (res?.status === 405) {
-      toast.error("Unauthorized. Please log in again.");
+      toast.error(res?.data?.detail || "Something went wrong. Please try again.");
     } else if (res?.status === 413) {
       toast.error("Content Too Large");
-      return result;
-    } else if (res?.status === 405) {
-      toast.error(res?.data?.detail || "Something went wrong. Please try again.");
       return result;
     } else if (typeof res?.status === "number" && res.status >= 500) {
       toast.error("A server error occurred. Please try again later.");

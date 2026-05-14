@@ -235,6 +235,7 @@ export default function MembersTab() {
             return null;
           };
 
+          const action = statusAction();
           return [
             {
               label: "View Details",
@@ -248,8 +249,8 @@ export default function MembersTab() {
               onActionClick: () =>
                 navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(row._slug)),
             },
-            statusAction(),
-          ].filter(Boolean);
+            ...(action ? [action] : []),
+          ];
         }}
         perPage={data?.pagination?.pageSize}
         totalPage={data?.pagination?.totalPages}

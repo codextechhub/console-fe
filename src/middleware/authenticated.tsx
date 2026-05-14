@@ -12,17 +12,21 @@ export default function Authenticated() {
   const accessToken = Cookies.get("token");
   const user = useSelector(selectUser);
 
+  const isValidToken = !!accessToken && accessToken !== "undefined";
+
   useEffect(() => {
-    if (!accessToken || accessToken === "undefined") {
+    if (!isValidToken) {
       navigate(LOGIN, { replace: true });
     }
-  }, [accessToken]);
+  }, [isValidToken]);
 
   useEffect(() => {
     document.title = user?.first_name
       ? `${user.first_name} - Intranet`
       : "CX - Intranet";
   }, [user?.first_name]);
+
+  if (!isValidToken) return null;
 
   return <Outlet />;
 }
