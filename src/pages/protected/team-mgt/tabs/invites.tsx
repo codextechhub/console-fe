@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/sheet";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import { CustomDateInput } from "@/components/custom/custom-date-input";
-import { useGetAllRolesQuery } from "@/redux/services/dashboard/roleApi";
+import { useAllRoles } from "@/hooks/use-all-roles";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 
 const tableHeader = [
@@ -66,7 +66,7 @@ export default function InvitesTab() {
     status: "PENDING",
   });
 
-  const { data: rolesData } = useGetAllRolesQuery({ page_size: 200 });
+  const { roles } = useAllRoles();
 
   const activeFilterCount = Object.values(appliedFilters).filter(Boolean).length;
 
@@ -211,12 +211,7 @@ export default function InvitesTab() {
               id="filter-role"
               label="Role"
               placeholder="All roles"
-              options={
-                rolesData?.data.map((r) => ({
-                  value: r.name,
-                  label: r.name,
-                })) ?? []
-              }
+              options={roles.map((r) => ({ value: r.name, label: r.name }))}
               value={draftFilters.role}
               onChange={(e) =>
                 setDraftFilters((p) => ({ ...p, role: e.target.value }))

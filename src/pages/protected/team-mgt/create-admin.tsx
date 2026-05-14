@@ -7,7 +7,7 @@ import useToggleModal from "@/hooks/use-toggle";
 import { routesPath } from "@/routes/routesPath";
 import { useNavigate } from "react-router";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
-import { useGetAllRolesQuery } from "@/redux/services/dashboard/roleApi";
+import { useAllRoles } from "@/hooks/use-all-roles";
 import { useFormik } from "formik";
 import { createTeamMemberSchema } from "@/schema/dashboard/team-mgt";
 import { useCreateTeamMemberMutation } from "@/redux/services/dashboard/teamMgtApi";
@@ -16,7 +16,7 @@ export default function CreateAdmin() {
   const navigate = useNavigate();
   const { isOpen, toggleClick } = useToggleModal(false);
 
-  const { data: roles } = useGetAllRolesQuery({ page_size: 200 });
+  const { roles } = useAllRoles();
   const [createTeamMember, { isLoading: creating }] =
     useCreateTeamMemberMutation();
 
@@ -96,12 +96,7 @@ export default function CreateAdmin() {
                 id="role"
                 label="Role Title"
                 placeholder="Select role"
-                options={
-                  roles?.data.map((role) => ({
-                    label: role.name,
-                    value: role.id,
-                  })) || []
-                }
+                options={roles.map((role) => ({ label: role.name, value: role.id }))}
                 isRequired
                 {...formik.getFieldProps("role")}
                 error={formik.touched.role ? formik.errors.role : undefined}
