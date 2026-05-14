@@ -26,6 +26,7 @@ import {
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import { CustomDateInput } from "@/components/custom/custom-date-input";
 import { useGetAllRolesQuery } from "@/redux/services/dashboard/roleApi";
+import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 
 const tableHeader = [
   "Full Name",
@@ -45,12 +46,21 @@ const INITIAL_FILTERS = {
   invited_by: "",
 };
 
+const SORT_OPTIONS = [
+  { column: "first_name", label: "Name" },
+  { column: "email", label: "Email" },
+  { column: "role", label: "Role" },
+  { column: "created_at", label: "Date" },
+];
+
 export default function InvitesTab() {
   const [value, setValue] = useState("");
   const debouncedValue = useDebounce(value, 1000);
   const [filterOpen, setFilterOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState(INITIAL_FILTERS);
   const [draftFilters, setDraftFilters] = useState(INITIAL_FILTERS);
+  const [sort, setSort] = useState({ sortColumn: "", sortOrder: "" as "asc" | "desc" | "" });
+  const onSort = (col: string) => handleSortToggle(col, sort, setSort);
   const [query, setQuery] = useState({
     page: 1,
     status: "PENDING",
@@ -69,8 +79,9 @@ export default function InvitesTab() {
       ...query,
       ...appliedFilters,
       search: debouncedValue,
+      ordering: buildOrdering(sort.sortColumn, sort.sortOrder),
     }),
-    [query, appliedFilters, debouncedValue],
+    [query, appliedFilters, debouncedValue, sort],
   );
 
   const { data, isLoading, isError, refetch, isFetching } =
@@ -150,6 +161,14 @@ export default function InvitesTab() {
           </Button>
         </div>
       </div>
+
+      <SortBar
+        options={SORT_OPTIONS}
+        sortColumn={sort.sortColumn}
+        sortOrder={sort.sortOrder}
+        onSort={onSort}
+        className="mt-3"
+      />
 
       <CustomTable
         tableHeaderList={tableHeader}

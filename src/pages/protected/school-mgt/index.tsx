@@ -22,6 +22,7 @@ import { formatEnum } from "@/utils/helpers";
 import { Plus, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
+import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 
 const TABLE_HEADERS = ["S/N", "School Name", "Location", "Total Students", "Type", "Status", "Action"];
 
@@ -37,12 +38,16 @@ export default function SchoolManagement() {
   const filter_status = searchParams.get("status");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState({ sortColumn: "", sortOrder: "" as "asc" | "desc" | "" });
+  const onSort = (col: string) => handleSortToggle(col, sort, setSort);
 
   const queryParams: Record<string, string | number> = { page };
   if (filter_status && STATUS_MAP[filter_status]) {
     queryParams.status = STATUS_MAP[filter_status];
   }
   if (search) queryParams.q = search;
+  const ordering = buildOrdering(sort.sortColumn, sort.sortOrder);
+  if (ordering) queryParams.ordering = ordering;
 
   const { data: schoolsRes, isLoading, refetch, isFetching } = useGetSchoolsQuery(queryParams);
   const { data: statsRes, refetch: refetchStats } = useGetSchoolStatsQuery();
@@ -144,6 +149,18 @@ export default function SchoolManagement() {
             </Button>
           </div>
         </div>
+
+        <SortBar
+          options={[
+            { column: "name", label: "Name" },
+            { column: "status", label: "Status" },
+            { column: "created_at", label: "Date" },
+          ]}
+          sortColumn={sort.sortColumn}
+          sortOrder={sort.sortOrder}
+          onSort={onSort}
+          className="mt-3"
+        />
 
         <CustomTable
           tableHeaderList={TABLE_HEADERS}

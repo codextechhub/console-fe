@@ -10,6 +10,7 @@ import { formatEnum } from "@/utils/helpers";
 import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { SortBar, handleSortToggle } from "@/components/custom/sort-bar";
 
 const BRANCH_TABLE_HEADERS = ["S/N", "Branch Name", "Total Students", "School Type", "School Location", "School Address", "Status", "Action"];
 
@@ -42,11 +43,12 @@ export default function ViewSchool() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
+  const [sort, setSort] = useState({ sortColumn: "", sortOrder: "" as "asc" | "desc" | "" });
+  const onSort = (col: string) => handleSortToggle(col, sort, setSort);
 
   // ── Single API: GET /i/{slug}/ ────────────────────────────────────────────
   const { data, isLoading, isError } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
   const school = data?.data;
-
 
   const initials = school?.name
     ?.split(" ")
@@ -55,9 +57,18 @@ export default function ViewSchool() {
     .join("")
     .toUpperCase() ?? "";
 
-  const filteredBranches = (school?.branches ?? []).filter((b: BranchDetail) =>
-    !search || b.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredBranches = (school?.branches ?? [])
+    .filter((b: BranchDetail) =>
+      !search || b.name.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a: BranchDetail, b: BranchDetail) => {
+      if (!sort.sortColumn) return 0;
+      const key = sort.sortColumn as keyof BranchDetail;
+      const av = (a[key] ?? "") as string;
+      const bv = (b[key] ?? "") as string;
+      const cmp = av.localeCompare(bv);
+      return sort.sortOrder === "desc" ? -cmp : cmp;
+    });
   const totalBranchPages = Math.ceil(filteredBranches.length / PAGE_SIZE);
   const pagedBranches = filteredBranches.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -178,6 +189,18 @@ export default function ViewSchool() {
               search={search}
               onSearchChange={(v) => { setPage(1); setSearch(v); }}
               placeholder="Search branches..."
+            />
+
+            <SortBar
+              options={[
+                { column: "name", label: "Name" },
+                { column: "status", label: "Status" },
+                { column: "created_at", label: "Date" },
+              ]}
+              sortColumn={sort.sortColumn}
+              sortOrder={sort.sortOrder}
+              onSort={onSort}
+              className="mt-3"
             />
 
             <CustomTable
