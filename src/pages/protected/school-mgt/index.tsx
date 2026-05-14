@@ -26,6 +26,8 @@ import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/so
 
 const TABLE_HEADERS = ["S/N", "School Name", "Location", "Total Students", "Type", "Status", "Action"];
 
+const VALID_STATUSES = new Set(["active", "pending", "inactive"]);
+
 const STATUS_MAP: Record<string, string> = {
   active: "ACTIVE",
   pending: "PENDING",
@@ -35,14 +37,15 @@ const STATUS_MAP: Record<string, string> = {
 export default function SchoolManagement() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const filter_status = searchParams.get("status");
+  const rawStatus = searchParams.get("status") ?? "";
+  const filter_status = VALID_STATUSES.has(rawStatus) ? rawStatus : null;
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState({ sortColumn: "", sortOrder: "" as "asc" | "desc" | "" });
   const onSort = (col: string) => handleSortToggle(col, sort, setSort);
 
   const queryParams: Record<string, string | number> = { page };
-  if (filter_status && STATUS_MAP[filter_status]) {
+  if (filter_status) {
     queryParams.status = STATUS_MAP[filter_status];
   }
   if (search) queryParams.q = search;
