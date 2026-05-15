@@ -302,6 +302,66 @@ The frontend checks the flat `permissions[]` array. If a superuser's login respo
 
 ---
 
+## Field-Level Security (FLS) — Hiding Stripped Response Fields
+
+The backend serializer mixin (`FieldSecurityMixin` in `vs_rbac/fls.py`) can strip individual fields from an API response when the requesting user lacks the required read permission. Instead of sending the field at all, the backend appends a `_stripped_fields` array to the response listing every field it removed.
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@school.com",
+  "_stripped_fields": ["medical_notes", "guardian_contacts"]
+}
+```
+
+This lets the frontend distinguish two different states:
+
+| State | What it means | What to show |
+|-------|--------------|-------------|
+| Field in `_stripped_fields` | User has no permission to see it | Hide the element entirely |
+| Field absent / null / empty, not stripped | Field exists, no data yet | Render `"—"` |
+
+### Usage
+
+Import from `@/utils/fls`:
+
+```tsx
+import { isStripped, strippedFields } from "@/utils/fls";
+
+// Single field check
+{!isStripped(student, "medical_notes") && (
+  <Row label="Medical Notes" value={student.medical_notes ?? "—"} />
+)}
+
+// Multiple fields — build a Set once to avoid repeated .includes() calls
+const stripped = strippedFields(student);
+
+<Row label="Medical Notes"        hidden={stripped.has("medical_notes")}        value={student.medical_notes ?? "—"} />
+<Row label="Guardian Contacts"    hidden={stripped.has("guardian_contacts")}    value={student.guardian_contacts ?? "—"} />
+<Row label="Disciplinary Notes"   hidden={stripped.has("disciplinary_notes")}   value={student.disciplinary_notes ?? "—"} />
+```
+
+### Typing API responses
+
+Wrap any RTK Query response type with `WithFls<T>` to make `_stripped_fields` visible to TypeScript:
+
+```ts
+import type { WithFls } from "@/utils/fls";
+
+type StudentDetail = WithFls<{
+  name: string;
+  email: string;
+  medical_notes?: string | null;
+  guardian_contacts?: string | null;
+}>;
+```
+
+### When to apply
+
+Only relevant for serializers that use `FieldSecurityMixin`. If a serializer does not declare `read_permissions`, its responses will never contain `_stripped_fields` and you can use the normal `?? "—"` pattern for missing values.
+
+---
+
 ## Architecture Diagram
 
 ```
