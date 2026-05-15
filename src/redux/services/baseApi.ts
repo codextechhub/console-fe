@@ -5,7 +5,7 @@ import {
   createApi,
   fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
-import { resetAuth, setToken } from "../features/auth/authSlice";
+import { resetAuth, setToken, updatePermissions } from "../features/auth/authSlice";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import type { RootState } from "../features/root-reducer";
@@ -61,6 +61,19 @@ const refreshTokenRequest = async (refreshToken?: string): Promise<RefreshOutcom
   }
 };
 
+const fetchFreshPermissions = async (accessToken: string): Promise<string[] | null> => {
+  try {
+    const response = await fetch(`${baseUrl}/user/auth/me/`, {
+      headers: { Authorization: `Bearer ${accessToken}`, accept: "application/json" },
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data?.data?.permissions ?? null;
+  } catch {
+    return null;
+  }
+};
+
 const extractFirstDetailError = (detail: any): string | null => {
   if (!detail) return null;
   if (typeof detail === "string") return detail;
@@ -101,6 +114,10 @@ export const baseQueryInterceptor: BaseQueryFn<
       if (refreshed.ok) {
         Cookies.set("token", refreshed.access);
         api.dispatch(setToken(refreshed.access));
+
+        // Sync permissions — role may have changed since last login
+        const freshPermissions = await fetchFreshPermissions(refreshed.access);
+        if (freshPermissions) api.dispatch(updatePermissions(freshPermissions));
 
         const retryResult = await baseQuery(args, api, extraOptions);
         if (retryResult?.error?.status === 401) {

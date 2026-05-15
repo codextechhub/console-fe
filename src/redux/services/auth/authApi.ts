@@ -1,4 +1,4 @@
-import { resetAuth, setAuthUser } from "@/redux/features/auth/authSlice";
+import { resetAuth, setAuthUser, updatePermissions } from "@/redux/features/auth/authSlice";
 import Cookies from "js-cookie";
 import { clearStorageItem } from "@/hooks/use-session-storage";
 import { baseApi } from "../baseApi";
@@ -83,6 +83,15 @@ export const authApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
+    getMe: builder.query<{ message: string; data: { user: unknown; permissions: string[] } }, void>({
+      query: () => ({ url: `/user/auth/me/`, method: "GET" }),
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(updatePermissions(data.data.permissions));
+        } catch {}
+      },
+    }),
   }),
 });
 
@@ -95,4 +104,5 @@ export const {
   useActivationPreviewQuery,
   useActivateAccountMutation,
   useSpecialLoginPreviewQuery,
+  useGetMeQuery,
 } = authApi;
