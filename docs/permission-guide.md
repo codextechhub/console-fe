@@ -360,6 +360,14 @@ type StudentDetail = WithFls<{
 
 Only relevant for serializers that use `FieldSecurityMixin`. If a serializer does not declare `read_permissions`, its responses will never contain `_stripped_fields` and you can use the normal `?? "—"` pattern for missing values.
 
+### Rule: backend and frontend must be updated in the same PR
+
+Whenever a serializer gains a `read_permissions` entry, the corresponding frontend page **must** be updated in the same PR to guard those fields with `isStripped` / `strippedFields`.
+
+The two are always coupled. If the backend strips a field but the frontend does not guard it, the field silently disappears — the user sees no label, no dash, no explanation. `_stripped_fields` is the contract between them; one side without the other is a bug.
+
+When writing the PR description, list which fields were added to `read_permissions` so the reviewer can verify the frontend side was updated too.
+
 ---
 
 ## Architecture Diagram
