@@ -1,16 +1,18 @@
-import { useAppSelector } from "@/redux/store";
 import { selectPermissions } from "@/redux/features/auth/authSlice";
+import { useAppSelector } from "@/redux/store";
+import { type PermissionCode, resolvePermissionKey } from "@/permissions";
 
 export function usePermissions() {
   const permissions = useAppSelector(selectPermissions);
 
-  const hasPermission = (key: string): boolean => permissions.includes(key);
+  const hasPermission = (code: PermissionCode): boolean =>
+    permissions.includes(resolvePermissionKey(code));
 
-  const hasAnyPermission = (...keys: string[]): boolean =>
-    keys.some((k) => permissions.includes(k));
+  const hasAnyPermission = (...codes: PermissionCode[]): boolean =>
+    codes.some((c) => permissions.includes(resolvePermissionKey(c)));
 
-  const hasAllPermissions = (...keys: string[]): boolean =>
-    keys.every((k) => permissions.includes(k));
+  const hasAllPermissions = (...codes: PermissionCode[]): boolean =>
+    codes.every((c) => permissions.includes(resolvePermissionKey(c)));
 
-  return { permissions, hasPermission, hasAnyPermission, hasAllPermissions };
+  return { hasPermission, hasAnyPermission, hasAllPermissions };
 }
