@@ -11,5 +11,6 @@ export interface LoginResponse extends ResponseMessage {
     refresh: string
     session_id: number
     user: User
+    permissions: string[]
   }
 }

@@ -3,6 +3,7 @@ export interface Auth {
   refresh?: string
   session_id?: number
   user?: User | null
+  permissions?: string[]
 }
 
 export interface User {

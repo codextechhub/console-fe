@@ -26,6 +26,7 @@ import { useLogoutMutation } from "@/redux/services/auth/authApi";
 import Cookies from "js-cookie";
 import { useAppDispatch } from "@/redux/store";
 import { resetAuth } from "@/redux/features/auth/authSlice";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation().pathname;
@@ -51,40 +52,41 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       });
   };
 
+  const { hasPermission } = usePermissions();
   const { isOpen: openLogout, toggleClick: toggleLogout } =
     useToggleModal(false); // logout modal
 
+  const allNavItems = [
+    {
+      title: "Home",
+      url: routesPath.PROTECTED.OVERVIEW.INDEX,
+      icon: HomeIcon,
+      isActive: location.startsWith(routesPath.PROTECTED.OVERVIEW.INDEX),
+      childActive: false,
+      permission: null,
+    },
+    {
+      title: "School Management",
+      url: routesPath.PROTECTED.SCHOOL_MGT.INDEX,
+      icon: SchoolIcon,
+      isActive: location.startsWith(routesPath.PROTECTED.SCHOOL_MGT.INDEX),
+      childActive: false,
+      permission: "platform.schools.view",
+    },
+    {
+      title: "Team Management",
+      url: routesPath.PROTECTED.TEAM_MGT.INDEX,
+      icon: TeamMgtIcon,
+      isActive: location.startsWith(routesPath.PROTECTED.TEAM_MGT.INDEX),
+      childActive: false,
+      permission: "platform.users.view",
+    },
+  ];
+
   const data = {
-    navMain: [
-      {
-        title: "Home",
-        url: routesPath.PROTECTED.OVERVIEW.INDEX,
-        icon: HomeIcon,
-        isActive: location.startsWith(routesPath.PROTECTED.OVERVIEW.INDEX),
-        childActive: false,
-        items: [
-          //   {
-          //     title: "Schedule Payment",
-          //     url: "#",
-          //     isActive: false,
-          //   },
-        ],
-      },
-      {
-        title: "School Management",
-        url: routesPath.PROTECTED.SCHOOL_MGT.INDEX,
-        icon: SchoolIcon,
-        isActive: location.startsWith(routesPath.PROTECTED.SCHOOL_MGT.INDEX),
-        childActive: false,
-      },
-      {
-        title: "Team Management",
-        url: routesPath.PROTECTED.TEAM_MGT.INDEX,
-        icon: TeamMgtIcon,
-        isActive: location.startsWith(routesPath.PROTECTED.TEAM_MGT.INDEX),
-        childActive: false,
-      },
-    ],
+    navMain: allNavItems.filter(
+      (item) => item.permission === null || hasPermission(item.permission)
+    ),
   };
   return (
     <>

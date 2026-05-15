@@ -6,7 +6,8 @@ const initialState: Auth = {
    access: "",
    refresh: "",
    session_id: 0,
-   user: null
+   user: null,
+   permissions: [],
 };
 
 const authSlice = createSlice({
@@ -18,6 +19,7 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.access = action.payload.access;
       state.session_id = action.payload.session_id || 0;
+      state.permissions = action.payload.permissions ?? [];
     },
     updateAuthUser: (state, action: PayloadAction<any>) => {
       state.user = { ...state.user, ...action.payload };
@@ -34,3 +36,4 @@ export const resetAuth = authSlice.actions.reset;
 export const authSliceReducer = authSlice.reducer;
 
 export const selectUser = (state: RootStateType) => state.auth.user;
+export const selectPermissions = (state: RootStateType) => state.auth.permissions ?? [];
