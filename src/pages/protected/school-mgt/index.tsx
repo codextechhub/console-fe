@@ -18,6 +18,9 @@ import {
   useGetSchoolStatsQuery,
 } from "@/redux/services/dashboard/schoolMgtApi";
 import type { School } from "@/redux/services/dashboard/schoolType";
+import PermissionGate from "@/components/custom/permission-gate";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 import { formatEnum } from "@/utils/helpers";
 import { Plus, RefreshCw } from "lucide-react";
 import { useState } from "react";
@@ -37,6 +40,7 @@ const STATUS_MAP: Record<string, string> = {
 
 export default function SchoolManagement() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [searchParams, setSearchParams] = useSearchParams();
   const rawStatus = searchParams.get("status") ?? "";
   const filter_status = VALID_STATUSES.has(rawStatus) ? rawStatus : null;
@@ -89,25 +93,27 @@ export default function SchoolManagement() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h4 className="font-medium text-xl">School Onboarding</h4>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="lg">
-                <Plus /> Add New School
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="border rounded-sm">
-              <DropdownMenuItem
-                onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.CREATE)}
-                className="text-sm cursor-pointer text-custom-gray-scale-400"
-              >
-                Add Manual
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-sm cursor-pointer text-custom-gray-scale-400">
-                Bulk Upload
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <PermissionGate permission={P.ONBOARD_SCHOOL}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="lg">
+                  <Plus /> Add New School
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="border rounded-sm">
+                <DropdownMenuItem
+                  onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.CREATE)}
+                  className="text-sm cursor-pointer text-custom-gray-scale-400"
+                >
+                  Add Manual
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-sm cursor-pointer text-custom-gray-scale-400">
+                  Bulk Upload
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </PermissionGate>
         </div>
 
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
@@ -181,10 +187,10 @@ export default function SchoolManagement() {
               label: "View Details",
               onActionClick: () => navigate(routesPath.PROTECTED.SCHOOL_MGT.VIEW(row._slug)),
             },
-            {
+            ...(hasPermission(P.MODIFY_SCHOOL) ? [{
               label: "Edit School",
               onActionClick: () => navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT(row._slug)),
-            },
+            }] : []),
           ]}
         />
       </main>

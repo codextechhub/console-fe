@@ -27,6 +27,7 @@ import Cookies from "js-cookie";
 import { useAppDispatch } from "@/redux/store";
 import { resetAuth } from "@/redux/features/auth/authSlice";
 import { usePermissions } from "@/hooks/use-permissions";
+import { P, type PermissionCode } from "@/permissions";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation().pathname;
@@ -52,9 +53,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       });
   };
 
-  const { hasPermission } = usePermissions();
+  const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
   const { isOpen: openLogout, toggleClick: toggleLogout } =
     useToggleModal(false); // logout modal
+
+  const checkPermission = (
+    permission: PermissionCode | PermissionCode[] | null,
+    mode: "any" | "all" = "any",
+  ): boolean => {
+    if (permission === null) return true;
+    const codes = Array.isArray(permission) ? permission : [permission];
+    if (codes.length === 1) return hasPermission(codes[0]);
+    return mode === "all" ? hasAllPermissions(...codes) : hasAnyPermission(...codes);
+  };
 
   const allNavItems = [
     {
@@ -64,6 +75,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isActive: location.startsWith(routesPath.PROTECTED.OVERVIEW.INDEX),
       childActive: false,
       permission: null,
+      permissionMode: "any" as const,
     },
     {
       title: "School Management",
@@ -71,7 +83,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: SchoolIcon,
       isActive: location.startsWith(routesPath.PROTECTED.SCHOOL_MGT.INDEX),
       childActive: false,
-      permission: "platform.schools.view",
+      permission: P.BROWSE_SCHOOLS,
+      permissionMode: "any" as const,
     },
     {
       title: "Team Management",
@@ -79,13 +92,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: TeamMgtIcon,
       isActive: location.startsWith(routesPath.PROTECTED.TEAM_MGT.INDEX),
       childActive: false,
-      permission: "platform.users.view",
+      permission: P.ACCESS_TEAM_PANEL,
+      permissionMode: "any" as const,
     },
   ];
 
   const data = {
-    navMain: allNavItems.filter(
-      (item) => item.permission === null || hasPermission(item.permission)
+    navMain: allNavItems.filter((item) =>
+      checkPermission(item.permission, item.permissionMode)
     ),
   };
   return (
