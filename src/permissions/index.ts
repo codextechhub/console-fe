@@ -31,25 +31,27 @@ const REGISTRY: Record<string, string> = {
   // ── platform / schools  (MM=10, RR=01) ────────────────────────────────────
   "100101": "platform.schools.view",
   "100102": "platform.schools.create",
-  "100103": "platform.schools.edit",
+  "100103": "platform.schools.update",   // backend key is "update", not "edit"
   "100104": "platform.schools.delete",
 
-  // ── platform / team  (MM=10, RR=02) ───────────────────────────────────────
-  "100201": "platform.team.view",
-  "100202": "platform.team.create",
-  "100203": "platform.team.edit",
-  "100204": "platform.team.delete",
+  // ── platform / users (team)  (MM=10, RR=02) ───────────────────────────────
+  // Backend has platform.users.* — no "platform.team.*" namespace exists.
+  "100201": "platform.users.view",
+  "100202": "platform.users.view",       // no dedicated create perm yet; gate same as view
+  "100203": "platform.users.suspend",    // edit/manage maps to suspend in backend
+  "100204": "platform.users.delete",
 
   // ── platform / roles  (MM=10, RR=03) ──────────────────────────────────────
+  // Backend has only roles.view + roles.manage (no separate create/edit/delete).
   "100301": "platform.roles.view",
-  "100302": "platform.roles.create",
-  "100303": "platform.roles.edit",
-  "100304": "platform.roles.delete",
+  "100302": "platform.roles.manage",     // create maps to manage
+  "100303": "platform.roles.manage",     // edit maps to manage
+  "100304": "platform.roles.manage",     // delete maps to manage
 
-  // ── platform / data  (MM=10, RR=04) ───────────────────────────────────────
-  "100401": "platform.data.view",
-  "100406": "platform.data.export",
-  "100407": "platform.data.import",
+  // ── platform / analytics & audit  (MM=10, RR=04) ──────────────────────────
+  "100401": "platform.analytics.view",
+  "100406": "platform.analytics.export",
+  "100407": "platform.audit.logs.view",  // no import perm; closest is audit log access
 
   // ── finance / invoice  (MM=20, RR=01) — uncomment when module ships ───────
   // "200101": "finance.invoice.view",
