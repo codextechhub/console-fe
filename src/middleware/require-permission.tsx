@@ -11,11 +11,15 @@
  * Must have ALL of these:
  *   element: <RequirePermission permission={[P.BROWSE_SCHOOLS, P.MODIFY_SCHOOL]} mode="all" />
  *
- * Unauthorised users are redirected to /unauthorized.
+ * Unauthorised users see a toast and are sent back to their previous page,
+ * or to the dashboard if there is no history to go back to.
  */
+import { useEffect } from "react";
 import { type PermissionCode } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
-import { Navigate, Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
+import { routesPath } from "@/routes/routesPath";
+import { toast } from "sonner";
 
 interface Props {
   permission: PermissionCode | PermissionCode[];
@@ -24,6 +28,7 @@ interface Props {
 
 export default function RequirePermission({ permission, mode = "any" }: Props) {
   const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
+  const navigate = useNavigate();
 
   const codes = Array.isArray(permission) ? permission : [permission];
 
@@ -34,9 +39,20 @@ export default function RequirePermission({ permission, mode = "any" }: Props) {
         ? hasAllPermissions(...codes)
         : hasAnyPermission(...codes);
 
-  if (!allowed) {
-    return <Navigate to="/unauthorized" replace />;
-  }
+  useEffect(() => {
+    if (!allowed) {
+      toast.error("Access denied. You don't have permission to view this page.");
+      // Go back if there's a previous entry in the React Router history stack,
+      // otherwise fall back to the dashboard.
+      const canGoBack = (window.history.state?.idx ?? 0) > 0;
+      if (canGoBack) {
+        navigate(-1);
+      } else {
+        navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
+      }
+    }
+  }, [allowed]);
 
+  if (!allowed) return null;
   return <Outlet />;
 }

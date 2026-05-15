@@ -115,7 +115,7 @@ Each nav item in `app-sidebar.tsx` has a `permission` field. Items are filtered 
 
 ### 2. `RequirePermission` — block the route entirely
 
-Use this as a layout route wrapping a group of paths. If the user lacks the permission, they are redirected to `/unauthorized`.
+Use this as a layout route wrapping a group of paths. If the user lacks the permission, a toast is shown and they are navigated back to their previous page. If there is no previous page (e.g. they typed the URL directly), they land on the dashboard instead.
 
 ```tsx
 // src/routes/protected/your-feature-routes.tsx
@@ -251,7 +251,7 @@ When adding a new section to the app, work through this checklist:
 - [ ] **Add `PermissionGate`** around action buttons inside the page (Add, Edit, Delete).
 - [ ] **Use `hasPermission()` directly** to filter dropdown action items.
 - [ ] **Register the routes** in `src/routes/protected/index.tsx`.
-- [ ] **Test both paths**: (a) a user with the permission, (b) a user without — manually type the URL for the restricted page and confirm `/unauthorized` is shown.
+- [ ] **Test both paths**: (a) a user with the permission, (b) a user without — manually type the URL for the restricted page and confirm the access-denied toast appears and the user is taken back.
 
 ---
 
@@ -381,7 +381,7 @@ User navigates to URL
         │
         ▼
   RequirePermission     ← checks Redux permissions[]
-  (route guard)         ← redirects to /unauthorized if missing
+  (route guard)         ← toast + navigate(-1) if missing
         │
         ▼
   Page renders
