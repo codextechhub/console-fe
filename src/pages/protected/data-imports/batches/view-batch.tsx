@@ -144,14 +144,6 @@ const DUMMY_BATCHES: Record<string, BatchDetail> = {
   },
 };
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-6">
-      <p className="text-sm text-gray-01 font-mont w-40 shrink-0">{label}</p>
-      <div className="text-sm font-semibold text-black-01">{value ?? "—"}</div>
-    </div>
-  );
-}
 
 function PipelineTimeline({ status }: { status: string }) {
   const isTerminal = TERMINAL_STATUSES.has(status);
