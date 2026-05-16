@@ -35,7 +35,7 @@ export default function PermissionGroupsList() {
   const [deleteGroup] = useDeletePermissionGroupMutation();
 
   const groups = data?.data ?? [];
-  const totalGroups = data?.pagination?.totalCount ?? 0;
+  const totalGroups = data?.pagination?.totalItems ?? 0;
   const activeCount = groups.filter((g) => g.is_active).length;
   const systemCount = groups.filter((g) => g.is_system).length;
   const customCount = groups.filter((g) => !g.is_system).length;

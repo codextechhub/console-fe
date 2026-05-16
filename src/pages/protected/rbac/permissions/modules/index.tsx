@@ -37,7 +37,7 @@ export default function PermissionModulesList() {
   const [deleteModule] = useDeletePermissionModuleMutation();
 
   const modules = data?.data ?? [];
-  const totalModules = data?.pagination?.totalCount ?? 0;
+  const totalModules = data?.pagination?.totalItems ?? 0;
   const activeCount = modules.filter((m) => m.is_active).length;
   const inactiveCount = modules.filter((m) => !m.is_active).length;
 

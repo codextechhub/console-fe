@@ -45,7 +45,7 @@ export default function PermissionsList() {
   const [deletePermission] = useDeletePermissionMutation();
 
   const perms = data?.data ?? [];
-  const totalPerms = data?.pagination?.totalCount ?? 0;
+  const totalPerms = data?.pagination?.totalItems ?? 0;
   const activeCount = perms.filter((p) => p.is_active).length;
   const restrictedCount = perms.filter((p) => p.is_restricted).length;
   const criticalCount = perms.filter((p) => p.sensitivity_level === "CRITICAL").length;

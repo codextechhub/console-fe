@@ -42,7 +42,7 @@ export default function RolesList() {
   const [deleteRole] = useDeletePlatformRoleMutation();
 
   const roles = data?.data ?? [];
-  const totalRoles = data?.pagination?.totalCount ?? 0;
+  const totalRoles = data?.pagination?.totalItems ?? 0;
   const activeCount = roles.filter((r) => r.status === "ACTIVE").length;
   const systemCount = roles.filter((r) => r.is_system_role).length;
   const lockedCount = roles.filter((r) => r.is_locked).length;
