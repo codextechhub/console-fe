@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Download, RefreshCw, FileText } from "lucide-react";
+import { RefreshCw, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";

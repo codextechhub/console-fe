@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { Plus, RefreshCw, Shield, Lock, Users, ShieldCheck } from "lucide-react";
+import { Plus, RefreshCw, Shield, Lock, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
