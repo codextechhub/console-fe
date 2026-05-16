@@ -32,6 +32,8 @@ import { resetAuth } from "@/redux/features/auth/authSlice";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P, type PermissionCode } from "@/permissions";
 
+type NavPermission = PermissionCode | PermissionCode[] | null;
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation().pathname;
   const dispatch = useAppDispatch();
@@ -57,11 +59,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
-  const { isOpen: openLogout, toggleClick: toggleLogout } =
-    useToggleModal(false); // logout modal
+  const { isOpen: openLogout, toggleClick: toggleLogout } = useToggleModal(false);
 
   const checkPermission = (
-    permission: PermissionCode | PermissionCode[] | null,
+    permission: NavPermission,
     mode: "any" | "all" = "any",
   ): boolean => {
     if (permission === null) return true;
@@ -168,6 +169,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       checkPermission(item.permission, item.permissionMode)
     ),
   };
+
   return (
     <>
       <Sidebar className="bg-white" collapsible="icon" {...props}>
