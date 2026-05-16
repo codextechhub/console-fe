@@ -76,15 +76,13 @@ export function NavMain({
                   <SidebarMenuSub className="ml-6">
                     {item.items?.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
-                        <Link to={subItem.url}>
-                          <SidebarMenuSubButton
-                            asChild
-                            isActive={subItem.isActive}
-                            className="text-xs"
-                          >
-                            <span>{subItem.title}</span>
-                          </SidebarMenuSubButton>
-                        </Link>
+                        <SidebarMenuSubButton
+                          asChild
+                          isActive={subItem.isActive}
+                          className="text-xs"
+                        >
+                          <Link to={subItem.url}>{subItem.title}</Link>
+                        </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}
                   </SidebarMenuSub>
