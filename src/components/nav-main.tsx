@@ -7,6 +7,14 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   SidebarGroup,
   SidebarMenu,
   SidebarMenuButton,
@@ -14,6 +22,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Link } from "react-router";
 
@@ -33,26 +42,70 @@ export function NavMain({
     }[];
   }[];
 }) {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
   return (
     <SidebarGroup>
       <SidebarMenu className="space-y-1">
         {items.map((item, idx) => {
-          if ((item?.items?.length ?? 0) < 1) {
+          const hasChildren = (item?.items?.length ?? 0) > 0;
+
+          if (!hasChildren) {
             return (
               <SidebarMenuItem key={idx}>
-                <Link to={item.url}>
-                  <SidebarMenuButton
-                    className="h-9 mx-auto"
-                    tooltip={item.title}
-                    isActive={item.isActive}
-                  >
+                <SidebarMenuButton
+                  asChild
+                  className="h-9 mx-auto"
+                  tooltip={item.title}
+                  isActive={item.isActive}
+                >
+                  <Link to={item.url}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </Link>
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             );
           }
+
+          // Collapsed sidebar: show a dropdown popover to the right
+          if (isCollapsed) {
+            return (
+              <SidebarMenuItem key={idx}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuButton
+                      className="h-9 mx-auto"
+                      tooltip={item.title}
+                      isActive={item.childActive}
+                    >
+                      {item.icon && <item.icon />}
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side="right" align="start" className="min-w-44">
+                    <DropdownMenuLabel className="text-xs text-gray-01 font-normal">
+                      {item.title}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {item.items?.map((subItem) => (
+                      <DropdownMenuItem key={subItem.title} asChild>
+                        <Link
+                          to={subItem.url}
+                          className={subItem.isActive ? "font-medium text-primary" : ""}
+                        >
+                          {subItem.title}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SidebarMenuItem>
+            );
+          }
+
+          // Expanded sidebar: inline collapsible
           return (
             <Collapsible
               key={idx}
