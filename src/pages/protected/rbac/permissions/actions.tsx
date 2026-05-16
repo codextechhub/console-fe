@@ -63,6 +63,10 @@ function ActionSheet({
   const isLoading = creating || updating;
   const isEdit = mode === "edit";
 
+  const canSubmit = isEdit
+    ? description !== (item?.description ?? "") || isActive !== (item?.is_active ?? true)
+    : name.trim() !== "" && description.trim() !== "";
+
   const handleSubmit = () => {
     const e: Record<string, string> = {};
     if (!isEdit) {
@@ -154,7 +158,7 @@ function ActionSheet({
 
         <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row justify-end gap-3">
           <Button variant="outline" size="lg" onClick={onClose} disabled={isLoading}>Cancel</Button>
-          <Button size="lg" onClick={handleSubmit} disabled={isLoading}>
+          <Button size="lg" onClick={handleSubmit} disabled={!canSubmit || isLoading}>
             {isLoading ? (isEdit ? "Saving..." : "Creating...") : (isEdit ? "Save Changes" : "Create Action")}
           </Button>
         </SheetFooter>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, RefreshCw, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,21 +65,25 @@ function ResourceSheet({
   const isLoading = creating || updating;
   const isEdit = mode === "edit";
 
-  // Reset form when sheet opens
-  useState(() => {
-    if (open && isEdit && item) {
+  useEffect(() => {
+    if (!open) return;
+    if (isEdit && item) {
       setModule(item.module);
       setName(item.name);
       setDescription(item.description ?? "");
       setIsActive(item.is_active);
-    } else if (open && !isEdit) {
+    } else {
       setModule("");
       setName("");
       setDescription("");
       setIsActive(true);
     }
     setErrors({});
-  });
+  }, [open, item]);
+
+  const canSubmit = isEdit
+    ? description !== (item?.description ?? "") || isActive !== (item?.is_active ?? true)
+    : module !== "" && name.trim() !== "" && description.trim() !== "";
 
   const combinedKey = module && name ? `${module}.${name}` : "";
 
@@ -203,7 +207,7 @@ function ResourceSheet({
 
         <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row justify-end gap-3">
           <Button variant="outline" size="lg" onClick={onClose} disabled={isLoading}>Cancel</Button>
-          <Button size="lg" onClick={handleSubmit} disabled={isLoading}>
+          <Button size="lg" onClick={handleSubmit} disabled={!canSubmit || isLoading}>
             {isLoading ? (isEdit ? "Saving..." : "Creating...") : (isEdit ? "Save Changes" : "Create Resource")}
           </Button>
         </SheetFooter>
