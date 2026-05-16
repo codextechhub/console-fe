@@ -16,6 +16,9 @@ import {
   LogoutIcon,
   SchoolIcon,
   TeamMgtIcon,
+  RolesIcon,
+  PermissionsIcon,
+  DataImportsIcon,
 } from "@/assets/navbar-svg";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routesPath";
@@ -94,6 +97,69 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       childActive: false,
       permission: P.ACCESS_TEAM_PANEL,
       permissionMode: "any" as const,
+    },
+    {
+      title: "Roles",
+      url: routesPath.PROTECTED.ROLES.INDEX,
+      icon: RolesIcon,
+      isActive: false,
+      childActive: location.startsWith(routesPath.PROTECTED.ROLES.INDEX),
+      permission: P.VIEW_ROLES,
+      permissionMode: "any" as const,
+      items: [
+        {
+          title: "Platform Roles",
+          url: routesPath.PROTECTED.ROLES.INDEX,
+          isActive: location === routesPath.PROTECTED.ROLES.INDEX || (location.startsWith("/roles/") && !location.startsWith("/roles/permission-groups")),
+        },
+        {
+          title: "Permission Groups",
+          url: routesPath.PROTECTED.ROLES.GROUPS.INDEX,
+          isActive: location.startsWith(routesPath.PROTECTED.ROLES.GROUPS.INDEX),
+        },
+      ],
+    },
+    {
+      title: "Permissions",
+      url: routesPath.PROTECTED.PERMISSIONS.INDEX,
+      icon: PermissionsIcon,
+      isActive: false,
+      childActive: location.startsWith(routesPath.PROTECTED.PERMISSIONS.INDEX),
+      permission: P.VIEW_ROLES,
+      permissionMode: "any" as const,
+      items: [
+        {
+          title: "All Permissions",
+          url: routesPath.PROTECTED.PERMISSIONS.INDEX,
+          isActive: location === routesPath.PROTECTED.PERMISSIONS.INDEX || (location.startsWith("/permissions/") && !location.startsWith("/permissions/modules")),
+        },
+        {
+          title: "Modules",
+          url: routesPath.PROTECTED.PERMISSIONS.MODULES.INDEX,
+          isActive: location.startsWith(routesPath.PROTECTED.PERMISSIONS.MODULES.INDEX),
+        },
+      ],
+    },
+    {
+      title: "Data Imports",
+      url: routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX,
+      icon: DataImportsIcon,
+      isActive: false,
+      childActive: location.startsWith("/data-imports"),
+      permission: P.IMPORT_RECORDS,
+      permissionMode: "any" as const,
+      items: [
+        {
+          title: "Import Batches",
+          url: routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX,
+          isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX),
+        },
+        {
+          title: "Templates",
+          url: routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX,
+          isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX),
+        },
+      ],
     },
   ];
 

@@ -173,6 +173,37 @@ export function ProfileIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+export function RolesIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+export function PermissionsIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <circle cx="8" cy="15" r="4" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M11.5 11.5L20 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M17 4l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M15 6l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+export function DataImportsIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <ellipse cx="12" cy="5" rx="8" ry="3" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M4 5v5c0 1.657 3.582 3 8 3s8-1.343 8-3V5" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M4 10v5c0 1.657 3.582 3 8 3s8-1.343 8-3v-5" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M12 16v5M9.5 18.5L12 21l2.5-2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 export function LogoutIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg

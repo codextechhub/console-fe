@@ -31,6 +31,40 @@ export const routesPath = {
       CREATE: "/team-management/create",
       VIEW_PATH: "/team-management/:id/view",
       VIEW: (id: string) => `/team-management/${id}/view`,
-    }
+    },
+    ROLES: {
+      INDEX: "/roles",
+      CREATE: "/roles/create",
+      EDIT_PATH: "/roles/:id/edit",
+      EDIT: (id: string) => `/roles/${id}/edit`,
+      GROUPS: {
+        INDEX: "/roles/permission-groups",
+        CREATE: "/roles/permission-groups/create",
+        EDIT_PATH: "/roles/permission-groups/:id/edit",
+        EDIT: (id: string) => `/roles/permission-groups/${id}/edit`,
+      },
+    },
+    PERMISSIONS: {
+      INDEX: "/permissions",
+      CREATE: "/permissions/create",
+      EDIT_PATH: "/permissions/:key/edit",
+      EDIT: (key: string) => `/permissions/${encodeURIComponent(key)}/edit`,
+      MODULES: {
+        INDEX: "/permissions/modules",
+        CREATE: "/permissions/modules/create",
+        EDIT_PATH: "/permissions/modules/:name/edit",
+        EDIT: (name: string) => `/permissions/modules/${name}/edit`,
+      },
+    },
+    DATA_IMPORTS: {
+      BATCHES: {
+        INDEX: "/data-imports/batches",
+        VIEW_PATH: "/data-imports/batches/:id/view",
+        VIEW: (id: string) => `/data-imports/batches/${id}/view`,
+      },
+      TEMPLATES: {
+        INDEX: "/data-imports/templates",
+      },
+    },
   },
 };
