@@ -12,7 +12,7 @@ import {
   useGetPermissionGroupsQuery,
 } from "@/redux/services/dashboard/rbacApi";
 import { toast } from "sonner";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
@@ -52,15 +52,8 @@ export default function EditRole() {
   }
 
   return (
-    <DashboardLayout title="Edit Role">
+    <DashboardLayout title="Edit Role" hasBack onBack={() => navigate(routesPath.PROTECTED.ROLES.INDEX)}>
       <main className="px-4.5 py-6 text-black-01 max-w-2xl">
-        <button
-          onClick={() => navigate(routesPath.PROTECTED.ROLES.INDEX)}
-          className="flex items-center gap-1 text-sm text-gray-01 hover:text-black-01 mb-6 transition-colors"
-        >
-          <ChevronLeft size={16} /> Back to Platform Roles
-        </button>
-
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Role</h1>
           <p className="text-sm text-gray-01 mt-1">Update the details and permission groups for this role.</p>

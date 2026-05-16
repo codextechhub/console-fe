@@ -1,6 +1,7 @@
 import { generateQueryString } from "@/utils/helpers";
 import { baseApi } from "../baseApi";
 import type {
+  ChangeRequest,
   PaginatedResponse,
   Permission,
   PermissionDetail,
@@ -9,6 +10,7 @@ import type {
   PermissionModule,
   PlatformRole,
   PlatformRoleDetail,
+  UserAssignment,
 } from "./rbacTypes";
 
 export const rbacApi = baseApi.injectEndpoints({
@@ -112,6 +114,38 @@ export const rbacApi = baseApi.injectEndpoints({
       query: (name) => ({ url: `/rbac/vision/permission-modules/${name}/`, method: "DELETE" }),
       invalidatesTags: ["PermissionModules"],
     }),
+
+    // ── User Assignments ───────────────────────────────────────────────────────
+    getUserAssignments: builder.query<PaginatedResponse<UserAssignment>, Record<string, string | number>>({
+      query: (params) => ({ url: `/rbac/platform/role-assignments/${generateQueryString(params)}`, method: "GET" }),
+      providesTags: ["UserAssignments"],
+    }),
+
+    assignRole: builder.mutation<{ data: UserAssignment }, { user_id: string; role_id: string }>({
+      query: (body) => ({ url: `/rbac/platform/role-assignments/`, method: "POST", body }),
+      invalidatesTags: ["UserAssignments"],
+    }),
+
+    revokeAssignment: builder.mutation<{ data: UserAssignment }, { id: string; reason_note: string }>({
+      query: ({ id, reason_note }) => ({ url: `/rbac/platform/role-assignments/${id}/revoke/`, method: "POST", body: { reason_note } }),
+      invalidatesTags: ["UserAssignments"],
+    }),
+
+    // ── Change Requests ────────────────────────────────────────────────────────
+    getChangeRequests: builder.query<PaginatedResponse<ChangeRequest>, Record<string, string | number>>({
+      query: (params) => ({ url: `/rbac/platform/change-requests/${generateQueryString(params)}`, method: "GET" }),
+      providesTags: ["ChangeRequests"],
+    }),
+
+    createChangeRequest: builder.mutation<{ data: ChangeRequest }, { target_role_id: string; delta_items: { permission_key: string; operation: "ADD" | "REMOVE" }[]; justification: string }>({
+      query: (body) => ({ url: `/rbac/platform/change-requests/`, method: "POST", body }),
+      invalidatesTags: ["ChangeRequests"],
+    }),
+
+    decideChangeRequest: builder.mutation<{ data: ChangeRequest }, { id: string; decision: "APPROVED" | "DENIED"; reviewer_note?: string }>({
+      query: ({ id, ...body }) => ({ url: `/rbac/platform/change-requests/${id}/decide/`, method: "POST", body }),
+      invalidatesTags: ["ChangeRequests"],
+    }),
   }),
 });
 
@@ -135,4 +169,10 @@ export const {
   useCreatePermissionModuleMutation,
   useUpdatePermissionModuleMutation,
   useDeletePermissionModuleMutation,
+  useGetUserAssignmentsQuery,
+  useAssignRoleMutation,
+  useRevokeAssignmentMutation,
+  useGetChangeRequestsQuery,
+  useCreateChangeRequestMutation,
+  useDecideChangeRequestMutation,
 } = rbacApi;

@@ -37,6 +37,8 @@ export const routesPath = {
       CREATE: "/roles/create",
       EDIT_PATH: "/roles/:id/edit",
       EDIT: (id: string) => `/roles/${id}/edit`,
+      USER_ASSIGNMENTS: "/roles/user-assignments",
+      CHANGE_REQUESTS: "/roles/change-requests",
       GROUPS: {
         INDEX: "/roles/permission-groups",
         CREATE: "/roles/permission-groups/create",

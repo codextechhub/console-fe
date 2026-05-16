@@ -111,7 +111,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Platform Roles",
           url: routesPath.PROTECTED.ROLES.INDEX,
-          isActive: location === routesPath.PROTECTED.ROLES.INDEX || (location.startsWith("/roles/") && !location.startsWith("/roles/permission-groups")),
+          isActive: location === routesPath.PROTECTED.ROLES.INDEX || (location.startsWith("/roles/") && !location.startsWith("/roles/permission-groups") && !location.startsWith("/roles/user-assignments") && !location.startsWith("/roles/change-requests")),
+        },
+        {
+          title: "User Assignments",
+          url: routesPath.PROTECTED.ROLES.USER_ASSIGNMENTS,
+          isActive: location.startsWith(routesPath.PROTECTED.ROLES.USER_ASSIGNMENTS),
+        },
+        {
+          title: "Change Requests",
+          url: routesPath.PROTECTED.ROLES.CHANGE_REQUESTS,
+          isActive: location.startsWith(routesPath.PROTECTED.ROLES.CHANGE_REQUESTS),
         },
         {
           title: "Permission Groups",

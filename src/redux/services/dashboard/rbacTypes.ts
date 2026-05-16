@@ -60,6 +60,45 @@ export interface PermissionModule {
   updated_at: string;
 }
 
+export interface UserAssignment {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  role_id: string;
+  role_name: string;
+  assignment_status: "ACTIVE" | "REVOKED";
+  assigned_by_id: string | null;
+  assigned_by_name: string | null;
+  assigned_at: string;
+  revoked_by_id: string | null;
+  revoked_by_name: string | null;
+  revoked_at: string | null;
+  reason_note: string | null;
+}
+
+export interface ChangeRequestDelta {
+  permission_key: string;
+  operation: "ADD" | "REMOVE";
+  permission_description?: string;
+}
+
+export interface ChangeRequest {
+  id: string;
+  target_role_id: string;
+  target_role_name: string;
+  delta_items: ChangeRequestDelta[];
+  status: "PENDING" | "APPROVED" | "DENIED" | "APPLIED" | "APPLY_FAILED";
+  requested_by_id: string;
+  requested_by_name: string;
+  justification: string;
+  submitted_at: string;
+  decided_at: string | null;
+  decided_by_id: string | null;
+  decided_by_name: string | null;
+  reviewer_note: string | null;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: {
