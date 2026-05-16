@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { Plus, RefreshCw, Box, CheckCircle2 } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
+import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routesPath";
 import {
   useGetPermissionModulesQuery,
@@ -18,25 +19,14 @@ import type { PermissionModule } from "@/redux/services/dashboard/rbacTypes";
 
 const TABLE_HEADERS = ["Module Name", "Description", "Status", "Created", "Action"];
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
-  return (
-    <div className="bg-white rounded-md px-5 py-4 flex items-center gap-4">
-      <div className="size-12 rounded-lg bg-gray-100 grid place-content-center text-gray-400 shrink-0">
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-gray-01 font-mont">{label}</p>
-        <p className="text-2xl font-semibold text-black-01">{value}</p>
-      </div>
-    </div>
-  );
-}
+type CardFilter = "all" | "active" | "inactive";
 
 export default function PermissionModulesList() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
+  const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
   const params = useMemo(() => ({ ...query, search: debouncedSearch }), [query, debouncedSearch]);
 
@@ -48,9 +38,22 @@ export default function PermissionModulesList() {
 
   const modules = data?.data ?? [];
   const totalModules = data?.pagination?.totalCount ?? 0;
-  const activeModules = modules.filter((m) => m.is_active).length;
+  const activeCount = modules.filter((m) => m.is_active).length;
+  const inactiveCount = modules.filter((m) => !m.is_active).length;
 
-  const tableData = modules.map((mod: PermissionModule) => ({
+  const metricCards = [
+    { title: "Total Modules", value: totalModules, key: "all" as CardFilter, active: cardFilter === "all" },
+    { title: "Active", value: activeCount, key: "active" as CardFilter, active: cardFilter === "active" },
+    { title: "Inactive", value: inactiveCount, key: "inactive" as CardFilter, active: cardFilter === "inactive" },
+  ];
+
+  const filteredModules = modules.filter((m) => {
+    if (cardFilter === "active") return m.is_active;
+    if (cardFilter === "inactive") return !m.is_active;
+    return true;
+  });
+
+  const tableData = filteredModules.map((mod: PermissionModule) => ({
     name: <span className="font-mono font-medium text-sm text-black-01">{mod.name}</span>,
     description: <span className="text-xs text-gray-01">{mod.description || "—"}</span>,
     status: (
@@ -75,10 +78,20 @@ export default function PermissionModulesList() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <StatCard icon={<Box size={22} />} label="Total Modules" value={totalModules} />
-          <StatCard icon={<CheckCircle2 size={22} />} label="Active" value={activeModules} />
-          <StatCard icon={<Box size={22} />} label="Inactive" value={totalModules - activeModules} />
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {metricCards.map((card, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
+                card.active && "bg-pry-01",
+              )}
+              onClick={() => setCardFilter(card.key)}
+            >
+              <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
+              <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>
+            </div>
+          ))}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2">

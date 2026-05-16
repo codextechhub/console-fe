@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { Plus, RefreshCw, Layers, CheckCircle2, Lock, Settings2 } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
+import { cn } from "@/lib/utils";
 import { svgIcons } from "@/assets/svg";
 import { routesPath } from "@/routes/routesPath";
 import { useGetPermissionGroupsQuery, useDeletePermissionGroupMutation } from "@/redux/services/dashboard/rbacApi";
@@ -16,25 +17,14 @@ import type { PermissionGroupList } from "@/redux/services/dashboard/rbacTypes";
 
 const TABLE_HEADERS = ["Group Name", "System", "Status", "Permissions", "Created", "Action"];
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
-  return (
-    <div className="bg-white rounded-md px-5 py-4 flex items-center gap-4">
-      <div className="size-12 rounded-lg bg-gray-100 grid place-content-center text-gray-400 shrink-0">
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-gray-01 font-mont">{label}</p>
-        <p className="text-2xl font-semibold text-black-01">{value}</p>
-      </div>
-    </div>
-  );
-}
+type CardFilter = "all" | "active" | "system" | "custom";
 
 export default function PermissionGroupsList() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
+  const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
   const params = useMemo(() => ({ ...query, search: debouncedSearch }), [query, debouncedSearch]);
 
@@ -46,11 +36,25 @@ export default function PermissionGroupsList() {
 
   const groups = data?.data ?? [];
   const totalGroups = data?.pagination?.totalCount ?? 0;
-  const activeGroups = groups.filter((g) => g.is_active).length;
-  const systemGroups = groups.filter((g) => g.is_system).length;
-  const customGroups = groups.filter((g) => !g.is_system).length;
+  const activeCount = groups.filter((g) => g.is_active).length;
+  const systemCount = groups.filter((g) => g.is_system).length;
+  const customCount = groups.filter((g) => !g.is_system).length;
 
-  const tableData = groups.map((group: PermissionGroupList) => ({
+  const metricCards = [
+    { title: "All Groups", value: totalGroups, key: "all" as CardFilter, active: cardFilter === "all" },
+    { title: "Active", value: activeCount, key: "active" as CardFilter, active: cardFilter === "active" },
+    { title: "System Groups", value: systemCount, key: "system" as CardFilter, active: cardFilter === "system" },
+    { title: "Custom Groups", value: customCount, key: "custom" as CardFilter, active: cardFilter === "custom" },
+  ];
+
+  const filteredGroups = groups.filter((g) => {
+    if (cardFilter === "active") return g.is_active;
+    if (cardFilter === "system") return g.is_system;
+    if (cardFilter === "custom") return !g.is_system;
+    return true;
+  });
+
+  const tableData = filteredGroups.map((group: PermissionGroupList) => ({
     name: (
       <div>
         <p className="font-medium text-black-01">{group.name}</p>
@@ -88,11 +92,20 @@ export default function PermissionGroupsList() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard icon={<Layers size={22} />} label="Total Groups" value={totalGroups} />
-          <StatCard icon={<CheckCircle2 size={22} />} label="Active" value={activeGroups} />
-          <StatCard icon={<Lock size={22} />} label="System Groups" value={systemGroups} />
-          <StatCard icon={<Settings2 size={22} />} label="Custom Groups" value={customGroups} />
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {metricCards.map((card, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
+                card.active && "bg-pry-01",
+              )}
+              onClick={() => setCardFilter(card.key)}
+            >
+              <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
+              <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>
+            </div>
+          ))}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2">
@@ -140,17 +153,15 @@ export default function PermissionGroupsList() {
                 onActionClick: () => navigate(routesPath.PROTECTED.ROLES.GROUPS.EDIT(row._id)),
               },
               ...(!row._system
-                ? [
-                    {
-                      label: "Delete",
-                      className: "text-destructive focus:text-destructive focus:bg-destructive/10",
-                      onActionClick: () =>
-                        deleteGroup(row._id)
-                          .unwrap()
-                          .then(() => toast.success("Group deleted."))
-                          .catch(() => {}),
-                    },
-                  ]
+                ? [{
+                    label: "Delete",
+                    className: "text-destructive focus:text-destructive focus:bg-destructive/10",
+                    onActionClick: () =>
+                      deleteGroup(row._id)
+                        .unwrap()
+                        .then(() => toast.success("Group deleted."))
+                        .catch(() => {}),
+                  }]
                 : []),
             ]}
             perPage={data?.pagination?.pageSize}

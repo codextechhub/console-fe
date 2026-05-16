@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { Plus, RefreshCw, Key, ShieldAlert, Activity, Zap } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -9,6 +9,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
+import { cn } from "@/lib/utils";
 import { svgIcons } from "@/assets/svg";
 import { routesPath } from "@/routes/routesPath";
 import { useGetPermissionsQuery, useDeletePermissionMutation } from "@/redux/services/dashboard/rbacApi";
@@ -25,19 +26,7 @@ const SENSITIVITY_BADGE: Record<string, "active" | "suspended" | "locked" | "ina
   CRITICAL: "suspended",
 };
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
-  return (
-    <div className="bg-white rounded-md px-5 py-4 flex items-center gap-4">
-      <div className="size-12 rounded-lg bg-gray-100 grid place-content-center text-gray-400 shrink-0">
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-gray-01 font-mont">{label}</p>
-        <p className="text-2xl font-semibold text-black-01">{value}</p>
-      </div>
-    </div>
-  );
-}
+type CardFilter = "all" | "active" | "restricted" | "critical";
 
 export default function PermissionsList() {
   const navigate = useNavigate();
@@ -45,6 +34,7 @@ export default function PermissionsList() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
+  const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
   const params = useMemo(() => ({ ...query, search: debouncedSearch }), [query, debouncedSearch]);
 
@@ -56,11 +46,25 @@ export default function PermissionsList() {
 
   const perms = data?.data ?? [];
   const totalPerms = data?.pagination?.totalCount ?? 0;
-  const activePerms = perms.filter((p) => p.is_active).length;
-  const restrictedPerms = perms.filter((p) => p.is_restricted).length;
-  const criticalPerms = perms.filter((p) => p.sensitivity_level === "CRITICAL").length;
+  const activeCount = perms.filter((p) => p.is_active).length;
+  const restrictedCount = perms.filter((p) => p.is_restricted).length;
+  const criticalCount = perms.filter((p) => p.sensitivity_level === "CRITICAL").length;
 
-  const tableData = perms.map((perm: Permission) => ({
+  const metricCards = [
+    { title: "All Permissions", value: totalPerms, key: "all" as CardFilter, active: cardFilter === "all" },
+    { title: "Active", value: activeCount, key: "active" as CardFilter, active: cardFilter === "active" },
+    { title: "Restricted", value: restrictedCount, key: "restricted" as CardFilter, active: cardFilter === "restricted" },
+    { title: "Critical", value: criticalCount, key: "critical" as CardFilter, active: cardFilter === "critical" },
+  ];
+
+  const filteredPerms = perms.filter((p) => {
+    if (cardFilter === "active") return p.is_active;
+    if (cardFilter === "restricted") return p.is_restricted;
+    if (cardFilter === "critical") return p.sensitivity_level === "CRITICAL";
+    return true;
+  });
+
+  const tableData = filteredPerms.map((perm: Permission) => ({
     key: <span className="font-mono text-xs font-medium text-black-01">{perm.key}</span>,
     module: <span className="capitalize text-xs">{perm.module_key}</span>,
     action: <span className="capitalize text-xs">{perm.action_key}</span>,
@@ -98,11 +102,20 @@ export default function PermissionsList() {
           </PermissionGate>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard icon={<Key size={22} />} label="Total Permissions" value={totalPerms} />
-          <StatCard icon={<Activity size={22} />} label="Active" value={activePerms} />
-          <StatCard icon={<ShieldAlert size={22} />} label="Restricted" value={restrictedPerms} />
-          <StatCard icon={<Zap size={22} />} label="Critical" value={criticalPerms} />
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {metricCards.map((card, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
+                card.active && "bg-pry-01",
+              )}
+              onClick={() => setCardFilter(card.key)}
+            >
+              <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
+              <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>
+            </div>
+          ))}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2">

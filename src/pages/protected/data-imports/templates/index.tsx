@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
-import { RefreshCw, FileText } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const DUMMY_TEMPLATES = [
@@ -27,37 +28,38 @@ const STATUS_BADGE: Record<string, string> = {
 
 const TABLE_HEADERS = ["Template Name", "Code", "Dataset", "Version", "Format", "Status", "Created By", "Action"];
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
-  return (
-    <div className="bg-white rounded-md px-5 py-4 flex items-center gap-4">
-      <div className="size-12 rounded-lg bg-gray-100 grid place-content-center text-gray-400 shrink-0">
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-gray-01 font-mont">{label}</p>
-        <p className="text-2xl font-semibold text-black-01">{value}</p>
-      </div>
-    </div>
-  );
-}
+type CardFilter = "all" | "active" | "draft" | "retired";
 
 export default function ImportTemplatesList() {
   const [search, setSearch] = useState("");
+  const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
-  const filtered = useMemo(
-    () =>
-      DUMMY_TEMPLATES.filter(
+  const activeCount = DUMMY_TEMPLATES.filter((t) => t.status === "active").length;
+  const draftCount = DUMMY_TEMPLATES.filter((t) => t.status === "draft").length;
+  const retiredCount = DUMMY_TEMPLATES.filter((t) => t.status === "retired").length;
+
+  const metricCards = [
+    { title: "Total Templates", value: DUMMY_TEMPLATES.length, key: "all" as CardFilter, active: cardFilter === "all" },
+    { title: "Active", value: activeCount, key: "active" as CardFilter, active: cardFilter === "active" },
+    { title: "Draft", value: draftCount, key: "draft" as CardFilter, active: cardFilter === "draft" },
+    { title: "Retired", value: retiredCount, key: "retired" as CardFilter, active: cardFilter === "retired" },
+  ];
+
+  const filtered = useMemo(() => {
+    let list = DUMMY_TEMPLATES;
+    if (cardFilter !== "all") list = list.filter((t) => t.status === cardFilter);
+
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(
         (t) =>
-          !search ||
-          t.name.toLowerCase().includes(search.toLowerCase()) ||
-          t.code.toLowerCase().includes(search.toLowerCase()) ||
-          t.dataset_type.toLowerCase().includes(search.toLowerCase()),
-      ),
-    [search],
-  );
-
-  const activeTemplates = DUMMY_TEMPLATES.filter((t) => t.status === "active").length;
-  const draftTemplates = DUMMY_TEMPLATES.filter((t) => t.status === "draft").length;
+          t.name.toLowerCase().includes(q) ||
+          t.code.toLowerCase().includes(q) ||
+          t.dataset_type.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [cardFilter, search]);
 
   const tableData = filtered.map((tpl) => ({
     name: (
@@ -89,10 +91,20 @@ export default function ImportTemplatesList() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <StatCard icon={<FileText size={22} />} label="Total Templates" value={DUMMY_TEMPLATES.length} />
-          <StatCard icon={<FileText size={22} />} label="Active" value={activeTemplates} />
-          <StatCard icon={<FileText size={22} />} label="Draft" value={draftTemplates} />
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {metricCards.map((card, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
+                card.active && "bg-pry-01",
+              )}
+              onClick={() => setCardFilter(card.key)}
+            >
+              <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
+              <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>
+            </div>
+          ))}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2">

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { Plus, RefreshCw, Shield, Lock, ShieldCheck } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -9,6 +9,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
+import { cn } from "@/lib/utils";
 import { svgIcons } from "@/assets/svg";
 import { routesPath } from "@/routes/routesPath";
 import { useGetPlatformRolesQuery, useDeletePlatformRoleMutation } from "@/redux/services/dashboard/rbacApi";
@@ -19,19 +20,7 @@ import type { PlatformRole } from "@/redux/services/dashboard/rbacTypes";
 
 const TABLE_HEADERS = ["Role Name", "Status", "System", "Locked", "Users", "Permissions", "Created", "Action"];
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
-  return (
-    <div className="bg-white rounded-md px-5 py-4 flex items-center gap-4">
-      <div className="size-12 rounded-lg bg-gray-100 grid place-content-center text-gray-400 shrink-0">
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-gray-01 font-mont">{label}</p>
-        <p className="text-2xl font-semibold text-black-01">{value}</p>
-      </div>
-    </div>
-  );
-}
+type CardFilter = "all" | "active" | "system" | "locked";
 
 export default function RolesList() {
   const navigate = useNavigate();
@@ -39,6 +28,7 @@ export default function RolesList() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
+  const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
   const params = useMemo(
     () => ({ ...query, search: debouncedSearch }),
@@ -53,11 +43,25 @@ export default function RolesList() {
 
   const roles = data?.data ?? [];
   const totalRoles = data?.pagination?.totalCount ?? 0;
-  const activeRoles = roles.filter((r) => r.status === "ACTIVE").length;
-  const systemRoles = roles.filter((r) => r.is_system_role).length;
-  const lockedRoles = roles.filter((r) => r.is_locked).length;
+  const activeCount = roles.filter((r) => r.status === "ACTIVE").length;
+  const systemCount = roles.filter((r) => r.is_system_role).length;
+  const lockedCount = roles.filter((r) => r.is_locked).length;
 
-  const tableData = roles.map((role: PlatformRole) => ({
+  const metricCards = [
+    { title: "All Roles", value: totalRoles, key: "all" as CardFilter, active: cardFilter === "all" },
+    { title: "Active Roles", value: activeCount, key: "active" as CardFilter, active: cardFilter === "active" },
+    { title: "System Roles", value: systemCount, key: "system" as CardFilter, active: cardFilter === "system" },
+    { title: "Locked Roles", value: lockedCount, key: "locked" as CardFilter, active: cardFilter === "locked" },
+  ];
+
+  const filteredRoles = roles.filter((role) => {
+    if (cardFilter === "active") return role.status === "ACTIVE";
+    if (cardFilter === "system") return role.is_system_role;
+    if (cardFilter === "locked") return role.is_locked;
+    return true;
+  });
+
+  const tableData = filteredRoles.map((role: PlatformRole) => ({
     name: (
       <div>
         <p className="font-medium text-black-01 capitalize">{role.name}</p>
@@ -104,11 +108,20 @@ export default function RolesList() {
           </PermissionGate>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard icon={<Shield size={22} />} label="Total Roles" value={totalRoles} />
-          <StatCard icon={<ShieldCheck size={22} />} label="Active Roles" value={activeRoles} />
-          <StatCard icon={<Shield size={22} />} label="System Roles" value={systemRoles} />
-          <StatCard icon={<Lock size={22} />} label="Locked Roles" value={lockedRoles} />
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {metricCards.map((card, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
+                card.active && "bg-pry-01",
+              )}
+              onClick={() => setCardFilter(card.key)}
+            >
+              <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
+              <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>
+            </div>
+          ))}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2">
@@ -156,17 +169,15 @@ export default function RolesList() {
                 onActionClick: () => navigate(routesPath.PROTECTED.ROLES.EDIT(row._id)),
               }] : []),
               ...(hasPermission(P.REVOKE_ROLE) && !row._system && !row._locked
-                ? [
-                    {
-                      label: "Delete",
-                      className: "text-destructive focus:text-destructive focus:bg-destructive/10",
-                      onActionClick: () =>
-                        deleteRole(row._id)
-                          .unwrap()
-                          .then(() => toast.success("Role deleted."))
-                          .catch(() => {}),
-                    },
-                  ]
+                ? [{
+                    label: "Delete",
+                    className: "text-destructive focus:text-destructive focus:bg-destructive/10",
+                    onActionClick: () =>
+                      deleteRole(row._id)
+                        .unwrap()
+                        .then(() => toast.success("Role deleted."))
+                        .catch(() => {}),
+                  }]
                 : []),
             ]}
             perPage={data?.pagination?.pageSize}

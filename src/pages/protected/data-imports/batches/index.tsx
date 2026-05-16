@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { RefreshCw, Upload, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { RefreshCw, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
+import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routesPath";
 
 const DUMMY_BATCHES = [
@@ -18,6 +19,8 @@ const DUMMY_BATCHES = [
   { id: "bch_007", original_filename: "results_2021_2022.xlsx", dataset_type: "historical", status: "rolled_back", total_rows: 1840, error_count: 2, uploaded_by: "Olumide Bankole", school: "Lekki Heights Academy", imported_at: "2026-03-14T10:38:55Z" },
   { id: "bch_008", original_filename: "staff_lateral_hires.xlsx", dataset_type: "staff", status: "validating", total_rows: 11, error_count: 0, uploaded_by: "Aminat Bello", school: "Greenwood International", imported_at: null },
 ];
+
+const IN_PROGRESS_STATUSES = new Set(["importing", "validating", "import_queued", "validation_queued"]);
 
 const STATUS_BADGE: Record<string, string> = {
   imported: "active",
@@ -33,40 +36,41 @@ const STATUS_BADGE: Record<string, string> = {
 
 const TABLE_HEADERS = ["File", "Dataset", "Status", "Rows", "Errors", "Uploaded By", "School", "Action"];
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
-  return (
-    <div className="bg-white rounded-md px-5 py-4 flex items-center gap-4">
-      <div className="size-12 rounded-lg bg-gray-100 grid place-content-center text-gray-400 shrink-0">
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-gray-01 font-mont">{label}</p>
-        <p className="text-2xl font-semibold text-black-01">{value}</p>
-      </div>
-    </div>
-  );
-}
+type CardFilter = "all" | "imported" | "failed" | "inprogress";
 
 export default function ImportBatchesList() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
-  const filtered = useMemo(
-    () =>
-      DUMMY_BATCHES.filter(
+  const importedCount = DUMMY_BATCHES.filter((b) => b.status === "imported").length;
+  const failedCount = DUMMY_BATCHES.filter((b) => b.status === "validation_failed").length;
+  const inProgressCount = DUMMY_BATCHES.filter((b) => IN_PROGRESS_STATUSES.has(b.status)).length;
+
+  const metricCards = [
+    { title: "Total Batches", value: DUMMY_BATCHES.length, key: "all" as CardFilter, active: cardFilter === "all" },
+    { title: "Imported", value: importedCount, key: "imported" as CardFilter, active: cardFilter === "imported" },
+    { title: "Failed", value: failedCount, key: "failed" as CardFilter, active: cardFilter === "failed" },
+    { title: "In Progress", value: inProgressCount, key: "inprogress" as CardFilter, active: cardFilter === "inprogress" },
+  ];
+
+  const filtered = useMemo(() => {
+    let list = DUMMY_BATCHES;
+    if (cardFilter === "imported") list = list.filter((b) => b.status === "imported");
+    else if (cardFilter === "failed") list = list.filter((b) => b.status === "validation_failed");
+    else if (cardFilter === "inprogress") list = list.filter((b) => IN_PROGRESS_STATUSES.has(b.status));
+
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(
         (b) =>
-          !search ||
-          b.original_filename.toLowerCase().includes(search.toLowerCase()) ||
-          b.dataset_type.toLowerCase().includes(search.toLowerCase()) ||
-          b.school.toLowerCase().includes(search.toLowerCase()),
-      ),
-    [search],
-  );
-
-  const totalBatches = DUMMY_BATCHES.length;
-  const importedBatches = DUMMY_BATCHES.filter((b) => b.status === "imported").length;
-  const failedBatches = DUMMY_BATCHES.filter((b) => b.status === "validation_failed").length;
-  const inProgressBatches = DUMMY_BATCHES.filter((b) => ["importing", "validating", "import_queued", "validation_queued"].includes(b.status)).length;
+          b.original_filename.toLowerCase().includes(q) ||
+          b.dataset_type.toLowerCase().includes(q) ||
+          b.school.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [cardFilter, search]);
 
   const tableData = filtered.map((batch) => ({
     file: (
@@ -104,11 +108,20 @@ export default function ImportBatchesList() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard icon={<Upload size={22} />} label="Total Batches" value={totalBatches} />
-          <StatCard icon={<CheckCircle2 size={22} />} label="Imported" value={importedBatches} />
-          <StatCard icon={<XCircle size={22} />} label="Failed" value={failedBatches} />
-          <StatCard icon={<Loader2 size={22} />} label="In Progress" value={inProgressBatches} />
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          {metricCards.map((card, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
+                card.active && "bg-pry-01",
+              )}
+              onClick={() => setCardFilter(card.key)}
+            >
+              <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
+              <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>
+            </div>
+          ))}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2">
