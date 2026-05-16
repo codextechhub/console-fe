@@ -8,7 +8,6 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { routesPath } from "@/routes/routesPath";
 import { useCreatePermissionMutation, useGetPermissionModulesQuery } from "@/redux/services/dashboard/rbacApi";
 import { toast } from "sonner";
-import { ChevronLeft } from "lucide-react";
 
 const schema = Yup.object({
   module: Yup.string().required("Module is required"),
@@ -29,15 +28,8 @@ export default function CreatePermission() {
   const modules = (modulesData?.data ?? []).filter((m) => m.is_active);
 
   return (
-    <DashboardLayout title="Create Permission">
+    <DashboardLayout title="Create Permission" hasBack onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}>
       <main className="px-4.5 py-6 text-black-01 max-w-2xl">
-        <button
-          onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}
-          className="flex items-center gap-1 text-sm text-gray-01 hover:text-black-01 mb-6 transition-colors"
-        >
-          <ChevronLeft size={16} /> Back to Permissions
-        </button>
-
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission</h1>
           <p className="text-sm text-gray-01 mt-1">

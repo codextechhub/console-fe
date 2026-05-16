@@ -4,10 +4,13 @@ import type {
   ChangeRequest,
   PaginatedResponse,
   Permission,
+  PermissionAction,
+  PermissionDependency,
   PermissionDetail,
   PermissionGroupDetail,
   PermissionGroupList,
   PermissionModule,
+  PermissionResource,
   PlatformRole,
   PlatformRoleDetail,
   UserAssignment,
@@ -115,6 +118,64 @@ export const rbacApi = baseApi.injectEndpoints({
       invalidatesTags: ["PermissionModules"],
     }),
 
+    // ── Permission Resources ───────────────────────────────────────────────────
+    getPermissionResources: builder.query<PaginatedResponse<PermissionResource>, Record<string, string | number>>({
+      query: (params) => ({ url: `/rbac/vision/permission-resources/${generateQueryString(params)}`, method: "GET" }),
+      providesTags: ["PermissionResources"],
+    }),
+
+    createPermissionResource: builder.mutation<{ data: PermissionResource }, Record<string, unknown>>({
+      query: (body) => ({ url: `/rbac/vision/permission-resources/`, method: "POST", body }),
+      invalidatesTags: ["PermissionResources"],
+    }),
+
+    updatePermissionResource: builder.mutation<{ data: PermissionResource }, { id: string; body: Record<string, unknown> }>({
+      query: ({ id, body }) => ({ url: `/rbac/vision/permission-resources/${id}/`, method: "PATCH", body }),
+      invalidatesTags: ["PermissionResources"],
+    }),
+
+    deletePermissionResource: builder.mutation<void, string>({
+      query: (id) => ({ url: `/rbac/vision/permission-resources/${id}/`, method: "DELETE" }),
+      invalidatesTags: ["PermissionResources"],
+    }),
+
+    // ── Permission Actions ─────────────────────────────────────────────────────
+    getPermissionActions: builder.query<PaginatedResponse<PermissionAction>, Record<string, string | number>>({
+      query: (params) => ({ url: `/rbac/vision/permission-actions/${generateQueryString(params)}`, method: "GET" }),
+      providesTags: ["PermissionActions"],
+    }),
+
+    createPermissionAction: builder.mutation<{ data: PermissionAction }, Record<string, unknown>>({
+      query: (body) => ({ url: `/rbac/vision/permission-actions/`, method: "POST", body }),
+      invalidatesTags: ["PermissionActions"],
+    }),
+
+    updatePermissionAction: builder.mutation<{ data: PermissionAction }, { name: string; body: Record<string, unknown> }>({
+      query: ({ name, body }) => ({ url: `/rbac/vision/permission-actions/${name}/`, method: "PATCH", body }),
+      invalidatesTags: ["PermissionActions"],
+    }),
+
+    deletePermissionAction: builder.mutation<void, string>({
+      query: (name) => ({ url: `/rbac/vision/permission-actions/${name}/`, method: "DELETE" }),
+      invalidatesTags: ["PermissionActions"],
+    }),
+
+    // ── Permission Dependencies ────────────────────────────────────────────────
+    getPermissionDependencies: builder.query<PaginatedResponse<PermissionDependency>, Record<string, string | number>>({
+      query: (params) => ({ url: `/rbac/vision/permission-dependencies/${generateQueryString(params)}`, method: "GET" }),
+      providesTags: ["PermissionDependencies"],
+    }),
+
+    createPermissionDependency: builder.mutation<{ data: PermissionDependency }, { permission_key: string; depends_on_key: string }>({
+      query: (body) => ({ url: `/rbac/vision/permission-dependencies/`, method: "POST", body }),
+      invalidatesTags: ["PermissionDependencies"],
+    }),
+
+    deletePermissionDependency: builder.mutation<void, string>({
+      query: (id) => ({ url: `/rbac/vision/permission-dependencies/${id}/`, method: "DELETE" }),
+      invalidatesTags: ["PermissionDependencies"],
+    }),
+
     // ── User Assignments ───────────────────────────────────────────────────────
     getUserAssignments: builder.query<PaginatedResponse<UserAssignment>, Record<string, string | number>>({
       query: (params) => ({ url: `/rbac/platform/role-assignments/${generateQueryString(params)}`, method: "GET" }),
@@ -169,6 +230,17 @@ export const {
   useCreatePermissionModuleMutation,
   useUpdatePermissionModuleMutation,
   useDeletePermissionModuleMutation,
+  useGetPermissionResourcesQuery,
+  useCreatePermissionResourceMutation,
+  useUpdatePermissionResourceMutation,
+  useDeletePermissionResourceMutation,
+  useGetPermissionActionsQuery,
+  useCreatePermissionActionMutation,
+  useUpdatePermissionActionMutation,
+  useDeletePermissionActionMutation,
+  useGetPermissionDependenciesQuery,
+  useCreatePermissionDependencyMutation,
+  useDeletePermissionDependencyMutation,
   useGetUserAssignmentsQuery,
   useAssignRoleMutation,
   useRevokeAssignmentMutation,

@@ -11,7 +11,7 @@ import {
   useUpdatePermissionMutation,
 } from "@/redux/services/dashboard/rbacApi";
 import { toast } from "sonner";
-import { ChevronLeft, Loader2, AlertTriangle, Lock, Link2 } from "lucide-react";
+import { Loader2, AlertTriangle, Lock, Link2 } from "lucide-react";
 
 const schema = Yup.object({
   description: Yup.string().trim(),
@@ -60,15 +60,8 @@ export default function EditPermission() {
   const hasDependencies = (perm.dependencies?.length ?? 0) > 0;
 
   return (
-    <DashboardLayout title="Edit Permission">
+    <DashboardLayout title="Edit Permission" hasBack onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}>
       <main className="px-4.5 py-6 text-black-01 max-w-3xl space-y-5">
-        <button
-          onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}
-          className="flex items-center gap-1 text-sm text-gray-01 hover:text-black-01 transition-colors"
-        >
-          <ChevronLeft size={16} /> Back to Permissions
-        </button>
-
         <div>
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Permission</h1>
           <p className="font-mono text-sm text-gray-01 mt-1">{perm.key}</p>

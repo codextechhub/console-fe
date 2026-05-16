@@ -60,6 +60,33 @@ export interface PermissionModule {
   updated_at: string;
 }
 
+export interface PermissionResource {
+  id: string;
+  module: string;
+  name: string;
+  description?: string;
+  is_active: boolean;
+  permissions_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PermissionAction {
+  name: string;
+  description?: string;
+  is_active: boolean;
+  permissions_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PermissionDependency {
+  id: string;
+  permission_key: string;
+  depends_on_key: string;
+  created_at: string;
+}
+
 export interface UserAssignment {
   id: string;
   user_id: string;

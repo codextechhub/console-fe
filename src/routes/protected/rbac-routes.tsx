@@ -11,6 +11,9 @@ import PermissionsList from "@/pages/protected/rbac/permissions";
 import CreatePermission from "@/pages/protected/rbac/permissions/create-permission";
 import EditPermission from "@/pages/protected/rbac/permissions/edit-permission";
 import PermissionModulesList from "@/pages/protected/rbac/permissions/modules";
+import PermissionResources from "@/pages/protected/rbac/permissions/resources";
+import PermissionActionsPage from "@/pages/protected/rbac/permissions/actions";
+import PermissionDependencies from "@/pages/protected/rbac/permissions/dependencies";
 
 export const rbacRoutes: RouteObject[] = [
   { path: "/roles", element: <RolesList /> },
@@ -25,4 +28,7 @@ export const rbacRoutes: RouteObject[] = [
   { path: "/permissions/create", element: <CreatePermission /> },
   { path: "/permissions/:key/edit", element: <EditPermission /> },
   { path: "/permissions/modules", element: <PermissionModulesList /> },
+  { path: "/permissions/resources", element: <PermissionResources /> },
+  { path: "/permissions/actions", element: <PermissionActionsPage /> },
+  { path: "/permissions/dependencies", element: <PermissionDependencies /> },
 ];

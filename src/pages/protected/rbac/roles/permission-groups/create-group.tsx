@@ -7,7 +7,6 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { routesPath } from "@/routes/routesPath";
 import { useCreatePermissionGroupMutation, useGetPermissionsQuery } from "@/redux/services/dashboard/rbacApi";
 import { toast } from "sonner";
-import { ChevronLeft } from "lucide-react";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Group name is required"),
@@ -22,14 +21,8 @@ export default function CreatePermissionGroup() {
   const permissions = permissionsData?.data ?? [];
 
   return (
-    <DashboardLayout title="Create Permission Group">
+    <DashboardLayout title="Create Permission Group" hasBack onBack={() => navigate(routesPath.PROTECTED.ROLES.GROUPS.INDEX)}>
       <main className="px-4.5 py-6 text-black-01 max-w-2xl">
-        <button
-          onClick={() => navigate(routesPath.PROTECTED.ROLES.GROUPS.INDEX)}
-          className="flex items-center gap-1 text-sm text-gray-01 hover:text-black-01 mb-6 transition-colors"
-        >
-          <ChevronLeft size={16} /> Back to Permission Groups
-        </button>
 
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission Group</h1>

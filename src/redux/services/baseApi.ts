@@ -201,5 +201,5 @@ export const baseApi = createApi({
   baseQuery: baseQueryInterceptor,
   endpoints: () => ({}),
   reducerPath: "baseApi",
-  tagTypes: ["Users", "Role", "Schools", "Branches", "PlatformRoles", "PermissionGroups", "Permissions", "PermissionModules", "UserAssignments", "ChangeRequests"],
+  tagTypes: ["Users", "Role", "Schools", "Branches", "PlatformRoles", "PermissionGroups", "Permissions", "PermissionModules", "PermissionResources", "PermissionActions", "PermissionDependencies", "UserAssignments", "ChangeRequests"],
 });

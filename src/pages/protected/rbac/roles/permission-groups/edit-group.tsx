@@ -11,7 +11,7 @@ import {
   useGetPermissionsQuery,
 } from "@/redux/services/dashboard/rbacApi";
 import { toast } from "sonner";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Group name is required"),
@@ -50,15 +50,8 @@ export default function EditPermissionGroup() {
   }
 
   return (
-    <DashboardLayout title="Edit Permission Group">
+    <DashboardLayout title="Edit Permission Group" hasBack onBack={() => navigate(routesPath.PROTECTED.ROLES.GROUPS.INDEX)}>
       <main className="px-4.5 py-6 text-black-01 max-w-2xl">
-        <button
-          onClick={() => navigate(routesPath.PROTECTED.ROLES.GROUPS.INDEX)}
-          className="flex items-center gap-1 text-sm text-gray-01 hover:text-black-01 mb-6 transition-colors"
-        >
-          <ChevronLeft size={16} /> Back to Permission Groups
-        </button>
-
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Permission Group</h1>
           {group.is_system && (

@@ -123,11 +123,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: routesPath.PROTECTED.ROLES.CHANGE_REQUESTS,
           isActive: location.startsWith(routesPath.PROTECTED.ROLES.CHANGE_REQUESTS),
         },
-        {
-          title: "Permission Groups",
-          url: routesPath.PROTECTED.ROLES.GROUPS.INDEX,
-          isActive: location.startsWith(routesPath.PROTECTED.ROLES.GROUPS.INDEX),
-        },
       ],
     },
     {
@@ -135,19 +130,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: routesPath.PROTECTED.PERMISSIONS.INDEX,
       icon: PermissionsIcon,
       isActive: false,
-      childActive: location.startsWith(routesPath.PROTECTED.PERMISSIONS.INDEX),
+      childActive: location.startsWith(routesPath.PROTECTED.PERMISSIONS.INDEX) || location.startsWith(routesPath.PROTECTED.ROLES.GROUPS.INDEX),
       permission: P.VIEW_PERMISSIONS,
       permissionMode: "any" as const,
       items: [
         {
           title: "All Permissions",
           url: routesPath.PROTECTED.PERMISSIONS.INDEX,
-          isActive: location === routesPath.PROTECTED.PERMISSIONS.INDEX || (location.startsWith("/permissions/") && !location.startsWith("/permissions/modules")),
+          isActive: location === routesPath.PROTECTED.PERMISSIONS.INDEX || (location.startsWith("/permissions/") && !location.startsWith("/permissions/modules") && !location.startsWith("/permissions/resources") && !location.startsWith("/permissions/actions") && !location.startsWith("/permissions/dependencies")),
         },
         {
           title: "Modules",
           url: routesPath.PROTECTED.PERMISSIONS.MODULES.INDEX,
           isActive: location.startsWith(routesPath.PROTECTED.PERMISSIONS.MODULES.INDEX),
+        },
+        {
+          title: "Resources",
+          url: routesPath.PROTECTED.PERMISSIONS.RESOURCES.INDEX,
+          isActive: location.startsWith(routesPath.PROTECTED.PERMISSIONS.RESOURCES.INDEX),
+        },
+        {
+          title: "Actions",
+          url: routesPath.PROTECTED.PERMISSIONS.ACTIONS.INDEX,
+          isActive: location.startsWith(routesPath.PROTECTED.PERMISSIONS.ACTIONS.INDEX),
+        },
+        {
+          title: "Dependencies",
+          url: routesPath.PROTECTED.PERMISSIONS.DEPENDENCIES.INDEX,
+          isActive: location.startsWith(routesPath.PROTECTED.PERMISSIONS.DEPENDENCIES.INDEX),
+        },
+        {
+          title: "Permission Groups",
+          url: routesPath.PROTECTED.ROLES.GROUPS.INDEX,
+          isActive: location.startsWith(routesPath.PROTECTED.ROLES.GROUPS.INDEX),
         },
       ],
     },
