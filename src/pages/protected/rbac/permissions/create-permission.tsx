@@ -76,7 +76,19 @@ export default function CreatePermission() {
                 toast.success("Permission created.");
                 navigate(routesPath.PROTECTED.PERMISSIONS.INDEX);
               })
-              .catch(() => {})
+              .catch((err) => {
+                const errors = err?.data?.errors;
+                const msg =
+                  errors?.key ||
+                  errors?.resource ||
+                  errors?.module ||
+                  errors?.action ||
+                  err?.data?.message ||
+                  err?.data?.detail ||
+                  (typeof err?.data === "string" ? err.data : null) ||
+                  "Failed to create permission.";
+                toast.error(msg);
+              })
               .finally(() => setSubmitting(false));
           }}
         >

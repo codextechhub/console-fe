@@ -175,7 +175,12 @@ export default function EditPermission() {
                 navigate(routesPath.PROTECTED.PERMISSIONS.INDEX);
               })
               .catch((err) => {
+                const errors = err?.data?.errors;
                 const msg =
+                  errors?.key ||
+                  errors?.resource ||
+                  errors?.module ||
+                  errors?.action ||
                   err?.data?.message ||
                   err?.data?.detail ||
                   (typeof err?.data === "string" ? err.data : null) ||
