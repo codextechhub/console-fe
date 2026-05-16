@@ -70,6 +70,9 @@ export const routesPath = {
       TEMPLATES: {
         INDEX: "/data-imports/templates",
       },
+      TEMPLATE_COLUMNS: {
+        INDEX: "/data-imports/template-columns",
+      },
     },
   },
 };
