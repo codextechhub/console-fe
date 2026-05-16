@@ -278,7 +278,7 @@ export default function PermissionResources() {
 
   const params = useMemo(() => ({
     ...query,
-    search: debouncedSearch,
+    ...(debouncedSearch && { search: debouncedSearch }),
     ...(moduleFilter !== "all" && { module: moduleFilter }),
     ...(statusFilter !== "all" && { is_active: statusFilter }),
   }), [query, debouncedSearch, moduleFilter, statusFilter]);

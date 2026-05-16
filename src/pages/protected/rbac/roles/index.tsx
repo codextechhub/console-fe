@@ -31,7 +31,7 @@ export default function RolesList() {
   const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
   const params = useMemo(
-    () => ({ ...query, search: debouncedSearch }),
+    () => ({ ...query, ...(debouncedSearch && { search: debouncedSearch }) }),
     [query, debouncedSearch],
   );
 
@@ -43,6 +43,7 @@ export default function RolesList() {
 
   const roles = data?.data ?? [];
   const totalRoles = data?.pagination?.totalItems ?? 0;
+
   const activeCount = roles.filter((r) => r.status === "ACTIVE").length;
   const systemCount = roles.filter((r) => r.is_system_role).length;
   const lockedCount = roles.filter((r) => r.is_locked).length;

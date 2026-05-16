@@ -36,7 +36,10 @@ export default function PermissionsList() {
   const [query, setQuery] = useState({ page: 1 });
   const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
-  const params = useMemo(() => ({ ...query, search: debouncedSearch }), [query, debouncedSearch]);
+  const params = useMemo(
+    () => ({ ...query, ...(debouncedSearch && { search: debouncedSearch }) }),
+    [query, debouncedSearch],
+  );
 
   const { data, isLoading, isError, refetch, isFetching } = useGetPermissionsQuery(params, {
     refetchOnMountOrArgChange: true,
@@ -46,6 +49,7 @@ export default function PermissionsList() {
 
   const perms = data?.data ?? [];
   const totalPerms = data?.pagination?.totalItems ?? 0;
+
   const activeCount = perms.filter((p) => p.is_active).length;
   const restrictedCount = perms.filter((p) => p.is_restricted).length;
   const criticalCount = perms.filter((p) => p.sensitivity_level === "CRITICAL").length;

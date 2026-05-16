@@ -28,7 +28,10 @@ export default function PermissionModulesList() {
   const [query, setQuery] = useState({ page: 1 });
   const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
-  const params = useMemo(() => ({ ...query, search: debouncedSearch }), [query, debouncedSearch]);
+  const params = useMemo(
+    () => ({ ...query, ...(debouncedSearch && { search: debouncedSearch }) }),
+    [query, debouncedSearch],
+  );
 
   const { data, isLoading, isError, refetch, isFetching } = useGetPermissionModulesQuery(params, {
     refetchOnMountOrArgChange: true,
@@ -38,6 +41,7 @@ export default function PermissionModulesList() {
 
   const modules = data?.data ?? [];
   const totalModules = data?.pagination?.totalItems ?? 0;
+
   const activeCount = modules.filter((m) => m.is_active).length;
   const inactiveCount = modules.filter((m) => !m.is_active).length;
 
