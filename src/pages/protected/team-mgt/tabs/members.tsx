@@ -4,6 +4,9 @@ import { Plus, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
+import PermissionGate from "@/components/custom/permission-gate";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 import { routesPath } from "@/routes/routesPath";
 import { Link, useNavigate } from "react-router";
 import {
@@ -66,6 +69,7 @@ export default function MembersTab() {
   const [value, setValue] = useState("");
   const debouncedValue = useDebounce(value, 1000);
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [filterOpen, setFilterOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState(INITIAL_FILTERS);
   const [draftFilters, setDraftFilters] = useState(INITIAL_FILTERS);
@@ -126,11 +130,13 @@ export default function MembersTab() {
     <>
       <div className="flex items-center justify-between">
         <p className="font-semibold font-mont text-gray-01">User Information</p>
-        <Link to={routesPath.PROTECTED.TEAM_MGT.CREATE}>
-          <Button size="lg">
-            <Plus /> Add New User
-          </Button>
-        </Link>
+        <PermissionGate permission={P.INVITE_TEAM_MEMBER}>
+          <Link to={routesPath.PROTECTED.TEAM_MGT.CREATE}>
+            <Button size="lg">
+              <Plus /> Add New User
+            </Button>
+          </Link>
+        </PermissionGate>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-8 gap-3">
@@ -204,6 +210,7 @@ export default function MembersTab() {
             const statusAction = () => {
               if (row._status === "ACTIVE") {
                 if (String(currentUser?.id) === String(row._slug)) return null;
+                if (!hasPermission(P.SUSPEND_TEAM_MEMBER)) return null;
                 return {
                   label: "Suspend",
                   className:
@@ -216,6 +223,7 @@ export default function MembersTab() {
                 };
               }
               if (row._status === "SUSPENDED") {
+                if (!hasPermission(P.REACTIVATE_TEAM_MEMBER)) return null;
                 return {
                   label: "Reactivate",
                   className:
@@ -228,6 +236,7 @@ export default function MembersTab() {
                 };
               }
               if (row._status === "LOCKED") {
+                if (!hasPermission(P.REACTIVATE_TEAM_MEMBER)) return null;
                 return {
                   label: "Unlock",
                   className:
@@ -250,12 +259,12 @@ export default function MembersTab() {
                 onActionClick: () =>
                   navigate(routesPath.PROTECTED.TEAM_MGT.VIEW(row._slug)),
               },
-              {
+              ...(hasPermission(P.MODIFY_TEAM_MEMBER) ? [{
                 label: "Edit",
                 className: "",
                 onActionClick: () =>
                   navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(row._slug)),
-              },
+              }] : []),
               ...(action ? [action] : []),
             ];
           }}

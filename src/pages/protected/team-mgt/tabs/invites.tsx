@@ -5,6 +5,8 @@ import { Plus, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
+import PermissionGate from "@/components/custom/permission-gate";
+import { P } from "@/permissions";
 import { Link } from "react-router";
 import { routesPath } from "@/routes/routesPath";
 import {
@@ -111,11 +113,13 @@ export default function InvitesTab() {
     <>
       <div className="flex items-center justify-between">
         <p className="font-semibold font-mont text-gray-01"></p>
-        <Link to={routesPath.PROTECTED.TEAM_MGT.CREATE}>
-          <Button size="lg">
-            <Plus /> Add New User
-          </Button>
-        </Link>
+        <PermissionGate permission={P.INVITE_TEAM_MEMBER}>
+          <Link to={routesPath.PROTECTED.TEAM_MGT.CREATE}>
+            <Button size="lg">
+              <Plus /> Add New User
+            </Button>
+          </Link>
+        </PermissionGate>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-8 gap-3">

@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
+import PermissionGate from "@/components/custom/permission-gate";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 import { svgIcons } from "@/assets/svg";
 import { routesPath } from "@/routes/routesPath";
 import { useGetPermissionsQuery, useDeletePermissionMutation } from "@/redux/services/dashboard/rbacApi";
@@ -38,6 +41,7 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 
 export default function PermissionsList() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
@@ -87,9 +91,11 @@ export default function PermissionsList() {
             <p className="font-semibold font-mont text-gray-01">Permission Registry</p>
             <p className="text-xs text-gray-01 mt-0.5">All granular permissions available on the platform.</p>
           </div>
-          <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.CREATE)}>
-            <Plus /> Add Permission
-          </Button>
+          <PermissionGate permission={P.CREATE_PERMISSION}>
+            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.CREATE)}>
+              <Plus /> Add Permission
+            </Button>
+          </PermissionGate>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -138,12 +144,12 @@ export default function PermissionsList() {
             loading={isLoading}
             dropDown
             dropDownList={(row: { _key: string }) => [
-              {
+              ...(hasPermission(P.MODIFY_PERMISSION) ? [{
                 label: "Edit",
                 className: "",
                 onActionClick: () => navigate(routesPath.PROTECTED.PERMISSIONS.EDIT(row._key)),
-              },
-              {
+              }] : []),
+              ...(hasPermission(P.DELETE_PERMISSION) ? [{
                 label: "Delete",
                 className: "text-destructive focus:text-destructive focus:bg-destructive/10",
                 onActionClick: () =>
@@ -151,7 +157,7 @@ export default function PermissionsList() {
                     .unwrap()
                     .then(() => toast.success("Permission deleted."))
                     .catch(() => {}),
-              },
+              }] : []),
             ]}
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}

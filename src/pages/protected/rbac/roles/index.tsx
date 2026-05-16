@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
+import PermissionGate from "@/components/custom/permission-gate";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 import { svgIcons } from "@/assets/svg";
 import { routesPath } from "@/routes/routesPath";
 import { useGetPlatformRolesQuery, useDeletePlatformRoleMutation } from "@/redux/services/dashboard/rbacApi";
@@ -32,6 +35,7 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 
 export default function RolesList() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
@@ -93,9 +97,11 @@ export default function RolesList() {
             <p className="font-semibold font-mont text-gray-01">Roles Management</p>
             <p className="text-xs text-gray-01 mt-0.5">Manage platform roles and their permission assignments.</p>
           </div>
-          <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.ROLES.CREATE)}>
-            <Plus /> Add New Role
-          </Button>
+          <PermissionGate permission={P.DEFINE_ROLE}>
+            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.ROLES.CREATE)}>
+              <Plus /> Add New Role
+            </Button>
+          </PermissionGate>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -144,14 +150,13 @@ export default function RolesList() {
             loading={isLoading}
             dropDown
             dropDownList={(row: { _id: string; _system: boolean; _locked: boolean }) => [
-              {
+              ...(hasPermission(P.MODIFY_ROLE) ? [{
                 label: "Edit",
                 className: "",
                 onActionClick: () => navigate(routesPath.PROTECTED.ROLES.EDIT(row._id)),
-              },
-              ...(row._system || row._locked
-                ? []
-                : [
+              }] : []),
+              ...(hasPermission(P.REVOKE_ROLE) && !row._system && !row._locked
+                ? [
                     {
                       label: "Delete",
                       className: "text-destructive focus:text-destructive focus:bg-destructive/10",
@@ -161,7 +166,8 @@ export default function RolesList() {
                           .then(() => toast.success("Role deleted."))
                           .catch(() => {}),
                     },
-                  ]),
+                  ]
+                : []),
             ]}
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}

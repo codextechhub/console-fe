@@ -126,7 +126,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: PermissionsIcon,
       isActive: false,
       childActive: location.startsWith(routesPath.PROTECTED.PERMISSIONS.INDEX),
-      permission: P.VIEW_ROLES,
+      permission: P.VIEW_PERMISSIONS,
       permissionMode: "any" as const,
       items: [
         {
@@ -147,7 +147,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: DataImportsIcon,
       isActive: false,
       childActive: location.startsWith("/data-imports"),
-      permission: P.IMPORT_RECORDS,
+      permission: null,
       permissionMode: "any" as const,
       items: [
         {
