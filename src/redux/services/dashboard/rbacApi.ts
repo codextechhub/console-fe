@@ -3,6 +3,7 @@ import { baseApi } from "../baseApi";
 import type {
   PaginatedResponse,
   Permission,
+  PermissionDetail,
   PermissionGroupDetail,
   PermissionGroupList,
   PermissionModule,
@@ -71,7 +72,7 @@ export const rbacApi = baseApi.injectEndpoints({
       providesTags: ["Permissions"],
     }),
 
-    getPermissionDetail: builder.query<{ data: Permission }, string>({
+    getPermissionDetail: builder.query<{ data: PermissionDetail }, string>({
       query: (key) => ({ url: `/rbac/vision/permissions/${encodeURIComponent(key)}/`, method: "GET" }),
       providesTags: ["Permissions"],
     }),

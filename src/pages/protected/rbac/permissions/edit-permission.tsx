@@ -3,6 +3,7 @@ import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import { routesPath } from "@/routes/routesPath";
 import {
@@ -10,7 +11,7 @@ import {
   useUpdatePermissionMutation,
 } from "@/redux/services/dashboard/rbacApi";
 import { toast } from "sonner";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2, AlertTriangle, Lock, Link2 } from "lucide-react";
 
 const schema = Yup.object({
   description: Yup.string().trim(),
@@ -18,6 +19,12 @@ const schema = Yup.object({
   is_restricted: Yup.boolean(),
   is_active: Yup.boolean(),
 });
+
+const SENSITIVITY_BADGE: Record<string, "active" | "suspended" | "locked"> = {
+  NORMAL: "active",
+  SENSITIVE: "locked",
+  CRITICAL: "suspended",
+};
 
 export default function EditPermission() {
   const { key } = useParams<{ key: string }>();
@@ -48,22 +55,28 @@ export default function EditPermission() {
     );
   }
 
+  const hasDependents = (perm.dependents?.length ?? 0) > 0;
+  const hasGroups = (perm.groups?.length ?? 0) > 0;
+  const hasDependencies = (perm.dependencies?.length ?? 0) > 0;
+
   return (
     <DashboardLayout title="Edit Permission">
-      <main className="px-4.5 py-6 text-black-01 max-w-2xl">
+      <main className="px-4.5 py-6 text-black-01 max-w-3xl space-y-5">
         <button
           onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}
-          className="flex items-center gap-1 text-sm text-gray-01 hover:text-black-01 mb-6 transition-colors"
+          className="flex items-center gap-1 text-sm text-gray-01 hover:text-black-01 transition-colors"
         >
           <ChevronLeft size={16} /> Back to Permissions
         </button>
 
-        <div className="mb-6">
+        <div>
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Permission</h1>
           <p className="font-mono text-sm text-gray-01 mt-1">{perm.key}</p>
         </div>
 
-        <div className="bg-gray-50 rounded-md px-4 py-3 border border-gray-100 mb-5">
+        {/* Immutable identity block */}
+        <div className="bg-gray-50 rounded-md px-4 py-3 border border-gray-100">
+          <p className="text-xs text-gray-01 mb-3 font-mont font-medium">Permission Identity — read-only</p>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <p className="text-xs text-gray-01">Module</p>
@@ -80,6 +93,63 @@ export default function EditPermission() {
           </div>
         </div>
 
+        {/* Dependency lock notice */}
+        {hasDependents && (
+          <div className="flex items-start gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
+            <Lock size={16} className="text-amber-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-amber-800">This permission cannot be edited</p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                {perm.dependents!.length} other permission{perm.dependents!.length > 1 ? "s depend" : " depends"} on
+                it. Editing could break role assignments across the platform.
+              </p>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {perm.dependents!.map((d) => (
+                  <span key={d.key} className="font-mono text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
+                    {d.key}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Connections */}
+        {(hasGroups || hasDependencies) && (
+          <div className="bg-white rounded-md p-5 space-y-4">
+            <p className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3 flex items-center gap-2">
+              <Link2 size={15} /> Connections
+            </p>
+
+            {hasGroups && (
+              <div>
+                <p className="text-xs text-gray-01 font-mont mb-2">Permission Groups</p>
+                <div className="flex flex-wrap gap-2">
+                  {perm.groups!.map((g) => (
+                    <Badge key={g.id} variant={g.is_system ? "active" : "inactive"} className="text-xs">
+                      {g.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {hasDependencies && (
+              <div>
+                <p className="text-xs text-gray-01 font-mont mb-2">Depends On</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {perm.dependencies!.map((d) => (
+                    <span key={d.key} className="font-mono text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                      {d.key}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Edit form */}
         <Formik
           initialValues={{
             description: perm.description ?? "",
@@ -103,16 +173,35 @@ export default function EditPermission() {
                 toast.success("Permission updated.");
                 navigate(routesPath.PROTECTED.PERMISSIONS.INDEX);
               })
-              .catch(() => {})
+              .catch((err) => {
+                const msg =
+                  err?.data?.message ||
+                  err?.data?.detail ||
+                  (typeof err?.data === "string" ? err.data : null) ||
+                  "Failed to update permission.";
+                toast.error(msg);
+              })
               .finally(() => setSubmitting(false));
           }}
         >
           {({ values, handleChange, setFieldValue, isSubmitting }) => (
             <Form className="space-y-5">
-              <div className="bg-white rounded-md p-6 space-y-5">
-                <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
-                  Details
+              <div className={`bg-white rounded-md p-6 space-y-5 ${hasDependents ? "opacity-50 pointer-events-none select-none" : ""}`}>
+                <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3 flex items-center justify-between">
+                  Editable Details
+                  {hasDependents && (
+                    <span className="flex items-center gap-1 text-xs text-amber-600 font-normal">
+                      <AlertTriangle size={12} /> Locked
+                    </span>
+                  )}
                 </h2>
+
+                <div>
+                  <p className="text-xs text-gray-01 mb-1">Current sensitivity</p>
+                  <Badge variant={(SENSITIVITY_BADGE[perm.sensitivity_level] ?? "inactive") as any} className="capitalize">
+                    {perm.sensitivity_level?.toLowerCase()}
+                  </Badge>
+                </div>
 
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="description" className="text-xs font-medium text-black-01 font-mont">
@@ -163,14 +252,16 @@ export default function EditPermission() {
                 </div>
               </div>
 
-              <div className="flex gap-3 justify-end pt-2">
-                <Button type="button" variant="white" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading || isSubmitting}>
-                  {isLoading || isSubmitting ? "Saving..." : "Save Changes"}
-                </Button>
-              </div>
+              {!hasDependents && (
+                <div className="flex gap-3 justify-end pt-2">
+                  <Button type="button" variant="white" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isLoading || isSubmitting}>
+                    {isLoading || isSubmitting ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              )}
             </Form>
           )}
         </Formik>

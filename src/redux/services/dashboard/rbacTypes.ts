@@ -46,6 +46,12 @@ export interface Permission {
   updated_at: string;
 }
 
+export interface PermissionDetail extends Permission {
+  groups?: Array<{ id: string; name: string; is_system?: boolean }>;
+  dependencies?: Array<{ key: string; description?: string }>;
+  dependents?: Array<{ key: string; description?: string }>;
+}
+
 export interface PermissionModule {
   name: string;
   description?: string;
