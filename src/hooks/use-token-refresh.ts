@@ -50,11 +50,15 @@ export function useTokenRefresh() {
 
         const data = await response.json();
         const newAccess = data?.data?.access;
+        const newRefresh = data?.data?.refresh;
 
         if (!newAccess) throw new Error("No access token in response");
 
         Cookies.set("token", newAccess);
         dispatch(setToken(newAccess));
+        if (newRefresh) {
+          Cookies.set("refresh_token", newRefresh);
+        }
       } catch {
         dispatch(resetAuth());
         Cookies.remove("token");
