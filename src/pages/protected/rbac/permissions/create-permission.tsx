@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
-import { CustomInput } from "@/components/custom/custom-input";
 import { routesPath } from "@/routes/routesPath";
-import { useCreatePermissionMutation, useGetPermissionModulesQuery } from "@/redux/services/dashboard/rbacApi";
+import {
+  useCreatePermissionMutation,
+  useGetPermissionModulesQuery,
+  useGetPermissionResourcesQuery,
+} from "@/redux/services/dashboard/rbacApi";
 import { toast } from "sonner";
 
 const schema = Yup.object({
@@ -24,8 +28,16 @@ const ACTIONS = ["view", "create", "update", "delete", "approve", "export", "imp
 export default function CreatePermission() {
   const navigate = useNavigate();
   const [createPermission, { isLoading }] = useCreatePermissionMutation();
+  const [selectedModule, setSelectedModule] = useState("");
+
   const { data: modulesData } = useGetPermissionModulesQuery({ page_size: 100 });
   const modules = (modulesData?.data ?? []).filter((m) => m.is_active);
+
+  const { data: resourcesData, isFetching: resourcesFetching } = useGetPermissionResourcesQuery(
+    { module: selectedModule, page_size: 200 },
+    { skip: !selectedModule },
+  );
+  const resources = (resourcesData?.data ?? []).filter((r) => r.is_active);
 
   return (
     <DashboardLayout title="Create Permission" hasBack onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}>
@@ -70,6 +82,14 @@ export default function CreatePermission() {
         >
           {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting }) => {
             const keyPreview = [values.module, values.resource, values.action].filter(Boolean).join(".");
+
+            const handleModuleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+              const mod = e.target.value;
+              setFieldValue("module", mod);
+              setFieldValue("resource", "");
+              setSelectedModule(mod);
+            };
+
             return (
               <Form className="space-y-5">
                 <div className="bg-white rounded-md p-6 space-y-5">
@@ -90,20 +110,31 @@ export default function CreatePermission() {
                     label="Module"
                     placeholder="Select module..."
                     value={values.module}
-                    onChange={handleChange}
+                    onChange={handleModuleChange}
                     onBlur={handleBlur}
                     options={modules.map((m) => ({ value: m.name, label: m.name }))}
                     error={touched.module ? errors.module : ""}
                   />
 
-                  <CustomInput
+                  <CustomNativeSelect
                     id="resource"
                     name="resource"
                     label="Resource"
-                    placeholder="e.g. invoice, profile, grades"
+                    placeholder={
+                      !values.module
+                        ? "Select a module first"
+                        : resourcesFetching
+                          ? "Loading resources..."
+                          : resources.length === 0
+                            ? "No resources for this module"
+                            : "Select resource..."
+                    }
                     value={values.resource}
                     onChange={handleChange}
                     onBlur={handleBlur}
+                    options={resources.map((r) => ({ value: r.name, label: r.name }))}
+                    disabled={!values.module || resourcesFetching}
+                    loading={resourcesFetching}
                     error={touched.resource ? errors.resource : ""}
                   />
 
