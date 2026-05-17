@@ -104,7 +104,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: routesPath.PROTECTED.ROLES.INDEX,
       icon: RolesIcon,
       isActive: false,
-      childActive: location.startsWith(routesPath.PROTECTED.ROLES.INDEX),
+      childActive: location.startsWith(routesPath.PROTECTED.ROLES.INDEX) && !location.startsWith(routesPath.PROTECTED.ROLES.GROUPS.INDEX),
       permission: P.VIEW_ROLES,
       permissionMode: "any" as const,
       items: [
