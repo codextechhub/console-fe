@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import { ChevronDown, Search } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routesPath";
 import {
   useCreatePermissionMutation,
+  useGetPermissionActionsQuery,
   useGetPermissionModulesQuery,
   useGetPermissionResourcesQuery,
 } from "@/redux/services/dashboard/rbacApi";
@@ -23,7 +26,104 @@ const schema = Yup.object({
   is_active: Yup.boolean(),
 });
 
-const ACTIONS = ["view", "create", "update", "delete", "approve", "export", "import", "assign", "revoke", "refund", "send"];
+function ActionPicker({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const selected = options.find((o) => o.value === value);
+
+  const filtered = useMemo(
+    () => (search.trim() ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase())) : options),
+    [options, search],
+  );
+
+  useEffect(() => {
+    if (open) setTimeout(() => inputRef.current?.focus(), 0);
+  }, [open]);
+
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
+
+  return (
+    <div className="space-y-1.5" ref={containerRef}>
+      <label htmlFor="action" className="text-xs font-medium text-black-01 font-mont">
+        Action <span className="text-destructive">*</span>
+      </label>
+      <div className="relative">
+        <button
+          id="action"
+          type="button"
+          onClick={() => {
+            if (open) setSearch("");
+            setOpen((v) => !v);
+          }}
+          className={cn(
+            "w-full h-10 px-3 rounded-md border text-sm font-mono text-left bg-white outline-none flex items-center justify-between gap-2 transition-colors",
+            open ? "border-primary ring-2 ring-primary/20" : "border-gray-200 hover:border-gray-300",
+          )}
+        >
+          <span className={cn("truncate", selected ? "text-black-01" : "text-gray-400")}>
+            {selected ? selected.label : "Search and select action..."}
+          </span>
+          <ChevronDown className={cn("size-4 text-gray-01 shrink-0 transition-transform duration-150", open && "rotate-180")} />
+        </button>
+
+        {open && (
+          <div className="absolute z-50 mt-1 left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden">
+            <div className="p-2 border-b border-gray-100 flex items-center gap-2">
+              <Search className="size-3.5 text-gray-01 shrink-0" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Type to search..."
+                className="flex-1 text-xs font-mono text-black-01 outline-none placeholder:text-gray-400"
+              />
+            </div>
+            <div className="max-h-52 overflow-y-auto">
+              {filtered.length === 0 ? (
+                <p className="px-3 py-4 text-xs text-gray-01 text-center">No actions match "{search}".</p>
+              ) : (
+                filtered.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => {
+                      onChange(o.value);
+                      setSearch("");
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "w-full px-3 py-2 text-left text-xs font-mono transition-colors",
+                      o.value === value ? "bg-pry-01/40 text-primary font-semibold" : "hover:bg-gray-50 text-black-01",
+                    )}
+                  >
+                    {o.label}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function CreatePermission() {
   const navigate = useNavigate();
@@ -38,6 +138,10 @@ export default function CreatePermission() {
     { skip: !selectedModule },
   );
   const resources = (resourcesData?.data ?? []).filter((r) => r.is_active);
+  const { data: actionsData, isFetching: actionsFetching } = useGetPermissionActionsQuery({ page_size: 500 });
+  const actionOptions = (actionsData?.data ?? [])
+    .filter((a) => a.is_active)
+    .map((a) => ({ value: a.name, label: a.name }));
 
   return (
     <DashboardLayout title="Create Permission" hasBack onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}>
@@ -151,17 +255,17 @@ export default function CreatePermission() {
                       error={touched.resource ? errors.resource : ""}
                     />
 
-                    <CustomNativeSelect
-                      id="action"
-                      name="action"
-                      label="Action"
-                      placeholder="Select action..."
-                      value={values.action}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      options={ACTIONS.map((a) => ({ value: a, label: a }))}
-                      error={touched.action ? errors.action : ""}
-                    />
+                    <div>
+                      <ActionPicker
+                        options={actionOptions}
+                        value={values.action}
+                        onChange={(v) => setFieldValue("action", v)}
+                      />
+                      {actionsFetching && <p className="mt-1 text-xs text-gray-01">Loading actions...</p>}
+                      {!actionsFetching && touched.action && errors.action && (
+                        <p className="mt-1 text-xs text-destructive">{errors.action}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
