@@ -222,6 +222,12 @@ export const rbacApi = baseApi.injectEndpoints({
       query: ({ id, ...body }) => ({ url: `/rbac/platform/change-requests/${id}/decide/`, method: "POST", body }),
       invalidatesTags: ["ChangeRequests"],
     }),
+
+    // ── Transfer Super Admin ───────────────────────────────────────────────────
+    transferSuperAdmin: builder.mutation<{ message: string }, { new_super_admin_id: string }>({
+      query: (body) => ({ url: `/rbac/platform/transfer-super-admin/`, method: "POST", body }),
+      invalidatesTags: ["UserAssignments", "PlatformRoles"],
+    }),
   }),
 });
 
@@ -265,4 +271,5 @@ export const {
   useGetChangeRequestsQuery,
   useCreateChangeRequestMutation,
   useDecideChangeRequestMutation,
+  useTransferSuperAdminMutation,
 } = rbacApi;

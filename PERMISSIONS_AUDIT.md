@@ -19,6 +19,7 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Roles | Platform Roles | `P.VIEW_ROLES` | |
 | Roles | User Assignments | `P.VIEW_ROLES` | inherits parent |
 | Roles | Change Requests | `P.VIEW_ROLES` | inherits parent |
+| Roles | Transfer Super Admin | `P.TRANSFER_SUPER_ADMIN` | only super admin sees it; backend further restricts execution to the active super admin |
 | Permissions | All Permissions | `P.VIEW_PERMISSIONS` | |
 | Permissions | Modules | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Resources | `P.VIEW_PERMISSIONS` | inherits parent |

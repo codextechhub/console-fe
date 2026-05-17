@@ -4,6 +4,7 @@ import CreateRole from "@/pages/protected/rbac/roles/create-role";
 import EditRole from "@/pages/protected/rbac/roles/edit-role";
 import PlatformUserAssignments from "@/pages/protected/rbac/roles/platform-user-assignments";
 import ChangeRequests from "@/pages/protected/rbac/roles/change-requests";
+import TransferSuperAdmin from "@/pages/protected/rbac/roles/transfer-super-admin";
 import PermissionGroupsList from "@/pages/protected/rbac/roles/permission-groups";
 import CreatePermissionGroup from "@/pages/protected/rbac/roles/permission-groups/create-group";
 import EditPermissionGroup from "@/pages/protected/rbac/roles/permission-groups/edit-group";
@@ -28,6 +29,7 @@ export const rbacRoutes: RouteObject[] = [
   { path: "/roles/:id/edit", element: <EditRole /> },
   { path: "/roles/user-assignments", element: <PlatformUserAssignments /> },
   { path: "/roles/change-requests", element: <ChangeRequests /> },
+  { path: "/roles/transfer-super-admin", element: <TransferSuperAdmin /> },
   { path: "/roles/permission-groups", element: <PermissionGroupsList /> },
   { path: "/roles/permission-groups/create", element: <CreatePermissionGroup /> },
   { path: "/roles/permission-groups/:id/edit", element: <EditPermissionGroup /> },

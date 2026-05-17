@@ -111,7 +111,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Platform Roles",
           url: routesPath.PROTECTED.ROLES.INDEX,
-          isActive: location === routesPath.PROTECTED.ROLES.INDEX || (location.startsWith("/roles/") && !location.startsWith("/roles/permission-groups") && !location.startsWith("/roles/user-assignments") && !location.startsWith("/roles/change-requests")),
+          isActive:
+            location === routesPath.PROTECTED.ROLES.INDEX ||
+            (location.startsWith("/roles/") &&
+              !location.startsWith("/roles/permission-groups") &&
+              !location.startsWith("/roles/user-assignments") &&
+              !location.startsWith("/roles/change-requests") &&
+              !location.startsWith("/roles/transfer-super-admin")),
         },
         {
           title: "Platform User Assignments",
@@ -124,6 +130,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           isActive: false,
           disabled: true,
         },
+        // Transfer Super Admin — only shown to users who hold the
+        // platform.roles.transfer permission. The backend further restricts
+        // execution to the active super admin.
+        ...(hasPermission(P.TRANSFER_SUPER_ADMIN)
+          ? [{
+              title: "Transfer Super Admin",
+              url: routesPath.PROTECTED.ROLES.TRANSFER_SUPER_ADMIN,
+              isActive: location.startsWith(routesPath.PROTECTED.ROLES.TRANSFER_SUPER_ADMIN),
+            }]
+          : []),
       ],
     },
     {
