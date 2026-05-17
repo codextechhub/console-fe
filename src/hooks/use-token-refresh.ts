@@ -64,6 +64,7 @@ export function useTokenRefresh() {
         Cookies.remove("token");
         Cookies.remove("refresh_token");
         clearStorageItem();
+        sessionStorage.setItem("_auth_banner", "Your session has expired. Please log in to continue.");
         window.location.href = routesPath.AUTH.LOGIN;
       }
     };
