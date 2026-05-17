@@ -59,8 +59,8 @@ export function useTokenRefresh() {
         return;
       }
 
-      // Only log out when the server explicitly rejects the refresh token.
-      if (response.status === 401 || response.status === 400) {
+      // Only log out when the server explicitly says the refresh token is invalid.
+      if (response.status === 401) {
         isRefreshing = false;
         dispatch(resetAuth());
         Cookies.remove("token");
