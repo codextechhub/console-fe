@@ -1,5 +1,7 @@
 ## Undone (Ask questions for clarity where needed)
 
+1. When a page shows an error that says "Your session could not be restored. Log in again." explain to be what happened there.
+
 ## Done
 
 # 1. Remove Admin Role field from Add Branch (branch admin section) — role is prebuilt internally, field removed from UI, interface, validation schema, and API payload.
