@@ -37,6 +37,17 @@ type RefreshOutcome =
   | { ok: false; reason: "token_invalid" | "network_error" | "server_error" };
 
 let refreshInFlight: Promise<RefreshOutcome> | null = null;
+let sessionRecoveryInProgress = false;
+
+const forceLogoutAndRedirect = (api: Parameters<BaseQueryFn>[1]) => {
+  if (sessionRecoveryInProgress) return;
+  sessionRecoveryInProgress = true;
+  api.dispatch(resetAuth());
+  Cookies.remove("token");
+  Cookies.remove("refresh_token");
+  clearStorageItem();
+  window.location.href = routesPath.AUTH.LOGIN;
+};
 
 const refreshTokenRequest = async (refreshToken?: string): Promise<RefreshOutcome> => {
   if (!refreshToken) return { ok: false, reason: "token_invalid" };
@@ -128,11 +139,7 @@ export const baseQueryInterceptor: BaseQueryFn<
 
         const retryResult = await baseQuery(args, api, extraOptions);
         if (retryResult?.error?.status === 401) {
-          api.dispatch(resetAuth());
-          Cookies.remove("token");
-          Cookies.remove("refresh_token");
-          clearStorageItem();
-          window.location.href = routesPath.AUTH.LOGIN;
+          forceLogoutAndRedirect(api);
           return retryResult;
         }
         return retryResult;
@@ -142,7 +149,8 @@ export const baseQueryInterceptor: BaseQueryFn<
         // original result silently; the component will surface the error.
         return result;
       } else if (refreshed.reason === "server_error") {
-        toast.error("A server error occurred. Please try again later.");
+        toast.error("Your session could not be restored. Please log in again.");
+        forceLogoutAndRedirect(api);
       } else {
         // token_invalid — logout unless on an auth page
         const authUrls = ["login", "reset-password", "password/reset", "forgot-password", "activate", "special_login"];
@@ -161,11 +169,7 @@ export const baseQueryInterceptor: BaseQueryFn<
             "Invalid credentials. Please try again.";
           toast.error(errorMsg);
         } else {
-          api.dispatch(resetAuth());
-          Cookies.remove("token");
-          Cookies.remove("refresh_token");
-          clearStorageItem();
-          window.location.href = routesPath.AUTH.LOGIN;
+          forceLogoutAndRedirect(api);
         }
       }
     } else if (res?.status === 403) {
