@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Plus, RefreshCw, ArrowRight, Link } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { Plus, RefreshCw, ArrowRight, Link, ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
@@ -31,6 +31,138 @@ import {
 import type { PermissionDependency } from "@/redux/services/dashboard/rbacTypes";
 
 const TABLE_HEADERS = ["Permission", "", "Depends On", "Action"];
+
+// ── Searchable permission picker ───────────────────────────────────────────────
+function PermissionPicker({
+  label,
+  description,
+  options,
+  value,
+  onChange,
+  placeholder = "Search permissions...",
+}: {
+  label: string;
+  description: string;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filtered = useMemo(
+    () =>
+      search.trim()
+        ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
+        : options,
+    [options, search],
+  );
+
+  const selected = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 0);
+    } else {
+      setSearch("");
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const handle = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
+
+  return (
+    <div className="space-y-1.5" ref={containerRef}>
+      <label className="text-xs font-medium text-black-01">
+        {label} <span className="text-destructive">*</span>
+      </label>
+      <p className="text-xs text-gray-01">{description}</p>
+
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className={cn(
+            "w-full h-10 px-3 rounded-md border text-sm font-mono text-left bg-white outline-none flex items-center justify-between gap-2 transition-colors",
+            open
+              ? "border-primary ring-2 ring-primary/20"
+              : "border-gray-200 hover:border-gray-300",
+          )}
+        >
+          <span className={cn("truncate", selected ? "text-black-01" : "text-gray-400")}>
+            {selected ? selected.label : placeholder}
+          </span>
+          <ChevronDown
+            className={cn(
+              "size-4 text-gray-01 shrink-0 transition-transform duration-150",
+              open && "rotate-180",
+            )}
+          />
+        </button>
+
+        {open && (
+          <div className="absolute z-50 mt-1 left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden">
+            <div className="p-2 border-b border-gray-100 flex items-center gap-2">
+              <Search className="size-3.5 text-gray-01 shrink-0" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Type to search..."
+                className="flex-1 text-xs font-mono text-black-01 outline-none placeholder:text-gray-400"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="text-gray-01 hover:text-black-01 text-xs shrink-0"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            <div className="max-h-52 overflow-y-auto">
+              {filtered.length === 0 ? (
+                <p className="px-3 py-4 text-xs text-gray-01 text-center">
+                  No permissions match "{search}".
+                </p>
+              ) : (
+                filtered.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => {
+                      onChange(o.value);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "w-full px-3 py-2 text-left text-xs font-mono transition-colors",
+                      o.value === value
+                        ? "bg-pry-01/40 text-primary font-semibold"
+                        : "hover:bg-gray-50 text-black-01",
+                    )}
+                  >
+                    {o.label}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ── Add Dependency Sheet ───────────────────────────────────────────────────────
 function AddDependencySheet({
@@ -84,44 +216,28 @@ function AddDependencySheet({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-black-01">
-              Permission <span className="text-destructive">*</span>
-            </label>
-            <p className="text-xs text-gray-01">The permission that has a dependency.</p>
-            <select
-              className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              value={permKey}
-              onChange={(e) => { setError(""); setPermKey(e.target.value); }}
-            >
-              <option value="">Select a permission...</option>
-              {permOptions.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
-          </div>
+          <PermissionPicker
+            label="Permission"
+            description="The permission that has a dependency."
+            options={permOptions}
+            value={permKey}
+            onChange={(v) => { setError(""); setPermKey(v); }}
+            placeholder="Search and select a permission..."
+          />
 
           <div className="flex items-center gap-2 text-gray-01 text-xs">
             <ArrowRight className="size-4" />
             <span>requires</span>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-black-01">
-              Depends On <span className="text-destructive">*</span>
-            </label>
-            <p className="text-xs text-gray-01">The permission that must also be granted.</p>
-            <select
-              className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              value={depsOnKey}
-              onChange={(e) => { setError(""); setDepsOnKey(e.target.value); }}
-            >
-              <option value="">Select the required permission...</option>
-              {permOptions.filter((p) => p.value !== permKey).map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
-          </div>
+          <PermissionPicker
+            label="Depends On"
+            description="The permission that must also be granted."
+            options={permOptions.filter((p) => p.value !== permKey)}
+            value={depsOnKey}
+            onChange={(v) => { setError(""); setDepsOnKey(v); }}
+            placeholder="Search and select the required permission..."
+          />
 
           {/* Live preview */}
           <div className="rounded-md border border-white-02 bg-white p-5 space-y-3">
