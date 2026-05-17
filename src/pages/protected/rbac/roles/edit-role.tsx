@@ -11,6 +11,7 @@ import {
   useGetPlatformRoleDetailQuery,
   useUpdatePlatformRoleMutation,
   useGetPermissionGroupsQuery,
+  useGetPermissionsQuery,
 } from "@/redux/services/dashboard/rbacApi";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
@@ -26,12 +27,18 @@ export default function EditRole() {
   const navigate = useNavigate();
   const { data: roleData, isLoading: roleLoading } = useGetPlatformRoleDetailQuery(id ?? "", { skip: !id });
   const { data: groupsData } = useGetPermissionGroupsQuery({ page_size: 100 });
+  const { data: permissionsData } = useGetPermissionsQuery({ page_size: 500 });
   const [updateRole, { isLoading }] = useUpdatePlatformRoleMutation();
   const [groupSearch, setGroupSearch] = useState("");
+  const [permSearch, setPermSearch] = useState("");
 
   const role = roleData?.data;
   const groups = groupsData?.data ?? [];
+  const permissions = (permissionsData?.data ?? []).filter((p) => p.is_active);
   const attachedGroupIds = role?.role_groups?.map((rg) => rg.group.id) ?? [];
+  const attachedPermissionKeys = role?.role_permissions?.filter((rp) => rp.granted).map((rp) => rp.permission_key) ?? [];
+
+  const isNameLocked = !!(role?.is_system_role || role?.is_locked);
 
   if (roleLoading) {
     return (
@@ -58,12 +65,14 @@ export default function EditRole() {
       <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Role</h1>
-          <p className="text-sm text-gray-01 mt-1">Update the details and permission groups for this role.</p>
+          <p className="text-sm text-gray-01 mt-1">Update the details and permission assignments for this role.</p>
         </div>
 
-        {(role.is_system_role || role.is_locked) && (
+        {isNameLocked && (
           <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-            {role.is_system_role ? "This is a system role and cannot be modified." : "This role is locked and cannot be modified."}
+            {role.is_system_role
+              ? "This is a system role — the name cannot be changed. You can still update the description and permissions."
+              : "This role is locked — the name cannot be changed. You can still update the description and permissions."}
           </div>
         )}
 
@@ -73,6 +82,7 @@ export default function EditRole() {
             description: role.description ?? "",
             status: role.status ?? "ACTIVE",
             group_ids: attachedGroupIds,
+            permission_keys: attachedPermissionKeys,
           }}
           validationSchema={schema}
           onSubmit={(values, { setSubmitting }) => {
@@ -83,6 +93,7 @@ export default function EditRole() {
                 description: values.description,
                 status: values.status,
                 group_ids: values.group_ids,
+                permission_keys: values.permission_keys,
               },
             })
               .unwrap()
@@ -99,9 +110,18 @@ export default function EditRole() {
               ? groups.filter((g) => g.name.toLowerCase().includes(groupSearch.toLowerCase()))
               : groups;
 
+            const filteredPerms = permSearch
+              ? permissions.filter(
+                  (p) =>
+                    p.key.toLowerCase().includes(permSearch.toLowerCase()) ||
+                    (p.description || "").toLowerCase().includes(permSearch.toLowerCase()),
+                )
+              : permissions;
+
             return (
               <Form className="space-y-5">
                 <div className="grid grid-cols-1 lg:grid-cols-[5fr_6fr] gap-5 items-start">
+                  {/* Left — Basic Info */}
                   <div className="bg-white rounded-md p-6 space-y-5">
                     <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
                       Basic Information
@@ -111,12 +131,13 @@ export default function EditRole() {
                       id="name"
                       name="name"
                       label="Role Name"
+                      isRequired
                       placeholder="e.g. Platform Finance Admin"
                       value={values.name}
                       onChange={handleChange}
                       onBlur={handleBlur}
                       error={touched.name ? errors.name : ""}
-                      disabled={role.is_system_role || role.is_locked}
+                      disabled={isNameLocked}
                     />
 
                     <div className="flex flex-col gap-1.5">
@@ -130,8 +151,7 @@ export default function EditRole() {
                         value={values.description}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        disabled={role.is_system_role || role.is_locked}
-                        className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none disabled:bg-gray-50 disabled:text-gray-400"
+                        className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
                       />
                     </div>
 
@@ -139,6 +159,7 @@ export default function EditRole() {
                       id="status"
                       name="status"
                       label="Status"
+                      isRequired
                       value={values.status}
                       onChange={handleChange}
                       onBlur={handleBlur}
@@ -147,14 +168,19 @@ export default function EditRole() {
                         { value: "INACTIVE", label: "Inactive" },
                       ]}
                       error={touched.status ? errors.status : ""}
-                      disabled={role.is_system_role || role.is_locked}
                     />
                   </div>
 
+                  {/* Right — Permission Groups */}
                   <div className="bg-white rounded-md p-6 flex flex-col gap-4">
-                    <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
-                      Permission Groups
-                    </h2>
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                      <h2 className="text-sm font-semibold font-mont text-black-01">Permission Groups</h2>
+                      {values.group_ids.length > 0 && (
+                        <span className="text-xs font-medium text-primary bg-pry-01/30 px-2 py-0.5 rounded-full">
+                          {values.group_ids.length} selected
+                        </span>
+                      )}
+                    </div>
 
                     <div className="relative">
                       <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -182,7 +208,6 @@ export default function EditRole() {
                               type="checkbox"
                               className="mt-0.5 accent-primary"
                               checked={values.group_ids.includes(group.id)}
-                              disabled={role.is_system_role || role.is_locked}
                               onChange={(e) => {
                                 const next = e.target.checked
                                   ? [...values.group_ids, group.id]
@@ -204,6 +229,67 @@ export default function EditRole() {
                   </div>
                 </div>
 
+                {/* Individual Permissions — full width */}
+                <div className="bg-white rounded-md p-6 flex flex-col gap-4">
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <div>
+                      <h2 className="text-sm font-semibold font-mont text-black-01">Individual Permissions</h2>
+                      <p className="text-xs text-gray-01 mt-0.5">
+                        Grant specific permissions directly to this role, outside of any group.
+                      </p>
+                    </div>
+                    {values.permission_keys.length > 0 && (
+                      <span className="text-xs font-medium text-primary bg-pry-01/30 px-2 py-0.5 rounded-full shrink-0">
+                        {values.permission_keys.length} selected
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search permissions by key or description..."
+                      value={permSearch}
+                      onChange={(e) => setPermSearch(e.target.value)}
+                      className="w-full h-9 pl-8 pr-3 rounded-md border border-gray-200 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    />
+                  </div>
+
+                  {permissions.length === 0 ? (
+                    <p className="text-sm text-gray-01 italic">No permissions available.</p>
+                  ) : filteredPerms.length === 0 ? (
+                    <p className="text-sm text-gray-01 italic">No permissions match your search.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 overflow-y-auto max-h-[400px] pr-1">
+                      {filteredPerms.map((perm) => (
+                        <label
+                          key={perm.key}
+                          className="flex items-start gap-3 p-3 rounded-md border border-gray-100 hover:border-primary/30 hover:bg-primary/5 cursor-pointer transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 accent-primary shrink-0"
+                            checked={values.permission_keys.includes(perm.key)}
+                            onChange={(e) => {
+                              const next = e.target.checked
+                                ? [...values.permission_keys, perm.key]
+                                : values.permission_keys.filter((k) => k !== perm.key);
+                              setFieldValue("permission_keys", next);
+                            }}
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-mono font-medium text-black-01 truncate">{perm.key}</p>
+                            {perm.description && (
+                              <p className="text-xs text-gray-01 mt-0.5 line-clamp-1">{perm.description}</p>
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-3 justify-end pt-2">
                   <Button
                     type="button"
@@ -212,10 +298,7 @@ export default function EditRole() {
                   >
                     Cancel
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={!dirty || isLoading || isSubmitting || role.is_system_role || role.is_locked}
-                  >
+                  <Button type="submit" disabled={!dirty || isLoading || isSubmitting}>
                     {isLoading || isSubmitting ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
