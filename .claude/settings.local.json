@@ -8,7 +8,8 @@
       "Bash(python manage.py showmigrations vs_schools)",
       "Bash(xargs cat)",
       "Bash(git *)",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(xargs ls -la)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"
