@@ -36,6 +36,8 @@ type RefreshOutcome =
   | { ok: true; access: string }
   | { ok: false; reason: "token_invalid" | "network_error" | "server_error" };
 
+let refreshInFlight: Promise<RefreshOutcome> | null = null;
+
 const refreshTokenRequest = async (refreshToken?: string): Promise<RefreshOutcome> => {
   if (!refreshToken) return { ok: false, reason: "token_invalid" };
   try {
@@ -56,6 +58,15 @@ const refreshTokenRequest = async (refreshToken?: string): Promise<RefreshOutcom
   } catch {
     return { ok: false, reason: "network_error" };
   }
+};
+
+const refreshTokenRequestSingleFlight = (refreshToken?: string): Promise<RefreshOutcome> => {
+  if (!refreshInFlight) {
+    refreshInFlight = refreshTokenRequest(refreshToken).finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
 };
 
 const fetchFreshPermissions = async (accessToken: string): Promise<string[] | null> => {
@@ -105,7 +116,7 @@ export const baseQueryInterceptor: BaseQueryFn<
         Cookies.get("refresh_token") ||
         "";
 
-      const refreshed = await refreshTokenRequest(refreshToken);
+      const refreshed = await refreshTokenRequestSingleFlight(refreshToken);
 
       if (refreshed.ok) {
         Cookies.set("token", refreshed.access);
