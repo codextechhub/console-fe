@@ -298,7 +298,7 @@ export default function PlatformUserAssignments() {
     ...query,
     search: debouncedSearch,
     ...(statusFilter !== "all" && { assignment_status: statusFilter }),
-    ...(roleFilter !== "all" && { role_id: roleFilter }),
+    ...(roleFilter !== "all" && { role: roleFilter }),
   }), [query, debouncedSearch, statusFilter, roleFilter]);
 
   const { data, isLoading, isError, refetch, isFetching } = useGetUserAssignmentsQuery(params, {
@@ -365,7 +365,7 @@ export default function PlatformUserAssignments() {
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-semibold font-mont text-gray-01">User Role Assignments</p>
+            <p className="font-semibold font-mont text-gray-01">Platform User Role Assignments</p>
             <p className="text-xs text-gray-01 mt-0.5">Assign platform roles to Vision staff. Revocations require a written justification.</p>
           </div>
           <Button size="lg" onClick={() => setAssignOpen(true)}>

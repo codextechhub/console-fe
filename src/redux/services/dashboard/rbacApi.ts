@@ -198,7 +198,7 @@ export const rbacApi = baseApi.injectEndpoints({
     }),
 
     assignRole: builder.mutation<{ data: UserAssignment }, { user_id: string; role_id: string }>({
-      query: (body) => ({ url: `/rbac/platform/role-assignments/`, method: "POST", body }),
+      query: ({ user_id, role_id }) => ({ url: `/rbac/platform/role-assignments/`, method: "POST", body: { user: user_id, role: role_id } }),
       invalidatesTags: ["UserAssignments"],
     }),
 
