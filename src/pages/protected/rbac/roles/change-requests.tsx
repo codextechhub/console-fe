@@ -59,8 +59,8 @@ function NewRequestSheet({
   const [justification, setJustification] = useState("");
   const [deltas, setDeltas] = useState<ChangeRequestDelta[]>([{ permission_key: "", operation: "ADD" }]);
   const [createRequest, { isLoading }] = useCreateChangeRequestMutation();
-  const { data: rolesData } = useGetPlatformRolesQuery({ page: 1, page_size: 200 });
-  const { data: permsData } = useGetPermissionsQuery({ page: 1, page_size: 500 });
+  const { data: rolesData } = useGetPlatformRolesQuery({ page: 1, page_size: 200 }, { skip: !open });
+  const { data: permsData } = useGetPermissionsQuery({ page: 1, page_size: 500 }, { skip: !open });
 
   const roles = (rolesData?.data ?? []).filter((r) => r.status === "ACTIVE");
   const perms = permsData?.data ?? [];
