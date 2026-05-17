@@ -5,7 +5,7 @@ import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
 import { clearStorageItem } from "./use-session-storage";
 import { routesPath } from "@/routes/routesPath";
 
-const IDLE_MS = 15 * 60 * 1000;      // 15 minutes idle before warning
+const IDLE_MS = 14 * 60 * 1000;      // 14 minutes idle before warning
 const WARNING_MS = 1 * 60 * 1000;    // 1-minute countdown before expiry
 
 const ACTIVITY_EVENTS = [
