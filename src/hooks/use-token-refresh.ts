@@ -36,8 +36,9 @@ export function useTokenRefresh() {
     if (!isExpiredOrExpiring(accessToken)) return;
 
     const doRefresh = async () => {
+      let response: Response;
       try {
-        const response = await fetch(`${baseUrl}/user/auth/token/refresh/`, {
+        response = await fetch(`${baseUrl}/user/auth/token/refresh/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -45,27 +46,36 @@ export function useTokenRefresh() {
           },
           body: JSON.stringify({ refresh: refreshToken }),
         });
-
-        if (!response.ok) throw new Error("Refresh failed");
-
-        const data = await response.json();
-        const newAccess = data?.data?.access;
-        const newRefresh = data?.data?.refresh;
-
-        if (!newAccess) throw new Error("No access token in response");
-
-        Cookies.set("token", newAccess);
-        dispatch(setToken(newAccess));
-        if (newRefresh) {
-          Cookies.set("refresh_token", newRefresh);
-        }
       } catch {
+        // Network error or server unreachable — leave the user logged in.
+        // The next protected API call will surface the auth failure if needed.
+        return;
+      }
+
+      // Only log out when the server explicitly rejects the refresh token.
+      if (response.status === 401 || response.status === 400) {
         dispatch(resetAuth());
         Cookies.remove("token");
         Cookies.remove("refresh_token");
         clearStorageItem();
         sessionStorage.setItem("_auth_banner", "Your session has expired. Please log in to continue.");
         window.location.href = routesPath.AUTH.LOGIN;
+        return;
+      }
+
+      // Any other non-OK status (500, 503…) — don't log out, just bail.
+      if (!response.ok) return;
+
+      try {
+        const data = await response.json();
+        const newAccess = data?.data?.access;
+        const newRefresh = data?.data?.refresh;
+        if (!newAccess) return;
+        Cookies.set("token", newAccess);
+        dispatch(setToken(newAccess));
+        if (newRefresh) Cookies.set("refresh_token", newRefresh);
+      } catch {
+        // Malformed JSON — don't log out.
       }
     };
 
