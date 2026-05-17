@@ -41,7 +41,7 @@ export default function CreatePermission() {
 
   return (
     <DashboardLayout title="Create Permission" hasBack onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}>
-      <main className="px-4.5 py-6 text-black-01 max-w-2xl">
+      <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission</h1>
           <p className="text-sm text-gray-01 mt-1">
@@ -116,51 +116,53 @@ export default function CreatePermission() {
                     </div>
                   )}
 
-                  <CustomNativeSelect
-                    id="module"
-                    name="module"
-                    label="Module"
-                    placeholder="Select module..."
-                    value={values.module}
-                    onChange={handleModuleChange}
-                    onBlur={handleBlur}
-                    options={modules.map((m) => ({ value: m.name, label: m.name }))}
-                    error={touched.module ? errors.module : ""}
-                  />
+                  <div className="grid grid-cols-3 gap-4">
+                    <CustomNativeSelect
+                      id="module"
+                      name="module"
+                      label="Module"
+                      placeholder="Select module..."
+                      value={values.module}
+                      onChange={handleModuleChange}
+                      onBlur={handleBlur}
+                      options={modules.map((m) => ({ value: m.name, label: m.name }))}
+                      error={touched.module ? errors.module : ""}
+                    />
 
-                  <CustomNativeSelect
-                    id="resource"
-                    name="resource"
-                    label="Resource"
-                    placeholder={
-                      !values.module
-                        ? "Select a module first"
-                        : resourcesFetching
-                          ? "Loading resources..."
-                          : resources.length === 0
-                            ? "No resources for this module"
-                            : "Select resource..."
-                    }
-                    value={values.resource}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    options={resources.map((r) => ({ value: r.name, label: r.name }))}
-                    disabled={!values.module || resourcesFetching}
-                    loading={resourcesFetching}
-                    error={touched.resource ? errors.resource : ""}
-                  />
+                    <CustomNativeSelect
+                      id="resource"
+                      name="resource"
+                      label="Resource"
+                      placeholder={
+                        !values.module
+                          ? "Select a module first"
+                          : resourcesFetching
+                            ? "Loading resources..."
+                            : resources.length === 0
+                              ? "No resources for this module"
+                              : "Select resource..."
+                      }
+                      value={values.resource}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      options={resources.map((r) => ({ value: r.name, label: r.name }))}
+                      disabled={!values.module || resourcesFetching}
+                      loading={resourcesFetching}
+                      error={touched.resource ? errors.resource : ""}
+                    />
 
-                  <CustomNativeSelect
-                    id="action"
-                    name="action"
-                    label="Action"
-                    placeholder="Select action..."
-                    value={values.action}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    options={ACTIONS.map((a) => ({ value: a, label: a }))}
-                    error={touched.action ? errors.action : ""}
-                  />
+                    <CustomNativeSelect
+                      id="action"
+                      name="action"
+                      label="Action"
+                      placeholder="Select action..."
+                      value={values.action}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      options={ACTIONS.map((a) => ({ value: a, label: a }))}
+                      error={touched.action ? errors.action : ""}
+                    />
+                  </div>
                 </div>
 
                 <div className="bg-white rounded-md p-6 space-y-5">

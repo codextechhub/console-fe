@@ -36,7 +36,7 @@ export default function CreateResource() {
       hasBack
       onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.RESOURCES.INDEX)}
     >
-      <main className="px-4.5 py-6 text-black-01 max-w-2xl">
+      <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission Resource</h1>
           <p className="text-sm text-gray-01 mt-1">
@@ -91,38 +91,40 @@ export default function CreateResource() {
                     </div>
                   )}
 
-                  <CustomNativeSelect
-                    id="module"
-                    name="module"
-                    label="Module"
-                    placeholder="Select module..."
-                    value={values.module}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    options={modules.map((m) => ({ value: m.name, label: m.name }))}
-                    error={touched.module ? errors.module : ""}
-                  />
-
-                  <div className="flex flex-col gap-1.5">
-                    <label htmlFor="name" className="text-xs font-medium text-black-01 font-mont">
-                      Name (slug) <span className="text-destructive">*</span>
-                    </label>
-                    <input
-                      id="name"
-                      name="name"
-                      className={`w-full h-10 px-3 rounded-md border text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 ${touched.name && errors.name ? "border-destructive" : "border-gray-200"}`}
-                      placeholder="e.g. invoice"
-                      value={nameInput}
-                      onChange={(e) => {
-                        const val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "");
-                        setNameInput(val);
-                        setFieldValue("name", val);
-                      }}
+                  <div className="grid grid-cols-2 gap-4">
+                    <CustomNativeSelect
+                      id="module"
+                      name="module"
+                      label="Module"
+                      placeholder="Select module..."
+                      value={values.module}
+                      onChange={handleChange}
                       onBlur={handleBlur}
+                      options={modules.map((m) => ({ value: m.name, label: m.name }))}
+                      error={touched.module ? errors.module : ""}
                     />
-                    {touched.name && errors.name && (
-                      <p className="text-xs text-destructive">{errors.name}</p>
-                    )}
+
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="name" className="text-xs font-medium text-black-01 font-mont">
+                        Name (slug) <span className="text-destructive">*</span>
+                      </label>
+                      <input
+                        id="name"
+                        name="name"
+                        className={`w-full h-10 px-3 rounded-md border text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 ${touched.name && errors.name ? "border-destructive" : "border-gray-200"}`}
+                        placeholder="e.g. invoice"
+                        value={nameInput}
+                        onChange={(e) => {
+                          const val = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "");
+                          setNameInput(val);
+                          setFieldValue("name", val);
+                        }}
+                        onBlur={handleBlur}
+                      />
+                      {touched.name && errors.name && (
+                        <p className="text-xs text-destructive">{errors.name}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-col gap-1.5">

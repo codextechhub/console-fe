@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -12,7 +13,7 @@ import {
   useGetPermissionGroupsQuery,
 } from "@/redux/services/dashboard/rbacApi";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
@@ -26,6 +27,7 @@ export default function EditRole() {
   const { data: roleData, isLoading: roleLoading } = useGetPlatformRoleDetailQuery(id ?? "", { skip: !id });
   const { data: groupsData } = useGetPermissionGroupsQuery({ page_size: 100 });
   const [updateRole, { isLoading }] = useUpdatePlatformRoleMutation();
+  const [groupSearch, setGroupSearch] = useState("");
 
   const role = roleData?.data;
   const groups = groupsData?.data ?? [];
@@ -53,7 +55,7 @@ export default function EditRole() {
 
   return (
     <DashboardLayout title="Edit Role" hasBack onBack={() => navigate(routesPath.PROTECTED.ROLES.INDEX)}>
-      <main className="px-4.5 py-6 text-black-01 max-w-2xl">
+      <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Role</h1>
           <p className="text-sm text-gray-01 mt-1">Update the details and permission groups for this role.</p>
@@ -92,113 +94,134 @@ export default function EditRole() {
               .finally(() => setSubmitting(false));
           }}
         >
-          {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting, dirty }) => (
-            <Form className="space-y-5">
-              <div className="bg-white rounded-md p-6 space-y-5">
-                <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
-                  Basic Information
-                </h2>
+          {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting, dirty }) => {
+            const filteredGroups = groupSearch
+              ? groups.filter((g) => g.name.toLowerCase().includes(groupSearch.toLowerCase()))
+              : groups;
 
-                <CustomInput
-                  id="name"
-                  name="name"
-                  label="Role Name"
-                  placeholder="e.g. Platform Finance Admin"
-                  value={values.name}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  error={touched.name ? errors.name : ""}
-                  disabled={role.is_system_role || role.is_locked}
-                />
+            return (
+              <Form className="space-y-5">
+                <div className="grid grid-cols-1 lg:grid-cols-[5fr_6fr] gap-5 items-start">
+                  <div className="bg-white rounded-md p-6 space-y-5">
+                    <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+                      Basic Information
+                    </h2>
 
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="description" className="text-xs font-medium text-black-01 font-mont">
-                    Description <span className="text-gray-01">(optional)</span>
-                  </label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    rows={3}
-                    value={values.description}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    disabled={role.is_system_role || role.is_locked}
-                    className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none disabled:bg-gray-50 disabled:text-gray-400"
-                  />
+                    <CustomInput
+                      id="name"
+                      name="name"
+                      label="Role Name"
+                      placeholder="e.g. Platform Finance Admin"
+                      value={values.name}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      error={touched.name ? errors.name : ""}
+                      disabled={role.is_system_role || role.is_locked}
+                    />
+
+                    <div className="flex flex-col gap-1.5">
+                      <label htmlFor="description" className="text-xs font-medium text-black-01 font-mont">
+                        Description <span className="text-gray-01">(optional)</span>
+                      </label>
+                      <textarea
+                        id="description"
+                        name="description"
+                        rows={3}
+                        value={values.description}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        disabled={role.is_system_role || role.is_locked}
+                        className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none disabled:bg-gray-50 disabled:text-gray-400"
+                      />
+                    </div>
+
+                    <CustomNativeSelect
+                      id="status"
+                      name="status"
+                      label="Status"
+                      value={values.status}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      options={[
+                        { value: "ACTIVE", label: "Active" },
+                        { value: "INACTIVE", label: "Inactive" },
+                      ]}
+                      error={touched.status ? errors.status : ""}
+                      disabled={role.is_system_role || role.is_locked}
+                    />
+                  </div>
+
+                  <div className="bg-white rounded-md p-6 flex flex-col gap-4">
+                    <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+                      Permission Groups
+                    </h2>
+
+                    <div className="relative">
+                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Search groups..."
+                        value={groupSearch}
+                        onChange={(e) => setGroupSearch(e.target.value)}
+                        className="w-full h-9 pl-8 pr-3 rounded-md border border-gray-200 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      />
+                    </div>
+
+                    {groups.length === 0 ? (
+                      <p className="text-sm text-gray-01 italic">No permission groups available.</p>
+                    ) : filteredGroups.length === 0 ? (
+                      <p className="text-sm text-gray-01 italic">No groups match your search.</p>
+                    ) : (
+                      <div className="space-y-2 overflow-y-auto max-h-[500px] pr-1">
+                        {filteredGroups.map((group) => (
+                          <label
+                            key={group.id}
+                            className="flex items-start gap-3 p-3 rounded-md border border-gray-100 hover:border-primary/30 hover:bg-primary/5 cursor-pointer transition-colors"
+                          >
+                            <input
+                              type="checkbox"
+                              className="mt-0.5 accent-primary"
+                              checked={values.group_ids.includes(group.id)}
+                              disabled={role.is_system_role || role.is_locked}
+                              onChange={(e) => {
+                                const next = e.target.checked
+                                  ? [...values.group_ids, group.id]
+                                  : values.group_ids.filter((gid) => gid !== group.id);
+                                setFieldValue("group_ids", next);
+                              }}
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-black-01">{group.name}</p>
+                              {group.description && (
+                                <p className="text-xs text-gray-01 mt-0.5">{group.description}</p>
+                              )}
+                              <p className="text-xs text-gray-400 mt-0.5">{group.permissions_count} permissions</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <CustomNativeSelect
-                  id="status"
-                  name="status"
-                  label="Status"
-                  value={values.status}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  options={[
-                    { value: "ACTIVE", label: "Active" },
-                    { value: "INACTIVE", label: "Inactive" },
-                  ]}
-                  error={touched.status ? errors.status : ""}
-                  disabled={role.is_system_role || role.is_locked}
-                />
-              </div>
-
-              <div className="bg-white rounded-md p-6 space-y-4">
-                <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
-                  Permission Groups
-                </h2>
-
-                {groups.length === 0 ? (
-                  <p className="text-sm text-gray-01 italic">No permission groups available.</p>
-                ) : (
-                  <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                    {groups.map((group) => (
-                      <label
-                        key={group.id}
-                        className="flex items-start gap-3 p-3 rounded-md border border-gray-100 hover:border-primary/30 hover:bg-primary/5 cursor-pointer transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          className="mt-0.5 accent-primary"
-                          checked={values.group_ids.includes(group.id)}
-                          disabled={role.is_system_role || role.is_locked}
-                          onChange={(e) => {
-                            const next = e.target.checked
-                              ? [...values.group_ids, group.id]
-                              : values.group_ids.filter((gid) => gid !== group.id);
-                            setFieldValue("group_ids", next);
-                          }}
-                        />
-                        <div>
-                          <p className="text-sm font-medium text-black-01">{group.name}</p>
-                          {group.description && (
-                            <p className="text-xs text-gray-01 mt-0.5">{group.description}</p>
-                          )}
-                          <p className="text-xs text-gray-400 mt-0.5">{group.permissions_count} permissions</p>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-3 justify-end pt-2">
-                <Button
-                  type="button"
-                  variant="white"
-                  onClick={() => navigate(routesPath.PROTECTED.ROLES.INDEX)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={!dirty || isLoading || isSubmitting || role.is_system_role || role.is_locked}
-                >
-                  {isLoading || isSubmitting ? "Saving..." : "Save Changes"}
-                </Button>
-              </div>
-            </Form>
-          )}
+                <div className="flex gap-3 justify-end pt-2">
+                  <Button
+                    type="button"
+                    variant="white"
+                    onClick={() => navigate(routesPath.PROTECTED.ROLES.INDEX)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={!dirty || isLoading || isSubmitting || role.is_system_role || role.is_locked}
+                  >
+                    {isLoading || isSubmitting ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </Form>
+            );
+          }}
         </Formik>
       </main>
     </DashboardLayout>

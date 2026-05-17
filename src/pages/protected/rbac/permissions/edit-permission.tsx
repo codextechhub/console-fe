@@ -84,7 +84,7 @@ export default function EditPermission() {
 
   return (
     <DashboardLayout title="Edit Permission" hasBack onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}>
-      <main className="px-4.5 py-6 text-black-01 max-w-3xl space-y-5">
+      <main className="px-4.5 py-6 text-black-01 space-y-5">
         <div>
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Permission</h1>
           <p className="font-mono text-sm text-gray-01 mt-1">{perm.key}</p>
