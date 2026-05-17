@@ -14,7 +14,15 @@ import {
   useSuspendTeamMemberMutation,
   useReactivateTeamMemberMutation,
   useUnlockTeamMemberMutation,
+  useDeleteTeamMemberMutation,
 } from "@/redux/services/dashboard/teamMgtApi";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useEffect, useMemo, useState } from "react";
 import type { TeamMember } from "@/redux/services/dashboard/type";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -107,6 +115,19 @@ export default function MembersTab() {
   const [suspendUser] = useSuspendTeamMemberMutation();
   const [reactivateUser] = useReactivateTeamMemberMutation();
   const [unlockUser] = useUnlockTeamMemberMutation();
+  const [deleteUser, { isLoading: isDeleting }] = useDeleteTeamMemberMutation();
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteUser(deleteTarget.id)
+      .unwrap()
+      .then(() => {
+        toast.success("User permanently removed.");
+        setDeleteTarget(null);
+      })
+      .catch(() => {});
+  };
 
   const handleOpenFilter = () => {
     setDraftFilters(appliedFilters);
@@ -206,7 +227,7 @@ export default function MembersTab() {
           tableBodyList={FORMAT_TABLE_DATA(data?.data)}
           loading={isLoading}
           dropDown
-          dropDownList={(row: { _slug: string; _status: string }) => {
+          dropDownList={(row: { _slug: string; _status: string; _label: string }) => {
             const statusAction = () => {
               if (row._status === "ACTIVE") {
                 if (String(currentUser?.id) === String(row._slug)) return null;
@@ -266,6 +287,19 @@ export default function MembersTab() {
                   navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(row._slug)),
               }] : []),
               ...(action ? [action] : []),
+              ...(hasPermission(P.DISMISS_TEAM_MEMBER) &&
+              String(currentUser?.id) !== String(row._slug)
+                ? [{
+                    label: "Delete",
+                    className:
+                      "text-destructive focus:text-destructive focus:bg-destructive/10",
+                    onActionClick: () =>
+                      setDeleteTarget({
+                        id: row._slug,
+                        label: row._label || row._slug,
+                      }),
+                  }]
+                : []),
             ];
           }}
           perPage={data?.pagination?.pageSize}
@@ -347,6 +381,42 @@ export default function MembersTab() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Delete this team member?</DialogTitle>
+          </DialogHeader>
+          <div className="py-2 space-y-3 text-sm">
+            <p className="text-gray-01">
+              <span className="font-semibold text-black-01">{deleteTarget?.label}</span> will
+              be permanently removed. Their account, role assignments, and audit references
+              will be deactivated. This cannot be undone.
+            </p>
+            <p className="text-xs text-gray-01">
+              If you only need to revoke access temporarily, use Suspend instead.
+            </p>
+          </div>
+          <DialogFooter className="gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setDeleteTarget(null)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="lg"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting…" : "Delete Permanently"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -365,5 +435,6 @@ const FORMAT_TABLE_DATA = (data?: TeamMember[]) => {
     date: item?.created_at ? formatRelativeDate(item?.created_at) : "---",
     _slug: item?.id,
     _status: item?.status,
+    _label: item?.full_name?.trim() || item?.email?.trim() || item?.id,
   }));
 };

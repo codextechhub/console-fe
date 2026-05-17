@@ -16,6 +16,9 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import type { PermissionModule } from "@/redux/services/dashboard/rbacTypes";
+import PermissionGate from "@/components/custom/permission-gate";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 const TABLE_HEADERS = ["Module Name", "Description", "Status", "Created", "Action"];
 
@@ -23,6 +26,7 @@ type CardFilter = "all" | "active" | "inactive";
 
 export default function PermissionModulesList() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
@@ -77,9 +81,11 @@ export default function PermissionModulesList() {
             <p className="font-semibold font-mont text-gray-01">Permission Modules</p>
             <p className="text-xs text-gray-01 mt-0.5">Top-level categories that group permission resources.</p>
           </div>
-          <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.MODULES.CREATE)}>
-            <Plus /> Add Module
-          </Button>
+          <PermissionGate permission={P.CREATE_PERMISSION}>
+            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.MODULES.CREATE)}>
+              <Plus /> Add Module
+            </Button>
+          </PermissionGate>
         </div>
 
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -134,12 +140,12 @@ export default function PermissionModulesList() {
             loading={isLoading}
             dropDown
             dropDownList={(row: { _name: string }) => [
-              {
+              ...(hasPermission(P.MODIFY_PERMISSION) ? [{
                 label: "Edit",
                 className: "",
                 onActionClick: () => navigate(routesPath.PROTECTED.PERMISSIONS.MODULES.EDIT(row._name)),
-              },
-              {
+              }] : []),
+              ...(hasPermission(P.DELETE_PERMISSION) ? [{
                 label: "Delete",
                 className: "text-destructive focus:text-destructive focus:bg-destructive/10",
                 onActionClick: () =>
@@ -147,7 +153,7 @@ export default function PermissionModulesList() {
                     .unwrap()
                     .then(() => toast.success("Module deleted."))
                     .catch(() => {}),
-              },
+              }] : []),
             ]}
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}

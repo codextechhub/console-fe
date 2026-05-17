@@ -36,6 +36,9 @@ import {
 } from "@/redux/services/dashboard/rbacApi";
 import { useGetTeamMembersQuery } from "@/redux/services/dashboard/teamMgtApi";
 import type { UserAssignment } from "@/redux/services/dashboard/rbacTypes";
+import PermissionGate from "@/components/custom/permission-gate";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 const TABLE_HEADERS = ["User", "Role", "Status", "Assigned By", "Assigned", "Revoked", "Action"];
 
@@ -140,10 +143,12 @@ function AssignmentDetailSheet({
   assignment,
   onClose,
   onRevoke,
+  canRevoke,
 }: {
   assignment: UserAssignment | null;
   onClose: () => void;
   onRevoke: (a: UserAssignment) => void;
+  canRevoke: boolean;
 }) {
   if (!assignment) return null;
 
@@ -199,7 +204,7 @@ function AssignmentDetailSheet({
           <Button variant="outline" size="lg" onClick={onClose}>
             Close
           </Button>
-          {assignment.assignment_status === "ACTIVE" && (
+          {assignment.assignment_status === "ACTIVE" && canRevoke && (
             <Button
               variant="destructive"
               size="lg"
@@ -285,6 +290,7 @@ function RevokeDialog({
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function PlatformUserAssignments() {
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -368,9 +374,11 @@ export default function PlatformUserAssignments() {
             <p className="font-semibold font-mont text-gray-01">Platform User Role Assignments</p>
             <p className="text-xs text-gray-01 mt-0.5">Assign platform roles to Vision staff. Revocations require a written justification.</p>
           </div>
-          <Button size="lg" onClick={() => setAssignOpen(true)}>
-            <Plus /> Assign Role
-          </Button>
+          <PermissionGate permission={P.ASSIGN_ROLE}>
+            <Button size="lg" onClick={() => setAssignOpen(true)}>
+              <Plus /> Assign Role
+            </Button>
+          </PermissionGate>
         </div>
 
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
@@ -441,7 +449,7 @@ export default function PlatformUserAssignments() {
                 className: "",
                 onActionClick: () => setDetailItem(row._raw),
               },
-              ...(row._status === "ACTIVE"
+              ...(row._status === "ACTIVE" && hasPermission(P.ASSIGN_ROLE)
                 ? [{
                     label: "Revoke",
                     className: "text-destructive focus:text-destructive focus:bg-destructive/10",
@@ -463,6 +471,7 @@ export default function PlatformUserAssignments() {
         assignment={detailItem}
         onClose={() => setDetailItem(null)}
         onRevoke={(a) => setRevokeItem(a)}
+        canRevoke={hasPermission(P.ASSIGN_ROLE)}
       />
 
       <RevokeDialog

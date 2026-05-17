@@ -24,6 +24,9 @@ import {
   useGetPermissionModulesQuery,
 } from "@/redux/services/dashboard/rbacApi";
 import type { PermissionResource } from "@/redux/services/dashboard/rbacTypes";
+import PermissionGate from "@/components/custom/permission-gate";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 const TABLE_HEADERS = ["Key Segment", "Module", "Description", "Permissions", "Status", "Action"];
 
@@ -84,6 +87,7 @@ function DeleteResourceDialog({
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function PermissionResources() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [moduleFilter, setModuleFilter] = useState("all");
@@ -135,9 +139,11 @@ export default function PermissionResources() {
               The middle segment of a permission key. Each resource is scoped to a module — finance.invoice is distinct from settings.invoice.
             </p>
           </div>
-          <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.RESOURCES.CREATE)}>
-            <Plus /> New Resource
-          </Button>
+          <PermissionGate permission={P.CREATE_PERMISSION}>
+            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.RESOURCES.CREATE)}>
+              <Plus /> New Resource
+            </Button>
+          </PermissionGate>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -190,16 +196,16 @@ export default function PermissionResources() {
             loading={isLoading}
             dropDown
             dropDownList={(row: { _raw: PermissionResource }) => [
-              {
+              ...(hasPermission(P.MODIFY_PERMISSION) ? [{
                 label: "Edit",
                 className: "",
                 onActionClick: () => navigate(routesPath.PROTECTED.PERMISSIONS.RESOURCES.EDIT(row._raw.id)),
-              },
-              {
+              }] : []),
+              ...(hasPermission(P.DELETE_PERMISSION) ? [{
                 label: "Delete",
                 className: "text-destructive focus:text-destructive focus:bg-destructive/10",
                 onActionClick: () => setDeleteItem(row._raw),
-              },
+              }] : []),
             ]}
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}

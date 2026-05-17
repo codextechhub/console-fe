@@ -29,6 +29,9 @@ import {
 } from "@/redux/services/dashboard/rbacApi";
 import type { PermissionDependency } from "@/redux/services/dashboard/rbacTypes";
 import { routesPath } from "@/routes/routesPath";
+import PermissionGate from "@/components/custom/permission-gate";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 const TABLE_HEADERS = ["Permission", "", "Depends On", "Action"];
 
@@ -169,6 +172,7 @@ function DeleteDependencyDialog({
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function PermissionDependencies() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
@@ -204,9 +208,11 @@ export default function PermissionDependencies() {
               Some permissions require other permissions to be present. Dependencies are validated when assigning roles.
             </p>
           </div>
-          <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.DEPENDENCIES.CREATE)}>
-            <Plus /> Add Dependency
-          </Button>
+          <PermissionGate permission={P.MANAGE_PERMISSIONS}>
+            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.DEPENDENCIES.CREATE)}>
+              <Plus /> Add Dependency
+            </Button>
+          </PermissionGate>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -248,11 +254,11 @@ export default function PermissionDependencies() {
                 className: "",
                 onActionClick: () => setChainKey(row._raw.permission_key),
               },
-              {
+              ...(hasPermission(P.MANAGE_PERMISSIONS) ? [{
                 label: "Remove",
                 className: "text-destructive focus:text-destructive focus:bg-destructive/10",
                 onActionClick: () => setDeleteItem(row._raw),
-              },
+              }] : []),
             ]}
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}

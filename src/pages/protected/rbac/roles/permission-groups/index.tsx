@@ -14,6 +14,9 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import type { PermissionGroupList } from "@/redux/services/dashboard/rbacTypes";
+import PermissionGate from "@/components/custom/permission-gate";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 const TABLE_HEADERS = ["Group Name", "System", "Status", "Permissions", "Created", "Action"];
 
@@ -21,6 +24,7 @@ type CardFilter = "all" | "active" | "system" | "custom";
 
 export default function PermissionGroupsList() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
@@ -87,9 +91,11 @@ export default function PermissionGroupsList() {
             <p className="font-semibold font-mont text-gray-01">Permission Groups</p>
             <p className="text-xs text-gray-01 mt-0.5">Bundles of permissions that can be assigned to roles.</p>
           </div>
-          <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.ROLES.GROUPS.CREATE)}>
-            <Plus /> Add New Group
-          </Button>
+          <PermissionGate permission={P.MANAGE_PERMISSIONS}>
+            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.ROLES.GROUPS.CREATE)}>
+              <Plus /> Add New Group
+            </Button>
+          </PermissionGate>
         </div>
 
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
@@ -147,12 +153,12 @@ export default function PermissionGroupsList() {
             loading={isLoading}
             dropDown
             dropDownList={(row: { _id: string; _system: boolean }) => [
-              {
+              ...(hasPermission(P.MANAGE_PERMISSIONS) ? [{
                 label: "Edit",
                 className: "",
                 onActionClick: () => navigate(routesPath.PROTECTED.ROLES.GROUPS.EDIT(row._id)),
-              },
-              ...(!row._system
+              }] : []),
+              ...(hasPermission(P.MANAGE_PERMISSIONS) && !row._system
                 ? [{
                     label: "Delete",
                     className: "text-destructive focus:text-destructive focus:bg-destructive/10",

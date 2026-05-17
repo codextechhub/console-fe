@@ -24,6 +24,9 @@ import {
   useDeletePermissionActionMutation,
 } from "@/redux/services/dashboard/rbacApi";
 import type { PermissionAction } from "@/redux/services/dashboard/rbacTypes";
+import PermissionGate from "@/components/custom/permission-gate";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 const TABLE_HEADERS = ["Name", "Description", "Permissions", "Status", "Created", "Action"];
 
@@ -84,6 +87,7 @@ function DeleteActionDialog({
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function PermissionActions() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -123,9 +127,11 @@ export default function PermissionActions() {
               The final segment of a permission key. Verbs that an actor performs on a resource — view, create, approve, refund.
             </p>
           </div>
-          <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.ACTIONS.CREATE)}>
-            <Plus /> New Action
-          </Button>
+          <PermissionGate permission={P.CREATE_PERMISSION}>
+            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.ACTIONS.CREATE)}>
+              <Plus /> New Action
+            </Button>
+          </PermissionGate>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -175,16 +181,16 @@ export default function PermissionActions() {
             loading={isLoading}
             dropDown
             dropDownList={(row: { _raw: PermissionAction }) => [
-              {
+              ...(hasPermission(P.MODIFY_PERMISSION) ? [{
                 label: "Edit",
                 className: "",
                 onActionClick: () => navigate(routesPath.PROTECTED.PERMISSIONS.ACTIONS.EDIT(row._raw.name)),
-              },
-              {
+              }] : []),
+              ...(hasPermission(P.DELETE_PERMISSION) ? [{
                 label: "Delete",
                 className: "text-destructive focus:text-destructive focus:bg-destructive/10",
                 onActionClick: () => setDeleteItem(row._raw),
-              },
+              }] : []),
             ]}
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}
