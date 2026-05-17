@@ -18,6 +18,7 @@ const authSlice = createSlice({
     setAuthUser: (state, action: PayloadAction<any>) => {
       state.user = action.payload.user;
       state.access = action.payload.access;
+      state.refresh = action.payload.refresh || "";
       state.session_id = action.payload.session_id || 0;
       state.permissions = action.payload.permissions ?? [];
     },
