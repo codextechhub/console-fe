@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
 import { clearStorageItem } from "./use-session-storage";
 import { routesPath } from "@/routes/routesPath";
+import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
 
 const IDLE_MS = 14 * 60 * 1000;      // 14 minutes idle before warning
 const WARNING_MS = 1 * 60 * 1000;    // 1-minute countdown before expiry
@@ -29,8 +30,6 @@ export function useSessionTimeout() {
   const lastActivityRef = useRef<number>(Date.now());
   const warningStartedAtRef = useRef<number | null>(null);
   const isWarningOpenRef = useRef(false);
-
-  const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
   const clearCountdown = () => {
     if (countdownRef.current) {
@@ -137,7 +136,7 @@ export function useSessionTimeout() {
 
   const onContinue = useCallback(async () => {
     // Stop the countdown immediately so it can't fire expireSession
-    // while the refresh fetch is in-flight.
+    // while the refresh is in-flight.
     clearCountdown();
 
     const refreshToken = Cookies.get("refresh_token");
@@ -148,7 +147,6 @@ export function useSessionTimeout() {
       return;
     }
 
-    // Dismiss the warning and restart the idle timer (used on non-fatal paths).
     const dismiss = () => {
       warningStartedAtRef.current = null;
       isWarningOpenRef.current = false;
@@ -156,45 +154,25 @@ export function useSessionTimeout() {
       resetIdleTimer();
     };
 
-    let res: Response;
-    try {
-      res = await fetch(`${baseUrl}/user/auth/token/refresh/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", accept: "application/json" },
-        body: JSON.stringify({ refresh: refreshToken }),
-      });
-    } catch {
-      // Network error — server unreachable, don't boot the user out.
+    const outcome = await refreshTokenSingleFlight();
+
+    if (outcome.ok) {
+      // Cookies were already updated by the singleton.
+      dispatch(setToken(outcome.access));
       dismiss();
       return;
     }
 
-    if (res.status === 401) {
-      // Refresh token is definitively invalid — must log out.
+    // 401 means the refresh token is definitively invalid — must log out.
+    if (outcome.reason === "token_invalid") {
       logout();
       return;
     }
 
-    if (!res.ok) {
-      // Server error (5xx etc.) — transient, don't log out.
-      dismiss();
-      return;
-    }
-
-    try {
-      const data = await res.json();
-      const newAccess = data?.data?.access;
-      if (!newAccess) throw new Error();
-      Cookies.set("token", newAccess);
-      dispatch(setToken(newAccess));
-    } catch {
-      // Malformed response — don't log out.
-      dismiss();
-      return;
-    }
-
+    // network_error, server_error, no_token — transient. Dismiss and let the
+    // user keep working; the next 401 will retry the refresh.
     dismiss();
-  }, [baseUrl, dispatch, logout, resetIdleTimer]);
+  }, [dispatch, logout, resetIdleTimer]);
 
   const goToLogin = useCallback(() => {
     window.location.href = routesPath.AUTH.LOGIN;

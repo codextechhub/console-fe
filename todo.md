@@ -1,8 +1,8 @@
 ## Undone (Ask questions for clarity where needed)
 
-1. When a page shows an error that says "Your session could not be restored. Log in again." explain to be what happened there.
-
 ## Done
+
+# 19. Explain "Your session could not be restored. Log in again." error — this toast fires only when the access token expires (401), the silent refresh attempt hits a 5xx server error on `/user/auth/token/refresh/`, and the backend is too broken to confirm the session is restorable. Other 401 outcomes: successful refresh = silent re-auth; invalid refresh token = silent force-logout (no toast); network error = silent return (component surfaces its own error). Code path: `baseApi.ts` `baseQueryInterceptor` → `refreshed.reason === "server_error"` branch.
 
 # 1. Remove Admin Role field from Add Branch (branch admin section) — role is prebuilt internally, field removed from UI, interface, validation schema, and API payload.
 # 2. Remove Admin Role field from Create School Admin step — same reason, removed from UI, interface, validation schema, and API payload.
