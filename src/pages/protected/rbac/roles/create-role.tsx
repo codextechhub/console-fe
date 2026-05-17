@@ -51,7 +51,7 @@ export default function CreateRole() {
               .finally(() => setSubmitting(false));
           }}
         >
-          {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting }) => {
+          {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting, dirty }) => {
             const filteredGroups = groupSearch
               ? groups.filter((g) => g.name.toLowerCase().includes(groupSearch.toLowerCase()))
               : groups;
@@ -169,7 +169,7 @@ export default function CreateRole() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isLoading || isSubmitting}>
+                  <Button type="submit" disabled={!dirty || isLoading || isSubmitting}>
                     {isLoading || isSubmitting ? "Creating..." : "Create Role"}
                   </Button>
                 </div>

@@ -62,7 +62,7 @@ export default function CreateModule() {
               .finally(() => setSubmitting(false));
           }}
         >
-          {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting }) => (
+          {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting, dirty }) => (
             <Form className="space-y-5">
               <div className="bg-white rounded-md p-6 space-y-5">
                 <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
@@ -115,7 +115,7 @@ export default function CreateModule() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading || isSubmitting}>
+                <Button type="submit" disabled={!dirty || isLoading || isSubmitting}>
                   {isLoading || isSubmitting ? "Creating..." : "Create Module"}
                 </Button>
               </div>

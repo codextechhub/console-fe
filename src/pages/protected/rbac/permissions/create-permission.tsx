@@ -92,7 +92,7 @@ export default function CreatePermission() {
               .finally(() => setSubmitting(false));
           }}
         >
-          {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting }) => {
+          {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting, dirty }) => {
             const keyPreview = [values.module, values.resource, values.action].filter(Boolean).join(".");
 
             const handleModuleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -228,7 +228,7 @@ export default function CreatePermission() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isLoading || isSubmitting}>
+                  <Button type="submit" disabled={!dirty || isLoading || isSubmitting}>
                     {isLoading || isSubmitting ? "Creating..." : "Create Permission"}
                   </Button>
                 </div>

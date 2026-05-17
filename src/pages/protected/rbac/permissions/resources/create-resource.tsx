@@ -75,7 +75,7 @@ export default function CreateResource() {
               .finally(() => setSubmitting(false));
           }}
         >
-          {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting }) => {
+          {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting, dirty }) => {
             const keyPreview = values.module && values.name ? `${values.module}.${values.name}` : "";
             return (
               <Form className="space-y-5">
@@ -165,7 +165,7 @@ export default function CreateResource() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isLoading || isSubmitting}>
+                  <Button type="submit" disabled={!dirty || isLoading || isSubmitting}>
                     {isLoading || isSubmitting ? "Creating..." : "Create Resource"}
                   </Button>
                 </div>
