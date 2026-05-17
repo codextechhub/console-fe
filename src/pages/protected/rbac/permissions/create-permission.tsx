@@ -7,6 +7,7 @@ import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { routesPath } from "@/routes/routesPath";
 import {
   useCreatePermissionMutation,
@@ -14,7 +15,6 @@ import {
   useGetPermissionModulesQuery,
   useGetPermissionResourcesQuery,
 } from "@/redux/services/dashboard/rbacApi";
-import { toast } from "sonner";
 
 const schema = Yup.object({
   module: Yup.string().required("Module is required"),
@@ -193,19 +193,7 @@ export default function CreatePermission() {
                 toast.success("Permission created.");
                 navigate(routesPath.PROTECTED.PERMISSIONS.INDEX);
               })
-              .catch((err) => {
-                const errors = err?.data?.errors;
-                const msg =
-                  errors?.key ||
-                  errors?.resource ||
-                  errors?.module ||
-                  errors?.action ||
-                  err?.data?.message ||
-                  err?.data?.detail ||
-                  (typeof err?.data === "string" ? err.data : null) ||
-                  "Failed to create permission.";
-                toast.error(msg);
-              })
+              .catch(() => {})
               .finally(() => setSubmitting(false));
           }}
         >
