@@ -2,7 +2,7 @@ import Cookies from "js-cookie";
 import { useEffect } from "react";
 import { useLocation } from "react-router";
 import { useDispatch } from "react-redux";
-import { setToken } from "@/redux/features/auth/authSlice";
+import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
 import { routesPath } from "@/routes/routesPath";
 import { clearStorageItem } from "./use-session-storage";
 
@@ -60,13 +60,10 @@ export function useTokenRefresh() {
           Cookies.set("refresh_token", newRefresh);
         }
       } catch {
+        dispatch(resetAuth());
         Cookies.remove("token");
         Cookies.remove("refresh_token");
         clearStorageItem();
-        // Tell the login page to show an expiry notice instead of just the blank form.
-        sessionStorage.setItem("_auth_banner", "Your session has expired. Please log in to continue.");
-        // Also signal useSessionTimeout in case it mounts before the redirect resolves.
-        sessionStorage.setItem("_stx", "1");
         window.location.href = routesPath.AUTH.LOGIN;
       }
     };

@@ -4,22 +4,13 @@ import { useLoginMutation } from "@/redux/services/auth/authApi";
 import { routesPath } from "@/routes/routesPath";
 import { loginSchema } from "@/schema/auth";
 import { useFormik } from "formik";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 export default function Login() {
   const navigate = useNavigate();
   const [login, { isLoading }] = useLoginMutation();
   const [apiError, setApiError] = useState("");
-  const [sessionBanner, setSessionBanner] = useState("");
-
-  useEffect(() => {
-    const msg = sessionStorage.getItem("_auth_banner");
-    if (msg) {
-      sessionStorage.removeItem("_auth_banner");
-      setSessionBanner(msg);
-    }
-  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -46,12 +37,6 @@ export default function Login() {
 
   return (
     <div className="">
-      {sessionBanner && (
-        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 text-center">
-          {sessionBanner}
-        </div>
-      )}
-
       <div className="text-center space-y-1.5">
         <h4 className="font-semibold text-2xl text-black-01">
           Login to your Account
