@@ -69,7 +69,10 @@ export const routesPath = {
         EDIT_PATH: "/permissions/actions/:name/edit",
         EDIT: (name: string) => `/permissions/actions/${name}/edit`,
       },
-      DEPENDENCIES: { INDEX: "/permissions/dependencies" },
+      DEPENDENCIES: {
+        INDEX: "/permissions/dependencies",
+        CREATE: "/permissions/dependencies/create",
+      },
     },
     DATA_IMPORTS: {
       BATCHES: {

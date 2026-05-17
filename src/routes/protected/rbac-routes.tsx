@@ -20,6 +20,7 @@ import PermissionActionsPage from "@/pages/protected/rbac/permissions/actions";
 import CreateAction from "@/pages/protected/rbac/permissions/actions/create-action";
 import EditAction from "@/pages/protected/rbac/permissions/actions/edit-action";
 import PermissionDependencies from "@/pages/protected/rbac/permissions/dependencies";
+import CreateDependency from "@/pages/protected/rbac/permissions/create-dependency";
 
 export const rbacRoutes: RouteObject[] = [
   { path: "/roles", element: <RolesList /> },
@@ -43,4 +44,5 @@ export const rbacRoutes: RouteObject[] = [
   { path: "/permissions/actions/create", element: <CreateAction /> },
   { path: "/permissions/actions/:name/edit", element: <EditAction /> },
   { path: "/permissions/dependencies", element: <PermissionDependencies /> },
+  { path: "/permissions/dependencies/create", element: <CreateDependency /> },
 ];
