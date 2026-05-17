@@ -71,54 +71,92 @@ function AddDependencySheet({
       });
   };
 
+  const canPreview = permKey && depsOnKey;
+
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
+      <SheetContent className="w-full sm:max-w-none flex flex-col gap-0 p-0" side="right">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-white-02">
           <SheetTitle className="text-base font-semibold text-black-01">Add Dependency</SheetTitle>
           <SheetDescription className="text-xs text-gray-01">
-            Define that a permission requires another permission.
+            Define that a permission requires another permission to be granted alongside it.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-black-01">
-              Permission <span className="text-destructive">*</span>
-            </label>
-            <p className="text-xs text-gray-01">The permission that has a dependency.</p>
-            <select
-              className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              value={permKey}
-              onChange={(e) => setPermKey(e.target.value)}
-            >
-              <option value="">Select a permission...</option>
-              {permOptions.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
+          {/* Two-column picker */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black-01">
+                Permission <span className="text-destructive">*</span>
+              </label>
+              <p className="text-xs text-gray-01">The permission that has a dependency.</p>
+              <select
+                className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                value={permKey}
+                onChange={(e) => { setError(""); setPermKey(e.target.value); }}
+              >
+                <option value="">Select a permission...</option>
+                {permOptions.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col items-center gap-1 pb-1.5">
+              <ArrowRight className="size-5 text-gray-01" />
+              <span className="text-[10px] text-gray-01 font-medium uppercase tracking-wide">requires</span>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black-01">
+                Depends On <span className="text-destructive">*</span>
+              </label>
+              <p className="text-xs text-gray-01">The permission that must also be granted.</p>
+              <select
+                className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                value={depsOnKey}
+                onChange={(e) => { setError(""); setDepsOnKey(e.target.value); }}
+              >
+                <option value="">Select the required permission...</option>
+                {permOptions.filter((p) => p.value !== permKey).map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="flex items-center justify-center gap-2 text-gray-01 text-xs">
-            <ArrowRight className="size-4" />
-            <span>requires</span>
+          {/* Live preview */}
+          <div className="rounded-md border border-white-02 bg-white p-5 space-y-3">
+            <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Preview</p>
+            {canPreview ? (
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="font-mono text-sm font-semibold text-black-01 bg-gray-50 border border-white-02 rounded px-3 py-1.5">
+                  {permKey}
+                </span>
+                <div className="flex items-center gap-1.5 text-gray-01">
+                  <ArrowRight className="size-4" />
+                  <span className="text-xs font-medium">requires</span>
+                </div>
+                <span className="font-mono text-sm font-semibold text-primary bg-pry-01/30 border border-pry-01 rounded px-3 py-1.5">
+                  {depsOnKey}
+                </span>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-01">
+                Select both permissions above to preview the dependency.
+              </p>
+            )}
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-black-01">
-              Depends On <span className="text-destructive">*</span>
-            </label>
-            <p className="text-xs text-gray-01">The permission that must also be granted.</p>
-            <select
-              className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              value={depsOnKey}
-              onChange={(e) => setDepsOnKey(e.target.value)}
-            >
-              <option value="">Select the required permission...</option>
-              {permOptions.filter((p) => p.value !== permKey).map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
+          {/* Info note */}
+          <div className="rounded-md bg-pry-01/30 border border-pry-01 px-4 py-3 space-y-1.5 text-xs text-gray-01">
+            <p className="font-semibold text-black-01">How dependencies work</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>When a role grants the left permission, the right permission must also be granted.</li>
+              <li>Dependencies are validated when roles are assigned to users.</li>
+              <li>Circular dependencies are not allowed.</li>
+            </ul>
           </div>
 
           {error && (
@@ -131,7 +169,7 @@ function AddDependencySheet({
 
         <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row justify-end gap-3">
           <Button variant="outline" size="lg" onClick={onClose} disabled={isLoading}>Cancel</Button>
-          <Button size="lg" onClick={handleSubmit} disabled={isLoading}>
+          <Button size="lg" onClick={handleSubmit} disabled={isLoading || !canPreview}>
             {isLoading ? "Adding..." : "Add Dependency"}
           </Button>
         </SheetFooter>
@@ -176,43 +214,45 @@ function DependencyChainSheet({
 
   return (
     <Sheet open={!!permissionKey} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
+      <SheetContent className="w-full sm:max-w-none flex flex-col gap-0 p-0" side="right">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-white-02">
           <SheetTitle className="text-base font-semibold text-black-01">Dependency Chain</SheetTitle>
           <SheetDescription className="font-mono text-xs text-gray-01">{permissionKey}</SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">This permission requires</p>
-            {requires.length === 0 ? (
-              <p className="text-xs text-gray-01">No upstream dependencies.</p>
-            ) : (
-              <div className="space-y-2">
-                {requires.map((k) => (
-                  <div key={k} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
-                    <Link className="size-3.5 text-gray-01 shrink-0" />
-                    <span className="font-mono text-xs text-black-01">{k}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">This permission requires</p>
+              {requires.length === 0 ? (
+                <p className="text-xs text-gray-01">No upstream dependencies.</p>
+              ) : (
+                <div className="space-y-2">
+                  {requires.map((k) => (
+                    <div key={k} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
+                      <Link className="size-3.5 text-gray-01 shrink-0" />
+                      <span className="font-mono text-xs text-black-01">{k}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          <div className="space-y-3">
-            <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Required by</p>
-            {requiredBy.length === 0 ? (
-              <p className="text-xs text-gray-01">Nothing depends on this permission.</p>
-            ) : (
-              <div className="space-y-2">
-                {requiredBy.map((k) => (
-                  <div key={k} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
-                    <Link className="size-3.5 text-gray-01 shrink-0" />
-                    <span className="font-mono text-xs text-black-01">{k}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Required by</p>
+              {requiredBy.length === 0 ? (
+                <p className="text-xs text-gray-01">Nothing depends on this permission.</p>
+              ) : (
+                <div className="space-y-2">
+                  {requiredBy.map((k) => (
+                    <div key={k} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
+                      <Link className="size-3.5 text-gray-01 shrink-0" />
+                      <span className="font-mono text-xs text-black-01">{k}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
