@@ -284,7 +284,7 @@ function RevokeDialog({
 }
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
-export default function UserAssignments() {
+export default function PlatformUserAssignments() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -361,7 +361,7 @@ export default function UserAssignments() {
   }));
 
   return (
-    <DashboardLayout title="User Assignments">
+    <DashboardLayout title="Platform User Assignments">
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>

@@ -2,7 +2,7 @@ import { type RouteObject } from "react-router";
 import RolesList from "@/pages/protected/rbac/roles";
 import CreateRole from "@/pages/protected/rbac/roles/create-role";
 import EditRole from "@/pages/protected/rbac/roles/edit-role";
-import UserAssignments from "@/pages/protected/rbac/roles/user-assignments";
+import PlatformUserAssignments from "@/pages/protected/rbac/roles/platform-user-assignments";
 import ChangeRequests from "@/pages/protected/rbac/roles/change-requests";
 import PermissionGroupsList from "@/pages/protected/rbac/roles/permission-groups";
 import CreatePermissionGroup from "@/pages/protected/rbac/roles/permission-groups/create-group";
@@ -26,7 +26,7 @@ export const rbacRoutes: RouteObject[] = [
   { path: "/roles", element: <RolesList /> },
   { path: "/roles/create", element: <CreateRole /> },
   { path: "/roles/:id/edit", element: <EditRole /> },
-  { path: "/roles/user-assignments", element: <UserAssignments /> },
+  { path: "/roles/user-assignments", element: <PlatformUserAssignments /> },
   { path: "/roles/change-requests", element: <ChangeRequests /> },
   { path: "/roles/permission-groups", element: <PermissionGroupsList /> },
   { path: "/roles/permission-groups/create", element: <CreatePermissionGroup /> },

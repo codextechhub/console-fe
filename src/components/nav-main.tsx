@@ -39,6 +39,7 @@ export function NavMain({
       title: string;
       url: string;
       isActive: boolean;
+      disabled?: boolean;
     }[];
   }[];
 }) {
@@ -90,14 +91,20 @@ export function NavMain({
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {item.items?.map((subItem) => (
-                      <DropdownMenuItem key={subItem.title} asChild>
-                        <Link
-                          to={subItem.url}
-                          className={subItem.isActive ? "font-medium text-primary" : ""}
-                        >
+                      subItem.disabled ? (
+                        <DropdownMenuItem key={subItem.title} disabled>
                           {subItem.title}
-                        </Link>
-                      </DropdownMenuItem>
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem key={subItem.title} asChild>
+                          <Link
+                            to={subItem.url}
+                            className={subItem.isActive ? "font-medium text-primary" : ""}
+                          >
+                            {subItem.title}
+                          </Link>
+                        </DropdownMenuItem>
+                      )
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -129,13 +136,22 @@ export function NavMain({
                   <SidebarMenuSub className="ml-6">
                     {item.items?.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton
-                          asChild
-                          isActive={subItem.isActive}
-                          className="text-xs"
-                        >
-                          <Link to={subItem.url}>{subItem.title}</Link>
-                        </SidebarMenuSubButton>
+                        {subItem.disabled ? (
+                          <SidebarMenuSubButton
+                            className="text-xs opacity-40 cursor-not-allowed pointer-events-none"
+                            isActive={false}
+                          >
+                            {subItem.title}
+                          </SidebarMenuSubButton>
+                        ) : (
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={subItem.isActive}
+                            className="text-xs"
+                          >
+                            <Link to={subItem.url}>{subItem.title}</Link>
+                          </SidebarMenuSubButton>
+                        )}
                       </SidebarMenuSubItem>
                     ))}
                   </SidebarMenuSub>
