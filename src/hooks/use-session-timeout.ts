@@ -142,34 +142,58 @@ export function useSessionTimeout() {
 
     const refreshToken = Cookies.get("refresh_token");
     if (!refreshToken) {
+      // expireSession already removed cookies and wrote the banner — just navigate.
+      // Calling logout() here would wipe sessionStorage and erase the banner.
+      window.location.href = routesPath.AUTH.LOGIN;
+      return;
+    }
+
+    // Dismiss the warning and restart the idle timer (used on non-fatal paths).
+    const dismiss = () => {
+      warningStartedAtRef.current = null;
+      isWarningOpenRef.current = false;
+      setOpen(false);
+      resetIdleTimer();
+    };
+
+    let res: Response;
+    try {
+      res = await fetch(`${baseUrl}/user/auth/token/refresh/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", accept: "application/json" },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+    } catch {
+      // Network error — server unreachable, don't boot the user out.
+      dismiss();
+      return;
+    }
+
+    if (res.status === 401) {
+      // Refresh token is definitively invalid — must log out.
       logout();
       return;
     }
 
+    if (!res.ok) {
+      // Server error (5xx etc.) — transient, don't log out.
+      dismiss();
+      return;
+    }
+
     try {
-      const res = await fetch(`${baseUrl}/user/auth/token/refresh/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          accept: "application/json",
-        },
-        body: JSON.stringify({ refresh: refreshToken }),
-      });
-      if (!res.ok) throw new Error();
       const data = await res.json();
       const newAccess = data?.data?.access;
       if (!newAccess) throw new Error();
       Cookies.set("token", newAccess);
       dispatch(setToken(newAccess));
     } catch {
-      logout();
+      // Malformed response — don't log out.
+      dismiss();
       return;
     }
 
-    warningStartedAtRef.current = null;
-    isWarningOpenRef.current = false;
-    setOpen(false);
-    resetIdleTimer();
+    dismiss();
   }, [baseUrl, dispatch, logout, resetIdleTimer]);
 
   const goToLogin = useCallback(() => {
