@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Plus, RefreshCw, Lock } from "lucide-react";
+import { useNavigate } from "react-router";
+import { Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -7,165 +8,24 @@ import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@/components/ui/sheet";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
+import { routesPath } from "@/routes/routesPath";
 import {
   useGetPermissionActionsQuery,
-  useCreatePermissionActionMutation,
-  useUpdatePermissionActionMutation,
   useDeletePermissionActionMutation,
 } from "@/redux/services/dashboard/rbacApi";
 import type { PermissionAction } from "@/redux/services/dashboard/rbacTypes";
 
 const TABLE_HEADERS = ["Name", "Description", "Permissions", "Status", "Created", "Action"];
-
-type DrawerMode = "create" | "edit";
-
-// ── Action Sheet ───────────────────────────────────────────────────────────────
-function ActionSheet({
-  open,
-  mode,
-  item,
-  existingNames,
-  onClose,
-}: {
-  open: boolean;
-  mode: DrawerMode;
-  item: PermissionAction | null;
-  existingNames: string[];
-  onClose: () => void;
-}) {
-  const [name, setName] = useState(mode === "edit" && item ? item.name : "");
-  const [description, setDescription] = useState(mode === "edit" && item ? (item.description ?? "") : "");
-  const [isActive, setIsActive] = useState(mode === "edit" && item ? item.is_active : true);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const [createAction, { isLoading: creating }] = useCreatePermissionActionMutation();
-  const [updateAction, { isLoading: updating }] = useUpdatePermissionActionMutation();
-  const isLoading = creating || updating;
-  const isEdit = mode === "edit";
-
-  const canSubmit = isEdit
-    ? description !== (item?.description ?? "") || isActive !== (item?.is_active ?? true)
-    : name.trim() !== "" && description.trim() !== "";
-
-  const handleSubmit = () => {
-    const e: Record<string, string> = {};
-    if (!isEdit) {
-      if (!name) e.name = "Required.";
-      else if (!/^[a-z][a-z0-9_]*$/.test(name)) e.name = "Lowercase, underscores, must start with a letter.";
-      else if (existingNames.includes(name)) e.name = "An action with this name already exists.";
-    }
-    if (!description.trim()) e.description = "Add a short description.";
-    setErrors(e);
-    if (Object.keys(e).length) return;
-
-    if (isEdit && item) {
-      updateAction({ name: item.name, body: { description: description.trim(), is_active: isActive } })
-        .unwrap()
-        .then(() => { toast.success("Action updated."); onClose(); })
-        .catch(() => {});
-    } else {
-      createAction({ name, description: description.trim(), is_active: isActive })
-        .unwrap()
-        .then(() => { toast.success(`Action "${name}" created.`); onClose(); })
-        .catch(() => {});
-    }
-  };
-
-  return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
-        <SheetHeader className="px-6 pt-6 pb-4 border-b border-white-02">
-          <SheetTitle className="text-base font-semibold text-black-01">
-            {isEdit ? "Edit Action" : "New Action"}
-          </SheetTitle>
-          <SheetDescription className="text-xs text-gray-01">
-            {isEdit ? item?.name : "Add an action verb to the global vocabulary."}
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          {isEdit && (
-            <div className="rounded-md bg-pry-01/30 border border-pry-01 px-4 py-3 flex items-start gap-2 text-xs text-gray-01">
-              <Lock className="size-3.5 mt-0.5 shrink-0 text-primary" />
-              <span>Name is the primary key. Actions can't be renamed because every permission key ends with this slug.</span>
-            </div>
-          )}
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-black-01">
-              Name (slug){!isEdit && <span className="text-destructive"> *</span>}
-            </label>
-            <p className="text-xs text-gray-01">Lowercase, underscores. e.g. view, create, approve.</p>
-            {isEdit ? (
-              <p className="font-mono text-sm font-semibold text-black-01">{name}</p>
-            ) : (
-              <>
-                <input
-                  className={cn(
-                    "w-full h-10 px-3 rounded-md border text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20",
-                    errors.name ? "border-destructive" : "border-gray-200"
-                  )}
-                  placeholder="view"
-                  value={name}
-                  onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-                />
-                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-              </>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-black-01">
-              Description <span className="text-destructive">*</span>
-            </label>
-            <Textarea
-              placeholder="What does this action allow?"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-            {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
-          </div>
-
-          <div className="flex items-center justify-between bg-gray-50 border border-white-02 rounded-md px-4 py-3">
-            <div>
-              <p className="text-sm font-medium text-black-01">Active</p>
-              <p className="text-xs text-gray-01">Shown in the action dropdown for new permissions</p>
-            </div>
-            <Switch checked={isActive} onCheckedChange={setIsActive} />
-          </div>
-        </div>
-
-        <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row justify-end gap-3">
-          <Button variant="outline" size="lg" onClick={onClose} disabled={isLoading}>Cancel</Button>
-          <Button size="lg" onClick={handleSubmit} disabled={!canSubmit || isLoading}>
-            {isLoading ? (isEdit ? "Saving..." : "Creating...") : (isEdit ? "Save Changes" : "Create Action")}
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-  );
-}
 
 // ── Delete Confirm ─────────────────────────────────────────────────────────────
 function DeleteActionDialog({
@@ -223,11 +83,11 @@ function DeleteActionDialog({
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function PermissionActions() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [statusFilter, setStatusFilter] = useState("all");
   const [query, setQuery] = useState({ page: 1 });
-  const [drawer, setDrawer] = useState<{ mode: DrawerMode; item: PermissionAction | null } | null>(null);
   const [deleteItem, setDeleteItem] = useState<PermissionAction | null>(null);
 
   const params = useMemo(() => ({
@@ -241,7 +101,6 @@ export default function PermissionActions() {
   });
 
   const actions = data?.data ?? [];
-  const existingNames = actions.map((a) => a.name);
 
   const tableData = actions.map((a: PermissionAction) => ({
     name: <span className="font-mono text-xs font-semibold text-black-01">{a.name}</span>,
@@ -264,7 +123,7 @@ export default function PermissionActions() {
               The final segment of a permission key. Verbs that an actor performs on a resource — view, create, approve, refund.
             </p>
           </div>
-          <Button size="lg" onClick={() => setDrawer({ mode: "create", item: null })}>
+          <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.ACTIONS.CREATE)}>
             <Plus /> New Action
           </Button>
         </div>
@@ -319,7 +178,7 @@ export default function PermissionActions() {
               {
                 label: "Edit",
                 className: "",
-                onActionClick: () => setDrawer({ mode: "edit", item: row._raw }),
+                onActionClick: () => navigate(routesPath.PROTECTED.PERMISSIONS.ACTIONS.EDIT(row._raw.name)),
               },
               {
                 label: "Delete",
@@ -334,16 +193,6 @@ export default function PermissionActions() {
           />
         )}
       </main>
-
-      {drawer && (
-        <ActionSheet
-          open={!!drawer}
-          mode={drawer.mode}
-          item={drawer.item}
-          existingNames={existingNames}
-          onClose={() => setDrawer(null)}
-        />
-      )}
 
       <DeleteActionDialog item={deleteItem} onClose={() => setDeleteItem(null)} />
     </DashboardLayout>
