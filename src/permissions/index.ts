@@ -147,7 +147,7 @@ export const P = {
 
 export type PermissionCode = (typeof P)[keyof typeof P];
 
-// Internal resolver — used only by usePermissions, RequirePermission, PermissionGate.
+// Internal resolver — used only by usePermissions and PermissionGate.
 export function resolvePermissionKey(code: PermissionCode): string {
   return REGISTRY[code] ?? "";
 }
