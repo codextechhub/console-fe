@@ -75,7 +75,7 @@ function AddDependencySheet({
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-none flex flex-col gap-0 p-0" side="right">
+      <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-white-02">
           <SheetTitle className="text-base font-semibold text-black-01">Add Dependency</SheetTitle>
           <SheetDescription className="text-xs text-gray-01">
@@ -83,47 +83,44 @@ function AddDependencySheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8">
-          {/* Two-column picker */}
-          <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-black-01">
-                Permission <span className="text-destructive">*</span>
-              </label>
-              <p className="text-xs text-gray-01">The permission that has a dependency.</p>
-              <select
-                className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                value={permKey}
-                onChange={(e) => { setError(""); setPermKey(e.target.value); }}
-              >
-                <option value="">Select a permission...</option>
-                {permOptions.map((p) => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
-                ))}
-              </select>
-            </div>
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-black-01">
+              Permission <span className="text-destructive">*</span>
+            </label>
+            <p className="text-xs text-gray-01">The permission that has a dependency.</p>
+            <select
+              className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              value={permKey}
+              onChange={(e) => { setError(""); setPermKey(e.target.value); }}
+            >
+              <option value="">Select a permission...</option>
+              {permOptions.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </div>
 
-            <div className="flex flex-col items-center gap-1 pb-1.5">
-              <ArrowRight className="size-5 text-gray-01" />
-              <span className="text-[10px] text-gray-01 font-medium uppercase tracking-wide">requires</span>
-            </div>
+          <div className="flex items-center gap-2 text-gray-01 text-xs">
+            <ArrowRight className="size-4" />
+            <span>requires</span>
+          </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-black-01">
-                Depends On <span className="text-destructive">*</span>
-              </label>
-              <p className="text-xs text-gray-01">The permission that must also be granted.</p>
-              <select
-                className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                value={depsOnKey}
-                onChange={(e) => { setError(""); setDepsOnKey(e.target.value); }}
-              >
-                <option value="">Select the required permission...</option>
-                {permOptions.filter((p) => p.value !== permKey).map((p) => (
-                  <option key={p.value} value={p.value}>{p.label}</option>
-                ))}
-              </select>
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-black-01">
+              Depends On <span className="text-destructive">*</span>
+            </label>
+            <p className="text-xs text-gray-01">The permission that must also be granted.</p>
+            <select
+              className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              value={depsOnKey}
+              onChange={(e) => { setError(""); setDepsOnKey(e.target.value); }}
+            >
+              <option value="">Select the required permission...</option>
+              {permOptions.filter((p) => p.value !== permKey).map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
           </div>
 
           {/* Live preview */}
@@ -214,14 +211,14 @@ function DependencyChainSheet({
 
   return (
     <Sheet open={!!permissionKey} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-none flex flex-col gap-0 p-0" side="right">
+      <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-white-02">
           <SheetTitle className="text-base font-semibold text-black-01">Dependency Chain</SheetTitle>
           <SheetDescription className="font-mono text-xs text-gray-01">{permissionKey}</SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6">
-          <div className="grid grid-cols-2 gap-6">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+          <div className="space-y-6">
             <div className="space-y-3">
               <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">This permission requires</p>
               {requires.length === 0 ? (
