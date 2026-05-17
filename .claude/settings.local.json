@@ -9,7 +9,14 @@
       "Bash(xargs cat)",
       "Bash(git *)",
       "Bash(npx vite *)",
-      "Bash(xargs ls -la)"
+      "Bash(xargs ls -la)",
+      "Bash(sed -n '395,415p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_rbac/models.py)",
+      "Bash(sed -n '860,880p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_rbac/models.py)",
+      "Bash(sed -n '915,925p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_rbac/models.py)",
+      "Bash(sed -n '961,975p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_rbac/models.py)",
+      "Bash(sed -n '1046,1060p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_rbac/models.py)",
+      "Bash(sed -n '975,985p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_rbac/models.py)",
+      "Bash(sed -n '1062,1072p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_rbac/models.py)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"
