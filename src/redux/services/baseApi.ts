@@ -38,15 +38,12 @@ type RefreshOutcome =
 
 const refreshTokenRequest = async (refreshToken?: string): Promise<RefreshOutcome> => {
   if (!refreshToken) return { ok: false, reason: "token_invalid" };
-  const accessToken = getAccessToken();
   try {
     const response = await fetch(`${baseUrl}/user/auth/token/refresh/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         accept: "application/json",
-        redirect: "follow",
-        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ refresh: refreshToken }),
     });
@@ -95,8 +92,7 @@ export const baseQueryInterceptor: BaseQueryFn<
   const result = await baseQuery(args, api, extraOptions);
   if (result?.error) {
     const res: any = result?.error;
-    console.log(res, "api")
-    
+
     if (res?.status === 400 || res?.status === 422) {
       const specific = extractFirstDetailError(res?.data?.error?.detail);
       const message = specific || res?.data?.message;
@@ -130,7 +126,10 @@ export const baseQueryInterceptor: BaseQueryFn<
         }
         return retryResult;
       } else if (refreshed.reason === "network_error") {
-        toast.error("Network error. Check your connection and try again.");
+        // The server was just reached (it returned 401), so this is a transient
+        // issue with the refresh endpoint — not a connectivity problem. Return the
+        // original result silently; the component will surface the error.
+        return result;
       } else if (refreshed.reason === "server_error") {
         toast.error("A server error occurred. Please try again later.");
       } else {
@@ -189,8 +188,12 @@ export const baseQueryInterceptor: BaseQueryFn<
       return result;
     } else if (typeof res?.status === "number" && res.status >= 500) {
       toast.error("A server error occurred. Please try again later.");
-    } else if (res?.status === "FETCH_ERROR" || res?.status === "TIMEOUT_ERROR") {
-      toast.error("Network error. Check your connection and try again.");
+    } else if (res?.status === "TIMEOUT_ERROR") {
+      toast.error("The request timed out. Please try again.");
+    } else if (res?.status === "FETCH_ERROR") {
+      toast.error("Could not reach the server. Please try again.");
+    } else if (res?.status === "PARSING_ERROR") {
+      toast.error("Unexpected response from the server. Please try again.");
     }
   }
 
