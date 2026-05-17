@@ -57,8 +57,18 @@ export const routesPath = {
         EDIT_PATH: "/permissions/modules/:name/edit",
         EDIT: (name: string) => `/permissions/modules/${name}/edit`,
       },
-      RESOURCES: { INDEX: "/permissions/resources" },
-      ACTIONS: { INDEX: "/permissions/actions" },
+      RESOURCES: {
+        INDEX: "/permissions/resources",
+        CREATE: "/permissions/resources/create",
+        EDIT_PATH: "/permissions/resources/:id/edit",
+        EDIT: (id: string) => `/permissions/resources/${id}/edit`,
+      },
+      ACTIONS: {
+        INDEX: "/permissions/actions",
+        CREATE: "/permissions/actions/create",
+        EDIT_PATH: "/permissions/actions/:name/edit",
+        EDIT: (name: string) => `/permissions/actions/${name}/edit`,
+      },
       DEPENDENCIES: { INDEX: "/permissions/dependencies" },
     },
     DATA_IMPORTS: {

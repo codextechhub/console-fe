@@ -11,8 +11,14 @@ import PermissionsList from "@/pages/protected/rbac/permissions";
 import CreatePermission from "@/pages/protected/rbac/permissions/create-permission";
 import EditPermission from "@/pages/protected/rbac/permissions/edit-permission";
 import PermissionModulesList from "@/pages/protected/rbac/permissions/modules";
+import CreateModule from "@/pages/protected/rbac/permissions/modules/create-module";
+import EditModule from "@/pages/protected/rbac/permissions/modules/edit-module";
 import PermissionResources from "@/pages/protected/rbac/permissions/resources";
+import CreateResource from "@/pages/protected/rbac/permissions/resources/create-resource";
+import EditResource from "@/pages/protected/rbac/permissions/resources/edit-resource";
 import PermissionActionsPage from "@/pages/protected/rbac/permissions/actions";
+import CreateAction from "@/pages/protected/rbac/permissions/actions/create-action";
+import EditAction from "@/pages/protected/rbac/permissions/actions/edit-action";
 import PermissionDependencies from "@/pages/protected/rbac/permissions/dependencies";
 
 export const rbacRoutes: RouteObject[] = [
@@ -28,7 +34,13 @@ export const rbacRoutes: RouteObject[] = [
   { path: "/permissions/create", element: <CreatePermission /> },
   { path: "/permissions/:key/edit", element: <EditPermission /> },
   { path: "/permissions/modules", element: <PermissionModulesList /> },
+  { path: "/permissions/modules/create", element: <CreateModule /> },
+  { path: "/permissions/modules/:name/edit", element: <EditModule /> },
   { path: "/permissions/resources", element: <PermissionResources /> },
+  { path: "/permissions/resources/create", element: <CreateResource /> },
+  { path: "/permissions/resources/:id/edit", element: <EditResource /> },
   { path: "/permissions/actions", element: <PermissionActionsPage /> },
+  { path: "/permissions/actions/create", element: <CreateAction /> },
+  { path: "/permissions/actions/:name/edit", element: <EditAction /> },
   { path: "/permissions/dependencies", element: <PermissionDependencies /> },
 ];
