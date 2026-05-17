@@ -1,5 +1,6 @@
-import { useState, useMemo, useEffect } from "react";
-import { Plus, RefreshCw, Lock } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router";
+import { Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -7,214 +8,24 @@ import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@/components/ui/sheet";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
+import { routesPath } from "@/routes/routesPath";
 import {
   useGetPermissionResourcesQuery,
-  useCreatePermissionResourceMutation,
-  useUpdatePermissionResourceMutation,
   useDeletePermissionResourceMutation,
   useGetPermissionModulesQuery,
 } from "@/redux/services/dashboard/rbacApi";
 import type { PermissionResource } from "@/redux/services/dashboard/rbacTypes";
 
 const TABLE_HEADERS = ["Key Segment", "Module", "Description", "Permissions", "Status", "Action"];
-
-type DrawerMode = "create" | "edit";
-
-// ── Resource Sheet ─────────────────────────────────────────────────────────────
-function ResourceSheet({
-  open,
-  mode,
-  item,
-  onClose,
-}: {
-  open: boolean;
-  mode: DrawerMode;
-  item: PermissionResource | null;
-  onClose: () => void;
-}) {
-  const [module, setModule] = useState("");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [isActive, setIsActive] = useState(true);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const [createResource, { isLoading: creating }] = useCreatePermissionResourceMutation();
-  const [updateResource, { isLoading: updating }] = useUpdatePermissionResourceMutation();
-  const { data: modulesData } = useGetPermissionModulesQuery({ page: 1, page_size: 200 });
-  const modules = (modulesData?.data ?? []).filter((m) => m.is_active);
-
-  const isLoading = creating || updating;
-  const isEdit = mode === "edit";
-
-  useEffect(() => {
-    if (!open) return;
-    if (isEdit && item) {
-      setModule(item.module);
-      setName(item.name);
-      setDescription(item.description ?? "");
-      setIsActive(item.is_active);
-    } else {
-      setModule("");
-      setName("");
-      setDescription("");
-      setIsActive(true);
-    }
-    setErrors({});
-  }, [open, item]);
-
-  const canSubmit = isEdit
-    ? description !== (item?.description ?? "") || isActive !== (item?.is_active ?? true)
-    : module !== "" && name.trim() !== "" && description.trim() !== "";
-
-  const combinedKey = module && name ? `${module}.${name}` : "";
-
-  const handleSubmit = () => {
-    const e: Record<string, string> = {};
-    if (!isEdit) {
-      if (!module) e.module = "Pick a module.";
-      if (!name) e.name = "Required.";
-      else if (!/^[a-z][a-z0-9_]*$/.test(name)) e.name = "Lowercase, underscores, must start with a letter.";
-    }
-    if (!description.trim()) e.description = "Add a short description.";
-    setErrors(e);
-    if (Object.keys(e).length) return;
-
-    const body = { module, name, description: description.trim(), is_active: isActive };
-
-    if (isEdit && item) {
-      updateResource({ id: item.id, body: { description: description.trim(), is_active: isActive } })
-        .unwrap()
-        .then(() => { toast.success("Resource updated."); onClose(); })
-        .catch(() => {});
-    } else {
-      createResource(body)
-        .unwrap()
-        .then(() => { toast.success(`Resource ${module}.${name} created.`); onClose(); })
-        .catch(() => {});
-    }
-  };
-
-  return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
-        <SheetHeader className="px-6 pt-6 pb-4 border-b border-white-02">
-          <SheetTitle className="text-base font-semibold text-black-01">
-            {isEdit ? "Edit Resource" : "New Resource"}
-          </SheetTitle>
-          <SheetDescription className="text-xs text-gray-01">
-            {isEdit ? `${item?.module}.${item?.name}` : "Add a resource under a module."}
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          {isEdit && (
-            <div className="rounded-md bg-pry-01/30 border border-pry-01 px-4 py-3 flex items-start gap-2 text-xs text-gray-01">
-              <Lock className="size-3.5 mt-0.5 shrink-0 text-primary" />
-              <span>Module and name are immutable. Delete and recreate if you need to rekey.</span>
-            </div>
-          )}
-
-          {combinedKey && (
-            <div className="bg-gray-50 border border-white-02 rounded-md px-4 py-3">
-              <p className="text-xs text-gray-01 mb-1 font-mont">Resource Key</p>
-              <p className="font-mono text-sm font-semibold text-black-01">{combinedKey}</p>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-black-01">
-                Module <span className="text-destructive">*</span>
-              </label>
-              {isEdit ? (
-                <p className="font-mono text-sm text-black-01 h-10 flex items-center">{module}</p>
-              ) : (
-                <>
-                  <CustomNativeSelect
-                    id="res-module"
-                    placeholder="Pick a module..."
-                    options={modules.map((m) => ({ value: m.name, label: m.name }))}
-                    value={module}
-                    onChange={(e) => setModule(e.target.value)}
-                  />
-                  {errors.module && <p className="text-xs text-destructive">{errors.module}</p>}
-                </>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-black-01">
-                Name (slug) <span className="text-destructive">*</span>
-              </label>
-              {isEdit ? (
-                <p className="font-mono text-sm text-black-01 h-10 flex items-center">{name}</p>
-              ) : (
-                <>
-                  <input
-                    className={cn(
-                      "w-full h-10 px-3 rounded-md border text-sm font-mono text-black-01 bg-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20",
-                      errors.name ? "border-destructive" : "border-gray-200"
-                    )}
-                    placeholder="invoice"
-                    value={name}
-                    onChange={(e) => setName(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-                  />
-                  {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-black-01">
-              Description <span className="text-destructive">*</span>
-            </label>
-            <Textarea
-              placeholder="What does this resource represent?"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-            {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
-          </div>
-
-          <div className="flex items-center justify-between bg-gray-50 border border-white-02 rounded-md px-4 py-3">
-            <div>
-              <p className="text-sm font-medium text-black-01">Active</p>
-              <p className="text-xs text-gray-01">Available in resource dropdowns for new permissions</p>
-            </div>
-            <Switch checked={isActive} onCheckedChange={setIsActive} />
-          </div>
-        </div>
-
-        <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row justify-end gap-3">
-          <Button variant="outline" size="lg" onClick={onClose} disabled={isLoading}>Cancel</Button>
-          <Button size="lg" onClick={handleSubmit} disabled={!canSubmit || isLoading}>
-            {isLoading ? (isEdit ? "Saving..." : "Creating...") : (isEdit ? "Save Changes" : "Create Resource")}
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-  );
-}
 
 // ── Delete Confirm ─────────────────────────────────────────────────────────────
 function DeleteResourceDialog({
@@ -272,12 +83,12 @@ function DeleteResourceDialog({
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function PermissionResources() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [moduleFilter, setModuleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [query, setQuery] = useState({ page: 1 });
-  const [drawer, setDrawer] = useState<{ mode: DrawerMode; item: PermissionResource | null } | null>(null);
   const [deleteItem, setDeleteItem] = useState<PermissionResource | null>(null);
 
   const params = useMemo(() => ({
@@ -312,7 +123,6 @@ export default function PermissionResources() {
       : <span className="text-xs text-gray-01">—</span>,
     status: <Badge variant={r.is_active ? "active" : "inactive"}>{r.is_active ? "Active" : "Inactive"}</Badge>,
     _raw: r,
-    _id: r.id,
   }));
 
   return (
@@ -325,7 +135,7 @@ export default function PermissionResources() {
               The middle segment of a permission key. Each resource is scoped to a module — finance.invoice is distinct from settings.invoice.
             </p>
           </div>
-          <Button size="lg" onClick={() => setDrawer({ mode: "create", item: null })}>
+          <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.RESOURCES.CREATE)}>
             <Plus /> New Resource
           </Button>
         </div>
@@ -383,7 +193,7 @@ export default function PermissionResources() {
               {
                 label: "Edit",
                 className: "",
-                onActionClick: () => setDrawer({ mode: "edit", item: row._raw }),
+                onActionClick: () => navigate(routesPath.PROTECTED.PERMISSIONS.RESOURCES.EDIT(row._raw.id)),
               },
               {
                 label: "Delete",
@@ -398,15 +208,6 @@ export default function PermissionResources() {
           />
         )}
       </main>
-
-      {drawer && (
-        <ResourceSheet
-          open={!!drawer}
-          mode={drawer.mode}
-          item={drawer.item}
-          onClose={() => setDrawer(null)}
-        />
-      )}
 
       <DeleteResourceDialog item={deleteItem} onClose={() => setDeleteItem(null)} />
     </DashboardLayout>
