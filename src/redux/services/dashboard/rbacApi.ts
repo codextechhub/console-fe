@@ -103,6 +103,11 @@ export const rbacApi = baseApi.injectEndpoints({
       providesTags: ["PermissionModules"],
     }),
 
+    getPermissionModuleDetail: builder.query<{ data: PermissionModule }, string>({
+      query: (name) => ({ url: `/rbac/vision/permission-modules/${name}/`, method: "GET" }),
+      providesTags: ["PermissionModules"],
+    }),
+
     createPermissionModule: builder.mutation<{ data: PermissionModule }, Record<string, unknown>>({
       query: (body) => ({ url: `/rbac/vision/permission-modules/`, method: "POST", body }),
       invalidatesTags: ["PermissionModules"],
@@ -124,6 +129,11 @@ export const rbacApi = baseApi.injectEndpoints({
       providesTags: ["PermissionResources"],
     }),
 
+    getPermissionResourceDetail: builder.query<{ data: PermissionResource }, string>({
+      query: (id) => ({ url: `/rbac/vision/permission-resources/${id}/`, method: "GET" }),
+      providesTags: ["PermissionResources"],
+    }),
+
     createPermissionResource: builder.mutation<{ data: PermissionResource }, Record<string, unknown>>({
       query: (body) => ({ url: `/rbac/vision/permission-resources/`, method: "POST", body }),
       invalidatesTags: ["PermissionResources"],
@@ -142,6 +152,11 @@ export const rbacApi = baseApi.injectEndpoints({
     // ── Permission Actions ─────────────────────────────────────────────────────
     getPermissionActions: builder.query<PaginatedResponse<PermissionAction>, Record<string, string | number>>({
       query: (params) => ({ url: `/rbac/vision/permission-actions/${generateQueryString(params)}`, method: "GET" }),
+      providesTags: ["PermissionActions"],
+    }),
+
+    getPermissionActionDetail: builder.query<{ data: PermissionAction }, string>({
+      query: (name) => ({ url: `/rbac/vision/permission-actions/${name}/`, method: "GET" }),
       providesTags: ["PermissionActions"],
     }),
 
@@ -227,14 +242,17 @@ export const {
   useUpdatePermissionMutation,
   useDeletePermissionMutation,
   useGetPermissionModulesQuery,
+  useGetPermissionModuleDetailQuery,
   useCreatePermissionModuleMutation,
   useUpdatePermissionModuleMutation,
   useDeletePermissionModuleMutation,
   useGetPermissionResourcesQuery,
+  useGetPermissionResourceDetailQuery,
   useCreatePermissionResourceMutation,
   useUpdatePermissionResourceMutation,
   useDeletePermissionResourceMutation,
   useGetPermissionActionsQuery,
+  useGetPermissionActionDetailQuery,
   useCreatePermissionActionMutation,
   useUpdatePermissionActionMutation,
   useDeletePermissionActionMutation,
