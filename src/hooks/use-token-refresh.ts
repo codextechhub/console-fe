@@ -6,6 +6,9 @@ import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
 import { routesPath } from "@/routes/routesPath";
 import { clearStorageItem } from "./use-session-storage";
 
+// Module-level flag prevents concurrent refresh calls when navigating quickly.
+let isRefreshing = false;
+
 const REFRESH_BUFFER_SECONDS = 120; // refresh if token expires within 2 minutes
 
 const getTokenExpiry = (token: string): number | null => {
@@ -36,6 +39,9 @@ export function useTokenRefresh() {
     if (!isExpiredOrExpiring(accessToken)) return;
 
     const doRefresh = async () => {
+      if (isRefreshing) return;
+      isRefreshing = true;
+
       let response: Response;
       try {
         response = await fetch(`${baseUrl}/user/auth/token/refresh/`, {
@@ -49,11 +55,13 @@ export function useTokenRefresh() {
       } catch {
         // Network error or server unreachable — leave the user logged in.
         // The next protected API call will surface the auth failure if needed.
+        isRefreshing = false;
         return;
       }
 
       // Only log out when the server explicitly rejects the refresh token.
       if (response.status === 401 || response.status === 400) {
+        isRefreshing = false;
         dispatch(resetAuth());
         Cookies.remove("token");
         Cookies.remove("refresh_token");
@@ -64,18 +72,24 @@ export function useTokenRefresh() {
       }
 
       // Any other non-OK status (500, 503…) — don't log out, just bail.
-      if (!response.ok) return;
+      if (!response.ok) {
+        isRefreshing = false;
+        return;
+      }
 
       try {
         const data = await response.json();
         const newAccess = data?.data?.access;
         const newRefresh = data?.data?.refresh;
-        if (!newAccess) return;
-        Cookies.set("token", newAccess);
-        dispatch(setToken(newAccess));
-        if (newRefresh) Cookies.set("refresh_token", newRefresh);
+        if (newAccess) {
+          Cookies.set("token", newAccess);
+          dispatch(setToken(newAccess));
+          if (newRefresh) Cookies.set("refresh_token", newRefresh);
+        }
       } catch {
         // Malformed JSON — don't log out.
+      } finally {
+        isRefreshing = false;
       }
     };
 

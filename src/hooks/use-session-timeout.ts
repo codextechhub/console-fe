@@ -45,6 +45,8 @@ export function useSessionTimeout() {
     Cookies.remove("token");
     Cookies.remove("refresh_token");
     clearStorageItem();
+    // Set banner AFTER clear so it survives both page refresh and goToLogin redirect.
+    sessionStorage.setItem("_auth_banner", "Your session has expired due to inactivity. Please log in to continue.");
     dispatch(resetAuth());
     setOpen(false);
     setIsExpired(true);
@@ -134,6 +136,10 @@ export function useSessionTimeout() {
   }, [checkOnVisibility]);
 
   const onContinue = useCallback(async () => {
+    // Stop the countdown immediately so it can't fire expireSession
+    // while the refresh fetch is in-flight.
+    clearCountdown();
+
     const refreshToken = Cookies.get("refresh_token");
     if (!refreshToken) {
       logout();
@@ -160,7 +166,6 @@ export function useSessionTimeout() {
       return;
     }
 
-    clearCountdown();
     warningStartedAtRef.current = null;
     isWarningOpenRef.current = false;
     setOpen(false);
