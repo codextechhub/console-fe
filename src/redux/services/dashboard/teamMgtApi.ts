@@ -71,13 +71,6 @@ export const teamMgtApi = baseApi.injectEndpoints({
         method: "POST",
       }),
     }),
-    deleteTeamMember: builder.mutation<void, string>({
-      query: (user_id) => ({
-        url: `/user/users/${user_id}/`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Users"],
-    }),
   }),
 });
 
@@ -91,5 +84,4 @@ export const {
   useReactivateTeamMemberMutation,
   useUnlockTeamMemberMutation,
   useAdminPasswordResetMutation,
-  useDeleteTeamMemberMutation,
 } = teamMgtApi;

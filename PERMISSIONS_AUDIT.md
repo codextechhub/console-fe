@@ -148,9 +148,8 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Table row → "Suspend" action (ACTIVE members only) | `hasPermission()` | `P.SUSPEND_TEAM_MEMBER` |
 | Table row → "Reactivate" action (SUSPENDED members) | `hasPermission()` | `P.REACTIVATE_TEAM_MEMBER` |
 | Table row → "Unlock" action (LOCKED members) | `hasPermission()` | `P.REACTIVATE_TEAM_MEMBER` |
-| Table row → "Delete" action | `hasPermission()` | `P.DISMISS_TEAM_MEMBER` |
 
-> Delete is suppressed for the currently signed-in user regardless of permission, and is preceded by a confirmation dialog.
+> The `DELETE /user/users/{id}/` endpoint exists on the backend but is a soft-deactivate — functionally the same as Suspend. The UI therefore does not expose a separate Delete action; Suspend is the canonical deactivation flow.
 
 ---
 
@@ -180,7 +179,6 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.ACCESS_TEAM_PANEL` | `platform.team.view` |
 | `P.INVITE_TEAM_MEMBER` | `platform.team.create` |
 | `P.MODIFY_TEAM_MEMBER` | `platform.team.update` |
-| `P.DISMISS_TEAM_MEMBER` | `platform.team.delete` |
 | `P.SUSPEND_TEAM_MEMBER` | `platform.team.suspend` |
 | `P.REACTIVATE_TEAM_MEMBER` | `platform.team.reactivate` |
 | `P.VIEW_ROLES` | `platform.roles.view` |
@@ -199,6 +197,7 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 
 | Constant | Backend Key | Likely Home |
 |---|---|---|
+| `P.DISMISS_TEAM_MEMBER` | `platform.team.delete` | No UI surface — DELETE on the backend is a soft-deactivate equivalent to Suspend, which already has its own gated action. Consider deprecating this constant or repurposing if hard-delete is added later. |
 | `P.DECOMMISSION_SCHOOL` | `platform.schools.delete` | School table row → Delete action |
 | `P.MANAGE_SCHOOL` | `platform.schools.manage` | School settings / config reset |
 | `P.BROWSE_BRANCHES` | `platform.branches.view` | Branches sidebar item / page |
