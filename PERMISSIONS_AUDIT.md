@@ -192,6 +192,10 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.MODIFY_PERMISSION` | `platform.permissions.update` |
 | `P.DELETE_PERMISSION` | `platform.permissions.delete` |
 | `P.MANAGE_PERMISSIONS` | `platform.permissions.manage` |
+| `P.VIEW_AUDIT` | `platform.audit.view` |
+| `P.EXPORT_AUDIT` | `platform.audit.export` |
+| `P.MANAGE_AUDIT` | `platform.audit.manage` |
+| `P.END_IMPERSONATION` | `platform.security.end_impersonation` |
 
 ### Not yet wired (defined but no UI check uses them)
 
@@ -204,16 +208,33 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.ADD_BRANCH` | `platform.branches.create` | Add Branch button |
 | `P.MODIFY_BRANCH` | `platform.branches.update` | Branch table row → Edit |
 | `P.MANAGE_BRANCH` | `platform.branches.manage` | Branch lifecycle transitions |
-| `P.VIEW_AUDIT` | `platform.audit.view` | Audit log sidebar item / page |
-| `P.EXPORT_AUDIT` | `platform.audit.export` | Audit log → Export button |
-| `P.MANAGE_AUDIT` | `platform.audit.manage` | Compliance rules management |
 | `P.VIEW_DASHBOARD` | `platform.dashboard.view` | Home / Overview page |
+| `P.VIEW_SECURITY` | `platform.security.view` | Defined for future security-only read separation; today the Audit pages gate on `P.VIEW_AUDIT`. |
+| `P.IMPERSONATE_USER` | `platform.security.impersonate` | "Start impersonation" entry point — not yet built; the current Impersonations page only lists sessions. |
 
 ---
 
-## 5. Known Gaps
+## 6. Audit & Security Pages — Permission Wiring
+
+| Page | Sidebar gate | Action gates |
+|---|---|---|
+| `/audit` Security Dashboard | `P.VIEW_AUDIT` | "Export view" → `P.EXPORT_AUDIT` |
+| `/audit/events` Events Explorer | `P.VIEW_AUDIT` | "Export filtered" → `P.EXPORT_AUDIT` |
+| `/audit/entity-trails` and detail | `P.VIEW_AUDIT` | — |
+| `/audit/sessions` Live Sessions | `P.VIEW_AUDIT` | "End session" → `P.SUSPEND_TEAM_MEMBER` (mirrors backend `platform.team.suspend`) |
+| `/audit/login-attempts` | `P.VIEW_AUDIT` | — (read-only) |
+| `/audit/lockouts` | `P.VIEW_AUDIT` | "Unlock account" → `P.REACTIVATE_TEAM_MEMBER` |
+| `/audit/password-activity` | `P.VIEW_AUDIT` | — (read-only) |
+| `/audit/impersonations` | `P.VIEW_AUDIT` | "End impersonation" → `P.END_IMPERSONATION` |
+| `/audit/exports`, `/audit/exports/new` | `P.VIEW_AUDIT` | "New export" → `P.EXPORT_AUDIT` |
+| `/audit/compliance-rules` and form | `P.VIEW_AUDIT` | Add / Edit / Delete → `P.MANAGE_AUDIT` |
+| `/me/security/*` (all 6 user pages) | none — self-service, every signed-in user can access | — |
+
+## 7. Known Gaps
 
 | Gap | Details |
 |---|---|
 | Data Imports nav section | No permission gate on any sub-item. Defer until the data-imports backend lands. |
-| Branches / Audit / Dashboard | Constants defined but the pages those constants would gate haven't been built yet. |
+| Branches / Dashboard | Constants defined but the pages those constants would gate haven't been built yet. |
+| `P.VIEW_SECURITY` / `P.IMPERSONATE_USER` | New audit pages currently gate on `P.VIEW_AUDIT`. Once the backend adds `platform.security.*` permission rows and the "Start impersonation" entry-point UI is built, wire those constants. |
+| Backend permission seeding | The bootstrap (`apps/core/management/commands/create_superuser.py`) does not yet seed the new `platform.security.*` permission rows in the DB. Add them when wiring `P.VIEW_SECURITY` / `P.IMPERSONATE_USER`. |
