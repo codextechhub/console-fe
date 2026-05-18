@@ -20,6 +20,7 @@ import {
   PermissionsIcon,
   DataImportsIcon,
 } from "@/assets/navbar-svg";
+import { Shield, ShieldCheck } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routesPath";
 import { useLocation, useNavigate } from "react-router";
@@ -206,6 +207,108 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: "Import Batches",
           url: routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX,
           isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX),
+        },
+      ],
+    },
+    {
+      title: "Audit & Security",
+      url: routesPath.PROTECTED.AUDIT.DASHBOARD,
+      icon: Shield,
+      isActive: false,
+      childActive: location.startsWith("/audit"),
+      permission: P.VIEW_AUDIT,
+      permissionMode: "any" as const,
+      items: [
+        {
+          title: "Security Dashboard",
+          url: routesPath.PROTECTED.AUDIT.DASHBOARD,
+          isActive: location === routesPath.PROTECTED.AUDIT.DASHBOARD,
+        },
+        {
+          title: "Events Explorer",
+          url: routesPath.PROTECTED.AUDIT.EVENTS,
+          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.EVENTS),
+        },
+        {
+          title: "Entity Trails",
+          url: routesPath.PROTECTED.AUDIT.ENTITY_TRAILS,
+          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.ENTITY_TRAILS),
+        },
+        {
+          title: "Live Sessions",
+          url: routesPath.PROTECTED.AUDIT.SESSIONS,
+          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.SESSIONS),
+        },
+        {
+          title: "Login Attempts",
+          url: routesPath.PROTECTED.AUDIT.LOGIN_ATTEMPTS,
+          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.LOGIN_ATTEMPTS),
+        },
+        {
+          title: "Account Lockouts",
+          url: routesPath.PROTECTED.AUDIT.LOCKOUTS,
+          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.LOCKOUTS),
+        },
+        {
+          title: "Password Activity",
+          url: routesPath.PROTECTED.AUDIT.PASSWORD_ACTIVITY,
+          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.PASSWORD_ACTIVITY),
+        },
+        {
+          title: "Impersonations",
+          url: routesPath.PROTECTED.AUDIT.IMPERSONATIONS,
+          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.IMPERSONATIONS),
+        },
+        {
+          title: "Audit Exports",
+          url: routesPath.PROTECTED.AUDIT.EXPORTS,
+          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.EXPORTS),
+        },
+        {
+          title: "Compliance Rules",
+          url: routesPath.PROTECTED.AUDIT.COMPLIANCE_RULES,
+          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.COMPLIANCE_RULES),
+        },
+      ],
+    },
+    {
+      title: "My Security",
+      url: routesPath.PROTECTED.ME_SECURITY.OVERVIEW,
+      icon: ShieldCheck,
+      isActive: false,
+      childActive: location.startsWith("/me/security"),
+      permission: null,
+      permissionMode: "any" as const,
+      items: [
+        {
+          title: "Overview",
+          url: routesPath.PROTECTED.ME_SECURITY.OVERVIEW,
+          isActive: location === routesPath.PROTECTED.ME_SECURITY.OVERVIEW,
+        },
+        {
+          title: "Active Sessions",
+          url: routesPath.PROTECTED.ME_SECURITY.SESSIONS,
+          isActive: location.startsWith(routesPath.PROTECTED.ME_SECURITY.SESSIONS),
+        },
+        {
+          title: "Login History",
+          url: routesPath.PROTECTED.ME_SECURITY.LOGIN_HISTORY,
+          isActive: location.startsWith(routesPath.PROTECTED.ME_SECURITY.LOGIN_HISTORY),
+        },
+        {
+          title: "Password & Sign-in",
+          url: routesPath.PROTECTED.ME_SECURITY.PASSWORD,
+          isActive: location.startsWith(routesPath.PROTECTED.ME_SECURITY.PASSWORD),
+        },
+        {
+          title: "Account Activity",
+          url: routesPath.PROTECTED.ME_SECURITY.ACTIVITY,
+          isActive: location.startsWith(routesPath.PROTECTED.ME_SECURITY.ACTIVITY),
+        },
+        {
+          title: "Data & Privacy",
+          url: routesPath.PROTECTED.ME_SECURITY.PRIVACY,
+          isActive: location.startsWith(routesPath.PROTECTED.ME_SECURITY.PRIVACY),
         },
       ],
     },
