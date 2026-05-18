@@ -4,18 +4,20 @@ import { Download, RefreshCw, Filter } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routesPath";
 import { useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
-import { formatRelativeDate } from "@/utils/helpers";
+import { formatRelativeDate, returnInitial } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import type { AuditEventListItem } from "@/redux/services/dashboard/auditTypes";
 import EventDetailDrawer from "./components/event-detail-drawer";
 
-const TABLE_HEADERS = ["Sev", "Status", "When", "Module", "Action Type", "Actor", "Entity", "Summary", "Action"];
+const TABLE_HEADERS = ["Sev", "Status", "When", "Module", "Action Type", "Actor", "Entity", "Action"];
 
 const MODULES = [
   "ONBOARDING", "IDENTITY", "USER", "RBAC", "IMPORT", "CONFIG",
@@ -86,9 +88,22 @@ export default function AuditEventsExplorer() {
 
   const tableData = events.map((e) => ({
     sev: (
-      <Badge variant={(SEVERITY_TONE[e.severity] ?? "inactive") as any} className="text-xs uppercase">
-        {e.severity}
-      </Badge>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              className={`size-3 rounded-full block cursor-default ${
+                e.severity === "CRITICAL"
+                  ? "bg-red-500"
+                  : e.severity === "WARNING"
+                    ? "bg-amber-400"
+                    : "bg-green-500"
+              }`}
+            />
+          </TooltipTrigger>
+          <TooltipContent>{e.severity}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     ),
     status: (
       <Badge variant={(STATUS_TONE[e.status] ?? "inactive") as any} className="text-xs uppercase">
@@ -98,21 +113,34 @@ export default function AuditEventsExplorer() {
     when: <span className="text-xs">{formatRelativeDate(e.event_at)}</span>,
     module: <span className="text-xs font-medium uppercase">{e.module_key}</span>,
     action_type: <span className="font-mono text-xs">{e.action_type}</span>,
-    actor: (
-      <span className="text-xs">
-        {e.actor_user?.email ?? e.actor_label ?? "System"}
-      </span>
-    ),
+    actor: (() => {
+      const label = e.actor_user?.full_name || e.actor_user?.email || e.actor_label || "System";
+      const initials = e.actor_user
+        ? returnInitial(e.actor_user.full_name || e.actor_user.email.split("@")[0])
+        : e.actor_label
+          ? returnInitial(e.actor_label)
+          : "SY";
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Avatar className="size-7 cursor-default">
+                <AvatarImage src={undefined} />
+                <AvatarFallback className="text-[10px] font-semibold bg-blue-100 text-blue-700">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </TooltipTrigger>
+            <TooltipContent>{label}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    })(),
     entity: (
-      <span className="text-xs">
-        <span className="font-medium">{e.entity_type}</span>
-        {e.entity_label && <span className="text-gray-01"> · {e.entity_label}</span>}
-      </span>
-    ),
-    summary: (
-      <span className="text-xs text-gray-01 line-clamp-1 max-w-[280px]">
-        {e.summary ?? "—"}
-      </span>
+      <div className="flex flex-col leading-snug">
+        <span className="text-xs text-black-01">{e.entity_label || "—"}</span>
+        <span className="text-[10px] text-gray-01">{e.entity_type}</span>
+      </div>
     ),
     _event: e,
   }));
@@ -152,9 +180,9 @@ export default function AuditEventsExplorer() {
           </div>
         </div>
 
-        <div className="grid grid-cols-[260px_1fr] gap-5">
+        <div className="grid grid-cols-[260px_1fr] gap-5 items-start">
           {/* Filter rail */}
-          <aside className="bg-white rounded-md p-4 space-y-5 h-fit sticky top-20">
+          <aside className="bg-white rounded-md p-4 space-y-5 h-fit">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold flex items-center gap-1.5">
                 <Filter className="size-3.5" /> Filters
@@ -264,7 +292,7 @@ export default function AuditEventsExplorer() {
           </aside>
 
           {/* Results */}
-          <div className="space-y-3">
+          <div className="space-y-3 min-w-0 overflow-x-auto">
             <CustomInput
               id="search-events"
               canSearch
@@ -286,7 +314,9 @@ export default function AuditEventsExplorer() {
                 tableBodyList={tableData}
                 loading={isLoading}
                 onRowClick={(row: { _event: AuditEventListItem }) => setSelectedEvent(row._event)}
-                dropDown={false}
+                dropDown
+                actionButton="View"
+                actionButtonOnClick={(row) => setSelectedEvent((row as { _event: AuditEventListItem })._event)}
                 perPage={data?.pagination?.pageSize}
                 totalPage={data?.pagination?.totalPages}
                 currentPage={data?.pagination?.currentPage}

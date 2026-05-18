@@ -16,6 +16,8 @@ const ACTIVITY_EVENTS = [
   "scroll",
   "touchstart",
   "wheel",
+  "focus",
+  "pointerdown",
 ] as const;
 
 export function useSessionTimeout() {
@@ -113,8 +115,12 @@ export function useSessionTimeout() {
       // Crossed idle threshold while away — start countdown at the correct offset.
       const warningStartedAt = lastActivityRef.current + IDLE_MS;
       startCountdown(warningStartedAt);
+    } else {
+      // Returned before idle threshold — treat tab focus as activity so the
+      // remaining carry-over time doesn't silently drain while the user works.
+      resetIdleTimer();
     }
-  }, [expireSession, startCountdown]);
+  }, [expireSession, startCountdown, resetIdleTimer]);
 
   // Wire up activity listeners.
   useEffect(() => {
