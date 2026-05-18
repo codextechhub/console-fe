@@ -30,19 +30,30 @@ export default function PermissionGroupsList() {
   const [query, setQuery] = useState({ page: 1 });
   const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
-  const params = useMemo(() => ({ ...query, search: debouncedSearch }), [query, debouncedSearch]);
+  const params = useMemo(() => {
+    const p: Record<string, string | number> = { ...query };
+    if (debouncedSearch) p.search = debouncedSearch;
+    if (cardFilter === "active") p.is_active = "true";
+    if (cardFilter === "system") p.is_system = "true";
+    if (cardFilter === "custom") p.is_system = "false";
+    return p;
+  }, [query, debouncedSearch, cardFilter]);
 
   const { data, isLoading, isError, refetch, isFetching } = useGetPermissionGroupsQuery(params, {
     refetchOnMountOrArgChange: true,
   });
 
+  const { data: activeData } = useGetPermissionGroupsQuery({ page: 1, page_size: 1, is_active: "true" });
+  const { data: systemData } = useGetPermissionGroupsQuery({ page: 1, page_size: 1, is_system: "true" });
+  const { data: customData } = useGetPermissionGroupsQuery({ page: 1, page_size: 1, is_system: "false" });
+
   const [deleteGroup] = useDeletePermissionGroupMutation();
 
   const groups = data?.data ?? [];
   const totalGroups = data?.pagination?.totalItems ?? 0;
-  const activeCount = groups.filter((g) => g.is_active).length;
-  const systemCount = groups.filter((g) => g.is_system).length;
-  const customCount = groups.filter((g) => !g.is_system).length;
+  const activeCount = activeData?.pagination?.totalItems ?? 0;
+  const systemCount = systemData?.pagination?.totalItems ?? 0;
+  const customCount = customData?.pagination?.totalItems ?? 0;
 
   const metricCards = [
     { title: "All Groups", value: totalGroups, key: "all" as CardFilter, active: cardFilter === "all" },
@@ -51,14 +62,7 @@ export default function PermissionGroupsList() {
     { title: "Custom Groups", value: customCount, key: "custom" as CardFilter, active: cardFilter === "custom" },
   ];
 
-  const filteredGroups = groups.filter((g) => {
-    if (cardFilter === "active") return g.is_active;
-    if (cardFilter === "system") return g.is_system;
-    if (cardFilter === "custom") return !g.is_system;
-    return true;
-  });
-
-  const tableData = filteredGroups.map((group: PermissionGroupList) => ({
+  const tableData = groups.map((group: PermissionGroupList) => ({
     name: (
       <div>
         <p className="font-medium text-black-01">{group.name}</p>
@@ -106,7 +110,7 @@ export default function PermissionGroupsList() {
                 "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
                 card.active && "bg-pry-01",
               )}
-              onClick={() => setCardFilter(card.key)}
+              onClick={() => { setCardFilter(card.key); setQuery({ page: 1 }); }}
             >
               <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
               <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>

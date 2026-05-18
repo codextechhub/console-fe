@@ -32,22 +32,28 @@ export default function PermissionModulesList() {
   const [query, setQuery] = useState({ page: 1 });
   const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
-  const params = useMemo(
-    () => ({ ...query, ...(debouncedSearch && { search: debouncedSearch }) }),
-    [query, debouncedSearch],
-  );
+  const params = useMemo(() => {
+    const p: Record<string, string | number> = { ...query };
+    if (debouncedSearch) p.search = debouncedSearch;
+    if (cardFilter === "active") p.is_active = "true";
+    if (cardFilter === "inactive") p.is_active = "false";
+    return p;
+  }, [query, debouncedSearch, cardFilter]);
 
   const { data, isLoading, isError, refetch, isFetching } = useGetPermissionModulesQuery(params, {
     refetchOnMountOrArgChange: true,
   });
+
+  const { data: activeData } = useGetPermissionModulesQuery({ page: 1, page_size: 1, is_active: "true" });
+  const { data: inactiveData } = useGetPermissionModulesQuery({ page: 1, page_size: 1, is_active: "false" });
 
   const [deleteModule] = useDeletePermissionModuleMutation();
 
   const modules = data?.data ?? [];
   const totalModules = data?.pagination?.totalItems ?? 0;
 
-  const activeCount = modules.filter((m) => m.is_active).length;
-  const inactiveCount = modules.filter((m) => !m.is_active).length;
+  const activeCount = activeData?.pagination?.totalItems ?? 0;
+  const inactiveCount = inactiveData?.pagination?.totalItems ?? 0;
 
   const metricCards = [
     { title: "Total Modules", value: totalModules, key: "all" as CardFilter, active: cardFilter === "all" },
@@ -55,13 +61,7 @@ export default function PermissionModulesList() {
     { title: "Inactive", value: inactiveCount, key: "inactive" as CardFilter, active: cardFilter === "inactive" },
   ];
 
-  const filteredModules = modules.filter((m) => {
-    if (cardFilter === "active") return m.is_active;
-    if (cardFilter === "inactive") return !m.is_active;
-    return true;
-  });
-
-  const tableData = filteredModules.map((mod: PermissionModule) => ({
+  const tableData = modules.map((mod: PermissionModule) => ({
     name: <span className="font-mono font-medium text-sm text-black-01">{mod.name}</span>,
     description: <span className="text-xs text-gray-01">{mod.description || "—"}</span>,
     status: (
@@ -96,7 +96,7 @@ export default function PermissionModulesList() {
                 "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
                 card.active && "bg-pry-01",
               )}
-              onClick={() => setCardFilter(card.key)}
+              onClick={() => { setCardFilter(card.key); setQuery({ page: 1 }); }}
             >
               <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
               <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>

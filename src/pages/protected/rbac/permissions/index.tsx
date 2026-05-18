@@ -36,23 +36,31 @@ export default function PermissionsList() {
   const [query, setQuery] = useState({ page: 1 });
   const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
-  const params = useMemo(
-    () => ({ ...query, ...(debouncedSearch && { search: debouncedSearch }) }),
-    [query, debouncedSearch],
-  );
+  const params = useMemo(() => {
+    const p: Record<string, string | number> = { ...query };
+    if (debouncedSearch) p.search = debouncedSearch;
+    if (cardFilter === "active") p.is_active = "true";
+    if (cardFilter === "restricted") p.is_restricted = "true";
+    if (cardFilter === "critical") p.sensitivity_level = "CRITICAL";
+    return p;
+  }, [query, debouncedSearch, cardFilter]);
 
   const { data, isLoading, isError, refetch, isFetching } = useGetPermissionsQuery(params, {
     refetchOnMountOrArgChange: true,
   });
+
+  const { data: activeData } = useGetPermissionsQuery({ page: 1, page_size: 1, is_active: "true" });
+  const { data: restrictedData } = useGetPermissionsQuery({ page: 1, page_size: 1, is_restricted: "true" });
+  const { data: criticalData } = useGetPermissionsQuery({ page: 1, page_size: 1, sensitivity_level: "CRITICAL" });
 
   const [deletePermission] = useDeletePermissionMutation();
 
   const perms = data?.data ?? [];
   const totalPerms = data?.pagination?.totalItems ?? 0;
 
-  const activeCount = perms.filter((p) => p.is_active).length;
-  const restrictedCount = perms.filter((p) => p.is_restricted).length;
-  const criticalCount = perms.filter((p) => p.sensitivity_level === "CRITICAL").length;
+  const activeCount = activeData?.pagination?.totalItems ?? 0;
+  const restrictedCount = restrictedData?.pagination?.totalItems ?? 0;
+  const criticalCount = criticalData?.pagination?.totalItems ?? 0;
 
   const metricCards = [
     { title: "All Permissions", value: totalPerms, key: "all" as CardFilter, active: cardFilter === "all" },
@@ -61,14 +69,7 @@ export default function PermissionsList() {
     { title: "Critical", value: criticalCount, key: "critical" as CardFilter, active: cardFilter === "critical" },
   ];
 
-  const filteredPerms = perms.filter((p) => {
-    if (cardFilter === "active") return p.is_active;
-    if (cardFilter === "restricted") return p.is_restricted;
-    if (cardFilter === "critical") return p.sensitivity_level === "CRITICAL";
-    return true;
-  });
-
-  const tableData = filteredPerms.map((perm: Permission) => ({
+  const tableData = perms.map((perm: Permission) => ({
     key: <span className="font-mono text-xs font-medium text-black-01">{perm.key}</span>,
     module: <span className="capitalize text-xs">{perm.module_key}</span>,
     action: <span className="capitalize text-xs">{perm.action_key}</span>,
@@ -114,7 +115,7 @@ export default function PermissionsList() {
                 "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
                 card.active && "bg-pry-01",
               )}
-              onClick={() => setCardFilter(card.key)}
+              onClick={() => { setCardFilter(card.key); setQuery({ page: 1 }); }}
             >
               <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
               <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>

@@ -30,23 +30,31 @@ export default function RolesList() {
   const [query, setQuery] = useState({ page: 1 });
   const [cardFilter, setCardFilter] = useState<CardFilter>("all");
 
-  const params = useMemo(
-    () => ({ ...query, ...(debouncedSearch && { search: debouncedSearch }) }),
-    [query, debouncedSearch],
-  );
+  const params = useMemo(() => {
+    const p: Record<string, string | number> = { ...query };
+    if (debouncedSearch) p.search = debouncedSearch;
+    if (cardFilter === "active") p.status = "ACTIVE";
+    if (cardFilter === "system") p.is_system_role = "true";
+    if (cardFilter === "locked") p.is_locked = "true";
+    return p;
+  }, [query, debouncedSearch, cardFilter]);
 
   const { data, isLoading, isError, refetch, isFetching } = useGetPlatformRolesQuery(params, {
     refetchOnMountOrArgChange: true,
   });
+
+  const { data: activeData } = useGetPlatformRolesQuery({ page: 1, page_size: 1, status: "ACTIVE" });
+  const { data: systemData } = useGetPlatformRolesQuery({ page: 1, page_size: 1, is_system_role: "true" });
+  const { data: lockedData } = useGetPlatformRolesQuery({ page: 1, page_size: 1, is_locked: "true" });
 
   const [deleteRole] = useDeletePlatformRoleMutation();
 
   const roles = data?.data ?? [];
   const totalRoles = data?.pagination?.totalItems ?? 0;
 
-  const activeCount = roles.filter((r) => r.status === "ACTIVE").length;
-  const systemCount = roles.filter((r) => r.is_system_role).length;
-  const lockedCount = roles.filter((r) => r.is_locked).length;
+  const activeCount = activeData?.pagination?.totalItems ?? 0;
+  const systemCount = systemData?.pagination?.totalItems ?? 0;
+  const lockedCount = lockedData?.pagination?.totalItems ?? 0;
 
   const metricCards = [
     { title: "All Roles", value: totalRoles, key: "all" as CardFilter, active: cardFilter === "all" },
@@ -55,14 +63,7 @@ export default function RolesList() {
     { title: "Locked Roles", value: lockedCount, key: "locked" as CardFilter, active: cardFilter === "locked" },
   ];
 
-  const filteredRoles = roles.filter((role) => {
-    if (cardFilter === "active") return role.status === "ACTIVE";
-    if (cardFilter === "system") return role.is_system_role;
-    if (cardFilter === "locked") return role.is_locked;
-    return true;
-  });
-
-  const tableData = filteredRoles.map((role: PlatformRole) => ({
+  const tableData = roles.map((role: PlatformRole) => ({
     name: (
       <div>
         <p className="font-medium text-black-01 capitalize">{role.name}</p>
@@ -117,7 +118,7 @@ export default function RolesList() {
                 "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
                 card.active && "bg-pry-01",
               )}
-              onClick={() => setCardFilter(card.key)}
+              onClick={() => { setCardFilter(card.key); setQuery({ page: 1 }); }}
             >
               <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
               <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>
