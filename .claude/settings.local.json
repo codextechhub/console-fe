@@ -17,7 +17,10 @@
       "Bash(sed -n '1046,1060p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_rbac/models.py)",
       "Bash(sed -n '975,985p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_rbac/models.py)",
       "Bash(sed -n '1062,1072p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_rbac/models.py)",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(python3 *)",
+      "Read(//private/tmp/**)",
+      "Bash(npm install *)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"
