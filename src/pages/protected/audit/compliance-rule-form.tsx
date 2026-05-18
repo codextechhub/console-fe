@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { ArrowLeft } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -85,16 +84,8 @@ export default function ComplianceRuleForm() {
   };
 
   return (
-    <DashboardLayout title={isEdit ? "Edit Compliance Rule" : "New Compliance Rule"}>
+    <DashboardLayout title={isEdit ? "Edit Compliance Rule" : "New Compliance Rule"} hasBack>
       <main className="px-4.5 py-6 space-y-5 text-black-01 max-w-2xl">
-        <Button
-          variant="white"
-          size="sm"
-          className="h-7 text-xs"
-          onClick={() => navigate(routesPath.PROTECTED.AUDIT.COMPLIANCE_RULES)}
-        >
-          <ArrowLeft className="size-3" /> Back to rules
-        </Button>
         <div>
           <p className="font-semibold font-mont text-gray-01">
             {isEdit ? "Edit Compliance Rule" : "Create Compliance Rule"}

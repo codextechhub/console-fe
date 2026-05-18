@@ -1,9 +1,8 @@
-import { useNavigate, useParams } from "react-router";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { useParams } from "react-router";
+import { RefreshCw } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { routesPath } from "@/routes/routesPath";
 import { useGetEntityTrailDetailQuery } from "@/redux/services/dashboard/auditApi";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useState } from "react";
@@ -11,7 +10,6 @@ import EventDetailDrawer from "./components/event-detail-drawer";
 
 export default function EntityTrailDetail() {
   const params = useParams<{ entity_type: string; entity_id: string }>();
-  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data, isLoading, isError, refetch, isFetching } = useGetEntityTrailDetailQuery(
@@ -23,20 +21,10 @@ export default function EntityTrailDetail() {
   const events = data?.data?.events ?? [];
 
   return (
-    <DashboardLayout title="Entity Trail">
+    <DashboardLayout title="Entity Trail" hasBack>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Button
-              variant="white"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={() => navigate(routesPath.PROTECTED.AUDIT.ENTITY_TRAILS)}
-            >
-              <ArrowLeft className="size-3" /> Back to trails
-            </Button>
-            <p className="font-semibold font-mont text-gray-01">Entity Trail</p>
-          </div>
+          <p className="font-semibold font-mont text-gray-01">Entity Trail</p>
           <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
           </Button>

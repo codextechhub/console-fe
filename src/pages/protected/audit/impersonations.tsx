@@ -8,6 +8,7 @@ import PromptModal from "@/components/modal/prompt-modal";
 import { useGetImpersonationsQuery, useEndImpersonationMutation } from "@/redux/services/dashboard/securityApi";
 import { formatRelativeDate } from "@/utils/helpers";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
 import type { ImpersonationSession } from "@/redux/services/dashboard/securityTypes";
 import { toast } from "sonner";
@@ -34,8 +35,8 @@ export default function Impersonations() {
   const list = data?.data ?? [];
 
   const tableData = list.map((i) => ({
-    staff: <span className="text-xs font-medium">{i.staff_email}</span>,
-    target: <span className="text-xs">{i.target_email}</span>,
+    staff: <ActorCell label={i.staff_email} email={i.staff_email} />,
+    target: <ActorCell label={i.target_email} email={i.target_email} />,
     school: <span className="text-xs">#{i.school}</span>,
     justification: <span className="text-xs text-gray-01 line-clamp-1 max-w-[260px]">{i.justification}</span>,
     status: i.status === "ACTIVE" ? (

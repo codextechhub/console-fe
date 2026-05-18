@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import { RefreshCw } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { routesPath } from "@/routes/routesPath";
@@ -11,6 +10,7 @@ import { useGetEntityTrailsQuery } from "@/redux/services/dashboard/auditApi";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import type { EntityTrail } from "@/redux/services/dashboard/auditTypes";
+import { EntityCell } from "./components/audit-cells";
 
 const TABLE_HEADERS = ["Entity", "ID", "Events", "First seen", "Last seen", "Action"];
 
@@ -35,14 +35,7 @@ export default function EntityTrailsList() {
   const trails = data?.data ?? [];
 
   const tableData = trails.map((t: EntityTrail) => ({
-    entity: (
-      <div className="flex items-center gap-2">
-        <Badge variant="inactive" className="text-[10px] uppercase">
-          {t.entity_type}
-        </Badge>
-        <span className="text-xs font-medium">{t.entity_label || "—"}</span>
-      </div>
-    ),
+    entity: <EntityCell label={t.entity_label} type={t.entity_type} />,
     id: <span className="font-mono text-xs text-gray-01">{t.entity_id}</span>,
     events: <span className="font-semibold">{t.event_count}</span>,
     first: t.first_event_at ? formatRelativeDate(t.first_event_at) : "—",

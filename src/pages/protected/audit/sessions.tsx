@@ -10,6 +10,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useGetLoginSessionsQuery, useForceLogoutMutation } from "@/redux/services/dashboard/securityApi";
+import { ActorCell } from "./components/audit-cells";
 import type { LoginSession } from "@/redux/services/dashboard/securityTypes";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
@@ -40,14 +41,14 @@ export default function LiveSessions() {
 
   const tableData = sessions.map((s) => ({
     user: (
-      <div>
-        <p className="text-xs font-medium">{s.user?.email ?? "—"}</p>
-        {(s.user?.first_name || s.user?.last_name) && (
-          <p className="text-[10px] text-gray-01">
-            {[s.user.first_name, s.user.last_name].filter(Boolean).join(" ")}
-          </p>
-        )}
-      </div>
+      <ActorCell
+        label={
+          s.user
+            ? [s.user.first_name, s.user.last_name].filter(Boolean).join(" ") || s.user.email
+            : "—"
+        }
+        email={s.user?.email}
+      />
     ),
     school: <span className="text-xs">{s.school?.name ?? "Platform"}</span>,
     device: <span className="text-xs">{s.device_label || s.user_agent?.slice(0, 40) || "—"}</span>,

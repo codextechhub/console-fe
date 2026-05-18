@@ -8,6 +8,7 @@ import PromptModal from "@/components/modal/prompt-modal";
 import { useGetAccountLockoutsQuery, useUnlockAccountMutation } from "@/redux/services/dashboard/securityApi";
 import { formatRelativeDate } from "@/utils/helpers";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
 import type { AccountLockout } from "@/redux/services/dashboard/securityTypes";
 import { toast } from "sonner";
@@ -35,14 +36,12 @@ export default function AccountLockouts() {
 
   const tableData = lockouts.map((l) => ({
     user: (
-      <div>
-        <p className="text-xs font-medium">{l.user.email}</p>
-        {(l.user.first_name || l.user.last_name) && (
-          <p className="text-[10px] text-gray-01">
-            {[l.user.first_name, l.user.last_name].filter(Boolean).join(" ")}
-          </p>
-        )}
-      </div>
+      <ActorCell
+        label={
+          [l.user.first_name, l.user.last_name].filter(Boolean).join(" ") || l.user.email
+        }
+        email={l.user.email}
+      />
     ),
     locked_until: <span className="text-xs">{l.locked_until ? formatRelativeDate(l.locked_until) : "—"}</span>,
     reason: <span className="font-mono text-xs">{l.locked_reason || "—"}</span>,

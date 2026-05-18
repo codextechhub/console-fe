@@ -8,6 +8,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
+import { ActorCell, EntityCell } from "./components/audit-cells";
 
 const TABLE_HEADERS = ["When", "Action", "Actor", "Entity", "Status", "Module"];
 
@@ -47,13 +48,13 @@ export default function PasswordActivity() {
   const tableData = events.map((e) => ({
     when: <span className="text-xs">{formatRelativeDate(e.event_at)}</span>,
     action: <span className="font-mono text-xs">{e.action_type}</span>,
-    actor: <span className="text-xs">{e.actor_user?.email ?? e.actor_label ?? "System"}</span>,
-    entity: (
-      <span className="text-xs">
-        <span className="font-medium">{e.entity_type}</span>
-        {e.entity_label && <span className="text-gray-01"> · {e.entity_label}</span>}
-      </span>
+    actor: (
+      <ActorCell
+        label={e.actor_user?.full_name || e.actor_user?.email || e.actor_label || "System"}
+        email={e.actor_user?.email}
+      />
     ),
+    entity: <EntityCell label={e.entity_label} type={e.entity_type} />,
     status: (
       <Badge variant={e.status === "SUCCESS" ? "active" : "suspended"} className="text-[10px] uppercase">
         {e.status}

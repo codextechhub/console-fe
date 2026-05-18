@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { useCreateAuditExportMutation } from "@/redux/services/dashboard/auditApi";
@@ -51,16 +50,8 @@ export default function NewAuditExport() {
   };
 
   return (
-    <DashboardLayout title="New Audit Export">
+    <DashboardLayout title="New Audit Export" hasBack>
       <main className="px-4.5 py-6 space-y-5 text-black-01 max-w-2xl">
-        <Button
-          variant="white"
-          size="sm"
-          className="h-7 text-xs"
-          onClick={() => navigate(routesPath.PROTECTED.AUDIT.EXPORTS)}
-        >
-          <ArrowLeft className="size-3" /> Back to exports
-        </Button>
         <div>
           <p className="font-semibold font-mont text-gray-01">New Audit Export</p>
           <p className="text-xs text-gray-01 mt-0.5">Choose which audit data to export as a CSV file.</p>

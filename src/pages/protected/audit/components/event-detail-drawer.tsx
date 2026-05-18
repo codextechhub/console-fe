@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { Copy, ExternalLink, Filter } from "lucide-react";
+import { Copy, Filter } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,16 +57,13 @@ export default function EventDetailDrawer({ eventId, onClose, onFilterEntity }: 
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 rounded p-3 space-y-1.5">
                 <p className="text-[10px] font-semibold uppercase text-gray-01">Actor</p>
-                <p className="text-sm font-medium">{event.actor_user?.email ?? event.actor_label ?? "System"}</p>
+                <p className="text-sm font-medium">{event.actor_user?.full_name || event.actor_user?.email || event.actor_label || "System"}</p>
                 <p className="text-[10px] text-gray-01 uppercase">{event.actor_type}</p>
               </div>
               <div className="bg-gray-50 rounded p-3 space-y-1.5">
                 <p className="text-[10px] font-semibold uppercase text-gray-01">Entity</p>
-                <p className="text-sm font-medium">
-                  <span className="px-1.5 py-0.5 rounded border text-[10px] uppercase mr-1.5">{event.entity_type}</span>
-                  {event.entity_label}
-                </p>
-                <p className="font-mono text-[10px] text-gray-01">{event.entity_id}</p>
+                <p className="text-sm font-medium">{event.entity_label || "—"}</p>
+                <p className="text-[10px] text-gray-01 uppercase">{event.entity_type}</p>
                 <Button
                   size="sm"
                   variant="outline"
@@ -155,17 +152,6 @@ export default function EventDetailDrawer({ eventId, onClose, onFilterEntity }: 
                   <Filter className="size-3" /> Filter to entity
                 </Button>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                onClick={() => {
-                  onClose();
-                  navigate(routesPath.PROTECTED.AUDIT.EVENT_DETAIL(event.id));
-                }}
-              >
-                <ExternalLink className="size-3" /> Open
-              </Button>
             </div>
           </div>
         )}

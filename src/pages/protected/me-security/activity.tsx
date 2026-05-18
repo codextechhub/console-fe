@@ -8,6 +8,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { useGetMyActivityQuery } from "@/redux/services/dashboard/auditApi";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
+import { EntityCell } from "../audit/components/audit-cells";
 
 const TABLE_HEADERS = ["When", "Action", "Entity", "Module", "Status"];
 
@@ -31,12 +32,7 @@ export default function MyActivity() {
   const tableData = events.map((e) => ({
     when: <span className="text-xs">{formatRelativeDate(e.event_at)}</span>,
     action: <span className="font-mono text-xs">{e.action_type}</span>,
-    entity: (
-      <span className="text-xs">
-        <span className="font-medium">{e.entity_type}</span>
-        {e.entity_label && <span className="text-gray-01"> · {e.entity_label}</span>}
-      </span>
-    ),
+    entity: <EntityCell label={e.entity_label} type={e.entity_type} />,
     module: <span className="text-xs uppercase">{e.module_key}</span>,
     status: (
       <Badge variant={e.status === "SUCCESS" ? "active" : "suspended"} className="text-[10px] uppercase">

@@ -9,6 +9,7 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { useGetAuditExportsQuery, useGetAuditExportDetailQuery } from "@/redux/services/dashboard/auditApi";
 import { formatRelativeDate } from "@/utils/helpers";
 import { routesPath } from "@/routes/routesPath";
+import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
 
 const TABLE_HEADERS = ["Requested", "Requested by", "Status", "Format", "Rows", "File", "Completed", "Expires", "Action"];
@@ -53,7 +54,12 @@ export default function AuditExports() {
 
   const tableData = exports.map((j) => ({
     requested: <span className="text-xs">{formatRelativeDate(j.requested_at)}</span>,
-    requested_by: <span className="text-xs">{j.requested_by?.email ?? "—"}</span>,
+    requested_by: (
+      <ActorCell
+        label={j.requested_by?.full_name || j.requested_by?.email || "—"}
+        email={j.requested_by?.email}
+      />
+    ),
     status: (
       <Badge variant={(STATUS_TONE[j.status] ?? "inactive") as any} className="text-[10px] uppercase">
         {j.status}
