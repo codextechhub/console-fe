@@ -105,7 +105,7 @@ export const P = {
 
   // ── Team Management ────────────────────────────────────────────────────────
   ACCESS_TEAM_PANEL:    "100301",  // view staff list and member profiles
-  INVITE_TEAM_MEMBER:   "100302",  // invite a new Vision staff member
+  INVITE_TEAM_MEMBER:   "100302",  // invite a new CX staff member
   MODIFY_TEAM_MEMBER:   "100303",  // edit an existing team member's profile
   DISMISS_TEAM_MEMBER:  "100304",  // permanently delete a staff account
   SUSPEND_TEAM_MEMBER:  "100309",  // suspend a staff account

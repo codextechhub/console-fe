@@ -92,7 +92,7 @@ function AssignRoleSheet({
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-white-02">
           <SheetTitle className="text-base font-semibold text-black-01">Assign Role</SheetTitle>
           <SheetDescription className="text-xs text-gray-01">
-            Grant a platform role to a Vision staff member.
+            Grant a platform role to a CX staff member.
           </SheetDescription>
         </SheetHeader>
 
@@ -120,7 +120,7 @@ function AssignRoleSheet({
             <ul className="list-disc list-inside space-y-1">
               <li>You cannot assign a role to yourself.</li>
               <li>No duplicate active assignments for the same user/role.</li>
-              <li>Only Vision staff can be assigned platform roles.</li>
+              <li>Only CX staff can be assigned platform roles.</li>
             </ul>
           </div>
         </div>
@@ -372,7 +372,7 @@ export default function PlatformUserAssignments() {
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Platform User Role Assignments</p>
-            <p className="text-xs text-gray-01 mt-0.5">Assign platform roles to Vision staff. Revocations require a written justification.</p>
+            <p className="text-xs text-gray-01 mt-0.5">Assign platform roles to CX staff. Revocations require a written justification.</p>
           </div>
           <PermissionGate permission={P.ASSIGN_ROLE}>
             <Button size="lg" onClick={() => setAssignOpen(true)}>

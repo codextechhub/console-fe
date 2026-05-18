@@ -45,11 +45,11 @@ export default function TransferSuperAdmin() {
 
   const activeSuperAdmin = assignmentsData?.data?.[0];
 
-  // Vision Staff candidates. The transfer endpoint rejects anyone who isn't
-  // VISION_STAFF, so we filter here too and remove the current super admin
+  // CX staff candidates. The transfer endpoint rejects anyone who isn't
+  // CX_STAFF, so we filter here too and remove the current super admin
   // from the picker.
   const { data: membersData, isLoading: membersLoading } = useGetTeamMembersQuery({
-    user_type: "VISION_STAFF",
+    user_type: "CX_STAFF",
     status: "ACTIVE",
     page: 1,
     page_size: 200,
@@ -107,7 +107,7 @@ export default function TransferSuperAdmin() {
           <div>
             <p className="font-semibold font-mont text-gray-01">Transfer Super Admin Role</p>
             <p className="text-xs text-gray-01 mt-0.5 max-w-2xl">
-              Hand over the Vision Super Admin role to another Vision staff member. The
+              Hand over the Vision Super Admin role to another CX staff member. The
               current super admin is automatically demoted to Platform Admin. There is
               always exactly one super admin.
             </p>
@@ -169,7 +169,7 @@ export default function TransferSuperAdmin() {
               Choose new super admin
             </p>
             <p className="text-xs text-gray-01 mt-1">
-              Only active Vision staff are eligible. The current super admin is excluded.
+              Only active CX staff are eligible. The current super admin is excluded.
             </p>
           </div>
 
@@ -180,8 +180,8 @@ export default function TransferSuperAdmin() {
               membersLoading
                 ? "Loading staff..."
                 : userOptions.length === 0
-                  ? "No eligible Vision staff available"
-                  : "Select a Vision staff member..."
+                  ? "No eligible CX staff available"
+                  : "Select a CX staff member..."
             }
             options={userOptions}
             value={selectedUserId}
