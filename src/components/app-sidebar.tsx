@@ -125,12 +125,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: routesPath.PROTECTED.ROLES.USER_ASSIGNMENTS,
           isActive: location.startsWith(routesPath.PROTECTED.ROLES.USER_ASSIGNMENTS),
         },
-        {
-          title: "Change Requests",
-          url: routesPath.PROTECTED.ROLES.CHANGE_REQUESTS,
-          isActive: false,
-          disabled: true,
-        },
+        // Change Requests — only shown to users who can act on role
+        // change proposals (the backend list endpoint enforces the same).
+        ...(hasPermission(P.MODIFY_ROLE)
+          ? [{
+              title: "Change Requests",
+              url: routesPath.PROTECTED.ROLES.CHANGE_REQUESTS,
+              isActive: location.startsWith(routesPath.PROTECTED.ROLES.CHANGE_REQUESTS),
+            }]
+          : []),
         // Transfer Super Admin — only shown to users who hold the
         // platform.roles.transfer permission. The backend further restricts
         // execution to the active super admin.
@@ -259,16 +262,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: routesPath.PROTECTED.AUDIT.IMPERSONATIONS,
           isActive: location.startsWith(routesPath.PROTECTED.AUDIT.IMPERSONATIONS),
         },
-        {
-          title: "Audit Exports",
-          url: routesPath.PROTECTED.AUDIT.EXPORTS,
-          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.EXPORTS),
-        },
-        {
-          title: "Compliance Rules",
-          url: routesPath.PROTECTED.AUDIT.COMPLIANCE_RULES,
-          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.COMPLIANCE_RULES),
-        },
+        // Audit Exports — backend requires platform.audit.export to list jobs
+        ...(hasPermission(P.EXPORT_AUDIT)
+          ? [{
+              title: "Audit Exports",
+              url: routesPath.PROTECTED.AUDIT.EXPORTS,
+              isActive: location.startsWith(routesPath.PROTECTED.AUDIT.EXPORTS),
+            }]
+          : []),
+        // Compliance Rules — backend requires platform.audit.manage to list
+        ...(hasPermission(P.MANAGE_AUDIT)
+          ? [{
+              title: "Compliance Rules",
+              url: routesPath.PROTECTED.AUDIT.COMPLIANCE_RULES,
+              isActive: location.startsWith(routesPath.PROTECTED.AUDIT.COMPLIANCE_RULES),
+            }]
+          : []),
       ],
     },
     {

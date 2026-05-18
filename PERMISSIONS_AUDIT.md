@@ -216,18 +216,25 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 
 ## 6. Audit & Security Pages — Permission Wiring
 
+The "Audit & Security" sidebar group is gated by `P.VIEW_AUDIT`. The
+two write-heavy sub-items (Audit Exports, Compliance Rules) are gated
+individually so users with read-only `P.VIEW_AUDIT` don't see entries
+they cannot actually open. Equivalent treatment was applied to the
+"Change Requests" sub-item under Roles.
+
 | Page | Sidebar gate | Action gates |
 |---|---|---|
-| `/audit` Security Dashboard | `P.VIEW_AUDIT` | "Export view" → `P.EXPORT_AUDIT` |
-| `/audit/events` Events Explorer | `P.VIEW_AUDIT` | "Export filtered" → `P.EXPORT_AUDIT` |
-| `/audit/entity-trails` and detail | `P.VIEW_AUDIT` | — |
-| `/audit/sessions` Live Sessions | `P.VIEW_AUDIT` | "End session" → `P.SUSPEND_TEAM_MEMBER` (mirrors backend `platform.team.suspend`) |
-| `/audit/login-attempts` | `P.VIEW_AUDIT` | — (read-only) |
-| `/audit/lockouts` | `P.VIEW_AUDIT` | "Unlock account" → `P.REACTIVATE_TEAM_MEMBER` |
-| `/audit/password-activity` | `P.VIEW_AUDIT` | — (read-only) |
-| `/audit/impersonations` | `P.VIEW_AUDIT` | "End impersonation" → `P.END_IMPERSONATION` |
-| `/audit/exports`, `/audit/exports/new` | `P.VIEW_AUDIT` | "New export" → `P.EXPORT_AUDIT` |
-| `/audit/compliance-rules` and form | `P.VIEW_AUDIT` | Add / Edit / Delete → `P.MANAGE_AUDIT` |
+| `/audit` Security Dashboard | `P.VIEW_AUDIT` (group) | "Export view" → `P.EXPORT_AUDIT` |
+| `/audit/events` Events Explorer | `P.VIEW_AUDIT` (group) | "Export filtered" → `P.EXPORT_AUDIT` |
+| `/audit/entity-trails` and detail | `P.VIEW_AUDIT` (group) | — |
+| `/audit/sessions` Live Sessions | `P.VIEW_AUDIT` (group) | "End session" → `P.SUSPEND_TEAM_MEMBER` (mirrors backend `platform.team.suspend`) |
+| `/audit/login-attempts` | `P.VIEW_AUDIT` (group) | — (read-only) |
+| `/audit/lockouts` | `P.VIEW_AUDIT` (group) | "Unlock account" → `P.REACTIVATE_TEAM_MEMBER` |
+| `/audit/password-activity` | `P.VIEW_AUDIT` (group) | — (read-only) |
+| `/audit/impersonations` | `P.VIEW_AUDIT` (group) | "End impersonation" → `P.END_IMPERSONATION` |
+| `/audit/exports`, `/audit/exports/new` | `P.VIEW_AUDIT` (group) + `P.EXPORT_AUDIT` (sub-item) | "New export" → `P.EXPORT_AUDIT` |
+| `/audit/compliance-rules` and form | `P.VIEW_AUDIT` (group) + `P.MANAGE_AUDIT` (sub-item) | Add / Edit / Delete → `P.MANAGE_AUDIT` |
+| `/roles/change-requests` | `P.VIEW_ROLES` (group) + `P.MODIFY_ROLE` (sub-item) | — |
 | `/me/security/*` (all 6 user pages) | none — self-service, every signed-in user can access | — |
 
 ## 7. Known Gaps
