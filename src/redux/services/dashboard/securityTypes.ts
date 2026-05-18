@@ -13,8 +13,9 @@ export interface LoginSession {
   user: {
     id: string;
     email: string;
-    first_name?: string;
-    last_name?: string;
+    first_name: string;
+    last_name: string;
+    full_name: string;
     role?: string;
   };
   school: { id: string; name: string; slug: string } | null;
@@ -44,7 +45,7 @@ export interface AuthAttempt {
 
 export interface AccountLockout {
   id: string;
-  user: { id: string; email: string; first_name?: string; last_name?: string };
+  user: { id: string; email: string; first_name: string; last_name: string; full_name: string };
   locked_until: string | null;
   locked_reason: string;
   failure_count: number;

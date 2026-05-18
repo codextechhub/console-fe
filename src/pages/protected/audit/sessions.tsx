@@ -15,7 +15,16 @@ import type { LoginSession } from "@/redux/services/dashboard/securityTypes";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 
-const TABLE_HEADERS = ["User", "School", "Device", "IP Address", "Last seen", "Status", "Action"];
+const TABLE_HEADERS = ["User", "School", "Device", "IP Address", "Last seen", "Session age", "Status", "Action"];
+
+function formatAge(iso: string): string {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ${mins % 60}m`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ${hrs % 24}h`;
+}
 
 export default function LiveSessions() {
   const { hasPermission } = usePermissions();
@@ -42,11 +51,7 @@ export default function LiveSessions() {
   const tableData = sessions.map((s) => ({
     user: (
       <ActorCell
-        label={
-          s.user
-            ? [s.user.first_name, s.user.last_name].filter(Boolean).join(" ") || s.user.email
-            : "—"
-        }
+        label={s.user?.full_name || s.user?.email || "—"}
         email={s.user?.email}
       />
     ),
@@ -54,6 +59,7 @@ export default function LiveSessions() {
     device: <span className="text-xs">{s.device_label || s.user_agent?.slice(0, 40) || "—"}</span>,
     ip: <span className="font-mono text-xs">{s.ip_address ?? "—"}</span>,
     last_seen: <span className="text-xs">{formatRelativeDate(s.last_seen_at)}</span>,
+    session_age: <span className="text-xs font-mono">{formatAge(s.created_at)}</span>,
     status: s.is_active ? (
       <Badge variant="active" className="text-[10px]">Active</Badge>
     ) : (

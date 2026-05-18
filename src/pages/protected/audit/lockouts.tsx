@@ -37,9 +37,7 @@ export default function AccountLockouts() {
   const tableData = lockouts.map((l) => ({
     user: (
       <ActorCell
-        label={
-          [l.user.first_name, l.user.last_name].filter(Boolean).join(" ") || l.user.email
-        }
+        label={l.user.full_name || l.user.email}
         email={l.user.email}
       />
     ),
