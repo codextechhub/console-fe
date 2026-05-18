@@ -70,6 +70,11 @@ const REGISTRY: Record<string, string> = {
   "100606": "platform.audit.export",
   "100608": "platform.audit.manage",
 
+  // ── platform / security  (MM=10, RR=08) ───────────────────────────────────
+  "100801": "platform.security.view",
+  "100811": "platform.security.impersonate",
+  "100812": "platform.security.end_impersonation",
+
   // ── platform / dashboard  (MM=10, RR=07) ──────────────────────────────────
   "100701": "platform.dashboard.view",
 
@@ -130,6 +135,11 @@ export const P = {
   VIEW_AUDIT:           "100601",  // view audit events and entity trails
   EXPORT_AUDIT:         "100606",  // export audit data to file
   MANAGE_AUDIT:         "100608",  // create and manage compliance rules
+
+  // ── Security ───────────────────────────────────────────────────────────────
+  VIEW_SECURITY:        "100801",  // view live sessions, login attempts, lockouts, impersonations
+  IMPERSONATE_USER:     "100811",  // start an admin impersonation session
+  END_IMPERSONATION:    "100812",  // forcibly end an active impersonation session
 
   // ── Dashboard ──────────────────────────────────────────────────────────────
   VIEW_DASHBOARD:       "100701",  // view admin dashboard metrics and statistics
