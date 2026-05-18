@@ -18,7 +18,7 @@ import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import type { Permission } from "@/redux/services/dashboard/rbacTypes";
 
-const TABLE_HEADERS = ["Key", "Module", "Action", "Sensitivity", "Restricted", "Status", "Created", "Action"];
+const TABLE_HEADERS = ["Key", "Module", "Action Type", "Sensitivity", "Restricted", "Status", "Created", "Action"];
 
 const SENSITIVITY_BADGE: Record<string, "active" | "suspended" | "locked" | "inactive"> = {
   NORMAL: "active",
