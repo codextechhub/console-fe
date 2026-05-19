@@ -64,7 +64,7 @@ export interface EntityTrail {
 
 export interface EntityTrailDetail {
   trail: EntityTrail;
-  events: AuditEventListItem[];
+  events: AuditEventDetail[];
 }
 
 export type ExportJobStatus = "PENDING" | "RUNNING" | "COMPLETED" | "FAILED" | "EXPIRED";

@@ -22,3 +22,17 @@
 # 16. Login error for unactivated users — backend ACCOUNT_NOT_ACTIVATED message updated to include "or contact your administrator". Interceptor no longer fires a redundant toast for 403 on auth routes; login page shows it inline only.
 # 17. Invites tab — added "Email Sent" (SENT/PENDING/FAILED badge) and "Days Left" columns. Backend: UserListSerializer now exposes invitation_email_status and invitation_expires_at; queryset select_related extended to include invitation.
 # 18. Sort bar on all 4 tables — compact icon+label bar above each table (Members, Invites, Schools, Branches). Column and direction are one state (always in sync); clicking cycles none→asc→desc→none. Backend: Users view gained ordering param (first_name/email/role/status/created_at); Schools and Branches views gained status/-status. Branches in view-school sort client-side.
+<!-- Keyword: design-review
+
+  In any future session, say something like:
+  - "design-review — check the export wizard against Audit_Security_standalone.html"
+  - "run design-review on the sessions page"
+  - "design-review: compare the compliance rules form with the prototype"
+  
+  Claude will automatically:
+  1. Extract and decompress the prototype blobs to find the right component
+  2. Read the current implementation + related types/hooks
+  3. Post a numbered gap list (prototype vs code) — nothing is touched yet
+  4. Wait for your confirmation on scope
+  5. Implement, type-check, and summarise per file 
+-->

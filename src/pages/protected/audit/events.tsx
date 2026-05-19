@@ -51,17 +51,19 @@ export default function AuditEventsExplorer() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialSeverity = searchParams.get("severity") || "";
+  const initialEntityType = searchParams.get("entity_type") || "";
+  const initialEntityId = searchParams.get("entity_id") || "";
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [page, setPage] = useState(1);
-  const [dateRange, setDateRange] = useState("24h");
+  const [dateRange, setDateRange] = useState(initialEntityType || initialEntityId ? "all" : "24h");
   const [modules, setModules] = useState<string[]>([]);
   const [severities, setSeverities] = useState<string[]>(initialSeverity ? [initialSeverity] : []);
   const [statuses, setStatuses] = useState<string[]>([]);
   const [actorType, setActorType] = useState<"" | "USER" | "SYSTEM">("");
-  const [entityType, setEntityType] = useState("");
-  const [entityId, setEntityId] = useState("");
+  const [entityType, setEntityType] = useState(initialEntityType);
+  const [entityId, setEntityId] = useState(initialEntityId);
   const [selectedEvent, setSelectedEvent] = useState<AuditEventListItem | null>(null);
 
   const params = useMemo(() => {
