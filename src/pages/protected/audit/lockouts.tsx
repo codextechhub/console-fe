@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,11 +12,14 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
 import type { AccountLockout } from "@/redux/services/dashboard/securityTypes";
+import { routesPath } from "@/routes/routesPath";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const TABLE_HEADERS = ["User", "Locked until", "Reason", "Failure count", "Last failure IP", "Last failure", "Status", "Action"];
 
 export default function AccountLockouts() {
+  const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<"true" | "">("true");
@@ -70,7 +74,7 @@ export default function AccountLockouts() {
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-semibold font-mont text-gray-01">Account Lockouts</p>
+            <p className="font-semibold font-mont text-gray-01">Login Attempts & Lockouts</p>
             <p className="text-xs text-gray-01 mt-0.5">Locked accounts and their lockout history.</p>
           </div>
           <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
@@ -78,6 +82,24 @@ export default function AccountLockouts() {
           </Button>
         </div>
 
+        {/* ── Tab bar ─────────────────────────────────────────────────── */}
+        <div className="inline-flex bg-white rounded-md p-1 border border-gray-200">
+          <button
+            type="button"
+            onClick={() => navigate(routesPath.PROTECTED.AUDIT.LOGIN_ATTEMPTS)}
+            className="px-4 py-1.5 text-xs rounded text-gray-01 hover:bg-gray-100 transition-colors"
+          >
+            Login Attempts
+          </button>
+          <button
+            type="button"
+            className="px-4 py-1.5 text-xs rounded bg-blue-600 text-white transition-colors"
+          >
+            Account Lockouts
+          </button>
+        </div>
+
+        {/* ── Locked filter ─────────────────────────────────────────── */}
         <div className="inline-flex bg-white rounded-md p-1 border border-gray-200">
           {[
             { v: "true" as const, l: "Currently locked" },

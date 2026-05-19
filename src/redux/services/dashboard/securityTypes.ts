@@ -33,7 +33,7 @@ export interface LoginSession {
 export interface AuthAttempt {
   id: string;
   email_entered: string;
-  user: { id: string; email: string } | null;
+  user: { id: string; email: string; first_name: string; last_name: string; full_name: string } | null;
   school: { id: string; name: string; slug: string } | null;
   ip_address: string | null;
   user_agent: string;
