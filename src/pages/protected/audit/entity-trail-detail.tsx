@@ -21,10 +21,12 @@ export default function EntityTrailDetail() {
   const events = data?.data?.events ?? [];
 
   return (
-    <DashboardLayout title="Entity Trail" hasBack>
+    <DashboardLayout title={trail ? (trail.entity_label || trail.entity_type) : "Entity Trail"} hasBack>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
-          <p className="font-semibold font-mont text-gray-01">Entity Trail</p>
+          <p className="font-semibold font-mont text-gray-01">
+            {trail ? (trail.entity_label || trail.entity_type) : "Entity Trail"}
+          </p>
           <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
           </Button>

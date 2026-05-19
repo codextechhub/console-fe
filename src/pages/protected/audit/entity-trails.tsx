@@ -14,6 +14,11 @@ import { EntityCell } from "./components/audit-cells";
 
 const TABLE_HEADERS = ["Entity", "ID", "Events", "First seen", "Last seen", "Action"];
 
+const ENTITY_TYPES = [
+  "User", "School", "Branch", "Role", "Permission",
+  "PermissionGroup", "Invitation", "ImportBatch", "ImportTemplate",
+];
+
 export default function EntityTrailsList() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -67,12 +72,16 @@ export default function EntityTrailsList() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
-          <input
-            placeholder="Entity type"
-            className="h-10 text-sm border border-gray-300 rounded px-3 sm:max-w-[200px]"
+          <select
+            className="h-10 text-sm border border-gray-300 rounded px-3 sm:max-w-[200px] bg-white"
             value={entityType}
             onChange={(e) => { setEntityType(e.target.value); setPage(1); }}
-          />
+          >
+            <option value="">All entity types</option>
+            {ENTITY_TYPES.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
         </div>
 
         {isError ? (
@@ -90,7 +99,14 @@ export default function EntityTrailsList() {
             onRowClick={(row: { _type: string; _id: string }) =>
               navigate(routesPath.PROTECTED.AUDIT.ENTITY_TRAIL_DETAIL(row._type, row._id))
             }
-            dropDown={false}
+            dropDown
+            actionButton="View"
+            actionButtonOnClick={(row) =>
+              navigate(routesPath.PROTECTED.AUDIT.ENTITY_TRAIL_DETAIL(
+                (row as { _type: string; _id: string })._type,
+                (row as { _type: string; _id: string })._id,
+              ))
+            }
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}
             currentPage={data?.pagination?.currentPage}
