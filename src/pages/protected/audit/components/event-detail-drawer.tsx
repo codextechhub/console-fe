@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router";
 import { Copy, Filter } from "lucide-react";
+import { friendlyAction } from "../audit-constants";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +51,7 @@ export default function EventDetailDrawer({ eventId, onClose, onFilterEntity }: 
                 <span className="text-xs text-gray-01">·</span>
                 <span className="text-xs text-gray-01">{formatRelativeDate(event.event_at)}</span>
               </div>
-              <p className="font-mono text-base font-semibold">{event.action_type}</p>
+              <p className="text-base font-semibold">{friendlyAction(event.action_type)}</p>
               <p className="text-sm text-gray-01">{event.summary}</p>
             </div>
 

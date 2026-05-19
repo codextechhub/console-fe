@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { Download, RefreshCw, Filter } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import { friendlyAction } from "./audit-constants";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -114,7 +115,7 @@ export default function AuditEventsExplorer() {
     ),
     when: <span className="text-xs">{formatRelativeDate(e.event_at)}</span>,
     module: <span className="text-xs font-medium uppercase">{e.module_key}</span>,
-    action_type: <span className="font-mono text-xs">{e.action_type}</span>,
+    action_type: <span className="text-xs">{friendlyAction(e.action_type)}</span>,
     actor: (() => {
       const label = e.actor_user?.full_name || e.actor_user?.email || e.actor_label || "System";
       const initials = e.actor_user

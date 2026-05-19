@@ -15,6 +15,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { AuditEventListItem, AuditSeverity } from "@/redux/services/dashboard/auditTypes";
+import { FRIENDLY_ACTION } from "./audit-constants";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -35,22 +36,6 @@ const PW_ACTIONS = [
   "USER_CREATED",
 ] as const;
 
-const FRIENDLY_ACTION: Record<string, string> = {
-  PASSWORD_RESET_REQUESTED: "Password reset requested",
-  PASSWORD_RESET: "Password reset",
-  PASSWORD_CHANGED: "Password changed",
-  EMAIL_CHANGED: "Email changed",
-  ACCOUNT_ACTIVATED: "Account activated",
-  ACCOUNT_LOCKED: "Account locked",
-  ACCOUNT_UNLOCKED: "Account unlocked",
-  ACCOUNT_SUSPENDED: "Account suspended",
-  ACCOUNT_REACTIVATED: "Account reactivated",
-  ACCOUNT_DEACTIVATED: "Account deactivated",
-  TOKEN_REVOKED: "Token revoked",
-  FORCE_LOGOUT: "Force logout",
-  USER_INVITED: "User invited",
-  USER_CREATED: "User created",
-};
 
 type DateRange = "24h" | "7d" | "30d" | "all";
 
@@ -326,8 +311,11 @@ function ActivityRow({ event: e }: { event: AuditEventListItem }) {
 
       {/* Target user */}
       <td className="px-3 py-3">
-        {e.entity_type === "User" && e.entity_label ? (
-          <ActorCell label={e.entity_label} />
+        {e.entity_type === "User" && (e.entity_user || e.entity_label) ? (
+          <ActorCell
+            label={e.entity_user?.full_name || e.entity_user?.email || e.entity_label || ""}
+            email={e.entity_user?.email ?? undefined}
+          />
         ) : (
           <span className="text-xs text-gray-01">—</span>
         )}

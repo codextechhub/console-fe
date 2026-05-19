@@ -16,6 +16,7 @@ import { routesPath } from "@/routes/routesPath";
 import type { AuditEventDetail } from "@/redux/services/dashboard/auditTypes";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { friendlyAction } from "./audit-constants";
 
 const SEV_DOT: Record<string, string> = {
   CRITICAL: "bg-red-500",
@@ -210,8 +211,8 @@ export default function EntityTrailDetail() {
                   {selectedSnap.slice(0, 2).map((snap) => (
                     <div key={snap.id} className="border border-gray-200 rounded-md overflow-hidden">
                       <div className="bg-gray-50 px-3 py-2 border-b">
-                        <span className="font-mono text-[10px] font-medium text-gray-01 uppercase">
-                          {snap.action_type}
+                        <span className="text-[10px] font-medium text-gray-01">
+                          {friendlyAction(snap.action_type)}
                         </span>
                         <span className="text-[10px] text-gray-01 ml-2">
                           {formatRelativeDate(snap.event_at)}
@@ -315,7 +316,7 @@ export default function EntityTrailDetail() {
                             >
                               {e.module_key}
                             </span>
-                            <span className="font-mono text-[10px] text-gray-01">{e.action_type}</span>
+                            <span className="text-[10px] text-gray-01">{friendlyAction(e.action_type)}</span>
                           </div>
                         </div>
 

@@ -42,6 +42,7 @@ export interface AuditEventListItem {
   entity_type: string;
   entity_id: string;
   entity_label: string | null;
+  entity_user: { id: string; full_name: string; email: string } | null;
   summary: string | null;
   ip_address: string | null;
   event_at: string;

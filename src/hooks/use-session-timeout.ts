@@ -6,6 +6,27 @@ import { clearStorageItem } from "./use-session-storage";
 import { routesPath } from "@/routes/routesPath";
 import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
 
+const BASE_URL = import.meta.env.VITE_BACKEND_URL as string;
+
+// Fire-and-forget: tells the backend to blacklist the current refresh token.
+// Intentionally not awaited — client-side logout proceeds regardless of outcome.
+function revokeSessionOnBackend(): void {
+  const refresh = Cookies.get("refresh_token");
+  const access = Cookies.get("token");
+  if (!refresh && !access) return;
+  fetch(`${BASE_URL}/user/auth/logout/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${access ?? ""}`,
+      accept: "application/json",
+    },
+    body: JSON.stringify({ refresh }),
+  }).catch(() => {
+    // Swallow — the client-side cleanup that follows this is what matters.
+  });
+}
+
 const IDLE_MS = 14 * 60 * 1000;      // 14 minutes idle before warning
 const WARNING_MS = 1 * 60 * 1000;    // 1-minute countdown before expiry
 
@@ -43,6 +64,7 @@ export function useSessionTimeout() {
   const expireSession = useCallback(() => {
     clearCountdown();
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    revokeSessionOnBackend();
     Cookies.remove("token");
     Cookies.remove("refresh_token");
     clearStorageItem();
@@ -56,6 +78,7 @@ export function useSessionTimeout() {
   const logout = useCallback(() => {
     clearCountdown();
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    revokeSessionOnBackend();
     Cookies.remove("token");
     Cookies.remove("refresh_token");
     clearStorageItem();
