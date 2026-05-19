@@ -5,6 +5,7 @@ import type {
   AuthAttempt,
   AccountLockout,
   ImpersonationSession,
+  PasswordReset,
   PaginatedResponse,
 } from "./securityTypes";
 
@@ -70,6 +71,22 @@ export const securityApi = baseApi.injectEndpoints({
       invalidatesTags: ["ImpersonationSessions"],
     }),
 
+    // ── Pending password resets (admin) ─────────────────────────────────────
+    getPendingResets: builder.query<{ data: PasswordReset[] }, void>({
+      query: () => ({ url: `/user/password-resets/`, method: "GET" }),
+      providesTags: ["PasswordResets"],
+    }),
+
+    revokeReset: builder.mutation<{ message: string }, { id: number }>({
+      query: ({ id }) => ({ url: `/user/password-resets/${id}/revoke/`, method: "POST" }),
+      invalidatesTags: ["PasswordResets"],
+    }),
+
+    resendPasswordReset: builder.mutation<{ message: string }, { user_id: string }>({
+      query: ({ user_id }) => ({ url: `/user/${user_id}/password-reset/`, method: "POST" }),
+      invalidatesTags: ["PasswordResets"],
+    }),
+
     // ── Self-service password change ────────────────────────────────────────
     changeMyPassword: builder.mutation<{ message: string }, { old_password: string; new_password: string }>({
       query: (body) => ({ url: `/user/auth/password/change/`, method: "POST", body }),
@@ -87,5 +104,8 @@ export const {
   useGetImpersonationsQuery,
   useStartImpersonationMutation,
   useEndImpersonationMutation,
+  useGetPendingResetsQuery,
+  useRevokeResetMutation,
+  useResendPasswordResetMutation,
   useChangeMyPasswordMutation,
 } = securityApi;

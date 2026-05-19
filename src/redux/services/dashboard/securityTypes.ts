@@ -56,6 +56,16 @@ export interface AccountLockout {
   updated_at: string;
 }
 
+export interface PasswordReset {
+  id: number;
+  user: { id: string; email: string; full_name: string; first_name: string; last_name: string };
+  requested_by: "SELF" | "ADMIN";
+  requested_ip: string | null;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+}
+
 export interface ImpersonationSession {
   id: number;
   staff_user: number;

@@ -43,6 +43,7 @@ export interface AuditEventListItem {
   entity_id: string;
   entity_label: string | null;
   summary: string | null;
+  ip_address: string | null;
   event_at: string;
 }
 

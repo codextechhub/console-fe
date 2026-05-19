@@ -209,5 +209,6 @@ export const baseApi = createApi({
     "AuthAttempts",
     "AccountLockouts",
     "ImpersonationSessions",
+    "PasswordResets",
   ],
 });
