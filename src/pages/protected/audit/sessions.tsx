@@ -366,7 +366,6 @@ export default function LiveSessions() {
                 <span className="size-1.5 rounded-full bg-green-01 animate-pulse" />
                 {activeCount} active right now
               </span>
-              <span className="text-xs text-gray-01">· Refreshed {tick}× this session</span>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
