@@ -260,7 +260,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Impersonations",
           url: routesPath.PROTECTED.AUDIT.IMPERSONATIONS,
-          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.IMPERSONATIONS),
+          isActive: false,
+          disabled: true,
         },
         // Audit Exports — backend requires platform.audit.export to list jobs
         ...(hasPermission(P.EXPORT_AUDIT)

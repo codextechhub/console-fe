@@ -22,7 +22,9 @@
       "Read(//private/tmp/**)",
       "Bash(npm install *)",
       "Bash(echo \"Exit: $?\")",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(python manage.py showmigrations vs_user)",
+      "Bash(python ~/Documents/Dev-Projects/GitHub/backend/manage.py showmigrations vs_user)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"
