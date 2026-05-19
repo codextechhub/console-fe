@@ -56,7 +56,19 @@ export default function LiveSessions() {
       />
     ),
     school: <span className="text-xs">{s.school?.name ?? "Platform"}</span>,
-    device: <span className="text-xs">{s.device_label || s.user_agent?.slice(0, 40) || "—"}</span>,
+    device: (() => {
+      const raw = s.device_label || s.user_agent?.slice(0, 40) || "—";
+      const sep = raw.indexOf(" · ");
+      if (sep === -1) return <span className="text-xs">{raw}</span>;
+      const devicePart = raw.slice(0, sep);
+      const browserPart = raw.slice(sep + 3);
+      return (
+        <div className="flex flex-col leading-snug">
+          <span className="text-xs">{devicePart}</span>
+          <span className="text-[10px] text-gray-01">{browserPart}</span>
+        </div>
+      );
+    })(),
     ip: <span className="font-mono text-xs">{s.ip_address ?? "—"}</span>,
     last_seen: <span className="text-xs">{formatRelativeDate(s.last_seen_at)}</span>,
     session_age: <span className="text-xs font-mono">{formatAge(s.created_at)}</span>,
