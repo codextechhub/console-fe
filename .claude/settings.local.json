@@ -20,7 +20,9 @@
       "Bash(echo \"EXIT=$?\")",
       "Bash(python3 *)",
       "Read(//private/tmp/**)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(npx eslint *)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"
