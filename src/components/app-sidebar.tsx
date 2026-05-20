@@ -132,6 +132,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               title: "Change Requests",
               url: routesPath.PROTECTED.ROLES.CHANGE_REQUESTS,
               isActive: location.startsWith(routesPath.PROTECTED.ROLES.CHANGE_REQUESTS),
+              disabled: true,
             }]
           : []),
         // Transfer Super Admin — only shown to users who hold the
