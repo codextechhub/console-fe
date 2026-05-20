@@ -52,7 +52,9 @@ function getRefreshJti(): string | null {
   try {
     const token = Cookies.get("refresh_token");
     if (!token) return null;
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    // JWTs use base64url (- and _ instead of + and /); atob needs standard base64.
+    const b64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(b64));
     return typeof payload.jti === "string" ? payload.jti : null;
   } catch {
     return null;
