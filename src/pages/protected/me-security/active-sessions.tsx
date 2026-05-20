@@ -1,38 +1,114 @@
 import { useState } from "react";
-import { RefreshCw } from "lucide-react";
+import Cookies from "js-cookie";
+import { useNavigate } from "react-router";
+import {
+  Clock, Eye, EyeOff, Globe, LogIn, LogOut,
+  Monitor, RefreshCw, Smartphone, Tablet,
+} from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import CustomTable from "@/components/custom/custom-table";
 import PromptModal from "@/components/modal/prompt-modal";
 import {
   useGetLoginSessionsQuery,
   useForceLogoutMutation,
 } from "@/redux/services/dashboard/securityApi";
 import { formatRelativeDate } from "@/utils/helpers";
+import { routesPath } from "@/routes/routesPath";
 import type { LoginSession } from "@/redux/services/dashboard/securityTypes";
 import { toast } from "sonner";
 
-const TABLE_HEADERS = ["Device", "IP address", "Last seen", "Status", "Action"];
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+type DeviceType = "desktop" | "mobile" | "tablet";
+
+function parseUA(ua: string | null | undefined): { browser: string; os: string; type: DeviceType } {
+  if (!ua) return { browser: "—", os: "—", type: "desktop" };
+  const browser =
+    /Edg\//.test(ua) ? "Edge" :
+    /Chrome\//.test(ua) ? "Chrome" :
+    /Firefox\//.test(ua) ? "Firefox" :
+    /Safari\//.test(ua) ? "Safari" : "—";
+  const os =
+    /iPhone|iPad/.test(ua) ? "iOS" :
+    /Android/.test(ua) ? "Android" :
+    /Mac OS X/.test(ua) ? "macOS" :
+    /Windows/.test(ua) ? "Windows" :
+    /Linux/.test(ua) ? "Linux" : "—";
+  const type: DeviceType =
+    /iPhone|Android.*Mobile/.test(ua) ? "mobile" :
+    /iPad/.test(ua) ? "tablet" : "desktop";
+  return { browser, os, type };
+}
+
+function maskIp(ip: string | null | undefined): string {
+  if (!ip) return "—";
+  const parts = ip.split(".");
+  if (parts.length !== 4) return ip;
+  return `${parts[0]}.•••.•••.${parts[3]}`;
+}
+
+function getRefreshJti(): string | null {
+  try {
+    const token = Cookies.get("refresh_token");
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return typeof payload.jti === "string" ? payload.jti : null;
+  } catch {
+    return null;
+  }
+}
+
+const DEVICE_ICON: Record<DeviceType, typeof Monitor> = {
+  desktop: Monitor,
+  mobile: Smartphone,
+  tablet: Tablet,
+};
+
+function endReasonLabel(reason: string): string {
+  if (reason === "FORCE_LOGOUT") return "Signed out by admin";
+  if (reason === "EXPIRED") return "Expired";
+  return "Signed out";
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function MyActiveSessions() {
-  const [page, setPage] = useState(1);
+  const navigate = useNavigate();
+  const refreshJti = getRefreshJti();
+  const isCurrent = (s: LoginSession) => !!refreshJti && s.refresh_jti === refreshJti;
+
+  const [revealedIps, setRevealedIps] = useState<Set<string>>(new Set());
   const [confirmEnd, setConfirmEnd] = useState<LoginSession | null>(null);
-  const { data, isLoading, isError, refetch, isFetching } = useGetLoginSessionsQuery(
-    { page, is_active: "true" },
+  const [confirmEndAll, setConfirmEndAll] = useState(false);
+  const [isEndingAll, setIsEndingAll] = useState(false);
+
+  const {
+    data: activeData,
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useGetLoginSessionsQuery(
+    { is_active: "true", page_size: 20 },
+    { refetchOnMountOrArgChange: true },
+  );
+  const { data: endedData } = useGetLoginSessionsQuery(
+    { is_active: "false", page_size: 5 },
     { refetchOnMountOrArgChange: true },
   );
   const [forceLogout, { isLoading: ending }] = useForceLogoutMutation();
 
-  const sessions = data?.data ?? [];
+  const activeSessions = activeData?.data ?? [];
+  const endedSessions = endedData?.data ?? [];
+  const otherSessions = activeSessions.filter((s) => !isCurrent(s));
 
-  const tableData = sessions.map((s) => ({
-    device: <span className="text-xs">{s.device_label || s.user_agent?.slice(0, 50) || "Unknown device"}</span>,
-    ip: <span className="font-mono text-xs">{s.ip_address ?? "—"}</span>,
-    last_seen: <span className="text-xs">{formatRelativeDate(s.last_seen_at)}</span>,
-    status: <Badge variant="active" className="text-[10px]">Active</Badge>,
-    _session: s,
-  }));
+  const toggleRevealIp = (id: string) =>
+    setRevealedIps((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   const handleEnd = () => {
     if (!confirmEnd) return;
@@ -45,53 +121,221 @@ export default function MyActiveSessions() {
       .catch(() => {});
   };
 
+  const handleEndAllOthers = async () => {
+    setIsEndingAll(true);
+    try {
+      await Promise.allSettled(
+        otherSessions.map((s) =>
+          forceLogout({ session_id: s.id, reason: "SELF_SIGNOUT" }).unwrap(),
+        ),
+      );
+      toast.success(
+        `Signed out of ${otherSessions.length} other session${otherSessions.length !== 1 ? "s" : ""}.`,
+      );
+      setConfirmEndAll(false);
+    } finally {
+      setIsEndingAll(false);
+    }
+  };
+
   return (
     <DashboardLayout title="Active Sessions">
       <main className="px-4.5 py-6 space-y-5 text-black-01">
-        <div className="flex items-center justify-between">
+
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <p className="font-semibold font-mont text-gray-01">Active sessions</p>
-            <p className="text-xs text-gray-01 mt-0.5">Devices currently signed in to your account.</p>
+            {/* Gap 9 — dynamic count */}
+            <p className="text-xs text-gray-01 mt-0.5">
+              {activeSessions.length} device{activeSessions.length !== 1 ? "s" : ""} currently signed in
+            </p>
           </div>
-          <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Gap 7 — sign out all other sessions */}
+            {otherSessions.length > 0 && (
+              <Button variant="white" size="sm" onClick={() => setConfirmEndAll(true)}>
+                <LogOut className="size-3.5" />
+                Sign out of all other sessions
+              </Button>
+            )}
+            <Button variant="white" size="sm" onClick={() => refetch()} disabled={isFetching}>
+              <RefreshCw className={`size-3.5 ${isFetching ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
+        {/* Gap 1 — card grid (replaces table) */}
         {isError ? (
           <div className="flex h-56 flex-col items-center justify-center gap-3 bg-white rounded-md">
             <p className="text-sm font-medium text-destructive">Failed to load sessions.</p>
           </div>
+        ) : isLoading ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white border border-gray-100 rounded-md p-4 h-44 animate-pulse" />
+            ))}
+          </div>
+        ) : activeSessions.length === 0 ? (
+          <div className="flex h-40 items-center justify-center bg-white rounded-md">
+            <p className="text-sm text-gray-01">No active sessions found.</p>
+          </div>
         ) : (
-          <CustomTable
-            tableHeaderList={TABLE_HEADERS}
-            tableBodyList={tableData}
-            loading={isLoading}
-            dropDown
-            dropDownList={(row: { _session: LoginSession }) => [
-              {
-                label: "Sign out of this device",
-                className: "text-destructive focus:text-destructive focus:bg-destructive/10",
-                onActionClick: () => setConfirmEnd(row._session),
-              },
-            ]}
-            perPage={data?.pagination?.pageSize}
-            totalPage={data?.pagination?.totalPages}
-            currentPage={data?.pagination?.currentPage}
-            onPageChange={(p) => setPage(p as number)}
-          />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {activeSessions.map((s) => {
+              const ua = parseUA(s.user_agent);
+              const DevIcon = DEVICE_ICON[ua.type];
+              const current = isCurrent(s);
+              const ipRevealed = revealedIps.has(s.id);
+
+              return (
+                <div
+                  key={s.id}
+                  className={`bg-white border rounded-md p-4 flex flex-col gap-3 ${
+                    current
+                      ? "border-green-500 ring-1 ring-green-500"
+                      : "border-gray-100"
+                  }`}
+                >
+                  {/* Gap 2 — device icon + Gap 3 — "This device" badge + Gap 4 — browser/OS */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                      <DevIcon
+                        size={20}
+                        strokeWidth={1.5}
+                        className={current ? "text-green-500" : "text-gray-400"}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-sm leading-tight truncate">
+                          {s.device_label || "Unknown device"}
+                        </span>
+                        {current && (
+                          <Badge variant="active" className="text-[10px] gap-1 py-0 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                            This device
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-01 mt-0.5">{ua.browser} · {ua.os}</p>
+                    </div>
+                  </div>
+
+                  {/* Gap 5 — two timestamps + Gap 6 — IP masking */}
+                  <div className="flex flex-col gap-1.5 text-xs text-gray-01">
+                    <div className="flex items-center gap-2">
+                      <Globe size={11} className="shrink-0" />
+                      <span className="font-mono">
+                        {ipRevealed ? (s.ip_address ?? "—") : maskIp(s.ip_address)}
+                      </span>
+                      <button
+                        onClick={() => toggleRevealIp(s.id)}
+                        className="ml-auto text-gray-300 hover:text-gray-500 transition"
+                        aria-label={ipRevealed ? "Hide IP" : "Show IP"}
+                      >
+                        {ipRevealed ? <EyeOff size={11} /> : <Eye size={11} />}
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock size={11} className="shrink-0" />
+                      <span>Last active {formatRelativeDate(s.last_seen_at)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <LogIn size={11} className="shrink-0" />
+                      <span>Signed in {formatRelativeDate(s.created_at)}</span>
+                    </div>
+                  </div>
+
+                  {/* Gap 11 — full-width sign-out button */}
+                  {current ? (
+                    <button
+                      disabled
+                      className="w-full text-xs py-1.5 px-3 rounded border border-gray-100 text-gray-400 bg-gray-50 cursor-not-allowed"
+                    >
+                      Current session
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmEnd(s)}
+                      className="w-full text-xs py-1.5 px-3 rounded border border-gray-100 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition flex items-center justify-center gap-1.5"
+                    >
+                      <LogOut size={12} />
+                      Sign out
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
 
+        {/* Gap 8 — recently ended sessions (collapsible) */}
+        {endedSessions.length > 0 && (
+          <details>
+            <summary className="text-sm text-gray-01 font-medium cursor-pointer list-none">
+              Recently ended sessions ({endedSessions.length})
+            </summary>
+            <div className="mt-3 bg-white rounded-md overflow-hidden border border-gray-100">
+              {endedSessions.map((s, i) => {
+                const ua = parseUA(s.user_agent);
+                const DevIcon = DEVICE_ICON[ua.type];
+                return (
+                  <div
+                    key={s.id}
+                    className={`flex items-center gap-3 px-4 py-2.5 text-xs ${
+                      i < endedSessions.length - 1 ? "border-b border-gray-50" : ""
+                    }`}
+                  >
+                    <DevIcon size={14} className="text-gray-300 shrink-0" strokeWidth={1.5} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{s.device_label || "Unknown device"}</p>
+                      <p className="text-gray-01">{ua.browser} · {ua.os} · {maskIp(s.ip_address)}</p>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] shrink-0">
+                      {endReasonLabel(s.end_reason)}
+                    </Badge>
+                    <span className="text-gray-01 shrink-0 ml-1">
+                      {s.ended_at ? formatRelativeDate(s.ended_at) : "—"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => navigate(routesPath.PROTECTED.ME_SECURITY.LOGIN_HISTORY)}
+              className="mt-2 text-xs text-blue-600 hover:underline"
+            >
+              View full history →
+            </button>
+          </details>
+        )}
+
+        {/* Sign out single session */}
         <PromptModal
           isOpen={!!confirmEnd}
           onClose={() => setConfirmEnd(null)}
           onConfirm={handleEnd}
-          title="Sign out of this device?"
-          description="You will be signed out of this session immediately."
+          title="Sign out from device"
+          description={`Sign out from ${confirmEnd?.device_label || "this device"}? This will end the session immediately.`}
           onConfirmText="Sign out"
           onConfirmClass="bg-error-01 text-white hover:bg-error-01/90"
           canCancel
           loading={ending}
+        />
+
+        {/* Sign out all other sessions */}
+        <PromptModal
+          isOpen={confirmEndAll}
+          onClose={() => setConfirmEndAll(false)}
+          onConfirm={handleEndAllOthers}
+          title="Sign out of all other sessions"
+          description={`This will sign you out of ${otherSessions.length} other session${otherSessions.length !== 1 ? "s" : ""}. Your current session on this device stays signed in.`}
+          onConfirmText="Sign out everywhere else"
+          onConfirmClass="bg-error-01 text-white hover:bg-error-01/90"
+          canCancel
+          loading={isEndingAll}
         />
       </main>
     </DashboardLayout>
