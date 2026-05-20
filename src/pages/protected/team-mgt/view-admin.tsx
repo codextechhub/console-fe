@@ -148,6 +148,7 @@ export default function ViewAdmin() {
     skip: !id,
   });
   const member = res?.data;
+  const isSelf = !!member && String(currentUser?.id) === String(member.id);
 
   const [emailModal, setEmailModal] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -201,12 +202,12 @@ export default function ViewAdmin() {
           <ActionCard
             icon={ShieldOff}
             title="Suspend Account"
-            description="Prevent this user from accessing the platform. Their data is preserved and can be restored."
+            description={isSelf ? "You cannot suspend your own account." : "Prevent this user from accessing the platform. Their data is preserved and can be restored."}
             buttonLabel="Suspend"
             buttonVariant="outline"
             destructive
             loading={suspending}
-            disabled={String(currentUser?.id) === String(member.id)}
+            disabled={isSelf}
             onClick={() =>
               handleAction(
                 () => suspend(member.id).unwrap(),
@@ -402,7 +403,7 @@ export default function ViewAdmin() {
               <ActionCard
                 icon={Pencil}
                 title="Edit Profile"
-                description="Update this user's first name, last name, phone number, and gender."
+                description={isSelf ? "Update your first name, last name, phone number, and gender." : "Update this user's first name, last name, phone number, and gender."}
                 buttonLabel="Go to Edit"
                 buttonVariant="outline"
                 onClick={() =>
@@ -415,7 +416,7 @@ export default function ViewAdmin() {
               <ActionCard
                 icon={KeyRound}
                 title="Reset Password"
-                description="Send a password reset email to this user. The link is valid for 24 hours."
+                description={isSelf ? "Send a password reset link to your email address. The link is valid for 24 hours." : "Send a password reset email to this user. The link is valid for 24 hours."}
                 buttonLabel="Send Reset Email"
                 loading={resetting}
                 onClick={() =>
@@ -431,7 +432,7 @@ export default function ViewAdmin() {
               <ActionCard
                 icon={Mail}
                 title="Change Email Address"
-                description="Update this user's login email. All active sessions will be ended and they must sign in with the new address."
+                description={isSelf ? "Update your login email. All your active sessions will be ended and you'll need to sign in with the new address." : "Update this user's login email. All active sessions will be ended and they must sign in with the new address."}
                 buttonLabel="Change Email"
                 buttonVariant="outline"
                 onClick={() => setEmailModal(true)}
@@ -469,7 +470,10 @@ export default function ViewAdmin() {
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-sm text-gray-01">
-              Changing the email for <span className="font-medium text-black-01">{member?.full_name}</span>. Their sessions will be ended and they must sign in with the new address.
+              {isSelf
+                ? "Changing your email address. All your active sessions will be ended and you'll need to sign in with the new address."
+                : <>Changing the email for <span className="font-medium text-black-01">{member?.full_name}</span>. Their sessions will be ended and they must sign in with the new address.</>
+              }
             </p>
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-01">New email address</label>
