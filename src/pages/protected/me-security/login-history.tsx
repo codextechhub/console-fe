@@ -328,8 +328,9 @@ export default function MyLoginHistory() {
                             <td className="px-3 py-2.5">
                               <span className="flex items-center gap-1.5">
                                 <DevIcon size={12} className="text-gray-400 shrink-0" strokeWidth={1.5} />
-                                <span className="text-gray-01 truncate max-w-[140px]">
-                                  {item.device_label || `${ua.browser} on ${ua.os}`}
+                                <span className="flex flex-col leading-tight">
+                                  <span className="font-medium truncate max-w-[120px]">{ua.browser}</span>
+                                  <span className="text-gray-01 truncate max-w-[120px]">{ua.os}</span>
                                 </span>
                               </span>
                             </td>

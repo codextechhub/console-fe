@@ -73,7 +73,7 @@ export default function MyPassword() {
     newPassword === confirmPassword;
 
   const handleSubmitPw = () => {
-    changePassword({ old_password: oldPassword, new_password: newPassword })
+    changePassword({ current_password: oldPassword, password: newPassword, confirm_password: confirmPassword })
       .unwrap()
       .then(() => {
         toast.success("Password updated. You may be asked to sign in again on other devices.");
@@ -84,7 +84,7 @@ export default function MyPassword() {
       .catch(() => {});
   };
 
-  const resets = resetsData?.data ?? [];
+  const resets = Array.isArray(resetsData?.data) ? resetsData.data : [];
   const passwordChangedAt = user?.password_changed_at || null;
 
   return (

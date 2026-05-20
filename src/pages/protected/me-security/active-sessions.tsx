@@ -2,7 +2,7 @@ import { useState } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router";
 import {
-  Clock, Eye, EyeOff, Globe, LogIn, LogOut,
+  ChevronDown, ChevronUp, Clock, Eye, EyeOff, Globe, LogIn, LogOut,
   Monitor, RefreshCw, Smartphone, Tablet,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -82,6 +82,7 @@ export default function MyActiveSessions() {
   const [confirmEnd, setConfirmEnd] = useState<LoginSession | null>(null);
   const [confirmEndAll, setConfirmEndAll] = useState(false);
   const [isEndingAll, setIsEndingAll] = useState(false);
+  const [showEnded, setShowEnded] = useState(false);
 
   const {
     data: activeData,
@@ -210,7 +211,7 @@ export default function MyActiveSessions() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-sm leading-tight truncate">
-                          {s.device_label || "Unknown device"}
+                          {ua.browser}
                         </span>
                         {current && (
                           <Badge variant="active" className="text-[10px] gap-1 py-0 shrink-0">
@@ -219,7 +220,7 @@ export default function MyActiveSessions() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-gray-01 mt-0.5">{ua.browser} · {ua.os}</p>
+                      <p className="text-xs text-gray-01 mt-0.5">{ua.os}</p>
                     </div>
                   </div>
 
@@ -271,45 +272,53 @@ export default function MyActiveSessions() {
           </div>
         )}
 
-        {/* Gap 8 — recently ended sessions (collapsible) */}
+        {/* Recently ended sessions (collapsible) */}
         {endedSessions.length > 0 && (
-          <details>
-            <summary className="text-sm text-gray-01 font-medium cursor-pointer list-none">
-              Recently ended sessions ({endedSessions.length})
-            </summary>
-            <div className="mt-3 bg-white rounded-md overflow-hidden border border-gray-100">
-              {endedSessions.map((s, i) => {
-                const ua = parseUA(s.user_agent);
-                const DevIcon = DEVICE_ICON[ua.type];
-                return (
-                  <div
-                    key={s.id}
-                    className={`flex items-center gap-3 px-4 py-2.5 text-xs ${
-                      i < endedSessions.length - 1 ? "border-b border-gray-50" : ""
-                    }`}
-                  >
-                    <DevIcon size={14} className="text-gray-300 shrink-0" strokeWidth={1.5} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{s.device_label || "Unknown device"}</p>
-                      <p className="text-gray-01">{ua.browser} · {ua.os} · {maskIp(s.ip_address)}</p>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] shrink-0">
-                      {endReasonLabel(s.end_reason)}
-                    </Badge>
-                    <span className="text-gray-01 shrink-0 ml-1">
-                      {s.ended_at ? formatRelativeDate(s.ended_at) : "—"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+          <div>
             <button
-              onClick={() => navigate(routesPath.PROTECTED.ME_SECURITY.LOGIN_HISTORY)}
-              className="mt-2 text-xs text-blue-600 hover:underline"
+              className="flex items-center gap-1.5 text-sm text-gray-01 font-medium"
+              onClick={() => setShowEnded((v) => !v)}
             >
-              View full history →
+              {showEnded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              Recently ended sessions ({endedSessions.length})
             </button>
-          </details>
+            {showEnded && (
+              <>
+                <div className="mt-3 bg-white rounded-md overflow-hidden border border-gray-100">
+                  {endedSessions.map((s, i) => {
+                    const ua = parseUA(s.user_agent);
+                    const DevIcon = DEVICE_ICON[ua.type];
+                    return (
+                      <div
+                        key={s.id}
+                        className={`flex items-center gap-3 px-4 py-2.5 text-xs ${
+                          i < endedSessions.length - 1 ? "border-b border-gray-50" : ""
+                        }`}
+                      >
+                        <DevIcon size={14} className="text-gray-300 shrink-0" strokeWidth={1.5} />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{ua.browser}</p>
+                          <p className="text-gray-01">{ua.os} · {maskIp(s.ip_address)}</p>
+                        </div>
+                        <Badge variant="outline" className="text-[10px] shrink-0">
+                          {endReasonLabel(s.end_reason)}
+                        </Badge>
+                        <span className="text-gray-01 shrink-0 ml-1">
+                          {s.ended_at ? formatRelativeDate(s.ended_at) : "—"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <button
+                  onClick={() => navigate(routesPath.PROTECTED.ME_SECURITY.LOGIN_HISTORY)}
+                  className="mt-2 text-xs text-blue-600 hover:underline"
+                >
+                  View full history →
+                </button>
+              </>
+            )}
+          </div>
         )}
 
         {/* Sign out single session */}

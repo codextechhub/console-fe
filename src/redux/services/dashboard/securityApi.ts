@@ -94,7 +94,7 @@ export const securityApi = baseApi.injectEndpoints({
     }),
 
     // ── Self-service password change ────────────────────────────────────────
-    changeMyPassword: builder.mutation<{ message: string }, { old_password: string; new_password: string }>({
+    changeMyPassword: builder.mutation<{ message: string }, { current_password: string; password: string; confirm_password: string }>({
       query: (body) => ({ url: `/user/auth/password/change/`, method: "POST", body }),
     }),
 

@@ -102,7 +102,10 @@ export const baseQueryInterceptor: BaseQueryFn<
   const res: any = result.error;
 
   if (res?.status === 400 || res?.status === 422) {
-    const message = extractFirstDetailError(res?.data?.error?.detail) || res?.data?.message;
+    const message =
+      extractFirstDetailError(res?.data?.error?.detail) ||
+      extractFirstDetailError(res?.data?.error) ||
+      res?.data?.message;
     if (message) toast.error(message);
     return result;
   }
