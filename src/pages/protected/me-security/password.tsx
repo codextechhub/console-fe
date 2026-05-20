@@ -17,8 +17,8 @@ import { toast } from "sonner";
 function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!domain) return email;
-  const visible = local.slice(0, Math.min(5, local.length));
-  return `${visible}•••••@${domain}`;
+  const visible = local.slice(0, Math.min(3, local.length));
+  return `${visible}*****@${domain}`;
 }
 
 function maskIp(ip: string | null | undefined): string {
@@ -221,7 +221,7 @@ export default function MyPassword() {
         <div className="bg-white rounded-md p-5 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold">Email address</p>
-            <p className="text-xs font-mono text-gray-01 mt-0.5">
+            <p className="text-xs font-mont text-gray-01 mt-0.5 tracking-wide">
               {user?.email ? maskEmail(user.email) : "—"}
             </p>
           </div>
