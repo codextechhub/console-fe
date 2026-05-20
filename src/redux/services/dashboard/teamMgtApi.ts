@@ -71,6 +71,14 @@ export const teamMgtApi = baseApi.injectEndpoints({
         method: "POST",
       }),
     }),
+    changeUserEmail: builder.mutation<{ message: string }, { user_id: string; email: string }>({
+      query: ({ user_id, email }) => ({
+        url: `/user/${user_id}/email/change/`,
+        method: "PATCH",
+        body: { email },
+      }),
+      invalidatesTags: ["Users"],
+    }),
   }),
 });
 
@@ -84,4 +92,5 @@ export const {
   useReactivateTeamMemberMutation,
   useUnlockTeamMemberMutation,
   useAdminPasswordResetMutation,
+  useChangeUserEmailMutation,
 } = teamMgtApi;

@@ -1,21 +1,32 @@
 import { useMemo, useState } from "react";
-import { RefreshCw, Timer, XCircle, Mail } from "lucide-react";
+import { KeyRound, Mail, RefreshCw, Search, Timer, XCircle } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import { useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
 import {
   useGetPendingResetsQuery,
   useRevokeResetMutation,
   useResendPasswordResetMutation,
 } from "@/redux/services/dashboard/securityApi";
+import {
+  useGetTeamMembersQuery,
+  useAdminPasswordResetMutation,
+  useChangeUserEmailMutation,
+} from "@/redux/services/dashboard/teamMgtApi";
 import { ActorCell } from "./components/audit-cells";
 import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { AuditEventListItem, AuditSeverity } from "@/redux/services/dashboard/auditTypes";
+import type { TeamMember } from "@/redux/services/dashboard/type";
 import { FRIENDLY_ACTION } from "./audit-constants";
+import PermissionGate from "@/components/custom/permission-gate";
+import { P } from "@/permissions";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -95,6 +106,13 @@ export default function PasswordActivity() {
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
 
+  // Quick admin actions state
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUser, setSelectedUser] = useState<TeamMember | null>(null);
+  const [emailModal, setEmailModal] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+
   const params = useMemo(() => {
     const p: Record<string, string | number> = { page, module_key: "IDENTITY" };
     if (actionFilter) p.action_type = actionFilter;
@@ -110,6 +128,12 @@ export default function PasswordActivity() {
   const { data: resetsData, refetch: refetchResets } = useGetPendingResetsQuery();
   const [revokeReset, { isLoading: revoking }] = useRevokeResetMutation();
   const [resendReset, { isLoading: resending }] = useResendPasswordResetMutation();
+  const { data: searchResults, isFetching: searching } = useGetTeamMembersQuery(
+    { search: searchQuery, page_size: 5 },
+    { skip: !searchQuery },
+  );
+  const [quickReset, { isLoading: quickResetting }] = useAdminPasswordResetMutation();
+  const [changeEmail, { isLoading: changingEmail }] = useChangeUserEmailMutation();
 
   const events = data?.data ?? [];
   const pendingResets = resetsData?.data ?? [];
@@ -223,6 +247,102 @@ export default function PasswordActivity() {
               />
             </div>
 
+            {/* ── Sidebar column ── */}
+            <div className="space-y-4">
+
+            {/* Quick admin actions panel — requires platform.team.update */}
+            <PermissionGate permission={P.MODIFY_TEAM_MEMBER}>
+            <div className="rounded-md border bg-white">
+              <div className="px-4 py-3 border-b">
+                <p className="text-xs font-semibold font-mont text-gray-01">Admin actions</p>
+                <p className="text-[10px] text-gray-01 mt-0.5">Search a user and perform security actions</p>
+              </div>
+              <div className="px-4 py-3 space-y-3">
+                {/* Search input */}
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { setSearchQuery(searchInput); setSelectedUser(null); } }}
+                    placeholder="Name or email…"
+                    className="flex-1 text-xs border border-gray-200 rounded-md px-2.5 py-1.5 focus:outline-none focus:border-primary"
+                  />
+                  <Button
+                    size="sm"
+                    variant="white"
+                    className="h-7 px-2 shrink-0"
+                    disabled={!searchInput.trim()}
+                    onClick={() => { setSearchQuery(searchInput); setSelectedUser(null); }}
+                  >
+                    {searching ? <RefreshCw className="size-3 animate-spin" /> : <Search className="size-3" />}
+                  </Button>
+                </div>
+
+                {/* Search results */}
+                {searchQuery && !searching && (
+                  <div className="space-y-1">
+                    {(searchResults?.data ?? []).length === 0 ? (
+                      <p className="text-[10px] text-gray-01 text-center py-2">No users found.</p>
+                    ) : (
+                      (searchResults?.data ?? []).map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => setSelectedUser(u)}
+                          className={cn(
+                            "w-full flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors",
+                            selectedUser?.id === u.id
+                              ? "bg-pry-01 border border-primary/20"
+                              : "hover:bg-gray-50 border border-transparent",
+                          )}
+                        >
+                          <ActorCell label={u.full_name || u.email} email={u.email} />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium truncate">{u.full_name || u.email}</p>
+                            <p className="text-[10px] text-gray-01 truncate">{u.email}</p>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {/* Actions for selected user */}
+                {selectedUser && (
+                  <div className="pt-1 border-t border-gray-100 space-y-1.5">
+                    <p className="text-[10px] text-gray-01">
+                      Actions for <span className="font-medium text-black-01">{selectedUser.full_name || selectedUser.email}</span>
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-7 text-[10px] justify-start gap-1.5"
+                      disabled={quickResetting}
+                      loading={quickResetting}
+                      onClick={() =>
+                        quickReset(selectedUser.id)
+                          .unwrap()
+                          .then(() => toast.success("Password reset email sent."))
+                          .catch(() => {})
+                      }
+                    >
+                      <KeyRound className="size-3" /> Send password reset
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full h-7 text-[10px] justify-start gap-1.5"
+                      onClick={() => setEmailModal(true)}
+                    >
+                      <Mail className="size-3" /> Change email address
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            </PermissionGate>
+
             {/* Pending resets sidebar */}
             <div className="rounded-md border bg-white">
               <div className="px-4 py-3 border-b">
@@ -286,9 +406,58 @@ export default function PasswordActivity() {
               )}
             </div>
 
+            </div>{/* end sidebar column */}
+
           </div>
         )}
       </main>
+
+      {/* Change email modal */}
+      <Dialog open={emailModal} onOpenChange={(open) => { setEmailModal(open); if (!open) setNewEmail(""); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">Change email address</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-01">
+              Changing the email for <span className="font-medium text-black-01">{selectedUser?.full_name || selectedUser?.email}</span>. Their sessions will be ended and they must sign in with the new address.
+            </p>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-01">New email address</label>
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="name@school.edu"
+                className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:border-primary"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="white" size="sm" onClick={() => { setEmailModal(false); setNewEmail(""); }} disabled={changingEmail}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              disabled={!newEmail.includes("@") || changingEmail}
+              loading={changingEmail}
+              onClick={() => {
+                if (!selectedUser) return;
+                changeEmail({ user_id: selectedUser.id, email: newEmail })
+                  .unwrap()
+                  .then(() => {
+                    toast.success("Email updated successfully.");
+                    setEmailModal(false);
+                    setNewEmail("");
+                  })
+                  .catch(() => {});
+              }}
+            >
+              Update email
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

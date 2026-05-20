@@ -7,6 +7,8 @@ import { routesPath } from "@/routes/routesPath";
 import { useNavigate, useParams } from "react-router";
 import { useSelector } from "react-redux";
 import { selectUser } from "@/redux/features/auth/authSlice";
+import PermissionGate from "@/components/custom/permission-gate";
+import { P } from "@/permissions";
 import {
   useGetTeamMembersDetailsQuery,
   useSuspendTeamMemberMutation,
@@ -14,11 +16,15 @@ import {
   useUnlockTeamMemberMutation,
   useAdminPasswordResetMutation,
   useResendInviteMutation,
+  useChangeUserEmailMutation,
 } from "@/redux/services/dashboard/teamMgtApi";
 import { returnInitial, formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import {
   KeyRound,
   Pencil,
@@ -143,6 +149,9 @@ export default function ViewAdmin() {
   });
   const member = res?.data;
 
+  const [emailModal, setEmailModal] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+
   const [suspend, { isLoading: suspending }] = useSuspendTeamMemberMutation();
   const [reactivate, { isLoading: reactivating }] =
     useReactivateTeamMemberMutation();
@@ -150,6 +159,7 @@ export default function ViewAdmin() {
   const [resetPassword, { isLoading: resetting }] =
     useAdminPasswordResetMutation();
   const [resendInvite, { isLoading: resending }] = useResendInviteMutation();
+  const [changeEmail, { isLoading: changingEmail }] = useChangeUserEmailMutation();
 
 
   const handleAction = (
@@ -187,54 +197,60 @@ export default function ViewAdmin() {
   const statusActions = () => {
     if (member.status === "ACTIVE")
       return (
-        <ActionCard
-          icon={ShieldOff}
-          title="Suspend Account"
-          description="Prevent this user from accessing the platform. Their data is preserved and can be restored."
-          buttonLabel="Suspend"
-          buttonVariant="outline"
-          destructive
-          loading={suspending}
-          disabled={String(currentUser?.id) === String(member.id)}
-          onClick={() =>
-            handleAction(
-              () => suspend(member.id).unwrap(),
-              "User suspended successfully.",
-            )
-          }
-        />
+        <PermissionGate permission={P.SUSPEND_TEAM_MEMBER}>
+          <ActionCard
+            icon={ShieldOff}
+            title="Suspend Account"
+            description="Prevent this user from accessing the platform. Their data is preserved and can be restored."
+            buttonLabel="Suspend"
+            buttonVariant="outline"
+            destructive
+            loading={suspending}
+            disabled={String(currentUser?.id) === String(member.id)}
+            onClick={() =>
+              handleAction(
+                () => suspend(member.id).unwrap(),
+                "User suspended successfully.",
+              )
+            }
+          />
+        </PermissionGate>
       );
     if (member.status === "SUSPENDED")
       return (
-        <ActionCard
-          icon={ShieldCheck}
-          title="Reactivate Account"
-          description="Restore full access for this user. They will be able to log in immediately."
-          buttonLabel="Reactivate"
-          loading={reactivating}
-          onClick={() =>
-            handleAction(
-              () => reactivate(member.id).unwrap(),
-              "User reactivated successfully.",
-            )
-          }
-        />
+        <PermissionGate permission={P.REACTIVATE_TEAM_MEMBER}>
+          <ActionCard
+            icon={ShieldCheck}
+            title="Reactivate Account"
+            description="Restore full access for this user. They will be able to log in immediately."
+            buttonLabel="Reactivate"
+            loading={reactivating}
+            onClick={() =>
+              handleAction(
+                () => reactivate(member.id).unwrap(),
+                "User reactivated successfully.",
+              )
+            }
+          />
+        </PermissionGate>
       );
     if (member.status === "LOCKED")
       return (
-        <ActionCard
-          icon={LockOpen}
-          title="Unlock Account"
-          description="This account has been locked due to too many failed login attempts. Unlock to restore access."
-          buttonLabel="Unlock"
-          loading={unlocking}
-          onClick={() =>
-            handleAction(
-              () => unlock(member.id).unwrap(),
-              "User unlocked successfully.",
-            )
-          }
-        />
+        <PermissionGate permission={P.REACTIVATE_TEAM_MEMBER}>
+          <ActionCard
+            icon={LockOpen}
+            title="Unlock Account"
+            description="This account has been locked due to too many failed login attempts. Unlock to restore access."
+            buttonLabel="Unlock"
+            loading={unlocking}
+            onClick={() =>
+              handleAction(
+                () => unlock(member.id).unwrap(),
+                "User unlocked successfully.",
+              )
+            }
+          />
+        </PermissionGate>
       );
     return null;
   };
@@ -382,51 +398,115 @@ export default function ViewAdmin() {
         {/* ── Actions tab ── */}
         {activeTab === "Actions" && (
           <div className="space-y-3">
-            <ActionCard
-              icon={Pencil}
-              title="Edit Profile"
-              description="Update this user's first name, last name, phone number, and gender."
-              buttonLabel="Go to Edit"
-              buttonVariant="outline"
-              onClick={() =>
-                navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(member.id))
-              }
-            />
-
-            <ActionCard
-              icon={KeyRound}
-              title="Reset Password"
-              description="Send a password reset email to this user. The link is valid for 24 hours."
-              buttonLabel="Send Reset Email"
-              loading={resetting}
-              onClick={() =>
-                handleAction(
-                  () => resetPassword(member.id).unwrap(),
-                  "Password reset email sent.",
-                )
-              }
-            />
-
-            {member.status === "PENDING" && (
+            <PermissionGate permission={P.MODIFY_TEAM_MEMBER}>
               <ActionCard
-                icon={Mail}
-                title="Resend Invite"
-                description="Resend the activation email to this user. The invite link will be valid for 7 days."
-                buttonLabel="Resend Invite"
-                loading={resending}
+                icon={Pencil}
+                title="Edit Profile"
+                description="Update this user's first name, last name, phone number, and gender."
+                buttonLabel="Go to Edit"
+                buttonVariant="outline"
+                onClick={() =>
+                  navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(member.id))
+                }
+              />
+            </PermissionGate>
+
+            <PermissionGate permission={P.MODIFY_TEAM_MEMBER}>
+              <ActionCard
+                icon={KeyRound}
+                title="Reset Password"
+                description="Send a password reset email to this user. The link is valid for 24 hours."
+                buttonLabel="Send Reset Email"
+                loading={resetting}
                 onClick={() =>
                   handleAction(
-                    () => resendInvite(member.id).unwrap(),
-                    "Invite resent successfully.",
+                    () => resetPassword(member.id).unwrap(),
+                    "Password reset email sent.",
                   )
                 }
               />
+            </PermissionGate>
+
+            <PermissionGate permission={P.MODIFY_TEAM_MEMBER}>
+              <ActionCard
+                icon={Mail}
+                title="Change Email Address"
+                description="Update this user's login email. All active sessions will be ended and they must sign in with the new address."
+                buttonLabel="Change Email"
+                buttonVariant="outline"
+                onClick={() => setEmailModal(true)}
+              />
+            </PermissionGate>
+
+            {member.status === "PENDING" && (
+              <PermissionGate permission={P.INVITE_TEAM_MEMBER}>
+                <ActionCard
+                  icon={Mail}
+                  title="Resend Invite"
+                  description="Resend the activation email to this user. The invite link will be valid for 7 days."
+                  buttonLabel="Resend Invite"
+                  loading={resending}
+                  onClick={() =>
+                    handleAction(
+                      () => resendInvite(member.id).unwrap(),
+                      "Invite resent successfully.",
+                    )
+                  }
+                />
+              </PermissionGate>
             )}
 
             {statusActions()}
           </div>
         )}
       </section>
+
+      {/* Change email modal */}
+      <Dialog open={emailModal} onOpenChange={(open) => { setEmailModal(open); if (!open) setNewEmail(""); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base">Change email address</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-01">
+              Changing the email for <span className="font-medium text-black-01">{member?.full_name}</span>. Their sessions will be ended and they must sign in with the new address.
+            </p>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-gray-01">New email address</label>
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="name@school.edu"
+                className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:border-primary"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="white" size="sm" onClick={() => { setEmailModal(false); setNewEmail(""); }} disabled={changingEmail}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              disabled={!newEmail.includes("@") || changingEmail}
+              loading={changingEmail}
+              onClick={() => {
+                if (!member) return;
+                changeEmail({ user_id: member.id, email: newEmail })
+                  .unwrap()
+                  .then(() => {
+                    toast.success("Email updated successfully.");
+                    setEmailModal(false);
+                    setNewEmail("");
+                  })
+                  .catch(() => {});
+              }}
+            >
+              Update email
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
