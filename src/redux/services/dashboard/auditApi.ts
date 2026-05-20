@@ -93,6 +93,11 @@ export const auditApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/audit/me/activity/${generateQueryString(params)}`, method: "GET" }),
       providesTags: ["MyActivity"],
     }),
+
+    getMyActivityOnMe: builder.query<PaginatedResponse<AuditEventListItem>, Record<string, string | number>>({
+      query: (params) => ({ url: `/audit/me/activity-on-me/${generateQueryString(params)}`, method: "GET" }),
+      providesTags: ["MyActivity"],
+    }),
   }),
 });
 
@@ -111,4 +116,5 @@ export const {
   useUpdateComplianceRuleMutation,
   useDeleteComplianceRuleMutation,
   useGetMyActivityQuery,
+  useGetMyActivityOnMeQuery,
 } = auditApi;
