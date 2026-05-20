@@ -5,8 +5,15 @@ import { AlertTriangle, ShieldAlert, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import { CustomInput } from "@/components/custom/custom-input";
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+  ComboboxEmpty,
+} from "@/components/ui/combobox";
 import {
   Dialog,
   DialogContent,
@@ -63,14 +70,9 @@ export default function TransferSuperAdmin() {
   const selectedUser = candidates.find((m) => m.id === selectedUserId);
 
   const isCurrentUserSuperAdmin =
-    !!activeSuperAdmin && !!currentUser?.id && activeSuperAdmin.user_id === currentUser.id;
+    !!activeSuperAdmin && !!currentUser?.id && String(activeSuperAdmin.user_id) === String(currentUser.id);
 
   const [transferSuperAdmin, { isLoading: isTransferring }] = useTransferSuperAdminMutation();
-
-  const userOptions = candidates.map((m) => ({
-    value: m.id,
-    label: `${m.full_name} — ${m.email}`,
-  }));
 
   const handleOpenConfirm = () => {
     if (!selectedUserId) {
@@ -173,21 +175,36 @@ export default function TransferSuperAdmin() {
             </p>
           </div>
 
-          <CustomNativeSelect
-            id="new-super-admin"
-            isRequired
-            placeholder={
-              membersLoading
-                ? "Loading staff..."
-                : userOptions.length === 0
-                  ? "No eligible CX staff available"
-                  : "Select a CX staff member..."
-            }
-            options={userOptions}
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-            disabled={membersLoading || userOptions.length === 0 || !isCurrentUserSuperAdmin}
-          />
+          <Combobox
+            value={selectedUserId || null}
+            onValueChange={(v) => setSelectedUserId(v ?? "")}
+            disabled={membersLoading || candidates.length === 0 || !isCurrentUserSuperAdmin}
+          >
+            <ComboboxInput
+              placeholder={
+                membersLoading
+                  ? "Loading staff…"
+                  : candidates.length === 0
+                    ? "No eligible CX staff available"
+                    : "Select a CX staff member…"
+              }
+              showTrigger
+              showClear={!!selectedUserId}
+              className="w-full h-10.5"
+              disabled={membersLoading || candidates.length === 0 || !isCurrentUserSuperAdmin}
+            />
+            <ComboboxContent>
+              <ComboboxList>
+                {candidates.map((m) => (
+                  <ComboboxItem key={m.id} value={m.id}>
+                    <span className="font-medium">{m.full_name}</span>
+                    <span className="text-gray-01 text-xs ml-1">— {m.email}</span>
+                  </ComboboxItem>
+                ))}
+                <ComboboxEmpty>No matching staff found</ComboboxEmpty>
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
 
           {!isCurrentUserSuperAdmin && !assignmentsLoading && activeSuperAdmin && (
             <div className="flex items-start gap-2 rounded-md bg-gray-50 border border-white-02 px-3 py-2.5 text-xs text-gray-01">
