@@ -5,6 +5,7 @@ import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
 import { clearStorageItem } from "./use-session-storage";
 import { routesPath } from "@/routes/routesPath";
 import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
+import { clearActivity, recordActivity } from "@/utils/sessionActivity";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL as string;
 
@@ -68,6 +69,7 @@ export function useSessionTimeout() {
     Cookies.remove("token");
     Cookies.remove("refresh_token");
     clearStorageItem();
+    clearActivity();
     // Set banner AFTER clear so it survives both page refresh and goToLogin redirect.
     sessionStorage.setItem("_auth_banner", "Your session has expired due to inactivity. Please log in to continue.");
     dispatch(resetAuth());
@@ -82,6 +84,7 @@ export function useSessionTimeout() {
     Cookies.remove("token");
     Cookies.remove("refresh_token");
     clearStorageItem();
+    clearActivity();
     dispatch(resetAuth());
     window.location.href = routesPath.AUTH.LOGIN;
   }, [dispatch]);
@@ -109,6 +112,7 @@ export function useSessionTimeout() {
   const resetIdleTimer = useCallback(() => {
     if (isWarningOpenRef.current) return; // don't reset while warning is visible
     lastActivityRef.current = Date.now();
+    recordActivity();
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => startCountdown(Date.now()), IDLE_MS);
   }, [startCountdown]);

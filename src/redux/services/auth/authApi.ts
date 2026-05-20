@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { clearStorageItem } from "@/hooks/use-session-storage";
 import { baseApi } from "../baseApi";
 import { routesPath } from "@/routes/routesPath";
+import { clearActivity, recordActivity } from "@/utils/sessionActivity";
 import type { LoginResponse } from "./type";
 
 export const authApi = baseApi.injectEndpoints({
@@ -19,6 +20,7 @@ export const authApi = baseApi.injectEndpoints({
           const {data} = result;
           Cookies.set("token", data?.data?.access || "");
           Cookies.set("refresh_token", data?.data?.refresh || "");
+          recordActivity();
           dispatch(setAuthUser(data?.data));
         } catch {}
       },
@@ -39,6 +41,7 @@ export const authApi = baseApi.injectEndpoints({
           Cookies.remove("token");
           Cookies.remove("refresh_token");
           clearStorageItem();
+          clearActivity();
           dispatch(resetAuth());
           window.location.href = routesPath.AUTH.LOGIN;
         }

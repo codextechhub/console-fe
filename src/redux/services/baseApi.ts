@@ -11,6 +11,7 @@ import Cookies from "js-cookie";
 import { clearStorageItem } from "@/hooks/use-session-storage";
 import { routesPath } from "@/routes/routesPath";
 import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
+import { clearActivity } from "@/utils/sessionActivity";
 
 const getAccessToken = () => {
   const token = Cookies.get("token");
@@ -38,6 +39,7 @@ const forceLogoutAndRedirect = (api: Parameters<BaseQueryFn>[1]) => {
   Cookies.remove("token");
   Cookies.remove("refresh_token");
   clearStorageItem();
+  clearActivity();
   window.location.href = routesPath.AUTH.LOGIN;
 };
 

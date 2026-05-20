@@ -6,6 +6,7 @@ import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
 import { routesPath } from "@/routes/routesPath";
 import { clearStorageItem } from "./use-session-storage";
 import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
+import { clearActivity } from "@/utils/sessionActivity";
 
 const REFRESH_BUFFER_SECONDS = 120; // refresh if token expires within 2 minutes
 
@@ -54,6 +55,7 @@ export function useTokenRefresh() {
         Cookies.remove("token");
         Cookies.remove("refresh_token");
         clearStorageItem();
+        clearActivity();
         sessionStorage.setItem(
           "_auth_banner",
           "Your session has expired. Please log in to continue.",
