@@ -87,6 +87,11 @@ export const securityApi = baseApi.injectEndpoints({
       invalidatesTags: ["PasswordResets"],
     }),
 
+    // ── Self-service security stats ─────────────────────────────────────────
+    getMySecurityStats: builder.query<{ data: { failed_attempts_7d: number } }, void>({
+      query: () => ({ url: `/user/auth/me/stats/`, method: "GET" }),
+    }),
+
     // ── Self-service password change ────────────────────────────────────────
     changeMyPassword: builder.mutation<{ message: string }, { old_password: string; new_password: string }>({
       query: (body) => ({ url: `/user/auth/password/change/`, method: "POST", body }),
@@ -100,6 +105,7 @@ export const {
   useGetAuthAttemptsQuery,
   useGetAccountLockoutsQuery,
   useUnlockAccountMutation,
+  useGetMySecurityStatsQuery,
   useGetAuthEventsQuery,
   useGetImpersonationsQuery,
   useStartImpersonationMutation,

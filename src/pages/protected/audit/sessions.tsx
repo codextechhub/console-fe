@@ -104,11 +104,11 @@ function formatAge(iso: string): string {
 function deviceParts(s: LoginSession): { name: string; browser: string; deviceClass: DeviceType } {
   const label = s.device_label || "";
 
-  // New backend format: "Browser: Chrome · OS: macOS · Class: desktop"
+  // New backend format: "Browser: Chrome · OS: Mac OS · Class: desktop"
   const structured = label.match(/Browser:\s*([^·]+)\s*·\s*OS:\s*([^·]+)\s*·\s*Class:\s*(\w+)/i);
   if (structured) {
     const [, browser, rawOs, cls] = structured.map((v) => v.trim());
-    const os = rawOs === "macOS" ? "Mac OS" : rawOs;
+    const os = rawOs === "Mac OS" ? "Mac OS" : rawOs;
     const deviceClass: DeviceType =
       cls === "mobile" ? "mobile" : cls === "tablet" ? "tablet" : "desktop";
     return { name: os, browser, deviceClass };
