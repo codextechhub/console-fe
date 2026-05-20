@@ -1,23 +1,78 @@
-import { useState } from "react";
-import { Key } from "lucide-react";
+import { useState, useMemo } from "react";
+import { CheckCircle2, Circle, Key } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { CustomInput } from "@/components/custom/custom-input";
-import { useChangeMyPasswordMutation } from "@/redux/services/dashboard/securityApi";
+import {
+  useChangeMyPasswordMutation,
+  useGetMyPasswordResetsQuery,
+} from "@/redux/services/dashboard/securityApi";
+import { useAppSelector } from "@/redux/store";
+import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
 
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!domain) return email;
+  const visible = local.slice(0, Math.min(5, local.length));
+  return `${visible}•••••@${domain}`;
+}
+
+function maskIp(ip: string | null | undefined): string {
+  if (!ip) return "—";
+  const parts = ip.split(".");
+  if (parts.length !== 4) return ip;
+  return `${parts[0]}.•••.•••.${parts[3]}`;
+}
+
+const STRENGTH_LABELS = ["Weak", "Weak", "Okay", "Good", "Strong", "Very strong"];
+
+function passwordStrength(p: string): { score: number; label: string } {
+  if (!p) return { score: 0, label: "—" };
+  let s = 0;
+  if (p.length >= 8) s++;
+  if (p.length >= 12) s++;
+  if (/[A-Z]/.test(p) && /[a-z]/.test(p)) s++;
+  if (/\d/.test(p)) s++;
+  if (/[^A-Za-z0-9]/.test(p)) s++;
+  return { score: s, label: STRENGTH_LABELS[s] };
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function MyPassword() {
+  const user = useAppSelector((s) => s.auth.user);
+
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [changePassword, { isLoading }] = useChangeMyPasswordMutation();
+  const [showHistory, setShowHistory] = useState(false);
 
-  const canSubmit =
+  const [changePassword, { isLoading: changingPw }] = useChangeMyPasswordMutation();
+  const { data: resetsData } = useGetMyPasswordResetsQuery(undefined, {
+    skip: !showHistory,
+    refetchOnMountOrArgChange: true,
+  });
+
+  const strength = useMemo(() => passwordStrength(newPassword), [newPassword]);
+
+  const policy = [
+    { check: newPassword.length >= 12, label: "At least 12 characters" },
+    { check: /[A-Z]/.test(newPassword), label: "Uppercase letter" },
+    { check: /[a-z]/.test(newPassword), label: "Lowercase letter" },
+    { check: /\d/.test(newPassword), label: "A digit" },
+    { check: /[^A-Za-z0-9]/.test(newPassword), label: "A symbol" },
+  ];
+
+  const canSubmitPw =
     oldPassword.length > 0 &&
-    newPassword.length >= 8 &&
+    policy.every((p) => p.check) &&
     newPassword === confirmPassword;
 
-  const handleSubmit = () => {
+  const handleSubmitPw = () => {
     changePassword({ old_password: oldPassword, new_password: newPassword })
       .unwrap()
       .then(() => {
@@ -29,9 +84,14 @@ export default function MyPassword() {
       .catch(() => {});
   };
 
+  const resets = resetsData?.data ?? [];
+  const passwordChangedAt = user?.password_changed_at || null;
+
   return (
     <DashboardLayout title="Password & Sign-in">
-      <main className="px-4.5 py-6 space-y-5 text-black-01 max-w-xl">
+      <main className="px-4.5 py-6 space-y-4 text-black-01 max-w-2xl">
+
+        {/* Page header */}
         <div className="flex items-center gap-3">
           <Key className="size-6 text-blue-600" />
           <div>
@@ -40,7 +100,18 @@ export default function MyPassword() {
           </div>
         </div>
 
+        {/* ── Change password card ───────────────────────────────────────────── */}
         <div className="bg-white rounded-md p-5 space-y-4">
+          <div>
+            <p className="text-sm font-semibold">Change password</p>
+            {passwordChangedAt && (
+              <p className="text-xs text-gray-01 mt-0.5">
+                Last changed {formatRelativeDate(passwordChangedAt)}
+              </p>
+            )}
+          </div>
+
+          {/* Current password — full width */}
           <CustomInput
             id="old_password"
             label="Current password"
@@ -48,37 +119,176 @@ export default function MyPassword() {
             value={oldPassword}
             onChange={(e) => setOldPassword(e.target.value)}
           />
-          <div>
-            <CustomInput
-              id="new_password"
-              label="New password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            {newPassword.length > 0 && newPassword.length < 8 && (
-              <p className="text-xs text-amber-700 mt-1">Use at least 8 characters.</p>
-            )}
+
+          {/* New + confirm — 2-column */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <CustomInput
+                id="new_password"
+                label="New password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 12 characters"
+              />
+              {/* Strength bar */}
+              {newPassword.length > 0 && (
+                <div className="mt-2">
+                  <div className="flex gap-0.5 h-1 rounded overflow-hidden bg-gray-100">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className={`flex-1 transition-colors ${
+                          i <= strength.score
+                            ? strength.score < 3
+                              ? "bg-amber-400"
+                              : "bg-green-500"
+                            : "bg-gray-100"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-[11px] text-gray-01">Strength</span>
+                    <span
+                      className={`text-[11px] font-medium ${
+                        strength.score < 3 ? "text-amber-600" : "text-green-600"
+                      }`}
+                    >
+                      {strength.label}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <CustomInput
+                id="confirm_password"
+                label="Confirm new password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter new password"
+              />
+              {confirmPassword.length > 0 && confirmPassword !== newPassword && (
+                <p className="text-xs text-destructive mt-1">Passwords do not match.</p>
+              )}
+            </div>
           </div>
-          <div>
-            <CustomInput
-              id="confirm_password"
-              label="Confirm new password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            {confirmPassword.length > 0 && confirmPassword !== newPassword && (
-              <p className="text-xs text-amber-700 mt-1">Passwords don't match.</p>
-            )}
+
+          {/* Policy checklist */}
+          {newPassword.length > 0 && (
+            <div>
+              <p className="text-xs text-gray-01 mb-2">Policy requirements</p>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                {policy.map((p) => (
+                  <span
+                    key={p.label}
+                    className={`flex items-center gap-1.5 text-xs ${
+                      p.check ? "text-green-600" : "text-gray-400"
+                    }`}
+                  >
+                    {p.check ? (
+                      <CheckCircle2 size={12} strokeWidth={2} />
+                    ) : (
+                      <Circle size={12} strokeWidth={1.5} />
+                    )}
+                    {p.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Footer row */}
+          <div className="flex items-center justify-between gap-4 pt-1">
+            <p className="text-xs text-gray-01">
+              Changing your password will sign you out of all other devices.
+            </p>
+            <Button
+              size="sm"
+              onClick={handleSubmitPw}
+              disabled={!canSubmitPw || changingPw}
+              className="shrink-0"
+            >
+              {changingPw ? "Saving…" : "Update password"}
+            </Button>
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <Button size="lg" onClick={handleSubmit} disabled={!canSubmit || isLoading}>
-            {isLoading ? "Saving…" : "Update password"}
-          </Button>
+        {/* ── Email address card (read-only) ────────────────────────────────── */}
+        <div className="bg-white rounded-md p-5 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold">Email address</p>
+            <p className="text-xs font-mono text-gray-01 mt-0.5">
+              {user?.email ? maskEmail(user.email) : "—"}
+            </p>
+          </div>
+          <p className="text-xs text-gray-01 text-right shrink-0">
+            To change your email,<br />contact your administrator.
+          </p>
         </div>
+
+        {/* ── Password reset history (collapsible) ──────────────────────────── */}
+        <div className="bg-white rounded-md">
+          <button
+            className="w-full flex items-center justify-between px-5 py-4 text-sm font-medium"
+            onClick={() => setShowHistory((v) => !v)}
+          >
+            <span>Password reset history</span>
+            <span className="text-xs text-gray-01">{showHistory ? "Hide ▲" : "Show ▼"}</span>
+          </button>
+          {showHistory && (
+            <div className="border-t border-gray-100 overflow-x-auto">
+              {resets.length === 0 ? (
+                <p className="px-5 py-4 text-xs text-gray-01">No password reset requests found.</p>
+              ) : (
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-50">
+                      <th className="px-5 py-2.5 text-left font-medium text-gray-01">Requested</th>
+                      <th className="px-5 py-2.5 text-left font-medium text-gray-01">By</th>
+                      <th className="px-5 py-2.5 text-left font-medium text-gray-01">Status</th>
+                      <th className="px-5 py-2.5 text-left font-medium text-gray-01">IP</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {resets.map((r) => {
+                      const isUsed = !!r.used_at;
+                      const isExpired = !isUsed && new Date(r.expires_at) < new Date();
+                      return (
+                        <tr key={r.id} className="hover:bg-gray-50/50">
+                          <td className="px-5 py-2.5 text-gray-01">
+                            {formatRelativeDate(r.created_at)}
+                          </td>
+                          <td className="px-5 py-2.5">
+                            {r.requested_by === "SELF" ? "You" : "Vision admin"}
+                          </td>
+                          <td className="px-5 py-2.5">
+                            {isUsed ? (
+                              <Badge variant="active" className="text-[10px]">
+                                Used {formatRelativeDate(r.used_at!)}
+                              </Badge>
+                            ) : isExpired ? (
+                              <Badge variant="outline" className="text-[10px]">Expired</Badge>
+                            ) : (
+                              <Badge variant="pending" className="text-[10px]">Pending</Badge>
+                            )}
+                          </td>
+                          <td className="px-5 py-2.5 font-mono text-gray-01">
+                            {maskIp(r.requested_ip)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+        </div>
+
       </main>
     </DashboardLayout>
   );

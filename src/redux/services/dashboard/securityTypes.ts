@@ -66,6 +66,15 @@ export interface PasswordReset {
   created_at: string;
 }
 
+export interface MyPasswordReset {
+  id: number;
+  requested_by: "SELF" | "ADMIN";
+  requested_ip: string | null;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+}
+
 export interface ImpersonationSession {
   id: number;
   staff_user: number;

@@ -6,6 +6,7 @@ import type {
   AccountLockout,
   ImpersonationSession,
   PasswordReset,
+  MyPasswordReset,
   PaginatedResponse,
 } from "./securityTypes";
 
@@ -96,6 +97,11 @@ export const securityApi = baseApi.injectEndpoints({
     changeMyPassword: builder.mutation<{ message: string }, { old_password: string; new_password: string }>({
       query: (body) => ({ url: `/user/auth/password/change/`, method: "POST", body }),
     }),
+
+    // ── Self-service password reset history ────────────────────────────────
+    getMyPasswordResets: builder.query<{ data: MyPasswordReset[] }, void>({
+      query: () => ({ url: `/user/auth/me/password-resets/`, method: "GET" }),
+    }),
   }),
 });
 
@@ -114,4 +120,5 @@ export const {
   useRevokeResetMutation,
   useResendPasswordResetMutation,
   useChangeMyPasswordMutation,
+  useGetMyPasswordResetsQuery,
 } = securityApi;

@@ -10,22 +10,21 @@ import { clearActivity, recordActivity } from "@/utils/sessionActivity";
 const BASE_URL = import.meta.env.VITE_BACKEND_URL as string;
 
 // Fire-and-forget: tells the backend to blacklist the current refresh token.
+// Accepts explicit tokens so the call still works after cookies have been cleared.
 // Intentionally not awaited — client-side logout proceeds regardless of outcome.
-function revokeSessionOnBackend(): void {
-  const refresh = Cookies.get("refresh_token");
-  const access = Cookies.get("token");
+function revokeSessionOnBackend(tokens?: { access: string; refresh: string }): void {
+  const access = tokens?.access ?? Cookies.get("token") ?? "";
+  const refresh = tokens?.refresh ?? Cookies.get("refresh_token") ?? "";
   if (!refresh && !access) return;
   fetch(`${BASE_URL}/user/auth/logout/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${access ?? ""}`,
+      Authorization: `Bearer ${access}`,
       accept: "application/json",
     },
     body: JSON.stringify({ refresh }),
-  }).catch(() => {
-    // Swallow — the client-side cleanup that follows this is what matters.
-  });
+  }).catch(() => {});
 }
 
 const IDLE_MS = 14 * 60 * 1000;      // 14 minutes idle before warning
@@ -54,6 +53,9 @@ export function useSessionTimeout() {
   const lastActivityRef = useRef<number>(Date.now());
   const warningStartedAtRef = useRef<number | null>(null);
   const isWarningOpenRef = useRef(false);
+  // Tokens captured the moment the session expires so goToLogin can still
+  // call the backend blacklist even after cookies have been cleared.
+  const capturedTokensRef = useRef<{ access: string; refresh: string } | null>(null);
 
   const clearCountdown = () => {
     if (countdownRef.current) {
@@ -65,7 +67,13 @@ export function useSessionTimeout() {
   const expireSession = useCallback(() => {
     clearCountdown();
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    revokeSessionOnBackend();
+    // Capture tokens before clearing cookies so goToLogin can retry the
+    // backend blacklist call even after the cookies are gone.
+    capturedTokensRef.current = {
+      access: Cookies.get("token") ?? "",
+      refresh: Cookies.get("refresh_token") ?? "",
+    };
+    revokeSessionOnBackend(capturedTokensRef.current);
     Cookies.remove("token");
     Cookies.remove("refresh_token");
     clearStorageItem();
@@ -208,6 +216,11 @@ export function useSessionTimeout() {
   }, [dispatch, logout, resetIdleTimer]);
 
   const goToLogin = useCallback(() => {
+    // Explicitly blacklist the session even though expireSession already tried —
+    // this covers the case where the first call failed (transient network error).
+    if (capturedTokensRef.current) {
+      revokeSessionOnBackend(capturedTokensRef.current);
+    }
     window.location.href = routesPath.AUTH.LOGIN;
   }, []);
 
