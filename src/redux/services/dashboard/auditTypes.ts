@@ -96,12 +96,14 @@ export type ComplianceRuleType = "RETENTION" | "MASKING" | "ACCESS" | "EXPORT";
 export interface ComplianceRule {
   id: string;
   name: string;
+  description: string;
   rule_type: ComplianceRuleType;
   school: { id: string; name: string; slug: string } | null;
   module_key: string;
   action_type: string;
   is_active: boolean;
   retention_days: number | null;
+  updated_at: string;
 }
 
 export interface ComplianceRuleDetail extends ComplianceRule {
