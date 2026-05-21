@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { AlertOctagon, Download, Radio, RefreshCw, TrendingUp } from "lucide-react";
+import { AlertOctagon, Download, RefreshCw, TrendingUp } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,31 @@ import {
 const FEED_FILTERS = ["All", "Critical only", "Failed/Denied", "Last hour", "Last 24h"] as const;
 type FeedFilter = (typeof FEED_FILTERS)[number];
 
+
+function SignalIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 self-center" style={{ marginTop: "-5px" }}>
+      {/* Outer arc */}
+      <path
+        d="M1.5 10 A8 8 0 0 1 14.5 10"
+        stroke="#22c55e"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        style={{ animation: "signal-wave 1.8s ease-in-out 0.45s infinite" }}
+      />
+      {/* Inner arc */}
+      <path
+        d="M4.5 11.5 A4.5 4.5 0 0 1 11.5 11.5"
+        stroke="#22c55e"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        style={{ animation: "signal-wave 1.8s ease-in-out 0s infinite" }}
+      />
+      {/* Center dot */}
+      <circle cx="8" cy="13.5" r="1.25" fill="#22c55e" />
+    </svg>
+  );
+}
 
 export default function AuditDashboard() {
   const navigate = useNavigate();
@@ -216,9 +241,9 @@ export default function AuditDashboard() {
             {/* Right — live event feed */}
             <div className="bg-white rounded-md border border-gray-100 xl:sticky xl:top-4 overflow-hidden">
               <div className="px-4 pt-4 pb-3 border-b border-gray-100">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <Radio className="size-3.5 text-green-500 shrink-0" />
-                  <p className="font-semibold text-sm">Live event feed</p>
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <SignalIcon />
+                  <p className="font-semibold text-sm leading-none">Live event feed</p>
                 </div>
                 <p className="text-xs text-gray-01">Last 20 events · auto-refresh</p>
               </div>
