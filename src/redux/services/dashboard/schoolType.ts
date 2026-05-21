@@ -89,6 +89,7 @@ export interface PackageSetup {
 }
 
 export interface School {
+  id: number
   name: string
   slug: string
   code: string

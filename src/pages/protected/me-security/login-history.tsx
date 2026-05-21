@@ -204,7 +204,7 @@ export default function MyLoginHistory() {
     if (!user?.id) return;
     setIsReporting(true);
     try {
-      await forceLogout({ user_id: user.id, reason: "SUSPECTED_COMPROMISE" }).unwrap();
+      await forceLogout({ user_id: String(user.id), reason: "SUSPECTED_COMPROMISE" }).unwrap();
       toast.success("All sessions ended. Sign in again and change your password.");
       navigate(routesPath.AUTH.LOGIN);
     } catch {

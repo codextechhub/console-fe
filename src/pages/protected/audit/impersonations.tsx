@@ -54,12 +54,12 @@ function ImpersonationDetailDrawer({
   onEnd: (s: ImpersonationSession) => void;
   ending: boolean;
 }) {
-  const eventsParams = useMemo(() => session ? {
-    actor_id: session.staff_user,
-    date_from: session.started_at,
-    date_to: session.ended_at || session.ends_at,
+  const eventsParams = useMemo<Record<string, string | number>>(() => ({
+    actor_id: session?.staff_user ?? 0,
+    date_from: session?.started_at ?? "",
+    date_to: session?.ended_at || session?.ends_at ?? "",
     page_size: 20,
-  } : {}, [session]);
+  }), [session]);
 
   const { data: eventsData, isLoading: eventsLoading } = useGetAuditEventsQuery(
     eventsParams,

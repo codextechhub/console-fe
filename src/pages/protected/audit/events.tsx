@@ -36,11 +36,6 @@ const DATE_RANGES = [
   { v: "all", l: "All time", ms: 0 },
 ];
 
-const SEVERITY_TONE: Record<string, "active" | "suspended" | "locked" | "inactive"> = {
-  INFO: "active",
-  WARNING: "locked",
-  CRITICAL: "suspended",
-};
 const STATUS_TONE: Record<string, "active" | "suspended" | "locked" | "inactive"> = {
   SUCCESS: "active",
   FAILED: "suspended",

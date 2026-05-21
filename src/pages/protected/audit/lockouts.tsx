@@ -13,7 +13,6 @@ import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
 import type { AccountLockout } from "@/redux/services/dashboard/securityTypes";
 import { routesPath } from "@/routes/routesPath";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const TABLE_HEADERS = ["User", "Locked until", "Reason", "Failure count", "Last failure IP", "Last failure", "Status", "Action"];
