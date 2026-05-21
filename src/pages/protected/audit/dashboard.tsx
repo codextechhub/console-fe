@@ -196,7 +196,7 @@ export default function AuditDashboard() {
                   </div>
                   <div className="flex items-center gap-3 text-[11px] text-gray-01">
                     <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-sm bg-green-500 inline-block" />
+                      <span className="w-2 h-2 rounded-sm bg-blue-500 inline-block" />
                       Info
                     </span>
                     <span className="flex items-center gap-1.5">
