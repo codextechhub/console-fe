@@ -31,6 +31,8 @@ export function SessionTimeoutModal({
   onLogout: () => void;
   goToLogin: () => void;
 }) {
+  const isUrgent = secondsLeft < 60;
+
   return (
     <Dialog open={open || isExpired}>
       <DialogContent showCloseButton={false} className="max-w-sm">
@@ -54,10 +56,28 @@ export function SessionTimeoutModal({
             <DialogHeader className="items-center text-center">
               <DialogTitle className="text-xl">Still there?</DialogTitle>
               <DialogDescription className="text-center text-sm font-medium text-gray-01 font-mont">
-                You've been inactive for a while. For your security, you'll be
-                logged out automatically in {formatTime(secondsLeft)}.
+                You've been inactive for a while. Your session will automatically
+                time out if no action is taken.
               </DialogDescription>
             </DialogHeader>
+
+            {/* Countdown */}
+            <div className="flex flex-col items-center gap-1 py-2">
+              <span
+                className={`text-5xl font-bold tabular-nums tracking-tight transition-colors duration-300 ${
+                  isUrgent ? "text-destructive" : "text-black-01"
+                }`}
+              >
+                {formatTime(secondsLeft)}
+              </span>
+              <span
+                className={`text-xs font-medium transition-colors duration-300 ${
+                  isUrgent ? "text-destructive" : "text-gray-01"
+                }`}
+              >
+                {isUrgent ? "Signing out very soon…" : "until automatic sign-out"}
+              </span>
+            </div>
 
             <DialogFooter className="flex-col gap-2 sm:flex-col">
               <Button className="w-full h-11" onClick={onContinue}>

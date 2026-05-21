@@ -27,8 +27,8 @@ function revokeSessionOnBackend(tokens?: { access: string; refresh: string }): v
   }).catch(() => {});
 }
 
-const IDLE_MS = 14 * 60 * 1000;      // 14 minutes idle before warning
-const WARNING_MS = 1 * 60 * 1000;    // 1-minute countdown before expiry
+const IDLE_MS = 5 * 60 * 1000;       // 5 minutes idle before warning
+const WARNING_MS = 10 * 60 * 1000;   // 10-minute countdown before expiry
 
 const ACTIVITY_EVENTS = [
   "mousemove",
