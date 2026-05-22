@@ -10,7 +10,7 @@ import {
   useCreateAuditExportMutation,
 } from "@/redux/services/dashboard/auditApi";
 import { formatRelativeDate, returnInitial } from "@/utils/helpers";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import EventDetailDrawer from "./components/event-detail-drawer";
 import { routesPath } from "@/routes/routesPath";
 import type { AuditEventDetail } from "@/redux/services/dashboard/auditTypes";
@@ -50,7 +50,7 @@ function actorName(e: AuditEventDetail): string {
 }
 
 function actorKey(e: AuditEventDetail): string {
-  return e.actor_user?.id || e.actor_label || "system";
+  return String(e.actor_user?.id ?? e.actor_label ?? "system");
 }
 
 export default function EntityTrailDetail() {
@@ -59,6 +59,11 @@ export default function EntityTrailDetail() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [chip, setChip] = useState("all");
   const [selectedSnap, setSelectedSnap] = useState<AuditEventDetail[]>([]);
+
+  useEffect(() => {
+    setChip("all");
+    setSelectedSnap([]);
+  }, [params.entity_type, params.entity_id]);
 
   const { data, isLoading, isError, refetch, isFetching } = useGetEntityTrailDetailQuery(
     { entity_type: params.entity_type!, entity_id: params.entity_id! },
