@@ -176,43 +176,32 @@ export function useSessionTimeout() {
   }, [checkOnVisibility]);
 
   const onContinue = useCallback(async () => {
-    // Stop the countdown immediately so it can't fire expireSession
-    // while the refresh is in-flight.
     clearCountdown();
 
     const refreshToken = Cookies.get("refresh_token");
     if (!refreshToken) {
-      // expireSession already removed cookies and wrote the banner — just navigate.
-      // Calling logout() here would wipe sessionStorage and erase the banner.
       window.location.href = routesPath.AUTH.LOGIN;
       return;
     }
 
-    const dismiss = () => {
-      warningStartedAtRef.current = null;
-      isWarningOpenRef.current = false;
-      setOpen(false);
-      resetIdleTimer();
-    };
+    // Dismiss the modal immediately — don't wait for the network round-trip.
+    warningStartedAtRef.current = null;
+    isWarningOpenRef.current = false;
+    setOpen(false);
+    resetIdleTimer();
 
     const outcome = await refreshTokenSingleFlight();
 
     if (outcome.ok) {
-      // Cookies were already updated by the singleton.
       dispatch(setToken(outcome.access));
-      dismiss();
       return;
     }
 
-    // 401 means the refresh token is definitively invalid — must log out.
     if (outcome.reason === "token_invalid") {
       logout();
       return;
     }
-
-    // network_error, server_error, no_token — transient. Dismiss and let the
-    // user keep working; the next 401 will retry the refresh.
-    dismiss();
+    // transient error — user stays signed in; next 401 will retry the refresh
   }, [dispatch, logout, resetIdleTimer]);
 
   const goToLogin = useCallback(() => {
