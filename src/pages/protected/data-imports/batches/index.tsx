@@ -84,7 +84,7 @@ const DATASET_TYPES: DatasetType[] = ["schools", "branches"];
 
 type CardFilter = "all" | "inflight" | "failed" | "succeeded";
 
-const TABLE_HEADERS = ["File", "Dataset", "Template", "Status", "Rows", "Issues", "Uploaded", "Action"];
+const TABLE_HEADERS = ["File", "Dataset", "Template", "Status", "Rows / Cols", "Issues", "Uploaded", "Action"];
 
 // ── File size formatter ─────────────────────────────────────────────────────
 
@@ -206,9 +206,6 @@ export default function ImportBatchesList() {
         <p className="text-xs text-black-01 truncate" title={batch.template_name ?? ""}>
           {batch.template_name ?? "—"}
         </p>
-        {batch.template_version && (
-          <p className="text-[10px] text-gray-01 font-mono">v{batch.template_version}</p>
-        )}
       </div>
     ),
     status: (

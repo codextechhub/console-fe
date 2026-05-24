@@ -168,7 +168,7 @@ export const importApi = baseApi.injectEndpoints({
       ],
     }),
 
-    getImportJob: builder.query<ImportJob, { batchId: number; jobId: number }>({
+    getImportJob: builder.query<{ data: ImportJob }, { batchId: number; jobId: number }>({
       query: ({ batchId, jobId }) => ({
         url: `/import/batches/${batchId}/jobs/${jobId}/`,
         method: "GET",

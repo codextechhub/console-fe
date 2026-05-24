@@ -33,7 +33,6 @@ import {
   useValidateImportBatchMutation,
   useStartImportBatchMutation,
   useGetValidationIssuesQuery,
-  useResolveValidationIssueMutation,
   useGetImportJobsQuery,
   useGetImportJobQuery,
   useRollbackImportJobMutation,
@@ -240,16 +239,7 @@ function IssuesTab({ batchId }: { batchId: number }) {
     { batchId, params },
     { refetchOnMountOrArgChange: true },
   );
-  const [resolveIssue, { isLoading: resolving }] = useResolveValidationIssueMutation();
-
   const issues = data?.data ?? [];
-
-  const handleResolve = async (issueId: number) => {
-    try {
-      await resolveIssue({ batchId, issueId }).unwrap();
-      toast.success("Issue resolved.");
-    } catch { /* global toast */ }
-  };
 
   if (isLoading) {
     return (
@@ -330,12 +320,7 @@ function IssuesTab({ batchId }: { batchId: number }) {
       ) : (
         <div className="rounded-md border border-gray-100 divide-y divide-gray-50 overflow-hidden">
           {issues.map((issue) => (
-            <IssueRow
-              key={issue.id}
-              issue={issue}
-              onResolve={() => handleResolve(issue.id)}
-              resolving={resolving}
-            />
+            <IssueRow key={issue.id} issue={issue} />
           ))}
         </div>
       )}
@@ -353,12 +338,8 @@ function IssuesTab({ batchId }: { batchId: number }) {
 
 function IssueRow({
   issue,
-  onResolve,
-  resolving,
 }: {
   issue: ValidationIssueListItem;
-  onResolve: () => void;
-  resolving: boolean;
 }) {
   return (
     <div className={cn("flex items-start gap-3 px-4 py-3", issue.is_resolved && "opacity-60")}>
@@ -387,13 +368,6 @@ function IssueRow({
         </div>
         <p className="text-sm text-black-01 mt-1">{issue.message}</p>
       </div>
-      <PermissionGate permission={P.RESOLVE_IMPORT_ISSUE}>
-        {!issue.is_resolved && (
-          <Button size="sm" onClick={onResolve} disabled={resolving} className="shrink-0">
-            Resolve
-          </Button>
-        )}
-      </PermissionGate>
     </div>
   );
 }
@@ -583,7 +557,7 @@ function RowResultsTab({ batchId, latestJobId }: { batchId: number; latestJobId:
     </div>
   );
 
-  const rows = job?.row_results ?? [];
+  const rows = job?.data?.row_results ?? [];
   const filtered = actionFilter === "all" ? rows : rows.filter((r) => r.action === actionFilter);
 
   const counts = {
@@ -871,7 +845,7 @@ export default function ViewBatch() {
   }
 
   const isInFlight = IN_FLIGHT.has(batch.status);
-  const canValidate = !isInFlight && ["uploaded", "validation_failed", "mapping_required", "ready_to_import"].includes(batch.status);
+  const canValidate = !isInFlight && ["uploaded", "validation_failed", "mapping_required"].includes(batch.status);
   const canStart = batch.is_ready_for_import && !isInFlight && batch.status === "ready_to_import";
 
   const handleValidate = async () => {
@@ -1009,6 +983,21 @@ export default function ViewBatch() {
           </div>
         </div>
 
+        {/* Import failure banner */}
+        {(batch.status === "import_failed" || batch.status === "import_partial") && (
+          <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3">
+            <AlertTriangle className="size-4 shrink-0 text-destructive mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-destructive">
+                {batch.status === "import_failed" ? "Import failed" : "Import partially completed"}
+              </p>
+              <p className="text-[11px] text-destructive/80 mt-0.5">
+                Validation passed with no issues. The failure occurred during the import execution — check the <strong>Jobs</strong> tab for the error details.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Two-column meta + summary */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start">
           {/* Validation summary */}
@@ -1016,28 +1005,50 @@ export default function ViewBatch() {
             <p className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
               Validation Summary
             </p>
-            <div className="grid grid-cols-4 gap-4">
-              <StatBlock label="Total Rows" value={batch.total_rows.toLocaleString()} />
-              <StatBlock label="Columns" value={batch.total_columns.toLocaleString()} />
-              <StatBlock label="Errors" value={batch.error_count.toLocaleString()} accent={batch.error_count > 0 ? "destructive" : undefined} />
-              <StatBlock label="Warnings" value={batch.warning_count.toLocaleString()} accent={batch.warning_count > 0 ? "warning" : undefined} />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 pt-2">
-              <ReadyChip label="Structure matches template" ok={batch.structure_matches_template} />
-              <ReadyChip label="No critical errors" ok={!batch.has_critical_errors} />
-              <ReadyChip label="Ready for import" ok={batch.is_ready_for_import} />
-            </div>
-
-            {(batch.validation_started_at || batch.validation_completed_at) && (
-              <div className="text-[10px] text-gray-400 flex gap-4 pt-2">
-                {batch.validation_started_at && (
-                  <span>Started: {new Date(batch.validation_started_at).toLocaleString()}</span>
-                )}
-                {batch.validation_completed_at && (
-                  <span>Completed: {new Date(batch.validation_completed_at).toLocaleString()}</span>
-                )}
+            {batch.validation_summary == null ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center gap-2">
+                <ShieldAlert className="size-8 text-gray-300" />
+                <p className="text-xs text-gray--01 font-medium">Not yet validated</p>
+                <p className="text-[11px] text-gray-01">Run validation to see the results here.</p>
               </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-5 gap-4">
+                  <StatBlock label="Total Rows" value={batch.total_rows.toLocaleString()} />
+                  <StatBlock label="Columns" value={batch.total_columns.toLocaleString()} />
+                  <StatBlock
+                    label="Errors"
+                    value={String((batch.validation_summary as Record<string, number>).error_count ?? batch.error_count)}
+                    accent={(batch.validation_summary as Record<string, number>).error_count > 0 ? "destructive" : undefined}
+                  />
+                  <StatBlock
+                    label="Warnings"
+                    value={String((batch.validation_summary as Record<string, number>).warning_count ?? batch.warning_count)}
+                    accent={(batch.validation_summary as Record<string, number>).warning_count > 0 ? "warning" : undefined}
+                  />
+                  <StatBlock
+                    label="Info"
+                    value={String((batch.validation_summary as Record<string, number>).info_count ?? 0)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 pt-2">
+                  <ReadyChip label="Structure matches template" ok={batch.structure_matches_template} />
+                  <ReadyChip label="No critical errors" ok={!batch.has_critical_errors} />
+                  <ReadyChip label="Ready for import" ok={batch.is_ready_for_import} />
+                </div>
+
+                {(batch.validation_started_at || batch.validation_completed_at) && (
+                  <div className="text-[10px] text-gray-400 flex gap-4 pt-2">
+                    {batch.validation_started_at && (
+                      <span>Started: {new Date(batch.validation_started_at).toLocaleString()}</span>
+                    )}
+                    {batch.validation_completed_at && (
+                      <span>Completed: {new Date(batch.validation_completed_at).toLocaleString()}</span>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -1050,7 +1061,7 @@ export default function ViewBatch() {
               {batch.template ? (
                 <div>
                   <p className="font-mono text-xs font-medium">{batch.template.code}</p>
-                  <p className="text-[10px] text-gray-01">v{batch.template.version}</p>
+                  <p className="text-[10px] text-gray-01">{batch.template.name}</p>
                 </div>
               ) : <span className="text-xs text-gray-01">—</span>}
             </MetaRow>
