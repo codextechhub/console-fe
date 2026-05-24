@@ -215,5 +215,9 @@ export const baseApi = createApi({
     "AccountLockouts",
     "ImpersonationSessions",
     "PasswordResets",
+    "ImportTemplates",
+    "ImportBatches",
+    "ImportValidationIssues",
+    "ImportJobs",
   ],
 });

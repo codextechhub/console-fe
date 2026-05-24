@@ -190,7 +190,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     {
       title: "Data Imports",
-      url: routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX,
+      url: routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX,
       icon: DataImportsIcon,
       isActive: false,
       childActive: location.startsWith("/data-imports"),
@@ -198,19 +198,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       permissionMode: "any" as const,
       items: [
         {
-          title: "Import Templates",
-          url: routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX,
-          isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX),
-        },
-        {
-          title: "Template Columns",
-          url: routesPath.PROTECTED.DATA_IMPORTS.TEMPLATE_COLUMNS.INDEX,
-          isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATE_COLUMNS.INDEX),
-        },
-        {
           title: "Import Batches",
           url: routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX,
           isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX),
+        },
+        {
+          title: "Import Templates",
+          url: routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX,
+          isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX),
         },
       ],
     },

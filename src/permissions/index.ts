@@ -78,6 +78,34 @@ const REGISTRY: Record<string, string> = {
   // ── platform / dashboard  (MM=10, RR=07) ──────────────────────────────────
   "100701": "platform.dashboard.view",
 
+  // ── imports / templates  (MM=50, RR=01) ──────────────────────────────────
+  "500101": "import.templates.view",
+  "500102": "import.templates.create",
+  "500108": "import.templates.manage",
+
+  // ── imports / batches  (MM=50, RR=02) ────────────────────────────────────
+  "500201": "import.batches.view",
+  "500202": "import.batches.create",
+  "500203": "import.batches.update",
+  "500204": "import.batches.delete",
+  "500207": "import.batches.run",      // trigger validation / re-validate
+  "500213": "import.batches.import",   // trigger import execution
+
+  // ── imports / validations  (MM=50, RR=03) ────────────────────────────────
+  "500301": "import.validations.view",
+  "500303": "import.validations.update",
+
+  // ── imports / jobs  (MM=50, RR=05) ───────────────────────────────────────
+  "500501": "import.jobs.view",
+
+  // ── imports / rollbacks  (MM=50, RR=06) ──────────────────────────────────
+  "500601": "import.rollbacks.view",
+  "500607": "import.rollbacks.run",
+
+  // ── imports / audit + notifications  (MM=50, RR=07/08) ───────────────────
+  "500701": "import.audit.view",
+  "500801": "import.notifications.view",
+
   // ── finance / invoice  (MM=20, RR=01) — uncomment when module ships ───────
   // "200101": "finance.invoice.view",
   // "200102": "finance.invoice.create",
@@ -140,6 +168,24 @@ export const P = {
   VIEW_SECURITY:        "100801",  // view live sessions, login attempts, lockouts, impersonations
   IMPERSONATE_USER:     "100811",  // start an admin impersonation session
   END_IMPERSONATION:    "100812",  // forcibly end an active impersonation session
+
+  // ── Data Imports ───────────────────────────────────────────────────────────
+  VIEW_IMPORT_TEMPLATES:   "500101",  // browse system import templates
+  CREATE_IMPORT_TEMPLATE:  "500102",  // CX_STAFF: define new templates
+  MANAGE_IMPORT_TEMPLATES: "500108",  // CX_STAFF: edit drafts, publish, retire
+  VIEW_IMPORT_BATCHES:     "500201",  // browse import batches
+  UPLOAD_IMPORT_BATCH:     "500202",  // upload a new batch
+  EDIT_IMPORT_BATCH:       "500203",  // edit batch metadata (notes, sheet, header row)
+  DELETE_IMPORT_BATCH:     "500204",  // delete an import batch
+  RUN_IMPORT_VALIDATION:   "500207",  // trigger validation pass
+  EXECUTE_IMPORT_BATCH:    "500213",  // start actual import
+  VIEW_IMPORT_ISSUES:      "500301",  // view validation issues
+  RESOLVE_IMPORT_ISSUE:    "500303",  // mark validation issues resolved
+  VIEW_IMPORT_JOBS:        "500501",  // view import job results
+  VIEW_IMPORT_ROLLBACKS:   "500601",  // view rollback history
+  RUN_IMPORT_ROLLBACK:     "500607",  // trigger a job rollback
+  VIEW_IMPORT_AUDIT:       "500701",  // view per-batch audit log
+  VIEW_IMPORT_NOTIFICATIONS: "500801", // view per-batch notification log
 
   // ── Dashboard ──────────────────────────────────────────────────────────────
   VIEW_DASHBOARD:       "100701",  // view admin dashboard metrics and statistics

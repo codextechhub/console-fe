@@ -83,9 +83,9 @@ export const routesPath = {
       },
       TEMPLATES: {
         INDEX: "/data-imports/templates",
-      },
-      TEMPLATE_COLUMNS: {
-        INDEX: "/data-imports/template-columns",
+        NEW: "/data-imports/templates/new",
+        VIEW_PATH: "/data-imports/templates/:id/view",
+        VIEW: (id: string | number) => `/data-imports/templates/${id}/view`,
       },
     },
     AUDIT: {

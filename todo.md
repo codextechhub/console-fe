@@ -1,6 +1,10 @@
 ## Undone (Ask questions for clarity where needed)
 
+- Build the actual "New Import" upload wizard for batches (template pick → file + sheet/header config → backend parses preview → confirm). UPLOAD button on Batches list is currently disabled. Permission `P.UPLOAD_IMPORT_BATCH` is wired.
+
 ## Done
+
+# 20. Data Imports overhaul — replaced all dummy data with live `importApi` slice (22 endpoints from `vs_import_data`). Dropped fake "Template Columns" flat directory. Templates list now shows real backend data with create flow gated to CX_STAFF, real download links (CSV/XLSX), and a read-only detail sheet. Batches list shows real backend data with status filter mapped to full 14-value enum, in-flight polling indicator, and gated delete action. Batch detail page wires up the full lifecycle: pipeline timeline aligned to backend enum, Validate / Start Import / Delete actions with `PromptModal` confirms, validation summary, 5 tabs (Issues with resolve + CSV export, Jobs with progress bars + rollback dialog, Row Results from `ImportJobRowResult`, per-batch Audit, per-batch Notifications), and 5s auto-poll while in-flight. Added `import.*` permission constants (`P.CREATE_IMPORT_TEMPLATE`, `P.RUN_IMPORT_VALIDATION`, `P.EXECUTE_IMPORT_BATCH`, `P.DELETE_IMPORT_BATCH`, `P.RESOLVE_IMPORT_ISSUE`, `P.RUN_IMPORT_ROLLBACK`, etc.). Dataset enum restricted to backend's real choices (schools, branches). PERMISSIONS_AUDIT.md updated.
 
 # 19. Explain "Your session could not be restored. Log in again." error — this toast fires only when the access token expires (401), the silent refresh attempt hits a 5xx server error on `/user/auth/token/refresh/`, and the backend is too broken to confirm the session is restorable. Other 401 outcomes: successful refresh = silent re-auth; invalid refresh token = silent force-logout (no toast); network error = silent return (component surfaces its own error). Code path: `baseApi.ts` `baseQueryInterceptor` → `refreshed.reason === "server_error"` branch.
 

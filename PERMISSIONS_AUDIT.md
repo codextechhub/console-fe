@@ -26,9 +26,8 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Permissions | Actions | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Dependencies | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Permission Groups | `P.VIEW_PERMISSIONS` | inherits parent |
-| Data Imports | Import Templates | _(none — always visible)_ | not yet gated |
-| Data Imports | Template Columns | _(none — always visible)_ | not yet gated |
-| Data Imports | Import Batches | _(none — always visible)_ | not yet gated |
+| Data Imports | Import Batches | _(none — always visible)_ | parent always visible; page-level actions gated individually |
+| Data Imports | Import Templates | _(none — always visible)_ | parent always visible; create gated by `P.CREATE_IMPORT_TEMPLATE` |
 
 ---
 
@@ -161,6 +160,40 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 
 ---
 
+### Data Imports — Templates list (`src/pages/protected/data-imports/templates/index.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| "New Template" button | `<PermissionGate>` + `user_type === "CX_STAFF"` | `P.CREATE_IMPORT_TEMPLATE` |
+| Download CSV / XLSX (table dropdown) | _(none — backend allows all viewers)_ | — |
+| View Details (table dropdown) | _(none)_ | — |
+
+> Backend has no update/delete endpoint for templates. Detail sheet is read-only after creation.
+
+---
+
+### Data Imports — Batches list (`src/pages/protected/data-imports/batches/index.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| "New Import" button | `<PermissionGate>` | `P.UPLOAD_IMPORT_BATCH` (currently disabled — wizard not yet built) |
+| Table row → "Delete" dropdown action | `hasPermission()` | `P.DELETE_IMPORT_BATCH` (also hidden for in-flight batches) |
+
+---
+
+### Data Imports — Batch detail (`src/pages/protected/data-imports/batches/view-batch.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| "Validate" button | `<PermissionGate>` | `P.RUN_IMPORT_VALIDATION` |
+| "Start Import" button | `<PermissionGate>` | `P.EXECUTE_IMPORT_BATCH` |
+| "Delete" button | `<PermissionGate>` | `P.DELETE_IMPORT_BATCH` |
+| Issue row → "Resolve" button | `<PermissionGate>` | `P.RESOLVE_IMPORT_ISSUE` |
+| Job row → "Rollback" button | `<PermissionGate>` | `P.RUN_IMPORT_ROLLBACK` |
+| Tabs (Issues / Jobs / Row Results / Audit / Notifications) | _(always rendered if user can view batch)_ | backend further restricts each endpoint |
+
+---
+
 ## 3. Route-level Guards
 
 No route-level guards. The previous `RequirePermission` middleware was deleted as dead code. All page-level protection is handled inside the page components themselves via `<PermissionGate>` and `hasPermission()`. The backend is the authoritative gate — anyone who reaches a page they shouldn't see still gets a 403 from the API.
@@ -196,6 +229,12 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.EXPORT_AUDIT` | `platform.audit.export` |
 | `P.MANAGE_AUDIT` | `platform.audit.manage` |
 | `P.END_IMPERSONATION` | `platform.security.end_impersonation` |
+| `P.CREATE_IMPORT_TEMPLATE` | `import.templates.create` |
+| `P.DELETE_IMPORT_BATCH` | `import.batches.delete` |
+| `P.RUN_IMPORT_VALIDATION` | `import.batches.run` |
+| `P.EXECUTE_IMPORT_BATCH` | `import.batches.import` |
+| `P.RESOLVE_IMPORT_ISSUE` | `import.validations.update` |
+| `P.RUN_IMPORT_ROLLBACK` | `import.rollbacks.run` |
 
 ### Not yet wired (defined but no UI check uses them)
 
@@ -211,6 +250,16 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.VIEW_DASHBOARD` | `platform.dashboard.view` | Home / Overview page |
 | `P.VIEW_SECURITY` | `platform.security.view` | Defined for future security-only read separation; today the Audit pages gate on `P.VIEW_AUDIT`. |
 | `P.IMPERSONATE_USER` | `platform.security.impersonate` | "Start impersonation" entry point — not yet built; the current Impersonations page only lists sessions. |
+| `P.VIEW_IMPORT_TEMPLATES` | `import.templates.view` | Defined for parity with backend; FE doesn't gate the list page (everyone authenticated can hit it; backend filters). |
+| `P.MANAGE_IMPORT_TEMPLATES` | `import.templates.manage` | Reserved for future edit/publish/retire flows once backend supports them. |
+| `P.VIEW_IMPORT_BATCHES` | `import.batches.view` | Defined; FE doesn't gate the list page (backend filters). |
+| `P.UPLOAD_IMPORT_BATCH` | `import.batches.create` | Wired to "New Import" button which is disabled until the upload wizard ships. |
+| `P.EDIT_IMPORT_BATCH` | `import.batches.update` | No UI surface yet — batch detail metadata edit (notes / sheet / header row) not exposed. |
+| `P.VIEW_IMPORT_ISSUES` | `import.validations.view` | Defined; Issues tab inherits batch-view permission. |
+| `P.VIEW_IMPORT_JOBS` | `import.jobs.view` | Defined; Jobs tab inherits batch-view permission. |
+| `P.VIEW_IMPORT_ROLLBACKS` | `import.rollbacks.view` | Defined; rollback list not yet shown in UI (only the rollback action). |
+| `P.VIEW_IMPORT_AUDIT` | `import.audit.view` | Defined; Audit tab inherits batch-view permission. |
+| `P.VIEW_IMPORT_NOTIFICATIONS` | `import.notifications.view` | Defined; Notifications tab inherits batch-view permission. |
 
 ---
 
@@ -241,7 +290,8 @@ they cannot actually open. Equivalent treatment was applied to the
 
 | Gap | Details |
 |---|---|
-| Data Imports nav section | No permission gate on any sub-item. Defer until the data-imports backend lands. |
+| Data Imports nav parent | Parent menu has no gate; sub-items always visible. Page-level actions are gated individually (see §2 below). |
+| Data Imports upload flow | "New Import" button on Batches list is disabled — full upload wizard not yet built. The `UPLOAD_IMPORT_BATCH` permission is wired but the action is a no-op. |
 | Branches / Dashboard | Constants defined but the pages those constants would gate haven't been built yet. |
 | `P.VIEW_SECURITY` / `P.IMPERSONATE_USER` | New audit pages currently gate on `P.VIEW_AUDIT`. Once the backend adds `platform.security.*` permission rows and the "Start impersonation" entry-point UI is built, wire those constants. |
 | Backend permission seeding | The bootstrap (`apps/core/management/commands/create_superuser.py`) does not yet seed the new `platform.security.*` permission rows in the DB. Add them when wiring `P.VIEW_SECURITY` / `P.IMPERSONATE_USER`. |
