@@ -86,6 +86,8 @@ export const routesPath = {
         NEW: "/data-imports/templates/new",
         VIEW_PATH: "/data-imports/templates/:id/view",
         VIEW: (id: string | number) => `/data-imports/templates/${id}/view`,
+        EDIT_PATH: "/data-imports/templates/:id/edit",
+        EDIT: (id: string | number) => `/data-imports/templates/${id}/edit`,
       },
     },
     AUDIT: {

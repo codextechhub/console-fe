@@ -105,7 +105,6 @@ export interface ImportTemplateListItem {
   name: string;
   dataset_type: DatasetType;
   description: string;
-  version: string;
   status: TemplateStatus;
   default_file_format: FileFormat;
   is_download_enabled: boolean;
@@ -129,7 +128,19 @@ export interface CreateTemplatePayload {
   name: string;
   dataset_type: DatasetType;
   description?: string;
-  version?: string;
+  status?: TemplateStatus;
+  default_file_format?: FileFormat;
+  instructions?: string;
+  allow_sample_row?: boolean;
+  sample_row_data?: Record<string, unknown>;
+  validation_rules?: Record<string, unknown>;
+  is_download_enabled?: boolean;
+  columns?: Array<Omit<Partial<ImportTemplateColumn>, "id" | "created_at" | "updated_at">>;
+}
+
+export interface UpdateTemplatePayload {
+  name?: string;
+  description?: string;
   status?: TemplateStatus;
   default_file_format?: FileFormat;
   instructions?: string;
@@ -147,7 +158,6 @@ export interface ImportBatchListItem {
   template: number | null;
   template_name: string | null;
   template_code: string | null;
-  template_version: string;
   original_filename: string;
   file_format: FileFormat;
   status: BatchStatus;

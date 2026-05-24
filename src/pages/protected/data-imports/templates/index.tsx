@@ -38,7 +38,7 @@ const STATUS_BADGE: Record<TemplateStatus, "active" | "pending" | "inactive"> = 
   retired: "inactive",
 };
 
-const TABLE_HEADERS = ["Code", "Template", "Dataset", "Version", "Format", "Status", "Columns", "Updated"];
+const TABLE_HEADERS = ["Code", "Template", "Dataset", "Format", "Status", "Columns", "Updated"];
 
 const triggerDownload = (url: string, filename: string) => {
   const a = document.createElement("a");
@@ -131,7 +131,6 @@ export default function ImportTemplatesList() {
     dataset: (
       <Badge variant="inactive" className="text-[10px] capitalize">{tpl.dataset_type}</Badge>
     ),
-    version: <span className="text-xs font-mono font-medium">v{tpl.version}</span>,
     format: <span className="text-xs font-mono uppercase">{tpl.default_file_format}</span>,
     status: (
       <Badge variant={STATUS_BADGE[tpl.status] ?? "inactive"} className="text-[10px] capitalize">
@@ -282,6 +281,14 @@ export default function ImportTemplatesList() {
                     navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.VIEW(tpl.id)),
                 },
               ];
+              if (isCxStaff && hasPermission(P.MANAGE_IMPORT_TEMPLATES)) {
+                items.push({
+                  label: "Edit Template",
+                  className: "",
+                  onActionClick: () =>
+                    navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.EDIT(tpl.id)),
+                });
+              }
               if (tpl.is_download_enabled) {
                 items.push({
                   label: "Download CSV",

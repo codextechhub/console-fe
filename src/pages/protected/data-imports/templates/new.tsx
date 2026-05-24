@@ -66,7 +66,6 @@ export default function NewTemplate() {
     name: "",
     dataset_type: "schools" as DatasetType,
     description: "",
-    version: "1.0",
     status: "draft" as TemplateStatus,
     default_file_format: "xlsx" as FileFormat,
     instructions: "",
@@ -90,7 +89,6 @@ export default function NewTemplate() {
     if (!form.code.trim()) e.code = "Required.";
     else if (!/^[a-z][a-z0-9_]*$/.test(form.code.trim())) e.code = "Lowercase letters, digits, underscores. Must start with a letter.";
     if (!form.name.trim()) e.name = "Required.";
-    if (!form.version.trim()) e.version = "Required.";
     columns.forEach((c, i) => {
       if (!c.column_name?.trim()) e[`col_${i}_column_name`] = "Required.";
       if (!c.target_field?.trim()) e[`col_${i}_target_field`] = "Required.";
@@ -108,7 +106,6 @@ export default function NewTemplate() {
       ...form,
       code: form.code.trim(),
       name: form.name.trim(),
-      version: form.version.trim(),
       columns: columns.map(({ _tmpId, ...rest }) => {
         void _tmpId;
         return {
@@ -198,14 +195,7 @@ export default function NewTemplate() {
               error={errors.name}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <CustomInput
-                id="version" name="version" label="Version"
-                placeholder="1.0"
-                value={form.version}
-                onChange={(e) => set("version", e.target.value)}
-                error={errors.version}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-medium text-black-01 font-mont">File Format</label>
                 <Combobox

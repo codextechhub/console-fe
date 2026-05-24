@@ -2,6 +2,7 @@ import { generateQueryString } from "@/utils/helpers";
 import { baseApi } from "../baseApi";
 import type {
   CreateTemplatePayload,
+  UpdateTemplatePayload,
   ImportAuditLogItem,
   ImportBatch,
   ImportBatchListItem,
@@ -40,6 +41,18 @@ export const importApi = baseApi.injectEndpoints({
     createImportTemplate: builder.mutation<{ data: ImportTemplate }, CreateTemplatePayload>({
       query: (body) => ({ url: `/import/system-import-templates/`, method: "POST", body }),
       invalidatesTags: ["ImportTemplates"],
+    }),
+
+    updateImportTemplate: builder.mutation<
+      { data: ImportTemplate } | ImportTemplate,
+      { id: number; body: UpdateTemplatePayload }
+    >({
+      query: ({ id, body }) => ({
+        url: `/import/system-import-templates/${id}/`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (_res, _err, { id }) => [{ type: "ImportTemplates", id }, "ImportTemplates"],
     }),
 
     // ── Batches ─────────────────────────────────────────────────────────────
@@ -219,6 +232,7 @@ export const {
   useGetImportTemplatesQuery,
   useGetImportTemplateQuery,
   useCreateImportTemplateMutation,
+  useUpdateImportTemplateMutation,
   // batches
   useGetImportBatchesQuery,
   useGetImportBatchQuery,

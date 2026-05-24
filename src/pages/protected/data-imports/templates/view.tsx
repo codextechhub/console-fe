@@ -1,11 +1,13 @@
 import { useNavigate, useParams } from "react-router";
-import { Download, RefreshCw, FileText } from "lucide-react";
+import { Download, RefreshCw, FileText, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import PageAccessDenied from "@/components/custom/page-access-denied";
+import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routesPath";
 import {
   useGetImportTemplateQuery,
@@ -40,6 +42,8 @@ const triggerDownload = (url: string, filename: string) => {
 export default function ViewTemplate() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
+  const user = useAppSelector((s) => s.auth.user);
+  const isCxStaff = user?.user_type === "CX_STAFF";
   const { id } = useParams<{ id: string }>();
   const templateId = Number(id);
   const canView = hasPermission(P.VIEW_IMPORT_TEMPLATES);
@@ -102,8 +106,6 @@ export default function ViewTemplate() {
                 <span>·</span>
                 <span className="capitalize">{template.dataset_type}</span>
                 <span>·</span>
-                <span>v{template.version}</span>
-                <span>·</span>
                 <span className="font-mono uppercase">{template.default_file_format}</span>
               </div>
             </div>
@@ -117,6 +119,16 @@ export default function ViewTemplate() {
             <Button variant="white" size="sm" onClick={() => refetch()}>
               <RefreshCw className="size-3.5" /> Refresh
             </Button>
+            {isCxStaff && (
+              <PermissionGate permission={P.MANAGE_IMPORT_TEMPLATES}>
+                <Button
+                  size="sm"
+                  onClick={() => navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.EDIT(templateId))}
+                >
+                  <Pencil className="size-3.5" /> Edit Template
+                </Button>
+              </PermissionGate>
+            )}
             {template.is_download_enabled && (
               <>
                 <Button
@@ -163,7 +175,6 @@ export default function ViewTemplate() {
           <div className="bg-white rounded-md p-5 space-y-3.5">
             <p className="text-sm font-semibold font-mont border-b border-gray-100 pb-3">Metadata</p>
             <MetaRow label="Dataset"><span className="text-sm capitalize">{template.dataset_type}</span></MetaRow>
-            <MetaRow label="Version"><span className="text-sm font-mono">v{template.version}</span></MetaRow>
             <MetaRow label="Format"><span className="text-sm font-mono uppercase">{template.default_file_format}</span></MetaRow>
             <MetaRow label="Columns"><span className="text-sm">{template.columns?.length ?? template.total_columns ?? 0}</span></MetaRow>
             <MetaRow label="Sample row"><span className="text-sm">{template.allow_sample_row ? "Enabled" : "Disabled"}</span></MetaRow>
