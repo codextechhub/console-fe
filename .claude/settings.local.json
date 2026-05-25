@@ -27,7 +27,9 @@
       "Bash(python ~/Documents/Dev-Projects/GitHub/backend/manage.py showmigrations vs_user)",
       "Bash(open -a \"Google Chrome\" /Users/mac/Downloads/Audit_Security_standalone.html)",
       "Bash(open /Users/mac/Downloads/Audit_Security_standalone.html)",
-      "Bash(screencapture -x /tmp/prototype_audit_security.png)"
+      "Bash(screencapture -x /tmp/prototype_audit_security.png)",
+      "Read(//Users/mac/docs/dev-projects/github/**)",
+      "Read(//Users/mac/**)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"

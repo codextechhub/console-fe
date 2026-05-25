@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from "react-router";
 import { Download, RefreshCw, FileText, Pencil } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -29,15 +30,24 @@ const unwrap = <T,>(res: { data: T } | T | undefined): T | undefined => {
   return (res as { data: T }).data ?? (res as T);
 };
 
-const triggerDownload = (url: string, filename: string) => {
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.target = "_blank";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-};
+async function triggerDownload(url: string, filename: string) {
+  try {
+    const token = document.cookie.match(/(?:^|;\s*)token=([^;]*)/)?.[1];
+    const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    if (!res.ok) throw new Error(`${res.status}`);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch {
+    toast.error("Download failed. Please try again.");
+  }
+}
 
 export default function ViewTemplate() {
   const navigate = useNavigate();

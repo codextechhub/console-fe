@@ -278,6 +278,9 @@ export default function EditTemplate() {
               <Combobox
                 value={form.default_file_format}
                 onValueChange={(v) => v && set("default_file_format", v as FileFormat)}
+                items={FILE_FORMATS}
+                filter={(item: string, q: string) => !q || item.includes(q.toLowerCase())}
+                itemToStringLabel={(item: string) => item}
               >
                 <ComboboxInput placeholder="Pick format" showTrigger className="h-10" />
                 <ComboboxContent>
@@ -295,6 +298,9 @@ export default function EditTemplate() {
               <Combobox
                 value={form.status}
                 onValueChange={(v) => v && set("status", v as TemplateStatus)}
+                items={TEMPLATE_STATUSES}
+                filter={(item: string, q: string) => !q || item.includes(q.toLowerCase())}
+                itemToStringLabel={(item: string) => item}
               >
                 <ComboboxInput placeholder="Pick status" showTrigger className="h-10" />
                 <ComboboxContent>
@@ -423,6 +429,9 @@ export default function EditTemplate() {
                     <Combobox
                       value={col.data_type ?? "string"}
                       onValueChange={(v) => v && setCol(idx, { data_type: v as TemplateColumnDataType })}
+                      items={COLUMN_DATA_TYPES}
+                      filter={(item: string, q: string) => !q || item.includes(q.toLowerCase())}
+                      itemToStringLabel={(item: string) => item}
                     >
                       <ComboboxInput placeholder="Type" showTrigger className="h-10" />
                       <ComboboxContent>
@@ -505,7 +514,7 @@ export default function EditTemplate() {
       </main>
 
       {/* Sticky footer */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-100 bg-white px-4.5 py-3 flex justify-end gap-2 z-10">
+      <div className="fixed bottom-0 right-0 left-0 md:left-(--sidebar-width) group-has-data-[collapsible=icon]/sidebar-wrapper:md:left-(--sidebar-width-icon) transition-[left] duration-200 ease-linear border-t border-gray-100 bg-white px-4.5 py-3 flex justify-end gap-2 z-10">
         <Button type="button" variant="white" onClick={back} disabled={saving}>
           Cancel
         </Button>

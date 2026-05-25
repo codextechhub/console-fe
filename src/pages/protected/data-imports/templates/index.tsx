@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { Plus, RefreshCw, FileText } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -38,17 +39,26 @@ const STATUS_BADGE: Record<TemplateStatus, "active" | "pending" | "inactive"> = 
   retired: "inactive",
 };
 
-const TABLE_HEADERS = ["Code", "Template", "Dataset", "Format", "Status", "Columns", "Updated"];
+const TABLE_HEADERS = ["Code", "Template", "Dataset", "Format", "Status", "Columns", "Updated", "Action"];
 
-const triggerDownload = (url: string, filename: string) => {
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.target = "_blank";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-};
+async function triggerDownload(url: string, filename: string) {
+  try {
+    const token = document.cookie.match(/(?:^|;\s*)token=([^;]*)/)?.[1];
+    const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    if (!res.ok) throw new Error(`${res.status}`);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch {
+    toast.error("Download failed. Please try again.");
+  }
+}
 
 type CardFilter = "all" | TemplateStatus;
 
@@ -220,6 +230,9 @@ export default function ImportTemplatesList() {
             <Combobox
               value={datasetFilter || null}
               onValueChange={(v) => { setDatasetFilter((v as DatasetType | null) ?? ""); setPage(1); }}
+              items={DATASET_TYPES}
+              filter={(item: string, q: string) => !q || item.toLowerCase().includes(q.toLowerCase())}
+              itemToStringLabel={(item: string) => item}
             >
               <ComboboxInput
                 placeholder="All datasets"
