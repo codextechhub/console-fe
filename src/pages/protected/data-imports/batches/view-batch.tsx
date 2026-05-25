@@ -150,6 +150,27 @@ function triggerDownload(url: string, filename: string) {
   document.body.removeChild(a);
 }
 
+async function triggerBlobDownload(url: string, filename: string) {
+  try {
+    const token = document.cookie.match(/(?:^|;\s*)token=([^;]*)/)?.[1];
+    const res = await fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error(`${res.status}`);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+}
+
 // ── Pipeline timeline ────────────────────────────────────────────────────────
 
 function PipelineTimeline({ status }: { status: BatchStatus }) {
@@ -958,15 +979,13 @@ export default function ViewBatch() {
               </Button>
             </PermissionGate>
             {batch.file && (
-              <a
-                href={batch.file}
-                target="_blank"
-                rel="noopener noreferrer"
-                download
+              <button
+                type="button"
+                onClick={() => triggerBlobDownload(importDownloadUrls.batchFileDownload(batch.id), batch.original_filename)}
                 className="inline-flex items-center gap-1.5 px-3 h-8 text-xs font-medium rounded-md border border-gray-200 bg-white hover:bg-gray-50"
               >
                 <Download className="size-3.5" /> Download original
-              </a>
+              </button>
             )}
             <div className="flex-1" />
             <PermissionGate permission={P.DELETE_IMPORT_BATCH}>

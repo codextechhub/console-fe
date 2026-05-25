@@ -263,4 +263,6 @@ export const importDownloadUrls = {
     `${BASE_URL}/import/system-import-templates/${templateId}/download/?file_format=${format}`,
   validationIssuesExport: (batchId: number) =>
     `${BASE_URL}/import/batches/${batchId}/issues/export/`,
+  batchFileDownload: (batchId: number) =>
+    `${BASE_URL}/import/batches/${batchId}/download/`,
 };
