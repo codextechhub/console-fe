@@ -108,7 +108,14 @@ export default function SchoolManagement() {
                   Add Manual
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-sm cursor-pointer text-custom-gray-scale-400">
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(
+                      `${routesPath.PROTECTED.DATA_IMPORTS.BATCHES.NEW}?dataset_type=schools&lock_template=true&return_to=${encodeURIComponent(routesPath.PROTECTED.SCHOOL_MGT.INDEX)}&return_label=${encodeURIComponent("School Management")}`
+                    )
+                  }
+                  className="text-sm cursor-pointer text-custom-gray-scale-400"
+                >
                   Bulk Upload
                 </DropdownMenuItem>
               </DropdownMenuContent>

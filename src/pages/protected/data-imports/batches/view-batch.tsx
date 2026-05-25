@@ -795,10 +795,11 @@ export default function ViewBatch() {
     return "issues";
   });
   const [confirm, setConfirm] = useState<"validate" | "start" | "delete" | null>(null);
+  const [isDeleted, setIsDeleted] = useState(false);
 
   const { data, isLoading, isError, refetch } = useGetImportBatchQuery(batchId, {
     refetchOnMountOrArgChange: true,
-    skip: !batchId || isNaN(batchId) || !canViewBatch,
+    skip: !batchId || isNaN(batchId) || !canViewBatch || isDeleted,
   });
 
   const batch = unwrap<ImportBatch>(data);
@@ -888,11 +889,14 @@ export default function ViewBatch() {
   };
 
   const handleDelete = async () => {
+    setIsDeleted(true);
     try {
       await deleteBatch(batchId).unwrap();
       toast.success("Batch deleted.");
       navigate(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX);
-    } catch { /* global toast */ }
+    } catch {
+      setIsDeleted(false);
+    }
   };
 
   const allTabs: { key: TabKey; label: string; count?: number }[] = [

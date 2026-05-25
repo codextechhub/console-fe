@@ -78,6 +78,7 @@ export const routesPath = {
     DATA_IMPORTS: {
       BATCHES: {
         INDEX: "/data-imports/batches",
+        NEW: "/data-imports/batches/new",
         VIEW_PATH: "/data-imports/batches/:id/view",
         VIEW: (id: string) => `/data-imports/batches/${id}/view`,
       },

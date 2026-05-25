@@ -56,6 +56,15 @@ export const importApi = baseApi.injectEndpoints({
     }),
 
     // ── Batches ─────────────────────────────────────────────────────────────
+    createImportBatch: builder.mutation<{ data: ImportBatchListItem }, FormData>({
+      query: (formData) => ({
+        url: `/import/batches/`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["ImportBatches"],
+    }),
+
     getImportBatches: builder.query<PaginatedResponse<ImportBatchListItem>, Params>({
       query: (params) => ({
         url: `/import/batches/${generateQueryString(params)}`,
@@ -234,6 +243,7 @@ export const {
   useCreateImportTemplateMutation,
   useUpdateImportTemplateMutation,
   // batches
+  useCreateImportBatchMutation,
   useGetImportBatchesQuery,
   useGetImportBatchQuery,
   useUpdateImportBatchMutation,

@@ -265,7 +265,7 @@ export default function ImportBatchesList() {
               <RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Refresh
             </Button>
             <PermissionGate permission={P.UPLOAD_IMPORT_BATCH}>
-              <Button size="lg" disabled title="Upload flow coming soon">
+              <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.NEW)}>
                 <Upload className="size-4" /> New Import
               </Button>
             </PermissionGate>
@@ -420,8 +420,7 @@ export default function ImportBatchesList() {
                   icon: <Eye className="size-3.5" />,
                 },
               ];
-              // Only show Delete when allowed by permission AND batch isn't running.
-              if (!IN_FLIGHT.has(row._batch.status) && hasPermission(P.DELETE_IMPORT_BATCH)) {
+              if (hasPermission(P.DELETE_IMPORT_BATCH)) {
                 items.push({
                   label: "Delete",
                   className: "text-destructive",
