@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,18 @@ const COLUMN_DATA_TYPES: TemplateColumnDataType[] = [
 
 type DraftColumn = Omit<Partial<ImportTemplateColumn>, "id" | "created_at" | "updated_at"> & {
   _tmpId: string;
+};
+
+const INITIAL_FORM = {
+  code: "",
+  name: "",
+  dataset_type: "schools" as DatasetType,
+  description: "",
+  status: "draft" as TemplateStatus,
+  default_file_format: "xlsx" as FileFormat,
+  instructions: "",
+  allow_sample_row: true,
+  is_download_enabled: true,
 };
 
 const blankColumn = (order: number): DraftColumn => ({
@@ -74,6 +86,26 @@ export default function NewTemplate() {
   });
   const [columns, setColumns] = useState<DraftColumn[]>([blankColumn(1)]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const isDirty = useMemo(() => {
+    if (JSON.stringify(form) !== JSON.stringify(INITIAL_FORM)) return true;
+    if (columns.length !== 1) return true;
+    const c = columns[0];
+    return !!(
+      c.column_name?.trim() ||
+      c.target_field?.trim() ||
+      c.display_name?.trim() ||
+      c.help_text?.trim() ||
+      c.data_type !== "string" ||
+      c.is_required ||
+      c.is_unique ||
+      (c.allowed_values?.length ?? 0) > 0 ||
+      c.sample_value?.trim() ||
+      c.default_value?.trim() ||
+      c.reference_model?.trim() ||
+      c.reference_lookup_field?.trim()
+    );
+  }, [form, columns]);
 
   const back = () => navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX);
 
@@ -455,7 +487,7 @@ export default function NewTemplate() {
           <Button type="button" variant="white" onClick={back} disabled={isLoading}>
             Cancel
           </Button>
-          <Button type="button" onClick={handleSave} disabled={isLoading}>
+          <Button type="button" onClick={handleSave} disabled={isLoading || !isDirty}>
             {isLoading ? "Creating…" : "Create Template"}
           </Button>
         </div>

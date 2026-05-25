@@ -206,7 +206,6 @@ export default function ViewTemplate() {
             <p className="text-sm font-semibold font-mont">
               Columns <span className="text-gray-01 font-normal">({cols.length})</span>
             </p>
-            <p className="text-[10px] text-gray-01 italic">Columns are immutable after publish</p>
           </div>
 
           {cols.length === 0 ? (

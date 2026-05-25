@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -109,6 +109,7 @@ export default function EditTemplate() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [columnsEdited, setColumnsEdited] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const initialFormRef = useRef<typeof form | null>(null);
 
   const back = () => navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.VIEW(templateId));
 
@@ -126,6 +127,15 @@ export default function EditTemplate() {
     });
     const sorted = (template.columns ?? []).slice().sort((a, b) => a.column_order - b.column_order);
     setColumns(sorted.length > 0 ? sorted.map(fromExisting) : [blankColumn(1)]);
+    initialFormRef.current = {
+      name: template.name,
+      description: template.description ?? "",
+      status: template.status,
+      default_file_format: template.default_file_format,
+      instructions: template.instructions ?? "",
+      allow_sample_row: template.allow_sample_row,
+      is_download_enabled: template.is_download_enabled,
+    };
     setInitialized(true);
   }, [template, initialized]);
 
@@ -191,6 +201,11 @@ export default function EditTemplate() {
       arr.filter((_, i) => i !== idx).map((c, i) => ({ ...c, column_order: i + 1 })),
     );
   };
+
+  const isDirty =
+    columnsEdited ||
+    (initialFormRef.current !== null &&
+      JSON.stringify(form) !== JSON.stringify(initialFormRef.current));
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
@@ -518,7 +533,7 @@ export default function EditTemplate() {
         <Button type="button" variant="white" onClick={back} disabled={saving}>
           Cancel
         </Button>
-        <Button type="button" onClick={handleSave} disabled={saving}>
+        <Button type="button" onClick={handleSave} disabled={saving || !isDirty}>
           {saving ? "Saving…" : "Save Changes"}
         </Button>
       </div>
