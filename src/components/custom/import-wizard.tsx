@@ -854,6 +854,7 @@ function ReviewIssuesStep({
   onCancel?: () => void;
 }) {
   const [sevFilter, setSevFilter] = useState<"all" | ValidationSeverity>("all");
+  const [acknowledgePartial, setAcknowledgePartial] = useState(false);
 
   const summary = batch.validation_summary as Record<string, number> | null;
   const errorCount = summary?.error_count ?? batch.error_count;
@@ -864,7 +865,14 @@ function ReviewIssuesStep({
   const issues = batch.validation_issues ?? [];
   const filtered = sevFilter === "all" ? issues : issues.filter((i) => i.severity === sevFilter);
 
-  const canProceed = errorCount === 0;
+  // Use error_rows (distinct rows with errors) when available; fall back to counting
+  // unique row numbers from the issues list so one row with many errors counts once.
+  const errorRows = summary?.error_rows
+    ?? new Set(issues.filter((i) => i.severity === "error" && i.row_number != null).map((i) => i.row_number)).size;
+  const validRows = batch.total_rows - errorRows;
+  const isAllBad = errorRows > 0 && validRows <= 0;
+  const isPartialBad = errorRows > 0 && validRows > 0;
+  const canProceed = errorRows === 0 || (isPartialBad && acknowledgePartial);
 
   return (
     <div className="bg-white rounded-md border border-gray-100 p-6 space-y-5">
@@ -986,14 +994,38 @@ function ReviewIssuesStep({
         );
       })()}
 
-      {/* Hard block when errors exist */}
-      {errorCount > 0 && (
+      {/* All rows invalid — hard block */}
+      {isAllBad && (
         <div className="flex items-start gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3">
           <AlertTriangle className="size-4 text-destructive shrink-0 mt-0.5" />
           <div className="text-xs text-black-01 leading-relaxed">
-            <strong>{errorCount} error{errorCount > 1 ? "s" : ""} must be resolved before you can proceed.</strong>{" "}
+            <strong>All {errorRows} {errorRows === 1 ? "row has" : "rows have"} errors — there is nothing to import.</strong>{" "}
             Fix the affected rows in your file and re-upload to continue.
           </div>
+        </div>
+      )}
+
+      {/* Partial — checkbox to acknowledge skipped rows */}
+      {isPartialBad && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 space-y-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="size-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="text-xs text-black-01 leading-relaxed">
+              <strong>{errorRows} {errorRows === 1 ? "row has" : "rows have"} errors and will be skipped.</strong>{" "}
+              {validRows} {validRows === 1 ? "row is" : "rows are"} valid and ready to import.
+            </div>
+          </div>
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              className="mt-0.5 accent-amber-600 shrink-0"
+              checked={acknowledgePartial}
+              onChange={(e) => setAcknowledgePartial(e.target.checked)}
+            />
+            <span className="text-xs text-black-01">
+              I understand that the {errorRows} error {errorRows === 1 ? "row" : "rows"} will be skipped, and I want to proceed with importing the {validRows} valid {validRows === 1 ? "row" : "rows"}.
+            </span>
+          </label>
         </div>
       )}
 

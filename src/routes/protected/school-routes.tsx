@@ -6,6 +6,7 @@ import ViewSchool from "@/pages/protected/school-mgt/view-school";
 import EditSchool from "@/pages/protected/school-mgt/edit-school";
 import ViewBranch from "@/pages/protected/school-mgt/view-branch";
 import EditBranch from "@/pages/protected/school-mgt/edit-branch";
+import CreateBranch from "@/pages/protected/school-mgt/create-branch";
 
 export const schoolRoutes: RouteObject[] = [
   { path: routesPath.PROTECTED.SCHOOL_MGT.INDEX, Component: SchoolManagement },
@@ -13,5 +14,6 @@ export const schoolRoutes: RouteObject[] = [
   { path: routesPath.PROTECTED.SCHOOL_MGT.VIEW_BRANCH_PATH, Component: ViewBranch },
   { path: routesPath.PROTECTED.SCHOOL_MGT.CREATE, Component: CreateSchool },
   { path: routesPath.PROTECTED.SCHOOL_MGT.EDIT_PATH, Component: EditSchool },
+  { path: routesPath.PROTECTED.SCHOOL_MGT.CREATE_BRANCH_PATH, Component: CreateBranch },
   { path: routesPath.PROTECTED.SCHOOL_MGT.EDIT_BRANCH_PATH, Component: EditBranch },
 ];

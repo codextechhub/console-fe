@@ -3,11 +3,20 @@ import CustomTable from "@/components/custom/custom-table";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import PermissionGate from "@/components/custom/permission-gate";
+import { P } from "@/permissions";
 import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/schoolMgtApi";
 import type { BranchDetail } from "@/redux/services/dashboard/schoolType";
 import { routesPath } from "@/routes/routesPath";
 import { formatEnum, returnInitial } from "@/utils/helpers";
-import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
+import { Building2, GraduationCap, LayoutGrid, Plus, Users } from "lucide-react";
 import { useState } from "react";
 import { useDebounce } from "react-haiku";
 import { useNavigate, useParams } from "react-router";
@@ -191,11 +200,41 @@ export default function ViewSchool() {
               <StatCard icon={<Users size={22} />}        label="Total Parents"  value="—" />
             </div>
 
-            <TableToolbar
-              search={search}
-              onSearchChange={(v) => { setPage(1); setSearch(v); }}
-              placeholder="Search branches..."
-            />
+            <div className="flex items-center justify-between gap-3">
+              <TableToolbar
+                search={search}
+                onSearchChange={(v) => { setPage(1); setSearch(v); }}
+                placeholder="Search branches..."
+              />
+              <PermissionGate permission={P.ADD_BRANCH}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="lg">
+                      <Plus className="size-4" /> Add Branch
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="border rounded-sm">
+                    <DropdownMenuItem
+                      className="text-sm cursor-pointer text-custom-gray-scale-400"
+                      onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.CREATE_BRANCH(slug ?? ""))}
+                    >
+                      Add Manual
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-sm cursor-pointer text-custom-gray-scale-400"
+                      onClick={() =>
+                        navigate(
+                          `${routesPath.PROTECTED.DATA_IMPORTS.BATCHES.NEW}?dataset_type=branches&lock_template=true&return_to=${encodeURIComponent(routesPath.PROTECTED.SCHOOL_MGT.VIEW(slug ?? ""))}&return_label=${encodeURIComponent("School Details")}`
+                        )
+                      }
+                    >
+                      Bulk Upload
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </PermissionGate>
+            </div>
 
             <SortBar
               options={[

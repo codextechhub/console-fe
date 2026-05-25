@@ -111,7 +111,13 @@ export default function EditTemplate() {
   const [initialized, setInitialized] = useState(false);
   const initialFormRef = useRef<typeof form | null>(null);
 
-  const back = () => navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.VIEW(templateId));
+  const back = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.VIEW(templateId));
+    }
+  };
 
   // Pre-fill form from fetched template (runs once when template arrives).
   useEffect(() => {

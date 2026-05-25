@@ -23,6 +23,8 @@ export const routesPath = {
       VIEW_BRANCH: (slug: string, code: number) => `/school-management/${slug}/branches/${code}/view`,
       EDIT_BRANCH_PATH: "/school-management/:slug/branches/:code/edit",
       EDIT_BRANCH: (slug: string, code: number) => `/school-management/${slug}/branches/${code}/edit`,
+      CREATE_BRANCH_PATH: "/school-management/:slug/branches/create",
+      CREATE_BRANCH: (slug: string) => `/school-management/${slug}/branches/create`,
     },
     TEAM_MGT: {
       INDEX: '/team-management',
