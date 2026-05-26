@@ -29,7 +29,8 @@
       "Bash(open /Users/mac/Downloads/Audit_Security_standalone.html)",
       "Bash(screencapture -x /tmp/prototype_audit_security.png)",
       "Read(//Users/mac/docs/dev-projects/github/**)",
-      "Read(//Users/mac/**)"
+      "Read(//Users/mac/**)",
+      "Bash(bash deploy-staging.sh)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"
