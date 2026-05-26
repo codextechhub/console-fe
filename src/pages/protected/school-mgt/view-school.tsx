@@ -96,7 +96,7 @@ export default function ViewSchool() {
 
   return (
     <DashboardLayout title="School Management" hasBack>
-      <main className="px-4.5 py-6 space-y-6 text-black-01">
+      <main className="px-4.5 py-6 space-y-6 text-black-01 min-w-0">
 
         {isLoading && (
           <div className="grid h-40 place-content-center">
