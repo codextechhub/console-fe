@@ -144,15 +144,17 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    background-color: #F7F7F7;
   }
    input:-webkit-autofill {
     -webkit-box-shadow: 0 0 0px 1000px #F7F7F7 inset !important;
     -webkit-text-fill-color: black !important;
-  }
-  body {
-    background-color: #F7F7F7;
   }
 }
 

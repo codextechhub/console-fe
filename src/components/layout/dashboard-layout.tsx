@@ -141,7 +141,7 @@ export default function DashboardLayout({
         <AppSidebar />
         <SidebarInset className="bg-white-05">
           <DashboardHeader hasBack={hasBack} onBack={onBack} title={title} />
-          <div className="grid pt-0">{children}</div>
+          <div className="grid min-w-0 pt-0">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </>
