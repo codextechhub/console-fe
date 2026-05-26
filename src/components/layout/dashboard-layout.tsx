@@ -137,9 +137,9 @@ export default function DashboardLayout({
         onLogout={onLogout}
         goToLogin={goToLogin}
       />
-      <SidebarProvider defaultOpen={getSidebarDefaultOpen()} className="overflow-x-clip">
+      <SidebarProvider defaultOpen={getSidebarDefaultOpen()}>
         <AppSidebar />
-        <SidebarInset className="bg-white-05 min-w-0">
+        <SidebarInset className="bg-white-05 min-w-0 w-auto">
           <DashboardHeader hasBack={hasBack} onBack={onBack} title={title} />
           <div className="grid min-w-0 pt-0">{children}</div>
         </SidebarInset>
