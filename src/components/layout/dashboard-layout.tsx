@@ -139,9 +139,9 @@ export default function DashboardLayout({
       />
       <SidebarProvider defaultOpen={getSidebarDefaultOpen()}>
         <AppSidebar />
-        <SidebarInset className="bg-white-05 [overflow-x:clip] max-w-full">
+        <SidebarInset className="bg-white-05 min-w-0">
           <DashboardHeader hasBack={hasBack} onBack={onBack} title={title} />
-          <div className="grid min-w-0 [overflow-x:clip] pt-0">{children}</div>
+          <div className="grid min-w-0 pt-0">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </>
