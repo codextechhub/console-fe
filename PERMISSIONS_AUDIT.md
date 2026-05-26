@@ -26,8 +26,8 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Permissions | Actions | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Dependencies | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Permission Groups | `P.VIEW_PERMISSIONS` | inherits parent |
-| Data Imports | Import Batches | _(none — always visible)_ | parent always visible; page-level actions gated individually |
-| Data Imports | Import Templates | _(none — always visible)_ | parent always visible; create gated by `P.CREATE_IMPORT_TEMPLATE` |
+| Data Imports | Import Batches | `P.VIEW_IMPORT_BATCHES` | parent visible when user has either batch or template view; sub-item hidden without this permission |
+| Data Imports | Import Templates | `P.VIEW_IMPORT_TEMPLATES` | sub-item hidden without this permission; create still gated by `P.CREATE_IMPORT_TEMPLATE` |
 
 ---
 
@@ -250,9 +250,9 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.VIEW_DASHBOARD` | `platform.dashboard.view` | Home / Overview page |
 | `P.VIEW_SECURITY` | `platform.security.view` | Defined for future security-only read separation; today the Audit pages gate on `P.VIEW_AUDIT`. |
 | `P.IMPERSONATE_USER` | `platform.security.impersonate` | "Start impersonation" entry point — not yet built; the current Impersonations page only lists sessions. |
-| `P.VIEW_IMPORT_TEMPLATES` | `import.templates.view` | Defined for parity with backend; FE doesn't gate the list page (everyone authenticated can hit it; backend filters). |
+| `P.VIEW_IMPORT_TEMPLATES` | `import.templates.view` | Gates sidebar sub-item and list page (`PageAccessDenied` if missing). |
 | `P.MANAGE_IMPORT_TEMPLATES` | `import.templates.manage` | Reserved for future edit/publish/retire flows once backend supports them. |
-| `P.VIEW_IMPORT_BATCHES` | `import.batches.view` | Defined; FE doesn't gate the list page (backend filters). |
+| `P.VIEW_IMPORT_BATCHES` | `import.batches.view` | Gates sidebar sub-item and list page (`PageAccessDenied` if missing). |
 | `P.UPLOAD_IMPORT_BATCH` | `import.batches.create` | Wired to "New Import" button which is disabled until the upload wizard ships. |
 | `P.EDIT_IMPORT_BATCH` | `import.batches.update` | No UI surface yet — batch detail metadata edit (notes / sheet / header row) not exposed. |
 | `P.VIEW_IMPORT_ISSUES` | `import.validations.view` | Defined; Issues tab inherits batch-view permission. |

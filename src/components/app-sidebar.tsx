@@ -194,19 +194,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: DataImportsIcon,
       isActive: false,
       childActive: location.startsWith("/data-imports"),
-      permission: null,
+      permission: [P.VIEW_IMPORT_BATCHES, P.VIEW_IMPORT_TEMPLATES] as PermissionCode[],
       permissionMode: "any" as const,
       items: [
-        {
-          title: "Import Batches",
-          url: routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX,
-          isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX),
-        },
-        {
-          title: "Import Templates",
-          url: routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX,
-          isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX),
-        },
+        ...(hasPermission(P.VIEW_IMPORT_BATCHES)
+          ? [{
+              title: "Import Batches",
+              url: routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX,
+              isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX),
+            }]
+          : []),
+        ...(hasPermission(P.VIEW_IMPORT_TEMPLATES)
+          ? [{
+              title: "Import Templates",
+              url: routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX,
+              isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX),
+            }]
+          : []),
       ],
     },
     {
