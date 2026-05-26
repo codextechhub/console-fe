@@ -123,7 +123,6 @@ const CustomTable = ({
   return (
     <>
       {/* table component start here ------ */}
-      <div className="overflow-x-auto w-full">
       <Table>
         {tableHeaderList?.length > 0 && (
           <TableHeader className="border-0">
@@ -288,7 +287,6 @@ const CustomTable = ({
         </TableBody>
         {/* body end here ------------------ */}
       </Table>
-      </div>
       {/* table component end here ------ */}
       {/* pagination start here ------ */}
       {totalPage > 0 && !hidePagination && (
