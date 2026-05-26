@@ -49,6 +49,25 @@ function formatBytes(bytes: number): string {
   return `${n.toFixed(i > 0 ? 1 : 0)} ${units[i]}`;
 }
 
+function extractUploadError(err: unknown): string | null {
+  if (!err || typeof err !== "object") return null;
+  const data = (err as { data?: unknown }).data;
+  if (!data) return null;
+  if (typeof data === "string") return data;
+  if (typeof data === "object") {
+    const d = data as Record<string, unknown>;
+    for (const key of ["file", "template_id", "detail", "non_field_errors"]) {
+      const val = d[key];
+      if (Array.isArray(val) && typeof val[0] === "string") return val[0];
+      if (typeof val === "string") return val;
+    }
+    const first = Object.values(d)[0];
+    if (Array.isArray(first) && typeof first[0] === "string") return first[0];
+    if (typeof first === "string") return first;
+  }
+  return null;
+}
+
 // ── Main Wizard ─────────────────────────────────────────────────────────────
 
 export default function ImportWizard({ datasetType, lockTemplate, onComplete, onReturn, returnLabel, onCancel }: ImportWizardProps) {
@@ -91,10 +110,12 @@ export default function ImportWizard({ datasetType, lockTemplate, onComplete, on
   }, [step]);
 
   const [uploadError, setUploadError] = useState(false);
+  const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);
 
   const handleUpload = async () => {
     if (!templateId || !file) return;
     setUploadError(false);
+    setUploadErrorMsg(null);
     const fd = new FormData();
     fd.append("template_id", String(templateId));
     fd.append("file", file);
@@ -105,7 +126,8 @@ export default function ImportWizard({ datasetType, lockTemplate, onComplete, on
       setBatchId(newBatch.id);
       toast.success(`File parsed: ${newBatch.total_rows} ${newBatch.total_rows === 1 ? "row" : "rows"}, ${newBatch.total_columns} ${newBatch.total_columns === 1 ? "column" : "columns"}`);
       setStep(2);
-    } catch {
+    } catch (err: unknown) {
+      setUploadErrorMsg(extractUploadError(err));
       setUploadError(true);
     }
   };
@@ -145,6 +167,7 @@ export default function ImportWizard({ datasetType, lockTemplate, onComplete, on
     setBatchId(null);
     setJobId(null);
     setUploadError(false);
+    setUploadErrorMsg(null);
   };
 
   return (
@@ -165,6 +188,7 @@ export default function ImportWizard({ datasetType, lockTemplate, onComplete, on
           onCancel={onCancel}
           uploading={uploading}
           uploadError={uploadError}
+          uploadErrorMsg={uploadErrorMsg}
           onRetry={handleUpload}
         />
       )}
@@ -287,6 +311,7 @@ function UploadStep({
   onCancel,
   uploading,
   uploadError,
+  uploadErrorMsg,
   onRetry,
 }: {
   datasetType?: DatasetType;
@@ -301,6 +326,7 @@ function UploadStep({
   onCancel?: () => void;
   uploading: boolean;
   uploadError: boolean;
+  uploadErrorMsg: string | null;
   onRetry: () => void;
 }) {
   const params = useMemo(() => {
@@ -534,7 +560,9 @@ function UploadStep({
           <AlertTriangle className="size-4 text-destructive shrink-0" />
           <div className="flex-1">
             <p className="text-xs font-semibold text-destructive">Upload failed</p>
-            <p className="text-[11px] text-gray-500 mt-0.5">The server could not process your file. Check the file format and try again.</p>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              {uploadErrorMsg ?? "The server could not process your file. Check the file format and try again."}
+            </p>
           </div>
           <Button size="sm" variant="white" onClick={onRetry} disabled={!canNext}>
             Retry
