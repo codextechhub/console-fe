@@ -56,14 +56,17 @@ function extractUploadError(err: unknown): string | null {
   if (typeof data === "string") return data;
   if (typeof data === "object") {
     const d = data as Record<string, unknown>;
-    for (const key of ["file", "template_id", "detail", "non_field_errors"]) {
+    // Try structured DRF error keys first, then fall back to the envelope message
+    for (const key of ["file", "template_id", "detail", "non_field_errors", "message"]) {
       const val = d[key];
       if (Array.isArray(val) && typeof val[0] === "string") return val[0];
       if (typeof val === "string") return val;
     }
-    const first = Object.values(d)[0];
-    if (Array.isArray(first) && typeof first[0] === "string") return first[0];
-    if (typeof first === "string") return first;
+    // Last resort: first non-boolean, non-object value in the response
+    for (const v of Object.values(d)) {
+      if (Array.isArray(v) && typeof v[0] === "string") return v[0];
+      if (typeof v === "string") return v;
+    }
   }
   return null;
 }
