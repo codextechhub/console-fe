@@ -1,12 +1,18 @@
 import { useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
 
+// Background notification feeds (the header bell polls these). They have their
+// own in-page loading states, so their fetches must not flash the top bar.
+const SILENT_ENDPOINTS = new Set(["getPendingApprovals", "getMySubmissions"]);
+
 export function TopProgressBar() {
   const isActive = useSelector((state: any) => {
     const api = state.baseApi;
     if (!api) return false;
     return (
-      Object.values(api.queries ?? {}).some((q: any) => q?.status === "pending") ||
+      Object.values(api.queries ?? {}).some(
+        (q: any) => q?.status === "pending" && !SILENT_ENDPOINTS.has(q?.endpointName),
+      ) ||
       Object.values(api.mutations ?? {}).some((m: any) => m?.status === "pending")
     );
   });

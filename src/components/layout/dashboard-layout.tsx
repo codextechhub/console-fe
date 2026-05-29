@@ -2,7 +2,6 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { AppSidebar } from "../app-sidebar";
-import { svgIcons } from "@/assets/svg";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAppSelector } from "@/redux/store";
@@ -11,6 +10,7 @@ import { useTokenRefresh } from "@/hooks/use-token-refresh";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { SessionTimeoutModal } from "@/components/session-timeout-modal";
 import { TopProgressBar } from "@/components/custom/top-progress-bar";
+import { NotificationsBell } from "@/components/custom/notifications-bell";
 
 function DashboardHeader({
   hasBack,
@@ -76,12 +76,7 @@ function DashboardHeader({
       </div>
       <TopProgressBar />
       <div className="gap-x-3 inline-flex items-center">
-        <button
-          type="button"
-          className="size-8.5 rounded-full relative bg-gray-04 grid place-content-center"
-        >
-          {svgIcons.notificationBell}
-        </button>
+        <NotificationsBell />
 
         <Separator
           orientation="vertical"
