@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { clearStorageItem } from "@/hooks/use-session-storage";
 import { routesPath } from "@/routes/routesPath";
-import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
+import { markSessionInvalidated, refreshTokenSingleFlight } from "@/utils/tokenRefresh";
 import { clearActivity } from "@/utils/sessionActivity";
 
 const getAccessToken = () => {
@@ -20,11 +20,27 @@ const getAccessToken = () => {
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
+// Endpoints that must never carry a (possibly stale) Bearer token. Sending one
+// to the login/activation/reset routes makes the backend treat the request as
+// already-authenticated, which can surface as a 500. Mirrors AUTH_URLS below;
+// prepareHeaders only has the endpoint name to work with, not the URL.
+const AUTH_ENDPOINTS = new Set([
+  "login",
+  "forgotPassword",
+  "passwordResetPreview",
+  "passwordResetConfirm",
+  "activationPreview",
+  "activateAccount",
+  "specialLoginPreview",
+]);
+
 export const baseQuery = fetchBaseQuery({
   baseUrl,
-  prepareHeaders: (headers) => {
+  prepareHeaders: (headers, { endpoint }) => {
     const accessToken = getAccessToken();
-    if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
+    if (accessToken && !AUTH_ENDPOINTS.has(endpoint)) {
+      headers.set("Authorization", `Bearer ${accessToken}`);
+    }
     headers.set("accept", "application/json");
     return headers;
   },
@@ -35,6 +51,8 @@ let sessionRecoveryInProgress = false;
 const forceLogoutAndRedirect = (api: Parameters<BaseQueryFn>[1]) => {
   if (sessionRecoveryInProgress) return;
   sessionRecoveryInProgress = true;
+  // Stop any in-flight refresh from re-creating the cookies we're about to clear.
+  markSessionInvalidated();
   api.dispatch(resetAuth());
   Cookies.remove("token");
   Cookies.remove("refresh_token");
@@ -111,6 +129,19 @@ export const baseQueryInterceptor: BaseQueryFn<
   }
 
   if (res?.status === 401) {
+    // A 401 on an auth route (login, reset, activate…) means bad credentials or
+    // an expired link — not a recoverable session. Never run the refresh/retry
+    // machinery here; just surface the message. Doing otherwise would attempt a
+    // token refresh and retry the login itself.
+    if (isAuthRoute(args)) {
+      const msg =
+        extractFirstDetailError(res?.data?.error?.detail) ||
+        res?.data?.message ||
+        "Invalid credentials. Please try again.";
+      toast.error(msg);
+      return result;
+    }
+
     const refreshed = await refreshTokenSingleFlight();
 
     if (refreshed.ok) {
@@ -130,15 +161,7 @@ export const baseQueryInterceptor: BaseQueryFn<
     }
 
     if (refreshed.reason === "token_invalid") {
-      if (isAuthRoute(args)) {
-        const msg =
-          extractFirstDetailError(res?.data?.error?.detail) ||
-          res?.data?.message ||
-          "Invalid credentials. Please try again.";
-        toast.error(msg);
-      } else {
-        forceLogoutAndRedirect(api);
-      }
+      forceLogoutAndRedirect(api);
       return result;
     }
 
@@ -219,5 +242,11 @@ export const baseApi = createApi({
     "ImportBatches",
     "ImportValidationIssues",
     "ImportJobs",
+    "WorkflowTemplates",
+    "WorkflowInstances",
+    "WorkflowDelegations",
+    "WorkflowPending",
+    "WorkflowSubmissions",
+    "WorkflowTeamLoad",
   ],
 });
