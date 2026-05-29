@@ -106,6 +106,18 @@ const REGISTRY: Record<string, string> = {
   "500701": "import.audit.view",
   "500801": "import.notifications.view",
 
+  // ── workflow / templates  (MM=60, RR=01) ─────────────────────────────────
+  "600101": "workflow.template.view",
+  "600108": "workflow.template.manage",
+
+  // ── workflow / instances  (MM=60, RR=02) ─────────────────────────────────
+  "600201": "workflow.instance.view",
+  "600202": "workflow.instance.submit",   // submit a document for approval
+  "600204": "workflow.instance.cancel",   // admin terminates a stuck instance
+
+  // ── workflow / actions  (MM=60, RR=03) ───────────────────────────────────
+  "600305": "workflow.action.reverse",    // admin reverses a recorded vote
+
   // ── finance / invoice  (MM=20, RR=01) — uncomment when module ships ───────
   // "200101": "finance.invoice.view",
   // "200102": "finance.invoice.create",
@@ -186,6 +198,14 @@ export const P = {
   RUN_IMPORT_ROLLBACK:     "500607",  // trigger a job rollback
   VIEW_IMPORT_AUDIT:       "500701",  // view per-batch audit log
   VIEW_IMPORT_NOTIFICATIONS: "500801", // view per-batch notification log
+
+  // ── Workflow & Approvals ─────────────────────────────────────────────────────
+  VIEW_WORKFLOW_TEMPLATES:   "600101",  // browse approval workflow templates
+  MANAGE_WORKFLOW_TEMPLATES: "600108",  // publish/edit workflow templates
+  VIEW_WORKFLOW_INSTANCES:   "600201",  // view all workflow instances (admin monitoring)
+  SUBMIT_WORKFLOW:           "600202",  // submit a document for approval
+  CANCEL_WORKFLOW:           "600204",  // admin-cancel a stuck instance
+  REVERSE_WORKFLOW_ACTION:   "600305",  // admin-reverse a recorded approver vote
 
   // ── Dashboard ──────────────────────────────────────────────────────────────
   VIEW_DASHBOARD:       "100701",  // view admin dashboard metrics and statistics

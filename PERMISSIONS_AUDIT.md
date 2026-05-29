@@ -28,6 +28,14 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Permissions | Permission Groups | `P.VIEW_PERMISSIONS` | inherits parent |
 | Data Imports | Import Batches | `P.VIEW_IMPORT_BATCHES` | parent visible when user has either batch or template view; sub-item hidden without this permission |
 | Data Imports | Import Templates | `P.VIEW_IMPORT_TEMPLATES` | sub-item hidden without this permission; create still gated by `P.CREATE_IMPORT_TEMPLATE` |
+| Workflow | Approvals | _(none — always visible)_ | backend gates pending queue at `IsAuthenticatedAndActive` |
+| Workflow | My Submissions | _(none — always visible)_ | requester's own submissions |
+| Workflow | Delegations | _(none — always visible)_ | own delegations; admins see all (backend-enforced) |
+| Workflow | All Instances | `P.VIEW_WORKFLOW_INSTANCES` | own check via `hasPermission`; admin monitoring |
+| Workflow | Team Load | `P.VIEW_WORKFLOW_INSTANCES` | own check; same key as All Instances |
+| Workflow | Templates | `P.VIEW_WORKFLOW_TEMPLATES` | own check via `hasPermission` |
+
+> The Workflow parent group is always visible (permission `null`) because Approvals/Submissions/Delegations are open to every authenticated user. Admin-only children (All Instances, Team Load, Templates) are spread in by their own permission check.
 
 ---
 
@@ -194,6 +202,29 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 
 ---
 
+### Workflow — Templates list (`src/pages/protected/workflow/templates/index.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| "New Template" button | `<PermissionGate>` | `P.MANAGE_WORKFLOW_TEMPLATES` |
+
+### Workflow — Template detail (`src/pages/protected/workflow/templates/template-detail.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| "Edit" button | `<PermissionGate>` | `P.MANAGE_WORKFLOW_TEMPLATES` |
+
+### Workflow — Instance detail (`src/pages/protected/workflow/instances/instance-detail.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| "Cancel workflow" button | `<PermissionGate>` | `P.CANCEL_WORKFLOW` |
+| Recorded vote → "Reverse" button | `<PermissionGate>` | `P.REVERSE_WORKFLOW_ACTION` |
+
+> Approval voting (Approve/Reject/Return), withdraw, and resubmit are **actor-level** — gated by the backend on eligibility/ownership, not by an RBAC permission key. The UI mirrors this: it shows the vote panel only when the current user is on the active stage's eligible-approver snapshot and hasn't already voted, and shows withdraw/resubmit only to the requester.
+
+---
+
 ## 3. Route-level Guards
 
 No route-level guards. The previous `RequirePermission` middleware was deleted as dead code. All page-level protection is handled inside the page components themselves via `<PermissionGate>` and `hasPermission()`. The backend is the authoritative gate — anyone who reaches a page they shouldn't see still gets a 403 from the API.
@@ -235,6 +266,13 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.EXECUTE_IMPORT_BATCH` | `import.batches.import` |
 | `P.RESOLVE_IMPORT_ISSUE` | `import.validations.update` |
 | `P.RUN_IMPORT_ROLLBACK` | `import.rollbacks.run` |
+| `P.VIEW_WORKFLOW_TEMPLATES` | `workflow.template.view` |
+| `P.MANAGE_WORKFLOW_TEMPLATES` | `workflow.template.manage` |
+| `P.VIEW_WORKFLOW_INSTANCES` | `workflow.instance.view` |
+| `P.CANCEL_WORKFLOW` | `workflow.instance.cancel` |
+| `P.REVERSE_WORKFLOW_ACTION` | `workflow.action.reverse` |
+
+> `P.SUBMIT_WORKFLOW` (`workflow.instance.submit`) is registered but not wired — submission happens inside feature modules, not the console (monitor-only).
 
 ### Not yet wired (defined but no UI check uses them)
 

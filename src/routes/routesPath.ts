@@ -12,6 +12,7 @@ export const routesPath = {
   },
   PROTECTED: {
     OVERVIEW: { INDEX: "/overview" },
+    NOTIFICATIONS: "/notifications",
     SCHOOL_MGT: {
       INDEX: "/school-management",
       CREATE: "/school-management/create",
@@ -113,6 +114,25 @@ export const routesPath = {
       COMPLIANCE_RULE_CREATE: "/audit/compliance-rules/create",
       COMPLIANCE_RULE_EDIT_PATH: "/audit/compliance-rules/:id/edit",
       COMPLIANCE_RULE_EDIT: (id: string) => `/audit/compliance-rules/${id}/edit`,
+    },
+    WORKFLOW: {
+      APPROVALS: "/workflow/approvals",
+      APPROVAL_DETAIL_PATH: "/workflow/approvals/:id",
+      APPROVAL_DETAIL: (id: string) => `/workflow/approvals/${id}`,
+      MY_SUBMISSIONS: "/workflow/my-submissions",
+      SUBMISSION_DETAIL_PATH: "/workflow/my-submissions/:id",
+      SUBMISSION_DETAIL: (id: string) => `/workflow/my-submissions/${id}`,
+      INSTANCES: "/workflow/instances",
+      INSTANCE_DETAIL_PATH: "/workflow/instances/:id",
+      INSTANCE_DETAIL: (id: string) => `/workflow/instances/${id}`,
+      TEAM_LOAD: "/workflow/team-load",
+      DELEGATIONS: "/workflow/delegations",
+      TEMPLATES: "/workflow/templates",
+      TEMPLATE_NEW: "/workflow/templates/new",
+      TEMPLATE_DETAIL_PATH: "/workflow/templates/:id",
+      TEMPLATE_DETAIL: (id: string) => `/workflow/templates/${id}`,
+      TEMPLATE_EDIT_PATH: "/workflow/templates/:id/edit",
+      TEMPLATE_EDIT: (id: string) => `/workflow/templates/${id}/edit`,
     },
     ME_SECURITY: {
       OVERVIEW: "/me/security",

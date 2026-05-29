@@ -20,7 +20,7 @@ import {
   PermissionsIcon,
   DataImportsIcon,
 } from "@/assets/navbar-svg";
-import { Shield, ShieldCheck } from "lucide-react";
+import { Shield, ShieldCheck, Workflow } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routesPath";
 import { useLocation, useNavigate } from "react-router";
@@ -209,6 +209,60 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               title: "Import Templates",
               url: routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX,
               isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX),
+            }]
+          : []),
+      ],
+    },
+    {
+      title: "Workflow",
+      url: routesPath.PROTECTED.WORKFLOW.APPROVALS,
+      icon: Workflow,
+      isActive: false,
+      childActive: location.startsWith("/workflow"),
+      // Approvals, submissions and delegations are open to any authenticated
+      // user (backend gates them at IsAuthenticatedAndActive), so the group
+      // itself is always visible. Admin-only children are spread in by permission.
+      permission: null,
+      permissionMode: "any" as const,
+      items: [
+        {
+          title: "Approvals",
+          url: routesPath.PROTECTED.WORKFLOW.APPROVALS,
+          isActive:
+            location.startsWith(routesPath.PROTECTED.WORKFLOW.APPROVALS),
+        },
+        {
+          title: "My Submissions",
+          url: routesPath.PROTECTED.WORKFLOW.MY_SUBMISSIONS,
+          isActive: location.startsWith(routesPath.PROTECTED.WORKFLOW.MY_SUBMISSIONS),
+        },
+        {
+          title: "Delegations",
+          url: routesPath.PROTECTED.WORKFLOW.DELEGATIONS,
+          isActive: location.startsWith(routesPath.PROTECTED.WORKFLOW.DELEGATIONS),
+        },
+        // All Instances + Team Load — admin monitoring, gated by view permission.
+        ...(hasPermission(P.VIEW_WORKFLOW_INSTANCES)
+          ? [
+              {
+                title: "All Instances",
+                url: routesPath.PROTECTED.WORKFLOW.INSTANCES,
+                isActive:
+                  location.startsWith(routesPath.PROTECTED.WORKFLOW.INSTANCES),
+              },
+              {
+                title: "Team Load",
+                url: routesPath.PROTECTED.WORKFLOW.TEAM_LOAD,
+                isActive: location.startsWith(routesPath.PROTECTED.WORKFLOW.TEAM_LOAD),
+              },
+            ]
+          : []),
+        // Templates — gated by template view permission.
+        ...(hasPermission(P.VIEW_WORKFLOW_TEMPLATES)
+          ? [{
+              title: "Templates",
+              url: routesPath.PROTECTED.WORKFLOW.TEMPLATES,
+              isActive: location.startsWith(routesPath.PROTECTED.WORKFLOW.TEMPLATES),
             }]
           : []),
       ],
