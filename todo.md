@@ -1,8 +1,11 @@
 ## Undone (Ask questions for clarity where needed)
 
-- Build the actual "New Import" upload wizard for batches (template pick → file + sheet/header config → backend parses preview → confirm). UPLOAD button on Batches list is currently disabled. Permission `P.UPLOAD_IMPORT_BATCH` is wired.
 
 ## Done
+
+# 22. "New Import" upload wizard — VERIFIED ALREADY BUILT (this todo note was stale). `src/components/custom/import-wizard.tsx` is a complete 7-step flow (template pick → file upload via `useCreateImportBatchMutation` POST `/import/batches/` → header review → validation → issue review → confirm → import progress → done). Reachable from the Batches list "New Import" button (`batches/index.tsx`, gated by `P.UPLOAD_IMPORT_BATCH`) → `batches/new.tsx` → `<ImportWizard>`. The button is NOT disabled. Nothing to build; left as-is.
+
+# 21. vs_workflow stage rejection behaviour exposed — added `on_rejection` (+ `advance_rule`, `quorum_count`) to `WorkflowStageInstanceReadSerializer` (sourced from the related stage; detail queryset already prefetches `stage_instances__stage`, no N+1). FE `WorkflowStageInstance` type gained the fields; `workflow/approvals/approval-detail.tsx` now reads `activeStage.on_rejection` directly and the second `GET /workflow/templates/?page_size=200` fetch was removed. Reject-confirmation copy + inline hint now reflect real terminal-vs-return behaviour with no extra request.
 
 # 20. Data Imports overhaul — replaced all dummy data with live `importApi` slice (22 endpoints from `vs_import_data`). Dropped fake "Template Columns" flat directory. Templates list now shows real backend data with create flow gated to CX_STAFF, real download links (CSV/XLSX), and a read-only detail sheet. Batches list shows real backend data with status filter mapped to full 14-value enum, in-flight polling indicator, and gated delete action. Batch detail page wires up the full lifecycle: pipeline timeline aligned to backend enum, Validate / Start Import / Delete actions with `PromptModal` confirms, validation summary, 5 tabs (Issues with resolve + CSV export, Jobs with progress bars + rollback dialog, Row Results from `ImportJobRowResult`, per-batch Audit, per-batch Notifications), and 5s auto-poll while in-flight. Added `import.*` permission constants (`P.CREATE_IMPORT_TEMPLATE`, `P.RUN_IMPORT_VALIDATION`, `P.EXECUTE_IMPORT_BATCH`, `P.DELETE_IMPORT_BATCH`, `P.RESOLVE_IMPORT_ISSUE`, `P.RUN_IMPORT_ROLLBACK`, etc.). Dataset enum restricted to backend's real choices (schools, branches). PERMISSIONS_AUDIT.md updated.
 
