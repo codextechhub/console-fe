@@ -1,0 +1,143 @@
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import { RefreshCw } from "lucide-react";
+import DashboardLayout from "@/components/layout/dashboard-layout";
+import CustomTable from "@/components/custom/custom-table";
+import { CustomInput } from "@/components/custom/custom-input";
+import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { formatRelativeDate } from "@/utils/helpers";
+import { useDebounce } from "react-haiku";
+import { routesPath } from "@/routes/routesPath";
+import { useGetWorkflowInstancesQuery } from "@/redux/services/dashboard/workflowApi";
+import type { WorkflowInstance } from "@/redux/services/dashboard/workflowTypes";
+import { useUserDirectory } from "../components/use-user-directory";
+import { DocumentRef, InstanceStatusBadge, UserChip } from "../components/workflow-ui";
+
+const TABLE_HEADERS = ["Document", "Template", "Status", "Current Stage", "Requested By", "Updated"];
+
+const STATUS_OPTIONS = [
+  { value: "IN_PROGRESS", label: "In Progress" },
+  { value: "SUBMITTED", label: "Submitted" },
+  { value: "RETURNED", label: "Returned" },
+  { value: "APPROVED", label: "Approved" },
+  { value: "REJECTED", label: "Rejected" },
+  { value: "WITHDRAWN", label: "Withdrawn" },
+  { value: "CANCELLED", label: "Cancelled" },
+];
+
+export default function AllInstances() {
+  const navigate = useNavigate();
+  const { name, initials, role } = useUserDirectory();
+
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState("");
+  const [docType, setDocType] = useState("");
+  const debouncedDocType = useDebounce(docType, 500);
+
+  const params = useMemo(
+    () => ({
+      page,
+      ...(status && { status }),
+      ...(debouncedDocType && { document_type: debouncedDocType }),
+    }),
+    [page, status, debouncedDocType],
+  );
+
+  const { data, isLoading, isFetching, refetch } = useGetWorkflowInstancesQuery(params, {
+    refetchOnMountOrArgChange: true,
+  });
+
+  const items = useMemo(() => data?.data ?? [], [data]);
+
+  const tableData = useMemo(
+    () =>
+      items.map((r: WorkflowInstance) => ({
+        document: <DocumentRef documentType={r.document_type} objectId={r.document_object_id} />,
+        template: <span className="text-sm">{r.template_code}</span>,
+        status: <InstanceStatusBadge status={r.status} />,
+        stage: <span className="text-xs text-gray-01">{r.current_stage_label ?? "—"}</span>,
+        requestedBy: (
+          <UserChip
+            id={r.requested_by}
+            name={name(r.requested_by)}
+            initials={initials(r.requested_by)}
+            role={role(r.requested_by)}
+            size={22}
+          />
+        ),
+        updated: (
+          <span className="text-xs text-gray-01">
+            {r.updated_at ? formatRelativeDate(r.updated_at) : "—"}
+          </span>
+        ),
+        _raw: r,
+        _id: r.id,
+      })),
+    [items, name, initials, role],
+  );
+
+  return (
+    <DashboardLayout title="All Instances">
+      <main className="px-4.5 py-6 space-y-5 text-black-01">
+        <div>
+          <p className="font-semibold font-mont text-gray-01">Workflow Instances</p>
+          <p className="text-xs text-gray-01 mt-0.5">
+            Every approval workflow running across the platform. Open one to monitor, cancel, or
+            reverse a recorded vote.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-wrap items-end gap-3">
+            <CustomInput
+              id="filter-doc-type"
+              label="Document type"
+              placeholder="e.g. leave.request"
+              className="h-10"
+              containerClass="w-full sm:w-[220px]"
+              value={docType}
+              onChange={(e) => {
+                setPage(1);
+                setDocType(e.target.value);
+              }}
+            />
+            <CustomNativeSelect
+              id="filter-status"
+              label="Status"
+              placeholder="All statuses"
+              options={STATUS_OPTIONS}
+              value={status}
+              onChange={(e) => {
+                setPage(1);
+                setStatus(e.target.value);
+              }}
+            />
+          </div>
+          <Button
+            variant="white"
+            size="lg"
+            className="[&_svg]:size-5 font-medium font-mont"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw className={cn(isFetching && "animate-spin")} /> Refresh
+          </Button>
+        </div>
+
+        <CustomTable
+          tableHeaderList={TABLE_HEADERS}
+          tableBodyList={tableData}
+          loading={isLoading}
+          emptyText="No workflow instances match these filters."
+          onRowClick={(row) => navigate(routesPath.PROTECTED.WORKFLOW.INSTANCE_DETAIL(row._id))}
+          perPage={data?.pagination?.pageSize}
+          totalPage={data?.pagination?.totalPages}
+          currentPage={data?.pagination?.currentPage}
+          onPageChange={(p) => setPage(p as number)}
+        />
+      </main>
+    </DashboardLayout>
+  );
+}
