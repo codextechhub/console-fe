@@ -4,9 +4,10 @@ import { routesPath } from "@/routes/routesPath";
 import Cookies from "js-cookie";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Outlet, useNavigate } from "react-router";
+import { Outlet } from "react-router";
 import { clearStorageItem } from "@/hooks/use-session-storage";
 import { clearActivity, getLastActivity } from "@/utils/sessionActivity";
+import { markSessionInvalidated } from "@/utils/tokenRefresh";
 
 const { LOGIN } = routesPath.AUTH;
 
@@ -32,6 +33,8 @@ function isJwtExpired(token: string): boolean {
 }
 
 function killSession(message: string) {
+  // Block any in-flight refresh from resurrecting the cookies we clear here.
+  markSessionInvalidated();
   Cookies.remove("token");
   Cookies.remove("refresh_token");
   clearStorageItem();
@@ -40,7 +43,6 @@ function killSession(message: string) {
 }
 
 export default function Authenticated() {
-  const navigate = useNavigate();
   const accessToken = Cookies.get("token");
   const refreshToken = Cookies.get("refresh_token");
   const user = useSelector(selectUser);
@@ -71,8 +73,13 @@ export default function Authenticated() {
           : "Your session has expired. Please log in to continue."
       );
     }
-    navigate(LOGIN, { replace: true });
-  }, [shouldRedirect, refreshExpired, idleTooLong, navigate]);
+    // Hard-redirect (full reload) rather than an in-SPA navigate so all the
+    // stale in-memory state from the dead session — Redux store, RTK Query
+    // cache, module-level refresh/logout flags — is torn down. This keeps every
+    // logout path consistent and prevents a stale token leaking into the next
+    // login attempt.
+    window.location.replace(LOGIN);
+  }, [shouldRedirect, refreshExpired, idleTooLong]);
 
   // Sync permissions on mount — catches role changes that happened while the
   // token was still valid. onQueryStarted in getMe dispatches updatePermissions.

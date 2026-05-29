@@ -4,6 +4,7 @@ import { clearStorageItem } from "@/hooks/use-session-storage";
 import { baseApi } from "../baseApi";
 import { routesPath } from "@/routes/routesPath";
 import { clearActivity, recordActivity } from "@/utils/sessionActivity";
+import { markSessionInvalidated, resetSessionInvalidation } from "@/utils/tokenRefresh";
 import type { LoginResponse } from "./type";
 
 export const authApi = baseApi.injectEndpoints({
@@ -18,6 +19,9 @@ export const authApi = baseApi.injectEndpoints({
         try {
           const result = await queryFulfilled;
           const {data} = result;
+          // A fresh, valid session — re-enable token refresh in case a prior
+          // session in this JS context invalidated it.
+          resetSessionInvalidation();
           Cookies.set("token", data?.data?.access || "");
           Cookies.set("refresh_token", data?.data?.refresh || "");
           recordActivity();
@@ -38,6 +42,7 @@ export const authApi = baseApi.injectEndpoints({
         } catch {
           // Server-side revocation failed — proceed with client-side cleanup anyway.
         } finally {
+          markSessionInvalidated();
           Cookies.remove("token");
           Cookies.remove("refresh_token");
           clearStorageItem();

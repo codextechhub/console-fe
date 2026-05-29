@@ -8,6 +8,21 @@ export type RefreshOutcome =
 
 let inFlight: Promise<RefreshOutcome> | null = null;
 
+// Once a session is torn down (logout / idle timeout / forced re-auth) a refresh
+// that was already in flight must not resurrect the auth cookies. Logout paths
+// flip this on; a fresh login flips it back for the same JS context (flows that
+// don't hard-reload, e.g. account activation).
+let sessionInvalidated = false;
+
+export const markSessionInvalidated = (): void => {
+  sessionInvalidated = true;
+  inFlight = null;
+};
+
+export const resetSessionInvalidation = (): void => {
+  sessionInvalidated = false;
+};
+
 const doRefresh = async (refreshToken: string): Promise<RefreshOutcome> => {
   let response: Response;
   try {
@@ -36,6 +51,10 @@ const doRefresh = async (refreshToken: string): Promise<RefreshOutcome> => {
   if (!access) return { ok: false, reason: "server_error" };
   const refresh = data?.data?.refresh;
 
+  // The session was torn down while this refresh was in flight — discard the
+  // result rather than writing cookies for a session the user has left.
+  if (sessionInvalidated) return { ok: false, reason: "token_invalid" };
+
   // Cookie is the source of truth across all refresh callers — persist
   // immediately so the next reader sees the rotated values.
   Cookies.set("token", access);
@@ -55,6 +74,7 @@ const doRefresh = async (refreshToken: string): Promise<RefreshOutcome> => {
  * longer consulted by this module to avoid the stale-state bug.
  */
 export const refreshTokenSingleFlight = (): Promise<RefreshOutcome> => {
+  if (sessionInvalidated) return Promise.resolve({ ok: false, reason: "no_token" });
   if (inFlight) return inFlight;
 
   const refreshToken = Cookies.get("refresh_token");

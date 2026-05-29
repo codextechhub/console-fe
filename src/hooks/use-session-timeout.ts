@@ -4,7 +4,7 @@ import Cookies from "js-cookie";
 import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
 import { clearStorageItem } from "./use-session-storage";
 import { routesPath } from "@/routes/routesPath";
-import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
+import { markSessionInvalidated, refreshTokenSingleFlight } from "@/utils/tokenRefresh";
 import { clearActivity, recordActivity } from "@/utils/sessionActivity";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL as string;
@@ -74,6 +74,8 @@ export function useSessionTimeout() {
       refresh: Cookies.get("refresh_token") ?? "",
     };
     revokeSessionOnBackend(capturedTokensRef.current);
+    // Block any in-flight refresh from resurrecting the cookies we clear below.
+    markSessionInvalidated();
     Cookies.remove("token");
     Cookies.remove("refresh_token");
     clearStorageItem();
@@ -89,6 +91,7 @@ export function useSessionTimeout() {
     clearCountdown();
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     revokeSessionOnBackend();
+    markSessionInvalidated();
     Cookies.remove("token");
     Cookies.remove("refresh_token");
     clearStorageItem();
