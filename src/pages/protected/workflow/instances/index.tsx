@@ -4,7 +4,7 @@ import { RefreshCw } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -18,6 +18,7 @@ import { DocumentRef, InstanceStatusBadge, UserChip } from "../components/workfl
 const TABLE_HEADERS = ["Document", "Template", "Status", "Current Stage", "Requested By", "Updated"];
 
 const STATUS_OPTIONS = [
+  { value: "", label: "All statuses" },
   { value: "IN_PROGRESS", label: "In Progress" },
   { value: "SUBMITTED", label: "Submitted" },
   { value: "RETURNED", label: "Returned" },
@@ -103,15 +104,16 @@ export default function AllInstances() {
                 setDocType(e.target.value);
               }}
             />
-            <CustomNativeSelect
+            <SearchSelect
               id="filter-status"
               label="Status"
               placeholder="All statuses"
+              containerClass="w-full sm:w-[200px]"
               options={STATUS_OPTIONS}
               value={status}
-              onChange={(e) => {
+              onChange={(v) => {
                 setPage(1);
-                setStatus(e.target.value);
+                setStatus(v);
               }}
             />
           </div>

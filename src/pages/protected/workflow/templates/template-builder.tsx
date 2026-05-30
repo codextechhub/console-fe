@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routesPath";
@@ -350,21 +350,21 @@ export default function TemplateBuilder() {
                     value={s.label}
                     onChange={(e) => updateStage(i, { label: e.target.value })}
                   />
-                  <CustomNativeSelect
+                  <SearchSelect
                     id={`stage-kind-${i}`}
                     label="Kind"
                     options={KIND_OPTIONS}
                     value={s.kind}
-                    onChange={(e) => updateStage(i, { kind: e.target.value as StageKind })}
+                    onChange={(v) => updateStage(i, { kind: v as StageKind })}
                   />
                   {s.kind === "APPROVAL" && (
                     <>
-                      <CustomNativeSelect
+                      <SearchSelect
                         id={`stage-scope-${i}`}
                         label="Approver scope"
                         options={SCOPE_OPTIONS}
                         value={s.approver_scope}
-                        onChange={(e) => updateStage(i, { approver_scope: e.target.value as ApproverScope })}
+                        onChange={(v) => updateStage(i, { approver_scope: v as ApproverScope })}
                       />
                       <CustomInput
                         id={`stage-perm-${i}`}
@@ -374,12 +374,12 @@ export default function TemplateBuilder() {
                         value={s.approver_permission_key}
                         onChange={(e) => updateStage(i, { approver_permission_key: e.target.value })}
                       />
-                      <CustomNativeSelect
+                      <SearchSelect
                         id={`stage-rule-${i}`}
                         label="Advance rule"
                         options={RULE_OPTIONS}
                         value={s.advance_rule}
-                        onChange={(e) => updateStage(i, { advance_rule: e.target.value as StageAdvanceRule })}
+                        onChange={(v) => updateStage(i, { advance_rule: v as StageAdvanceRule })}
                       />
                       {s.advance_rule === "QUORUM" && (
                         <CustomInput
@@ -391,12 +391,12 @@ export default function TemplateBuilder() {
                           onChange={(e) => updateStage(i, { quorum_count: e.target.value })}
                         />
                       )}
-                      <CustomNativeSelect
+                      <SearchSelect
                         id={`stage-reject-${i}`}
                         label="On rejection"
                         options={REJECT_OPTIONS}
                         value={s.on_rejection}
-                        onChange={(e) => updateStage(i, { on_rejection: e.target.value as StageOnRejection })}
+                        onChange={(v) => updateStage(i, { on_rejection: v as StageOnRejection })}
                       />
                     </>
                   )}

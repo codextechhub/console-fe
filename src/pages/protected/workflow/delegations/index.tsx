@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import {
   Sheet,
   SheetContent,
@@ -256,7 +256,7 @@ function NewDelegationSheet({
   const userOptions = useMemo(
     () =>
       Array.from(byId.values())
-        .filter((u) => !sameId(u.id, selfId))
+        .filter((u) => !sameId(u.id, selfId) && u.status === "ACTIVE")
         .map((u) => ({ value: u.id, label: u.full_name || u.email })),
     [byId, selfId],
   );
@@ -308,14 +308,14 @@ function NewDelegationSheet({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <CustomNativeSelect
+          <SearchSelect
             id="del-delegate"
             label="Delegate to"
             isRequired
-            placeholder="Select an approver…"
+            placeholder="Search an active approver…"
             options={userOptions}
             value={delegate}
-            onChange={(e) => setDelegate(e.target.value)}
+            onChange={setDelegate}
           />
 
           <div className="grid grid-cols-2 gap-3">
