@@ -1,8 +1,16 @@
 import { formatRelativeDate } from "@/utils/helpers";
-import type { WorkflowAuditLog } from "@/redux/services/dashboard/workflowTypes";
+import type { AuditEventType, WorkflowAuditLog } from "@/redux/services/dashboard/workflowTypes";
 import { AUDIT_EVENT_LABEL } from "./workflow-format";
 
 type Resolver = (id?: string | null) => string;
+
+// Internal routing/skip events are recorded for audit but hidden from the
+// user-facing activity feed.
+const HIDDEN_EVENTS = new Set<AuditEventType>([
+  "STAGE_SKIPPED_NO_APPROVER",
+  "STAGE_SKIPPED_CONDITION",
+  "ROUTE_EVALUATED",
+]);
 
 /** Append-only audit log rendered as a vertical timeline (newest first). */
 export function AuditTimeline({
@@ -12,15 +20,17 @@ export function AuditTimeline({
   logs: WorkflowAuditLog[];
   name: Resolver;
 }) {
-  if (!logs.length) {
+  const visible = logs.filter((log) => !HIDDEN_EVENTS.has(log.event_type));
+
+  if (!visible.length) {
     return <p className="text-sm text-gray-01">No audit events recorded yet.</p>;
   }
 
   return (
     <ol className="relative space-y-4">
-      {logs.map((log, i) => (
+      {visible.map((log, i) => (
         <li key={log.id} className="relative flex gap-3">
-          {i !== logs.length - 1 && (
+          {i !== visible.length - 1 && (
             <span className="absolute left-[5px] top-3.5 h-full w-px bg-gray-200" aria-hidden />
           )}
           <span className="relative z-10 mt-1 size-2.5 shrink-0 rounded-full bg-primary" aria-hidden />

@@ -38,15 +38,19 @@ export function StageTracker({
   name: Resolver;
   initials: Resolver;
 }) {
-  if (!stages.length) {
+  // Skipped stages (branch nodes, unmet conditions, no-approver / retired
+  // skips) are recorded for audit but never shown in the workflow tracker.
+  const visible = stages.filter((s) => s.status !== "SKIPPED");
+
+  if (!visible.length) {
     return <p className="text-sm text-gray-01">No stages have been reached yet.</p>;
   }
 
   return (
     <ol className="relative">
-      {stages.map((s, i) => {
+      {visible.map((s, i) => {
         const node = NODE_STYLES[s.status] ?? NODE_STYLES.PENDING;
-        const isLast = i === stages.length - 1;
+        const isLast = i === visible.length - 1;
         // Live votes on the current attempt (exclude reversals + reversed rows).
         const liveActions = s.actions.filter(
           (a) => !a.is_reversal_of && !a.reversed_at && a.attempt === s.attempt,

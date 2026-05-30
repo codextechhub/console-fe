@@ -142,7 +142,9 @@ export default function ApprovalDetail() {
   }, [activeStage, instance]);
 
   // Progress line for the workflow panel header (e.g. "Stage 2 of 4 · …").
-  const stages = instance?.stage_instances ?? [];
+  // Skipped stages are hidden in the tracker, so they're excluded from the
+  // count and index here too — otherwise the numbers wouldn't match.
+  const stages = (instance?.stage_instances ?? []).filter((s) => s.status !== "SKIPPED");
   const activeIndex = stages.findIndex((s) => s.status === "ACTIVE");
   const progressText = !instance
     ? ""
