@@ -1,6 +1,7 @@
 import * as React from "react";
 import {
   Combobox,
+  ComboboxCollection,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
@@ -38,9 +39,9 @@ interface SearchSelectProps {
  * isRequired / disabled / loading) so Formik `getFieldProps(...)` spreads and
  * `onChange={(e)=>setX(e.target.value)}` handlers work unchanged.
  *
- * Items are mapped as ComboboxItem children — base-ui then auto-filters them by
- * their visible label and keeps them mouse-clickable. (Passing `items`/`filter`
- * flips base-ui into data-collection mode, which breaks plain children.)
+ * Uses the canonical base-ui pattern: object items + itemToStringLabel (so the
+ * input shows the LABEL, not the value, and filtering matches the label) +
+ * isItemEqualToValue + ComboboxCollection (filtered + mouse-clickable).
  */
 export function SearchSelect({
   id,
@@ -56,6 +57,8 @@ export function SearchSelect({
   value = "",
   onChange,
 }: SearchSelectProps) {
+  const selected = options.find((o) => o.value === value) ?? null;
+
   const emitChange = (v: string) =>
     onChange?.({
       target: { name: name ?? "", value: v },
@@ -74,9 +77,12 @@ export function SearchSelect({
           {label}
         </label>
       )}
-      <Combobox
-        value={value || null}
-        onValueChange={(v: string | null) => emitChange(v ?? "")}
+      <Combobox<SearchSelectOption>
+        items={options}
+        value={selected}
+        onValueChange={(item) => emitChange(item?.value ?? "")}
+        itemToStringLabel={(item) => item?.label ?? ""}
+        isItemEqualToValue={(a, b) => a?.value === b?.value}
         disabled={disabled || loading}
       >
         <ComboboxInput
@@ -89,12 +95,14 @@ export function SearchSelect({
         />
         <ComboboxContent>
           <ComboboxList>
-            {options.map((o) => (
-              <ComboboxItem key={o.value} value={o.value}>
-                {o.label}
-              </ComboboxItem>
-            ))}
             <ComboboxEmpty>No matches</ComboboxEmpty>
+            <ComboboxCollection>
+              {(item: SearchSelectOption) => (
+                <ComboboxItem key={item.value} value={item}>
+                  {item.label}
+                </ComboboxItem>
+              )}
+            </ComboboxCollection>
           </ComboboxList>
         </ComboboxContent>
       </Combobox>
