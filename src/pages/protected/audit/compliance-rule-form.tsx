@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { Switch } from "@/components/ui/switch";
 import { routesPath } from "@/routes/routesPath";
 import {
@@ -248,33 +248,33 @@ export default function ComplianceRuleForm() {
             <>
               <div>
                 <label className="text-xs font-semibold uppercase text-gray-01 mb-1.5 block">School</label>
-                <NativeSelect value={form.school_id} onChange={(e) => update({ school_id: e.target.value })}>
-                  <NativeSelectOption value="">Global (all schools)</NativeSelectOption>
-                  {schools.map((s) => (
-                    <NativeSelectOption key={s.id} value={s.id}>{s.name}</NativeSelectOption>
-                  ))}
-                </NativeSelect>
+                <SearchSelect
+                  value={form.school_id}
+                  onChange={(e) => update({ school_id: e.target.value })}
+                  placeholder="Global (all schools)"
+                  options={schools.map((s) => ({ value: String(s.id), label: s.name }))}
+                />
                 <p className="text-[10px] text-gray-01 mt-1">Leave blank to apply platform-wide.</p>
               </div>
 
               <div>
                 <label className="text-xs font-semibold uppercase text-gray-01 mb-1.5 block">Module</label>
-                <NativeSelect value={form.module_key} onChange={(e) => update({ module_key: e.target.value })}>
-                  <NativeSelectOption value="">Any module</NativeSelectOption>
-                  {MODULE_KEYS.map((m) => (
-                    <NativeSelectOption key={m} value={m}>{m}</NativeSelectOption>
-                  ))}
-                </NativeSelect>
+                <SearchSelect
+                  value={form.module_key}
+                  onChange={(e) => update({ module_key: e.target.value })}
+                  placeholder="Any module"
+                  options={MODULE_KEYS.map((m) => ({ value: m, label: m }))}
+                />
               </div>
 
               <div>
                 <label className="text-xs font-semibold uppercase text-gray-01 mb-1.5 block">Action type</label>
-                <NativeSelect value={form.action_type} onChange={(e) => update({ action_type: e.target.value })}>
-                  <NativeSelectOption value="">Any action</NativeSelectOption>
-                  {ACTION_TYPES.map((a) => (
-                    <NativeSelectOption key={a} value={a}>{a}</NativeSelectOption>
-                  ))}
-                </NativeSelect>
+                <SearchSelect
+                  value={form.action_type}
+                  onChange={(e) => update({ action_type: e.target.value })}
+                  placeholder="Any action"
+                  options={ACTION_TYPES.map((a) => ({ value: a, label: a }))}
+                />
                 <p className="text-[10px] text-gray-01 mt-1">Leave blank to apply to all actions in the module.</p>
               </div>
             </>

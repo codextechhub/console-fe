@@ -5,7 +5,7 @@ import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -302,48 +302,57 @@ export default function Impersonations() {
         {/* Filter bar */}
         <div className="flex gap-3 items-center overflow-x-auto pb-1">
           <div className="w-36 shrink-0">
-            <NativeSelect value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as "" | "ACTIVE" | "ENDED"); setPage(1); }}>
-              <NativeSelectOption value="">Any status</NativeSelectOption>
-              <NativeSelectOption value="ACTIVE">Active</NativeSelectOption>
-              <NativeSelectOption value="ENDED">Ended</NativeSelectOption>
-            </NativeSelect>
+            <SearchSelect
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value as "" | "ACTIVE" | "ENDED"); setPage(1); }}
+              placeholder="Any status"
+              options={[
+                { value: "ACTIVE", label: "Active" },
+                { value: "ENDED", label: "Ended" },
+              ]}
+            />
           </div>
 
           <div className="w-52 shrink-0">
-            <NativeSelect value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)}>
-              <NativeSelectOption value="">Any staff user</NativeSelectOption>
-              {staffOptions.map((email) => (
-                <NativeSelectOption key={email} value={email}>{email}</NativeSelectOption>
-              ))}
-            </NativeSelect>
+            <SearchSelect
+              value={staffFilter}
+              onChange={(e) => setStaffFilter(e.target.value)}
+              placeholder="Any staff user"
+              options={staffOptions.map((email) => ({ value: email, label: email }))}
+            />
           </div>
 
           <div className="w-52 shrink-0">
-            <NativeSelect value={targetFilter} onChange={(e) => setTargetFilter(e.target.value)}>
-              <NativeSelectOption value="">Any target user</NativeSelectOption>
-              {targetOptions.map((email) => (
-                <NativeSelectOption key={email} value={email}>{email}</NativeSelectOption>
-              ))}
-            </NativeSelect>
+            <SearchSelect
+              value={targetFilter}
+              onChange={(e) => setTargetFilter(e.target.value)}
+              placeholder="Any target user"
+              options={targetOptions.map((email) => ({ value: email, label: email }))}
+            />
           </div>
 
           <div className="w-40 shrink-0">
-            <NativeSelect value={schoolFilter} onChange={(e) => setSchoolFilter(e.target.value)}>
-              <NativeSelectOption value="">All schools</NativeSelectOption>
-              {schoolOptions.map((id) => (
-                <NativeSelectOption key={id} value={String(id)}>School #{id}</NativeSelectOption>
-              ))}
-            </NativeSelect>
+            <SearchSelect
+              value={schoolFilter}
+              onChange={(e) => setSchoolFilter(e.target.value)}
+              placeholder="All schools"
+              options={schoolOptions.map((id) => ({ value: String(id), label: `School #${id}` }))}
+            />
           </div>
 
           <div className="w-36 shrink-0">
-            <NativeSelect value={dateRange} onChange={(e) => setDateRange(e.target.value)}>
-              <NativeSelectOption value="24h">Last 24h</NativeSelectOption>
-              <NativeSelectOption value="7d">Last 7 days</NativeSelectOption>
-              <NativeSelectOption value="30d">Last 30 days</NativeSelectOption>
-              <NativeSelectOption value="90d">Last 90 days</NativeSelectOption>
-              <NativeSelectOption value="all">All time</NativeSelectOption>
-            </NativeSelect>
+            <SearchSelect
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              clearable={false}
+              options={[
+                { value: "24h", label: "Last 24h" },
+                { value: "7d", label: "Last 7 days" },
+                { value: "30d", label: "Last 30 days" },
+                { value: "90d", label: "Last 90 days" },
+                { value: "all", label: "All time" },
+              ]}
+            />
           </div>
         </div>
 

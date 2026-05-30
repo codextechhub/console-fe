@@ -8,7 +8,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose,
 } from "@/components/ui/sheet";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import {
   Combobox, ComboboxInput, ComboboxContent,
   ComboboxList, ComboboxItem, ComboboxEmpty,
@@ -285,31 +285,40 @@ export default function LoginAttempts() {
         {/* ── Filter bar ──────────────────────────────────────────────────── */}
         <div className="flex gap-3 items-center overflow-x-auto pb-1">
           <div className="w-36 shrink-0">
-            <NativeSelect value={resultFilter} onChange={(e) => { setResultFilter(e.target.value); resetPage(); }}>
-              <NativeSelectOption value="">Any result</NativeSelectOption>
-              <NativeSelectOption value="SUCCESS">SUCCESS</NativeSelectOption>
-              <NativeSelectOption value="FAIL">FAIL</NativeSelectOption>
-              <NativeSelectOption value="BLOCKED">BLOCKED</NativeSelectOption>
-            </NativeSelect>
+            <SearchSelect
+              value={resultFilter}
+              onChange={(e) => { setResultFilter(e.target.value); resetPage(); }}
+              placeholder="Any result"
+              options={[
+                { value: "SUCCESS", label: "SUCCESS" },
+                { value: "FAIL", label: "FAIL" },
+                { value: "BLOCKED", label: "BLOCKED" },
+              ]}
+            />
           </div>
 
           <div className="w-52 shrink-0">
-            <NativeSelect value={failureCodeFilter} onChange={(e) => { setFailureCodeFilter(e.target.value); resetPage(); }}>
-              <NativeSelectOption value="">Any failure code</NativeSelectOption>
-              {FAILURE_CODES.map((c) => (
-                <NativeSelectOption key={c} value={c}>{c}</NativeSelectOption>
-              ))}
-            </NativeSelect>
+            <SearchSelect
+              value={failureCodeFilter}
+              onChange={(e) => { setFailureCodeFilter(e.target.value); resetPage(); }}
+              placeholder="Any failure code"
+              options={FAILURE_CODES.map((c) => ({ value: c, label: c }))}
+            />
           </div>
 
           <div className="w-36 shrink-0">
-            <NativeSelect value={dateRange} onChange={(e) => { setDateRange(e.target.value as DateRange); resetPage(); }}>
-              <NativeSelectOption value="1h">Last hour</NativeSelectOption>
-              <NativeSelectOption value="24h">Last 24h</NativeSelectOption>
-              <NativeSelectOption value="7d">Last 7 days</NativeSelectOption>
-              <NativeSelectOption value="30d">Last 30 days</NativeSelectOption>
-              <NativeSelectOption value="all">All time</NativeSelectOption>
-            </NativeSelect>
+            <SearchSelect
+              value={dateRange}
+              onChange={(e) => { setDateRange(e.target.value as DateRange); resetPage(); }}
+              clearable={false}
+              options={[
+                { value: "1h", label: "Last hour" },
+                { value: "24h", label: "Last 24h" },
+                { value: "7d", label: "Last 7 days" },
+                { value: "30d", label: "Last 30 days" },
+                { value: "all", label: "All time" },
+              ]}
+            />
           </div>
 
           <Combobox

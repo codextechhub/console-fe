@@ -6,7 +6,7 @@ import {
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -399,29 +399,41 @@ export default function AuditExports() {
         {/* Filter bar */}
         <div className="flex gap-3 items-center overflow-x-auto pb-1">
           <div className="w-44 shrink-0">
-            <NativeSelect value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); resetPage(); }}>
-              <NativeSelectOption value="">All statuses</NativeSelectOption>
-              <NativeSelectOption value="PENDING">PENDING</NativeSelectOption>
-              <NativeSelectOption value="RUNNING">RUNNING</NativeSelectOption>
-              <NativeSelectOption value="COMPLETED">COMPLETED</NativeSelectOption>
-              <NativeSelectOption value="FAILED">FAILED</NativeSelectOption>
-              <NativeSelectOption value="EXPIRED">EXPIRED</NativeSelectOption>
-            </NativeSelect>
+            <SearchSelect
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); resetPage(); }}
+              placeholder="All statuses"
+              options={[
+                { value: "PENDING", label: "PENDING" },
+                { value: "RUNNING", label: "RUNNING" },
+                { value: "COMPLETED", label: "COMPLETED" },
+                { value: "FAILED", label: "FAILED" },
+                { value: "EXPIRED", label: "EXPIRED" },
+              ]}
+            />
           </div>
 
           <div className="w-32 shrink-0">
-            <NativeSelect value="CSV" onChange={() => {}}>
-              <NativeSelectOption value="CSV">CSV</NativeSelectOption>
-            </NativeSelect>
+            <SearchSelect
+              value="CSV"
+              onChange={() => {}}
+              clearable={false}
+              options={[{ value: "CSV", label: "CSV" }]}
+            />
           </div>
 
           <div className="w-36 shrink-0">
-            <NativeSelect value={dateRange} onChange={(e) => { setDateRange(e.target.value as DateRange); resetPage(); }}>
-              <NativeSelectOption value="24h">Last 24h</NativeSelectOption>
-              <NativeSelectOption value="7d">Last 7 days</NativeSelectOption>
-              <NativeSelectOption value="30d">Last 30 days</NativeSelectOption>
-              <NativeSelectOption value="all">All time</NativeSelectOption>
-            </NativeSelect>
+            <SearchSelect
+              value={dateRange}
+              onChange={(e) => { setDateRange(e.target.value as DateRange); resetPage(); }}
+              clearable={false}
+              options={[
+                { value: "24h", label: "Last 24h" },
+                { value: "7d", label: "Last 7 days" },
+                { value: "30d", label: "Last 30 days" },
+                { value: "all", label: "All time" },
+              ]}
+            />
           </div>
         </div>
 

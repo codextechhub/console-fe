@@ -5,7 +5,7 @@ import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -166,32 +166,42 @@ export default function ComplianceRules() {
         {/* Filters */}
         <div className="flex gap-3 items-center overflow-x-auto pb-1">
           <div className="w-40 shrink-0">
-            <NativeSelect value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); resetPage(); }}>
-              <NativeSelectOption value="">Any type</NativeSelectOption>
-              {RULE_TYPES.map((t) => <NativeSelectOption key={t} value={t}>{t}</NativeSelectOption>)}
-            </NativeSelect>
+            <SearchSelect
+              value={typeFilter}
+              onChange={(e) => { setTypeFilter(e.target.value); resetPage(); }}
+              placeholder="Any type"
+              options={RULE_TYPES.map((t) => ({ value: t, label: t }))}
+            />
           </div>
 
           <div className="w-52 shrink-0">
-            <NativeSelect value={schoolFilter} onChange={(e) => { setSchoolFilter(e.target.value); resetPage(); }}>
-              <NativeSelectOption value="">All schools / Global</NativeSelectOption>
-              {schools.map((s) => <NativeSelectOption key={s.slug} value={s.slug}>{s.name}</NativeSelectOption>)}
-            </NativeSelect>
+            <SearchSelect
+              value={schoolFilter}
+              onChange={(e) => { setSchoolFilter(e.target.value); resetPage(); }}
+              placeholder="All schools / Global"
+              options={schools.map((s) => ({ value: s.slug, label: s.name }))}
+            />
           </div>
 
           <div className="w-36 shrink-0">
-            <NativeSelect value={activeFilter} onChange={(e) => { setActiveFilter(e.target.value); resetPage(); }}>
-              <NativeSelectOption value="">Any state</NativeSelectOption>
-              <NativeSelectOption value="true">Active</NativeSelectOption>
-              <NativeSelectOption value="false">Inactive</NativeSelectOption>
-            </NativeSelect>
+            <SearchSelect
+              value={activeFilter}
+              onChange={(e) => { setActiveFilter(e.target.value); resetPage(); }}
+              placeholder="Any state"
+              options={[
+                { value: "true", label: "Active" },
+                { value: "false", label: "Inactive" },
+              ]}
+            />
           </div>
 
           <div className="w-40 shrink-0">
-            <NativeSelect value={moduleFilter} onChange={(e) => { setModuleFilter(e.target.value); resetPage(); }}>
-              <NativeSelectOption value="">All modules</NativeSelectOption>
-              {MODULE_KEYS.map((m) => <NativeSelectOption key={m} value={m}>{m}</NativeSelectOption>)}
-            </NativeSelect>
+            <SearchSelect
+              value={moduleFilter}
+              onChange={(e) => { setModuleFilter(e.target.value); resetPage(); }}
+              placeholder="All modules"
+              options={MODULE_KEYS.map((m) => ({ value: m, label: m }))}
+            />
           </div>
         </div>
 

@@ -21,7 +21,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import {
   Combobox,
   ComboboxInput,
@@ -430,15 +430,16 @@ export default function LiveSessions() {
           </Combobox>
 
           <div className="w-40">
-            <NativeSelect
+            <SearchSelect
               value={endReasonFilter}
               onChange={(e) => { setEndReasonFilter(e.target.value); setPage(1); }}
-            >
-              <NativeSelectOption value="">Any end reason</NativeSelectOption>
-              <NativeSelectOption value="LOGOUT">LOGOUT</NativeSelectOption>
-              <NativeSelectOption value="FORCE_LOGOUT">FORCE_LOGOUT</NativeSelectOption>
-              <NativeSelectOption value="EXPIRED">EXPIRED</NativeSelectOption>
-            </NativeSelect>
+              placeholder="Any end reason"
+              options={[
+                { value: "LOGOUT", label: "LOGOUT" },
+                { value: "FORCE_LOGOUT", label: "FORCE_LOGOUT" },
+                { value: "EXPIRED", label: "EXPIRED" },
+              ]}
+            />
           </div>
 
         </div>

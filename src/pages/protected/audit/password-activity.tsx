@@ -3,7 +3,7 @@ import { KeyRound, Mail, RefreshCw, Search, Timer, XCircle } from "lucide-react"
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -172,30 +172,39 @@ export default function PasswordActivity() {
         {/* ── Filter bar ──────────────────────────────────────────────────── */}
         <div className="flex gap-3 items-center overflow-x-auto pb-1">
           <div className="w-60 shrink-0">
-            <NativeSelect value={actionFilter} onChange={(e) => { setActionFilter(e.target.value); resetPage(); }}>
-              <NativeSelectOption value="">All actions</NativeSelectOption>
-              {PW_ACTIONS.map((a) => (
-                <NativeSelectOption key={a} value={a}>{FRIENDLY_ACTION[a] ?? a}</NativeSelectOption>
-              ))}
-            </NativeSelect>
+            <SearchSelect
+              value={actionFilter}
+              onChange={(e) => { setActionFilter(e.target.value); resetPage(); }}
+              placeholder="All actions"
+              options={PW_ACTIONS.map((a) => ({ value: a, label: FRIENDLY_ACTION[a] ?? a }))}
+            />
           </div>
 
           <div className="w-36 shrink-0">
-            <NativeSelect value={dateRange} onChange={(e) => { setDateRange(e.target.value as DateRange); resetPage(); }}>
-              <NativeSelectOption value="24h">Last 24h</NativeSelectOption>
-              <NativeSelectOption value="7d">Last 7 days</NativeSelectOption>
-              <NativeSelectOption value="30d">Last 30 days</NativeSelectOption>
-              <NativeSelectOption value="all">All time</NativeSelectOption>
-            </NativeSelect>
+            <SearchSelect
+              value={dateRange}
+              onChange={(e) => { setDateRange(e.target.value as DateRange); resetPage(); }}
+              clearable={false}
+              options={[
+                { value: "24h", label: "Last 24h" },
+                { value: "7d", label: "Last 7 days" },
+                { value: "30d", label: "Last 30 days" },
+                { value: "all", label: "All time" },
+              ]}
+            />
           </div>
 
           <div className="w-36 shrink-0">
-            <NativeSelect value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); resetPage(); }}>
-              <NativeSelectOption value="">Any status</NativeSelectOption>
-              <NativeSelectOption value="SUCCESS">SUCCESS</NativeSelectOption>
-              <NativeSelectOption value="FAILED">FAILED</NativeSelectOption>
-              <NativeSelectOption value="DENIED">DENIED</NativeSelectOption>
-            </NativeSelect>
+            <SearchSelect
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); resetPage(); }}
+              placeholder="Any status"
+              options={[
+                { value: "SUCCESS", label: "SUCCESS" },
+                { value: "FAILED", label: "FAILED" },
+                { value: "DENIED", label: "DENIED" },
+              ]}
+            />
           </div>
         </div>
 

@@ -28,6 +28,8 @@ interface SearchSelectProps {
   options: SearchSelectOption[];
   placeholder?: string;
   size?: "default" | "sm";
+  /** Show a clear (✕) button once a value is chosen. Default true. */
+  clearable?: boolean;
   value?: string;
   onChange?: React.ChangeEventHandler<HTMLSelectElement>;
   onBlur?: React.FocusEventHandler<HTMLSelectElement>;
@@ -54,6 +56,7 @@ export function SearchSelect({
   containerClass,
   options,
   placeholder = "Select an option",
+  clearable = true,
   value = "",
   onChange,
 }: SearchSelectProps) {
@@ -89,7 +92,7 @@ export function SearchSelect({
           id={id}
           placeholder={placeholder}
           showTrigger
-          showClear={!!value}
+          showClear={!!value && clearable}
           disabled={disabled || loading}
           aria-invalid={!!error}
         />
