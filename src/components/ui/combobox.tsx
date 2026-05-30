@@ -110,7 +110,9 @@ function ComboboxContent({
         align={align}
         alignOffset={alignOffset}
         anchor={anchor}
-        className="isolate z-50"
+        // pointer-events-auto re-enables interaction when the popup is portaled
+        // under a modal (e.g. Radix Dialog/Sheet) that sets body pointer-events:none.
+        className="isolate z-50 pointer-events-auto"
       >
         <ComboboxPrimitive.Popup
           data-slot="combobox-content"
