@@ -1,6 +1,6 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
 import { schoolStepSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
@@ -102,7 +102,7 @@ export default function AddSchool({ defaultValues, onNext, onPrefill, generateTe
             {...formik.getFieldProps("address")}
             error={formik.touched.address ? formik.errors.address : ""}
           />
-          <CustomNativeSelect
+          <SearchSelect
             id="ownership_type"
             label="Ownership Type"
             placeholder="Select ownership type"
@@ -139,7 +139,7 @@ export default function AddSchool({ defaultValues, onNext, onPrefill, generateTe
             {...formik.getFieldProps("motto")}
             error={formik.touched.motto ? formik.errors.motto : ""}
           />
-          <CustomNativeSelect
+          <SearchSelect
             id="term_structure"
             label="Term Structure"
             placeholder="Select term structure"
@@ -152,7 +152,7 @@ export default function AddSchool({ defaultValues, onNext, onPrefill, generateTe
             onChange={(e) => formik.setFieldValue("term_structure", e.target.value)}
             error={formik.touched.term_structure ? formik.errors.term_structure : ""}
           />
-          <CustomNativeSelect
+          <SearchSelect
             id="currency"
             label="Currency"
             placeholder="Select currency"

@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import { ChevronDown, Search } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { routesPath } from "@/routes/routesPath";
@@ -291,7 +291,7 @@ export default function CreatePermission() {
                     />
                   </div>
 
-                  <CustomNativeSelect
+                  <SearchSelect
                     id="sensitivity_level"
                     name="sensitivity_level"
                     label="Sensitivity Level"

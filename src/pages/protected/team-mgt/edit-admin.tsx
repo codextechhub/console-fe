@@ -4,7 +4,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
 import { routesPath } from "@/routes/routesPath";
 import { useNavigate, useParams } from "react-router";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { useFormik } from "formik";
 import { editTeamMemberSchema } from "@/schema/dashboard/team-mgt";
 import {
@@ -110,7 +110,7 @@ export default function EditAdmin() {
                   {...formik.getFieldProps("phone")}
                   error={formik.touched.phone ? formik.errors.phone : undefined}
                 />
-                <CustomNativeSelect
+                <SearchSelect
                   id="gender"
                   label="Gender"
                   placeholder="Select gender"

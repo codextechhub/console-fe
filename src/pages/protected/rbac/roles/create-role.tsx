@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { routesPath } from "@/routes/routesPath";
 import {
   useCreatePlatformRoleMutation,
@@ -115,7 +115,7 @@ export default function CreateRole() {
                       />
                     </div>
 
-                    <CustomNativeSelect
+                    <SearchSelect
                       id="status"
                       name="status"
                       label="Status"

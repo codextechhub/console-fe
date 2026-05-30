@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import {
   Sheet,
   SheetContent,
@@ -105,7 +105,7 @@ function NewRequestSheet({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <CustomNativeSelect
+          <SearchSelect
             id="req-target-role"
             label="Target Role"
             isRequired

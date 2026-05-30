@@ -25,7 +25,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { CustomDateInput } from "@/components/custom/custom-date-input";
 import { useAllRoles } from "@/hooks/use-all-roles";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
@@ -211,7 +211,7 @@ export default function InvitesTab() {
             </SheetTitle>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto px-4 space-y-5">
-            <CustomNativeSelect
+            <SearchSelect
               id="filter-role"
               label="Role"
               placeholder="All roles"

@@ -3,7 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import PageAccessDenied from "@/components/custom/page-access-denied";
@@ -142,7 +142,7 @@ export default function CreateBranch() {
                   {...formik.getFieldProps("state")}
                   error={formik.touched.state ? formik.errors.state : ""}
                 />
-                <CustomNativeSelect
+                <SearchSelect
                   id="country"
                   label="Country"
                   placeholder="Select country"

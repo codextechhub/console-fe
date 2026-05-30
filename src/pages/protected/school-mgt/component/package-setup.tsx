@@ -1,7 +1,7 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomDateInput } from "@/components/custom/custom-date-input";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { MultiSelectInput } from "@/components/custom/multiselect-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,7 +55,7 @@ export default function PackageSetup({ defaultValues, onSubmit, isSubmitting }: 
 
         <form onSubmit={formik.handleSubmit}>
           <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
-            <CustomNativeSelect
+            <SearchSelect
               id="package_plan"
               label="Package Plan"
               placeholder={plansLoading ? "Loading..." : "Select package plan"}

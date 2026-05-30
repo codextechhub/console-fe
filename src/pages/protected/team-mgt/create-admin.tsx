@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import useToggleModal from "@/hooks/use-toggle";
 import { routesPath } from "@/routes/routesPath";
 import { useNavigate } from "react-router";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { useAllRoles } from "@/hooks/use-all-roles";
 import { useFormik } from "formik";
 import { createTeamMemberSchema } from "@/schema/dashboard/team-mgt";
@@ -92,7 +92,7 @@ export default function CreateAdmin() {
                 {...formik.getFieldProps("email")}
                 error={formik.touched.email ? formik.errors.email : undefined}
               />
-              <CustomNativeSelect
+              <SearchSelect
                 id="role"
                 label="Role Title"
                 placeholder="Select role"
@@ -109,7 +109,7 @@ export default function CreateAdmin() {
                 {...formik.getFieldProps("phone")}
                 error={formik.touched.phone ? formik.errors.phone : undefined}
               />
-              <CustomNativeSelect
+              <SearchSelect
                 id="gender"
                 label="Gender"
                 placeholder="Select gender"

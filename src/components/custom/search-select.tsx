@@ -1,3 +1,4 @@
+import * as React from "react";
 import {
   Combobox,
   ComboboxCollection,
@@ -14,33 +15,57 @@ export interface SearchSelectOption {
   label: string;
 }
 
-/**
- * Searchable single-select dropdown (base-ui Combobox) with a label, matching
- * the project's combobox style. Drop-in replacement for CustomNativeSelect:
- * `value` is a string, `onChange` receives the selected value ("" when cleared).
- */
-export function SearchSelect({
-  value,
-  onChange,
-  options,
-  placeholder = "Select…",
-  label,
-  id,
-  isRequired,
-  containerClass,
-  disabled,
-}: {
-  value: string;
-  onChange: (value: string) => void;
+interface SearchSelectProps {
+  id?: string;
+  name?: string;
+  label?: string;
+  error?: string;
+  isRequired?: boolean;
+  disabled?: boolean;
+  loading?: boolean;
+  containerClass?: string;
+  className?: string;
   options: SearchSelectOption[];
   placeholder?: string;
-  label?: string;
-  id?: string;
-  isRequired?: boolean;
-  containerClass?: string;
-  disabled?: boolean;
-}) {
+  size?: "default" | "sm";
+  value?: string;
+  onChange?: React.ChangeEventHandler<HTMLSelectElement>;
+  onBlur?: React.FocusEventHandler<HTMLSelectElement>;
+}
+
+/**
+ * Searchable single-select (base-ui Combobox) — a drop-in replacement for
+ * CustomNativeSelect. It keeps the same event-based API (value / name /
+ * onChange(event) / onBlur(event) / error), synthesizing native-like events so
+ * Formik `getFieldProps(...)` spreads and `onChange={(e)=>setX(e.target.value)}`
+ * handlers keep working unchanged. Filtering is real (via ComboboxCollection).
+ */
+export function SearchSelect({
+  id,
+  name,
+  label,
+  error,
+  isRequired,
+  disabled,
+  loading,
+  containerClass,
+  options,
+  placeholder = "Select an option",
+  value = "",
+  onChange,
+  onBlur,
+}: SearchSelectProps) {
   const labelFor = (v: string) => options.find((o) => o.value === v)?.label ?? "";
+
+  const emitChange = (v: string) =>
+    onChange?.({
+      target: { name: name ?? "", value: v },
+    } as unknown as React.ChangeEvent<HTMLSelectElement>);
+
+  const emitBlur = () =>
+    onBlur?.({
+      target: { name: name ?? "" },
+    } as unknown as React.FocusEvent<HTMLSelectElement>);
 
   return (
     <div className={cn("grid w-full items-center gap-1.5 h-fit", containerClass)}>
@@ -48,7 +73,7 @@ export function SearchSelect({
         <label
           htmlFor={id}
           className={cn(
-            "text-xs font-medium text-black-01",
+            "text-sm text-black-01",
             isRequired && "after:text-error after:content-['*'] after:pl-1.5",
           )}
         >
@@ -57,15 +82,24 @@ export function SearchSelect({
       )}
       <Combobox
         value={value}
-        onValueChange={(v: string | null) => onChange(v ?? "")}
+        onValueChange={(v: string | null) => emitChange(v ?? "")}
+        onOpenChange={(open: boolean) => {
+          if (!open) emitBlur();
+        }}
         items={options.map((o) => o.value)}
         itemToStringLabel={labelFor}
         filter={(item: string, q: string) =>
           !q || labelFor(item).toLowerCase().includes(q.toLowerCase())
         }
-        disabled={disabled}
+        disabled={disabled || loading}
       >
-        <ComboboxInput id={id} placeholder={placeholder} showTrigger className="h-10.5" />
+        <ComboboxInput
+          id={id}
+          placeholder={placeholder}
+          showTrigger
+          disabled={disabled || loading}
+          aria-invalid={!!error}
+        />
         <ComboboxContent>
           <ComboboxList>
             <ComboboxEmpty>No matches</ComboboxEmpty>
@@ -79,6 +113,7 @@ export function SearchSelect({
           </ComboboxList>
         </ComboboxContent>
       </Combobox>
+      {error && <p className="text-xs font-medium text-destructive/70">{error}</p>}
     </div>
   );
 }

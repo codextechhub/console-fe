@@ -111,9 +111,9 @@ export default function AllInstances() {
               containerClass="w-full sm:w-[200px]"
               options={STATUS_OPTIONS}
               value={status}
-              onChange={(v) => {
+              onChange={(e) => {
                 setPage(1);
-                setStatus(v);
+                setStatus(e.target.value);
               }}
             />
           </div>

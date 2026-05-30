@@ -315,7 +315,7 @@ function NewDelegationSheet({
             placeholder="Search an active approver…"
             options={userOptions}
             value={delegate}
-            onChange={setDelegate}
+            onChange={(e) => setDelegate(e.target.value)}
           />
 
           <div className="grid grid-cols-2 gap-3">

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import {
   Sheet,
   SheetContent,
@@ -97,7 +97,7 @@ function AssignRoleSheet({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <CustomNativeSelect
+          <SearchSelect
             id="assign-user"
             label="User"
             isRequired
@@ -106,7 +106,7 @@ function AssignRoleSheet({
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
           />
-          <CustomNativeSelect
+          <SearchSelect
             id="assign-role"
             label="Role"
             isRequired
@@ -405,14 +405,14 @@ export default function PlatformUserAssignments() {
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className="inline-flex items-center gap-3 shrink-0 flex-wrap">
-            <CustomNativeSelect
+            <SearchSelect
               id="filter-status"
               options={STATUS_OPTIONS}
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value as StatusFilter); setQuery({ page: 1 }); }}
               containerClass="w-36"
             />
-            <CustomNativeSelect
+            <SearchSelect
               id="filter-role"
               options={roleOptions}
               value={roleFilter}

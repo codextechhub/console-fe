@@ -355,7 +355,7 @@ export default function TemplateBuilder() {
                     label="Kind"
                     options={KIND_OPTIONS}
                     value={s.kind}
-                    onChange={(v) => updateStage(i, { kind: v as StageKind })}
+                    onChange={(e) => updateStage(i, { kind: e.target.value as StageKind })}
                   />
                   {s.kind === "APPROVAL" && (
                     <>
@@ -364,7 +364,7 @@ export default function TemplateBuilder() {
                         label="Approver scope"
                         options={SCOPE_OPTIONS}
                         value={s.approver_scope}
-                        onChange={(v) => updateStage(i, { approver_scope: v as ApproverScope })}
+                        onChange={(e) => updateStage(i, { approver_scope: e.target.value as ApproverScope })}
                       />
                       <CustomInput
                         id={`stage-perm-${i}`}
@@ -379,7 +379,7 @@ export default function TemplateBuilder() {
                         label="Advance rule"
                         options={RULE_OPTIONS}
                         value={s.advance_rule}
-                        onChange={(v) => updateStage(i, { advance_rule: v as StageAdvanceRule })}
+                        onChange={(e) => updateStage(i, { advance_rule: e.target.value as StageAdvanceRule })}
                       />
                       {s.advance_rule === "QUORUM" && (
                         <CustomInput
@@ -396,7 +396,7 @@ export default function TemplateBuilder() {
                         label="On rejection"
                         options={REJECT_OPTIONS}
                         value={s.on_rejection}
-                        onChange={(v) => updateStage(i, { on_rejection: v as StageOnRejection })}
+                        onChange={(e) => updateStage(i, { on_rejection: e.target.value as StageOnRejection })}
                       />
                     </>
                   )}

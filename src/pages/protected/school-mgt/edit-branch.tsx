@@ -1,6 +1,6 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -137,7 +137,7 @@ export default function EditBranch() {
                   {...formik.getFieldProps("state")}
                   error={formik.touched.state ? formik.errors.state : ""}
                 />
-                <CustomNativeSelect
+                <SearchSelect
                   id="country"
                   label="Country"
                   placeholder="Select country"

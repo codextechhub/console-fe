@@ -1,6 +1,6 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -90,7 +90,7 @@ export default function EditSchool() {
 
             <form onSubmit={formik.handleSubmit}>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
-                <CustomNativeSelect
+                <SearchSelect
                   id="ownership_type"
                   label="Ownership Type"
                   placeholder="Select ownership type"
@@ -113,7 +113,7 @@ export default function EditSchool() {
                   {...formik.getFieldProps("address")}
                   error={formik.touched.address ? formik.errors.address : ""}
                 />
-                <CustomNativeSelect
+                <SearchSelect
                   id="term_structure"
                   label="Term Structure"
                   placeholder="Select term structure"
@@ -126,7 +126,7 @@ export default function EditSchool() {
                   onChange={(e) => formik.setFieldValue("term_structure", e.target.value)}
                   error={formik.touched.term_structure ? formik.errors.term_structure : ""}
                 />
-                <CustomNativeSelect
+                <SearchSelect
                   id="currency"
                   label="Currency"
                   placeholder="Select currency"

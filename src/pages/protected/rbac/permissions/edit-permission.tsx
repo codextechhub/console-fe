@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { routesPath } from "@/routes/routesPath";
 import {
   useGetPermissionDetailQuery,
@@ -210,7 +210,7 @@ export default function EditPermission() {
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
-                    <CustomNativeSelect
+                    <SearchSelect
                       id="module"
                       name="module"
                       label="Module"
@@ -225,7 +225,7 @@ export default function EditPermission() {
                       options={modules.map((m) => ({ value: m.name, label: m.name }))}
                       disabled={hasDependents}
                     />
-                    <CustomNativeSelect
+                    <SearchSelect
                       id="resource"
                       name="resource"
                       label="Resource"
@@ -245,7 +245,7 @@ export default function EditPermission() {
                       disabled={hasDependents || !values.module || resourcesFetching}
                       loading={resourcesFetching}
                     />
-                    <CustomNativeSelect
+                    <SearchSelect
                       id="action"
                       name="action"
                       label="Action"
@@ -284,7 +284,7 @@ export default function EditPermission() {
                     />
                   </div>
 
-                  <CustomNativeSelect
+                  <SearchSelect
                     id="sensitivity_level"
                     name="sensitivity_level"
                     label="Sensitivity Level"

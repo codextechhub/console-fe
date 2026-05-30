@@ -4,7 +4,7 @@ import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import { routesPath } from "@/routes/routesPath";
 import {
   useCreatePermissionResourceMutation,
@@ -92,7 +92,7 @@ export default function CreateResource() {
                   )}
 
                   <div className="grid grid-cols-2 gap-4">
-                    <CustomNativeSelect
+                    <SearchSelect
                       id="module"
                       name="module"
                       label="Module"

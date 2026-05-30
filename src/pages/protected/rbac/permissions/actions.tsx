@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
-import { CustomNativeSelect } from "@/components/custom/custom-native-select";
+import { SearchSelect } from "@/components/custom/search-select";
 import {
   Dialog,
   DialogContent,
@@ -145,7 +145,7 @@ export default function PermissionActions() {
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className="inline-flex items-center gap-3 shrink-0">
-            <CustomNativeSelect
+            <SearchSelect
               id="filter-status"
               options={[
                 { value: "all", label: "All Statuses" },
