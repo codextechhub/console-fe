@@ -270,12 +270,17 @@ function NewDelegationSheet({
     setReason("");
   };
 
+  // The save button mirrors this so it can't be clicked while the required
+  // fields are missing or the date range is invalid.
+  const datesOutOfOrder = !!startDate && !!endDate && new Date(endDate) < new Date(startDate);
+  const isValid = !!delegate && !!startDate && !!endDate && !datesOutOfOrder;
+
   const handleSubmit = () => {
     if (!delegate || !startDate || !endDate) {
       toast.error("Pick a delegate and a start/end date.");
       return;
     }
-    if (new Date(endDate) < new Date(startDate)) {
+    if (datesOutOfOrder) {
       toast.error("End date must be after the start date.");
       return;
     }
@@ -333,6 +338,8 @@ function NewDelegationSheet({
               isRequired
               type="date"
               value={endDate}
+              min={startDate || undefined}
+              error={datesOutOfOrder ? "End date must be on or after the start date." : ""}
               onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
@@ -384,7 +391,7 @@ function NewDelegationSheet({
           <Button variant="outline" size="lg" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button size="lg" onClick={handleSubmit} disabled={isLoading}>
+          <Button size="lg" onClick={handleSubmit} disabled={isLoading || !isValid}>
             {isLoading ? "Saving…" : "Save delegation"}
           </Button>
         </SheetFooter>
