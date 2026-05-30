@@ -1,7 +1,6 @@
 import * as React from "react";
 import {
   Combobox,
-  ComboboxCollection,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
@@ -34,11 +33,14 @@ interface SearchSelectProps {
 }
 
 /**
- * Searchable single-select (base-ui Combobox) — a drop-in replacement for
- * CustomNativeSelect. It keeps the same event-based API (value / name /
- * onChange(event) / onBlur(event) / error), synthesizing native-like events so
- * Formik `getFieldProps(...)` spreads and `onChange={(e)=>setX(e.target.value)}`
- * handlers keep working unchanged. Filtering is real (via ComboboxCollection).
+ * Searchable single-select (base-ui Combobox) — a drop-in for CustomNativeSelect.
+ * Keeps the same event-based API (value / name / onChange(event) / error /
+ * isRequired / disabled / loading) so Formik `getFieldProps(...)` spreads and
+ * `onChange={(e)=>setX(e.target.value)}` handlers work unchanged.
+ *
+ * Items are mapped as ComboboxItem children — base-ui then auto-filters them by
+ * their visible label and keeps them mouse-clickable. (Passing `items`/`filter`
+ * flips base-ui into data-collection mode, which breaks plain children.)
  */
 export function SearchSelect({
   id,
@@ -53,19 +55,11 @@ export function SearchSelect({
   placeholder = "Select an option",
   value = "",
   onChange,
-  onBlur,
 }: SearchSelectProps) {
-  const labelFor = (v: string) => options.find((o) => o.value === v)?.label ?? "";
-
   const emitChange = (v: string) =>
     onChange?.({
       target: { name: name ?? "", value: v },
     } as unknown as React.ChangeEvent<HTMLSelectElement>);
-
-  const emitBlur = () =>
-    onBlur?.({
-      target: { name: name ?? "" },
-    } as unknown as React.FocusEvent<HTMLSelectElement>);
 
   return (
     <div className={cn("grid w-full items-center gap-1.5 h-fit", containerClass)}>
@@ -81,35 +75,26 @@ export function SearchSelect({
         </label>
       )}
       <Combobox
-        value={value}
+        value={value || null}
         onValueChange={(v: string | null) => emitChange(v ?? "")}
-        onOpenChange={(open: boolean) => {
-          if (!open) emitBlur();
-        }}
-        items={options.map((o) => o.value)}
-        itemToStringLabel={labelFor}
-        filter={(item: string, q: string) =>
-          !q || labelFor(item).toLowerCase().includes(q.toLowerCase())
-        }
         disabled={disabled || loading}
       >
         <ComboboxInput
           id={id}
           placeholder={placeholder}
           showTrigger
+          showClear={!!value}
           disabled={disabled || loading}
           aria-invalid={!!error}
         />
         <ComboboxContent>
           <ComboboxList>
+            {options.map((o) => (
+              <ComboboxItem key={o.value} value={o.value}>
+                {o.label}
+              </ComboboxItem>
+            ))}
             <ComboboxEmpty>No matches</ComboboxEmpty>
-            <ComboboxCollection>
-              {(item: string) => (
-                <ComboboxItem key={item} value={item}>
-                  {labelFor(item)}
-                </ComboboxItem>
-              )}
-            </ComboboxCollection>
           </ComboboxList>
         </ComboboxContent>
       </Combobox>
