@@ -3,6 +3,8 @@ import { baseApi } from "../baseApi";
 import type {
   ApprovalDelegation,
   ApprovalDelegationsResponse,
+  ApproverPreviewPayload,
+  ApproverPreviewResult,
   DelegationWritePayload,
   PendingApprovalsResponse,
   PublishTemplatePayload,
@@ -102,6 +104,21 @@ export const workflowApi = baseApi.injectEndpoints({
       providesTags: ["WorkflowSubmissions"],
     }),
 
+    // ── Notifications bell (background polls) ────────────────────────────────
+    // Same data as the foreground endpoints, but marked `silent` so a transient
+    // 5xx on the focus-resume poll never shows a global error toast. They share
+    // the same tags, so foreground mutations still invalidate the bell.
+    getPendingApprovalsBell: builder.query<PendingApprovalsResponse, void>({
+      query: () => ({ url: `/workflow/dashboard/pending/`, method: "GET" }),
+      extraOptions: { silent: true },
+      providesTags: ["WorkflowPending"],
+    }),
+    getReturnedSubmissionsBell: builder.query<WorkflowInstance[], void>({
+      query: () => ({ url: `/workflow/dashboard/submitted/?status=RETURNED`, method: "GET" }),
+      extraOptions: { silent: true },
+      providesTags: ["WorkflowSubmissions"],
+    }),
+
     getTeamLoad: builder.query<TeamLoadRow[], void>({
       query: () => ({ url: `/workflow/dashboard/team-load/`, method: "GET" }),
       providesTags: ["WorkflowTeamLoad"],
@@ -132,6 +149,12 @@ export const workflowApi = baseApi.injectEndpoints({
       query: (id) => ({ url: `/workflow/delegations/${id}/revoke/`, method: "POST" }),
       invalidatesTags: ["WorkflowDelegations"],
     }),
+
+    // Resolve "who would approve?" for an ad-hoc stage config + sample requester,
+    // without persisting. Backed by the organogram/RBAC resolver server-side.
+    previewApprovers: builder.mutation<ApproverPreviewResult, ApproverPreviewPayload>({
+      query: (body) => ({ url: `/workflow/templates/preview-approvers/`, method: "POST", body }),
+    }),
   }),
 });
 
@@ -148,10 +171,13 @@ export const {
   useReverseWorkflowActionMutation,
   useGetPendingApprovalsQuery,
   useGetMySubmissionsQuery,
+  useGetPendingApprovalsBellQuery,
+  useGetReturnedSubmissionsBellQuery,
   useGetTeamLoadQuery,
   useGetDelegationsQuery,
   useCreateDelegationMutation,
   useUpdateDelegationMutation,
   useDeleteDelegationMutation,
   useRevokeDelegationMutation,
+  usePreviewApproversMutation,
 } = workflowApi;

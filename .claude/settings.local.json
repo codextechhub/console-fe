@@ -30,7 +30,9 @@
       "Bash(screencapture -x /tmp/prototype_audit_security.png)",
       "Read(//Users/mac/docs/dev-projects/github/**)",
       "Read(//Users/mac/**)",
-      "Bash(bash deploy-staging.sh)"
+      "Bash(bash deploy-staging.sh)",
+      "Bash(sed -n '74,127p' src/redux/services/dashboard/workflowTypes.ts)",
+      "Bash(sed -n '12,28p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_workflow/serializers.py)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"

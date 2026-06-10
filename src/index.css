@@ -190,3 +190,10 @@
   0%, 100% { opacity: 0.1; }
   50% { opacity: 1; }
 }
+
+/* Organogram — highlight pulse for jump-to-node */
+@keyframes pulseHL {
+  0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.45); }
+  70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}

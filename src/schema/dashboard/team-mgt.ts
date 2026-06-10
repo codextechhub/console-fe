@@ -14,6 +14,15 @@ export const createTeamMemberSchema = Yup.object({
       /^\+[1-9]\d{1,14}$/,
       "Phone number must be in international format (e.g. +2347033327493)"
     ),
+  // Seat is required — its title becomes the job title. Other HR fields optional.
+  position: Yup.string().required("Position is required"),
+  job_title: Yup.string().max(120, "Job title is too long"),
+  employee_id: Yup.string().max(32, "Employee ID is too long"),
+  employment_type: Yup.string().oneOf(
+    ["", "FULL_TIME", "PART_TIME", "CONTRACT", "INTERN"],
+    "Invalid employment type",
+  ),
+  date_joined: Yup.string(),
 });
 
 export const editTeamMemberSchema = Yup.object({

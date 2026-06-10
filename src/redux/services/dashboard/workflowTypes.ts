@@ -77,8 +77,12 @@ export interface WorkflowStage {
   label: string;
   kind: StageKind;
   order: number;
+  approver_source: ApproverSource;
   approver_permission_key: string;
   approver_scope: ApproverScope;
+  organogram_target: OrganogramTarget | "";
+  organogram_levels: number;
+  organogram_position_code: string | null;
   advance_rule: StageAdvanceRule;
   quorum_count: number;
   on_rejection: StageOnRejection;
@@ -115,8 +119,12 @@ export interface WorkflowStagePayload {
   label: string;
   kind: StageKind;
   order: number;
+  approver_source?: ApproverSource;
   approver_permission_key?: string;
   approver_scope?: ApproverScope;
+  organogram_target?: OrganogramTarget | "";
+  organogram_levels?: number;
+  organogram_position_code?: string;
   advance_rule?: StageAdvanceRule;
   quorum_count?: number;
   on_rejection?: StageOnRejection;
@@ -284,3 +292,36 @@ export interface DelegationWritePayload {
 export type WorkflowTemplatesResponse = PaginatedResponse<WorkflowTemplate>;
 export type WorkflowInstancesResponse = PaginatedResponse<WorkflowInstance>;
 export type ApprovalDelegationsResponse = PaginatedResponse<ApprovalDelegation>;
+
+// ── Approver preview (organogram/RBAC resolver) ──────────────────────────────
+
+export type ApproverSource = "RBAC_PERMISSION" | "ORGANOGRAM";
+export type OrganogramTarget =
+  | "DIRECT_MANAGER"
+  | "N_LEVELS_UP"
+  | "DEPARTMENT_HEAD"
+  | "SPECIFIC_POSITION";
+
+export interface ApproverPreviewPayload {
+  requester: string;
+  approver_source: ApproverSource;
+  organogram_target?: OrganogramTarget | "";
+  organogram_levels?: number;
+  organogram_position_code?: string;
+  approver_permission_key?: string;
+  approver_scope?: ApproverScope;
+  document_type?: string;
+}
+
+export interface ApproverPreviewUser {
+  id: string;
+  full_name: string;
+  email: string;
+}
+
+export interface ApproverPreviewResult {
+  approver_source: ApproverSource;
+  organogram_target: OrganogramTarget | null;
+  count: number;
+  approvers: { user: ApproverPreviewUser; on_behalf_of: ApproverPreviewUser | null }[];
+}

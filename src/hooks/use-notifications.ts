@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { routesPath } from "@/routes/routesPath";
 import {
-  useGetPendingApprovalsQuery,
-  useGetMySubmissionsQuery,
+  useGetPendingApprovalsBellQuery,
+  useGetReturnedSubmissionsBellQuery,
 } from "@/redux/services/dashboard/workflowApi";
 import { humanizeDocumentType } from "@/pages/protected/workflow/components/workflow-format";
 
@@ -52,11 +52,8 @@ const newest = (times: (string | null)[]): string | null =>
 const POLL = { pollingInterval: 60_000, skipPollingIfUnfocused: true } as const;
 
 export function useNotifications() {
-  const { data: pendingData, isLoading: pendingLoading } = useGetPendingApprovalsQuery(undefined, POLL);
-  const { data: returnedData, isLoading: returnedLoading } = useGetMySubmissionsQuery(
-    { status: "RETURNED" },
-    POLL,
-  );
+  const { data: pendingData, isLoading: pendingLoading } = useGetPendingApprovalsBellQuery(undefined, POLL);
+  const { data: returnedData, isLoading: returnedLoading } = useGetReturnedSubmissionsBellQuery(undefined, POLL);
 
   const { items, groups } = useMemo(() => {
     const allItems: AppNotification[] = [];

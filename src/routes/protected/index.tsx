@@ -7,6 +7,7 @@ import { dataImportRoutes } from "./data-import-routes";
 import { auditRoutes } from "./audit-routes";
 import { meSecurityRoutes } from "./me-security-routes";
 import { workflowRoutes } from "./workflow-routes";
+import { organogramRoutes } from "./organogram-routes";
 import Notifications from "@/pages/protected/notifications";
 import { routesPath } from "@/routes/routesPath";
 
@@ -19,5 +20,6 @@ export const protectedRoutes = [
   ...dataImportRoutes,
   ...auditRoutes,
   ...workflowRoutes,
+  ...organogramRoutes,
   ...meSecurityRoutes,
 ] as RouteObject[];

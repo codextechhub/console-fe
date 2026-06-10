@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ChevronDown, ChevronUp, GripVertical, Loader2, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, CornerDownRight, Eye, GripVertical, KeyRound, Loader2, Network, Plus, TriangleAlert, Trash2 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -12,16 +12,32 @@ import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routesPath";
 import {
   useGetWorkflowTemplateQuery,
+  usePreviewApproversMutation,
   usePublishWorkflowTemplateMutation,
 } from "@/redux/services/dashboard/workflowApi";
+import { useGetPositionsQuery } from "@/redux/services/dashboard/organogramApi";
+import { useGetTeamMembersQuery } from "@/redux/services/dashboard/teamMgtApi";
 import type {
   ApproverScope,
+  ApproverSource,
+  OrganogramTarget,
   PublishTemplatePayload,
   StageAdvanceRule,
   StageKind,
   StageOnRejection,
   WorkflowStagePayload,
 } from "@/redux/services/dashboard/workflowTypes";
+
+const SOURCE_OPTIONS = [
+  { value: "RBAC_PERMISSION", label: "RBAC permission holders" },
+  { value: "ORGANOGRAM", label: "Organogram (relative to requester)" },
+];
+const TARGET_OPTIONS = [
+  { value: "DIRECT_MANAGER", label: "Direct manager" },
+  { value: "N_LEVELS_UP", label: "N levels up the chain" },
+  { value: "DEPARTMENT_HEAD", label: "Department head" },
+  { value: "SPECIFIC_POSITION", label: "Specific position" },
+];
 
 const KIND_OPTIONS = [
   { value: "APPROVAL", label: "Approval (waits for votes)" },
@@ -57,8 +73,12 @@ interface StageForm {
   code: string;
   label: string;
   kind: StageKind;
+  approver_source: ApproverSource;
   approver_permission_key: string;
   approver_scope: ApproverScope;
+  organogram_target: OrganogramTarget | "";
+  organogram_levels: string;
+  organogram_position_code: string;
   advance_rule: StageAdvanceRule;
   quorum_count: string;
   on_rejection: StageOnRejection;
@@ -70,8 +90,12 @@ const emptyStage = (): StageForm => ({
   code: "",
   label: "",
   kind: "APPROVAL",
+  approver_source: "RBAC_PERMISSION",
   approver_permission_key: "",
   approver_scope: "SCHOOL",
+  organogram_target: "",
+  organogram_levels: "1",
+  organogram_position_code: "",
   advance_rule: "ANY",
   quorum_count: "0",
   on_rejection: "TERMINAL",
@@ -88,6 +112,20 @@ export default function TemplateBuilder() {
     skip: !isEdit,
   });
   const [publish, { isLoading: isPublishing }] = usePublishWorkflowTemplateMutation();
+
+  // Organogram approver-source support: positions for SPECIFIC_POSITION, and a
+  // sample requester so the "who would approve?" preview can resolve live.
+  const { data: positionsRes } = useGetPositionsQuery({ page_size: 100 });
+  const { data: usersRes } = useGetTeamMembersQuery({ page_size: 100, user_type: "CX_STAFF" });
+  const positionOptions = useMemo(
+    () => (Array.isArray(positionsRes?.data) ? positionsRes!.data : []).map((p) => ({ value: p.code, label: `${p.code} · ${p.title}` })),
+    [positionsRes],
+  );
+  const requesterOptions = useMemo(
+    () => (Array.isArray(usersRes?.data) ? usersRes!.data : []).map((u: { id: string; full_name: string; email: string }) => ({ value: u.id, label: `${u.full_name} · ${u.email}` })),
+    [usersRes],
+  );
+  const [sampleRequester, setSampleRequester] = useState("");
 
   const [name, setName] = useState("");
   const [documentType, setDocumentType] = useState("");
@@ -113,8 +151,12 @@ export default function TemplateBuilder() {
           code: s.code,
           label: s.label,
           kind: s.kind,
+          approver_source: s.approver_source ?? "RBAC_PERMISSION",
           approver_permission_key: s.approver_permission_key,
           approver_scope: s.approver_scope,
+          organogram_target: s.organogram_target ?? "",
+          organogram_levels: String(s.organogram_levels ?? 1),
+          organogram_position_code: s.organogram_position_code ?? "",
           advance_rule: s.advance_rule,
           quorum_count: String(s.quorum_count ?? 0),
           on_rejection: s.on_rejection,
@@ -182,13 +224,32 @@ export default function TemplateBuilder() {
           return;
         }
       }
+      const isOrg = s.kind === "APPROVAL" && s.approver_source === "ORGANOGRAM";
+      if (isOrg && !s.organogram_target) {
+        toast.error(`Stage ${i + 1}: pick an organogram target.`);
+        return;
+      }
+      if (isOrg && s.organogram_target === "SPECIFIC_POSITION" && !s.organogram_position_code) {
+        toast.error(`Stage ${i + 1}: pick a specific position.`);
+        return;
+      }
+      if (s.kind === "APPROVAL" && s.approver_source === "RBAC_PERMISSION" && !s.approver_permission_key.trim()) {
+        toast.error(`Stage ${i + 1}: an approver permission key is required for the RBAC source.`);
+        return;
+      }
       stagePayloads.push({
         code: s.code.trim(),
         label: s.label.trim(),
         kind: s.kind,
         order: i + 1,
+        approver_source: s.approver_source,
+        // RBAC fields (sent regardless; ignored server-side when source is ORGANOGRAM).
         approver_permission_key: s.approver_permission_key.trim(),
         approver_scope: s.approver_scope,
+        // Organogram fields (meaningful only when source is ORGANOGRAM).
+        organogram_target: isOrg ? s.organogram_target : "",
+        organogram_levels: Number(s.organogram_levels) || 1,
+        organogram_position_code: isOrg && s.organogram_target === "SPECIFIC_POSITION" ? s.organogram_position_code : "",
         advance_rule: s.advance_rule,
         quorum_count: Number(s.quorum_count) || 0,
         on_rejection: s.on_rejection,
@@ -297,6 +358,19 @@ export default function TemplateBuilder() {
           }
         >
           <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-2 rounded-md border border-white-02 bg-pry-01/30 px-3 py-2">
+              <span className="text-xs font-medium text-gray-01">Sample requester</span>
+              <div className="min-w-60 flex-1 sm:max-w-xs">
+                <SearchSelect
+                  id="sample-requester"
+                  options={requesterOptions}
+                  value={sampleRequester}
+                  onChange={(e) => setSampleRequester(e.target.value)}
+                  placeholder="Pick a CX staff member to preview approvers"
+                />
+              </div>
+              <span className="text-[11px] text-gray-01">Organogram stages resolve relative to this person ↓</span>
+            </div>
             {stages.map((s, i) => (
               <div key={i} className="rounded-md border border-white-02 p-4">
                 <div className="mb-3 flex items-center gap-2">
@@ -360,20 +434,66 @@ export default function TemplateBuilder() {
                   {s.kind === "APPROVAL" && (
                     <>
                       <SearchSelect
-                        id={`stage-scope-${i}`}
-                        label="Approver scope"
-                        options={SCOPE_OPTIONS}
-                        value={s.approver_scope}
-                        onChange={(e) => updateStage(i, { approver_scope: e.target.value as ApproverScope })}
-                      />
-                      <CustomInput
-                        id={`stage-perm-${i}`}
-                        label="Approver permission key"
-                        placeholder="e.g. leave.approve.line_manager"
+                        id={`stage-source-${i}`}
+                        label="Approver source"
                         containerClass="sm:col-span-2"
-                        value={s.approver_permission_key}
-                        onChange={(e) => updateStage(i, { approver_permission_key: e.target.value })}
+                        clearable={false}
+                        options={SOURCE_OPTIONS}
+                        value={s.approver_source}
+                        onChange={(e) => updateStage(i, { approver_source: e.target.value as ApproverSource })}
                       />
+
+                      {s.approver_source === "RBAC_PERMISSION" ? (
+                        <>
+                          <SearchSelect
+                            id={`stage-scope-${i}`}
+                            label="Approver scope"
+                            options={SCOPE_OPTIONS}
+                            value={s.approver_scope}
+                            onChange={(e) => updateStage(i, { approver_scope: e.target.value as ApproverScope })}
+                          />
+                          <CustomInput
+                            id={`stage-perm-${i}`}
+                            label="Approver permission key"
+                            placeholder="e.g. leave.approve.line_manager"
+                            containerClass="sm:col-span-2"
+                            value={s.approver_permission_key}
+                            onChange={(e) => updateStage(i, { approver_permission_key: e.target.value })}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <SearchSelect
+                            id={`stage-target-${i}`}
+                            label="Organogram target"
+                            options={TARGET_OPTIONS}
+                            value={s.organogram_target}
+                            onChange={(e) => updateStage(i, { organogram_target: e.target.value as OrganogramTarget })}
+                          />
+                          {s.organogram_target === "N_LEVELS_UP" && (
+                            <CustomInput
+                              id={`stage-levels-${i}`}
+                              label="Levels up"
+                              type="number"
+                              min={1}
+                              value={s.organogram_levels}
+                              onChange={(e) => updateStage(i, { organogram_levels: e.target.value })}
+                            />
+                          )}
+                          {s.organogram_target === "SPECIFIC_POSITION" && (
+                            <SearchSelect
+                              id={`stage-pos-${i}`}
+                              label="Position"
+                              containerClass="sm:col-span-2"
+                              options={positionOptions}
+                              value={s.organogram_position_code}
+                              onChange={(e) => updateStage(i, { organogram_position_code: e.target.value })}
+                              placeholder="Select a seat"
+                            />
+                          )}
+                        </>
+                      )}
+
                       <SearchSelect
                         id={`stage-rule-${i}`}
                         label="Advance rule"
@@ -427,6 +547,8 @@ export default function TemplateBuilder() {
                     onChange={(e) => updateStage(i, { inclusion_condition_text: e.target.value })}
                   />
                 </div>
+
+                {s.kind === "APPROVAL" && <ApproverPreview stage={s} requester={sampleRequester} />}
               </div>
             ))}
           </div>
@@ -492,6 +614,81 @@ function Section({
         {action}
       </div>
       {children}
+    </div>
+  );
+}
+
+// Live "who would approve?" preview for a single stage, resolved against the
+// sample requester via the backend resolver (organogram climb modes + RBAC).
+function ApproverPreview({ stage, requester }: { stage: StageForm; requester: string }) {
+  const [preview, { data, isLoading, error }] = usePreviewApproversMutation();
+
+  const ready =
+    !!requester &&
+    (stage.approver_source === "RBAC_PERMISSION"
+      ? !!stage.approver_permission_key.trim()
+      : !!stage.organogram_target &&
+        (stage.organogram_target !== "SPECIFIC_POSITION" || !!stage.organogram_position_code));
+
+  const run = () => {
+    if (!ready) return;
+    preview({
+      requester,
+      approver_source: stage.approver_source,
+      approver_permission_key: stage.approver_permission_key.trim(),
+      approver_scope: stage.approver_scope,
+      organogram_target: stage.approver_source === "ORGANOGRAM" ? stage.organogram_target : "",
+      organogram_levels: Number(stage.organogram_levels) || 1,
+      organogram_position_code: stage.organogram_position_code,
+    });
+  };
+
+  const isOrg = stage.approver_source === "ORGANOGRAM";
+  const empty = data && data.count === 0;
+
+  return (
+    <div className={cn("mt-3 rounded-md border px-3 py-2.5", empty ? "border-yellow-01/40 bg-yellow-01/5" : "border-white-02 bg-gray-06/30")}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-01">
+          {isOrg ? <Network className="size-3 text-teal-600" /> : <KeyRound className="size-3 text-violet-600" />}
+          Who would approve?
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          type="button"
+          disabled={!ready || isLoading}
+          onClick={run}
+          title={!requester ? "Pick a sample requester above" : !ready ? "Complete the approver config" : "Resolve approvers"}
+        >
+          <Eye className="size-3.5" /> {isLoading ? "Resolving…" : "Preview"}
+        </Button>
+      </div>
+
+      {!requester && <p className="mt-1.5 text-[11px] text-gray-01">Pick a sample requester above to preview.</p>}
+
+      {error && <p className="mt-1.5 text-[11px] text-destructive">Could not resolve approvers.</p>}
+
+      {data && (
+        empty ? (
+          <div className="mt-2 inline-flex items-center gap-1.5 text-[11.5px] font-medium text-yellow-01">
+            <TriangleAlert className="size-3.5" /> No eligible approvers{stage.skip_if_no_approvers ? " — stage auto-skips" : " — stage would stall"}.
+          </div>
+        ) : (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {data.approvers.map((a) => (
+              <span key={a.user.id} className="inline-flex items-center gap-1.5 rounded-full border border-white-02 bg-white px-2 py-0.5 text-[12px] text-black-01">
+                {a.user.full_name}
+                {a.on_behalf_of && (
+                  <span className="inline-flex items-center gap-0.5 text-[10px] text-gray-01">
+                    <CornerDownRight className="size-2.5" /> for {a.on_behalf_of.full_name}
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
+        )
+      )}
     </div>
   );
 }

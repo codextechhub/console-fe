@@ -114,6 +114,15 @@ export const baseQueryInterceptor: BaseQueryFn<
   const result = await baseQuery(args, api, extraOptions);
   if (!result?.error) return result;
 
+  // Background requests (e.g. the notifications bell poll, which resumes the
+  // instant the tab regains focus) pass `{ silent: true }` so a transient 5xx
+  // never interrupts the user with a global error toast — they just retry on the
+  // next cycle. The refresh/retry and force-logout machinery still runs.
+  const silent = !!(extraOptions as { silent?: boolean } | undefined)?.silent;
+  const notify = (message: string) => {
+    if (!silent) toast.error(message);
+  };
+
   // FetchBaseQueryError uses a string status for transport-level failures
   // and a number for HTTP responses, so narrow access via `any`.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,7 +133,7 @@ export const baseQueryInterceptor: BaseQueryFn<
       extractFirstDetailError(res?.data?.error?.detail) ||
       extractFirstDetailError(res?.data?.error) ||
       res?.data?.message;
-    if (message) toast.error(message);
+    if (message) notify(message);
     return result;
   }
 
@@ -138,7 +147,7 @@ export const baseQueryInterceptor: BaseQueryFn<
         extractFirstDetailError(res?.data?.error?.detail) ||
         res?.data?.message ||
         "Invalid credentials. Please try again.";
-      toast.error(msg);
+      notify(msg);
       return result;
     }
 
@@ -177,34 +186,34 @@ export const baseQueryInterceptor: BaseQueryFn<
         extractFirstDetailError(res?.data?.error?.detail) ||
         res?.data?.message ||
         "You don't have permission to perform this action.";
-      toast.error(msg);
+      notify(msg);
     }
     return result;
   }
 
   if (res?.status === 404) {
-    if (!isAuthRoute(args)) toast.error(res?.data?.message || "Resource not found.");
+    if (!isAuthRoute(args)) notify(res?.data?.message || "Resource not found.");
     return result;
   }
 
   if (res?.status === 405) {
-    toast.error(res?.data?.detail || "Something went wrong. Please try again.");
+    notify(res?.data?.detail || "Something went wrong. Please try again.");
     return result;
   }
 
   if (res?.status === 413) {
-    toast.error("Content Too Large");
+    notify("Content Too Large");
     return result;
   }
 
   if (typeof res?.status === "number" && res.status >= 500) {
-    toast.error("A server error occurred. Please try again later.");
+    notify("A server error occurred. Please try again later.");
     return result;
   }
 
-  if (res?.status === "TIMEOUT_ERROR") toast.error("The request timed out. Please try again.");
-  else if (res?.status === "FETCH_ERROR") toast.error("Could not reach the server. Please try again.");
-  else if (res?.status === "PARSING_ERROR") toast.error("Unexpected response from the server. Please try again.");
+  if (res?.status === "TIMEOUT_ERROR") notify("The request timed out. Please try again.");
+  else if (res?.status === "FETCH_ERROR") notify("Could not reach the server. Please try again.");
+  else if (res?.status === "PARSING_ERROR") notify("Unexpected response from the server. Please try again.");
 
   return result;
 };
@@ -248,5 +257,11 @@ export const baseApi = createApi({
     "WorkflowPending",
     "WorkflowSubmissions",
     "WorkflowTeamLoad",
+    "OrgNodes",
+    "OrgPositions",
+    "OrgPositionTree",
+    "OrgAssignments",
+    "OrgMatrixReports",
+    "StaffProfiles",
   ],
 });

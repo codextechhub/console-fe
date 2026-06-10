@@ -78,6 +78,19 @@ const REGISTRY: Record<string, string> = {
   // ── platform / dashboard  (MM=10, RR=07) ──────────────────────────────────
   "100701": "platform.dashboard.view",
 
+  // ── platform / organogram  (MM=10, RR=09) ─────────────────────────────────
+  "100901": "platform.organogram.view",
+  "100908": "platform.organogram.manage",
+
+  // ── platform / staff profile  (MM=10, RR=10) ──────────────────────────────
+  "101001": "platform.staff_profile.view",
+  "101002": "platform.staff_profile.create",
+  "101003": "platform.staff_profile.update",
+
+  // ── platform / staff payroll (FLS-gated)  (MM=10, RR=11) ───────────────────
+  "101101": "platform.staff_payroll.view",
+  "101108": "platform.staff_payroll.manage",
+
   // ── imports / templates  (MM=50, RR=01) ──────────────────────────────────
   "500101": "import.templates.view",
   "500102": "import.templates.create",
@@ -209,6 +222,19 @@ export const P = {
 
   // ── Dashboard ──────────────────────────────────────────────────────────────
   VIEW_DASHBOARD:       "100701",  // view admin dashboard metrics and statistics
+
+  // ── Organogram ─────────────────────────────────────────────────────────────
+  VIEW_ORGANOGRAM:      "100901",  // view the org chart: departments, positions, assignments
+  MANAGE_ORGANOGRAM:    "100908",  // create/edit departments, positions, assignments, matrix lines
+
+  // ── Staff profiles ─────────────────────────────────────────────────────────
+  VIEW_STAFF_PROFILE:   "101001",  // view CX-staff HR/personal profiles
+  CREATE_STAFF_PROFILE: "101002",  // create a staff profile for a CX user
+  MODIFY_STAFF_PROFILE: "101003",  // edit a staff profile
+
+  // ── Staff payroll (sensitive, field-level secured) ─────────────────────────
+  VIEW_STAFF_PAYROLL:   "101101",  // read bank/account details on staff profiles
+  MANAGE_STAFF_PAYROLL: "101108",  // edit bank/account details on staff profiles
 
   // ── Finance (uncomment when module ships) ──────────────────────────────────
   // VIEW_INVOICES:     "200101",

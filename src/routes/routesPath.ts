@@ -142,5 +142,18 @@ export const routesPath = {
       ACTIVITY: "/me/security/activity",
       PRIVACY: "/me/security/privacy",
     },
+    ME_PROFILE: {
+      INDEX: "/me/profile",
+    },
+    ORGANOGRAM: {
+      INDEX: "/organogram",
+      MANAGE: "/organogram/manage",
+      STAFF: "/organogram/staff",
+      STAFF_CREATE: "/organogram/staff/create",
+      STAFF_VIEW_PATH: "/organogram/staff/:id/view",
+      STAFF_VIEW: (id: string | number) => `/organogram/staff/${id}/view`,
+      STAFF_EDIT_PATH: "/organogram/staff/:id/edit",
+      STAFF_EDIT: (id: string | number) => `/organogram/staff/${id}/edit`,
+    },
   },
 };

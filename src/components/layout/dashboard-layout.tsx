@@ -1,8 +1,16 @@
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AppSidebar } from "../app-sidebar";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAppSelector } from "@/redux/store";
 import { returnInitial } from "@/utils/helpers";
@@ -11,6 +19,10 @@ import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { SessionTimeoutModal } from "@/components/session-timeout-modal";
 import { TopProgressBar } from "@/components/custom/top-progress-bar";
 import { NotificationsBell } from "@/components/custom/notifications-bell";
+import { useLogout } from "@/hooks/use-logout";
+import useToggleModal from "@/hooks/use-toggle";
+import PromptModal from "@/components/modal/prompt-modal";
+import { routesPath } from "@/routes/routesPath";
 
 function DashboardHeader({
   hasBack,
@@ -24,6 +36,8 @@ function DashboardHeader({
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
   const { state, toggleSidebar } = useSidebar();
+  const { handleLogout, isLoggingOut } = useLogout();
+  const { isOpen: openLogout, toggleClick: toggleLogout } = useToggleModal(false);
 
   return (
     <header className="flex justify-between h-15 px-3 lg:px-10 shrink-0 sticky top-0 z-10 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-white border border-l-0 border-white-02 relative">
@@ -47,7 +61,8 @@ function DashboardHeader({
           <>
             <figure
               onClick={() => {
-                onBack ? onBack() : navigate(-1);
+                if (onBack) onBack();
+                else navigate(-1);
               }}
               className="uppercase font-light text-gray-01 text-sm inline-flex items-center cursor-pointer"
             >
@@ -83,19 +98,65 @@ function DashboardHeader({
           className="hidden sm:block data-[orientation=vertical]:h-7"
         />
 
-        <figure className="hidden sm:inline-flex items-center gap-x-3 pl-2.5 py-1">
-          <Avatar>
-            <AvatarImage src={"/image/avatar2.png"} />
-            <AvatarFallback>
-              {returnInitial(user?.full_name ?? "O")}
-            </AvatarFallback>
-          </Avatar>
-          <div className="hidden md:grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium">{user?.full_name || ""}</span>
-            <span className="text-muted-foreground truncate text-xs">{user?.email || ""}</span>
-          </div>
-        </figure>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="hidden sm:inline-flex items-center gap-x-3 pl-2.5 py-1 rounded-lg hover:bg-white-02/60 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            >
+              <Avatar>
+                <AvatarImage src={"/image/avatar2.png"} />
+                <AvatarFallback>
+                  {returnInitial(user?.full_name ?? "O")}
+                </AvatarFallback>
+              </Avatar>
+              <div className="hidden md:grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{user?.full_name || ""}</span>
+                <span className="text-muted-foreground truncate text-xs">{user?.email || ""}</span>
+              </div>
+              <ChevronDown className="hidden md:block size-4 text-gray-01" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel className="flex flex-col">
+              <span className="truncate font-medium text-black-01">{user?.full_name || ""}</span>
+              <span className="truncate text-xs font-normal text-muted-foreground">{user?.email || ""}</span>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate(routesPath.PROTECTED.ME_PROFILE.INDEX)}>
+              <UserRound className="size-4" />
+              My Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate(routesPath.PROTECTED.ME_SECURITY.OVERVIEW)}>
+              <ShieldCheck className="size-4" />
+              My Security
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={toggleLogout}
+            >
+              <LogOut className="size-4" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      <PromptModal
+        isOpen={openLogout}
+        onClose={toggleLogout}
+        onConfirm={handleLogout}
+        title="Log Out?"
+        description="Are you sure you want to log out of your account?"
+        containerClass="min-h-[320px] lg:w-[390px]"
+        srcClass="size-25"
+        src="/image/caution.png"
+        onConfirmText="Log Out"
+        canCancel
+        loading={isLoggingOut}
+        onConfirmClass="bg-error-01 text-white shadow-xs hover:bg-error-01/90 focus-visible:ring-error-01/20"
+      />
     </header>
   );
 }

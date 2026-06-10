@@ -16,6 +16,9 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Home | — | _(none — always visible)_ | |
 | School Management | — | `P.BROWSE_SCHOOLS` | |
 | Team Management | — | `P.ACCESS_TEAM_PANEL` | |
+| Organogram | Org Chart | `P.VIEW_ORGANOGRAM` | parent group gated by this key |
+| Organogram | Staff Directory | `P.VIEW_ORGANOGRAM` | inherits parent; list endpoint also needs `platform.staff_profile.view` server-side |
+| Organogram | Manage | `P.MANAGE_ORGANOGRAM` | own check via `hasPermission`; sub-item hidden without manage; backend enforces writes |
 | Roles | Platform Roles | `P.VIEW_ROLES` | |
 | Roles | User Assignments | `P.VIEW_ROLES` | inherits parent |
 | Roles | Change Requests | `P.VIEW_ROLES` | inherits parent |
@@ -36,6 +39,20 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Workflow | Templates | `P.VIEW_WORKFLOW_TEMPLATES` | own check via `hasPermission` |
 
 > The Workflow parent group is always visible (permission `null`) because Approvals/Submissions/Delegations are open to every authenticated user. Admin-only children (All Instances, Team Load, Templates) are spread in by their own permission check.
+
+> **My Security** moved out of the sidebar into the header avatar menu (see §1a). The sidebar footer **Logout** also moved there.
+
+---
+
+## 1a. Header Avatar Menu (`src/components/layout/dashboard-layout.tsx`)
+
+The top-right avatar opens a dropdown. All items are visible to every authenticated user (no permission gating — they are self-service).
+
+| Item | Destination | Permission Constant |
+|---|---|---|
+| My Profile | `/me/profile` | _(none — own profile; backend `…/me/`)_ |
+| My Security | `/me/security` | _(none — own security)_ |
+| Logout | — | _(none)_ |
 
 ---
 
@@ -225,6 +242,65 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 
 ---
 
+### Organogram — Org Chart (`src/pages/protected/organogram/index.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Whole page (visibility via sidebar) | sidebar gate | `P.VIEW_ORGANOGRAM` |
+| Detail drawer → person "Edit" link | `hasPermission()` | `P.MODIFY_STAFF_PROFILE` |
+
+> Reads (tree, positions, departments, assignments, matrix, staff list) require `platform.organogram.view` / `platform.staff_profile.view` server-side. Payroll fields in the drawer are FLS-gated: the backend omits them unless the caller holds `platform.staff_payroll.view` or is the record owner — the UI shows a "restricted" notice on absence, never a masked value.
+
+---
+
+### Organogram — Manage (`src/pages/protected/organogram/manage/`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Whole section (visibility via sidebar) | `hasPermission()` | `P.MANAGE_ORGANOGRAM` |
+| New/Edit/Delete Department · Position · Matrix | UI (no per-button gate) | `P.MANAGE_ORGANOGRAM` |
+
+> Tabs: Departments, Positions, Matrix — full CRUD. Reaching the page is gated by the sidebar `hasPermission(P.MANAGE_ORGANOGRAM)`; the backend (`platform.organogram.manage`) is the authoritative gate on every write. Assignments are managed via the staff profile (seat changes route through the assignments service to keep effective-dated history), not here.
+
+---
+
+### Organogram — Staff Directory (`src/pages/protected/organogram/staff/index.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| "New Profile" button | `<PermissionGate>` | `P.CREATE_STAFF_PROFILE` |
+
+---
+
+### Organogram — Staff detail (`src/pages/protected/organogram/staff/staff-detail.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| "Edit" button | `<PermissionGate>` | `P.MODIFY_STAFF_PROFILE` |
+| Payroll card | field absence (server FLS) | `platform.staff_payroll.view` (or owner) |
+
+---
+
+### Organogram — Staff create/edit (`src/pages/protected/organogram/staff/staff-form.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Payroll fields (editable) | `hasPermission()` | `P.MANAGE_STAFF_PAYROLL` |
+
+> Reaching create/edit is gated by the sidebar/detail buttons (`P.CREATE_STAFF_PROFILE` / `P.MODIFY_STAFF_PROFILE`); the backend is the authoritative gate. Payroll inputs render only with `P.MANAGE_STAFF_PAYROLL`; the server rejects payroll writes otherwise (owner excepted on `…/me/`).
+
+---
+
+### My Profile (`src/pages/protected/me-profile/index.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Whole page + payroll editing | _(none — owner self-service via `…/me/`)_ | — |
+
+> Owner can always read & write their own payroll (backend FLS owner exception), so payroll is editable here without `P.MANAGE_STAFF_PAYROLL`.
+
+---
+
 ## 3. Route-level Guards
 
 No route-level guards. The previous `RequirePermission` middleware was deleted as dead code. All page-level protection is handled inside the page components themselves via `<PermissionGate>` and `hasPermission()`. The backend is the authoritative gate — anyone who reaches a page they shouldn't see still gets a 403 from the API.
@@ -271,6 +347,11 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.VIEW_WORKFLOW_INSTANCES` | `workflow.instance.view` |
 | `P.CANCEL_WORKFLOW` | `workflow.instance.cancel` |
 | `P.REVERSE_WORKFLOW_ACTION` | `workflow.action.reverse` |
+| `P.VIEW_ORGANOGRAM` | `platform.organogram.view` |
+| `P.CREATE_STAFF_PROFILE` | `platform.staff_profile.create` |
+| `P.MODIFY_STAFF_PROFILE` | `platform.staff_profile.update` |
+| `P.MANAGE_STAFF_PAYROLL` | `platform.staff_payroll.manage` |
+| `P.MANAGE_ORGANOGRAM` | `platform.organogram.manage` |
 
 > `P.SUBMIT_WORKFLOW` (`workflow.instance.submit`) is registered but not wired — submission happens inside feature modules, not the console (monitor-only).
 
@@ -279,6 +360,8 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | Constant | Backend Key | Likely Home |
 |---|---|---|
 | `P.DISMISS_TEAM_MEMBER` | `platform.team.delete` | No UI surface — DELETE on the backend is a soft-deactivate equivalent to Suspend, which already has its own gated action. Consider deprecating this constant or repurposing if hard-delete is added later. |
+| `P.VIEW_STAFF_PROFILE` | `platform.staff_profile.view` | Gates staff list/detail server-side; UI surfaces under the `P.VIEW_ORGANOGRAM` sidebar group. |
+| `P.VIEW_STAFF_PAYROLL` | `platform.staff_payroll.view` | Read-side FLS — enforced server-side (fields stripped); no explicit UI check, the drawer/detail react to field absence. |
 | `P.DECOMMISSION_SCHOOL` | `platform.schools.delete` | School table row → Delete action |
 | `P.MANAGE_SCHOOL` | `platform.schools.manage` | School settings / config reset |
 | `P.BROWSE_BRANCHES` | `platform.branches.view` | Branches sidebar item / page |
