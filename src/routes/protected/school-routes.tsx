@@ -1,12 +1,16 @@
+import { lazy } from "react";
 import { type RouteObject } from "react-router";
 import { routesPath } from "../routesPath";
-import SchoolManagement from "@/pages/protected/school-mgt";
-import CreateSchool from "@/pages/protected/school-mgt/create-school";
-import ViewSchool from "@/pages/protected/school-mgt/view-school";
-import EditSchool from "@/pages/protected/school-mgt/edit-school";
-import ViewBranch from "@/pages/protected/school-mgt/view-branch";
-import EditBranch from "@/pages/protected/school-mgt/edit-branch";
-import CreateBranch from "@/pages/protected/school-mgt/create-branch";
+
+// Route-level code splitting: each page loads on first visit instead of
+// shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
+const SchoolManagement = lazy(() => import("@/pages/protected/school-mgt"));
+const CreateSchool = lazy(() => import("@/pages/protected/school-mgt/create-school"));
+const ViewSchool = lazy(() => import("@/pages/protected/school-mgt/view-school"));
+const EditSchool = lazy(() => import("@/pages/protected/school-mgt/edit-school"));
+const ViewBranch = lazy(() => import("@/pages/protected/school-mgt/view-branch"));
+const EditBranch = lazy(() => import("@/pages/protected/school-mgt/edit-branch"));
+const CreateBranch = lazy(() => import("@/pages/protected/school-mgt/create-branch"));
 
 export const schoolRoutes: RouteObject[] = [
   { path: routesPath.PROTECTED.SCHOOL_MGT.INDEX, Component: SchoolManagement },

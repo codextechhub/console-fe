@@ -1,16 +1,20 @@
+import { lazy } from "react";
 import { type RouteObject } from "react-router";
 import { routesPath } from "@/routes/routesPath";
-import PendingApprovals from "@/pages/protected/workflow/approvals";
-import ApprovalDetail from "@/pages/protected/workflow/approvals/approval-detail";
-import MySubmissions from "@/pages/protected/workflow/my-submissions";
-import SubmissionDetail from "@/pages/protected/workflow/my-submissions/submission-detail";
-import AllInstances from "@/pages/protected/workflow/instances";
-import InstanceDetail from "@/pages/protected/workflow/instances/instance-detail";
-import TeamLoad from "@/pages/protected/workflow/instances/team-load";
-import Delegations from "@/pages/protected/workflow/delegations";
-import WorkflowTemplates from "@/pages/protected/workflow/templates";
-import TemplateDetail from "@/pages/protected/workflow/templates/template-detail";
-import TemplateBuilder from "@/pages/protected/workflow/templates/template-builder";
+
+// Route-level code splitting: each page loads on first visit instead of
+// shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
+const PendingApprovals = lazy(() => import("@/pages/protected/workflow/approvals"));
+const ApprovalDetail = lazy(() => import("@/pages/protected/workflow/approvals/approval-detail"));
+const MySubmissions = lazy(() => import("@/pages/protected/workflow/my-submissions"));
+const SubmissionDetail = lazy(() => import("@/pages/protected/workflow/my-submissions/submission-detail"));
+const AllInstances = lazy(() => import("@/pages/protected/workflow/instances"));
+const InstanceDetail = lazy(() => import("@/pages/protected/workflow/instances/instance-detail"));
+const TeamLoad = lazy(() => import("@/pages/protected/workflow/instances/team-load"));
+const Delegations = lazy(() => import("@/pages/protected/workflow/delegations"));
+const WorkflowTemplates = lazy(() => import("@/pages/protected/workflow/templates"));
+const TemplateDetail = lazy(() => import("@/pages/protected/workflow/templates/template-detail"));
+const TemplateBuilder = lazy(() => import("@/pages/protected/workflow/templates/template-builder"));
 
 const W = routesPath.PROTECTED.WORKFLOW;
 

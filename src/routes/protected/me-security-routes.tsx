@@ -1,10 +1,14 @@
+import { lazy } from "react";
 import { type RouteObject } from "react-router";
-import MeSecurityOverview from "@/pages/protected/me-security/overview";
-import MyActiveSessions from "@/pages/protected/me-security/active-sessions";
-import MyLoginHistory from "@/pages/protected/me-security/login-history";
-import MyPassword from "@/pages/protected/me-security/password";
-import MyActivity from "@/pages/protected/me-security/activity";
-import MyPrivacy from "@/pages/protected/me-security/privacy";
+
+// Route-level code splitting: each page loads on first visit instead of
+// shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
+const MeSecurityOverview = lazy(() => import("@/pages/protected/me-security/overview"));
+const MyActiveSessions = lazy(() => import("@/pages/protected/me-security/active-sessions"));
+const MyLoginHistory = lazy(() => import("@/pages/protected/me-security/login-history"));
+const MyPassword = lazy(() => import("@/pages/protected/me-security/password"));
+const MyActivity = lazy(() => import("@/pages/protected/me-security/activity"));
+const MyPrivacy = lazy(() => import("@/pages/protected/me-security/privacy"));
 
 export const meSecurityRoutes: RouteObject[] = [
   { path: "/me/security", element: <MeSecurityOverview /> },

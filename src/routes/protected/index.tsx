@@ -1,3 +1,4 @@
+import { lazy } from "react";
 import { type RouteObject } from "react-router";
 import { schoolRoutes } from "./school-routes";
 import { overviewRoutes } from "./overview-routes";
@@ -8,8 +9,11 @@ import { auditRoutes } from "./audit-routes";
 import { meSecurityRoutes } from "./me-security-routes";
 import { workflowRoutes } from "./workflow-routes";
 import { organogramRoutes } from "./organogram-routes";
-import Notifications from "@/pages/protected/notifications";
 import { routesPath } from "@/routes/routesPath";
+
+// Route-level code splitting: each page loads on first visit instead of
+// shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
+const Notifications = lazy(() => import("@/pages/protected/notifications"));
 
 export const protectedRoutes = [
   { path: routesPath.PROTECTED.NOTIFICATIONS, element: <Notifications /> },

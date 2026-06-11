@@ -1,27 +1,31 @@
+import { lazy } from "react";
 import { type RouteObject } from "react-router";
-import RolesList from "@/pages/protected/rbac/roles";
-import CreateRole from "@/pages/protected/rbac/roles/create-role";
-import EditRole from "@/pages/protected/rbac/roles/edit-role";
-import PlatformUserAssignments from "@/pages/protected/rbac/roles/platform-user-assignments";
-import ChangeRequests from "@/pages/protected/rbac/roles/change-requests";
-import TransferSuperAdmin from "@/pages/protected/rbac/roles/transfer-super-admin";
-import PermissionGroupsList from "@/pages/protected/rbac/roles/permission-groups";
-import CreatePermissionGroup from "@/pages/protected/rbac/roles/permission-groups/create-group";
-import EditPermissionGroup from "@/pages/protected/rbac/roles/permission-groups/edit-group";
-import PermissionsList from "@/pages/protected/rbac/permissions";
-import CreatePermission from "@/pages/protected/rbac/permissions/create-permission";
-import EditPermission from "@/pages/protected/rbac/permissions/edit-permission";
-import PermissionModulesList from "@/pages/protected/rbac/permissions/modules";
-import CreateModule from "@/pages/protected/rbac/permissions/modules/create-module";
-import EditModule from "@/pages/protected/rbac/permissions/modules/edit-module";
-import PermissionResources from "@/pages/protected/rbac/permissions/resources";
-import CreateResource from "@/pages/protected/rbac/permissions/resources/create-resource";
-import EditResource from "@/pages/protected/rbac/permissions/resources/edit-resource";
-import PermissionActionsPage from "@/pages/protected/rbac/permissions/actions";
-import CreateAction from "@/pages/protected/rbac/permissions/actions/create-action";
-import EditAction from "@/pages/protected/rbac/permissions/actions/edit-action";
-import PermissionDependencies from "@/pages/protected/rbac/permissions/dependencies";
-import CreateDependency from "@/pages/protected/rbac/permissions/create-dependency";
+
+// Route-level code splitting: each page loads on first visit instead of
+// shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
+const RolesList = lazy(() => import("@/pages/protected/rbac/roles"));
+const CreateRole = lazy(() => import("@/pages/protected/rbac/roles/create-role"));
+const EditRole = lazy(() => import("@/pages/protected/rbac/roles/edit-role"));
+const PlatformUserAssignments = lazy(() => import("@/pages/protected/rbac/roles/platform-user-assignments"));
+const ChangeRequests = lazy(() => import("@/pages/protected/rbac/roles/change-requests"));
+const TransferSuperAdmin = lazy(() => import("@/pages/protected/rbac/roles/transfer-super-admin"));
+const PermissionGroupsList = lazy(() => import("@/pages/protected/rbac/roles/permission-groups"));
+const CreatePermissionGroup = lazy(() => import("@/pages/protected/rbac/roles/permission-groups/create-group"));
+const EditPermissionGroup = lazy(() => import("@/pages/protected/rbac/roles/permission-groups/edit-group"));
+const PermissionsList = lazy(() => import("@/pages/protected/rbac/permissions"));
+const CreatePermission = lazy(() => import("@/pages/protected/rbac/permissions/create-permission"));
+const EditPermission = lazy(() => import("@/pages/protected/rbac/permissions/edit-permission"));
+const PermissionModulesList = lazy(() => import("@/pages/protected/rbac/permissions/modules"));
+const CreateModule = lazy(() => import("@/pages/protected/rbac/permissions/modules/create-module"));
+const EditModule = lazy(() => import("@/pages/protected/rbac/permissions/modules/edit-module"));
+const PermissionResources = lazy(() => import("@/pages/protected/rbac/permissions/resources"));
+const CreateResource = lazy(() => import("@/pages/protected/rbac/permissions/resources/create-resource"));
+const EditResource = lazy(() => import("@/pages/protected/rbac/permissions/resources/edit-resource"));
+const PermissionActionsPage = lazy(() => import("@/pages/protected/rbac/permissions/actions"));
+const CreateAction = lazy(() => import("@/pages/protected/rbac/permissions/actions/create-action"));
+const EditAction = lazy(() => import("@/pages/protected/rbac/permissions/actions/edit-action"));
+const PermissionDependencies = lazy(() => import("@/pages/protected/rbac/permissions/dependencies"));
+const CreateDependency = lazy(() => import("@/pages/protected/rbac/permissions/create-dependency"));
 
 export const rbacRoutes: RouteObject[] = [
   { path: "/roles", element: <RolesList /> },

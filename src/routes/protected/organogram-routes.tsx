@@ -1,11 +1,15 @@
+import { lazy } from "react";
 import { type RouteObject } from "react-router";
 import { routesPath } from "@/routes/routesPath";
-import OrganogramPage from "@/pages/protected/organogram";
-import OrganogramManage from "@/pages/protected/organogram/manage";
-import StaffDirectory from "@/pages/protected/organogram/staff";
-import StaffDetail from "@/pages/protected/organogram/staff/staff-detail";
-import StaffForm from "@/pages/protected/organogram/staff/staff-form";
-import MyProfile from "@/pages/protected/me-profile";
+
+// Route-level code splitting: each page loads on first visit instead of
+// shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
+const OrganogramPage = lazy(() => import("@/pages/protected/organogram"));
+const OrganogramManage = lazy(() => import("@/pages/protected/organogram/manage"));
+const StaffDirectory = lazy(() => import("@/pages/protected/organogram/staff"));
+const StaffDetail = lazy(() => import("@/pages/protected/organogram/staff/staff-detail"));
+const StaffForm = lazy(() => import("@/pages/protected/organogram/staff/staff-form"));
+const MyProfile = lazy(() => import("@/pages/protected/me-profile"));
 
 const O = routesPath.PROTECTED.ORGANOGRAM;
 

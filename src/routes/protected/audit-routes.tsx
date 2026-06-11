@@ -1,17 +1,21 @@
+import { lazy } from "react";
 import { type RouteObject } from "react-router";
-import AuditDashboard from "@/pages/protected/audit/dashboard";
-import AuditEventsExplorer from "@/pages/protected/audit/events";
-import EntityTrailsList from "@/pages/protected/audit/entity-trails";
-import EntityTrailDetail from "@/pages/protected/audit/entity-trail-detail";
-import LiveSessions from "@/pages/protected/audit/sessions";
-import LoginAttempts from "@/pages/protected/audit/login-attempts";
-import AccountLockouts from "@/pages/protected/audit/lockouts";
-import PasswordActivity from "@/pages/protected/audit/password-activity";
-import Impersonations from "@/pages/protected/audit/impersonations";
-import AuditExports from "@/pages/protected/audit/exports";
-import NewAuditExport from "@/pages/protected/audit/export-new";
-import ComplianceRules from "@/pages/protected/audit/compliance-rules";
-import ComplianceRuleForm from "@/pages/protected/audit/compliance-rule-form";
+
+// Route-level code splitting: each page loads on first visit instead of
+// shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
+const AuditDashboard = lazy(() => import("@/pages/protected/audit/dashboard"));
+const AuditEventsExplorer = lazy(() => import("@/pages/protected/audit/events"));
+const EntityTrailsList = lazy(() => import("@/pages/protected/audit/entity-trails"));
+const EntityTrailDetail = lazy(() => import("@/pages/protected/audit/entity-trail-detail"));
+const LiveSessions = lazy(() => import("@/pages/protected/audit/sessions"));
+const LoginAttempts = lazy(() => import("@/pages/protected/audit/login-attempts"));
+const AccountLockouts = lazy(() => import("@/pages/protected/audit/lockouts"));
+const PasswordActivity = lazy(() => import("@/pages/protected/audit/password-activity"));
+const Impersonations = lazy(() => import("@/pages/protected/audit/impersonations"));
+const AuditExports = lazy(() => import("@/pages/protected/audit/exports"));
+const NewAuditExport = lazy(() => import("@/pages/protected/audit/export-new"));
+const ComplianceRules = lazy(() => import("@/pages/protected/audit/compliance-rules"));
+const ComplianceRuleForm = lazy(() => import("@/pages/protected/audit/compliance-rule-form"));
 
 export const auditRoutes: RouteObject[] = [
   { path: "/audit", element: <AuditDashboard /> },
