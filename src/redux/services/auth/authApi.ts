@@ -1,10 +1,9 @@
 import { resetAuth, setAuthUser, updatePermissions } from "@/redux/features/auth/authSlice";
-import Cookies from "js-cookie";
-import { clearStorageItem } from "@/hooks/use-session-storage";
 import { baseApi } from "../baseApi";
 import { routesPath } from "@/routes/routesPath";
-import { clearActivity, recordActivity } from "@/utils/sessionActivity";
-import { markSessionInvalidated, resetSessionInvalidation } from "@/utils/tokenRefresh";
+import { recordActivity } from "@/utils/sessionActivity";
+import { resetSessionInvalidation, setAuthCookies } from "@/utils/tokenRefresh";
+import { endSession } from "@/utils/endSession";
 import type { LoginResponse } from "./type";
 
 export const authApi = baseApi.injectEndpoints({
@@ -22,11 +21,13 @@ export const authApi = baseApi.injectEndpoints({
           // A fresh, valid session — re-enable token refresh in case a prior
           // session in this JS context invalidated it.
           resetSessionInvalidation();
-          Cookies.set("token", data?.data?.access || "");
-          Cookies.set("refresh_token", data?.data?.refresh || "");
+          setAuthCookies(data?.data?.access || "", data?.data?.refresh || "");
           recordActivity();
           dispatch(setAuthUser(data?.data));
-        } catch {}
+        } catch {
+          // Login failed — the mutation hook surfaces the error to the page;
+          // nothing to clean up because nothing was written yet.
+        }
       },
     }),
     logout: builder.mutation({
@@ -42,11 +43,7 @@ export const authApi = baseApi.injectEndpoints({
         } catch {
           // Server-side revocation failed — proceed with client-side cleanup anyway.
         } finally {
-          markSessionInvalidated();
-          Cookies.remove("token");
-          Cookies.remove("refresh_token");
-          clearStorageItem();
-          clearActivity();
+          endSession();
           dispatch(resetAuth());
           window.location.href = routesPath.AUTH.LOGIN;
         }
@@ -97,7 +94,10 @@ export const authApi = baseApi.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           dispatch(updatePermissions(data.data.permissions));
-        } catch {}
+        } catch {
+          // /me failed (e.g. transient 5xx) — keep the persisted permissions;
+          // the 401 interceptor handles a genuinely dead session.
+        }
       },
     }),
   }),

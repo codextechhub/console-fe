@@ -11,14 +11,12 @@ export default function Login() {
   const navigate = useNavigate();
   const [login, { isLoading }] = useLoginMutation();
   const [apiError, setApiError] = useState("");
-  const [sessionBanner, setSessionBanner] = useState("");
+  // Read once at mount (lazy initialiser); the effect only clears the flag so
+  // a later manual visit to /login doesn't re-show a stale banner.
+  const [sessionBanner] = useState(() => sessionStorage.getItem("_auth_banner") ?? "");
 
   useEffect(() => {
-    const msg = sessionStorage.getItem("_auth_banner");
-    if (msg) {
-      sessionStorage.removeItem("_auth_banner");
-      setSessionBanner(msg);
-    }
+    sessionStorage.removeItem("_auth_banner");
   }, []);
 
   const formik = useFormik({

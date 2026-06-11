@@ -8,10 +8,9 @@ import {
 import { resetAuth, setToken, updatePermissions } from "../features/auth/authSlice";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-import { clearStorageItem } from "@/hooks/use-session-storage";
 import { routesPath } from "@/routes/routesPath";
-import { markSessionInvalidated, refreshTokenSingleFlight } from "@/utils/tokenRefresh";
-import { clearActivity } from "@/utils/sessionActivity";
+import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
+import { endSession } from "@/utils/endSession";
 
 const getAccessToken = () => {
   const token = Cookies.get("token");
@@ -51,13 +50,8 @@ let sessionRecoveryInProgress = false;
 const forceLogoutAndRedirect = (api: Parameters<BaseQueryFn>[1]) => {
   if (sessionRecoveryInProgress) return;
   sessionRecoveryInProgress = true;
-  // Stop any in-flight refresh from re-creating the cookies we're about to clear.
-  markSessionInvalidated();
   api.dispatch(resetAuth());
-  Cookies.remove("token");
-  Cookies.remove("refresh_token");
-  clearStorageItem();
-  clearActivity();
+  endSession();
   window.location.href = routesPath.AUTH.LOGIN;
 };
 

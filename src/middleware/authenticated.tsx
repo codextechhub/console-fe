@@ -2,50 +2,30 @@ import { selectUser } from "@/redux/features/auth/authSlice";
 import { useGetMeQuery } from "@/redux/services/auth/authApi";
 import { routesPath } from "@/routes/routesPath";
 import Cookies from "js-cookie";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Outlet } from "react-router";
-import { clearStorageItem } from "@/hooks/use-session-storage";
-import { clearActivity, getLastActivity } from "@/utils/sessionActivity";
-import { markSessionInvalidated } from "@/utils/tokenRefresh";
+import { IDLE_MS, WARNING_MS } from "@/hooks/use-session-timeout";
+import { getLastActivity } from "@/utils/sessionActivity";
+import { isJwtExpired } from "@/utils/jwt";
+import { endSession } from "@/utils/endSession";
 
 const { LOGIN } = routesPath.AUTH;
 
-// Mirrors useSessionTimeout. If these diverge, the on-reload check would
-// drift from the live idle-warning behavior.
-const IDLE_MS = 14 * 60 * 1000;
-const WARNING_MS = 1 * 60 * 1000;
+// Same constants as the live idle-warning hook, imported so the on-reload
+// check can never drift from the in-app behaviour.
 const STALE_AFTER_MS = IDLE_MS + WARNING_MS;
 
-function getJwtExp(token: string): number | null {
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return typeof payload.exp === "number" ? payload.exp : null;
-  } catch {
-    return null;
-  }
-}
 
-function isJwtExpired(token: string): boolean {
-  const exp = getJwtExp(token);
-  if (!exp) return true; // unparseable token is treated as expired
-  return Date.now() / 1000 >= exp;
-}
 
-function killSession(message: string) {
-  // Block any in-flight refresh from resurrecting the cookies we clear here.
-  markSessionInvalidated();
-  Cookies.remove("token");
-  Cookies.remove("refresh_token");
-  clearStorageItem();
-  clearActivity();
-  sessionStorage.setItem("_auth_banner", message);
-}
-
-export default function Authenticated() {
+// The gate decision is a deliberate once-per-mount snapshot of external state
+// (cookies, last-activity timestamp, wall clock). It lives outside the
+// component and is invoked from a lazy useState initialiser so the render
+// itself stays pure — live expiry while mounted is handled by
+// useSessionTimeout and the 401 interceptor, not by this gate.
+function evaluateGate() {
   const accessToken = Cookies.get("token");
   const refreshToken = Cookies.get("refresh_token");
-  const user = useSelector(selectUser);
 
   const hasAccess = !!accessToken && accessToken !== "undefined";
   const hasRefresh = !!refreshToken && refreshToken !== "undefined";
@@ -60,14 +40,23 @@ export default function Authenticated() {
   const idleTooLong =
     lastActivity !== null && Date.now() - lastActivity >= STALE_AFTER_MS;
 
-  const shouldRedirect = !hasAccess || refreshExpired || idleTooLong;
+  return {
+    shouldRedirect: !hasAccess || refreshExpired || idleTooLong,
+    refreshExpired,
+    idleTooLong,
+  };
+}
+
+export default function Authenticated() {
+  const [{ shouldRedirect, refreshExpired, idleTooLong }] = useState(evaluateGate);
+  const user = useSelector(selectUser);
 
   useEffect(() => {
     if (!shouldRedirect) return;
     // Only show the expiry banner + clean up when there was an actual session
     // to end. A missing cookie just means "go log in" — no banner needed.
     if (refreshExpired || idleTooLong) {
-      killSession(
+      endSession(
         idleTooLong
           ? "Your session expired due to inactivity. Please log in to continue."
           : "Your session has expired. Please log in to continue."

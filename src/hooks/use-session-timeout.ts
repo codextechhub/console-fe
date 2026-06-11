@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import Cookies from "js-cookie";
 import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
-import { clearStorageItem } from "./use-session-storage";
 import { routesPath } from "@/routes/routesPath";
-import { markSessionInvalidated, refreshTokenSingleFlight } from "@/utils/tokenRefresh";
-import { clearActivity, recordActivity } from "@/utils/sessionActivity";
+import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
+import { recordActivity } from "@/utils/sessionActivity";
+import { endSession } from "@/utils/endSession";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL as string;
 
@@ -27,8 +27,10 @@ function revokeSessionOnBackend(tokens?: { access: string; refresh: string }): v
   }).catch(() => {});
 }
 
-const IDLE_MS = 5 * 60 * 1000;       // 5 minutes idle before warning
-const WARNING_MS = 10 * 60 * 1000;   // 10-minute countdown before expiry
+// Exported: the Authenticated gate derives its on-reload staleness window
+// (IDLE_MS + WARNING_MS) from these so the two can never drift apart.
+export const IDLE_MS = 5 * 60 * 1000;       // 5 minutes idle before warning
+export const WARNING_MS = 10 * 60 * 1000;   // 10-minute countdown before expiry
 
 const ACTIVITY_EVENTS = [
   "mousemove",
@@ -50,7 +52,9 @@ export function useSessionTimeout() {
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Timestamps tracked on refs so closures always read the latest value.
-  const lastActivityRef = useRef<number>(Date.now());
+  // Initialised to 0 (not Date.now() — impure during render); the mount
+  // effect's resetIdleTimer() call stamps it before anything reads it.
+  const lastActivityRef = useRef<number>(0);
   const warningStartedAtRef = useRef<number | null>(null);
   const isWarningOpenRef = useRef(false);
   // Tokens captured the moment the session expires so goToLogin can still
@@ -74,14 +78,7 @@ export function useSessionTimeout() {
       refresh: Cookies.get("refresh_token") ?? "",
     };
     revokeSessionOnBackend(capturedTokensRef.current);
-    // Block any in-flight refresh from resurrecting the cookies we clear below.
-    markSessionInvalidated();
-    Cookies.remove("token");
-    Cookies.remove("refresh_token");
-    clearStorageItem();
-    clearActivity();
-    // Set banner AFTER clear so it survives both page refresh and goToLogin redirect.
-    sessionStorage.setItem("_auth_banner", "Your session has expired due to inactivity. Please log in to continue.");
+    endSession("Your session has expired due to inactivity. Please log in to continue.");
     dispatch(resetAuth());
     setOpen(false);
     setIsExpired(true);
@@ -91,11 +88,7 @@ export function useSessionTimeout() {
     clearCountdown();
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     revokeSessionOnBackend();
-    markSessionInvalidated();
-    Cookies.remove("token");
-    Cookies.remove("refresh_token");
-    clearStorageItem();
-    clearActivity();
+    endSession();
     dispatch(resetAuth());
     window.location.href = routesPath.AUTH.LOGIN;
   }, [dispatch]);
@@ -160,9 +153,17 @@ export function useSessionTimeout() {
     }
   }, [expireSession, startCountdown, resetIdleTimer]);
 
-  // Wire up activity listeners.
+  // Wire up activity listeners. mousemove/scroll fire continuously, so the
+  // timer reset is throttled — clearTimeout/setTimeout per event would churn
+  // the event loop for no behavioural gain at this resolution.
   useEffect(() => {
-    const handleActivity = () => resetIdleTimer();
+    let lastReset = 0;
+    const handleActivity = () => {
+      const t = Date.now();
+      if (t - lastReset < 1_000) return;
+      lastReset = t;
+      resetIdleTimer();
+    };
     ACTIVITY_EVENTS.forEach((e) => window.addEventListener(e, handleActivity));
     resetIdleTimer();
     return () => {

@@ -1,6 +1,15 @@
 import type { RootStateType } from "@/redux/store";
 import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { type Auth } from "./type";
+import { type Auth, type User } from "./type";
+
+// Shape of the login / activation response's `data` envelope.
+interface AuthPayload {
+  user: User | null;
+  access: string;
+  refresh?: string;
+  session_id?: number;
+  permissions?: string[];
+}
 
 const initialState: Auth = {
    access: "",
@@ -15,17 +24,17 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     reset: () => initialState,
-    setAuthUser: (state, action: PayloadAction<any>) => {
+    setAuthUser: (state, action: PayloadAction<AuthPayload>) => {
       state.user = action.payload.user;
       state.access = action.payload.access;
       state.refresh = action.payload.refresh || "";
       state.session_id = action.payload.session_id || 0;
       state.permissions = action.payload.permissions ?? [];
     },
-    updateAuthUser: (state, action: PayloadAction<any>) => {
-      state.user = { ...state.user, ...action.payload };
+    updateAuthUser: (state, action: PayloadAction<Partial<User>>) => {
+      state.user = { ...(state.user as User), ...action.payload };
     },
-    setToken: (state, action: PayloadAction<any>) => {
+    setToken: (state, action: PayloadAction<string>) => {
       state.access = action.payload;
     },
     updatePermissions: (state, action: PayloadAction<string[]>) => {

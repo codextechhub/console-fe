@@ -2,6 +2,22 @@ import Cookies from "js-cookie";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
+// Tokens must be JS-readable in this architecture, but the transport
+// attributes are free hardening: never sent cross-site, never over plain
+// http in production. `secure` follows the page protocol so local dev
+// (http://localhost) keeps working.
+const COOKIE_ATTRS: Cookies.CookieAttributes = {
+  sameSite: "strict",
+  secure: window.location.protocol === "https:",
+};
+
+// Single writer for the auth cookie pair — every login/refresh path goes
+// through here so the attributes can never drift between call sites.
+export const setAuthCookies = (access: string, refresh?: string): void => {
+  Cookies.set("token", access, COOKIE_ATTRS);
+  if (refresh) Cookies.set("refresh_token", refresh, COOKIE_ATTRS);
+};
+
 export type RefreshOutcome =
   | { ok: true; access: string; refresh?: string }
   | { ok: false; reason: "no_token" | "token_invalid" | "network_error" | "server_error" };
@@ -57,8 +73,7 @@ const doRefresh = async (refreshToken: string): Promise<RefreshOutcome> => {
 
   // Cookie is the source of truth across all refresh callers — persist
   // immediately so the next reader sees the rotated values.
-  Cookies.set("token", access);
-  if (refresh) Cookies.set("refresh_token", refresh);
+  setAuthCookies(access, refresh);
 
   return { ok: true, access, refresh };
 };

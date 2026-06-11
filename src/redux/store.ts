@@ -1,4 +1,3 @@
-"use client";
 import { configureStore } from "@reduxjs/toolkit";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -18,7 +17,9 @@ const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
   reducer: persistedReducer,
-  devTools: import.meta.env.NODE_ENV !== "production",
+  // import.meta.env.NODE_ENV does not exist under Vite — only MODE/DEV/PROD.
+  // Using it left DevTools enabled in production builds.
+  devTools: import.meta.env.DEV,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,

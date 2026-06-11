@@ -36,5 +36,7 @@ export function clearActivity(): void {
   lastWritten = 0;
   try {
     localStorage.removeItem(KEY);
-  } catch {}
+  } catch {
+    // Same private-mode caveat as recordActivity — nothing to clean up.
+  }
 }
