@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { EyeIcon, EyeOffIcon, Loader, Search } from "lucide-react";
 

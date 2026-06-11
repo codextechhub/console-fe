@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { RefreshCw, Timer, MoreHorizontal, XCircle, List, GitBranch, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -15,6 +15,7 @@ import { useGetImpersonationsQuery, useEndImpersonationMutation } from "@/redux/
 import { useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
 import { formatRelativeDate } from "@/utils/helpers";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useNow } from "@/hooks/use-now";
 import { ActorCell } from "./components/audit-cells";
 import { friendlyAction } from "./audit-constants";
 import { P } from "@/permissions";
@@ -26,12 +27,7 @@ import { cn } from "@/lib/utils";
 // ── Countdown ─────────────────────────────────────────────────────────────────
 
 function Countdown({ iso, className }: { iso: string; className?: string }) {
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 30_000);
-    return () => clearInterval(id);
-  }, []);
-
+  const now = useNow();
   const ms = new Date(iso).getTime() - now;
   if (ms <= 0) return <span className={cn("text-destructive", className)}>Expired</span>;
   const m = Math.floor(ms / 60_000);
@@ -141,7 +137,9 @@ function ImpersonationDetailDrawer({
                     countdown: session.status === "ACTIVE" ? session.ends_at : null,
                   },
                   { label: "Actions captured", value: eventsLoading ? "…" : String(events.length) },
-                  { label: "End reason", value: (session as any).end_reason || "—" },
+                  // The backend ImpersonationSessionSerializer has no
+                  // end_reason field — status is the closest real signal.
+                  { label: "Status", value: session.status === "ACTIVE" ? "Active" : "Ended" },
                 ].map(({ label, value, countdown }) => (
                   <div key={label} className="rounded-md border bg-gray-50 p-2.5 space-y-1">
                     <p className="text-[10px] font-semibold uppercase text-gray-01">{label}</p>
@@ -237,7 +235,8 @@ export default function Impersonations() {
   });
   const [endImpersonation, { isLoading: ending }] = useEndImpersonationMutation();
 
-  const raw = data?.data ?? [];
+  const raw = useMemo(() => data?.data ?? [], [data]);
+  const now = useNow();
 
   // Derive unique values for secondary filters from loaded data
   const staffOptions = useMemo(() => [...new Set(raw.map((i) => i.staff_email))].sort(), [raw]);
@@ -249,7 +248,7 @@ export default function Impersonations() {
     const cutoffMs: Record<string, number> = {
       "24h": 86_400_000, "7d": 604_800_000, "30d": 2_592_000_000, "90d": 90 * 86_400_000,
     };
-    const cutoff = cutoffMs[dateRange] ? Date.now() - cutoffMs[dateRange] : 0;
+    const cutoff = cutoffMs[dateRange] ? now - cutoffMs[dateRange] : 0;
 
     return raw
       .filter((i) => !staffFilter || i.staff_email === staffFilter)
@@ -261,7 +260,7 @@ export default function Impersonations() {
         if (b.status === "ACTIVE" && a.status !== "ACTIVE") return 1;
         return b.started_at.localeCompare(a.started_at);
       });
-  }, [raw, staffFilter, targetFilter, schoolFilter, dateRange]);
+  }, [raw, staffFilter, targetFilter, schoolFilter, dateRange, now]);
 
   const activeCount = raw.filter((i) => i.status === "ACTIVE").length;
 

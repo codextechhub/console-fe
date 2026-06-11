@@ -80,7 +80,7 @@ export default function CreateBranch() {
         await createBranch({ slug: slug ?? "", body }).unwrap();
         toast.success("Branch created successfully.");
         back();
-      } catch { /* global toast */ }
+      } catch { /* interceptor shows the toast */ }
     },
   });
 

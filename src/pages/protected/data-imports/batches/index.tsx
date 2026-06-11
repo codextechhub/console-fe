@@ -178,7 +178,7 @@ export default function ImportBatchesList() {
       await deleteBatch(deleteTarget.id).unwrap();
       toast.success("Batch deleted.");
       setDeleteTarget(null);
-    } catch { /* global toast */ }
+    } catch { /* interceptor shows the toast */ }
   };
 
   if (!canView) {

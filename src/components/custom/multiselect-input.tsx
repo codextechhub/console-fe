@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { MultiSelect, type MultiSelectProps } from "../ui/multi-select";

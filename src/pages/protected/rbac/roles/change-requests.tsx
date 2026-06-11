@@ -210,7 +210,7 @@ function RequestDetailSheet({
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           <div className="flex flex-wrap gap-2">
-            <Badge variant={statusBadgeVariant(request.status) as any}>
+            <Badge variant={statusBadgeVariant(request.status)}>
               {request.status.replace("_", " ")}
             </Badge>
             <Badge variant="default">{request.requested_by_name}</Badge>
@@ -412,7 +412,7 @@ export default function ChangeRequests() {
       </Badge>
     ),
     status: (
-      <Badge variant={statusBadgeVariant(r.status) as any}>
+      <Badge variant={statusBadgeVariant(r.status)}>
         {r.status.replace("_", " ")}
       </Badge>
     ),

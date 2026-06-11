@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNow } from "@/hooks/use-now";
 import { useNavigate } from "react-router";
 import { Plus, RefreshCw, FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -90,6 +91,7 @@ export default function ImportTemplatesList() {
   });
 
   const allTemplates = useMemo<ImportTemplateListItem[]>(() => data?.data ?? [], [data]);
+  const now = useNow();
 
   // Client-side status + search filter (backend doesn't support these).
   const filtered = useMemo(() => {
@@ -125,7 +127,7 @@ export default function ImportTemplatesList() {
         { title: "Available Templates", value: stats.active, key: "all", hint: "Ready for download" },
         { title: "Schools", value: allTemplates.filter((t) => t.dataset_type === "schools").length, key: "all", hint: "Templates for schools" },
         { title: "Branches", value: allTemplates.filter((t) => t.dataset_type === "branches").length, key: "all", hint: "Templates for branches" },
-        { title: "Updated Recently", value: allTemplates.filter((t) => Date.now() - new Date(t.updated_at).getTime() < 30 * 86_400_000).length, key: "all", hint: "Within 30 days" },
+        { title: "Updated Recently", value: allTemplates.filter((t) => now - new Date(t.updated_at).getTime() < 30 * 86_400_000).length, key: "all", hint: "Within 30 days" },
       ];
 
   const tableData = filtered.map((tpl) => ({

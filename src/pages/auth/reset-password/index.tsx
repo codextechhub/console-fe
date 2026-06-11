@@ -42,7 +42,7 @@ export default function ResetPassword() {
       }, 7000);
       return () => clearTimeout(t);
     }
-  }, [success]);
+  }, [success, navigate]);
 
   if (previewLoading) {
     return (

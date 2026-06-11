@@ -74,7 +74,7 @@ export default function PermissionsList() {
     module: <span className="capitalize text-xs">{perm.module_key}</span>,
     action: <span className="capitalize text-xs">{perm.action_key}</span>,
     sensitivity: (
-      <Badge variant={(SENSITIVITY_BADGE[perm.sensitivity_level] ?? "inactive") as any} className="text-xs capitalize">
+      <Badge variant={SENSITIVITY_BADGE[perm.sensitivity_level] ?? "inactive"} className="text-xs capitalize">
         {perm.sensitivity_level?.toLowerCase()}
       </Badge>
     ),

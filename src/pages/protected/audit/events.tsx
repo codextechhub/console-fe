@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNow } from "@/hooks/use-now";
 import { useNavigate, useSearchParams } from "react-router";
 import { Download, RefreshCw, Filter } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -62,6 +63,10 @@ export default function AuditEventsExplorer() {
   const [entityId, setEntityId] = useState(initialEntityId);
   const [selectedEvent, setSelectedEvent] = useState<AuditEventListItem | null>(null);
 
+  // Quantised clock (30 s ticks) — keeps date_from stable between renders so
+  // the query arg doesn't churn, while staying compiler-pure.
+  const now = useNow();
+
   const params = useMemo(() => {
     const p: Record<string, string | number> = { page };
     if (debouncedSearch) p.search = debouncedSearch;
@@ -73,10 +78,10 @@ export default function AuditEventsExplorer() {
     if (entityId) p.entity_id = entityId;
     const range = DATE_RANGES.find((r) => r.v === dateRange);
     if (range && range.ms > 0) {
-      p.date_from = new Date(Date.now() - range.ms).toISOString();
+      p.date_from = new Date(now - range.ms).toISOString();
     }
     return p;
-  }, [page, debouncedSearch, severities, statuses, modules, actorType, entityType, entityId, dateRange]);
+  }, [page, debouncedSearch, severities, statuses, modules, actorType, entityType, entityId, dateRange, now]);
 
   const { data, isLoading, isError, refetch, isFetching } = useGetAuditEventsQuery(params, {
     refetchOnMountOrArgChange: true,
@@ -104,7 +109,7 @@ export default function AuditEventsExplorer() {
       </TooltipProvider>
     ),
     status: (
-      <Badge variant={(STATUS_TONE[e.status] ?? "inactive") as any} className="text-xs uppercase">
+      <Badge variant={STATUS_TONE[e.status] ?? "inactive"} className="text-xs uppercase">
         {e.status}
       </Badge>
     ),

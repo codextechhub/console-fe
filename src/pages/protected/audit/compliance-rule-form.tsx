@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { X } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -83,22 +83,24 @@ export default function ComplianceRuleForm() {
     is_active: true,
   });
 
-  useEffect(() => {
-    if (detail?.data) {
-      const d = detail.data;
-      setForm({
-        name: d.name,
-        description: d.description,
-        rule_type: d.rule_type as RuleType,
-        school_id: d.school?.id ?? "",
-        module_key: d.module_key,
-        action_type: d.action_type,
-        retention_days: d.retention_days ? String(d.retention_days) : "",
-        masking_fields: d.masking_fields ?? [],
-        is_active: d.is_active,
-      });
-    }
-  }, [detail]);
+  // Hydrate the form when the fetched rule arrives (guarded render-phase
+  // adjustment instead of a setState-in-effect cascade).
+  const [hydratedFrom, setHydratedFrom] = useState<typeof detail | null>(null);
+  if (detail?.data && detail !== hydratedFrom) {
+    setHydratedFrom(detail);
+    const d = detail.data;
+    setForm({
+      name: d.name,
+      description: d.description,
+      rule_type: d.rule_type as RuleType,
+      school_id: d.school?.id ?? "",
+      module_key: d.module_key,
+      action_type: d.action_type,
+      retention_days: d.retention_days ? String(d.retention_days) : "",
+      masking_fields: d.masking_fields ?? [],
+      is_active: d.is_active,
+    });
+  }
 
   const schools = schoolsData?.data ?? [];
 

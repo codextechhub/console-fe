@@ -1,30 +1,50 @@
 import { useEffect, useState } from "react";
-import { useGetAllRolesQuery } from "@/redux/services/dashboard/roleApi";
+import { roleApi } from "@/redux/services/dashboard/roleApi";
+import { useAppDispatch } from "@/redux/store";
 import type { Role } from "@/redux/services/dashboard/type";
 
 const PAGE_SIZE = 100;
 
+// Fetches every page of platform roles once per mount. The page walk happens
+// inside one async effect (setState only from async callbacks — never
+// synchronously in the effect body), instead of the previous
+// setState→re-render→effect ping-pong that re-rendered consumers once per page.
 export function useAllRoles() {
-  const [page, setPage] = useState(1);
-  const [roles, setRoles] = useState<Role[]>([]);
-
-  const { data, isFetching, isError } = useGetAllRolesQuery(
-    { page, page_size: PAGE_SIZE },
-    { refetchOnMountOrArgChange: false },
-  );
+  const dispatch = useAppDispatch();
+  const [roles, setRoles] = useState<Role[] | null>(null);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
-    if (!data?.data) return;
-    const currentPage = data.pagination?.currentPage ?? 1;
-    setRoles((prev) => (currentPage === 1 ? data.data : [...prev, ...data.data]));
-    if (currentPage < (data.pagination?.totalPages ?? 1)) {
-      setPage(currentPage + 1);
-    }
-  }, [data]);
+    let cancelled = false;
+    (async () => {
+      const all: Role[] = [];
+      let page = 1;
+      let totalPages = 1;
+      try {
+        do {
+          const res = await dispatch(
+            roleApi.endpoints.getAllRoles.initiate(
+              { page, page_size: PAGE_SIZE },
+              { subscribe: false },
+            ),
+          ).unwrap();
+          all.push(...(res.data ?? []));
+          totalPages = res.pagination?.totalPages ?? 1;
+          page += 1;
+        } while (page <= totalPages && !cancelled);
+        if (!cancelled) setRoles(all);
+      } catch {
+        if (!cancelled) setIsError(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch]);
 
   return {
-    roles,
-    isLoading: isFetching && roles.length === 0,
+    roles: roles ?? [],
+    isLoading: roles === null && !isError,
     isError,
   };
 }

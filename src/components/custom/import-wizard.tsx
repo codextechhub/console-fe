@@ -339,7 +339,7 @@ function UploadStep({
   }, [datasetType]);
 
   const { data: templatesData, isLoading: templatesLoading } = useGetImportTemplatesQuery(params);
-  const templates = templatesData?.data ?? [];
+  const templates = useMemo(() => templatesData?.data ?? [], [templatesData]);
 
   // Auto-select the first matching template when locked
   useEffect(() => {
@@ -1318,7 +1318,7 @@ function CompleteStep({
       await rollbackImport({ batchId, jobId: latestJobId, reason: rollbackReason }).unwrap();
       toast.success("Rollback initiated. Records are being reverted.");
       setRollbackConfirm(false);
-    } catch { /* global error toast */ }
+    } catch { /* interceptor shows the error toast */ }
   };
 
   const isSuccess = batch.status === "import_succeeded";

@@ -20,4 +20,12 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // shadcn-style component files co-export their cva variants and small
+    // helpers; losing fast-refresh for these vendored files is acceptable.
+    files: ['src/components/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

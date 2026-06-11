@@ -13,7 +13,7 @@ import {
   useGetTeamMembersQuery,
   useResendInviteMutation,
 } from "@/redux/services/dashboard/teamMgtApi";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useDebounce } from "react-haiku";
 import type { TeamMember } from "@/redux/services/dashboard/type";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -72,9 +72,13 @@ export default function InvitesTab() {
 
   const activeFilterCount = Object.values(appliedFilters).filter(Boolean).length;
 
-  useEffect(() => {
+  // Reset to page 1 when the (debounced) search changes — done in the same
+  // render pass, so no intermediate request with the old page is fired.
+  const [prevSearch, setPrevSearch] = useState(debouncedValue);
+  if (debouncedValue !== prevSearch) {
+    setPrevSearch(debouncedValue);
     setQuery((prev) => ({ ...prev, page: 1 }));
-  }, [debouncedValue]);
+  }
 
   const params = useMemo(
     () => ({

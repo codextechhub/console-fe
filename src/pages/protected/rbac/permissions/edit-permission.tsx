@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -52,11 +52,13 @@ export default function EditPermission() {
 
   const perm = permData?.data;
 
-  useEffect(() => {
-    if (perm?.module_key) {
-      setSelectedModule(perm.module_key);
-    }
-  }, [perm?.module_key]);
+  // Hydrate the module select when the permission arrives (guarded
+  // render-phase adjustment instead of a setState-in-effect cascade).
+  const [prevModuleKey, setPrevModuleKey] = useState<string | null>(null);
+  if (perm?.module_key && perm.module_key !== prevModuleKey) {
+    setPrevModuleKey(perm.module_key);
+    setSelectedModule(perm.module_key);
+  }
 
   if (permLoading) {
     return (
@@ -265,7 +267,7 @@ export default function EditPermission() {
 
                   <div>
                     <p className="text-xs text-gray-01 mb-1">Current sensitivity</p>
-                    <Badge variant={(SENSITIVITY_BADGE[perm.sensitivity_level] ?? "inactive") as any} className="capitalize">
+                    <Badge variant={SENSITIVITY_BADGE[perm.sensitivity_level] ?? "inactive"} className="capitalize">
                       {perm.sensitivity_level?.toLowerCase()}
                     </Badge>
                   </div>

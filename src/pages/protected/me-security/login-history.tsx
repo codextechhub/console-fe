@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNow } from "@/hooks/use-now";
 import {
   Check, CornerDownLeft, Eye, EyeOff, Flag,
   LogOut, Monitor, RefreshCw, ShieldX, Smartphone, Tablet, X,
@@ -134,8 +135,8 @@ export default function MyLoginHistory() {
   );
   const [forceLogout] = useForceLogoutMutation();
 
-  const attempts = attemptsData?.data ?? [];
-  const endedSessions = endedSessionsData?.data ?? [];
+  const attempts = useMemo(() => attemptsData?.data ?? [], [attemptsData]);
+  const endedSessions = useMemo(() => endedSessionsData?.data ?? [], [endedSessionsData]);
 
   const allItems = useMemo((): TimelineItem[] => {
     const list: TimelineItem[] = [];
@@ -163,7 +164,7 @@ export default function MyLoginHistory() {
   }, [attempts, endedSessions]);
 
   const rangeMs = DATE_RANGES.find((r) => r.v === range)?.ms ?? Infinity;
-  const now = Date.now();
+  const now = useNow();
 
   const filteredItems = useMemo(
     () =>
@@ -196,7 +197,8 @@ export default function MyLoginHistory() {
   const toggleRevealIp = (id: string) =>
     setRevealedIps((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
 

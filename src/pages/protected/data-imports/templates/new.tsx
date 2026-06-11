@@ -159,7 +159,7 @@ export default function NewTemplate() {
       } else {
         back();
       }
-    } catch { /* global toast */ }
+    } catch { /* interceptor shows the toast */ }
   };
 
   if (!isCxStaff || !canCreate) {

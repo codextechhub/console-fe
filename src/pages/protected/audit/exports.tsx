@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNow } from "@/hooks/use-now";
 import { useNavigate } from "react-router";
 import {
   CheckCircle2, Circle, Clock, Download, Loader2, Plus, RefreshCw, MoreVertical, XCircle,
@@ -146,7 +147,7 @@ function ExportDetailDrawer({
           </div>
           {job && (
             <Badge
-              variant={(STATUS_TONE[job.status] ?? "inactive") as any}
+              variant={STATUS_TONE[job.status] ?? "inactive"}
               className={cn("text-[10px] uppercase", job.status === "EXPIRED" && "line-through")}
             >
               {job.status}
@@ -363,14 +364,15 @@ export default function AuditExports() {
     refetchOnMountOrArgChange: true,
   });
 
-  const rawExports = data?.data ?? [];
+  const rawExports = useMemo(() => data?.data ?? [], [data]);
+  const now = useNow();
 
   // Client-side date range filter
   const exports = useMemo(() => {
     if (dateRange === "all") return rawExports;
-    const cutoff = Date.now() - dateRangeToMs(dateRange);
+    const cutoff = now - dateRangeToMs(dateRange);
     return rawExports.filter((j) => new Date(j.requested_at).getTime() >= cutoff);
-  }, [rawExports, dateRange]);
+  }, [rawExports, dateRange, now]);
 
   const resetPage = () => setPage(1);
 
@@ -549,7 +551,7 @@ function ExportRow({
       {/* Status */}
       <td className="px-3 py-3">
         <Badge
-          variant={(STATUS_TONE[j.status] ?? "inactive") as any}
+          variant={STATUS_TONE[j.status] ?? "inactive"}
           className={cn("text-[10px] uppercase", j.status === "EXPIRED" && "line-through")}
         >
           {j.status}

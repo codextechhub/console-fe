@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -109,7 +109,9 @@ export default function EditTemplate() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [columnsEdited, setColumnsEdited] = useState(false);
   const [initialized, setInitialized] = useState(false);
-  const initialFormRef = useRef<typeof form | null>(null);
+  // State (not a ref): it participates in the render output via isDirty, so a
+  // ref would be read during render — unsafe under the React Compiler.
+  const [initialForm, setInitialForm] = useState<typeof form | null>(null);
 
   const back = () => {
     if (window.history.length > 1) {
@@ -119,21 +121,10 @@ export default function EditTemplate() {
     }
   };
 
-  // Pre-fill form from fetched template (runs once when template arrives).
-  useEffect(() => {
-    if (!template || initialized) return;
-    setForm({
-      name: template.name,
-      description: template.description ?? "",
-      status: template.status,
-      default_file_format: template.default_file_format,
-      instructions: template.instructions ?? "",
-      allow_sample_row: template.allow_sample_row,
-      is_download_enabled: template.is_download_enabled,
-    });
-    const sorted = (template.columns ?? []).slice().sort((a, b) => a.column_order - b.column_order);
-    setColumns(sorted.length > 0 ? sorted.map(fromExisting) : [blankColumn(1)]);
-    initialFormRef.current = {
+  // Pre-fill form when the fetched template arrives (guarded render-phase
+  // adjustment — runs once, no setState-in-effect cascade).
+  if (template && !initialized) {
+    const snapshot = {
       name: template.name,
       description: template.description ?? "",
       status: template.status,
@@ -142,8 +133,12 @@ export default function EditTemplate() {
       allow_sample_row: template.allow_sample_row,
       is_download_enabled: template.is_download_enabled,
     };
+    setForm(snapshot);
+    const sorted = (template.columns ?? []).slice().sort((a, b) => a.column_order - b.column_order);
+    setColumns(sorted.length > 0 ? sorted.map(fromExisting) : [blankColumn(1)]);
+    setInitialForm(snapshot);
     setInitialized(true);
-  }, [template, initialized]);
+  }
 
   if (!isCxStaff || !canEdit) {
     return (
@@ -210,8 +205,7 @@ export default function EditTemplate() {
 
   const isDirty =
     columnsEdited ||
-    (initialFormRef.current !== null &&
-      JSON.stringify(form) !== JSON.stringify(initialFormRef.current));
+    (initialForm !== null && JSON.stringify(form) !== JSON.stringify(initialForm));
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
@@ -256,7 +250,7 @@ export default function EditTemplate() {
       await updateTemplate({ id: templateId, body: payload }).unwrap();
       toast.success("Template updated.");
       navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.VIEW(templateId));
-    } catch { /* global toast */ }
+    } catch { /* interceptor shows the toast */ }
   };
 
   return (

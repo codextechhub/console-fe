@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNow } from "@/hooks/use-now";
 import { Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -313,12 +314,13 @@ export default function PlatformUserAssignments() {
 
   const { data: rolesData } = useGetPlatformRolesQuery({ page: 1, page_size: 200 });
 
-  const assignments = data?.data ?? [];
+  const assignments = useMemo(() => data?.data ?? [], [data]);
+  const now = useNow();
   const totalAssignments = data?.pagination?.totalItems ?? 0;
   const activeCount = assignments.filter((a) => a.assignment_status === "ACTIVE").length;
   const revokedCount = assignments.filter((a) => a.assignment_status === "REVOKED").length;
   const last30Count = assignments.filter((a) => {
-    return (Date.now() - new Date(a.assigned_at).getTime()) < 30 * 86400 * 1000;
+    return (now - new Date(a.assigned_at).getTime()) < 30 * 86400 * 1000;
   }).length;
   const uniqueUsers = new Set(assignments.map((a) => a.user_id)).size;
 

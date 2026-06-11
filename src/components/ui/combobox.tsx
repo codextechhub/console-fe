@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { Combobox as ComboboxPrimitive } from "@base-ui/react";
 import { CheckIcon, ChevronDownIcon, XIcon } from "lucide-react";
@@ -276,9 +274,11 @@ function ComboboxChip({
 
 function ComboboxChipsInput({
   className,
-  children,
+  // Deliberately dropped: the underlying input renders no children.
+  children: _children,
   ...props
 }: ComboboxPrimitive.Input.Props) {
+  void _children;
   return (
     <ComboboxPrimitive.Input
       data-slot="combobox-chip-input"

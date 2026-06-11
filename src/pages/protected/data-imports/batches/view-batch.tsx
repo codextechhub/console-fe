@@ -419,7 +419,7 @@ function JobsTab({ batchId, batchStatus }: { batchId: number; batchStatus: Batch
       toast.success("Rollback completed.");
       setRollbackJob(null);
       setRollbackReason("");
-    } catch { /* global toast */ }
+    } catch { /* interceptor shows the toast */ }
   };
 
   if (isLoading) return <div className="flex h-32 items-center justify-center"><div className="loader" /></div>;
@@ -804,12 +804,11 @@ export default function ViewBatch() {
 
   const batch = unwrap<ImportBatch>(data);
 
-  // Reset tab to first visible if current tab is no longer accessible.
-  useEffect(() => {
-    if (visibleTabKeys.length > 0 && !visibleTabKeys.includes(tab)) {
-      setTab(visibleTabKeys[0]);
-    }
-  }, [visibleTabKeys, tab]);
+  // Reset tab to first visible if current tab is no longer accessible
+  // (guarded render-phase adjustment — no effect needed).
+  if (visibleTabKeys.length > 0 && !visibleTabKeys.includes(tab)) {
+    setTab(visibleTabKeys[0]);
+  }
 
   // Auto-poll while batch is in flight.
   useEffect(() => {
@@ -875,7 +874,7 @@ export default function ViewBatch() {
       await validate({ id: batchId }).unwrap();
       toast.success("Validation completed.");
       refetch();
-    } catch { /* global toast */ }
+    } catch { /* interceptor shows the toast */ }
     setConfirm(null);
   };
 
@@ -884,7 +883,7 @@ export default function ViewBatch() {
       await startImport({ id: batchId, body: { run_async: true } }).unwrap();
       toast.success("Import queued.");
       refetch();
-    } catch { /* global toast */ }
+    } catch { /* interceptor shows the toast */ }
     setConfirm(null);
   };
 

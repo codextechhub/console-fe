@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, type ComponentProps } from "react";
 import { useNavigate } from "react-router";
 import { Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -73,7 +73,7 @@ export default function RolesList() {
       </div>
     ),
     status: (
-      <Badge variant={(role.status?.toLowerCase() ?? "inactive") as any}>
+      <Badge variant={(role.status?.toLowerCase() ?? "inactive") as ComponentProps<typeof Badge>["variant"]}>
         {role.status}
       </Badge>
     ),

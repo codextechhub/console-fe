@@ -53,7 +53,7 @@ export default function ActivateAccount() {
       }, 5000);
       return () => clearTimeout(t);
     }
-  }, [success]);
+  }, [success, navigate]);
 
   if (previewLoading) {
     return (

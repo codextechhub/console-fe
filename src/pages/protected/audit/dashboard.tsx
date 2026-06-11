@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
+import { useNow } from "@/hooks/use-now";
 import { AlertOctagon, Download, RefreshCw, TrendingUp } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -67,15 +68,15 @@ export default function AuditDashboard() {
   const summary = data?.data;
   const kpis = summary?.kpis;
 
+  const now = useNow();
   const feedEvents = useMemo<AuditEventListItem[]>(() => {
     const events = feedData?.data ?? [];
-    const now = Date.now();
     if (feedFilter === "Critical only") return events.filter((e) => e.severity === "CRITICAL");
     if (feedFilter === "Failed/Denied") return events.filter((e) => e.status === "FAILED" || e.status === "DENIED");
     if (feedFilter === "Last hour") return events.filter((e) => now - new Date(e.event_at).getTime() < 3_600_000);
     if (feedFilter === "Last 24h") return events.filter((e) => now - new Date(e.event_at).getTime() < 86_400_000);
     return events;
-  }, [feedData, feedFilter]);
+  }, [feedData, feedFilter, now]);
 
   return (
     <DashboardLayout title="Security Dashboard">

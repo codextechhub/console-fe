@@ -17,7 +17,7 @@ import type { BranchDetail } from "@/redux/services/dashboard/schoolType";
 import { routesPath } from "@/routes/routesPath";
 import { formatEnum, returnInitial } from "@/utils/helpers";
 import { Building2, GraduationCap, LayoutGrid, Plus, Users } from "lucide-react";
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { useDebounce } from "react-haiku";
 import { useNavigate, useParams } from "react-router";
 import { SortBar, handleSortToggle } from "@/components/custom/sort-bar";
@@ -86,7 +86,7 @@ export default function ViewSchool() {
     location: [branch.state, branch.country].filter(Boolean).join(", ") || "—",
     address: branch.address || "—",
     status: (
-      <Badge variant={branch.status?.toLowerCase() as any}>
+      <Badge variant={branch.status?.toLowerCase() as ComponentProps<typeof Badge>["variant"]}>
         {formatEnum(branch.status)}
       </Badge>
     ),

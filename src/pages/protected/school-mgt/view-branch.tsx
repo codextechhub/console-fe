@@ -10,7 +10,7 @@ import {
 import { routesPath } from "@/routes/routesPath";
 import { formatEnum, formatStartedTime, returnInitial } from "@/utils/helpers";
 import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { useNavigate, useParams } from "react-router";
 
 const CLASS_TABLE_HEADERS = ["S/N", "Class Name", "Level", "Total Students", "Class Teacher", "Action"];
@@ -83,7 +83,7 @@ export default function ViewBranch() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2.5">
                     <h4 className="font-semibold text-2xl capitalize">{branch.name}</h4>
-                    <Badge variant={branch.status?.toLowerCase() as any}>
+                    <Badge variant={branch.status?.toLowerCase() as ComponentProps<typeof Badge>["variant"]}>
                       {formatEnum(branch.status)}
                     </Badge>
                   </div>

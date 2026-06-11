@@ -10,7 +10,7 @@ import {
   useCreateAuditExportMutation,
 } from "@/redux/services/dashboard/auditApi";
 import { formatRelativeDate, returnInitial } from "@/utils/helpers";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import EventDetailDrawer from "./components/event-detail-drawer";
 import { routesPath } from "@/routes/routesPath";
 import type { AuditEventDetail } from "@/redux/services/dashboard/auditTypes";
@@ -60,10 +60,15 @@ export default function EntityTrailDetail() {
   const [chip, setChip] = useState("all");
   const [selectedSnap, setSelectedSnap] = useState<AuditEventDetail[]>([]);
 
-  useEffect(() => {
+  // Reset per-entity UI state when the route entity changes (guarded
+  // render-phase adjustment instead of a setState-in-effect cascade).
+  const trailKey = `${params.entity_type}/${params.entity_id}`;
+  const [prevTrailKey, setPrevTrailKey] = useState(trailKey);
+  if (trailKey !== prevTrailKey) {
+    setPrevTrailKey(trailKey);
     setChip("all");
     setSelectedSnap([]);
-  }, [params.entity_type, params.entity_id]);
+  }
 
   const { data, isLoading, isError, refetch, isFetching } = useGetEntityTrailDetailQuery(
     { entity_type: params.entity_type!, entity_id: params.entity_id! },
@@ -72,7 +77,7 @@ export default function EntityTrailDetail() {
   const [createExport, { isLoading: exporting }] = useCreateAuditExportMutation();
 
   const trail = data?.data?.trail;
-  const events = (data?.data?.events ?? []) as AuditEventDetail[];
+  const events = useMemo(() => (data?.data?.events ?? []) as AuditEventDetail[], [data]);
 
   const modules = useMemo(() => [...new Set(events.map((e) => e.module_key))], [events]);
 

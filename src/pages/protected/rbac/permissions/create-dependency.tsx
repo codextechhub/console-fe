@@ -42,11 +42,17 @@ function PermissionPicker({
 
   const selected = options.find((o) => o.value === value);
 
+  // Guarded render-phase adjustment: clear the search whenever the dropdown
+  // closes (covers outside-click, selection and toggle paths alike).
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (!open) setSearch("");
+  }
+
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 0);
-    } else {
-      setSearch("");
     }
   }, [open]);
 
