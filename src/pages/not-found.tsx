@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { routesPath } from "@/routes/routesPath";
 import { ArrowLeft, Home, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router";
-import logo from "@/assets/svg/full-logo.svg";
 import { SUPPORT_MAIL } from "@/utils/static";
 
 export default function NotFound() {
@@ -12,11 +11,9 @@ export default function NotFound() {
       <header className="bg-white border-b border-gray-200 py-3 px-6 flex items-center">
         <div className="flex items-center gap-2">
           <img
-            src={logo}
-            alt="svg logo"
-            width={60}
-            height={60}
-            className="size-fit"
+            src="/image/logo.png"
+            alt="XVS logo"
+            className="h-12 w-auto"
           />
         </div>
 

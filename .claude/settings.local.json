@@ -32,7 +32,9 @@
       "Read(//Users/mac/**)",
       "Bash(bash deploy-staging.sh)",
       "Bash(sed -n '74,127p' src/redux/services/dashboard/workflowTypes.ts)",
-      "Bash(sed -n '12,28p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_workflow/serializers.py)"
+      "Bash(sed -n '12,28p' /Users/mac/Documents/Dev-Projects/GitHub/backend/apps/vs_workflow/serializers.py)",
+      "Bash(sips -g pixelWidth -g pixelHeight \"/Users/mac/Downloads/Frame 1618874203.png\")",
+      "Bash(sips -g pixelWidth -g pixelHeight public/image/logo.png)"
     ],
     "additionalDirectories": [
       "/Users/mac/Documents/Dev Projects/GitHub/backend"

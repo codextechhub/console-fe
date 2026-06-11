@@ -7,9 +7,9 @@ export default function AuthLayout() {
       <div className="bg-[url(/image/authBg.png)] bg-fixed absolute inset-0 size-full bg-cover bg-center z-0" />
       <div className="relative z-1 grid size-full md:w-130 space-y-5 px-3">
         <img
-          src="/svg/logo-white.svg"
-          alt="codex logo"
-          className="mx-auto h-8 w-auto"
+          src="/image/logo.png"
+          alt="XVS logo"
+          className="mx-auto h-16 w-auto"
         />
         <div className="rounded-lg bg-white w-[93vw] md:w-full min-h-90 px-5 md:px-7 py-14 overflow-x-hidden">
           <Outlet />

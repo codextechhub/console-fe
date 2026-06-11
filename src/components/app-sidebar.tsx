@@ -8,7 +8,6 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { svgIcons } from "@/assets/svg";
 import {
   HomeIcon,
   SchoolIcon,
@@ -348,7 +347,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem className="mt-2">
               <div className="flex items-center justify-center">
-                <div className="size-fit">{svgIcons.logo}</div>
+                <img
+                  src="/image/logo.png"
+                  alt="XVS logo"
+                  className="h-10 w-auto"
+                />
               </div>
             </SidebarMenuItem>
           </SidebarMenu>
