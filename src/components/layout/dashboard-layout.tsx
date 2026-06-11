@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -23,6 +24,80 @@ import { useLogout } from "@/hooks/use-logout";
 import useToggleModal from "@/hooks/use-toggle";
 import PromptModal from "@/components/modal/prompt-modal";
 import { routesPath } from "@/routes/routesPath";
+
+// Self-hosted Google Noto animated emojis (public/emoji/*.webp). The artwork
+// itself moves — the clap claps, the wave waves — because the WebP is an
+// animated, looping image.
+const GREETING_EMOJIS = [
+  "wave",
+  "clap",
+  "party",
+  "raising-hands",
+  "sparkles",
+  "star",
+  "hug",
+  "smile",
+  "fire",
+] as const;
+
+// Picked once per login session and persisted, so it stays put on refresh but
+// shuffles to a new one the next time the user signs in (a fresh session has no
+// stored key yet).
+function pickSessionEmoji() {
+  try {
+    const stored = sessionStorage.getItem("_greeting_emoji");
+    if (stored !== null) {
+      const i = Number(stored);
+      if (Number.isInteger(i) && i >= 0 && i < GREETING_EMOJIS.length) {
+        return GREETING_EMOJIS[i];
+      }
+    }
+    const i = Math.floor(Math.random() * GREETING_EMOJIS.length);
+    sessionStorage.setItem("_greeting_emoji", String(i));
+    return GREETING_EMOJIS[i];
+  } catch {
+    return GREETING_EMOJIS[0];
+  }
+}
+
+// True only on the first dashboard view of a login session, so the greeting
+// auto-plays once right after sign-in (not on every refresh/navigation).
+function consumeLoginAutoPlay() {
+  try {
+    if (sessionStorage.getItem("_greeting_played")) return false;
+    sessionStorage.setItem("_greeting_played", "1");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function GreetingEmoji() {
+  const [emoji] = useState(pickSessionEmoji);
+  const [hovered, setHovered] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(consumeLoginAutoPlay);
+
+  // Auto-play for 5s after login, then freeze back to the still poster.
+  useEffect(() => {
+    if (!autoPlay) return;
+    const id = setTimeout(() => setAutoPlay(false), 5000);
+    return () => clearTimeout(id);
+  }, [autoPlay]);
+
+  // Static PNG poster at rest; animated WebP while auto-playing or hovered.
+  const animated = autoPlay || hovered;
+  return (
+    <img
+      src={`/emoji/${emoji}.${animated ? "webp" : "png"}`}
+      alt=""
+      aria-hidden="true"
+      className="inline-block size-6 select-none align-text-bottom"
+      draggable={false}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    />
+  );
+}
 
 function DashboardHeader({
   hasBack,
@@ -79,13 +154,17 @@ function DashboardHeader({
         {title ? (
           <h6 className="text-base uppercase font-semibold text-black-01">{title}</h6>
         ) : (
-          <h6 className="font-mont text-lg font-medium text-black-01">
+          <h6
+            className="text-lg font-medium text-black-01 inline-flex items-center gap-1.5"
+            style={{ fontFamily: '"Trebuchet MS", "Segoe UI", Tahoma, sans-serif' }}
+          >
             {(() => {
               const h = new Date().getHours();
               const period = h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening";
               const first = user?.full_name?.split(" ")[0];
-              return `Good ${period}${first ? `, ${first}!` : "!"}`;
+              return `Good ${period}${first ? `, ${first}` : ""}`;
             })()}
+            <GreetingEmoji />
           </h6>
         )}
       </div>
