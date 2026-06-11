@@ -1,68 +1,83 @@
+import { useState } from "react";
 import { useSelector } from "react-redux";
-import { useEffect, useRef, useState } from "react";
 
-// Background notification feeds (the header bell polls these). They have their
-// own in-page loading states, so their fetches must not flash the top bar.
-const SILENT_ENDPOINTS = new Set(["getPendingApprovals", "getMySubmissions"]);
+// Background notification feeds (the header bell polls these every 60 s).
+// They have their own in-page loading states, so their fetches must not flash
+// the top bar. These are the *Bell endpoints from workflowApi — the page-level
+// getPendingApprovals / getMySubmissions queries are foreground requests and
+// SHOULD show the bar.
+const SILENT_ENDPOINTS = new Set([
+  "getPendingApprovalsBell",
+  "getReturnedSubmissionsBell",
+]);
 
-export function TopProgressBar() {
-  const isActive = useSelector((state: any) => {
-    const api = state.baseApi;
-    if (!api) return false;
-    return (
-      Object.values(api.queries ?? {}).some(
-        (q: any) => q?.status === "pending" && !SILENT_ENDPOINTS.has(q?.endpointName),
-      ) ||
-      Object.values(api.mutations ?? {}).some((m: any) => m?.status === "pending")
-    );
-  });
-
-  const [visible, setVisible] = useState(false);
-  const [width, setWidth] = useState(0);
-  const [opacity, setOpacity] = useState(1);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const clear = () => { timers.current.forEach(clearTimeout); timers.current = []; };
-  const after = (ms: number, fn: () => void) => {
-    const t = setTimeout(fn, ms);
-    timers.current.push(t);
+// Minimal slice of RTK Query's internal cache state — enough to detect
+// in-flight requests without reaching for `any`.
+interface CacheEntry {
+  status?: string;
+  endpointName?: string;
+}
+interface BaseApiState {
+  baseApi?: {
+    queries?: Record<string, CacheEntry | undefined>;
+    mutations?: Record<string, CacheEntry | undefined>;
   };
+}
 
-  useEffect(() => {
-    if (isActive) {
-      clear();
-      setOpacity(1);
-      setWidth(0);
-      setVisible(true);
-      // tiny delay so the 0% renders before the transition fires
-      after(10, () => setWidth(85));
-    } else if (visible) {
-      clear();
-      setWidth(100);
-      after(300, () => setOpacity(0));
-      after(700, () => { setVisible(false); setWidth(0); setOpacity(1); });
-    }
+const selectAnyPending = (state: BaseApiState): boolean => {
+  const api = state.baseApi;
+  if (!api) return false;
+  return (
+    Object.values(api.queries ?? {}).some(
+      (q) => q?.status === "pending" && !SILENT_ENDPOINTS.has(q?.endpointName ?? ""),
+    ) ||
+    Object.values(api.mutations ?? {}).some((m) => m?.status === "pending")
+  );
+};
 
-    return clear;
-  }, [isActive]);
+type Phase = "idle" | "running" | "finishing";
 
-  if (!visible) return null;
+// Animation is pure CSS (keyframes below) instead of timer-driven setState, so
+// there is no synchronous setState inside effects and nothing for the React
+// Compiler to mis-memoise. Phase transitions happen via the sanctioned
+// render-phase adjustment pattern; "finishing" → "idle" is event-driven
+// (onAnimationEnd).
+export function TopProgressBar() {
+  const isActive = useSelector(selectAnyPending);
+  const [phase, setPhase] = useState<Phase>("idle");
 
-  const transition =
-    width === 0   ? "none"
-    : width === 100 ? "width 0.25s ease, opacity 0.35s ease"
-    : "width 8s cubic-bezier(0.05, 0.5, 0.1, 1)";
+  // Adjust state when the derived store value changes (guarded, render-phase).
+  if (isActive && phase !== "running") {
+    setPhase("running");
+  } else if (!isActive && phase === "running") {
+    setPhase("finishing");
+  }
+
+  if (phase === "idle" && !isActive) return null;
 
   return (
     <div className="absolute bottom-0 left-0 right-0 h-[3px]">
+      <style>{`
+        @keyframes tpb-grow { from { width: 0 } to { width: 85% } }
+        @keyframes tpb-finish {
+          0%   { width: 85%;  opacity: 1 }
+          40%  { width: 100%; opacity: 1 }
+          100% { width: 100%; opacity: 0 }
+        }
+      `}</style>
       <div
+        key={phase}
+        onAnimationEnd={() => {
+          if (phase === "finishing") setPhase("idle");
+        }}
         style={{
           height: "100%",
-          width: `${width}%`,
-          opacity,
           backgroundColor: "var(--color-primary)",
           borderRadius: "0 2px 2px 0",
-          transition,
+          animation:
+            phase === "finishing"
+              ? "tpb-finish 0.7s ease forwards"
+              : "tpb-grow 8s cubic-bezier(0.05, 0.5, 0.1, 1) forwards",
         }}
       />
     </div>

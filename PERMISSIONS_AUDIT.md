@@ -21,7 +21,7 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Organogram | Manage | `P.MANAGE_ORGANOGRAM` | own check via `hasPermission`; sub-item hidden without manage; backend enforces writes |
 | Roles | Platform Roles | `P.VIEW_ROLES` | |
 | Roles | User Assignments | `P.VIEW_ROLES` | inherits parent |
-| Roles | Change Requests | `P.VIEW_ROLES` | inherits parent |
+| Roles | Change Requests | `P.MODIFY_ROLE` | own check via `hasPermission`; nav enabled 2026-06-11 (was a disabled placeholder — page and backend endpoints are live) |
 | Roles | Transfer Super Admin | `P.TRANSFER_SUPER_ADMIN` | own check via `hasPermission`; only super admin sees it; backend further restricts execution to the active super admin |
 | Permissions | All Permissions | `P.VIEW_PERMISSIONS` | |
 | Permissions | Modules | `P.VIEW_PERMISSIONS` | inherits parent |
@@ -201,7 +201,7 @@ The top-right avatar opens a dropdown. All items are visible to every authentica
 
 | Element | Type | Permission Constant |
 |---|---|---|
-| "New Import" button | `<PermissionGate>` | `P.UPLOAD_IMPORT_BATCH` (currently disabled — wizard not yet built) |
+| "New Import" button | `<PermissionGate>` | `P.UPLOAD_IMPORT_BATCH` — opens the 7-step upload wizard |
 | Table row → "Delete" dropdown action | `hasPermission()` | `P.DELETE_IMPORT_BATCH` (also hidden for in-flight batches) |
 
 ---
@@ -370,11 +370,11 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.MANAGE_BRANCH` | `platform.branches.manage` | Branch lifecycle transitions |
 | `P.VIEW_DASHBOARD` | `platform.dashboard.view` | Home / Overview page |
 | `P.VIEW_SECURITY` | `platform.security.view` | Defined for future security-only read separation; today the Audit pages gate on `P.VIEW_AUDIT`. |
-| `P.IMPERSONATE_USER` | `platform.security.impersonate` | "Start impersonation" entry point — not yet built; the current Impersonations page only lists sessions. |
+| `P.IMPERSONATE_USER` | `platform.security.impersonate` | "Start impersonation" entry point — not yet built; the current Impersonations page only lists sessions. Nav item enabled 2026-06-11 (was a disabled placeholder; the list page and `vs_admin_console` start/end endpoints are live). |
 | `P.VIEW_IMPORT_TEMPLATES` | `import.templates.view` | Gates sidebar sub-item and list page (`PageAccessDenied` if missing). |
 | `P.MANAGE_IMPORT_TEMPLATES` | `import.templates.manage` | Reserved for future edit/publish/retire flows once backend supports them. |
 | `P.VIEW_IMPORT_BATCHES` | `import.batches.view` | Gates sidebar sub-item and list page (`PageAccessDenied` if missing). |
-| `P.UPLOAD_IMPORT_BATCH` | `import.batches.create` | Wired to "New Import" button which is disabled until the upload wizard ships. |
+| `P.UPLOAD_IMPORT_BATCH` | `import.batches.create` | Wired to the "New Import" button → upload wizard (`import-wizard.tsx`). |
 | `P.EDIT_IMPORT_BATCH` | `import.batches.update` | No UI surface yet — batch detail metadata edit (notes / sheet / header row) not exposed. |
 | `P.VIEW_IMPORT_ISSUES` | `import.validations.view` | Defined; Issues tab inherits batch-view permission. |
 | `P.VIEW_IMPORT_JOBS` | `import.jobs.view` | Defined; Jobs tab inherits batch-view permission. |
@@ -412,7 +412,6 @@ they cannot actually open. Equivalent treatment was applied to the
 | Gap | Details |
 |---|---|
 | Data Imports nav parent | Parent menu has no gate; sub-items always visible. Page-level actions are gated individually (see §2 below). |
-| Data Imports upload flow | "New Import" button on Batches list is disabled — full upload wizard not yet built. The `UPLOAD_IMPORT_BATCH` permission is wired but the action is a no-op. |
 | Branches / Dashboard | Constants defined but the pages those constants would gate haven't been built yet. |
 | `P.VIEW_SECURITY` / `P.IMPERSONATE_USER` | New audit pages currently gate on `P.VIEW_AUDIT`. Once the backend adds `platform.security.*` permission rows and the "Start impersonation" entry-point UI is built, wire those constants. |
 | Backend permission seeding | The bootstrap (`apps/core/management/commands/create_superuser.py`) does not yet seed the new `platform.security.*` permission rows in the DB. Add them when wiring `P.VIEW_SECURITY` / `P.IMPERSONATE_USER`. |

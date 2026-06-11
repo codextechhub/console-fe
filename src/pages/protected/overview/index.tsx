@@ -67,20 +67,37 @@ const ACTIVITY_PERIODS: ActivityPeriod[] = ["Monthly", "Weekly", "Daily"];
 
 type Trend = { dir: "up" | "down"; value: string; note: string };
 
+function SampleChip() {
+  return (
+    <span
+      className="rounded bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-[10px] font-medium text-amber-600"
+      title="Placeholder figure — the aggregate overview endpoint is not built yet."
+    >
+      Sample
+    </span>
+  );
+}
+
 function StatCard({
   label,
   value,
   trend,
   loading,
+  sample,
 }: {
   label: string;
   value: number | string;
   trend?: Trend;
   loading?: boolean;
+  /** Marks hard-coded placeholder figures until the overview endpoint exists. */
+  sample?: boolean;
 }) {
   return (
     <div className="bg-white rounded-lg px-6 py-5 space-y-3 border border-gray-100">
-      <h5 className="text-sm font-medium text-gray-500">{label}</h5>
+      <h5 className="text-sm font-medium text-gray-500 inline-flex items-center gap-2">
+        {label}
+        {sample && <SampleChip />}
+      </h5>
       <p className="text-3xl font-bold text-[#1a1a2e]">
         {loading ? <span className="text-gray-300">—</span> : value}
       </p>
@@ -149,18 +166,19 @@ export default function Overview() {
             label="Active Schools"
             value={activeSchools}
             loading={schoolsLoading}
-            trend={{ dir: "up", value: "5%", note: "This week" }}
           />
+          {/* getTeamMembers lists console (CX) team members — not school
+              users. Label matches what the number actually counts. */}
           <StatCard
-            label="Active School Users"
+            label="CX Team Members"
             value={activeSchoolUsers}
             loading={teamLoading}
-            trend={{ dir: "down", value: "5%", note: "less than last week" }}
           />
-          <StatCard label="Total Demo Requests" value={14} />
+          <StatCard label="Total Demo Requests" value={14} sample />
           <StatCard
             label="Website Visits"
             value={14}
+            sample
             trend={{ dir: "up", value: "5%", note: "Last Month" }}
           />
         </div>
@@ -170,7 +188,10 @@ export default function Overview() {
           {/* Downtimes */}
           <div className="lg:col-span-1 bg-white rounded-lg px-6 py-5 flex flex-col">
             <div className="flex items-center justify-between">
-              <h4 className="text-lg font-semibold text-[#1a1a2e]">Downtimes</h4>
+              <h4 className="text-lg font-semibold text-[#1a1a2e] inline-flex items-center gap-2">
+                Downtimes
+                <SampleChip />
+              </h4>
               <Link
                 to={routesPath.PROTECTED.AUDIT.DASHBOARD}
                 className="inline-flex items-center gap-1 text-sm font-medium text-red-500 hover:text-red-600"
@@ -195,8 +216,9 @@ export default function Overview() {
 
           {/* Average Activity Chart */}
           <div className="lg:col-span-2 bg-white rounded-lg px-6 py-5">
-            <p className="text-center text-sm font-medium text-gray-400">
+            <p className="text-center text-sm font-medium text-gray-400 inline-flex w-full items-center justify-center gap-2">
               Average Activity Chart
+              <SampleChip />
             </p>
 
             <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -243,15 +265,14 @@ export default function Overview() {
         {/* Total Mission Plans + Available Plans */}
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">
-            <StatCard
-              label="Total Mission Plans"
-              value={14}
-              trend={{ dir: "up", value: "5%", note: "less than 1 week" }}
-            />
+            <StatCard label="Total Mission Plans" value={14} sample />
           </div>
 
           <div className="lg:col-span-2 bg-white rounded-lg px-6 py-5">
-            <h4 className="text-lg font-semibold text-[#1a1a2e]">Available Plans</h4>
+            <h4 className="text-lg font-semibold text-[#1a1a2e] inline-flex items-center gap-2">
+              Available Plans
+              <SampleChip />
+            </h4>
             <div className="mt-5 grid grid-cols-2 gap-y-6 sm:grid-cols-4">
               {plans.map((name) => (
                 <div key={name} className="space-y-2">

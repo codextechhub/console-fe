@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -114,8 +114,10 @@ function DashboardHeader({
   const { handleLogout, isLoggingOut } = useLogout();
   const { isOpen: openLogout, toggleClick: toggleLogout } = useToggleModal(false);
 
+  // `sticky` is itself a positioned context for the absolute children
+  // (collapse toggle, progress bar) — adding `relative` would conflict.
   return (
-    <header className="flex justify-between h-15 px-3 lg:px-10 shrink-0 sticky top-0 z-10 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-white border border-l-0 border-white-02 relative">
+    <header className="flex justify-between h-15 px-3 lg:px-10 shrink-0 sticky top-0 z-10 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-white border border-l-0 border-white-02">
       {/* Sidebar collapse toggle — on the left border, vertically centered in the header */}
       <button
         type="button"
@@ -161,7 +163,9 @@ function DashboardHeader({
             {(() => {
               const h = new Date().getHours();
               const period = h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening";
-              const first = user?.full_name?.split(" ")[0];
+              // first_name is the canonical field; full_name is a display
+              // string ("Dr. Jane A. Doe") whose first token may be a title.
+              const first = user?.first_name || user?.full_name?.split(" ")[0];
               return `Good ${period}${first ? `, ${first}` : ""}`;
             })()}
             <GreetingEmoji />
@@ -184,7 +188,8 @@ function DashboardHeader({
               className="hidden sm:inline-flex items-center gap-x-3 pl-2.5 py-1 rounded-lg hover:bg-white-02/60 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               <Avatar>
-                <AvatarImage src={"/image/avatar2.png"} />
+                {/* No avatar upload exists yet — initials, not a stock photo
+                    shared by every user. */}
                 <AvatarFallback>
                   {returnInitial(user?.full_name ?? "O")}
                 </AvatarFallback>

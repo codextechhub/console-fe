@@ -1,4 +1,3 @@
-"use client";
 import * as React from "react";
 import {
   Sidebar,
@@ -129,7 +128,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               title: "Change Requests",
               url: routesPath.PROTECTED.ROLES.CHANGE_REQUESTS,
               isActive: location.startsWith(routesPath.PROTECTED.ROLES.CHANGE_REQUESTS),
-              disabled: true,
             }]
           : []),
         // Transfer Super Admin — only shown to users who hold the
@@ -311,8 +309,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "Impersonations",
           url: routesPath.PROTECTED.AUDIT.IMPERSONATIONS,
-          isActive: false,
-          disabled: true,
+          isActive: location.startsWith(routesPath.PROTECTED.AUDIT.IMPERSONATIONS),
         },
         // Audit Exports — backend requires platform.audit.export to list jobs
         ...(hasPermission(P.EXPORT_AUDIT)
