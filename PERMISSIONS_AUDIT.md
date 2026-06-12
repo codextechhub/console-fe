@@ -30,6 +30,7 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Permissions | Actions | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Dependencies | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Permission Groups | `P.VIEW_PERMISSIONS` | inherits parent |
+| Export | View Queues | _(none — always visible)_ | own queues open to any authenticated user (`IsAuthenticatedAndActive`); the All Queues scope is gated server-side (CX staff with `xvs_super_admin`/`xvs_platform_admin` role) and the Mine/All toggle only renders when the summary's `can_view_all` is true |
 | Data Imports | Import Batches | `P.VIEW_IMPORT_BATCHES` | parent visible when user has either batch or template view; sub-item hidden without this permission |
 | Data Imports | Import Templates | `P.VIEW_IMPORT_TEMPLATES` | sub-item hidden without this permission; create still gated by `P.CREATE_IMPORT_TEMPLATE` |
 | Workflow | Approvals | _(none — always visible)_ | backend gates pending queue at `IsAuthenticatedAndActive` |

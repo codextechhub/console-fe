@@ -15,7 +15,7 @@ import {
   PermissionsIcon,
   DataImportsIcon,
 } from "@/assets/navbar-svg";
-import { ClipboardCheck, Network, Shield, Workflow } from "lucide-react";
+import { ClipboardCheck, FileOutput, Network, Shield, Workflow } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routesPath";
 import { useLocation } from "react-router";
@@ -218,6 +218,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               isActive: location.startsWith(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX),
             }]
           : []),
+      ],
+    },
+    {
+      // Export — submenu grows as export features ship; View Queues is first.
+      // Anyone can see their own queues (backend gates at IsAuthenticatedAndActive);
+      // the all-queues scope is gated server-side and by can_view_all in the page.
+      title: "Export",
+      url: routesPath.PROTECTED.EXPORT.QUEUES,
+      icon: FileOutput,
+      isActive: false,
+      childActive: location.startsWith("/export"),
+      permission: null,
+      permissionMode: "any" as const,
+      items: [
+        {
+          title: "View Queues",
+          url: routesPath.PROTECTED.EXPORT.QUEUES,
+          isActive: location.startsWith(routesPath.PROTECTED.EXPORT.QUEUES),
+        },
       ],
     },
     {

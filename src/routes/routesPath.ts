@@ -150,6 +150,10 @@ export const routesPath = {
     TODO: {
       INDEX: "/tasks",
     },
+    // Export menu — more entries will be appended as export features ship.
+    EXPORT: {
+      QUEUES: "/export/queues",
+    },
     ORGANOGRAM: {
       INDEX: "/organogram",
       MANAGE: "/organogram/manage",

@@ -260,5 +260,7 @@ export const baseApi = createApi({
     "TodoDashboard",
     "TodoTasks",
     "TodoAssignable",
+    "QueueJobs",
+    "QueueSummary",
   ],
 });

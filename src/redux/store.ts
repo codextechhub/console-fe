@@ -1,4 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
+import { setupListeners } from "@reduxjs/toolkit/query";
 
 import { useDispatch, useSelector } from "react-redux";
 import type { TypedUseSelectorHook} from "react-redux";
@@ -26,6 +27,10 @@ export const store = configureStore({
       immutableCheck: false,
     }).concat(baseApi.middleware),
 });
+
+// Tracks window focus/online state so queries can use skipPollingIfUnfocused /
+// refetchOnFocus. Existing queries are unaffected (those behaviors are opt-in).
+setupListeners(store.dispatch);
 
 export type AppDispatch = typeof store.dispatch;
 export const useAppDispatch = () => useDispatch<AppDispatch>();
