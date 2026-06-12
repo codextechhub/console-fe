@@ -79,6 +79,7 @@ export default function OrgNodeManager() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OrgNode | null>(null);
   const [form, setForm] = useState<FormState>(empty);
+  const [initialForm, setInitialForm] = useState<FormState>(empty);
   const [codeTouched, setCodeTouched] = useState(false);
   const [toDelete, setToDelete] = useState<OrgNode | null>(null);
 
@@ -103,6 +104,7 @@ export default function OrgNodeManager() {
     setCodeTouched(false);
     // Default kind is DEPARTMENT — auto-fill its division when there's only one.
     setForm({ ...empty, parent_id: singleId(divisions) });
+    setInitialForm(empty);
     setOpen(true);
   };
   const openEdit = (n: OrgNode) => {
@@ -110,13 +112,15 @@ export default function OrgNodeManager() {
     setCodeTouched(true); // never overwrite an existing code from the name
     // Back-fill the cascade: a team's division is its parent department's parent.
     const parentFull = n.parent ? allNodes.find((x) => x.id === n.parent!.id) : undefined;
-    setForm({
+    const snapshot: FormState = {
       name: n.name, code: n.code, kind: n.kind,
       division_id: n.kind === "TEAM" ? String(parentFull?.parent?.id ?? "") : "",
       parent_id: n.parent ? String(n.parent.id) : "",
       head_position_id: n.head_position ? String(n.head_position.id) : "",
       description: n.description ?? "", is_active: n.is_active,
-    });
+    };
+    setInitialForm(snapshot);
+    setForm(snapshot);
     setOpen(true);
   };
 
@@ -153,8 +157,18 @@ export default function OrgNodeManager() {
         ? [nameOf(form.division_id), ...(form.parent_id ? [nameOf(form.parent_id)] : [])]
         : [];
 
+  const isDirty = !editing || (
+    form.name !== initialForm.name ||
+    form.code !== initialForm.code ||
+    form.kind !== initialForm.kind ||
+    form.parent_id !== initialForm.parent_id ||
+    form.head_position_id !== initialForm.head_position_id ||
+    form.description !== initialForm.description ||
+    form.is_active !== initialForm.is_active
+  );
+
   const canSubmit =
-    !!form.name.trim() && !!form.code.trim() && (form.kind === "DIVISION" || !!form.parent_id);
+    !!form.name.trim() && !!form.code.trim() && (form.kind === "DIVISION" || !!form.parent_id) && isDirty;
 
   const submit = () => {
     if (!canSubmit) return;
@@ -184,7 +198,15 @@ export default function OrgNodeManager() {
       code: <span className="font-mono text-xs text-gray-01">{n.code}</span>,
       tier: <Badge variant={tierVariant[n.kind]}>{KIND_LABEL[n.kind]}</Badge>,
       parent: <span className="text-sm">{n.parent?.name || "—"}</span>,
-      head: <span className="text-sm">{n.head?.full_name || "—"}</span>,
+      head: (
+        <span className="text-sm">
+          {n.head?.full_name
+            ? n.head.full_name
+            : n.head_position?.title
+              ? <span className="text-gray-01 italic">{n.head_position.title} <span className="not-italic text-xs">(vacant)</span></span>
+              : "—"}
+        </span>
+      ),
       active: <Badge variant={n.is_active ? "active" : "inactive"}>{n.is_active ? "Active" : "Inactive"}</Badge>,
       actions: (
         <div className="flex items-center gap-1">
