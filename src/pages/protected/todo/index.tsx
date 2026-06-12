@@ -123,8 +123,28 @@ export default function TodoPage() {
   // ── Task mutations ──────────────────────────────────────────────────────────
   const onToggle = async (task: Task) => {
     setTogglingId(task.id);
+    const completing = !task.is_done;
+    // Completing your OWN task asks your reviewer (assigner, else line manager)
+    // to look at it. The backend holds the email for 5 s and re-checks the task
+    // state at send time, so undoing here cancels the request entirely.
+    const selfComplete = completing && task.assignee.id === viewerId;
     try {
-      await toggleTask({ id: task.id, done: !task.is_done }).unwrap();
+      await toggleTask({ id: task.id, done: completing }).unwrap();
+      if (selfComplete) {
+        toast.success(`"${task.title}" marked as done`, {
+          description: "Your reviewer will be notified in 5 seconds.",
+          duration: 5_000,
+          action: {
+            label: "Undo",
+            onClick: () => {
+              toggleTask({ id: task.id, done: false })
+                .unwrap()
+                .then(() => toast.info("Completion undone — no review request sent."))
+                .catch(() => {});
+            },
+          },
+        });
+      }
     } catch {
       /* baseApi surfaces the error toast */
     } finally {

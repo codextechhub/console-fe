@@ -5,8 +5,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  Ban, Briefcase, Building2, ChevronsDownUp, Filter, Info,
-  PlaneTakeoff, Search, Sparkles, UserPlus, Users, X,
+  Ban, Briefcase, Building2, ChevronsDownUp, Filter, Info, Maximize,
+  Minus, PlaneTakeoff, Plus, Search, Sparkles, UserPlus, Users, X,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { cn } from "@/lib/utils";
@@ -117,6 +117,100 @@ export default function OrganogramPage() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const me = useAppSelector(selectUser);
 
+  // ── chart zoom + pan (persists across tab switches) ─────────────────────────
+  // Zoom is applied IMPERATIVELY to the DOM on every wheel event (the way
+  // canvas tools like Figma/Miro do it): the live value lives in zoomRef and is
+  // written straight to the wrapper's style + a cursor-anchored scroll
+  // correction in the same event — no per-event React render, no quantising.
+  // React state mirrors it once per animation frame purely for the % readout.
+  const [zoom, setZoom] = useState(1);
+  const zoomRef = useRef(1);
+  const zoomWrapRef = useRef<HTMLDivElement | null>(null);
+  const zoomSyncRaf = useRef(0);
+  const [panning, setPanning] = useState(false);
+  const panRef = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
+
+  // Continuous clamp — no rounding. Rounding ate trackpad pinch deltas (~0.3%
+  // per event → rounded to nothing → sudden 1% jumps); the readout rounds, the
+  // value itself stays smooth.
+  const clampZoom = (z: number) => Math.min(1.5, Math.max(0.4, z));
+
+  // Apply a zoom level now: write the style, keep the anchor point (cursor or
+  // viewport centre) stationary, then mirror into state on the next frame.
+  const applyZoom = (next: number, anchor?: { ox: number; oy: number }) => {
+    const cont = scrollRef.current;
+    const wrap = zoomWrapRef.current;
+    if (!cont || !wrap) return;
+    const z1 = zoomRef.current;
+    const z2 = clampZoom(next);
+    if (z2 === z1) return;
+    const sl = cont.scrollLeft;
+    const st = cont.scrollTop;
+    const ox = anchor?.ox ?? cont.clientWidth / 2;
+    const oy = anchor?.oy ?? cont.clientHeight / 2;
+    zoomRef.current = z2;
+    wrap.style.zoom = String(z2);
+    cont.scrollLeft = ((sl + ox) / z1) * z2 - ox;
+    cont.scrollTop = ((st + oy) / z1) * z2 - oy;
+    if (!zoomSyncRaf.current) {
+      zoomSyncRaf.current = requestAnimationFrame(() => {
+        zoomSyncRaf.current = 0;
+        setZoom(zoomRef.current);
+      });
+    }
+  };
+
+  // Ctrl/Cmd + wheel (and trackpad pinch — browsers report pinch as ctrl+wheel)
+  // zooms, anchored at the cursor. Native non-passive listener — React's
+  // onWheel is passive, so preventDefault (needed to suppress the browser's
+  // page zoom) would be ignored there.
+  useEffect(() => {
+    const cont = scrollRef.current;
+    if (!cont) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      // Normalise line-mode deltas (Firefox) to pixels; multiplicative and
+      // proportional to the gesture — gentle pinch glides, a hard wheel flick
+      // moves ~25% per tick.
+      const deltaPx = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+      const factor = Math.exp(-deltaPx * 0.0022);
+      const rect = cont.getBoundingClientRect();
+      applyZoom(zoomRef.current * factor, {
+        ox: e.clientX - rect.left,
+        oy: e.clientY - rect.top,
+      });
+    };
+    cont.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      cont.removeEventListener("wheel", onWheel);
+      if (zoomSyncRaf.current) cancelAnimationFrame(zoomSyncRaf.current);
+    };
+    // applyZoom is stable in behaviour (refs only); listener mounts once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Drag-to-pan from the chart background only — cards stay clickable.
+  const onPanStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest("[data-card], button, a")) return;
+    const cont = scrollRef.current;
+    if (!cont) return;
+    panRef.current = { x: e.clientX, y: e.clientY, sl: cont.scrollLeft, st: cont.scrollTop };
+    cont.setPointerCapture(e.pointerId);
+    setPanning(true);
+  };
+  const onPanMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = panRef.current;
+    const cont = scrollRef.current;
+    if (!start || !cont) return;
+    cont.scrollLeft = start.sl - (e.clientX - start.x);
+    cont.scrollTop = start.st - (e.clientY - start.y);
+  };
+  const onPanEnd = () => {
+    panRef.current = null;
+    setPanning(false);
+  };
+
   // Filter the position tree to the selected org node (and its descendant nodes),
   // re-parenting kept seats so the unit's positions surface as roots.
   const viewTree = useMemo(() => {
@@ -160,8 +254,18 @@ export default function OrganogramPage() {
   const openPosition = (id: number) => setTarget({ kind: "position", id });
   const closeDetail = () => setTarget(null);
 
-  const togglePos = (id: number) => setExpandedPos((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  const togglePeople = (id: string) => setExpandedPeople((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  // Toggling a branch re-centres the viewport on that node (and the branches it
+  // just revealed) at the CURRENT zoom level — scrollIntoView is layout-based,
+  // so the zoom state is untouched. The rAF inside scrollToNode runs after
+  // React commits the expanded children.
+  const togglePos = (id: number) => {
+    setExpandedPos((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+    scrollToNode(`[data-pid="${id}"]`);
+  };
+  const togglePeople = (id: string) => {
+    setExpandedPeople((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+    scrollToNode(`[data-uid="${id}"]`);
+  };
 
   const expandAll = () => {
     if (tab === "positions") setExpandedPos(new Set(collectPositionIds(viewTree)));
@@ -178,8 +282,8 @@ export default function OrganogramPage() {
       if (!cont) return;
       const el = cont.querySelector(selector) as HTMLElement | null;
       if (!el) return;
-      const top = el.getBoundingClientRect().top - cont.getBoundingClientRect().top + cont.scrollTop - 100;
-      cont.scrollTo({ top, behavior: "smooth" });
+      // Chart layout scrolls on both axes — center the card in the viewport.
+      el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
     });
   };
 
@@ -191,10 +295,8 @@ export default function OrganogramPage() {
     const raf = requestAnimationFrame(() => {
       const cont = scrollRef.current;
       const el = cont?.querySelector(`[data-uid="${pendingScrollUid}"]`) as HTMLElement | null;
-      if (cont && el) {
-        const top = el.getBoundingClientRect().top - cont.getBoundingClientRect().top + cont.scrollTop - 100;
-        cont.scrollTo({ top, behavior: "smooth" });
-      }
+      // Chart layout scrolls on both axes — center the card in the viewport.
+      if (cont && el) el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
     });
     const timer = setTimeout(() => {
       setHighlightUid((h) => (h === pendingScrollUid ? null : h));
@@ -235,7 +337,7 @@ export default function OrganogramPage() {
     actingSet,
   };
   const positionsCtx: PositionsCtx = { expanded: expandedPos, toggle: togglePos, openPosition, openUser, highlightId: highlightPid, showMatrix, posMap, matrixOut, matrixIn, actingSet };
-  const peopleCtx: PeopleCtx = { expanded: expandedPeople, toggle: togglePeople, openUser, openPosition, highlightId: highlightUid, profiles: profileMap };
+  const peopleCtx: PeopleCtx = { expanded: expandedPeople, toggle: togglePeople, openUser, highlightId: highlightUid, profiles: profileMap };
 
   return (
     <DashboardLayout title="Organogram">
@@ -311,9 +413,25 @@ export default function OrganogramPage() {
           </div>
         </div>
 
-        {/* tree */}
-        <div ref={scrollRef} className="max-h-[calc(100vh-19rem)] overflow-y-auto">
-          <div className="mx-auto max-w-5xl px-5 py-6">
+        {/* chart — scrolls on both axes; zoomable (Ctrl+wheel / controls) and
+            pannable by dragging the background. Cards remain clickable. */}
+        <div className="relative">
+          <div
+            ref={scrollRef}
+            onPointerDown={onPanStart}
+            onPointerMove={onPanMove}
+            onPointerUp={onPanEnd}
+            onPointerCancel={onPanEnd}
+            className={cn(
+              // Fixed-height stage: the chart always owns this whole area, so
+              // zoom/pan gestures work anywhere in it even when the diagram is
+              // tiny — Ctrl+wheel below a shrunken chart can never leak into the
+              // browser's page zoom. flex + m-auto centres small content.
+              "flex h-[calc(100vh-19rem)] touch-pan-x touch-pan-y select-none overflow-auto overscroll-contain",
+              panning ? "cursor-grabbing" : "cursor-grab",
+            )}
+          >
+            <div ref={zoomWrapRef} className="m-auto min-w-max px-6 py-8" style={{ zoom }}>
             {deptFilter !== "ALL" && (
               <div className="mb-3 flex items-center gap-2 text-sm text-slate-500">
                 <Filter className="size-3.5 text-indigo-500" />
@@ -321,9 +439,9 @@ export default function OrganogramPage() {
               </div>
             )}
             {treeLoading ? (
-              <div className="space-y-2">{[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-16 animate-pulse rounded-2xl bg-slate-100" />)}</div>
+              <div className="mx-auto w-full max-w-3xl space-y-2">{[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-16 animate-pulse rounded-2xl bg-slate-100" />)}</div>
             ) : viewTree.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 py-16 text-center">
+              <div className="mx-auto w-full max-w-3xl rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 px-10 py-16 text-center">
                 <Info className="mx-auto mb-2 size-6 text-slate-300" />
                 <p className="text-[13px] font-medium text-slate-500">No organogram data yet.</p>
                 <p className="mt-1 text-[12px] text-slate-400">Create departments and positions to build the chart.</p>
@@ -333,6 +451,38 @@ export default function OrganogramPage() {
             ) : (
               <PeopleTree roots={peopleRoots} ctx={peopleCtx} />
             )}
+            </div>
+          </div>
+
+          {/* zoom controls */}
+          <div className="absolute bottom-4 right-4 z-10 flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white/95 px-1 py-1 shadow-sm backdrop-blur">
+            <button
+              onClick={() => applyZoom(zoomRef.current - 0.1)}
+              disabled={zoom <= 0.4}
+              title="Zoom out"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300"
+            >
+              <Minus className="size-3.5" />
+            </button>
+            <span className="w-11 text-center font-mono text-[11.5px] font-semibold text-slate-600">
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              onClick={() => applyZoom(zoomRef.current + 0.1)}
+              disabled={zoom >= 1.5}
+              title="Zoom in"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300"
+            >
+              <Plus className="size-3.5" />
+            </button>
+            <span className="mx-0.5 h-4 w-px bg-slate-200" />
+            <button
+              onClick={() => applyZoom(1)}
+              title="Reset zoom"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+            >
+              <Maximize className="size-3.5" />
+            </button>
           </div>
         </div>
       </main>

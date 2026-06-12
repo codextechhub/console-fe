@@ -94,7 +94,7 @@ export function ReportsBadge({ direct, total }: { direct: number; total?: number
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 ring-1 ring-indigo-100"
-      title={showTotal ? `${direct} direct · ${total} total (incl. indirect) reports` : `${direct} direct report${direct === 1 ? "" : "s"}`}
+      title={showTotal ? `${direct} | ${total} (incl. indirect) reports` : `${direct} direct report${direct === 1 ? "" : "s"}`}
     >
       <Users className="size-2.5" />
       {showTotal ? (
