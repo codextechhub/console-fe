@@ -32,6 +32,10 @@ function revokeSessionOnBackend(tokens?: { access: string; refresh: string }): v
 export const IDLE_MS = 5 * 60 * 1000;       // 5 minutes idle before warning
 export const WARNING_MS = 10 * 60 * 1000;   // 10-minute countdown before expiry
 
+// NOTE: window "focus" is deliberately NOT an activity event. Returning to the
+// tab must first be judged against the wall clock (catchUp below) — treating
+// the regained focus itself as activity would stamp lastActivity = now and
+// silently erase a long absence before the idle check could run.
 const ACTIVITY_EVENTS = [
   "mousemove",
   "keydown",
@@ -39,7 +43,6 @@ const ACTIVITY_EVENTS = [
   "scroll",
   "touchstart",
   "wheel",
-  "focus",
   "pointerdown",
 ] as const;
 
@@ -118,40 +121,43 @@ export function useSessionTimeout() {
     lastActivityRef.current = Date.now();
     recordActivity();
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(() => startCountdown(Date.now()), IDLE_MS);
+    // Derive the warning start from lastActivity, not the firing time: browsers
+    // throttle/suspend background timers, so this timeout can fire arbitrarily
+    // late — the countdown must still measure from the true idle deadline.
+    idleTimerRef.current = setTimeout(
+      () => startCountdown(lastActivityRef.current + IDLE_MS),
+      IDLE_MS,
+    );
   }, [startCountdown]);
 
-  // When the tab becomes visible, check the actual wall-clock elapsed time
-  // to catch up regardless of how long the tab was hidden.
-  const checkOnVisibility = useCallback(() => {
-    if (document.hidden) return;
-
+  // Wall-clock catch-up, run on EVERY wake-up signal (activity event, window
+  // focus, visibilitychange). Timers can be suspended for the entire absence —
+  // system sleep, display sleep, Chrome tab freezing — so no timer may have
+  // fired before the user physically returns. Whichever signal lands first
+  // must judge the absence from lastActivity before anything resets it.
+  // Returns false when the idle threshold was crossed (warning/expiry shown).
+  const catchUp = useCallback((): boolean => {
     const now = Date.now();
 
     if (isWarningOpenRef.current && warningStartedAtRef.current) {
-      // Warning was already open — just verify it hasn't expired while hidden.
-      const warningElapsed = now - warningStartedAtRef.current;
-      if (warningElapsed >= WARNING_MS) {
-        expireSession();
-      }
-      return;
+      // Warning already open — just verify it hasn't expired while suspended.
+      if (now - warningStartedAtRef.current >= WARNING_MS) expireSession();
+      return false;
     }
 
-    // Warning not open yet — check if idle threshold was crossed while hidden.
     const idleElapsed = now - lastActivityRef.current;
-    if (idleElapsed >= IDLE_MS + WARNING_MS) {
+    if (lastActivityRef.current && idleElapsed >= IDLE_MS + WARNING_MS) {
       // Fully expired while away.
       expireSession();
-    } else if (idleElapsed >= IDLE_MS) {
-      // Crossed idle threshold while away — start countdown at the correct offset.
-      const warningStartedAt = lastActivityRef.current + IDLE_MS;
-      startCountdown(warningStartedAt);
-    } else {
-      // Returned before idle threshold — treat tab focus as activity so the
-      // remaining carry-over time doesn't silently drain while the user works.
-      resetIdleTimer();
+      return false;
     }
-  }, [expireSession, startCountdown, resetIdleTimer]);
+    if (lastActivityRef.current && idleElapsed >= IDLE_MS) {
+      // Crossed idle threshold while away — start countdown at the correct offset.
+      startCountdown(lastActivityRef.current + IDLE_MS);
+      return false;
+    }
+    return true;
+  }, [expireSession, startCountdown]);
 
   // Wire up activity listeners. mousemove/scroll fire continuously, so the
   // timer reset is throttled — clearTimeout/setTimeout per event would churn
@@ -162,7 +168,9 @@ export function useSessionTimeout() {
       const t = Date.now();
       if (t - lastReset < 1_000) return;
       lastReset = t;
-      resetIdleTimer();
+      // The first event after a long absence is the user *returning*, not
+      // activity — catch up first; only reset when still inside the window.
+      if (catchUp()) resetIdleTimer();
     };
     ACTIVITY_EVENTS.forEach((e) => window.addEventListener(e, handleActivity));
     resetIdleTimer();
@@ -171,13 +179,26 @@ export function useSessionTimeout() {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       clearCountdown();
     };
-  }, [resetIdleTimer]);
+  }, [catchUp, resetIdleTimer]);
 
-  // Catch up when the tab regains focus.
+  // Catch up when the tab becomes visible again, AND on window focus — an
+  // app-switch (Cmd+Tab) can return the user without any visibilitychange
+  // when the tab stayed nominally visible the whole time.
   useEffect(() => {
-    document.addEventListener("visibilitychange", checkOnVisibility);
-    return () => document.removeEventListener("visibilitychange", checkOnVisibility);
-  }, [checkOnVisibility]);
+    const onVisibility = () => {
+      if (document.hidden) return;
+      if (catchUp()) resetIdleTimer();
+    };
+    const onFocus = () => {
+      if (catchUp()) resetIdleTimer();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [catchUp, resetIdleTimer]);
 
   const onContinue = useCallback(async () => {
     clearCountdown();
