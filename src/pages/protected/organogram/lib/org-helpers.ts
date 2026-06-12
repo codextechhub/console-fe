@@ -208,6 +208,37 @@ export function collectPeopleIds(nodes: PeopleNode[], acc: string[] = []): strin
   return acc;
 }
 
+// Person-node user ids from a root down to the matched user (inclusive).
+// Expanding exactly these ids reveals the user's chain — and their own direct
+// reports — while every other branch stays collapsed. Used to auto-focus the
+// chart on the logged-in viewer.
+export function findPeoplePathToUser(
+  nodes: PeopleNode[],
+  match: (u: UserInline) => boolean,
+): string[] | null {
+  for (const n of nodes) {
+    if (n.kind !== "person") continue;
+    if (match(n.user)) return [n.user.id];
+    const below = findPeoplePathToUser(n.children, match);
+    if (below) return [n.user.id, ...below];
+  }
+  return null;
+}
+
+// Position ids from a root down to the seat held by the matched user (inclusive).
+// The positions-tab counterpart of findPeoplePathToUser.
+export function findPositionPathToUser(
+  tree: OrganogramNode[],
+  match: (u: UserInline) => boolean,
+): number[] | null {
+  for (const n of tree) {
+    if (n.holders.some(match)) return [n.id];
+    const below = findPositionPathToUser(n.direct_reports, match);
+    if (below) return [n.id, ...below];
+  }
+  return null;
+}
+
 // Collect all position ids in the server tree (for expand-all on positions tab).
 export function collectPositionIds(tree: OrganogramNode[], acc: number[] = []): number[] {
   for (const n of tree) {

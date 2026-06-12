@@ -2,7 +2,7 @@
 // with KPI strip, global search, dept filter, expand/collapse, matrix toggle and
 // a detail drawer. Wired to the vs_user organogram API.
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Ban, Briefcase, Building2, ChevronsDownUp, Filter, Info,
@@ -24,8 +24,11 @@ import {
 import {
   asArray, buildActingSet, buildOrgNodeMap, buildPeopleTree, buildProfileMap,
   collectActiveHolderIds, collectPeopleIds, collectPositionIds, computeKpis,
+  findPeoplePathToUser, findPositionPathToUser,
   orgNodeDescendantIds, pruneTreeByOrgNodes,
 } from "./lib/org-helpers";
+import { useAppSelector } from "@/redux/store";
+import { selectUser } from "@/redux/features/auth/authSlice";
 import { SearchSelect } from "@/components/custom/search-select";
 import { OrgAvatar } from "./components/org-primitives";
 import { PositionsTree, type PositionsCtx } from "./components/positions-tree";
@@ -110,7 +113,9 @@ export default function OrganogramPage() {
   const [expandedPeople, setExpandedPeople] = useState<Set<string>>(new Set());
   const [expandedPos, setExpandedPos] = useState<Set<number>>(new Set());
   const [initialised, setInitialised] = useState(false);
+  const [pendingScrollUid, setPendingScrollUid] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const me = useAppSelector(selectUser);
 
   // Filter the position tree to the selected org node (and its descendant nodes),
   // re-parenting kept seats so the unit's positions surface as roots.
@@ -122,18 +127,32 @@ export default function OrganogramPage() {
 
   const peopleRoots = useMemo(() => buildPeopleTree(viewTree, actingSet), [viewTree, actingSet]);
 
-  // Seed default expansion (roots + their direct children) once data arrives.
+  // Seed expansion once data arrives. Focus the chart on the logged-in viewer:
+  // expand only their reporting chain (so they and their reports are visible,
+  // everything else stays collapsed), highlight + scroll to them. If the viewer
+  // has no seat in the tree, fall back to roots + first level.
   if (!initialised && tree.length) {
-    const pos = new Set<number>();
-    const ppl = new Set<string>();
-    for (const root of tree) {
-      pos.add(root.id);
-      root.direct_reports.forEach((c) => pos.add(c.id));
-      root.holders.forEach((u) => ppl.add(u.id));
-      root.direct_reports.forEach((c) => c.holders.forEach((u) => ppl.add(u.id)));
+    const matchMe = (u: UserInline) =>
+      !!me && (u.email === me.email || String(u.id) === String(me.id));
+    const myPeoplePath = me ? findPeoplePathToUser(peopleRoots, matchMe) : null;
+    if (myPeoplePath?.length) {
+      setExpandedPeople(new Set(myPeoplePath));
+      setExpandedPos(new Set(findPositionPathToUser(tree, matchMe) ?? []));
+      const myUid = myPeoplePath[myPeoplePath.length - 1];
+      setHighlightUid(myUid);
+      setPendingScrollUid(myUid);
+    } else {
+      const pos = new Set<number>();
+      const ppl = new Set<string>();
+      for (const root of tree) {
+        pos.add(root.id);
+        root.direct_reports.forEach((c) => pos.add(c.id));
+        root.holders.forEach((u) => ppl.add(u.id));
+        root.direct_reports.forEach((c) => c.holders.forEach((u) => ppl.add(u.id)));
+      }
+      setExpandedPos(pos);
+      setExpandedPeople(ppl);
     }
-    setExpandedPos(pos);
-    setExpandedPeople(ppl);
     setInitialised(true);
   }
 
@@ -163,6 +182,29 @@ export default function OrganogramPage() {
       cont.scrollTo({ top, behavior: "smooth" });
     });
   };
+
+  // One-time scroll to the auto-focused viewer, then fade the highlight. The
+  // setState calls live in async callbacks (rAF / timer), keeping this
+  // compiler-safe under react-hooks/set-state-in-effect.
+  useEffect(() => {
+    if (!pendingScrollUid) return;
+    const raf = requestAnimationFrame(() => {
+      const cont = scrollRef.current;
+      const el = cont?.querySelector(`[data-uid="${pendingScrollUid}"]`) as HTMLElement | null;
+      if (cont && el) {
+        const top = el.getBoundingClientRect().top - cont.getBoundingClientRect().top + cont.scrollTop - 100;
+        cont.scrollTo({ top, behavior: "smooth" });
+      }
+    });
+    const timer = setTimeout(() => {
+      setHighlightUid((h) => (h === pendingScrollUid ? null : h));
+      setPendingScrollUid(null);
+    }, 1600);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+    };
+  }, [pendingScrollUid]);
 
   const jumpToUser = (u: UserInline) => {
     setDeptFilter("ALL");
@@ -319,8 +361,18 @@ function OrgSearch({
     if (!term) return [] as Array<{ kind: "person"; user: UserInline; sub: string } | { kind: "position"; id: number; title: string; sub: string }>;
     const out: Array<{ kind: "person"; user: UserInline; sub: string } | { kind: "position"; id: number; title: string; sub: string }> = [];
     for (const p of profiles) {
-      if ((p.user.full_name + " " + (p.job_title ?? "") + " " + (p.department?.name ?? "")).toLowerCase().includes(term)) {
-        out.push({ kind: "person", user: p.user, sub: `${p.job_title || ""} · ${p.department?.name || ""}` });
+      // Match on email too; the result row still leads with the person's name —
+      // the email shows in the sub line so it's clear why it matched.
+      const emailHit = p.user.email.toLowerCase().includes(term);
+      const textHit = (p.user.full_name + " " + (p.job_title ?? "") + " " + (p.department?.name ?? ""))
+        .toLowerCase()
+        .includes(term);
+      if (emailHit || textHit) {
+        out.push({
+          kind: "person",
+          user: p.user,
+          sub: emailHit && !textHit ? p.user.email : `${p.job_title || ""} · ${p.department?.name || ""}`,
+        });
       }
       if (out.length >= 6) break;
     }
@@ -341,7 +393,7 @@ function OrgSearch({
           value={q}
           onChange={(e) => { setQ(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          placeholder="Search people, seats, departments, codes…"
+          placeholder="Search by name, email, seat, department, code…"
           className="w-full bg-transparent text-[13px] outline-none placeholder:text-slate-400"
         />
         {q && <button onClick={() => setQ("")} className="text-slate-400 hover:text-slate-600"><X className="size-3.5" /></button>}
