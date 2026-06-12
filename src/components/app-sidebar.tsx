@@ -81,11 +81,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: routesPath.PROTECTED.ORGANOGRAM.INDEX,
           isActive: location === routesPath.PROTECTED.ORGANOGRAM.INDEX,
         },
-        {
-          title: "Staff Directory",
-          url: routesPath.PROTECTED.ORGANOGRAM.STAFF,
-          isActive: location.startsWith(routesPath.PROTECTED.ORGANOGRAM.STAFF),
-        },
+        // Staff Directory retired — profiles are reached from Team Management
+        // (View Details) or by clicking a person in the org chart.
         // Manage — structural CRUD, gated by its own manage permission.
         ...(hasPermission(P.MANAGE_ORGANOGRAM)
           ? [{

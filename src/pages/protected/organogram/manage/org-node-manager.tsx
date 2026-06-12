@@ -1,8 +1,13 @@
 // Org nodes CRUD (admin): Division → Department → Team. Gated by
 // P.MANAGE_ORGANOGRAM at the page level; backend enforces the tiering.
+//
+// The parent picker cascades: a DEPARTMENT picks its Division; a TEAM picks a
+// Division first, then a Department scoped to it. Levels with exactly one
+// candidate auto-fill; selects reveal options only once the user types (name
+// or code both match); a live breadcrumb previews where the node will sit.
 
 import { useMemo, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
@@ -18,6 +23,7 @@ import {
   useGetPositionsQuery, useUpdateOrgNodeMutation,
 } from "@/redux/services/dashboard/organogramApi";
 import type { OrgNode, OrgNodeKind, OrgNodeWritePayload } from "@/redux/services/dashboard/organogramTypes";
+import { childNodes, divisionsOf, nodeOption, singleId, suggestCode } from "./org-cascade";
 
 const HEADERS = ["Name", "Code", "Tier", "Parent", "Head", "Active", ""];
 
@@ -26,24 +32,32 @@ const KIND_OPTS = [
   { value: "DEPARTMENT", label: "Department" },
   { value: "TEAM", label: "Team" },
 ];
-// The tier a given kind must sit under (mirrors the backend rule).
-const REQUIRED_PARENT_KIND: Record<OrgNodeKind, OrgNodeKind | null> = {
-  DIVISION: null,
-  DEPARTMENT: "DIVISION",
-  TEAM: "DEPARTMENT",
-};
 const KIND_LABEL: Record<OrgNodeKind, string> = { DIVISION: "Division", DEPARTMENT: "Department", TEAM: "Team" };
 
 interface FormState {
   name: string;
   code: string;
   kind: OrgNodeKind;
+  // UI-only cascade step for TEAM (the saved parent is always parent_id).
+  division_id: string;
   parent_id: string;
   head_position_id: string;
   description: string;
   is_active: boolean;
 }
-const empty: FormState = { name: "", code: "", kind: "DEPARTMENT", parent_id: "", head_position_id: "", description: "", is_active: true };
+const empty: FormState = {
+  name: "", code: "", kind: "DEPARTMENT", division_id: "", parent_id: "",
+  head_position_id: "", description: "", is_active: true,
+};
+
+function Hint({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="sm:col-span-2 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-amber-200">
+      <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+      <span>{children}</span>
+    </div>
+  );
+}
 
 export default function OrgNodeManager() {
   const [page, setPage] = useState(1);
@@ -58,30 +72,47 @@ export default function OrgNodeManager() {
   const items = useMemo(() => (Array.isArray(data?.data) ? data!.data : []), [data]);
   const allNodes = useMemo(() => (Array.isArray(allNodesRes?.data) ? allNodesRes!.data : []), [allNodesRes]);
   const posOptions = useMemo(
-    () => [{ value: "", label: "— none —" }, ...(Array.isArray(posRes?.data) ? posRes!.data : []).map((p) => ({ value: String(p.id), label: `${p.title} · ${p.code}` }))],
+    () => (Array.isArray(posRes?.data) ? posRes!.data : []).map((p) => ({ value: String(p.id), label: `${p.title} · ${p.code}` })),
     [posRes],
   );
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OrgNode | null>(null);
   const [form, setForm] = useState<FormState>(empty);
+  const [codeTouched, setCodeTouched] = useState(false);
   const [toDelete, setToDelete] = useState<OrgNode | null>(null);
 
-  // Parent options are constrained to the tier the selected kind must sit under.
-  const requiredParent = REQUIRED_PARENT_KIND[form.kind];
-  const parentOptions = useMemo(
-    () => [
-      { value: "", label: requiredParent ? `— select ${KIND_LABEL[requiredParent]} —` : "— none (top-level) —" },
-      ...allNodes.filter((n) => n.kind === requiredParent).map((n) => ({ value: String(n.id), label: n.name })),
-    ],
-    [allNodes, requiredParent],
+  // ── cascade data ─────────────────────────────────────────────────────────
+  const divisions = useMemo(() => divisionsOf(allNodes), [allNodes]);
+  const deptsOf = (divisionId: string) => childNodes(allNodes, divisionId, "DEPARTMENT");
+
+  const divisionOptions = useMemo(
+    () => divisions.map(nodeOption),
+    [divisions],
+  );
+  // TEAM step 2: departments scoped to the chosen division.
+  const deptOptions = useMemo(
+    () => deptsOf(form.division_id).map(nodeOption),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allNodes, form.division_id],
   );
 
-  const openCreate = () => { setEditing(null); setForm(empty); setOpen(true); };
+  // ── open dialog ──────────────────────────────────────────────────────────
+  const openCreate = () => {
+    setEditing(null);
+    setCodeTouched(false);
+    // Default kind is DEPARTMENT — auto-fill its division when there's only one.
+    setForm({ ...empty, parent_id: singleId(divisions) });
+    setOpen(true);
+  };
   const openEdit = (n: OrgNode) => {
     setEditing(n);
+    setCodeTouched(true); // never overwrite an existing code from the name
+    // Back-fill the cascade: a team's division is its parent department's parent.
+    const parentFull = n.parent ? allNodes.find((x) => x.id === n.parent!.id) : undefined;
     setForm({
       name: n.name, code: n.code, kind: n.kind,
+      division_id: n.kind === "TEAM" ? String(parentFull?.parent?.id ?? "") : "",
       parent_id: n.parent ? String(n.parent.id) : "",
       head_position_id: n.head_position ? String(n.head_position.id) : "",
       description: n.description ?? "", is_active: n.is_active,
@@ -89,10 +120,42 @@ export default function OrgNodeManager() {
     setOpen(true);
   };
 
-  // Reset parent when the kind changes (the old parent may be the wrong tier).
-  const setKind = (kind: OrgNodeKind) => setForm((f) => ({ ...f, kind, parent_id: "" }));
+  // ── cascade handlers (auto-fill single options at each level) ─────────────
+  const setKind = (kind: OrgNodeKind) =>
+    setForm((f) => {
+      const next = { ...f, kind, division_id: "", parent_id: "" };
+      if (kind === "DEPARTMENT") {
+        next.parent_id = singleId(divisions);
+      } else if (kind === "TEAM") {
+        next.division_id = singleId(divisions);
+        if (next.division_id) next.parent_id = singleId(deptsOf(next.division_id));
+      }
+      return next;
+    });
 
-  const canSubmit = form.name.trim() && form.code.trim() && (!requiredParent || form.parent_id);
+  const setDivision = (division_id: string) =>
+    setForm((f) => ({ ...f, division_id, parent_id: singleId(deptsOf(division_id)) }));
+
+  const setName = (name: string) =>
+    setForm((f) => ({ ...f, name, code: codeTouched ? f.code : suggestCode(name) }));
+
+  // ── guards + preview ─────────────────────────────────────────────────────
+  const needsDivision = form.kind !== "DIVISION";
+  const noDivisions = needsDivision && divisions.length === 0;
+  const noDeptsInDivision =
+    form.kind === "TEAM" && !!form.division_id && deptsOf(form.division_id).length === 0;
+
+  const nameOf = (id: string) => allNodes.find((n) => String(n.id) === id)?.name ?? "";
+  const previewChain: string[] =
+    form.kind === "DEPARTMENT" && form.parent_id
+      ? [nameOf(form.parent_id)]
+      : form.kind === "TEAM" && form.division_id
+        ? [nameOf(form.division_id), ...(form.parent_id ? [nameOf(form.parent_id)] : [])]
+        : [];
+
+  const canSubmit =
+    !!form.name.trim() && !!form.code.trim() && (form.kind === "DIVISION" || !!form.parent_id);
+
   const submit = () => {
     if (!canSubmit) return;
     const body: OrgNodeWritePayload = {
@@ -157,19 +220,65 @@ export default function OrgNodeManager() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader><DialogTitle>{editing ? "Edit Org Node" : "New Org Node"}</DialogTitle></DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">
-            <CustomInput id="n-name" label="Name" isRequired value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
-            <CustomInput id="n-code" label="Code" isRequired placeholder="ENG" value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))} />
-            <SearchSelect label="Tier" isRequired clearable={false} options={KIND_OPTS} value={form.kind} onChange={(e) => setKind(e.target.value as OrgNodeKind)} />
-            <SearchSelect
-              label={requiredParent ? `Parent ${KIND_LABEL[requiredParent]}` : "Parent"}
-              isRequired={!!requiredParent}
-              options={parentOptions}
-              value={form.parent_id}
-              onChange={(e) => setForm((f) => ({ ...f, parent_id: e.target.value }))}
-              disabled={!requiredParent}
-              placeholder={requiredParent ? `Select ${KIND_LABEL[requiredParent]}` : "Top-level"}
+            <CustomInput id="n-name" label="Name" isRequired value={form.name} onChange={(e) => setName(e.target.value)} />
+            <CustomInput
+              id="n-code" label="Code" isRequired placeholder="ENG" value={form.code}
+              onChange={(e) => { setCodeTouched(true); setForm((f) => ({ ...f, code: e.target.value })); }}
             />
-            <SearchSelect label="Head position" containerClass="sm:col-span-2" options={posOptions} value={form.head_position_id} onChange={(e) => setForm((f) => ({ ...f, head_position_id: e.target.value }))} placeholder="— none —" />
+            <SearchSelect label="Tier" isRequired clearable={false} options={KIND_OPTS} value={form.kind} onChange={(e) => setKind(e.target.value as OrgNodeKind)} />
+
+            {/* Parent cascade — type to search (name or code both match). */}
+            {form.kind === "DIVISION" && (
+              <div className="flex items-end pb-2 text-xs text-gray-05">Top level — divisions have no parent.</div>
+            )}
+            {form.kind === "DEPARTMENT" && (
+              <SearchSelect
+                label="Division" isRequired revealOnSearch
+                options={divisionOptions} value={form.parent_id}
+                onChange={(e) => setForm((f) => ({ ...f, parent_id: e.target.value }))}
+                placeholder="Type a division name or code…"
+                disabled={noDivisions}
+              />
+            )}
+            {form.kind === "TEAM" && (
+              <>
+                <SearchSelect
+                  label="Division" isRequired revealOnSearch
+                  options={divisionOptions} value={form.division_id}
+                  onChange={(e) => setDivision(e.target.value)}
+                  placeholder="Type a division name or code…"
+                  disabled={noDivisions}
+                />
+                <SearchSelect
+                  label="Department" isRequired revealOnSearch
+                  options={deptOptions} value={form.parent_id}
+                  onChange={(e) => setForm((f) => ({ ...f, parent_id: e.target.value }))}
+                  placeholder={form.division_id ? "Type a department name or code…" : "Pick a division first"}
+                  disabled={!form.division_id || noDeptsInDivision}
+                />
+              </>
+            )}
+
+            {noDivisions && <Hint>No divisions exist yet — create a Division first, then come back to this {KIND_LABEL[form.kind].toLowerCase()}.</Hint>}
+            {noDeptsInDivision && (
+              <Hint>No departments under {nameOf(form.division_id)} yet — create one first, then add this team.</Hint>
+            )}
+
+            {previewChain.length > 0 && (
+              <div className="sm:col-span-2 flex flex-wrap items-center gap-1 rounded-md bg-gray-03 px-3 py-2 text-xs text-gray-06">
+                <span className="font-semibold">Will sit under:</span>
+                {previewChain.map((name, i) => (
+                  <span key={`${name}-${i}`} className="inline-flex items-center gap-1">
+                    {i > 0 && <ChevronRight className="size-3 text-gray-02" />}
+                    <span className="font-medium text-black-01">{name}</span>
+                  </span>
+                ))}
+                <ChevronRight className="size-3 text-gray-02" />
+                <span className="italic">{form.name.trim() || `new ${KIND_LABEL[form.kind].toLowerCase()}`}</span>
+              </div>
+            )}
+
+            <SearchSelect label="Head position" containerClass="sm:col-span-2" revealOnSearch options={posOptions} value={form.head_position_id} onChange={(e) => setForm((f) => ({ ...f, head_position_id: e.target.value }))} placeholder="Type a position title or code…" />
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-black-01">Description</label>
               <Textarea rows={2} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />

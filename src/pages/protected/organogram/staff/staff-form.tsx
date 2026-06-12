@@ -59,7 +59,9 @@ export default function StaffForm() {
     [usersRes],
   );
 
-  const back = () => navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF);
+  // Directory page retired — return to wherever the admin came from
+  // (staff profile, team management, …).
+  const back = () => navigate(-1);
 
   return (
     <DashboardLayout title={isEdit ? "Edit Profile" : "New Profile"} hasBack onBack={back}>

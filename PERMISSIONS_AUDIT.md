@@ -17,7 +17,6 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | School Management | — | `P.BROWSE_SCHOOLS` | |
 | Team Management | — | `P.ACCESS_TEAM_PANEL` | |
 | Organogram | Org Chart | `P.VIEW_ORGANOGRAM` | parent group gated by this key |
-| Organogram | Staff Directory | `P.VIEW_ORGANOGRAM` | inherits parent; list endpoint also needs `platform.staff_profile.view` server-side |
 | Organogram | Manage | `P.MANAGE_ORGANOGRAM` | own check via `hasPermission`; sub-item hidden without manage; backend enforces writes |
 | Tasks | — | _(none — always visible)_ | ToDo — Org Accountability. Gated to CX staff at the API (`IsAuthenticatedAndActive & IsVisionStaff`); visibility + assignment bounded by the organogram server-side, so the nav carries no RBAC gate. Backend keys `todo.task.view/manage/assign` exist for future fine-grained wiring but are not yet enforced |
 | Roles | Platform Roles | `P.VIEW_ROLES` | |
@@ -266,19 +265,15 @@ The top-right avatar opens a dropdown. All items are visible to every authentica
 
 ---
 
-### Organogram — Staff Directory (`src/pages/protected/organogram/staff/index.tsx`)
-
-| Element | Type | Permission Constant |
-|---|---|---|
-| "New Profile" button | `<PermissionGate>` | `P.CREATE_STAFF_PROFILE` |
-
----
-
 ### Organogram — Staff detail (`src/pages/protected/organogram/staff/staff-detail.tsx`)
+
+Reached from Team Management "View Details" (by-user route) or the org chart drawer. The retired Staff Directory page is gone; "Create staff profile" appears on the by-user empty state.
 
 | Element | Type | Permission Constant |
 |---|---|---|
 | "Edit" button | `<PermissionGate>` | `P.MODIFY_STAFF_PROFILE` |
+| "Change" (email) beside work email | `hasPermission()` | `P.MODIFY_TEAM_MEMBER` (backend: `PATCH /user/:id/email/change/`) |
+| "Create staff profile" (empty state) | `<PermissionGate>` | `P.CREATE_STAFF_PROFILE` |
 | Payroll card | field absence (server FLS) | `platform.staff_payroll.view` (or owner) |
 
 ---

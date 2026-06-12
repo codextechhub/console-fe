@@ -260,8 +260,9 @@ export default function MembersTab() {
               {
                 label: "View Details",
                 className: "",
+                // Opens the staff profile, looked up by the user's id.
                 onActionClick: () =>
-                  navigate(routesPath.PROTECTED.TEAM_MGT.VIEW(row._slug)),
+                  navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_BY_USER(row._slug)),
               },
               ...(hasPermission(P.MODIFY_TEAM_MEMBER) ? [{
                 label: "Edit",

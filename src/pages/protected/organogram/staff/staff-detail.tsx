@@ -1,14 +1,29 @@
-// Staff profile — full read view (admin). Payroll uses real FLS: bank fields
-// are absent unless the caller holds platform.staff_payroll.view (or is owner).
+// Staff profile — full read view (admin). Reached two ways:
+//   /organogram/staff/:id/view            — by profile id (org chart drawer)
+//   /organogram/staff/by-user/:userId/view — by USER id (Team Management's
+//                                            "View Details" knows users only)
+// Payroll uses real FLS: bank fields are absent unless the caller holds
+// platform.staff_payroll.view (or is owner). The only account action here is
+// Change Email (beside the email address) — everything else lives in Team
+// Management's row actions.
 
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { Banknote, Lock, LockOpen, Pencil, ShieldAlert } from "lucide-react";
+import { toast } from "sonner";
+import { Banknote, Lock, LockOpen, Mail, Pencil, ShieldAlert } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
+import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routesPath";
-import { useGetAssignmentsQuery, useGetStaffProfileQuery } from "@/redux/services/dashboard/organogramApi";
+import {
+  useGetAssignmentsQuery,
+  useGetStaffProfileQuery,
+  useGetStaffProfilesQuery,
+} from "@/redux/services/dashboard/organogramApi";
+import { useChangeUserEmailMutation } from "@/redux/services/dashboard/teamMgtApi";
 import type { StaffProfile } from "@/redux/services/dashboard/organogramTypes";
 import { OrgAvatar, StatusPill, EmpBadge } from "../components/org-primitives";
 import { fmtDate } from "../lib/org-helpers";
@@ -58,8 +73,19 @@ function Payroll({ profile }: { profile: StaffProfile }) {
 
 export default function StaffDetail() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const { data, isLoading } = useGetStaffProfileQuery(id as string, { skip: !id });
+  const { hasPermission } = usePermissions();
+  const { id, userId } = useParams<{ id?: string; userId?: string }>();
+
+  // by-user entry: resolve the profile id from the owner's user id first.
+  const { data: lookupRes, isLoading: lookingUp } = useGetStaffProfilesQuery(
+    { user: userId as string, page_size: 1 },
+    { skip: !userId },
+  );
+  const lookupRows = Array.isArray(lookupRes?.data) ? lookupRes!.data : [];
+  const resolvedId = id ?? (lookupRows[0] ? String(lookupRows[0].id) : undefined);
+  const lookupMiss = !!userId && !lookingUp && !!lookupRes && !lookupRows.length;
+
+  const { data, isLoading, refetch } = useGetStaffProfileQuery(resolvedId as string, { skip: !resolvedId });
   const profile = data?.data;
   const { data: assignmentsRes } = useGetAssignmentsQuery(
     { user: profile?.user.id ?? "", page_size: 50 },
@@ -67,10 +93,27 @@ export default function StaffDetail() {
   );
   const history = Array.isArray(assignmentsRes?.data) ? assignmentsRes!.data : [];
 
+  // Change email — the one account action kept on this page.
+  const [emailModal, setEmailModal] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [changeEmail, { isLoading: changingEmail }] = useChangeUserEmailMutation();
+  const canChangeEmail = hasPermission(P.MODIFY_TEAM_MEMBER);
+
+  const loading = lookingUp || isLoading || (!profile && !lookupMiss);
+
   return (
-    <DashboardLayout title="Staff Profile" hasBack onBack={() => navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF)}>
+    <DashboardLayout title="Staff Profile" hasBack onBack={() => navigate(-1)}>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
-        {isLoading || !profile ? (
+        {lookupMiss ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 px-6 py-14 text-center">
+            <p className="text-sm font-medium text-gray-01">No staff profile is on record for this user yet.</p>
+            <PermissionGate permission={P.CREATE_STAFF_PROFILE}>
+              <Button variant="outline" className="mt-4" onClick={() => navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_CREATE)}>
+                Create staff profile
+              </Button>
+            </PermissionGate>
+          </div>
+        ) : loading || !profile ? (
           <div className="space-y-3">{[0, 1, 2, 3].map((i) => <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-100" />)}</div>
         ) : (
           <>
@@ -110,7 +153,23 @@ export default function StaffDetail() {
               </Card>
 
               <Card title="Contact">
-                <Row label="Work email" value={profile.user.email} />
+                <Row
+                  label="Work email"
+                  value={
+                    <span className="inline-flex flex-wrap items-center gap-2">
+                      {profile.user.email}
+                      {canChangeEmail && (
+                        <button
+                          onClick={() => setEmailModal(true)}
+                          className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-1.5 py-0.5 text-[11px] font-semibold text-gray-06 transition-colors hover:border-primary/40 hover:text-primary"
+                          title="Change email address"
+                        >
+                          <Mail className="size-3" /> Change
+                        </button>
+                      )}
+                    </span>
+                  }
+                />
                 <Row label="Personal email" value={profile.personal_email} />
                 <Row label="Alternate phone" value={profile.alternate_phone} />
                 <Row label="Location" value={[profile.city, profile.state].filter(Boolean).join(", ")} />
@@ -152,6 +211,54 @@ export default function StaffDetail() {
             </section>
 
             <Payroll profile={profile} />
+
+            {/* Change email modal */}
+            <Dialog open={emailModal} onOpenChange={(open) => { setEmailModal(open); if (!open) setNewEmail(""); }}>
+              <DialogContent className="max-w-sm">
+                <DialogHeader>
+                  <DialogTitle className="text-base">Change email address</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-01">
+                    Changing the email for <span className="font-medium text-black-01">{profile.user.full_name}</span>.
+                    Their sessions will be ended and they must sign in with the new address.
+                  </p>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-01">New email address</label>
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="name@company.com"
+                      className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+                <DialogFooter className="gap-2">
+                  <Button variant="white" size="sm" onClick={() => { setEmailModal(false); setNewEmail(""); }} disabled={changingEmail}>
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={!newEmail.includes("@") || changingEmail}
+                    loading={changingEmail}
+                    onClick={() => {
+                      changeEmail({ user_id: profile.user.id, email: newEmail })
+                        .unwrap()
+                        .then(() => {
+                          toast.success("Email updated successfully.");
+                          setEmailModal(false);
+                          setNewEmail("");
+                          refetch();
+                        })
+                        .catch(() => {});
+                    }}
+                  >
+                    Update email
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </>
         )}
       </main>

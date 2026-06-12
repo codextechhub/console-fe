@@ -32,8 +32,7 @@ export const routesPath = {
       EDIT_PATH: "/team-management/:id/edit",
       EDIT: (id:string) => `/team-management/${id}/edit`,
       CREATE: "/team-management/create",
-      VIEW_PATH: "/team-management/:id/view",
-      VIEW: (id: string) => `/team-management/${id}/view`,
+      // View Details opens the staff profile (ORGANOGRAM.STAFF_BY_USER).
     },
     ROLES: {
       INDEX: "/roles",
@@ -157,10 +156,13 @@ export const routesPath = {
     ORGANOGRAM: {
       INDEX: "/organogram",
       MANAGE: "/organogram/manage",
-      STAFF: "/organogram/staff",
       STAFF_CREATE: "/organogram/staff/create",
       STAFF_VIEW_PATH: "/organogram/staff/:id/view",
       STAFF_VIEW: (id: string | number) => `/organogram/staff/${id}/view`,
+      // Profile looked up by the OWNING USER's id — Team Management's View
+      // Details lands here (it knows user ids, not profile ids).
+      STAFF_BY_USER_PATH: "/organogram/staff/by-user/:userId/view",
+      STAFF_BY_USER: (userId: string | number) => `/organogram/staff/by-user/${userId}/view`,
       STAFF_EDIT_PATH: "/organogram/staff/:id/edit",
       STAFF_EDIT: (id: string | number) => `/organogram/staff/${id}/edit`,
     },
