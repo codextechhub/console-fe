@@ -25,7 +25,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# GitHub Actions — kept local only for now (CI will not run on the remote
-# until this is removed from .gitignore and the folder is committed)
-.github/
