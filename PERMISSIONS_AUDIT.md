@@ -19,6 +19,7 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Organogram | Org Chart | `P.VIEW_ORGANOGRAM` | parent group gated by this key |
 | Organogram | Staff Directory | `P.VIEW_ORGANOGRAM` | inherits parent; list endpoint also needs `platform.staff_profile.view` server-side |
 | Organogram | Manage | `P.MANAGE_ORGANOGRAM` | own check via `hasPermission`; sub-item hidden without manage; backend enforces writes |
+| Tasks | — | _(none — always visible)_ | ToDo — Org Accountability. Gated to CX staff at the API (`IsAuthenticatedAndActive & IsVisionStaff`); visibility + assignment bounded by the organogram server-side, so the nav carries no RBAC gate. Backend keys `todo.task.view/manage/assign` exist for future fine-grained wiring but are not yet enforced |
 | Roles | Platform Roles | `P.VIEW_ROLES` | |
 | Roles | User Assignments | `P.VIEW_ROLES` | inherits parent |
 | Roles | Change Requests | `P.MODIFY_ROLE` | own check via `hasPermission`; nav enabled 2026-06-11 (was a disabled placeholder — page and backend endpoints are live) |

@@ -145,6 +145,11 @@ export const routesPath = {
     ME_PROFILE: {
       INDEX: "/me/profile",
     },
+    // Code symbol stays TODO (maps to the vs_todo backend); the user-facing URL
+    // and labels read "Tasks".
+    TODO: {
+      INDEX: "/tasks",
+    },
     ORGANOGRAM: {
       INDEX: "/organogram",
       MANAGE: "/organogram/manage",

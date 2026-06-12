@@ -15,7 +15,7 @@ import {
   PermissionsIcon,
   DataImportsIcon,
 } from "@/assets/navbar-svg";
-import { Network, Shield, Workflow } from "lucide-react";
+import { ClipboardCheck, Network, Shield, Workflow } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routesPath";
 import { useLocation } from "react-router";
@@ -95,6 +95,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             }]
           : []),
       ],
+    },
+    {
+      // Tasks — Org Accountability. Gated to CX staff (every console user) at the
+      // API layer; what each person sees is bounded by the organogram server-side,
+      // so the nav item itself carries no extra RBAC gate.
+      title: "Tasks",
+      url: routesPath.PROTECTED.TODO.INDEX,
+      icon: ClipboardCheck,
+      isActive: location.startsWith(routesPath.PROTECTED.TODO.INDEX),
+      childActive: false,
+      permission: null,
+      permissionMode: "any" as const,
     },
     {
       title: "Roles",
