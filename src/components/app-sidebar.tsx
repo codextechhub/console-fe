@@ -24,6 +24,14 @@ import { P, type PermissionCode } from "@/permissions";
 
 type NavPermission = PermissionCode | PermissionCode[] | null;
 
+const R = routesPath.PROTECTED;
+
+// First path segment of a route, e.g. "/workflow/approvals" → "/workflow".
+// Group-level active-state matching derives its prefix from a real routesPath
+// constant via this, so renaming a path in routesPath propagates here instead
+// of silently breaking highlighting against a stale literal.
+const moduleRoot = (path: string) => "/" + path.split("/")[1];
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation().pathname;
 
@@ -72,7 +80,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: routesPath.PROTECTED.ORGANOGRAM.INDEX,
       icon: Network,
       isActive: false,
-      childActive: location.startsWith("/organogram"),
+      childActive: location.startsWith(R.ORGANOGRAM.INDEX),
       permission: P.VIEW_ORGANOGRAM,
       permissionMode: "any" as const,
       items: [
@@ -118,12 +126,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: "Platform Roles",
           url: routesPath.PROTECTED.ROLES.INDEX,
           isActive:
-            location === routesPath.PROTECTED.ROLES.INDEX ||
-            (location.startsWith("/roles/") &&
-              !location.startsWith("/roles/permission-groups") &&
-              !location.startsWith("/roles/user-assignments") &&
-              !location.startsWith("/roles/change-requests") &&
-              !location.startsWith("/roles/transfer-super-admin")),
+            location === R.ROLES.INDEX ||
+            (location.startsWith(R.ROLES.INDEX + "/") &&
+              !location.startsWith(R.ROLES.GROUPS.INDEX) &&
+              !location.startsWith(R.ROLES.USER_ASSIGNMENTS) &&
+              !location.startsWith(R.ROLES.CHANGE_REQUESTS) &&
+              !location.startsWith(R.ROLES.TRANSFER_SUPER_ADMIN)),
         },
         {
           title: "Platform User Assignments",
@@ -163,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {
           title: "All Permissions",
           url: routesPath.PROTECTED.PERMISSIONS.INDEX,
-          isActive: location === routesPath.PROTECTED.PERMISSIONS.INDEX || (location.startsWith("/permissions/") && !location.startsWith("/permissions/modules") && !location.startsWith("/permissions/resources") && !location.startsWith("/permissions/actions") && !location.startsWith("/permissions/dependencies")),
+          isActive: location === R.PERMISSIONS.INDEX || (location.startsWith(R.PERMISSIONS.INDEX + "/") && !location.startsWith(R.PERMISSIONS.MODULES.INDEX) && !location.startsWith(R.PERMISSIONS.RESOURCES.INDEX) && !location.startsWith(R.PERMISSIONS.ACTIONS.INDEX) && !location.startsWith(R.PERMISSIONS.DEPENDENCIES.INDEX)),
         },
         {
           title: "Modules",
@@ -197,7 +205,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX,
       icon: DataImportsIcon,
       isActive: false,
-      childActive: location.startsWith("/data-imports"),
+      childActive: location.startsWith(moduleRoot(R.DATA_IMPORTS.BATCHES.INDEX)),
       permission: [P.VIEW_IMPORT_BATCHES, P.VIEW_IMPORT_TEMPLATES] as PermissionCode[],
       permissionMode: "any" as const,
       items: [
@@ -225,7 +233,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: routesPath.PROTECTED.EXPORT.QUEUES,
       icon: FileOutput,
       isActive: false,
-      childActive: location.startsWith("/export"),
+      childActive: location.startsWith(moduleRoot(R.EXPORT.QUEUES)),
       permission: null,
       permissionMode: "any" as const,
       items: [
@@ -241,7 +249,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: routesPath.PROTECTED.WORKFLOW.APPROVALS,
       icon: Workflow,
       isActive: false,
-      childActive: location.startsWith("/workflow"),
+      childActive: location.startsWith(moduleRoot(R.WORKFLOW.APPROVALS)),
       // Approvals, submissions and delegations are open to any authenticated
       // user (backend gates them at IsAuthenticatedAndActive), so the group
       // itself is always visible. Admin-only children are spread in by permission.
@@ -295,7 +303,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: routesPath.PROTECTED.AUDIT.DASHBOARD,
       icon: Shield,
       isActive: false,
-      childActive: location.startsWith("/audit"),
+      childActive: location.startsWith(R.AUDIT.DASHBOARD),
       permission: P.VIEW_AUDIT,
       permissionMode: "any" as const,
       items: [
