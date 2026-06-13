@@ -169,6 +169,7 @@ function ExportDetailDrawer({
                 <ActorCell
                   label={job.requested_by?.full_name || job.requested_by?.email || "System"}
                   email={job.requested_by?.email}
+                  userId={job.requested_by?.id}
                 />
                 <div className="min-w-0">
                   <p className="text-sm font-medium leading-snug truncate">
@@ -541,6 +542,7 @@ function ExportRow({
           <ActorCell
             label={j.requested_by?.full_name || j.requested_by?.email || "System"}
             email={j.requested_by?.email}
+            userId={j.requested_by?.id}
           />
           <span className="text-xs truncate max-w-[120px]">
             {j.requested_by?.full_name || j.requested_by?.email || "System"}

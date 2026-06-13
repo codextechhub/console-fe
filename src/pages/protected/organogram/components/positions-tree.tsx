@@ -53,17 +53,18 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
         )}
         style={highlighted ? { animation: "pulseHL 1.4s ease-out" } : undefined}
       >
-        {/* Title + meta — click opens detail */}
-        <button onClick={() => ctx.openPosition(node.id)} className="w-full flex flex-col items-start">
-          <div className="flex items-center gap-1 mb-0.5">
+        {/* Title + meta — click opens detail. Centered so the code + headcount
+            sit directly beneath the position name. */}
+        <button onClick={() => ctx.openPosition(node.id)} className="w-full flex flex-col items-center text-center">
+          <div className="flex items-center justify-center gap-1 mb-0.5">
             {fullyVacant && <VacantBadge />}
             {actingFilled && !fullyVacant && <ActingBadge />}
           </div>
           <span className={cn("block truncate w-full text-[12.5px] font-semibold leading-snug", fullyVacant ? "text-slate-400" : "text-slate-800")}>
             {node.title}
           </span>
-          {/* Code + headcount on same line */}
-          <div className="mt-1 flex items-center gap-2">
+          {/* Code + headcount on same line, centered under the name */}
+          <div className="mt-1 flex items-center justify-center gap-2">
             <span className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px] text-slate-500 shrink-0">{node.code}</span>
             <HeadcountMeter filled={filled} total={headcount} />
           </div>

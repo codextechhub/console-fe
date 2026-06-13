@@ -3,13 +3,12 @@ import { RefreshCw, ExternalLink, Download, X } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ActorCell } from "./components/audit-cells";
 import {
   useGetEntityTrailDetailQuery,
   useCreateAuditExportMutation,
 } from "@/redux/services/dashboard/auditApi";
-import { formatRelativeDate, returnInitial } from "@/utils/helpers";
+import { formatRelativeDate } from "@/utils/helpers";
 import { useState, useMemo } from "react";
 import EventDetailDrawer from "./components/event-detail-drawer";
 import { routesPath } from "@/routes/routesPath";
@@ -37,13 +36,6 @@ const MODULE_COLOR: Record<string, string> = {
   SYSTEM: "bg-gray-100 text-gray-700",
   ONBOARDING: "bg-pink-100 text-pink-700",
 };
-
-function actorInitials(e: AuditEventDetail): string {
-  if (e.actor_user?.full_name) return returnInitial(e.actor_user.full_name);
-  if (e.actor_user?.email) return e.actor_user.email.slice(0, 2).toUpperCase();
-  if (e.actor_label === "System") return "SY";
-  return (e.actor_label || "?").slice(0, 2).toUpperCase();
-}
 
 function actorName(e: AuditEventDetail): string {
   return e.actor_user?.full_name || e.actor_user?.email || e.actor_label || "System";
@@ -293,19 +285,9 @@ export default function EntityTrailDetail() {
                         />
 
                         {/* Actor avatar */}
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Avatar className="size-6 shrink-0 mt-3.5 cursor-default">
-                                <AvatarImage src={undefined} />
-                                <AvatarFallback className="text-[9px] font-semibold bg-blue-100 text-blue-700">
-                                  {actorInitials(e)}
-                                </AvatarFallback>
-                              </Avatar>
-                            </TooltipTrigger>
-                            <TooltipContent>{actorName(e)}</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <div className="mt-3.5 shrink-0">
+                          <ActorCell label={actorName(e)} email={e.actor_user?.email} userId={e.actor_user?.id} />
+                        </div>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0 py-2">

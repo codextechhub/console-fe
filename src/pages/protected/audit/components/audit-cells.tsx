@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { returnInitial } from "@/utils/helpers";
+import { useUserPhoto } from "@/hooks/use-user-photo";
 
 function initials(name: string | null | undefined): string {
   if (!name) return "?";
@@ -21,13 +22,17 @@ interface ActorCellProps {
   label: string;
   /** Used to derive initials when label is email-shaped; omit if label is a full name */
   email?: string | null;
+  /** Actor's user id — resolves their profile photo when present. */
+  userId?: string | number | null;
 }
 
 /**
- * Circular avatar with initials. Tooltip shows the full label.
- * Used for actor / user / requested-by columns across audit tables.
+ * Circular avatar — the actor's photo when there is one, otherwise initials.
+ * Tooltip shows the full label. Used for actor / user / requested-by columns
+ * across audit tables.
  */
-export function ActorCell({ label, email }: ActorCellProps) {
+export function ActorCell({ label, email, userId }: ActorCellProps) {
+  const blobUrl = useUserPhoto(userId);
   const abbr =
     label === "System"
       ? "SY"
@@ -40,7 +45,7 @@ export function ActorCell({ label, email }: ActorCellProps) {
       <Tooltip>
         <TooltipTrigger asChild>
           <Avatar className="size-7 cursor-default">
-            <AvatarImage src={undefined} />
+            {blobUrl && <AvatarImage src={blobUrl} alt={label} className="object-cover" />}
             <AvatarFallback className="text-[10px] font-semibold bg-blue-100 text-blue-700">
               {abbr}
             </AvatarFallback>

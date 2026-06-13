@@ -7,14 +7,14 @@ import { friendlyAction } from "./audit-constants";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
+import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routesPath";
 import { useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
-import { formatRelativeDate, returnInitial } from "@/utils/helpers";
+import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import type { AuditEventListItem } from "@/redux/services/dashboard/auditTypes";
 import EventDetailDrawer from "./components/event-detail-drawer";
@@ -116,29 +116,13 @@ export default function AuditEventsExplorer() {
     when: <span className="text-xs">{formatRelativeDate(e.event_at)}</span>,
     module: <span className="text-xs font-medium uppercase">{e.module_key}</span>,
     action_type: <span className="text-xs">{friendlyAction(e.action_type)}</span>,
-    actor: (() => {
-      const label = e.actor_user?.full_name || e.actor_user?.email || e.actor_label || "System";
-      const initials = e.actor_user
-        ? returnInitial(e.actor_user.full_name || e.actor_user.email.split("@")[0])
-        : e.actor_label
-          ? returnInitial(e.actor_label)
-          : "SY";
-      return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Avatar className="size-7 cursor-default">
-                <AvatarImage src={undefined} />
-                <AvatarFallback className="text-[10px] font-semibold bg-blue-100 text-blue-700">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            </TooltipTrigger>
-            <TooltipContent>{label}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    })(),
+    actor: (
+      <ActorCell
+        label={e.actor_user?.full_name || e.actor_user?.email || e.actor_label || "System"}
+        email={e.actor_user?.email}
+        userId={e.actor_user?.id}
+      />
+    ),
     entity: (
       <div className="flex flex-col leading-snug">
         <span className="text-xs text-black-01">{e.entity_label || "—"}</span>

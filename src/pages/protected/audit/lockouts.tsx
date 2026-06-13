@@ -42,6 +42,7 @@ export default function AccountLockouts() {
       <ActorCell
         label={l.user.full_name || l.user.email}
         email={l.user.email}
+        userId={l.user.id}
       />
     ),
     locked_until: <span className="text-xs">{l.locked_until ? formatRelativeDate(l.locked_until) : "—"}</span>,

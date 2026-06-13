@@ -5,13 +5,13 @@ import { AlertOctagon, Download, RefreshCw, TrendingUp } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/custom/user-avatar";
 import KpiCard from "@/components/custom/kpi-card";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routesPath";
 import { useGetAuditDashboardSummaryQuery, useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
-import { formatRelativeDate, returnInitial } from "@/utils/helpers";
+import { formatRelativeDate } from "@/utils/helpers";
 import type { AuditEventListItem } from "@/redux/services/dashboard/auditTypes";
 import EventDetailDrawer from "./components/event-detail-drawer";
 import {
@@ -275,9 +275,6 @@ export default function AuditDashboard() {
                 ) : (
                   feedEvents.slice(0, 20).map((e) => {
                     const actorName = e.actor_user?.full_name || e.actor_user?.email || e.actor_label || "System";
-                    const initials = e.actor_user
-                      ? returnInitial(e.actor_user.full_name || e.actor_user.email.split("@")[0])
-                      : returnInitial(actorName);
                     return (
                       <button
                         key={e.id}
@@ -296,11 +293,12 @@ export default function AuditDashboard() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 mb-0.5">
-                            <Avatar className="size-4 shrink-0">
-                              <AvatarFallback className="text-[8px] font-semibold bg-blue-100 text-blue-700">
-                                {initials}
-                              </AvatarFallback>
-                            </Avatar>
+                            <UserAvatar
+                              userId={e.actor_user?.id}
+                              name={actorName}
+                              className="size-4 shrink-0"
+                              fallbackClassName="text-[8px] font-semibold bg-blue-100 text-blue-700"
+                            />
                             <span className="text-xs font-medium truncate">{actorName}</span>
                             <span className="text-gray-300 text-xs shrink-0">·</span>
                             <span className="text-[10px] text-gray-01 shrink-0">

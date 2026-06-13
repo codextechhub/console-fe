@@ -21,8 +21,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { formatRelativeDate, returnInitial } from "@/utils/helpers";
+import { UserAvatar } from "@/components/custom/user-avatar";
+import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
 import { selectUser } from "@/redux/features/auth/authSlice";
 import {
@@ -138,11 +138,12 @@ export default function TransferSuperAdmin() {
             <p className="text-sm text-gray-01">Loading…</p>
           ) : activeSuperAdmin ? (
             <div className="flex items-center gap-4">
-              <Avatar className="size-12 shrink-0">
-                <AvatarFallback className="text-sm font-semibold bg-pry-01 text-primary">
-                  {returnInitial(activeSuperAdmin.user_name)}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar
+                userId={activeSuperAdmin.user_id}
+                name={activeSuperAdmin.user_name}
+                className="size-12 shrink-0"
+                fallbackClassName="text-sm font-semibold bg-pry-01 text-primary"
+              />
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-black-01">
                   {activeSuperAdmin.user_name}

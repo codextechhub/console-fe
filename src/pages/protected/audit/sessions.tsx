@@ -544,6 +544,7 @@ export default function LiveSessions() {
                             <ActorCell
                               label={s.user?.full_name || s.user?.email || "—"}
                               email={s.user?.email}
+                              userId={s.user?.id}
                             />
                             <div>
                               <div className="text-xs font-medium leading-snug">
@@ -729,6 +730,7 @@ export default function LiveSessions() {
                         <ActorCell
                           label={detailSession.user?.full_name || detailSession.user?.email || "—"}
                           email={detailSession.user?.email}
+                          userId={detailSession.user?.id}
                         />
                         <div>
                           <div className="text-sm font-medium">

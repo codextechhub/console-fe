@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { UserAvatar } from "@/components/custom/user-avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,6 @@ import { AppSidebar } from "../app-sidebar";
 import { ChevronLeft, ChevronRight, ChevronDown, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAppSelector } from "@/redux/store";
-import { returnInitial } from "@/utils/helpers";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { SessionTimeoutModal } from "@/components/session-timeout-modal";
@@ -187,13 +186,7 @@ function DashboardHeader({
               type="button"
               className="hidden sm:inline-flex items-center gap-x-3 pl-2.5 py-1 rounded-lg hover:bg-white-02/60 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
-              <Avatar>
-                {/* No avatar upload exists yet — initials, not a stock photo
-                    shared by every user. */}
-                <AvatarFallback>
-                  {returnInitial(user?.full_name ?? "O")}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar userId={user?.id} name={user?.full_name ?? "O"} />
               <div className="hidden md:grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user?.full_name || ""}</span>
                 <span className="text-muted-foreground truncate text-xs">{user?.email || ""}</span>

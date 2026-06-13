@@ -1,7 +1,7 @@
 // Shared staff-profile form used by My Profile (self) and admin create/edit.
 // Builds a StaffProfileWritePayload and hands it to the parent's onSubmit.
 
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { skipToken } from "@reduxjs/toolkit/query";
@@ -11,7 +11,8 @@ import { SearchSelect } from "@/components/custom/search-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, Loader2, Lock } from "lucide-react";
 import type { StaffProfile, StaffProfileWritePayload } from "@/redux/services/dashboard/organogramTypes";
-import { useUploadStaffProfilePhotoMutation, useFetchAuthMediaQuery } from "@/redux/services/dashboard/organogramApi";
+import { useUploadStaffProfilePhotoMutation } from "@/redux/services/dashboard/organogramApi";
+import { useFetchAuthMediaQuery } from "@/redux/services/mediaApi";
 import { avatarColor, initialsOf } from "../lib/org-helpers";
 import { cn } from "@/lib/utils";
 
@@ -125,12 +126,30 @@ export function StaffProfileForm({
   const isAdmin = mode !== "me";
   const isCreate = mode === "admin-create";
 
+  // Profile photo is STAGED (picked but not uploaded) and committed only when
+  // the user clicks Save changes — so a mis-pick can be replaced or abandoned.
+  // Create mode has no profile row yet, so photo editing is unavailable there.
+  const [stagedPhoto, setStagedPhoto] = useState<File | null>(null);
+  const [uploadPhoto, { isLoading: uploadingPhoto }] = useUploadStaffProfilePhotoMutation();
+  const photoTargetId: number | string | null = isCreate ? null : mode === "me" ? "me" : initial?.id ?? null;
+
   return (
     <Formik
       initialValues={toFormValues(initial)}
       enableReinitialize
       validationSchema={schema}
-      onSubmit={(values, { setSubmitting }) => {
+      onSubmit={async (values, { setSubmitting }) => {
+        // Commit the staged photo first; abort the whole save if it fails so the
+        // user can retry rather than silently losing the photo change.
+        if (stagedPhoto && photoTargetId !== null) {
+          try {
+            await uploadPhoto({ id: photoTargetId, file: stagedPhoto }).unwrap();
+            setStagedPhoto(null);
+          } catch {
+            setSubmitting(false);
+            return;
+          }
+        }
         const payload: StaffProfileWritePayload = {
           date_of_birth: values.date_of_birth || null,
           marital_status: (values.marital_status as StaffProfileWritePayload["marital_status"]) || "",
@@ -169,13 +188,15 @@ export function StaffProfileForm({
     >
       {({ values, errors, touched, handleChange, handleBlur, setFieldValue, dirty }) => (
         <Form className="space-y-8">
-          {/* Photo picker — immediate upload, independent of main form save */}
-          {(mode !== "admin-create") && (
+          {/* Photo picker — stages the file; committed on Save changes. */}
+          {!isCreate && (
             <PhotoPicker
-              profileId={mode === "me" ? "me" : initial?.id ?? "me"}
               currentPhoto={initial?.profile_photo ?? null}
               userName={initial?.user.full_name ?? ""}
               userId={initial?.user.id ?? ""}
+              stagedFile={stagedPhoto}
+              onPick={setStagedPhoto}
+              uploading={uploadingPhoto}
             />
           )}
           {/* Identity (admin) */}
@@ -270,7 +291,14 @@ export function StaffProfileForm({
           </Section>
 
           <div className="flex items-center gap-3">
-            <Button type="submit" size="lg" loading={submitting} disabled={!dirty || submitting}>
+            {/* A staged photo counts as an unsaved change, so the button enables
+                even when no text field is dirty. */}
+            <Button
+              type="submit"
+              size="lg"
+              loading={submitting || uploadingPhoto}
+              disabled={(!dirty && !stagedPhoto) || submitting || uploadingPhoto}
+            >
               {isCreate ? "Create profile" : "Save changes"}
             </Button>
             <Button type="button" variant="outline" size="lg" onClick={onCancel}>Cancel</Button>
@@ -284,35 +312,37 @@ export function StaffProfileForm({
 }
 
 function PhotoPicker({
-  profileId, currentPhoto, userName, userId,
+  currentPhoto, userName, userId, stagedFile, onPick, uploading,
 }: {
-  profileId: number | string | "me";
   currentPhoto: string | null;
   userName: string;
   userId: string;
+  stagedFile: File | null;
+  onPick: (file: File) => void;
+  uploading: boolean;
 }) {
-  const [upload, { isLoading }] = useUploadStaffProfilePhotoMutation();
   const inputRef = useRef<HTMLInputElement>(null);
-  // Local preview of a just-picked file (a blob: URL — needs no auth). When set,
-  // it wins over the persisted server photo so the user sees their choice at once.
-  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  // Local object URL for the staged (not-yet-saved) file — a blob: URL, no auth
+  // needed. Revoked when the staged file changes or the picker unmounts.
+  const stagedPreview = useMemo(
+    () => (stagedFile ? URL.createObjectURL(stagedFile) : null),
+    [stagedFile],
+  );
+  useEffect(
+    () => () => { if (stagedPreview) URL.revokeObjectURL(stagedPreview); },
+    [stagedPreview],
+  );
   // The persisted /media/ photo is auth-gated, so fetch it through RTK Query
   // (which attaches the JWT) and render the returned blob URL — never the raw URL.
   const { data: serverBlob } = useFetchAuthMediaQuery(currentPhoto ?? skipToken);
 
-  const shown = localPreview ?? serverBlob ?? null;
+  const shown = stagedPreview ?? serverBlob ?? null;
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const objUrl = URL.createObjectURL(file);
-    setLocalPreview(objUrl);
-    try {
-      await upload({ id: profileId, file }).unwrap();
-    } catch {
-      setLocalPreview(null);
-      URL.revokeObjectURL(objUrl);
-    }
+    if (file) onPick(file);
+    // Reset so picking the same file again still fires onChange.
+    e.target.value = "";
   }
 
   return (
@@ -324,14 +354,14 @@ function PhotoPicker({
         aria-label="Change profile photo"
       >
         {shown ? (
-          <img src={shown} alt={userName} className="w-16 h-16 rounded-full object-cover ring-2 ring-slate-200" />
+          <img src={shown} alt={userName} className="w-16 h-16 rounded-full object-cover ring-2 ring-pry-01" />
         ) : (
           <span className={cn("inline-flex items-center justify-center rounded-full font-semibold text-xl w-16 h-16", userId ? avatarColor(userId) : "bg-slate-100 text-slate-400")}>
             {initialsOf(userName) || "—"}
           </span>
         )}
-        <div className={cn("absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition-opacity", isLoading ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
-          {isLoading ? <Loader2 className="size-5 text-white animate-spin" /> : <Camera className="size-5 text-white" />}
+        <div className={cn("absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition-opacity", uploading ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
+          {uploading ? <Loader2 className="size-5 text-white animate-spin" /> : <Camera className="size-5 text-white" />}
         </div>
       </button>
       <input ref={inputRef} type="file" accept="image/*" className="sr-only" onChange={handleFile} />
@@ -340,6 +370,9 @@ function PhotoPicker({
         <button type="button" onClick={() => inputRef.current?.click()} className="text-xs text-indigo-600 hover:underline mt-0.5">
           {shown ? "Change photo" : "Upload photo"}
         </button>
+        {stagedFile && (
+          <p className="text-[11px] text-amber-600 mt-0.5">Pending — applied when you save changes.</p>
+        )}
       </div>
     </div>
   );

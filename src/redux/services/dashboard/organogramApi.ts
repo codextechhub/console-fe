@@ -143,21 +143,9 @@ export const organogramApi = baseApi.injectEndpoints({
         body.append("profile_photo", file);
         return baseQuery({ url: `/user/platform-staff-profiles/${id}/`, method: "PATCH", body });
       },
-      invalidatesTags: ["StaffProfiles"],
-    }),
-    // Fetches an authenticated /media/ URL and returns a local blob: URL.
-    // Uses baseQuery so prepareHeaders adds the JWT automatically — a plain
-    // fetch() doesn't go through prepareHeaders and would get 401.
-    fetchAuthMedia: builder.query<string, string>({
-      queryFn: async (mediaUrl, _api, _extra, baseQuery) => {
-        const result = await baseQuery({
-          url: mediaUrl, // absolute URL — fetchBaseQuery uses it as-is
-          responseHandler: (r) => r.blob(),
-        });
-        if ("error" in result && result.error) return { error: result.error };
-        return { data: URL.createObjectURL(result.data as Blob) };
-      },
-      keepUnusedDataFor: 3600,
+      // Invalidating the shared photo map refreshes every avatar on the platform
+      // (header, org chart, audit, RBAC, …) the moment a photo changes.
+      invalidatesTags: ["StaffProfiles", "StaffPhotos"],
     }),
   }),
 });
@@ -188,5 +176,4 @@ export const {
   useUpdateStaffProfileMutation,
   useUpdateMyStaffProfileMutation,
   useUploadStaffProfilePhotoMutation,
-  useFetchAuthMediaQuery,
 } = organogramApi;

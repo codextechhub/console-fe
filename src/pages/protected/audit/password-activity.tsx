@@ -305,7 +305,7 @@ export default function PasswordActivity() {
                               : "hover:bg-gray-50 border border-transparent",
                           )}
                         >
-                          <ActorCell label={u.full_name || u.email} email={u.email} />
+                          <ActorCell label={u.full_name || u.email} email={u.email} userId={u.id} />
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-medium truncate">{u.full_name || u.email}</p>
                             <p className="text-[10px] text-gray-01 truncate">{u.email}</p>
@@ -369,6 +369,7 @@ export default function PasswordActivity() {
                         <ActorCell
                           label={r.user.full_name || r.user.email}
                           email={r.user.email}
+                          userId={r.user.id}
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate">{r.user.full_name || r.user.email}</p>
@@ -493,6 +494,7 @@ function ActivityRow({ event: e }: { event: AuditEventListItem }) {
           <ActorCell
             label={e.entity_user?.full_name || e.entity_user?.email || e.entity_label || ""}
             email={e.entity_user?.email ?? undefined}
+            userId={e.entity_user?.id}
           />
         ) : (
           <span className="text-xs text-gray-01">—</span>
@@ -505,6 +507,7 @@ function ActivityRow({ event: e }: { event: AuditEventListItem }) {
           <ActorCell
             label={e.actor_user?.full_name || e.actor_user?.email || e.actor_label || "System"}
             email={e.actor_user?.email}
+            userId={e.actor_user?.id}
           />
           {isSelf && (
             <Badge variant="outline" className="text-[9px] px-1 h-4">self</Badge>

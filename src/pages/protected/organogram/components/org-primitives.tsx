@@ -5,8 +5,7 @@ import { Sparkles, Users } from "lucide-react";
 import type { EmploymentStatus, EmploymentType, UserInline } from "@/redux/services/dashboard/organogramTypes";
 import { avatarColor, EMP_TYPE_META, initialsOf, STATUS_META } from "../lib/org-helpers";
 import { cn } from "@/lib/utils";
-import { useFetchAuthMediaQuery } from "@/redux/services/dashboard/organogramApi";
-import { skipToken } from "@reduxjs/toolkit/query";
+import { useUserPhoto } from "@/hooks/use-user-photo";
 
 export function OrgAvatar({
   user,
@@ -14,12 +13,12 @@ export function OrgAvatar({
   ring = false,
   status,
 }: {
-  user?: Pick<UserInline, "id" | "full_name" | "profile_photo"> | null;
+  user?: Pick<UserInline, "id" | "full_name"> | null;
   size?: number;
   ring?: boolean;
   status?: EmploymentStatus | null;
 }) {
-  const { data: blobUrl } = useFetchAuthMediaQuery(user?.profile_photo ?? skipToken);
+  const blobUrl = useUserPhoto(user?.id);
   const initials = user ? initialsOf(user.full_name) || "—" : "—";
   const color = user ? avatarColor(user.id) : "bg-slate-100 text-slate-400";
   const st = status ? STATUS_META[status] : null;
@@ -29,7 +28,7 @@ export function OrgAvatar({
         <img
           src={blobUrl}
           alt={user?.full_name ?? ""}
-          className={cn("rounded-full object-cover", ring && "ring-2 ring-white")}
+          className={cn("rounded-full object-cover border border-pry-01", ring && "ring-2 ring-white")}
           style={{ width: size, height: size }}
         />
       ) : (

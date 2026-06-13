@@ -22,11 +22,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/custom/user-avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
-import { returnInitial } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import {
@@ -175,11 +174,12 @@ function AssignmentDetailSheet({
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           <div className="flex items-center gap-3">
-            <Avatar className="size-11 shrink-0">
-              <AvatarFallback className="text-sm font-semibold bg-pry-01 text-primary">
-                {returnInitial(assignment.user_name)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              userId={assignment.user_id}
+              name={assignment.user_name}
+              className="size-11 shrink-0"
+              fallbackClassName="text-sm font-semibold bg-pry-01 text-primary"
+            />
             <div>
               <p className="text-sm font-semibold text-black-01">{assignment.user_name}</p>
               <p className="text-xs text-gray-01">{assignment.user_email}</p>
@@ -339,11 +339,12 @@ export default function PlatformUserAssignments() {
   const tableData = assignments.map((a: UserAssignment) => ({
     user: (
       <div className="flex items-center gap-2.5">
-        <Avatar className="size-8 shrink-0">
-          <AvatarFallback className="text-xs font-semibold bg-pry-01 text-primary">
-            {returnInitial(a.user_name)}
-          </AvatarFallback>
-        </Avatar>
+        <UserAvatar
+          userId={a.user_id}
+          name={a.user_name}
+          className="size-8 shrink-0"
+          fallbackClassName="text-xs font-semibold bg-pry-01 text-primary"
+        />
         <div>
           <p className="text-sm font-medium text-black-01">{a.user_name}</p>
           <p className="text-xs text-gray-01">{a.user_email}</p>

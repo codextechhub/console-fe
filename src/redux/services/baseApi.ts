@@ -261,6 +261,7 @@ export const baseApi = createApi({
     "OrgAssignments",
     "OrgMatrixReports",
     "StaffProfiles",
+    "StaffPhotos",
     "TodoDashboard",
     "TodoTasks",
     "TodoAssignable",

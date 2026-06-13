@@ -95,7 +95,7 @@ function ImpersonationDetailDrawer({
                 <div className="rounded-md border bg-gray-50 p-3 space-y-2">
                   <p className="text-[10px] font-semibold uppercase text-gray-01">Impersonator</p>
                   <div className="flex items-center gap-2.5">
-                    <ActorCell label={session.staff_email} email={session.staff_email} />
+                    <ActorCell label={session.staff_email} email={session.staff_email} userId={session.staff_user} />
                     <div className="min-w-0">
                       <p className="text-xs font-medium truncate">{session.staff_email}</p>
                       <p className="text-[10px] text-gray-01">Vision Staff</p>
@@ -108,7 +108,7 @@ function ImpersonationDetailDrawer({
                 <div className="rounded-md border bg-gray-50 p-3 space-y-2">
                   <p className="text-[10px] font-semibold uppercase text-gray-01">Target</p>
                   <div className="flex items-center gap-2.5">
-                    <ActorCell label={session.target_email} email={session.target_email} />
+                    <ActorCell label={session.target_email} email={session.target_email} userId={session.target_user} />
                     <div className="min-w-0">
                       <p className="text-xs font-medium truncate">{session.target_email}</p>
                       <p className="text-[10px] text-gray-01">School #{session.school}</p>
@@ -399,7 +399,7 @@ export default function Impersonations() {
                       {/* Staff */}
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
-                          <ActorCell label={i.staff_email} email={i.staff_email} />
+                          <ActorCell label={i.staff_email} email={i.staff_email} userId={i.staff_user} />
                           <div className="min-w-0">
                             <p className="text-xs font-medium truncate max-w-[160px]">{i.staff_email}</p>
                             <p className="text-[10px] text-gray-01">Vision Staff</p>
@@ -410,7 +410,7 @@ export default function Impersonations() {
                       {/* Target */}
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
-                          <ActorCell label={i.target_email} email={i.target_email} />
+                          <ActorCell label={i.target_email} email={i.target_email} userId={i.target_user} />
                           <div className="min-w-0">
                             <p className="text-xs font-medium truncate max-w-[160px]">{i.target_email}</p>
                             <p className="text-[10px] text-gray-01">School #{i.school}</p>

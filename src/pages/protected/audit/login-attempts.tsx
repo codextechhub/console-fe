@@ -412,7 +412,7 @@ export default function LoginAttempts() {
                               <td className="px-3 py-3"><span className="font-mono text-xs">{a.email_entered}</span></td>
                               <td className="px-3 py-3">
                                 {a.user ? (
-                                  <ActorCell label={a.user.full_name || a.user.email} email={a.user.email} />
+                                  <ActorCell label={a.user.full_name || a.user.email} email={a.user.email} userId={a.user.id} />
                                 ) : (
                                   <span className="text-xs text-gray-01">—</span>
                                 )}
@@ -515,7 +515,7 @@ export default function LoginAttempts() {
                       <div className="rounded-lg border p-3">
                         <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">Resolved to user</p>
                         <div className="flex items-center gap-2">
-                          <ActorCell label={drawer.user.full_name || drawer.user.email} email={drawer.user.email} />
+                          <ActorCell label={drawer.user.full_name || drawer.user.email} email={drawer.user.email} userId={drawer.user.id} />
                           <div>
                             <p className="text-sm font-medium">{drawer.user.full_name || "—"}</p>
                             <p className="text-xs text-gray-01">{drawer.user.email}</p>
