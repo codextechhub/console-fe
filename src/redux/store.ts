@@ -3,7 +3,16 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 
 import { useDispatch, useSelector } from "react-redux";
 import type { TypedUseSelectorHook} from "react-redux";
-import { persistReducer, persistStore } from "redux-persist";
+import {
+  FLUSH,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+  REHYDRATE,
+  persistReducer,
+  persistStore,
+} from "redux-persist";
 import localStorage from "redux-persist/es/storage";
 import { baseApi } from "./services/baseApi";
 import rootReducer, { type RootState } from "./features/root-reducer";
@@ -21,10 +30,14 @@ export const store = configureStore({
   // import.meta.env.NODE_ENV does not exist under Vite — only MODE/DEV/PROD.
   // Using it left DevTools enabled in production builds.
   devTools: import.meta.env.DEV,
+  // Both dev tripwires are back on (RTK no-ops them in production builds). The
+  // serializable check ignores redux-persist's own lifecycle actions, which
+  // legitimately carry non-serializable payloads — the documented allow-list.
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false,
-      immutableCheck: false,
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
     }).concat(baseApi.middleware),
 });
 
