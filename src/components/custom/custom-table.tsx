@@ -174,13 +174,19 @@ const CustomTable = ({
                           [d[0]]: d[1],
                         };
                       });
+                    // Stable row key from the hidden id field callers attach
+                    // (convention: _id / _slug / _code), so rows keep their
+                    // identity across sort/filter/refetch instead of being
+                    // re-keyed by position. Falls back to index when absent.
+                    const rowKey =
+                      item?._id ?? item?._slug ?? item?._code ?? item?._key ?? rowIndex;
                     const resolvedDropDownList =
                       typeof dropDownList === "function"
                         ? dropDownList(item)
                         : dropDownList;
                     return (
                       <TableRowComponet
-                        key={rowIndex}
+                        key={rowKey}
                         row={FORMATTED_DATA?.map(
                           (data) => Object.values(data)[0],
                         )}

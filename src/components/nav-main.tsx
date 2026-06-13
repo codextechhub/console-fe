@@ -47,12 +47,12 @@ export function NavMain({
   return (
     <SidebarGroup>
       <SidebarMenu className="space-y-1">
-        {items.map((item, idx) => {
+        {items.map((item) => {
           const hasChildren = (item?.items?.length ?? 0) > 0;
 
           if (!hasChildren) {
             return (
-              <SidebarMenuItem key={idx}>
+              <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
                   className="h-9 mx-auto"
@@ -71,7 +71,7 @@ export function NavMain({
           // Collapsed sidebar: show a dropdown popover to the right
           if (isCollapsed) {
             return (
-              <SidebarMenuItem key={idx}>
+              <SidebarMenuItem key={item.title}>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuButton
@@ -113,7 +113,7 @@ export function NavMain({
           // Expanded sidebar: inline collapsible
           return (
             <Collapsible
-              key={idx}
+              key={item.title}
               asChild
               defaultOpen={item.childActive}
               className="group/collapsible"
