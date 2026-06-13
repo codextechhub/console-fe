@@ -7,8 +7,10 @@ export const routesPath = {
     RESET_PASSWORD_LINK: (key: string) => `/reset-password/${key}`,
     ACTIVATE: "/activate/:activation_key",
     ACTIVATE_LINK: (key: string) => `/activate/${key}`,
-    SPECIAL_LOGIN: "/:email/login",
-    SPECIAL_LOGIN_LINK: (email: string) => `/${encodeURIComponent(email)}/login`,
+    // Literal prefix so this can never shadow other "/<segment>/login" URLs
+    // (it previously matched /admin/login, /school/login, etc.).
+    SPECIAL_LOGIN: "/special-login/:email",
+    SPECIAL_LOGIN_LINK: (email: string) => `/special-login/${encodeURIComponent(email)}`,
   },
   PROTECTED: {
     OVERVIEW: { INDEX: "/overview" },
