@@ -916,7 +916,7 @@ function ReviewIssuesStep({
           </p>
         </div>
         <Button variant="white" size="sm" onClick={() => triggerDownload(importDownloadUrls.validationIssuesExport(batchId), `batch_${batchId}_issues.csv`)}>
-          <Download className="size-3.5" /> Export CSV
+          <Download className="size-3.5" /> Export Error Data
         </Button>
       </div>
 
