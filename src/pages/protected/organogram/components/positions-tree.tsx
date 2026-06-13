@@ -2,7 +2,7 @@
 // reporting lines via the `.org-chart` CSS in index.css), enriched with
 // headcount + matrix lines from the supporting lists.
 
-import { Briefcase, ChevronDown, UserPlus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import type {
   MatrixReport,
   OrganogramNode,
@@ -45,7 +45,7 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
       <div
         data-card
         className={cn(
-          "group flex w-56 flex-col items-center rounded-2xl border px-3 pb-2.5 pt-4 shadow-sm transition-all",
+          "group flex w-44 flex-col rounded-xl border px-3 py-2.5 shadow-sm transition-all",
           fullyVacant
             ? "border-dashed border-slate-300 bg-slate-50/70"
             : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md",
@@ -53,36 +53,43 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
         )}
         style={highlighted ? { animation: "pulseHL 1.4s ease-out" } : undefined}
       >
-        <button onClick={() => ctx.openPosition(node.id)} className="flex w-full flex-col items-center text-center">
-          <span
-            className={cn(
-              "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-              fullyVacant ? "bg-slate-100 text-slate-300" : "bg-indigo-50 text-indigo-500",
-            )}
-          >
-            {fullyVacant ? <UserPlus className="size-4" /> : <Briefcase className="size-4" />}
-          </span>
-          <div className="mt-2 flex max-w-full items-center gap-1.5">
-            <span className={cn("truncate text-[13.5px] font-semibold", fullyVacant ? "text-slate-500" : "text-slate-800")}>
-              {node.title}
-            </span>
-          </div>
-          <div className="mt-0.5 flex flex-wrap items-center justify-center gap-1.5">
-            <span className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[10.5px] text-slate-500">{node.code}</span>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
+        {/* Title + meta — click opens detail */}
+        <button onClick={() => ctx.openPosition(node.id)} className="w-full flex flex-col items-start">
+          <div className="flex items-center gap-1 mb-0.5">
             {fullyVacant && <VacantBadge />}
             {actingFilled && !fullyVacant && <ActingBadge />}
+          </div>
+          <span className={cn("block truncate w-full text-[12.5px] font-semibold leading-snug", fullyVacant ? "text-slate-400" : "text-slate-800")}>
+            {node.title}
+          </span>
+          {/* Code + headcount on same line */}
+          <div className="mt-1 flex items-center gap-2">
+            <span className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px] text-slate-500 shrink-0">{node.code}</span>
             <HeadcountMeter filled={filled} total={headcount} />
           </div>
         </button>
 
-        {node.holders.length > 0 && (
-          <div className="mt-2">
-            <HolderStack users={node.holders} onPick={ctx.openUser} />
+        {/* Bottom row: holder avatars ←→ expand button */}
+        {(node.holders.length > 0 || hasChildren) && (
+          <div className="mt-2 flex w-full items-center justify-between gap-2">
+            {node.holders.length > 0
+              ? <HolderStack users={node.holders} onPick={ctx.openUser} />
+              : <span />
+            }
+            {hasChildren && (
+              <button
+                onClick={(e) => { e.stopPropagation(); ctx.toggle(node.id); }}
+                aria-expanded={open}
+                className="inline-flex items-center gap-0.5 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500 transition-colors hover:bg-indigo-50 hover:text-indigo-600 shrink-0"
+              >
+                <ChevronDown className={cn("size-3 transition-transform", open && "rotate-180")} />
+                {kids.length}
+              </button>
+            )}
           </div>
         )}
 
+        {/* Matrix dotted lines */}
         {ctx.showMatrix && mxCount > 0 && (
           <div className="mt-2 flex w-full flex-col gap-1">
             {out.map((m) => (
@@ -101,20 +108,6 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
               </span>
             ))}
           </div>
-        )}
-
-        {hasChildren && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              ctx.toggle(node.id);
-            }}
-            aria-expanded={open}
-            className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10.5px] font-semibold text-slate-500 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
-          >
-            <ChevronDown className={cn("size-3 transition-transform", open && "rotate-180")} />
-            {kids.length} {kids.length === 1 ? "report" : "reports"}
-          </button>
         )}
       </div>
 

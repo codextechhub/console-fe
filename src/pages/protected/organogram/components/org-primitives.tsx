@@ -5,6 +5,8 @@ import { Sparkles, Users } from "lucide-react";
 import type { EmploymentStatus, EmploymentType, UserInline } from "@/redux/services/dashboard/organogramTypes";
 import { avatarColor, EMP_TYPE_META, initialsOf, STATUS_META } from "../lib/org-helpers";
 import { cn } from "@/lib/utils";
+import { useFetchAuthMediaQuery } from "@/redux/services/dashboard/organogramApi";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 export function OrgAvatar({
   user,
@@ -12,26 +14,36 @@ export function OrgAvatar({
   ring = false,
   status,
 }: {
-  user?: Pick<UserInline, "id" | "full_name"> | null;
+  user?: Pick<UserInline, "id" | "full_name" | "profile_photo"> | null;
   size?: number;
   ring?: boolean;
   status?: EmploymentStatus | null;
 }) {
+  const { data: blobUrl } = useFetchAuthMediaQuery(user?.profile_photo ?? skipToken);
   const initials = user ? initialsOf(user.full_name) || "—" : "—";
   const color = user ? avatarColor(user.id) : "bg-slate-100 text-slate-400";
   const st = status ? STATUS_META[status] : null;
   return (
     <span className="relative inline-flex shrink-0" style={{ width: size, height: size }}>
-      <span
-        className={cn(
-          "inline-flex items-center justify-center rounded-full font-semibold",
-          color,
-          ring && "ring-2 ring-white",
-        )}
-        style={{ width: size, height: size, fontSize: size * 0.38 }}
-      >
-        {initials}
-      </span>
+      {blobUrl ? (
+        <img
+          src={blobUrl}
+          alt={user?.full_name ?? ""}
+          className={cn("rounded-full object-cover", ring && "ring-2 ring-white")}
+          style={{ width: size, height: size }}
+        />
+      ) : (
+        <span
+          className={cn(
+            "inline-flex items-center justify-center rounded-full font-semibold",
+            color,
+            ring && "ring-2 ring-white",
+          )}
+          style={{ width: size, height: size, fontSize: size * 0.38 }}
+        >
+          {initials}
+        </span>
+      )}
       {st && size >= 28 && (
         <span
           className={cn("absolute -bottom-0 -right-0 rounded-full ring-2 ring-white", st.dot)}
@@ -107,17 +119,11 @@ export function ReportsBadge({ direct, total }: { direct: number; total?: number
 }
 
 export function HeadcountMeter({ filled, total }: { filled: number; total: number }) {
-  const pct = total ? Math.min(100, (filled / total) * 100) : 0;
   const full = filled >= total;
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-1.5 rounded-md bg-slate-100 px-1.5 py-0.5">
-        <span className={cn("text-[12px] font-bold", full ? "text-slate-700" : "text-amber-600")}>{filled}</span>
-        <span className="text-[12px] text-slate-400">/ {total}</span>
-      </div>
-      <div className="hidden h-1.5 w-14 overflow-hidden rounded-full bg-slate-200 md:block">
-        <div className={cn("h-full rounded-full", full ? "bg-emerald-400" : "bg-amber-400")} style={{ width: pct + "%" }} />
-      </div>
+    <div className="flex items-center gap-1.5 rounded-md bg-slate-100 px-1.5 py-0.5">
+      <span className={cn("text-[12px] font-bold", full ? "text-slate-700" : "text-amber-600")}>{filled}</span>
+      <span className="text-[12px] text-slate-400">/ {total}</span>
     </div>
   );
 }

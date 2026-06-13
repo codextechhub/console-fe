@@ -1,14 +1,18 @@
 // Shared staff-profile form used by My Profile (self) and admin create/edit.
 // Builds a StaffProfileWritePayload and hands it to the parent's onSubmit.
 
+import { useRef, useEffect, useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Textarea } from "@/components/ui/textarea";
-import { Lock } from "lucide-react";
+import { Camera, Loader2, Lock } from "lucide-react";
 import type { StaffProfile, StaffProfileWritePayload } from "@/redux/services/dashboard/organogramTypes";
+import { useUploadStaffProfilePhotoMutation } from "@/redux/services/dashboard/organogramApi";
+import { avatarColor, initialsOf } from "../lib/org-helpers";
+import { cn } from "@/lib/utils";
 
 const MARITAL = [
   { value: "SINGLE", label: "Single" },
@@ -164,6 +168,15 @@ export function StaffProfileForm({
     >
       {({ values, errors, touched, handleChange, handleBlur, setFieldValue, dirty }) => (
         <Form className="space-y-8">
+          {/* Photo picker — immediate upload, independent of main form save */}
+          {(mode !== "admin-create") && (
+            <PhotoPicker
+              profileId={mode === "me" ? "me" : initial?.id ?? "me"}
+              currentPhoto={initial?.profile_photo ?? null}
+              userName={initial?.user.full_name ?? ""}
+              userId={initial?.user.id ?? ""}
+            />
+          )}
           {/* Identity (admin) */}
           {isAdmin && (
             <Section title="Seat & identity">
@@ -266,6 +279,61 @@ export function StaffProfileForm({
         </Form>
       )}
     </Formik>
+  );
+}
+
+function PhotoPicker({
+  profileId, currentPhoto, userName, userId,
+}: {
+  profileId: number | string | "me";
+  currentPhoto: string | null;
+  userName: string;
+  userId: string;
+}) {
+  const [upload, { isLoading }] = useUploadStaffProfilePhotoMutation();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<string | null>(currentPhoto);
+
+  useEffect(() => { setPreview(currentPhoto); }, [currentPhoto]);
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPreview(URL.createObjectURL(file));
+    try {
+      await upload({ id: profileId, file }).unwrap();
+    } catch {
+      setPreview(currentPhoto);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-4 pb-5 border-b">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="relative group shrink-0"
+        aria-label="Change profile photo"
+      >
+        {preview ? (
+          <img src={preview} alt={userName} className="w-16 h-16 rounded-full object-cover ring-2 ring-slate-200" />
+        ) : (
+          <span className={cn("inline-flex items-center justify-center rounded-full font-semibold text-xl w-16 h-16", userId ? avatarColor(userId) : "bg-slate-100 text-slate-400")}>
+            {initialsOf(userName) || "—"}
+          </span>
+        )}
+        <div className={cn("absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition-opacity", isLoading ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
+          {isLoading ? <Loader2 className="size-5 text-white animate-spin" /> : <Camera className="size-5 text-white" />}
+        </div>
+      </button>
+      <input ref={inputRef} type="file" accept="image/*" className="sr-only" onChange={handleFile} />
+      <div>
+        <p className="text-sm font-semibold text-black-01">{userName || "—"}</p>
+        <button type="button" onClick={() => inputRef.current?.click()} className="text-xs text-indigo-600 hover:underline mt-0.5">
+          {preview ? "Change photo" : "Upload photo"}
+        </button>
+      </div>
+    </div>
   );
 }
 
