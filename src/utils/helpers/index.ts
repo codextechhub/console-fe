@@ -3,16 +3,13 @@
 // implementations (currency formatting, duration, Vimeo IDs, …).
 
 export function returnInitial(name: string) {
-  if (name) {
-    const i = name?.split(" ");
-    if (i.length > 1) {
-      return i[0]?.slice(0, 1).toUpperCase() + i[1]?.slice(0, 1).toUpperCase();
-    } else {
-      return i[0]?.slice(0, 1).toUpperCase() + i[0]?.slice(1, 2).toUpperCase();
-    }
-  } else {
-    return "";
-  }
+  // Initials from the first two words; a single-word name yields a single
+  // letter (a mononym avatar shouldn't look like a two-letter typo, e.g.
+  // "John" → "J", not "JO"). Empty segments from stray spaces are ignored.
+  const words = (name ?? "").split(" ").filter(Boolean);
+  if (words.length === 0) return "";
+  if (words.length === 1) return words[0].slice(0, 1).toUpperCase();
+  return (words[0].slice(0, 1) + words[1].slice(0, 1)).toUpperCase();
 }
 
 export const formatRelativeDate = (dateStr: string): string => {
@@ -44,7 +41,7 @@ export const formatRelativeDate = (dateStr: string): string => {
   return `${day}${suffix} ${month} ${year}`;
 };
 
-export const formatDate = (timestamp: Date): string => {
+export const formatDate = (timestamp: string | number | Date): string => {
   const date = new Date(timestamp);
   if (isNaN(date.getTime())) return "—";
   const year = date.getFullYear();
@@ -73,13 +70,20 @@ export function formatStartedTime(isoString: string) {
  * Generates a URL query string from a given object of parameters.
  *
  * Filters out parameters with `undefined`, `null` or empty-string values. If a
- * parameter value is an array, it generates one key-value pair per element.
+ * parameter value is an array, it generates one key-value pair per element
+ * (repeated-key params, e.g. `?status=A&status=B`).
+ *
+ * Note: `0` and `false` are intentionally kept — numeric/boolean filters of
+ * those values are meaningful query params; only `undefined`/`null`/`""` are
+ * treated as "unset".
  *
  * @example
  * generateQueryString({ foo: "bar", baz: [1, 2], empty: undefined });
  * // Returns: "?foo=bar&baz=1&baz=2"
  */
-export function generateQueryString(params: Record<string, string | number>): string {
+type QueryValue = string | number | boolean | (string | number)[];
+
+export function generateQueryString(params: Record<string, QueryValue>): string {
   const query = Object.entries(params)
     .filter(
       ([, value]) => value !== undefined && value !== null && value !== ""

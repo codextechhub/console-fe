@@ -14,8 +14,13 @@ describe("returnInitial", () => {
     expect(returnInitial("Jane Anne Doe")).toBe("JA");
   });
 
-  it("uses the first two letters of a single name", () => {
-    expect(returnInitial("Admin")).toBe("AD");
+  it("returns a single letter for a mononym", () => {
+    expect(returnInitial("Admin")).toBe("A");
+  });
+
+  it("ignores stray spaces between words", () => {
+    expect(returnInitial("Jane  Doe")).toBe("JD");
+    expect(returnInitial("  Solo")).toBe("S");
   });
 
   it("returns empty string for empty input", () => {
