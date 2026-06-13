@@ -141,7 +141,11 @@ export const organogramApi = baseApi.injectEndpoints({
       queryFn: async ({ id, file }, _api, _extra, baseQuery) => {
         const body = new FormData();
         body.append("profile_photo", file);
-        return baseQuery({ url: `/user/platform-staff-profiles/${id}/`, method: "PATCH", body });
+        const result = await baseQuery({ url: `/user/platform-staff-profiles/${id}/`, method: "PATCH", body });
+        // baseQuery types its data as `unknown`; the endpoint returns the same
+        // DataEnvelope<StaffProfile> the PATCH endpoints do, so narrow it here.
+        if (result.error) return { error: result.error };
+        return { data: result.data as DataEnvelope<StaffProfile> };
       },
       // Invalidating the shared photo map refreshes every avatar on the platform
       // (header, org chart, audit, RBAC, …) the moment a photo changes.
