@@ -5,7 +5,7 @@
 // white rounded-md cards.
 
 import { useMemo, useState } from "react";
-import { ChevronRight, Search, Users } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, Users } from "lucide-react";
 import type {
   MineDashboard,
   NodeDashboard,
@@ -161,6 +161,9 @@ export function NodeDashboardView({
   const isViewerNode = person.id === viewerId;
 
   const [query, setQuery] = useState("");
+  // Direct reports start minimised so the manager sees the tasks first and
+  // expands the roll-up only when they want to scan the team.
+  const [reportsOpen, setReportsOpen] = useState(false);
   const showSearch = reports.length >= 4;
   const filteredReports = useMemo(() => {
     if (!query.trim()) return reports;
@@ -191,19 +194,30 @@ export function NodeDashboardView({
 
           <div>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <p className="font-mont font-semibold text-gray-01">Direct reports</p>
-              {showSearch && (
+              <button
+                type="button"
+                onClick={() => setReportsOpen((o) => !o)}
+                aria-expanded={reportsOpen}
+                className="inline-flex items-center gap-2 rounded font-mont font-semibold text-gray-01 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <ChevronDown className={cn("size-4 text-gray-05 transition-transform", !reportsOpen && "-rotate-90")} />
+                Direct reports
+                <span className="rounded-full bg-gray-03 px-2 py-0.5 text-[11px] font-semibold text-gray-06">{reports.length}</span>
+              </button>
+              {reportsOpen && showSearch && (
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
                   <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search reports" className="h-10 w-56 bg-white pl-9" />
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredReports.map((r) => (
-                <ReportCard key={r.person.id} report={r} onClick={() => onOpenReport(r.person.id)} />
-              ))}
-            </div>
+            {reportsOpen && (
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredReports.map((r) => (
+                  <ReportCard key={r.person.id} report={r} onClick={() => onOpenReport(r.person.id)} />
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
