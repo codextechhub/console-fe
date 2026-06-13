@@ -1,16 +1,17 @@
 // Shared staff-profile form used by My Profile (self) and admin create/edit.
 // Builds a StaffProfileWritePayload and hands it to the parent's onSubmit.
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import { skipToken } from "@reduxjs/toolkit/query";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, Loader2, Lock } from "lucide-react";
 import type { StaffProfile, StaffProfileWritePayload } from "@/redux/services/dashboard/organogramTypes";
-import { useUploadStaffProfilePhotoMutation } from "@/redux/services/dashboard/organogramApi";
+import { useUploadStaffProfilePhotoMutation, useFetchAuthMediaQuery } from "@/redux/services/dashboard/organogramApi";
 import { avatarColor, initialsOf } from "../lib/org-helpers";
 import { cn } from "@/lib/utils";
 
@@ -292,18 +293,25 @@ function PhotoPicker({
 }) {
   const [upload, { isLoading }] = useUploadStaffProfilePhotoMutation();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(currentPhoto);
+  // Local preview of a just-picked file (a blob: URL — needs no auth). When set,
+  // it wins over the persisted server photo so the user sees their choice at once.
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  // The persisted /media/ photo is auth-gated, so fetch it through RTK Query
+  // (which attaches the JWT) and render the returned blob URL — never the raw URL.
+  const { data: serverBlob } = useFetchAuthMediaQuery(currentPhoto ?? skipToken);
 
-  useEffect(() => { setPreview(currentPhoto); }, [currentPhoto]);
+  const shown = localPreview ?? serverBlob ?? null;
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPreview(URL.createObjectURL(file));
+    const objUrl = URL.createObjectURL(file);
+    setLocalPreview(objUrl);
     try {
       await upload({ id: profileId, file }).unwrap();
     } catch {
-      setPreview(currentPhoto);
+      setLocalPreview(null);
+      URL.revokeObjectURL(objUrl);
     }
   }
 
@@ -315,8 +323,8 @@ function PhotoPicker({
         className="relative group shrink-0"
         aria-label="Change profile photo"
       >
-        {preview ? (
-          <img src={preview} alt={userName} className="w-16 h-16 rounded-full object-cover ring-2 ring-slate-200" />
+        {shown ? (
+          <img src={shown} alt={userName} className="w-16 h-16 rounded-full object-cover ring-2 ring-slate-200" />
         ) : (
           <span className={cn("inline-flex items-center justify-center rounded-full font-semibold text-xl w-16 h-16", userId ? avatarColor(userId) : "bg-slate-100 text-slate-400")}>
             {initialsOf(userName) || "—"}
@@ -330,7 +338,7 @@ function PhotoPicker({
       <div>
         <p className="text-sm font-semibold text-black-01">{userName || "—"}</p>
         <button type="button" onClick={() => inputRef.current?.click()} className="text-xs text-indigo-600 hover:underline mt-0.5">
-          {preview ? "Change photo" : "Upload photo"}
+          {shown ? "Change photo" : "Upload photo"}
         </button>
       </div>
     </div>

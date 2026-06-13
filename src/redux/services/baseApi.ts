@@ -11,6 +11,7 @@ import Cookies from "js-cookie";
 import { routesPath } from "@/routes/routesPath";
 import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
 import { endSession } from "@/utils/endSession";
+import { captureReturnTo } from "@/utils/returnTo";
 
 const getAccessToken = () => {
   const token = Cookies.get("token");
@@ -52,6 +53,9 @@ const forceLogoutAndRedirect = (api: Parameters<BaseQueryFn>[1]) => {
   sessionRecoveryInProgress = true;
   api.dispatch(resetAuth());
   endSession();
+  // Preserve the page they were on so login can return them there. Must run
+  // AFTER endSession (which clears sessionStorage).
+  captureReturnTo();
   window.location.href = routesPath.AUTH.LOGIN;
 };
 

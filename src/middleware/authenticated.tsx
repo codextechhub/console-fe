@@ -9,6 +9,7 @@ import { IDLE_MS, WARNING_MS } from "@/hooks/use-session-timeout";
 import { getLastActivity } from "@/utils/sessionActivity";
 import { isJwtExpired } from "@/utils/jwt";
 import { endSession } from "@/utils/endSession";
+import { captureReturnTo } from "@/utils/returnTo";
 
 const { LOGIN } = routesPath.AUTH;
 
@@ -62,6 +63,9 @@ export default function Authenticated() {
           : "Your session has expired. Please log in to continue."
       );
     }
+    // Remember the page they were trying to reach so login can return them
+    // there. Must run AFTER endSession (which clears sessionStorage).
+    captureReturnTo();
     // Hard-redirect (full reload) rather than an in-SPA navigate so all the
     // stale in-memory state from the dead session — Redux store, RTK Query
     // cache, module-level refresh/logout flags — is torn down. This keeps every

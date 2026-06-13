@@ -5,6 +5,7 @@ import {
 } from "@/redux/services/auth/authApi";
 import { useState } from "react";
 import { routesPath } from "@/routes/routesPath";
+import { consumeReturnTo } from "@/utils/returnTo";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
 
@@ -42,7 +43,7 @@ export default function SpecialLogin() {
     login({ email, password })
       .unwrap()
       .then(() =>
-        navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true }),
+        navigate(consumeReturnTo() ?? routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true }),
       )
       .catch((err) => {
         const msg =

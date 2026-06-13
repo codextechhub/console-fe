@@ -2,6 +2,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
 import { useLoginMutation } from "@/redux/services/auth/authApi";
 import { routesPath } from "@/routes/routesPath";
+import { consumeReturnTo } from "@/utils/returnTo";
 import { loginSchema } from "@/schema/auth";
 import { useFormik } from "formik";
 import { useState, useEffect } from "react";
@@ -30,7 +31,7 @@ export default function Login() {
       login(values)
         .unwrap()
         .then(() => {
-          navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
+          navigate(consumeReturnTo() ?? routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
         })
         .catch((err) => {
           const msg =
