@@ -9,8 +9,8 @@ export const routesPath = {
     ACTIVATE_LINK: (key: string) => `/activate/${key}`,
     // Literal prefix so this can never shadow other "/<segment>/login" URLs
     // (it previously matched /admin/login, /school/login, etc.).
-    SPECIAL_LOGIN: "/special-login/:email",
-    SPECIAL_LOGIN_LINK: (email: string) => `/special-login/${encodeURIComponent(email)}`,
+    SPECIAL_LOGIN: "/sp-l/:email",
+    SPECIAL_LOGIN_LINK: (email: string) => `/sp-l/${encodeURIComponent(email)}`,
   },
   PROTECTED: {
     OVERVIEW: { INDEX: "/overview" },
