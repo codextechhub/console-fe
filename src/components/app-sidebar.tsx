@@ -17,7 +17,7 @@ import {
 } from "@/assets/navbar-svg";
 import { ClipboardCheck, FileOutput, Network, Shield, Workflow } from "lucide-react";
 import { NavMain } from "./nav-main";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { useLocation } from "react-router";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P, type PermissionCode } from "@/permissions";

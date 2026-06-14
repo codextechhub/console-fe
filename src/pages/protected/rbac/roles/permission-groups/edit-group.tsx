@@ -5,12 +5,12 @@ import * as Yup from "yup";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetPermissionGroupDetailQuery,
   useUpdatePermissionGroupMutation,
   useGetPermissionsQuery,
-} from "@/redux/services/dashboard/rbacApi";
+} from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
 

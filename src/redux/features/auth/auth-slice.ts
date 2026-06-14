@@ -1,6 +1,6 @@
 import type { RootStateType } from "@/redux/store";
 import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { type Auth, type User } from "./type";
+import { type Auth, type User } from "./auth-types";
 
 // Shape of the login / activation response's `data` envelope.
 interface AuthPayload {

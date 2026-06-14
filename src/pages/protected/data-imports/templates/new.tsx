@@ -12,8 +12,8 @@ import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAppSelector } from "@/redux/store";
 import { toast } from "sonner";
-import { routesPath } from "@/routes/routesPath";
-import { useCreateImportTemplateMutation } from "@/redux/services/dashboard/importApi";
+import { routesPath } from "@/routes/routes-path";
+import { useCreateImportTemplateMutation } from "@/redux/services/dashboard/import-api";
 import type {
   CreateTemplatePayload,
   DatasetType,
@@ -21,7 +21,7 @@ import type {
   ImportTemplateColumn,
   TemplateColumnDataType,
   TemplateStatus,
-} from "@/redux/services/dashboard/importTypes";
+} from "@/redux/services/dashboard/import-types";
 
 const DATASET_TYPES: DatasetType[] = ["schools", "branches"];
 const FILE_FORMATS: FileFormat[] = ["csv", "xlsx", "xls"];

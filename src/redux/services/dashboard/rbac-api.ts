@@ -1,5 +1,5 @@
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../baseApi";
+import { baseApi } from "../base-api";
 import type {
   ChangeRequest,
   PaginatedResponse,
@@ -14,7 +14,7 @@ import type {
   PlatformRole,
   PlatformRoleDetail,
   UserAssignment,
-} from "./rbacTypes";
+} from "./rbac-types";
 
 export const rbacApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

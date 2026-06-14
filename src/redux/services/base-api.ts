@@ -5,13 +5,13 @@ import {
   createApi,
   fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
-import { resetAuth, setToken, updatePermissions } from "../features/auth/authSlice";
+import { resetAuth, setToken, updatePermissions } from "../features/auth/auth-slice";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-import { routesPath } from "@/routes/routesPath";
-import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
-import { endSession } from "@/utils/endSession";
-import { captureReturnTo } from "@/utils/returnTo";
+import { routesPath } from "@/routes/routes-path";
+import { refreshTokenSingleFlight } from "@/utils/token-refresh";
+import { endSession } from "@/utils/end-session";
+import { captureReturnTo } from "@/utils/return-to";
 
 const getAccessToken = () => {
   const token = Cookies.get("token");

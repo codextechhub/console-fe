@@ -24,13 +24,13 @@ import {
 import { UserAvatar } from "@/components/custom/user-avatar";
 import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
-import { selectUser } from "@/redux/features/auth/authSlice";
+import { selectUser } from "@/redux/features/auth/auth-slice";
 import {
   useGetUserAssignmentsQuery,
   useTransferSuperAdminMutation,
-} from "@/redux/services/dashboard/rbacApi";
-import { useGetTeamMembersQuery } from "@/redux/services/dashboard/teamMgtApi";
-import { routesPath } from "@/routes/routesPath";
+} from "@/redux/services/dashboard/rbac-api";
+import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
+import { routesPath } from "@/routes/routes-path";
 
 const SUPER_ADMIN_ROLE_ID = "xvs_super_admin";
 

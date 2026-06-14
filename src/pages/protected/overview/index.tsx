@@ -3,12 +3,12 @@ import { Link } from "react-router";
 import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { cn } from "@/lib/utils";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetPackagePlansQuery,
   useGetSchoolStatsQuery,
-} from "@/redux/services/dashboard/schoolMgtApi";
-import { useGetTeamMembersQuery } from "@/redux/services/dashboard/teamMgtApi";
+} from "@/redux/services/dashboard/school-mgt-api";
+import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
 import {
   ActivityBar,
   DowntimesPie,

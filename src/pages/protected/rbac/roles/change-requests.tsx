@@ -32,8 +32,8 @@ import {
   useDecideChangeRequestMutation,
   useGetPlatformRolesQuery,
   useGetPermissionsQuery,
-} from "@/redux/services/dashboard/rbacApi";
-import type { ChangeRequest, ChangeRequestDelta } from "@/redux/services/dashboard/rbacTypes";
+} from "@/redux/services/dashboard/rbac-api";
+import type { ChangeRequest, ChangeRequestDelta } from "@/redux/services/dashboard/rbac-types";
 
 const TABLE_HEADERS = ["Request ID", "Target Role", "Deltas", "Status", "Requested By", "Submitted", "Decided"];
 

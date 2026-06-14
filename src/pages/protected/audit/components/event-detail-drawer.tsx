@@ -5,8 +5,8 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatRelativeDate } from "@/utils/helpers";
-import { routesPath } from "@/routes/routesPath";
-import { useGetAuditEventDetailQuery } from "@/redux/services/dashboard/auditApi";
+import { routesPath } from "@/routes/routes-path";
+import { useGetAuditEventDetailQuery } from "@/redux/services/dashboard/audit-api";
 import { useState } from "react";
 
 interface Props {

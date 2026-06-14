@@ -3,7 +3,7 @@
 // from the server position tree + holders, enriched with staff-profile status.
 
 import { ChevronDown, UserPlus } from "lucide-react";
-import type { UserInline } from "@/redux/services/dashboard/organogramTypes";
+import type { UserInline } from "@/redux/services/dashboard/organogram-types";
 import { cn } from "@/lib/utils";
 import { countAllReports, type PeopleNode, type ProfileMap } from "../lib/org-helpers";
 import { ActingBadge, OrgAvatar, VacantBadge } from "./org-primitives";

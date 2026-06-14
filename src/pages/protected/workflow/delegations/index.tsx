@@ -31,8 +31,8 @@ import {
   useGetDelegationsQuery,
   useCreateDelegationMutation,
   useRevokeDelegationMutation,
-} from "@/redux/services/dashboard/workflowApi";
-import type { ApprovalDelegation } from "@/redux/services/dashboard/workflowTypes";
+} from "@/redux/services/dashboard/workflow-api";
+import type { ApprovalDelegation } from "@/redux/services/dashboard/workflow-types";
 import { useUserDirectory } from "../components/use-user-directory";
 import { InitialsAvatar } from "../components/workflow-ui";
 import { humanizeDocumentType, sameId } from "../components/workflow-format";

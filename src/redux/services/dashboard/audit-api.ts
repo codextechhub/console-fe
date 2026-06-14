@@ -1,5 +1,5 @@
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../baseApi";
+import { baseApi } from "../base-api";
 import type {
   AuditEventListItem,
   AuditEventDetail,
@@ -11,7 +11,7 @@ import type {
   EntityTrailDetail,
   AuditDashboardSummary,
   PaginatedResponse,
-} from "./auditTypes";
+} from "./audit-types";
 
 export const auditApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

@@ -2,7 +2,7 @@
 // org-node and position forms: tier-scoped child lookups, single-option
 // auto-fill, code-searchable labels and a name→code suggestion.
 
-import type { OrgNode, OrgNodeKind } from "@/redux/services/dashboard/organogramTypes";
+import type { OrgNode, OrgNodeKind } from "@/redux/services/dashboard/organogram-types";
 
 export const divisionsOf = (nodes: OrgNode[]) => nodes.filter((n) => n.kind === "DIVISION");
 

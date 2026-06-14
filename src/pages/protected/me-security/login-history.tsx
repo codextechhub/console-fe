@@ -14,11 +14,11 @@ import {
   useGetAuthAttemptsQuery,
   useGetLoginSessionsQuery,
   useForceLogoutMutation,
-} from "@/redux/services/dashboard/securityApi";
+} from "@/redux/services/dashboard/security-api";
 import { useAppSelector } from "@/redux/store";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useNavigate } from "react-router";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 
 // ── Utilities ─────────────────────────────────────────────────────────────────

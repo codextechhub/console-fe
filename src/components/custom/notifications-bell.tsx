@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { svgIcons } from "@/assets/svg";
 import { formatRelativeDate } from "@/utils/helpers";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { useNotifications, type NotificationType } from "@/hooks/use-notifications";
 
 const TYPE_ICON: Record<NotificationType, React.ReactNode> = {

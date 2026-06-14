@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import Cookies from "js-cookie";
-import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
-import { routesPath } from "@/routes/routesPath";
-import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
-import { recordActivity } from "@/utils/sessionActivity";
-import { endSession } from "@/utils/endSession";
+import { resetAuth, setToken } from "@/redux/features/auth/auth-slice";
+import { routesPath } from "@/routes/routes-path";
+import { refreshTokenSingleFlight } from "@/utils/token-refresh";
+import { recordActivity } from "@/utils/session-activity";
+import { endSession } from "@/utils/end-session";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL as string;
 

@@ -1,6 +1,6 @@
 import { FileText, Info, ExternalLink } from "lucide-react";
 import { formatDate, formatRelativeDate } from "@/utils/helpers";
-import type { WorkflowInstanceDetail } from "@/redux/services/dashboard/workflowTypes";
+import type { WorkflowInstanceDetail } from "@/redux/services/dashboard/workflow-types";
 import { humanizeDocumentType } from "./workflow-format";
 import { InstanceStatusBadge, UserChip } from "./workflow-ui";
 

@@ -19,16 +19,16 @@ import { useAppSelector } from "@/redux/store";
 import { useDebounce } from "react-haiku";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetImportTemplatesQuery,
   importDownloadUrls,
-} from "@/redux/services/dashboard/importApi";
+} from "@/redux/services/dashboard/import-api";
 import type {
   DatasetType,
   ImportTemplateListItem,
   TemplateStatus,
-} from "@/redux/services/dashboard/importTypes";
+} from "@/redux/services/dashboard/import-types";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 

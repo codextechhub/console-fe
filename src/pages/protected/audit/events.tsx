@@ -12,11 +12,11 @@ import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
 import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
-import { routesPath } from "@/routes/routesPath";
-import { useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
+import { routesPath } from "@/routes/routes-path";
+import { useGetAuditEventsQuery } from "@/redux/services/dashboard/audit-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
-import type { AuditEventListItem } from "@/redux/services/dashboard/auditTypes";
+import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types";
 import EventDetailDrawer from "./components/event-detail-drawer";
 
 const TABLE_HEADERS = ["Sev", "Status", "When", "Module", "Action Type", "Actor", "Entity", "Action"];

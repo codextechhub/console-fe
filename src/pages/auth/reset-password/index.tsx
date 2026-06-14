@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import {
   usePasswordResetConfirmMutation,
   usePasswordResetPreviewQuery,
-} from "@/redux/services/auth/authApi";
-import { routesPath } from "@/routes/routesPath";
+} from "@/redux/services/auth/auth-api";
+import { routesPath } from "@/routes/routes-path";
 import { resetPasswordSchema } from "@/schema/auth";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";

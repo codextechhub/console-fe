@@ -1,4 +1,4 @@
-import { selectPermissions } from "@/redux/features/auth/authSlice";
+import { selectPermissions } from "@/redux/features/auth/auth-slice";
 import { useAppSelector } from "@/redux/store";
 import { type PermissionCode, resolvePermissionKey } from "@/permissions";
 

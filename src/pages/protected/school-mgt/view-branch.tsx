@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import {
   useGetBranchDetailQuery,
   useGetSchoolDetailQuery,
-} from "@/redux/services/dashboard/schoolMgtApi";
-import { routesPath } from "@/routes/routesPath";
+} from "@/redux/services/dashboard/school-mgt-api";
+import { routesPath } from "@/routes/routes-path";
 import { formatEnum, formatStartedTime, returnInitial } from "@/utils/helpers";
 import { Building2, GraduationCap, LayoutGrid, Users } from "lucide-react";
 import { useState, type ComponentProps } from "react";

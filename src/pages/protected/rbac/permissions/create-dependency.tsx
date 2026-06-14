@@ -3,14 +3,14 @@ import { useNavigate } from "react-router";
 import { ArrowRight, ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/dashboard-layout";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
   useCreatePermissionDependencyMutation,
   useGetPermissionsQuery,
   useGetPermissionDependenciesQuery,
-} from "@/redux/services/dashboard/rbacApi";
+} from "@/redux/services/dashboard/rbac-api";
 
 function PermissionPicker({
   label,

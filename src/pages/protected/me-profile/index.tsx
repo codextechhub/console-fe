@@ -14,8 +14,8 @@ import {
   useGetAssignmentsQuery,
   useGetMyStaffProfileQuery,
   useUpdateMyStaffProfileMutation,
-} from "@/redux/services/dashboard/organogramApi";
-import type { StaffProfile } from "@/redux/services/dashboard/organogramTypes";
+} from "@/redux/services/dashboard/organogram-api";
+import type { StaffProfile } from "@/redux/services/dashboard/organogram-types";
 import { StaffProfileForm } from "../organogram/staff/profile-form";
 import { OrgAvatar, StatusPill, EmpBadge } from "../organogram/components/org-primitives";
 import { fmtDate } from "../organogram/lib/org-helpers";

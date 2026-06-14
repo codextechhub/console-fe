@@ -11,7 +11,7 @@ import { workflowRoutes } from "./workflow-routes";
 import { organogramRoutes } from "./organogram-routes";
 import { todoRoutes } from "./todo-routes";
 import { exportRoutes } from "./export-routes";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 
 // Route-level code splitting: each page loads on first visit instead of
 // shipping in the main bundle. Suspense fallback lives in routes/index.tsx.

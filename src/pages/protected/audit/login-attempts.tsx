@@ -13,14 +13,14 @@ import {
   Combobox, ComboboxInput, ComboboxContent,
   ComboboxList, ComboboxItem, ComboboxEmpty,
 } from "@/components/ui/combobox";
-import { useGetAuthAttemptsQuery } from "@/redux/services/dashboard/securityApi";
-import { useGetSchoolsQuery } from "@/redux/services/dashboard/schoolMgtApi";
+import { useGetAuthAttemptsQuery } from "@/redux/services/dashboard/security-api";
+import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { ActorCell } from "./components/audit-cells";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { cn } from "@/lib/utils";
-import type { AuthAttempt } from "@/redux/services/dashboard/securityTypes";
-import { routesPath } from "@/routes/routesPath";
+import type { AuthAttempt } from "@/redux/services/dashboard/security-types";
+import { routesPath } from "@/routes/routes-path";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 

@@ -4,8 +4,8 @@ import * as Yup from "yup";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
-import { routesPath } from "@/routes/routesPath";
-import { useCreatePermissionModuleMutation } from "@/redux/services/dashboard/rbacApi";
+import { routesPath } from "@/routes/routes-path";
+import { useCreatePermissionModuleMutation } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 
 const schema = Yup.object({

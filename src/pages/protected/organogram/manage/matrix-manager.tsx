@@ -13,8 +13,8 @@ import PromptModal from "@/components/modal/prompt-modal";
 import {
   useCreateMatrixReportMutation, useDeleteMatrixReportMutation,
   useGetMatrixReportsQuery, useGetPositionsQuery,
-} from "@/redux/services/dashboard/organogramApi";
-import type { MatrixReport, MatrixReportWritePayload } from "@/redux/services/dashboard/organogramTypes";
+} from "@/redux/services/dashboard/organogram-api";
+import type { MatrixReport, MatrixReportWritePayload } from "@/redux/services/dashboard/organogram-types";
 
 const HEADERS = ["Position", "Dotted-reports to", "Relationship", ""];
 

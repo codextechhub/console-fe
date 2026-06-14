@@ -7,15 +7,15 @@ import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { cn } from "@/lib/utils";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetPermissionModulesQuery,
   useDeletePermissionModuleMutation,
-} from "@/redux/services/dashboard/rbacApi";
+} from "@/redux/services/dashboard/rbac-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
-import type { PermissionModule } from "@/redux/services/dashboard/rbacTypes";
+import type { PermissionModule } from "@/redux/services/dashboard/rbac-types";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";

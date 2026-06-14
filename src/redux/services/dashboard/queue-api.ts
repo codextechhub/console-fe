@@ -4,8 +4,8 @@
 // the visible table scope. The page polls both every 10 s while visible.
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../baseApi";
-import type { QueueListResponse, QueueParams, QueueSummaryResponse } from "./queueTypes";
+import { baseApi } from "../base-api";
+import type { QueueListResponse, QueueParams, QueueSummaryResponse } from "./queue-types";
 
 export const queueApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

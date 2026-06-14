@@ -20,8 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   useCreateOrgNodeMutation, useDeleteOrgNodeMutation, useGetOrgNodesQuery,
   useGetPositionsQuery, useUpdateOrgNodeMutation,
-} from "@/redux/services/dashboard/organogramApi";
-import type { OrgNode, OrgNodeKind, OrgNodeWritePayload } from "@/redux/services/dashboard/organogramTypes";
+} from "@/redux/services/dashboard/organogram-api";
+import type { OrgNode, OrgNodeKind, OrgNodeWritePayload } from "@/redux/services/dashboard/organogram-types";
 import { childNodes, divisionsOf, nodeOption, singleId, suggestCode } from "./org-cascade";
 import { cn } from "@/lib/utils";
 

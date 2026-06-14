@@ -21,8 +21,8 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
-import type { BackgroundJob, JobStatus, QueueParams } from "@/redux/services/dashboard/queueTypes";
-import { useGetMyTasksQuery, useGetMyTasksSummaryQuery } from "@/redux/services/dashboard/queueApi";
+import type { BackgroundJob, JobStatus, QueueParams } from "@/redux/services/dashboard/queue-types";
+import { useGetMyTasksQuery, useGetMyTasksSummaryQuery } from "@/redux/services/dashboard/queue-api";
 
 const POLL_MS = 10_000;
 

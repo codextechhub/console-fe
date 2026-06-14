@@ -1,10 +1,10 @@
-import { resetAuth, setAuthUser, updatePermissions } from "@/redux/features/auth/authSlice";
-import { baseApi } from "../baseApi";
-import { routesPath } from "@/routes/routesPath";
-import { recordActivity } from "@/utils/sessionActivity";
-import { resetSessionInvalidation, setAuthCookies } from "@/utils/tokenRefresh";
-import { endSession } from "@/utils/endSession";
-import type { LoginResponse } from "./type";
+import { resetAuth, setAuthUser, updatePermissions } from "@/redux/features/auth/auth-slice";
+import { baseApi } from "../base-api";
+import { routesPath } from "@/routes/routes-path";
+import { recordActivity } from "@/utils/session-activity";
+import { resetSessionInvalidation, setAuthCookies } from "@/utils/token-refresh";
+import { endSession } from "@/utils/end-session";
+import type { LoginResponse } from "./auth-types";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

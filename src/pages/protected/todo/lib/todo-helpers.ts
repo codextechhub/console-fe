@@ -4,7 +4,7 @@
 
 import type { VariantProps } from "class-variance-authority";
 import type { badgeVariants } from "@/components/ui/badge";
-import type { TaskPriority, TaskStatusKey } from "@/redux/services/dashboard/todoTypes";
+import type { TaskPriority, TaskStatusKey } from "@/redux/services/dashboard/todo-types";
 
 type BadgeVariant = VariantProps<typeof badgeVariants>["variant"];
 

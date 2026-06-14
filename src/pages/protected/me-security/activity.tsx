@@ -13,12 +13,12 @@ import {
 import {
   useGetMyActivityQuery,
   useGetMyActivityOnMeQuery,
-} from "@/redux/services/dashboard/auditApi";
+} from "@/redux/services/dashboard/audit-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { friendlyAction } from "../audit/audit-constants";
 import { cn } from "@/lib/utils";
-import type { AuditEventListItem } from "@/redux/services/dashboard/auditTypes";
+import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types";
 
 // ── helpers ────────────────────────────────────────────────────────────────
 

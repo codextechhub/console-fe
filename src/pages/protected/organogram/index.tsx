@@ -12,15 +12,15 @@ import DashboardLayout from "@/components/layout/dashboard-layout";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import type {
   MatrixReport, OrgNode, OrganogramNode, Position, PositionAssignment,
   StaffProfileListItem, UserInline,
-} from "@/redux/services/dashboard/organogramTypes";
+} from "@/redux/services/dashboard/organogram-types";
 import {
   useGetAssignmentsQuery, useGetOrgNodesQuery, useGetMatrixReportsQuery,
   useGetPositionsQuery, useGetPositionTreeQuery, useGetStaffProfilesQuery,
-} from "@/redux/services/dashboard/organogramApi";
+} from "@/redux/services/dashboard/organogram-api";
 import {
   asArray, buildActingSet, buildOrgNodeMap, buildPeopleTree, buildProfileMap,
   collectActiveHolderIds, collectPeopleIds, collectPositionIds, computeKpis,
@@ -28,7 +28,7 @@ import {
   orgNodeDescendantIds, pruneTreeByOrgNodes,
 } from "./lib/org-helpers";
 import { useAppSelector } from "@/redux/store";
-import { selectUser } from "@/redux/features/auth/authSlice";
+import { selectUser } from "@/redux/features/auth/auth-slice";
 import { SearchSelect } from "@/components/custom/search-select";
 import { OrgAvatar } from "./components/org-primitives";
 import { PositionsTree, type PositionsCtx } from "./components/positions-tree";
@@ -497,8 +497,8 @@ export default function OrganogramPage() {
 function OrgSearch({
   posMap, profiles, onJumpUser, onJumpPosition,
 }: {
-  posMap: Map<number, import("@/redux/services/dashboard/organogramTypes").Position>;
-  profiles: import("@/redux/services/dashboard/organogramTypes").StaffProfileListItem[];
+  posMap: Map<number, import("@/redux/services/dashboard/organogram-types").Position>;
+  profiles: import("@/redux/services/dashboard/organogram-types").StaffProfileListItem[];
   onJumpUser: (u: UserInline) => void;
   onJumpPosition: (id: number) => void;
 }) {

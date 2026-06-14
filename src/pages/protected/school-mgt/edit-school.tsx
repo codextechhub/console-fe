@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import {
   useGetSchoolDetailQuery,
   useUpdateSchoolMutation,
-} from "@/redux/services/dashboard/schoolMgtApi";
-import { routesPath } from "@/routes/routesPath";
+} from "@/redux/services/dashboard/school-mgt-api";
+import { routesPath } from "@/routes/routes-path";
 import { editSchoolSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router";

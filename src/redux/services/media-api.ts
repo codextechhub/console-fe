@@ -5,7 +5,7 @@
 // it. Any avatar/image component renders the returned blob URL instead of the
 // raw /media/ URL. Shared app-wide (header, organogram, RBAC, …).
 
-import { baseApi } from "./baseApi";
+import { baseApi } from "./base-api";
 
 // user_id → absolute profile-photo URL. One shared request feeds every avatar
 // on the platform; components resolve a user's photo by id from this map rather

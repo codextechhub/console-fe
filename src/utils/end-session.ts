@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 import { clearStorageItem } from "@/hooks/use-session-storage";
-import { clearActivity } from "./sessionActivity";
-import { markSessionInvalidated } from "./tokenRefresh";
+import { clearActivity } from "./session-activity";
+import { markSessionInvalidated } from "./token-refresh";
 
 /**
  * Single client-side teardown for every "this session is over" path — logout,

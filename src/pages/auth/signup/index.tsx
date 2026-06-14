@@ -1,6 +1,6 @@
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { signUpSchema } from "@/schema/auth";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router";

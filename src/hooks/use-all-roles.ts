@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { roleApi } from "@/redux/services/dashboard/roleApi";
+import { roleApi } from "@/redux/services/dashboard/role-api";
 import { useAppDispatch } from "@/redux/store";
-import type { Role } from "@/redux/services/dashboard/type";
+import type { Role } from "@/redux/services/dashboard/dashboard-types";
 
 const PAGE_SIZE = 100;
 

@@ -21,8 +21,8 @@ import {
   useGetWorkflowInstanceQuery,
   useCancelWorkflowInstanceMutation,
   useReverseWorkflowActionMutation,
-} from "@/redux/services/dashboard/workflowApi";
-import type { WorkflowInstanceDetail } from "@/redux/services/dashboard/workflowTypes";
+} from "@/redux/services/dashboard/workflow-api";
+import type { WorkflowInstanceDetail } from "@/redux/services/dashboard/workflow-types";
 import { useUserDirectory } from "../components/use-user-directory";
 import { DocumentPanel } from "../components/document-panel";
 import { StageTracker } from "../components/stage-tracker";

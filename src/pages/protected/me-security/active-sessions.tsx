@@ -12,10 +12,10 @@ import PromptModal from "@/components/modal/prompt-modal";
 import {
   useGetLoginSessionsQuery,
   useForceLogoutMutation,
-} from "@/redux/services/dashboard/securityApi";
+} from "@/redux/services/dashboard/security-api";
 import { formatRelativeDate } from "@/utils/helpers";
-import { routesPath } from "@/routes/routesPath";
-import type { LoginSession } from "@/redux/services/dashboard/securityTypes";
+import { routesPath } from "@/routes/routes-path";
+import type { LoginSession } from "@/redux/services/dashboard/security-types";
 import { toast } from "sonner";
 
 // ── Utilities ─────────────────────────────────────────────────────────────────

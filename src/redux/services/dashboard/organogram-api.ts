@@ -2,7 +2,7 @@
 // Mounted backend-side at .../v1/user/organogram/* and .../v1/user/platform-staff-profiles/*.
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../baseApi";
+import { baseApi } from "../base-api";
 import type {
   OrgNode,
   OrgNodeWritePayload,
@@ -21,7 +21,7 @@ import type {
   StaffProfile,
   StaffProfileWritePayload,
   StaffProfilesResponse,
-} from "./organogramTypes";
+} from "./organogram-types";
 
 // Boolean filters (is_active, current, roots) are passed as "true"/"1" strings —
 // generateQueryString only serialises string | number, matching the backend parser.

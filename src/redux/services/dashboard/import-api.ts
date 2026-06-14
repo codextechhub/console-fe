@@ -1,5 +1,5 @@
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../baseApi";
+import { baseApi } from "../base-api";
 import type {
   CreateTemplatePayload,
   UpdateTemplatePayload,
@@ -18,7 +18,7 @@ import type {
   ValidationIssueDetail,
   ValidationIssueListItem,
   ValidationRunResponse,
-} from "./importTypes";
+} from "./import-types";
 
 type Params = Record<string, string | number>;
 

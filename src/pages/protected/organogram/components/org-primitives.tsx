@@ -2,7 +2,7 @@
 // Ported from the prototype, adapted to lucide-react + the API data shapes.
 
 import { Sparkles, Users } from "lucide-react";
-import type { EmploymentStatus, EmploymentType, UserInline } from "@/redux/services/dashboard/organogramTypes";
+import type { EmploymentStatus, EmploymentType, UserInline } from "@/redux/services/dashboard/organogram-types";
 import { avatarColor, EMP_TYPE_META, initialsOf, STATUS_META } from "../lib/org-helpers";
 import { cn } from "@/lib/utils";
 import { useUserPhoto } from "@/hooks/use-user-photo";

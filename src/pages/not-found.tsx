@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { ArrowLeft, Home, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { SUPPORT_MAIL } from "@/utils/static";

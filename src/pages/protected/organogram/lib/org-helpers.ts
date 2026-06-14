@@ -12,7 +12,7 @@ import type {
   PositionAssignment,
   StaffProfileListItem,
   UserInline,
-} from "@/redux/services/dashboard/organogramTypes";
+} from "@/redux/services/dashboard/organogram-types";
 
 // The backend's success_response does `data or {}`, so an EMPTY list serialises
 // to `{}` (an object), not `[]`. Coerce any non-array response payload to [].

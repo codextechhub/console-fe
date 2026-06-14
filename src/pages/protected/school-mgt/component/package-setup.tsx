@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   useGetModulesQuery,
   useGetPackagePlansQuery,
-} from "@/redux/services/dashboard/schoolMgtApi";
+} from "@/redux/services/dashboard/school-mgt-api";
 import { packageStepSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router";

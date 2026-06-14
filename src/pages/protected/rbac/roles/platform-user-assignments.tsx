@@ -33,9 +33,9 @@ import {
   useAssignRoleMutation,
   useRevokeAssignmentMutation,
   useGetPlatformRolesQuery,
-} from "@/redux/services/dashboard/rbacApi";
-import { useGetTeamMembersQuery } from "@/redux/services/dashboard/teamMgtApi";
-import type { UserAssignment } from "@/redux/services/dashboard/rbacTypes";
+} from "@/redux/services/dashboard/rbac-api";
+import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
+import type { UserAssignment } from "@/redux/services/dashboard/rbac-types";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";

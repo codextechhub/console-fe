@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import type { Person, Task, TaskCreatePayload, TaskUpdatePayload } from "@/redux/services/dashboard/todoTypes";
+import type { Person, Task, TaskCreatePayload, TaskUpdatePayload } from "@/redux/services/dashboard/todo-types";
 import {
   useCreateTodoTaskMutation,
   useDeleteTodoTaskMutation,
@@ -30,7 +30,7 @@ import {
   useGetTodoTeamQuery,
   useToggleTodoTaskMutation,
   useUpdateTodoTaskMutation,
-} from "@/redux/services/dashboard/todoApi";
+} from "@/redux/services/dashboard/todo-api";
 import { asArray } from "./lib/todo-helpers";
 import { Breadcrumb, MyTasksView, NodeDashboardView } from "./components/node-dashboard";
 import { TaskModal, type TaskModalMode } from "./components/task-modal";

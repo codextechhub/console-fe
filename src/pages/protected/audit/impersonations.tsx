@@ -11,16 +11,16 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import PromptModal from "@/components/modal/prompt-modal";
-import { useGetImpersonationsQuery, useEndImpersonationMutation } from "@/redux/services/dashboard/securityApi";
-import { useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
+import { useGetImpersonationsQuery, useEndImpersonationMutation } from "@/redux/services/dashboard/security-api";
+import { useGetAuditEventsQuery } from "@/redux/services/dashboard/audit-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useNow } from "@/hooks/use-now";
 import { ActorCell } from "./components/audit-cells";
 import { friendlyAction } from "./audit-constants";
 import { P } from "@/permissions";
-import { routesPath } from "@/routes/routesPath";
-import type { ImpersonationSession } from "@/redux/services/dashboard/securityTypes";
+import { routesPath } from "@/routes/routes-path";
+import type { ImpersonationSession } from "@/redux/services/dashboard/security-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 

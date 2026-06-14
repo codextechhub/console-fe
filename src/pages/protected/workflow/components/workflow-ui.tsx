@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import type {
   WorkflowInstanceStatus,
   WorkflowStageStatus,
-} from "@/redux/services/dashboard/workflowTypes";
+} from "@/redux/services/dashboard/workflow-types";
 import {
   avatarColor,
   humanizeDocumentType,

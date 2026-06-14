@@ -13,7 +13,7 @@ import type {
   ReportCard as ReportCardData,
   Task,
   TaskStats,
-} from "@/redux/services/dashboard/todoTypes";
+} from "@/redux/services/dashboard/todo-types";
 import { Input } from "@/components/ui/input";
 import KpiCard from "@/components/custom/kpi-card";
 import { cn } from "@/lib/utils";

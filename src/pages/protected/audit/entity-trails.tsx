@@ -5,11 +5,11 @@ import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
-import { routesPath } from "@/routes/routesPath";
-import { useGetEntityTrailsQuery } from "@/redux/services/dashboard/auditApi";
+import { routesPath } from "@/routes/routes-path";
+import { useGetEntityTrailsQuery } from "@/redux/services/dashboard/audit-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
-import type { EntityTrail } from "@/redux/services/dashboard/auditTypes";
+import type { EntityTrail } from "@/redux/services/dashboard/audit-types";
 import { EntityCell } from "./components/audit-cells";
 
 const TABLE_HEADERS = ["Entity", "ID", "Events", "First seen", "Last seen", "Action"];

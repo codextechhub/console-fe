@@ -1,8 +1,8 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
-import { useForgotPasswordMutation } from "@/redux/services/auth/authApi";
-import { routesPath } from "@/routes/routesPath";
+import { useForgotPasswordMutation } from "@/redux/services/auth/auth-api";
+import { routesPath } from "@/routes/routes-path";
 import { forgotPasswordSchema } from "@/schema/auth";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";

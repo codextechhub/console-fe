@@ -9,9 +9,9 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
-import { routesPath } from "@/routes/routesPath";
-import { useGetWorkflowTemplatesQuery } from "@/redux/services/dashboard/workflowApi";
-import type { WorkflowTemplate } from "@/redux/services/dashboard/workflowTypes";
+import { routesPath } from "@/routes/routes-path";
+import { useGetWorkflowTemplatesQuery } from "@/redux/services/dashboard/workflow-api";
+import type { WorkflowTemplate } from "@/redux/services/dashboard/workflow-types";
 import { humanizeDocumentType } from "../components/workflow-format";
 
 const TABLE_HEADERS = ["Name", "Document Type", "Code", "Stages", "Scope", "Updated"];

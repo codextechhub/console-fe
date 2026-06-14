@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
-import { routesPath } from "@/routes/routesPath";
-import { useGetWorkflowInstancesQuery } from "@/redux/services/dashboard/workflowApi";
-import type { WorkflowInstance } from "@/redux/services/dashboard/workflowTypes";
+import { routesPath } from "@/routes/routes-path";
+import { useGetWorkflowInstancesQuery } from "@/redux/services/dashboard/workflow-api";
+import type { WorkflowInstance } from "@/redux/services/dashboard/workflow-types";
 import { useUserDirectory } from "../components/use-user-directory";
 import { DocumentRef, InstanceStatusBadge, UserChip } from "../components/workflow-ui";
 

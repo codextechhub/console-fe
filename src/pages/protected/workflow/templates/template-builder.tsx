@@ -9,14 +9,14 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetWorkflowTemplateQuery,
   usePreviewApproversMutation,
   usePublishWorkflowTemplateMutation,
-} from "@/redux/services/dashboard/workflowApi";
-import { useGetPositionsQuery } from "@/redux/services/dashboard/organogramApi";
-import { useGetTeamMembersQuery } from "@/redux/services/dashboard/teamMgtApi";
+} from "@/redux/services/dashboard/workflow-api";
+import { useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
+import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
 import type {
   ApproverScope,
   ApproverSource,
@@ -26,7 +26,7 @@ import type {
   StageKind,
   StageOnRejection,
   WorkflowStagePayload,
-} from "@/redux/services/dashboard/workflowTypes";
+} from "@/redux/services/dashboard/workflow-types";
 
 const SOURCE_OPTIONS = [
   { value: "RBAC_PERMISSION", label: "RBAC permission holders" },

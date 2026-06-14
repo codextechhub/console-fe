@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button";
 import { SearchSelect } from "@/components/custom/search-select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useCreatePermissionMutation,
   useGetPermissionActionsQuery,
   useGetPermissionModulesQuery,
   useGetPermissionResourcesQuery,
-} from "@/redux/services/dashboard/rbacApi";
+} from "@/redux/services/dashboard/rbac-api";
 
 const schema = Yup.object({
   module: Yup.string().required("Module is required"),

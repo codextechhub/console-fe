@@ -3,8 +3,8 @@ import Cookies from "js-cookie";
 
 const freshImports = async () => {
   vi.resetModules();
-  const endSessionMod = await import("./endSession");
-  const tokenMod = await import("./tokenRefresh");
+  const endSessionMod = await import("./end-session");
+  const tokenMod = await import("./token-refresh");
   return { ...endSessionMod, ...tokenMod };
 };
 

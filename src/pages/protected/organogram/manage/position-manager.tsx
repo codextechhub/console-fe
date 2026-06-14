@@ -18,8 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   useCreatePositionMutation, useDeletePositionMutation, useGetOrgNodesQuery,
   useGetPositionsQuery, useUpdatePositionMutation,
-} from "@/redux/services/dashboard/organogramApi";
-import type { Position, PositionWritePayload } from "@/redux/services/dashboard/organogramTypes";
+} from "@/redux/services/dashboard/organogram-api";
+import type { Position, PositionWritePayload } from "@/redux/services/dashboard/organogram-types";
 import { childNodes, divisionsOf, nodeOption, singleId } from "./org-cascade";
 import { cn } from "@/lib/utils";
 

@@ -2,7 +2,7 @@ import DashboardLayout from "@/components/layout/dashboard-layout";
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { useNavigate, useParams } from "react-router";
 import { SearchSelect } from "@/components/custom/search-select";
 import { useFormik } from "formik";
@@ -10,7 +10,7 @@ import { editTeamMemberSchema } from "@/schema/dashboard/team-mgt";
 import {
   useUpdateTeamMemberMutation,
   useGetTeamMembersDetailsQuery,
-} from "@/redux/services/dashboard/teamMgtApi";
+} from "@/redux/services/dashboard/team-mgt-api";
 import { toast } from "sonner";
 
 export default function EditAdmin() {

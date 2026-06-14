@@ -10,7 +10,7 @@
 // back to initials.
 
 import { skipToken } from "@reduxjs/toolkit/query";
-import { useFetchAuthMediaQuery, useGetStaffPhotosQuery } from "@/redux/services/mediaApi";
+import { useFetchAuthMediaQuery, useGetStaffPhotosQuery } from "@/redux/services/media-api";
 
 export function useUserPhoto(userId?: string | number | null): string | undefined {
   const { data: photoMap } = useGetStaffPhotosQuery();

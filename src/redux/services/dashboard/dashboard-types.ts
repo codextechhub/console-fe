@@ -1,5 +1,5 @@
 import type { PaginatedResponse } from "@/types"
-import type { ResponseMessage } from "../auth/type"
+import type { ResponseMessage } from "../auth/auth-types"
 
 export interface TeamMembersRes extends PaginatedResponse {
   data: TeamMember[]

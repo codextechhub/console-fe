@@ -6,9 +6,9 @@ import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
-import { routesPath } from "@/routes/routesPath";
-import { useGetMySubmissionsQuery } from "@/redux/services/dashboard/workflowApi";
-import type { WorkflowInstance, WorkflowInstanceStatus } from "@/redux/services/dashboard/workflowTypes";
+import { routesPath } from "@/routes/routes-path";
+import { useGetMySubmissionsQuery } from "@/redux/services/dashboard/workflow-api";
+import type { WorkflowInstance, WorkflowInstanceStatus } from "@/redux/services/dashboard/workflow-types";
 import { useUserDirectory } from "../components/use-user-directory";
 import { DocumentRef, InstanceStatusBadge } from "../components/workflow-ui";
 

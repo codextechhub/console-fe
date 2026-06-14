@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "./securityTypes";
+import type { PaginatedResponse } from "./security-types";
 
 // ── Enums (mirrored from backend) ────────────────────────────────────────────
 

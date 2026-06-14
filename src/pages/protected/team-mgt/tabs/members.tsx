@@ -7,21 +7,21 @@ import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { Link, useNavigate } from "react-router";
 import {
   useGetTeamMembersQuery,
   useSuspendTeamMemberMutation,
   useReactivateTeamMemberMutation,
   useUnlockTeamMemberMutation,
-} from "@/redux/services/dashboard/teamMgtApi";
+} from "@/redux/services/dashboard/team-mgt-api";
 import { useMemo, useState } from "react";
-import type { TeamMember } from "@/redux/services/dashboard/type";
+import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
-import { selectUser } from "@/redux/features/auth/authSlice";
+import { selectUser } from "@/redux/features/auth/auth-slice";
 import {
   Sheet,
   SheetContent,

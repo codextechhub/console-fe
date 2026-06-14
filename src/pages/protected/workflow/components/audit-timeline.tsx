@@ -1,5 +1,5 @@
 import { formatRelativeDate } from "@/utils/helpers";
-import type { AuditEventType, WorkflowAuditLog } from "@/redux/services/dashboard/workflowTypes";
+import type { AuditEventType, WorkflowAuditLog } from "@/redux/services/dashboard/workflow-types";
 import { AUDIT_EVENT_LABEL } from "./workflow-format";
 
 type Resolver = (id?: string | null) => string;

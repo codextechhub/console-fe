@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetPendingApprovalsBellQuery,
   useGetReturnedSubmissionsBellQuery,
-} from "@/redux/services/dashboard/workflowApi";
+} from "@/redux/services/dashboard/workflow-api";
 import { humanizeDocumentType } from "@/pages/protected/workflow/components/workflow-format";
 
 /** Kind of notification — extend this union as new feeds are added. */

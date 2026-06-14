@@ -1,7 +1,7 @@
 import { Download, FileText, Clock, ArrowUpRight, Check } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { useCreateAuditExportMutation } from "@/redux/services/dashboard/auditApi";
+import { useCreateAuditExportMutation } from "@/redux/services/dashboard/audit-api";
 import { useAppSelector } from "@/redux/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";

@@ -5,7 +5,7 @@ import type {
   StageAdvanceRule,
   WorkflowInstanceStatus,
   WorkflowStageStatus,
-} from "@/redux/services/dashboard/workflowTypes";
+} from "@/redux/services/dashboard/workflow-types";
 
 export type BadgeVariant =
   | "default" | "success" | "active" | "inactive" | "pending" | "secondary"

@@ -1,8 +1,8 @@
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
-import { useLoginMutation } from "@/redux/services/auth/authApi";
-import { routesPath } from "@/routes/routesPath";
-import { consumeReturnTo } from "@/utils/returnTo";
+import { useLoginMutation } from "@/redux/services/auth/auth-api";
+import { routesPath } from "@/routes/routes-path";
+import { consumeReturnTo } from "@/utils/return-to";
 import { loginSchema } from "@/schema/auth";
 import { useFormik } from "formik";
 import { useState, useEffect } from "react";

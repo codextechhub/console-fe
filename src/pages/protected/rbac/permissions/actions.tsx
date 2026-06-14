@@ -18,12 +18,12 @@ import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetPermissionActionsQuery,
   useDeletePermissionActionMutation,
-} from "@/redux/services/dashboard/rbacApi";
-import type { PermissionAction } from "@/redux/services/dashboard/rbacTypes";
+} from "@/redux/services/dashboard/rbac-api";
+import type { PermissionAction } from "@/redux/services/dashboard/rbac-types";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";

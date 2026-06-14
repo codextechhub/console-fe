@@ -17,14 +17,14 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetAssignmentsQuery,
   useGetStaffProfileQuery,
   useGetStaffProfilesQuery,
-} from "@/redux/services/dashboard/organogramApi";
-import { useChangeUserEmailMutation } from "@/redux/services/dashboard/teamMgtApi";
-import type { StaffProfile } from "@/redux/services/dashboard/organogramTypes";
+} from "@/redux/services/dashboard/organogram-api";
+import { useChangeUserEmailMutation } from "@/redux/services/dashboard/team-mgt-api";
+import type { StaffProfile } from "@/redux/services/dashboard/organogram-types";
 import { OrgAvatar, StatusPill, EmpBadge } from "../components/org-primitives";
 import { fmtDate } from "../lib/org-helpers";
 

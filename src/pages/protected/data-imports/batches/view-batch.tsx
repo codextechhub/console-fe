@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -39,14 +39,14 @@ import {
   useGetImportAuditLogsQuery,
   useGetImportNotificationsQuery,
   importDownloadUrls,
-} from "@/redux/services/dashboard/importApi";
+} from "@/redux/services/dashboard/import-api";
 import type {
   BatchStatus,
   ImportBatch,
   ImportJobListItem,
   ValidationIssueListItem,
   ValidationSeverity,
-} from "@/redux/services/dashboard/importTypes";
+} from "@/redux/services/dashboard/import-types";
 
 // ── Status configuration ─────────────────────────────────────────────────────
 

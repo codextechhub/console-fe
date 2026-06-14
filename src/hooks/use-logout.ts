@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router";
 import Cookies from "js-cookie";
-import { useLogoutMutation } from "@/redux/services/auth/authApi";
+import { useLogoutMutation } from "@/redux/services/auth/auth-api";
 import { useAppDispatch } from "@/redux/store";
-import { resetAuth } from "@/redux/features/auth/authSlice";
-import { routesPath } from "@/routes/routesPath";
+import { resetAuth } from "@/redux/features/auth/auth-slice";
+import { routesPath } from "@/routes/routes-path";
 
 /**
  * Shared logout flow. Hits the logout mutation, then clears tokens + auth state

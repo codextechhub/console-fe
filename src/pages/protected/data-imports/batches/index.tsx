@@ -18,16 +18,16 @@ import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetImportBatchesQuery,
   useDeleteImportBatchMutation,
-} from "@/redux/services/dashboard/importApi";
+} from "@/redux/services/dashboard/import-api";
 import type {
   BatchStatus,
   DatasetType,
   ImportBatchListItem,
-} from "@/redux/services/dashboard/importTypes";
+} from "@/redux/services/dashboard/import-types";
 
 // ── Status configuration ─────────────────────────────────────────────────────
 

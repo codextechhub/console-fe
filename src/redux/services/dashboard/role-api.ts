@@ -1,7 +1,7 @@
  
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../baseApi";
-import type { AllRolesRes } from "./type";
+import { baseApi } from "../base-api";
+import type { AllRolesRes } from "./dashboard-types";
 
 export const roleApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

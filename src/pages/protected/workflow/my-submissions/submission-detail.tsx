@@ -17,7 +17,7 @@ import {
   useGetWorkflowInstanceQuery,
   useWithdrawWorkflowInstanceMutation,
   useResubmitWorkflowInstanceMutation,
-} from "@/redux/services/dashboard/workflowApi";
+} from "@/redux/services/dashboard/workflow-api";
 import { useUserDirectory } from "../components/use-user-directory";
 import { sameId } from "../components/workflow-format";
 import { DocumentPanel } from "../components/document-panel";

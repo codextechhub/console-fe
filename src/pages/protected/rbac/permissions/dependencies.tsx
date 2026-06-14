@@ -26,9 +26,9 @@ import { toast } from "sonner";
 import {
   useGetPermissionDependenciesQuery,
   useDeletePermissionDependencyMutation,
-} from "@/redux/services/dashboard/rbacApi";
-import type { PermissionDependency } from "@/redux/services/dashboard/rbacTypes";
-import { routesPath } from "@/routes/routesPath";
+} from "@/redux/services/dashboard/rbac-api";
+import type { PermissionDependency } from "@/redux/services/dashboard/rbac-types";
+import { routesPath } from "@/routes/routes-path";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";

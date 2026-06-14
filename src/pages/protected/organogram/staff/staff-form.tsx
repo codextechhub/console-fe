@@ -8,15 +8,15 @@ import { toast } from "sonner";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useCreateAssignmentMutation,
   useCreateStaffProfileMutation,
   useGetPositionsQuery,
   useGetStaffProfileQuery,
   useUpdateStaffProfileMutation,
-} from "@/redux/services/dashboard/organogramApi";
-import { useGetTeamMembersQuery } from "@/redux/services/dashboard/teamMgtApi";
+} from "@/redux/services/dashboard/organogram-api";
+import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
 import { StaffProfileForm } from "./profile-form";
 
 export default function StaffForm() {

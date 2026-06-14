@@ -8,7 +8,7 @@ import type {
   OrganogramNode,
   Position,
   UserInline,
-} from "@/redux/services/dashboard/organogramTypes";
+} from "@/redux/services/dashboard/organogram-types";
 import { cn } from "@/lib/utils";
 import { ActingBadge, HeadcountMeter, HolderStack, VacantBadge } from "./org-primitives";
 

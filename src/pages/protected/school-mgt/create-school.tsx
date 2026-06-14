@@ -1,8 +1,8 @@
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import PromptModal from "@/components/modal/prompt-modal";
 import { Button } from "@/components/ui/button";
-import { useCreateSchoolMutation } from "@/redux/services/dashboard/schoolMgtApi";
-import { routesPath } from "@/routes/routesPath";
+import { useCreateSchoolMutation } from "@/redux/services/dashboard/school-mgt-api";
+import { routesPath } from "@/routes/routes-path";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import AddSchool from "./component/add-school";

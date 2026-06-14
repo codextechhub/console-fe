@@ -1,5 +1,5 @@
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../baseApi";
+import { baseApi } from "../base-api";
 import type {
   SchoolsRes,
   SchoolDetailRes,
@@ -8,7 +8,7 @@ import type {
   BranchDetailRes,
   PackagePlansRes,
   ModulesRes,
-} from "./schoolType";
+} from "./school-types";
 
 export const schoolMgtApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

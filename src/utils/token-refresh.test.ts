@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 // each test imports a fresh copy.
 const freshModule = async () => {
   vi.resetModules();
-  return await import("./tokenRefresh");
+  return await import("./token-refresh");
 };
 
 const okResponse = (data: { access?: string; refresh?: string }) =>

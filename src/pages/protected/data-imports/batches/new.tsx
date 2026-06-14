@@ -4,8 +4,8 @@ import ImportWizard from "@/components/custom/import-wizard";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
-import { routesPath } from "@/routes/routesPath";
-import type { DatasetType } from "@/redux/services/dashboard/importTypes";
+import { routesPath } from "@/routes/routes-path";
+import type { DatasetType } from "@/redux/services/dashboard/import-types";
 
 export default function NewImportBatch() {
   const navigate = useNavigate();

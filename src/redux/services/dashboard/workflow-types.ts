@@ -11,7 +11,7 @@
 //     /team-load/ return a plain array.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { PaginatedResponse } from "./rbacTypes";
+import type { PaginatedResponse } from "./rbac-types";
 
 // ── Enums (string unions, matching vs_workflow.constants) ────────────────────
 

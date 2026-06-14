@@ -8,14 +8,14 @@ import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { Link } from "react-router";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetTeamMembersQuery,
   useResendInviteMutation,
-} from "@/redux/services/dashboard/teamMgtApi";
+} from "@/redux/services/dashboard/team-mgt-api";
 import { useMemo, useState } from "react";
 import { useDebounce } from "react-haiku";
-import type { TeamMember } from "@/redux/services/dashboard/type";
+import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
 import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
 import {

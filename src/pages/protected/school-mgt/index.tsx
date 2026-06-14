@@ -12,12 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetSchoolsQuery,
   useGetSchoolStatsQuery,
-} from "@/redux/services/dashboard/schoolMgtApi";
-import type { School } from "@/redux/services/dashboard/schoolType";
+} from "@/redux/services/dashboard/school-mgt-api";
+import type { School } from "@/redux/services/dashboard/school-types";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";

@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { useCreateAuditExportMutation } from "@/redux/services/dashboard/auditApi";
-import { routesPath } from "@/routes/routesPath";
+import { useCreateAuditExportMutation } from "@/redux/services/dashboard/audit-api";
+import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 
 const SEVERITIES = ["INFO", "WARNING", "CRITICAL"];

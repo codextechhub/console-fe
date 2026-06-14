@@ -2,10 +2,10 @@ import { useParams, useNavigate, Link } from "react-router";
 import {
   useSpecialLoginPreviewQuery,
   useLoginMutation,
-} from "@/redux/services/auth/authApi";
+} from "@/redux/services/auth/auth-api";
 import { useState } from "react";
-import { routesPath } from "@/routes/routesPath";
-import { consumeReturnTo } from "@/utils/returnTo";
+import { routesPath } from "@/routes/routes-path";
+import { consumeReturnTo } from "@/utils/return-to";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
 

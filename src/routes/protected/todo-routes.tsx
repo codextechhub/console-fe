@@ -1,6 +1,6 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 
 // Route-level code splitting: the Tasks page loads on first visit instead of
 // shipping in the main bundle. Suspense fallback lives in routes/index.tsx.

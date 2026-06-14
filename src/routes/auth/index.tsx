@@ -1,6 +1,6 @@
 import { lazy } from "react";
 import { Navigate, type RouteObject } from "react-router";
-import { routesPath } from "../routesPath";
+import { routesPath } from "../routes-path";
 import AuthLayout from "@/components/layout/auth-layout";
 
 // Route-level code splitting: each page loads on first visit instead of

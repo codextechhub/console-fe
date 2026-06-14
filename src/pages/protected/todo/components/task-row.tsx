@@ -3,7 +3,7 @@
 // optional edit/delete menu (shown only when the viewer may modify the task).
 
 import { Check, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import type { Task } from "@/redux/services/dashboard/todoTypes";
+import type { Task } from "@/redux/services/dashboard/todo-types";
 import {
   DropdownMenu,
   DropdownMenuContent,

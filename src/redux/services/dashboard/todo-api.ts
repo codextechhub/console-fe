@@ -4,7 +4,7 @@
 // organogram on the server, so these endpoints just return ready-to-render data.
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../baseApi";
+import { baseApi } from "../base-api";
 import type {
   DataEnvelope,
   MineDashboard,
@@ -13,7 +13,7 @@ import type {
   Task,
   TaskCreatePayload,
   TaskUpdatePayload,
-} from "./todoTypes";
+} from "./todo-types";
 
 type QueryParams = Record<string, string | number>;
 

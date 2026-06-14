@@ -5,8 +5,8 @@ import * as Yup from "yup";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
-import { routesPath } from "@/routes/routesPath";
-import { useCreatePermissionGroupMutation, useGetPermissionsQuery } from "@/redux/services/dashboard/rbacApi";
+import { routesPath } from "@/routes/routes-path";
+import { useCreatePermissionGroupMutation, useGetPermissionsQuery } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
 

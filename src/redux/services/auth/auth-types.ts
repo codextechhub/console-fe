@@ -1,4 +1,4 @@
-import type { User } from "@/redux/features/auth/type";
+import type { User } from "@/redux/features/auth/auth-types";
 
 export interface ResponseMessage {
     status: boolean;

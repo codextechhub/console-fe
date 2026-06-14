@@ -4,7 +4,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import type {
   WorkflowStageInstance,
   WorkflowStageStatus,
-} from "@/redux/services/dashboard/workflowTypes";
+} from "@/redux/services/dashboard/workflow-types";
 import { InitialsAvatar, StageStatusBadge } from "./workflow-ui";
 
 type Resolver = (id?: string | null) => string;

@@ -1,15 +1,15 @@
-import { selectUser } from "@/redux/features/auth/authSlice";
-import { useGetMeQuery } from "@/redux/services/auth/authApi";
-import { routesPath } from "@/routes/routesPath";
+import { selectUser } from "@/redux/features/auth/auth-slice";
+import { useGetMeQuery } from "@/redux/services/auth/auth-api";
+import { routesPath } from "@/routes/routes-path";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Outlet } from "react-router";
 import { IDLE_MS, WARNING_MS } from "@/hooks/use-session-timeout";
-import { getLastActivity } from "@/utils/sessionActivity";
+import { getLastActivity } from "@/utils/session-activity";
 import { isJwtExpired } from "@/utils/jwt";
-import { endSession } from "@/utils/endSession";
-import { captureReturnTo } from "@/utils/returnTo";
+import { endSession } from "@/utils/end-session";
+import { captureReturnTo } from "@/utils/return-to";
 
 const { LOGIN } = routesPath.AUTH;
 

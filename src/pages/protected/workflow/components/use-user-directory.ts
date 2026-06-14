@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { useGetTeamMembersQuery } from "@/redux/services/dashboard/teamMgtApi";
-import type { TeamMember } from "@/redux/services/dashboard/type";
+import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
+import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
 import { returnInitial } from "@/utils/helpers";
 
 /** Backend user FKs serialize as numbers; normalize everything to a string key. */

@@ -10,9 +10,9 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, Loader2, Lock } from "lucide-react";
-import type { StaffProfile, StaffProfileWritePayload } from "@/redux/services/dashboard/organogramTypes";
-import { useUploadStaffProfilePhotoMutation } from "@/redux/services/dashboard/organogramApi";
-import { useFetchAuthMediaQuery } from "@/redux/services/mediaApi";
+import type { StaffProfile, StaffProfileWritePayload } from "@/redux/services/dashboard/organogram-types";
+import { useUploadStaffProfilePhotoMutation } from "@/redux/services/dashboard/organogram-api";
+import { useFetchAuthMediaQuery } from "@/redux/services/media-api";
 import { avatarColor, initialsOf } from "../lib/org-helpers";
 import { cn } from "@/lib/utils";
 

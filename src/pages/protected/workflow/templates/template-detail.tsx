@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
-import { routesPath } from "@/routes/routesPath";
-import { useGetWorkflowTemplateQuery } from "@/redux/services/dashboard/workflowApi";
+import { routesPath } from "@/routes/routes-path";
+import { useGetWorkflowTemplateQuery } from "@/redux/services/dashboard/workflow-api";
 import { advanceRuleLabel, humanizeDocumentType } from "../components/workflow-format";
 import { ConditionView } from "../components/condition-view";
 

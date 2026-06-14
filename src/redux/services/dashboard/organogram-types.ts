@@ -8,7 +8,7 @@
 // Position belongs to one org node (any tier); a person's department/division
 // are derived by walking up from their seat's node.
 
-import type { PaginatedResponse } from "./rbacTypes";
+import type { PaginatedResponse } from "./rbac-types";
 
 // ── Enums (mirror model TextChoices) ─────────────────────────────────────────
 

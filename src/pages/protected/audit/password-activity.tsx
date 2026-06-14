@@ -7,23 +7,23 @@ import { SearchSelect } from "@/components/custom/search-select";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
-import { useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
+import { useGetAuditEventsQuery } from "@/redux/services/dashboard/audit-api";
 import {
   useGetPendingResetsQuery,
   useRevokeResetMutation,
   useResendPasswordResetMutation,
-} from "@/redux/services/dashboard/securityApi";
+} from "@/redux/services/dashboard/security-api";
 import {
   useGetTeamMembersQuery,
   useAdminPasswordResetMutation,
   useChangeUserEmailMutation,
-} from "@/redux/services/dashboard/teamMgtApi";
+} from "@/redux/services/dashboard/team-mgt-api";
 import { ActorCell } from "./components/audit-cells";
 import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import type { AuditEventListItem, AuditSeverity } from "@/redux/services/dashboard/auditTypes";
-import type { TeamMember } from "@/redux/services/dashboard/type";
+import type { AuditEventListItem, AuditSeverity } from "@/redux/services/dashboard/audit-types";
+import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
 import { FRIENDLY_ACTION } from "./audit-constants";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";

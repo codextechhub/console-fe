@@ -1,4 +1,4 @@
-import type { WorkflowCondition } from "@/redux/services/dashboard/workflowTypes";
+import type { WorkflowCondition } from "@/redux/services/dashboard/workflow-types";
 
 const OP_LABEL: Record<string, string> = {
   eq: "=",

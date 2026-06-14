@@ -14,16 +14,16 @@ import PermissionGate from "@/components/custom/permission-gate";
 import PromptModal from "@/components/modal/prompt-modal";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetComplianceRulesQuery,
   useUpdateComplianceRuleMutation,
   useDeleteComplianceRuleMutation,
   useCreateComplianceRuleMutation,
-} from "@/redux/services/dashboard/auditApi";
-import { useGetSchoolsQuery } from "@/redux/services/dashboard/schoolMgtApi";
+} from "@/redux/services/dashboard/audit-api";
+import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { formatRelativeDate } from "@/utils/helpers";
-import type { ComplianceRule } from "@/redux/services/dashboard/auditTypes";
+import type { ComplianceRule } from "@/redux/services/dashboard/audit-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 

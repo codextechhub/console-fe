@@ -2,12 +2,12 @@ import { useNavigate } from "react-router";
 import { AlertTriangle, Clock, Key, Monitor, ShieldCheck } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { useAppSelector } from "@/redux/store";
-import { useGetLoginSessionsQuery, useGetMySecurityStatsQuery } from "@/redux/services/dashboard/securityApi";
-import { useGetMyActivityQuery } from "@/redux/services/dashboard/auditApi";
+import { useGetLoginSessionsQuery, useGetMySecurityStatsQuery } from "@/redux/services/dashboard/security-api";
+import { useGetMyActivityQuery } from "@/redux/services/dashboard/audit-api";
 import { formatRelativeDate } from "@/utils/helpers";
-import type { AuditSeverity } from "@/redux/services/dashboard/auditTypes";
+import type { AuditSeverity } from "@/redux/services/dashboard/audit-types";
 
 function parseUA(ua: string | null | undefined): { browser: string; os: string } {
   if (!ua) return { browser: "—", os: "—" };

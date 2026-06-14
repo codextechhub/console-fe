@@ -5,15 +5,15 @@ import { CustomInput } from "@/components/custom/custom-input";
 import PromptModal from "@/components/modal/prompt-modal";
 import { Button } from "@/components/ui/button";
 import useToggleModal from "@/hooks/use-toggle";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { useNavigate } from "react-router";
 import { SearchSelect } from "@/components/custom/search-select";
 import { useAllRoles } from "@/hooks/use-all-roles";
 import { useFormik } from "formik";
 import { useMemo } from "react";
 import { createTeamMemberSchema } from "@/schema/dashboard/team-mgt";
-import { useCreateTeamMemberMutation } from "@/redux/services/dashboard/teamMgtApi";
-import { useGetOrgNodesQuery, useGetPositionsQuery } from "@/redux/services/dashboard/organogramApi";
+import { useCreateTeamMemberMutation } from "@/redux/services/dashboard/team-mgt-api";
+import { useGetOrgNodesQuery, useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
 import { buildOrgNodeMap, resolveTiers } from "@/pages/protected/organogram/lib/org-helpers";
 
 const EMPLOYMENT_TYPE_OPTIONS = [

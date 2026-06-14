@@ -3,11 +3,11 @@ import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetPermissionModuleDetailQuery,
   useUpdatePermissionModuleMutation,
-} from "@/redux/services/dashboard/rbacApi";
+} from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 

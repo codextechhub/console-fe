@@ -14,10 +14,10 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/
 import { cn } from "@/lib/utils";
 import type {
   MatrixReport, Position, StaffProfile, UserInline,
-} from "@/redux/services/dashboard/organogramTypes";
+} from "@/redux/services/dashboard/organogram-types";
 import {
   useGetAssignmentsQuery, useGetStaffProfileQuery,
-} from "@/redux/services/dashboard/organogramApi";
+} from "@/redux/services/dashboard/organogram-api";
 import { fmtDate, yearsSince, type ProfileMap } from "../lib/org-helpers";
 import { ActingBadge, DeptChip, EmpBadge, OrgAvatar, StatusPill, VacantBadge } from "./org-primitives";
 

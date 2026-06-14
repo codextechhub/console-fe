@@ -1,6 +1,6 @@
 import { Link, isRouteErrorResponse, useRouteError } from "react-router";
 import { Button } from "@/components/ui/button";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 
 // Router-level error boundary. Without one, any uncaught render error unmounts
 // the entire app into react-router's default stack-trace screen — including in

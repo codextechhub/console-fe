@@ -2,11 +2,11 @@ import Cookies from "js-cookie";
 import { useEffect } from "react";
 import { useLocation } from "react-router";
 import { useDispatch } from "react-redux";
-import { resetAuth, setToken } from "@/redux/features/auth/authSlice";
-import { routesPath } from "@/routes/routesPath";
-import { refreshTokenSingleFlight } from "@/utils/tokenRefresh";
+import { resetAuth, setToken } from "@/redux/features/auth/auth-slice";
+import { routesPath } from "@/routes/routes-path";
+import { refreshTokenSingleFlight } from "@/utils/token-refresh";
 import { isJwtExpired } from "@/utils/jwt";
-import { endSession } from "@/utils/endSession";
+import { endSession } from "@/utils/end-session";
 
 const REFRESH_BUFFER_SECONDS = 120; // refresh if token expires within 2 minutes
 

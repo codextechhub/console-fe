@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Flag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { Person, TaskPriority, TaskStatusKey } from "@/redux/services/dashboard/todoTypes";
+import type { Person, TaskPriority, TaskStatusKey } from "@/redux/services/dashboard/todo-types";
 import {
   PRIORITY_BADGE,
   PRIORITY_LABEL,

@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { List } from "lucide-react";
-import type { Task, TaskStatusKey } from "@/redux/services/dashboard/todoTypes";
+import type { Task, TaskStatusKey } from "@/redux/services/dashboard/todo-types";
 import { cn } from "@/lib/utils";
 import { STATUS_LABEL } from "../lib/todo-helpers";
 import { EmptyState } from "./primitives";

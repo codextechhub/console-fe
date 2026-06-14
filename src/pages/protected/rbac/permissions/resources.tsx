@@ -17,13 +17,13 @@ import {
 import { cn } from "@/lib/utils";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetPermissionResourcesQuery,
   useDeletePermissionResourceMutation,
   useGetPermissionModulesQuery,
-} from "@/redux/services/dashboard/rbacApi";
-import type { PermissionResource } from "@/redux/services/dashboard/rbacTypes";
+} from "@/redux/services/dashboard/rbac-api";
+import type { PermissionResource } from "@/redux/services/dashboard/rbac-types";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";

@@ -7,12 +7,12 @@ import { ActorCell } from "./components/audit-cells";
 import {
   useGetEntityTrailDetailQuery,
   useCreateAuditExportMutation,
-} from "@/redux/services/dashboard/auditApi";
+} from "@/redux/services/dashboard/audit-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useState, useMemo } from "react";
 import EventDetailDrawer from "./components/event-detail-drawer";
-import { routesPath } from "@/routes/routesPath";
-import type { AuditEventDetail } from "@/redux/services/dashboard/auditTypes";
+import { routesPath } from "@/routes/routes-path";
+import type { AuditEventDetail } from "@/redux/services/dashboard/audit-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { friendlyAction } from "./audit-constants";

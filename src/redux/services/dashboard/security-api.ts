@@ -1,5 +1,5 @@
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../baseApi";
+import { baseApi } from "../base-api";
 import type {
   LoginSession,
   AuthAttempt,
@@ -8,7 +8,7 @@ import type {
   PasswordReset,
   MyPasswordReset,
   PaginatedResponse,
-} from "./securityTypes";
+} from "./security-types";
 
 export const securityApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({

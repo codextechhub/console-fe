@@ -13,11 +13,11 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAppSelector } from "@/redux/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetImportTemplateQuery,
   useUpdateImportTemplateMutation,
-} from "@/redux/services/dashboard/importApi";
+} from "@/redux/services/dashboard/import-api";
 import type {
   FileFormat,
   ImportTemplate,
@@ -25,7 +25,7 @@ import type {
   TemplateColumnDataType,
   TemplateStatus,
   UpdateTemplatePayload,
-} from "@/redux/services/dashboard/importTypes";
+} from "@/redux/services/dashboard/import-types";
 
 const FILE_FORMATS: FileFormat[] = ["csv", "xlsx", "xls"];
 const TEMPLATE_STATUSES: TemplateStatus[] = ["draft", "active", "retired"];

@@ -22,7 +22,7 @@ import { NotificationsBell } from "@/components/custom/notifications-bell";
 import { useLogout } from "@/hooks/use-logout";
 import useToggleModal from "@/hooks/use-toggle";
 import PromptModal from "@/components/modal/prompt-modal";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 
 // Self-hosted Google Noto animated emojis (public/emoji/*.webp). The artwork
 // itself moves — the clap claps, the wave waves — because the WebP is an

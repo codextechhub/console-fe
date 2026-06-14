@@ -6,13 +6,13 @@ import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchSelect } from "@/components/custom/search-select";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetPermissionDetailQuery,
   useUpdatePermissionMutation,
   useGetPermissionModulesQuery,
   useGetPermissionResourcesQuery,
-} from "@/redux/services/dashboard/rbacApi";
+} from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Loader2, Lock, Link2 } from "lucide-react";
 

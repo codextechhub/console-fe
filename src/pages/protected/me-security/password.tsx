@@ -7,7 +7,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import {
   useChangeMyPasswordMutation,
   useGetMyPasswordResetsQuery,
-} from "@/redux/services/dashboard/securityApi";
+} from "@/redux/services/dashboard/security-api";
 import { useAppSelector } from "@/redux/store";
 import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";

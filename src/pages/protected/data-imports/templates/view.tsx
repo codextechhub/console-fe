@@ -9,15 +9,15 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAppSelector } from "@/redux/store";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetImportTemplateQuery,
   importDownloadUrls,
-} from "@/redux/services/dashboard/importApi";
+} from "@/redux/services/dashboard/import-api";
 import type {
   ImportTemplate,
   TemplateStatus,
-} from "@/redux/services/dashboard/importTypes";
+} from "@/redux/services/dashboard/import-types";
 
 const STATUS_BADGE: Record<TemplateStatus, "active" | "pending" | "inactive"> = {
   active: "active",

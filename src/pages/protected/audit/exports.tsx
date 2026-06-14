@@ -17,10 +17,10 @@ import PermissionGate from "@/components/custom/permission-gate";
 import {
   useGetAuditExportsQuery,
   useGetAuditExportDetailQuery,
-} from "@/redux/services/dashboard/auditApi";
-import type { AuditExportJob } from "@/redux/services/dashboard/auditTypes";
+} from "@/redux/services/dashboard/audit-api";
+import type { AuditExportJob } from "@/redux/services/dashboard/audit-types";
 import { formatRelativeDate } from "@/utils/helpers";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";

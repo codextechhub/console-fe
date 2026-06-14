@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { captureReturnTo, consumeReturnTo } from "./returnTo";
+import { captureReturnTo, consumeReturnTo } from "./return-to";
 
 const setLocation = (pathname: string, search = "", hash = "") => {
   Object.defineProperty(window, "location", {

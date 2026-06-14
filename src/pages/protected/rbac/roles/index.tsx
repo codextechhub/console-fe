@@ -11,12 +11,12 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
 import { svgIcons } from "@/assets/svg";
-import { routesPath } from "@/routes/routesPath";
-import { useGetPlatformRolesQuery, useDeletePlatformRoleMutation } from "@/redux/services/dashboard/rbacApi";
+import { routesPath } from "@/routes/routes-path";
+import { useGetPlatformRolesQuery, useDeletePlatformRoleMutation } from "@/redux/services/dashboard/rbac-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
-import type { PlatformRole } from "@/redux/services/dashboard/rbacTypes";
+import type { PlatformRole } from "@/redux/services/dashboard/rbac-types";
 
 const TABLE_HEADERS = ["Role Name", "Status", "System", "Locked", "Users", "Permissions", "Created", "Action"];
 

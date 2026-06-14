@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CustomTable from "@/components/custom/custom-table";
 import PromptModal from "@/components/modal/prompt-modal";
-import { useGetAccountLockoutsQuery, useUnlockAccountMutation } from "@/redux/services/dashboard/securityApi";
+import { useGetAccountLockoutsQuery, useUnlockAccountMutation } from "@/redux/services/dashboard/security-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
-import type { AccountLockout } from "@/redux/services/dashboard/securityTypes";
-import { routesPath } from "@/routes/routesPath";
+import type { AccountLockout } from "@/redux/services/dashboard/security-types";
+import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 
 const TABLE_HEADERS = ["User", "Locked until", "Reason", "Failure count", "Last failure IP", "Last failure", "Status", "Action"];

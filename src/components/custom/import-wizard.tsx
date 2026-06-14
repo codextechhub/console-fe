@@ -17,8 +17,8 @@ import {
   useGetImportJobQuery,
   useRollbackImportJobMutation,
   importDownloadUrls,
-} from "@/redux/services/dashboard/importApi";
-import type { DatasetType, ImportBatch, ImportTemplate, ValidationSeverity } from "@/redux/services/dashboard/importTypes";
+} from "@/redux/services/dashboard/import-api";
+import type { DatasetType, ImportBatch, ImportTemplate, ValidationSeverity } from "@/redux/services/dashboard/import-types";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 

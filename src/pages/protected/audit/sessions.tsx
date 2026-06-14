@@ -35,15 +35,15 @@ import { P } from "@/permissions";
 import { formatRelativeDate } from "@/utils/helpers";
 import {
   useGetLoginSessionsQuery, useForceLogoutMutation,
-} from "@/redux/services/dashboard/securityApi";
-import { useGetSchoolsQuery } from "@/redux/services/dashboard/schoolMgtApi";
-import { useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
+} from "@/redux/services/dashboard/security-api";
+import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
+import { useGetAuditEventsQuery } from "@/redux/services/dashboard/audit-api";
 import { ActorCell } from "./components/audit-cells";
-import type { LoginSession } from "@/redux/services/dashboard/securityTypes";
+import type { LoginSession } from "@/redux/services/dashboard/security-types";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
-import { routesPath } from "@/routes/routesPath";
+import { routesPath } from "@/routes/routes-path";
 import { cn } from "@/lib/utils";
 
 // ── UA parsing ───────────────────────────────────────────────────────────────

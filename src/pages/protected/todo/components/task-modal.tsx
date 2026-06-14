@@ -23,7 +23,7 @@ import type {
   TaskCreatePayload,
   TaskPriority,
   TaskUpdatePayload,
-} from "@/redux/services/dashboard/todoTypes";
+} from "@/redux/services/dashboard/todo-types";
 import { PRIORITY_LABEL } from "../lib/todo-helpers";
 
 export type TaskModalMode = "add" | "assign" | "edit";

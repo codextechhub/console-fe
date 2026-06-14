@@ -18,8 +18,8 @@ import { useAppSelector } from "@/redux/store";
 import {
   useGetWorkflowInstanceQuery,
   useRecordWorkflowActionMutation,
-} from "@/redux/services/dashboard/workflowApi";
-import type { VoteAction, WorkflowInstanceDetail } from "@/redux/services/dashboard/workflowTypes";
+} from "@/redux/services/dashboard/workflow-api";
+import type { VoteAction, WorkflowInstanceDetail } from "@/redux/services/dashboard/workflow-types";
 import { useUserDirectory } from "../components/use-user-directory";
 import { sameId, INSTANCE_STATUS_META } from "../components/workflow-format";
 import { DocumentPanel } from "../components/document-panel";

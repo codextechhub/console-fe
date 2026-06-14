@@ -9,10 +9,10 @@ import { UserAvatar } from "@/components/custom/user-avatar";
 import KpiCard from "@/components/custom/kpi-card";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
-import { routesPath } from "@/routes/routesPath";
-import { useGetAuditDashboardSummaryQuery, useGetAuditEventsQuery } from "@/redux/services/dashboard/auditApi";
+import { routesPath } from "@/routes/routes-path";
+import { useGetAuditDashboardSummaryQuery, useGetAuditEventsQuery } from "@/redux/services/dashboard/audit-api";
 import { formatRelativeDate } from "@/utils/helpers";
-import type { AuditEventListItem } from "@/redux/services/dashboard/auditTypes";
+import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types";
 import EventDetailDrawer from "./components/event-detail-drawer";
 import {
   CriticalHeatmap,

@@ -14,7 +14,7 @@ import {
   persistStore,
 } from "redux-persist";
 import localStorage from "redux-persist/es/storage";
-import { baseApi } from "./services/baseApi";
+import { baseApi } from "./services/base-api";
 import rootReducer, { type RootState } from "./features/root-reducer";
 
 const persistConfig = {

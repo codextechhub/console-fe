@@ -9,8 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
-import { useCreateBranchMutation } from "@/redux/services/dashboard/schoolMgtApi";
-import { routesPath } from "@/routes/routesPath";
+import { useCreateBranchMutation } from "@/redux/services/dashboard/school-mgt-api";
+import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 
 const schema = Yup.object({

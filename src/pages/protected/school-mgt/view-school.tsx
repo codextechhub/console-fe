@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
-import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/schoolMgtApi";
-import type { BranchDetail } from "@/redux/services/dashboard/schoolType";
-import { routesPath } from "@/routes/routesPath";
+import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/school-mgt-api";
+import type { BranchDetail } from "@/redux/services/dashboard/school-types";
+import { routesPath } from "@/routes/routes-path";
 import { formatEnum, returnInitial } from "@/utils/helpers";
 import { Building2, GraduationCap, LayoutGrid, Plus, Users } from "lucide-react";
 import { useState, type ComponentProps } from "react";
