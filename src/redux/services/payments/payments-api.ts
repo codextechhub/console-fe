@@ -69,6 +69,14 @@ export const paymentsApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/payments/payout-batches/${id}/${qs({ entity })}`, method: "GET" }),
       providesTags: ["PaymentsPayoutBatches"],
     }),
+    // POST the batch detail submits its pending instructions to the PSP.
+    submitPayoutBatch: builder.mutation<ApiEnvelope<PayoutBatch>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/payments/payout-batches/${id}/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["PaymentsPayoutBatches", "PaymentsPayouts"],
+    }),
+    getSettlementReconciliation: builder.query<ApiEnvelope<Record<string, unknown>>, { entity: string; provider?: string }>({
+      query: (p) => ({ url: `/payments/reports/settlement-reconciliation/${qs(p)}`, method: "GET" }),
+    }),
   }),
 });
 
@@ -81,4 +89,6 @@ export const {
   useGetPayoutsQuery,
   useGetPayoutBatchesQuery,
   useGetPayoutBatchQuery,
+  useSubmitPayoutBatchMutation,
+  useGetSettlementReconciliationQuery,
 } = paymentsApi;

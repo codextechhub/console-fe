@@ -2,7 +2,6 @@ import { lazy } from "react";
 import { type RouteObject } from "react-router";
 import { routesPath } from "@/routes/routes-path";
 
-const ProcurementConsolePage = lazy(() => import("@/pages/protected/procurement/procurement-console-page"));
 const ProcurementDashboard = lazy(() => import("@/pages/protected/procurement/dashboard"));
 const Vendors = lazy(() => import("@/pages/protected/procurement/vendors"));
 const Requisitions = lazy(() => import("@/pages/protected/procurement/requisitions"));
@@ -10,6 +9,11 @@ const PurchaseOrders = lazy(() => import("@/pages/protected/procurement/purchase
 const GoodsReceipts = lazy(() => import("@/pages/protected/procurement/goods-receipts"));
 const VendorInvoices = lazy(() => import("@/pages/protected/procurement/vendor-invoices"));
 const VendorPayments = lazy(() => import("@/pages/protected/procurement/vendor-payments"));
+const Sourcing = lazy(() => import("@/pages/protected/procurement/sourcing"));
+const Contracts = lazy(() => import("@/pages/protected/procurement/contracts"));
+const Inventory = lazy(() => import("@/pages/protected/procurement/inventory"));
+const Analytics = lazy(() => import("@/pages/protected/procurement/analytics"));
+const Payouts = lazy(() => import("@/pages/protected/procurement/payouts"));
 
 const P = routesPath.PROTECTED.PROCUREMENT;
 
@@ -21,9 +25,9 @@ export const procurementRoutes: RouteObject[] = [
   { path: P.GOODS_RECEIPTS, element: <GoodsReceipts /> },
   { path: P.VENDOR_INVOICES, element: <VendorInvoices /> },
   { path: P.VENDOR_PAYMENTS, element: <VendorPayments /> },
-  { path: P.SOURCING, element: <ProcurementConsolePage title="Sourcing" description="RFQs and vendor quotations; awarding a quotation spawns a PO." slice="slice 6" /> },
-  { path: P.CONTRACTS, element: <ProcurementConsolePage title="Contracts" description="Vendor contracts with milestones and renewal radar." slice="slice 6" /> },
-  { path: P.INVENTORY, element: <ProcurementConsolePage title="Inventory" description="Stock issues, count adjustments, movement ledger and valuation." slice="slice 6" /> },
-  { path: P.ANALYTICS, element: <ProcurementConsolePage title="Analytics" description="Spend by vendor/category, vendor performance, cash-requirements forecast, AP aging and GR/IR." slice="slice 6" /> },
-  { path: P.PAYOUTS, element: <ProcurementConsolePage title="Payouts" description="Single and bulk payouts, batches and settlement reconciliation." slice="slice 6" /> },
+  { path: P.SOURCING, element: <Sourcing /> },
+  { path: P.CONTRACTS, element: <Contracts /> },
+  { path: P.INVENTORY, element: <Inventory /> },
+  { path: P.ANALYTICS, element: <Analytics /> },
+  { path: P.PAYOUTS, element: <Payouts /> },
 ];
