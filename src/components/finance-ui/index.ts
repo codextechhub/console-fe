@@ -15,6 +15,7 @@ export { EntitySelect } from "./entity-select";
 export { TabBar, type TabDef } from "./tab-bar";
 export { FormModal, FormField } from "./form-modal";
 export { AccountPicker, CurrencyPicker, TaxCodePicker, CostCenterPicker, TaxObligationPicker } from "./pickers";
+export { LineEditor, emptyLine, toApiLines, type DocLine } from "./line-editor";
 export { useActiveEntity, useEntityCode } from "./use-entity";
 export {
   LoadingState,

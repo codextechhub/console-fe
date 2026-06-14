@@ -38,6 +38,10 @@ export const arApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/finance/credit-notes/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceCreditNotes"],
     }),
+    createCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { entity: string; customer: string; kind: string; note_date: string; reason?: string; reference?: string; lines: Record<string, unknown>[] }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/credit-notes/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceCreditNotes"],
+    }),
     postCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({
         url: `/finance/credit-notes/${id}/post/${qs({ entity })}`,
@@ -58,6 +62,10 @@ export const arApi = baseApi.injectEndpoints({
     getRefunds: builder.query<PaginatedEnvelope<Refund>, EntityList>({
       query: (params) => ({ url: `/finance/refunds/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceRefunds"],
+    }),
+    createRefund: builder.mutation<ApiEnvelope<Refund>, { entity: string; customer: string; refund_date: string; method?: string; amount: number; reference?: string; narration?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/refunds/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceRefunds"],
     }),
     postRefund: builder.mutation<ApiEnvelope<Refund>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({
@@ -85,9 +93,11 @@ export const {
   useGetInvoicesQuery,
   useWriteOffInvoiceMutation,
   useGetCreditNotesQuery,
+  useCreateCreditNoteMutation,
   usePostCreditNoteMutation,
   useAllocateCreditNoteMutation,
   useGetRefundsQuery,
+  useCreateRefundMutation,
   usePostRefundMutation,
   useGetPaymentPlansQuery,
   useGetDunningNoticesQuery,

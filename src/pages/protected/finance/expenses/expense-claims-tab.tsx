@@ -1,9 +1,18 @@
-// Expenses → Expense claims. List + detail (lines) + post + settle actions.
+// Expenses → Expense claims. List + create (lines) + detail + post + settle.
 import { useState } from "react";
 import { toast } from "sonner";
-import { DataTable, DetailDrawer, Money, StatusPill, ActionButton, type Column } from "@/components/finance-ui";
+import { Plus } from "lucide-react";
+import {
+  DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField,
+  LineEditor, emptyLine, toApiLines, type DocLine, type Column,
+} from "@/components/finance-ui";
+import { Can } from "@/components/finance-ui/can";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
-import { useGetExpenseClaimsQuery, usePostExpenseClaimMutation, useSettleExpenseClaimMutation } from "@/redux/services/finance/ops-api";
+import {
+  useGetExpenseClaimsQuery, usePostExpenseClaimMutation, useSettleExpenseClaimMutation, useCreateExpenseClaimMutation,
+} from "@/redux/services/finance/ops-api";
 import type { ExpenseClaim } from "@/redux/services/finance/ops-types";
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
@@ -13,6 +22,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 export function ExpenseClaimsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<ExpenseClaim | null>(null);
+  const [creating, setCreating] = useState(false);
   const { data, isLoading, isFetching, isError, refetch } = useGetExpenseClaimsQuery({ entity, page });
   const [post] = usePostExpenseClaimMutation();
   const [settle] = useSettleExpenseClaimMutation();
@@ -48,10 +58,16 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
 
   return (
     <>
+      <div className="mb-4 flex justify-end">
+        <Can permission={P.FIN_CREATE_EXPENSE_CLAIM}>
+          <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New claim</Button>
+        </Can>
+      </div>
       <DataTable columns={columns} rows={rows} rowKey={(c) => c.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
         emptyTitle="No expense claims" emptyMessage="Expense claims will appear here."
         page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+      <CreateClaimModal open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
 
       <DetailDrawer open={!!selected} onOpenChange={(o) => !o && setSelected(null)}
         title={selected?.document_number ?? "Expense claim"} description={selected?.title}>
@@ -82,5 +98,39 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
         )}
       </DetailDrawer>
     </>
+  );
+}
+
+function CreateClaimModal({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
+  const [claimant, setClaimant] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [title, setTitle] = useState("");
+  const [lines, setLines] = useState<DocLine[]>([emptyLine()]);
+  const [create, { isLoading }] = useCreateExpenseClaimMutation();
+
+  const apiLines = toApiLines(lines, "expense_account") as { description: string; expense_account: string; quantity: number; unit_price: number; tax_code?: string; cost_center?: string }[];
+
+  const submit = async () => {
+    try {
+      const res = await create({ entity, claimant_name: claimant.trim() || undefined, claim_date: date, title: title.trim() || undefined, lines: apiLines }).unwrap();
+      toast.success(res.message || "Claim created.");
+      setClaimant(""); setTitle(""); setLines([emptyLine()]); onClose();
+    } catch { /* central */ }
+  };
+
+  return (
+    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New expense claim"
+      description="Capture the claim and its lines; post it afterwards to book the journal."
+      onSubmit={submit} loading={isLoading} canSubmit={!!date && apiLines.length > 0} widthClass="sm:max-w-2xl">
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Claimant"><Input value={claimant} onChange={(e) => setClaimant(e.target.value)} className="bg-white" /></FormField>
+        <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
+      </div>
+      <FormField label="Title"><Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white" /></FormField>
+      <div className="pt-1">
+        <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
+        <LineEditor entity={entity} lines={lines} onChange={setLines} accountLabel="Expense account" accountType="EXPENSE" currency={currency} />
+      </div>
+    </FormModal>
   );
 }
