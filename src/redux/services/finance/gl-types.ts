@@ -1,0 +1,67 @@
+// General Ledger types — mirror vs_finance JournalEntry/JournalLine serializers
+// + the Direct Entry write serializer. All money is integer kobo.
+
+import type { JournalLineView } from "@/components/finance-ui/journal-table";
+
+export type JournalStatus = "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "POSTED" | "REVERSED" | "CANCELLED";
+export type JournalSource =
+  | "MANUAL" | "SALES" | "PURCHASE" | "BANK" | "PAYROLL" | "CLOSING" | "OPENING" | "FX" | "SYSTEM";
+
+/** JournalEntryListSerializer. */
+export interface JournalListItem {
+  id: number;
+  document_number: string;
+  date: string;
+  period: string | null;
+  source: JournalSource;
+  status: JournalStatus;
+  narration: string;
+  reference: string;
+  posted_at: string | null;
+}
+
+/** JournalLineSerializer (debit/credit are kobo). */
+export interface JournalLine extends JournalLineView {
+  id: number;
+  line_no: number;
+  account_id: number;
+  account_code: string;
+  account_name: string;
+  debit: number;
+  credit: number;
+  debit_naira: string;
+  credit_naira: string;
+  description: string | null;
+}
+
+/** JournalEntryDetailSerializer. */
+export interface JournalDetail extends JournalListItem {
+  lines: JournalLine[];
+  total_debit: number;
+  total_credit: number;
+  reverses_id: number | null;
+}
+
+export interface JournalListParams {
+  entity: string;
+  page?: number;
+  status?: JournalStatus;
+  source?: JournalSource;
+  date_from?: string;
+  date_to?: string;
+}
+
+/** One Direct Entry line: an account code with a one-sided kobo amount. */
+export interface DirectEntryLine {
+  account: string;
+  debit: number;
+  credit: number;
+}
+
+export interface DirectEntryPayload {
+  entity: string;
+  date?: string;
+  narration?: string;
+  reference?: string;
+  lines: DirectEntryLine[];
+}

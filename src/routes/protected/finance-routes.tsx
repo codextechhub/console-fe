@@ -2,18 +2,22 @@ import { lazy } from "react";
 import { type RouteObject } from "react-router";
 import { routesPath } from "@/routes/routes-path";
 
-// Route-level code splitting: the console shell loads on first visit. Each area
-// route renders the same shell with its own title; slices replace the body.
+// Route-level code splitting: each area page loads on first visit. Areas not yet
+// built render the console shell with a placeholder body.
 const FinanceConsolePage = lazy(() => import("@/pages/protected/finance/finance-console-page"));
+const FinanceDashboard = lazy(() => import("@/pages/protected/finance/dashboard"));
+const GeneralLedger = lazy(() => import("@/pages/protected/finance/ledger"));
+const Receivables = lazy(() => import("@/pages/protected/finance/receivables"));
+const Collections = lazy(() => import("@/pages/protected/finance/collections"));
 
 const F = routesPath.PROTECTED.FINANCE;
 
 export const financeRoutes: RouteObject[] = [
-  { path: F.INDEX, element: <FinanceConsolePage title="Finance Dashboard" description="Cash position, receivables, payables and recent activity for the selected entity." slice="slice 2" /> },
+  { path: F.INDEX, element: <FinanceDashboard /> },
   { path: F.SETUP, element: <FinanceConsolePage title="Setup & Entity" description="Ledger entities, chart of accounts, periods, currencies, tax codes and cost centres." slice="slice 2" /> },
-  { path: F.LEDGER, element: <FinanceConsolePage title="General Ledger" description="Journals (read-only), Direct Entry and journal reversal." slice="slice 2" /> },
-  { path: F.RECEIVABLES, element: <FinanceConsolePage title="Receivables" description="Invoices, credit notes, refunds, write-offs, concessions, payment plans and dunning." slice="slice 2" /> },
-  { path: F.COLLECTIONS, element: <FinanceConsolePage title="Collections" description="Gateway collections and virtual accounts — receivable cash arrives here." slice="slice 2" /> },
+  { path: F.LEDGER, element: <GeneralLedger /> },
+  { path: F.RECEIVABLES, element: <Receivables /> },
+  { path: F.COLLECTIONS, element: <Collections /> },
   { path: F.BANKING, element: <FinanceConsolePage title="Banking & Reconciliation" description="Bank accounts, statement import, auto-reconcile and manual matching." slice="slice 3" /> },
   { path: F.EXPENSES, element: <FinanceConsolePage title="Expenses & Petty Cash" description="Expense claims and petty-cash floats, vouchers and replenishment." slice="slice 3" /> },
   { path: F.PAYROLL, element: <FinanceConsolePage title="Payroll" description="Payroll runs, posting and payment. Salary figures are field-level secured." slice="slice 3" /> },

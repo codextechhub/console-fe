@@ -1,0 +1,58 @@
+// General Ledger RTK Query endpoints (vs_finance, /v1/finance/). Read-only GL +
+// the two sanctioned writes: Direct Entry and journal reversal. There is NO
+// free-form journal editor (spec §1.4).
+//   GET  /finance/journals/                 finance.journal.view
+//   GET  /finance/journals/{id}/            finance.journal.view
+//   POST /finance/journals/{id}/reverse/    finance.journal.reverse
+//   POST /finance/direct-entries/           finance.directentry.post
+
+import { generateQueryString } from "@/utils/helpers";
+import { baseApi } from "../base-api";
+import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
+import type {
+  DirectEntryPayload,
+  JournalDetail,
+  JournalListItem,
+  JournalListParams,
+} from "./gl-types";
+
+export const glApi = baseApi.injectEndpoints({
+  endpoints: (builder) => ({
+    getJournals: builder.query<PaginatedEnvelope<JournalListItem>, JournalListParams>({
+      query: (params) => ({
+        url: `/finance/journals/${generateQueryString(params as unknown as Record<string, string | number>)}`,
+        method: "GET",
+      }),
+      providesTags: ["FinanceJournals"],
+    }),
+    getJournal: builder.query<ApiEnvelope<JournalDetail>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({
+        url: `/finance/journals/${id}/${generateQueryString({ entity })}`,
+        method: "GET",
+      }),
+      providesTags: ["FinanceJournals"],
+    }),
+    reverseJournal: builder.mutation<ApiEnvelope<JournalDetail>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({
+        url: `/finance/journals/${id}/reverse/${generateQueryString({ entity })}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["FinanceJournals", "FinanceReports"],
+    }),
+    postDirectEntry: builder.mutation<ApiEnvelope<JournalDetail>, DirectEntryPayload>({
+      query: ({ entity, ...body }) => ({
+        url: `/finance/direct-entries/${generateQueryString({ entity })}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["FinanceJournals", "FinanceReports"],
+    }),
+  }),
+});
+
+export const {
+  useGetJournalsQuery,
+  useGetJournalQuery,
+  useReverseJournalMutation,
+  usePostDirectEntryMutation,
+} = glApi;
