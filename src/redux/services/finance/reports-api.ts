@@ -7,9 +7,11 @@ import { baseApi } from "../base-api";
 import type { ApiEnvelope } from "./api-types";
 import type {
   ArAging,
+  BalanceSheet,
+  CashFlow,
+  ChangesInEquity,
   IncomeStatement,
   ReportParams,
-  SectionedReport,
   TrialBalance,
 } from "./reports-types";
 
@@ -25,15 +27,15 @@ export const reportsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/reports/income-statement/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceReports"],
     }),
-    getBalanceSheet: builder.query<ApiEnvelope<SectionedReport>, ReportParams>({
+    getBalanceSheet: builder.query<ApiEnvelope<BalanceSheet>, ReportParams>({
       query: (p) => ({ url: `/finance/reports/balance-sheet/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceReports"],
     }),
-    getCashFlow: builder.query<ApiEnvelope<SectionedReport>, ReportParams>({
+    getCashFlow: builder.query<ApiEnvelope<CashFlow>, ReportParams>({
       query: (p) => ({ url: `/finance/reports/cash-flow/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceReports"],
     }),
-    getChangesInEquity: builder.query<ApiEnvelope<SectionedReport>, ReportParams>({
+    getChangesInEquity: builder.query<ApiEnvelope<ChangesInEquity>, ReportParams>({
       query: (p) => ({ url: `/finance/reports/changes-in-equity/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceReports"],
     }),

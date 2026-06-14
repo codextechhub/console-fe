@@ -61,12 +61,51 @@ export interface ArAging {
   total_net: ReportMoney;
 }
 
-/** Balance sheet / cash flow / changes-in-equity share a sectioned shape; kept
- *  loose here and refined when those screens ship (slice 4). */
-export interface SectionedReport {
+export interface BalanceSheet {
+  entity: string;
+  as_of: string;
+  assets: StatementLine[];
+  liabilities: StatementLine[];
+  equity: StatementLine[];
+  total_assets: ReportMoney;
+  total_liabilities: ReportMoney;
+  retained_earnings: ReportMoney;
+  total_equity: ReportMoney;
+  is_balanced: boolean;
+}
+
+export interface CashFlow {
   entity: string;
   period: string | null;
-  [key: string]: unknown;
+  opening_cash: ReportMoney;
+  closing_cash: ReportMoney;
+  by_activity: Record<string, ReportMoney>;
+  net_change: ReportMoney;
+  is_reconciled: boolean;
+}
+
+export interface EquityColumn {
+  key: string;
+  label: string;
+  code: string;
+  account_id: number;
+  opening: ReportMoney;
+  profit: ReportMoney;
+  contributions: ReportMoney;
+  closing: ReportMoney;
+}
+
+export interface ChangesInEquity {
+  entity: string;
+  period: string | null;
+  as_of: string;
+  columns: EquityColumn[];
+  total_opening: ReportMoney;
+  total_profit: ReportMoney;
+  total_contributions: ReportMoney;
+  total_closing: ReportMoney;
+  balance_sheet_equity: ReportMoney;
+  is_reconciled: boolean;
 }
 
 export interface ReportParams {
