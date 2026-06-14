@@ -3,18 +3,27 @@
 // invoice is blocked over tolerance).
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, ActionButton, useActiveEntity, type Column } from "@/components/finance-ui";
+import {
+  DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField,
+  LineEditor, emptyLine, toApiLines, type DocLine, useActiveEntity, type Column,
+} from "@/components/finance-ui";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/finance-ui/states";
+import { Can } from "@/components/finance-ui/can";
 import { P } from "@/permissions";
 import {
   useGetVendorInvoicesQuery,
   useMatchVendorInvoiceMutation,
   useSubmitVendorInvoiceMutation,
   usePostVendorInvoiceMutation,
+  useCreateVendorInvoiceMutation,
 } from "@/redux/services/procurement/procurement-api";
 import type { VendorInvoice } from "@/redux/services/procurement/procurement-types";
+import { VendorPicker, PurchaseOrderPicker } from "./pickers";
 
 const selectCls = "h-10 rounded-md border bg-white px-3 font-mont text-sm focus:border-primary focus:outline-none";
 
@@ -28,6 +37,7 @@ export default function VendorInvoicesPage() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<VendorInvoice | null>(null);
   const [allowVariance, setAllowVariance] = useState(false);
+  const [creating, setCreating] = useState(false);
   const params = useMemo(() => ({ entity: entity!, page, ...(match ? { match_status: match } : {}) }), [entity, page, match]);
   const { data, isLoading, isFetching, isError, refetch } = useGetVendorInvoicesQuery(params, { skip: !entity });
   const [runMatch] = useMatchVendorInvoiceMutation();
@@ -51,9 +61,14 @@ export default function VendorInvoicesPage() {
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Invoices</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">Three-way match against PO and goods receipt; post when matched.</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Invoices</h1>
+            <p className="mt-0.5 font-mont text-xs text-gray-05">Three-way match against PO and goods receipt; post when matched.</p>
+          </div>
+          <Can permission={P.PROC_CREATE_VENDOR_INVOICE}>
+            <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New invoice</Button>
+          </Can>
         </div>
         <div className="flex items-center gap-3">
           <select value={match} onChange={(e) => { setMatch(e.target.value); setPage(1); }} className={selectCls} aria-label="Match status">
@@ -113,6 +128,46 @@ export default function VendorInvoicesPage() {
           </div>
         )}
       </DetailDrawer>
+      <CreateInvoiceModal open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
     </ProcurementShell>
+  );
+}
+
+function CreateInvoiceModal({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
+  const [vendor, setVendor] = useState("");
+  const [po, setPo] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
+  const [dueDate, setDueDate] = useState("");
+  const [reference, setReference] = useState("");
+  const [lines, setLines] = useState<DocLine[]>([emptyLine()]);
+  const [create, { isLoading }] = useCreateVendorInvoiceMutation();
+  const apiLines = toApiLines(lines, "expense_account");
+
+  const submit = async () => {
+    try {
+      const r = await create({ entity, vendor, purchase_order: po ? Number(po) : undefined, invoice_date: invoiceDate, due_date: dueDate || undefined, vendor_reference: reference.trim() || undefined, lines: apiLines }).unwrap();
+      toast.success(r.message || "Vendor invoice created.");
+      setVendor(""); setPo(""); setDueDate(""); setReference(""); setLines([emptyLine()]); onClose();
+    } catch { /* central */ }
+  };
+
+  return (
+    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New vendor invoice"
+      description="Capture the bill; run the three-way match and post afterwards." onSubmit={submit}
+      loading={isLoading} canSubmit={!!vendor && !!invoiceDate && apiLines.length > 0} widthClass="sm:max-w-2xl">
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} /></FormField>
+        <FormField label="Purchase order"><PurchaseOrderPicker entity={entity} value={po} onChange={setPo} /></FormField>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <FormField label="Invoice date" required><Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="bg-white" /></FormField>
+        <FormField label="Due date"><Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="bg-white" /></FormField>
+        <FormField label="Vendor ref"><Input value={reference} onChange={(e) => setReference(e.target.value)} className="bg-white" /></FormField>
+      </div>
+      <div className="pt-1">
+        <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
+        <LineEditor entity={entity} lines={lines} onChange={setLines} accountLabel="Expense account" accountType="EXPENSE" currency={currency} showCostCenter={false} />
+      </div>
+    </FormModal>
   );
 }

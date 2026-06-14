@@ -30,6 +30,10 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/procurement/contracts/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcContracts"],
     }),
+    createContract: b.mutation<ApiEnvelope<VendorContract>, { entity: string; reference: string; title: string; vendor: string; start_date?: string; end_date?: string; contract_value?: number; payment_terms?: string; auto_renew?: boolean }>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/contracts/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcContracts"],
+    }),
     activateContract: b.mutation<ApiEnvelope<VendorContract>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/contracts/${id}/activate/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["ProcContracts"],
@@ -48,6 +52,10 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/procurement/rfqs/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcRfqs"],
     }),
+    createRfq: b.mutation<ApiEnvelope<Rfq>, { entity: string; title?: string; issue_date: string; response_due_date?: string; notes?: string; lines: Record<string, unknown>[] }>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/rfqs/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcRfqs"],
+    }),
     issueRfq: b.mutation<ApiEnvelope<Rfq>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/rfqs/${id}/issue/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["ProcRfqs"],
@@ -57,6 +65,10 @@ export const procurementExtApi = baseApi.injectEndpoints({
     getQuotations: b.query<PaginatedEnvelope<Quotation>, E & { rfq?: string; vendor?: string }>({
       query: (p) => ({ url: `/procurement/quotations/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcQuotations"],
+    }),
+    createQuotation: b.mutation<ApiEnvelope<Quotation>, { entity: string; rfq: number; vendor: string; quote_date: string; valid_until?: string; reference?: string; lines: Record<string, unknown>[] }>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/quotations/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcQuotations"],
     }),
     submitQuotation: b.mutation<ApiEnvelope<Quotation>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/quotations/${id}/submit/${qs({ entity })}`, method: "POST" }),
@@ -103,12 +115,15 @@ export const procurementExtApi = baseApi.injectEndpoints({
 
 export const {
   useGetContractsQuery,
+  useCreateContractMutation,
   useActivateContractMutation,
   useRenewContractMutation,
   useTerminateContractMutation,
   useGetRfqsQuery,
+  useCreateRfqMutation,
   useIssueRfqMutation,
   useGetQuotationsQuery,
+  useCreateQuotationMutation,
   useSubmitQuotationMutation,
   useAwardQuotationMutation,
   useGetStockItemsQuery,

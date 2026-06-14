@@ -2,12 +2,17 @@
 // auto-allocate to the vendor's open invoices).
 import { useState } from "react";
 import { toast } from "sonner";
+import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, ActionButton, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField, MoneyInput, AccountPicker, useActiveEntity, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
+import { Can } from "@/components/finance-ui/can";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
-import { useGetVendorPaymentsQuery, usePostVendorPaymentMutation } from "@/redux/services/procurement/procurement-api";
+import { useGetVendorPaymentsQuery, usePostVendorPaymentMutation, useCreateVendorPaymentMutation } from "@/redux/services/procurement/procurement-api";
 import type { VendorPayment } from "@/redux/services/procurement/procurement-types";
+import { VendorPicker } from "./pickers";
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return <div><p className="font-mont text-xs uppercase tracking-wide text-gray-05">{label}</p><p className="mt-0.5 font-mont text-sm font-medium text-black-01">{value ?? "—"}</p></div>;
@@ -17,6 +22,7 @@ export default function VendorPaymentsPage() {
   const { code: entity, currency } = useActiveEntity();
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<VendorPayment | null>(null);
+  const [creating, setCreating] = useState(false);
   const { data, isLoading, isFetching, isError, refetch } = useGetVendorPaymentsQuery({ entity: entity!, page }, { skip: !entity });
   const [post] = usePostVendorPaymentMutation();
   const rows = data?.data ?? [];
@@ -37,9 +43,14 @@ export default function VendorPaymentsPage() {
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Payments</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">Vendor payments with withholding tax.</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Payments</h1>
+            <p className="mt-0.5 font-mont text-xs text-gray-05">Vendor payments with withholding tax.</p>
+          </div>
+          <Can permission={P.PROC_CREATE_VENDOR_PAYMENT}>
+            <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New payment</Button>
+          </Can>
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(p) => p.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
@@ -80,6 +91,46 @@ export default function VendorPaymentsPage() {
           </div>
         )}
       </DetailDrawer>
+      <CreatePaymentModal open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
     </ProcurementShell>
+  );
+}
+
+function CreatePaymentModal({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
+  const [vendor, setVendor] = useState("");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
+  const [method, setMethod] = useState("BANK_TRANSFER");
+  const [gross, setGross] = useState(0);
+  const [wht, setWht] = useState(0);
+  const [paymentAccount, setPaymentAccount] = useState("");
+  const [reference, setReference] = useState("");
+  const [create, { isLoading }] = useCreateVendorPaymentMutation();
+  const submit = async () => {
+    try {
+      const r = await create({ entity, vendor, payment_date: paymentDate, method, gross_amount: gross, wht_amount: wht || undefined, payment_account: paymentAccount, reference: reference.trim() || undefined }).unwrap();
+      toast.success(r.message || "Payment created.");
+      setVendor(""); setGross(0); setWht(0); setPaymentAccount(""); setReference(""); onClose();
+    } catch { /* central */ }
+  };
+  return (
+    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New vendor payment"
+      description="Net is gross minus WHT. Post it afterwards to allocate to open invoices." onSubmit={submit}
+      loading={isLoading} canSubmit={!!vendor && !!paymentDate && gross > 0 && !!paymentAccount}>
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} /></FormField>
+        <FormField label="Payment date" required><Input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} className="bg-white" /></FormField>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <FormField label="Method">
+          <select value={method} onChange={(e) => setMethod(e.target.value)} className="h-9 w-full rounded-md border bg-white px-2 font-mont text-sm">
+            {["BANK_TRANSFER", "CASH", "CHEQUE", "CARD"].map((m) => <option key={m} value={m}>{m.replace("_", " ")}</option>)}
+          </select>
+        </FormField>
+        <FormField label="Gross" required><MoneyInput valueKobo={gross} onChangeKobo={setGross} currency={currency} /></FormField>
+        <FormField label="WHT"><MoneyInput valueKobo={wht} onChangeKobo={setWht} currency={currency} /></FormField>
+      </div>
+      <FormField label="Payment account" required><AccountPicker entity={entity} value={paymentAccount} onChange={setPaymentAccount} postableOnly accountType="ASSET" /></FormField>
+      <FormField label="Reference"><Input value={reference} onChange={(e) => setReference(e.target.value)} className="bg-white" /></FormField>
+    </FormModal>
   );
 }
