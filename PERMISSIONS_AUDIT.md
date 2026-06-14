@@ -38,8 +38,12 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Workflow | All Instances | `P.VIEW_WORKFLOW_INSTANCES` | own check via `hasPermission`; admin monitoring |
 | Workflow | Team Load | `P.VIEW_WORKFLOW_INSTANCES` | own check; same key as All Instances |
 | Workflow | Templates | `P.VIEW_WORKFLOW_TEMPLATES` | own check via `hasPermission` |
+| Finance | — | _(module access: any `finance.*` or `payments.*` key)_ | gated via `hasModuleAccess("finance.", "payments.")`, **not** a single `P.*` constant — a user with only `finance.report.view` should still reach the console. Opens its own sub-navigated console (`ConsoleShell` + `financeNav`); each area's sub-nav item is gated by the backend key prefixes its screens call |
+| Procurement | — | _(module access: any `procurement.*` key)_ | gated via `hasModuleAccess("procurement.")`. Opens its own console (`ConsoleShell` + `procurementNav`); area sub-nav gated by key prefixes |
 
 > The Workflow parent group is always visible (permission `null`) because Approvals/Submissions/Delegations are open to every authenticated user. Admin-only children (All Instances, Team Load, Templates) are spread in by their own permission check.
+
+> **Finance & Procurement consoles** use module-prefix gating (`hasModuleAccess` in `src/hooks/use-permissions.ts`) for whole-console visibility, and per-area sub-nav gating by backend key prefix (see `financeNav` / `procurementNav`). Individual control gating (buttons/actions) lands per build slice with its `P.*` constants; only `P.FINANCE_VIEW_ENTITIES` / `P.FINANCE_CREATE_ENTITY` are registered so far.
 
 > **My Security** moved out of the sidebar into the header avatar menu (see §1a). The sidebar footer **Logout** also moved there.
 

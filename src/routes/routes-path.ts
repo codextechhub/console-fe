@@ -168,5 +168,35 @@ export const routesPath = {
       STAFF_EDIT_PATH: "/organogram/staff/:id/edit",
       STAFF_EDIT: (id: string | number) => `/organogram/staff/${id}/edit`,
     },
+    // ── Finance & Operations: two separate consoles, each with its own
+    // sub-navigation. Area index paths live here; detail routes are added per
+    // build slice as their screens ship.
+    FINANCE: {
+      INDEX: "/finance",
+      SETUP: "/finance/setup",
+      LEDGER: "/finance/ledger",
+      RECEIVABLES: "/finance/receivables",
+      COLLECTIONS: "/finance/collections",
+      BANKING: "/finance/banking",
+      EXPENSES: "/finance/expenses",
+      PAYROLL: "/finance/payroll",
+      BUDGETS: "/finance/budgets",
+      REPORTS: "/finance/reports",
+      AUDIT: "/finance/audit",
+    },
+    PROCUREMENT: {
+      INDEX: "/procurement",
+      VENDORS: "/procurement/vendors",
+      REQUISITIONS: "/procurement/requisitions",
+      PURCHASE_ORDERS: "/procurement/purchase-orders",
+      GOODS_RECEIPTS: "/procurement/goods-receipts",
+      VENDOR_INVOICES: "/procurement/vendor-invoices",
+      VENDOR_PAYMENTS: "/procurement/vendor-payments",
+      SOURCING: "/procurement/sourcing",
+      CONTRACTS: "/procurement/contracts",
+      INVENTORY: "/procurement/inventory",
+      ANALYTICS: "/procurement/analytics",
+      PAYOUTS: "/procurement/payouts",
+    },
   },
 };

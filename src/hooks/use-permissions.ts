@@ -14,5 +14,13 @@ export function usePermissions() {
   const hasAllPermissions = (...codes: PermissionCode[]): boolean =>
     codes.every((c) => permissions.includes(resolvePermissionKey(c)));
 
-  return { hasPermission, hasAnyPermission, hasAllPermissions };
+  // True when the user holds ANY backend key under a module prefix
+  // (e.g. "finance.", "procurement.", "payments."). Used for whole-console
+  // visibility, where gating on one specific key would be too narrow — a user
+  // with only finance.report.view should still see the Finance console. This is
+  // the one place we read raw backend keys, by design.
+  const hasModuleAccess = (...prefixes: string[]): boolean =>
+    permissions.some((key) => prefixes.some((p) => key.startsWith(p)));
+
+  return { hasPermission, hasAnyPermission, hasAllPermissions, hasModuleAccess };
 }

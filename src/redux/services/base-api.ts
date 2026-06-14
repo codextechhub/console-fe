@@ -267,5 +267,7 @@ export const baseApi = createApi({
     "TodoAssignable",
     "QueueJobs",
     "QueueSummary",
+    // ── Finance & Procurement consoles ──────────────────────────────────────
+    "FinanceEntities",
   ],
 });

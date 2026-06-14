@@ -33,6 +33,8 @@ export function NavMain({
     icon?: React.ElementType;
     isActive: boolean;
     childActive: boolean;
+    // Leaf items that open a separate console show a trailing chevron affordance.
+    affordance?: boolean;
     items?: {
       title: string;
       url: string;
@@ -62,6 +64,9 @@ export function NavMain({
                   <Link to={item.url}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
+                    {item.affordance && (
+                      <ChevronRight className="ml-auto size-4 text-gray-02" />
+                    )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

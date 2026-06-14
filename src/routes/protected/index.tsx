@@ -11,6 +11,8 @@ import { workflowRoutes } from "./workflow-routes";
 import { organogramRoutes } from "./organogram-routes";
 import { todoRoutes } from "./todo-routes";
 import { exportRoutes } from "./export-routes";
+import { financeRoutes } from "./finance-routes";
+import { procurementRoutes } from "./procurement-routes";
 import { routesPath } from "@/routes/routes-path";
 
 // Route-level code splitting: each page loads on first visit instead of
@@ -29,5 +31,7 @@ export const protectedRoutes = [
   ...organogramRoutes,
   ...todoRoutes,
   ...exportRoutes,
+  ...financeRoutes,
+  ...procurementRoutes,
   ...meSecurityRoutes,
 ] as RouteObject[];

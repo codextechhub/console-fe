@@ -20,7 +20,7 @@ import rootReducer, { type RootState } from "./features/root-reducer";
 const persistConfig = {
   key: "root",
   storage: localStorage,
-  whitelist: ["auth",],
+  whitelist: ["auth", "financeEntity"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

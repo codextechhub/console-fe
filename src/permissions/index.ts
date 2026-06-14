@@ -10,10 +10,18 @@
 //
 // ── Code format: MM RR AA (6 digits) ─────────────────────────────────────────
 //   MM = module group   10=platform  20=finance  30=academics  40=communication
+//                       50=imports   60=workflow  70=procurement  80=payments
 //   RR = resource       01 02 03 … (assigned sequentially per module)
 //   AA = action         01=view   02=create  03=update  04=delete
 //                       05=approve  06=export  08=manage
 //                       09=suspend  10=reactivate  11=assign  12=transfer
+//   Finance/Procurement document actions extend the AA vocabulary:
+//                       13=post  14=reverse  15=settle  16=pay  17=reconcile
+//                       18=import  19=file  20=allocate  21=writeoff  22=acquire
+//                       23=depreciate  24=close  25=generate  26=send
+//                       27=activate  28=cancel  29=refresh  30=submit  31=match
+//                       32=award  33=issue  34=renew  35=terminate  36=replenish
+//                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
 //
 // ── Adding a permission ───────────────────────────────────────────────────────
 //   1. Pick the next free code in the right MM RR range.
@@ -131,10 +139,25 @@ const REGISTRY: Record<string, string> = {
   // ── workflow / actions  (MM=60, RR=03) ───────────────────────────────────
   "600305": "workflow.action.reverse",    // admin reverses a recorded vote
 
-  // ── finance / invoice  (MM=20, RR=01) — uncomment when module ships ───────
-  // "200101": "finance.invoice.view",
-  // "200102": "finance.invoice.create",
-  // "200105": "finance.invoice.approve",
+  // ── FINANCE  (MM=20) ───────────────────────────────────────────────────────
+  // Resource map (RR): 01 entity · 02 account · 03 period · 04 journal ·
+  // 05 invoice · 06 creditnote · 07 refund · 08 concession · 09 paymentplan ·
+  // 10 dunning · 11 directentry · 12 report · 13 currency · 14 fxrate ·
+  // 15 taxcode · 16 costcenter · 17 dimension · 18 bankaccount · 19 expenseclaim ·
+  // 20 pettycash · 21 tax · 22 payrollrun · 23 budget · 24 fixedasset · 25 audit.
+  // Keys are registered per build slice as their controls ship.
+  "200101": "finance.entity.view",
+  "200102": "finance.entity.create",
+
+  // ── PROCUREMENT  (MM=70) ─────────────────────────────────────────────────────
+  // Resource map (RR): 01 category · 02 vendor · 03 catalog_item · 04 contract ·
+  // 05 requisition · 06 rfq · 07 quotation · 08 purchase_order · 09 goods_receipt ·
+  // 10 vendor_invoice · 11 vendor_payment · 12 approval · 13 stock · 14 report.
+  // Registered per build slice.
+
+  // ── PAYMENTS  (MM=80) ────────────────────────────────────────────────────────
+  // Resource map (RR): 01 collection · 02 virtual_account · 03 payout · 04 report.
+  // Registered per build slice.
 
   // ── academics / subjects  (MM=30, RR=01) — uncomment when module ships ────
   // "300101": "academics.subjects.view",
@@ -236,10 +259,12 @@ export const P = {
   VIEW_STAFF_PAYROLL:   "101101",  // read bank/account details on staff profiles
   MANAGE_STAFF_PAYROLL: "101108",  // edit bank/account details on staff profiles
 
-  // ── Finance (uncomment when module ships) ──────────────────────────────────
-  // VIEW_INVOICES:     "200101",
-  // RAISE_INVOICE:     "200102",
-  // APPROVE_INVOICE:   "200105",
+  // ── Finance & Operations ────────────────────────────────────────────────────
+  // Constants are added per build slice as their controls ship; the menu groups
+  // use hasModuleAccess("finance.")/("payments.")/("procurement.") rather than a
+  // single key, so visibility never depends on one specific permission.
+  FINANCE_VIEW_ENTITIES:  "200101",  // view the ledger entities (sets of books)
+  FINANCE_CREATE_ENTITY:  "200102",  // provision a new set of books
 
   // ── Academics (uncomment when module ships) ────────────────────────────────
   // BROWSE_SUBJECTS:   "300101",

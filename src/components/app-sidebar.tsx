@@ -15,7 +15,7 @@ import {
   PermissionsIcon,
   DataImportsIcon,
 } from "@/assets/navbar-svg";
-import { ClipboardCheck, FileOutput, Network, Shield, Workflow } from "lucide-react";
+import { ClipboardCheck, FileOutput, Landmark, Network, Shield, ShoppingCart, Workflow } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routes-path";
 import { useLocation } from "react-router";
@@ -35,7 +35,7 @@ const moduleRoot = (path: string) => "/" + path.split("/")[1];
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation().pathname;
 
-  const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
+  const { hasPermission, hasAnyPermission, hasAllPermissions, hasModuleAccess } = usePermissions();
 
   const checkPermission = (
     permission: NavPermission,
@@ -244,6 +244,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         },
       ],
     },
+    // ── Finance & Operations: two separate consoles, each opening its own
+    // sub-navigated console (see ConsoleShell). Top-level items, matching the
+    // app's flat sidebar (no group headers). Finance shows for any
+    // finance.*/payments.* key; Procurement for any procurement.* key. Each is
+    // a leaf that navigates away, so it carries an open-affordance chevron.
+    ...(hasModuleAccess("finance.", "payments.")
+      ? [{
+          title: "Finance",
+          url: R.FINANCE.INDEX,
+          icon: Landmark,
+          isActive: location.startsWith(moduleRoot(R.FINANCE.INDEX)),
+          childActive: false,
+          affordance: true,
+          permission: null,
+          permissionMode: "any" as const,
+        }]
+      : []),
+    ...(hasModuleAccess("procurement.")
+      ? [{
+          title: "Procurement",
+          url: R.PROCUREMENT.INDEX,
+          icon: ShoppingCart,
+          isActive: location.startsWith(moduleRoot(R.PROCUREMENT.INDEX)),
+          childActive: false,
+          affordance: true,
+          permission: null,
+          permissionMode: "any" as const,
+        }]
+      : []),
     {
       title: "Workflow",
       url: routesPath.PROTECTED.WORKFLOW.APPROVALS,
