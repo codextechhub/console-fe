@@ -72,6 +72,10 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/procurement/stock-items/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
+    createStockItem: b.mutation<ApiEnvelope<StockItem>, { entity: string; code: string; name: string; description?: string; unit_of_measure?: string; inventory_account: string; default_expense_account?: string; reorder_level?: number; reorder_qty?: number }>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/stock-items/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcStock"],
+    }),
     getStockMovements: b.query<ApiEnvelope<StockMovement[]>, { entity: string; stock_item?: string; movement_type?: string }>({
       query: (p) => ({ url: `/procurement/stock-movements/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
@@ -108,6 +112,7 @@ export const {
   useSubmitQuotationMutation,
   useAwardQuotationMutation,
   useGetStockItemsQuery,
+  useCreateStockItemMutation,
   useGetStockMovementsQuery,
   useGetApAgingQuery,
   useGetApReconciliationQuery,

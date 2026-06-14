@@ -1,16 +1,21 @@
 // Inventory / stock (§7.4) — stock items (issue / adjust) and the movement
 // ledger with valuation.
 import { useState } from "react";
+import { toast } from "sonner";
+import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, Money, StatusPill, TabBar, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, Money, StatusPill, TabBar, FormModal, FormField, AccountPicker, useActiveEntity, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
-import { useCan } from "@/components/finance-ui/can";
+import { Can, useCan } from "@/components/finance-ui/can";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
-import { useGetStockItemsQuery, useGetStockMovementsQuery } from "@/redux/services/procurement/procurement-ext-api";
+import { useGetStockItemsQuery, useGetStockMovementsQuery, useCreateStockItemMutation } from "@/redux/services/procurement/procurement-ext-api";
 import type { StockItem, StockMovement } from "@/redux/services/procurement/procurement-types";
 
 function ItemsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [page, setPage] = useState(1);
+  const [creating, setCreating] = useState(false);
   const { data, isLoading, isFetching, isError, refetch } = useGetStockItemsQuery({ entity, page });
   const rows = data?.data ?? [];
   const pg = data?.pagination;
@@ -23,10 +28,49 @@ function ItemsTab({ entity, currency }: { entity: string; currency?: string | nu
     { header: "Reorder", cell: (i) => i.needs_reorder ? <StatusPill status="OVERDUE" /> : <StatusPill status="OK" /> },
   ];
   return (
-    <DataTable columns={columns} rows={rows} rowKey={(i) => i.id}
-      loading={isLoading || isFetching} error={isError} onRetry={refetch}
-      emptyTitle="No stock items" emptyMessage="Stock items will appear here."
-      page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+    <>
+      <div className="mb-4 flex justify-end">
+        <Can permission={P.PROC_MANAGE_STOCK}><Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New stock item</Button></Can>
+      </div>
+      <DataTable columns={columns} rows={rows} rowKey={(i) => i.id}
+        loading={isLoading || isFetching} error={isError} onRetry={refetch}
+        emptyTitle="No stock items" emptyMessage="Stock items will appear here."
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+      <CreateStockItemModal open={creating} onClose={() => setCreating(false)} entity={entity} />
+    </>
+  );
+}
+
+function CreateStockItemModal({ open, onClose, entity }: { open: boolean; onClose: () => void; entity: string }) {
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [uom, setUom] = useState("each");
+  const [inventory, setInventory] = useState("");
+  const [expense, setExpense] = useState("");
+  const [reorderLevel, setReorderLevel] = useState("");
+  const [reorderQty, setReorderQty] = useState("");
+  const [create, { isLoading }] = useCreateStockItemMutation();
+  const submit = async () => {
+    try {
+      const r = await create({ entity, code: code.trim(), name: name.trim(), unit_of_measure: uom, inventory_account: inventory, default_expense_account: expense || undefined, reorder_level: reorderLevel ? Number(reorderLevel) : undefined, reorder_qty: reorderQty ? Number(reorderQty) : undefined }).unwrap();
+      toast.success(r.message || "Stock item created.");
+      setCode(""); setName(""); setInventory(""); setExpense(""); setReorderLevel(""); setReorderQty(""); onClose();
+    } catch { /* central */ }
+  };
+  return (
+    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New stock item" onSubmit={submit} loading={isLoading} canSubmit={!!code.trim() && !!name.trim() && !!inventory}>
+      <div className="grid grid-cols-3 gap-3">
+        <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} className="bg-white font-mont" /></FormField>
+        <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white" /></FormField>
+        <FormField label="UoM"><Input value={uom} onChange={(e) => setUom(e.target.value)} className="bg-white" /></FormField>
+      </div>
+      <FormField label="Inventory asset account" required><AccountPicker entity={entity} value={inventory} onChange={setInventory} accountType="ASSET" /></FormField>
+      <FormField label="Default expense account"><AccountPicker entity={entity} value={expense} onChange={setExpense} accountType="EXPENSE" /></FormField>
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Reorder level"><Input type="number" value={reorderLevel} onChange={(e) => setReorderLevel(e.target.value)} className="bg-white" /></FormField>
+        <FormField label="Reorder qty"><Input type="number" value={reorderQty} onChange={(e) => setReorderQty(e.target.value)} className="bg-white" /></FormField>
+      </div>
+    </FormModal>
   );
 }
 

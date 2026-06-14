@@ -32,19 +32,35 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/procurement/vendors/${id}/${qs({ entity })}`, method: "GET" }),
       providesTags: ["ProcVendors"],
     }),
+    createVendor: b.mutation<ApiEnvelope<Vendor>, { entity: string; code: string; name: string; category?: string; email?: string; phone?: string; tax_id?: string; bank_name?: string; bank_account_number?: string; bank_account_name?: string; payable_account?: string; default_expense_account?: string; payment_terms?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/vendors/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcVendors"],
+    }),
     getCategories: b.query<PaginatedEnvelope<VendorCategory>, E>({
       query: (p) => ({ url: `/procurement/categories/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcCategories"],
     }),
+    createCategory: b.mutation<ApiEnvelope<VendorCategory>, { entity: string; code: string; name: string; default_expense_account?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/categories/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcCategories"],
+    }),
     getCatalogItems: b.query<PaginatedEnvelope<CatalogItem>, E & { q?: string }>({
       query: (p) => ({ url: `/procurement/catalog-items/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcCatalog"],
+    }),
+    createCatalogItem: b.mutation<ApiEnvelope<CatalogItem>, { entity: string; code: string; name: string; description?: string; unit_of_measure?: string; preferred_vendor?: string; default_expense_account?: string; default_tax_code?: string; standard_unit_price?: number }>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/catalog-items/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcCatalog"],
     }),
 
     // Requisitions
     getRequisitions: b.query<PaginatedEnvelope<Requisition>, E>({
       query: (p) => ({ url: `/procurement/requisitions/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcRequisitions"],
+    }),
+    createRequisition: b.mutation<ApiEnvelope<Requisition>, { entity: string; request_date: string; needed_by?: string; justification?: string; lines: Record<string, unknown>[] }>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/requisitions/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcRequisitions"],
     }),
     submitRequisition: b.mutation<ApiEnvelope<Requisition>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/requisitions/${id}/submit/${qs({ entity })}`, method: "POST" }),
@@ -104,9 +120,13 @@ export const procurementApi = baseApi.injectEndpoints({
 export const {
   useGetVendorsQuery,
   useGetVendorQuery,
+  useCreateVendorMutation,
   useGetCategoriesQuery,
+  useCreateCategoryMutation,
   useGetCatalogItemsQuery,
+  useCreateCatalogItemMutation,
   useGetRequisitionsQuery,
+  useCreateRequisitionMutation,
   useSubmitRequisitionMutation,
   useGetPurchaseOrdersQuery,
   useSubmitPurchaseOrderMutation,
