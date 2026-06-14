@@ -9,6 +9,10 @@ const FinanceDashboard = lazy(() => import("@/pages/protected/finance/dashboard"
 const GeneralLedger = lazy(() => import("@/pages/protected/finance/ledger"));
 const Receivables = lazy(() => import("@/pages/protected/finance/receivables"));
 const Collections = lazy(() => import("@/pages/protected/finance/collections"));
+const Banking = lazy(() => import("@/pages/protected/finance/banking"));
+const Expenses = lazy(() => import("@/pages/protected/finance/expenses"));
+const Payroll = lazy(() => import("@/pages/protected/finance/payroll"));
+const BudgetsAssetsTax = lazy(() => import("@/pages/protected/finance/budgets"));
 
 const F = routesPath.PROTECTED.FINANCE;
 
@@ -18,10 +22,10 @@ export const financeRoutes: RouteObject[] = [
   { path: F.LEDGER, element: <GeneralLedger /> },
   { path: F.RECEIVABLES, element: <Receivables /> },
   { path: F.COLLECTIONS, element: <Collections /> },
-  { path: F.BANKING, element: <FinanceConsolePage title="Banking & Reconciliation" description="Bank accounts, statement import, auto-reconcile and manual matching." slice="slice 3" /> },
-  { path: F.EXPENSES, element: <FinanceConsolePage title="Expenses & Petty Cash" description="Expense claims and petty-cash floats, vouchers and replenishment." slice="slice 3" /> },
-  { path: F.PAYROLL, element: <FinanceConsolePage title="Payroll" description="Payroll runs, posting and payment. Salary figures are field-level secured." slice="slice 3" /> },
-  { path: F.BUDGETS, element: <FinanceConsolePage title="Budgets, Assets & Tax" description="Budgets and variance, fixed-asset register, VAT/PAYE/WHT filing and payment." slice="slice 3" /> },
+  { path: F.BANKING, element: <Banking /> },
+  { path: F.EXPENSES, element: <Expenses /> },
+  { path: F.PAYROLL, element: <Payroll /> },
+  { path: F.BUDGETS, element: <BudgetsAssetsTax /> },
   { path: F.REPORTS, element: <FinanceConsolePage title="Reports & Month-End" description="Trial balance, income statement, balance sheet, cash flow, statutory pack and period close." slice="slice 4" /> },
   { path: F.AUDIT, element: <FinanceConsolePage title="Audit Trail" description="The finance audit log for the selected entity." slice="slice 4" /> },
 ];
