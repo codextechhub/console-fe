@@ -3,17 +3,24 @@ import { type RouteObject } from "react-router";
 import { routesPath } from "@/routes/routes-path";
 
 const ProcurementConsolePage = lazy(() => import("@/pages/protected/procurement/procurement-console-page"));
+const ProcurementDashboard = lazy(() => import("@/pages/protected/procurement/dashboard"));
+const Vendors = lazy(() => import("@/pages/protected/procurement/vendors"));
+const Requisitions = lazy(() => import("@/pages/protected/procurement/requisitions"));
+const PurchaseOrders = lazy(() => import("@/pages/protected/procurement/purchase-orders"));
+const GoodsReceipts = lazy(() => import("@/pages/protected/procurement/goods-receipts"));
+const VendorInvoices = lazy(() => import("@/pages/protected/procurement/vendor-invoices"));
+const VendorPayments = lazy(() => import("@/pages/protected/procurement/vendor-payments"));
 
 const P = routesPath.PROTECTED.PROCUREMENT;
 
 export const procurementRoutes: RouteObject[] = [
-  { path: P.INDEX, element: <ProcurementConsolePage title="Procurement Dashboard" description="Spend, open requisitions and POs, AP due and GR/IR balance for the selected entity." slice="slice 5" /> },
-  { path: P.VENDORS, element: <ProcurementConsolePage title="Vendors & Catalog" description="Vendors (bank details FLS-masked), categories and the item catalog." slice="slice 5" /> },
-  { path: P.REQUISITIONS, element: <ProcurementConsolePage title="Requisitions" description="Purchase requisitions and approval routing — the start of the spend pipeline." slice="slice 5" /> },
-  { path: P.PURCHASE_ORDERS, element: <ProcurementConsolePage title="Purchase Orders" description="Purchase orders raised from approved requisitions." slice="slice 5" /> },
-  { path: P.GOODS_RECEIPTS, element: <ProcurementConsolePage title="Goods Receipts" description="Goods received notes — the first GL event in the chain." slice="slice 5" /> },
-  { path: P.VENDOR_INVOICES, element: <ProcurementConsolePage title="Vendor Invoices" description="Vendor bills with three-way match, variance and over-tolerance blocking." slice="slice 5" /> },
-  { path: P.VENDOR_PAYMENTS, element: <ProcurementConsolePage title="Vendor Payments" description="Vendor payments with withholding tax." slice="slice 5" /> },
+  { path: P.INDEX, element: <ProcurementDashboard /> },
+  { path: P.VENDORS, element: <Vendors /> },
+  { path: P.REQUISITIONS, element: <Requisitions /> },
+  { path: P.PURCHASE_ORDERS, element: <PurchaseOrders /> },
+  { path: P.GOODS_RECEIPTS, element: <GoodsReceipts /> },
+  { path: P.VENDOR_INVOICES, element: <VendorInvoices /> },
+  { path: P.VENDOR_PAYMENTS, element: <VendorPayments /> },
   { path: P.SOURCING, element: <ProcurementConsolePage title="Sourcing" description="RFQs and vendor quotations; awarding a quotation spawns a PO." slice="slice 6" /> },
   { path: P.CONTRACTS, element: <ProcurementConsolePage title="Contracts" description="Vendor contracts with milestones and renewal radar." slice="slice 6" /> },
   { path: P.INVENTORY, element: <ProcurementConsolePage title="Inventory" description="Stock issues, count adjustments, movement ledger and valuation." slice="slice 6" /> },
