@@ -29,6 +29,10 @@ export const opsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/bank-accounts/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceBankAccounts"],
     }),
+    createBankAccount: b.mutation<ApiEnvelope<BankAccount>, { entity: string; name: string; bank_name?: string; account_number?: string; gl_account: string; currency?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/bank-accounts/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBankAccounts"],
+    }),
     getStatementLines: b.query<ApiEnvelope<BankStatementLine[]>, Act & { status?: string }>({
       query: ({ id, ...p }) => ({ url: `/finance/bank-accounts/${id}/statement-lines/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceStatementLines"],
@@ -42,6 +46,10 @@ export const opsApi = baseApi.injectEndpoints({
     getExpenseClaims: b.query<PaginatedEnvelope<ExpenseClaim>, E>({
       query: (p) => ({ url: `/finance/expense-claims/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceExpenseClaims"],
+    }),
+    createExpenseClaim: b.mutation<ApiEnvelope<ExpenseClaim>, { entity: string; claimant_name?: string; claim_date: string; title?: string; narration?: string; lines: { description: string; expense_account: string; quantity: number; unit_price: number; tax_code?: string; cost_center?: string }[] }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/expense-claims/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceExpenseClaims"],
     }),
     getExpenseClaim: b.query<ApiEnvelope<ExpenseClaim>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/expense-claims/${id}/${qs({ entity })}`, method: "GET" }),
@@ -97,6 +105,10 @@ export const opsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/budgets/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceBudgets"],
     }),
+    createBudget: b.mutation<ApiEnvelope<Budget>, { entity: string; name: string; fiscal_year?: number }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/budgets/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBudgets"],
+    }),
     approveBudget: b.mutation<ApiEnvelope<Budget>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/budgets/${id}/approve/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinanceBudgets"],
@@ -106,6 +118,10 @@ export const opsApi = baseApi.injectEndpoints({
     getFixedAssets: b.query<PaginatedEnvelope<FixedAsset>, E>({
       query: (p) => ({ url: `/finance/fixed-assets/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceFixedAssets"],
+    }),
+    createFixedAsset: b.mutation<ApiEnvelope<FixedAsset>, { entity: string; name: string; asset_code?: string; acquisition_date: string; cost: number; salvage_value?: number; useful_life_months: number; method?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/fixed-assets/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceFixedAssets"],
     }),
     acquireFixedAsset: b.mutation<ApiEnvelope<FixedAsset>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/fixed-assets/${id}/acquire/${qs({ entity })}`, method: "POST" }),
@@ -121,9 +137,17 @@ export const opsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/tax-obligations/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceTax"],
     }),
+    createTaxObligation: b.mutation<ApiEnvelope<TaxObligation>, { entity: string; code: string; name?: string; obligation_type: string; liability_account: string; authority_name?: string; frequency?: string; filing_day?: number }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/tax-obligations/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceTax"],
+    }),
     getTaxFilings: b.query<PaginatedEnvelope<TaxFiling>, E>({
       query: (p) => ({ url: `/finance/tax-filings/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceTax"],
+    }),
+    createTaxFiling: b.mutation<ApiEnvelope<TaxFiling>, { entity: string; obligation: number; period_start: string; period_end: string; due_date?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/tax-filings/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceTax"],
     }),
     fileTaxFiling: b.mutation<ApiEnvelope<TaxFiling>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/tax-filings/${id}/file/${qs({ entity })}`, method: "POST" }),
@@ -138,10 +162,12 @@ export const opsApi = baseApi.injectEndpoints({
 
 export const {
   useGetBankAccountsQuery,
+  useCreateBankAccountMutation,
   useGetStatementLinesQuery,
   useAutoReconcileMutation,
   useGetExpenseClaimsQuery,
   useGetExpenseClaimQuery,
+  useCreateExpenseClaimMutation,
   usePostExpenseClaimMutation,
   useSettleExpenseClaimMutation,
   useGetPettyCashFundsQuery,
@@ -153,12 +179,16 @@ export const {
   usePostPayrollRunMutation,
   usePayPayrollRunMutation,
   useGetBudgetsQuery,
+  useCreateBudgetMutation,
   useApproveBudgetMutation,
   useGetFixedAssetsQuery,
+  useCreateFixedAssetMutation,
   useAcquireFixedAssetMutation,
   useDepreciateFixedAssetMutation,
   useGetTaxObligationsQuery,
+  useCreateTaxObligationMutation,
   useGetTaxFilingsQuery,
+  useCreateTaxFilingMutation,
   useFileTaxFilingMutation,
   usePayTaxFilingMutation,
 } = opsApi;

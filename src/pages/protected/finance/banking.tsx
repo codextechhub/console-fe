@@ -3,15 +3,18 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { Plus } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, DetailDrawer, Money, StatusPill, FormModal, FormField, AccountPicker, CurrencyPicker, useActiveEntity, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
 import { isStripped } from "@/utils/fls";
 import {
   useGetBankAccountsQuery,
+  useCreateBankAccountMutation,
   useGetStatementLinesQuery,
   useAutoReconcileMutation,
 } from "@/redux/services/finance/ops-api";
@@ -21,6 +24,7 @@ export default function BankingPage() {
   const { code: entity, currency } = useActiveEntity();
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<BankAccount | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const { data, isLoading, isFetching, isError, refetch } = useGetBankAccountsQuery({ entity: entity!, page }, { skip: !entity });
   const rows = data?.data ?? [];
@@ -42,9 +46,14 @@ export default function BankingPage() {
   return (
     <FinanceShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Banking & Reconciliation</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">Bank accounts and their statement reconciliation.</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-mont text-lg font-semibold text-gray-01">Banking & Reconciliation</h1>
+            <p className="mt-0.5 font-mont text-xs text-gray-05">Bank accounts and their statement reconciliation.</p>
+          </div>
+          <Can permission={P.FIN_CREATE_BANK_ACCOUNT}>
+            <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New bank account</Button>
+          </Can>
         </div>
         <DataTable
           columns={columns} rows={rows} rowKey={(a) => a.id}
@@ -56,7 +65,40 @@ export default function BankingPage() {
       </main>
 
       <StatementDrawer account={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
+      <CreateBankAccountModal open={creating} onClose={() => setCreating(false)} entity={entity} />
     </FinanceShell>
+  );
+}
+
+function CreateBankAccountModal({ open, onClose, entity }: { open: boolean; onClose: () => void; entity: string }) {
+  const [name, setName] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [glAccount, setGlAccount] = useState("");
+  const [currency, setCurrency] = useState("");
+  const [create, { isLoading }] = useCreateBankAccountMutation();
+
+  const submit = async () => {
+    try {
+      const res = await create({ entity, name: name.trim(), bank_name: bankName.trim() || undefined, account_number: accountNumber.trim() || undefined, gl_account: glAccount, currency: currency || undefined }).unwrap();
+      toast.success(res.message || "Bank account created.");
+      setName(""); setBankName(""); setAccountNumber(""); setGlAccount(""); setCurrency("");
+      onClose();
+    } catch { /* central */ }
+  };
+
+  return (
+    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New bank account"
+      description="Links a bank account to a GL cash account." onSubmit={submit} loading={isLoading}
+      canSubmit={!!name.trim() && !!glAccount}>
+      <FormField label="Account name" required><Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white" /></FormField>
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Bank name"><Input value={bankName} onChange={(e) => setBankName(e.target.value)} className="bg-white" /></FormField>
+        <FormField label="Account number"><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} className="bg-white font-mont" /></FormField>
+      </div>
+      <FormField label="GL cash account" required><AccountPicker entity={entity} value={glAccount} onChange={setGlAccount} postableOnly accountType="ASSET" /></FormField>
+      <FormField label="Currency"><CurrencyPicker value={currency} onChange={setCurrency} /></FormField>
+    </FormModal>
   );
 }
 
