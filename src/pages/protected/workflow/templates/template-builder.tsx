@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ChevronDown, ChevronUp, CornerDownRight, Eye, GripVertical, KeyRound, Loader2, Network, Plus, TriangleAlert, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Loader2, Plus, Trash2 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -8,11 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetWorkflowTemplateQuery,
-  usePreviewApproversMutation,
   usePublishWorkflowTemplateMutation,
 } from "@/redux/services/dashboard/workflow-api";
 import { useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
@@ -27,6 +25,8 @@ import type {
   StageOnRejection,
   WorkflowStagePayload,
 } from "@/redux/services/dashboard/workflow-types";
+import { type StageForm, emptyStage } from "./components/stage-form";
+import { Section, ApproverPreview } from "./components/template-builder-bits";
 
 const SOURCE_OPTIONS = [
   { value: "RBAC_PERMISSION", label: "RBAC permission holders" },
@@ -68,40 +68,6 @@ const NOTIF_EVENT_KEYS = [
   "workflow.withdrawn",
   "workflow.cancelled",
 ];
-
-interface StageForm {
-  code: string;
-  label: string;
-  kind: StageKind;
-  approver_source: ApproverSource;
-  approver_permission_key: string;
-  approver_scope: ApproverScope;
-  organogram_target: OrganogramTarget | "";
-  organogram_levels: string;
-  organogram_position_code: string;
-  advance_rule: StageAdvanceRule;
-  quorum_count: string;
-  on_rejection: StageOnRejection;
-  skip_if_no_approvers: boolean;
-  inclusion_condition_text: string;
-}
-
-const emptyStage = (): StageForm => ({
-  code: "",
-  label: "",
-  kind: "APPROVAL",
-  approver_source: "RBAC_PERMISSION",
-  approver_permission_key: "",
-  approver_scope: "SCHOOL",
-  organogram_target: "",
-  organogram_levels: "1",
-  organogram_position_code: "",
-  advance_rule: "ANY",
-  quorum_count: "0",
-  on_rejection: "TERMINAL",
-  skip_if_no_approvers: true,
-  inclusion_condition_text: "",
-});
 
 export default function TemplateBuilder() {
   const { id } = useParams();
@@ -598,97 +564,3 @@ export default function TemplateBuilder() {
   );
 }
 
-function Section({
-  title,
-  action,
-  children,
-}: {
-  title: string;
-  action?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={cn("rounded-lg border border-white-02 bg-white p-5")}>
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold">{title}</h3>
-        {action}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-// Live "who would approve?" preview for a single stage, resolved against the
-// sample requester via the backend resolver (organogram climb modes + RBAC).
-function ApproverPreview({ stage, requester }: { stage: StageForm; requester: string }) {
-  const [preview, { data, isLoading, error }] = usePreviewApproversMutation();
-
-  const ready =
-    !!requester &&
-    (stage.approver_source === "RBAC_PERMISSION"
-      ? !!stage.approver_permission_key.trim()
-      : !!stage.organogram_target &&
-        (stage.organogram_target !== "SPECIFIC_POSITION" || !!stage.organogram_position_code));
-
-  const run = () => {
-    if (!ready) return;
-    preview({
-      requester,
-      approver_source: stage.approver_source,
-      approver_permission_key: stage.approver_permission_key.trim(),
-      approver_scope: stage.approver_scope,
-      organogram_target: stage.approver_source === "ORGANOGRAM" ? stage.organogram_target : "",
-      organogram_levels: Number(stage.organogram_levels) || 1,
-      organogram_position_code: stage.organogram_position_code,
-    });
-  };
-
-  const isOrg = stage.approver_source === "ORGANOGRAM";
-  const empty = data && data.count === 0;
-
-  return (
-    <div className={cn("mt-3 rounded-md border px-3 py-2.5", empty ? "border-yellow-01/40 bg-yellow-01/5" : "border-white-02 bg-gray-06/30")}>
-      <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-01">
-          {isOrg ? <Network className="size-3 text-teal-600" /> : <KeyRound className="size-3 text-violet-600" />}
-          Who would approve?
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          type="button"
-          disabled={!ready || isLoading}
-          onClick={run}
-          title={!requester ? "Pick a sample requester above" : !ready ? "Complete the approver config" : "Resolve approvers"}
-        >
-          <Eye className="size-3.5" /> {isLoading ? "Resolving…" : "Preview"}
-        </Button>
-      </div>
-
-      {!requester && <p className="mt-1.5 text-[11px] text-gray-01">Pick a sample requester above to preview.</p>}
-
-      {error && <p className="mt-1.5 text-[11px] text-destructive">Could not resolve approvers.</p>}
-
-      {data && (
-        empty ? (
-          <div className="mt-2 inline-flex items-center gap-1.5 text-[11.5px] font-medium text-yellow-01">
-            <TriangleAlert className="size-3.5" /> No eligible approvers{stage.skip_if_no_approvers ? " — stage auto-skips" : " — stage would stall"}.
-          </div>
-        ) : (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {data.approvers.map((a) => (
-              <span key={a.user.id} className="inline-flex items-center gap-1.5 rounded-full border border-white-02 bg-white px-2 py-0.5 text-[12px] text-black-01">
-                {a.user.full_name}
-                {a.on_behalf_of && (
-                  <span className="inline-flex items-center gap-0.5 text-[10px] text-gray-01">
-                    <CornerDownRight className="size-2.5" /> for {a.on_behalf_of.full_name}
-                  </span>
-                )}
-              </span>
-            ))}
-          </div>
-        )
-      )}
-    </div>
-  );
-}

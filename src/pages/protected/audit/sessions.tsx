@@ -1,12 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import {
   RefreshCw, Download, LogOut, ExternalLink, GitBranch,
-  AlertTriangle, Laptop, Smartphone, Tablet,
-  EllipsisVertical, X, Eye, EyeOff,
+  AlertTriangle, EllipsisVertical, X, Eye, EyeOff,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -39,185 +37,14 @@ import {
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { useGetAuditEventsQuery } from "@/redux/services/dashboard/audit-api";
 import { ActorCell } from "./components/audit-cells";
+import { DEVICE_ICONS, formatAge, deviceParts } from "./components/session-device";
+import { SessionStatusBadge, Pagination } from "./components/session-bits";
 import type { LoginSession } from "@/redux/services/dashboard/security-types";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { routesPath } from "@/routes/routes-path";
 import { cn } from "@/lib/utils";
-
-// ── UA parsing ───────────────────────────────────────────────────────────────
-
-type DeviceType = "mobile" | "tablet" | "desktop";
-
-function parseUA(ua: string): { type: DeviceType; browser: string; os: string } {
-  const type: DeviceType = /tablet|ipad/i.test(ua)
-    ? "tablet"
-    : /mobile|android.*mobile|iphone/i.test(ua)
-    ? "mobile"
-    : "desktop";
-
-  const browser = /edg\//i.test(ua)
-    ? "Edge"
-    : /opr\//i.test(ua)
-    ? "Opera"
-    : /chrome\/[\d]+/i.test(ua)
-    ? "Chrome"
-    : /firefox\/[\d]+/i.test(ua)
-    ? "Firefox"
-    : /safari\/[\d]+/i.test(ua)
-    ? "Safari"
-    : "Browser";
-
-  const os = /windows nt/i.test(ua)
-    ? "Windows"
-    : /mac os x/i.test(ua)
-    ? "Mac OS"
-    : /android/i.test(ua)
-    ? "Android"
-    : /iphone os|ios/i.test(ua)
-    ? "iOS"
-    : /linux/i.test(ua)
-    ? "Linux"
-    : "Unknown";
-
-  return { type, browser, os };
-}
-
-const DEVICE_ICONS: Record<DeviceType, React.ElementType> = {
-  desktop: Laptop,
-  mobile: Smartphone,
-  tablet: Tablet,
-};
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatAge(iso: string): string {
-  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ${mins % 60}m`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ${hrs % 24}h`;
-}
-
-function deviceParts(s: LoginSession): { name: string; browser: string; deviceClass: DeviceType } {
-  const label = s.device_label || "";
-
-  // New backend format: "Browser: Chrome · OS: Mac OS · Class: desktop"
-  const structured = label.match(/Browser:\s*([^·]+)\s*·\s*OS:\s*([^·]+)\s*·\s*Class:\s*(\w+)/i);
-  if (structured) {
-    const [, browser, rawOs, cls] = structured.map((v) => v.trim());
-    const os = rawOs === "Mac OS" ? "Mac OS" : rawOs;
-    const deviceClass: DeviceType =
-      cls === "mobile" ? "mobile" : cls === "tablet" ? "tablet" : "desktop";
-    return { name: os, browser, deviceClass };
-  }
-
-  // Legacy format: "Device · Browser"
-  const sep = label.indexOf(" · ");
-  if (sep >= 0) {
-    const ua = parseUA(s.user_agent);
-    return { name: label.slice(0, sep), browser: label.slice(sep + 3), deviceClass: ua.type };
-  }
-
-  // Fallback to raw UA
-  const ua = parseUA(s.user_agent);
-  return { name: label || "Unknown", browser: ua.browser, deviceClass: ua.type };
-}
-
-// ── Sub-components ───────────────────────────────────────────────────────────
-
-function SessionStatusBadge({ session }: { session: LoginSession }) {
-  if (session.is_active) {
-    return (
-      <Badge variant="active" className="text-[10px] gap-1">
-        <span className="size-1.5 rounded-full bg-green-01 animate-pulse" />
-        Active
-      </Badge>
-    );
-  }
-  if (session.end_reason === "FORCE_LOGOUT") {
-    return (
-      <Badge variant="rejected" className="text-[10px] gap-1">
-        <span className="size-1.5 rounded-full bg-destructive" />
-        Force logout
-      </Badge>
-    );
-  }
-  if (session.end_reason === "EXPIRED") {
-    return (
-      <Badge variant="pending" className="text-[10px] gap-1">
-        <span className="size-1.5 rounded-full bg-yellow-01" />
-        Expired
-      </Badge>
-    );
-  }
-  return <Badge variant="outline" className="text-[10px]">Ended</Badge>;
-}
-
-// ── Pagination ───────────────────────────────────────────────────────────────
-
-function Pagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (p: number) => void;
-}) {
-  if (totalPages <= 1) return null;
-
-  const pages: (number | string)[] = [1];
-  const start = Math.max(2, currentPage - 1);
-  const end = Math.min(totalPages - 1, currentPage + 1);
-  if (start > 2) pages.push("...");
-  for (let i = start; i <= end; i++) pages.push(i);
-  if (end < totalPages - 1) pages.push("...");
-  if (totalPages > 1) pages.push(totalPages);
-
-  return (
-    <div className="flex items-center justify-end gap-2 mt-3.5">
-      <button
-        onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-        disabled={currentPage <= 1}
-        className={cn(
-          "grid h-7.5 px-2.5 place-content-center rounded-md text-sm font-medium transition-colors",
-          currentPage <= 1 ? "text-gray-300 cursor-not-allowed" : "text-black-02 hover:bg-gray-100 cursor-pointer",
-        )}
-      >
-        Prev
-      </button>
-      {pages.map((p, i) =>
-        typeof p === "string" ? (
-          <span key={`e-${i}`} className="px-2 text-black-02">...</span>
-        ) : (
-          <button
-            key={p}
-            onClick={() => onPageChange(p)}
-            className={cn(
-              "grid size-7.5 place-content-center rounded-md text-sm font-medium transition-colors",
-              currentPage === p ? "bg-primary text-white" : "text-black-02 hover:bg-gray-100",
-            )}
-          >
-            {p}
-          </button>
-        )
-      )}
-      <button
-        onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-        disabled={currentPage >= totalPages}
-        className={cn(
-          "grid h-7.5 px-2.5 place-content-center rounded-md text-sm font-medium transition-colors",
-          currentPage >= totalPages ? "text-gray-300 cursor-not-allowed" : "text-black-02 hover:bg-gray-100 cursor-pointer",
-        )}
-      >
-        Next
-      </button>
-    </div>
-  );
-}
 
 // ── Modal state ──────────────────────────────────────────────────────────────
 
