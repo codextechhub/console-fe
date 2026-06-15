@@ -4,7 +4,7 @@
 
 import {
   LayoutDashboard, Store, FileText, ShoppingCart, PackageCheck,
-  ReceiptText, Banknote, Send, FileSignature, Boxes, BarChart3,
+  ReceiptText, Banknote, Send, FileSignature, Boxes, BarChart3, ClipboardCheck,
 } from "lucide-react";
 import type { ConsoleNavItem } from "@/components/finance-ui/console-nav";
 import { routesPath } from "@/routes/routes-path";
@@ -27,6 +27,8 @@ export const procurementNav: ConsoleNavItem[] = [
   { title: "Goods Receipts", url: P.GOODS_RECEIPTS, icon: PackageCheck, prefixes: ["procurement.goods_receipt."] },
   { title: "Vendor Invoices", url: P.VENDOR_INVOICES, icon: ReceiptText, prefixes: ["procurement.vendor_invoice."] },
   { title: "Vendor Payments", url: P.VENDOR_PAYMENTS, icon: Banknote, prefixes: ["procurement.vendor_payment."] },
+  // Approvals live in the Workflow module — link out to its queue.
+  { title: "Approvals", url: routesPath.PROTECTED.WORKFLOW.APPROVALS, icon: ClipboardCheck, prefixes: ["procurement.approval."] },
   {
     title: "Sourcing", url: P.SOURCING, icon: Send,
     prefixes: ["procurement.rfq.", "procurement.quotation."],

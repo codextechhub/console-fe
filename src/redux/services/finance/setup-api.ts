@@ -10,6 +10,7 @@ import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
 import type {
   Account,
+  FxRate,
   CostCenter,
   Currency,
   FinanceAuditLog,
@@ -46,6 +47,10 @@ export const setupApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/cost-centers/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceSetup"],
     }),
+    getFxRates: b.query<PaginatedEnvelope<FxRate>, void>({
+      query: () => ({ url: `/finance/fx-rates/`, method: "GET" }),
+      providesTags: ["FinanceSetup"],
+    }),
     getAuditLog: b.query<PaginatedEnvelope<FinanceAuditLog>, { entity: string; page?: number; action?: string }>({
       query: (p) => ({ url: `/finance/audit-logs/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceAuditLog"],
@@ -60,5 +65,6 @@ export const {
   useGetCurrenciesQuery,
   useGetTaxCodesQuery,
   useGetCostCentersQuery,
+  useGetFxRatesQuery,
   useGetAuditLogQuery,
 } = setupApi;

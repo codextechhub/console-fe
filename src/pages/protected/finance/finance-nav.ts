@@ -21,6 +21,9 @@ export const financeNav: ConsoleNavItem[] = [
       { title: "Entities", url: `${F.SETUP}/entities`, prefixes: ["finance.entity."] },
       { title: "Chart of Accounts", url: `${F.SETUP}/accounts`, prefixes: ["finance.account."] },
       { title: "Periods", url: `${F.SETUP}/periods`, prefixes: ["finance.period."] },
+      { title: "Currencies & FX", url: `${F.SETUP}/currencies`, prefixes: ["finance.currency.", "finance.fxrate."] },
+      { title: "Tax Codes", url: `${F.SETUP}/tax-codes`, prefixes: ["finance.taxcode."] },
+      { title: "Cost Centres", url: `${F.SETUP}/cost-centers`, prefixes: ["finance.costcenter."] },
     ],
   },
   { title: "General Ledger", url: F.LEDGER, icon: BookOpen, prefixes: ["finance.journal.", "finance.directentry."] },
@@ -33,6 +36,7 @@ export const financeNav: ConsoleNavItem[] = [
       { title: "Refunds", url: `${F.RECEIVABLES}/refunds`, prefixes: ["finance.refund."] },
       { title: "Concessions", url: `${F.RECEIVABLES}/concessions`, prefixes: ["finance.concession."] },
       { title: "Payment Plans", url: `${F.RECEIVABLES}/payment-plans`, prefixes: ["finance.paymentplan."] },
+      { title: "Dunning", url: `${F.RECEIVABLES}/dunning`, prefixes: ["finance.dunning."] },
     ],
   },
   {

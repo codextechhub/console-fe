@@ -32,6 +32,15 @@ export interface Currency {
   is_active: boolean;
 }
 
+export interface FxRate {
+  id: number;
+  base: string;
+  quote: string;
+  rate: string;
+  as_of: string;
+  source: string;
+}
+
 export interface TaxCode {
   id: number;
   code: string;
