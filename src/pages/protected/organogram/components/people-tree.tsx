@@ -100,7 +100,9 @@ function PersonNode({ node, ctx }: { node: Extract<PeopleNode, { kind: "person" 
         <ul>
           {node.children.map((c) =>
             c.kind === "person" ? (
-              <PersonNode key={c.user.id} node={c} ctx={ctx} />
+              // Key per seat (user + position): one person can hold several
+              // positions among siblings, so user.id alone collides.
+              <PersonNode key={`${c.user.id}-${c.positionId}`} node={c} ctx={ctx} />
             ) : (
               <VacantPersonCard key={c.key} node={c} />
             ),
@@ -117,7 +119,7 @@ export function PeopleTree({ roots, ctx }: { roots: PeopleNode[]; ctx: PeopleCtx
       <ul>
         {roots.map((node) =>
           node.kind === "person" ? (
-            <PersonNode key={node.user.id} node={node} ctx={ctx} />
+            <PersonNode key={`${node.user.id}-${node.positionId}`} node={node} ctx={ctx} />
           ) : (
             <VacantPersonCard key={node.key} node={node} />
           ),
