@@ -5,7 +5,7 @@
 
 import { SearchSelect } from "@/components/custom/search-select";
 import { useGetAccountsQuery, useGetCurrenciesQuery, useGetTaxCodesQuery, useGetCostCentersQuery } from "@/redux/services/finance/setup-api";
-import { useGetTaxObligationsQuery } from "@/redux/services/finance/ops-api";
+import { useGetTaxObligationsQuery, useGetPettyCashFundsQuery } from "@/redux/services/finance/ops-api";
 
 interface PickerProps {
   entity: string;
@@ -48,5 +48,11 @@ export function CostCenterPicker({ entity, value, onChange, label, placeholder =
 export function TaxObligationPicker({ entity, value, onChange, label, placeholder = "Select obligation", isRequired, disabled }: PickerProps) {
   const { data, isLoading } = useGetTaxObligationsQuery({ entity });
   const options = (data?.data ?? []).map((o) => ({ value: String(o.id), label: `${o.code} — ${o.name}` }));
+  return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
+}
+
+export function PettyCashFundPicker({ entity, value, onChange, label, placeholder = "Select fund", isRequired, disabled }: PickerProps) {
+  const { data, isLoading } = useGetPettyCashFundsQuery({ entity, page: 1 });
+  const options = (data?.data ?? []).map((f) => ({ value: String(f.id), label: f.name }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }

@@ -10,6 +10,8 @@ import { P } from "@/permissions";
 import { InvoicesTab } from "./invoices-tab";
 import { CreditNotesTab } from "./credit-notes-tab";
 import { RefundsTab } from "./refunds-tab";
+import { ConcessionsTab } from "./concessions-tab";
+import { PaymentPlansTab } from "./payment-plans-tab";
 
 export default function ReceivablesPage() {
   const { code: entity, currency } = useActiveEntity();
@@ -19,6 +21,8 @@ export default function ReceivablesPage() {
     can(P.FIN_VIEW_INVOICES) && { key: "invoices", label: "Invoices" },
     can(P.FIN_VIEW_CREDIT_NOTES) && { key: "credit-notes", label: "Credit Notes" },
     can(P.FIN_VIEW_REFUNDS) && { key: "refunds", label: "Refunds" },
+    can(P.FIN_VIEW_CONCESSIONS) && { key: "concessions", label: "Concessions" },
+    can(P.FIN_VIEW_PAYMENT_PLANS) && { key: "payment-plans", label: "Payment Plans" },
   ].filter(Boolean) as { key: string; label: string }[];
 
   const [active, setActive] = useState(tabs[0]?.key ?? "invoices");
@@ -41,6 +45,8 @@ export default function ReceivablesPage() {
             {active === "invoices" && <InvoicesTab entity={entity} currency={currency} />}
             {active === "credit-notes" && <CreditNotesTab entity={entity} currency={currency} />}
             {active === "refunds" && <RefundsTab entity={entity} currency={currency} />}
+            {active === "concessions" && <ConcessionsTab entity={entity} currency={currency} />}
+            {active === "payment-plans" && <PaymentPlansTab entity={entity} currency={currency} />}
           </>
         )}
       </main>

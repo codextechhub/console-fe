@@ -77,6 +77,10 @@ export const opsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/petty-cash-vouchers/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePettyCash"],
     }),
+    createPettyCashVoucher: b.mutation<ApiEnvelope<PettyCashVoucher>, { entity: string; fund: number; voucher_date: string; payee?: string; reference?: string; lines: { description: string; expense_account: string; quantity: number; unit_price: number; tax_code?: string; cost_center?: string }[] }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/petty-cash-vouchers/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinancePettyCash"],
+    }),
     postPettyCashVoucher: b.mutation<ApiEnvelope<PettyCashVoucher>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/petty-cash-vouchers/${id}/post/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinancePettyCash", "FinanceJournals"],
@@ -86,6 +90,10 @@ export const opsApi = baseApi.injectEndpoints({
     getPayrollRuns: b.query<PaginatedEnvelope<PayrollRun>, E>({
       query: (p) => ({ url: `/finance/payroll-runs/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePayroll"],
+    }),
+    createPayrollRun: b.mutation<ApiEnvelope<PayrollRun>, { entity: string; pay_date: string; period_label?: string; narration?: string; lines: { employee_name: string; gross_amount: number; paye_amount: number; pension_amount: number }[] }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/payroll-runs/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinancePayroll"],
     }),
     getPayrollRun: b.query<ApiEnvelope<PayrollRun>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/payroll-runs/${id}/${qs({ entity })}`, method: "GET" }),
@@ -173,9 +181,11 @@ export const {
   useGetPettyCashFundsQuery,
   useReplenishPettyCashMutation,
   useGetPettyCashVouchersQuery,
+  useCreatePettyCashVoucherMutation,
   usePostPettyCashVoucherMutation,
   useGetPayrollRunsQuery,
   useGetPayrollRunQuery,
+  useCreatePayrollRunMutation,
   usePostPayrollRunMutation,
   usePayPayrollRunMutation,
   useGetBudgetsQuery,

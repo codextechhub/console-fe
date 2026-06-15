@@ -6,6 +6,7 @@ import { generateQueryString } from "@/utils/helpers";
 import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
 import type {
+  Concession,
   CreditNote,
   DunningNotice,
   Invoice,
@@ -75,10 +76,28 @@ export const arApi = baseApi.injectEndpoints({
       invalidatesTags: ["FinanceRefunds", "FinanceReports", "FinanceJournals"],
     }),
 
-    // Payment plans (read + lifecycle)
+    // Concessions
+    getConcessions: builder.query<PaginatedEnvelope<Concession>, EntityList & { kind?: string }>({
+      query: (params) => ({ url: `/finance/concessions/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceConcessions"],
+    }),
+    createConcession: builder.mutation<ApiEnvelope<Concession>, { entity: string; customer: string; invoice?: string; kind: string; concession_date: string; amount: number; allowance_account?: string; reason?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/concessions/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceConcessions"],
+    }),
+    postConcession: builder.mutation<ApiEnvelope<Concession>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/concessions/${id}/post/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinanceConcessions", "FinanceReports", "FinanceJournals"],
+    }),
+
+    // Payment plans (read + create + lifecycle)
     getPaymentPlans: builder.query<PaginatedEnvelope<PaymentPlan>, EntityList>({
       query: (params) => ({ url: `/finance/payment-plans/${qs(params)}`, method: "GET" }),
       providesTags: ["FinancePaymentPlans"],
+    }),
+    createPaymentPlan: builder.mutation<ApiEnvelope<PaymentPlan>, { entity: string; customer: string; invoice?: number; start_date: string; frequency: string; installment_count: number; total_amount?: number; notes?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/payment-plans/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinancePaymentPlans"],
     }),
 
     // Dunning notices
@@ -99,6 +118,10 @@ export const {
   useGetRefundsQuery,
   useCreateRefundMutation,
   usePostRefundMutation,
+  useGetConcessionsQuery,
+  useCreateConcessionMutation,
+  usePostConcessionMutation,
   useGetPaymentPlansQuery,
+  useCreatePaymentPlanMutation,
   useGetDunningNoticesQuery,
 } = arApi;

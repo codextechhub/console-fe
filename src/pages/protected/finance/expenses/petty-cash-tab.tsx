@@ -3,7 +3,13 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { DataTable, Money, StatusPill, ActionButton, MoneyInput, type Column } from "@/components/finance-ui";
+import { Plus } from "lucide-react";
+import {
+  DataTable, Money, StatusPill, ActionButton, MoneyInput, FormModal, FormField,
+  LineEditor, emptyLine, toApiLines, PettyCashFundPicker, type DocLine, type Column,
+} from "@/components/finance-ui";
+import { Can } from "@/components/finance-ui/can";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
 import {
@@ -11,6 +17,7 @@ import {
   useReplenishPettyCashMutation,
   useGetPettyCashVouchersQuery,
   usePostPettyCashVoucherMutation,
+  useCreatePettyCashVoucherMutation,
 } from "@/redux/services/finance/ops-api";
 import type { PettyCashFund, PettyCashVoucher } from "@/redux/services/finance/ops-types";
 
@@ -19,6 +26,7 @@ export function PettyCashTab({ entity, currency }: { entity: string; currency?: 
   const vouchers = useGetPettyCashVouchersQuery({ entity, page: 1 });
   const [replenish] = useReplenishPettyCashMutation();
   const [postVoucher] = usePostPettyCashVoucherMutation();
+  const [creatingVoucher, setCreatingVoucher] = useState(false);
 
   // Replenish form state, keyed per-fund row.
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -77,11 +85,46 @@ export function PettyCashTab({ entity, currency }: { entity: string; currency?: 
           emptyTitle="No petty cash funds" emptyMessage="Funds will appear here once established." />
       </div>
       <div>
-        <p className="mb-2 font-mont text-sm font-semibold text-gray-01">Vouchers</p>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="font-mont text-sm font-semibold text-gray-01">Vouchers</p>
+          <Can permission={P.FIN_POST_PETTY_CASH}><Button size="sm" onClick={() => setCreatingVoucher(true)} className="gap-1.5"><Plus className="size-4" /> New voucher</Button></Can>
+        </div>
         <DataTable columns={voucherCols} rows={vouchers.data?.data ?? []} rowKey={(v) => v.id}
           loading={vouchers.isLoading} error={vouchers.isError} onRetry={vouchers.refetch}
           emptyTitle="No vouchers" emptyMessage="Petty cash vouchers will appear here." />
       </div>
+      <CreateVoucherModal open={creatingVoucher} onClose={() => setCreatingVoucher(false)} entity={entity} currency={currency} />
     </div>
+  );
+}
+
+function CreateVoucherModal({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
+  const [fund, setFund] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [payee, setPayee] = useState("");
+  const [lines, setLines] = useState<DocLine[]>([emptyLine()]);
+  const [create, { isLoading }] = useCreatePettyCashVoucherMutation();
+  const apiLines = toApiLines(lines, "expense_account") as { description: string; expense_account: string; quantity: number; unit_price: number; tax_code?: string; cost_center?: string }[];
+  const submit = async () => {
+    try {
+      const r = await create({ entity, fund: Number(fund), voucher_date: date, payee: payee.trim() || undefined, lines: apiLines }).unwrap();
+      toast.success(r.message || "Voucher created.");
+      setFund(""); setPayee(""); setLines([emptyLine()]); onClose();
+    } catch { /* central */ }
+  };
+  return (
+    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New petty cash voucher"
+      description="Records spend from a fund; post it afterwards (Dr expense, Cr petty cash)." onSubmit={submit}
+      loading={isLoading} canSubmit={!!fund && !!date && apiLines.length > 0} widthClass="sm:max-w-2xl">
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Fund" required><PettyCashFundPicker entity={entity} value={fund} onChange={setFund} /></FormField>
+        <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
+      </div>
+      <FormField label="Payee"><Input value={payee} onChange={(e) => setPayee(e.target.value)} className="bg-white" /></FormField>
+      <div className="pt-1">
+        <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
+        <LineEditor entity={entity} lines={lines} onChange={setLines} accountLabel="Expense account" accountType="EXPENSE" currency={currency} />
+      </div>
+    </FormModal>
   );
 }
