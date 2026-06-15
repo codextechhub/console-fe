@@ -12,8 +12,13 @@ dist
 dist-ssr
 *.local
 
-# Claude Code local files
-.claude/
+# Claude Code — ignore local state, but track shared skills (not their deps,
+# which the skill reinstalls on first run).
+.claude/*
+!.claude/skills
+.claude/skills/**/node_modules/
+.claude/skills/**/package.json
+.claude/skills/**/package-lock.json
 
 # Editor directories and files
 .vscode/*
