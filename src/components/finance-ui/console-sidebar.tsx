@@ -58,7 +58,7 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavI
   });
 
   const backItem = {
-    title: "Back to main app",
+    title: "Back to Home",
     url: routesPath.PROTECTED.OVERVIEW.INDEX,
     icon: ArrowLeft,
     isActive: false,

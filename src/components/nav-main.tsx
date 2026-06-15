@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, CircleArrowOutUpRight } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -65,7 +65,7 @@ export function NavMain({
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     {item.affordance && (
-                      <ChevronRight className="ml-auto size-4 text-gray-02" />
+                      <CircleArrowOutUpRight className="ml-auto size-4 text-gray-02" />
                     )}
                   </Link>
                 </SidebarMenuButton>
