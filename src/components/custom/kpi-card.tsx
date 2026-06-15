@@ -1,3 +1,4 @@
+import { HelpCircle, TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface KpiCardProps {
@@ -5,9 +6,14 @@ interface KpiCardProps {
   value: number | string;
   foot?: string;
   tone?: "default" | "alert" | "warn" | "live";
+  /** Optional help text shown on a small ? icon (native tooltip). */
+  help?: string;
+  /** Optional period-over-period delta as a percentage; coloured + arrowed. */
+  delta?: number;
+  deltaLabel?: string;
 }
 
-export default function KpiCard({ label, value, foot, tone = "default" }: KpiCardProps) {
+export default function KpiCard({ label, value, foot, tone = "default", help, delta, deltaLabel }: KpiCardProps) {
   return (
     <div
       className={cn(
@@ -16,7 +22,14 @@ export default function KpiCard({ label, value, foot, tone = "default" }: KpiCar
         tone === "warn" && "bg-amber-50 border-amber-200",
       )}
     >
-      <h5 className="font-mont text-sm font-medium text-gray-01">{label}</h5>
+      <h5 className="font-mont text-sm font-medium text-gray-01 inline-flex items-center gap-1.5">
+        {label}
+        {help && (
+          <span title={help} className="cursor-help text-gray-03">
+            <HelpCircle className="size-3.5" />
+          </span>
+        )}
+      </h5>
       <div className="flex items-center gap-2">
         {tone === "live" && (
           <span className="relative inline-flex h-2 w-2">
@@ -34,6 +47,13 @@ export default function KpiCard({ label, value, foot, tone = "default" }: KpiCar
           {value}
         </p>
       </div>
+      {delta != null && (
+        <p className={cn("inline-flex items-center gap-1 font-mont text-xs font-semibold", delta >= 0 ? "text-green-01" : "text-destructive")}>
+          {delta >= 0 ? <TrendingUp className="size-3.5" /> : <TrendingDown className="size-3.5" />}
+          {delta >= 0 ? "+" : ""}{delta}%
+          <span className="font-normal text-gray-05">{deltaLabel ?? "vs prior period"}</span>
+        </p>
+      )}
       {foot && <p className="text-xs text-gray-01">{foot}</p>}
     </div>
   );

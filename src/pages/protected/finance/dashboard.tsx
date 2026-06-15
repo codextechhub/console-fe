@@ -4,7 +4,7 @@
 
 import { useNavigate } from "react-router";
 import { FinanceShell } from "./finance-shell";
-import { KpiCard, Money, StatusPill, useActiveEntity } from "@/components/finance-ui";
+import { KpiCard, Money, StatusPill, TeachingNote, BarChart, Donut, CHART_COLORS, useActiveEntity } from "@/components/finance-ui";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { useCan } from "@/components/finance-ui/can";
 import { P } from "@/permissions";
@@ -54,21 +54,51 @@ export default function FinanceDashboard() {
           </p>
         </div>
 
+        <TeachingNote id="finance-dashboard">
+          The executive view of this entity's finances — every figure is computed live from the general ledger. KPIs and charts reflect the selected period; drill into each area from the sidebar.
+        </TeachingNote>
+
         {!entity ? (
           <EmptyState title="Select an entity" message="Choose a ledger entity to see its finances." />
         ) : !canReports ? (
           <EmptyState title="No report access" message="You don’t hold finance.report.view for this console." />
         ) : (
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            <KpiCard label="Income (period)" value={formatMoney(p?.total_income.kobo ?? 0, currency)} />
-            <KpiCard label="Expense (period)" value={formatMoney(p?.total_expense.kobo ?? 0, currency)} />
-            <KpiCard
-              label="Net surplus (period)"
-              value={formatMoney(p?.net_income.kobo ?? 0, currency)}
-              tone={(p?.net_income.kobo ?? 0) < 0 ? "alert" : "default"}
-            />
-            <KpiCard label="AR outstanding" value={formatMoney(arOutstanding, currency)} />
-          </div>
+          <>
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+              <KpiCard label="Income (period)" value={formatMoney(p?.total_income.kobo ?? 0, currency)} help="Total income recognised in the period (income-statement)." />
+              <KpiCard label="Expense (period)" value={formatMoney(p?.total_expense.kobo ?? 0, currency)} help="Total expense recognised in the period." />
+              <KpiCard
+                label="Net surplus (period)"
+                value={formatMoney(p?.net_income.kobo ?? 0, currency)}
+                tone={(p?.net_income.kobo ?? 0) < 0 ? "alert" : "default"}
+                help="Income less expense for the period; closes to retained earnings at year-end."
+              />
+              <KpiCard label="AR outstanding" value={formatMoney(arOutstanding, currency)} help="Net receivable across all customers (AR aging, net of unallocated credit)." />
+            </div>
+
+            {/* Charts — real data from income statement + AR aging */}
+            <div className="grid gap-5 lg:grid-cols-2">
+              <div className="rounded-md bg-white p-5">
+                <p className="mb-3 font-mont text-sm font-semibold text-gray-01">Income vs Expense</p>
+                <Donut
+                  data={[
+                    { label: "Income", value: p?.total_income.kobo ?? 0, color: CHART_COLORS.green },
+                    { label: "Expense", value: p?.total_expense.kobo ?? 0, color: CHART_COLORS.red },
+                  ]}
+                  center={{ main: formatMoney(p?.net_income.kobo ?? 0, currency), sub: "Net" }}
+                />
+              </div>
+              <div className="rounded-md bg-white p-5">
+                <p className="mb-1 font-mont text-sm font-semibold text-gray-01">AR aging</p>
+                <p className="mb-2 font-mont text-xs text-gray-05">Outstanding receivable by age bucket.</p>
+                <BarChart
+                  data={Object.entries(aging.data?.data?.bucket_totals ?? {}).map(([label, m]) => ({ label, value: m.kobo }))}
+                  color={CHART_COLORS.amber}
+                  format={(v) => formatMoney(v, currency)}
+                />
+              </div>
+            </div>
+          </>
         )}
 
         {/* Trial-balance health */}

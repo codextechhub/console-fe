@@ -4,11 +4,12 @@
 import { useNavigate } from "react-router";
 import { ChevronRight } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
-import { KpiCard, useActiveEntity } from "@/components/finance-ui";
+import { KpiCard, TeachingNote, BarChart, useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { useCan } from "@/components/finance-ui/can";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
+import { formatMoney } from "@/utils/money";
 import {
   useGetVendorsQuery,
   useGetRequisitionsQuery,
@@ -16,12 +17,13 @@ import {
   useGetGoodsReceiptsQuery,
   useGetVendorInvoicesQuery,
 } from "@/redux/services/procurement/procurement-api";
+import { useGetApAgingQuery } from "@/redux/services/procurement/procurement-ext-api";
 
 const R = routesPath.PROTECTED.PROCUREMENT;
 
 export default function ProcurementDashboard() {
   const navigate = useNavigate();
-  const { code: entity } = useActiveEntity();
+  const { code: entity, currency } = useActiveEntity();
   const { can } = useCan();
   const skip = !entity;
 
@@ -30,6 +32,7 @@ export default function ProcurementDashboard() {
   const pos = useGetPurchaseOrdersQuery({ entity: entity! }, { skip: skip || !can(P.PROC_VIEW_PURCHASE_ORDERS) });
   const grns = useGetGoodsReceiptsQuery({ entity: entity! }, { skip: skip || !can(P.PROC_VIEW_GOODS_RECEIPTS) });
   const invoices = useGetVendorInvoicesQuery({ entity: entity!, payment_status: "UNPAID" }, { skip: skip || !can(P.PROC_VIEW_VENDOR_INVOICES) });
+  const apAging = useGetApAgingQuery({ entity: entity! }, { skip: skip || !can(P.PROC_VIEW_PROC_REPORTS) });
 
   // Procurement lists are not paginated; count the returned array (the backend
   // sends `{}` for an empty list, so guard before reading length).
@@ -52,15 +55,19 @@ export default function ProcurementDashboard() {
           <p className="mt-0.5 font-mont text-xs text-gray-05">Spend pipeline for the selected entity.</p>
         </div>
 
+        <TeachingNote id="procurement-dashboard">
+          The Procure-to-Pay pipeline at a glance — how many documents sit at each stage from requisition through payment, plus payables aging. Click any stage to open it.
+        </TeachingNote>
+
         {!entity ? (
           <EmptyState title="Select an entity" message="Choose an entity to see procurement." />
         ) : (
           <>
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-              <KpiCard label="Vendors" value={count(vendors)} />
-              <KpiCard label="Open requisitions" value={count(reqs)} />
-              <KpiCard label="Open purchase orders" value={count(pos)} />
-              <KpiCard label="Unpaid invoices" value={count(invoices)} tone={count(invoices) > 0 ? "warn" : "default"} />
+              <KpiCard label="Vendors" value={count(vendors)} help="Active vendors on this entity." />
+              <KpiCard label="Open requisitions" value={count(reqs)} help="Purchase requisitions not yet fully ordered." />
+              <KpiCard label="Open purchase orders" value={count(pos)} help="POs raised, awaiting receipt/invoicing." />
+              <KpiCard label="Unpaid invoices" value={count(invoices)} tone={count(invoices) > 0 ? "warn" : "default"} help="Vendor invoices posted but not yet paid." />
             </div>
 
             {/* P2P pipeline */}
@@ -78,6 +85,18 @@ export default function ProcurementDashboard() {
                 ))}
               </div>
             </div>
+
+            {/* AP aging — real data from the procurement report */}
+            {can(P.PROC_VIEW_PROC_REPORTS) && apAging.data && (
+              <div className="rounded-md bg-white p-5">
+                <p className="mb-1 font-mont text-sm font-semibold text-gray-01">AP aging</p>
+                <p className="mb-2 font-mont text-xs text-gray-05">Outstanding payables by age bucket.</p>
+                <BarChart
+                  data={(apAging.data.data.buckets ?? []).map((b) => ({ label: b, value: apAging.data!.data.bucket_totals[b]?.kobo ?? 0 }))}
+                  format={(v) => formatMoney(v, currency)}
+                />
+              </div>
+            )}
           </>
         )}
       </main>
