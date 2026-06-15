@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, Money, StatusPill, TabBar, FormModal, FormField, AccountPicker, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, Money, StatusPill, TabBar, FormModal, FormField, AccountPicker, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -14,11 +14,9 @@ import { useGetStockItemsQuery, useGetStockMovementsQuery, useCreateStockItemMut
 import type { StockItem, StockMovement } from "@/redux/services/procurement/procurement-types";
 
 function ItemsTab({ entity, currency }: { entity: string; currency?: string | null }) {
-  const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetStockItemsQuery({ entity, page });
-  const rows = data?.data ?? [];
-  const pg = data?.pagination;
+  const { data, isLoading, isFetching, isError, refetch } = useGetStockItemsQuery({ entity });
+  const rows = toArray(data?.data);
   const columns: Column<StockItem>[] = [
     { header: "Code", cell: (i) => <span className="font-semibold">{i.code}</span> },
     { header: "Name", cell: (i) => i.name },
@@ -35,7 +33,7 @@ function ItemsTab({ entity, currency }: { entity: string; currency?: string | nu
       <DataTable columns={columns} rows={rows} rowKey={(i) => i.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch}
         emptyTitle="No stock items" emptyMessage="Stock items will appear here."
-        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+        />
       <CreateStockItemModal open={creating} onClose={() => setCreating(false)} entity={entity} />
     </>
   );
@@ -76,7 +74,7 @@ function CreateStockItemModal({ open, onClose, entity }: { open: boolean; onClos
 
 function MovementsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const { data, isLoading, isError, refetch } = useGetStockMovementsQuery({ entity });
-  const rows = data?.data ?? [];
+  const rows = toArray(data?.data);
   const columns: Column<StockMovement>[] = [
     { header: "Date", cell: (m) => m.movement_date },
     { header: "Item", cell: (m) => m.stock_item_code ?? "—" },

@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
 import {
   DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField,
-  LineEditor, emptyLine, toApiLines, type DocLine, useActiveEntity, type Column,
+  LineEditor, emptyLine, toApiLines, type DocLine, toArray, useActiveEntity, type Column,
 } from "@/components/finance-ui";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -43,8 +43,7 @@ export default function VendorInvoicesPage() {
   const [runMatch] = useMatchVendorInvoiceMutation();
   const [submit] = useSubmitVendorInvoiceMutation();
   const [post] = usePostVendorInvoiceMutation();
-  const rows = data?.data ?? [];
-  const pg = data?.pagination;
+  const rows = toArray(data?.data);
 
   const columns: Column<VendorInvoice>[] = [
     { header: "Invoice", cell: (i) => <span className="font-semibold">{i.document_number}</span> },
@@ -79,7 +78,7 @@ export default function VendorInvoicesPage() {
         <DataTable columns={columns} rows={rows} rowKey={(i) => i.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
           emptyTitle="No vendor invoices" emptyMessage="Vendor bills will appear here."
-          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+        />
       </main>
 
       <DetailDrawer open={!!selected} onOpenChange={(o) => !o && setSelected(null)}

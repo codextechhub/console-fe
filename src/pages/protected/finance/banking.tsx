@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, FormModal, FormField, AccountPicker, CurrencyPicker, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, DetailDrawer, Money, StatusPill, FormModal, FormField, AccountPicker, CurrencyPicker, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
@@ -109,7 +109,7 @@ function StatementDrawer({ account, entity, currency, onClose }: { account: Bank
   const open = !!account;
   const { data, isLoading, isError, refetch } = useGetStatementLinesQuery({ id: account!.id, entity }, { skip: !open });
   const [reconcile, { isLoading: reconciling }] = useAutoReconcileMutation();
-  const lines = data?.data ?? [];
+  const lines = toArray(data?.data);
 
   const doReconcile = async () => {
     try {

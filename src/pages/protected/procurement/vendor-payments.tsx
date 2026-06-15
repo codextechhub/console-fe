@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField, MoneyInput, AccountPicker, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField, MoneyInput, AccountPicker, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -20,13 +20,11 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 export default function VendorPaymentsPage() {
   const { code: entity, currency } = useActiveEntity();
-  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<VendorPayment | null>(null);
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetVendorPaymentsQuery({ entity: entity!, page }, { skip: !entity });
+  const { data, isLoading, isFetching, isError, refetch } = useGetVendorPaymentsQuery({ entity: entity! }, { skip: !entity });
   const [post] = usePostVendorPaymentMutation();
-  const rows = data?.data ?? [];
-  const pg = data?.pagination;
+  const rows = toArray(data?.data);
 
   const columns: Column<VendorPayment>[] = [
     { header: "Payment", cell: (p) => <span className="font-semibold">{p.document_number}</span> },
@@ -55,7 +53,7 @@ export default function VendorPaymentsPage() {
         <DataTable columns={columns} rows={rows} rowKey={(p) => p.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
           emptyTitle="No vendor payments" emptyMessage="Vendor payments will appear here."
-          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+        />
       </main>
 
       <DetailDrawer open={!!selected} onOpenChange={(o) => !o && setSelected(null)}

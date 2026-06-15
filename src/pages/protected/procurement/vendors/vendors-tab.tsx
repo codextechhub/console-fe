@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { DataTable, DetailDrawer, StatusPill, FormModal, FormField, AccountPicker, type Column } from "@/components/finance-ui";
+import { DataTable, DetailDrawer, StatusPill, FormModal, FormField, AccountPicker, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,8 +29,7 @@ export function VendorsTab({ entity }: { entity: string }) {
   const [creating, setCreating] = useState(false);
   const params = useMemo(() => ({ entity, page, ...(q ? { q } : {}) }), [entity, page, q]);
   const { data, isLoading, isFetching, isError, refetch } = useGetVendorsQuery(params);
-  const rows = data?.data ?? [];
-  const pg = data?.pagination;
+  const rows = toArray(data?.data);
 
   const columns: Column<Vendor>[] = [
     { header: "Code", cell: (v) => <span className="font-semibold">{v.code}</span> },
@@ -52,7 +51,7 @@ export function VendorsTab({ entity }: { entity: string }) {
       <DataTable columns={columns} rows={rows} rowKey={(v) => v.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
         emptyTitle="No vendors" emptyMessage="Vendors will appear here."
-        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+        />
 
       <DetailDrawer open={!!selected} onOpenChange={(o) => !o && setSelected(null)}
         title={selected ? `${selected.name}` : "Vendor"} description={selected?.code}>

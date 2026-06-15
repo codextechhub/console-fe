@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
 import {
   DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField,
-  LineEditor, emptyLine, type DocLine, useActiveEntity, type Column,
+  LineEditor, emptyLine, type DocLine, toArray, useActiveEntity, type Column,
 } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Can } from "@/components/finance-ui/can";
@@ -17,13 +17,11 @@ import type { Requisition } from "@/redux/services/procurement/procurement-types
 
 export default function RequisitionsPage() {
   const { code: entity, currency } = useActiveEntity();
-  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Requisition | null>(null);
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetRequisitionsQuery({ entity: entity!, page }, { skip: !entity });
+  const { data, isLoading, isFetching, isError, refetch } = useGetRequisitionsQuery({ entity: entity! }, { skip: !entity });
   const [submit] = useSubmitRequisitionMutation();
-  const rows = data?.data ?? [];
-  const pg = data?.pagination;
+  const rows = toArray(data?.data);
 
   const columns: Column<Requisition>[] = [
     { header: "Document", cell: (r) => <span className="font-semibold">{r.document_number}</span> },
@@ -61,7 +59,7 @@ export default function RequisitionsPage() {
         <DataTable columns={columns} rows={rows} rowKey={(r) => r.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
           emptyTitle="No requisitions" emptyMessage="Requisitions will appear here."
-          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+        />
       </main>
 
       <DetailDrawer open={!!selected} onOpenChange={(o) => !o && setSelected(null)}

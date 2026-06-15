@@ -63,6 +63,9 @@ export function DataTable<T>({
   onPageChange,
 }: DataTableProps<T>) {
   const colCount = columns.length;
+  // Defensive: the backend returns `{}` (not `[]`) for an empty list endpoint,
+  // so a caller may hand us a non-array. Never let `.map` throw.
+  const safeRows: T[] = Array.isArray(rows) ? rows : [];
 
   const body = () => {
     if (forbidden) {
@@ -83,7 +86,7 @@ export function DataTable<T>({
         </TableRow>
       );
     }
-    if (error && rows.length === 0) {
+    if (error && safeRows.length === 0) {
       return (
         <TableRow className="hover:bg-transparent">
           <TableCell colSpan={colCount} className="h-56 p-0">
@@ -92,7 +95,7 @@ export function DataTable<T>({
         </TableRow>
       );
     }
-    if (rows.length === 0) {
+    if (safeRows.length === 0) {
       return (
         <TableRow className="hover:bg-transparent">
           <TableCell colSpan={colCount} className="h-56 p-0">
@@ -101,7 +104,7 @@ export function DataTable<T>({
         </TableRow>
       );
     }
-    return rows.map((row) => (
+    return safeRows.map((row) => (
       <TableRow
         key={rowKey(row)}
         onClick={onRowClick ? () => onRowClick(row) : undefined}

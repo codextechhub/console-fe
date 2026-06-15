@@ -28,11 +28,11 @@ function ApAgingTab({ entity, currency }: { entity: string; currency?: string | 
           {d.rows.map((r) => (
             <tr key={r.vendor_id}>
               <td className={td}>{r.name}<span className="ml-1 text-gray-05">{r.code}</span></td>
-              {d.buckets.map((b) => <td key={b} className={td + " text-right"}><Money kobo={r.buckets[b] ?? 0} currency={currency} align="right" /></td>)}
-              <td className={td + " text-right font-semibold"}><Money kobo={r.net} currency={currency} align="right" /></td>
+              {d.buckets.map((b) => <td key={b} className={td + " text-right"}><Money kobo={r.buckets[b]?.kobo ?? 0} currency={currency} align="right" /></td>)}
+              <td className={td + " text-right font-semibold"}><Money kobo={r.net.kobo} currency={currency} align="right" /></td>
             </tr>
           ))}
-          <tr className="font-semibold"><td className={td}>TOTAL</td>{d.buckets.map((b) => <td key={b} className={td + " text-right"}><Money kobo={d.bucket_totals[b] ?? 0} currency={currency} align="right" /></td>)}<td className={td + " text-right"}><Money kobo={d.total_net} currency={currency} align="right" /></td></tr>
+          <tr className="font-semibold"><td className={td}>TOTAL</td>{d.buckets.map((b) => <td key={b} className={td + " text-right"}><Money kobo={d.bucket_totals[b]?.kobo ?? 0} currency={currency} align="right" /></td>)}<td className={td + " text-right"}><Money kobo={d.total_net.kobo} currency={currency} align="right" /></td></tr>
         </tbody>
       </table>
     </div>
@@ -44,10 +44,10 @@ function GrirTab({ entity, currency }: { entity: string; currency?: string | nul
   const recon = useGetApReconciliationQuery({ entity });
   return (
     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-      <KpiCard label="GR/IR balance" value={formatMoney(grir.data?.data.grir_balance ?? 0, currency)} tone={grir.data?.data.is_clear ? "default" : "warn"} foot={grir.data?.data.is_clear ? "Clear" : "Open balance"} />
-      <KpiCard label="AP sub-ledger" value={formatMoney(recon.data?.data.subledger_total ?? 0, currency)} />
-      <KpiCard label="AP control" value={formatMoney(recon.data?.data.control_total ?? 0, currency)} />
-      <KpiCard label="Difference" value={formatMoney(recon.data?.data.difference ?? 0, currency)} tone={recon.data?.data.is_reconciled ? "default" : "alert"} foot={recon.data?.data.is_reconciled ? "Reconciled" : "Out of balance"} />
+      <KpiCard label="GR/IR balance" value={formatMoney(grir.data?.data.grir_balance.kobo ?? 0, currency)} tone={grir.data?.data.is_clear ? "default" : "warn"} foot={grir.data?.data.is_clear ? "Clear" : "Open balance"} />
+      <KpiCard label="AP sub-ledger" value={formatMoney(recon.data?.data.subledger_total.kobo ?? 0, currency)} />
+      <KpiCard label="AP control" value={formatMoney(recon.data?.data.control_total.kobo ?? 0, currency)} />
+      <KpiCard label="Difference" value={formatMoney(recon.data?.data.difference.kobo ?? 0, currency)} tone={recon.data?.data.is_reconciled ? "default" : "alert"} foot={recon.data?.data.is_reconciled ? "Reconciled" : "Out of balance"} />
     </div>
   );
 }
@@ -63,7 +63,7 @@ function SpendTab({ entity, currency }: { entity: string; currency?: string | nu
       <div className="overflow-x-auto rounded-md bg-white">
         <table className="w-full">
           <thead><tr><th className={th + " text-left"}>Name</th><th className={th + " text-right"}>Net</th><th className={th + " text-right"}>Gross</th></tr></thead>
-          <tbody>{rows.map((r, i) => <tr key={i}><td className={td}>{r.name ?? r.code ?? "—"}</td><td className={td + " text-right"}><Money kobo={Number(r.net ?? 0)} currency={currency} align="right" /></td><td className={td + " text-right"}><Money kobo={Number(r.gross ?? 0)} currency={currency} align="right" /></td></tr>)}</tbody>
+          <tbody>{rows.map((r, i) => <tr key={i}><td className={td}>{r.name ?? r.code ?? "—"}</td><td className={td + " text-right"}><Money kobo={r.net?.kobo ?? 0} currency={currency} align="right" /></td><td className={td + " text-right"}><Money kobo={r.gross?.kobo ?? 0} currency={currency} align="right" /></td></tr>)}</tbody>
         </table>
       </div>
     </div>
@@ -71,8 +71,8 @@ function SpendTab({ entity, currency }: { entity: string; currency?: string | nu
   return (
     <div className="space-y-5">
       <div className="grid gap-5 md:grid-cols-3">
-        <KpiCard label="Total net" value={formatMoney(d.total_net, currency)} />
-        <KpiCard label="Total gross" value={formatMoney(d.total_gross, currency)} />
+        <KpiCard label="Total net" value={formatMoney(d.total_net.kobo, currency)} />
+        <KpiCard label="Total gross" value={formatMoney(d.total_gross.kobo, currency)} />
         <KpiCard label="Invoices" value={d.invoice_count} />
       </div>
       {tableOf("By vendor", d.by_vendor)}
@@ -95,8 +95,8 @@ function PerformanceTab({ entity, currency }: { entity: string; currency?: strin
               <td className={td}>{r.name}<span className="ml-1 text-gray-05">{r.code}</span></td>
               <td className={td + " text-right"}>{r.po_count}</td>
               <td className={td + " text-right"}>{r.on_time_rate}%</td>
-              <td className={td + " text-right"}><Money kobo={r.total_billed} currency={currency} align="right" /></td>
-              <td className={td + " text-right"}><Money kobo={r.total_paid} currency={currency} align="right" /></td>
+              <td className={td + " text-right"}><Money kobo={r.total_billed.kobo} currency={currency} align="right" /></td>
+              <td className={td + " text-right"}><Money kobo={r.total_paid.kobo} currency={currency} align="right" /></td>
               <td className={td + " text-right"}>{r.avg_payment_days}</td>
             </tr>
           ))}

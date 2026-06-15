@@ -35,3 +35,14 @@ export interface EntityScopedParams {
   page?: number;
   page_size?: number;
 }
+
+/**
+ * Coerce an endpoint's `data` field to an array. The backend's success_response
+ * does `data or {}`, so a list endpoint returns `[]` as `{}` when EMPTY — guard
+ * every non-paginated list read with this so the UI never gets a non-array.
+ */
+export function toArray<T>(data: T[] | null | undefined): T[] {
+  // Typed as T[]|undefined for inference, but the backend may actually send `{}`
+  // at runtime — the guard catches that and returns an empty array.
+  return Array.isArray(data) ? data : [];
+}

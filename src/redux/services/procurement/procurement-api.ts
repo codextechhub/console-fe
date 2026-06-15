@@ -5,7 +5,7 @@
 
 import { generateQueryString } from "@/utils/helpers";
 import { baseApi } from "../base-api";
-import type { ApiEnvelope, PaginatedEnvelope } from "../finance/api-types";
+import type { ApiEnvelope } from "../finance/api-types";
 import type {
   CatalogItem,
   GoodsReceipt,
@@ -24,7 +24,7 @@ type Act = { id: number; entity: string };
 export const procurementApi = baseApi.injectEndpoints({
   endpoints: (b) => ({
     // Master data
-    getVendors: b.query<PaginatedEnvelope<Vendor>, E & { q?: string }>({
+    getVendors: b.query<ApiEnvelope<Vendor[]>, E & { q?: string }>({
       query: (p) => ({ url: `/procurement/vendors/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcVendors"],
     }),
@@ -36,7 +36,7 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/procurement/vendors/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcVendors"],
     }),
-    getCategories: b.query<PaginatedEnvelope<VendorCategory>, E>({
+    getCategories: b.query<ApiEnvelope<VendorCategory[]>, E>({
       query: (p) => ({ url: `/procurement/categories/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcCategories"],
     }),
@@ -44,7 +44,7 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/procurement/categories/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcCategories"],
     }),
-    getCatalogItems: b.query<PaginatedEnvelope<CatalogItem>, E & { q?: string }>({
+    getCatalogItems: b.query<ApiEnvelope<CatalogItem[]>, E & { q?: string }>({
       query: (p) => ({ url: `/procurement/catalog-items/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcCatalog"],
     }),
@@ -54,7 +54,7 @@ export const procurementApi = baseApi.injectEndpoints({
     }),
 
     // Requisitions
-    getRequisitions: b.query<PaginatedEnvelope<Requisition>, E>({
+    getRequisitions: b.query<ApiEnvelope<Requisition[]>, E>({
       query: (p) => ({ url: `/procurement/requisitions/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcRequisitions"],
     }),
@@ -68,7 +68,7 @@ export const procurementApi = baseApi.injectEndpoints({
     }),
 
     // Purchase orders (created from an approved requisition; lines are copied)
-    getPurchaseOrders: b.query<PaginatedEnvelope<PurchaseOrder>, E & { vendor?: string }>({
+    getPurchaseOrders: b.query<ApiEnvelope<PurchaseOrder[]>, E & { vendor?: string }>({
       query: (p) => ({ url: `/procurement/purchase-orders/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcPurchaseOrders"],
     }),
@@ -82,7 +82,7 @@ export const procurementApi = baseApi.injectEndpoints({
     }),
 
     // Goods receipts
-    getGoodsReceipts: b.query<PaginatedEnvelope<GoodsReceipt>, E>({
+    getGoodsReceipts: b.query<ApiEnvelope<GoodsReceipt[]>, E>({
       query: (p) => ({ url: `/procurement/goods-receipts/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcGoodsReceipts"],
     }),
@@ -96,7 +96,7 @@ export const procurementApi = baseApi.injectEndpoints({
     }),
 
     // Vendor invoices (3-way match)
-    getVendorInvoices: b.query<PaginatedEnvelope<VendorInvoice>, E & { match_status?: string; payment_status?: string }>({
+    getVendorInvoices: b.query<ApiEnvelope<VendorInvoice[]>, E & { match_status?: string; payment_status?: string }>({
       query: (p) => ({ url: `/procurement/vendor-invoices/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcVendorInvoices"],
     }),
@@ -118,7 +118,7 @@ export const procurementApi = baseApi.injectEndpoints({
     }),
 
     // Vendor payments
-    getVendorPayments: b.query<PaginatedEnvelope<VendorPayment>, E>({
+    getVendorPayments: b.query<ApiEnvelope<VendorPayment[]>, E>({
       query: (p) => ({ url: `/procurement/vendor-payments/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcVendorPayments"],
     }),

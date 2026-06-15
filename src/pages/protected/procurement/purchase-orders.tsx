@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,11 @@ import { RequisitionPicker, VendorPicker } from "./pickers";
 
 export default function PurchaseOrdersPage() {
   const { code: entity, currency } = useActiveEntity();
-  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<PurchaseOrder | null>(null);
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetPurchaseOrdersQuery({ entity: entity!, page }, { skip: !entity });
+  const { data, isLoading, isFetching, isError, refetch } = useGetPurchaseOrdersQuery({ entity: entity! }, { skip: !entity });
   const [submit] = useSubmitPurchaseOrderMutation();
-  const rows = data?.data ?? [];
-  const pg = data?.pagination;
+  const rows = toArray(data?.data);
 
   const columns: Column<PurchaseOrder>[] = [
     { header: "PO", cell: (o) => <span className="font-semibold">{o.document_number}</span> },
@@ -62,7 +60,7 @@ export default function PurchaseOrdersPage() {
         <DataTable columns={columns} rows={rows} rowKey={(o) => o.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
           emptyTitle="No purchase orders" emptyMessage="Purchase orders will appear here."
-          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+        />
       </main>
 
       <DetailDrawer open={!!selected} onOpenChange={(o) => !o && setSelected(null)}

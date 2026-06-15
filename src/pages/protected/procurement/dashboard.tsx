@@ -31,7 +31,10 @@ export default function ProcurementDashboard() {
   const grns = useGetGoodsReceiptsQuery({ entity: entity! }, { skip: skip || !can(P.PROC_VIEW_GOODS_RECEIPTS) });
   const invoices = useGetVendorInvoicesQuery({ entity: entity!, payment_status: "UNPAID" }, { skip: skip || !can(P.PROC_VIEW_VENDOR_INVOICES) });
 
-  const count = (q: { data?: { pagination: { totalItems: number } } }) => q.data?.pagination.totalItems ?? 0;
+  // Procurement lists are not paginated; count the returned array (the backend
+  // sends `{}` for an empty list, so guard before reading length).
+  const count = (q: { data?: { data?: unknown } }) =>
+    Array.isArray(q.data?.data) ? (q.data!.data as unknown[]).length : 0;
 
   const stages: { label: string; value: number; url: string }[] = [
     { label: "Requisitions", value: count(reqs), url: R.REQUISITIONS },
