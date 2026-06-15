@@ -1,14 +1,15 @@
 // Sourcing (§7.3) — RFQs and vendor quotations. Award a quotation to spawn a PO.
 import { useState } from "react";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
 import {
-  DataTable, Money, StatusPill, TabBar, ActionButton, FormModal, FormField,
+  DataTable, Money, StatusPill, ActionButton, FormModal, FormField,
   LineEditor, emptyLine, toApiLines, type DocLine, useActiveEntity, type Column,
 } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
-import { Can, useCan } from "@/components/finance-ui/can";
+import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
@@ -159,26 +160,21 @@ function CreateQuotationModal({ open, onClose, entity, currency }: { open: boole
 
 export default function SourcingPage() {
   const { code: entity, currency } = useActiveEntity();
-  const { can } = useCan();
-  const tabs = [
-    can(P.PROC_VIEW_RFQS) && { key: "rfqs", label: "RFQs" },
-    can(P.PROC_VIEW_QUOTATIONS) && { key: "quotations", label: "Quotations" },
-  ].filter(Boolean) as { key: string; label: string }[];
-  const [active, setActive] = useState(tabs[0]?.key ?? "rfqs");
+  const { section = "rfqs" } = useParams();
 
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Sourcing</h1>
+          <h1 className="font-mont text-lg font-semibold text-gray-01">{section === "quotations" ? "Quotations" : "RFQs"}</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">RFQs and vendor quotations. Awarding a quotation spawns a PO.</p>
         </div>
-        {!entity ? <EmptyState title="Select an entity" /> : tabs.length === 0 ? <EmptyState title="No access" /> : (
-          <>
-            <TabBar tabs={tabs} active={active} onChange={setActive} />
-            {active === "rfqs" && <RfqTab entity={entity} />}
-            {active === "quotations" && <QuotationsTab entity={entity} currency={currency} />}
-          </>
+        {!entity ? (
+          <EmptyState title="Select an entity" />
+        ) : section === "quotations" ? (
+          <QuotationsTab entity={entity} currency={currency} />
+        ) : (
+          <RfqTab entity={entity} />
         )}
       </main>
     </ProcurementShell>

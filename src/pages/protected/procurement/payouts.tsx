@@ -2,11 +2,11 @@
 // settlement reconciliation (gateway vs bank). Beneficiary details are
 // FLS-masked unless payments.payout.view_sensitive.
 import { useState } from "react";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, Money, StatusPill, TabBar, ActionButton, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, Money, StatusPill, ActionButton, useActiveEntity, type Column } from "@/components/finance-ui";
 import { EmptyState, LoadingState } from "@/components/finance-ui/states";
-import { useCan } from "@/components/finance-ui/can";
 import { P } from "@/permissions";
 import { isStripped } from "@/utils/fls";
 import {
@@ -83,28 +83,24 @@ function SettlementTab({ entity, currency }: { entity: string; currency?: string
 
 export default function PayoutsPage() {
   const { code: entity, currency } = useActiveEntity();
-  const { can } = useCan();
-  const tabs = can(P.PAY_VIEW_PAYOUTS) ? [
-    { key: "payouts", label: "Payouts" },
-    { key: "batches", label: "Batches" },
-    { key: "settlement", label: "Settlement" },
-  ] : [];
-  const [active, setActive] = useState("payouts");
+  const { section = "payouts" } = useParams();
+  const label = section === "batches" ? "Payout Batches" : section === "settlement" ? "Settlement" : "Payouts";
 
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Payouts</h1>
+          <h1 className="font-mont text-lg font-semibold text-gray-01">{label}</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Single and bulk payouts, batches and settlement reconciliation.</p>
         </div>
-        {!entity ? <EmptyState title="Select an entity" /> : tabs.length === 0 ? <EmptyState title="No access" message="You don’t hold payments.payout.view." /> : (
-          <>
-            <TabBar tabs={tabs} active={active} onChange={setActive} />
-            {active === "payouts" && <PayoutsTab entity={entity} currency={currency} />}
-            {active === "batches" && <BatchesTab entity={entity} currency={currency} />}
-            {active === "settlement" && <SettlementTab entity={entity} currency={currency} />}
-          </>
+        {!entity ? (
+          <EmptyState title="Select an entity" />
+        ) : section === "batches" ? (
+          <BatchesTab entity={entity} currency={currency} />
+        ) : section === "settlement" ? (
+          <SettlementTab entity={entity} currency={currency} />
+        ) : (
+          <PayoutsTab entity={entity} currency={currency} />
         )}
       </main>
     </ProcurementShell>

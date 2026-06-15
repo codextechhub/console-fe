@@ -1,53 +1,44 @@
-// Receivables (§6.3) — invoices and the AR adjustment documents, grouped as
-// tabs. Each tab gates on its own backend view permission.
+// Receivables (§6.3). One page per sub-section, driven by the :section route
+// param (the sidebar navigates between them — no in-page tabs).
 
-import { useState } from "react";
+import { useParams } from "react-router";
 import { FinanceShell } from "../finance-shell";
-import { TabBar, useActiveEntity } from "@/components/finance-ui";
+import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
-import { useCan } from "@/components/finance-ui/can";
-import { P } from "@/permissions";
 import { InvoicesTab } from "./invoices-tab";
 import { CreditNotesTab } from "./credit-notes-tab";
 import { RefundsTab } from "./refunds-tab";
 import { ConcessionsTab } from "./concessions-tab";
 import { PaymentPlansTab } from "./payment-plans-tab";
 
+const LABELS: Record<string, string> = {
+  invoices: "Invoices", "credit-notes": "Credit Notes", refunds: "Refunds",
+  concessions: "Concessions", "payment-plans": "Payment Plans",
+};
+
 export default function ReceivablesPage() {
   const { code: entity, currency } = useActiveEntity();
-  const { can } = useCan();
-
-  const tabs = [
-    can(P.FIN_VIEW_INVOICES) && { key: "invoices", label: "Invoices" },
-    can(P.FIN_VIEW_CREDIT_NOTES) && { key: "credit-notes", label: "Credit Notes" },
-    can(P.FIN_VIEW_REFUNDS) && { key: "refunds", label: "Refunds" },
-    can(P.FIN_VIEW_CONCESSIONS) && { key: "concessions", label: "Concessions" },
-    can(P.FIN_VIEW_PAYMENT_PLANS) && { key: "payment-plans", label: "Payment Plans" },
-  ].filter(Boolean) as { key: string; label: string }[];
-
-  const [active, setActive] = useState(tabs[0]?.key ?? "invoices");
+  const { section = "invoices" } = useParams();
 
   return (
     <FinanceShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Receivables</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">Invoices, credit notes and refunds for the selected entity.</p>
+          <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Receivables"}</h1>
+          <p className="mt-0.5 font-mont text-xs text-gray-05">Accounts receivable for the selected entity.</p>
         </div>
-
         {!entity ? (
           <EmptyState title="Select an entity" message="Choose a ledger entity to view receivables." />
-        ) : tabs.length === 0 ? (
-          <EmptyState title="No access" message="You don’t have permission to view receivables." />
+        ) : section === "credit-notes" ? (
+          <CreditNotesTab entity={entity} currency={currency} />
+        ) : section === "refunds" ? (
+          <RefundsTab entity={entity} currency={currency} />
+        ) : section === "concessions" ? (
+          <ConcessionsTab entity={entity} currency={currency} />
+        ) : section === "payment-plans" ? (
+          <PaymentPlansTab entity={entity} currency={currency} />
         ) : (
-          <>
-            <TabBar tabs={tabs} active={active} onChange={setActive} />
-            {active === "invoices" && <InvoicesTab entity={entity} currency={currency} />}
-            {active === "credit-notes" && <CreditNotesTab entity={entity} currency={currency} />}
-            {active === "refunds" && <RefundsTab entity={entity} currency={currency} />}
-            {active === "concessions" && <ConcessionsTab entity={entity} currency={currency} />}
-            {active === "payment-plans" && <PaymentPlansTab entity={entity} currency={currency} />}
-          </>
+          <InvoicesTab entity={entity} currency={currency} />
         )}
       </main>
     </FinanceShell>

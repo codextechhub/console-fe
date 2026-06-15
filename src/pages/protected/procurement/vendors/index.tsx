@@ -1,12 +1,13 @@
 // Vendors & catalog (§7.1) — vendors, categories and the item catalog, as tabs.
 
 import { useState } from "react";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { ProcurementShell } from "../procurement-shell";
-import { DataTable, Money, StatusPill, TabBar, FormModal, FormField, MoneyInput, AccountPicker, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, Money, StatusPill, FormModal, FormField, MoneyInput, AccountPicker, useActiveEntity, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
-import { Can, useCan } from "@/components/finance-ui/can";
+import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
@@ -85,30 +86,27 @@ function CatalogTab({ entity, currency }: { entity: string; currency?: string | 
   );
 }
 
+const LABELS: Record<string, string> = { vendors: "Vendors", categories: "Categories", catalog: "Catalog" };
+
 export default function VendorsPage() {
   const { code: entity, currency } = useActiveEntity();
-  const { can } = useCan();
-  const tabs = [
-    can(P.PROC_VIEW_VENDORS) && { key: "vendors", label: "Vendors" },
-    can(P.PROC_VIEW_CATEGORIES) && { key: "categories", label: "Categories" },
-    can(P.PROC_VIEW_CATALOG) && { key: "catalog", label: "Catalog" },
-  ].filter(Boolean) as { key: string; label: string }[];
-  const [active, setActive] = useState(tabs[0]?.key ?? "vendors");
+  const { section = "vendors" } = useParams();
 
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Vendors & Catalog</h1>
+          <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Vendors & Catalog"}</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Vendors, categories and the item catalog.</p>
         </div>
-        {!entity ? <EmptyState title="Select an entity" /> : tabs.length === 0 ? <EmptyState title="No access" /> : (
-          <>
-            <TabBar tabs={tabs} active={active} onChange={setActive} />
-            {active === "vendors" && <VendorsTab entity={entity} />}
-            {active === "categories" && <CategoriesTab entity={entity} />}
-            {active === "catalog" && <CatalogTab entity={entity} currency={currency} />}
-          </>
+        {!entity ? (
+          <EmptyState title="Select an entity" />
+        ) : section === "categories" ? (
+          <CategoriesTab entity={entity} />
+        ) : section === "catalog" ? (
+          <CatalogTab entity={entity} currency={currency} />
+        ) : (
+          <VendorsTab entity={entity} />
         )}
       </main>
     </ProcurementShell>

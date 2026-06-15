@@ -251,11 +251,15 @@ export default function DashboardLayout({
   hasBack = false,
   onBack,
   title,
+  sidebar,
 }: {
   children: React.ReactNode;
   hasBack?: boolean;
   title?: string;
   onBack?: () => void;
+  // Left navigation. Defaults to the global AppSidebar; the Finance/Procurement
+  // consoles pass their own ConsoleSidebar to replace the global menu.
+  sidebar?: React.ReactNode;
 }) {
   useTokenRefresh();
   const { open, secondsLeft, isExpired, onContinue, onLogout, goToLogin } = useSessionTimeout();
@@ -271,7 +275,7 @@ export default function DashboardLayout({
         goToLogin={goToLogin}
       />
       <SidebarProvider defaultOpen={getSidebarDefaultOpen()}>
-        <AppSidebar />
+        {sidebar ?? <AppSidebar />}
         <SidebarInset className="bg-white-05 min-w-0 w-auto">
           <DashboardHeader hasBack={hasBack} onBack={onBack} title={title} />
           <div className="grid min-w-0 pt-0">{children}</div>

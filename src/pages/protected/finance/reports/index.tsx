@@ -1,57 +1,47 @@
-// Reports & month-end (§6.9) — the financial statements (with export), plus the
-// fiscal periods and their close action.
+// Reports & month-end (§6.9) — one page per statement / the period-close list,
+// driven by the :section route param.
 
-import { useState } from "react";
+import { useParams } from "react-router";
 import { FinanceShell } from "../finance-shell";
-import { TabBar, useActiveEntity } from "@/components/finance-ui";
+import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
-import { useCan } from "@/components/finance-ui/can";
-import { P } from "@/permissions";
 import {
-  TrialBalanceReport,
-  IncomeStatementReport,
-  BalanceSheetReport,
-  CashFlowReport,
-  EquityReport,
+  TrialBalanceReport, IncomeStatementReport, BalanceSheetReport,
+  CashFlowReport, EquityReport,
 } from "./statements";
 import { PeriodsTab } from "./periods-tab";
 
+const LABELS: Record<string, string> = {
+  "trial-balance": "Trial Balance", "income-statement": "Income Statement",
+  "balance-sheet": "Balance Sheet", "cash-flow": "Cash Flow",
+  "changes-in-equity": "Changes in Equity", periods: "Periods & Close",
+};
+
 export default function ReportsPage() {
   const { code: entity, currency } = useActiveEntity();
-  const { can } = useCan();
-  const canReports = can(P.FIN_VIEW_REPORTS);
-
-  const tabs = [
-    canReports && { key: "trial-balance", label: "Trial Balance" },
-    canReports && { key: "income", label: "Income Statement" },
-    canReports && { key: "balance-sheet", label: "Balance Sheet" },
-    canReports && { key: "cash-flow", label: "Cash Flow" },
-    canReports && { key: "equity", label: "Changes in Equity" },
-    can(P.FIN_VIEW_PERIODS) && { key: "periods", label: "Periods & Close" },
-  ].filter(Boolean) as { key: string; label: string }[];
-  const [active, setActive] = useState(tabs[0]?.key ?? "trial-balance");
+  const { section = "trial-balance" } = useParams();
 
   return (
     <FinanceShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Reports & Month-End</h1>
+          <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Reports & Month-End"}</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Financial statements (exportable) and the period-close checklist.</p>
         </div>
         {!entity ? (
           <EmptyState title="Select an entity" />
-        ) : tabs.length === 0 ? (
-          <EmptyState title="No access" message="You don’t hold finance.report.view." />
+        ) : section === "income-statement" ? (
+          <IncomeStatementReport entity={entity} currency={currency} />
+        ) : section === "balance-sheet" ? (
+          <BalanceSheetReport entity={entity} currency={currency} />
+        ) : section === "cash-flow" ? (
+          <CashFlowReport entity={entity} currency={currency} />
+        ) : section === "changes-in-equity" ? (
+          <EquityReport entity={entity} currency={currency} />
+        ) : section === "periods" ? (
+          <PeriodsTab entity={entity} />
         ) : (
-          <>
-            <TabBar tabs={tabs} active={active} onChange={setActive} />
-            {active === "trial-balance" && <TrialBalanceReport entity={entity} currency={currency} />}
-            {active === "income" && <IncomeStatementReport entity={entity} currency={currency} />}
-            {active === "balance-sheet" && <BalanceSheetReport entity={entity} currency={currency} />}
-            {active === "cash-flow" && <CashFlowReport entity={entity} currency={currency} />}
-            {active === "equity" && <EquityReport entity={entity} currency={currency} />}
-            {active === "periods" && <PeriodsTab entity={entity} />}
-          </>
+          <TrialBalanceReport entity={entity} currency={currency} />
         )}
       </main>
     </FinanceShell>

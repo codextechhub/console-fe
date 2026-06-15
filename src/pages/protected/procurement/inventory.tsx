@@ -1,12 +1,13 @@
 // Inventory / stock (§7.4) — stock items (issue / adjust) and the movement
 // ledger with valuation.
 import { useState } from "react";
+import { useParams } from "react-router";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, Money, StatusPill, TabBar, FormModal, FormField, AccountPicker, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
+import { DataTable, Money, StatusPill, FormModal, FormField, AccountPicker, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
-import { Can, useCan } from "@/components/finance-ui/can";
+import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
@@ -89,24 +90,21 @@ function MovementsTab({ entity, currency }: { entity: string; currency?: string 
 
 export default function InventoryPage() {
   const { code: entity, currency } = useActiveEntity();
-  const { can } = useCan();
-  const canStock = can(P.PROC_VIEW_STOCK);
-  const tabs = canStock ? [{ key: "items", label: "Stock Items" }, { key: "movements", label: "Movements" }] : [];
-  const [active, setActive] = useState("items");
+  const { section = "items" } = useParams();
 
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Inventory</h1>
+          <h1 className="font-mont text-lg font-semibold text-gray-01">{section === "movements" ? "Stock Movements" : "Stock Items"}</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Stock items, the movement ledger and valuation.</p>
         </div>
-        {!entity ? <EmptyState title="Select an entity" /> : !canStock ? <EmptyState title="No access" /> : (
-          <>
-            <TabBar tabs={tabs} active={active} onChange={setActive} />
-            {active === "items" && <ItemsTab entity={entity} currency={currency} />}
-            {active === "movements" && <MovementsTab entity={entity} currency={currency} />}
-          </>
+        {!entity ? (
+          <EmptyState title="Select an entity" />
+        ) : section === "movements" ? (
+          <MovementsTab entity={entity} currency={currency} />
+        ) : (
+          <ItemsTab entity={entity} currency={currency} />
         )}
       </main>
     </ProcurementShell>

@@ -1,11 +1,9 @@
 // Procurement analytics (§7.5) — AP aging, GR/IR + AP control reconciliation,
 // spend by vendor/category, and vendor performance.
-import { useState } from "react";
+import { useParams } from "react-router";
 import { ProcurementShell } from "./procurement-shell";
-import { KpiCard, Money, TabBar, useActiveEntity } from "@/components/finance-ui";
+import { KpiCard, Money, useActiveEntity } from "@/components/finance-ui";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
-import { useCan } from "@/components/finance-ui/can";
-import { P } from "@/permissions";
 import { formatMoney } from "@/utils/money";
 import {
   useGetApAgingQuery, useGetApReconciliationQuery, useGetGrirBalanceQuery,
@@ -106,33 +104,31 @@ function PerformanceTab({ entity, currency }: { entity: string; currency?: strin
   );
 }
 
+const LABELS: Record<string, string> = {
+  "ap-aging": "AP Aging", grir: "GR/IR & Control", spend: "Spend", performance: "Vendor Performance",
+};
+
 export default function AnalyticsPage() {
   const { code: entity, currency } = useActiveEntity();
-  const { can } = useCan();
-  const canReports = can(P.PROC_VIEW_PROC_REPORTS);
-  const tabs = canReports ? [
-    { key: "ap-aging", label: "AP Aging" },
-    { key: "grir", label: "GR/IR & Control" },
-    { key: "spend", label: "Spend" },
-    { key: "performance", label: "Vendor Performance" },
-  ] : [];
-  const [active, setActive] = useState("ap-aging");
+  const { section = "ap-aging" } = useParams();
 
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Analytics</h1>
+          <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Analytics"}</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Spend, vendor performance, AP aging and GR/IR.</p>
         </div>
-        {!entity ? <EmptyState title="Select an entity" /> : !canReports ? <EmptyState title="No access" message="You don’t hold procurement.report.view." /> : (
-          <>
-            <TabBar tabs={tabs} active={active} onChange={setActive} />
-            {active === "ap-aging" && <ApAgingTab entity={entity} currency={currency} />}
-            {active === "grir" && <GrirTab entity={entity} currency={currency} />}
-            {active === "spend" && <SpendTab entity={entity} currency={currency} />}
-            {active === "performance" && <PerformanceTab entity={entity} currency={currency} />}
-          </>
+        {!entity ? (
+          <EmptyState title="Select an entity" />
+        ) : section === "grir" ? (
+          <GrirTab entity={entity} currency={currency} />
+        ) : section === "spend" ? (
+          <SpendTab entity={entity} currency={currency} />
+        ) : section === "performance" ? (
+          <PerformanceTab entity={entity} currency={currency} />
+        ) : (
+          <ApAgingTab entity={entity} currency={currency} />
         )}
       </main>
     </ProcurementShell>
