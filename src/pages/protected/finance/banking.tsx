@@ -2,6 +2,7 @@
 // a statement-lines drawer per account, and auto-reconcile.
 
 import { useState } from "react";
+import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
@@ -107,13 +108,18 @@ const cellCls = "text-black-01 border-gray-03 font-medium font-mont text-sm";
 
 function StatementDrawer({ account, entity, currency, onClose }: { account: BankAccount | null; entity: string; currency?: string | null; onClose: () => void }) {
   const open = !!account;
-  const { data, isLoading, isError, refetch } = useGetStatementLinesQuery({ id: account!.id, entity }, { skip: !open });
+  // skipToken (not { skip }) so the query arg is never evaluated while account
+  // is null — otherwise `account.id` throws during render on the closed drawer.
+  const { data, isLoading, isError, refetch } = useGetStatementLinesQuery(
+    account ? { id: account.id, entity } : skipToken,
+  );
   const [reconcile, { isLoading: reconciling }] = useAutoReconcileMutation();
   const lines = toArray(data?.data);
 
   const doReconcile = async () => {
+    if (!account) return;
     try {
-      const res = await reconcile({ id: account!.id, entity }).unwrap();
+      const res = await reconcile({ id: account.id, entity }).unwrap();
       toast.success(res.message || "Auto-reconcile complete.");
     } catch { /* central */ }
   };
