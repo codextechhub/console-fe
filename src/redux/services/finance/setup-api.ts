@@ -14,6 +14,7 @@ import type {
   FxRate,
   CostCenter,
   Currency,
+  Dimension,
   FinanceAuditLog,
   FiscalPeriod,
   PeriodChecklist,
@@ -67,8 +68,20 @@ export const setupApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/tax-codes/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceSetup"],
     }),
+    createTaxCode: b.mutation<ApiEnvelope<TaxCode>, { entity: string; code: string; name: string; rate_bps: number; is_recoverable?: boolean; collected_account?: string; paid_account?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/tax-codes/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceSetup"],
+    }),
     getCostCenters: b.query<PaginatedEnvelope<CostCenter>, { entity: string }>({
       query: (p) => ({ url: `/finance/cost-centers/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinanceSetup"],
+    }),
+    createCostCenter: b.mutation<ApiEnvelope<CostCenter>, { entity: string; code: string; name: string; parent?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/cost-centers/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceSetup"],
+    }),
+    getDimensions: b.query<ApiEnvelope<Dimension[]>, { entity: string }>({
+      query: (p) => ({ url: `/finance/dimensions/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceSetup"],
     }),
     getFxRates: b.query<PaginatedEnvelope<FxRate>, void>({
@@ -98,7 +111,10 @@ export const {
   useGetCurrenciesQuery,
   useCreateFxRateMutation,
   useGetTaxCodesQuery,
+  useCreateTaxCodeMutation,
   useGetCostCentersQuery,
+  useCreateCostCenterMutation,
+  useGetDimensionsQuery,
   useGetFxRatesQuery,
   useGetAuditLogQuery,
 } = setupApi;
