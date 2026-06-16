@@ -2,7 +2,7 @@
 // the code prefix) with a New cost centre form. "Owner" is omitted (no field).
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Info } from "lucide-react";
+import { Plus } from "lucide-react";
 import { DataTable, StatusPill, FormModal, FormField, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -33,11 +33,6 @@ export function CostCentersTab({ entity }: { entity: string }) {
   ];
   return (
     <div className="space-y-5">
-      <div className="flex gap-2 rounded-md bg-pry-01/40 p-3 font-mont text-xs leading-relaxed text-gray-01">
-        <Info className="mt-0.5 size-4 shrink-0 text-primary" />
-        <span>Cost centres tag journal lines with the department or branch that owns the spend, so reports can slice income and expense by unit.</span>
-      </div>
-
       <div className="flex items-center justify-between">
         <select value={branch} onChange={(e) => setBranch(e.target.value)} className={selectCls} aria-label="Branch">
           <option value="">All branches</option>

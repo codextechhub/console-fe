@@ -5,8 +5,8 @@
 import { useMemo, useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { Check, Info } from "lucide-react";
-import { DetailDrawer, StatusPill } from "@/components/finance-ui";
+import { Check } from "lucide-react";
+import { DetailDrawer, StatusPill, InfoHint } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
@@ -47,11 +47,6 @@ export function PeriodsTab({ entity }: { entity: string }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex gap-2 rounded-md bg-pry-01/40 p-3 font-mont text-xs leading-relaxed text-gray-01">
-        <Info className="mt-0.5 size-4 shrink-0 text-primary" />
-        <span>Periods control when journals can post. An <b>open</b> period accepts postings; <b>soft-closed</b> blocks new journals but admins can edit; <b>closed</b> locks non-admins; <b>locked</b> is permanent. Click a period to run its month-end close.</span>
-      </div>
-
       {/* Fiscal-year summary */}
       <div className="overflow-x-auto rounded-md border border-gray-03 bg-white">
         <table className="w-full border-collapse">
@@ -139,7 +134,10 @@ function PeriodCloseDrawer({ id, entity, onClose }: { id: number | null; entity:
           </div>
 
           <div>
-            <p className="mb-2 font-mont text-sm font-semibold text-gray-01">Close checklist</p>
+            <div className="mb-2 flex items-center gap-1.5">
+              <p className="font-mont text-sm font-semibold text-gray-01">Close checklist</p>
+              <InfoHint>Closing runs the month-end steps (including depreciation), each creating a journal visible in the GL. Soft close is reversible; once a period is fully closed/locked those journals can’t be reversed — corrections use a journal in a later open period.</InfoHint>
+            </div>
             <div className="space-y-2">
               {d.items.map((it, i) => (
                 <div key={it.name} className="flex items-start gap-3 rounded-md border border-gray-03 bg-white px-3 py-2.5">
@@ -157,10 +155,6 @@ function PeriodCloseDrawer({ id, entity, onClose }: { id: number | null; entity:
             </div>
           </div>
 
-          <div className="flex gap-2 rounded-md bg-pry-01/40 p-3 font-mont text-xs leading-relaxed text-gray-01">
-            <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">i</span>
-            <span>Closing runs the month-end steps (including depreciation), each creating a journal visible in the GL. Soft close is reversible; once a period is fully closed/locked those journals can’t be reversed — corrections use a journal in a later open period.</span>
-          </div>
         </div>
       )}
     </DetailDrawer>

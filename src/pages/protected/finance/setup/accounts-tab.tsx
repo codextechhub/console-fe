@@ -4,13 +4,12 @@
 import { useMemo, useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, Check, Info, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Check, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
 import { Money, FormModal, FormField, DetailDrawer, StatusPill, toArray, useActiveEntity } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import {
@@ -151,25 +150,11 @@ export function AccountsTab({ entity }: { entity: string }) {
           <option value="">All types</option>
           {["ASSET", "LIABILITY", "EQUITY", "INCOME", "EXPENSE"].map((t) => <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>)}
         </select>
-        <div className="ml-auto flex items-center gap-2">
-          <Can permission={P.FIN_CREATE_ACCOUNT}>
-            <Button onClick={() => setCreating(true)} className="h-9 gap-1.5 font-mont text-xs font-semibold">
-              <Plus className="size-3.5" /> New account
-            </Button>
-          </Can>
-          <TooltipProvider delayDuration={100}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" aria-label="About the chart of accounts" className="flex size-5 items-center justify-center text-gray-05 hover:text-gray-01">
-                  <Info className="size-4" />
-                </button>
-              </TooltipTrigger>
-            <TooltipContent className="max-w-xs font-mont text-xs leading-relaxed">
-              The spine of the GL: every journal line maps to one account here. Five top-level types govern the equation Assets = Liabilities + Equity, and Net income = Income − Expense. CTRL marks control accounts that reconcile back to sub-ledgers (AR/AP).
-            </TooltipContent>
-          </Tooltip>
-          </TooltipProvider>
-        </div>
+        <Can permission={P.FIN_CREATE_ACCOUNT}>
+          <Button onClick={() => setCreating(true)} className="ml-auto h-9 gap-1.5 font-mont text-xs font-semibold">
+            <Plus className="size-3.5" /> New account
+          </Button>
+        </Can>
       </div>
 
       {isLoading || isFetching ? (

@@ -5,7 +5,7 @@
 // no "captured by" — FxRate has no user field.)
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, TrendingUp, TrendingDown, Info } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { DataTable, StatusPill, Sparkline, FormModal, FormField, CHART_COLORS, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -77,11 +77,6 @@ export function CurrenciesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 rounded-md bg-pry-01/40 p-3 font-mont text-xs leading-relaxed text-gray-01">
-        <Info className="mt-0.5 size-4 shrink-0 text-primary" />
-        <span>FX rates convert foreign-currency amounts to your base currency for the GL. Rates are captured per source (CBN, ECB…); unrealised gains/losses on foreign balances are recognised by the FX revaluation step at period close.</span>
-      </div>
-
       {/* tabs + action */}
       <div className="flex items-center justify-between">
         <div className="flex gap-1 rounded-md border border-gray-03 bg-white p-1">

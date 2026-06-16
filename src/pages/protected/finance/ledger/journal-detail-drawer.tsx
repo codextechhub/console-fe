@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Check, Printer } from "lucide-react";
-import { DetailDrawer, Money, StatusPill, ConfirmActionModal } from "@/components/finance-ui";
+import { DetailDrawer, Money, StatusPill, ConfirmActionModal, InfoHint } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
@@ -88,7 +88,10 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
 
             {/* lines */}
             <div>
-              <p className="mb-2 font-mont text-sm font-semibold text-gray-01">Lines</p>
+              <div className="mb-2 flex items-center gap-1.5">
+                <p className="font-mont text-sm font-semibold text-gray-01">Lines</p>
+                <InfoHint>Each line targets one GL account; the cost centre tags the spending department. Posting permanently updates those accounts’ balances; reversing creates a mirror journal that nets back to zero, leaving the original in history for audit.</InfoHint>
+              </div>
               <div className="overflow-x-auto rounded-md border border-gray-03">
                 <table className="w-full border-collapse">
                   <thead><tr>
@@ -117,11 +120,6 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
               </div>
             </div>
 
-            {/* teaching note */}
-            <div className="flex gap-2 rounded-md bg-pry-01/40 p-3 font-mont text-xs leading-relaxed text-gray-01">
-              <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">i</span>
-              <span>Each line targets one GL account; the cost centre tags the spending department. Posting permanently updates those accounts’ balances; reversing creates a mirror journal that nets back to zero, leaving the original in history for audit.</span>
-            </div>
           </div>
         )}
       </DetailDrawer>

@@ -4,7 +4,7 @@
 // data) rather than faked.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Info } from "lucide-react";
+import { Plus } from "lucide-react";
 import { DataTable, StatusPill, FormModal, FormField, AccountPicker, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -38,11 +38,6 @@ export function TaxCodesTab({ entity }: { entity: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 rounded-md bg-pry-01/40 p-3 font-mont text-xs leading-relaxed text-gray-01">
-        <Info className="mt-0.5 size-4 shrink-0 text-primary" />
-        <span>Tax codes attach rates and accounting rules to lines. A VAT code on an invoice computes the VAT and posts to VAT Payable; a WHT code on a vendor payment reduces cash and credits WHT Payable (remitted later). "Recoverable" marks input tax that offsets output tax.</span>
-      </div>
-
       <div className="flex items-center justify-between">
         <select value={type} onChange={(e) => setType(e.target.value)} className={selectCls} aria-label="Tax type">
           <option value="">All types</option>

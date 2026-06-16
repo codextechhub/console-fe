@@ -4,7 +4,7 @@
 import { useNavigate } from "react-router";
 import { ChevronRight } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
-import { KpiCard, TeachingNote, BarChart, useActiveEntity } from "@/components/finance-ui";
+import { KpiCard, InfoHint, BarChart, useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { useCan } from "@/components/finance-ui/can";
 import { P } from "@/permissions";
@@ -51,13 +51,12 @@ export default function ProcurementDashboard() {
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Procurement Dashboard</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-mont text-lg font-semibold text-gray-01">Procurement Dashboard</h1>
+            <InfoHint>The Procure-to-Pay pipeline at a glance — how many documents sit at each stage from requisition through payment, plus payables aging. Click any stage to open it.</InfoHint>
+          </div>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Spend pipeline for the selected entity.</p>
         </div>
-
-        <TeachingNote id="procurement-dashboard">
-          The Procure-to-Pay pipeline at a glance — how many documents sit at each stage from requisition through payment, plus payables aging. Click any stage to open it.
-        </TeachingNote>
 
         {!entity ? (
           <EmptyState title="Select an entity" message="Choose an entity to see procurement." />
