@@ -32,6 +32,10 @@ export const setupApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/accounts/${qs({ ...p, with_balance: "true" })}`, method: "GET" }),
       providesTags: ["FinanceAccounts"],
     }),
+    createAccount: b.mutation<ApiEnvelope<Account>, { entity: string; code: string; name: string; account_type: string; subtype?: string; parent?: number; is_postable?: boolean; is_contra?: boolean }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/accounts/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceAccounts"],
+    }),
     getPeriods: b.query<PaginatedEnvelope<FiscalPeriod>, { entity: string; status?: string; year?: number }>({
       query: (p) => ({ url: `/finance/periods/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePeriods"],
@@ -66,6 +70,7 @@ export const setupApi = baseApi.injectEndpoints({
 export const {
   useGetAccountsQuery,
   useGetChartOfAccountsQuery,
+  useCreateAccountMutation,
   useGetPeriodsQuery,
   useClosePeriodMutation,
   useGetCurrenciesQuery,

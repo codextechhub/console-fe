@@ -11,6 +11,7 @@ export interface Account {
   is_active: boolean;
   parent_id: number | null;
   parent_code: string | null;
+  subtype: string;
   // Present only on the chart-of-accounts (?with_balance=true) response.
   balance?: { kobo: number; naira: string } | null;
   tag?: "CONTROL" | "CASH" | null;

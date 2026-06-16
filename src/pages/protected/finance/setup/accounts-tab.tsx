@@ -2,13 +2,17 @@
 // an expandable account tree (or flat view) with type pills, normal balance,
 // currency, rolled-up GL balance and sub-ledger tags. Read-only viewer.
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Check, Info } from "lucide-react";
-import { Money, toArray, useActiveEntity } from "@/components/finance-ui";
+import { toast } from "sonner";
+import { ChevronDown, ChevronRight, Check, Info, Plus } from "lucide-react";
+import { Money, FormModal, FormField, toArray, useActiveEntity } from "@/components/finance-ui";
+import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useGetChartOfAccountsQuery } from "@/redux/services/finance/setup-api";
+import { P } from "@/permissions";
+import { useGetChartOfAccountsQuery, useCreateAccountMutation } from "@/redux/services/finance/setup-api";
 import type { Account } from "@/redux/services/finance/setup-types";
 
 type Node = Account & { children: Node[]; rolled: number };
@@ -73,6 +77,7 @@ function AccountRow({ node, depth, expanded, toggle, currency }: {
             {node.account_type.toLowerCase()}
           </span>
         </td>
+        <td className={cn(cell, "text-gray-05")}>{node.subtype || "—"}</td>
         <td className={cn(cell, "text-gray-05")}>{node.normal_balance === "DEBIT" ? "Dr" : "Cr"}</td>
         <td className={cn(cell, "text-gray-05")}>{currency ?? "NGN"}</td>
         <td className={cn(cell, "text-right")}><Money kobo={node.rolled} currency={currency} align="right" /></td>
@@ -97,6 +102,7 @@ export function AccountsTab({ entity }: { entity: string }) {
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [touched, setTouched] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   // Default: expand every parent until the user starts toggling.
   const allParentIds = useMemo(() => new Set(accounts.filter((a) => !a.is_postable).map((a) => a.id)), [accounts]);
@@ -141,18 +147,25 @@ export function AccountsTab({ entity }: { entity: string }) {
           <option value="">All types</option>
           {["ASSET", "LIABILITY", "EQUITY", "INCOME", "EXPENSE"].map((t) => <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>)}
         </select>
-        <TooltipProvider delayDuration={100}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button type="button" aria-label="About the chart of accounts" className="ml-auto flex size-5 items-center justify-center text-gray-05 hover:text-gray-01">
-                <Info className="size-4" />
-              </button>
-            </TooltipTrigger>
+        <div className="ml-auto flex items-center gap-2">
+          <Can permission={P.FIN_CREATE_ACCOUNT}>
+            <Button onClick={() => setCreating(true)} className="h-9 gap-1.5 font-mont text-xs font-semibold">
+              <Plus className="size-3.5" /> New account
+            </Button>
+          </Can>
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label="About the chart of accounts" className="flex size-5 items-center justify-center text-gray-05 hover:text-gray-01">
+                  <Info className="size-4" />
+                </button>
+              </TooltipTrigger>
             <TooltipContent className="max-w-xs font-mont text-xs leading-relaxed">
               The spine of the GL: every journal line maps to one account here. Five top-level types govern the equation Assets = Liabilities + Equity, and Net income = Income − Expense. CTRL marks control accounts that reconcile back to sub-ledgers (AR/AP).
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
+          </TooltipProvider>
+        </div>
       </div>
 
       {isLoading || isFetching ? (
@@ -168,6 +181,7 @@ export function AccountsTab({ entity }: { entity: string }) {
               <tr>
                 <th className={headCls}>Account</th>
                 <th className={headCls}>Type</th>
+                <th className={headCls}>Subtype</th>
                 <th className={headCls}>Normal</th>
                 <th className={headCls}>Currency</th>
                 <th className={cn(headCls, "text-right")}>Balance</th>
@@ -182,6 +196,64 @@ export function AccountsTab({ entity }: { entity: string }) {
           </table>
         </div>
       )}
+
+      <CreateAccountModal open={creating} onClose={() => setCreating(false)} entity={entity} parents={accounts} />
     </div>
+  );
+}
+
+function CreateAccountModal({ open, onClose, entity, parents }: {
+  open: boolean; onClose: () => void; entity: string; parents: Account[];
+}) {
+  const [create, { isLoading }] = useCreateAccountMutation();
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [type, setType] = useState("ASSET");
+  const [subtype, setSubtype] = useState("");
+  const [parent, setParent] = useState("");
+  const [postable, setPostable] = useState(true);
+  const [contra, setContra] = useState(false);
+  const canSubmit = code.trim() !== "" && name.trim() !== "" && !!type;
+
+  const submit = async () => {
+    try {
+      const r = await create({
+        entity, code: code.trim(), name: name.trim(), account_type: type,
+        subtype: subtype.trim() || undefined, parent: parent ? Number(parent) : undefined,
+        is_postable: postable, is_contra: contra,
+      }).unwrap();
+      toast.success(r.message || "Account created.");
+      setCode(""); setName(""); setType("ASSET"); setSubtype(""); setParent(""); setPostable(true); setContra(false);
+      onClose();
+    } catch { /* central toast */ }
+  };
+
+  return (
+    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New account"
+      description="Add a node to the chart of accounts." onSubmit={submit} loading={isLoading}
+      canSubmit={canSubmit} widthClass="sm:max-w-lg">
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} className="bg-white font-mont" /></FormField>
+        <FormField label="Account type" required>
+          <select value={type} onChange={(e) => setType(e.target.value)} className={cn(selectCls, "w-full")}>
+            {["ASSET", "LIABILITY", "EQUITY", "INCOME", "EXPENSE"].map((t) => <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>)}
+          </select>
+        </FormField>
+      </div>
+      <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white" /></FormField>
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Subtype"><Input value={subtype} onChange={(e) => setSubtype(e.target.value)} placeholder="e.g. Current asset" className="bg-white" /></FormField>
+        <FormField label="Parent account">
+          <select value={parent} onChange={(e) => setParent(e.target.value)} className={cn(selectCls, "w-full")}>
+            <option value="">None (top level)</option>
+            {parents.map((a) => <option key={a.id} value={a.id}>{a.code} — {a.name}</option>)}
+          </select>
+        </FormField>
+      </div>
+      <div className="flex flex-wrap gap-5 font-mont text-sm text-gray-01">
+        <label className="flex items-center gap-2"><input type="checkbox" checked={postable} onChange={(e) => setPostable(e.target.checked)} /> Postable (accepts entries)</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={contra} onChange={(e) => setContra(e.target.checked)} /> Contra account</label>
+      </div>
+    </FormModal>
   );
 }
