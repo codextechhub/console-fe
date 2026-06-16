@@ -4,7 +4,7 @@
 import { useMemo, useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, Check, Info, Plus, Printer } from "lucide-react";
+import { ChevronDown, ChevronRight, Check, Info, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
 import { Money, FormModal, FormField, DetailDrawer, StatusPill, toArray, useActiveEntity } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
@@ -264,10 +264,10 @@ function CreateAccountModal({ open, onClose, entity, parents }: {
 }
 
 const DRAWER_TABS = [
-  { key: "activity", label: "Activity" },
-  { key: "taccount", label: "T-account" },
-  { key: "subs", label: "Sub-accounts" },
-  { key: "settings", label: "Settings" },
+  { key: "activity", label: "Activity", icon: Activity },
+  { key: "taccount", label: "T-account", icon: Columns2 },
+  { key: "subs", label: "Sub-accounts", icon: Network },
+  { key: "settings", label: "Settings", icon: Settings2 },
 ] as const;
 
 function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
@@ -314,8 +314,9 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
           <div className="flex gap-1 border-b border-gray-03">
             {DRAWER_TABS.map((t) => (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={cn("-mb-px border-b-2 px-3 py-2 font-mont text-xs font-semibold",
+                className={cn("-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 font-mont text-xs font-semibold",
                   tab === t.key ? "border-primary text-primary" : "border-transparent text-gray-05 hover:text-gray-01")}>
+                <t.icon className="size-3.5" />
                 {t.label}{t.key === "subs" && kids.length ? ` (${kids.length})` : ""}
               </button>
             ))}
