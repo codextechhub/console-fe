@@ -11,10 +11,13 @@ import { RefundsTab } from "./refunds-tab";
 import { ConcessionsTab } from "./concessions-tab";
 import { PaymentPlansTab } from "./payment-plans-tab";
 import { DunningTab } from "./dunning-tab";
+import { CustomersTab } from "./customers-tab";
+import { FeeStructuresTab } from "./fee-structures-tab";
 
 const LABELS: Record<string, string> = {
   invoices: "Invoices", "credit-notes": "Credit Notes", refunds: "Refunds",
   concessions: "Concessions", "payment-plans": "Payment Plans", dunning: "Dunning",
+  customers: "Customers", "fee-structures": "Fee Structures",
 };
 
 export default function ReceivablesPage() {
@@ -40,6 +43,10 @@ export default function ReceivablesPage() {
           <PaymentPlansTab entity={entity} currency={currency} />
         ) : section === "dunning" ? (
           <DunningTab entity={entity} currency={currency} />
+        ) : section === "customers" ? (
+          <CustomersTab entity={entity} currency={currency} />
+        ) : section === "fee-structures" ? (
+          <FeeStructuresTab entity={entity} currency={currency} />
         ) : (
           <InvoicesTab entity={entity} currency={currency} />
         )}

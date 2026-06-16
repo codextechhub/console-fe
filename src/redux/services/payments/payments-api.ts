@@ -15,6 +15,7 @@ import type {
   PayoutBatch,
   PayoutBatchSummary,
   PayoutInstruction,
+  TransactionLogEntry,
   VirtualAccount,
 } from "./payments-types";
 
@@ -77,6 +78,11 @@ export const paymentsApi = baseApi.injectEndpoints({
     getSettlementReconciliation: builder.query<ApiEnvelope<Record<string, unknown>>, { entity: string; provider?: string }>({
       query: (p) => ({ url: `/payments/reports/settlement-reconciliation/${qs(p)}`, method: "GET" }),
     }),
+    // Append-only gateway action log (PaymentEvent). Non-paginated, capped at 200.
+    getTransactionsLog: builder.query<ApiEnvelope<TransactionLogEntry[]>, { entity: string; action?: string; provider?: string; succeeded?: string }>({
+      query: (p) => ({ url: `/payments/transactions/${qs(p)}`, method: "GET" }),
+      providesTags: ["PaymentsTransactions"],
+    }),
   }),
 });
 
@@ -91,4 +97,5 @@ export const {
   useGetPayoutBatchQuery,
   useSubmitPayoutBatchMutation,
   useGetSettlementReconciliationQuery,
+  useGetTransactionsLogQuery,
 } = paymentsApi;

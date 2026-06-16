@@ -8,7 +8,9 @@ import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
 import type {
   Concession,
   CreditNote,
+  Customer,
   DunningNotice,
+  FeeStructure,
   Invoice,
   InvoiceListParams,
   PaymentPlan,
@@ -105,6 +107,26 @@ export const arApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/finance/dunning-notices/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceDunning"],
     }),
+
+    // Customers / payers (non-paginated, capped server-side; use toArray)
+    getCustomers: builder.query<ApiEnvelope<Customer[]>, { entity: string; search?: string; is_active?: string }>({
+      query: (params) => ({ url: `/finance/customers/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceCustomers"],
+    }),
+    createCustomer: builder.mutation<ApiEnvelope<Customer>, { entity: string; code: string; name: string; billing_email?: string; billing_phone?: string; billing_address?: string; receivable_account?: string; opening_balance?: number; is_active?: boolean }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/customers/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceCustomers"],
+    }),
+
+    // Fee structures (non-paginated; use toArray)
+    getFeeStructures: builder.query<ApiEnvelope<FeeStructure[]>, { entity: string; search?: string; is_active?: string }>({
+      query: (params) => ({ url: `/finance/fee-structures/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceFeeStructures"],
+    }),
+    generateFromFeeStructure: builder.mutation<ApiEnvelope<{ structure: string; generated: number; invoices: Invoice[] }>, { id: string | number; entity: string; customers?: (string | number)[]; all_active?: boolean; invoice_date?: string; due_date?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/fee-structures/${id}/generate/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceFeeStructures", "FinanceInvoices"],
+    }),
   }),
 });
 
@@ -124,4 +146,8 @@ export const {
   useGetPaymentPlansQuery,
   useCreatePaymentPlanMutation,
   useGetDunningNoticesQuery,
+  useGetCustomersQuery,
+  useCreateCustomerMutation,
+  useGetFeeStructuresQuery,
+  useGenerateFromFeeStructureMutation,
 } = arApi;

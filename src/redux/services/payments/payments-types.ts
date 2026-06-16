@@ -91,3 +91,18 @@ export interface InitiateCollectionPayload {
   payer_name?: string;
   narration?: string;
 }
+
+// Append-only gateway action log (PaymentEvent) — the transactions log.
+export interface TransactionLogEntry {
+  id: number;
+  entity_code: string | null;
+  provider: string;
+  action: string;
+  action_display: string;
+  reference: string;
+  succeeded: boolean;
+  message: string;
+  metadata: Record<string, unknown>;
+  actor_email: string | null;
+  created_at: string;
+}

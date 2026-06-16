@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
-import { DataTable, Money, StatusPill, ConfirmActionModal, FormModal, FormField, MoneyInput, type Column } from "@/components/finance-ui";
+import { DataTable, Money, StatusPill, ConfirmActionModal, FormModal, FormField, MoneyInput, CustomerPicker, type Column } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,7 +90,7 @@ function CreateRefundModal({ open, onClose, entity, currency }: { open: boolean;
       description="Customer is resolved by code. Post it afterwards to book the journal." onSubmit={submit}
       loading={isLoading} canSubmit={!!customer.trim() && amount > 0}>
       <div className="grid grid-cols-2 gap-3">
-        <FormField label="Customer code" required><Input value={customer} onChange={(e) => setCustomer(e.target.value.toUpperCase())} className="bg-white font-mont" /></FormField>
+        <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={setCustomer} /></FormField>
         <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
       </div>
       <div className="grid grid-cols-2 gap-3">

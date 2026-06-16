@@ -43,7 +43,7 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 
 > The Workflow parent group is always visible (permission `null`) because Approvals/Submissions/Delegations are open to every authenticated user. Admin-only children (All Instances, Team Load, Templates) are spread in by their own permission check.
 
-> **Finance & Procurement consoles** use module-prefix gating (`hasModuleAccess` in `src/hooks/use-permissions.ts`) for whole-console visibility, and per-area sub-nav gating by backend key prefix (see `financeNav` / `procurementNav`). Individual control gating uses `P.FIN_*` / `P.PROC_*` / `P.PAY_*` constants — the full key set (finance 71, procurement 46, payments 8) is registered in `src/permissions/index.ts`, each matching an `rbac_permission` on a backend view.
+> **Finance & Procurement consoles** use module-prefix gating (`hasModuleAccess` in `src/hooks/use-permissions.ts`) for whole-console visibility, and per-area sub-nav gating by backend key prefix (see `financeNav` / `procurementNav`). Individual control gating uses `P.FIN_*` / `P.PROC_*` / `P.PAY_*` constants — the full key set (finance 77, procurement 46, payments 8) is registered in `src/permissions/index.ts`, each matching an `rbac_permission` on a backend view.
 
 > **My Security** moved out of the sidebar into the header avatar menu (see §1a). The sidebar footer **Logout** also moved there.
 

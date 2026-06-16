@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import {
-  DataTable, DetailDrawer, Money, StatusPill, FormModal, FormField, MoneyInput, type Column,
+  DataTable, DetailDrawer, Money, StatusPill, FormModal, FormField, MoneyInput, CustomerPicker, type Column,
 } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -84,7 +84,7 @@ function CreateModal({ open, onClose, entity, currency }: { open: boolean; onClo
       description="Spreads a balance into installments. Total defaults to the invoice balance when an invoice id is given." onSubmit={submit}
       loading={isLoading} canSubmit={!!customer.trim() && !!startDate && Number(count) > 0}>
       <div className="grid grid-cols-2 gap-3">
-        <FormField label="Customer code" required><Input value={customer} onChange={(e) => setCustomer(e.target.value.toUpperCase())} className="bg-white font-mont" /></FormField>
+        <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={setCustomer} /></FormField>
         <FormField label="Invoice id"><Input value={invoice} onChange={(e) => setInvoice(e.target.value)} placeholder="Optional" className="bg-white font-mont" /></FormField>
       </div>
       <div className="grid grid-cols-3 gap-3">

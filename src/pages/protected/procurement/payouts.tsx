@@ -5,14 +5,15 @@ import { useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, Money, StatusPill, ActionButton, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, Money, StatusPill, ActionButton, toArray, useActiveEntity, type Column } from "@/components/finance-ui";
 import { EmptyState, LoadingState } from "@/components/finance-ui/states";
 import { P } from "@/permissions";
 import { isStripped } from "@/utils/fls";
 import {
   useGetPayoutsQuery, useGetPayoutBatchesQuery, useSubmitPayoutBatchMutation, useGetSettlementReconciliationQuery,
+  useGetTransactionsLogQuery,
 } from "@/redux/services/payments/payments-api";
-import type { PayoutBatchSummary, PayoutInstruction } from "@/redux/services/payments/payments-types";
+import type { PayoutBatchSummary, PayoutInstruction, TransactionLogEntry } from "@/redux/services/payments/payments-types";
 
 function PayoutsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [page, setPage] = useState(1);
@@ -81,10 +82,34 @@ function SettlementTab({ entity, currency }: { entity: string; currency?: string
   );
 }
 
+// The append-only gateway action log (PaymentEvent): every collection, payout,
+// virtual-account and webhook action, including failed/rejected attempts.
+function TransactionsTab({ entity }: { entity: string }) {
+  const { data, isLoading, isFetching, isError, refetch } = useGetTransactionsLogQuery({ entity });
+  const rows = toArray<TransactionLogEntry>(data?.data);
+  const columns: Column<TransactionLogEntry>[] = [
+    { header: "When", cell: (t) => <span className="text-gray-05">{new Date(t.created_at).toLocaleString()}</span> },
+    { header: "Action", cell: (t) => <span className="font-semibold">{t.action_display || t.action}</span> },
+    { header: "Provider", cell: (t) => t.provider || "—" },
+    { header: "Reference", cell: (t) => <span className="font-mono text-xs">{t.reference || "—"}</span> },
+    { header: "Result", cell: (t) => <StatusPill status={t.succeeded ? "SUCCESS" : "FAILED"} /> },
+    { header: "Message", cell: (t) => <span className="text-gray-05">{t.message || "—"}</span> },
+    { header: "Actor", cell: (t) => t.actor_email || "System" },
+  ];
+  return (
+    <DataTable columns={columns} rows={rows} rowKey={(t) => t.id}
+      loading={isLoading || isFetching} error={isError} onRetry={refetch}
+      emptyTitle="No transactions" emptyMessage="Gateway actions (collections, payouts, webhooks) will appear here." />
+  );
+}
+
 export default function PayoutsPage() {
   const { code: entity, currency } = useActiveEntity();
   const { section = "payouts" } = useParams();
-  const label = section === "batches" ? "Payout Batches" : section === "settlement" ? "Settlement" : "Payouts";
+  const label = section === "batches" ? "Payout Batches"
+    : section === "settlement" ? "Settlement"
+    : section === "transactions" ? "Transactions Log"
+    : "Payouts";
 
   return (
     <ProcurementShell>
@@ -99,6 +124,8 @@ export default function PayoutsPage() {
           <BatchesTab entity={entity} currency={currency} />
         ) : section === "settlement" ? (
           <SettlementTab entity={entity} currency={currency} />
+        ) : section === "transactions" ? (
+          <TransactionsTab entity={entity} />
         ) : (
           <PayoutsTab entity={entity} currency={currency} />
         )}

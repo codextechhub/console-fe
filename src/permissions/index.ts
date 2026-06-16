@@ -218,6 +218,11 @@ const REGISTRY: Record<string, string> = {
   "202422": "finance.fixedasset.acquire",
   "202423": "finance.fixedasset.depreciate",
   "202501": "finance.audit.view",
+  "202601": "finance.customer.view",
+  "202602": "finance.customer.create",
+  "202701": "finance.feestructure.view",
+  "202702": "finance.feestructure.create",
+  "202725": "finance.feestructure.generate",
 
   // ── PROCUREMENT  (MM=70) ─────────────────────────────────────────────────────
   // RR: 01 category · 02 vendor · 03 catalog_item · 04 contract · 05 requisition ·
@@ -412,6 +417,11 @@ export const P = {
   FIN_MANAGE_DUNNING:       "201008",
   FIN_GENERATE_DUNNING:     "201025",
   FIN_SEND_DUNNING:         "201026",
+  FIN_VIEW_CUSTOMERS:       "202601",
+  FIN_CREATE_CUSTOMER:      "202602",
+  FIN_VIEW_FEE_STRUCTURES:  "202701",
+  FIN_CREATE_FEE_STRUCTURE: "202702",
+  FIN_GENERATE_FEE_STRUCTURE: "202725",
   FIN_POST_DIRECT_ENTRY:    "201113",
   FIN_VIEW_REPORTS:         "201201",
   FIN_VIEW_CURRENCIES:      "201301",

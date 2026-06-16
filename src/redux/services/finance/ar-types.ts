@@ -145,3 +145,43 @@ export interface InvoiceListParams {
   status?: InvoiceStatus;
   payment_status?: PaymentStatus;
 }
+
+// Customers / payers — the AR sub-ledger party (mirrors CustomerSerializer).
+export interface Customer {
+  id: number;
+  code: string;
+  name: string;
+  billing_email: string;
+  billing_phone: string;
+  billing_address: string;
+  receivable_account_code: string | null;
+  receivable_account_name: string | null;
+  opening_balance: number;
+  opening_balance_naira: string;
+  source_type: string;
+  source_id: string;
+  is_active: boolean;
+}
+
+// Fee structures — billing catalogue rolled up into invoices.
+export interface FeeItem {
+  id: number;
+  line_no: number;
+  description: string;
+  revenue_account_code: string;
+  amount: number;
+  amount_naira: string;
+  tax_code_value: string | null;
+}
+
+export interface FeeStructure {
+  id: number;
+  code: string;
+  name: string;
+  term: string;
+  description: string;
+  is_active: boolean;
+  items: FeeItem[];
+  total: number;
+  total_naira: string;
+}

@@ -58,11 +58,12 @@ export const procurementNav: ConsoleNavItem[] = [
   },
   {
     title: "Payouts", url: P.PAYOUTS, icon: Send,
-    prefixes: ["payments.payout."],
+    prefixes: ["payments.payout.", "payments.report."],
     children: [
       { title: "Payouts", url: `${P.PAYOUTS}/payouts`, prefixes: ["payments.payout."] },
       { title: "Batches", url: `${P.PAYOUTS}/batches`, prefixes: ["payments.payout."] },
-      { title: "Settlement", url: `${P.PAYOUTS}/settlement`, prefixes: ["payments.payout."] },
+      { title: "Settlement", url: `${P.PAYOUTS}/settlement`, prefixes: ["payments.report."] },
+      { title: "Transactions Log", url: `${P.PAYOUTS}/transactions`, prefixes: ["payments.report."] },
     ],
   },
 ];

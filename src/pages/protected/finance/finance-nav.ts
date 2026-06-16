@@ -29,9 +29,11 @@ export const financeNav: ConsoleNavItem[] = [
   { title: "General Ledger", url: F.LEDGER, icon: BookOpen, prefixes: ["finance.journal.", "finance.directentry."] },
   {
     title: "Receivables", url: F.RECEIVABLES, icon: ReceiptText,
-    prefixes: ["finance.invoice.", "finance.creditnote.", "finance.refund.", "finance.concession.", "finance.paymentplan.", "finance.dunning."],
+    prefixes: ["finance.invoice.", "finance.creditnote.", "finance.refund.", "finance.concession.", "finance.paymentplan.", "finance.dunning.", "finance.customer.", "finance.feestructure."],
     children: [
       { title: "Invoices", url: `${F.RECEIVABLES}/invoices`, prefixes: ["finance.invoice."] },
+      { title: "Customers", url: `${F.RECEIVABLES}/customers`, prefixes: ["finance.customer."] },
+      { title: "Fee Structures", url: `${F.RECEIVABLES}/fee-structures`, prefixes: ["finance.feestructure."] },
       { title: "Credit Notes", url: `${F.RECEIVABLES}/credit-notes`, prefixes: ["finance.creditnote."] },
       { title: "Refunds", url: `${F.RECEIVABLES}/refunds`, prefixes: ["finance.refund."] },
       { title: "Concessions", url: `${F.RECEIVABLES}/concessions`, prefixes: ["finance.concession."] },

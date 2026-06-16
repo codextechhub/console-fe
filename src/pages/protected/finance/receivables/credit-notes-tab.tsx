@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import {
-  DataTable, Money, StatusPill, ConfirmActionModal, FormModal, FormField,
+  DataTable, Money, StatusPill, ConfirmActionModal, FormModal, FormField, CustomerPicker,
   LineEditor, emptyLine, toApiLines, type DocLine, type Column,
 } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
@@ -95,7 +95,7 @@ function CreateCreditNoteModal({ open, onClose, entity, currency }: { open: bool
       description="Customer is resolved by code. Post the note afterwards to book it." onSubmit={submit}
       loading={isLoading} canSubmit={!!customer.trim() && apiLines.length > 0} widthClass="sm:max-w-2xl">
       <div className="grid grid-cols-3 gap-3">
-        <FormField label="Customer code" required><Input value={customer} onChange={(e) => setCustomer(e.target.value.toUpperCase())} className="bg-white font-mont" /></FormField>
+        <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={setCustomer} /></FormField>
         <FormField label="Kind">
           <select value={kind} onChange={(e) => setKind(e.target.value)} className="h-9 w-full rounded-md border bg-white px-2 font-mont text-sm">
             <option value="CREDIT">Credit (reduces AR)</option>
