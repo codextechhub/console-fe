@@ -27,6 +27,11 @@ export const setupApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/accounts/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceAccounts"],
     }),
+    // Full chart-of-accounts tree (un-paginated) with per-account balance + tag.
+    getChartOfAccounts: b.query<ApiEnvelope<Account[]>, { entity: string }>({
+      query: (p) => ({ url: `/finance/accounts/${qs({ ...p, with_balance: "true" })}`, method: "GET" }),
+      providesTags: ["FinanceAccounts"],
+    }),
     getPeriods: b.query<PaginatedEnvelope<FiscalPeriod>, { entity: string; status?: string; year?: number }>({
       query: (p) => ({ url: `/finance/periods/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePeriods"],
@@ -60,6 +65,7 @@ export const setupApi = baseApi.injectEndpoints({
 
 export const {
   useGetAccountsQuery,
+  useGetChartOfAccountsQuery,
   useGetPeriodsQuery,
   useClosePeriodMutation,
   useGetCurrenciesQuery,

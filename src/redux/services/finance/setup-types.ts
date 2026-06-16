@@ -11,6 +11,9 @@ export interface Account {
   is_active: boolean;
   parent_id: number | null;
   parent_code: string | null;
+  // Present only on the chart-of-accounts (?with_balance=true) response.
+  balance?: { kobo: number; naira: string } | null;
+  tag?: "CONTROL" | "CASH" | null;
 }
 
 export interface FiscalPeriod {
