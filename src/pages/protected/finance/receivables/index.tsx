@@ -15,7 +15,7 @@ import { CustomersTab } from "./customers-tab";
 import { FeeStructuresTab } from "./fee-structures-tab";
 
 const LABELS: Record<string, string> = {
-  invoices: "Invoices", "credit-notes": "Credit Notes", refunds: "Refunds",
+  invoices: "Customer Invoices", "credit-notes": "Credit Notes", refunds: "Refunds",
   concessions: "Concessions", "payment-plans": "Payment Plans", dunning: "Dunning",
   customers: "Customers", "fee-structures": "Fee Structures",
 };

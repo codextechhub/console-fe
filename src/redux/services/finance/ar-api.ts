@@ -13,6 +13,7 @@ import type {
   FeeStructure,
   Invoice,
   InvoiceListParams,
+  InvoiceSummary,
   PaymentPlan,
   Refund,
 } from "./ar-types";
@@ -25,6 +26,10 @@ export const arApi = baseApi.injectEndpoints({
     // Invoices
     getInvoices: builder.query<PaginatedEnvelope<Invoice>, InvoiceListParams>({
       query: (params) => ({ url: `/finance/invoices/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceInvoices"],
+    }),
+    getInvoiceSummary: builder.query<ApiEnvelope<InvoiceSummary>, { entity: string; search?: string }>({
+      query: (params) => ({ url: `/finance/invoices/summary/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceInvoices"],
     }),
     writeOffInvoice: builder.mutation<ApiEnvelope<Invoice>, { id: number; entity: string; reason?: string; date?: string }>({
@@ -132,6 +137,7 @@ export const arApi = baseApi.injectEndpoints({
 
 export const {
   useGetInvoicesQuery,
+  useGetInvoiceSummaryQuery,
   useWriteOffInvoiceMutation,
   useGetCreditNotesQuery,
   useCreateCreditNoteMutation,

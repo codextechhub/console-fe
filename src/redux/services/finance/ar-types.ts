@@ -144,6 +144,20 @@ export interface InvoiceListParams {
   page?: number;
   status?: InvoiceStatus;
   payment_status?: PaymentStatus;
+  bucket?: string;
+  search?: string;
+}
+
+export interface InvoiceSummary {
+  kpis: {
+    total_invoiced: { kobo: number; naira: string };
+    total_collected: { kobo: number; naira: string };
+    collection_rate: number;
+    overdue_balance: { kobo: number; naira: string };
+  };
+  by_status: { draft: number; issued: number; partial: number; paid: number; overdue: number; total: number };
+  totals: { count: number; total: { kobo: number; naira: string }; outstanding: { kobo: number; naira: string } };
+  monthly: { label: string; invoiced: number; collected: number }[];
 }
 
 // Customers / payers — the AR sub-ledger party (mirrors CustomerSerializer).
