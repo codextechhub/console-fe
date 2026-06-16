@@ -14,7 +14,6 @@ import type {
   FxRate,
   CostCenter,
   Currency,
-  Dimension,
   FinanceAuditLog,
   FiscalPeriod,
   PeriodChecklist,
@@ -80,10 +79,6 @@ export const setupApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/cost-centers/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceSetup"],
     }),
-    getDimensions: b.query<ApiEnvelope<Dimension[]>, { entity: string }>({
-      query: (p) => ({ url: `/finance/dimensions/${qs(p)}`, method: "GET" }),
-      providesTags: ["FinanceSetup"],
-    }),
     getFxRates: b.query<PaginatedEnvelope<FxRate>, void>({
       query: () => ({ url: `/finance/fx-rates/`, method: "GET" }),
       providesTags: ["FinanceSetup"],
@@ -114,7 +109,6 @@ export const {
   useCreateTaxCodeMutation,
   useGetCostCentersQuery,
   useCreateCostCenterMutation,
-  useGetDimensionsQuery,
   useGetFxRatesQuery,
   useGetAuditLogQuery,
 } = setupApi;

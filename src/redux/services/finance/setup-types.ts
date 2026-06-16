@@ -103,13 +103,6 @@ export interface CostCenter {
   is_active: boolean;
 }
 
-export interface Dimension {
-  id: number;
-  code: string;
-  name: string;
-  is_active: boolean;
-}
-
 export interface FinanceAuditLog {
   id: number;
   action: string;

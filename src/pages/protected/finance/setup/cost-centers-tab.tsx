@@ -1,7 +1,5 @@
 // Setup → Cost Centers. Design topology: cost-centre table (branch derived from
-// the code prefix) with a New cost centre form, plus the Analytical Dimensions
-// section. "Owner" and the dimension Type/Values/Required columns are omitted
-// (the models have no such fields) rather than faked.
+// the code prefix) with a New cost centre form. "Owner" is omitted (no field).
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Info } from "lucide-react";
@@ -10,8 +8,8 @@ import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
-import { useGetCostCentersQuery, useCreateCostCenterMutation, useGetDimensionsQuery } from "@/redux/services/finance/setup-api";
-import type { CostCenter, Dimension } from "@/redux/services/finance/setup-types";
+import { useGetCostCentersQuery, useCreateCostCenterMutation } from "@/redux/services/finance/setup-api";
+import type { CostCenter } from "@/redux/services/finance/setup-types";
 
 const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 // CC-LAG-FAC → LAG (branch segment); CC-HQ-IT → HQ.
@@ -19,9 +17,7 @@ const branchOf = (code: string) => { const p = code.split(/[-_]/); return (p[1] 
 
 export function CostCentersTab({ entity }: { entity: string }) {
   const { data, isLoading, isFetching, isError, refetch } = useGetCostCentersQuery({ entity });
-  const dims = useGetDimensionsQuery({ entity });
   const centres = toArray<CostCenter>(data?.data);
-  const dimensions = toArray<Dimension>(dims.data?.data);
   const [branch, setBranch] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -35,17 +31,11 @@ export function CostCentersTab({ entity }: { entity: string }) {
     { header: "Parent", cell: (c) => c.parent_code ?? "—" },
     { header: "Status", cell: (c) => <StatusPill status={c.is_active ? "ACTIVE" : "INACTIVE"} /> },
   ];
-  const dimCols: Column<Dimension>[] = [
-    { header: "Code", cell: (d) => <span className="font-semibold">{d.code}</span> },
-    { header: "Name", cell: (d) => d.name },
-    { header: "Status", cell: (d) => <StatusPill status={d.is_active ? "ACTIVE" : "INACTIVE"} /> },
-  ];
-
   return (
     <div className="space-y-5">
       <div className="flex gap-2 rounded-md bg-pry-01/40 p-3 font-mont text-xs leading-relaxed text-gray-01">
         <Info className="mt-0.5 size-4 shrink-0 text-primary" />
-        <span>Cost centres tag journal lines with the department or branch that owns the spend, so reports can slice income and expense by unit. Analytical dimensions add further cross-cutting tags (class, project…) on top of the cost centre.</span>
+        <span>Cost centres tag journal lines with the department or branch that owns the spend, so reports can slice income and expense by unit.</span>
       </div>
 
       <div className="flex items-center justify-between">
@@ -61,14 +51,6 @@ export function CostCentersTab({ entity }: { entity: string }) {
       <DataTable columns={columns} rows={rows} rowKey={(c) => c.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch}
         emptyTitle="No cost centres" emptyMessage="Cost centres will appear here." />
-
-      <div>
-        <p className="font-mont text-sm font-semibold text-gray-01">Analytical Dimensions</p>
-        <p className="mb-2 font-mont text-xs text-gray-05">Additional tags for cross-cutting analytics.</p>
-        <DataTable columns={dimCols} rows={dimensions} rowKey={(d) => d.id}
-          loading={dims.isLoading} error={dims.isError} onRetry={dims.refetch}
-          emptyTitle="No dimensions" emptyMessage="Analytical dimensions will appear here." />
-      </div>
 
       <NewCostCentreModal open={creating} onClose={() => setCreating(false)} entity={entity} parents={centres} />
     </div>
