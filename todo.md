@@ -1,5 +1,6 @@
 ## Undone (Ask questions for clarity where needed)
 
+1. I want to work on loading options for different components on the screens. (skeleton/spinner/progress bar) Also, components load differently. One loading shouldn't affect another loading.
 
 ## Done
 
