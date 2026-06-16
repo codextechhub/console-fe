@@ -4,7 +4,7 @@
 // screen calls. Dashboard is pinned above the first group.
 
 import {
-  LayoutDashboard, BookOpen, ListTree, Building2, CalendarDays, CalendarCheck,
+  LayoutDashboard, BookOpen, ListTree, Building2, CalendarDays,
   Coins, Percent, Layers, ReceiptText, Users, CreditCard, FileMinus, Undo2,
   CalendarClock, BadgePercent, BellRing, ListChecks, Landmark, Wallet,
   PiggyBank, Boxes, Scale, TrendingUp, ArrowLeftRight, GitBranch, ScrollText,
@@ -24,7 +24,6 @@ export const financeNav: ConsoleNavGroup[] = [
       { title: "General Ledger", url: F.LEDGER, icon: BookOpen, prefixes: ["finance.journal.", "finance.directentry."] },
       { title: "Entities", url: `${F.SETUP}/entities`, icon: Building2, prefixes: ["finance.entity."] },
       { title: "Fiscal Periods", url: `${F.SETUP}/periods`, icon: CalendarDays, prefixes: ["finance.period."] },
-      { title: "Period Close", url: `${F.REPORTS}/periods`, icon: CalendarCheck, prefixes: ["finance.period."] },
       { title: "Currencies & FX", url: `${F.SETUP}/currencies`, icon: Coins, prefixes: ["finance.currency.", "finance.fxrate."] },
       { title: "Tax Codes", url: `${F.SETUP}/tax-codes`, icon: Percent, prefixes: ["finance.taxcode."] },
       { title: "Cost Centres", url: `${F.SETUP}/cost-centers`, icon: Layers, prefixes: ["finance.costcenter."] },

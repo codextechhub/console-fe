@@ -16,6 +16,7 @@ import type {
   Currency,
   FinanceAuditLog,
   FiscalPeriod,
+  PeriodChecklist,
   PeriodCloseResult,
   TaxCode,
 } from "./setup-types";
@@ -48,6 +49,10 @@ export const setupApi = baseApi.injectEndpoints({
     }),
     getPeriods: b.query<PaginatedEnvelope<FiscalPeriod>, { entity: string; status?: string; year?: number }>({
       query: (p) => ({ url: `/finance/periods/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinancePeriods"],
+    }),
+    getPeriodChecklist: b.query<ApiEnvelope<PeriodChecklist>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/periods/${id}/checklist/${qs({ entity })}`, method: "GET" }),
       providesTags: ["FinancePeriods"],
     }),
     closePeriod: b.mutation<ApiEnvelope<PeriodCloseResult>, { id: number; entity: string; soft?: boolean; force?: boolean; run_depreciation?: boolean }>({
@@ -84,6 +89,7 @@ export const {
   useGetAccountDetailQuery,
   useUpdateAccountMutation,
   useGetPeriodsQuery,
+  useGetPeriodChecklistQuery,
   useClosePeriodMutation,
   useGetCurrenciesQuery,
   useGetTaxCodesQuery,

@@ -51,6 +51,21 @@ export interface FiscalPeriod {
   closed_at: string | null;
 }
 
+export interface ChecklistItem {
+  name: string;
+  passed: boolean;
+  blocking: boolean;
+  detail: string;
+}
+
+export interface PeriodChecklist {
+  period: FiscalPeriod;
+  passed: boolean;
+  done: number;
+  total: number;
+  items: ChecklistItem[];
+}
+
 export interface Currency {
   code: string;
   name: string;
