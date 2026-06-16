@@ -17,6 +17,29 @@ export interface Account {
   tag?: "CONTROL" | "CASH" | null;
 }
 
+export interface AccountActivityLine {
+  date: string;
+  journal_no: string;
+  source: string;
+  description: string;
+  cost_center: string;
+  debit: { kobo: number; naira: string };
+  credit: { kobo: number; naira: string };
+  running_balance: { kobo: number; naira: string };
+}
+
+export interface AccountDetail {
+  account: Account;
+  type_label: string;
+  summary: {
+    current_balance: { kobo: number; naira: string };
+    opening_balance: { kobo: number; naira: string };
+    line_count: number;
+    journal_count: number;
+  };
+  activity: AccountActivityLine[];
+}
+
 export interface FiscalPeriod {
   id: number;
   period_no: number;

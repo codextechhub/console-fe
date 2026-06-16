@@ -10,6 +10,7 @@ import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
 import type {
   Account,
+  AccountDetail,
   FxRate,
   CostCenter,
   Currency,
@@ -34,6 +35,15 @@ export const setupApi = baseApi.injectEndpoints({
     }),
     createAccount: b.mutation<ApiEnvelope<Account>, { entity: string; code: string; name: string; account_type: string; subtype?: string; parent?: number; is_postable?: boolean; is_contra?: boolean }>({
       query: ({ entity, ...body }) => ({ url: `/finance/accounts/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceAccounts"],
+    }),
+    // Per-account detail + posted ledger activity (the chart's detail drawer).
+    getAccountDetail: b.query<ApiEnvelope<AccountDetail>, { entity: string; id: number }>({
+      query: ({ entity, id }) => ({ url: `/finance/accounts/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinanceAccounts"],
+    }),
+    updateAccount: b.mutation<ApiEnvelope<Account>, { entity: string; id: number; name?: string; subtype?: string; description?: string; is_active?: boolean; is_postable?: boolean }>({
+      query: ({ entity, id, ...body }) => ({ url: `/finance/accounts/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinanceAccounts"],
     }),
     getPeriods: b.query<PaginatedEnvelope<FiscalPeriod>, { entity: string; status?: string; year?: number }>({
@@ -71,6 +81,8 @@ export const {
   useGetAccountsQuery,
   useGetChartOfAccountsQuery,
   useCreateAccountMutation,
+  useGetAccountDetailQuery,
+  useUpdateAccountMutation,
   useGetPeriodsQuery,
   useClosePeriodMutation,
   useGetCurrenciesQuery,

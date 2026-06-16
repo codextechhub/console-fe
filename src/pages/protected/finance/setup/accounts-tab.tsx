@@ -2,9 +2,10 @@
 // an expandable account tree (or flat view) with type pills, normal balance,
 // currency, rolled-up GL balance and sub-ledger tags. Read-only viewer.
 import { useMemo, useState } from "react";
+import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, Check, Info, Plus } from "lucide-react";
-import { Money, FormModal, FormField, toArray, useActiveEntity } from "@/components/finance-ui";
+import { ChevronDown, ChevronRight, Check, Info, Plus, Printer } from "lucide-react";
+import { Money, FormModal, FormField, DetailDrawer, StatusPill, toArray, useActiveEntity } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
-import { useGetChartOfAccountsQuery, useCreateAccountMutation } from "@/redux/services/finance/setup-api";
+import {
+  useGetChartOfAccountsQuery, useCreateAccountMutation, useGetAccountDetailQuery, useUpdateAccountMutation,
+} from "@/redux/services/finance/setup-api";
 import type { Account } from "@/redux/services/finance/setup-types";
 
 type Node = Account & { children: Node[]; rolled: number };
@@ -50,19 +53,19 @@ function Tag({ label }: { label: string }) {
   return <span className="ml-1.5 rounded bg-gray-03/60 px-1.5 py-0.5 font-mont text-[10px] font-semibold uppercase tracking-wide text-gray-05">{label}</span>;
 }
 
-function AccountRow({ node, depth, expanded, toggle, currency }: {
-  node: Node; depth: number; expanded: Set<number>; toggle: (id: number) => void; currency?: string | null;
+function AccountRow({ node, depth, expanded, toggle, currency, onSelect }: {
+  node: Node; depth: number; expanded: Set<number>; toggle: (id: number) => void; currency?: string | null; onSelect: (id: number) => void;
 }) {
   const hasChildren = node.children.length > 0;
   const open = expanded.has(node.id);
   const cell = "border-t border-gray-03 px-3 py-2 font-mont text-sm text-black-01";
   return (
     <>
-      <tr className="hover:bg-primary/5">
+      <tr className="cursor-pointer hover:bg-primary/5" onClick={() => onSelect(node.id)}>
         <td className={cell}>
           <div className="flex items-center" style={{ paddingLeft: depth * 18 }}>
             {hasChildren ? (
-              <button onClick={() => toggle(node.id)} className="mr-1 text-gray-05 hover:text-gray-01" aria-label={open ? "Collapse" : "Expand"}>
+              <button onClick={(e) => { e.stopPropagation(); toggle(node.id); }} className="mr-1 text-gray-05 hover:text-gray-01" aria-label={open ? "Collapse" : "Expand"}>
                 {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
               </button>
             ) : <span className="mr-1 inline-block w-4" />}
@@ -86,7 +89,7 @@ function AccountRow({ node, depth, expanded, toggle, currency }: {
         </td>
       </tr>
       {hasChildren && open && node.children.map((c) => (
-        <AccountRow key={c.id} node={c} depth={depth + 1} expanded={expanded} toggle={toggle} currency={currency} />
+        <AccountRow key={c.id} node={c} depth={depth + 1} expanded={expanded} toggle={toggle} currency={currency} onSelect={onSelect} />
       ))}
     </>
   );
@@ -103,6 +106,7 @@ export function AccountsTab({ entity }: { entity: string }) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [touched, setTouched] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [detailId, setDetailId] = useState<number | null>(null);
 
   // Default: expand every parent until the user starts toggling.
   const allParentIds = useMemo(() => new Set(accounts.filter((a) => !a.is_postable).map((a) => a.id)), [accounts]);
@@ -190,7 +194,7 @@ export function AccountsTab({ entity }: { entity: string }) {
             </thead>
             <tbody>
               {rows.map((n) => (
-                <AccountRow key={n.id} node={n} depth={0} expanded={effectiveExpanded} toggle={toggle} currency={currency} />
+                <AccountRow key={n.id} node={n} depth={0} expanded={effectiveExpanded} toggle={toggle} currency={currency} onSelect={setDetailId} />
               ))}
             </tbody>
           </table>
@@ -198,6 +202,7 @@ export function AccountsTab({ entity }: { entity: string }) {
       )}
 
       <CreateAccountModal open={creating} onClose={() => setCreating(false)} entity={entity} parents={accounts} />
+      <AccountDetailDrawer id={detailId} entity={entity} accounts={accounts} currency={currency} onClose={() => setDetailId(null)} />
     </div>
   );
 }
@@ -255,5 +260,154 @@ function CreateAccountModal({ open, onClose, entity, parents }: {
         <label className="flex items-center gap-2"><input type="checkbox" checked={contra} onChange={(e) => setContra(e.target.checked)} /> Contra account</label>
       </div>
     </FormModal>
+  );
+}
+
+const DRAWER_TABS = [
+  { key: "activity", label: "Activity" },
+  { key: "taccount", label: "T-account" },
+  { key: "subs", label: "Sub-accounts" },
+  { key: "settings", label: "Settings" },
+] as const;
+
+function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
+  id: number | null; entity: string; accounts: Account[]; currency?: string | null; onClose: () => void;
+}) {
+  const { data, isLoading, isError, refetch } = useGetAccountDetailQuery(id ? { entity, id } : skipToken);
+  const [tab, setTab] = useState<(typeof DRAWER_TABS)[number]["key"]>("activity");
+  const d = data?.data;
+  const acc = d?.account;
+  const kids = id ? accounts.filter((a) => a.parent_id === id) : [];
+
+  const cell = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+  const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
+
+  return (
+    <DetailDrawer
+      open={id != null}
+      onOpenChange={(o) => !o && onClose()}
+      title={acc ? `${acc.code} · ${acc.name}` : "Account"}
+      description={acc ? `${acc.subtype || d?.type_label || acc.account_type} · Normal: ${acc.normal_balance === "DEBIT" ? "Debit" : "Credit"}` : undefined}
+      widthClass="sm:max-w-3xl"
+      footer={<Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>}
+    >
+      {isLoading ? <LoadingState rows={6} /> : isError || !d || !acc ? <ErrorState onRetry={refetch} /> : (
+        <div className="space-y-4">
+          {/* KPI cards */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+              <p className="font-mont text-[11px] text-gray-05">Current balance</p>
+              <p className="mt-1 font-mont text-base font-semibold tabular-nums"><Money kobo={d.summary.current_balance.kobo} currency={currency} /></p>
+            </div>
+            <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+              <p className="font-mont text-[11px] text-gray-05">Opening (FY carry-in)</p>
+              <p className="mt-1 font-mont text-base font-semibold tabular-nums"><Money kobo={d.summary.opening_balance.kobo} currency={currency} /></p>
+            </div>
+            <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+              <p className="font-mont text-[11px] text-gray-05">Posted YTD</p>
+              <p className="mt-1 font-mont text-base font-semibold tabular-nums">{d.summary.line_count} lines</p>
+              <p className="font-mont text-[11px] text-gray-05">across {d.summary.journal_count} journals</p>
+            </div>
+          </div>
+
+          {/* tabs */}
+          <div className="flex gap-1 border-b border-gray-03">
+            {DRAWER_TABS.map((t) => (
+              <button key={t.key} onClick={() => setTab(t.key)}
+                className={cn("-mb-px border-b-2 px-3 py-2 font-mont text-xs font-semibold",
+                  tab === t.key ? "border-primary text-primary" : "border-transparent text-gray-05 hover:text-gray-01")}>
+                {t.label}{t.key === "subs" && kids.length ? ` (${kids.length})` : ""}
+              </button>
+            ))}
+          </div>
+
+          {tab === "activity" && (
+            d.activity.length === 0 ? <EmptyState title="No postings" message="Posted journal lines hitting this account will appear here." /> : (
+              <div className="overflow-x-auto rounded-md border border-gray-03">
+                <table className="w-full border-collapse">
+                  <thead><tr>
+                    <th className={th}>Date</th><th className={th}>Journal</th><th className={th}>Description</th>
+                    <th className={th}>Cost centre</th><th className={cn(th, "text-right")}>Debit</th>
+                    <th className={cn(th, "text-right")}>Credit</th><th className={cn(th, "text-right")}>Balance</th>
+                  </tr></thead>
+                  <tbody>
+                    {d.activity.map((a, i) => (
+                      <tr key={`${a.journal_no}-${i}`}>
+                        <td className={cn(cell, "text-gray-05")}>{a.date}</td>
+                        <td className={cn(cell, "font-semibold")}>{a.journal_no}</td>
+                        <td className={cn(cell, "max-w-xs truncate")}>{a.description || "—"}</td>
+                        <td className={cn(cell, "text-gray-05")}>{a.cost_center || "—"}</td>
+                        <td className={cn(cell, "text-right tabular-nums")}>{a.debit.kobo ? <Money kobo={a.debit.kobo} currency={currency} align="right" /> : "—"}</td>
+                        <td className={cn(cell, "text-right tabular-nums")}>{a.credit.kobo ? <Money kobo={a.credit.kobo} currency={currency} align="right" /> : "—"}</td>
+                        <td className={cn(cell, "text-right font-medium tabular-nums")}><Money kobo={a.running_balance.kobo} currency={currency} align="right" /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          )}
+
+          {tab === "taccount" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-md border border-gray-03">
+                <p className="border-b border-gray-03 bg-[#F1F1F1] px-3 py-2 font-mont text-xs font-semibold">Debits</p>
+                {d.activity.filter((a) => a.debit.kobo).map((a, i) => (
+                  <div key={i} className="flex justify-between px-3 py-1.5 font-mont text-xs"><span className="truncate text-gray-05">{a.journal_no}</span><Money kobo={a.debit.kobo} currency={currency} /></div>
+                ))}
+              </div>
+              <div className="rounded-md border border-gray-03">
+                <p className="border-b border-gray-03 bg-[#F1F1F1] px-3 py-2 font-mont text-xs font-semibold">Credits</p>
+                {d.activity.filter((a) => a.credit.kobo).map((a, i) => (
+                  <div key={i} className="flex justify-between px-3 py-1.5 font-mont text-xs"><span className="truncate text-gray-05">{a.journal_no}</span><Money kobo={a.credit.kobo} currency={currency} /></div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === "subs" && (
+            kids.length === 0 ? <EmptyState title="No sub-accounts" message="This is a leaf account." /> : (
+              <div className="rounded-md border border-gray-03">
+                {kids.map((k) => (
+                  <div key={k.id} className="flex items-center justify-between border-t border-gray-03 px-3 py-2 font-mont text-sm first:border-t-0">
+                    <span><span className="font-semibold tabular-nums">{k.code}</span><span className="ml-2">{k.name}</span></span>
+                    <StatusPill status={k.is_active ? "ACTIVE" : "INACTIVE"} />
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+
+          {tab === "settings" && <AccountSettings key={acc.id} entity={entity} account={acc} onSaved={onClose} />}
+        </div>
+      )}
+    </DetailDrawer>
+  );
+}
+
+function AccountSettings({ entity, account, onSaved }: { entity: string; account: Account; onSaved: () => void }) {
+  const [update, { isLoading }] = useUpdateAccountMutation();
+  const [name, setName] = useState(account.name);
+  const [subtype, setSubtype] = useState(account.subtype ?? "");
+  const [active, setActive] = useState(account.is_active);
+  const dirty = name !== account.name || subtype !== (account.subtype ?? "") || active !== account.is_active;
+
+  const save = async () => {
+    try {
+      const r = await update({ entity, id: account.id, name: name.trim(), subtype: subtype.trim(), is_active: active }).unwrap();
+      toast.success(r.message || "Account updated.");
+      onSaved();
+    } catch { /* central */ }
+  };
+
+  return (
+    <Can permission={P.FIN_UPDATE_ACCOUNT} fallback={<EmptyState title="Read-only" message="You don’t have permission to edit accounts." />}>
+      <div className="space-y-3">
+        <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white" /></FormField>
+        <FormField label="Subtype"><Input value={subtype} onChange={(e) => setSubtype(e.target.value)} placeholder="e.g. Current asset" className="bg-white" /></FormField>
+        <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> Active</label>
+        <Button onClick={save} disabled={!dirty || isLoading} className="font-mont text-xs font-semibold">{isLoading ? "Saving…" : "Save changes"}</Button>
+      </div>
+    </Can>
   );
 }
