@@ -1,49 +1,41 @@
-// Journal detail drawer — read-only view of a journal with its Dr/Cr lines, and
-// the Reverse action (gated finance.journal.reverse) for posted entries.
+// Journal detail drawer — design topology: header (no · date · period · source),
+// four stat cards (Status / Total Dr / Total Cr / Difference), the Dr/Cr lines
+// table with cost centres + totals, a teaching note, and a footer with the author
+// + Reverse (gated finance.journal.reverse) + Print.
 
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  DetailDrawer,
-  JournalTable,
-  StatusPill,
-  ConfirmActionModal,
-} from "@/components/finance-ui";
+import { Check, Printer } from "lucide-react";
+import { DetailDrawer, Money, StatusPill, ConfirmActionModal } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { useGetJournalQuery, useReverseJournalMutation } from "@/redux/services/finance/gl-api";
 
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
+const cap = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
+const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
+const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+
+function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <p className="font-mont text-xs uppercase tracking-wide text-gray-05">{label}</p>
-      <p className="mt-0.5 font-mont text-sm font-medium text-black-01">{value || "—"}</p>
+    <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+      <p className="font-mont text-[11px] text-gray-05">{label}</p>
+      <div className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</div>
     </div>
   );
 }
 
-export function JournalDetailDrawer({
-  journalId,
-  entity,
-  currency,
-  onClose,
-}: {
-  journalId: number | null;
-  entity: string;
-  currency?: string | null;
-  onClose: () => void;
+export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
+  journalId: number | null; entity: string; currency?: string | null; onClose: () => void;
 }) {
   const open = journalId != null;
-  const { data, isLoading, isError, refetch } = useGetJournalQuery(
-    { id: journalId!, entity },
-    { skip: !open },
-  );
+  const { data, isLoading, isError, refetch } = useGetJournalQuery({ id: journalId!, entity }, { skip: !open });
   const [reverse, { isLoading: reversing }] = useReverseJournalMutation();
   const [confirmReverse, setConfirmReverse] = useState(false);
-
   const j = data?.data;
+  const diff = j ? j.total_debit - j.total_credit : 0;
 
   const doReverse = async () => {
     try {
@@ -51,9 +43,7 @@ export function JournalDetailDrawer({
       toast.success(res.message || "Journal reversed.");
       setConfirmReverse(false);
       onClose();
-    } catch {
-      /* handled centrally */
-    }
+    } catch { /* handled centrally */ }
   };
 
   return (
@@ -62,41 +52,76 @@ export function JournalDetailDrawer({
         open={open}
         onOpenChange={(o) => !o && onClose()}
         title={j ? j.document_number : "Journal"}
-        description={j ? `${j.date} · ${j.source}` : undefined}
+        description={j ? `${j.date}${j.period ? ` · ${j.period}` : ""} · ${cap(j.source)} journal` : undefined}
+        widthClass="sm:max-w-3xl"
         footer={
-          j?.status === "POSTED" ? (
-            <Can permission={P.FIN_REVERSE_JOURNAL}>
-              <Button
-                variant="outline"
-                onClick={() => setConfirmReverse(true)}
-                className="border-destructive/40 text-destructive hover:bg-destructive/5"
-              >
-                Reverse journal
-              </Button>
-            </Can>
-          ) : null
+          <div className="flex w-full items-center justify-between gap-3">
+            <span className="font-mont text-xs text-gray-05">
+              Created by {j?.created_by ?? "—"}{j?.posted_at ? ` · Posted ${new Date(j.posted_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+            </span>
+            <div className="flex items-center gap-2">
+              {j?.status === "POSTED" && (
+                <Can permission={P.FIN_REVERSE_JOURNAL}>
+                  <Button variant="outline" onClick={() => setConfirmReverse(true)} className="border-destructive/40 text-destructive hover:bg-destructive/5">Reverse</Button>
+                </Can>
+              )}
+              <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>
+            </div>
+          </div>
         }
       >
-        {isLoading ? (
-          <LoadingState rows={5} />
-        ) : isError || !j ? (
-          <ErrorState onRetry={refetch} />
-        ) : (
-          <div className="space-y-5">
-            <div className="flex items-center gap-3">
-              <StatusPill status={j.status} />
-              {j.reverses_id && (
-                <span className="font-mont text-xs text-gray-05">Reverses #{j.reverses_id}</span>
-              )}
+        {isLoading ? <LoadingState rows={5} /> : isError || !j ? <ErrorState onRetry={refetch} /> : (
+          <div className="space-y-4">
+            {/* stat cards */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Stat label="Status"><StatusPill status={j.status} /></Stat>
+              <Stat label="Total Dr"><Money kobo={j.total_debit} currency={currency} /></Stat>
+              <Stat label="Total Cr"><Money kobo={j.total_credit} currency={currency} /></Stat>
+              <Stat label="Difference">
+                {diff === 0
+                  ? <span className="inline-flex items-center gap-1 text-green-01"><Check className="size-4" /> Balanced</span>
+                  : <span className="text-destructive"><Money kobo={diff} currency={currency} /></span>}
+              </Stat>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Period" value={j.period} />
-              <Field label="Reference" value={j.reference} />
-              <Field label="Posted at" value={j.posted_at ? new Date(j.posted_at).toLocaleString("en-GB") : "—"} />
-              <Field label="Source" value={j.source} />
+
+            {j.reverses_id && <p className="font-mont text-xs text-gray-05">Reverses journal #{j.reverses_id}</p>}
+
+            {/* lines */}
+            <div>
+              <p className="mb-2 font-mont text-sm font-semibold text-gray-01">Lines</p>
+              <div className="overflow-x-auto rounded-md border border-gray-03">
+                <table className="w-full border-collapse">
+                  <thead><tr>
+                    <th className={th}>Account</th><th className={th}>Description</th><th className={th}>Cost centre</th>
+                    <th className={cn(th, "text-right")}>Debit</th><th className={cn(th, "text-right")}>Credit</th>
+                  </tr></thead>
+                  <tbody>
+                    {j.lines.map((l) => (
+                      <tr key={l.id}>
+                        <td className={td}><span className="font-semibold tabular-nums">{l.account_code}</span><span className="ml-2 text-gray-01">{l.account_name}</span></td>
+                        <td className={cn(td, "max-w-xs truncate text-gray-05")}>{l.description || "—"}</td>
+                        <td className={cn(td, "text-gray-05")}>{l.cost_center || "—"}</td>
+                        <td className={cn(td, "text-right tabular-nums")}>{l.debit ? <Money kobo={l.debit} currency={currency} align="right" /> : "—"}</td>
+                        <td className={cn(td, "text-right tabular-nums")}>{l.credit ? <Money kobo={l.credit} currency={currency} align="right" /> : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-gray-03 font-semibold">
+                      <td className={cn(td, "border-t-0")} colSpan={3}>Totals</td>
+                      <td className={cn(td, "border-t-0 text-right tabular-nums")}><Money kobo={j.total_debit} currency={currency} align="right" /></td>
+                      <td className={cn(td, "border-t-0 text-right tabular-nums")}><Money kobo={j.total_credit} currency={currency} align="right" /></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
-            {j.narration && <Field label="Narration" value={j.narration} />}
-            <JournalTable lines={j.lines} currency={currency} totalDebit={j.total_debit} totalCredit={j.total_credit} />
+
+            {/* teaching note */}
+            <div className="flex gap-2 rounded-md bg-pry-01/40 p-3 font-mont text-xs leading-relaxed text-gray-01">
+              <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">i</span>
+              <span>Each line targets one GL account; the cost centre tags the spending department. Posting permanently updates those accounts’ balances; reversing creates a mirror journal that nets back to zero, leaving the original in history for audit.</span>
+            </div>
           </div>
         )}
       </DetailDrawer>

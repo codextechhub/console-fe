@@ -12,6 +12,7 @@ import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { UserAvatar } from "@/components/custom/user-avatar";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
@@ -81,7 +82,12 @@ export default function GeneralLedgerPage() {
     { header: "Reference", cell: (j) => <span className="block max-w-xs truncate text-gray-01">{j.narration || j.reference || "—"}</span> },
     { header: "Total Debit", align: "right", cell: (j) => <Money kobo={j.total_debit} currency={currency} align="right" /> },
     { header: "Status", cell: (j) => <StatusPill status={j.status} /> },
-    { header: "Created By", cell: (j) => <span className="text-gray-05">{j.created_by}</span> },
+    { header: "Created By", cell: (j) => (
+      <span className="inline-flex items-center gap-2">
+        <UserAvatar userId={j.created_by_id ?? undefined} name={j.created_by} className="size-6" fallbackClassName="text-[9px] font-semibold" />
+        <span className="text-gray-01">{j.created_by}</span>
+      </span>
+    ) },
   ];
 
   if (!entity) {

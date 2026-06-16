@@ -20,6 +20,7 @@ export interface JournalListItem {
   posted_at: string | null;
   total_debit: number;
   created_by: string;
+  created_by_id: number | null;
 }
 
 export interface JournalSummary {
@@ -40,6 +41,7 @@ export interface JournalLine extends JournalLineView {
   debit_naira: string;
   credit_naira: string;
   description: string | null;
+  cost_center: string | null;
 }
 
 /** JournalEntryDetailSerializer. */
