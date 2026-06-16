@@ -18,6 +18,14 @@ export interface JournalListItem {
   narration: string;
   reference: string;
   posted_at: string | null;
+  total_debit: number;
+  created_by: string;
+}
+
+export interface JournalSummary {
+  total: number;
+  by_status: Partial<Record<JournalStatus, number>>;
+  posted_total: { kobo: number; naira: string };
 }
 
 /** JournalLineSerializer (debit/credit are kobo). */
@@ -49,6 +57,7 @@ export interface JournalListParams {
   source?: JournalSource;
   date_from?: string;
   date_to?: string;
+  search?: string;
 }
 
 /** One Direct Entry line: an account code with a one-sided kobo amount. */

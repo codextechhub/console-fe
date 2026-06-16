@@ -14,13 +14,23 @@ import type {
   JournalDetail,
   JournalListItem,
   JournalListParams,
+  JournalSummary,
 } from "./gl-types";
+
+type SummaryParams = { entity: string; source?: string; date_from?: string; date_to?: string; search?: string };
 
 export const glApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getJournals: builder.query<PaginatedEnvelope<JournalListItem>, JournalListParams>({
       query: (params) => ({
         url: `/finance/journals/${generateQueryString(params as unknown as Record<string, string | number>)}`,
+        method: "GET",
+      }),
+      providesTags: ["FinanceJournals"],
+    }),
+    getJournalSummary: builder.query<ApiEnvelope<JournalSummary>, SummaryParams>({
+      query: (params) => ({
+        url: `/finance/journals/summary/${generateQueryString(params as unknown as Record<string, string | number>)}`,
         method: "GET",
       }),
       providesTags: ["FinanceJournals"],
@@ -52,6 +62,7 @@ export const glApi = baseApi.injectEndpoints({
 
 export const {
   useGetJournalsQuery,
+  useGetJournalSummaryQuery,
   useGetJournalQuery,
   useReverseJournalMutation,
   usePostDirectEntryMutation,

@@ -1,60 +1,87 @@
-// General Ledger (§6.2) — READ-ONLY journals list with filters, a detail drawer
-// (Dr/Cr lines), the Reverse action, and Direct Entry (the only raw-lines post).
-// There is deliberately no "create journal" form.
+// General Ledger / Journal Entries (§6.2) — design topology in the house theme:
+// status tabs with counts, source + period filters, search, a Total-Debit /
+// Created-By table, and a posted-total footer. Read-only list + detail drawer +
+// the Reverse action; Direct Entry is the only raw-lines post ("New journal").
 
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Info, Search } from "lucide-react";
 import { FinanceShell } from "../finance-shell";
-import { DataTable, StatusPill, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, Money, StatusPill, useActiveEntity, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useDebounce } from "@/hooks/use-debounce";
+import { cn } from "@/lib/utils";
+import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
-import { useGetJournalsQuery } from "@/redux/services/finance/gl-api";
+import { useGetJournalsQuery, useGetJournalSummaryQuery } from "@/redux/services/finance/gl-api";
 import type { JournalListItem, JournalSource, JournalStatus } from "@/redux/services/finance/gl-types";
 import { DirectEntryModal } from "./direct-entry-modal";
 import { JournalDetailDrawer } from "./journal-detail-drawer";
 
-const selectCls =
-  "h-10 rounded-md border bg-white px-3 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
-
-const STATUSES: JournalStatus[] = ["DRAFT", "POSTED", "REVERSED", "CANCELLED"];
+const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 const SOURCES: JournalSource[] = ["MANUAL", "SALES", "PURCHASE", "BANK", "PAYROLL", "CLOSING", "OPENING", "FX", "SYSTEM"];
+const STATUS_TABS: { key: JournalStatus; label: string }[] = [
+  { key: "DRAFT", label: "Drafts" },
+  { key: "PENDING_APPROVAL", label: "Pending" },
+  { key: "APPROVED", label: "Approved" },
+  { key: "POSTED", label: "Posted" },
+  { key: "REVERSED", label: "Reversed" },
+  { key: "CANCELLED", label: "Cancelled" },
+];
+const cap = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
+
+function presetRange(preset: string): { from: string; to: string } {
+  const now = new Date();
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  if (preset === "this-month") return { from: iso(new Date(now.getFullYear(), now.getMonth(), 1)), to: iso(new Date(now.getFullYear(), now.getMonth() + 1, 0)) };
+  if (preset === "last-month") return { from: iso(new Date(now.getFullYear(), now.getMonth() - 1, 1)), to: iso(new Date(now.getFullYear(), now.getMonth(), 0)) };
+  if (preset === "ytd") return { from: iso(new Date(now.getFullYear(), 0, 1)), to: iso(now) };
+  return { from: "", to: "" };
+}
 
 export default function GeneralLedgerPage() {
   const { code: entity, currency } = useActiveEntity();
   const [status, setStatus] = useState<JournalStatus | "">("");
   const [source, setSource] = useState<JournalSource | "">("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [preset, setPreset] = useState("all");
+  const [custom, setCustom] = useState({ from: "", to: "" });
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput.trim(), 350);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<number | null>(null);
   const [directOpen, setDirectOpen] = useState(false);
 
-  const params = useMemo(
-    () => ({
-      entity: entity!,
-      page,
-      ...(status ? { status } : {}),
-      ...(source ? { source } : {}),
-      ...(dateFrom ? { date_from: dateFrom } : {}),
-      ...(dateTo ? { date_to: dateTo } : {}),
-    }),
-    [entity, page, status, source, dateFrom, dateTo],
-  );
+  const range = preset === "custom" ? custom : presetRange(preset);
+  const filters = useMemo(() => ({
+    entity: entity!,
+    ...(source ? { source } : {}),
+    ...(range.from ? { date_from: range.from } : {}),
+    ...(range.to ? { date_to: range.to } : {}),
+    ...(search ? { search } : {}),
+  }), [entity, source, range.from, range.to, search]);
 
-  const { data, isLoading, isFetching, isError, refetch } = useGetJournalsQuery(params, { skip: !entity });
+  const { data, isLoading, isFetching, isError, refetch } = useGetJournalsQuery(
+    { ...filters, page, ...(status ? { status } : {}) }, { skip: !entity },
+  );
+  const summaryQ = useGetJournalSummaryQuery(filters, { skip: !entity });
+  const summary = summaryQ.data?.data;
   const rows = data?.data ?? [];
   const pg = data?.pagination;
 
+  const count = (key?: JournalStatus) => key ? (summary?.by_status?.[key] ?? 0) : (summary?.total ?? 0);
+
   const columns: Column<JournalListItem>[] = [
-    { header: "Document", cell: (j) => <span className="font-semibold">{j.document_number}</span> },
+    { header: "Journal No.", cell: (j) => <span className="font-semibold">{j.document_number}</span> },
     { header: "Date", cell: (j) => j.date },
     { header: "Period", cell: (j) => j.period ?? "—" },
-    { header: "Source", cell: (j) => j.source },
-    { header: "Narration", cell: (j) => <span className="block max-w-xs truncate text-gray-01">{j.narration || "—"}</span> },
+    { header: "Source", cell: (j) => cap(j.source) },
+    { header: "Reference", cell: (j) => <span className="block max-w-xs truncate text-gray-01">{j.narration || j.reference || "—"}</span> },
+    { header: "Total Debit", align: "right", cell: (j) => <Money kobo={j.total_debit} currency={currency} align="right" /> },
     { header: "Status", cell: (j) => <StatusPill status={j.status} /> },
+    { header: "Created By", cell: (j) => <span className="text-gray-05">{j.created_by}</span> },
   ];
 
   if (!entity) {
@@ -65,54 +92,85 @@ export default function GeneralLedgerPage() {
     );
   }
 
+  const tabBtn = (active: boolean) => cn(
+    "rounded-md px-3 py-1.5 font-mont text-xs font-semibold",
+    active ? "bg-primary text-white" : "text-gray-05 hover:bg-gray-50 hover:text-gray-01",
+  );
+
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <main className="min-w-0 space-y-4 px-4.5 py-6 text-black-01">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="font-mont text-lg font-semibold text-gray-01">General Ledger</h1>
-            <p className="mt-0.5 font-mont text-xs text-gray-05">Posted journals are read-only. Use Direct Entry for opening balances and adjustments.</p>
+            <div className="flex items-center gap-1.5">
+              <h1 className="font-mont text-lg font-semibold text-gray-01">Journal Entries</h1>
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" aria-label="About journal entries" className="flex size-4 items-center justify-center text-gray-05 hover:text-gray-01"><Info className="size-4" /></button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs font-mont text-xs leading-relaxed">
+                    Every journal must balance: total debits = total credits. Most come from subsystems automatically (invoices, payroll, bank); the Manual source is for adjustments, accruals and corrections. Posted journals are read-only.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="mt-0.5 font-mont text-xs text-gray-05">The general ledger — every financial mutation lands here as a balanced Dr/Cr posting.</p>
           </div>
           <Can permission={P.FIN_POST_DIRECT_ENTRY}>
-            <Button onClick={() => setDirectOpen(true)} className="gap-1.5">
-              <Plus className="size-4" /> Direct Entry
-            </Button>
+            <Button onClick={() => setDirectOpen(true)} className="gap-1.5"><Plus className="size-4" /> New journal</Button>
           </Can>
         </div>
 
+        {/* Status tabs with counts */}
+        <div className="flex flex-wrap items-center gap-1 rounded-md border border-gray-03 bg-white p-1">
+          <button onClick={() => { setStatus(""); setPage(1); }} className={tabBtn(status === "")}>All <span className="ml-1 opacity-70">{count()}</span></button>
+          {STATUS_TABS.map((t) => (
+            <button key={t.key} onClick={() => { setStatus(t.key); setPage(1); }} className={tabBtn(status === t.key)}>
+              {t.label} <span className="ml-1 opacity-70">{count(t.key)}</span>
+            </button>
+          ))}
+        </div>
+
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
-          <select value={status} onChange={(e) => { setStatus(e.target.value as JournalStatus | ""); setPage(1); }} className={selectCls} aria-label="Status">
-            <option value="">All statuses</option>
-            {STATUSES.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
-          </select>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
+            <Input value={searchInput} onChange={(e) => { setSearchInput(e.target.value); setPage(1); }} placeholder="Search journal no / reference" className="h-9 w-64 pl-8 font-mont text-sm" />
+          </div>
           <select value={source} onChange={(e) => { setSource(e.target.value as JournalSource | ""); setPage(1); }} className={selectCls} aria-label="Source">
             <option value="">All sources</option>
-            {SOURCES.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
+            {SOURCES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}
           </select>
-          <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} aria-label="From" className="h-10 w-40 bg-white" />
-          <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} aria-label="To" className="h-10 w-40 bg-white" />
-          {(status || source || dateFrom || dateTo) && (
-            <button onClick={() => { setStatus(""); setSource(""); setDateFrom(""); setDateTo(""); setPage(1); }} className="font-mont text-xs font-semibold text-gray-05 hover:text-primary">
-              Clear
-            </button>
+          <select value={preset} onChange={(e) => { setPreset(e.target.value); setPage(1); }} className={selectCls} aria-label="Period">
+            <option value="all">All time</option>
+            <option value="this-month">This month</option>
+            <option value="last-month">Last month</option>
+            <option value="ytd">Year to date</option>
+            <option value="custom">Custom range</option>
+          </select>
+          {preset === "custom" && (
+            <>
+              <Input type="date" value={custom.from} onChange={(e) => { setCustom((c) => ({ ...c, from: e.target.value })); setPage(1); }} aria-label="From" className="h-9 w-36 bg-white" />
+              <Input type="date" value={custom.to} onChange={(e) => { setCustom((c) => ({ ...c, to: e.target.value })); setPage(1); }} aria-label="To" className="h-9 w-36 bg-white" />
+            </>
           )}
         </div>
 
         <DataTable
-          columns={columns}
-          rows={rows}
-          rowKey={(j) => j.id}
-          loading={isLoading || isFetching}
-          error={isError}
-          onRetry={refetch}
+          columns={columns} rows={rows} rowKey={(j) => j.id}
+          loading={isLoading || isFetching} error={isError} onRetry={refetch}
           onRowClick={(j) => setSelected(j.id)}
-          emptyTitle="No journals"
-          emptyMessage="No journal entries match these filters."
-          page={pg?.currentPage}
-          totalPages={pg?.totalPages}
-          onPageChange={setPage}
+          emptyTitle="No journals" emptyMessage="No journal entries match these filters."
+          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         />
+
+        {summary && (
+          <div className="flex items-center justify-between rounded-md bg-white px-4 py-2.5 font-mont text-xs text-gray-05">
+            <span>{summary.total} entries</span>
+            <span>Posted total: <span className="font-semibold text-black-01">{formatMoney(summary.posted_total.kobo, currency)}</span></span>
+          </div>
+        )}
       </main>
 
       <DirectEntryModal open={directOpen} onClose={() => setDirectOpen(false)} entity={entity} currency={currency} />
