@@ -16,15 +16,15 @@ import {
 import { NavMain } from "@/components/nav-main";
 import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routes-path";
-import type { ConsoleNavItem } from "./console-nav";
+import type { ConsoleNavGroup, ConsoleNavItem } from "./console-nav";
 
-export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavItem[] }) {
+export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavGroup[] }) {
   const location = useLocation().pathname;
   const { hasModuleAccess } = usePermissions();
 
   const childVisible = (prefixes?: string[]) => !prefixes?.length || hasModuleAccess(...prefixes);
 
-  const items = nav.flatMap((item) => {
+  const mapItems = (navItems: ConsoleNavItem[]) => navItems.flatMap((item) => {
     const kids = (item.children ?? []).filter((c) => childVisible(c.prefixes));
     // A parent shows if it has visible children, or (no children) its own keys pass.
     const visible = item.children?.length
@@ -57,6 +57,11 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavI
     }];
   });
 
+  // Build each visible group: its label + mapped items (drop empty groups).
+  const groups = nav
+    .map((g) => ({ label: g.label, items: mapItems(g.items) }))
+    .filter((g) => g.items.length > 0);
+
   const backItem = {
     title: "Back to Home",
     url: routesPath.PROTECTED.OVERVIEW.INDEX,
@@ -65,8 +70,10 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavI
     childActive: false,
   };
 
+  const groupLabelCls = "px-4 pb-1 pt-3 font-mont text-[10px] font-semibold uppercase tracking-wide text-gray-05 group-data-[collapsible=icon]:hidden";
+
   return (
-    <Sidebar className="bg-white" collapsible="icon">
+    <Sidebar className="bg-white console-geist" collapsible="icon">
       <SidebarHeader className="bg-white">
         <SidebarMenu>
           <SidebarMenuItem className="mt-2">
@@ -78,10 +85,13 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavI
       </SidebarHeader>
       <SidebarContent className="bg-white pt-3 pb-6">
         <NavMain items={[backItem]} />
-        <p className="px-4 pb-1 pt-1 font-mont text-[10px] font-semibold uppercase tracking-wide text-gray-05 group-data-[collapsible=icon]:hidden">
-          {title}
-        </p>
-        <NavMain items={items} />
+        <p className={groupLabelCls}>{title}</p>
+        {groups.map((g, i) => (
+          <div key={g.label ?? `g${i}`}>
+            {g.label && <p className={groupLabelCls}>{g.label}</p>}
+            <NavMain items={g.items} />
+          </div>
+        ))}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

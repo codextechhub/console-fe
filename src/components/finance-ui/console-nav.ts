@@ -18,3 +18,11 @@ export interface ConsoleNavItem {
   prefixes?: string[];
   children?: ConsoleNavChild[];
 }
+
+// A labelled section of the console sidebar (the design groups items under
+// headings like "Ledger & Setup" / "Receivables"). An omitted `label` renders the
+// items with no heading (e.g. a pinned Dashboard above the first group).
+export interface ConsoleNavGroup {
+  label?: string;
+  items: ConsoleNavItem[];
+}

@@ -1,69 +1,76 @@
-// Procurement console sidebar menu (§7). The P2P chain stays as ordered plain
-// links; multi-screen areas (vendors, sourcing, inventory, analytics, payouts)
-// are expand-only parents with child routes.
+// Procurement console sidebar (§7) — grouped into labelled sections like the
+// design (Procure to Pay / Vendors & Catalog / Sourcing / Inventory / Analytics /
+// Payments). Flat leaves, each a real route; gated by backend key prefixes.
 
 import {
-  LayoutDashboard, Store, FileText, ShoppingCart, PackageCheck,
-  ReceiptText, Banknote, Send, FileSignature, Boxes, BarChart3, ClipboardCheck,
+  LayoutDashboard, FileText, ShoppingCart, PackageCheck, ReceiptText, Banknote,
+  ClipboardCheck, Store, Tags, Package, Send, FileSignature, Boxes, ArrowLeftRight,
+  BarChart3, Scale, TrendingUp, Layers, ScrollText,
 } from "lucide-react";
-import type { ConsoleNavItem } from "@/components/finance-ui/console-nav";
+import type { ConsoleNavGroup } from "@/components/finance-ui/console-nav";
 import { routesPath } from "@/routes/routes-path";
 
 const P = routesPath.PROTECTED.PROCUREMENT;
 
-export const procurementNav: ConsoleNavItem[] = [
-  { title: "Dashboard", url: P.INDEX, icon: LayoutDashboard },
+export const procurementNav: ConsoleNavGroup[] = [
+  { items: [{ title: "Dashboard", url: P.INDEX, icon: LayoutDashboard }] },
+
   {
-    title: "Vendors & Catalog", url: P.VENDORS, icon: Store,
-    prefixes: ["procurement.vendor.", "procurement.catalog_item.", "procurement.category."],
-    children: [
-      { title: "Vendors", url: `${P.VENDORS}/vendors`, prefixes: ["procurement.vendor."] },
-      { title: "Categories", url: `${P.VENDORS}/categories`, prefixes: ["procurement.category."] },
-      { title: "Catalog", url: `${P.VENDORS}/catalog`, prefixes: ["procurement.catalog_item."] },
+    label: "Procure to Pay",
+    items: [
+      { title: "Requisitions", url: P.REQUISITIONS, icon: FileText, prefixes: ["procurement.requisition."] },
+      { title: "Purchase Orders", url: P.PURCHASE_ORDERS, icon: ShoppingCart, prefixes: ["procurement.purchase_order."] },
+      { title: "Goods Receipts", url: P.GOODS_RECEIPTS, icon: PackageCheck, prefixes: ["procurement.goods_receipt."] },
+      { title: "Vendor Invoices", url: P.VENDOR_INVOICES, icon: ReceiptText, prefixes: ["procurement.vendor_invoice."] },
+      { title: "Vendor Payments", url: P.VENDOR_PAYMENTS, icon: Banknote, prefixes: ["procurement.vendor_payment."] },
+      // Approvals live in the Workflow module — links out to its queue.
+      { title: "Approvals", url: routesPath.PROTECTED.WORKFLOW.APPROVALS, icon: ClipboardCheck, prefixes: ["procurement.approval."] },
     ],
   },
-  { title: "Requisitions", url: P.REQUISITIONS, icon: FileText, prefixes: ["procurement.requisition."] },
-  { title: "Purchase Orders", url: P.PURCHASE_ORDERS, icon: ShoppingCart, prefixes: ["procurement.purchase_order."] },
-  { title: "Goods Receipts", url: P.GOODS_RECEIPTS, icon: PackageCheck, prefixes: ["procurement.goods_receipt."] },
-  { title: "Vendor Invoices", url: P.VENDOR_INVOICES, icon: ReceiptText, prefixes: ["procurement.vendor_invoice."] },
-  { title: "Vendor Payments", url: P.VENDOR_PAYMENTS, icon: Banknote, prefixes: ["procurement.vendor_payment."] },
-  // Approvals live in the Workflow module — link out to its queue.
-  { title: "Approvals", url: routesPath.PROTECTED.WORKFLOW.APPROVALS, icon: ClipboardCheck, prefixes: ["procurement.approval."] },
+
   {
-    title: "Sourcing", url: P.SOURCING, icon: Send,
-    prefixes: ["procurement.rfq.", "procurement.quotation."],
-    children: [
-      { title: "RFQs", url: `${P.SOURCING}/rfqs`, prefixes: ["procurement.rfq."] },
-      { title: "Quotations", url: `${P.SOURCING}/quotations`, prefixes: ["procurement.quotation."] },
+    label: "Vendors & Catalog",
+    items: [
+      { title: "Vendors", url: `${P.VENDORS}/vendors`, icon: Store, prefixes: ["procurement.vendor."] },
+      { title: "Categories", url: `${P.VENDORS}/categories`, icon: Tags, prefixes: ["procurement.category."] },
+      { title: "Catalog", url: `${P.VENDORS}/catalog`, icon: Package, prefixes: ["procurement.catalog_item."] },
     ],
   },
-  { title: "Contracts", url: P.CONTRACTS, icon: FileSignature, prefixes: ["procurement.contract."] },
+
   {
-    title: "Inventory", url: P.INVENTORY, icon: Boxes,
-    prefixes: ["procurement.stock."],
-    children: [
-      { title: "Stock Items", url: `${P.INVENTORY}/items`, prefixes: ["procurement.stock."] },
-      { title: "Movements", url: `${P.INVENTORY}/movements`, prefixes: ["procurement.stock."] },
+    label: "Sourcing",
+    items: [
+      { title: "RFQs", url: `${P.SOURCING}/rfqs`, icon: Send, prefixes: ["procurement.rfq."] },
+      { title: "Quotations", url: `${P.SOURCING}/quotations`, icon: FileText, prefixes: ["procurement.quotation."] },
+      { title: "Contracts", url: P.CONTRACTS, icon: FileSignature, prefixes: ["procurement.contract."] },
     ],
   },
+
   {
-    title: "Analytics", url: P.ANALYTICS, icon: BarChart3,
-    prefixes: ["procurement.report."],
-    children: [
-      { title: "AP Aging", url: `${P.ANALYTICS}/ap-aging`, prefixes: ["procurement.report."] },
-      { title: "GR/IR & Control", url: `${P.ANALYTICS}/grir`, prefixes: ["procurement.report."] },
-      { title: "Spend", url: `${P.ANALYTICS}/spend`, prefixes: ["procurement.report."] },
-      { title: "Vendor Performance", url: `${P.ANALYTICS}/performance`, prefixes: ["procurement.report."] },
+    label: "Inventory",
+    items: [
+      { title: "Stock Items", url: `${P.INVENTORY}/items`, icon: Boxes, prefixes: ["procurement.stock."] },
+      { title: "Movements", url: `${P.INVENTORY}/movements`, icon: ArrowLeftRight, prefixes: ["procurement.stock."] },
     ],
   },
+
   {
-    title: "Payouts", url: P.PAYOUTS, icon: Send,
-    prefixes: ["payments.payout.", "payments.report."],
-    children: [
-      { title: "Payouts", url: `${P.PAYOUTS}/payouts`, prefixes: ["payments.payout."] },
-      { title: "Batches", url: `${P.PAYOUTS}/batches`, prefixes: ["payments.payout."] },
-      { title: "Settlement", url: `${P.PAYOUTS}/settlement`, prefixes: ["payments.report."] },
-      { title: "Transactions Log", url: `${P.PAYOUTS}/transactions`, prefixes: ["payments.report."] },
+    label: "Analytics",
+    items: [
+      { title: "AP Aging", url: `${P.ANALYTICS}/ap-aging`, icon: BarChart3, prefixes: ["procurement.report."] },
+      { title: "GR/IR & Control", url: `${P.ANALYTICS}/grir`, icon: Scale, prefixes: ["procurement.report."] },
+      { title: "Spend", url: `${P.ANALYTICS}/spend`, icon: BarChart3, prefixes: ["procurement.report."] },
+      { title: "Vendor Performance", url: `${P.ANALYTICS}/performance`, icon: TrendingUp, prefixes: ["procurement.report."] },
+    ],
+  },
+
+  {
+    label: "Payments",
+    items: [
+      { title: "Payouts", url: `${P.PAYOUTS}/payouts`, icon: Send, prefixes: ["payments.payout."] },
+      { title: "Batches", url: `${P.PAYOUTS}/batches`, icon: Layers, prefixes: ["payments.payout."] },
+      { title: "Settlement", url: `${P.PAYOUTS}/settlement`, icon: ArrowLeftRight, prefixes: ["payments.report."] },
+      { title: "Transactions Log", url: `${P.PAYOUTS}/transactions`, icon: ScrollText, prefixes: ["payments.report."] },
     ],
   },
 ];
