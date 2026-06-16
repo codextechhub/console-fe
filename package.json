@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
+    "@fontsource-variable/geist": "^5.2.9",
+    "@fontsource-variable/geist-mono": "^5.2.8",
     "@fontsource-variable/outfit": "^5.2.8",
     "@fontsource/montserrat": "^5.2.8",
     "@fontsource/outfit": "^5.2.8",

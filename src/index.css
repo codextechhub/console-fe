@@ -53,6 +53,8 @@
 
 @theme inline {
   --font-mont: 'Montserrat', system-ui, Helvetica, sans-serif;
+  --font-geist: 'Geist Variable', 'Montserrat', system-ui, sans-serif;
+  --font-geist-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -269,4 +271,17 @@
 }
 .org-chart > ul > li {
   padding-top: 0;
+}
+
+/* Geist typeface, scoped to the Finance & Procurement consoles (`.console-geist`
+   wraps the ConsoleShell). Text → Geist Sans (override the explicit `font-mont`
+   class our components carry); figures → Geist Mono. The .tabular-nums rule comes
+   last so money/codes (which carry both classes) resolve to mono. */
+.console-geist,
+.console-geist .font-mont {
+  font-family: var(--font-geist);
+}
+.console-geist .tabular-nums {
+  font-family: var(--font-geist-mono);
+  font-variant-numeric: tabular-nums;
 }
