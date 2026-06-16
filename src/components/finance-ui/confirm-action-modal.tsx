@@ -44,7 +44,7 @@ export function ConfirmActionModal({
 }: ConfirmActionModalProps) {
   return (
     <Dialog open={open} onOpenChange={(o) => !loading && onOpenChange(o)}>
-      <DialogContent className="max-h-[92dvh] gap-0 overflow-y-auto sm:max-w-lg">
+      <DialogContent className="console-geist max-h-[92dvh] gap-0 overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-mont text-base font-semibold text-black-01">{title}</DialogTitle>
           {description ? (

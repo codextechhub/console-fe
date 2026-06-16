@@ -33,7 +33,10 @@ export function DetailDrawer({
 }: DetailDrawerProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className={cn("flex w-full flex-col gap-0 p-0", widthClass)}>
+      {/* `console-geist` because the Sheet portals to <body>, outside the console
+          wrapper — without it the drawer would fall back to the app's Montserrat
+          while the page behind is Geist. */}
+      <SheetContent className={cn("console-geist flex w-full flex-col gap-0 p-0", widthClass)}>
         <SheetHeader className="border-b border-gray-03 px-5 py-4">
           <SheetTitle className="font-mont text-base font-semibold text-black-01">{title}</SheetTitle>
           {description ? (
