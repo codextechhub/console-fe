@@ -75,6 +75,10 @@ export const setupApi = baseApi.injectEndpoints({
       query: () => ({ url: `/finance/fx-rates/`, method: "GET" }),
       providesTags: ["FinanceSetup"],
     }),
+    createFxRate: b.mutation<ApiEnvelope<FxRate>, { base: string; quote: string; rate: string; as_of: string; source?: string }>({
+      query: (body) => ({ url: `/finance/fx-rates/`, method: "POST", body }),
+      invalidatesTags: ["FinanceSetup"],
+    }),
     getAuditLog: b.query<PaginatedEnvelope<FinanceAuditLog>, { entity: string; page?: number; action?: string }>({
       query: (p) => ({ url: `/finance/audit-logs/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceAuditLog"],
@@ -92,6 +96,7 @@ export const {
   useGetPeriodChecklistQuery,
   useClosePeriodMutation,
   useGetCurrenciesQuery,
+  useCreateFxRateMutation,
   useGetTaxCodesQuery,
   useGetCostCentersQuery,
   useGetFxRatesQuery,
