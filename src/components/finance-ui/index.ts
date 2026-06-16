@@ -25,6 +25,6 @@ export {
 // KpiCard already exists app-wide; re-export so finance pages import from one place.
 export { default as KpiCard } from "@/components/custom/kpi-card";
 export { TeachingNote } from "./teaching-note";
-export { BarChart, Donut, StatStrip, WorkflowStrip, CHART_COLORS, type BarDatum, type DonutDatum } from "./charts";
+export { BarChart, Donut, StatStrip, WorkflowStrip, Sparkline, BudgetBar, AgingStack, TrendArea, CHART_COLORS, type BarDatum, type DonutDatum, type AgingDatum } from "./charts";
 // Coerce an endpoint's `data` to an array (backend sends `{}` for an empty list).
 export { toArray } from "@/redux/services/finance/api-types";

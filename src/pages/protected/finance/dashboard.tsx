@@ -1,176 +1,393 @@
-// Finance dashboard (§6.0). Headline KPIs from the income statement + AR aging,
-// the trial-balance health check, and the most recent journals — all scoped to
-// the selected entity. Cards/tables only; every write lives in its own area.
+// Finance overview (§6.0) — the executive landing screen. Topology ported from
+// the Crestfield Vision design (KPI strip → revenue-vs-budget + aging → trend →
+// overdue/vendor-due → approvals + close → quick actions → recent journals),
+// rendered entirely in the house theme. Every figure is real: one aggregated
+// call to /finance/reports/dashboard/ computes it live from the GL.
 
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
+import {
+  ArrowUpRight, Check, Plus, FileText, Receipt, ShoppingCart, BarChart3, Info,
+  TrendingUp, TrendingDown,
+} from "lucide-react";
 import { FinanceShell } from "./finance-shell";
-import { KpiCard, Money, StatusPill, TeachingNote, BarChart, Donut, CHART_COLORS, useActiveEntity } from "@/components/finance-ui";
+import {
+  Money, StatusPill, Sparkline, BudgetBar, AgingStack, TrendArea,
+  CHART_COLORS, useActiveEntity, type AgingDatum,
+} from "@/components/finance-ui";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { useCan } from "@/components/finance-ui/can";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
-import { Check, TriangleAlert } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
-import { useGetArAgingQuery, useGetIncomeStatementQuery, useGetTrialBalanceQuery } from "@/redux/services/finance/reports-api";
-import { useGetJournalsQuery } from "@/redux/services/finance/gl-api";
+import { useGetFinanceDashboardQuery } from "@/redux/services/finance/reports-api";
+import { useGetPeriodsQuery } from "@/redux/services/finance/setup-api";
+import type { DashboardKpi, FinanceDashboard, ReportMoney } from "@/redux/services/finance/reports-types";
 
+/** "2026-06-16" → "16 Jun 2026" (the design's as-of format). */
+function fmtDate(iso?: string) {
+  if (!iso) return "";
+  const d = new Date(`${iso}T00:00:00`);
+  return isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+const F = routesPath.PROTECTED.FINANCE;
 const headCls = "text-gray-01 bg-[#F1F1F1] font-semibold font-mont text-xs whitespace-nowrap pt-3 pb-2";
 const cellCls = "text-black-01 border-gray-03 font-medium font-mont text-sm border-y-5";
+
+// ── small building blocks ────────────────────────────────────────────────────
+
+function Card({ title, subtitle, action, className, children }: {
+  title?: string; subtitle?: string; action?: React.ReactNode; className?: string; children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("rounded-md bg-white p-5", className)}>
+      {(title || action) && (
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            {title && <p className="font-mont text-sm font-semibold text-gray-01">{title}</p>}
+            {subtitle && <p className="mt-0.5 font-mont text-xs text-gray-05">{subtitle}</p>}
+          </div>
+          {action}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+function Delta({ pct }: { pct: number | null }) {
+  if (pct == null) return <span className="font-mont text-xs text-gray-05">—</span>;
+  const up = pct >= 0;
+  const Icon = up ? TrendingUp : TrendingDown;
+  return (
+    <span className={cn("inline-flex items-center gap-0.5 font-mont text-xs font-semibold", up ? "text-green-01" : "text-destructive")}>
+      <Icon className="size-3.5" />{up ? "+" : ""}{pct}%
+    </span>
+  );
+}
+
+function StatCard({ label, kpi, currency, color }: { label: string; kpi: DashboardKpi; currency?: string | null; color: string }) {
+  return (
+    <div className="rounded-md bg-white p-4">
+      <p className="font-mont text-xs text-gray-05">{label}</p>
+      <div className="mt-1 flex items-end justify-between gap-2">
+        <p className="font-mont text-xl font-semibold text-black-01 tabular-nums">{formatMoney(kpi.value.kobo, currency)}</p>
+        <Sparkline data={kpi.spark} color={color} />
+      </div>
+      <div className="mt-1.5 flex items-center gap-1.5">
+        <Delta pct={kpi.delta_pct} />
+        <span className="font-mont text-[11px] text-gray-05">vs prior month</span>
+      </div>
+    </div>
+  );
+}
+
+function Initials({ name }: { name: string }) {
+  const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
+  return (
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[11px] font-semibold text-primary">
+      {init || "—"}
+    </span>
+  );
+}
+
+function LinkAction({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="inline-flex items-center gap-0.5 font-mont text-xs font-semibold text-primary hover:underline">
+      {label} <ArrowUpRight className="size-3.5" />
+    </button>
+  );
+}
+
+const AGING_META: Record<string, { label: string; color: string }> = {
+  current: { label: "Current", color: CHART_COLORS.green },
+  "1-30": { label: "1–30d", color: CHART_COLORS.primary },
+  "31-60": { label: "31–60d", color: CHART_COLORS.amber },
+  "61-90": { label: "61–90d", color: "#ea580c" },
+  "90+": { label: "90d+", color: CHART_COLORS.red },
+};
+
+// ── page ─────────────────────────────────────────────────────────────────────
 
 export default function FinanceDashboard() {
   const navigate = useNavigate();
   const { code: entity, currency } = useActiveEntity();
   const { can } = useCan();
   const canReports = can(P.FIN_VIEW_REPORTS);
-  const canJournals = can(P.FIN_VIEW_JOURNALS);
-  const skip = !entity;
+  const [granularity, setGranularity] = useState<"monthly" | "quarterly">("monthly");
+  // Period numbers are per-entity, so a selection only applies to the entity it was
+  // made on — we tag it with that entity and derive "" (current) for any other, so
+  // switching entities never sends a stale period (which would 404). No effect needed.
+  const [picked, setPicked] = useState<{ entity: string; period: string }>({ entity: "", period: "" });
 
-  const pnl = useGetIncomeStatementQuery({ entity: entity! }, { skip: skip || !canReports });
-  const tb = useGetTrialBalanceQuery({ entity: entity! }, { skip: skip || !canReports });
-  const aging = useGetArAgingQuery({ entity: entity! }, { skip: skip || !canReports });
-  const journals = useGetJournalsQuery({ entity: entity!, page: 1 }, { skip: skip || !canJournals });
+  const periodsQ = useGetPeriodsQuery({ entity: entity! }, { skip: !entity || !canReports });
+  const periods = periodsQ.data?.data ?? [];
 
-  const p = pnl.data?.data;
-  const balanced = tb.data?.data?.is_balanced;
-  const arOutstanding = aging.data?.data?.total_net.kobo ?? 0;
-  const recent = (journals.data?.data ?? []).slice(0, 6);
+  const period = picked.entity === entity ? picked.period : ""; // "" = current period (as-of today)
+  const periodValid = period !== "" && periods.some((p) => String(p.period_no) === period);
+  const { data, isLoading, isError, refetch } = useGetFinanceDashboardQuery(
+    { entity: entity!, ...(periodValid ? { period } : {}) }, { skip: !entity || !canReports },
+  );
+  const d = data?.data as FinanceDashboard | undefined;
+  const m = (x: ReportMoney) => formatMoney(x.kobo, currency);
+
+  const trend = useMemo(() => {
+    if (!d) return { labels: [] as string[], issued: [] as number[], collected: [] as number[] };
+    if (granularity === "monthly") return d.trend;
+    // Fold 12 months → 4 quarters (sum of each 3), labelled by the last month.
+    const fold = (arr: number[]) => Array.from({ length: Math.ceil(arr.length / 3) }, (_, q) =>
+      arr.slice(q * 3, q * 3 + 3).reduce((s, v) => s + v, 0));
+    const labels = d.trend.labels.filter((_, i) => i % 3 === 2);
+    return { labels, issued: fold(d.trend.issued), collected: fold(d.trend.collected) };
+  }, [d, granularity]);
 
   return (
     <FinanceShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">Finance Dashboard</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">
-            Position and recent activity for the selected entity.
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h1 className="font-mont text-lg font-semibold text-gray-01">Finance overview</h1>
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" aria-label="About this screen" className="flex size-4 items-center justify-center text-gray-05 hover:text-gray-01">
+                      <Info className="size-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs font-mont text-xs leading-relaxed">
+                    The executive view of this entity’s finances — every number is computed live from the general ledger and drills into its area from the sidebar. Figures reflect the selected period.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <p className="mt-0.5 font-mont text-xs text-gray-05">
+              {d?.fiscal_year ?? "—"}
+              {d?.period ? ` · Period: ${d.period}` : ""}
+              {d?.as_of ? ` · As of ${fmtDate(d.as_of)}` : ""}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {periods.length > 0 && (
+              <select value={period} onChange={(e) => setPicked({ entity: entity!, period: e.target.value })}
+                className="h-8 rounded-md border border-gray-03 bg-white px-2 font-mont text-xs font-medium text-gray-01">
+                <option value="">Current period</option>
+                {periods.map((p) => (
+                  <option key={p.id} value={p.period_no}>{p.name}</option>
+                ))}
+              </select>
+            )}
+            <button onClick={() => navigate(F.LEDGER)} className="inline-flex items-center gap-1.5 rounded-md border border-gray-03 bg-white px-3 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:bg-gray-50">
+              <FileText className="size-3.5" /> New journal
+            </button>
+            <button onClick={() => navigate(F.COLLECTIONS)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 font-mont text-xs font-semibold text-white hover:bg-primary/90">
+              <Plus className="size-3.5" /> Record payment
+            </button>
+          </div>
         </div>
-
-        <TeachingNote id="finance-dashboard">
-          The executive view of this entity's finances — every figure is computed live from the general ledger. KPIs and charts reflect the selected period; drill into each area from the sidebar.
-        </TeachingNote>
 
         {!entity ? (
           <EmptyState title="Select an entity" message="Choose a ledger entity to see its finances." />
         ) : !canReports ? (
           <EmptyState title="No report access" message="You don’t hold finance.report.view for this console." />
+        ) : isLoading ? (
+          <LoadingState rows={8} />
+        ) : isError || !d ? (
+          <ErrorState onRetry={refetch} />
         ) : (
           <>
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-              <KpiCard label="Income (period)" value={formatMoney(p?.total_income.kobo ?? 0, currency)} help="Total income recognised in the period (income-statement)." />
-              <KpiCard label="Expense (period)" value={formatMoney(p?.total_expense.kobo ?? 0, currency)} help="Total expense recognised in the period." />
-              <KpiCard
-                label="Net surplus (period)"
-                value={formatMoney(p?.net_income.kobo ?? 0, currency)}
-                tone={(p?.net_income.kobo ?? 0) < 0 ? "alert" : "default"}
-                help="Income less expense for the period; closes to retained earnings at year-end."
-              />
-              <KpiCard label="AR outstanding" value={formatMoney(arOutstanding, currency)} help="Net receivable across all customers (AR aging, net of unallocated credit)." />
+            {/* KPI strip */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <StatCard label="Cash position" kpi={d.kpis.cash_position} currency={currency} color={CHART_COLORS.green} />
+              <StatCard label="Outstanding receivables" kpi={d.kpis.receivables} currency={currency} color={CHART_COLORS.primary} />
+              <StatCard label="Outstanding payables" kpi={d.kpis.payables} currency={currency} color={CHART_COLORS.amber} />
+              <StatCard label="Net income YTD" kpi={d.kpis.net_income_ytd} currency={currency} color={CHART_COLORS.violet} />
             </div>
 
-            {/* Charts — real data from income statement + AR aging */}
+            {/* Revenue vs Budget + AR Aging */}
             <div className="grid gap-5 lg:grid-cols-2">
-              <div className="rounded-md bg-white p-5">
-                <p className="mb-3 font-mont text-sm font-semibold text-gray-01">Income vs Expense</p>
-                <Donut
-                  data={[
-                    { label: "Income", value: p?.total_income.kobo ?? 0, color: CHART_COLORS.green },
-                    { label: "Expense", value: p?.total_expense.kobo ?? 0, color: CHART_COLORS.red },
-                  ]}
-                  center={{ main: formatMoney(p?.net_income.kobo ?? 0, currency), sub: "Net" }}
-                />
-              </div>
-              <div className="rounded-md bg-white p-5">
-                <p className="mb-1 font-mont text-sm font-semibold text-gray-01">AR aging</p>
-                <p className="mb-2 font-mont text-xs text-gray-05">Outstanding receivable by age bucket.</p>
-                <BarChart
-                  data={Object.entries(aging.data?.data?.bucket_totals ?? {}).map(([label, m]) => ({ label, value: m.kobo }))}
-                  color={CHART_COLORS.amber}
-                  format={(v) => formatMoney(v, currency)}
-                />
-              </div>
-            </div>
-          </>
-        )}
+              <Card title="Revenue vs Budget" subtitle={d.revenue_vs_budget.has_budget ? `${d.revenue_vs_budget.budget_name} · YTD performance` : "YTD · no approved budget set"}>
+                <div className="space-y-4">
+                  <BudgetBar label="Revenue YTD" pct={d.revenue_vs_budget.revenue.pct_of_plan}
+                    valueText={m(d.revenue_vs_budget.revenue.actual)} planText={m(d.revenue_vs_budget.revenue.plan)} color={CHART_COLORS.green} />
+                  <BudgetBar label="Expense YTD" pct={d.revenue_vs_budget.expense.pct_of_plan}
+                    valueText={m(d.revenue_vs_budget.expense.actual)} planText={m(d.revenue_vs_budget.expense.plan)}
+                    color={(d.revenue_vs_budget.expense.pct_of_plan ?? 0) > 100 ? CHART_COLORS.red : CHART_COLORS.primary} />
+                  <div className="flex items-center justify-between border-t border-gray-03 pt-3 font-mont">
+                    <span className="text-sm font-medium text-gray-01">Net income YTD vs budget</span>
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-black-01 tabular-nums">{m(d.revenue_vs_budget.net.actual)}</span>
+                      <Delta pct={d.revenue_vs_budget.net.delta_pct} />
+                    </span>
+                  </div>
+                </div>
+              </Card>
 
-        {/* Trial-balance health */}
-        {entity && canReports && tb.data && (
-          <div className="flex items-center gap-2 rounded-md bg-white px-4 py-3 font-mont text-sm">
-            {balanced ? (
-              <span className="inline-flex items-center gap-1.5 font-semibold text-green-01">
-                <Check className="size-4" /> Trial balance is balanced
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 font-semibold text-destructive">
-                <TriangleAlert className="size-4" /> Trial balance is out of balance
-              </span>
-            )}
-            <span className="ml-auto text-gray-05">
-              Debit <Money kobo={tb.data.data.total_debit.kobo} currency={currency} className="ml-1 font-semibold text-black-01" />
-            </span>
-            <span className="text-gray-05">
-              Credit <Money kobo={tb.data.data.total_credit.kobo} currency={currency} className="ml-1 font-semibold text-black-01" />
-            </span>
-          </div>
-        )}
-
-        {/* Recent journals */}
-        {entity && canJournals && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="font-mont text-sm font-semibold text-gray-01">Recent journals</p>
-              <button
-                onClick={() => navigate(routesPath.PROTECTED.FINANCE.LEDGER)}
-                className="font-mont text-xs font-semibold text-primary hover:underline"
-              >
-                View all
-              </button>
+              <Card title="AR Aging" subtitle="Outstanding receivable by age bucket"
+                action={<LinkAction label="Details" onClick={() => navigate(`${F.RECEIVABLES}/invoices`)} />}>
+                <AgingStack buckets={d.ar_aging.buckets.map<AgingDatum>((b) => ({
+                  key: b.key, label: AGING_META[b.key]?.label ?? b.key, pct: b.pct,
+                  amount: <Money kobo={b.amount.kobo} currency={currency} />, color: AGING_META[b.key]?.color ?? CHART_COLORS.slate,
+                }))} />
+                <div className="mt-3 flex items-center justify-between border-t border-gray-03 pt-3 font-mont text-sm">
+                  <span className="text-gray-05">Total outstanding</span>
+                  <span className="font-semibold text-black-01"><Money kobo={d.ar_aging.total.kobo} currency={currency} /></span>
+                </div>
+              </Card>
             </div>
-            <div className="rounded-md bg-white">
-              {journals.isLoading ? (
-                <LoadingState rows={4} />
-              ) : journals.isError ? (
-                <ErrorState onRetry={journals.refetch} />
-              ) : recent.length === 0 ? (
-                <EmptyState title="No journals yet" message="Posted journals will appear here." />
-              ) : (
-                <Table>
-                  <TableHeader className="border-0">
-                    <TableRow>
-                      <TableHead className={headCls}>Document</TableHead>
-                      <TableHead className={headCls}>Date</TableHead>
-                      <TableHead className={headCls}>Source</TableHead>
-                      <TableHead className={headCls}>Narration</TableHead>
-                      <TableHead className={headCls}>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recent.map((j) => (
-                      <TableRow
-                        key={j.id}
-                        className="cursor-pointer hover:bg-primary/5"
-                        onClick={() => navigate(routesPath.PROTECTED.FINANCE.LEDGER)}
-                      >
-                        <TableCell className={cn(cellCls, "font-semibold")}>{j.document_number}</TableCell>
-                        <TableCell className={cellCls}>{j.date}</TableCell>
-                        <TableCell className={cellCls}>{j.source}</TableCell>
-                        <TableCell className={cn(cellCls, "max-w-xs truncate text-gray-01")}>{j.narration || "—"}</TableCell>
-                        <TableCell className={cellCls}><StatusPill status={j.status} /></TableCell>
-                      </TableRow>
+
+            {/* Receivables vs Collections trend */}
+            <Card title="Receivables vs Collections" subtitle="Trailing 12 months"
+              action={
+                <div className="flex rounded-md border border-gray-03 p-0.5 font-mont text-xs">
+                  {(["monthly", "quarterly"] as const).map((g) => (
+                    <button key={g} onClick={() => setGranularity(g)}
+                      className={cn("rounded px-2.5 py-1 capitalize", granularity === g ? "bg-primary text-white" : "text-gray-05 hover:text-gray-01")}>
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              }>
+              <TrendArea labels={trend.labels} format={(v) => formatMoney(v, currency)}
+                series={[
+                  { name: "Receivable issued", data: trend.issued, color: CHART_COLORS.primary },
+                  { name: "Collected", data: trend.collected, color: CHART_COLORS.green },
+                ]} />
+            </Card>
+
+            {/* Overdue + vendor due */}
+            <div className="grid gap-5 lg:grid-cols-2">
+              <Card title="Top overdue invoices" subtitle="By outstanding balance"
+                action={<LinkAction label="All overdue" onClick={() => navigate(`${F.RECEIVABLES}/invoices`)} />}>
+                {d.top_overdue.length === 0 ? <EmptyState title="Nothing overdue" /> : (
+                  <div className="space-y-3">
+                    {d.top_overdue.map((o) => (
+                      <div key={o.reference} className="flex items-center gap-3">
+                        <Initials name={o.customer} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-mont text-sm font-semibold text-gray-01">{o.customer}</p>
+                          <p className="truncate font-mont text-xs text-gray-05">{o.reference} · {o.customer_code}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-mont text-sm font-semibold text-black-01 tabular-nums"><Money kobo={o.amount.kobo} currency={currency} /></p>
+                          <p className="font-mont text-xs text-destructive">{o.days_overdue} days</p>
+                        </div>
+                      </div>
                     ))}
-                  </TableBody>
-                </Table>
-              )}
+                  </div>
+                )}
+              </Card>
+
+              <Card title="Vendor invoices due this week" subtitle="Cash requirements: next 7 days"
+                action={<LinkAction label="All due" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS)} />}>
+                {d.vendor_due.length === 0 ? <EmptyState title="Nothing due this week" /> : (
+                  <div className="space-y-3">
+                    {d.vendor_due.map((v) => (
+                      <div key={v.reference} className="flex items-center gap-3">
+                        <Initials name={v.vendor} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-mont text-sm font-semibold text-gray-01">{v.vendor}</p>
+                          <p className="truncate font-mont text-xs text-gray-05">{v.reference} · Due {v.due_date}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-mont text-sm font-semibold text-black-01 tabular-nums"><Money kobo={v.amount.kobo} currency={currency} /></p>
+                          <p className="font-mont text-xs text-gray-05">{v.days_until}d</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
             </div>
-          </div>
+
+            {/* Approvals + close progress */}
+            <div className="grid gap-5 lg:grid-cols-2">
+              <Card title="Pending approvals" subtitle="Awaiting action across procurement">
+                {d.approvals.items.length === 0 ? <EmptyState title="Nothing pending" /> : (
+                  <div className="space-y-2">
+                    {d.approvals.items.map((a) => (
+                      <div key={a.label} className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2 font-mont text-sm">
+                        <span className="text-gray-01">{a.label}</span>
+                        <span className={cn("font-semibold tabular-nums", a.count > 0 ? "text-primary" : "text-gray-05")}>{a.count} pending</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+
+              <Card title="Period close progress" subtitle={d.close_progress ? `${d.close_progress.period} · ${d.close_progress.done} of ${d.close_progress.total} checks` : "No open period"}>
+                {!d.close_progress ? <EmptyState title="No open period" /> : (
+                  <div className="space-y-2">
+                    {d.close_progress.checks.map((c) => (
+                      <div key={c.name} className="flex items-center gap-2 font-mont text-sm">
+                        <span className={cn("flex size-4 items-center justify-center rounded-full", c.passed ? "bg-green-01 text-white" : "border border-gray-03")}>
+                          {c.passed && <Check className="size-3" />}
+                        </span>
+                        <span className={cn(c.passed ? "text-gray-01" : "text-gray-05")}>{c.name.replace(/_/g, " ")}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            {/* Quick actions */}
+            <Card title="Quick actions" subtitle="Common finance tasks">
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "Manual journal entry", icon: FileText, to: F.LEDGER },
+                  { label: "Generate invoices", icon: Receipt, to: `${F.RECEIVABLES}/fee-structures` },
+                  { label: "Record payment", icon: Plus, to: F.COLLECTIONS },
+                  { label: "Create PO", icon: ShoppingCart, to: routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS },
+                  { label: "Run report", icon: BarChart3, to: `${F.REPORTS}/trial-balance` },
+                ].map((q) => (
+                  <button key={q.label} onClick={() => navigate(q.to)}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-gray-03 bg-white px-3 py-2 font-mont text-xs font-medium text-gray-01 hover:bg-gray-50">
+                    <q.icon className="size-3.5 text-gray-05" /> {q.label}
+                  </button>
+                ))}
+              </div>
+            </Card>
+
+            {/* Recent journal activity */}
+            <Card title="Recent journal activity" subtitle="Last 5 entries · all sources"
+              action={<LinkAction label="Open ledger" onClick={() => navigate(F.LEDGER)} />}>
+              {d.recent_journals.length === 0 ? <EmptyState title="No journals yet" message="Posted journals will appear here." /> : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="border-0">
+                      <TableRow>
+                        <TableHead className={headCls}>Journal No</TableHead>
+                        <TableHead className={headCls}>Date</TableHead>
+                        <TableHead className={headCls}>Source</TableHead>
+                        <TableHead className={headCls}>Description</TableHead>
+                        <TableHead className={cn(headCls, "text-right")}>Amount</TableHead>
+                        <TableHead className={headCls}>Status</TableHead>
+                        <TableHead className={headCls}>Created by</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {d.recent_journals.map((j) => (
+                        <TableRow key={j.document_number} className="cursor-pointer hover:bg-primary/5" onClick={() => navigate(F.LEDGER)}>
+                          <TableCell className={cn(cellCls, "font-semibold")}>{j.document_number}</TableCell>
+                          <TableCell className={cellCls}>{j.date}</TableCell>
+                          <TableCell className={cellCls}>{j.source}</TableCell>
+                          <TableCell className={cn(cellCls, "max-w-xs truncate text-gray-01")}>{j.narration || "—"}</TableCell>
+                          <TableCell className={cn(cellCls, "text-right")}><Money kobo={j.amount.kobo} currency={currency} align="right" /></TableCell>
+                          <TableCell className={cellCls}><StatusPill status={j.status} /></TableCell>
+                          <TableCell className={cellCls}>{j.created_by}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </Card>
+          </>
         )}
       </main>
     </FinanceShell>

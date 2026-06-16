@@ -130,6 +130,162 @@ export function StatStrip({ items }: { items: { label: string; value: React.Reac
   );
 }
 
+/** Tiny inline sparkline (line + soft area) for KPI cards. */
+export function Sparkline({
+  data,
+  width = 96,
+  height = 30,
+  color = CHART_COLORS.primary,
+}: {
+  data: number[];
+  width?: number;
+  height?: number;
+  color?: string;
+}) {
+  if (!data || data.length < 2) return <div style={{ width, height }} />;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const span = max - min || 1;
+  const dx = width / (data.length - 1);
+  const y = (v: number) => height - 3 - ((v - min) / span) * (height - 6);
+  const pts = data.map((v, i) => `${(i * dx).toFixed(1)},${y(v).toFixed(1)}`);
+  const id = `sl-${color.replace(/[^a-z0-9]/gi, "")}`;
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity={0.18} />
+          <stop offset="100%" stopColor={color} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <polygon points={`0,${height} ${pts.join(" ")} ${width},${height}`} fill={`url(#${id})`} />
+      <polyline points={pts.join(" ")} fill="none" stroke={color} strokeWidth={1.5}
+        strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** Horizontal "% of plan" bar with actual/plan caption (Revenue vs Budget). */
+export function BudgetBar({
+  label,
+  pct,
+  valueText,
+  planText,
+  color = CHART_COLORS.green,
+}: {
+  label: string;
+  pct: number | null;
+  valueText: string;
+  planText: string;
+  color?: string;
+}) {
+  const filled = Math.max(0, Math.min(pct ?? 0, 100));
+  return (
+    <div>
+      <div className="flex items-baseline justify-between font-mont">
+        <span className="text-sm font-medium text-gray-01">{label}</span>
+        <span className="text-xs text-gray-05">{pct == null ? "—" : `${pct}% of plan`}</span>
+      </div>
+      <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-gray-03/50">
+        <div className="h-full rounded-full" style={{ width: `${filled}%`, background: color }} />
+      </div>
+      <div className="mt-1 flex items-baseline justify-between font-mont text-xs">
+        <span className="font-semibold text-black-01 tabular-nums">{valueText}</span>
+        <span className="text-gray-05">of {planText}</span>
+      </div>
+    </div>
+  );
+}
+
+export interface AgingDatum { key: string; label: string; pct: number; amount: React.ReactNode; color: string; }
+
+/** Segmented stacked bar + legend rows — AR/AP aging. */
+export function AgingStack({ buckets }: { buckets: AgingDatum[] }) {
+  const total = buckets.reduce((s, b) => s + b.pct, 0) || 100;
+  return (
+    <div>
+      <div className="flex h-3 w-full overflow-hidden rounded-full">
+        {buckets.map((b) => (
+          <div key={b.key} style={{ width: `${(b.pct / total) * 100}%`, background: b.color }}
+            title={`${b.label}: ${b.pct}%`} />
+        ))}
+      </div>
+      <div className="mt-3 space-y-1.5">
+        {buckets.map((b) => (
+          <div key={b.key} className="flex items-center gap-2 font-mont text-xs">
+            <span className="inline-block size-2.5 rounded-full" style={{ background: b.color }} />
+            <span className="text-gray-01">{b.label}</span>
+            <span className="ml-auto text-gray-05 tabular-nums">{b.pct}%</span>
+            <span className="w-24 text-right font-medium text-black-01 tabular-nums">{b.amount}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Dual-series area chart over labels (Receivables vs Collections). */
+export function TrendArea({
+  labels,
+  series,
+  height = 220,
+  format = (v: number) => String(v),
+}: {
+  labels: string[];
+  series: { name: string; data: number[]; color: string }[];
+  height?: number;
+  format?: (v: number) => string;
+}) {
+  const W = 760;
+  const H = height;
+  const padL = 8;
+  const padB = 22;
+  const max = Math.max(1, ...series.flatMap((s) => s.data));
+  const n = labels.length;
+  const dx = n > 1 ? (W - padL) / (n - 1) : 0;
+  const y = (v: number) => (H - padB) - (v / max) * (H - padB - 8);
+  const ticks = 4;
+  return (
+    <div className="overflow-x-auto">
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ minWidth: 520 }}>
+        {Array.from({ length: ticks + 1 }).map((_, i) => {
+          const gy = ((H - padB) / ticks) * i + 0;
+          return <line key={i} x1={0} y1={gy} x2={W} y2={gy} stroke="#eef0f3" strokeWidth={1} />;
+        })}
+        {series.map((s) => {
+          const pts = s.data.map((v, i) => `${(padL + i * dx).toFixed(1)},${y(v).toFixed(1)}`);
+          const gid = `ta-${s.color.replace(/[^a-z0-9]/gi, "")}`;
+          return (
+            <g key={s.name}>
+              <defs>
+                <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={s.color} stopOpacity={0.16} />
+                  <stop offset="100%" stopColor={s.color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <polygon points={`${padL},${H - padB} ${pts.join(" ")} ${padL + (n - 1) * dx},${H - padB}`} fill={`url(#${gid})`} />
+              <polyline points={pts.join(" ")} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" />
+            </g>
+          );
+        })}
+        {labels.map((l, i) => (
+          (n <= 12 || i % 2 === 0) ? (
+            <text key={l} x={padL + i * dx} y={H - 6} textAnchor="middle" className="fill-gray-05 font-mont" style={{ fontSize: 10 }}>{l}</text>
+          ) : null
+        ))}
+      </svg>
+      <div className="mt-1 flex items-center gap-4">
+        {series.map((s) => (
+          <span key={s.name} className="inline-flex items-center gap-1.5 font-mont text-xs text-gray-01">
+            <span className="inline-block size-2.5 rounded-full" style={{ background: s.color }} />{s.name}
+          </span>
+        ))}
+        <span className="ml-auto font-mont text-[11px] text-gray-05">max {format(max)}</span>
+      </div>
+    </div>
+  );
+}
+
 /** P2P-style step strip: states done | current | rejected | todo. */
 export function WorkflowStrip({ steps }: { steps: { label: string; state: "done" | "current" | "rejected" | "todo" }[] }) {
   const styles: Record<string, string> = {

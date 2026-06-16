@@ -113,3 +113,71 @@ export interface ReportParams {
   period?: string | number;
   as_of?: string;
 }
+
+// ── Finance overview dashboard (aggregated) ──────────────────────────────────
+export interface DashboardKpi {
+  value: ReportMoney;
+  delta_pct: number | null;
+  spark: number[];
+}
+
+export interface BudgetLineMetric {
+  actual: ReportMoney;
+  plan: ReportMoney;
+  pct_of_plan: number | null;
+}
+
+export interface FinanceDashboard {
+  entity: string;
+  fiscal_year: string | null;
+  period: string | null;
+  as_of: string;
+  kpis: {
+    cash_position: DashboardKpi;
+    receivables: DashboardKpi;
+    payables: DashboardKpi;
+    net_income_ytd: DashboardKpi;
+  };
+  revenue_vs_budget: {
+    has_budget: boolean;
+    budget_name: string | null;
+    revenue: BudgetLineMetric;
+    expense: BudgetLineMetric;
+    net: { actual: ReportMoney; delta_pct: number | null };
+  };
+  ar_aging: {
+    buckets: { key: string; pct: number; amount: ReportMoney }[];
+    total: ReportMoney;
+  };
+  trend: { labels: string[]; issued: number[]; collected: number[] };
+  top_overdue: {
+    customer: string;
+    customer_code: string;
+    reference: string;
+    amount: ReportMoney;
+    days_overdue: number;
+  }[];
+  vendor_due: {
+    vendor: string;
+    reference: string;
+    due_date: string;
+    amount: ReportMoney;
+    days_until: number;
+  }[];
+  approvals: { items: { label: string; count: number }[]; total: number };
+  close_progress: {
+    period: string;
+    done: number;
+    total: number;
+    checks: { name: string; passed: boolean; blocking: boolean }[];
+  } | null;
+  recent_journals: {
+    document_number: string;
+    date: string;
+    source: string;
+    narration: string;
+    amount: ReportMoney;
+    status: string;
+    created_by: string;
+  }[];
+}
