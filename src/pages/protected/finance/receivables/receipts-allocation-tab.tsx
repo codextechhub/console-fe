@@ -15,7 +15,7 @@ import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import { useGetPaymentsQuery } from "@/redux/services/finance/ar-api";
 import type { Payment } from "@/redux/services/finance/ar-types";
-import { RecordReceiptModal } from "./record-receipt-modal";
+import { RecordReceiptDrawer } from "./record-receipt-drawer";
 import { PaymentAllocationDrawer } from "./payment-allocation-drawer";
 
 const STATUS_TABS = [
@@ -100,8 +100,6 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
 
   return (
     <div className="space-y-4">
-      <p className="-mt-3 font-mont text-xs text-gray-05">Record money received and apply it to open invoices.</p>
-
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi label="Received today" value={formatMoney(kpis.today, currency)} />
         <Kpi label="This week" value={formatMoney(kpis.week, currency)} hint="Last 7 days" />
@@ -140,7 +138,8 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
         onRowClick={(p) => setSelected(p.id)}
         emptyTitle="No receipts" emptyMessage="Recorded receipts will appear here." />
 
-      <RecordReceiptModal open={newOpen} onOpenChange={setNewOpen} entity={entity} />
+      <RecordReceiptDrawer open={newOpen} onOpenChange={setNewOpen} entity={entity} currency={currency}
+        onCreated={(id) => setSelected(id)} />
       <PaymentAllocationDrawer id={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
     </div>
   );

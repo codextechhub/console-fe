@@ -20,6 +20,9 @@ const LABELS: Record<string, string> = {
   concessions: "Concessions", "payment-plans": "Payment Plans", dunning: "Dunning",
   customers: "Customers", "fee-structures": "Fee Structures", receipts: "Receipts & Allocation",
 };
+const SUBTITLES: Record<string, string> = {
+  receipts: "Record money received and apply it to open invoices.",
+};
 
 export default function ReceivablesPage() {
   const { code: entity, currency } = useActiveEntity();
@@ -30,7 +33,7 @@ export default function ReceivablesPage() {
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Receivables"}</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">Accounts receivable for the selected entity.</p>
+          <p className="mt-0.5 font-mont text-xs text-gray-05">{SUBTITLES[section] ?? "Accounts receivable for the selected entity."}</p>
         </div>
         {!entity ? (
           <EmptyState title="Select an entity" message="Choose a ledger entity to view receivables." />

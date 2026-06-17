@@ -157,7 +157,7 @@ export const arApi = baseApi.injectEndpoints({
       query: ({ entity, id, ...body }) => ({ url: `/finance/customers/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinanceCustomers"],
     }),
-    recordCustomerReceipt: builder.mutation<ApiEnvelope<{ payment: string; allocated: number; unallocated: number }>, { entity: string; id: string | number; amount: number; payment_date: string; method?: string; deposit_account: string | number; reference?: string; auto_allocate?: boolean }>({
+    recordCustomerReceipt: builder.mutation<ApiEnvelope<{ id: number; payment: string; allocated: number; unallocated: number }>, { entity: string; id: string | number; amount: number; payment_date: string; method?: string; deposit_account: string | number; reference?: string; auto_allocate?: boolean }>({
       query: ({ entity, id, ...body }) => ({ url: `/finance/customers/${id}/receipt/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceCustomers", "FinanceInvoices", "FinanceReports", "FinanceJournals", "FinancePayments"],
     }),
