@@ -148,6 +148,18 @@ export interface InvoiceListParams {
   search?: string;
 }
 
+type ArMoney = { kobo: number; naira: string };
+
+export interface InvoiceDetail {
+  invoice: Invoice;
+  summary: { subtotal: ArMoney; tax: ArMoney; total: ArMoney; paid: ArMoney; balance: ArMoney; due_date: string | null };
+  lines: { description: string; account_code: string; account_name: string; quantity: string; unit_price: ArMoney; tax_code: string | null; tax_amount: ArMoney; line_total: ArMoney }[];
+  payments: { date: string; reference: string; method: string; amount: ArMoney }[];
+  gl_postings: { account_code: string; account_name: string; debit: ArMoney; credit: ArMoney }[];
+  reminders: { date: string; level: number | null; channel: string; status: string }[];
+  activity: { date: string; label: string }[];
+}
+
 export interface InvoiceSummary {
   kpis: {
     total_invoiced: { kobo: number; naira: string };

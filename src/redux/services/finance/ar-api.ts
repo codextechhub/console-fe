@@ -12,6 +12,7 @@ import type {
   DunningNotice,
   FeeStructure,
   Invoice,
+  InvoiceDetail,
   InvoiceListParams,
   InvoiceSummary,
   PaymentPlan,
@@ -32,6 +33,18 @@ export const arApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/finance/invoices/summary/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceInvoices"],
     }),
+    getInvoiceDetail: builder.query<ApiEnvelope<InvoiceDetail>, { entity: string; id: number }>({
+      query: ({ entity, id }) => ({ url: `/finance/invoices/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinanceInvoices"],
+    }),
+    createInvoice: builder.mutation<ApiEnvelope<Invoice>, {
+      entity: string; customer: string | number; invoice_date: string; due_date?: string;
+      reference?: string; narration?: string; post?: boolean;
+      lines: { revenue_account: string | number; description?: string; quantity?: number; unit_price: number; tax_code?: string | number | null }[];
+    }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/invoices/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals"],
+    }),
     writeOffInvoice: builder.mutation<ApiEnvelope<Invoice>, { id: number; entity: string; reason?: string; date?: string }>({
       query: ({ id, entity, ...body }) => ({
         url: `/finance/invoices/${id}/write-off/${qs({ entity })}`,
@@ -39,6 +52,17 @@ export const arApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals"],
+    }),
+    recordPayment: builder.mutation<ApiEnvelope<Invoice>, {
+      id: number; entity: string; amount: number; payment_date: string;
+      method?: string; deposit_account: string | number; reference?: string; narration?: string;
+    }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/invoices/${id}/pay/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals"],
+    }),
+    remindInvoice: builder.mutation<ApiEnvelope<DunningNotice>, { id: number; entity: string; message?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/invoices/${id}/remind/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceInvoices", "FinanceDunning"],
     }),
 
     // Credit notes
@@ -138,7 +162,11 @@ export const arApi = baseApi.injectEndpoints({
 export const {
   useGetInvoicesQuery,
   useGetInvoiceSummaryQuery,
+  useGetInvoiceDetailQuery,
+  useCreateInvoiceMutation,
   useWriteOffInvoiceMutation,
+  useRecordPaymentMutation,
+  useRemindInvoiceMutation,
   useGetCreditNotesQuery,
   useCreateCreditNoteMutation,
   usePostCreditNoteMutation,

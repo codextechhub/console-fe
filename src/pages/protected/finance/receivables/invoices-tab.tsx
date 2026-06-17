@@ -5,8 +5,8 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Search, TrendingUp, TrendingDown } from "lucide-react";
-import { DataTable, DetailDrawer, Money, StatusPill, ConfirmActionModal, Sparkline, InfoHint, CHART_COLORS, toArray, type Column } from "@/components/finance-ui";
+import { Search, TrendingUp, TrendingDown, Layers, Plus } from "lucide-react";
+import { DataTable, Money, ConfirmActionModal, Sparkline, InfoHint, CHART_COLORS, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,9 @@ import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import { useGetInvoicesQuery, useGetInvoiceSummaryQuery, useWriteOffInvoiceMutation } from "@/redux/services/finance/ar-api";
 import type { Invoice } from "@/redux/services/finance/ar-types";
+import { InvoiceDetailDrawer } from "./invoice-detail-drawer";
+import { BatchGenerateModal } from "./batch-generate-modal";
+import { NewInvoiceDrawer } from "./new-invoice-drawer";
 
 const TABS = [
   { key: "", label: "All" }, { key: "draft", label: "Draft" }, { key: "issued", label: "Issued" },
@@ -73,15 +76,6 @@ function Kpi({ label, value, spark, delta, color, deltaIsPoints }: {
   );
 }
 
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <p className="font-mont text-xs uppercase tracking-wide text-gray-05">{label}</p>
-      <p className="mt-0.5 font-mont text-sm font-medium text-black-01">{value ?? "—"}</p>
-    </div>
-  );
-}
-
 export function InvoicesTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [bucket, setBucket] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -90,6 +84,8 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
   const [selected, setSelected] = useState<Invoice | null>(null);
   const [writeOff, setWriteOff] = useState(false);
   const [reason, setReason] = useState("");
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [newOpen, setNewOpen] = useState(false);
 
   const params = useMemo(() => ({ entity, page, ...(bucket ? { bucket } : {}), ...(search ? { search } : {}) }), [entity, page, bucket, search]);
   const { data, isLoading, isFetching, isError, refetch } = useGetInvoicesQuery(params);
@@ -119,7 +115,7 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
     { header: "Customer", cell: (r) => (
       <span className="inline-flex items-center gap-2">
         <Initials name={r.customer_name} />
-        <span><span className="font-medium text-gray-01">{r.customer_name}</span><span className="ml-1 text-gray-05">{r.customer_code}</span></span>
+        <span className="font-medium text-gray-01">{r.customer_name}</span>
       </span>
     ) },
     { header: "Invoice date", cell: (r) => <span className="tabular-nums">{r.invoice_date}</span> },
@@ -150,13 +146,25 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
         ))}
       </div>
 
-      {/* search */}
-      <div className="flex items-center gap-2">
+      {/* search + actions */}
+      <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
           <Input value={searchInput} onChange={(e) => { setSearchInput(e.target.value); setPage(1); }} placeholder="Search invoice no / customer" className="h-9 w-64 pl-8 font-mont text-sm" />
         </div>
         <InfoHint>Customer invoices debit Accounts Receivable and credit revenue on posting. A payment is recorded against the invoice; the AR control account must equal the sum of open invoice balances — a tie reconciled at period close.</InfoHint>
+        <div className="ml-auto flex items-center gap-2">
+          <Can permission={P.FIN_GENERATE_FEE_STRUCTURE}>
+            <Button variant="outline" onClick={() => setBatchOpen(true)} className="gap-1.5">
+              <Layers className="size-4" /> Batch generate
+            </Button>
+          </Can>
+          <Can permission={P.FIN_CREATE_INVOICE}>
+            <Button onClick={() => setNewOpen(true)} className="gap-1.5">
+              <Plus className="size-4" /> New invoice
+            </Button>
+          </Can>
+        </div>
       </div>
 
       <DataTable columns={columns} rows={rows} rowKey={(r) => r.id}
@@ -175,36 +183,16 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
         </div>
       )}
 
-      <DetailDrawer
-        open={!!selected}
-        onOpenChange={(o) => !o && setSelected(null)}
-        title={selected?.document_number ?? "Invoice"}
-        description={selected ? `${selected.customer_name} · ${selected.invoice_date}` : undefined}
-        footer={
-          selected && selected.status === "POSTED" && selected.balance_due > 0 ? (
-            <Can permission={P.FIN_WRITE_OFF_INVOICE}>
-              <Button variant="outline" onClick={() => setWriteOff(true)} className="border-destructive/40 text-destructive hover:bg-destructive/5">Write off balance</Button>
-            </Can>
-          ) : null
-        }
-      >
-        {selected && (
-          <div className="space-y-5">
-            <div className="flex gap-3"><StatusPill status={selected.status} /><StatusPill status={selected.payment_status} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Customer" value={`${selected.customer_name} (${selected.customer_code})`} />
-              <Field label="Reference" value={selected.reference} />
-              <Field label="Subtotal" value={<Money kobo={selected.subtotal} currency={currency} />} />
-              <Field label="Tax" value={<Money kobo={selected.tax_total} currency={currency} />} />
-              <Field label="Total" value={<Money kobo={selected.total} currency={currency} />} />
-              <Field label="Paid" value={<Money kobo={selected.amount_paid} currency={currency} />} />
-              <Field label="Balance due" value={<Money kobo={selected.balance_due} currency={currency} />} />
-              <Field label="Due date" value={selected.due_date} />
-            </div>
-            {selected.narration && <Field label="Narration" value={selected.narration} />}
-          </div>
-        )}
-      </DetailDrawer>
+      <InvoiceDetailDrawer
+        id={selected?.id ?? null}
+        entity={entity}
+        currency={currency}
+        onClose={() => setSelected(null)}
+        onWriteOff={() => setWriteOff(true)}
+      />
+
+      <BatchGenerateModal open={batchOpen} onOpenChange={setBatchOpen} entity={entity} />
+      <NewInvoiceDrawer open={newOpen} onOpenChange={setNewOpen} entity={entity} currency={currency} />
 
       <ConfirmActionModal
         open={writeOff}
