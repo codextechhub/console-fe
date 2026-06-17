@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { List, CreditCard, BookOpen, BellRing, Activity, Printer, Mail, Check } from "lucide-react";
+import { List, CreditCard, BookOpen, BellRing, Activity, Printer, Mail, Check, Globe } from "lucide-react";
 import { DetailDrawer, Money, StatusPill, ConfirmActionModal } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { LoadingState, ErrorState, EmptyState } from "@/components/finance-ui/states";
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { useGetInvoiceDetailQuery, useRemindInvoiceMutation } from "@/redux/services/finance/ar-api";
 import { RecordPaymentModal } from "./record-payment-modal";
+import { RequestPaymentModal } from "./request-payment-modal";
 
 const TABS = [
   { key: "lines", label: "Lines", icon: List },
@@ -43,6 +44,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
   const { data, isLoading, isError, refetch } = useGetInvoiceDetailQuery(id ? { entity, id } : skipToken);
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("lines");
   const [payOpen, setPayOpen] = useState(false);
+  const [requestOpen, setRequestOpen] = useState(false);
   const [remindOpen, setRemindOpen] = useState(false);
   const [remind, { isLoading: reminding }] = useRemindInvoiceMutation();
   const d = data?.data;
@@ -94,6 +96,11 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
               <Can permission={P.FIN_WRITE_OFF_INVOICE}>
                 <Button variant="outline" onClick={onWriteOff} className="border-destructive/40 text-destructive hover:bg-destructive/5">Write off</Button>
               </Can>
+              {tab === "payments" && (
+                <Can permission={P.PAY_CREATE_COLLECTION}>
+                  <Button variant="outline" onClick={() => setRequestOpen(true)} className="gap-1.5"><Globe className="size-4" /> Request payment</Button>
+                </Can>
+              )}
               {tab === "payments" && (
                 <Can permission={P.FIN_RECORD_PAYMENT}>
                   <Button onClick={() => setPayOpen(true)} className="gap-1.5"><CreditCard className="size-4" /> Record payment</Button>
@@ -209,6 +216,16 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
             invoiceId={inv.id}
             docNumber={inv.document_number}
             balanceKobo={s?.balance.kobo ?? inv.balance_due}
+          />
+          <RequestPaymentModal
+            key={`req-${requestOpen}`}
+            open={requestOpen}
+            onOpenChange={setRequestOpen}
+            entity={entity}
+            invoiceId={inv.id}
+            docNumber={inv.document_number}
+            balanceKobo={s?.balance.kobo ?? inv.balance_due}
+            currency={currency}
           />
           <ConfirmActionModal
             open={remindOpen}
