@@ -195,6 +195,37 @@ export interface Customer {
   account_status?: CustomerAccountStatus;
 }
 
+// Customer receipts + allocation (Receipts & Allocation screen).
+export type PaymentAllocationStatus = "ALLOCATED" | "PARTIAL" | "UNALLOCATED";
+
+export interface Payment {
+  id: number;
+  document_number: string;
+  customer_id: number;
+  customer_code: string;
+  customer_name: string;
+  payment_date: string;
+  method: string;
+  amount: number;
+  amount_naira: string;
+  allocated_amount: number;
+  unallocated_amount: number;
+  allocation_status: PaymentAllocationStatus;
+  deposit_account_code: string | null;
+  deposit_account_name: string | null;
+  reference: string;
+  narration: string;
+  journal_id: number | null;
+  status: string;
+}
+
+export interface PaymentDetail {
+  payment: Payment;
+  allocations: { invoice: string; invoice_id: number; amount: ArMoney }[];
+  open_invoices: { id: number; document_number: string; due_date: string | null; balance: ArMoney }[];
+  gl_postings: { account_code: string; account_name: string; debit: ArMoney; credit: ArMoney }[];
+}
+
 export interface CustomerDetail {
   customer: Customer;
   summary: {

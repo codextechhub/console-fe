@@ -11,6 +11,8 @@ import type {
   Customer,
   CustomerDetail,
   DunningNotice,
+  Payment,
+  PaymentDetail,
   FeeStructure,
   Invoice,
   InvoiceDetail,
@@ -155,9 +157,21 @@ export const arApi = baseApi.injectEndpoints({
       query: ({ entity, id, ...body }) => ({ url: `/finance/customers/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinanceCustomers"],
     }),
-    recordCustomerReceipt: builder.mutation<ApiEnvelope<{ payment: string; allocated: number; unallocated: number }>, { entity: string; id: string | number; amount: number; payment_date: string; method?: string; deposit_account: string | number; reference?: string }>({
+    recordCustomerReceipt: builder.mutation<ApiEnvelope<{ payment: string; allocated: number; unallocated: number }>, { entity: string; id: string | number; amount: number; payment_date: string; method?: string; deposit_account: string | number; reference?: string; auto_allocate?: boolean }>({
       query: ({ entity, id, ...body }) => ({ url: `/finance/customers/${id}/receipt/${qs({ entity })}`, method: "POST", body }),
-      invalidatesTags: ["FinanceCustomers", "FinanceInvoices", "FinanceReports", "FinanceJournals"],
+      invalidatesTags: ["FinanceCustomers", "FinanceInvoices", "FinanceReports", "FinanceJournals", "FinancePayments"],
+    }),
+    getPayments: builder.query<ApiEnvelope<Payment[]>, { entity: string; status?: string; method?: string; customer?: string; search?: string }>({
+      query: (p) => ({ url: `/finance/payments/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinancePayments"],
+    }),
+    getPaymentDetail: builder.query<ApiEnvelope<PaymentDetail>, { entity: string; id: number }>({
+      query: ({ entity, id }) => ({ url: `/finance/payments/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinancePayments"],
+    }),
+    allocatePayment: builder.mutation<ApiEnvelope<Payment>, { entity: string; id: number; allocations?: { invoice: number; amount: number }[]; auto_allocate?: boolean }>({
+      query: ({ entity, id, ...body }) => ({ url: `/finance/payments/${id}/allocate/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinancePayments", "FinanceInvoices", "FinanceCustomers", "FinanceReports"],
     }),
     remindCustomer: builder.mutation<ApiEnvelope<{ created: number }>, { entity: string; customer: string | number }>({
       query: ({ entity, ...body }) => ({ url: `/finance/dunning/generate/${qs({ entity })}`, method: "POST", body }),
@@ -203,6 +217,9 @@ export const {
   useUpdateCustomerMutation,
   useRecordCustomerReceiptMutation,
   useRemindCustomerMutation,
+  useGetPaymentsQuery,
+  useGetPaymentDetailQuery,
+  useAllocatePaymentMutation,
   useGetFeeStructuresQuery,
   useGenerateFromFeeStructureMutation,
 } = arApi;

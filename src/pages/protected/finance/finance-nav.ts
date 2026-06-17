@@ -35,7 +35,7 @@ export const financeNav: ConsoleNavGroup[] = [
     items: [
       { title: "AR Invoices", url: `${F.RECEIVABLES}/invoices`, icon: ReceiptText, prefixes: ["finance.invoice."] },
       { title: "Customers / Payers", url: `${F.RECEIVABLES}/customers`, icon: Users, prefixes: ["finance.customer."] },
-      { title: "Receipts & Allocation", url: `${F.COLLECTIONS}/gateway`, icon: CreditCard, prefixes: ["payments.collection."] },
+      { title: "Receipts & Allocation", url: `${F.RECEIVABLES}/receipts`, icon: CreditCard, prefixes: ["finance.payment."] },
       { title: "Credit / Debit Notes", url: `${F.RECEIVABLES}/credit-notes`, icon: FileMinus, prefixes: ["finance.creditnote."] },
       { title: "Refunds", url: `${F.RECEIVABLES}/refunds`, icon: Undo2, prefixes: ["finance.refund."] },
       { title: "Payment Plans", url: `${F.RECEIVABLES}/payment-plans`, icon: CalendarClock, prefixes: ["finance.paymentplan."] },
