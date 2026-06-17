@@ -48,11 +48,13 @@ function Button({
   size = "default",
   asChild = false,
   loading,
+  loadingText,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
     loading?: boolean;
+    loadingText?: string;
   }) {
   const Comp = asChild ? Slot.Root : "button";
 
@@ -65,9 +67,22 @@ function Button({
       {...props}
     >
       {loading ? (
-        <div className="inline-flex items-center">
-          <Loader2 className="animate-spin animation-duration-[0.8s] size-5" />
-        </div>
+        loadingText ? (
+          <span className="inline-flex items-center">
+            {loadingText}
+            <span className="loading-dot ml-0.5">.</span>
+            <span className="loading-dot" style={{ animationDelay: "0.2s" }}>
+              .
+            </span>
+            <span className="loading-dot" style={{ animationDelay: "0.4s" }}>
+              .
+            </span>
+          </span>
+        ) : (
+          <div className="inline-flex items-center">
+            <Loader2 className="animate-spin animation-duration-[0.8s] size-5" />
+          </div>
+        )
       ) : (
         props.children
       )}

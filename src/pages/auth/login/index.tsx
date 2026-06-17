@@ -96,6 +96,7 @@ export default function Login() {
         <Button
           disabled={!formik.isValid || !formik.dirty || isLoading}
           loading={isLoading}
+          loadingText="Connecting to your account"
           type="submit"
           className="w-full h-11"
         >
