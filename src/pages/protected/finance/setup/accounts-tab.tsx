@@ -5,7 +5,8 @@ import { useMemo, useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { ChevronDown, ChevronRight, Check, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
-import { Money, FormModal, FormField, DetailDrawer, StatusPill, toArray, useActiveEntity } from "@/components/finance-ui";
+import { Money, FormField, DetailDrawer, StatusPill, toArray, useActiveEntity } from "@/components/finance-ui";
+import { SearchSelect } from "@/components/custom/search-select";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { Input } from "@/components/ui/input";
@@ -186,13 +187,13 @@ export function AccountsTab({ entity }: { entity: string }) {
         </div>
       )}
 
-      <CreateAccountModal open={creating} onClose={() => setCreating(false)} entity={entity} parents={accounts} />
+      <CreateAccountDrawer open={creating} onClose={() => setCreating(false)} entity={entity} parents={accounts} />
       <AccountDetailDrawer id={detailId} entity={entity} accounts={accounts} currency={currency} onClose={() => setDetailId(null)} />
     </div>
   );
 }
 
-function CreateAccountModal({ open, onClose, entity, parents }: {
+function CreateAccountDrawer({ open, onClose, entity, parents }: {
   open: boolean; onClose: () => void; entity: string; parents: Account[];
 }) {
   const [create, { isLoading }] = useCreateAccountMutation();
@@ -204,6 +205,10 @@ function CreateAccountModal({ open, onClose, entity, parents }: {
   const [postable, setPostable] = useState(true);
   const [contra, setContra] = useState(false);
   const canSubmit = code.trim() !== "" && name.trim() !== "" && !!type;
+  const parentOptions = parents.map((a) => ({ value: String(a.id), label: `${a.code} — ${a.name}` }));
+
+  const reset = () => { setCode(""); setName(""); setType("ASSET"); setSubtype(""); setParent(""); setPostable(true); setContra(false); };
+  const close = () => { reset(); onClose(); };
 
   const submit = async () => {
     try {
@@ -213,38 +218,48 @@ function CreateAccountModal({ open, onClose, entity, parents }: {
         is_postable: postable, is_contra: contra,
       }).unwrap();
       toast.success(r.message || "Account created.");
-      setCode(""); setName(""); setType("ASSET"); setSubtype(""); setParent(""); setPostable(true); setContra(false);
-      onClose();
+      close();
     } catch { /* central toast */ }
   };
 
   return (
-    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New account"
-      description="Add a node to the chart of accounts." onSubmit={submit} loading={isLoading}
-      canSubmit={canSubmit} widthClass="sm:max-w-lg">
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} className="bg-white font-mont" /></FormField>
-        <FormField label="Account type" required>
-          <select value={type} onChange={(e) => setType(e.target.value)} className={cn(selectCls, "w-full")}>
-            {["ASSET", "LIABILITY", "EQUITY", "INCOME", "EXPENSE"].map((t) => <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>)}
-          </select>
-        </FormField>
+    <DetailDrawer
+      open={open}
+      onOpenChange={(o) => (o ? undefined : close())}
+      title="New account"
+      description="Add a node to the chart of accounts."
+      widthClass="sm:max-w-xl"
+      footer={
+        <>
+          <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
+          <Button disabled={isLoading || !canSubmit} onClick={submit} className="gap-1.5">
+            <Plus className="size-4" />{isLoading ? "Saving…" : "Create account"}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} className="bg-white font-mont" placeholder="e.g. 4200" /></FormField>
+          <FormField label="Account type" required>
+            <select value={type} onChange={(e) => setType(e.target.value)} className={cn(selectCls, "w-full")}>
+              {["ASSET", "LIABILITY", "EQUITY", "INCOME", "EXPENSE"].map((t) => <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>)}
+            </select>
+          </FormField>
+        </div>
+        <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white" placeholder="e.g. Tuition revenue" /></FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Subtype"><Input value={subtype} onChange={(e) => setSubtype(e.target.value)} placeholder="e.g. Current asset" className="bg-white" /></FormField>
+          <FormField label="Parent account">
+            <SearchSelect options={parentOptions} value={parent} onChange={(e) => setParent(e.target.value)} placeholder="None (top level)" revealOnSearch />
+          </FormField>
+        </div>
+        <div className="flex flex-wrap gap-5 rounded-md bg-gray-50 px-3 py-3 font-mont text-sm text-gray-01">
+          <label className="flex items-center gap-2"><input type="checkbox" checked={postable} onChange={(e) => setPostable(e.target.checked)} className="accent-primary" /> Postable (accepts entries)</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={contra} onChange={(e) => setContra(e.target.checked)} className="accent-primary" /> Contra account</label>
+        </div>
       </div>
-      <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white" /></FormField>
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="Subtype"><Input value={subtype} onChange={(e) => setSubtype(e.target.value)} placeholder="e.g. Current asset" className="bg-white" /></FormField>
-        <FormField label="Parent account">
-          <select value={parent} onChange={(e) => setParent(e.target.value)} className={cn(selectCls, "w-full")}>
-            <option value="">None (top level)</option>
-            {parents.map((a) => <option key={a.id} value={a.id}>{a.code} — {a.name}</option>)}
-          </select>
-        </FormField>
-      </div>
-      <div className="flex flex-wrap gap-5 font-mont text-sm text-gray-01">
-        <label className="flex items-center gap-2"><input type="checkbox" checked={postable} onChange={(e) => setPostable(e.target.checked)} /> Postable (accepts entries)</label>
-        <label className="flex items-center gap-2"><input type="checkbox" checked={contra} onChange={(e) => setContra(e.target.checked)} /> Contra account</label>
-      </div>
-    </FormModal>
+    </DetailDrawer>
   );
 }
 

@@ -19,7 +19,7 @@ import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import { useGetJournalsQuery, useGetJournalSummaryQuery } from "@/redux/services/finance/gl-api";
 import type { JournalListItem, JournalSource, JournalStatus } from "@/redux/services/finance/gl-types";
-import { DirectEntryModal } from "./direct-entry-modal";
+import { DirectEntryDrawer } from "./direct-entry-drawer";
 import { JournalDetailDrawer } from "./journal-detail-drawer";
 
 const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
@@ -179,7 +179,7 @@ export default function GeneralLedgerPage() {
         )}
       </main>
 
-      <DirectEntryModal open={directOpen} onClose={() => setDirectOpen(false)} entity={entity} currency={currency} />
+      <DirectEntryDrawer open={directOpen} onClose={() => setDirectOpen(false)} entity={entity} currency={currency} />
       <JournalDetailDrawer journalId={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
     </FinanceShell>
   );
