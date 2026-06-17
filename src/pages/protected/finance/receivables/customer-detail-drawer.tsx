@@ -1,27 +1,28 @@
-// Customer / payer detail drawer — prototype topology: header (name · status),
-// three stat cards (Current balance / Lifetime paid / Open invoices) and a tabbed
-// body. The Customer Statement lives here as a tab (Overview · Transactions ·
-// Statement · Contact). Footer: Send reminder · Record receipt.
-import { useState } from "react";
+// Customer / payer detail drawer — three stat cards (Current balance / Lifetime
+// paid / Open invoices) and tabs: Transactions · Statement · Contact. The Customer
+// Statement is a printable statement-of-account document (entity letterhead,
+// customer + period, a debit/credit ledger with opening + closing balance) with
+// Print and Send-to-customer actions. Footer: Send reminder · Record receipt.
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { List, ArrowLeftRight, ScrollText, User, BellRing, CreditCard } from "lucide-react";
-import { DetailDrawer, Money, ConfirmActionModal, FormField } from "@/components/finance-ui";
+import { ArrowLeftRight, ScrollText, User, BellRing, CreditCard, Printer, Send } from "lucide-react";
+import { DetailDrawer, Money, ConfirmActionModal, FormField, useActiveEntity } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { LoadingState, ErrorState, EmptyState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
   useGetCustomerDetailQuery, useUpdateCustomerMutation, useRemindCustomerMutation,
 } from "@/redux/services/finance/ar-api";
-import type { Customer } from "@/redux/services/finance/ar-types";
+import type { Customer, CustomerDetail } from "@/redux/services/finance/ar-types";
 import { CustomerReceiptModal } from "./customer-receipt-modal";
 
 const TABS = [
-  { key: "overview", label: "Overview", icon: List },
   { key: "transactions", label: "Transactions", icon: ArrowLeftRight },
   { key: "statement", label: "Statement", icon: ScrollText },
   { key: "contact", label: "Contact", icon: User },
@@ -34,15 +35,14 @@ const ACCOUNT_PILL: Record<string, string> = {
 const ACCOUNT_LABEL: Record<string, string> = { ACTIVE: "Active", OVERDUE: "Overdue", CREDIT: "In credit" };
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const todayISO = new Date().toISOString().slice(0, 10);
 
 function Pill({ status }: { status: string }) {
   return <span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", ACCOUNT_PILL[status] ?? "bg-gray-03/60 text-gray-05")}>{ACCOUNT_LABEL[status] ?? status}</span>;
 }
 
-/** Signed money: positive owes (black), negative shows as a green credit. */
-function SignedBalance({ kobo, currency }: { kobo: number; currency?: string | null }) {
-  if (kobo < 0) return <span className="text-green-01">{formatMoney(-kobo, currency)} cr</span>;
-  return <span>{formatMoney(kobo, currency)}</span>;
+function signed(kobo: number, currency?: string | null) {
+  return kobo < 0 ? `${formatMoney(-kobo, currency)} cr` : formatMoney(kobo, currency);
 }
 
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
@@ -57,15 +57,15 @@ function Stat({ label, children }: { label: string; children: React.ReactNode })
 export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
   id: number | null; entity: string; currency?: string | null; onClose: () => void;
 }) {
+  const { entity: activeEntity } = useActiveEntity();
   const { data, isLoading, isError, refetch } = useGetCustomerDetailQuery(id ? { entity, id } : skipToken);
-  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("overview");
+  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("statement");
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [remindOpen, setRemindOpen] = useState(false);
   const [remind, { isLoading: reminding }] = useRemindCustomerMutation();
   const d = data?.data;
   const c = d?.customer;
   const s = d?.summary;
-  const owes = (s?.current_balance.kobo ?? 0) > 0;
 
   const sendReminder = async () => {
     if (!c) return;
@@ -77,7 +77,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
   };
 
   const count = (k: string) =>
-    k === "overview" ? d?.open_invoices.length : k === "transactions" ? d?.transactions.length : k === "statement" ? d?.statement.length : undefined;
+    k === "transactions" ? d?.transactions.length : k === "statement" ? d?.statement.length : undefined;
 
   return (
     <DetailDrawer
@@ -86,25 +86,23 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
       title={c ? c.name : "Customer"}
       description={c ? `${c.code}${c.billing_email ? ` · ${c.billing_email}` : ""}` : undefined}
       widthClass="sm:max-w-3xl"
-      footer={
-        owes ? (
-          <div className="flex w-full items-center justify-end gap-2">
-            <Can permission={P.FIN_SEND_DUNNING}>
-              <Button variant="outline" onClick={() => setRemindOpen(true)} className="gap-1.5"><BellRing className="size-4" /> Send reminder</Button>
-            </Can>
-            <Can permission={P.FIN_RECORD_PAYMENT}>
-              <Button onClick={() => setReceiptOpen(true)} className="gap-1.5"><CreditCard className="size-4" /> Record receipt</Button>
-            </Can>
-          </div>
-        ) : null
-      }
+      footer={c ? (
+        <div className="flex w-full items-center justify-end gap-2">
+          <Can permission={P.FIN_SEND_DUNNING}>
+            <Button variant="outline" onClick={() => setRemindOpen(true)} className="gap-1.5"><BellRing className="size-4" /> Send reminder</Button>
+          </Can>
+          <Can permission={P.FIN_RECORD_PAYMENT}>
+            <Button onClick={() => setReceiptOpen(true)} className="gap-1.5"><CreditCard className="size-4" /> Record receipt</Button>
+          </Can>
+        </div>
+      ) : undefined}
     >
       {isLoading ? <LoadingState rows={6} /> : isError || !d || !c || !s ? <ErrorState onRetry={refetch} /> : (
         <div className="space-y-4">
           <div><Pill status={s.account_status} /></div>
 
           <div className="grid grid-cols-3 gap-3">
-            <Stat label="Current balance"><SignedBalance kobo={s.current_balance.kobo} currency={currency} /></Stat>
+            <Stat label="Current balance">{signed(s.current_balance.kobo, currency)}</Stat>
             <Stat label="Lifetime paid"><Money kobo={s.lifetime_paid.kobo} currency={currency} /></Stat>
             <Stat label="Open invoices">{s.open_invoice_count}</Stat>
           </div>
@@ -118,31 +116,6 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
               </button>
             ))}
           </div>
-
-          {tab === "overview" && (
-            d.open_invoices.length === 0 ? <EmptyState title="No open invoices" message="This customer has no outstanding invoices." /> : (
-              <div className="overflow-x-auto rounded-md border border-gray-03">
-                <table className="w-full border-collapse">
-                  <thead><tr>
-                    <th className={th}>Invoice</th><th className={th}>Date</th><th className={th}>Due</th>
-                    <th className={cn(th, "text-right")}>Total</th><th className={cn(th, "text-right")}>Balance</th><th className={th}>Status</th>
-                  </tr></thead>
-                  <tbody>
-                    {d.open_invoices.map((i) => (
-                      <tr key={i.document_number}>
-                        <td className={cn(td, "font-semibold")}>{i.document_number}</td>
-                        <td className={cn(td, "tabular-nums text-gray-05")}>{i.invoice_date}</td>
-                        <td className={cn(td, "tabular-nums text-gray-05")}>{i.due_date ?? "—"}</td>
-                        <td className={cn(td, "text-right tabular-nums")}><Money kobo={i.total.kobo} currency={currency} align="right" /></td>
-                        <td className={cn(td, "text-right font-medium tabular-nums")}><Money kobo={i.balance.kobo} currency={currency} align="right" /></td>
-                        <td className={td}><Pill status={i.status === "PAID" ? "ACTIVE" : i.status === "OVERDUE" ? "OVERDUE" : "ACTIVE"} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
-          )}
 
           {tab === "transactions" && (
             d.transactions.length === 0 ? <EmptyState title="No transactions" /> : (
@@ -167,27 +140,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
           )}
 
           {tab === "statement" && (
-            d.statement.length === 0 ? <EmptyState title="No statement activity" message="Posted invoices and receipts will appear here as a running balance." /> : (
-              <div className="overflow-x-auto rounded-md border border-gray-03">
-                <table className="w-full border-collapse">
-                  <thead><tr>
-                    <th className={th}>Date</th><th className={th}>Description</th>
-                    <th className={cn(th, "text-right")}>Debit</th><th className={cn(th, "text-right")}>Credit</th><th className={cn(th, "text-right")}>Balance</th>
-                  </tr></thead>
-                  <tbody>
-                    {d.statement.map((r, i) => (
-                      <tr key={i}>
-                        <td className={cn(td, "tabular-nums text-gray-05")}>{r.date ?? "Opening"}</td>
-                        <td className={td}>{r.description}</td>
-                        <td className={cn(td, "text-right tabular-nums")}>{r.debit.kobo ? <Money kobo={r.debit.kobo} currency={currency} align="right" /> : "—"}</td>
-                        <td className={cn(td, "text-right tabular-nums")}>{r.credit.kobo ? <Money kobo={r.credit.kobo} currency={currency} align="right" /> : "—"}</td>
-                        <td className={cn(td, "text-right font-medium tabular-nums")}><Money kobo={r.balance.kobo} currency={currency} align="right" /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
+            <StatementTab d={d} entityName={activeEntity?.name ?? entity} currency={currency} />
           )}
 
           {tab === "contact" && <ContactPanel key={c.id} entity={entity} customer={c} currency={currency} />}
@@ -217,6 +170,102 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
         </>
       )}
     </DetailDrawer>
+  );
+}
+
+/** A printable statement-of-account document for the active date range. */
+function StatementTab({ d, entityName, currency }: { d: CustomerDetail; entityName: string; currency?: string | null }) {
+  const c = d.customer;
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState(todayISO);
+
+  const { opening, rows, closing } = useMemo(() => {
+    const inRange = (e: CustomerDetail["statement"][number]) =>
+      e.date !== null && (!from || e.date >= from) && (!to || e.date <= to);
+    let open = 0;
+    for (const e of d.statement) {
+      if (inRange(e)) break;
+      open = e.balance.kobo;                 // null-date opening + anything before `from`
+    }
+    const rng = d.statement.filter(inRange);
+    return { opening: open, rows: rng, closing: rng.length ? rng[rng.length - 1].balance.kobo : open };
+  }, [d.statement, from, to]);
+
+  const period = from ? `${from} — ${to}` : `Up to ${to}`;
+
+  return (
+    <div className="space-y-3">
+      {/* controls */}
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div className="flex items-end gap-2">
+          <label className="space-y-1"><span className="font-mont text-[11px] text-gray-05">From</span>
+            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-9 bg-white" /></label>
+          <label className="space-y-1"><span className="font-mont text-[11px] text-gray-05">To</span>
+            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-9 bg-white" /></label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0}><Button disabled className="gap-1.5 opacity-60"><Send className="size-4" /> Send to customer</Button></span>
+              </TooltipTrigger>
+              <TooltipContent className="font-mont text-xs">Emailing the statement needs an email-sending service — coming soon.</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
+
+      {/* statement document */}
+      <div className="rounded-md border border-gray-03 bg-white p-5">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="font-mont text-base font-semibold text-black-01">{entityName}</p>
+            <p className="font-mont text-xs text-gray-05">Statement of Account</p>
+          </div>
+          <div className="text-right font-mont text-xs">
+            <p className="font-semibold text-black-01">{c.name}</p>
+            <p className="text-gray-05">{c.code}{c.billing_email ? ` · ${c.billing_email}` : ""}</p>
+            <p className="text-gray-05">{period}</p>
+          </div>
+        </div>
+
+        <div className="mt-4 overflow-x-auto border-t border-gray-03">
+          <table className="w-full border-collapse">
+            <thead><tr>
+              <th className={th}>Date</th><th className={th}>Description</th>
+              <th className={cn(th, "text-right")}>Debit</th><th className={cn(th, "text-right")}>Credit</th><th className={cn(th, "text-right")}>Balance</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+                <td className={cn(td, "tabular-nums text-gray-05")}>{from || "—"}</td>
+                <td className={td}>Opening balance</td>
+                <td className={cn(td, "text-right text-gray-05")}>—</td>
+                <td className={cn(td, "text-right text-gray-05")}>—</td>
+                <td className={cn(td, "text-right tabular-nums")}>{signed(opening, currency)}</td>
+              </tr>
+              {rows.map((r, i) => (
+                <tr key={i}>
+                  <td className={cn(td, "tabular-nums text-gray-05")}>{r.date}</td>
+                  <td className={td}>{r.description}</td>
+                  <td className={cn(td, "text-right tabular-nums")}>{r.debit.kobo ? <Money kobo={r.debit.kobo} currency={currency} align="right" /> : "—"}</td>
+                  <td className={cn(td, "text-right tabular-nums")}>{r.credit.kobo ? <Money kobo={r.credit.kobo} currency={currency} align="right" /> : "—"}</td>
+                  <td className={cn(td, "text-right font-medium tabular-nums")}>{signed(r.balance.kobo, currency)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-4 flex items-end justify-between border-t border-gray-03 pt-3">
+          <div>
+            <p className="font-mont text-[11px] text-gray-05">Closing balance due</p>
+            <p className="font-mont text-lg font-semibold tabular-nums text-black-01">{signed(closing, currency)}</p>
+          </div>
+          <p className="max-w-xs text-right font-mont text-[11px] text-gray-05">Please settle the closing balance at your earliest convenience. Thank you.</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
