@@ -34,7 +34,7 @@ export function CustomerReceiptModal({ open, onOpenChange, entity, customerId, c
         entity, id: customerId, amount: kobo, payment_date: date,
         method, deposit_account: account, reference: reference || undefined,
       }).unwrap();
-      toast.success(res.message || "Receipt recorded.");
+      toast.success(res.message || "Payment recorded.");
       onOpenChange(false);
     } catch { /* central */ }
   };
@@ -43,9 +43,9 @@ export function CustomerReceiptModal({ open, onOpenChange, entity, customerId, c
     <FormModal
       open={open}
       onOpenChange={onOpenChange}
-      title="Record receipt"
-      description={`Apply a receipt for ${customerName} — allocated to open invoices oldest-first.`}
-      submitText="Record receipt"
+      title="Record payment"
+      description={`Apply a payment from ${customerName} — allocated to open invoices oldest-first.`}
+      submitText="Record payment"
       loading={isLoading}
       canSubmit={canSubmit}
       onSubmit={submit}

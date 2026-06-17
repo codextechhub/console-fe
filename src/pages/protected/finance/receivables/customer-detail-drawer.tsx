@@ -93,7 +93,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
             <Button variant="outline" onClick={() => setRemindOpen(true)} className="gap-1.5"><BellRing className="size-4" /> Send reminder</Button>
           </Can>
           <Can permission={P.FIN_RECORD_PAYMENT}>
-            <Button onClick={() => setReceiptOpen(true)} className="gap-1.5"><CreditCard className="size-4" /> Record receipt</Button>
+            <Button onClick={() => setReceiptOpen(true)} className="gap-1.5"><CreditCard className="size-4" /> Record payment</Button>
           </Can>
         </div>
       ) : undefined}
