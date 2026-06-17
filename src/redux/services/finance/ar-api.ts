@@ -9,6 +9,7 @@ import type {
   Concession,
   CreditNote,
   Customer,
+  CustomerDetail,
   DunningNotice,
   FeeStructure,
   Invoice,
@@ -146,6 +147,22 @@ export const arApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/customers/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceCustomers"],
     }),
+    getCustomerDetail: builder.query<ApiEnvelope<CustomerDetail>, { entity: string; id: string | number }>({
+      query: ({ entity, id }) => ({ url: `/finance/customers/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinanceCustomers"],
+    }),
+    updateCustomer: builder.mutation<ApiEnvelope<Customer>, { entity: string; id: string | number; name?: string; billing_email?: string; billing_phone?: string; billing_address?: string; receivable_account?: string; is_active?: boolean }>({
+      query: ({ entity, id, ...body }) => ({ url: `/finance/customers/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["FinanceCustomers"],
+    }),
+    recordCustomerReceipt: builder.mutation<ApiEnvelope<{ payment: string; allocated: number; unallocated: number }>, { entity: string; id: string | number; amount: number; payment_date: string; method?: string; deposit_account: string | number; reference?: string }>({
+      query: ({ entity, id, ...body }) => ({ url: `/finance/customers/${id}/receipt/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceCustomers", "FinanceInvoices", "FinanceReports", "FinanceJournals"],
+    }),
+    remindCustomer: builder.mutation<ApiEnvelope<{ created: number }>, { entity: string; customer: string | number }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/dunning/generate/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceCustomers", "FinanceDunning"],
+    }),
 
     // Fee structures (non-paginated; use toArray)
     getFeeStructures: builder.query<ApiEnvelope<FeeStructure[]>, { entity: string; search?: string; is_active?: string }>({
@@ -182,6 +199,10 @@ export const {
   useGetDunningNoticesQuery,
   useGetCustomersQuery,
   useCreateCustomerMutation,
+  useGetCustomerDetailQuery,
+  useUpdateCustomerMutation,
+  useRecordCustomerReceiptMutation,
+  useRemindCustomerMutation,
   useGetFeeStructuresQuery,
   useGenerateFromFeeStructureMutation,
 } = arApi;

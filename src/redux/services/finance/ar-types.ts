@@ -173,6 +173,8 @@ export interface InvoiceSummary {
 }
 
 // Customers / payers — the AR sub-ledger party (mirrors CustomerSerializer).
+export type CustomerAccountStatus = "ACTIVE" | "OVERDUE" | "CREDIT";
+
 export interface Customer {
   id: number;
   code: string;
@@ -187,6 +189,21 @@ export interface Customer {
   source_type: string;
   source_id: string;
   is_active: boolean;
+  // Enriched on the list endpoint: net AR position (signed kobo; + owes, − credit).
+  balance?: number;
+  balance_naira?: string;
+  account_status?: CustomerAccountStatus;
+}
+
+export interface CustomerDetail {
+  customer: Customer;
+  summary: {
+    current_balance: ArMoney; lifetime_paid: ArMoney;
+    open_invoice_count: number; account_status: CustomerAccountStatus;
+  };
+  open_invoices: { document_number: string; invoice_date: string; due_date: string | null; total: ArMoney; balance: ArMoney; status: string }[];
+  transactions: { date: string; type: "INVOICE" | "PAYMENT"; reference: string; amount: ArMoney; status: string }[];
+  statement: { date: string | null; description: string; debit: ArMoney; credit: ArMoney; balance: ArMoney }[];
 }
 
 // Fee structures — billing catalogue rolled up into invoices.

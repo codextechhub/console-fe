@@ -1,34 +1,145 @@
-// Receivables → Customers / Payers. The AR sub-ledger party register (read).
-import { useState } from "react";
-import { DataTable, Money, StatusPill, toArray, type Column } from "@/components/finance-ui";
+// Receivables → Customers / Payers. The AR sub-ledger party register in the
+// prototype's shape: KPI cards (total / receivable / in-credit / overdue), search
+// + status filter, an avatar table with each customer's net balance and status,
+// Export, New customer, and a rich detail drawer (with the Customer Statement tab).
+import { useMemo, useState } from "react";
+import { Search, Plus, Download } from "lucide-react";
+import { DataTable, toArray, type Column } from "@/components/finance-ui";
+import { Can } from "@/components/finance-ui/can";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
+import { cn } from "@/lib/utils";
+import { formatMoney } from "@/utils/money";
+import { P } from "@/permissions";
 import { useGetCustomersQuery } from "@/redux/services/finance/ar-api";
 import type { Customer } from "@/redux/services/finance/ar-types";
+import { NewCustomerDrawer } from "./new-customer-drawer";
+import { CustomerDetailDrawer } from "./customer-detail-drawer";
+
+const STATUS_TABS = [
+  { key: "", label: "All" }, { key: "ACTIVE", label: "Active" }, { key: "OVERDUE", label: "Overdue" },
+  { key: "CREDIT", label: "In credit" }, { key: "INACTIVE", label: "Inactive" },
+] as const;
+const STATUS_PILL: Record<string, string> = {
+  ACTIVE: "bg-green-01/10 text-green-01", OVERDUE: "bg-destructive/10 text-destructive",
+  CREDIT: "bg-blue-50 text-blue-700", INACTIVE: "bg-gray-03/60 text-gray-05",
+};
+const STATUS_LABEL: Record<string, string> = { ACTIVE: "Active", OVERDUE: "Overdue", CREDIT: "In credit", INACTIVE: "Inactive" };
+
+function Initials({ name }: { name: string }) {
+  const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
+  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
+}
+
+function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+      <p className="font-mont text-xs text-gray-05">{label}</p>
+      <p className="mt-1 font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
+      {hint && <p className="mt-0.5 font-mont text-[11px] text-gray-05">{hint}</p>}
+    </div>
+  );
+}
+
+const statusOf = (c: Customer) => (!c.is_active ? "INACTIVE" : c.account_status ?? "ACTIVE");
 
 export function CustomersTab({ entity, currency }: { entity: string; currency?: string | null }) {
-  const [search, setSearch] = useState("");
-  // Debounce so we hit the list endpoint once the user pauses, not per keystroke.
-  const debouncedSearch = useDebounce(search.trim(), 350);
-  const { data, isLoading, isFetching, isError, refetch } = useGetCustomersQuery({ entity, search: debouncedSearch || undefined });
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput.trim(), 350);
+  const [status, setStatus] = useState("");
+  const [newOpen, setNewOpen] = useState(false);
+  const [selected, setSelected] = useState<number | null>(null);
+
+  const { data, isLoading, isFetching, isError, refetch } = useGetCustomersQuery({ entity, search: search || undefined });
   const rows = toArray<Customer>(data?.data);
 
+  const kpis = useMemo(() => {
+    let receivable = 0, credit = 0, overdue = 0;
+    for (const c of rows) {
+      const bal = c.balance ?? 0;
+      if (bal > 0) receivable += bal;
+      if (bal < 0) credit += 1;
+      if (c.is_active && c.account_status === "OVERDUE") overdue += 1;
+    }
+    return { total: rows.length, receivable, credit, overdue };
+  }, [rows]);
+
+  const filtered = useMemo(() => rows.filter((c) => !status || statusOf(c) === status), [rows, status]);
+  const counts = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const c of rows) m[statusOf(c)] = (m[statusOf(c)] ?? 0) + 1;
+    return m;
+  }, [rows]);
+
+  const exportCsv = () => {
+    const head = ["Code", "Name", "Email", "Phone", "Balance (kobo)", "Status"];
+    const lines = filtered.map((c) => [c.code, c.name, c.billing_email, c.billing_phone, String(c.balance ?? 0), STATUS_LABEL[statusOf(c)]]
+      .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","));
+    const blob = new Blob([[head.join(","), ...lines].join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `customers-${entity}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const columns: Column<Customer>[] = [
-    { header: "Code", cell: (c) => <span className="font-semibold">{c.code}</span> },
-    { header: "Name", cell: (c) => c.name },
+    { header: "Code", cell: (c) => <span className="font-semibold tabular-nums">{c.code}</span> },
+    { header: "Customer", cell: (c) => (
+      <span className="inline-flex items-center gap-2"><Initials name={c.name} /><span className="font-medium text-gray-01">{c.name}</span></span>
+    ) },
     { header: "Contact", cell: (c) => <span className="text-gray-05">{c.billing_email || c.billing_phone || "—"}</span> },
-    { header: "Receivable a/c", cell: (c) => c.receivable_account_code ? <span>{c.receivable_account_code}<span className="ml-1 text-gray-05">{c.receivable_account_name}</span></span> : "—" },
-    { header: "Opening balance", align: "right", cell: (c) => <Money kobo={c.opening_balance} currency={currency} align="right" /> },
-    { header: "Status", cell: (c) => <StatusPill status={c.is_active ? "ACTIVE" : "INACTIVE"} /> },
+    { header: "Balance", align: "right", cell: (c) => {
+      const bal = c.balance ?? 0;
+      if (bal === 0) return <span className="text-gray-05">—</span>;
+      return bal < 0
+        ? <span className="block text-right tabular-nums text-green-01">{formatMoney(-bal, currency)} cr</span>
+        : <span className="block text-right tabular-nums">{formatMoney(bal, currency)}</span>;
+    } },
+    { header: "Status", cell: (c) => { const s = statusOf(c); return <span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[s])}>{STATUS_LABEL[s]}</span>; } },
   ];
 
   return (
-    <div className="space-y-3">
-      <Input value={search} onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search by code or name" className="max-w-xs font-mont text-sm" />
-      <DataTable columns={columns} rows={rows} rowKey={(c) => c.id}
+    <div className="space-y-4">
+      {/* KPI cards */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi label="Total customers" value={String(kpis.total)} />
+        <Kpi label="Total receivable" value={formatMoney(kpis.receivable, currency)} hint="Across open invoices" />
+        <Kpi label="Customers in credit" value={String(kpis.credit)} />
+        <Kpi label="Overdue accounts" value={String(kpis.overdue)} />
+      </div>
+
+      {/* status tabs */}
+      <div className="flex flex-wrap items-center gap-1 rounded-md border border-gray-03 bg-white p-1">
+        {STATUS_TABS.map((t) => (
+          <button key={t.key} onClick={() => setStatus(t.key)}
+            className={cn("rounded-md px-3 py-1.5 font-mont text-xs font-semibold", status === t.key ? "bg-primary text-white" : "text-gray-05 hover:bg-gray-50 hover:text-gray-01")}>
+            {t.label} <span className="ml-1 opacity-70">{t.key ? (counts[t.key] ?? 0) : rows.length}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* search + actions */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
+          <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search code or name" className="h-9 w-64 pl-8 font-mont text-sm" />
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <Button variant="outline" onClick={exportCsv} disabled={!filtered.length} className="gap-1.5"><Download className="size-4" /> Export</Button>
+          <Can permission={P.FIN_CREATE_CUSTOMER}>
+            <Button onClick={() => setNewOpen(true)} className="gap-1.5"><Plus className="size-4" /> New customer</Button>
+          </Can>
+        </div>
+      </div>
+
+      <DataTable columns={columns} rows={filtered} rowKey={(c) => c.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch}
+        onRowClick={(c) => setSelected(c.id)}
         emptyTitle="No customers" emptyMessage="Customers / payers will appear here." />
+
+      <NewCustomerDrawer open={newOpen} onOpenChange={setNewOpen} entity={entity} />
+      <CustomerDetailDrawer id={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
     </div>
   );
 }
