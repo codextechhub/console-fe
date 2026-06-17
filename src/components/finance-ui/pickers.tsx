@@ -4,7 +4,7 @@
 // every finance create form so account/currency/tax selection is consistent.
 
 import { SearchSelect } from "@/components/custom/search-select";
-import { useGetAccountsQuery, useGetCurrenciesQuery, useGetTaxCodesQuery, useGetCostCentersQuery } from "@/redux/services/finance/setup-api";
+import { useGetAccountsQuery, useGetChartOfAccountsQuery, useGetCurrenciesQuery, useGetTaxCodesQuery, useGetCostCentersQuery } from "@/redux/services/finance/setup-api";
 import { useGetTaxObligationsQuery, useGetPettyCashFundsQuery } from "@/redux/services/finance/ops-api";
 import { useGetCustomersQuery } from "@/redux/services/finance/ar-api";
 import { toArray } from "@/redux/services/finance/api-types";
@@ -27,6 +27,17 @@ export function AccountPicker({ entity, value, onChange, label, placeholder = "S
   const { data, isLoading } = useGetAccountsQuery({ entity, ...(postableOnly ? { is_postable: true } : {}), ...(accountType ? { account_type: accountType } : {}) });
   const options = toArray(data?.data).map((a) => ({ value: a.code, label: `${a.code} · ${a.name}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} revealOnSearch />;
+}
+
+/** Receivable control account picker — postable ASSET accounts tagged CONTROL
+ *  (the AR control accounts a customer posts to), shown as a populated, searchable
+ *  list. Sourced from the chart endpoint, which is what computes the CONTROL tag. */
+export function ReceivableAccountPicker({ entity, value, onChange, label, placeholder = "Select receivable account", isRequired, disabled }: PickerProps) {
+  const { data, isLoading } = useGetChartOfAccountsQuery({ entity });
+  const options = toArray(data?.data)
+    .filter((a) => a.account_type === "ASSET" && a.tag === "CONTROL" && a.is_postable)
+    .map((a) => ({ value: a.code, label: `${a.code} · ${a.name}` }));
+  return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }
 
 /** Customer / payer picker. List-backed (grows per entity) → reveal-on-search. */

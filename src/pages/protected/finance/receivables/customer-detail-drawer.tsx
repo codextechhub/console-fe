@@ -66,6 +66,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
   const d = data?.data;
   const c = d?.customer;
   const s = d?.summary;
+  const owes = (s?.current_balance.kobo ?? 0) > 0;   // footer actions only when owed
 
   const sendReminder = async () => {
     if (!c) return;
@@ -86,7 +87,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
       title={c ? c.name : "Customer"}
       description={c ? `${c.code}${c.billing_email ? ` · ${c.billing_email}` : ""}` : undefined}
       widthClass="sm:max-w-3xl"
-      footer={c ? (
+      footer={c && owes ? (
         <div className="flex w-full items-center justify-end gap-2">
           <Can permission={P.FIN_SEND_DUNNING}>
             <Button variant="outline" onClick={() => setRemindOpen(true)} className="gap-1.5"><BellRing className="size-4" /> Send reminder</Button>

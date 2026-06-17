@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
-import { DetailDrawer, FormField, AccountPicker } from "@/components/finance-ui";
+import { DetailDrawer, FormField, ReceivableAccountPicker } from "@/components/finance-ui";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateCustomerMutation } from "@/redux/services/finance/ar-api";
@@ -70,7 +70,7 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
         </div>
         <FormField label="Billing address"><Input value={address} onChange={(e) => setAddress(e.target.value)} className="bg-white" /></FormField>
         <FormField label="Receivable account">
-          <AccountPicker entity={entity} value={account} onChange={setAccount} postableOnly accountType="ASSET" placeholder="Defaults to 1200 Accounts Receivable" />
+          <ReceivableAccountPicker entity={entity} value={account} onChange={setAccount} placeholder="Defaults to 1200 Accounts Receivable" />
         </FormField>
         <div className="grid grid-cols-2 items-end gap-3">
           <FormField label="Opening balance (₦)"><Input type="number" min="0" step="0.01" value={opening} onChange={(e) => setOpening(e.target.value)} placeholder="0.00" className="bg-white" /></FormField>
