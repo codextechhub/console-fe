@@ -3,6 +3,7 @@
 // collapsible NavMain — expand-only parents + leaf links — with a "Back to main
 // app" entry on top. Replaces the global nav while you're inside the console.
 
+import { useLayoutEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useLocation } from "react-router";
 import {
@@ -18,9 +19,21 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routes-path";
 import type { ConsoleNavGroup, ConsoleNavItem } from "./console-nav";
 
+// Each console page mounts its own shell, so the sidebar remounts on every
+// in-console navigation — which would reset its scroll to the top. Remember the
+// scroll offset per console (module scope survives the remount) and restore it
+// before paint so a click on a item far down the menu keeps the menu in place.
+const scrollByConsole = new Map<string, number>();
+
 export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavGroup[] }) {
   const location = useLocation().pathname;
   const { hasModuleAccess } = usePermissions();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = scrollByConsole.get(title) ?? 0;
+  }, [title]);
 
   const childVisible = (prefixes?: string[]) => !prefixes?.length || hasModuleAccess(...prefixes);
 
@@ -83,7 +96,11 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="bg-white pt-3 pb-6">
+      <SidebarContent
+        ref={scrollRef}
+        onScroll={(e) => scrollByConsole.set(title, e.currentTarget.scrollTop)}
+        className="bg-white pt-3 pb-6"
+      >
         <NavMain items={[backItem]} />
         <p className={groupLabelCls}>{title}</p>
         {groups.map((g, i) => (
