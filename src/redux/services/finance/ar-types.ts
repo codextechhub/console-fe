@@ -43,6 +43,7 @@ export interface CreditNote {
   customer_code: string;
   customer_name: string;
   invoice_id: number | null;
+  invoice_number: string | null;
   note_date: string;
   status: string;
   subtotal: number;

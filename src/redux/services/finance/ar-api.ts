@@ -73,24 +73,28 @@ export const arApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/finance/credit-notes/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceCreditNotes"],
     }),
-    createCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { entity: string; customer: string; kind: string; note_date: string; reason?: string; reference?: string; lines: Record<string, unknown>[] }>({
+    createCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { entity: string; customer: string; kind: string; note_date: string; invoice?: number; reason?: string; reference?: string; lines: Record<string, unknown>[] }>({
       query: ({ entity, ...body }) => ({ url: `/finance/credit-notes/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceCreditNotes"],
     }),
-    postCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { id: number; entity: string }>({
-      query: ({ id, entity }) => ({
+    // Posting defaults to auto-allocating on the backend; pass auto_allocate:false
+    // to leave the note "Issued" (unallocated) so applying stays an explicit step.
+    postCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { id: number; entity: string; auto_allocate?: boolean }>({
+      query: ({ id, entity, ...body }) => ({
         url: `/finance/credit-notes/${id}/post/${qs({ entity })}`,
         method: "POST",
+        body,
       }),
       invalidatesTags: ["FinanceCreditNotes", "FinanceReports", "FinanceJournals"],
     }),
-    allocateCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { id: number; entity: string; invoice: number; amount: number }>({
+    // Backend reads `allocations` ([{invoice, amount}]) or `auto_allocate` (oldest-first).
+    allocateCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { id: number; entity: string; allocations?: { invoice: number; amount: number }[]; auto_allocate?: boolean }>({
       query: ({ id, entity, ...body }) => ({
         url: `/finance/credit-notes/${id}/allocate/${qs({ entity })}`,
         method: "POST",
         body,
       }),
-      invalidatesTags: ["FinanceCreditNotes", "FinanceInvoices"],
+      invalidatesTags: ["FinanceCreditNotes", "FinanceInvoices", "FinanceReports", "FinanceJournals"],
     }),
 
     // Refunds
