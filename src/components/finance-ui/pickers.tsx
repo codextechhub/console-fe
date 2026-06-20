@@ -5,7 +5,7 @@
 
 import { SearchSelect } from "@/components/custom/search-select";
 import { useGetAccountsQuery, useGetChartOfAccountsQuery, useGetCurrenciesQuery, useGetTaxCodesQuery, useGetCostCentersQuery } from "@/redux/services/finance/setup-api";
-import { useGetTaxObligationsQuery, useGetPettyCashFundsQuery } from "@/redux/services/finance/ops-api";
+import { useGetTaxObligationsQuery, useGetPettyCashFundsQuery, useGetBankAccountsQuery } from "@/redux/services/finance/ops-api";
 import { useGetCustomersQuery } from "@/redux/services/finance/ar-api";
 import { toArray } from "@/redux/services/finance/api-types";
 
@@ -74,5 +74,14 @@ export function TaxObligationPicker({ entity, value, onChange, label, placeholde
 export function PettyCashFundPicker({ entity, value, onChange, label, placeholder = "Select fund", isRequired, disabled }: PickerProps) {
   const { data, isLoading } = useGetPettyCashFundsQuery({ entity, page: 1 });
   const options = toArray(data?.data).map((f) => ({ value: String(f.id), label: f.name }));
+  return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
+}
+
+/** Bank account picker — entity's named bank accounts; reports the account id. */
+export function BankAccountPicker({ entity, value, onChange, label, placeholder = "Select bank account", isRequired, disabled }: PickerProps) {
+  const { data, isLoading } = useGetBankAccountsQuery({ entity, page: 1 });
+  const options = toArray(data?.data)
+    .filter((a) => a.is_active)
+    .map((a) => ({ value: String(a.id), label: a.bank_name ? `${a.name} · ${a.bank_name}` : a.name }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }

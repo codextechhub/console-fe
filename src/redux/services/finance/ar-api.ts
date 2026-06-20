@@ -20,6 +20,7 @@ import type {
   InvoiceSummary,
   PaymentPlan,
   Refund,
+  WriteOff,
 } from "./ar-types";
 
 type EntityList = { entity: string; page?: number; status?: string; customer?: string };
@@ -48,13 +49,14 @@ export const arApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/invoices/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals"],
     }),
-    writeOffInvoice: builder.mutation<ApiEnvelope<Invoice>, { id: number; entity: string; reason?: string; date?: string }>({
+    // Backend keys: amount? · write_off_account? · write_off_date? · narration.
+    writeOffInvoice: builder.mutation<ApiEnvelope<Invoice>, { id: number; entity: string; amount?: number; write_off_account?: string | number; write_off_date?: string; narration?: string }>({
       query: ({ id, entity, ...body }) => ({
         url: `/finance/invoices/${id}/write-off/${qs({ entity })}`,
         method: "POST",
         body,
       }),
-      invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals"],
+      invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals", "FinanceCustomers"],
     }),
     recordPayment: builder.mutation<ApiEnvelope<Invoice>, {
       id: number; entity: string; amount: number; payment_date: string;
@@ -102,7 +104,7 @@ export const arApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/finance/refunds/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceRefunds"],
     }),
-    createRefund: builder.mutation<ApiEnvelope<Refund>, { entity: string; customer: string; refund_date: string; method?: string; amount: number; reference?: string; narration?: string }>({
+    createRefund: builder.mutation<ApiEnvelope<Refund>, { entity: string; customer: string; refund_date: string; method?: string; amount: number; bank_account?: string | number; reference?: string; narration?: string }>({
       query: ({ entity, ...body }) => ({ url: `/finance/refunds/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceRefunds"],
     }),
@@ -111,7 +113,12 @@ export const arApi = baseApi.injectEndpoints({
         url: `/finance/refunds/${id}/post/${qs({ entity })}`,
         method: "POST",
       }),
-      invalidatesTags: ["FinanceRefunds", "FinanceReports", "FinanceJournals"],
+      invalidatesTags: ["FinanceRefunds", "FinanceReports", "FinanceJournals", "FinanceCustomers"],
+    }),
+    // Bad-debt write-offs (read-only list from the finance audit log).
+    getWriteOffs: builder.query<ApiEnvelope<WriteOff[]>, { entity: string }>({
+      query: (params) => ({ url: `/finance/write-offs/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceInvoices"],
     }),
 
     // Concessions
@@ -209,6 +216,7 @@ export const {
   useGetRefundsQuery,
   useCreateRefundMutation,
   usePostRefundMutation,
+  useGetWriteOffsQuery,
   useGetConcessionsQuery,
   useCreateConcessionMutation,
   usePostConcessionMutation,

@@ -7,13 +7,14 @@ export { Money } from "./money";
 export { MoneyInput } from "./money-input";
 export { StatusPill } from "./status-pill";
 export { JournalTable, type JournalLineView } from "./journal-table";
+export { PostingRecap, type RecapRow } from "./posting-recap";
 export { DataTable, type Column } from "./data-table";
 export { DetailDrawer } from "./detail-drawer";
 export { ConfirmActionModal } from "./confirm-action-modal";
 export { ActionButton } from "./action-button";
 export { EntitySelect } from "./entity-select";
 export { FormModal, FormField } from "./form-modal";
-export { AccountPicker, ReceivableAccountPicker, CustomerPicker, CurrencyPicker, TaxCodePicker, CostCenterPicker, TaxObligationPicker, PettyCashFundPicker } from "./pickers";
+export { AccountPicker, ReceivableAccountPicker, CustomerPicker, CurrencyPicker, TaxCodePicker, CostCenterPicker, TaxObligationPicker, PettyCashFundPicker, BankAccountPicker } from "./pickers";
 export { LineEditor, emptyLine, toApiLines, type DocLine } from "./line-editor";
 export { useActiveEntity, useEntityCode } from "./use-entity";
 export {

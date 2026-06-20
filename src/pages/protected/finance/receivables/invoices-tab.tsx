@@ -104,7 +104,7 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
   const submitWriteOff = async () => {
     if (!selected) return;
     try {
-      const res = await doWriteOff({ id: selected.id, entity, reason }).unwrap();
+      const res = await doWriteOff({ id: selected.id, entity, narration: reason }).unwrap();
       toast.success(res.message || "Invoice written off.");
       setWriteOff(false); setReason(""); setSelected(null);
     } catch { /* central */ }
