@@ -52,7 +52,7 @@ const STATUS_LABEL: Record<string, string> = { DRAFT: "Draft", ISSUED: "Issued",
 function TypeChip({ kind }: { kind: string }) {
   const debit = kind === "DEBIT";
   return (
-    <span className={cn("inline-flex rounded-full px-2 py-0.5 font-mont text-[11px] font-semibold",
+    <span className={cn("inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium",
       debit ? "bg-amber-50 text-amber-700" : "bg-green-01/10 text-green-01")}>
       {kindLabel(kind)}
     </span>
@@ -169,14 +169,14 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
   const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01";
 
   const columns: Column<CreditNote>[] = [
-    { header: "Note no.", cell: (r) => <span className="font-mont font-semibold text-black-01">{r.document_number}</span> },
+    { header: "Note no.", cell: (r) => <span className="font-semibold tabular-nums">{r.document_number}</span> },
     { header: "Type", cell: (r) => <TypeChip kind={r.kind} /> },
-    { header: "Date", cell: (r) => <span className="font-mont text-sm text-gray-01">{r.note_date}</span> },
+    { header: "Date", cell: (r) => <span className="tabular-nums">{r.note_date}</span> },
     { header: "Customer", cell: (r) => (
-      <span className="flex items-center gap-2"><Initials name={r.customer_name} /><span className="font-mont text-sm text-gray-01">{r.customer_name}</span></span>
+      <span className="inline-flex items-center gap-2"><Initials name={r.customer_name} /><span className="font-medium text-gray-01">{r.customer_name}</span></span>
     ) },
-    { header: "Against invoice", cell: (r) => <span className="font-mont text-xs text-gray-05">{r.invoice_number ?? "—"}</span> },
-    { header: "Reason", cell: (r) => <span className="block max-w-[240px] truncate font-mont text-sm text-gray-01" title={r.reason}>{r.reason || "—"}</span> },
+    { header: "Against invoice", cell: (r) => <span className="tabular-nums text-gray-05">{r.invoice_number ?? "—"}</span> },
+    { header: "Reason", cell: (r) => <span className="block max-w-[240px] truncate text-gray-01" title={r.reason}>{r.reason || "—"}</span> },
     { header: "Amount", align: "right", cell: (r) => (
       // Credit notes reduce the balance (green); debit notes increase it (red) —
       // the same colour convention as the DR/CR posting recap.
@@ -185,7 +185,7 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
     ) },
     { header: "Status", cell: (r) => {
       const s = noteStatus(r);
-      return <span className={cn("inline-flex rounded-full px-2 py-0.5 font-mont text-[11px] font-semibold", STATUS_PILL[s])}>{STATUS_LABEL[s]}</span>;
+      return <span className={cn("inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[s])}>{STATUS_LABEL[s]}</span>;
     } },
   ];
 
@@ -266,11 +266,11 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
         <div className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Amount"><Money kobo={note.total} currency={currency} /></Field>
-            <Field label="Status"><span className={cn("inline-flex rounded-full px-2 py-0.5 font-mont text-[11px] font-semibold", STATUS_PILL[status])}>{STATUS_LABEL[status]}</span></Field>
-            <Field label="Against invoice"><span className="font-mont text-sm text-gray-01">{note.invoice_number ?? "—"}</span></Field>
-            <Field label="Date"><span className="font-mont text-sm text-gray-01">{note.note_date}</span></Field>
+            <Field label="Status"><span className={cn("inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[status])}>{STATUS_LABEL[status]}</span></Field>
+            <Field label="Against invoice">{note.invoice_number ?? "—"}</Field>
+            <Field label="Date">{note.note_date}</Field>
           </div>
-          <Field label="Reason"><span className="font-mont text-sm text-gray-01">{note.reason || "—"}</span></Field>
+          <Field label="Reason"><span className="font-normal">{note.reason || "—"}</span></Field>
 
           {note.kind === "CREDIT" && note.allocated_amount > 0 ? (
             <div className="grid grid-cols-2 gap-4">
@@ -306,8 +306,8 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="font-mont text-[11px] uppercase tracking-wide text-gray-05">{label}</p>
-      <div className="mt-0.5">{children}</div>
+      <p className="font-mont text-[11px] text-gray-05">{label}</p>
+      <div className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</div>
     </div>
   );
 }

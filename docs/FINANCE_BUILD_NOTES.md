@@ -41,6 +41,27 @@ destructive / pry-01 (blue primary). Consoles render in **Geist**, scoped via th
 portaled overlay (`DetailDrawer` / `FormModal` / `ConfirmActionModal` mount at
 `<body>`, so each carries `console-geist` itself).
 
+## Typography — match the AR screens (canonical: `invoices-tab`, `customer-detail-drawer`)
+The DataTable + drawer primitives already set the base sizes; cells/fields add
+**only modifiers** — never re-declare `font-mont text-sm` on every cell. Copy
+these exactly so a new screen reads like AR:
+- **Table cells** inherit `font-mont text-sm font-medium text-black-01` from
+  `DataTable`. Add `tabular-nums` to *every* numeric / date / code / amount cell
+  (so columns align), `font-semibold` for the row's primary id (document no.),
+  `text-gray-05` for muted/secondary, `text-gray-01` for names. `<Money>` for
+  amounts. Don't set `text-xs` on data cells.
+- **Status / type pills** (table + drawer): `rounded px-2 py-0.5 font-mont
+  text-[11px] font-medium` + colour. NOT `rounded-full` / `font-semibold`.
+- **Detail-drawer field** (the `Field` helper): label `font-mont text-[11px]
+  text-gray-05` (**sentence case — no `uppercase`/`tracking`**); value
+  `mt-1 font-mont text-sm font-semibold tabular-nums text-black-01`. Long prose
+  values (a reason/narration) drop to `font-normal`.
+- **Create-form field label** (`FormField`): `font-mont text-xs text-gray-05`.
+- **Drawer sub-tables**: `th` = `bg-[#F1F1F1] px-3 py-2 font-mont text-[11px]
+  font-semibold text-gray-01`; `td` = `border-t border-gray-03 px-3 py-2 font-mont
+  text-xs text-black-01`.
+- **Section heading inside a drawer**: `font-mont text-xs font-semibold text-gray-05`.
+
 ## Honesty rules
 Never fake an action. Email-type actions (Email receipt, Send statement) are
 present but **disabled with a tooltip** until an email service exists. "Allocation
