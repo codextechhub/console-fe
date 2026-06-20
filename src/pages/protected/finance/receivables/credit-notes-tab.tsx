@@ -35,6 +35,13 @@ const todayISO = new Date().toISOString().slice(0, 10);
 const kindLabel = (k: string) => (k === "DEBIT" ? "Debit note" : "Credit note");
 const DRAWER_W = "sm:max-w-3xl";
 
+// Truncate a long reason to a word count with an ellipsis (full text on hover).
+const REASON_MAX_WORDS = 3;
+function shortenReason(s: string): string {
+  const words = s.trim().split(/\s+/);
+  return words.length > REASON_MAX_WORDS ? `${words.slice(0, REASON_MAX_WORDS).join(" ")}…` : s;
+}
+
 // Posted credit note fully applied → "Applied"; otherwise "Issued". Debit notes
 // can't be allocated, so a posted debit note is always "Issued". Unposted → "Draft".
 function noteStatus(n: CreditNote): "DRAFT" | "ISSUED" | "APPLIED" {
@@ -176,7 +183,7 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
       <span className="inline-flex items-center gap-2"><Initials name={r.customer_name} /><span className="font-medium text-gray-01">{r.customer_name}</span></span>
     ) },
     { header: "Against invoice", cell: (r) => <span className="tabular-nums text-gray-05">{r.invoice_number ?? "—"}</span> },
-    { header: "Reason", cell: (r) => <span className="block max-w-[240px] truncate text-gray-01" title={r.reason}>{r.reason || "—"}</span> },
+    { header: "Reason", cell: (r) => <span className="block max-w-[240px] truncate text-gray-01" title={r.reason}>{r.reason ? shortenReason(r.reason) : "—"}</span> },
     { header: "Amount", align: "right", cell: (r) => (
       // Credit notes reduce the balance (green); debit notes increase it (red) —
       // the same colour convention as the DR/CR posting recap.
