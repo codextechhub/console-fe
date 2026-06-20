@@ -117,7 +117,7 @@ function PostingRecap({ title, dr, cr, currency, helper }: {
   const balanced = totalDr === totalCr;
   return (
     <div className="overflow-hidden rounded-lg border border-gray-03 bg-white">
-      <div className="flex items-center justify-between border-b border-gray-03 bg-white px-4 py-2.5">
+      <div className="flex items-center justify-between border-b border-gray-03 bg-gray-03 px-4 py-2.5">
         <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-01">{title}</p>
         <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mont text-[11px] font-semibold",
           balanced ? "bg-green-01/10 text-green-01" : "bg-amber-50 text-amber-700")}>
@@ -129,7 +129,7 @@ function PostingRecap({ title, dr, cr, currency, helper }: {
         <RecapColumn label="Credit (CR)" totalLabel="Total Cr" rows={cr} currency={currency} />
       </div>
       {helper ? (
-        <p className="border-t border-gray-03 px-4 py-2.5 font-mont text-[11px] text-gray-05">{helper}</p>
+        <p className="border-t border-gray-03 bg-gray-03 px-4 py-2.5 font-mont text-[11px] text-gray-05">{helper}</p>
       ) : null}
     </div>
   );
