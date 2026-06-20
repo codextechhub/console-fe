@@ -141,9 +141,16 @@ Two ways data gets seeded:
    Posting needs an **open fiscal period** for the date (seeded above) or it 409s
    `PERIOD_CLOSED`. `auto_allocate=False` leaves the receipt unallocated so the
    allocation drawer has something to demo.
-3. **Standing demo data right now:** `CUST-003` (Crystal Foods) has open invoice
-   `INV-2026-00003` (₦80,000) + unallocated receipt `RCP-2026-00004` (₦50,000) — for
-   clicking through Receipts & Allocation. Delete anytime; harmless.
+3. **Standing demo data right now:**
+   - **CODEX** — `CUST-003` (Crystal Foods) has open invoice `INV-2026-00003`
+     (₦80,000) + unallocated receipt `RCP-2026-00004` (₦50,000) — for clicking
+     through Receipts & Allocation.
+   - **CREST** — four **Credit / Debit Notes**: three Issued
+     (`CRN-2026-00003` ₦150k credit, `DRN-2026-00002` ₦25k debit, `CRN-2026-00004`
+     ₦42k credit) + one **Applied** credit note `CRN-2026-00005` (₦120k) fully
+     applied to invoice `INV-2026-00002` (CUST-004) — covers both types and the
+     Issued/Applied states.
+   - Delete anytime; harmless.
 
 ## Tests
 `python manage.py test vs_finance --keepdb` (~154 green). New AR test classes:
