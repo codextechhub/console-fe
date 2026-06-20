@@ -73,6 +73,21 @@ export interface Refund {
   narration: string;
 }
 
+// Unified AR adjustment row (refund or write-off) from /finance/ar-adjustments/.
+export interface ArAdjustment {
+  key: string;
+  kind: "REFUND" | "WRITEOFF";
+  reference: string;
+  date: string;
+  customer_code: string;
+  customer_name: string;
+  reason: string;
+  amount: number;
+  amount_naira: string;
+  status: string;
+  refund_id: number | null;
+}
+
 // Bad-debt write-off row (sourced from the finance audit log; not a document).
 export interface WriteOff {
   id: number;

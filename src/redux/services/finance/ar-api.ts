@@ -4,8 +4,9 @@
 
 import { generateQueryString } from "@/utils/helpers";
 import { baseApi } from "../base-api";
-import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
+import type { ApiEnvelope, PaginatedEnvelope, Pagination } from "./api-types";
 import type {
+  ArAdjustment,
   Concession,
   CreditNote,
   Customer,
@@ -71,7 +72,7 @@ export const arApi = baseApi.injectEndpoints({
     }),
 
     // Credit notes
-    getCreditNotes: builder.query<PaginatedEnvelope<CreditNote>, EntityList & { kind?: string }>({
+    getCreditNotes: builder.query<PaginatedEnvelope<CreditNote>, EntityList & { kind?: string; search?: string }>({
       query: (params) => ({ url: `/finance/credit-notes/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceCreditNotes"],
     }),
@@ -119,6 +120,14 @@ export const arApi = baseApi.injectEndpoints({
     getWriteOffs: builder.query<ApiEnvelope<WriteOff[]>, { entity: string }>({
       query: (params) => ({ url: `/finance/write-offs/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceInvoices"],
+    }),
+    // Unified refunds + write-offs, paginated, with KPI totals in the envelope.
+    getArAdjustments: builder.query<
+      { pagination: Pagination; kpis: { written_off_ytd: number; pending: number }; data: ArAdjustment[] },
+      { entity: string; type?: string; search?: string; page?: number }
+    >({
+      query: (params) => ({ url: `/finance/ar-adjustments/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceRefunds", "FinanceInvoices"],
     }),
 
     // Concessions
@@ -217,6 +226,7 @@ export const {
   useCreateRefundMutation,
   usePostRefundMutation,
   useGetWriteOffsQuery,
+  useGetArAdjustmentsQuery,
   useGetConcessionsQuery,
   useCreateConcessionMutation,
   usePostConcessionMutation,
