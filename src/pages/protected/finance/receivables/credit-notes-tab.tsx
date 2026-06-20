@@ -322,11 +322,13 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
   const saving = creating || posting;
   const debit = kind === "DEBIT";
 
-  // Posted invoices for the chosen customer — shown as a searchable list.
+  // Posted invoices that still owe money, for the chosen customer — a searchable
+  // list. A credit note applies against an outstanding balance, so fully-paid /
+  // fully-credited invoices (balance_due = 0) are excluded.
   const invQ = useGetInvoicesQuery({ entity, search: customer, status: "POSTED" }, { skip: !customer });
   const invoiceOptions = useMemo(() =>
     toArray(invQ.data?.data)
-      .filter((i) => i.customer_code === customer)
+      .filter((i) => i.customer_code === customer && i.balance_due > 0)
       .map((i) => ({ value: String(i.id), label: `${i.document_number} · ${formatMoney(i.balance_due, currency)} due` })),
   [invQ.data, customer, currency]);
 
