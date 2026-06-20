@@ -177,7 +177,12 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
     ) },
     { header: "Against invoice", cell: (r) => <span className="font-mont text-xs text-gray-05">{r.invoice_number ?? "—"}</span> },
     { header: "Reason", cell: (r) => <span className="block max-w-[240px] truncate font-mont text-sm text-gray-01" title={r.reason}>{r.reason || "—"}</span> },
-    { header: "Amount", align: "right", cell: (r) => <Money kobo={r.total} currency={currency} align="right" /> },
+    { header: "Amount", align: "right", cell: (r) => (
+      // Credit notes reduce the balance (green); debit notes increase it (red) —
+      // the same colour convention as the DR/CR posting recap.
+      <Money kobo={r.total} currency={currency} align="right"
+        className={r.kind === "DEBIT" ? "text-destructive" : "text-green-01"} />
+    ) },
     { header: "Status", cell: (r) => {
       const s = noteStatus(r);
       return <span className={cn("inline-flex rounded-full px-2 py-0.5 font-mont text-[11px] font-semibold", STATUS_PILL[s])}>{STATUS_LABEL[s]}</span>;
