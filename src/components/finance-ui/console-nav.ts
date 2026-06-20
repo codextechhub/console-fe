@@ -26,3 +26,29 @@ export interface ConsoleNavGroup {
   label?: string;
   items: ConsoleNavItem[];
 }
+
+/**
+ * Title of the nav item (leaf or child) whose URL best matches `pathname` —
+ * used to drive the console header so it reflects the current screen, not the
+ * console name. Most-specific (longest URL) wins, so the console root only
+ * matches on its exact path. Returns null when nothing matches.
+ */
+export function activeNavTitle(nav: ConsoleNavGroup[], pathname: string): string | null {
+  const candidates: { url: string; title: string }[] = [];
+  for (const group of nav) {
+    for (const item of group.items) {
+      if (item.children?.length) {
+        for (const child of item.children) candidates.push({ url: child.url, title: child.title });
+      } else {
+        candidates.push({ url: item.url, title: item.title });
+      }
+    }
+  }
+  let best: { url: string; title: string } | null = null;
+  for (const c of candidates) {
+    if (pathname === c.url || pathname.startsWith(c.url + "/")) {
+      if (!best || c.url.length > best.url.length) best = c;
+    }
+  }
+  return best?.title ?? null;
+}
