@@ -88,20 +88,6 @@ export interface ArAdjustment {
   refund_id: number | null;
 }
 
-// Bad-debt write-off row (sourced from the finance audit log; not a document).
-export interface WriteOff {
-  id: number;
-  reference: string;        // the written-off invoice number
-  invoice_id: number | null;
-  date: string;
-  customer_code: string;
-  customer_name: string;
-  amount: number;
-  amount_naira: string;
-  reason: string;
-  status: string;
-}
-
 export interface Concession {
   id: number;
   document_number: string;

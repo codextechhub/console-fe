@@ -99,8 +99,9 @@ sub-ledger act with **no new GL posting**. Print = `window.print()`.
   invoices (amount defaults to/caps at its balance, expense acct defaults to bad
   debt 5300); write-offs **post immediately** (always "Posted") while a refund posts
   on issue unless **Save as draft** is ticked (→ Pending; click the row to post).
-  Write-offs have no document model → the list reads the **finance audit log** via
-  `GET /finance/write-offs/`; REF shows the written-off invoice number.
+  Write-offs have no document model → they're read from the **finance audit log**
+  (via the unified `GET /finance/ar-adjustments/`); REF shows the written-off
+  invoice number.
 - The DR/CR `PostingRecap` card is a shared `finance-ui` primitive (credit notes +
   refunds). New shared picker: `BankAccountPicker`.
 - New journal + New account converted to drawers; sidebar scroll persists.
@@ -127,8 +128,7 @@ Budgets/Assets/Tax, Reports, Collections gateway.
 | `POST /finance/credit-notes/<id>/allocate/` (`allocations[]` or `auto_allocate`; credit notes only) | `finance.creditnote.allocate` |
 | `GET /finance/refunds/` · `POST` (create draft; `bank_account`) · `POST /finance/refunds/<id>/post/` | `finance.refund.view` / `.create` / `.post` |
 | `POST /finance/invoices/<id>/write-off/` (`amount?`, `write_off_account?`, `narration`) | `finance.invoice.writeoff` |
-| `GET /finance/write-offs/` (read-only; from the finance audit log) | `finance.invoice.view` |
-| `GET /finance/ar-adjustments/` (unified refunds + write-offs; `?type=&search=&page=`; paginated; KPI totals in envelope) | `finance.refund.view` |
+| `GET /finance/ar-adjustments/` (unified refunds + write-offs; `?type=&search=&page=`; paginated; write-off rows from the finance audit log; KPI totals in envelope) | `finance.refund.view` |
 
 **Lists are paginated** (`XVSPagination`, `?page=&page_size=`, max 100) with a
 server-side `?search=` — the AR adjustment lists (credit-notes, ar-adjustments) no

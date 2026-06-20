@@ -21,7 +21,6 @@ import type {
   InvoiceSummary,
   PaymentPlan,
   Refund,
-  WriteOff,
 } from "./ar-types";
 
 type EntityList = { entity: string; page?: number; status?: string; customer?: string };
@@ -115,11 +114,6 @@ export const arApi = baseApi.injectEndpoints({
         method: "POST",
       }),
       invalidatesTags: ["FinanceRefunds", "FinanceReports", "FinanceJournals", "FinanceCustomers"],
-    }),
-    // Bad-debt write-offs (read-only list from the finance audit log).
-    getWriteOffs: builder.query<ApiEnvelope<WriteOff[]>, { entity: string }>({
-      query: (params) => ({ url: `/finance/write-offs/${qs(params)}`, method: "GET" }),
-      providesTags: ["FinanceInvoices"],
     }),
     // Unified refunds + write-offs, paginated, with KPI totals in the envelope.
     getArAdjustments: builder.query<
@@ -225,7 +219,6 @@ export const {
   useGetRefundsQuery,
   useCreateRefundMutation,
   usePostRefundMutation,
-  useGetWriteOffsQuery,
   useGetArAdjustmentsQuery,
   useGetConcessionsQuery,
   useCreateConcessionMutation,
