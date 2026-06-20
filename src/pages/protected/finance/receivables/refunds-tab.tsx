@@ -13,9 +13,9 @@
 //     draft" is ticked.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Info } from "lucide-react";
+import { Plus, Info, Search, Printer, Check } from "lucide-react";
 import {
-  DataTable, Money, MoneyInput, ConfirmActionModal, DetailDrawer, FormField,
+  DataTable, Money, MoneyInput, DetailDrawer, FormField,
   CustomerPicker, AccountPicker, BankAccountPicker, PostingRecap, toArray,
   type Column, type RecapRow,
 } from "@/components/finance-ui";
@@ -23,24 +23,18 @@ import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchSelect } from "@/components/custom/search-select";
+import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
-  useGetRefundsQuery, useCreateRefundMutation, usePostRefundMutation,
-  useGetWriteOffsQuery, useWriteOffInvoiceMutation, useGetInvoicesQuery, useGetCustomersQuery,
+  useGetArAdjustmentsQuery, useCreateRefundMutation, usePostRefundMutation,
+  useWriteOffInvoiceMutation, useGetInvoicesQuery, useGetCustomersQuery,
 } from "@/redux/services/finance/ar-api";
-import type { Refund } from "@/redux/services/finance/ar-types";
+import type { ArAdjustment } from "@/redux/services/finance/ar-types";
 
 const todayISO = new Date().toISOString().slice(0, 10);
-const thisYear = todayISO.slice(0, 4);
 type Mode = "REFUND" | "WRITEOFF";
-
-type Row = {
-  key: string; kind: Mode; reference: string; date: string;
-  customer: string; reason: string; amount: number; status: "POSTED" | "DRAFT";
-  refundId?: number;
-};
 
 function TypeChip({ kind }: { kind: Mode }) {
   const wo = kind === "WRITEOFF";
@@ -71,102 +65,148 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
   );
 }
 
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="font-mont text-[11px] text-gray-05">{label}</p>
+      <div className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</div>
+    </div>
+  );
+}
+
 export function RefundsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [filter, setFilter] = useState<"" | Mode>("");
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput.trim(), 350);
+  const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
-  const [toPost, setToPost] = useState<Refund | null>(null);
+  const [selected, setSelected] = useState<ArAdjustment | null>(null);
 
-  const refundsQ = useGetRefundsQuery({ entity });
-  const writeOffsQ = useGetWriteOffsQuery({ entity });
+  // Unified, server-paginated refunds + write-offs; KPI totals ride in the envelope.
+  const params = useMemo(() => ({
+    entity, page,
+    ...(filter ? { type: filter.toLowerCase() } : {}),
+    ...(search ? { search } : {}),
+  }), [entity, page, filter, search]);
+  const { data, isLoading, isFetching, isError, refetch } = useGetArAdjustmentsQuery(params);
   const customersQ = useGetCustomersQuery({ entity, is_active: "true" });
-  const [post, { isLoading: posting }] = usePostRefundMutation();
 
-  const refunds = useMemo(() => toArray(refundsQ.data?.data), [refundsQ.data]);
-  const writeOffs = useMemo(() => toArray(writeOffsQ.data?.data), [writeOffsQ.data]);
-
+  const rows = useMemo(() => toArray(data?.data), [data]);
+  const pg = data?.pagination;
   const refundableCredit = useMemo(
     () => toArray(customersQ.data?.data).reduce((s, c) => s + (c.balance < 0 ? -c.balance : 0), 0),
     [customersQ.data],
   );
-  const writtenOffYtd = useMemo(
-    () => writeOffs.filter((w) => (w.date || "").startsWith(thisYear)).reduce((s, w) => s + w.amount, 0),
-    [writeOffs],
-  );
-  const pendingCount = useMemo(() => refunds.filter((r) => r.status === "DRAFT").length, [refunds]);
-
-  const rows: Row[] = useMemo(() => {
-    const r1: Row[] = refunds.map((r) => ({
-      key: `R${r.id}`, kind: "REFUND", reference: r.document_number, date: r.refund_date,
-      customer: r.customer_name, reason: r.narration || "Customer refund", amount: r.amount,
-      status: r.status === "POSTED" ? "POSTED" : "DRAFT", refundId: r.id,
-    }));
-    const r2: Row[] = writeOffs.map((w) => ({
-      key: `W${w.id}`, kind: "WRITEOFF", reference: w.reference, date: w.date,
-      customer: w.customer_name, reason: w.reason, amount: w.amount, status: "POSTED",
-    }));
-    return [...r1, ...r2].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
-  }, [refunds, writeOffs]);
-
-  const filtered = useMemo(() => rows.filter((r) => !filter || r.kind === filter), [rows, filter]);
-
-  const loading = refundsQ.isLoading || writeOffsQ.isLoading || refundsQ.isFetching || writeOffsQ.isFetching;
-  const isError = refundsQ.isError || writeOffsQ.isError;
+  const resetPage = () => setPage(1);
   const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01";
 
-  const doPost = async () => {
-    if (!toPost) return;
-    try {
-      const res = await post({ id: toPost.id, entity }).unwrap();
-      toast.success(res.message || "Refund posted.");
-      setToPost(null);
-    } catch { /* central */ }
-  };
-
-  const columns: Column<Row>[] = [
+  const columns: Column<ArAdjustment>[] = [
     { header: "Ref", cell: (r) => <span className="font-semibold tabular-nums">{r.reference || "—"}</span> },
     { header: "Type", cell: (r) => <TypeChip kind={r.kind} /> },
     { header: "Date", cell: (r) => <span className="tabular-nums">{r.date}</span> },
-    { header: "Customer", cell: (r) => <span className="text-gray-01">{r.customer}</span> },
+    { header: "Customer", cell: (r) => <span className="text-gray-01">{r.customer_name}</span> },
     { header: "Reason", cell: (r) => <span className="block max-w-[260px] truncate text-gray-01" title={r.reason}>{r.reason || "—"}</span> },
     { header: "Amount", align: "right", cell: (r) => <Money kobo={r.amount} currency={currency} align="right" /> },
-    { header: "Status", cell: (r) => <StatusPill status={r.status} /> },
+    { header: "Status", cell: (r) => <StatusPill status={r.status === "POSTED" ? "POSTED" : "DRAFT"} /> },
   ];
 
   return (
     <>
       <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Stat label="Refundable credit" hint="Total customer credit available to refund." value={formatMoney(refundableCredit, currency)} />
-        <Stat label="Written off (YTD)" value={formatMoney(writtenOffYtd, currency)} />
-        <Stat label="Pending approval" value={String(pendingCount)} />
+        <Stat label="Written off (YTD)" value={formatMoney(data?.kpis.written_off_ytd ?? 0, currency)} />
+        <Stat label="Pending approval" value={String(data?.kpis.pending ?? 0)} />
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <select value={filter} onChange={(e) => setFilter(e.target.value as "" | Mode)} className={selectCls}>
-          <option value="">All</option>
-          <option value="REFUND">Refunds</option>
-          <option value="WRITEOFF">Write-offs</option>
-        </select>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
+            <Input value={searchInput} onChange={(e) => { setSearchInput(e.target.value); resetPage(); }}
+              placeholder="Search ref, customer, reason" className="h-9 w-64 bg-white pl-8 font-mont" />
+          </div>
+          <select value={filter} onChange={(e) => { setFilter(e.target.value as "" | Mode); resetPage(); }} className={selectCls}>
+            <option value="">All</option>
+            <option value="REFUND">Refunds</option>
+            <option value="WRITEOFF">Write-offs</option>
+          </select>
+        </div>
         <Can permission={P.FIN_CREATE_REFUND}>
           <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New action</Button>
         </Can>
       </div>
 
       <DataTable
-        columns={columns} rows={filtered} rowKey={(r) => r.key}
-        loading={loading} error={isError} onRetry={() => { refundsQ.refetch(); writeOffsQ.refetch(); }}
-        onRowClick={(r) => { if (r.kind === "REFUND" && r.status === "DRAFT") { const m = refunds.find((x) => x.id === r.refundId); if (m) setToPost(m); } }}
+        columns={columns} rows={rows} rowKey={(r) => r.key}
+        loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No refunds or write-offs"
         emptyMessage="Refund a credit balance, or write off bad debt, with New action."
       />
 
-      <ConfirmActionModal
-        open={!!toPost} onOpenChange={(o) => !o && setToPost(null)}
-        title="Post this refund?"
-        description={`Posting ${toPost?.document_number} books the refund journal (Dr AR · Cr bank).`}
-        confirmText="Post" loading={posting} onConfirm={doPost}
-      />
+      <AdjustmentDetailDrawer row={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
       <NewActionDrawer open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
     </>
+  );
+}
+
+function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
+  row: ArAdjustment | null; entity: string; currency?: string | null; onClose: () => void;
+}) {
+  const { can } = useCan();
+  const [post, { isLoading: posting }] = usePostRefundMutation();
+  if (!row) return null;
+
+  const wo = row.kind === "WRITEOFF";
+  const posted = row.status === "POSTED";
+  const isDraftRefund = !wo && !posted;
+  const recap = wo
+    ? { dr: [{ code: "5300", name: "Bad debt expense", amount: row.amount }], cr: [{ code: "AR", name: "Accounts Receivable (control)", amount: row.amount }] }
+    : { dr: [{ code: "AR", name: "Accounts Receivable (control)", amount: row.amount }], cr: [{ code: "Bank", name: "cash out", amount: row.amount }] };
+  const helper = wo
+    ? "Recaps the bad-debt journal — expense recognised, the receivable cleared."
+    : posted
+      ? "Recaps the refund journal — the receivable is restored and cash leaves the bank."
+      : "The journal that will post when this draft refund is posted — receivable restored, cash out.";
+
+  const doPost = async () => {
+    if (!row.refund_id) return;
+    try {
+      const res = await post({ id: row.refund_id, entity }).unwrap();
+      toast.success(res.message || "Refund posted.");
+      onClose();
+    } catch { /* central */ }
+  };
+
+  return (
+    <DetailDrawer
+      open={!!row} onOpenChange={(o) => (o ? undefined : onClose())}
+      title={row.reference || (wo ? "Write-off" : "Refund")}
+      description={`${wo ? "Write-off" : "Refund"} · ${row.customer_name}`}
+      widthClass="sm:max-w-2xl"
+      footer={
+        <>
+          <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>
+          {isDraftRefund && can(P.FIN_POST_REFUND) ? (
+            <Button onClick={doPost} disabled={posting} className="gap-1.5"><Check className="size-4" />{posting ? "Posting…" : "Post refund"}</Button>
+          ) : null}
+        </>
+      }
+    >
+      <div className="space-y-5">
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Amount"><Money kobo={row.amount} currency={currency} /></Field>
+          <Field label="Status"><StatusPill status={posted ? "POSTED" : "DRAFT"} /></Field>
+          <Field label={wo ? "Against invoice" : "Reference"}>{row.reference || "—"}</Field>
+          <Field label="Date">{row.date}</Field>
+        </div>
+        <Field label="Reason"><span className="font-normal">{row.reason || "—"}</span></Field>
+        <div>
+          <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">GL posting</p>
+          <PostingRecap title={wo ? "Write-off posting" : "Refund posting"} dr={recap.dr} cr={recap.cr} currency={currency} helper={helper} />
+        </div>
+      </div>
+    </DetailDrawer>
   );
 }
 

@@ -13,7 +13,7 @@
 //     it lands "Issued" (auto_allocate:false) or is applied oldest-first ("Applied").
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Printer, Check } from "lucide-react";
+import { Plus, Printer, Check, Search } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, ConfirmActionModal, DetailDrawer, FormField,
   CustomerPicker, AccountPicker, PostingRecap, toArray, type Column, type RecapRow,
@@ -22,6 +22,7 @@ import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchSelect } from "@/components/custom/search-select";
+import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
@@ -108,14 +109,23 @@ function noteRecap(n: CreditNote): { dr: RecapRow[]; cr: RecapRow[] } {
 export function CreditNotesTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [typeFilter, setTypeFilter] = useState("");   // "" | CREDIT | DEBIT
   const [statusFilter, setStatusFilter] = useState(""); // "" | ISSUED | APPLIED
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput.trim(), 350);
+  const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<CreditNote | null>(null);
 
-  const { data, isLoading, isFetching, isError, refetch } = useGetCreditNotesQuery({ entity });
-  const all = useMemo(() => toArray(data?.data), [data]);
-  const rows = useMemo(() => all.filter((n) =>
-    (!typeFilter || n.kind === typeFilter) && (!statusFilter || noteStatus(n) === statusFilter),
-  ), [all, typeFilter, statusFilter]);
+  // Filters + search + paging are server-side so they work across the whole set.
+  const params = useMemo(() => ({
+    entity, page,
+    ...(typeFilter ? { kind: typeFilter } : {}),
+    ...(statusFilter ? { status: statusFilter } : {}),
+    ...(search ? { search } : {}),
+  }), [entity, page, typeFilter, statusFilter, search]);
+  const { data, isLoading, isFetching, isError, refetch } = useGetCreditNotesQuery(params);
+  const rows = useMemo(() => toArray(data?.data), [data]);
+  const pg = data?.pagination;
+  const resetPage = () => setPage(1);
 
   const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01";
 
@@ -144,12 +154,17 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
     <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className={selectCls}>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
+            <Input value={searchInput} onChange={(e) => { setSearchInput(e.target.value); resetPage(); }}
+              placeholder="Search note no., customer, reason" className="h-9 w-64 bg-white pl-8 font-mont" />
+          </div>
+          <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); resetPage(); }} className={selectCls}>
             <option value="">All notes</option>
             <option value="CREDIT">Credit notes</option>
             <option value="DEBIT">Debit notes</option>
           </select>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={selectCls}>
+          <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); resetPage(); }} className={selectCls}>
             <option value="">All status</option>
             <option value="ISSUED">Issued</option>
             <option value="APPLIED">Applied</option>
@@ -163,6 +178,7 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
       <DataTable
         columns={columns} rows={rows} rowKey={(r) => r.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No credit / debit notes"
         emptyMessage="Issue a credit note to reduce — or a debit note to increase — a customer's balance."
       />

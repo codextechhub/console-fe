@@ -128,6 +128,14 @@ Budgets/Assets/Tax, Reports, Collections gateway.
 | `GET /finance/refunds/` · `POST` (create draft; `bank_account`) · `POST /finance/refunds/<id>/post/` | `finance.refund.view` / `.create` / `.post` |
 | `POST /finance/invoices/<id>/write-off/` (`amount?`, `write_off_account?`, `narration`) | `finance.invoice.writeoff` |
 | `GET /finance/write-offs/` (read-only; from the finance audit log) | `finance.invoice.view` |
+| `GET /finance/ar-adjustments/` (unified refunds + write-offs; `?type=&search=&page=`; paginated; KPI totals in envelope) | `finance.refund.view` |
+
+**Lists are paginated** (`XVSPagination`, `?page=&page_size=`, max 100) with a
+server-side `?search=` — the AR adjustment lists (credit-notes, ar-adjustments) no
+longer cap at `[:200]`. Credit-notes also take `?kind=` and a derived `?status=`
+(issued/applied/draft, from `allocated_amount` vs `total`). `_FinanceBase` is a
+plain `APIView`, so paginate by driving `XVSPagination()` directly in `get()`
+(`pagination_class` is only honoured by `GenericAPIView`).
 
 Allocation is **oldest-first** by due date (then invoice date, id); an explicit
 split caps each line at the invoice balance and the receipt's remaining cash; any
