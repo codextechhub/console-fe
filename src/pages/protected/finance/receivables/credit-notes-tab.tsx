@@ -84,25 +84,27 @@ function Segmented<T extends string>({ value, onChange, options }: {
 // ── DR/CR posting recap (prototype design) ────────────────────────────────────
 type RecapRow = { code: string; name: string; amount: number };
 
-function RecapColumn({ label, totalLabel, rows, currency }: {
-  label: string; totalLabel: string; rows: RecapRow[]; currency?: string | null;
+function RecapColumn({ label, totalLabel, rows, currency, side }: {
+  label: string; totalLabel: string; rows: RecapRow[]; currency?: string | null; side: "DR" | "CR";
 }) {
   const total = rows.reduce((s, r) => s + r.amount, 0);
+  // Debit amounts read red, credit amounts green — by the column they sit in.
+  const amtColor = side === "DR" ? "text-destructive" : "text-green-01";
   return (
-    <div className="flex flex-col px-4 py-3">
-      <p className="mb-2.5 font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-01">{label}</p>
-      <div className="flex-1 space-y-3">
+    <div className="flex flex-col">
+      <p className="border-b border-gray-03 px-4 py-2 font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-05">{label}</p>
+      <div className="flex-1 space-y-2 px-4 py-3">
         {rows.map((r, i) => (
-          <div key={i}>
-            <p className="font-mont text-[13px] text-gray-01">
+          <div key={i} className="flex items-baseline justify-between gap-3">
+            <span className="min-w-0 truncate font-mont text-[13px] text-gray-01">
               <span className="font-semibold text-black-01">{r.code}</span>{r.name ? ` ${r.name}` : ""}
-            </p>
-            <p className="mt-0.5 font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(r.amount, currency)}</p>
+            </span>
+            <span className={cn("shrink-0 font-mont text-sm font-semibold tabular-nums", amtColor)}>{formatMoney(r.amount, currency)}</span>
           </div>
         ))}
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-gray-03 pt-2.5">
-        <span className="font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-01">{totalLabel}</span>
+      <div className="flex items-center justify-between border-t border-gray-03 px-4 py-2.5">
+        <span className="font-mont text-[11px] font-semibold uppercase tracking-wider text-gray-05">{totalLabel}</span>
         <span className="font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(total, currency)}</span>
       </div>
     </div>
@@ -125,8 +127,8 @@ function PostingRecap({ title, dr, cr, currency, helper }: {
         </span>
       </div>
       <div className="grid grid-cols-2 divide-x divide-gray-03">
-        <RecapColumn label="Debit (DR)" totalLabel="Total Dr" rows={dr} currency={currency} />
-        <RecapColumn label="Credit (CR)" totalLabel="Total Cr" rows={cr} currency={currency} />
+        <RecapColumn label="Debit (DR)" totalLabel="Total Dr" rows={dr} currency={currency} side="DR" />
+        <RecapColumn label="Credit (CR)" totalLabel="Total Cr" rows={cr} currency={currency} side="CR" />
       </div>
       {helper ? (
         <p className="border-t border-gray-03 bg-gray-03 px-4 py-2.5 font-mont text-[11px] text-gray-05">{helper}</p>
