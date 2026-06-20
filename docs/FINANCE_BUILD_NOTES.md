@@ -60,12 +60,21 @@ sub-ledger act with **no new GL posting**. Print = `window.print()`.
 - **Receipts & Allocation** — KPIs, status/method filters, table, Export, **Record
   receipt = 2-step drawer** (capture + posting preview → Continue to allocation),
   allocation drawer (auto oldest-first or explicit split + posting recap).
+- **Credit / Debit Notes** — no-KPI filter-dropdown list (All notes / All status),
+  prototype columns (Note no · Type chip · Date · Customer · Against invoice ·
+  Reason · Amount · Issued/Applied), single-panel detail drawer recapping the real
+  journal (Print · Apply to balance), and **Issue note = create→post** with a live
+  posting preview. Honest adaptations: single-amount form carries an explicit
+  Revenue/Income **account picker** (our notes are line-based + need a GL account);
+  **debit notes can't be allocated**, so "Apply to balance" shows only for credit
+  notes with credit unapplied; post sends `auto_allocate:false` so it lands
+  "Issued" and applying is the explicit second step.
 - New journal + New account converted to drawers; sidebar scroll persists.
 
-**Next (still basic, redesign to prototype):** Credit/Debit Notes · Refunds &
-Write-offs · Concessions/Waivers · Dunning/Reminders · Payment Plans · Fee
-Structures. Then: Bank Accounts/Reconciliation, Expense Claims, Petty Cash,
-Payroll, Budgets/Assets/Tax, Reports, Collections gateway.
+**Next (still basic, redesign to prototype):** Refunds & Write-offs ·
+Concessions/Waivers · Dunning/Reminders · Payment Plans · Fee Structures. Then:
+Bank Accounts/Reconciliation, Expense Claims, Petty Cash, Payroll,
+Budgets/Assets/Tax, Reports, Collections gateway.
 
 ## Backend endpoint + permission map (added for AR)
 | Endpoint | Permission key |
@@ -79,6 +88,9 @@ Payroll, Budgets/Assets/Tax, Reports, Collections gateway.
 | `PATCH /finance/customers/<id>/` | `finance.customer.update` |
 | `GET /finance/payments/` · `GET /finance/payments/<id>/` | `finance.payment.view` |
 | `POST /finance/payments/<id>/allocate/` (explicit or `auto_allocate`) | `finance.payment.allocate` |
+| `GET /finance/credit-notes/` (+ `?kind=`, `invoice_number`) · `POST` (create draft, 1 line) | `finance.creditnote.view` / `.create` |
+| `POST /finance/credit-notes/<id>/post/` (`auto_allocate:false` → stays Issued) | `finance.creditnote.post` |
+| `POST /finance/credit-notes/<id>/allocate/` (`allocations[]` or `auto_allocate`; credit notes only) | `finance.creditnote.allocate` |
 
 Allocation is **oldest-first** by due date (then invoice date, id); an explicit
 split caps each line at the invoice balance and the receipt's remaining cash; any
@@ -96,6 +108,42 @@ excess stays as **unallocated customer credit**.
   collections offline (runserver auto-reloads).
 - Gotchas: revenue accounts are `account_type="INCOME"` (not "REVENUE"); finance
   list endpoints return `{}` (not `[]`) when empty → always `toArray()`.
+
+## Seeding data for checks — and it stays for your use
+`/verify-design` drives are **read-only** and `scrub.sh` deletes **only** the
+test-login trail (loginsession / authattempt / LOGIN_SUCCESS audit since the
+baseline + resets `last_login`). It **never** touches finance business rows — so any
+data seeded for a check **remains in the dev DB for you to keep using**.
+
+Two ways data gets seeded:
+1. **Master demo data** — `python manage.py seed_finance_ar_demo --all` (idempotent,
+   re-runnable): chart of accounts, **12 open fiscal periods** for the current year,
+   demo customers `CUST-001…004` (valid `@example.com` emails, wired to AR control
+   `1200`) and fee structure `FS-TERM1`.
+2. **Ad-hoc records for populated click-through** (e.g. an open invoice to allocate
+   against) — created via Django shell using the **real services** so journals +
+   balances post correctly (never raw status writes). Amounts are **kobo**
+   (₦80,000 = `8000000`):
+   ```bash
+   cd backend/apps && python manage.py shell -c "
+   import datetime
+   from vs_finance.models import LedgerEntity, Customer, Account, Invoice, InvoiceLine, Payment
+   from vs_finance.receivables import post_invoice, post_payment
+   e=LedgerEntity.objects.get(code='CODEX'); c=Customer.objects.get(entity=e, code='CUST-003')
+   t=datetime.date.today()
+   inv=Invoice.objects.create(entity=e, customer=c, invoice_date=t, due_date=t+datetime.timedelta(days=14), reference='DEMO')
+   InvoiceLine.objects.create(invoice=inv, line_no=1, description='Consulting', revenue_account=Account.objects.get(entity=e, code='4100'), quantity=1, unit_price=8000000)
+   post_invoice(inv)                                   # ₦80,000 open invoice
+   p=Payment.objects.create(entity=e, customer=c, payment_date=t, method='BANK_TRANSFER', amount=5000000, deposit_account=Account.objects.get(entity=e, code='1100'))
+   post_payment(p, auto_allocate=False)                # ₦50,000 receipt, left UNallocated
+   print(inv.document_number, p.document_number)"
+   ```
+   Posting needs an **open fiscal period** for the date (seeded above) or it 409s
+   `PERIOD_CLOSED`. `auto_allocate=False` leaves the receipt unallocated so the
+   allocation drawer has something to demo.
+3. **Standing demo data right now:** `CUST-003` (Crystal Foods) has open invoice
+   `INV-2026-00003` (₦80,000) + unallocated receipt `RCP-2026-00004` (₦50,000) — for
+   clicking through Receipts & Allocation. Delete anytime; harmless.
 
 ## Tests
 `python manage.py test vs_finance --keepdb` (~154 green). New AR test classes:
