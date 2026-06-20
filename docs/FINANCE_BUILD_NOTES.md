@@ -90,10 +90,23 @@ sub-ledger act with **no new GL posting**. Print = `window.print()`.
   **debit notes can't be allocated**, so "Apply to balance" shows only for credit
   notes with credit unapplied; post sends `auto_allocate:false` so it lands
   "Issued" and applying is the explicit second step.
+- **Refunds & Write-offs** — 3 KPIs (Refundable credit · Written off YTD · Pending),
+  a type filter, and a **unified table** of refunds + write-offs. One **New action**
+  drawer toggles **Refund to bank** / **Write off to expense**, each with a live
+  `PostingRecap`. Honest adaptations: refund recap is **Dr AR · Cr Bank** (we hold
+  customer credit as a credit balance on AR, no separate "customer credit" account);
+  a write-off is **per-invoice**, so the form picks one of the customer's open
+  invoices (amount defaults to/caps at its balance, expense acct defaults to bad
+  debt 5300); write-offs **post immediately** (always "Posted") while a refund posts
+  on issue unless **Save as draft** is ticked (→ Pending; click the row to post).
+  Write-offs have no document model → the list reads the **finance audit log** via
+  `GET /finance/write-offs/`; REF shows the written-off invoice number.
+- The DR/CR `PostingRecap` card is a shared `finance-ui` primitive (credit notes +
+  refunds). New shared picker: `BankAccountPicker`.
 - New journal + New account converted to drawers; sidebar scroll persists.
 
-**Next (still basic, redesign to prototype):** Refunds & Write-offs ·
-Concessions/Waivers · Dunning/Reminders · Payment Plans · Fee Structures. Then:
+**Next (still basic, redesign to prototype):** Concessions/Waivers ·
+Dunning/Reminders · Payment Plans · Fee Structures. Then:
 Bank Accounts/Reconciliation, Expense Claims, Petty Cash, Payroll,
 Budgets/Assets/Tax, Reports, Collections gateway.
 
@@ -112,6 +125,9 @@ Budgets/Assets/Tax, Reports, Collections gateway.
 | `GET /finance/credit-notes/` (+ `?kind=`, `invoice_number`) · `POST` (create draft, 1 line) | `finance.creditnote.view` / `.create` |
 | `POST /finance/credit-notes/<id>/post/` (`auto_allocate:false` → stays Issued) | `finance.creditnote.post` |
 | `POST /finance/credit-notes/<id>/allocate/` (`allocations[]` or `auto_allocate`; credit notes only) | `finance.creditnote.allocate` |
+| `GET /finance/refunds/` · `POST` (create draft; `bank_account`) · `POST /finance/refunds/<id>/post/` | `finance.refund.view` / `.create` / `.post` |
+| `POST /finance/invoices/<id>/write-off/` (`amount?`, `write_off_account?`, `narration`) | `finance.invoice.writeoff` |
+| `GET /finance/write-offs/` (read-only; from the finance audit log) | `finance.invoice.view` |
 
 Allocation is **oldest-first** by due date (then invoice date, id); an explicit
 split caps each line at the invoice balance and the receipt's remaining cash; any
@@ -170,6 +186,9 @@ Two ways data gets seeded:
      `DRN-2026-00001` ₦25k debit, `CRN-2026-00002` ₦42k credit) + one **Applied**
      credit note `CRN-2026-00003` (₦120k) fully applied to invoice `INV-2026-00004`
      (CUST-004) — covers both types and the Issued/Applied states.
+   - **Refunds & Write-offs**: a posted refund `RFD-2026-00001` (CUST-001, ₦50k, to
+     bank account "Zenith — Operating" gl `1100`) + a write-off of invoice
+     `INV-2026-00005` (CUST-002, ₦60k) → shows in the unified table via the audit log.
    - Delete anytime; harmless. (Use **CODEX** for checks, not CREST.)
 
 ## Tests
