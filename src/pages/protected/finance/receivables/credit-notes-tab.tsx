@@ -284,7 +284,7 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
               <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">GL posting</p>
               <PostingRecap
                 title={`${kindLabel(note.kind)} posting`} dr={recap.dr} cr={recap.cr} currency={currency}
-                helper="Recaps the journal already booked when this note was posted — applying it to the balance is a sub-ledger act with no further GL posting."
+                helper="This recaps the journal booked when the note was posted. Applying the credit to invoices is sub-ledger only — no new posting."
               />
             </div>
           ) : null}
