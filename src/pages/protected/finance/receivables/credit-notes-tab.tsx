@@ -90,7 +90,7 @@ function RecapColumn({ label, totalLabel, rows, currency }: {
   const total = rows.reduce((s, r) => s + r.amount, 0);
   return (
     <div className="flex flex-col px-4 py-3">
-      <p className="mb-2.5 font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-05">{label}</p>
+      <p className="mb-2.5 font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-01">{label}</p>
       <div className="flex-1 space-y-3">
         {rows.map((r, i) => (
           <div key={i}>
@@ -102,7 +102,7 @@ function RecapColumn({ label, totalLabel, rows, currency }: {
         ))}
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-gray-03 pt-2.5">
-        <span className="font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-05">{totalLabel}</span>
+        <span className="font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-01">{totalLabel}</span>
         <span className="font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(total, currency)}</span>
       </div>
     </div>
@@ -117,8 +117,8 @@ function PostingRecap({ title, dr, cr, currency, helper }: {
   const balanced = totalDr === totalCr;
   return (
     <div className="overflow-hidden rounded-lg border border-gray-03 bg-white">
-      <div className="flex items-center justify-between border-b border-gray-03 bg-gray-06/40 px-4 py-2.5">
-        <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">{title}</p>
+      <div className="flex items-center justify-between border-b border-gray-03 bg-white px-4 py-2.5">
+        <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-01">{title}</p>
         <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mont text-[11px] font-semibold",
           balanced ? "bg-green-01/10 text-green-01" : "bg-amber-50 text-amber-700")}>
           {balanced ? <Check className="size-3" /> : null} Debits = Credits
