@@ -1,23 +1,22 @@
 // Receivables → Credit / Debit Notes. Rebuilt to the Vision-Finance-Board
 // prototype in the house theme: a filter-dropdown list (no KPIs), a single-panel
-// detail drawer that recaps the REAL journal, and an "Issue note" drawer whose
-// live posting preview mirrors what will post.
+// detail drawer that recaps the REAL journal as a DR/CR card, and an "Issue note"
+// drawer whose live posting preview mirrors what will post.
 //
 // Honest adaptations vs the mockup:
 //   • our credit/debit note is line-based and requires a GL account, so the
 //     single-amount form carries an explicit Revenue/Income account picker and
 //     submits one line under the hood;
 //   • a debit note increases the receivable and cannot be allocated, so
-//     "Apply to balance" shows only for credit notes with credit still unapplied;
-//   • "Issue note" = create then post with auto_allocate:false, so it lands
-//     "Issued"; applying is the explicit second step (Issued → Apply → Applied).
+//     "Apply to balance" and the auto-allocate toggle show only for credit notes;
+//   • "Issue note" creates then posts — the auto-allocate toggle chooses whether
+//     it lands "Issued" (auto_allocate:false) or is applied oldest-first ("Applied").
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Printer, Check } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, ConfirmActionModal, DetailDrawer, FormField,
-  JournalTable, CustomerPicker, AccountPicker, toArray,
-  type Column, type JournalLineView,
+  CustomerPicker, AccountPicker, toArray, type Column,
 } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -34,6 +33,7 @@ import type { CreditNote } from "@/redux/services/finance/ar-types";
 
 const todayISO = new Date().toISOString().slice(0, 10);
 const kindLabel = (k: string) => (k === "DEBIT" ? "Debit note" : "Credit note");
+const DRAWER_W = "sm:max-w-3xl";
 
 // Posted credit note fully applied → "Applied"; otherwise "Issued". Debit notes
 // can't be allocated, so a posted debit note is always "Issued". Unposted → "Draft".
@@ -64,39 +64,92 @@ function Initials({ name }: { name: string }) {
   return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
 }
 
-// Recap the journal a posted note raises — credit: Dr revenue/returns (+ output
-// tax), Cr AR; debit: Dr AR, Cr revenue (+ tax). Built from the note's own lines
-// so it shows the real revenue accounts, never a fabricated posting.
-function noteJournalLines(n: CreditNote): JournalLineView[] {
+/** Two-button segmented control (note type · apply-on-issue). */
+function Segmented<T extends string>({ value, onChange, options }: {
+  value: T; onChange: (v: T) => void; options: [T, string][];
+}) {
+  return (
+    <div className="inline-flex rounded-md border border-gray-03 bg-white p-0.5">
+      {options.map(([v, lbl]) => (
+        <button key={v} type="button" onClick={() => onChange(v)}
+          className={cn("rounded px-3 py-1.5 font-mont text-sm font-medium transition-colors",
+            value === v ? "bg-pry-01 text-primary" : "text-gray-05 hover:text-gray-01")}>
+          {lbl}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── DR/CR posting recap (prototype design) ────────────────────────────────────
+type RecapRow = { code: string; name: string; amount: number };
+
+function RecapColumn({ label, totalLabel, rows, currency }: {
+  label: string; totalLabel: string; rows: RecapRow[]; currency?: string | null;
+}) {
+  const total = rows.reduce((s, r) => s + r.amount, 0);
+  return (
+    <div className="flex flex-col px-4 py-3">
+      <p className="mb-2.5 font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-05">{label}</p>
+      <div className="flex-1 space-y-3">
+        {rows.map((r, i) => (
+          <div key={i}>
+            <p className="font-mont text-[13px] text-gray-01">
+              <span className="font-semibold text-black-01">{r.code}</span>{r.name ? ` ${r.name}` : ""}
+            </p>
+            <p className="mt-0.5 font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(r.amount, currency)}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex items-center justify-between border-t border-gray-03 pt-2.5">
+        <span className="font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-05">{totalLabel}</span>
+        <span className="font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(total, currency)}</span>
+      </div>
+    </div>
+  );
+}
+
+function PostingRecap({ title, dr, cr, currency, helper }: {
+  title: string; dr: RecapRow[]; cr: RecapRow[]; currency?: string | null; helper?: string;
+}) {
+  const totalDr = dr.reduce((s, r) => s + r.amount, 0);
+  const totalCr = cr.reduce((s, r) => s + r.amount, 0);
+  const balanced = totalDr === totalCr;
+  return (
+    <div className="overflow-hidden rounded-lg border border-gray-03 bg-white">
+      <div className="flex items-center justify-between border-b border-gray-03 bg-gray-06/40 px-4 py-2.5">
+        <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">{title}</p>
+        <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mont text-[11px] font-semibold",
+          balanced ? "bg-green-01/10 text-green-01" : "bg-amber-50 text-amber-700")}>
+          {balanced ? <Check className="size-3" /> : null} Debits = Credits
+        </span>
+      </div>
+      <div className="grid grid-cols-2 divide-x divide-gray-03">
+        <RecapColumn label="Debit (DR)" totalLabel="Total Dr" rows={dr} currency={currency} />
+        <RecapColumn label="Credit (CR)" totalLabel="Total Cr" rows={cr} currency={currency} />
+      </div>
+      {helper ? (
+        <p className="border-t border-gray-03 px-4 py-2.5 font-mont text-[11px] text-gray-05">{helper}</p>
+      ) : null}
+    </div>
+  );
+}
+
+// Recap the journal a posted note raises, from the note's own lines (so it shows
+// the real revenue accounts) — credit: Dr revenue/returns (+ tax), Cr AR; debit:
+// Dr AR, Cr revenue (+ tax).
+function noteRecap(n: CreditNote): { dr: RecapRow[]; cr: RecapRow[] } {
   const debit = n.kind === "DEBIT";
-  const rev: JournalLineView[] = [];
   const lines = n.lines.length
     ? n.lines
-    : [{ revenue_account: "—", description: n.reason, net_amount: n.total, tax_amount: 0 } as CreditNote["lines"][number]];
+    : [{ revenue_account: "—", net_amount: n.total, tax_amount: 0 } as CreditNote["lines"][number]];
+  const rev: RecapRow[] = [];
   for (const l of lines) {
-    rev.push({
-      account_code: l.revenue_account || "—",
-      account_name: debit ? "Revenue" : "Revenue / returns",
-      description: l.description || n.reason || null,
-      debit: debit ? 0 : l.net_amount,
-      credit: debit ? l.net_amount : 0,
-    });
-    if (l.tax_amount) {
-      rev.push({
-        account_code: "TAX",
-        account_name: debit ? "Output tax" : "Output tax reversal",
-        description: null,
-        debit: debit ? 0 : l.tax_amount,
-        credit: debit ? l.tax_amount : 0,
-      });
-    }
+    rev.push({ code: l.revenue_account || "—", name: debit ? "Revenue" : "Revenue / returns", amount: l.net_amount });
+    if (l.tax_amount) rev.push({ code: "TAX", name: debit ? "Output tax" : "Output tax reversal", amount: l.tax_amount });
   }
-  const ar: JournalLineView = {
-    account_code: "AR", account_name: "Accounts Receivable (control)",
-    description: n.customer_code,
-    debit: debit ? n.total : 0, credit: debit ? 0 : n.total,
-  };
-  return debit ? [ar, ...rev] : [...rev, ar];
+  const ar: RecapRow = { code: "AR", name: "Accounts Receivable (control)", amount: n.total };
+  return debit ? { dr: [ar], cr: rev } : { dr: rev, cr: [ar] };
 }
 
 export function CreditNotesTab({ entity, currency }: { entity: string; currency?: string | null }) {
@@ -173,6 +226,7 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
   const status = noteStatus(note);
   const canApply =
     can(P.FIN_ALLOCATE_CREDIT_NOTE) && note.kind === "CREDIT" && status === "ISSUED" && note.unallocated_amount > 0;
+  const recap = noteRecap(note);
 
   const doApply = async () => {
     try {
@@ -192,7 +246,7 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
         open={!!note} onOpenChange={(o) => (o ? undefined : onClose())}
         title={note.document_number}
         description={`${kindLabel(note.kind)} · ${note.customer_name}`}
-        widthClass="sm:max-w-2xl"
+        widthClass={DRAWER_W}
         footer={
           <>
             <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>
@@ -221,10 +275,10 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
           {status !== "DRAFT" ? (
             <div>
               <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">GL posting</p>
-              <JournalTable lines={noteJournalLines(note)} currency={currency} />
-              <p className="mt-2 font-mont text-[11px] text-gray-05">
-                Recaps the journal already booked when this note was posted — applying it to the balance is a sub-ledger act with no further GL posting.
-              </p>
+              <PostingRecap
+                title={`${kindLabel(note.kind)} posting`} dr={recap.dr} cr={recap.cr} currency={currency}
+                helper="Recaps the journal already booked when this note was posted — applying it to the balance is a sub-ledger act with no further GL posting."
+              />
             </div>
           ) : null}
         </div>
@@ -261,12 +315,14 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
   const [invoice, setInvoice] = useState(""); // invoice id, optional
   const [amount, setAmount] = useState(0);
   const [reason, setReason] = useState("");
+  const [applyNow, setApplyNow] = useState(false); // credit notes only
 
   const [create, { isLoading: creating }] = useCreateCreditNoteMutation();
   const [post, { isLoading: posting }] = usePostCreditNoteMutation();
   const saving = creating || posting;
+  const debit = kind === "DEBIT";
 
-  // Posted invoices for the chosen customer, as optional "against invoice" targets.
+  // Posted invoices for the chosen customer — shown as a searchable list.
   const invQ = useGetInvoicesQuery({ entity, search: customer, status: "POSTED" }, { skip: !customer });
   const invoiceOptions = useMemo(() =>
     toArray(invQ.data?.data)
@@ -274,26 +330,17 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
       .map((i) => ({ value: String(i.id), label: `${i.document_number} · ${formatMoney(i.balance_due, currency)} due` })),
   [invQ.data, customer, currency]);
 
-  const debit = kind === "DEBIT";
-  const previewLines: JournalLineView[] = useMemo(() => {
-    const rev: JournalLineView = {
-      account_code: account || "—",
-      account_name: debit ? "Income" : "Revenue (reversed)",
-      description: reason || null,
-      debit: debit ? 0 : amount, credit: debit ? amount : 0,
-    };
-    const ar: JournalLineView = {
-      account_code: "AR", account_name: "Accounts Receivable (control)",
-      description: customer || null,
-      debit: debit ? amount : 0, credit: debit ? 0 : amount,
-    };
-    return debit ? [ar, rev] : [rev, ar];
-  }, [debit, account, amount, reason, customer]);
+  const recap = useMemo(() => {
+    const rev: RecapRow = { code: account || "—", name: debit ? "Income" : "Revenue (reversed)", amount };
+    const ar: RecapRow = { code: "AR", name: "Accounts Receivable (control)", amount };
+    return debit ? { dr: [ar], cr: [rev] } : { dr: [rev], cr: [ar] };
+  }, [debit, account, amount]);
 
   const canSubmit = !!customer && !!account && amount > 0 && reason.trim() !== "";
 
-  const reset = () => { setKind("CREDIT"); setDate(todayISO); setCustomer(""); setAccount(""); setInvoice(""); setAmount(0); setReason(""); };
+  const reset = () => { setKind("CREDIT"); setDate(todayISO); setCustomer(""); setAccount(""); setInvoice(""); setAmount(0); setReason(""); setApplyNow(false); };
   const close = () => { reset(); onClose(); };
+  const changeKind = (k: string) => { setKind(k); if (k === "DEBIT") setApplyNow(false); };
 
   const submit = async () => {
     try {
@@ -302,9 +349,11 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
         invoice: invoice ? Number(invoice) : undefined, reason: reason.trim(),
         lines: [{ revenue_account: account, description: reason.trim(), quantity: 1, unit_price: amount }],
       }).unwrap();
-      // Post immediately, without auto-allocation, so it lands as "Issued".
-      await post({ id: res.data.id, entity, auto_allocate: false }).unwrap();
-      toast.success(`${kindLabel(kind)} issued.`);
+      // Post immediately. For credit notes the toggle decides: auto-allocate
+      // oldest-first ("Applied") or leave the credit unapplied ("Issued").
+      const auto = !debit && applyNow;
+      await post({ id: res.data.id, entity, auto_allocate: auto }).unwrap();
+      toast.success(auto ? `${kindLabel(kind)} issued and applied.` : `${kindLabel(kind)} issued.`);
       close();
     } catch { /* central — a create that posts-failed leaves a draft, surfaced as the error */ }
   };
@@ -314,6 +363,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
       open={open} onOpenChange={(o) => (o ? undefined : close())}
       title="Issue credit / debit note"
       description="Reduce (credit) or increase (debit) the customer balance."
+      widthClass={DRAWER_W}
       footer={
         <>
           <Button variant="outline" disabled={saving} onClick={close}>Cancel</Button>
@@ -325,15 +375,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
     >
       <div className="space-y-4">
         <FormField label="Note type">
-          <div className="inline-flex rounded-md border border-gray-03 bg-white p-0.5">
-            {[["CREDIT", "Credit note"], ["DEBIT", "Debit note"]].map(([v, lbl]) => (
-              <button key={v} type="button" onClick={() => setKind(v)}
-                className={cn("rounded px-3 py-1.5 font-mont text-sm font-medium transition-colors",
-                  kind === v ? "bg-pry-01 text-primary" : "text-gray-05 hover:text-gray-01")}>
-                {lbl}
-              </button>
-            ))}
-          </div>
+          <Segmented value={kind} onChange={changeKind} options={[["CREDIT", "Credit note"], ["DEBIT", "Debit note"]]} />
         </FormField>
 
         <div className="grid grid-cols-2 gap-3">
@@ -349,7 +391,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
         <FormField label="Against invoice">
           <SearchSelect options={invoiceOptions} value={invoice} onChange={(e) => setInvoice(e.target.value)}
             loading={invQ.isFetching} disabled={!customer}
-            placeholder={customer ? "Optional" : "Select a customer first"} revealOnSearch />
+            placeholder={customer ? "Optional — search this customer's invoices" : "Select a customer first"} />
         </FormField>
 
         <div className="grid grid-cols-2 gap-3">
@@ -358,15 +400,21 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
 
         <FormField label="Reason" required><Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why this adjustment?" className="bg-white" /></FormField>
 
-        <div className="rounded-md border border-gray-03 bg-gray-06/40 p-3">
-          <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">{kindLabel(kind)} posting</p>
-          <JournalTable lines={previewLines} currency={currency} />
-          <p className="mt-2 font-mont text-[11px] text-gray-05">
-            {debit
-              ? "A debit note raises an additional charge and increases the customer's balance."
-              : "A credit note lowers the customer's balance and reverses recognised revenue."}
-          </p>
-        </div>
+        <PostingRecap
+          title={`${kindLabel(kind)} posting`} dr={recap.dr} cr={recap.cr} currency={currency}
+          helper={debit
+            ? "A debit note raises an additional charge and increases the customer's balance."
+            : "A credit note lowers the customer's balance and reverses recognised revenue."}
+        />
+
+        {!debit ? (
+          <FormField label="Apply on issue?">
+            <Segmented
+              value={applyNow ? "apply" : "keep"} onChange={(v) => setApplyNow(v === "apply")}
+              options={[["keep", "Leave as credit (Issued)"], ["apply", "Apply to oldest invoices (Applied)"]]}
+            />
+          </FormField>
+        ) : null}
       </div>
     </DetailDrawer>
   );
