@@ -26,12 +26,10 @@ import {
   useEstablishPettyCashMutation, useReplenishPettyCashMutation, useGetPettyCashVouchersQuery,
   useCreatePettyCashVoucherMutation, usePostPettyCashVoucherMutation,
 } from "@/redux/services/finance/ops-api";
-import type { PettyCashFund, PettyCashVoucher } from "@/redux/services/finance/ops-types";
+import type { PettyCashFund, PettyCashVoucher, PettyCashMovement } from "@/redux/services/finance/ops-types";
 
 const todayISO = new Date().toISOString().slice(0, 10);
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
-const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const fmtDate = (s: string) => new Date(s).toLocaleDateString();
 
 function Kpi({ label, value, hint, danger }: { label: string; value: string; hint?: string; danger?: boolean }) {
@@ -59,7 +57,7 @@ export function PettyCashTab({ entity, currency }: { entity: string; currency?: 
       <>
         <EmptyState title="No petty-cash funds" message="Create a float, then establish cash into it." />
         <div className="mt-3 flex justify-center">
-          <Can permission={P.FIN_CREATE_PETTY_CASH}><Button onClick={() => setCreatingFund(true)} className="gap-1.5"><Plus className="size-4" /> New fund</Button></Can>
+          <Can permission={P.FIN_CREATE_PETTY_CASH}><Button onClick={() => setCreatingFund(true)} className="gap-1.5"><Plus className="size-4" /> New float</Button></Can>
         </div>
         <NewFundDrawer open={creatingFund} onClose={() => setCreatingFund(false)} entity={entity} currency={currency} />
       </>
@@ -74,7 +72,7 @@ export function PettyCashTab({ entity, currency }: { entity: string; currency?: 
             className="h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
             {funds.map((f) => <option key={f.id} value={f.id}>{f.name}{f.custodian_label ? ` · ${f.custodian_label}` : ""}</option>)}
           </select>
-          <Can permission={P.FIN_CREATE_PETTY_CASH}><Button variant="outline" size="sm" onClick={() => setCreatingFund(true)} className="gap-1.5"><Plus className="size-3.5" /> New fund</Button></Can>
+          <Can permission={P.FIN_CREATE_PETTY_CASH}><Button variant="outline" size="sm" onClick={() => setCreatingFund(true)} className="gap-1.5"><Plus className="size-3.5" /> New float</Button></Can>
         </div>
       </div>
       {fund ? <FundWorkbench fund={fund} entity={entity} currency={currency} /> : null}
@@ -93,6 +91,15 @@ function FundWorkbench({ fund, entity, currency }: { fund: PettyCashFund; entity
   const register = useMemo(() => detail?.register ?? [], [detail]);
   const vouchersQ = useGetPettyCashVouchersQuery({ entity, fund: fund.id });
   const vouchers = useMemo(() => toArray(vouchersQ.data?.data), [vouchersQ.data]);
+
+  const registerCols: Column<PettyCashMovement>[] = [
+    { header: "Date", cell: (m) => <span className="tabular-nums text-gray-05">{fmtDate(m.date)}</span> },
+    { header: "Description", cell: (m) => m.description },
+    { header: "Category", cell: (m) => <span className={cn(PILL, m.in ? "bg-green-01/10 text-green-01" : "bg-gray-03/60 text-gray-05")}>{m.category}</span> },
+    { header: "In", align: "right", cell: (m) => m.in ? <span className="tabular-nums text-green-01">{formatMoney(m.in, currency)}</span> : <span className="text-gray-05">—</span> },
+    { header: "Out", align: "right", cell: (m) => m.out ? <span className="tabular-nums text-destructive">{formatMoney(m.out, currency)}</span> : <span className="text-gray-05">—</span> },
+    { header: "Balance", align: "right", cell: (m) => <span className="font-medium tabular-nums">{formatMoney(m.balance, currency)}</span> },
+  ];
 
   return (
     <div className="space-y-4">
@@ -127,28 +134,8 @@ function FundWorkbench({ fund, entity, currency }: { fund: PettyCashFund; entity
       </div>
 
       {tab === "register" ? (
-        register.length === 0 ? <EmptyState title="No movements yet" message="Establish cash or record a voucher to see the register." /> : (
-          <div className="overflow-hidden rounded-md border border-gray-03">
-            <table className="w-full border-collapse">
-              <thead><tr>
-                <th className={thCls}>Date</th><th className={thCls}>Description</th><th className={thCls}>Category</th>
-                <th className={cn(thCls, "text-right")}>In</th><th className={cn(thCls, "text-right")}>Out</th><th className={cn(thCls, "text-right")}>Balance</th>
-              </tr></thead>
-              <tbody>
-                {register.map((m) => (
-                  <tr key={m.id}>
-                    <td className={cn(tdCls, "tabular-nums text-gray-05")}>{fmtDate(m.date)}</td>
-                    <td className={tdCls}>{m.description}</td>
-                    <td className={tdCls}><span className={cn(PILL, m.in ? "bg-green-01/10 text-green-01" : "bg-gray-03/60 text-gray-05")}>{m.category}</span></td>
-                    <td className={cn(tdCls, "text-right tabular-nums text-green-01")}>{m.in ? formatMoney(m.in, currency) : <span className="text-gray-05">—</span>}</td>
-                    <td className={cn(tdCls, "text-right tabular-nums text-destructive")}>{m.out ? formatMoney(m.out, currency) : <span className="text-gray-05">—</span>}</td>
-                    <td className={cn(tdCls, "text-right tabular-nums font-medium")}>{formatMoney(m.balance, currency)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
+        <DataTable columns={registerCols} rows={register} rowKey={(m) => m.id}
+          emptyTitle="No movements yet" emptyMessage="Establish cash or record a voucher to see the register." />
       ) : (
         <VouchersList vouchers={vouchers} entity={entity} currency={currency} loading={vouchersQ.isFetching} />
       )}
@@ -295,7 +282,7 @@ function NewFundDrawer({ open, onClose, entity, currency }: { open: boolean; onC
   return (
     <DetailDrawer
       open={open} onOpenChange={(o) => (o ? undefined : close())}
-      title="New petty-cash fund" description="A float mapped 1:1 to its own petty-cash GL account."
+      title="New petty-cash float" description="A float mapped 1:1 to its own petty-cash GL account."
       widthClass="sm:max-w-lg"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
