@@ -12,13 +12,14 @@
 import { useMemo, useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, RefreshCw, ListChecks, FileText, History, Settings as SettingsIcon, ArrowLeftRight } from "lucide-react";
+import { Plus, Search, Trash2, Upload, RefreshCw, ListChecks, FileText, History, Settings as SettingsIcon, ArrowLeftRight } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, FormModal, FormField, AccountPicker, CurrencyPicker, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
+import { DataTable, DetailDrawer, Money, StatusPill, FormModal, FormField, AccountPicker, CurrencyPicker, InfoHint, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
@@ -35,8 +36,15 @@ const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium"
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const partialMask = (n: string) => {
+  const s = n.replace(/\s+/g, "");
+  return s.length <= 4 ? s : `${s.slice(0, 4)} **** ${s.slice(-4)}`;
+};
+// Detail-drawer subtitle keeps the full (sensitive) number; the list uses partial.
 const maskedNumber = (a: { account_number?: string; _stripped_fields?: string[] }) =>
   isStripped(a, "account_number") ? "••••" : (a.account_number || "—");
+const listAcctNo = (a: { account_number?: string; _stripped_fields?: string[] }) =>
+  isStripped(a, "account_number") ? "••••" : (a.account_number ? partialMask(a.account_number) : "—");
 
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -52,10 +60,16 @@ export default function BankingPage() {
   const { code: entity, currency } = useActiveEntity();
   const [selected, setSelected] = useState<BankAccount | null>(null);
   const [creating, setCreating] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput.trim().toLowerCase(), 250);
 
   const { data, isLoading, isFetching, isError, refetch } = useGetBankAccountsQuery(
     { entity: entity! }, { skip: !entity });
   const rows = useMemo(() => toArray(data?.data), [data]);
+  const filtered = useMemo(() => !search ? rows : rows.filter((a) =>
+    a.name.toLowerCase().includes(search) || (a.bank_name || "").toLowerCase().includes(search)
+    || (a.gl_account || "").toLowerCase().includes(search)
+    || (a.account_number || "").toLowerCase().includes(search)), [rows, search]);
 
   const kpis = useMemo(() => {
     const total = rows.reduce((s, a) => s + (a.book_balance || 0), 0);
@@ -67,11 +81,13 @@ export default function BankingPage() {
 
   const columns: Column<BankAccount>[] = [
     { header: "Account", cell: (a) => (
-      <span className="flex items-center gap-2">
-        <span className="font-semibold text-gray-01">{a.name}</span>
-        {a.is_primary ? <span className={cn(PILL, "bg-blue-50 text-blue-700")}>Primary</span> : null}
-        <span className="font-mont text-[11px] tabular-nums text-gray-05">{maskedNumber(a)}</span>
-      </span>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-gray-01">{a.name}</span>
+          {a.is_primary ? <span className={cn(PILL, "bg-blue-50 text-blue-700")}>Primary</span> : null}
+        </div>
+        <div className="mt-0.5 font-mont text-[11px] tabular-nums text-gray-05">A/C {listAcctNo(a)}</div>
+      </div>
     ) },
     { header: "GL", cell: (a) => <span className="tabular-nums text-gray-05">{a.gl_account}</span> },
     { header: "Currency", cell: (a) => a.currency ?? "—" },
@@ -89,7 +105,10 @@ export default function BankingPage() {
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-mont text-lg font-semibold text-gray-01">Bank Accounts</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="font-mont text-lg font-semibold text-gray-01">Bank Accounts</h1>
+              <InfoHint>Each bank account maps 1:1 to a GL cash account — the ledger's book balance. Import the bank's statement and reconcile to explain every difference (in-flight items, charges); auto-reconcile pairs lines by amount and date.</InfoHint>
+            </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Bank accounts, statement import and reconciliation.</p>
           </div>
           <Can permission={P.FIN_CREATE_BANK_ACCOUNT}>
@@ -104,11 +123,17 @@ export default function BankingPage() {
           <Kpi label="Last reconciled" value={fmtDate(kpis.last)} />
         </div>
 
+        <div className="relative w-72">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
+          <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search name, bank or GL" className="h-9 bg-white pl-8 font-mont" />
+        </div>
+
         <DataTable
-          columns={columns} rows={rows} rowKey={(a) => a.id}
+          columns={columns} rows={filtered} rowKey={(a) => a.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch}
           onRowClick={setSelected}
-          emptyTitle="No bank accounts" emptyMessage="Add a bank account to import statements and reconcile."
+          emptyTitle={search ? "No matching accounts" : "No bank accounts"}
+          emptyMessage={search ? "Try a different search." : "Add a bank account to import statements and reconcile."}
         />
       </main>
 
