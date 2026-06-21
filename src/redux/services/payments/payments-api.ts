@@ -17,13 +17,14 @@ import type {
   PayoutInstruction,
   TransactionLogEntry,
   VirtualAccount,
+  VirtualAccountKpis,
 } from "./payments-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
 
 export const paymentsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getCollections: builder.query<PaginatedEnvelope<Collection>, { entity: string; page?: number; status?: string }>({
+    getCollections: builder.query<PaginatedEnvelope<Collection>, { entity: string; page?: number; status?: string; virtual_account?: number }>({
       query: (p) => ({ url: `/payments/collections/${qs(p)}`, method: "GET" }),
       providesTags: ["PaymentsCollections"],
     }),
@@ -44,7 +45,7 @@ export const paymentsApi = baseApi.injectEndpoints({
       invalidatesTags: ["PaymentsCollections", "FinanceInvoices", "FinanceReports"],
     }),
 
-    getVirtualAccounts: builder.query<PaginatedEnvelope<VirtualAccount>, { entity: string; page?: number }>({
+    getVirtualAccounts: builder.query<PaginatedEnvelope<VirtualAccount> & { kpis: VirtualAccountKpis }, { entity: string; page?: number; status?: string; provider?: string; search?: string }>({
       query: (p) => ({ url: `/payments/virtual-accounts/${qs(p)}`, method: "GET" }),
       providesTags: ["PaymentsVirtualAccounts"],
     }),
@@ -52,6 +53,14 @@ export const paymentsApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({
         url: `/payments/virtual-accounts/${qs({ entity })}`,
         method: "POST",
+        body,
+      }),
+      invalidatesTags: ["PaymentsVirtualAccounts"],
+    }),
+    updateVirtualAccount: builder.mutation<ApiEnvelope<VirtualAccount>, { id: number; entity: string; status: string }>({
+      query: ({ id, entity, ...body }) => ({
+        url: `/payments/virtual-accounts/${id}/${qs({ entity })}`,
+        method: "PATCH",
         body,
       }),
       invalidatesTags: ["PaymentsVirtualAccounts"],
@@ -92,6 +101,7 @@ export const {
   useVerifyCollectionMutation,
   useGetVirtualAccountsQuery,
   useCreateVirtualAccountMutation,
+  useUpdateVirtualAccountMutation,
   useGetPayoutsQuery,
   useGetPayoutBatchesQuery,
   useGetPayoutBatchQuery,

@@ -30,13 +30,24 @@ export interface VirtualAccount {
   entity_code: string;
   provider: string;
   customer_code: string | null;
+  customer_name: string | null;
   account_number?: string; // FLS — stripped without view_sensitive
   bank_name: string;
   account_name?: string; // FLS
   provider_reference: string | null;
+  deposit_account_code: string | null;
+  deposit_account_name: string | null;
+  currency_code: string | null;
   status: string;
   created_at: string;
   _stripped_fields?: string[];
+}
+
+export interface VirtualAccountKpis {
+  total: number;
+  active: number;
+  inactive: number;
+  providers: number;
 }
 
 export interface PayoutInstruction {

@@ -287,7 +287,9 @@ const REGISTRY: Record<string, string> = {
   // RR: 01 collection · 02 virtual_account · 03 payout · 04 report.
   "800101": "payments.collection.view",
   "800102": "payments.collection.create",
+  "800201": "payments.virtual_account.view",
   "800202": "payments.virtual_account.create",
+  "800240": "payments.virtual_account.manage",
   "800239": "payments.virtual_account.view_sensitive",
   "800301": "payments.payout.view",
   "800302": "payments.payout.create",
@@ -534,7 +536,9 @@ export const P = {
   // ── Payments ────────────────────────────────────────────────────────────────
   PAY_VIEW_COLLECTIONS:     "800101",
   PAY_CREATE_COLLECTION:    "800102",
+  PAY_VIEW_VIRTUAL_ACCOUNTS: "800201",
   PAY_CREATE_VIRTUAL_ACCOUNT:"800202",
+  PAY_MANAGE_VIRTUAL_ACCOUNT:"800240",
   PAY_VIEW_VA_SENSITIVE:    "800239",
   PAY_VIEW_PAYOUTS:         "800301",
   PAY_CREATE_PAYOUT:        "800302",

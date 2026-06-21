@@ -23,7 +23,7 @@ export default function CollectionsPage() {
         {!entity ? (
           <EmptyState title="Select an entity" message="Choose a ledger entity to view collections." />
         ) : isVA ? (
-          <VirtualAccountsTab entity={entity} />
+          <VirtualAccountsTab entity={entity} currency={currency} />
         ) : (
           <CollectionsTab entity={entity} currency={currency} />
         )}
