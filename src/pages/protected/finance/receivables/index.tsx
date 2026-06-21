@@ -17,7 +17,7 @@ import { ReceiptsAllocationTab } from "./receipts-allocation-tab";
 
 const LABELS: Record<string, string> = {
   invoices: "Customer Invoices", "credit-notes": "Credit / Debit Notes", refunds: "Refunds & Write-offs",
-  concessions: "Concessions", "payment-plans": "Payment Plans", dunning: "Dunning",
+  concessions: "Concessions / Fee Waivers", "payment-plans": "Payment Plans", dunning: "Dunning",
   customers: "Customers", "fee-structures": "Fee Structures", receipts: "Receipts & Allocation",
 };
 const SUBTITLES: Record<string, string> = {
@@ -25,6 +25,7 @@ const SUBTITLES: Record<string, string> = {
   "credit-notes": "Adjust customer balances against issued invoices.",
   refunds: "Return credit balances to the bank, or write off bad debt to expense.",
   "payment-plans": "Spread invoice balances into scheduled installments.",
+  concessions: "Waivers, discounts and scholarships that reduce customer balances.",
 };
 
 export default function ReceivablesPage() {

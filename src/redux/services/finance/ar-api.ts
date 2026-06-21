@@ -125,17 +125,21 @@ export const arApi = baseApi.injectEndpoints({
     }),
 
     // Concessions
-    getConcessions: builder.query<PaginatedEnvelope<Concession>, EntityList & { kind?: string }>({
+    getConcessions: builder.query<PaginatedEnvelope<Concession>, EntityList & { kind?: string; search?: string }>({
       query: (params) => ({ url: `/finance/concessions/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceConcessions"],
     }),
-    createConcession: builder.mutation<ApiEnvelope<Concession>, { entity: string; customer: string; invoice?: string; kind: string; concession_date: string; amount: number; allowance_account?: string; reason?: string }>({
+    getConcessionSummary: builder.query<ApiEnvelope<{ posted_ytd: number; draft_pending: number; active_count: number }>, { entity: string }>({
+      query: (params) => ({ url: `/finance/concessions/summary/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceConcessions"],
+    }),
+    createConcession: builder.mutation<ApiEnvelope<Concession>, { entity: string; customer: string; invoice?: string | number; kind: string; concession_date: string; amount: number; allowance_account?: string; reason?: string }>({
       query: ({ entity, ...body }) => ({ url: `/finance/concessions/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceConcessions"],
     }),
     postConcession: builder.mutation<ApiEnvelope<Concession>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({ url: `/finance/concessions/${id}/post/${qs({ entity })}`, method: "POST" }),
-      invalidatesTags: ["FinanceConcessions", "FinanceReports", "FinanceJournals"],
+      invalidatesTags: ["FinanceConcessions", "FinanceReports", "FinanceJournals", "FinanceInvoices"],
     }),
 
     // Payment plans (read + create + lifecycle)
@@ -233,6 +237,7 @@ export const {
   usePostRefundMutation,
   useGetArAdjustmentsQuery,
   useGetConcessionsQuery,
+  useGetConcessionSummaryQuery,
   useCreateConcessionMutation,
   usePostConcessionMutation,
   useGetPaymentPlansQuery,

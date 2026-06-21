@@ -125,10 +125,18 @@ Existing negative-AR credit was reclassed once via
   screen). Honest adaptations: a plan is an overlay on an **invoice** (required) and
   progress is derived from its settlement, so **Record installment** posts a *real*
   receipt against the invoice (`/pay/`) then calls `/refresh/`.
+- **Concessions / Waivers** — 3 KPIs (Posted YTD · Draft pending · Active count, from
+  `GET /finance/concessions/summary/`), search + type/status filters, a type-chip
+  table (Waiver / Discount / Scholarship), a detail drawer recapping the real journal
+  (Dr 4910 allowance · Cr AR) with Print + Post (drafts), and a New-concession drawer
+  with an **"Enter as" Amount/% toggle** (percent is of the chosen invoice's balance,
+  shows `= ₦x of ₦balance`). Honest: a concession reduces a **specific** posted invoice's
+  balance (capped), so the invoice is **required**; posting defaults the allowance acct
+  to **4910**. Reuses the shared `PostingRecap` + `Segmented`.
 - New journal + New account converted to drawers; sidebar scroll persists.
 
-**Next (still basic, redesign to prototype):** Concessions/Waivers ·
-Dunning/Reminders · Fee Structures. Then:
+**Next (still basic, redesign to prototype):** Dunning/Reminders · Fee Structures.
+Then:
 Bank Accounts/Reconciliation, Expense Claims, Petty Cash, Payroll,
 Budgets/Assets/Tax, Reports, Collections gateway.
 
@@ -152,6 +160,8 @@ Budgets/Assets/Tax, Reports, Collections gateway.
 | `GET /finance/ar-adjustments/` (unified refunds + write-offs; `?type=&search=&page=`; paginated; write-off rows from the finance audit log; KPI totals in envelope) | `finance.refund.view` |
 | `GET /finance/payment-plans/` (`?search=&page=`; paginated) · `POST` (create draft + build schedule) | `finance.paymentplan.view` / `.create` |
 | `POST /finance/payment-plans/<id>/activate/` · `…/refresh/` · `…/cancel/` | `finance.paymentplan.activate` / `.cancel` |
+| `GET /finance/concessions/` (`?kind=&status=&search=&page=`; paginated) · `POST` · `…/<id>/post/` | `finance.concession.view` / `.create` / `.post` |
+| `GET /finance/concessions/summary/` (posted YTD · draft pending · active count) | `finance.concession.view` |
 
 **Lists are paginated** (`XVSPagination`, `?page=&page_size=`, max 100) with a
 server-side `?search=` — the AR adjustment lists (credit-notes, ar-adjustments) no
@@ -223,6 +233,9 @@ Two ways data gets seeded:
    - **Payment Plans**: an active plan `PPL-2026-00001` (CUST-002, invoice
      `INV-2026-00006` ₦90k, 3 monthly installments) with installment #1 recorded →
      progress 1/3, On track.
+   - **Concessions**: a Posted `CNC-2026-00001` (Discount, CUST-001, ₦10k) + two Draft
+     (`CNC-2026-00002` Scholarship ₦50k, `CNC-2026-00003` Waiver ₦20k) — covers all
+     three types + both statuses.
    - Delete anytime; harmless. (Use **CODEX** for checks, not CREST.)
 
 ## Tests
