@@ -179,6 +179,7 @@ export interface PettyCashVoucher {
   total: number;
   total_naira: string;
   journal_id: number | null;
+  expense_account: string | null;
 }
 
 // ── Payroll (FLS on per-employee figures) ────────────────────────────────────

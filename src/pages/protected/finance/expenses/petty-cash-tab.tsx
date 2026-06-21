@@ -46,46 +46,48 @@ export function PettyCashTab({ entity, currency }: { entity: string; currency?: 
   const { data: listData, isLoading } = useGetPettyCashFundsQuery({ entity });
   const funds = useMemo(() => toArray(listData?.data), [listData]);
   const [fundId, setFundId] = useState<number | null>(null);
-  const [creatingFund, setCreatingFund] = useState(false);
+  const [establishing, setEstablishing] = useState(false);
   const fund = useMemo<PettyCashFund | undefined>(
     () => (fundId != null ? funds.find((f) => f.id === fundId) : funds.find((f) => f.is_active) ?? funds[0]),
     [funds, fundId]);
+
+  const establishDrawer = (
+    <EstablishFloatDrawer open={establishing} onClose={() => setEstablishing(false)} entity={entity}
+      currency={currency} onCreated={(id) => setFundId(id)} />
+  );
 
   if (isLoading) return <div className="py-10 text-center font-mont text-sm text-gray-05">Loading…</div>;
   if (funds.length === 0) {
     return (
       <>
-        <EmptyState title="No petty-cash funds" message="Create a float, then establish cash into it." />
+        <EmptyState title="No petty-cash floats" message="Establish a float — set it up and fund it in one step." />
         <div className="mt-3 flex justify-center">
-          <Can permission={P.FIN_CREATE_PETTY_CASH}><Button onClick={() => setCreatingFund(true)} className="gap-1.5"><Plus className="size-4" /> New float</Button></Can>
+          <Can permission={P.FIN_REPLENISH_PETTY_CASH}><Button onClick={() => setEstablishing(true)} className="gap-1.5"><ArrowDownToLine className="size-4" /> Establish float</Button></Can>
         </div>
-        <NewFundDrawer open={creatingFund} onClose={() => setCreatingFund(false)} entity={entity} currency={currency} />
+        {establishDrawer}
       </>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <select value={fund?.id ?? ""} onChange={(e) => setFundId(Number(e.target.value))}
-            className="h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
-            {funds.map((f) => <option key={f.id} value={f.id}>{f.name}{f.custodian_label ? ` · ${f.custodian_label}` : ""}</option>)}
-          </select>
-          <Can permission={P.FIN_CREATE_PETTY_CASH}><Button variant="outline" size="sm" onClick={() => setCreatingFund(true)} className="gap-1.5"><Plus className="size-3.5" /> New float</Button></Can>
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <select value={fund?.id ?? ""} onChange={(e) => setFundId(Number(e.target.value))}
+          className="h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
+          {funds.map((f) => <option key={f.id} value={f.id}>{f.name}{f.custodian_label ? ` · ${f.custodian_label}` : ""}</option>)}
+        </select>
       </div>
-      {fund ? <FundWorkbench fund={fund} entity={entity} currency={currency} /> : null}
-      <NewFundDrawer open={creatingFund} onClose={() => setCreatingFund(false)} entity={entity} currency={currency} />
+      {fund ? <FundWorkbench fund={fund} entity={entity} currency={currency} onEstablish={() => setEstablishing(true)} /> : null}
+      {establishDrawer}
     </div>
   );
 }
 
 const TABS = [{ key: "register", label: "Movement register", icon: ListChecks }, { key: "vouchers", label: "Vouchers", icon: FileText }] as const;
 
-function FundWorkbench({ fund, entity, currency }: { fund: PettyCashFund; entity: string; currency?: string | null }) {
+function FundWorkbench({ fund, entity, currency, onEstablish }: { fund: PettyCashFund; entity: string; currency?: string | null; onEstablish: () => void }) {
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("register");
-  const [drawer, setDrawer] = useState<null | "voucher" | "establish" | "replenish">(null);
+  const [drawer, setDrawer] = useState<null | "voucher" | "replenish">(null);
   const { data: detailData } = useGetPettyCashFundQuery({ id: fund.id, entity });
   const detail = detailData?.data;
   const register = useMemo(() => detail?.register ?? [], [detail]);
@@ -107,7 +109,7 @@ function FundWorkbench({ fund, entity, currency }: { fund: PettyCashFund; entity
         <p className="font-mont text-xs text-gray-05">Float register · {fund.gl_account}{fund.custodian_label ? ` · custodian ${fund.custodian_label}` : ""}</p>
         <div className="flex flex-wrap gap-2">
           <Can permission={P.FIN_REPLENISH_PETTY_CASH}>
-            <Button variant="outline" onClick={() => setDrawer("establish")} className="gap-1.5"><ArrowDownToLine className="size-4" /> Establish float</Button>
+            <Button variant="outline" onClick={onEstablish} className="gap-1.5"><ArrowDownToLine className="size-4" /> Establish float</Button>
             <Button variant="outline" onClick={() => setDrawer("replenish")} className="gap-1.5"><RefreshCw className="size-4" /> Replenish</Button>
           </Can>
           <Can permission={P.FIN_CREATE_PETTY_CASH}>
@@ -141,8 +143,7 @@ function FundWorkbench({ fund, entity, currency }: { fund: PettyCashFund; entity
       )}
 
       {drawer === "voucher" ? <NewVoucherDrawer fund={fund} entity={entity} currency={currency} onClose={() => setDrawer(null)} /> : null}
-      {drawer === "establish" ? <FundCashDrawer mode="establish" fund={fund} entity={entity} currency={currency} onClose={() => setDrawer(null)} /> : null}
-      {drawer === "replenish" ? <FundCashDrawer mode="replenish" fund={fund} entity={entity} currency={currency} onClose={() => setDrawer(null)} /> : null}
+      {drawer === "replenish" ? <ReplenishDrawer fund={fund} entity={entity} currency={currency} onClose={() => setDrawer(null)} /> : null}
     </div>
   );
 }
@@ -153,9 +154,10 @@ function VouchersList({ vouchers, entity, currency, loading }: { vouchers: Petty
   const doPost = async (id: number) => { try { const r = await post({ id, entity }).unwrap(); toast.success(r.message || "Voucher posted."); } catch { /* central */ } };
   const cols: Column<PettyCashVoucher>[] = [
     { header: "Voucher no.", cell: (v) => <span className="font-semibold tabular-nums">{v.document_number}</span> },
-    { header: "Date", cell: (v) => <span className="tabular-nums text-gray-05">{fmtDate(v.voucher_date)}</span> },
     { header: "Payee", cell: (v) => v.payee || "—" },
-    { header: "Total", align: "right", cell: (v) => <Money kobo={v.total} currency={currency} align="right" /> },
+    { header: "Expense account", cell: (v) => <span className="tabular-nums text-gray-05">{v.expense_account || "—"}</span> },
+    { header: "Date", cell: (v) => <span className="tabular-nums text-gray-05">{fmtDate(v.voucher_date)}</span> },
+    { header: "Amount", align: "right", cell: (v) => <Money kobo={v.total} currency={currency} align="right" /> },
     { header: "Status", cell: (v) => <StatusPill status={v.status} /> },
     { header: "", align: "right", cell: (v) => v.status === "DRAFT" && can(P.FIN_POST_PETTY_CASH)
       ? <button type="button" onClick={() => doPost(v.id)} className="font-mont text-[11px] font-medium text-primary hover:underline">Post</button> : null },
@@ -218,21 +220,16 @@ function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCash
   );
 }
 
-function FundCashDrawer({ mode, fund, entity, currency, onClose }: { mode: "establish" | "replenish"; fund: PettyCashFund; entity: string; currency?: string | null; onClose: () => void }) {
-  const isEstablish = mode === "establish";
+function ReplenishDrawer({ fund, entity, currency, onClose }: { fund: PettyCashFund; entity: string; currency?: string | null; onClose: () => void }) {
   const [bank, setBank] = useState("");
   const [date, setDate] = useState(todayISO);
-  const [amount, setAmount] = useState(isEstablish ? fund.float_amount : fund.shortfall);
-  const [establish, { isLoading: e1 }] = useEstablishPettyCashMutation();
-  const [replenish, { isLoading: e2 }] = useReplenishPettyCashMutation();
-  const isLoading = e1 || e2;
+  const [amount, setAmount] = useState(fund.shortfall);
+  const [replenish, { isLoading }] = useReplenishPettyCashMutation();
 
   const submit = async () => {
     try {
-      const res = isEstablish
-        ? await establish({ id: fund.id, entity, bank_account: bank || undefined, amount, date }).unwrap()
-        : await replenish({ id: fund.id, entity, bank_account: bank || undefined, amount: amount || undefined, date }).unwrap();
-      toast.success(res.message || "Done.");
+      const res = await replenish({ id: fund.id, entity, bank_account: bank || undefined, amount: amount || undefined, date }).unwrap();
+      toast.success(res.message || "Float replenished.");
       onClose();
     } catch { /* central */ }
   };
@@ -240,16 +237,16 @@ function FundCashDrawer({ mode, fund, entity, currency, onClose }: { mode: "esta
   return (
     <DetailDrawer
       open onOpenChange={(o) => (o ? undefined : onClose())}
-      title={isEstablish ? "Establish float" : "Replenish float"} description={fund.name}
+      title="Replenish float" description={fund.name}
       widthClass="sm:max-w-lg"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={onClose}>Cancel</Button>
-        <Button disabled={isLoading || amount <= 0} onClick={submit} className="gap-1.5"><ArrowDownToLine className="size-4" />{isLoading ? "Saving…" : `Move ${formatMoney(amount, currency)}`}</Button>
+        <Button disabled={isLoading || amount <= 0} onClick={submit} className="gap-1.5"><RefreshCw className="size-4" />{isLoading ? "Saving…" : `Move ${formatMoney(amount, currency)}`}</Button>
       </>}
     >
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
-          {isEstablish ? "Moves cash from the bank into the tin (Dr petty cash, Cr bank) to set up the float." : `Tops the tin back up to its ${formatMoney(fund.float_amount, currency)} ceiling (Dr petty cash, Cr bank).`}
+          Tops the tin back up to its {formatMoney(fund.float_amount, currency)} ceiling (Dr petty cash, Cr bank).
         </p>
         <FormField label="Bank account"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
         <div className="grid grid-cols-2 gap-3">
@@ -261,20 +258,34 @@ function FundCashDrawer({ mode, fund, entity, currency, onClose }: { mode: "esta
   );
 }
 
-function NewFundDrawer({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
+// Establish = set up the float (its GL account, custodian, ceiling) AND move the
+// initial cash from the bank into the tin — both in one step, like the prototype.
+function EstablishFloatDrawer({ open, onClose, entity, currency, onCreated }: {
+  open: boolean; onClose: () => void; entity: string; currency?: string | null; onCreated: (id: number) => void;
+}) {
   const [name, setName] = useState("");
   const [glAccount, setGlAccount] = useState("");
   const [custodian, setCustodian] = useState("");
   const [floatAmount, setFloatAmount] = useState(0);
-  const [create, { isLoading }] = useCreatePettyCashFundMutation();
+  const [bank, setBank] = useState("");
+  const [date, setDate] = useState(todayISO);
+  const [create, { isLoading: creating }] = useCreatePettyCashFundMutation();
+  const [establish, { isLoading: funding }] = useEstablishPettyCashMutation();
+  const isLoading = creating || funding;
 
-  const reset = () => { setName(""); setGlAccount(""); setCustodian(""); setFloatAmount(0); };
+  const reset = () => { setName(""); setGlAccount(""); setCustodian(""); setFloatAmount(0); setBank(""); setDate(todayISO); };
   const close = () => { reset(); onClose(); };
+  const canSubmit = name.trim() !== "" && glAccount !== "" && floatAmount > 0;
 
   const submit = async () => {
     try {
-      const res = await create({ entity, name: name.trim(), gl_account: glAccount, custodian_name: custodian.trim() || undefined, float_amount: floatAmount || undefined }).unwrap();
-      toast.success(res.message || "Fund created.");
+      const res = await create({ entity, name: name.trim(), gl_account: glAccount, custodian_name: custodian.trim() || undefined, float_amount: floatAmount }).unwrap();
+      const fund = res.data;
+      if (fund) {
+        await establish({ id: fund.id, entity, bank_account: bank || undefined, amount: floatAmount, date }).unwrap();
+        onCreated(fund.id);
+      }
+      toast.success("Float established.");
       close();
     } catch { /* central */ }
   };
@@ -282,19 +293,27 @@ function NewFundDrawer({ open, onClose, entity, currency }: { open: boolean; onC
   return (
     <DetailDrawer
       open={open} onOpenChange={(o) => (o ? undefined : close())}
-      title="New petty-cash float" description="A float mapped 1:1 to its own petty-cash GL account."
+      title="Establish float" description="Set up a petty-cash float and move the opening cash into it."
       widthClass="sm:max-w-lg"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
-        <Button disabled={isLoading || !name.trim() || !glAccount} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Creating…" : "Create fund"}</Button>
+        <Button disabled={isLoading || !canSubmit} onClick={submit} className="gap-1.5"><ArrowDownToLine className="size-4" />{isLoading ? "Establishing…" : `Establish ${formatMoney(floatAmount, currency)}`}</Button>
       </>}
     >
       <div className="space-y-4">
-        <FormField label="Fund name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Front-desk float" className="bg-white" /></FormField>
-        <FormField label="Petty-cash GL account" required><AccountPicker entity={entity} value={glAccount} onChange={setGlAccount} accountType="ASSET" postableOnly placeholder="Petty cash account" /></FormField>
+        <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
+          Creates the float (mapped 1:1 to its petty-cash GL account) and moves the opening cash from the bank into the tin — Dr petty cash, Cr bank.
+        </p>
+        <FormField label="Float name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Front-desk float" className="bg-white" /></FormField>
         <div className="grid grid-cols-2 gap-3">
+          <FormField label="Petty-cash GL account" required><AccountPicker entity={entity} value={glAccount} onChange={setGlAccount} accountType="ASSET" postableOnly placeholder="Petty cash account" /></FormField>
           <FormField label="Custodian"><Input value={custodian} onChange={(e) => setCustodian(e.target.value)} placeholder="Who holds the tin" className="bg-white" /></FormField>
-          <FormField label="Float ceiling"><MoneyInput valueKobo={floatAmount} onChangeKobo={setFloatAmount} currency={currency} /></FormField>
+        </div>
+        <p className="-mb-1 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Opening cash</p>
+        <div className="grid grid-cols-3 gap-3">
+          <FormField label="Float amount" required><MoneyInput valueKobo={floatAmount} onChangeKobo={setFloatAmount} currency={currency} /></FormField>
+          <FormField label="From bank"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
+          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
         </div>
       </div>
     </DetailDrawer>
