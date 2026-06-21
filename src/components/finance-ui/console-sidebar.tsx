@@ -99,7 +99,9 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
       <SidebarContent
         ref={scrollRef}
         onScroll={(e) => scrollByConsole.set(title, e.currentTarget.scrollTop)}
-        className="bg-white pt-3 pb-6"
+        // The base primitive sets overflow-hidden in icon mode; the console menu
+        // is long, so force vertical scroll when collapsed (x stays clipped).
+        className="bg-white pt-3 pb-6 group-data-[collapsible=icon]:overflow-y-auto!"
       >
         <NavMain items={[backItem]} />
         <p className={groupLabelCls}>{title}</p>
