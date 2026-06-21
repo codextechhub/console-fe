@@ -12,7 +12,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Link2, RefreshCw, CheckCircle2, Printer, FilePlus2, Unlink } from "lucide-react";
+import { Link2, RefreshCw, CheckCircle2, Printer, FilePlus2, Unlink, Check } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
 import { DetailDrawer, FormField, AccountPicker, InfoHint, useActiveEntity, toArray } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
@@ -304,30 +304,37 @@ const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 
 function Column({ title, count, children }: { title: string; count: string; children: React.ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-md border border-gray-03">
-      <div className="flex items-center justify-between bg-[#F7F7F7] px-3 py-2">
+    <div className="flex flex-col overflow-hidden rounded-lg border border-gray-03 bg-white">
+      <div className="flex items-center justify-between border-b border-gray-03 bg-[#F7F7F7] px-3.5 py-2.5">
         <p className="font-mont text-xs font-semibold text-gray-01">{title}</p>
-        <span className="font-mont text-[11px] text-gray-05">{count}</span>
+        <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 font-mont text-[11px] font-medium text-gray-05 ring-1 ring-gray-03">{count}</span>
       </div>
-      <div className="divide-y divide-gray-03">{children}</div>
+      <div className="min-h-[120px] divide-y divide-gray-03">{children}</div>
     </div>
   );
 }
 function ColEmpty({ msg }: { msg: string }) {
-  return <p className="px-3 py-6 text-center font-mont text-[11px] text-gray-05">{msg}</p>;
+  return <p className="px-3 py-10 text-center font-mont text-[11px] text-gray-05">{msg}</p>;
 }
 function LineCard({ title, sub, amount, currency, selected, candidate, onClick }: {
   title: string; sub: string; amount: number; currency?: string | null; selected?: boolean; candidate?: boolean; onClick: () => void;
 }) {
   return (
     <button type="button" onClick={onClick}
-      className={cn("flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors",
-        selected ? "bg-primary/5 ring-1 ring-inset ring-primary" : candidate ? "bg-green-01/5 ring-1 ring-inset ring-green-01/40" : "hover:bg-gray-03/40")}>
-      <div className="min-w-0">
-        <p className="truncate font-mont text-xs font-medium text-black-01">{title}</p>
-        <p className="font-mont text-[11px] tabular-nums text-gray-05">{sub}</p>
+      className={cn("flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors",
+        selected ? "bg-primary/[0.06]" : candidate ? "bg-green-01/[0.06]" : "hover:bg-gray-03/30")}>
+      <span className={cn("flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors",
+        selected ? "border-primary bg-primary text-white" : candidate ? "border-green-01" : "border-gray-05/40")}>
+        {selected ? <Check className="size-3" strokeWidth={3} /> : null}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-mont text-sm font-medium text-black-01">{title}</p>
+        <p className="mt-0.5 flex items-center gap-1.5 font-mont text-[11px] tabular-nums text-gray-05">
+          <span className="truncate">{sub}</span>
+          {candidate ? <span className="shrink-0 rounded bg-green-01/10 px-1.5 py-0.5 font-medium text-green-01">same amount</span> : null}
+        </p>
       </div>
-      <span className={cn("shrink-0 font-mont text-xs font-semibold tabular-nums", signedCls(amount))}>{formatMoney(amount, currency)}</span>
+      <span className={cn("shrink-0 font-mont text-sm font-semibold tabular-nums", signedCls(amount))}>{formatMoney(amount, currency)}</span>
     </button>
   );
 }
