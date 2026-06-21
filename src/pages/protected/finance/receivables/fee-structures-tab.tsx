@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { Plus, Search, Trash2, FileStack, Pencil } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField,
-  AccountPicker, TaxCodePicker, InfoHint, toArray, type Column,
+  AccountPicker, TaxCodePicker, toArray, type Column,
 } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -97,7 +97,6 @@ export function FeeStructuresTab({ entity, currency }: { entity: string; currenc
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
-          <InfoHint>A fee structure is a billing template. When you generate invoices, each line builds an invoice line from its GL account, amount and tax — so revenue posts to the right place automatically. Only customer structures generate AR invoices.</InfoHint>
         </div>
         <Can permission={P.FIN_CREATE_FEE_STRUCTURE}>
           <Button onClick={() => setEditing("new")} className="gap-1.5"><Plus className="size-4" /> New structure</Button>
