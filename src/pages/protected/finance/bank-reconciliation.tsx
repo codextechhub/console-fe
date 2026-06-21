@@ -111,7 +111,11 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   const progress = totalLines ? Math.round((matched.length / totalLines) * 100) : 0;
 
   const selBankLine = unmatched.find((l) => l.id === selBank) ?? null;
-  const canMatch = selBank != null && selBook != null;
+  const selBookLine = bookLines.find((b) => b.id === selBook) ?? null;
+  // Match needs the *same signed amount* (the backend enforces it too).
+  const amountsEqual = selBankLine != null && selBookLine != null && selBankLine.amount === selBookLine.amount;
+  const canMatch = amountsEqual;
+  const mismatch = selBankLine != null && selBookLine != null && !amountsEqual;
 
   const doMatch = async () => {
     if (!canMatch) return;
@@ -187,7 +191,11 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
           <Button onClick={doMatch} disabled={!canMatch || matching} className="gap-1.5"><Link2 className="size-4" />{matching ? "Matching…" : "Match selected"}</Button>
           <Button variant="outline" onClick={() => setAdjusting(true)} disabled={selBank == null} className="gap-1.5"><FilePlus2 className="size-4" /> Add adjusting entry</Button>
           <Button variant="outline" onClick={doAuto} disabled={autoing} className="gap-1.5"><RefreshCw className="size-4" />{autoing ? "Matching…" : "Auto-match"}</Button>
-          {selBankLine ? <span className="font-mont text-[11px] text-gray-05">Selected bank line: {formatMoney(selBankLine.amount, currency)} — pick a book line of the same amount, or raise an adjusting entry.</span> : null}
+          {mismatch ? (
+            <span className="font-mont text-[11px] text-destructive">Amounts differ ({formatMoney(selBankLine!.amount, currency)} vs {formatMoney(selBookLine!.amount, currency)}) — a match needs the same amount. Raise an adjusting entry for this charge/credit instead.</span>
+          ) : selBankLine ? (
+            <span className="font-mont text-[11px] text-gray-05">Selected bank line: {formatMoney(selBankLine.amount, currency)} — pick a book line of the same amount, or raise an adjusting entry.</span>
+          ) : null}
         </div>
       </Can>
 
