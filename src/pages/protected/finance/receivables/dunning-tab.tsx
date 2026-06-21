@@ -27,7 +27,7 @@ import {
 import type { DunningNotice, DunningPolicy, DunningStage } from "@/redux/services/finance/ar-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
-const CHANNELS: [string, string][] = [["EMAIL", "Email"], ["SMS", "SMS"], ["LETTER", "Letter"], ["IN_APP", "In-app"]];
+const CHANNELS: [string, string][] = [["EMAIL", "Email"], ["IN_APP", "In-app"]];
 const channelLabel = (c: string) => CHANNELS.find(([v]) => v === c)?.[1] ?? c;
 const whenLabel = (d: number) => (d <= 0 ? "On due date" : `+${d} days`);
 
@@ -134,7 +134,7 @@ function ReminderQueue({ entity, currency, policies, canCancel }: {
       <span className="flex items-center justify-end gap-1.5">
         <TooltipProvider><Tooltip><TooltipTrigger asChild>
           <span className="inline-flex cursor-not-allowed items-center gap-1 rounded px-2 py-1 font-mont text-xs font-medium text-gray-05 opacity-60"><Send className="size-3.5" /> Send</span>
-        </TooltipTrigger><TooltipContent className="font-mont text-xs">Email/SMS dispatch isn't wired yet — coming soon.</TooltipContent></Tooltip></TooltipProvider>
+        </TooltipTrigger><TooltipContent className="font-mont text-xs">Email / in-app dispatch isn't wired yet — coming soon.</TooltipContent></Tooltip></TooltipProvider>
         {canCancel ? <button onClick={(e) => { e.stopPropagation(); doCancel(n); }} className="inline-flex items-center gap-1 rounded px-2 py-1 font-mont text-xs font-medium text-destructive hover:bg-destructive/5"><Ban className="size-3.5" /> Cancel</button> : null}
       </span>
     ) : null },
