@@ -33,8 +33,8 @@ export const financeNav: ConsoleNavGroup[] = [
   {
     label: "Receivables",
     items: [
-      { title: "AR Invoices", url: `${F.RECEIVABLES}/invoices`, icon: ReceiptText, prefixes: ["finance.invoice."] },
       { title: "Customers / Payers", url: `${F.RECEIVABLES}/customers`, icon: Users, prefixes: ["finance.customer."] },
+      { title: "AR Invoices", url: `${F.RECEIVABLES}/invoices`, icon: ReceiptText, prefixes: ["finance.invoice."] },
       { title: "Receipts & Allocation", url: `${F.RECEIVABLES}/receipts`, icon: CreditCard, prefixes: ["finance.payment."] },
       { title: "Credit / Debit Notes", url: `${F.RECEIVABLES}/credit-notes`, icon: FileMinus, prefixes: ["finance.creditnote."] },
       { title: "Refunds & Write-offs", url: `${F.RECEIVABLES}/refunds`, icon: Undo2, prefixes: ["finance.refund.", "finance.invoice.writeoff"] },
