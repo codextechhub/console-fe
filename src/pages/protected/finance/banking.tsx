@@ -36,10 +36,15 @@ const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium"
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
-// FLS-driven: "••••" only when the viewer lacks the sensitive grant; otherwise
-// the full account number is shown.
+const partialMask = (n: string) => {
+  const s = n.replace(/\s+/g, "");
+  return s.length <= 4 ? s : `${s.slice(0, 4)} **** ${s.slice(-4)}`;
+};
+// Detail-drawer subtitle keeps the full (sensitive) number; the list uses partial.
 const maskedNumber = (a: { account_number?: string; _stripped_fields?: string[] }) =>
   isStripped(a, "account_number") ? "••••" : (a.account_number || "—");
+const listAcctNo = (a: { account_number?: string; _stripped_fields?: string[] }) =>
+  isStripped(a, "account_number") ? "••••" : (a.account_number ? partialMask(a.account_number) : "—");
 
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -81,7 +86,7 @@ export default function BankingPage() {
           <span className="font-semibold text-gray-01">{a.name}</span>
           {a.is_primary ? <span className={cn(PILL, "bg-blue-50 text-blue-700")}>Primary</span> : null}
         </div>
-        <div className="mt-0.5 font-mont text-[11px] tabular-nums text-gray-05">A/C {maskedNumber(a)}</div>
+        <div className="mt-0.5 font-mont text-[11px] tabular-nums text-gray-05">A/C {listAcctNo(a)}</div>
       </div>
     ) },
     { header: "GL", cell: (a) => <span className="tabular-nums text-gray-05">{a.gl_account}</span> },
