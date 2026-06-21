@@ -274,23 +274,28 @@ function EstablishFloatDrawer({ open, onClose, entity, currency, onCreated }: {
   const [name, setName] = useState("");
   const [glAccount, setGlAccount] = useState("");
   const [custodian, setCustodian] = useState("");
-  const [floatAmount, setFloatAmount] = useState(0);
+  const [ceiling, setCeiling] = useState(0);
+  const [opening, setOpening] = useState(0);
   const [bank, setBank] = useState("");
   const [date, setDate] = useState(todayISO);
   const [create, { isLoading: creating }] = useCreatePettyCashFundMutation();
   const [establish, { isLoading: funding }] = useEstablishPettyCashMutation();
   const isLoading = creating || funding;
 
-  const reset = () => { setName(""); setGlAccount(""); setCustodian(""); setFloatAmount(0); setBank(""); setDate(todayISO); };
+  // The opening cash defaults to the ceiling (establish the full float) until the
+  // user diverges it.
+  const onCeiling = (v: number) => { setCeiling(v); setOpening((o) => (o === 0 || o === ceiling ? v : o)); };
+
+  const reset = () => { setName(""); setGlAccount(""); setCustodian(""); setCeiling(0); setOpening(0); setBank(""); setDate(todayISO); };
   const close = () => { reset(); onClose(); };
-  const canSubmit = name.trim() !== "" && glAccount !== "" && floatAmount > 0;
+  const canSubmit = name.trim() !== "" && glAccount !== "" && ceiling > 0 && opening > 0;
 
   const submit = async () => {
     try {
-      const res = await create({ entity, name: name.trim(), gl_account: glAccount, custodian_name: custodian.trim() || undefined, float_amount: floatAmount }).unwrap();
+      const res = await create({ entity, name: name.trim(), gl_account: glAccount, custodian_name: custodian.trim() || undefined, float_amount: ceiling }).unwrap();
       const fund = res.data;
       if (fund) {
-        await establish({ id: fund.id, entity, bank_account: bank || undefined, amount: floatAmount, date }).unwrap();
+        await establish({ id: fund.id, entity, bank_account: bank || undefined, amount: opening, date }).unwrap();
         onCreated(fund.id);
       }
       toast.success("Float established.");
@@ -302,15 +307,15 @@ function EstablishFloatDrawer({ open, onClose, entity, currency, onCreated }: {
     <DetailDrawer
       open={open} onOpenChange={(o) => (o ? undefined : close())}
       title="Establish float" description="Set up a petty-cash float and move the opening cash into it."
-      widthClass="sm:max-w-lg"
+      widthClass="sm:max-w-2xl"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
-        <Button disabled={isLoading || !canSubmit} onClick={submit} className="gap-1.5"><ArrowDownToLine className="size-4" />{isLoading ? "Establishing…" : `Establish ${formatMoney(floatAmount, currency)}`}</Button>
+        <Button disabled={isLoading || !canSubmit} onClick={submit} className="gap-1.5"><ArrowDownToLine className="size-4" />{isLoading ? "Establishing…" : `Establish ${formatMoney(opening, currency)}`}</Button>
       </>}
     >
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
-          Creates the float (mapped 1:1 to its petty-cash GL account) and moves the opening cash from the bank into the tin — Dr petty cash, Cr bank.
+          Creates the float (mapped 1:1 to its petty-cash GL account) at its <span className="font-medium">ceiling</span> — the imprest level Replenish restores it to — and moves the opening cash from the bank into the tin (Dr petty cash, Cr bank).
         </p>
         <FormField label="Float name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Front-desk float" className="bg-white" /></FormField>
         <div className="grid grid-cols-2 gap-3">
@@ -318,8 +323,11 @@ function EstablishFloatDrawer({ open, onClose, entity, currency, onCreated }: {
           <FormField label="Custodian"><Input value={custodian} onChange={(e) => setCustodian(e.target.value)} placeholder="Who holds the tin" className="bg-white" /></FormField>
         </div>
         <p className="-mb-1 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Opening cash</p>
-        <div className="grid grid-cols-3 gap-3">
-          <FormField label="Float amount" required><MoneyInput valueKobo={floatAmount} onChangeKobo={setFloatAmount} currency={currency} /></FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Float ceiling" required><MoneyInput valueKobo={ceiling} onChangeKobo={onCeiling} currency={currency} /></FormField>
+          <FormField label="Opening cash" required><MoneyInput valueKobo={opening} onChangeKobo={setOpening} currency={currency} /></FormField>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <FormField label="From bank"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
           <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
         </div>
