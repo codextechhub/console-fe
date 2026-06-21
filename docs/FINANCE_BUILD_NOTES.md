@@ -156,7 +156,18 @@ Existing negative-AR credit was reclassed once via
 
 **Receivables area: COMPLETE** (redesigned to prototype). **Next:**
 Bank Accounts/Reconciliation, Expense Claims, Petty Cash, Payroll,
-Budgets/Assets/Tax, Reports, Collections gateway.
+Budgets/Assets/Tax, Reports.
+
+**Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
+Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
+transfer to a customer's number arrives as a Collection that reconciles to AR.
+The FE list used to 405 (view was POST-only) — added `GET /payments/virtual-
+accounts/` (paginated + KPIs + filters, `payments.virtual_account.view`) and
+`GET`/`PATCH /payments/virtual-accounts/<id>/` (status toggle, `…manage`);
+`?virtual_account=` filter on the collections list powers the detail drawer's
+"funds received" table. Account number/name are FLS-stripped behind
+`…view_sensitive` (rendered `••••`). `_entity_obj` now resolves by code or id so
+the UI pickers work. Demo: 3 VAs (Fake MFB) + 1 linked collection on CODEX.
 
 ## Backend endpoint + permission map (added for AR)
 | Endpoint | Permission key |
