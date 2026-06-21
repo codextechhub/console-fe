@@ -12,6 +12,9 @@ import type {
   Customer,
   CustomerDetail,
   DunningNotice,
+  DunningPolicy,
+  DunningStage,
+  DunningSummary,
   Payment,
   PaymentDetail,
   FeeStructure,
@@ -164,10 +167,34 @@ export const arApi = baseApi.injectEndpoints({
       invalidatesTags: ["FinancePaymentPlans"],
     }),
 
-    // Dunning notices
+    // Dunning notices + policies + cadence
     getDunningNotices: builder.query<PaginatedEnvelope<DunningNotice>, EntityList>({
       query: (params) => ({ url: `/finance/dunning-notices/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceDunning"],
+    }),
+    getDunningSummary: builder.query<ApiEnvelope<DunningSummary>, { entity: string }>({
+      query: (params) => ({ url: `/finance/dunning/summary/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceDunning", "FinanceInvoices"],
+    }),
+    getDunningPolicies: builder.query<ApiEnvelope<DunningPolicy[]>, { entity: string }>({
+      query: (params) => ({ url: `/finance/dunning-policies/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceDunning"],
+    }),
+    generateDunning: builder.mutation<ApiEnvelope<{ created: number }>, { entity: string; policy?: number; as_of?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/dunning/generate/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceDunning"],
+    }),
+    cancelDunningNotice: builder.mutation<ApiEnvelope<DunningNotice>, { id: number; entity: string; reason?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/dunning-notices/${id}/cancel/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceDunning"],
+    }),
+    createDunningPolicy: builder.mutation<ApiEnvelope<DunningPolicy>, { entity: string; name: string; is_active?: boolean; is_default?: boolean; stages?: Omit<DunningStage, "id">[] }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/dunning-policies/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceDunning"],
+    }),
+    updateDunningPolicy: builder.mutation<ApiEnvelope<DunningPolicy>, { id: number; entity: string; name?: string; is_active?: boolean; is_default?: boolean; stages?: Omit<DunningStage, "id">[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/dunning-policies/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["FinanceDunning"],
     }),
 
     // Customers / payers (non-paginated, capped server-side; use toArray)
@@ -246,6 +273,12 @@ export const {
   useRefreshPaymentPlanMutation,
   useCancelPaymentPlanMutation,
   useGetDunningNoticesQuery,
+  useGetDunningSummaryQuery,
+  useGetDunningPoliciesQuery,
+  useGenerateDunningMutation,
+  useCancelDunningNoticeMutation,
+  useCreateDunningPolicyMutation,
+  useUpdateDunningPolicyMutation,
   useGetCustomersQuery,
   useCreateCustomerMutation,
   useGetCustomerDetailQuery,

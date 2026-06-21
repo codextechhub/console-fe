@@ -133,10 +133,19 @@ Existing negative-AR credit was reclassed once via
   shows `= ₦x of ₦balance`). Honest: a concession reduces a **specific** posted invoice's
   balance (capped), so the invoice is **required**; posting defaults the allowance acct
   to **4910**. Reuses the shared `PostingRecap` + `Segmented`.
+- **Dunning / Reminders** — 4 **aging-bucket KPIs** (Due soon 0–7d · Overdue 1–30 ·
+  31–60 · 60d+, from `GET /finance/dunning/summary/`), a **Reminder queue** tab
+  (notices table + the active policy's cadence column) and a **Policies** tab with a
+  **full cadence editor** (create/edit policies + add/edit/remove stages: name · days
+  overdue · channel). `Run reminders now` / `Generate notices` raise the notice queue
+  (real, **no GL**). Honest: vs_finance only records reminder *intent* (no email/SMS
+  service), so the per-notice **Send is deferred** (disabled + tooltip); Cancel is
+  real. Channels are single-value (Email/SMS/Letter/In-app) — the prototype's combined
+  channels aren't supported. Status: PENDING→Scheduled · SENT→Sent · RESOLVED→Resolved
+  · CANCELLED.
 - New journal + New account converted to drawers; sidebar scroll persists.
 
-**Next (still basic, redesign to prototype):** Dunning/Reminders · Fee Structures.
-Then:
+**Next (still basic, redesign to prototype):** Fee Structures. Then:
 Bank Accounts/Reconciliation, Expense Claims, Petty Cash, Payroll,
 Budgets/Assets/Tax, Reports, Collections gateway.
 
@@ -162,6 +171,8 @@ Budgets/Assets/Tax, Reports, Collections gateway.
 | `POST /finance/payment-plans/<id>/activate/` · `…/refresh/` · `…/cancel/` | `finance.paymentplan.activate` / `.cancel` |
 | `GET /finance/concessions/` (`?kind=&status=&search=&page=`; paginated) · `POST` · `…/<id>/post/` | `finance.concession.view` / `.create` / `.post` |
 | `GET /finance/concessions/summary/` (posted YTD · draft pending · active count) | `finance.concession.view` |
+| `GET /finance/dunning/summary/` (4 aging buckets) · `GET/POST /dunning-policies/` · `PATCH /dunning-policies/<id>/` (update + stages) | `finance.dunning.view` / `.manage` |
+| `POST /finance/dunning/generate/` (raise notices) · `GET /dunning-notices/` · `…/<id>/cancel/` (send is deferred — no comms service) | `finance.dunning.generate` / `.send` |
 
 **Lists are paginated** (`XVSPagination`, `?page=&page_size=`, max 100) with a
 server-side `?search=` — the AR adjustment lists (credit-notes, ar-adjustments) no
@@ -236,6 +247,8 @@ Two ways data gets seeded:
    - **Concessions**: a Posted `CNC-2026-00001` (Discount, CUST-001, ₦10k) + two Draft
      (`CNC-2026-00002` Scholarship ₦50k, `CNC-2026-00003` Waiver ₦20k) — covers all
      three types + both statuses.
+   - **Dunning**: default policy "Standard reminders" (3 stages: +1/+14/+30d Email) +
+     3 PENDING notices from a generate run over the overdue invoices.
    - Delete anytime; harmless. (Use **CODEX** for checks, not CREST.)
 
 ## Tests

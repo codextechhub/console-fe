@@ -137,6 +137,29 @@ export interface PaymentPlan {
   installments: PaymentPlanInstallment[];
 }
 
+export interface DunningStage {
+  id?: number;
+  level: number;
+  name: string;
+  min_days_overdue: number;
+  channel: string;
+  message: string;
+}
+export interface DunningPolicy {
+  id: number;
+  name: string;
+  is_active: boolean;
+  is_default: boolean;
+  stages: DunningStage[];
+}
+export type AgingBucket = { amount: number; count: number };
+export interface DunningSummary {
+  due_soon: AgingBucket;
+  overdue_1_30: AgingBucket;
+  overdue_31_60: AgingBucket;
+  overdue_60_plus: AgingBucket;
+}
+
 export interface DunningNotice {
   id: number;
   document_number: string;
