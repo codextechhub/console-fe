@@ -16,6 +16,7 @@ import type {
   FixedAsset,
   PayrollRun,
   PettyCashFund,
+  PettyCashFundDetail,
   PettyCashVoucher,
   TaxFiling,
   TaxObligation,
@@ -119,11 +120,23 @@ export const opsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/petty-cash-funds/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePettyCash"],
     }),
+    getPettyCashFund: b.query<ApiEnvelope<PettyCashFundDetail>, Act>({
+      query: ({ id, entity }) => ({ url: `/finance/petty-cash-funds/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinancePettyCash"],
+    }),
+    createPettyCashFund: b.mutation<ApiEnvelope<PettyCashFund>, { entity: string; name: string; gl_account: string; custodian_name?: string; float_amount?: number; currency?: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/petty-cash-funds/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinancePettyCash"],
+    }),
+    establishPettyCash: b.mutation<ApiEnvelope<PettyCashFund>, Act & { date: string; amount: number; bank_account?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/petty-cash-funds/${id}/establish/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinancePettyCash", "FinanceJournals"],
+    }),
     replenishPettyCash: b.mutation<ApiEnvelope<PettyCashFund>, Act & { date: string; amount?: number; bank_account?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/petty-cash-funds/${id}/replenish/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePettyCash", "FinanceJournals"],
     }),
-    getPettyCashVouchers: b.query<PaginatedEnvelope<PettyCashVoucher>, E>({
+    getPettyCashVouchers: b.query<PaginatedEnvelope<PettyCashVoucher>, E & { fund?: number }>({
       query: (p) => ({ url: `/finance/petty-cash-vouchers/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePettyCash"],
     }),
@@ -240,6 +253,9 @@ export const {
   useUploadExpenseReceiptMutation,
   useDeleteExpenseReceiptMutation,
   useGetPettyCashFundsQuery,
+  useGetPettyCashFundQuery,
+  useCreatePettyCashFundMutation,
+  useEstablishPettyCashMutation,
   useReplenishPettyCashMutation,
   useGetPettyCashVouchersQuery,
   useCreatePettyCashVoucherMutation,

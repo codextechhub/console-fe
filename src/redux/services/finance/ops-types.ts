@@ -151,6 +151,19 @@ export interface PettyCashFund {
   is_active: boolean;
 }
 
+export interface PettyCashMovement {
+  id: number;
+  date: string;
+  description: string;
+  category: string;
+  in: number;
+  out: number;
+  balance: number;
+}
+export interface PettyCashFundDetail extends PettyCashFund {
+  spent_this_week: number;
+  register: PettyCashMovement[];
+}
 export interface PettyCashVoucher {
   id: number;
   document_number: string;
