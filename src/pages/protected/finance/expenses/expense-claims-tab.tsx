@@ -12,7 +12,7 @@ import { useMemo, useRef, useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import {
-  Plus, Search, Trash2, Download, Check, X, Printer, Wallet, Paperclip, CircleDashed, CircleCheck,
+  Plus, Search, Trash2, Download, Check, X, Printer, Wallet, Paperclip, UploadCloud, CircleDashed, CircleCheck,
 } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField,
@@ -332,27 +332,50 @@ function PayDrawer({ claim, entity, currency, onClose }: { claim: ExpenseClaim; 
   );
 }
 
-type EditLine = { description: string; expense_account: string; unit_price: number; tax_code: string; cost_center: string; file: File | null };
-const emptyLine = (): EditLine => ({ description: "", expense_account: "", unit_price: 0, tax_code: "", cost_center: "", file: null });
+type EditLine = { description: string; expense_account: string; unit_price: number; tax_code: string; cost_center: string };
+const emptyLine = (): EditLine => ({ description: "", expense_account: "", unit_price: 0, tax_code: "", cost_center: "" });
 
-function LineFilePicker({ file, onPick }: { file: File | null; onPick: (f: File | null) => void }) {
+const MAX_RECEIPT_BYTES = 10 * 1024 * 1024;
+function ReceiptDropzone({ files, onAdd, onRemove }: { files: File[]; onAdd: (fs: File[]) => void; onRemove: (i: number) => void }) {
   const ref = useRef<HTMLInputElement>(null);
-  if (file) {
-    return (
-      <span className="mb-1.5 inline-flex max-w-[120px] shrink-0 items-center gap-1">
-        <span className="inline-flex min-w-0 items-center gap-1 font-mont text-[11px] font-medium text-primary" title={file.name}><Paperclip className="size-3 shrink-0" /><span className="truncate">{file.name}</span></span>
-        <button type="button" onClick={() => onPick(null)} className="shrink-0 text-gray-05 hover:text-destructive" aria-label="Remove receipt"><X className="size-3" /></button>
-      </span>
-    );
-  }
+  const [drag, setDrag] = useState(false);
+
+  const accept = (incoming: FileList | File[] | null) => {
+    const arr = Array.from(incoming ?? []);
+    const tooBig = arr.filter((f) => f.size > MAX_RECEIPT_BYTES);
+    if (tooBig.length) toast.error(`${tooBig.length} file(s) over 10MB were skipped.`);
+    const ok = arr.filter((f) => f.size <= MAX_RECEIPT_BYTES);
+    if (ok.length) onAdd(ok);
+  };
+
   return (
-    <>
-      <input ref={ref} type="file" accept=".pdf,image/*" className="hidden" onChange={(e) => onPick(e.target.files?.[0] ?? null)} />
-      <button type="button" onClick={() => ref.current?.click()} title="Attach a receipt (PDF or image)"
-        className="mb-1.5 inline-flex shrink-0 items-center gap-1 font-mont text-[11px] font-medium text-gray-05 transition-colors hover:text-primary">
-        <Paperclip className="size-3" /> Attach
-      </button>
-    </>
+    <div>
+      <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Receipts</p>
+      <div
+        role="button" tabIndex={0}
+        onClick={() => ref.current?.click()}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && ref.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e) => { e.preventDefault(); setDrag(false); accept(e.dataTransfer.files); }}
+        className={cn("flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed px-4 py-7 text-center transition-colors",
+          drag ? "border-primary bg-primary/[0.05]" : "border-gray-05/30 hover:border-primary/60 hover:bg-gray-03/30")}>
+        <UploadCloud className={cn("size-7", drag ? "text-primary" : "text-gray-05")} />
+        <p className="font-mont text-sm font-medium text-gray-01">Drop receipt images or PDFs here</p>
+        <p className="font-mont text-[11px] text-gray-05">JPG, PNG, PDF · up to 10MB each · attached to your lines in order</p>
+        <input ref={ref} type="file" accept=".pdf,image/*" multiple className="hidden" onChange={(e) => { accept(e.target.files); e.target.value = ""; }} />
+      </div>
+      {files.length ? (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {files.map((f, i) => (
+            <span key={i} className="inline-flex max-w-[200px] items-center gap-1 rounded-md border border-gray-03 bg-white py-1 pl-2 pr-1 font-mont text-[11px]">
+              <Paperclip className="size-3 shrink-0 text-primary" /><span className="truncate" title={f.name}>{f.name}</span>
+              <button type="button" onClick={() => onRemove(i)} className="shrink-0 rounded p-0.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive" aria-label="Remove receipt"><X className="size-3" /></button>
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -361,6 +384,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
   const [claimDate, setClaimDate] = useState(todayISO);
   const [title, setTitle] = useState("");
   const [lines, setLines] = useState<EditLine[]>([emptyLine()]);
+  const [receipts, setReceipts] = useState<File[]>([]);
   const [create, { isLoading }] = useCreateExpenseClaimMutation();
   const [uploadReceipt] = useUploadExpenseReceiptMutation();
 
@@ -369,7 +393,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
   const valid = lines.filter((l) => l.description.trim() && l.expense_account && l.unit_price > 0);
   const canSubmit = claimant.trim() !== "" && title.trim() !== "" && valid.length > 0;
 
-  const reset = () => { setClaimant(""); setClaimDate(todayISO); setTitle(""); setLines([emptyLine()]); };
+  const reset = () => { setClaimant(""); setClaimDate(todayISO); setTitle(""); setLines([emptyLine()]); setReceipts([]); };
   const close = () => { reset(); onClose(); };
 
   const submit = async () => {
@@ -378,11 +402,11 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
         entity, claimant_name: claimant.trim(), claim_date: claimDate, title: title.trim(),
         lines: valid.map((l) => ({ description: l.description.trim(), expense_account: l.expense_account, quantity: 1, unit_price: l.unit_price, tax_code: l.tax_code || undefined, cost_center: l.cost_center || undefined })),
       }).unwrap();
-      // Lines come back in the same order we submitted them — upload each picked receipt.
+      // Attach dropped receipts to the created lines in order.
       const created = res.data?.lines ?? [];
-      for (let i = 0; i < valid.length; i++) {
-        const file = valid[i].file; const ln = created[i];
-        if (file && ln) await uploadReceipt({ id: res.data!.id, lineId: ln.id, entity, file }).unwrap().catch(() => toast.error(`Couldn't attach ${file.name}`));
+      for (let i = 0; i < receipts.length && i < created.length; i++) {
+        await uploadReceipt({ id: res.data!.id, lineId: created[i].id, entity, file: receipts[i] }).unwrap()
+          .catch(() => toast.error(`Couldn't attach ${receipts[i].name}`));
       }
       toast.success(res.message || "Claim created.");
       close();
@@ -392,7 +416,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
   return (
     <DetailDrawer
       open={open} onOpenChange={(o) => (o ? undefined : close())}
-      title="New expense claim" description="Capture out-of-pocket spending for reimbursement. Attach a receipt per line."
+      title="New expense claim" description="Capture out-of-pocket spending for reimbursement, then drop the receipts."
       widthClass="sm:max-w-5xl"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
@@ -420,13 +444,14 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
                   <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={l.unit_price} onChangeKobo={(v) => setLine(i, { unit_price: v })} currency={currency} className="[&_input]:h-9" /></div>
                   <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={l.tax_code} onChange={(v) => setLine(i, { tax_code: v })} /></div>
                 </div>
-                <LineFilePicker file={l.file} onPick={(f) => setLine(i, { file: f })} />
                 <button type="button" onClick={() => setLines((s) => s.filter((_, idx) => idx !== i))} disabled={lines.length <= 1} className="mb-0.5 shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button>
               </div>
             ))}
           </div>
           <div className="mt-2 flex justify-end font-mont text-sm"><span className="text-gray-05">Total (net)&nbsp;</span><span className="font-semibold tabular-nums text-black-01">{formatMoney(total, currency)}</span></div>
         </div>
+
+        <ReceiptDropzone files={receipts} onAdd={(fs) => setReceipts((s) => [...s, ...fs])} onRemove={(i) => setReceipts((s) => s.filter((_, idx) => idx !== i))} />
       </div>
     </DetailDrawer>
   );
