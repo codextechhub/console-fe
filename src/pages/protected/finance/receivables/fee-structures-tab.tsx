@@ -390,7 +390,7 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
           <FormField label="Code" required>
-            <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. FS-SSS-T1" disabled={isEdit} className="bg-white font-mont disabled:opacity-60" />
+            <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. FS-STD-2026" disabled={isEdit} className="bg-white font-mont disabled:opacity-60" />
           </FormField>
           <FormField label="Applies to" required>
             <select value={appliesTo} onChange={(e) => setAppliesTo(e.target.value as FeeAppliesTo)} className="h-9 w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
@@ -414,8 +414,8 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
             {items.map((it, i) => (
               <div key={i} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
                 <div className="grid flex-1 grid-cols-12 gap-2">
-                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee code</p><Input value={it.code} onChange={(e) => setItem(i, { code: e.target.value })} placeholder="TUITION" className="bg-white font-mont text-sm" /></div>
-                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee item</p><Input value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} placeholder="Tuition" className="bg-white font-mont text-sm" /></div>
+                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee code</p><Input value={it.code} onChange={(e) => setItem(i, { code: e.target.value })} placeholder="SERVICE" className="bg-white font-mont text-sm" /></div>
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee item</p><Input value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} placeholder="Service fee" className="bg-white font-mont text-sm" /></div>
                   <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">GL account</p><AccountPicker entity={entity} value={it.revenue_account} onChange={(v) => setItem(i, { revenue_account: v })} accountType="INCOME" postableOnly placeholder="Revenue account" /></div>
                   <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={it.amount} onChangeKobo={(v) => setItem(i, { amount: v })} currency={currency} /></div>
                   <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={it.tax_code} onChange={(v) => setItem(i, { tax_code: v })} /></div>
