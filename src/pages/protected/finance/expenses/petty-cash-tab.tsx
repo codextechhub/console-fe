@@ -32,6 +32,10 @@ const todayISO = new Date().toISOString().slice(0, 10);
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const fmtDate = (s: string) => new Date(s).toLocaleDateString();
 
+function Initials({ name }: { name: string }) {
+  const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  return <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-xs font-semibold text-primary">{init || "—"}</span>;
+}
 function Kpi({ label, value, hint, danger }: { label: string; value: string; hint?: string; danger?: boolean }) {
   return (
     <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
@@ -105,8 +109,14 @@ function FundWorkbench({ fund, entity, currency, onEstablish }: { fund: PettyCas
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="font-mont text-xs text-gray-05">Float register · {fund.gl_account}{fund.custodian_label ? ` · custodian ${fund.custodian_label}` : ""}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <Initials name={fund.custodian_label || fund.name} />
+          <div className="leading-tight">
+            <p className="font-mont text-sm font-semibold text-black-01">{fund.custodian_label || "No custodian set"}</p>
+            <p className="font-mont text-[11px] text-gray-05">Custodian · {fund.gl_account} float register</p>
+          </div>
+        </div>
         <div className="flex flex-wrap gap-2">
           <Can permission={P.FIN_REPLENISH_PETTY_CASH}>
             <Button variant="outline" onClick={onEstablish} className="gap-1.5"><ArrowDownToLine className="size-4" /> Establish float</Button>
@@ -154,8 +164,8 @@ function VouchersList({ vouchers, entity, currency, loading }: { vouchers: Petty
   const doPost = async (id: number) => { try { const r = await post({ id, entity }).unwrap(); toast.success(r.message || "Voucher posted."); } catch { /* central */ } };
   const cols: Column<PettyCashVoucher>[] = [
     { header: "Voucher no.", cell: (v) => <span className="font-semibold tabular-nums">{v.document_number}</span> },
-    { header: "Payee", cell: (v) => v.payee || "—" },
     { header: "Expense account", cell: (v) => <span className="tabular-nums text-gray-05">{v.expense_account || "—"}</span> },
+    { header: "Note", cell: (v) => v.narration || "—" },
     { header: "Date", cell: (v) => <span className="tabular-nums text-gray-05">{fmtDate(v.voucher_date)}</span> },
     { header: "Amount", align: "right", cell: (v) => <Money kobo={v.total} currency={currency} align="right" /> },
     { header: "Status", cell: (v) => <StatusPill status={v.status} /> },
@@ -169,7 +179,6 @@ function VouchersList({ vouchers, entity, currency, loading }: { vouchers: Petty
 }
 
 function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCashFund; entity: string; currency?: string | null; onClose: () => void }) {
-  const [payee, setPayee] = useState("");
   const [date, setDate] = useState(todayISO);
   const [account, setAccount] = useState("");
   const [amount, setAmount] = useState(0);
@@ -181,7 +190,7 @@ function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCash
   const submit = async (thenPost: boolean) => {
     try {
       const res = await create({
-        entity, fund: fund.id, voucher_date: date, payee: payee.trim() || undefined,
+        entity, fund: fund.id, voucher_date: date,
         lines: [{ description: narration.trim() || "Petty cash spend", expense_account: account, quantity: 1, unit_price: amount, tax_code: tax || undefined }],
       }).unwrap();
       if (thenPost && res.data) await post({ id: res.data.id, entity }).unwrap();
@@ -206,10 +215,9 @@ function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCash
           Posting a voucher spends the tin — Dr expense (+ recoverable VAT), Cr petty cash — lowering the balance by the gross total.
         </p>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Payee"><Input value={payee} onChange={(e) => setPayee(e.target.value)} placeholder="Who was paid" className="bg-white" /></FormField>
+          <FormField label="Expense account" required><AccountPicker entity={entity} value={account} onChange={setAccount} accountType="EXPENSE" postableOnly placeholder="5xxx" /></FormField>
           <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
         </div>
-        <FormField label="Expense account" required><AccountPicker entity={entity} value={account} onChange={setAccount} accountType="EXPENSE" postableOnly placeholder="5xxx" /></FormField>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} /></FormField>
           <FormField label="Tax"><TaxCodePicker entity={entity} value={tax} onChange={setTax} /></FormField>
