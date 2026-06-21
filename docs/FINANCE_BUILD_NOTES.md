@@ -155,7 +155,18 @@ Existing negative-AR credit was reclassed once via
 - New journal + New account converted to drawers; sidebar scroll persists.
 
 **Receivables area: COMPLETE** (redesigned to prototype). **Next:**
-Petty Cash, Payroll, Budgets/Assets/Tax, Reports.
+Payroll, Budgets/Assets/Tax, Reports.
+
+**Operations → Petty Cash: DONE** (redesigned to prototype). Fund-centric float
+register: fund selector + KPIs (float ceiling / current / spent-this-week /
+to-replenish=shortfall) + tabs **Movement register** (petty-cash GL ledger: date
+· desc · category · in · out · running balance) and **Vouchers** (list + post).
+Drawers: single-line New voucher (Save draft / Save & post), Establish float,
+Replenish, New fund. Backend: PettyCashFundDetail GET adds register +
+spent_this_week (Category derived from the journal counter line — "Top-up" for
+cash in, expense account name for a spend). Honest: fund selector (we can hold
+several), derived Category. Demo: Front-desk float on CODEX (establish + 2
+vouchers).
 
 **Operations → Expense Claims: DONE** (redesigned to prototype). KPIs (open /
 submitted-this-month / average / awaiting payment) · search+status · avatar
