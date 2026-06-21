@@ -108,6 +108,8 @@ export interface ExpenseClaimLine {
   tax_amount: number;
   line_total: number;
   cost_center: string | null;
+  receipt_name: string | null;
+  receipt_url: string | null;
 }
 
 export interface ExpenseClaim {

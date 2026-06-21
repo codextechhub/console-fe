@@ -94,9 +94,24 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/finance/expense-claims/${id}/post/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinanceExpenseClaims", "FinanceJournals", "FinanceReports"],
     }),
-    settleExpenseClaim: b.mutation<ApiEnvelope<ExpenseClaim>, Act & { bank_account?: string; date?: string }>({
+    rejectExpenseClaim: b.mutation<ApiEnvelope<ExpenseClaim>, Act>({
+      query: ({ id, entity }) => ({ url: `/finance/expense-claims/${id}/reject/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinanceExpenseClaims"],
+    }),
+    settleExpenseClaim: b.mutation<ApiEnvelope<ExpenseClaim>, Act & { bank_account?: string; pay_date: string; amount?: number }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/expense-claims/${id}/settle/${qs({ entity })}`, method: "POST", body }),
-      invalidatesTags: ["FinanceExpenseClaims", "FinanceJournals"],
+      invalidatesTags: ["FinanceExpenseClaims", "FinanceJournals", "FinanceReports"],
+    }),
+    uploadExpenseReceipt: b.mutation<ApiEnvelope<ExpenseClaim>, { id: number; lineId: number; entity: string; file: File }>({
+      query: ({ id, lineId, entity, file }) => {
+        const fd = new FormData(); fd.append("file", file);
+        return { url: `/finance/expense-claims/${id}/lines/${lineId}/receipt/${qs({ entity })}`, method: "POST", body: fd };
+      },
+      invalidatesTags: ["FinanceExpenseClaims"],
+    }),
+    deleteExpenseReceipt: b.mutation<ApiEnvelope<ExpenseClaim>, { id: number; lineId: number; entity: string }>({
+      query: ({ id, lineId, entity }) => ({ url: `/finance/expense-claims/${id}/lines/${lineId}/receipt/${qs({ entity })}`, method: "DELETE" }),
+      invalidatesTags: ["FinanceExpenseClaims"],
     }),
 
     // Petty cash
@@ -220,7 +235,10 @@ export const {
   useGetExpenseClaimQuery,
   useCreateExpenseClaimMutation,
   usePostExpenseClaimMutation,
+  useRejectExpenseClaimMutation,
   useSettleExpenseClaimMutation,
+  useUploadExpenseReceiptMutation,
+  useDeleteExpenseReceiptMutation,
   useGetPettyCashFundsQuery,
   useReplenishPettyCashMutation,
   useGetPettyCashVouchersQuery,

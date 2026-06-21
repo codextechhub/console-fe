@@ -1,136 +1,420 @@
-// Expenses → Expense claims. List + create (lines) + detail + post + settle.
-import { useState } from "react";
+// Operations → Expense Claims, rebuilt to the Vision prototype in the house theme:
+// KPIs, a search/status list, and a detail drawer with an approval-workflow
+// stepper, line items (cost center + receipt attachment), and Approve / Reject /
+// Pay / Print actions.
+//
+// Honest adaptations: the prototype's school "Branch" column/filter is dropped
+// (claims are by staff, classified by cost center, which we keep). The 3-step
+// stepper maps to our real states — Submitted (draft) → Approved & accrued
+// (post: Dr expense / Cr accrued reimbursement) → Reimbursed (settle: Cr bank).
+
+import { useMemo, useRef, useState } from "react";
+import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
 import {
-  DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField,
-  LineEditor, emptyLine, toApiLines, type DocLine, type Column,
+  Plus, Search, Trash2, Download, Check, X, Printer, Wallet, Paperclip, CircleDashed, CircleCheck,
+} from "lucide-react";
+import {
+  DataTable, Money, MoneyInput, DetailDrawer, FormField,
+  AccountPicker, TaxCodePicker, CostCenterPicker, BankAccountPicker, toArray, type Column,
 } from "@/components/finance-ui";
-import { Can } from "@/components/finance-ui/can";
+import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/hooks/use-debounce";
+import { cn } from "@/lib/utils";
+import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
-  useGetExpenseClaimsQuery, usePostExpenseClaimMutation, useSettleExpenseClaimMutation, useCreateExpenseClaimMutation,
+  useGetExpenseClaimsQuery, useGetExpenseClaimQuery, useCreateExpenseClaimMutation,
+  usePostExpenseClaimMutation, useRejectExpenseClaimMutation, useSettleExpenseClaimMutation,
+  useUploadExpenseReceiptMutation, useDeleteExpenseReceiptMutation,
 } from "@/redux/services/finance/ops-api";
-import type { ExpenseClaim } from "@/redux/services/finance/ops-types";
+import type { ExpenseClaim, ExpenseClaimLine } from "@/redux/services/finance/ops-types";
 
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return <div><p className="font-mont text-xs uppercase tracking-wide text-gray-05">{label}</p><p className="mt-0.5 font-mont text-sm font-medium text-black-01">{value ?? "—"}</p></div>;
+const todayISO = new Date().toISOString().slice(0, 10);
+const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
+const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
+const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const fmtDate = (s: string) => new Date(s).toLocaleDateString();
+
+// Our model: status DRAFT/POSTED/CANCELLED × payment_status UNPAID/PARTIAL/PAID.
+// Collapse to the prototype's display states.
+type DispKey = "DRAFT" | "APPROVED" | "PART_PAID" | "PAID" | "REJECTED";
+function disp(c: ExpenseClaim): { key: DispKey; label: string; cls: string } {
+  if (c.status === "CANCELLED") return { key: "REJECTED", label: "Rejected", cls: "bg-destructive/10 text-destructive" };
+  if (c.status === "DRAFT") return { key: "DRAFT", label: "Draft", cls: "bg-gray-03/60 text-gray-05" };
+  if (c.payment_status === "PAID") return { key: "PAID", label: "Paid", cls: "bg-green-01/10 text-green-01" };
+  if (c.payment_status === "PARTIAL") return { key: "PART_PAID", label: "Part-paid", cls: "bg-amber-50 text-amber-700" };
+  return { key: "APPROVED", label: "Approved", cls: "bg-blue-50 text-blue-700" };
+}
+function StatusPill({ claim }: { claim: ExpenseClaim }) {
+  const d = disp(claim);
+  return <span className={cn(PILL, d.cls)}>{d.label}</span>;
+}
+function Initials({ name }: { name: string }) {
+  const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
+}
+function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+      <p className="font-mont text-xs text-gray-05">{label}</p>
+      <p className="mt-1 font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
+      {hint && <p className="mt-0.5 font-mont text-[11px] text-gray-05">{hint}</p>}
+    </div>
+  );
 }
 
-export function ExpenseClaimsTab({ entity, currency }: { entity: string; currency?: string | null }) {
-  const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<ExpenseClaim | null>(null);
-  const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetExpenseClaimsQuery({ entity, page });
-  const [post] = usePostExpenseClaimMutation();
-  const [settle] = useSettleExpenseClaimMutation();
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: "DRAFT", label: "Draft" }, { value: "APPROVED", label: "Approved" },
+  { value: "PAID", label: "Paid" }, { value: "REJECTED", label: "Rejected" },
+];
 
-  const rows = data?.data ?? [];
-  const pg = data?.pagination;
+export function ExpenseClaimsTab({ entity, currency }: { entity: string; currency?: string | null }) {
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput.trim().toLowerCase(), 250);
+  const [status, setStatus] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [selected, setSelected] = useState<ExpenseClaim | null>(null);
+
+  const { data, isLoading, isFetching, isError, refetch } = useGetExpenseClaimsQuery({ entity });
+  const rows = useMemo(() => toArray(data?.data), [data]);
+  const filtered = useMemo(() => rows.filter((c) => {
+    if (status && disp(c).key !== status && !(status === "APPROVED" && disp(c).key === "PART_PAID")) return false;
+    if (!search) return true;
+    return (c.claimant_name || "").toLowerCase().includes(search)
+      || (c.title || "").toLowerCase().includes(search)
+      || c.document_number.toLowerCase().includes(search);
+  }), [rows, status, search]);
+
+  const kpis = useMemo(() => {
+    const now = new Date(); const m = now.getMonth(); const y = now.getFullYear();
+    const live = rows.filter((c) => c.status !== "CANCELLED");
+    const open = rows.filter((c) => c.status === "DRAFT" || (c.status === "POSTED" && c.payment_status !== "PAID")).length;
+    const monthTotal = rows.filter((c) => { const d = new Date(c.claim_date); return d.getMonth() === m && d.getFullYear() === y && c.status !== "CANCELLED"; }).reduce((s, c) => s + c.total, 0);
+    const avg = live.length ? Math.round(live.reduce((s, c) => s + c.total, 0) / live.length) : 0;
+    const awaiting = rows.filter((c) => c.status === "POSTED" && c.payment_status !== "PAID").reduce((s, c) => s + c.balance_due, 0);
+    return { open, monthTotal, avg, awaiting };
+  }, [rows]);
+
+  const exportCsv = () => {
+    const head = ["Claim no", "Claimant", "Date", "Purpose", "Total (naira)", "Status"];
+    const lines = filtered.map((c) => [c.document_number, c.claimant_name, c.claim_date, (c.title || "").replace(/,/g, " "), (c.total / 100).toFixed(2), disp(c).label]);
+    const csv = [head, ...lines].map((r) => r.join(",")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = `expense-claims-${entity}.csv`; a.click(); URL.revokeObjectURL(a.href);
+  };
 
   const columns: Column<ExpenseClaim>[] = [
-    { header: "Document", cell: (c) => <span className="font-semibold">{c.document_number}</span> },
-    { header: "Claimant", cell: (c) => c.claimant_name || "—" },
-    { header: "Title", cell: (c) => <span className="block max-w-xs truncate">{c.title || "—"}</span> },
-    { header: "Date", cell: (c) => c.claim_date },
+    { header: "Claim no.", cell: (c) => <span className="font-semibold tabular-nums">{c.document_number}</span> },
+    { header: "Claimant", cell: (c) => <span className="inline-flex items-center gap-2"><Initials name={c.claimant_name || "—"} /><span className="font-medium text-gray-01">{c.claimant_name || "—"}</span></span> },
+    { header: "Date", cell: (c) => <span className="tabular-nums text-gray-05">{fmtDate(c.claim_date)}</span> },
+    { header: "Purpose", cell: (c) => <span className="text-gray-01">{c.title || "—"}</span> },
     { header: "Total", align: "right", cell: (c) => <Money kobo={c.total} currency={currency} align="right" /> },
-    { header: "Balance", align: "right", cell: (c) => <Money kobo={c.balance_due} currency={currency} align="right" /> },
-    { header: "Status", cell: (c) => <StatusPill status={c.status} /> },
-    {
-      header: "", cell: (c) => (
-        <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-          {c.status === "DRAFT" && (
-            <ActionButton asLink label="Post" permission={P.FIN_POST_EXPENSE_CLAIM} title="Post expense claim?"
-              description={`Posts ${c.document_number} to the ledger.`}
-              onConfirm={async () => { const r = await post({ id: c.id, entity }).unwrap(); toast.success(r.message || "Posted."); }} />
-          )}
-          {c.status === "POSTED" && c.payment_status !== "PAID" && (
-            <ActionButton asLink label="Settle" permission={P.FIN_SETTLE_EXPENSE_CLAIM} title="Settle expense claim?"
-              description={`Pays out the balance of ${c.document_number}.`}
-              onConfirm={async () => { const r = await settle({ id: c.id, entity }).unwrap(); toast.success(r.message || "Settled."); }} />
-          )}
-        </div>
-      ),
-    },
+    { header: "Status", cell: (c) => <StatusPill claim={c} /> },
   ];
 
   return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <Can permission={P.FIN_CREATE_EXPENSE_CLAIM}>
-          <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New claim</Button>
-        </Can>
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi label="Open claims" value={String(kpis.open)} hint="Draft or awaiting payment" />
+        <Kpi label="Submitted this month" value={formatMoney(kpis.monthTotal, currency)} />
+        <Kpi label="Average claim" value={formatMoney(kpis.avg, currency)} />
+        <Kpi label="Awaiting payment" value={formatMoney(kpis.awaiting, currency)} hint="Approved, not yet reimbursed" />
       </div>
-      <DataTable columns={columns} rows={rows} rowKey={(c) => c.id}
-        loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
-        emptyTitle="No expense claims" emptyMessage="Expense claims will appear here."
-        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
-      <CreateClaimModal open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
 
-      <DetailDrawer open={!!selected} onOpenChange={(o) => !o && setSelected(null)}
-        title={selected?.document_number ?? "Expense claim"} description={selected?.title}>
-        {selected && (
-          <div className="space-y-5">
-            <div className="flex gap-3"><StatusPill status={selected.status} /><StatusPill status={selected.payment_status} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Claimant" value={selected.claimant_name} />
-              <Field label="Date" value={selected.claim_date} />
-              <Field label="Subtotal" value={<Money kobo={selected.subtotal} currency={currency} />} />
-              <Field label="Tax" value={<Money kobo={selected.tax_total} currency={currency} />} />
-              <Field label="Total" value={<Money kobo={selected.total} currency={currency} />} />
-              <Field label="Balance due" value={<Money kobo={selected.balance_due} currency={currency} />} />
-            </div>
-            {selected.narration && <Field label="Narration" value={selected.narration} />}
-            <div>
-              <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
-              <div className="space-y-1.5">
-                {selected.lines.map((l) => (
-                  <div key={l.id} className="flex items-center justify-between rounded-md border border-gray-03 px-3 py-2 font-mont text-sm">
-                    <span>{l.description}<span className="ml-2 text-gray-05">{l.expense_account}</span></span>
-                    <Money kobo={l.line_total} currency={currency} className="font-semibold" />
-                  </div>
-                ))}
-              </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
+            <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search claimant, purpose or no." className="h-9 w-72 bg-white pl-8 font-mont" />
+          </div>
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
+            <option value="">All statuses</option>
+            {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportCsv} className="gap-1.5"><Download className="size-4" /> Export</Button>
+          <Can permission={P.FIN_CREATE_EXPENSE_CLAIM}>
+            <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New claim</Button>
+          </Can>
+        </div>
+      </div>
+
+      <DataTable
+        columns={columns} rows={filtered} rowKey={(c) => c.id}
+        loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+        emptyTitle={search || status ? "No matching claims" : "No expense claims"}
+        emptyMessage={search || status ? "Try a different search or filter." : "Staff reimbursement claims appear here."}
+      />
+
+      <ClaimDetailDrawer claim={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
+      <NewClaimDrawer open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
+    </div>
+  );
+}
+
+function Step({ done, active, title, sub }: { done: boolean; active?: boolean; title: string; sub?: string }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      {done ? <CircleCheck className="mt-0.5 size-4 shrink-0 text-green-01" />
+        : <CircleDashed className={cn("mt-0.5 size-4 shrink-0", active ? "text-primary" : "text-gray-05/50")} />}
+      <div>
+        <p className={cn("font-mont text-xs font-medium", done || active ? "text-black-01" : "text-gray-05")}>{title}</p>
+        {sub ? <p className="font-mont text-[11px] text-gray-05">{sub}</p> : null}
+      </div>
+    </div>
+  );
+}
+
+function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: ExpenseClaim | null; entity: string; currency?: string | null; onClose: () => void }) {
+  const { can } = useCan();
+  const [paying, setPaying] = useState(false);
+  const { data } = useGetExpenseClaimQuery(claim ? { id: claim.id, entity } : skipToken);
+  const full = data?.data ?? claim;
+  const [post, { isLoading: posting }] = usePostExpenseClaimMutation();
+  const [reject, { isLoading: rejecting }] = useRejectExpenseClaimMutation();
+  if (!claim || !full) return null;
+
+  const d = disp(full);
+  const isDraft = full.status === "DRAFT";
+  const isApprovedUnpaid = full.status === "POSTED" && full.payment_status !== "PAID";
+  const attachable = full.status !== "CANCELLED" && full.payment_status !== "PAID";
+
+  const doPost = async () => { try { const r = await post({ id: full.id, entity }).unwrap(); toast.success(r.message || "Claim approved."); } catch { /* central */ } };
+  const doReject = async () => { try { const r = await reject({ id: full.id, entity }).unwrap(); toast.success(r.message || "Claim rejected."); } catch { /* central */ } };
+
+  return (
+    <>
+      <DetailDrawer
+        open={!!claim} onOpenChange={(o) => (o ? undefined : onClose())}
+        title={full.document_number}
+        description={`${full.claimant_name || "—"} · ${fmtDate(full.claim_date)}${full.title ? ` · ${full.title}` : ""}`}
+        widthClass="sm:max-w-3xl"
+        footer={
+          <>
+            <StatusPill claim={full} />
+            <div className="flex-1" />
+            <Button variant="outline" onClick={() => printClaim(full, currency)} className="gap-1.5"><Printer className="size-4" /> Print</Button>
+            {isDraft ? (
+              <Can permission={P.FIN_POST_EXPENSE_CLAIM}>
+                <Button variant="outline" disabled={rejecting} onClick={doReject} className="gap-1.5"><X className="size-4" /> Reject</Button>
+                <Button disabled={posting} onClick={doPost} className="gap-1.5"><Check className="size-4" />{posting ? "Approving…" : "Approve"}</Button>
+              </Can>
+            ) : null}
+            {isApprovedUnpaid ? (
+              <Can permission={P.FIN_SETTLE_EXPENSE_CLAIM}>
+                <Button onClick={() => setPaying(true)} className="gap-1.5"><Wallet className="size-4" /> Pay</Button>
+              </Can>
+            ) : null}
+          </>
+        }
+      >
+        <div className="space-y-5">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">Total</p><p className="mt-1 font-mont text-base font-semibold tabular-nums text-black-01">{formatMoney(full.total, currency)}</p></div>
+            <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">Subtotal · Tax</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(full.subtotal, currency)} · {formatMoney(full.tax_total, currency)}</p></div>
+            <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">{full.payment_status === "PAID" ? "Reimbursed" : "Awaiting payment"}</p><p className="mt-1 font-mont text-base font-semibold tabular-nums text-black-01">{formatMoney(full.payment_status === "PAID" ? full.amount_paid : full.balance_due, currency)}</p></div>
+          </div>
+
+          <div>
+            <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Approval workflow</p>
+            <div className="space-y-3 rounded-md border border-gray-03 bg-gray-03 px-3 py-3">
+              <Step done title="Submitted" sub={`${full.claimant_name || "Staff"} · ${fmtDate(full.claim_date)}`} />
+              {d.key === "REJECTED"
+                ? <Step done={false} active title="Rejected" sub="The claim was rejected." />
+                : <Step done={full.status === "POSTED"} active={isDraft} title="Approved & accrued" sub={full.status === "POSTED" ? "Booked to Accrued Reimbursements" : "Awaiting approval"} />}
+              {d.key !== "REJECTED"
+                ? <Step done={full.payment_status === "PAID"} active={isApprovedUnpaid} title="Reimbursed" sub={full.payment_status === "PAID" ? "Paid via bank transfer" : "Pending payment"} />
+                : null}
             </div>
           </div>
-        )}
+
+          <div>
+            <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
+            <div className="overflow-hidden rounded-md border border-gray-03">
+              <table className="w-full border-collapse">
+                <thead><tr>
+                  <th className={thCls}>Category (GL)</th><th className={thCls}>Description</th>
+                  <th className={thCls}>Cost center</th><th className={thCls}>Tax</th>
+                  <th className={cn(thCls, "text-right")}>Amount</th><th className={thCls}>Receipt</th>
+                </tr></thead>
+                <tbody>
+                  {full.lines.map((l) => (
+                    <tr key={l.id}>
+                      <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.expense_account}</td>
+                      <td className={tdCls}>{l.description || "—"}</td>
+                      <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.cost_center || "—"}</td>
+                      <td className={tdCls}>{l.tax_code ?? <span className="text-gray-05">Exempt</span>}</td>
+                      <td className={cn(tdCls, "text-right tabular-nums")}><Money kobo={l.line_total} currency={currency} align="right" /></td>
+                      <td className={tdCls}><ReceiptCell line={l} claimId={full.id} entity={entity} attachable={attachable && can(P.FIN_CREATE_EXPENSE_CLAIM)} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </DetailDrawer>
+
+      {paying ? <PayDrawer claim={full} entity={entity} currency={currency} onClose={() => setPaying(false)} /> : null}
     </>
   );
 }
 
-function CreateClaimModal({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
-  const [claimant, setClaimant] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [title, setTitle] = useState("");
-  const [lines, setLines] = useState<DocLine[]>([emptyLine()]);
-  const [create, { isLoading }] = useCreateExpenseClaimMutation();
+function ReceiptCell({ line, claimId, entity, attachable }: { line: ExpenseClaimLine; claimId: number; entity: string; attachable: boolean }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [upload, { isLoading: uploading }] = useUploadExpenseReceiptMutation();
+  const [remove, { isLoading: removing }] = useDeleteExpenseReceiptMutation();
 
-  const apiLines = toApiLines(lines, "expense_account") as { description: string; expense_account: string; quantity: number; unit_price: number; tax_code?: string; cost_center?: string }[];
+  const onPick = async (file?: File) => {
+    if (!file) return;
+    try { await upload({ id: claimId, lineId: line.id, entity, file }).unwrap(); toast.success("Receipt attached."); }
+    catch { /* central */ }
+  };
+
+  if (line.receipt_url) {
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <a href={line.receipt_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline"><Paperclip className="size-3" />{line.receipt_name || "Receipt"}</a>
+        {attachable ? <button type="button" disabled={removing} onClick={() => remove({ id: claimId, lineId: line.id, entity })} className="text-gray-05 hover:text-destructive" aria-label="Remove receipt"><Trash2 className="size-3.5" /></button> : null}
+      </span>
+    );
+  }
+  if (!attachable) return <span className="font-mont text-[11px] text-gray-05">Missing</span>;
+  return (
+    <>
+      <input ref={fileRef} type="file" accept=".pdf,image/*" className="hidden" onChange={(e) => onPick(e.target.files?.[0])} />
+      <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-gray-05 hover:text-primary">
+        <Paperclip className="size-3" />{uploading ? "Uploading…" : "Upload"}
+      </button>
+    </>
+  );
+}
+
+function PayDrawer({ claim, entity, currency, onClose }: { claim: ExpenseClaim; entity: string; currency?: string | null; onClose: () => void }) {
+  const [bank, setBank] = useState("");
+  const [payDate, setPayDate] = useState(todayISO);
+  const [settle, { isLoading }] = useSettleExpenseClaimMutation();
 
   const submit = async () => {
     try {
-      const res = await create({ entity, claimant_name: claimant.trim() || undefined, claim_date: date, title: title.trim() || undefined, lines: apiLines }).unwrap();
-      toast.success(res.message || "Claim created.");
-      setClaimant(""); setTitle(""); setLines([emptyLine()]); onClose();
+      const res = await settle({ id: claim.id, entity, bank_account: bank || undefined, pay_date: payDate }).unwrap();
+      toast.success(res.message || "Claim reimbursed.");
+      onClose();
     } catch { /* central */ }
   };
 
   return (
-    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New expense claim"
-      description="Capture the claim and its lines; post it afterwards to book the journal."
-      onSubmit={submit} loading={isLoading} canSubmit={!!date && apiLines.length > 0} widthClass="sm:max-w-2xl">
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="Claimant"><Input value={claimant} onChange={(e) => setClaimant(e.target.value)} className="bg-white" /></FormField>
-        <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
+    <DetailDrawer
+      open onOpenChange={(o) => (o ? undefined : onClose())}
+      title="Reimburse claim" description={`${claim.document_number} · ${claim.claimant_name || "—"}`}
+      widthClass="sm:max-w-lg"
+      footer={<>
+        <Button variant="outline" disabled={isLoading} onClick={onClose}>Cancel</Button>
+        <Button disabled={isLoading || !payDate} onClick={submit} className="gap-1.5"><Wallet className="size-4" />{isLoading ? "Paying…" : `Pay ${formatMoney(claim.balance_due, currency)}`}</Button>
+      </>}
+    >
+      <div className="space-y-4">
+        <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
+          Pays the staff member {formatMoney(claim.balance_due, currency)} — Dr Accrued Reimbursement, Cr bank — clearing the liability raised on approval.
+        </p>
+        <FormField label="Bank account"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
+        <FormField label="Payment date" required><Input type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} className="bg-white" /></FormField>
       </div>
-      <FormField label="Title"><Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white" /></FormField>
-      <div className="pt-1">
-        <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
-        <LineEditor entity={entity} lines={lines} onChange={setLines} accountLabel="Expense account" accountType="EXPENSE" currency={currency} />
-      </div>
-    </FormModal>
+    </DetailDrawer>
   );
+}
+
+type EditLine = { description: string; expense_account: string; unit_price: number; tax_code: string; cost_center: string };
+const emptyLine = (): EditLine => ({ description: "", expense_account: "", unit_price: 0, tax_code: "", cost_center: "" });
+
+function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
+  const [claimant, setClaimant] = useState("");
+  const [claimDate, setClaimDate] = useState(todayISO);
+  const [title, setTitle] = useState("");
+  const [lines, setLines] = useState<EditLine[]>([emptyLine()]);
+  const [create, { isLoading }] = useCreateExpenseClaimMutation();
+
+  const setLine = (i: number, patch: Partial<EditLine>) => setLines((s) => s.map((l, idx) => idx === i ? { ...l, ...patch } : l));
+  const total = lines.reduce((s, l) => s + l.unit_price, 0);
+  const valid = lines.filter((l) => l.description.trim() && l.expense_account && l.unit_price > 0);
+  const canSubmit = claimant.trim() !== "" && title.trim() !== "" && valid.length > 0;
+
+  const reset = () => { setClaimant(""); setClaimDate(todayISO); setTitle(""); setLines([emptyLine()]); };
+  const close = () => { reset(); onClose(); };
+
+  const submit = async () => {
+    try {
+      const res = await create({
+        entity, claimant_name: claimant.trim(), claim_date: claimDate, title: title.trim(),
+        lines: valid.map((l) => ({ description: l.description.trim(), expense_account: l.expense_account, quantity: 1, unit_price: l.unit_price, tax_code: l.tax_code || undefined, cost_center: l.cost_center || undefined })),
+      }).unwrap();
+      toast.success(res.message || "Claim created.");
+      close();
+    } catch { /* central */ }
+  };
+
+  return (
+    <DetailDrawer
+      open={open} onOpenChange={(o) => (o ? undefined : close())}
+      title="New expense claim" description="Capture out-of-pocket spending for reimbursement. Attach receipts after saving."
+      widthClass="sm:max-w-4xl"
+      footer={<>
+        <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
+        <Button disabled={isLoading || !canSubmit} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Saving…" : "Create draft"}</Button>
+      </>}
+    >
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-3">
+          <FormField label="Claimant" required><Input value={claimant} onChange={(e) => setClaimant(e.target.value)} placeholder="Staff name" className="bg-white" /></FormField>
+          <FormField label="Date" required><Input type="date" value={claimDate} onChange={(e) => setClaimDate(e.target.value)} className="bg-white" /></FormField>
+          <FormField label="Purpose" required><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Travel to workshop" className="bg-white" /></FormField>
+        </div>
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Expense lines</p>
+            <Button variant="outline" size="sm" onClick={() => setLines((s) => [...s, emptyLine()])} className="gap-1.5"><Plus className="size-3.5" /> Add line</Button>
+          </div>
+          <div className="space-y-2">
+            {lines.map((l, i) => (
+              <div key={i} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+                <div className="grid flex-1 grid-cols-12 gap-2">
+                  <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} placeholder="What was bought" className="bg-white text-sm" /></div>
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Expense account</p><AccountPicker entity={entity} value={l.expense_account} onChange={(v) => setLine(i, { expense_account: v })} accountType="EXPENSE" postableOnly placeholder="5xxx" /></div>
+                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Cost center</p><CostCenterPicker entity={entity} value={l.cost_center} onChange={(v) => setLine(i, { cost_center: v })} /></div>
+                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={l.unit_price} onChangeKobo={(v) => setLine(i, { unit_price: v })} currency={currency} /></div>
+                  <div className="col-span-1"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={l.tax_code} onChange={(v) => setLine(i, { tax_code: v })} /></div>
+                </div>
+                <button type="button" onClick={() => setLines((s) => s.filter((_, idx) => idx !== i))} disabled={lines.length <= 1} className="mb-0.5 shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 flex justify-end font-mont text-sm"><span className="text-gray-05">Total (net)&nbsp;</span><span className="font-semibold tabular-nums text-black-01">{formatMoney(total, currency)}</span></div>
+        </div>
+      </div>
+    </DetailDrawer>
+  );
+}
+
+function printClaim(c: ExpenseClaim, currency?: string | null) {
+  const money = (k: number) => formatMoney(k, currency);
+  const row = (l: ExpenseClaimLine) => `<tr><td>${l.expense_account}</td><td>${l.description || "—"}</td><td>${l.cost_center || "—"}</td><td style="text-align:right">${money(l.line_total)}</td></tr>`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Expense claim ${c.document_number}</title>
+  <style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;padding:32px;max-width:720px;margin:auto}
+  h1{font-size:18px;margin:0 0 4px}.sub{color:#666;font-size:12px;margin-bottom:20px}
+  table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px solid #eee;padding:6px 8px;text-align:left}
+  tfoot td{font-weight:600;border-top:2px solid #ddd}</style></head><body>
+  <h1>Expense claim ${c.document_number}</h1>
+  <div class="sub">${c.claimant_name || "—"} · ${fmtDate(c.claim_date)} · ${c.title || ""} · ${disp(c).label}</div>
+  <table><thead><tr><th>Category</th><th>Description</th><th>Cost center</th><th style="text-align:right">Amount</th></tr></thead>
+  <tbody>${c.lines.map(row).join("")}</tbody>
+  <tfoot><tr><td colspan="3">Total</td><td style="text-align:right">${money(c.total)}</td></tr></tfoot></table>
+  </body></html>`;
+  const w = window.open("", "_blank", "width=780,height=900");
+  if (!w) { toast.error("Pop-up blocked — allow pop-ups to print."); return; }
+  w.document.write(html); w.document.close(); w.focus(); w.print();
 }

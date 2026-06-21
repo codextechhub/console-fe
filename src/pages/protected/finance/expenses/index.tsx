@@ -2,7 +2,7 @@
 
 import { useParams } from "react-router";
 import { FinanceShell } from "../finance-shell";
-import { useActiveEntity } from "@/components/finance-ui";
+import { useActiveEntity, InfoHint } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { ExpenseClaimsTab } from "./expense-claims-tab";
 import { PettyCashTab } from "./petty-cash-tab";
@@ -16,8 +16,11 @@ export default function ExpensesPage() {
     <FinanceShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">{isPettyCash ? "Petty Cash" : "Expense Claims"}</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">Staff expense claims and petty-cash floats.</p>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-mont text-lg font-semibold text-gray-01">{isPettyCash ? "Petty Cash" : "Expense Claims"}</h1>
+            {!isPettyCash ? <InfoHint>Expense claims book like a vendor invoice with the staff member as the "vendor". Approving posts Dr expense (+ recoverable input VAT) / Cr Accrued Reimbursement (a liability); paying it later credits the bank and clears the accrual.</InfoHint> : null}
+          </div>
+          <p className="mt-0.5 font-mont text-xs text-gray-05">{isPettyCash ? "Petty-cash floats and vouchers." : "Out-of-pocket spending by staff that needs reimbursement."}</p>
         </div>
         {!entity ? (
           <EmptyState title="Select an entity" />
