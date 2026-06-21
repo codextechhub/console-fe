@@ -236,12 +236,16 @@ export const arApi = baseApi.injectEndpoints({
     }),
 
     // Fee structures (non-paginated; use toArray)
-    getFeeStructures: builder.query<ApiEnvelope<FeeStructure[]>, { entity: string; search?: string; is_active?: string }>({
+    getFeeStructures: builder.query<ApiEnvelope<FeeStructure[]>, { entity: string; search?: string; is_active?: string; applies_to?: string }>({
       query: (params) => ({ url: `/finance/fee-structures/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceFeeStructures"],
     }),
-    createFeeStructure: builder.mutation<ApiEnvelope<FeeStructure>, { entity: string; code: string; name: string; term?: string; description?: string; is_active?: boolean; items: { description: string; revenue_account: string; amount: number; tax_code?: string }[] }>({
+    createFeeStructure: builder.mutation<ApiEnvelope<FeeStructure>, { entity: string; code: string; name: string; applies_to?: string; description?: string; is_active?: boolean; items: { description: string; revenue_account: string; amount: number; tax_code?: string }[] }>({
       query: ({ entity, ...body }) => ({ url: `/finance/fee-structures/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceFeeStructures"],
+    }),
+    updateFeeStructure: builder.mutation<ApiEnvelope<FeeStructure>, { id: string | number; entity: string; name?: string; applies_to?: string; description?: string; is_active?: boolean; items?: { description: string; revenue_account: string; amount: number; tax_code?: string }[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/fee-structures/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinanceFeeStructures"],
     }),
     generateFromFeeStructure: builder.mutation<ApiEnvelope<{ structure: string; generated: number; invoices: Invoice[] }>, { id: string | number; entity: string; customers?: (string | number)[]; all_active?: boolean; invoice_date?: string; due_date?: string }>({
@@ -294,5 +298,6 @@ export const {
   useAllocatePaymentMutation,
   useGetFeeStructuresQuery,
   useCreateFeeStructureMutation,
+  useUpdateFeeStructureMutation,
   useGenerateFromFeeStructureMutation,
 } = arApi;

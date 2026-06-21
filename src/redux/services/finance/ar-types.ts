@@ -287,11 +287,14 @@ export interface FeeItem {
   tax_code_value: string | null;
 }
 
+export type FeeAppliesTo = "CUSTOMER" | "VENDOR" | "STAFF" | "GENERAL";
+
 export interface FeeStructure {
   id: number;
   code: string;
   name: string;
-  term: string;
+  applies_to: FeeAppliesTo;
+  applies_to_display: string;
   description: string;
   is_active: boolean;
   items: FeeItem[];

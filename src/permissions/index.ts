@@ -229,6 +229,7 @@ const REGISTRY: Record<string, string> = {
   "202603": "finance.customer.update",
   "202701": "finance.feestructure.view",
   "202702": "finance.feestructure.create",
+  "202703": "finance.feestructure.edit",
   "202725": "finance.feestructure.generate",
 
   // ── PROCUREMENT  (MM=70) ─────────────────────────────────────────────────────
@@ -435,6 +436,7 @@ export const P = {
   FIN_UPDATE_CUSTOMER:      "202603",
   FIN_VIEW_FEE_STRUCTURES:  "202701",
   FIN_CREATE_FEE_STRUCTURE: "202702",
+  FIN_EDIT_FEE_STRUCTURE:   "202703",
   FIN_GENERATE_FEE_STRUCTURE: "202725",
   FIN_POST_DIRECT_ENTRY:    "201113",
   FIN_VIEW_REPORTS:         "201201",
