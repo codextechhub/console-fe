@@ -169,6 +169,17 @@ statements/reconciliations; PATCH settings (`finance.bankaccount.update`).
 Honest drops: petty-cash "Cash books" (own screen), USD/cash-on-hand KPIs (FX).
 Migration 0010. Demo: Zenith — Operating on CODEX (statement + recon seeded).
 
+**Operations → Bank Reconciliation: DONE** (standalone screen, prototype). An
+account-scoped workbench: account selector, KPIs (statement/book/difference/
+match progress), unreconciled banner, two-column matcher (unmatched statement
+lines vs unmatched book/GL lines — click one of each → Match; same-amount book
+lines highlighted as candidates), in-line **adjusting entry**, matched-lines
+table, **Auto-match**, **Complete reconciliation**, printable report. Backend
+adds `GET …/book-lines/` (unmatched GL cash lines) + `POST …/reconcile/complete/`
+(records a BankReconciliation snapshot). Reuses match/adjust/auto-reconcile.
+Honest: click-both-then-Match (no drag-drop), equal-amount candidate highlight
+(no AI suggest), account-level (not per statement file). Route F.BANK_RECON.
+
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
 transfer to a customer's number arrives as a Collection that reconciles to AR.
