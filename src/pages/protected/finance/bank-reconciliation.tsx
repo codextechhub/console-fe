@@ -12,7 +12,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Link2, RefreshCw, CheckCircle2, Printer, FilePlus2 } from "lucide-react";
+import { Link2, RefreshCw, CheckCircle2, Printer, FilePlus2, Unlink } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
 import { DetailDrawer, FormField, AccountPicker, InfoHint, useActiveEntity, toArray } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
@@ -24,7 +24,7 @@ import { P } from "@/permissions";
 import {
   useGetBankAccountsQuery, useGetBankAccountQuery, useGetStatementLinesQuery,
   useGetBookLinesQuery, useAutoReconcileMutation, useMatchStatementLineMutation,
-  useAdjustStatementLineMutation, useCompleteReconciliationMutation,
+  useAdjustStatementLineMutation, useUnmatchStatementLineMutation, useCompleteReconciliationMutation,
 } from "@/redux/services/finance/ops-api";
 import type { BankAccount, BankStatementLine } from "@/redux/services/finance/ops-types";
 
@@ -90,6 +90,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   const [selBank, setSelBank] = useState<number | null>(null);
   const [selBook, setSelBook] = useState<number | null>(null);
   const [adjusting, setAdjusting] = useState(false);
+  const [viewing, setViewing] = useState<BankStatementLine | null>(null);
 
   const { data: detailData } = useGetBankAccountQuery({ id: account.id, entity });
   const detail = detailData?.data;
@@ -103,6 +104,15 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   const [match, { isLoading: matching }] = useMatchStatementLineMutation();
   const [autoReconcile, { isLoading: autoing }] = useAutoReconcileMutation();
   const [complete, { isLoading: completing }] = useCompleteReconciliationMutation();
+  const [unmatch, { isLoading: unmatching }] = useUnmatchStatementLineMutation();
+
+  const doUnmatch = async (id: number) => {
+    try {
+      await unmatch({ id, entity }).unwrap();
+      toast.success("Line unmatched.");
+      setViewing(null);
+    } catch { /* central */ }
+  };
 
   const book = detail?.metrics.book_balance ?? account.book_balance;
   const statement = detail?.metrics.statement_balance ?? 0;
@@ -207,14 +217,24 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
               <thead><tr>
                 <th className={th}>Date</th><th className={th}>Bank statement</th>
                 <th className={cn(th, "text-right")}>Amount</th><th className={th}>Book entry / JE</th>
+                <th className={th}>Source</th><th className={cn(th, "text-right")} />
               </tr></thead>
               <tbody>
                 {matched.map((l) => (
-                  <tr key={l.id}>
+                  <tr key={l.id} onClick={() => setViewing(l)} className="cursor-pointer hover:bg-gray-03/40">
                     <td className={cn(td, "tabular-nums text-gray-05")}>{l.txn_date}</td>
                     <td className={td}>{l.description || "—"}</td>
                     <td className={cn(td, "text-right tabular-nums", signedCls(l.amount))}>{formatMoney(l.amount, currency)}</td>
-                    <td className={cn(td, "text-gray-05")}>{l.adjusting_journal_id ? `Adjusting JE #${l.adjusting_journal_id}` : `Matched · JE line #${l.matched_line_id}`}</td>
+                    <td className={cn(td, "tabular-nums text-gray-05")}>{l.matched_reference || (l.adjusting_journal_id ? "Adjusting entry" : "—")}</td>
+                    <td className={td}><SourcePill line={l} /></td>
+                    <td className={cn(td, "text-right")}>
+                      <Can permission={P.FIN_RECONCILE_BANK}>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); doUnmatch(l.id); }} disabled={unmatching}
+                          className="inline-flex items-center gap-1 rounded px-2 py-1 font-mont text-[11px] text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-40">
+                          <Unlink className="size-3.5" /> Unmatch
+                        </button>
+                      </Can>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -226,7 +246,56 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
       {adjusting && selBankLine ? (
         <AdjustDrawer line={selBankLine} entity={entity} currency={currency} onClose={() => setAdjusting(false)} onDone={() => { setAdjusting(false); setSelBank(null); }} />
       ) : null}
+      <MatchedLineDrawer line={viewing} currency={currency} onClose={() => setViewing(null)}
+        onUnmatch={(id) => doUnmatch(id)} canUnmatch={can(P.FIN_RECONCILE_BANK)} unmatching={unmatching} />
     </div>
+  );
+}
+
+const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
+function SourcePill({ line }: { line: BankStatementLine }) {
+  const cls = line.match_source === "AUTO" ? "bg-blue-50 text-blue-700"
+    : line.match_source === "ADJUSTMENT" ? "bg-amber-50 text-amber-700"
+    : "bg-gray-03/60 text-gray-05";
+  return <span className={cn(PILL, cls)}>{line.match_source_display || "Manual"}</span>;
+}
+
+function MatchedLineDrawer({ line, currency, onClose, onUnmatch, canUnmatch, unmatching }: {
+  line: BankStatementLine | null; currency?: string | null; onClose: () => void;
+  onUnmatch: (id: number) => void; canUnmatch: boolean; unmatching: boolean;
+}) {
+  if (!line) return null;
+  const isAdjustment = line.match_source === "ADJUSTMENT";
+  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div><p className="font-mont text-[11px] text-gray-05">{label}</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</p></div>
+  );
+  return (
+    <DetailDrawer
+      open onOpenChange={(o) => (o ? undefined : onClose())}
+      title="Matched line" description={line.matched_reference ? `Paired with ${line.matched_reference}` : "Reconciled statement line"}
+      widthClass="sm:max-w-lg"
+      footer={canUnmatch ? (
+        <Button variant="outline" disabled={unmatching} onClick={() => onUnmatch(line.id)} className="gap-1.5">
+          <Unlink className="size-4" />{unmatching ? "Unmatching…" : "Unmatch"}
+        </Button>
+      ) : undefined}
+    >
+      <div className="space-y-5">
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Statement date">{line.txn_date}</Field>
+          <Field label="Amount"><span className={signedCls(line.amount)}>{formatMoney(line.amount, currency)}</span></Field>
+          <Field label="Description">{line.description || "—"}</Field>
+          <Field label="Reference">{line.reference || "—"}</Field>
+          <Field label="Book entry / JE">{line.matched_reference || (isAdjustment ? "Adjusting entry" : "—")}</Field>
+          <Field label="Matched">{line.match_source_display || "Manual"}{line.reconciled_at ? ` · ${fmtDate(line.reconciled_at)}` : ""}</Field>
+        </div>
+        <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
+          {isAdjustment
+            ? "This line was booked via an adjusting journal. Unmatching reverses that journal (a mirror entry that nets to zero) and returns the line to unmatched."
+            : "Unmatching drops the pairing and returns the line to the unmatched column — no ledger effect."}
+        </p>
+      </div>
+    </DetailDrawer>
   );
 }
 

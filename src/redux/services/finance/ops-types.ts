@@ -88,6 +88,9 @@ export interface BankStatementLine {
   status: string;
   matched_line_id: number | null;
   adjusting_journal_id: number | null;
+  match_source: string;
+  match_source_display: string;
+  matched_reference: string | null;
   external_id: string;
   reconciled_at: string | null;
 }

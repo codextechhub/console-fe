@@ -68,6 +68,10 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/finance/statement-lines/${id}/adjust/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
+    unmatchStatementLine: b.mutation<ApiEnvelope<BankStatementLine>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/statement-lines/${id}/unmatch/${qs({ entity })}`, method: "POST", body: {} }),
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
     completeReconciliation: b.mutation<ApiEnvelope<BankReconciliationRun>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/bank-accounts/${id}/reconcile/complete/${qs({ entity })}`, method: "POST", body: {} }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
@@ -210,6 +214,7 @@ export const {
   useGetBookLinesQuery,
   useMatchStatementLineMutation,
   useAdjustStatementLineMutation,
+  useUnmatchStatementLineMutation,
   useCompleteReconciliationMutation,
   useGetExpenseClaimsQuery,
   useGetExpenseClaimQuery,
