@@ -155,8 +155,19 @@ Existing negative-AR credit was reclassed once via
 - New journal + New account converted to drawers; sidebar scroll persists.
 
 **Receivables area: COMPLETE** (redesigned to prototype). **Next:**
-Bank Accounts/Reconciliation, Expense Claims, Petty Cash, Payroll,
-Budgets/Assets/Tax, Reports.
+Expense Claims, Petty Cash, Payroll, Budgets/Assets/Tax, Reports.
+
+**Operations → Bank Accounts: DONE** (redesigned to prototype). KPIs + table
+(Primary badge, masked A/C, book balance, last reconciled) + tabbed detail
+drawer (Transactions w/ running balance · Statement lines · Statements ·
+Reconciliations · Settings) with Book/Statement/Unreconciled-diff cards, Import
+(paste lines) + Auto-reconcile. New models **BankStatement** (period/opening/
+closing, groups imported lines) + **BankReconciliation** (run snapshot:
+book/statement/diff/matched/status) + `BankAccount.is_primary`; serializer
+book_balance from `AccountBalance`; detail GET embeds metrics/transactions/
+statements/reconciliations; PATCH settings (`finance.bankaccount.update`).
+Honest drops: petty-cash "Cash books" (own screen), USD/cash-on-hand KPIs (FX).
+Migration 0010. Demo: Zenith — Operating on CODEX (statement + recon seeded).
 
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
