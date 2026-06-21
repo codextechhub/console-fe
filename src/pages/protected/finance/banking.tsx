@@ -14,7 +14,7 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { Plus, Search, Trash2, Upload, RefreshCw, ListChecks, FileText, History, Settings as SettingsIcon, ArrowLeftRight } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, FormModal, FormField, AccountPicker, CurrencyPicker, InfoHint, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
+import { DataTable, DetailDrawer, Money, StatusPill, FormField, AccountPicker, CurrencyPicker, InfoHint, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
@@ -461,28 +461,53 @@ function CreateBankAccountModal({ open, onClose, entity }: { open: boolean; onCl
   const [accountNumber, setAccountNumber] = useState("");
   const [glAccount, setGlAccount] = useState("");
   const [currency, setCurrency] = useState("");
+  const [active, setActive] = useState(true);
+  const [primary, setPrimary] = useState(false);
   const [create, { isLoading }] = useCreateBankAccountMutation();
+
+  const reset = () => { setName(""); setBankName(""); setAccountNumber(""); setGlAccount(""); setCurrency(""); setActive(true); setPrimary(false); };
+  const close = () => { reset(); onClose(); };
 
   const submit = async () => {
     try {
-      const res = await create({ entity, name: name.trim(), bank_name: bankName.trim() || undefined, account_number: accountNumber.trim() || undefined, gl_account: glAccount, currency: currency || undefined }).unwrap();
+      const res = await create({
+        entity, name: name.trim(), bank_name: bankName.trim() || undefined,
+        account_number: accountNumber.trim() || undefined, gl_account: glAccount,
+        currency: currency || undefined, is_active: active, is_primary: primary,
+      }).unwrap();
       toast.success(res.message || "Bank account created.");
-      setName(""); setBankName(""); setAccountNumber(""); setGlAccount(""); setCurrency("");
-      onClose();
+      close();
     } catch { /* central */ }
   };
 
   return (
-    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New bank account"
-      description="Links a bank account to a GL cash account." onSubmit={submit} loading={isLoading}
-      canSubmit={!!name.trim() && !!glAccount}>
-      <FormField label="Account name" required><Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white" /></FormField>
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="Bank name"><Input value={bankName} onChange={(e) => setBankName(e.target.value)} className="bg-white" /></FormField>
-        <FormField label="Account number"><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} className="bg-white font-mont" /></FormField>
+    <DetailDrawer
+      open={open} onOpenChange={(o) => (o ? undefined : close())}
+      title="New bank account" description="Link a real bank account to a GL cash account for statement import and reconciliation."
+      widthClass="sm:max-w-lg"
+      footer={<>
+        <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
+        <Button disabled={isLoading || !name.trim() || !glAccount} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Creating…" : "Create account"}</Button>
+      </>}
+    >
+      <div className="space-y-4">
+        <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
+          The GL cash account is the ledger's book balance for this bank account (1:1). Money still only moves through journals — this adds the banking metadata and anchors reconciliation.
+        </p>
+        <FormField label="Account name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. GTBank Operations" className="bg-white" /></FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Bank name"><Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. GTBank" className="bg-white" /></FormField>
+          <FormField label="Account number"><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="0123456789" className="bg-white font-mont" /></FormField>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="GL cash account" required><AccountPicker entity={entity} value={glAccount} onChange={setGlAccount} postableOnly accountType="ASSET" placeholder="Cash / bank account" /></FormField>
+          <FormField label="Currency"><CurrencyPicker value={currency} onChange={setCurrency} /></FormField>
+        </div>
+        <div className="flex items-center gap-5">
+          <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-primary" /> Active</label>
+          <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={primary} onChange={(e) => setPrimary(e.target.checked)} className="accent-primary" /> Primary operating account</label>
+        </div>
       </div>
-      <FormField label="GL cash account" required><AccountPicker entity={entity} value={glAccount} onChange={setGlAccount} postableOnly accountType="ASSET" /></FormField>
-      <FormField label="Currency"><CurrencyPicker value={currency} onChange={setCurrency} /></FormField>
-    </FormModal>
+    </DetailDrawer>
   );
 }

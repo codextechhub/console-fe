@@ -34,7 +34,7 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/finance/bank-accounts/${id}/${qs({ entity })}`, method: "GET" }),
       providesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
-    createBankAccount: b.mutation<ApiEnvelope<BankAccount>, { entity: string; name: string; bank_name?: string; account_number?: string; gl_account: string; currency?: string }>({
+    createBankAccount: b.mutation<ApiEnvelope<BankAccount>, { entity: string; name: string; bank_name?: string; account_number?: string; gl_account: string; currency?: string; is_active?: boolean; is_primary?: boolean }>({
       query: ({ entity, ...body }) => ({ url: `/finance/bank-accounts/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBankAccounts"],
     }),
