@@ -14,6 +14,7 @@ export { ConfirmActionModal } from "./confirm-action-modal";
 export { ActionButton } from "./action-button";
 export { EntitySelect } from "./entity-select";
 export { FormModal, FormField } from "./form-modal";
+export { Segmented } from "./segmented";
 export { AccountPicker, ReceivableAccountPicker, CustomerPicker, CurrencyPicker, TaxCodePicker, CostCenterPicker, TaxObligationPicker, PettyCashFundPicker, BankAccountPicker } from "./pickers";
 export { LineEditor, emptyLine, toApiLines, type DocLine } from "./line-editor";
 export { useActiveEntity, useEntityCode } from "./use-entity";

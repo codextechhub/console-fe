@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { Plus, Printer, Check, Search } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, ConfirmActionModal, DetailDrawer, FormField,
-  CustomerPicker, AccountPicker, PostingRecap, toArray, type Column, type RecapRow,
+  CustomerPicker, AccountPicker, PostingRecap, Segmented, toArray, type Column, type RecapRow,
 } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -72,22 +72,6 @@ function Initials({ name }: { name: string }) {
   return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
 }
 
-/** Two-button segmented control (note type · apply-on-issue). */
-function Segmented<T extends string>({ value, onChange, options }: {
-  value: T; onChange: (v: T) => void; options: [T, string][];
-}) {
-  return (
-    <div className="inline-flex rounded-md border border-gray-03 bg-white p-0.5">
-      {options.map(([v, lbl]) => (
-        <button key={v} type="button" onClick={() => onChange(v)}
-          className={cn("rounded px-3 py-1.5 font-mont text-sm font-medium transition-colors",
-            value === v ? "bg-pry-01 text-primary" : "text-gray-05 hover:text-gray-01")}>
-          {lbl}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 // Recap the journal a posted note raises, from the note's own lines (so it shows
 // the real revenue accounts). Debit: Dr AR, Cr revenue (+ tax). Credit: Dr revenue
@@ -360,9 +344,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
       }
     >
       <div className="space-y-4">
-        <FormField label="Note type">
-          <Segmented value={kind} onChange={changeKind} options={[["CREDIT", "Credit note"], ["DEBIT", "Debit note"]]} />
-        </FormField>
+        <Segmented label="Note type" value={kind} onChange={changeKind} options={[["CREDIT", "Credit note"], ["DEBIT", "Debit note"]]} />
 
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
@@ -394,12 +376,10 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
         />
 
         {!debit ? (
-          <FormField label="Apply on issue?">
-            <Segmented
-              value={applyNow ? "apply" : "keep"} onChange={(v) => setApplyNow(v === "apply")}
-              options={[["keep", "Leave as credit (Issued)"], ["apply", "Apply to oldest invoices (Applied)"]]}
-            />
-          </FormField>
+          <Segmented
+            label="Apply on issue?" value={applyNow ? "apply" : "keep"} onChange={(v) => setApplyNow(v === "apply")}
+            options={[["keep", "Leave as credit (Issued)"], ["apply", "Apply to oldest invoices (Applied)"]]}
+          />
         ) : null}
       </div>
     </DetailDrawer>

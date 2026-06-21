@@ -15,7 +15,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Info, Search, Printer, Check } from "lucide-react";
 import {
-  DataTable, Money, MoneyInput, DetailDrawer, FormField,
+  DataTable, Money, MoneyInput, DetailDrawer, FormField, Segmented,
   CustomerPicker, AccountPicker, BankAccountPicker, PostingRecap, toArray,
   type Column, type RecapRow,
 } from "@/components/finance-ui";
@@ -303,18 +303,11 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
       }
     >
       <div className="space-y-4">
-        <FormField label="Action">
-          <div className="inline-flex rounded-md border border-gray-03 bg-white p-0.5">
-            {([["REFUND", "Refund to bank"], ["WRITEOFF", "Write off to expense"]] as [Mode, string][]).map(([v, lbl]) => (
-              <button key={v} type="button" onClick={() => changeMode(v)}
-                disabled={v === "WRITEOFF" && !canWriteOff}
-                className={cn("rounded px-3 py-1.5 font-mont text-sm font-medium transition-colors disabled:opacity-40",
-                  mode === v ? "bg-pry-01 text-primary" : "text-gray-05 hover:text-gray-01")}>
-                {lbl}
-              </button>
-            ))}
-          </div>
-        </FormField>
+        <Segmented
+          label="Action" value={mode} onChange={changeMode}
+          options={[["REFUND", "Refund to bank"], ["WRITEOFF", "Write off to expense"]]}
+          isDisabled={(v) => v === "WRITEOFF" && !canWriteOff}
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>

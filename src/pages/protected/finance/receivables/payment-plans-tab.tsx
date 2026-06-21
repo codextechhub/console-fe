@@ -10,7 +10,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Search, Receipt, Ban } from "lucide-react";
 import {
-  DataTable, Money, MoneyInput, DetailDrawer, FormField,
+  DataTable, Money, MoneyInput, DetailDrawer, FormField, Segmented,
   CustomerPicker, AccountPicker, toArray, type Column,
 } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
@@ -373,18 +373,7 @@ function NewPlanDrawer({ open, onClose, entity, currency }: {
           <FormField label="Start date" required><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-white" /></FormField>
           <FormField label="Installments" required><Input type="number" min={1} max={60} value={count} onChange={(e) => setCount(Math.max(1, Number(e.target.value) || 1))} className="bg-white tabular-nums" /></FormField>
         </div>
-        <div>
-          <p className="mb-2 font-mont text-xs text-gray-05">Frequency</p>
-          <div className="grid grid-cols-4 gap-1 rounded-lg bg-[#ECECEC] p-1">
-            {FREQS.map(([v, lbl]) => (
-              <button key={v} type="button" onClick={() => setFrequency(v)} aria-pressed={frequency === v}
-                className={cn("rounded-md px-3 py-1.5 font-mont text-sm transition-colors",
-                  frequency === v ? "bg-white font-semibold text-black-01 shadow-sm ring-1 ring-black/5" : "font-medium text-gray-05 hover:text-gray-01")}>
-                {lbl}
-              </button>
-            ))}
-          </div>
-        </div>
+        <Segmented label="Frequency" value={frequency} onChange={setFrequency} options={FREQS} />
 
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Schedule preview</p>
