@@ -140,8 +140,10 @@ Existing negative-AR credit was reclassed once via
   overdue · channel). `Run reminders now` / `Generate notices` raise the notice queue
   (real, **no GL**). Honest: vs_finance only records reminder *intent* (no email/SMS
   service), so the per-notice **Send is deferred** (disabled + tooltip); Cancel is
-  real. Channels are **Email / In-app** only (single value per stage). Status:
-  PENDING→Scheduled · SENT→Sent · RESOLVED→Resolved · CANCELLED.
+  real. Channels are **Email / In-app**, and a stage can use **one or both** (stored
+  as a CSV like `EMAIL,IN_APP`; editor uses checkboxes; shown as "Email + In-app").
+  Overdue days are colour-coded by severity. Status: PENDING→Scheduled · SENT→Sent ·
+  RESOLVED→Resolved · CANCELLED.
 - New journal + New account converted to drawers; sidebar scroll persists.
 
 **Next (still basic, redesign to prototype):** Fee Structures. Then:

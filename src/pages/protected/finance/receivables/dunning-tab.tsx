@@ -28,8 +28,11 @@ import type { DunningNotice, DunningPolicy, DunningStage } from "@/redux/service
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const CHANNELS: [string, string][] = [["EMAIL", "Email"], ["IN_APP", "In-app"]];
-const channelLabel = (c: string) => CHANNELS.find(([v]) => v === c)?.[1] ?? c;
+// A stage's channel is one or more values, comma-separated (e.g. "EMAIL,IN_APP").
+const channelLabel = (c: string) => c.split(",").filter(Boolean).map((p) => CHANNELS.find(([v]) => v === p)?.[1] ?? p).join(" + ") || "—";
 const whenLabel = (d: number) => (d <= 0 ? "On due date" : `+${d} days`);
+// Overdue severity colour (aligned with the aging buckets).
+const overdueCls = (d: number) => d >= 60 ? "text-destructive font-semibold" : d >= 31 ? "text-amber-700 font-medium" : d >= 1 ? "text-amber-600" : "text-gray-05";
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
   SENT: { label: "Sent", cls: "bg-green-01/10 text-green-01" },
@@ -128,7 +131,7 @@ function ReminderQueue({ entity, currency, policies, canCancel }: {
     { header: "Customer", cell: (n) => <span className="inline-flex items-center gap-2"><Initials name={n.customer_name} /><span className="font-medium text-gray-01">{n.customer_name}</span></span> },
     { header: "Stage", cell: (n) => <span className="font-mont text-sm text-gray-01">L{n.level}{n.policy_name ? <span className="ml-1 text-gray-05">· {n.policy_name}</span> : null}</span> },
     { header: "Channel", cell: (n) => <span className={cn(PILL, "bg-gray-03/70 text-gray-01")}>{channelLabel(n.channel)}</span> },
-    { header: "Overdue", align: "right", cell: (n) => <span className="tabular-nums">{n.days_overdue}d</span> },
+    { header: "Overdue", align: "right", cell: (n) => <span className={cn("tabular-nums", overdueCls(n.days_overdue))}>{n.days_overdue}d</span> },
     { header: "Status", cell: (n) => <StatusPill status={n.notice_status} /> },
     { header: "", align: "right", cell: (n) => n.notice_status === "PENDING" ? (
       <span className="flex items-center justify-end gap-1.5">
@@ -248,6 +251,12 @@ function PolicyEditorDrawer({ entity, policy, onClose }: { entity: string; polic
   const saving = creating || updating;
 
   const setStage = (i: number, patch: Partial<DunningStage>) => setStages((s) => s.map((st, idx) => idx === i ? { ...st, ...patch } : st));
+  // Toggle a channel in the stage's CSV, keeping enum order and at least one channel.
+  const toggleChannel = (i: number, ch: string) => {
+    const has = stages[i].channel.split(",").includes(ch);
+    const next = CHANNELS.map(([v]) => v).filter((v) => v === ch ? !has : stages[i].channel.split(",").includes(v));
+    if (next.length) setStage(i, { channel: next.join(",") });
+  };
   const addStage = () => setStages((s) => [...s, emptyStage(s.length + 1)]);
   const removeStage = (i: number) => setStages((s) => s.filter((_, idx) => idx !== i).map((st, idx) => ({ ...st, level: idx + 1 })));
 
@@ -293,10 +302,14 @@ function PolicyEditorDrawer({ entity, policy, onClose }: { entity: string; polic
               <div key={i} className="grid grid-cols-12 items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
                 <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Template name</p><Input value={st.name} onChange={(e) => setStage(i, { name: e.target.value })} placeholder="Friendly reminder" className="h-8 bg-white font-mont text-sm" /></div>
                 <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Days overdue</p><Input type="number" min={0} value={st.min_days_overdue} onChange={(e) => setStage(i, { min_days_overdue: Math.max(0, Number(e.target.value) || 0) })} className="h-8 bg-white font-mont text-sm tabular-nums" /></div>
-                <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Channel</p>
-                  <select value={st.channel} onChange={(e) => setStage(i, { channel: e.target.value })} className="h-8 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm">
-                    {CHANNELS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                  </select>
+                <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Channels</p>
+                  <div className="flex h-8 items-center gap-3">
+                    {CHANNELS.map(([v, l]) => (
+                      <label key={v} className="flex items-center gap-1.5 font-mont text-sm text-gray-01">
+                        <input type="checkbox" checked={st.channel.split(",").includes(v)} onChange={() => toggleChannel(i, v)} className="accent-primary" /> {l}
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 <div className="col-span-1 flex justify-end">
                   <button type="button" onClick={() => removeStage(i)} disabled={stages.length <= 1} className="rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove stage"><Trash2 className="size-4" /></button>
