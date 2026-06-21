@@ -9,15 +9,69 @@ export interface BankAccount {
   bank_name: string;
   account_number?: string; // FLS — finance.bankaccount.view_sensitive
   gl_account: string;
+  gl_account_name?: string;
   gl_account_id: number;
   currency: string | null;
   is_active: boolean;
+  is_primary: boolean;
+  book_balance: number;
+  book_balance_naira: string;
+  unreconciled_count: number;
+  last_reconciled_at: string | null;
   _stripped_fields?: string[];
+}
+
+export interface BankTransaction {
+  id: number;
+  date: string;
+  description: string;
+  reference: string;
+  debit: number;
+  credit: number;
+  running_balance: number;
+  matched: boolean;
+}
+
+export interface BankStatement {
+  id: number;
+  statement_date: string;
+  period_label: string;
+  opening_balance: number;
+  opening_balance_naira: string;
+  closing_balance: number;
+  closing_balance_naira: string;
+  line_count: number;
+  status: string;
+  status_display: string;
+}
+
+export interface BankReconciliationRun {
+  id: number;
+  as_of_date: string;
+  book_balance: number;
+  book_balance_naira: string;
+  statement_balance: number;
+  statement_balance_naira: string;
+  difference: number;
+  difference_naira: string;
+  matched_count: number;
+  status: string;
+  status_display: string;
+  performed_by_name: string | null;
+  created_at: string;
+}
+
+export interface BankAccountDetail extends BankAccount {
+  metrics: { book_balance: number; statement_balance: number; unreconciled_diff: number; unreconciled_count: number };
+  transactions: BankTransaction[];
+  statements: BankStatement[];
+  reconciliations: BankReconciliationRun[];
 }
 
 export interface BankStatementLine {
   id: number;
   bank_account_id: number;
+  statement_id: number | null;
   txn_date: string;
   description: string;
   reference: string;

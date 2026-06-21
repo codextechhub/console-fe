@@ -7,6 +7,7 @@ import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
 import type {
   BankAccount,
+  BankAccountDetail,
   BankStatementLine,
   Budget,
   ExpenseClaim,
@@ -29,17 +30,29 @@ export const opsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/bank-accounts/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceBankAccounts"],
     }),
+    getBankAccount: b.query<ApiEnvelope<BankAccountDetail>, Act>({
+      query: ({ id, entity }) => ({ url: `/finance/bank-accounts/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
     createBankAccount: b.mutation<ApiEnvelope<BankAccount>, { entity: string; name: string; bank_name?: string; account_number?: string; gl_account: string; currency?: string }>({
       query: ({ entity, ...body }) => ({ url: `/finance/bank-accounts/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBankAccounts"],
+    }),
+    updateBankAccount: b.mutation<ApiEnvelope<BankAccount>, Act & { name?: string; bank_name?: string; account_number?: string; currency?: string; is_active?: boolean; is_primary?: boolean }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/bank-accounts/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinanceBankAccounts"],
     }),
     getStatementLines: b.query<ApiEnvelope<BankStatementLine[]>, Act & { status?: string }>({
       query: ({ id, ...p }) => ({ url: `/finance/bank-accounts/${id}/statement-lines/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceStatementLines"],
     }),
+    importStatement: b.mutation<ApiEnvelope<BankStatementLine[]>, Act & { lines: { txn_date: string; amount: number; description?: string; reference?: string }[]; period_label?: string; statement_date?: string; opening_balance?: number; closing_balance?: number }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/bank-accounts/${id}/statement-lines/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
     autoReconcile: b.mutation<ApiEnvelope<BankStatementLine[]>, Act & { tolerance_days?: number }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/bank-accounts/${id}/auto-reconcile/${qs({ entity })}`, method: "POST", body }),
-      invalidatesTags: ["FinanceStatementLines"],
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
 
     // Expense claims
@@ -170,8 +183,11 @@ export const opsApi = baseApi.injectEndpoints({
 
 export const {
   useGetBankAccountsQuery,
+  useGetBankAccountQuery,
   useCreateBankAccountMutation,
+  useUpdateBankAccountMutation,
   useGetStatementLinesQuery,
+  useImportStatementMutation,
   useAutoReconcileMutation,
   useGetExpenseClaimsQuery,
   useGetExpenseClaimQuery,
