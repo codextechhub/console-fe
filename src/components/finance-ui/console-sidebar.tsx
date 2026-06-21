@@ -32,8 +32,22 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
 
   useLayoutEffect(() => {
     const el = scrollRef.current;
-    if (el) el.scrollTop = scrollByConsole.get(title) ?? 0;
-  }, [title]);
+    if (!el) return;
+    const remembered = scrollByConsole.get(title);
+    if (remembered != null) {
+      // In-console navigation (the shell remounts): keep where the user left it.
+      el.scrollTop = remembered;
+      return;
+    }
+    // Fresh load (e.g. a browser refresh wiped the in-memory position): centre the
+    // active menu item so the user lands where they are, not at the top.
+    const active = el.querySelector<HTMLElement>('[data-active="true"]');
+    if (active) {
+      const c = el.getBoundingClientRect();
+      const a = active.getBoundingClientRect();
+      el.scrollTop += (a.top - c.top) - (el.clientHeight - a.height) / 2;
+    }
+  }, [title, location]);
 
   const childVisible = (prefixes?: string[]) => !prefixes?.length || hasModuleAccess(...prefixes);
 
