@@ -24,6 +24,7 @@ const SUBTITLES: Record<string, string> = {
   receipts: "Record money received and apply it to open invoices.",
   "credit-notes": "Adjust customer balances against issued invoices.",
   refunds: "Return credit balances to the bank, or write off bad debt to expense.",
+  "payment-plans": "Spread invoice balances into scheduled installments.",
 };
 
 export default function ReceivablesPage() {

@@ -139,12 +139,24 @@ export const arApi = baseApi.injectEndpoints({
     }),
 
     // Payment plans (read + create + lifecycle)
-    getPaymentPlans: builder.query<PaginatedEnvelope<PaymentPlan>, EntityList>({
+    getPaymentPlans: builder.query<PaginatedEnvelope<PaymentPlan>, EntityList & { search?: string }>({
       query: (params) => ({ url: `/finance/payment-plans/${qs(params)}`, method: "GET" }),
       providesTags: ["FinancePaymentPlans"],
     }),
     createPaymentPlan: builder.mutation<ApiEnvelope<PaymentPlan>, { entity: string; customer: string; invoice?: number; start_date: string; frequency: string; installment_count: number; total_amount?: number; notes?: string }>({
       query: ({ entity, ...body }) => ({ url: `/finance/payment-plans/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinancePaymentPlans"],
+    }),
+    activatePaymentPlan: builder.mutation<ApiEnvelope<PaymentPlan>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/payment-plans/${id}/activate/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinancePaymentPlans"],
+    }),
+    refreshPaymentPlan: builder.mutation<ApiEnvelope<PaymentPlan>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/payment-plans/${id}/refresh/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinancePaymentPlans"],
+    }),
+    cancelPaymentPlan: builder.mutation<ApiEnvelope<PaymentPlan>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/payment-plans/${id}/cancel/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinancePaymentPlans"],
     }),
 
@@ -225,6 +237,9 @@ export const {
   usePostConcessionMutation,
   useGetPaymentPlansQuery,
   useCreatePaymentPlanMutation,
+  useActivatePaymentPlanMutation,
+  useRefreshPaymentPlanMutation,
+  useCancelPaymentPlanMutation,
   useGetDunningNoticesQuery,
   useGetCustomersQuery,
   useCreateCustomerMutation,

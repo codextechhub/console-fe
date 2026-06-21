@@ -115,10 +115,20 @@ Existing negative-AR credit was reclassed once via
   invoice number.
 - The DR/CR `PostingRecap` card is a shared `finance-ui` primitive (credit notes +
   refunds). New shared picker: `BankAccountPicker`.
+- **Payment Plans** — list (search + pagination) with **progress bar · next due ·
+  health** (On track / At risk, derived: at risk = an unpaid installment is past
+  due), an **Installment-schedule** detail drawer (Paid / Due / Scheduled, deriving
+  Due = earliest unpaid) with **Record installment** + **Cancel plan**, and a
+  **curated New-plan drawer** (the prototype's create modal doesn't open) with a
+  live schedule preview that mirrors the backend's even-split + due-date stepping;
+  Create = create + **activate**. Concessions are **not** bundled here (separate
+  screen). Honest adaptations: a plan is an overlay on an **invoice** (required) and
+  progress is derived from its settlement, so **Record installment** posts a *real*
+  receipt against the invoice (`/pay/`) then calls `/refresh/`.
 - New journal + New account converted to drawers; sidebar scroll persists.
 
 **Next (still basic, redesign to prototype):** Concessions/Waivers ·
-Dunning/Reminders · Payment Plans · Fee Structures. Then:
+Dunning/Reminders · Fee Structures. Then:
 Bank Accounts/Reconciliation, Expense Claims, Petty Cash, Payroll,
 Budgets/Assets/Tax, Reports, Collections gateway.
 
@@ -140,6 +150,8 @@ Budgets/Assets/Tax, Reports, Collections gateway.
 | `GET /finance/refunds/` · `POST` (create draft; `bank_account`) · `POST /finance/refunds/<id>/post/` | `finance.refund.view` / `.create` / `.post` |
 | `POST /finance/invoices/<id>/write-off/` (`amount?`, `write_off_account?`, `narration`) | `finance.invoice.writeoff` |
 | `GET /finance/ar-adjustments/` (unified refunds + write-offs; `?type=&search=&page=`; paginated; write-off rows from the finance audit log; KPI totals in envelope) | `finance.refund.view` |
+| `GET /finance/payment-plans/` (`?search=&page=`; paginated) · `POST` (create draft + build schedule) | `finance.paymentplan.view` / `.create` |
+| `POST /finance/payment-plans/<id>/activate/` · `…/refresh/` · `…/cancel/` | `finance.paymentplan.activate` / `.cancel` |
 
 **Lists are paginated** (`XVSPagination`, `?page=&page_size=`, max 100) with a
 server-side `?search=` — the AR adjustment lists (credit-notes, ar-adjustments) no
@@ -208,6 +220,9 @@ Two ways data gets seeded:
    - **Refunds & Write-offs**: a posted refund `RFD-2026-00001` (CUST-001, ₦50k, to
      bank account "Zenith — Operating" gl `1100`) + a write-off of invoice
      `INV-2026-00005` (CUST-002, ₦60k) → shows in the unified table via the audit log.
+   - **Payment Plans**: an active plan `PPL-2026-00001` (CUST-002, invoice
+     `INV-2026-00006` ₦90k, 3 monthly installments) with installment #1 recorded →
+     progress 1/3, On track.
    - Delete anytime; harmless. (Use **CODEX** for checks, not CREST.)
 
 ## Tests
