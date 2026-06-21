@@ -12,7 +12,7 @@ import { useMemo, useRef, useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import {
-  Plus, Search, Trash2, Download, Check, X, Printer, Wallet, Paperclip, Upload, CircleDashed, CircleCheck,
+  Plus, Search, Trash2, Download, Check, X, Printer, Wallet, Paperclip, CircleDashed, CircleCheck,
 } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField,
@@ -278,21 +278,21 @@ function ReceiptCell({ line, claimId, entity, attachable }: { line: ExpenseClaim
 
   if (line.receipt_url) {
     return (
-      <span className="inline-flex max-w-[160px] items-center gap-1 rounded-md border border-gray-03 bg-white py-1 pl-2 pr-1 font-mont text-[11px]">
-        <a href={line.receipt_url} target="_blank" rel="noreferrer" className="inline-flex min-w-0 items-center gap-1 font-medium text-primary hover:underline" title={line.receipt_name || "Receipt"}>
+      <span className="inline-flex max-w-[150px] items-center gap-1">
+        <a href={line.receipt_url} target="_blank" rel="noreferrer" className="inline-flex min-w-0 items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline" title={line.receipt_name || "Receipt"}>
           <Paperclip className="size-3 shrink-0" /><span className="truncate">{line.receipt_name || "Receipt"}</span>
         </a>
-        {attachable ? <button type="button" disabled={removing} onClick={() => remove({ id: claimId, lineId: line.id, entity })} className="shrink-0 rounded p-0.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-40" aria-label="Remove receipt"><X className="size-3" /></button> : null}
+        {attachable ? <button type="button" disabled={removing} onClick={() => remove({ id: claimId, lineId: line.id, entity })} className="shrink-0 text-gray-05 hover:text-destructive disabled:opacity-40" aria-label="Remove receipt"><X className="size-3" /></button> : null}
       </span>
     );
   }
-  if (!attachable) return <span className="inline-flex items-center gap-1 font-mont text-[11px] text-gray-05"><Paperclip className="size-3 opacity-50" />Missing</span>;
+  if (!attachable) return <span className={cn(PILL, "bg-amber-50 text-amber-700")}>Missing</span>;
   return (
     <>
       <input ref={fileRef} type="file" accept=".pdf,image/*" className="hidden" onChange={(e) => onPick(e.target.files?.[0])} />
-      <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()}
-        className="inline-flex items-center gap-1 rounded-md border border-dashed border-gray-05/40 px-2 py-1 font-mont text-[11px] font-medium text-gray-05 transition-colors hover:border-primary hover:bg-primary/[0.04] hover:text-primary disabled:opacity-50">
-        <Upload className="size-3" />{uploading ? "Uploading…" : "Add receipt"}
+      <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} title="Click to attach a receipt"
+        className={cn(PILL, "cursor-pointer bg-amber-50 text-amber-700 hover:bg-amber-100 disabled:opacity-50")}>
+        {uploading ? "Uploading…" : "Missing"}
       </button>
     </>
   );
@@ -332,8 +332,29 @@ function PayDrawer({ claim, entity, currency, onClose }: { claim: ExpenseClaim; 
   );
 }
 
-type EditLine = { description: string; expense_account: string; unit_price: number; tax_code: string; cost_center: string };
-const emptyLine = (): EditLine => ({ description: "", expense_account: "", unit_price: 0, tax_code: "", cost_center: "" });
+type EditLine = { description: string; expense_account: string; unit_price: number; tax_code: string; cost_center: string; file: File | null };
+const emptyLine = (): EditLine => ({ description: "", expense_account: "", unit_price: 0, tax_code: "", cost_center: "", file: null });
+
+function LineFilePicker({ file, onPick }: { file: File | null; onPick: (f: File | null) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  if (file) {
+    return (
+      <span className="mb-1.5 inline-flex max-w-[120px] shrink-0 items-center gap-1">
+        <span className="inline-flex min-w-0 items-center gap-1 font-mont text-[11px] font-medium text-primary" title={file.name}><Paperclip className="size-3 shrink-0" /><span className="truncate">{file.name}</span></span>
+        <button type="button" onClick={() => onPick(null)} className="shrink-0 text-gray-05 hover:text-destructive" aria-label="Remove receipt"><X className="size-3" /></button>
+      </span>
+    );
+  }
+  return (
+    <>
+      <input ref={ref} type="file" accept=".pdf,image/*" className="hidden" onChange={(e) => onPick(e.target.files?.[0] ?? null)} />
+      <button type="button" onClick={() => ref.current?.click()} title="Attach a receipt (PDF or image)"
+        className="mb-1.5 inline-flex shrink-0 items-center gap-1 font-mont text-[11px] font-medium text-gray-05 transition-colors hover:text-primary">
+        <Paperclip className="size-3" /> Attach
+      </button>
+    </>
+  );
+}
 
 function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
   const [claimant, setClaimant] = useState("");
@@ -341,6 +362,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
   const [title, setTitle] = useState("");
   const [lines, setLines] = useState<EditLine[]>([emptyLine()]);
   const [create, { isLoading }] = useCreateExpenseClaimMutation();
+  const [uploadReceipt] = useUploadExpenseReceiptMutation();
 
   const setLine = (i: number, patch: Partial<EditLine>) => setLines((s) => s.map((l, idx) => idx === i ? { ...l, ...patch } : l));
   const total = lines.reduce((s, l) => s + l.unit_price, 0);
@@ -356,6 +378,12 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
         entity, claimant_name: claimant.trim(), claim_date: claimDate, title: title.trim(),
         lines: valid.map((l) => ({ description: l.description.trim(), expense_account: l.expense_account, quantity: 1, unit_price: l.unit_price, tax_code: l.tax_code || undefined, cost_center: l.cost_center || undefined })),
       }).unwrap();
+      // Lines come back in the same order we submitted them — upload each picked receipt.
+      const created = res.data?.lines ?? [];
+      for (let i = 0; i < valid.length; i++) {
+        const file = valid[i].file; const ln = created[i];
+        if (file && ln) await uploadReceipt({ id: res.data!.id, lineId: ln.id, entity, file }).unwrap().catch(() => toast.error(`Couldn't attach ${file.name}`));
+      }
       toast.success(res.message || "Claim created.");
       close();
     } catch { /* central */ }
@@ -364,7 +392,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
   return (
     <DetailDrawer
       open={open} onOpenChange={(o) => (o ? undefined : close())}
-      title="New expense claim" description="Capture out-of-pocket spending for reimbursement. Attach receipts after saving."
+      title="New expense claim" description="Capture out-of-pocket spending for reimbursement. Attach a receipt per line."
       widthClass="sm:max-w-5xl"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
@@ -386,12 +414,13 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
             {lines.map((l, i) => (
               <div key={i} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
                 <div className="grid flex-1 grid-cols-12 gap-2">
-                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} placeholder="What was bought" className="bg-white text-sm" /></div>
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} placeholder="What was bought" className="h-9 bg-white text-sm" /></div>
                   <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Expense account</p><AccountPicker entity={entity} value={l.expense_account} onChange={(v) => setLine(i, { expense_account: v })} accountType="EXPENSE" postableOnly placeholder="5xxx" /></div>
                   <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Cost center</p><CostCenterPicker entity={entity} value={l.cost_center} onChange={(v) => setLine(i, { cost_center: v })} /></div>
-                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={l.unit_price} onChangeKobo={(v) => setLine(i, { unit_price: v })} currency={currency} /></div>
+                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={l.unit_price} onChangeKobo={(v) => setLine(i, { unit_price: v })} currency={currency} className="[&_input]:h-9" /></div>
                   <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={l.tax_code} onChange={(v) => setLine(i, { tax_code: v })} /></div>
                 </div>
+                <LineFilePicker file={l.file} onPick={(f) => setLine(i, { file: f })} />
                 <button type="button" onClick={() => setLines((s) => s.filter((_, idx) => idx !== i))} disabled={lines.length <= 1} className="mb-0.5 shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button>
               </div>
             ))}
