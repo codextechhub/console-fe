@@ -297,7 +297,7 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
           <Segmented label="Enter as" value={entryMode} onChange={switchEntry} options={[["amount", "Amount"], ["pct", "% of balance"]]} />
           <div className="grid grid-cols-2 items-start gap-3">
             {entryMode === "amount" ? (
-              <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} /></FormField>
+              <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} disabled={!invoice} /></FormField>
             ) : (
               <FormField label="Percent" required>
                 <div className="relative">
