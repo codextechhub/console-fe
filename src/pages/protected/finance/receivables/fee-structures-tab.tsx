@@ -378,7 +378,7 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
       open={open} onOpenChange={(o) => (o ? undefined : onClose())}
       title={isEdit ? "Edit fee structure" : "New fee structure"}
       description="A billing template whose lines become invoice lines when you generate."
-      widthClass="sm:max-w-3xl"
+      widthClass="sm:max-w-5xl"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={onClose}>Cancel</Button>
         <Button disabled={isLoading || !canSubmit} onClick={submit} className="gap-1.5">
@@ -410,20 +410,18 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
             <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Fee lines</p>
             <Button variant="outline" size="sm" onClick={addItem} className="gap-1.5"><Plus className="size-3.5" /> Add line</Button>
           </div>
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {items.map((it, i) => (
-              <div key={i} className="space-y-2 rounded-md border border-gray-03 bg-white p-2.5">
-                <div className="grid grid-cols-12 gap-2">
-                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee code</p><Input value={it.code} onChange={(e) => setItem(i, { code: e.target.value })} placeholder="TUITION" className="h-8 bg-white font-mont text-sm" /></div>
-                  <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee item</p><Input value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} placeholder="Tuition" className="h-8 bg-white font-mont text-sm" /></div>
-                  <div className="col-span-5"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">GL account</p><AccountPicker entity={entity} value={it.revenue_account} onChange={(v) => setItem(i, { revenue_account: v })} accountType="INCOME" postableOnly placeholder="Revenue account" /></div>
+              <div key={i} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+                <div className="grid flex-1 grid-cols-12 gap-2">
+                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee code</p><Input value={it.code} onChange={(e) => setItem(i, { code: e.target.value })} placeholder="TUITION" className="bg-white font-mont text-sm" /></div>
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee item</p><Input value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} placeholder="Tuition" className="bg-white font-mont text-sm" /></div>
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">GL account</p><AccountPicker entity={entity} value={it.revenue_account} onChange={(v) => setItem(i, { revenue_account: v })} accountType="INCOME" postableOnly placeholder="Revenue account" /></div>
+                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={it.amount} onChangeKobo={(v) => setItem(i, { amount: v })} currency={currency} /></div>
+                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={it.tax_code} onChange={(v) => setItem(i, { tax_code: v })} /></div>
                 </div>
-                <div className="grid grid-cols-12 items-center gap-2">
-                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={it.amount} onChangeKobo={(v) => setItem(i, { amount: v })} currency={currency} /></div>
-                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={it.tax_code} onChange={(v) => setItem(i, { tax_code: v })} /></div>
-                  <label className="col-span-4 mt-4 flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={it.is_optional} onChange={(e) => setItem(i, { is_optional: e.target.checked })} className="accent-primary" /> Optional charge</label>
-                  <div className="col-span-2 mt-4 flex justify-end"><button type="button" onClick={() => removeItem(i)} disabled={items.length <= 1} className="rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button></div>
-                </div>
+                <label className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap font-mont text-xs text-gray-01"><input type="checkbox" checked={it.is_optional} onChange={(e) => setItem(i, { is_optional: e.target.checked })} className="accent-primary" /> Optional</label>
+                <button type="button" onClick={() => removeItem(i)} disabled={items.length <= 1} className="mb-0.5 shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button>
               </div>
             ))}
           </div>
