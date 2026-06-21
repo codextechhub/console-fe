@@ -216,13 +216,13 @@ function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCash
         </p>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Expense account" required><AccountPicker entity={entity} value={account} onChange={setAccount} accountType="EXPENSE" postableOnly placeholder="5xxx" /></FormField>
-          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
+          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 bg-white" /></FormField>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} /></FormField>
+          <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} className="[&_input]:h-9" /></FormField>
           <FormField label="Tax"><TaxCodePicker entity={entity} value={tax} onChange={setTax} /></FormField>
         </div>
-        <FormField label="Note"><Input value={narration} onChange={(e) => setNarration(e.target.value)} placeholder="What it was for" className="bg-white" /></FormField>
+        <FormField label="Note"><Input value={narration} onChange={(e) => setNarration(e.target.value)} placeholder="What it was for" className="h-9 bg-white" /></FormField>
       </div>
     </DetailDrawer>
   );
@@ -258,8 +258,8 @@ function ReplenishDrawer({ fund, entity, currency, onClose }: { fund: PettyCashF
         </p>
         <FormField label="Bank account"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} /></FormField>
-          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
+          <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} className="[&_input]:h-9" /></FormField>
+          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 bg-white" /></FormField>
         </div>
       </div>
     </DetailDrawer>
@@ -317,19 +317,19 @@ function EstablishFloatDrawer({ open, onClose, entity, currency, onCreated }: {
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
           Creates the float (mapped 1:1 to its petty-cash GL account) at its <span className="font-medium">ceiling</span> — the imprest level Replenish restores it to — and moves the opening cash from the bank into the tin (Dr petty cash, Cr bank).
         </p>
-        <FormField label="Float name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Front-desk float" className="bg-white" /></FormField>
+        <FormField label="Float name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Front-desk float" className="h-9 bg-white" /></FormField>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Petty-cash GL account" required><AccountPicker entity={entity} value={glAccount} onChange={setGlAccount} accountType="ASSET" postableOnly placeholder="Petty cash account" /></FormField>
-          <FormField label="Custodian"><Input value={custodian} onChange={(e) => setCustodian(e.target.value)} placeholder="Who holds the tin" className="bg-white" /></FormField>
+          <FormField label="Custodian"><Input value={custodian} onChange={(e) => setCustodian(e.target.value)} placeholder="Who holds the tin" className="h-9 bg-white" /></FormField>
         </div>
         <p className="-mb-1 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Opening cash</p>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Float ceiling" required><MoneyInput valueKobo={ceiling} onChangeKobo={onCeiling} currency={currency} /></FormField>
-          <FormField label="Opening cash" required><MoneyInput valueKobo={opening} onChangeKobo={setOpening} currency={currency} /></FormField>
+          <FormField label="Float ceiling" required><MoneyInput valueKobo={ceiling} onChangeKobo={onCeiling} currency={currency} className="[&_input]:h-9" /></FormField>
+          <FormField label="Opening cash" required><MoneyInput valueKobo={opening} onChangeKobo={setOpening} currency={currency} className="[&_input]:h-9" /></FormField>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="From bank"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
-          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
+          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 bg-white" /></FormField>
         </div>
       </div>
     </DetailDrawer>
