@@ -240,6 +240,10 @@ export const arApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/finance/fee-structures/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceFeeStructures"],
     }),
+    createFeeStructure: builder.mutation<ApiEnvelope<FeeStructure>, { entity: string; code: string; name: string; term?: string; description?: string; is_active?: boolean; items: { description: string; revenue_account: string; amount: number; tax_code?: string }[] }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/fee-structures/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceFeeStructures"],
+    }),
     generateFromFeeStructure: builder.mutation<ApiEnvelope<{ structure: string; generated: number; invoices: Invoice[] }>, { id: string | number; entity: string; customers?: (string | number)[]; all_active?: boolean; invoice_date?: string; due_date?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/fee-structures/${id}/generate/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceFeeStructures", "FinanceInvoices"],
@@ -289,5 +293,6 @@ export const {
   useGetPaymentDetailQuery,
   useAllocatePaymentMutation,
   useGetFeeStructuresQuery,
+  useCreateFeeStructureMutation,
   useGenerateFromFeeStructureMutation,
 } = arApi;

@@ -27,6 +27,7 @@ const SUBTITLES: Record<string, string> = {
   "payment-plans": "Spread invoice balances into scheduled installments.",
   concessions: "Waivers, discounts and scholarships that reduce customer balances.",
   dunning: "Overdue follow-up — aging buckets, reminder queue and policies.",
+  "fee-structures": "Billing templates that drive invoice generation.",
 };
 
 export default function ReceivablesPage() {

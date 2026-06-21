@@ -144,9 +144,17 @@ Existing negative-AR credit was reclassed once via
   as a CSV like `EMAIL,IN_APP`; editor uses checkboxes; shown as "Email + In-app").
   Overdue days are colour-coded by severity. Status: PENDING→Scheduled · SENT→Sent ·
   RESOLVED→Resolved · CANCELLED.
+- **Fee Structures** — search + status (Active/Inactive) list (Code · Name · Term ·
+  Lines · Total/term), a detail drawer (line items: Fee item · GL account · Amount ·
+  Tax + **Generate invoices**) and a New-structure drawer with a fee-lines editor.
+  **Honest adaptation** (the school-specific screen): our generic `FeeStructure` is
+  code · name · term · is_active · items(description · GL acct · amount · tax), so the
+  prototype's branch / session / class-scope / fee-category / frequency / optional /
+  assigned-students / activity are **dropped**; status is Active/Inactive; Import /
+  Duplicate / Archive omitted (no backend).
 - New journal + New account converted to drawers; sidebar scroll persists.
 
-**Next (still basic, redesign to prototype):** Fee Structures. Then:
+**Receivables area: COMPLETE** (redesigned to prototype). **Next:**
 Bank Accounts/Reconciliation, Expense Claims, Petty Cash, Payroll,
 Budgets/Assets/Tax, Reports, Collections gateway.
 
@@ -174,6 +182,7 @@ Budgets/Assets/Tax, Reports, Collections gateway.
 | `GET /finance/concessions/summary/` (posted YTD · draft pending · active count) | `finance.concession.view` |
 | `GET /finance/dunning/summary/` (4 aging buckets) · `GET/POST /dunning-policies/` · `PATCH /dunning-policies/<id>/` (update + stages) | `finance.dunning.view` / `.manage` |
 | `POST /finance/dunning/generate/` (raise notices) · `GET /dunning-notices/` · `…/<id>/cancel/` (send is deferred — no comms service) | `finance.dunning.generate` / `.send` |
+| `GET/POST /finance/fee-structures/` (`?search=&is_active=`; items) · `…/<code>/generate/` | `finance.feestructure.view` / `.create` / `.generate` |
 
 **Lists are paginated** (`XVSPagination`, `?page=&page_size=`, max 100) with a
 server-side `?search=` — the AR adjustment lists (credit-notes, ar-adjustments) no
@@ -248,8 +257,9 @@ Two ways data gets seeded:
    - **Concessions**: a Posted `CNC-2026-00001` (Discount, CUST-001, ₦10k) + two Draft
      (`CNC-2026-00002` Scholarship ₦50k, `CNC-2026-00003` Waiver ₦20k) — covers all
      three types + both statuses.
-   - **Dunning**: default policy "Standard reminders" (3 stages: +1/+14/+30d Email) +
-     3 PENDING notices from a generate run over the overdue invoices.
+   - **Dunning**: default policy "Standard reminders" (3 stages: +1/+14/+30d, channels
+     Email/In-app) + 3 PENDING notices from a generate run over the overdue invoices.
+   - **Fee Structures**: `FS-TERM1` + `FS-SSS-T1` (Tuition/Boarding/ICT, ₦1.28M/term).
    - Delete anytime; harmless. (Use **CODEX** for checks, not CREST.)
 
 ## Tests
