@@ -373,16 +373,18 @@ function NewPlanDrawer({ open, onClose, entity, currency }: {
           <FormField label="Start date" required><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-white" /></FormField>
           <FormField label="Installments" required><Input type="number" min={1} max={60} value={count} onChange={(e) => setCount(Math.max(1, Number(e.target.value) || 1))} className="bg-white tabular-nums" /></FormField>
         </div>
-        <FormField label="Frequency">
-          <div className="inline-flex rounded-md border border-gray-03 bg-white p-0.5">
+        <div>
+          <p className="mb-2 font-mont text-xs text-gray-05">Frequency</p>
+          <div className="grid grid-cols-4 gap-1 rounded-lg bg-[#ECECEC] p-1">
             {FREQS.map(([v, lbl]) => (
-              <button key={v} type="button" onClick={() => setFrequency(v)}
-                className={cn("rounded px-3 py-1.5 font-mont text-sm font-medium transition-colors", frequency === v ? "bg-pry-01 text-primary" : "text-gray-05 hover:text-gray-01")}>
+              <button key={v} type="button" onClick={() => setFrequency(v)} aria-pressed={frequency === v}
+                className={cn("rounded-md px-3 py-1.5 font-mont text-sm transition-colors",
+                  frequency === v ? "bg-white font-semibold text-black-01 shadow-sm ring-1 ring-black/5" : "font-medium text-gray-05 hover:text-gray-01")}>
                 {lbl}
               </button>
             ))}
           </div>
-        </FormField>
+        </div>
 
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Schedule preview</p>
