@@ -280,14 +280,21 @@ export interface CustomerDetail {
 export interface FeeItem {
   id: number;
   line_no: number;
+  code: string;
   description: string;
   revenue_account_code: string;
   amount: number;
   amount_naira: string;
   tax_code_value: string | null;
+  is_optional: boolean;
 }
 
 export type FeeAppliesTo = "CUSTOMER" | "VENDOR" | "STAFF" | "GENERAL";
+
+export interface FeeStructureUsage {
+  invoices_generated: number;
+  last_generated_at: string | null;
+}
 
 export interface FeeStructure {
   id: number;
@@ -300,4 +307,11 @@ export interface FeeStructure {
   items: FeeItem[];
   total: number;
   total_naira: string;
+  tax_total: number;
+  tax_total_naira: string;
+  total_with_tax: number;
+  total_with_tax_naira: string;
+  created_at?: string;
+  created_by_name?: string | null;
+  usage?: FeeStructureUsage | null;
 }

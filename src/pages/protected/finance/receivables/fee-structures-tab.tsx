@@ -1,18 +1,19 @@
-// Receivables → Fee Structures. A search/status list, a detail drawer (line
-// items + Generate invoices) and a create/edit drawer with a line-items editor.
+// Receivables → Fee Structures. A search/status list, a rich detail drawer (line
+// items with fee code + optional/required + a Subtotal→Tax→Total breakdown, a
+// usage/activity panel, Generate, Duplicate, Edit) and a create/edit drawer.
 //
 // This is a generic platform, so a fee structure is NOT tied to a school term —
 // it is classified by who it bills (`applies_to`: Customer / Vendor / Staff /
 // General). Only Customer structures can generate AR invoices today.
 //
 // Honest adaptation: the prototype is school-specific (branch · session · class
-// scope · fee category · frequency · optional · assigned students). Our generic
-// FeeStructure has code · name · applies_to · is_active · items(description ·
-// GL account · amount · tax), so those school-only fields/panels are dropped and
-// status is Active / Inactive (is_active).
+// scope, "Per Term/Session" frequency, students/classes assigned). We keep the
+// generic-valuable richness — per-line fee code, optional-vs-required, the tax
+// breakdown, usage/activity, Duplicate — and drop the school-only bits. Frequency
+// is intentionally omitted (generation raises a single invoice, not a schedule).
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, FileStack, Pencil } from "lucide-react";
+import { Plus, Search, Trash2, FileStack, Pencil, Copy, CircleCheck, RefreshCw } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField,
   AccountPicker, TaxCodePicker, toArray, type Column,
@@ -25,8 +26,9 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
-  useGetFeeStructuresQuery, useCreateFeeStructureMutation,
-  useUpdateFeeStructureMutation, useGenerateFromFeeStructureMutation,
+  useGetFeeStructuresQuery, useGetFeeStructureQuery, useCreateFeeStructureMutation,
+  useUpdateFeeStructureMutation, useDuplicateFeeStructureMutation,
+  useGenerateFromFeeStructureMutation,
 } from "@/redux/services/finance/ar-api";
 import type { FeeStructure, FeeAppliesTo } from "@/redux/services/finance/ar-types";
 
@@ -54,6 +56,9 @@ function AppliesToPill({ value, label }: { value: FeeAppliesTo; label?: string }
 function StatusPill({ active }: { active: boolean }) {
   return <span className={cn(PILL, active ? "bg-green-01/10 text-green-01" : "bg-gray-03/60 text-gray-05")}>{active ? "Active" : "Inactive"}</span>;
 }
+function OptionalPill({ optional }: { optional: boolean }) {
+  return <span className={cn(PILL, optional ? "bg-amber-50 text-amber-700" : "bg-gray-03/60 text-gray-05")}>{optional ? "Optional" : "Required"}</span>;
+}
 
 export function FeeStructuresTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [searchInput, setSearchInput] = useState("");
@@ -61,6 +66,7 @@ export function FeeStructuresTab({ entity, currency }: { entity: string; currenc
   const [status, setStatus] = useState("");
   const [appliesTo, setAppliesTo] = useState("");
   const [editing, setEditing] = useState<FeeStructure | "new" | null>(null);
+  const [duplicating, setDuplicating] = useState<FeeStructure | null>(null);
   const [selected, setSelected] = useState<FeeStructure | null>(null);
 
   const params = useMemo(() => ({
@@ -76,7 +82,7 @@ export function FeeStructuresTab({ entity, currency }: { entity: string; currenc
     { header: "Name", cell: (f) => <span className="font-medium text-gray-01">{f.name}</span> },
     { header: "Applies to", cell: (f) => <AppliesToPill value={f.applies_to} label={f.applies_to_display} /> },
     { header: "Lines", align: "right", cell: (f) => <span className="tabular-nums text-gray-05">{f.items.length}</span> },
-    { header: "Total", align: "right", cell: (f) => <Money kobo={f.total} currency={currency} align="right" /> },
+    { header: "Total", align: "right", cell: (f) => <Money kobo={f.total_with_tax} currency={currency} align="right" /> },
     { header: "Status", cell: (f) => <StatusPill active={f.is_active} /> },
   ];
 
@@ -114,35 +120,44 @@ export function FeeStructuresTab({ entity, currency }: { entity: string; currenc
         structure={selected} entity={entity} currency={currency}
         onClose={() => setSelected(null)}
         onEdit={(s) => { setSelected(null); setEditing(s); }}
+        onDuplicate={(s) => { setSelected(null); setDuplicating(s); }}
       />
       <StructureFormDrawer
         open={editing !== null} structure={editing === "new" ? null : editing}
         onClose={() => setEditing(null)} entity={entity} currency={currency}
       />
+      <DuplicateDrawer structure={duplicating} entity={entity} onClose={() => setDuplicating(null)} />
     </>
   );
 }
 
-function FeeStructureDetailDrawer({ structure, entity, currency, onClose, onEdit }: {
+function FeeStructureDetailDrawer({ structure, entity, currency, onClose, onEdit, onDuplicate }: {
   structure: FeeStructure | null; entity: string; currency?: string | null;
-  onClose: () => void; onEdit: (s: FeeStructure) => void;
+  onClose: () => void; onEdit: (s: FeeStructure) => void; onDuplicate: (s: FeeStructure) => void;
 }) {
   const { can } = useCan();
   const [generating, setGenerating] = useState(false);
-  if (!structure) return null;
-  const isCustomer = structure.applies_to === "CUSTOMER";
+  // Fetch the full record (carries usage/activity) once the drawer is open.
+  const { data: detail } = useGetFeeStructureQuery(
+    { id: structure?.code ?? "", entity }, { skip: !structure });
+  const full = detail?.data ?? structure;
+  if (!structure || !full) return null;
+  const isCustomer = full.applies_to === "CUSTOMER";
 
   return (
     <>
       <DetailDrawer
         open={!!structure} onOpenChange={(o) => (o ? undefined : onClose())}
-        title={structure.name} description={structure.code}
+        title={full.name} description={full.code}
         widthClass="sm:max-w-2xl"
         footer={
           <>
-            <StatusPill active={structure.is_active} />
+            <StatusPill active={full.is_active} />
             <div className="flex-1" />
-            {can(P.FIN_EDIT_FEE_STRUCTURE) ? <Button variant="outline" onClick={() => onEdit(structure)} className="gap-1.5"><Pencil className="size-4" /> Edit</Button> : null}
+            <Can permission={P.FIN_CREATE_FEE_STRUCTURE}>
+              <Button variant="outline" onClick={() => onDuplicate(full)} className="gap-1.5"><Copy className="size-4" /> Duplicate</Button>
+            </Can>
+            {can(P.FIN_EDIT_FEE_STRUCTURE) ? <Button variant="outline" onClick={() => onEdit(full)} className="gap-1.5"><Pencil className="size-4" /> Edit</Button> : null}
             {can(P.FIN_GENERATE_FEE_STRUCTURE) ? (
               <Button
                 onClick={() => setGenerating(true)} disabled={!isCustomer} className="gap-1.5"
@@ -154,10 +169,11 @@ function FeeStructureDetailDrawer({ structure, entity, currency, onClose, onEdit
       >
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <AppliesToPill value={structure.applies_to} label={structure.applies_to_display} />
+            <AppliesToPill value={full.applies_to} label={full.applies_to_display} />
             {!isCustomer ? <span className="font-mont text-[11px] text-gray-05">Classification only — invoice generation is for customer structures.</span> : null}
           </div>
-          {structure.description ? <p className="font-mont text-sm text-gray-01">{structure.description}</p> : null}
+          {full.description ? <p className="font-mont text-sm text-gray-01">{full.description}</p> : null}
+
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
             <div className="overflow-hidden rounded-md border border-gray-03">
@@ -165,29 +181,64 @@ function FeeStructureDetailDrawer({ structure, entity, currency, onClose, onEdit
                 <thead><tr>
                   <th className={thCls}>Fee item</th><th className={thCls}>GL account</th>
                   <th className={cn(thCls, "text-right")}>Amount</th><th className={thCls}>Tax</th>
+                  <th className={thCls}>Type</th>
                 </tr></thead>
                 <tbody>
-                  {structure.items.map((it) => (
+                  {full.items.map((it) => (
                     <tr key={it.id}>
-                      <td className={tdCls}>{it.description || "—"}</td>
+                      <td className={tdCls}>
+                        {it.code ? <span className="font-semibold tabular-nums text-gray-05">{it.code} · </span> : null}
+                        {it.description || "—"}
+                      </td>
                       <td className={cn(tdCls, "tabular-nums text-gray-05")}>{it.revenue_account_code}</td>
                       <td className={cn(tdCls, "text-right tabular-nums")}><Money kobo={it.amount} currency={currency} align="right" /></td>
                       <td className={tdCls}>{it.tax_code_value ?? <span className="text-gray-05">Exempt</span>}</td>
+                      <td className={tdCls}><OptionalPill optional={it.is_optional} /></td>
                     </tr>
                   ))}
-                  <tr className="font-semibold">
-                    <td className={cn(tdCls, "border-t-2")} colSpan={2}>Total</td>
-                    <td className={cn(tdCls, "border-t-2 text-right tabular-nums")}><Money kobo={structure.total} currency={currency} align="right" /></td>
-                    <td className={cn(tdCls, "border-t-2")} />
-                  </tr>
                 </tbody>
+                <tfoot>
+                  <tr><td className={cn(tdCls, "border-t-2 text-gray-05")} colSpan={2}>Subtotal</td>
+                    <td className={cn(tdCls, "border-t-2 text-right tabular-nums")}><Money kobo={full.total} currency={currency} align="right" /></td>
+                    <td className={cn(tdCls, "border-t-2")} colSpan={2} /></tr>
+                  <tr><td className={cn(tdCls, "text-gray-05")} colSpan={2}>Tax</td>
+                    <td className={cn(tdCls, "text-right tabular-nums")}><Money kobo={full.tax_total} currency={currency} align="right" /></td>
+                    <td className={tdCls} colSpan={2} /></tr>
+                  <tr className="font-semibold"><td className={tdCls} colSpan={2}>Total per customer</td>
+                    <td className={cn(tdCls, "text-right tabular-nums")}><Money kobo={full.total_with_tax} currency={currency} align="right" /></td>
+                    <td className={tdCls} colSpan={2} /></tr>
+                </tfoot>
               </table>
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Activity</p>
+            <div className="space-y-2 rounded-md border border-gray-03 bg-gray-03 px-3 py-2.5">
+              <div className="flex items-start gap-2">
+                <CircleCheck className="mt-0.5 size-4 shrink-0 text-green-01" />
+                <p className="font-mont text-xs text-black-01">
+                  Created{full.created_by_name ? <> by <span className="font-medium">{full.created_by_name}</span></> : null}
+                  {full.created_at ? <span className="text-gray-05"> · {new Date(full.created_at).toLocaleDateString()}</span> : null}
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <RefreshCw className="mt-0.5 size-4 shrink-0 text-primary" />
+                <p className="font-mont text-xs text-black-01">
+                  {full.usage && full.usage.invoices_generated > 0 ? (
+                    <>Used to generate <span className="font-medium tabular-nums">{full.usage.invoices_generated}</span> invoice{full.usage.invoices_generated === 1 ? "" : "s"}
+                      {full.usage.last_generated_at ? <span className="text-gray-05"> · last {new Date(full.usage.last_generated_at).toLocaleDateString()}</span> : null}</>
+                  ) : (
+                    <span className="text-gray-05">Not used to generate invoices yet.</span>
+                  )}
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </DetailDrawer>
 
-      {generating ? <GenerateDrawer structure={structure} entity={entity} onClose={() => setGenerating(false)} /> : null}
+      {generating ? <GenerateDrawer structure={full} entity={entity} onClose={() => setGenerating(false)} /> : null}
     </>
   );
 }
@@ -217,7 +268,7 @@ function GenerateDrawer({ structure, entity, onClose }: { structure: FeeStructur
     >
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
-          Raises one posted invoice per active customer from this structure's lines ({formatMoney(structure.total)} each). Customers already billed for it are skipped.
+          Raises one posted invoice per active customer from this structure's lines ({formatMoney(structure.total_with_tax)} each, tax included). Customers already billed for it are skipped.
         </p>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Invoice date" required><Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="bg-white" /></FormField>
@@ -228,8 +279,47 @@ function GenerateDrawer({ structure, entity, onClose }: { structure: FeeStructur
   );
 }
 
-type EditItem = { description: string; revenue_account: string; amount: number; tax_code: string };
-const emptyItem = (): EditItem => ({ description: "", revenue_account: "", amount: 0, tax_code: "" });
+function DuplicateDrawer({ structure, entity, onClose }: { structure: FeeStructure | null; entity: string; onClose: () => void }) {
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [duplicate, { isLoading }] = useDuplicateFeeStructureMutation();
+
+  useEffect(() => {
+    if (structure) { setCode(`${structure.code}-COPY`); setName(`${structure.name} (copy)`); }
+  }, [structure]);
+  if (!structure) return null;
+
+  const submit = async () => {
+    try {
+      const res = await duplicate({ id: structure.code, entity, code: code.trim().toUpperCase(), name: name.trim() || undefined }).unwrap();
+      toast.success(res.message || "Fee structure duplicated.");
+      onClose();
+    } catch { /* central */ }
+  };
+
+  return (
+    <DetailDrawer
+      open onOpenChange={(o) => (o ? undefined : onClose())}
+      title="Duplicate fee structure" description={`Clone ${structure.code} into a new draft`}
+      widthClass="sm:max-w-lg"
+      footer={<>
+        <Button variant="outline" disabled={isLoading} onClick={onClose}>Cancel</Button>
+        <Button disabled={isLoading || !code.trim()} onClick={submit} className="gap-1.5"><Copy className="size-4" />{isLoading ? "Duplicating…" : "Create copy"}</Button>
+      </>}
+    >
+      <div className="space-y-4">
+        <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
+          Copies every line (fee code, GL account, amount, tax and optional flag) into a new <span className="font-medium">inactive</span> structure you can review before activating.
+        </p>
+        <FormField label="New code" required><Input value={code} onChange={(e) => setCode(e.target.value)} className="bg-white font-mont" /></FormField>
+        <FormField label="Name"><Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white" /></FormField>
+      </div>
+    </DetailDrawer>
+  );
+}
+
+type EditItem = { code: string; description: string; revenue_account: string; amount: number; tax_code: string; is_optional: boolean };
+const emptyItem = (): EditItem => ({ code: "", description: "", revenue_account: "", amount: 0, tax_code: "", is_optional: false });
 
 function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
   open: boolean; structure: FeeStructure | null; onClose: () => void; entity: string; currency?: string | null;
@@ -245,7 +335,6 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
   const [update, { isLoading: updating }] = useUpdateFeeStructureMutation();
   const isLoading = creating || updating;
 
-  // Sync form to the structure being edited (or reset for a fresh create).
   useEffect(() => {
     if (!open) return;
     if (structure) {
@@ -255,7 +344,7 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
       setDescription(structure.description);
       setActive(structure.is_active);
       setItems(structure.items.length
-        ? structure.items.map((it) => ({ description: it.description, revenue_account: it.revenue_account_code, amount: it.amount, tax_code: it.tax_code_value ?? "" }))
+        ? structure.items.map((it) => ({ code: it.code, description: it.description, revenue_account: it.revenue_account_code, amount: it.amount, tax_code: it.tax_code_value ?? "", is_optional: it.is_optional }))
         : [emptyItem()]);
     } else {
       setCode(""); setName(""); setAppliesTo("CUSTOMER"); setDescription(""); setActive(true); setItems([emptyItem()]);
@@ -271,7 +360,7 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
   const canSubmit = code.trim() !== "" && name.trim() !== "" && validItems.length > 0;
 
   const submit = async () => {
-    const payloadItems = validItems.map((it) => ({ description: it.description.trim(), revenue_account: it.revenue_account, amount: it.amount, tax_code: it.tax_code || undefined }));
+    const payloadItems = validItems.map((it) => ({ code: it.code.trim() || undefined, description: it.description.trim(), revenue_account: it.revenue_account, amount: it.amount, tax_code: it.tax_code || undefined, is_optional: it.is_optional }));
     try {
       if (isEdit && structure) {
         const res = await update({ id: structure.code, entity, name: name.trim(), applies_to: appliesTo, description: description.trim(), is_active: active, items: payloadItems }).unwrap();
@@ -321,19 +410,25 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
             <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Fee lines</p>
             <Button variant="outline" size="sm" onClick={addItem} className="gap-1.5"><Plus className="size-3.5" /> Add line</Button>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {items.map((it, i) => (
-              <div key={i} className="grid grid-cols-12 items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
-                <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee item</p><Input value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} placeholder="Tuition" className="h-8 bg-white font-mont text-sm" /></div>
-                <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">GL account</p><AccountPicker entity={entity} value={it.revenue_account} onChange={(v) => setItem(i, { revenue_account: v })} accountType="INCOME" postableOnly placeholder="Revenue account" /></div>
-                <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={it.amount} onChangeKobo={(v) => setItem(i, { amount: v })} currency={currency} /></div>
-                <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={it.tax_code} onChange={(v) => setItem(i, { tax_code: v })} /></div>
-                <div className="col-span-1 flex justify-end"><button type="button" onClick={() => removeItem(i)} disabled={items.length <= 1} className="rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button></div>
+              <div key={i} className="space-y-2 rounded-md border border-gray-03 bg-white p-2.5">
+                <div className="grid grid-cols-12 gap-2">
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee code</p><Input value={it.code} onChange={(e) => setItem(i, { code: e.target.value })} placeholder="TUITION" className="h-8 bg-white font-mont text-sm" /></div>
+                  <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee item</p><Input value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} placeholder="Tuition" className="h-8 bg-white font-mont text-sm" /></div>
+                  <div className="col-span-5"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">GL account</p><AccountPicker entity={entity} value={it.revenue_account} onChange={(v) => setItem(i, { revenue_account: v })} accountType="INCOME" postableOnly placeholder="Revenue account" /></div>
+                </div>
+                <div className="grid grid-cols-12 items-center gap-2">
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={it.amount} onChangeKobo={(v) => setItem(i, { amount: v })} currency={currency} /></div>
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={it.tax_code} onChange={(v) => setItem(i, { tax_code: v })} /></div>
+                  <label className="col-span-4 mt-4 flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={it.is_optional} onChange={(e) => setItem(i, { is_optional: e.target.checked })} className="accent-primary" /> Optional charge</label>
+                  <div className="col-span-2 mt-4 flex justify-end"><button type="button" onClick={() => removeItem(i)} disabled={items.length <= 1} className="rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button></div>
+                </div>
               </div>
             ))}
           </div>
           <div className="mt-2 flex justify-end font-mont text-sm">
-            <span className="text-gray-05">Total&nbsp;</span><span className="font-semibold tabular-nums text-black-01">{formatMoney(total, currency)}</span>
+            <span className="text-gray-05">Subtotal (net)&nbsp;</span><span className="font-semibold tabular-nums text-black-01">{formatMoney(total, currency)}</span>
           </div>
         </div>
       </div>

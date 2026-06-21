@@ -27,6 +27,7 @@ import type {
 } from "./ar-types";
 
 type EntityList = { entity: string; page?: number; status?: string; customer?: string };
+type FeeLineInput = { code?: string; description: string; revenue_account: string; amount: number; tax_code?: string; is_optional?: boolean };
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
 
 export const arApi = baseApi.injectEndpoints({
@@ -240,12 +241,20 @@ export const arApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/finance/fee-structures/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceFeeStructures"],
     }),
-    createFeeStructure: builder.mutation<ApiEnvelope<FeeStructure>, { entity: string; code: string; name: string; applies_to?: string; description?: string; is_active?: boolean; items: { description: string; revenue_account: string; amount: number; tax_code?: string }[] }>({
+    getFeeStructure: builder.query<ApiEnvelope<FeeStructure>, { id: string | number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/fee-structures/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinanceFeeStructures"],
+    }),
+    createFeeStructure: builder.mutation<ApiEnvelope<FeeStructure>, { entity: string; code: string; name: string; applies_to?: string; description?: string; is_active?: boolean; items: FeeLineInput[] }>({
       query: ({ entity, ...body }) => ({ url: `/finance/fee-structures/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceFeeStructures"],
     }),
-    updateFeeStructure: builder.mutation<ApiEnvelope<FeeStructure>, { id: string | number; entity: string; name?: string; applies_to?: string; description?: string; is_active?: boolean; items?: { description: string; revenue_account: string; amount: number; tax_code?: string }[] }>({
+    updateFeeStructure: builder.mutation<ApiEnvelope<FeeStructure>, { id: string | number; entity: string; name?: string; applies_to?: string; description?: string; is_active?: boolean; items?: FeeLineInput[] }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/fee-structures/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["FinanceFeeStructures"],
+    }),
+    duplicateFeeStructure: builder.mutation<ApiEnvelope<FeeStructure>, { id: string | number; entity: string; code: string; name?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/fee-structures/${id}/duplicate/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceFeeStructures"],
     }),
     generateFromFeeStructure: builder.mutation<ApiEnvelope<{ structure: string; generated: number; invoices: Invoice[] }>, { id: string | number; entity: string; customers?: (string | number)[]; all_active?: boolean; invoice_date?: string; due_date?: string }>({
@@ -297,7 +306,9 @@ export const {
   useGetPaymentDetailQuery,
   useAllocatePaymentMutation,
   useGetFeeStructuresQuery,
+  useGetFeeStructureQuery,
   useCreateFeeStructureMutation,
   useUpdateFeeStructureMutation,
+  useDuplicateFeeStructureMutation,
   useGenerateFromFeeStructureMutation,
 } = arApi;
