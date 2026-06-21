@@ -12,7 +12,7 @@ import { useMemo, useRef, useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import {
-  Plus, Search, Trash2, Download, Check, X, Printer, Wallet, Paperclip, CircleDashed, CircleCheck,
+  Plus, Search, Trash2, Download, Check, X, Printer, Wallet, Paperclip, Upload, CircleDashed, CircleCheck,
 } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField,
@@ -278,18 +278,21 @@ function ReceiptCell({ line, claimId, entity, attachable }: { line: ExpenseClaim
 
   if (line.receipt_url) {
     return (
-      <span className="inline-flex items-center gap-1.5">
-        <a href={line.receipt_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline"><Paperclip className="size-3" />{line.receipt_name || "Receipt"}</a>
-        {attachable ? <button type="button" disabled={removing} onClick={() => remove({ id: claimId, lineId: line.id, entity })} className="text-gray-05 hover:text-destructive" aria-label="Remove receipt"><Trash2 className="size-3.5" /></button> : null}
+      <span className="inline-flex max-w-[160px] items-center gap-1 rounded-md border border-gray-03 bg-white py-1 pl-2 pr-1 font-mont text-[11px]">
+        <a href={line.receipt_url} target="_blank" rel="noreferrer" className="inline-flex min-w-0 items-center gap-1 font-medium text-primary hover:underline" title={line.receipt_name || "Receipt"}>
+          <Paperclip className="size-3 shrink-0" /><span className="truncate">{line.receipt_name || "Receipt"}</span>
+        </a>
+        {attachable ? <button type="button" disabled={removing} onClick={() => remove({ id: claimId, lineId: line.id, entity })} className="shrink-0 rounded p-0.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-40" aria-label="Remove receipt"><X className="size-3" /></button> : null}
       </span>
     );
   }
-  if (!attachable) return <span className="font-mont text-[11px] text-gray-05">Missing</span>;
+  if (!attachable) return <span className="inline-flex items-center gap-1 font-mont text-[11px] text-gray-05"><Paperclip className="size-3 opacity-50" />Missing</span>;
   return (
     <>
       <input ref={fileRef} type="file" accept=".pdf,image/*" className="hidden" onChange={(e) => onPick(e.target.files?.[0])} />
-      <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-gray-05 hover:text-primary">
-        <Paperclip className="size-3" />{uploading ? "Uploading…" : "Upload"}
+      <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()}
+        className="inline-flex items-center gap-1 rounded-md border border-dashed border-gray-05/40 px-2 py-1 font-mont text-[11px] font-medium text-gray-05 transition-colors hover:border-primary hover:bg-primary/[0.04] hover:text-primary disabled:opacity-50">
+        <Upload className="size-3" />{uploading ? "Uploading…" : "Add receipt"}
       </button>
     </>
   );
@@ -362,7 +365,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
     <DetailDrawer
       open={open} onOpenChange={(o) => (o ? undefined : close())}
       title="New expense claim" description="Capture out-of-pocket spending for reimbursement. Attach receipts after saving."
-      widthClass="sm:max-w-4xl"
+      widthClass="sm:max-w-5xl"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
         <Button disabled={isLoading || !canSubmit} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Saving…" : "Create draft"}</Button>
@@ -383,11 +386,11 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
             {lines.map((l, i) => (
               <div key={i} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
                 <div className="grid flex-1 grid-cols-12 gap-2">
-                  <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} placeholder="What was bought" className="bg-white text-sm" /></div>
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} placeholder="What was bought" className="bg-white text-sm" /></div>
                   <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Expense account</p><AccountPicker entity={entity} value={l.expense_account} onChange={(v) => setLine(i, { expense_account: v })} accountType="EXPENSE" postableOnly placeholder="5xxx" /></div>
                   <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Cost center</p><CostCenterPicker entity={entity} value={l.cost_center} onChange={(v) => setLine(i, { cost_center: v })} /></div>
                   <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={l.unit_price} onChangeKobo={(v) => setLine(i, { unit_price: v })} currency={currency} /></div>
-                  <div className="col-span-1"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={l.tax_code} onChange={(v) => setLine(i, { tax_code: v })} /></div>
+                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={l.tax_code} onChange={(v) => setLine(i, { tax_code: v })} /></div>
                 </div>
                 <button type="button" onClick={() => setLines((s) => s.filter((_, idx) => idx !== i))} disabled={lines.length <= 1} className="mb-0.5 shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button>
               </div>
