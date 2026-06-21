@@ -50,6 +50,7 @@ export const financeNav: ConsoleNavGroup[] = [
     label: "Operations",
     items: [
       { title: "Bank Accounts", url: F.BANKING, icon: Landmark, prefixes: ["finance.bankaccount."] },
+      { title: "Bank Reconciliation", url: F.BANK_RECON, icon: Scale, prefixes: ["finance.bankaccount."] },
       { title: "Expense Claims", url: `${F.EXPENSES}/claims`, icon: Wallet, prefixes: ["finance.expenseclaim."] },
       { title: "Petty Cash", url: `${F.EXPENSES}/petty-cash`, icon: Coins, prefixes: ["finance.pettycash."] },
       { title: "Payroll", url: F.PAYROLL, icon: Users, prefixes: ["finance.payrollrun."] },

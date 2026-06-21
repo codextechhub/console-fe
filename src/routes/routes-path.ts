@@ -178,6 +178,7 @@ export const routesPath = {
       RECEIVABLES: "/finance/receivables",
       COLLECTIONS: "/finance/collections",
       BANKING: "/finance/banking",
+      BANK_RECON: "/finance/bank-reconciliation",
       EXPENSES: "/finance/expenses",
       PAYROLL: "/finance/payroll",
       BUDGETS: "/finance/budgets",

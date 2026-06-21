@@ -8,6 +8,8 @@ import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
 import type {
   BankAccount,
   BankAccountDetail,
+  BankBookLine,
+  BankReconciliationRun,
   BankStatementLine,
   Budget,
   ExpenseClaim,
@@ -52,6 +54,22 @@ export const opsApi = baseApi.injectEndpoints({
     }),
     autoReconcile: b.mutation<ApiEnvelope<BankStatementLine[]>, Act & { tolerance_days?: number }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/bank-accounts/${id}/auto-reconcile/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
+    getBookLines: b.query<ApiEnvelope<BankBookLine[]>, Act>({
+      query: ({ id, entity }) => ({ url: `/finance/bank-accounts/${id}/book-lines/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinanceStatementLines"],
+    }),
+    matchStatementLine: b.mutation<ApiEnvelope<BankStatementLine>, { id: number; entity: string; journal_line: number }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/statement-lines/${id}/match/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
+    adjustStatementLine: b.mutation<ApiEnvelope<BankStatementLine>, { id: number; entity: string; counter_account?: string; narration?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/statement-lines/${id}/adjust/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
+    completeReconciliation: b.mutation<ApiEnvelope<BankReconciliationRun>, Act>({
+      query: ({ id, entity }) => ({ url: `/finance/bank-accounts/${id}/reconcile/complete/${qs({ entity })}`, method: "POST", body: {} }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
 
@@ -189,6 +207,10 @@ export const {
   useGetStatementLinesQuery,
   useImportStatementMutation,
   useAutoReconcileMutation,
+  useGetBookLinesQuery,
+  useMatchStatementLineMutation,
+  useAdjustStatementLineMutation,
+  useCompleteReconciliationMutation,
   useGetExpenseClaimsQuery,
   useGetExpenseClaimQuery,
   useCreateExpenseClaimMutation,

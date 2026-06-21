@@ -32,6 +32,14 @@ export interface BankTransaction {
   matched: boolean;
 }
 
+export interface BankBookLine {
+  id: number;
+  date: string;
+  description: string;
+  reference: string;
+  amount: number; // signed kobo (debit − credit)
+}
+
 export interface BankStatement {
   id: number;
   statement_date: string;

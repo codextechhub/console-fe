@@ -8,6 +8,7 @@ const GeneralLedger = lazy(() => import("@/pages/protected/finance/ledger"));
 const Receivables = lazy(() => import("@/pages/protected/finance/receivables"));
 const Collections = lazy(() => import("@/pages/protected/finance/collections"));
 const Banking = lazy(() => import("@/pages/protected/finance/banking"));
+const BankReconciliation = lazy(() => import("@/pages/protected/finance/bank-reconciliation"));
 const Expenses = lazy(() => import("@/pages/protected/finance/expenses"));
 const Payroll = lazy(() => import("@/pages/protected/finance/payroll"));
 const BudgetsAssetsTax = lazy(() => import("@/pages/protected/finance/budgets"));
@@ -29,6 +30,7 @@ export const financeRoutes: RouteObject[] = [
   { path: F.COLLECTIONS, element: <Collections /> },
   { path: `${F.COLLECTIONS}/:section`, element: <Collections /> },
   { path: F.BANKING, element: <Banking /> },
+  { path: F.BANK_RECON, element: <BankReconciliation /> },
   { path: F.EXPENSES, element: <Expenses /> },
   { path: `${F.EXPENSES}/:section`, element: <Expenses /> },
   { path: F.PAYROLL, element: <Payroll /> },
