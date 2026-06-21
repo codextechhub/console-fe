@@ -155,7 +155,18 @@ Existing negative-AR credit was reclassed once via
 - New journal + New account converted to drawers; sidebar scroll persists.
 
 **Receivables area: COMPLETE** (redesigned to prototype). **Next:**
-Expense Claims, Petty Cash, Payroll, Budgets/Assets/Tax, Reports.
+Petty Cash, Payroll, Budgets/Assets/Tax, Reports.
+
+**Operations → Expense Claims: DONE** (redesigned to prototype). KPIs (open /
+submitted-this-month / average / awaiting payment) · search+status · avatar
+table · Export · ⓘ. Detail drawer: total/subtotal/tax cards + **Approval-workflow
+stepper** (Submitted→Approved&accrued[post]→Reimbursed[settle], mapped to our
+DRAFT/POSTED/PAID) + lines (cost center + **receipt attachment**) + Approve /
+Reject / Pay / Print. Backend: `ExpenseClaimLine.receipt` FileField (core
+DatabaseStorage; **added .pdf** to allowed types) + upload/delete endpoint;
+**reject** endpoint (cancel DRAFT, gated expenseclaim.post). Fixed FE settle
+payload (`pay_date`). Honest: school Branch dropped (cost center kept). Migration
+0012. Demo: 3 claims on CODEX (draft w/ receipt, approved, paid).
 
 **Operations → Bank Accounts: DONE** (redesigned to prototype). KPIs + table
 (Primary badge, masked A/C, book balance, last reconciled) + tabbed detail
