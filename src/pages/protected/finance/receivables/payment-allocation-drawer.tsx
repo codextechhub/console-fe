@@ -167,7 +167,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-1 font-mont text-[11px] text-gray-05">Allocation links this receipt to invoices in the sub-ledger; the bank/AR journal above posted when the receipt was recorded — no further GL effect.</p>
+              <p className="mt-1 font-mont text-[11px] text-gray-05">Above is the receipt's own journal (posted when recorded). Applying the remaining credit to invoices reclassifies it from customer credit (2140) back to AR — a new journal posts on apply.</p>
             </div>
           )}
         </div>

@@ -126,7 +126,7 @@ export function RecordReceiptDrawer({ open, onOpenChange, entity, currency, onCr
                 </tbody>
               </table>
             </div>
-            <p className="mt-1 font-mont text-[11px] text-gray-05">Cash debits the bank; AR is credited down as the customer’s balance is settled during allocation.</p>
+            <p className="mt-1 font-mont text-[11px] text-gray-05">Cash debits the bank; the credit settles AR for what the customer owes and books any excess as customer credit (2140).</p>
           </div>
         )}
       </div>

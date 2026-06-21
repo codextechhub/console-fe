@@ -162,12 +162,12 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
   const isDraftRefund = !wo && !posted;
   const recap = wo
     ? { dr: [{ code: "5300", name: "Bad debt expense", amount: row.amount }], cr: [{ code: "AR", name: "Accounts Receivable (control)", amount: row.amount }] }
-    : { dr: [{ code: "AR", name: "Accounts Receivable (control)", amount: row.amount }], cr: [{ code: "Bank", name: "cash out", amount: row.amount }] };
+    : { dr: [{ code: "2140", name: "Customer credit", amount: row.amount }], cr: [{ code: "Bank", name: "cash out", amount: row.amount }] };
   const helper = wo
     ? "Recaps the bad-debt journal — expense recognised, the receivable cleared."
     : posted
-      ? "Recaps the refund journal — the receivable is restored and cash leaves the bank."
-      : "The journal that will post when this draft refund is posted — receivable restored, cash out.";
+      ? "Recaps the refund journal — the customer's credit is paid out and cash leaves the bank."
+      : "The journal that will post when this draft refund is posted — draws down the customer's credit, cash out.";
 
   const doPost = async () => {
     if (!row.refund_id) return;
@@ -246,7 +246,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
       };
     }
     return {
-      dr: [{ code: "AR", name: "Accounts Receivable (control)", amount }],
+      dr: [{ code: "2140", name: "Customer credit", amount }],
       cr: [{ code: "Bank", name: "cash out", amount }],
     };
   }, [wo, expenseAccount, amount]);

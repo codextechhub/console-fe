@@ -90,8 +90,8 @@ function Segmented<T extends string>({ value, onChange, options }: {
 }
 
 // Recap the journal a posted note raises, from the note's own lines (so it shows
-// the real revenue accounts) — credit: Dr revenue/returns (+ tax), Cr AR; debit:
-// Dr AR, Cr revenue (+ tax).
+// the real revenue accounts). Debit: Dr AR, Cr revenue (+ tax). Credit: Dr revenue
+// (+ tax), Cr AR for the applied portion and Cr 2140 customer-credit for the rest.
 function noteRecap(n: CreditNote): { dr: RecapRow[]; cr: RecapRow[] } {
   const debit = n.kind === "DEBIT";
   const lines = n.lines.length
@@ -102,8 +102,14 @@ function noteRecap(n: CreditNote): { dr: RecapRow[]; cr: RecapRow[] } {
     rev.push({ code: l.revenue_account || "—", name: debit ? "Revenue" : "Revenue / returns", amount: l.net_amount });
     if (l.tax_amount) rev.push({ code: "TAX", name: debit ? "Output tax" : "Output tax reversal", amount: l.tax_amount });
   }
-  const ar: RecapRow = { code: "AR", name: "Accounts Receivable (control)", amount: n.total };
-  return debit ? { dr: [ar], cr: rev } : { dr: rev, cr: [ar] };
+  if (debit) {
+    return { dr: [{ code: "AR", name: "Accounts Receivable (control)", amount: n.total }], cr: rev };
+  }
+  const cr: RecapRow[] = [];
+  if (n.allocated_amount > 0) cr.push({ code: "AR", name: "Accounts Receivable (control)", amount: n.allocated_amount });
+  if (n.unallocated_amount > 0) cr.push({ code: "2140", name: "Customer credit", amount: n.unallocated_amount });
+  if (cr.length === 0) cr.push({ code: "AR", name: "Accounts Receivable (control)", amount: n.total });
+  return { dr: rev, cr };
 }
 
 export function CreditNotesTab({ entity, currency }: { entity: string; currency?: string | null }) {
@@ -251,7 +257,7 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
               <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">GL posting</p>
               <PostingRecap
                 title={`${kindLabel(note.kind)} posting`} dr={recap.dr} cr={recap.cr} currency={currency}
-                helper="This recaps the journal booked when the note was posted. Applying the credit to invoices is sub-ledger only — no new posting."
+                helper="This recaps the journal booked when the note was posted. Applying the credit to invoices reclassifies it from customer credit (2140) back to AR — a new journal posts."
               />
             </div>
           ) : null}
@@ -309,8 +315,12 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
   const recap = useMemo(() => {
     const rev: RecapRow = { code: account || "—", name: debit ? "Income" : "Revenue (reversed)", amount };
     const ar: RecapRow = { code: "AR", name: "Accounts Receivable (control)", amount };
-    return debit ? { dr: [ar], cr: [rev] } : { dr: [rev], cr: [ar] };
-  }, [debit, account, amount]);
+    if (debit) return { dr: [ar], cr: [rev] };
+    // A credit applied on issue settles invoices (Cr AR); otherwise it sits as
+    // customer credit (Cr 2140) until applied or refunded.
+    const target: RecapRow = applyNow ? ar : { code: "2140", name: "Customer credit", amount };
+    return { dr: [rev], cr: [target] };
+  }, [debit, account, amount, applyNow]);
 
   const canSubmit = !!customer && !!account && amount > 0 && reason.trim() !== "";
 

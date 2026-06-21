@@ -64,10 +64,21 @@ these exactly so a new screen reads like AR:
 
 ## Honesty rules
 Never fake an action. Email-type actions (Email receipt, Send statement) are
-present but **disabled with a tooltip** until an email service exists. "Allocation
-posting" / "Posting on receipt" panels **recap the real journal** (Dr bank · Cr AR)
-and label the bank line "already debited on the receipt" — allocation is a
-sub-ledger act with **no new GL posting**. Print = `window.print()`.
+present but **disabled with a tooltip** until an email service exists. Posting
+panels **recap the real journal**. Print = `window.print()`.
+
+## Customer credit is a liability (2140), AR never negative
+Customer credit (overpayments, unapplied credit notes) lives in **2140 Customer
+Credit Balances** (a current-liability control), never as a credit balance on AR.
+Posting is **split at source**:
+- **Receipt**: `Dr Bank · Cr AR (applied) · Cr 2140 (excess)`.
+- **Credit note**: `Dr Revenue · Cr AR (applied) · Cr 2140 (unapplied)`.
+- **Apply stored credit** to invoices later: `Dr 2140 · Cr AR` (a **real** journal —
+  allocation is no longer GL-free; recaps/wording say so).
+- **Refund**: `Dr 2140 · Cr Bank`, capped at the customer's available credit
+  (`customer_credit_balance` = unapplied receipts + unapplied credit notes − refunds).
+Existing negative-AR credit was reclassed once via
+`python manage.py backfill_customer_credit --commit` (idempotent, dry-run default).
 
 ## Receivables — status
 **Done (redesigned to prototype):**
