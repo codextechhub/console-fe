@@ -155,7 +155,18 @@ Existing negative-AR credit was reclassed once via
 - New journal + New account converted to drawers; sidebar scroll persists.
 
 **Receivables area: COMPLETE** (redesigned to prototype). **Next:**
-Payroll, Budgets/Assets/Tax, Reports.
+Budgets/Assets/Tax, Reports.
+
+**Operations → Payroll: DONE** (redesigned to prototype). Tabs **Payroll runs** +
+**Employee salaries** (roster). Runs: KPIs + table (run · period · pay date ·
+employees · gross · deductions · net · status) + run detail (Gross/PAYE/Pension/
+Net/Status cards + payslips table, per-employee figures FLS-masked, printable
+payslip) + Post / Pay. New run **generates from the roster** or manual lines.
+Backend: new **EmployeeSalary** model + CRUD (gated payrollrun perms, FLS on
+amounts) + `generate_run_from_roster` (`POST /payroll-runs/generate/`). Migration
+0013. Honest: dropped the prototype's Salary-structures / Statutory-returns tabs
+and Statutory-pack (not modeled; PAYE/pension remit via Tax Remittance). Demo: 4
+employees + a posted June run on CODEX.
 
 **Operations → Petty Cash: DONE** (redesigned to prototype). Fund-centric float
 register: fund selector + KPIs (float ceiling / current / spent-this-week /
