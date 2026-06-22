@@ -174,11 +174,20 @@ or manual lines. The accrual-booked, awaiting-payment status reads **"Calculated
 - **Employee salaries** — gains an optional `structure` FK: with one, PAYE/pension/
   net are **derived** (drawer shows a read-only live breakdown); without one, the
   flat manual fields still work. Roster table shows the structure.
-- **Payslips** — every line flattened across runs, searchable, printable (the
-  payslip itemises earning tranches + each deduction when a structure was used).
-- **Statutory returns** — filing-ready PAYE & pension schedules per posted run
-  (per-employee breakdown printed for filing); schedule actions disabled w/ tooltip
-  without the sensitive grant. PAYE/pension are settled under Tax Remittance.
+- **Payslips** — every line flattened across runs, searchable; **rows open a drawer**
+  with gross/net cards + the earnings/deductions/net breakdown (itemised when a
+  structure populated the line) and **Print payslip** (inline Print kept too).
+- **Statutory returns** — filing-ready PAYE & pension schedules per posted run;
+  **rows open a drawer** with the per-employee schedule, both print buttons, and
+  **remittance status** = the real outstanding balance of the run's PAYE/pension
+  payable accounts, matched to the **trial balance** by `account_id` (serializer now
+  exposes `paye_/pension_payable_account` + ids). Honest: it's the entity-wide account
+  balance (remittance isn't tracked per run — never a faked per-run "remitted"), shows
+  "—" if the trial balance is forbidden/unloaded, with a Tax Remittance link. Schedule
+  actions disabled w/ tooltip without the sensitive grant.
+- The salary-structure component editor makes the **% vs ₦** choice explicit (method
+  "Fixed ₦ amount", "%" suffix on rate rows). Component value is % **or** amount (no
+  hybrid).
 
 Backend: `EmployeeSalary` + `SalaryStructure`/`SalaryComponent` + CRUD (all gated
 on payrollrun perms; amounts FLS, structures not), `generate_run_from_roster`
