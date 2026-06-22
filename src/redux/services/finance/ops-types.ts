@@ -196,6 +196,17 @@ export interface PayrollLine {
   _stripped_fields?: string[];
 }
 
+export interface EmployeeSalary {
+  id: number;
+  name: string;
+  gross_amount?: number; // FLS
+  paye_amount?: number; // FLS
+  pension_amount?: number; // FLS
+  net_amount?: number; // FLS
+  cost_center: string | null;
+  is_active: boolean;
+  _stripped_fields?: string[];
+}
 export interface PayrollRun {
   id: number;
   document_number: string;
