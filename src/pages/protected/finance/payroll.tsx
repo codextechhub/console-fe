@@ -39,7 +39,7 @@ const fmtDate = (s: string) => new Date(s).toLocaleDateString();
 
 const RUN_STATUS: Record<string, { label: string; cls: string }> = {
   DRAFT: { label: "Draft", cls: "bg-gray-03/60 text-gray-05" },
-  POSTED: { label: "Posted", cls: "bg-blue-50 text-blue-700" },
+  POSTED: { label: "Calculated", cls: "bg-blue-50 text-blue-700" },
   PAID: { label: "Paid", cls: "bg-green-01/10 text-green-01" },
   CANCELLED: { label: "Cancelled", cls: "bg-destructive/10 text-destructive" },
 };
@@ -129,7 +129,7 @@ function RunsTab({ entity, currency }: { entity: string; currency?: string | nul
         <Kpi label="Payroll runs" value={String(kpis.runs)} />
         <Kpi label="Employees (latest run)" value={String(kpis.employees)} />
         <Kpi label="Net pay (latest run)" value={formatMoney(kpis.net, currency)} />
-        <Kpi label="Awaiting payment" value={formatMoney(kpis.toPay, currency)} danger={kpis.toPay > 0} hint="Posted, not yet disbursed" />
+        <Kpi label="Awaiting payment" value={formatMoney(kpis.toPay, currency)} danger={kpis.toPay > 0} hint="Calculated, not yet paid" />
       </div>
 
       <div className="flex justify-end">
@@ -166,7 +166,7 @@ function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null;
           <>
             <RunPill status={r.run_status} />
             <div className="flex-1" />
-            {r.run_status === "DRAFT" ? <Can permission={P.FIN_POST_PAYROLL}><Button disabled={posting} onClick={doPost} className="gap-1.5"><Banknote className="size-4" />{posting ? "Posting…" : "Post run"}</Button></Can> : null}
+            {r.run_status === "DRAFT" ? <Can permission={P.FIN_POST_PAYROLL}><Button disabled={posting} onClick={doPost} className="gap-1.5"><Banknote className="size-4" />{posting ? "Posting…" : "Calculate & post"}</Button></Can> : null}
             {r.run_status === "POSTED" ? <Can permission={P.FIN_PAY_PAYROLL}><Button onClick={() => setPaying(true)} className="gap-1.5"><Banknote className="size-4" /> Pay net</Button></Can> : null}
           </>
         }>
