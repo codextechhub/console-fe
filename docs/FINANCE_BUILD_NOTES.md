@@ -157,16 +157,35 @@ Existing negative-AR credit was reclassed once via
 **Receivables area: COMPLETE** (redesigned to prototype). **Next:**
 Budgets/Assets/Tax, Reports.
 
-**Operations → Payroll: DONE** (redesigned to prototype). Tabs **Payroll runs** +
-**Employee salaries** (roster). Runs: KPIs + table (run · period · pay date ·
-employees · gross · deductions · net · status) + run detail (Gross/PAYE/Pension/
-Net/Status cards + payslips table, per-employee figures FLS-masked, printable
-payslip) + Post / Pay. New run **generates from the roster** or manual lines.
-Backend: new **EmployeeSalary** model + CRUD (gated payrollrun perms, FLS on
-amounts) + `generate_run_from_roster` (`POST /payroll-runs/generate/`). Migration
-0013. Honest: dropped the prototype's Salary-structures / Statutory-returns tabs
-and Statutory-pack (not modeled; PAYE/pension remit via Tax Remittance). Demo: 4
-employees + a posted June run on CODEX.
+**Operations → Payroll: DONE** (redesigned to prototype, then extended into a
+versatile bureau-style module). **Five tabs**: Payroll runs · Employee salaries ·
+Salary structures · Payslips · Statutory returns. Runs: KPIs + table + run detail
+(Gross/PAYE/Pension/Net/Status cards + payslips table, per-employee figures
+FLS-masked, printable payslip) + Post / Pay; New run **generates from the roster**
+or manual lines. The accrual-booked, awaiting-payment status reads **"Calculated"**
+(not "Posted" — that read as paid); backend `run_status` is still `POSTED`.
+- **Salary structures** — reusable pay templates (`SalaryStructure` +
+  `SalaryComponent`): earning/deduction components as **% of gross / % of basic /
+  fixed** (`rate_bps`, `is_basic`, `statutory_type`). `apply_structure(gross,
+  structure)` derives basic/PAYE/pension/net + a per-payslip `components` snapshot;
+  `net = gross − PAYE − pension` always, so the journal balances. Deductions must be
+  PAYE or pension (NONE rejected) — other deduction types (loans/union) are a noted
+  backend expansion. Editor has a live preview on a sample gross.
+- **Employee salaries** — gains an optional `structure` FK: with one, PAYE/pension/
+  net are **derived** (drawer shows a read-only live breakdown); without one, the
+  flat manual fields still work. Roster table shows the structure.
+- **Payslips** — every line flattened across runs, searchable, printable (the
+  payslip itemises earning tranches + each deduction when a structure was used).
+- **Statutory returns** — filing-ready PAYE & pension schedules per posted run
+  (per-employee breakdown printed for filing); schedule actions disabled w/ tooltip
+  without the sensitive grant. PAYE/pension are settled under Tax Remittance.
+
+Backend: `EmployeeSalary` + `SalaryStructure`/`SalaryComponent` + CRUD (all gated
+on payrollrun perms; amounts FLS, structures not), `generate_run_from_roster`
+(`POST /payroll-runs/generate/`), `PayrollLine.components` JSON. Migrations 0013
+(EmployeeSalary) + 0014 (structures + components). Tests: structure derivation,
+NONE-deduction rejected, run copies derived figures + snapshot, can't delete an
+assigned structure. Demo: 4 employees + a posted June run on CODEX.
 
 **Operations → Petty Cash: DONE** (redesigned to prototype). Fund-centric float
 register: fund selector + KPIs (float ceiling / current / spent-this-week /
