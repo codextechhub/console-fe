@@ -183,6 +183,14 @@ export interface PettyCashVoucher {
 }
 
 // ── Payroll (FLS on per-employee figures) ────────────────────────────────────
+// A computed payslip line item (snapshot copied from the salary structure).
+export interface PayslipComponent {
+  name: string;
+  kind: "EARNING" | "DEDUCTION";
+  statutory_type: "NONE" | "PAYE" | "PENSION";
+  amount: number; // kobo
+}
+
 export interface PayrollLine {
   id: number;
   line_no: number;
@@ -192,6 +200,7 @@ export interface PayrollLine {
   paye_amount?: number; // FLS
   pension_amount?: number; // FLS
   net_amount?: number; // FLS
+  components?: PayslipComponent[]; // FLS
   cost_center: string | null;
   _stripped_fields?: string[];
 }
@@ -199,13 +208,42 @@ export interface PayrollLine {
 export interface EmployeeSalary {
   id: number;
   name: string;
+  structure_id: number | null;
+  structure_name: string | null;
   gross_amount?: number; // FLS
-  paye_amount?: number; // FLS
+  paye_amount?: number; // FLS (derived when a structure is set)
   pension_amount?: number; // FLS
   net_amount?: number; // FLS
+  components?: PayslipComponent[]; // FLS
   cost_center: string | null;
   is_active: boolean;
   _stripped_fields?: string[];
+}
+
+// ── Salary structures (reusable pay templates) ───────────────────────────────
+export type SalaryComponentKind = "EARNING" | "DEDUCTION";
+export type SalaryCalcMethod = "FIXED" | "PERCENT_OF_GROSS" | "PERCENT_OF_BASIC";
+export type StatutoryType = "NONE" | "PAYE" | "PENSION";
+
+export interface SalaryComponent {
+  id?: number;
+  name: string;
+  kind: SalaryComponentKind;
+  calc_method: SalaryCalcMethod;
+  rate_bps: number; // basis points (4000 = 40%)
+  amount: number; // kobo, for FIXED
+  is_basic: boolean;
+  statutory_type: StatutoryType;
+  sequence: number;
+}
+
+export interface SalaryStructure {
+  id: number;
+  name: string;
+  description: string;
+  is_active: boolean;
+  components: SalaryComponent[];
+  employee_count: number;
 }
 export interface PayrollRun {
   id: number;

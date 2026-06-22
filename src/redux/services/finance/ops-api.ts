@@ -16,6 +16,8 @@ import type {
   FixedAsset,
   EmployeeSalary,
   PayrollRun,
+  SalaryComponent,
+  SalaryStructure,
   PettyCashFund,
   PettyCashFundDetail,
   PettyCashVoucher,
@@ -179,16 +181,34 @@ export const opsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/employee-salaries/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePayroll"],
     }),
-    createEmployeeSalary: b.mutation<ApiEnvelope<EmployeeSalary>, { entity: string; name: string; gross_amount: number; paye_amount?: number; pension_amount?: number; cost_center?: string }>({
+    createEmployeeSalary: b.mutation<ApiEnvelope<EmployeeSalary>, { entity: string; name: string; gross_amount: number; structure?: number; paye_amount?: number; pension_amount?: number; cost_center?: string }>({
       query: ({ entity, ...body }) => ({ url: `/finance/employee-salaries/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePayroll"],
     }),
-    updateEmployeeSalary: b.mutation<ApiEnvelope<EmployeeSalary>, { id: number; entity: string; name?: string; gross_amount?: number; paye_amount?: number; pension_amount?: number; cost_center?: string; is_active?: boolean }>({
+    updateEmployeeSalary: b.mutation<ApiEnvelope<EmployeeSalary>, { id: number; entity: string; name?: string; gross_amount?: number; structure?: number | null; paye_amount?: number; pension_amount?: number; cost_center?: string; is_active?: boolean }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/employee-salaries/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinancePayroll"],
     }),
     deleteEmployeeSalary: b.mutation<ApiEnvelope<unknown>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({ url: `/finance/employee-salaries/${id}/${qs({ entity })}`, method: "DELETE" }),
+      invalidatesTags: ["FinancePayroll"],
+    }),
+
+    // Salary structures (reusable pay templates)
+    getSalaryStructures: b.query<ApiEnvelope<SalaryStructure[]>, { entity: string; is_active?: string }>({
+      query: (p) => ({ url: `/finance/salary-structures/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinancePayroll"],
+    }),
+    createSalaryStructure: b.mutation<ApiEnvelope<SalaryStructure>, { entity: string; name: string; description?: string; is_active?: boolean; components: SalaryComponent[] }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/salary-structures/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinancePayroll"],
+    }),
+    updateSalaryStructure: b.mutation<ApiEnvelope<SalaryStructure>, { id: number; entity: string; name?: string; description?: string; is_active?: boolean; components?: SalaryComponent[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/salary-structures/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["FinancePayroll"],
+    }),
+    deleteSalaryStructure: b.mutation<ApiEnvelope<unknown>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/salary-structures/${id}/${qs({ entity })}`, method: "DELETE" }),
       invalidatesTags: ["FinancePayroll"],
     }),
 
@@ -291,6 +311,10 @@ export const {
   useCreateEmployeeSalaryMutation,
   useUpdateEmployeeSalaryMutation,
   useDeleteEmployeeSalaryMutation,
+  useGetSalaryStructuresQuery,
+  useCreateSalaryStructureMutation,
+  useUpdateSalaryStructureMutation,
+  useDeleteSalaryStructureMutation,
   useGetBudgetsQuery,
   useCreateBudgetMutation,
   useApproveBudgetMutation,

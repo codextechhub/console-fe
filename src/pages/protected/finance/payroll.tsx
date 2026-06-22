@@ -1,18 +1,20 @@
-// Payroll (§6.7), rebuilt to the Vision prototype in the house theme: two tabs —
-// Payroll runs and Employee salaries (the roster). A run shows Gross/PAYE/Pension/
-// Net metric cards and a payslips table (per-employee figures FLS-masked unless the
-// caller holds finance.payrollrun.view_sensitive); runs can be generated from the
-// roster, posted, paid, and each payslip printed.
+// Payroll (§6.7), rebuilt to the Vision prototype in the house theme: five tabs —
+// Payroll runs, Employee salaries (the roster), Salary structures, Payslips and
+// Statutory returns. Salaries can be split into tranches via a reusable structure
+// (earning/deduction components as % of gross or basic); PAYE/pension/net are then
+// derived. Per-employee figures are FLS-masked unless the caller holds
+// finance.payrollrun.view_sensitive; runs can be generated from the roster, posted,
+// paid, and each payslip / statutory schedule printed.
 //
-// Honest adaptations: we build Payroll runs + the Employee-salary roster the prototype's
-// "Salary structures" / "Statutory returns" tabs and "Statutory pack" aren't modeled
-// (PAYE/pension remit via Tax Remittance), and a payslip is the line's gross/PAYE/
-// pension/net (no allowance/benefit breakdown).
+// Honest adaptations: deductions route only to PAYE/pension (the two payables the GL
+// has) — other deduction types (loans/union) are a noted backend expansion. Statutory
+// schedules need per-employee figures, so they're disabled (with a tooltip) without the
+// sensitive grant. PAYE/pension are remitted via Tax Remittance.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { Plus, Trash2, Search, Sparkles, Banknote, Printer, Pencil, FileText, Users } from "lucide-react";
+import { Plus, Trash2, Search, Sparkles, Banknote, Printer, Pencil, FileText, Users, Layers3, ScrollText, Landmark } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CostCenterPicker, Segmented, InfoHint, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
@@ -27,9 +29,10 @@ import {
   useGetPayrollRunsQuery, useGetPayrollRunQuery, usePostPayrollRunMutation,
   usePayPayrollRunMutation, useCreatePayrollRunMutation, useGeneratePayrollRunMutation,
   useGetEmployeeSalariesQuery, useCreateEmployeeSalaryMutation, useUpdateEmployeeSalaryMutation,
-  useDeleteEmployeeSalaryMutation,
+  useDeleteEmployeeSalaryMutation, useGetSalaryStructuresQuery, useCreateSalaryStructureMutation,
+  useUpdateSalaryStructureMutation, useDeleteSalaryStructureMutation,
 } from "@/redux/services/finance/ops-api";
-import type { PayrollLine, PayrollRun, EmployeeSalary } from "@/redux/services/finance/ops-types";
+import type { PayrollLine, PayrollRun, EmployeeSalary, SalaryStructure, SalaryComponent, PayslipComponent } from "@/redux/services/finance/ops-types";
 
 const todayISO = new Date().toISOString().slice(0, 10);
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
@@ -61,7 +64,45 @@ function Kpi({ label, value, hint, danger }: { label: string; value: string; hin
   );
 }
 
-const TABS = [{ key: "runs", label: "Payroll runs", icon: FileText }, { key: "employees", label: "Employee salaries", icon: Users }] as const;
+// Native select styled to match the house pickers (h-9). Used for the salary-structure
+// dropdown and the component editor's small enum selects.
+function Select({ value, onChange, children, className }: { value: string; onChange: (v: string) => void; children: ReactNode; className?: string }) {
+  return (
+    <select value={value} onChange={(e) => onChange(e.target.value)}
+      className={cn("h-9 w-full rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      {children}
+    </select>
+  );
+}
+
+// Mirror of the backend apply_structure: earnings split the gross; deductions tagged
+// PAYE/pension reduce it to net. Used for the live preview as the user types.
+function deriveFromStructure(gross: number, components: SalaryComponent[]) {
+  const value = (c: SalaryComponent, basic: number) => {
+    if (c.calc_method === "FIXED") return c.amount || 0;
+    const base = c.calc_method === "PERCENT_OF_BASIC" ? basic : gross;
+    return Math.floor((base * (c.rate_bps || 0)) / 10000);
+  };
+  const basic = components.filter((c) => c.kind === "EARNING" && c.is_basic).reduce((s, c) => s + value(c, 0), 0);
+  let paye = 0, pension = 0;
+  const lines: PayslipComponent[] = components.map((c) => {
+    const amount = value(c, basic);
+    if (c.kind === "DEDUCTION") {
+      if (c.statutory_type === "PAYE") paye += amount;
+      else if (c.statutory_type === "PENSION") pension += amount;
+    }
+    return { name: c.name, kind: c.kind, statutory_type: c.statutory_type, amount };
+  });
+  return { basic, paye, pension, net: gross - paye - pension, lines };
+}
+
+const TABS = [
+  { key: "runs", label: "Payroll runs", icon: FileText },
+  { key: "employees", label: "Employee salaries", icon: Users },
+  { key: "structures", label: "Salary structures", icon: Layers3 },
+  { key: "payslips", label: "Payslips", icon: ScrollText },
+  { key: "statutory", label: "Statutory returns", icon: Landmark },
+] as const;
 
 export default function PayrollPage() {
   const { code: entity, currency } = useActiveEntity();
@@ -89,7 +130,11 @@ export default function PayrollPage() {
           ))}
         </div>
 
-        {tab === "runs" ? <RunsTab entity={entity} currency={currency} /> : <EmployeesTab entity={entity} currency={currency} />}
+        {tab === "runs" ? <RunsTab entity={entity} currency={currency} />
+          : tab === "employees" ? <EmployeesTab entity={entity} currency={currency} />
+          : tab === "structures" ? <StructuresTab entity={entity} currency={currency} />
+          : tab === "payslips" ? <PayslipsTab entity={entity} currency={currency} />
+          : <StatutoryTab entity={entity} currency={currency} />}
       </main>
     </FinanceShell>
   );
@@ -343,6 +388,7 @@ function EmployeesTab({ entity, currency }: { entity: string; currency?: string 
 
   const cols: Column<EmployeeSalary>[] = [
     { header: "Employee", cell: (e) => <span className="font-medium text-gray-01">{e.name}</span> },
+    { header: "Structure", cell: (e) => e.structure_name ? <span className={cn(PILL, "bg-blue-50 text-blue-700")}>{e.structure_name}</span> : <span className="font-mont text-[11px] text-gray-05">Flat</span> },
     { header: "Cost center", cell: (e) => <span className="tabular-nums text-gray-05">{e.cost_center || "—"}</span> },
     { header: "Gross", align: "right", cell: (e) => maskedMoney(e, "gross_amount", e.gross_amount, currency) },
     { header: "PAYE", align: "right", cell: (e) => maskedMoney(e, "paye_amount", e.paye_amount, currency) },
@@ -381,11 +427,14 @@ function EmployeesTab({ entity, currency }: { entity: string; currency?: string 
 function EmployeeDrawer({ open, salary, entity, currency, onClose }: { open: boolean; salary: EmployeeSalary | null; entity: string; currency?: string | null; onClose: () => void }) {
   const isEdit = !!salary;
   const [name, setName] = useState("");
+  const [structureId, setStructureId] = useState("");
   const [gross, setGross] = useState(0);
   const [paye, setPaye] = useState(0);
   const [pension, setPension] = useState(0);
   const [costCenter, setCostCenter] = useState("");
   const [active, setActive] = useState(true);
+  const { data: structData } = useGetSalaryStructuresQuery({ entity, is_active: "true" }, { skip: !open });
+  const structures = useMemo(() => toArray(structData?.data), [structData]);
   const [create, { isLoading: creating }] = useCreateEmployeeSalaryMutation();
   const [update, { isLoading: updating }] = useUpdateEmployeeSalaryMutation();
   const isLoading = creating || updating;
@@ -393,14 +442,21 @@ function EmployeeDrawer({ open, salary, entity, currency, onClose }: { open: boo
   // Sync the form to the row being edited (amounts only populate if not FLS-stripped).
   useEffect(() => {
     if (!open) return;
-    if (salary) { setName(salary.name); setGross(salary.gross_amount ?? 0); setPaye(salary.paye_amount ?? 0); setPension(salary.pension_amount ?? 0); setCostCenter(salary.cost_center ?? ""); setActive(salary.is_active); }
-    else { setName(""); setGross(0); setPaye(0); setPension(0); setCostCenter(""); setActive(true); }
+    if (salary) { setName(salary.name); setStructureId(salary.structure_id ? String(salary.structure_id) : ""); setGross(salary.gross_amount ?? 0); setPaye(salary.paye_amount ?? 0); setPension(salary.pension_amount ?? 0); setCostCenter(salary.cost_center ?? ""); setActive(salary.is_active); }
+    else { setName(""); setStructureId(""); setGross(0); setPaye(0); setPension(0); setCostCenter(""); setActive(true); }
   }, [open, salary]);
+
+  const structure = structures.find((s) => String(s.id) === structureId);
+  const derived = structure ? deriveFromStructure(gross, structure.components) : null;
 
   const submit = async () => {
     try {
-      if (isEdit && salary) { const r = await update({ id: salary.id, entity, name: name.trim(), gross_amount: gross, paye_amount: paye, pension_amount: pension, cost_center: costCenter || undefined, is_active: active }).unwrap(); toast.success(r.message || "Updated."); }
-      else { const r = await create({ entity, name: name.trim(), gross_amount: gross, paye_amount: paye, pension_amount: pension, cost_center: costCenter || undefined }).unwrap(); toast.success(r.message || "Employee added."); }
+      const base = { name: name.trim(), gross_amount: gross, cost_center: costCenter || undefined,
+        structure: structure ? structure.id : (null as number | null),
+        // In flat mode the manual figures are sent; with a structure they're derived server-side.
+        ...(structure ? {} : { paye_amount: paye, pension_amount: pension }) };
+      if (isEdit && salary) { const r = await update({ id: salary.id, entity, is_active: active, ...base }).unwrap(); toast.success(r.message || "Updated."); }
+      else { const r = await create({ entity, ...base, structure: structure ? structure.id : undefined }).unwrap(); toast.success(r.message || "Employee added."); }
       onClose();
     } catch { /* central */ }
   };
@@ -419,35 +475,348 @@ function EmployeeDrawer({ open, salary, entity, currency, onClose }: { open: boo
           <FormField label="Gross (monthly)" required><MoneyInput valueKobo={gross} onChangeKobo={setGross} currency={currency} className="[&_input]:h-9" /></FormField>
           <FormField label="Cost center"><CostCenterPicker entity={entity} value={costCenter} onChange={setCostCenter} /></FormField>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="PAYE"><MoneyInput valueKobo={paye} onChangeKobo={setPaye} currency={currency} className="[&_input]:h-9" /></FormField>
-          <FormField label="Pension"><MoneyInput valueKobo={pension} onChangeKobo={setPension} currency={currency} className="[&_input]:h-9" /></FormField>
+        <div>
+          <FormField label="Salary structure">
+            <Select value={structureId} onChange={setStructureId}>
+              <option value="">Flat (manual PAYE / pension)</option>
+              {structures.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </Select>
+          </FormField>
+          <p className="mt-1 font-mont text-[11px] text-gray-05">{structure ? "PAYE, pension and net are derived from the structure applied to gross." : "Flat — enter PAYE and pension manually below."}</p>
         </div>
-        <div className="flex items-center justify-between rounded-md border border-gray-03 bg-gray-03 px-3 py-2">
-          <span className="font-mont text-[11px] text-gray-05">Net (take-home)</span>
-          <span className="font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(gross - paye - pension, currency)}</span>
-        </div>
+
+        {structure && derived ? (
+          <div className="rounded-md border border-gray-03 bg-white">
+            <p className="border-b border-gray-03 px-3 py-2 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Derived breakdown</p>
+            <div className="divide-y divide-gray-03">
+              {derived.lines.map((l, i) => (
+                <div key={i} className="flex items-center justify-between px-3 py-1.5 font-mont text-xs">
+                  <span className={cn(l.kind === "DEDUCTION" ? "text-gray-05" : "text-black-01")}>{l.name}{l.kind === "DEDUCTION" ? <span className="ml-1 text-[10px] text-gray-05">({l.statutory_type})</span> : null}</span>
+                  <span className={cn("tabular-nums", l.kind === "DEDUCTION" ? "text-destructive" : "text-black-01")}>{l.kind === "DEDUCTION" ? "− " : ""}{formatMoney(l.amount, currency)}</span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between bg-gray-03 px-3 py-2 font-mont text-xs font-semibold">
+                <span>Net (take-home)</span>
+                <span className="tabular-nums">{formatMoney(derived.net, currency)}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="PAYE"><MoneyInput valueKobo={paye} onChangeKobo={setPaye} currency={currency} className="[&_input]:h-9" /></FormField>
+              <FormField label="Pension"><MoneyInput valueKobo={pension} onChangeKobo={setPension} currency={currency} className="[&_input]:h-9" /></FormField>
+            </div>
+            <div className="flex items-center justify-between rounded-md border border-gray-03 bg-gray-03 px-3 py-2">
+              <span className="font-mont text-[11px] text-gray-05">Net (take-home)</span>
+              <span className="font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(gross - paye - pension, currency)}</span>
+            </div>
+          </>
+        )}
         {isEdit ? <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-primary" /> Active (included in generated runs)</label> : null}
       </div>
     </DetailDrawer>
   );
 }
 
+// ── Salary structures ────────────────────────────────────────────────────────
+function StructuresTab({ entity, currency }: { entity: string; currency?: string | null }) {
+  const { can } = useCan();
+  const [editing, setEditing] = useState<SalaryStructure | "new" | null>(null);
+  const { data, isLoading, isFetching, isError, refetch } = useGetSalaryStructuresQuery({ entity });
+  const rows = useMemo(() => toArray(data?.data), [data]);
+  const [remove] = useDeleteSalaryStructureMutation();
+  const doRemove = async (id: number) => { try { await remove({ id, entity }).unwrap(); toast.success("Structure removed."); } catch { /* central */ } };
+
+  const summarize = (s: SalaryStructure) => {
+    const earn = s.components.filter((c) => c.kind === "EARNING").length;
+    const ded = s.components.filter((c) => c.kind === "DEDUCTION").length;
+    return `${earn} earning${earn === 1 ? "" : "s"} · ${ded} deduction${ded === 1 ? "" : "s"}`;
+  };
+
+  const cols: Column<SalaryStructure>[] = [
+    { header: "Structure", cell: (s) => <span className="font-medium text-gray-01">{s.name}</span> },
+    { header: "Components", cell: (s) => <span className="font-mont text-[11px] text-gray-05">{summarize(s)}</span> },
+    { header: "Employees", align: "right", cell: (s) => <span className="tabular-nums text-gray-05">{s.employee_count}</span> },
+    { header: "Status", cell: (s) => <span className={cn(PILL, s.is_active ? "bg-green-01/10 text-green-01" : "bg-gray-03/60 text-gray-05")}>{s.is_active ? "Active" : "Inactive"}</span> },
+    { header: "", align: "right", cell: (s) => can(P.FIN_CREATE_PAYROLL) ? (
+      <span className="inline-flex items-center gap-2">
+        <button type="button" onClick={(e) => { e.stopPropagation(); setEditing(s); }} className="text-gray-05 hover:text-primary" aria-label="Edit"><Pencil className="size-3.5" /></button>
+        <button type="button" onClick={(e) => { e.stopPropagation(); doRemove(s.id); }} className="text-gray-05 hover:text-destructive" aria-label="Remove"><Trash2 className="size-3.5" /></button>
+      </span>
+    ) : null },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="max-w-xl font-mont text-xs text-gray-05">Reusable pay templates — split gross into tranches (Basic, Housing…) and set PAYE & pension as a % of gross or basic. Assign one to an employee and their figures are derived.</p>
+        <Can permission={P.FIN_CREATE_PAYROLL}><Button onClick={() => setEditing("new")} className="gap-1.5"><Plus className="size-4" /> New structure</Button></Can>
+      </div>
+      <DataTable columns={cols} rows={rows} rowKey={(s) => s.id} loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(s) => setEditing(s)}
+        emptyTitle="No salary structures" emptyMessage="Create a structure to split salaries into components and derive PAYE/pension." />
+      <StructureDrawer open={editing !== null} structure={editing === "new" ? null : editing} entity={entity} currency={currency} onClose={() => setEditing(null)} />
+    </div>
+  );
+}
+
+const KIND_OPTS: [SalaryComponent["kind"], string][] = [["EARNING", "Earning"], ["DEDUCTION", "Deduction"]];
+const METHOD_OPTS: [SalaryComponent["calc_method"], string][] = [["PERCENT_OF_GROSS", "% of gross"], ["PERCENT_OF_BASIC", "% of basic"], ["FIXED", "Fixed"]];
+const emptyComp = (kind: SalaryComponent["kind"] = "EARNING"): SalaryComponent => ({
+  name: "", kind, calc_method: "PERCENT_OF_GROSS", rate_bps: 0, amount: 0,
+  is_basic: false, statutory_type: kind === "DEDUCTION" ? "PAYE" : "NONE", sequence: 0,
+});
+
+function StructureDrawer({ open, structure, entity, currency, onClose }: { open: boolean; structure: SalaryStructure | null; entity: string; currency?: string | null; onClose: () => void }) {
+  const isEdit = !!structure;
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [active, setActive] = useState(true);
+  const [comps, setComps] = useState<SalaryComponent[]>([emptyComp()]);
+  const [previewGross, setPreviewGross] = useState(50000000);
+  const [create, { isLoading: creating }] = useCreateSalaryStructureMutation();
+  const [update, { isLoading: updating }] = useUpdateSalaryStructureMutation();
+  const isLoading = creating || updating;
+
+  useEffect(() => {
+    if (!open) return;
+    if (structure) { setName(structure.name); setDescription(structure.description); setActive(structure.is_active); setComps(structure.components.length ? structure.components.map((c) => ({ ...c })) : [emptyComp()]); }
+    else { setName(""); setDescription(""); setActive(true); setComps([emptyComp()]); }
+    setPreviewGross(50000000);
+  }, [open, structure]);
+
+  const setComp = (i: number, patch: Partial<SalaryComponent>) => setComps((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
+  const setKind = (i: number, kind: SalaryComponent["kind"]) => setComp(i, kind === "DEDUCTION"
+    ? { kind, statutory_type: comps[i].statutory_type === "NONE" ? "PAYE" : comps[i].statutory_type, is_basic: false }
+    : { kind, statutory_type: "NONE" });
+
+  const valid = (c: SalaryComponent) => c.name.trim() && (c.calc_method === "FIXED" ? c.amount > 0 : c.rate_bps > 0);
+  const canSubmit = !!name.trim() && comps.length > 0 && comps.every(valid);
+  const preview = useMemo(() => deriveFromStructure(previewGross, comps), [previewGross, comps]);
+
+  const submit = async () => {
+    const payload = comps.map((c, i) => ({ ...c, name: c.name.trim(), sequence: i }));
+    try {
+      if (isEdit && structure) { const r = await update({ id: structure.id, entity, name: name.trim(), description: description.trim(), is_active: active, components: payload }).unwrap(); toast.success(r.message || "Structure updated."); }
+      else { const r = await create({ entity, name: name.trim(), description: description.trim(), is_active: active, components: payload }).unwrap(); toast.success(r.message || "Structure created."); }
+      onClose();
+    } catch { /* central */ }
+  };
+
+  return (
+    <DetailDrawer open={open} onOpenChange={(o) => (o ? undefined : onClose())}
+      title={isEdit ? "Edit salary structure" : "New salary structure"} description="Earnings split the gross; deductions tagged PAYE / pension reduce it to net."
+      widthClass="sm:max-w-3xl"
+      footer={<>
+        <Button variant="outline" disabled={isLoading} onClick={onClose}>Cancel</Button>
+        <Button disabled={isLoading || !canSubmit} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Saving…" : isEdit ? "Save changes" : "Create structure"}</Button>
+      </>}>
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Structure name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Senior staff" className="h-9 bg-white" /></FormField>
+          <FormField label="Description"><Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional" className="h-9 bg-white" /></FormField>
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Components</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setComps((cs) => [...cs, emptyComp("EARNING")])} className="gap-1.5"><Plus className="size-3.5" /> Earning</Button>
+              <Button variant="outline" size="sm" onClick={() => setComps((cs) => [...cs, emptyComp("DEDUCTION")])} className="gap-1.5"><Plus className="size-3.5" /> Deduction</Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {comps.map((c, i) => (
+              <div key={i} className="flex items-start gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+                <div className="grid flex-1 grid-cols-12 gap-2">
+                  <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Name</p><Input value={c.name} onChange={(e) => setComp(i, { name: e.target.value })} placeholder={c.kind === "DEDUCTION" ? "e.g. PAYE" : "e.g. Basic"} className="h-9 bg-white text-sm" /></div>
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Type</p><Select value={c.kind} onChange={(v) => setKind(i, v as SalaryComponent["kind"])}>{KIND_OPTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></div>
+                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Method</p><Select value={c.calc_method} onChange={(v) => setComp(i, { calc_method: v as SalaryComponent["calc_method"] })}>{METHOD_OPTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></div>
+                  <div className="col-span-2">
+                    <p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">{c.calc_method === "FIXED" ? "Amount" : "Rate %"}</p>
+                    {c.calc_method === "FIXED"
+                      ? <MoneyInput valueKobo={c.amount} onChangeKobo={(k) => setComp(i, { amount: k })} currency={currency} className="[&_input]:h-9" />
+                      : <Input type="number" min={0} step="0.5" value={c.rate_bps ? c.rate_bps / 100 : ""} onChange={(e) => setComp(i, { rate_bps: Math.round(Number(e.target.value || 0) * 100) })} placeholder="0" className="h-9 bg-white text-sm" />}
+                  </div>
+                  <div className="col-span-12 flex items-center gap-3">
+                    {c.kind === "EARNING"
+                      ? <label className="flex items-center gap-1.5 font-mont text-[11px] text-gray-05"><input type="checkbox" checked={c.is_basic} onChange={(e) => setComp(i, { is_basic: e.target.checked })} className="accent-primary" /> Counts as basic (base for “% of basic”)</label>
+                      : <label className="flex items-center gap-1.5 font-mont text-[11px] text-gray-05">Remits to <Select value={c.statutory_type} onChange={(v) => setComp(i, { statutory_type: v as SalaryComponent["statutory_type"] })} className="h-7 w-28"><option value="PAYE">PAYE</option><option value="PENSION">Pension</option></Select></label>}
+                  </div>
+                </div>
+                <button type="button" onClick={() => setComps((cs) => cs.filter((_, idx) => idx !== i))} disabled={comps.length <= 1} className="mt-5 shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30"><Trash2 className="size-4" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-md border border-gray-03 bg-gray-03/40 p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Preview on a sample gross</p>
+            <div className="w-40"><MoneyInput valueKobo={previewGross} onChangeKobo={setPreviewGross} currency={currency} className="[&_input]:h-8" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3">
+            {preview.lines.map((l, i) => (
+              <div key={i} className="flex items-center justify-between font-mont text-[11px]">
+                <span className={l.kind === "DEDUCTION" ? "text-gray-05" : "text-black-01"}>{l.name}</span>
+                <span className={cn("tabular-nums", l.kind === "DEDUCTION" ? "text-destructive" : "text-black-01")}>{l.kind === "DEDUCTION" ? "− " : ""}{formatMoney(l.amount, currency)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 flex items-center justify-between border-t border-gray-03 pt-2 font-mont text-xs font-semibold">
+            <span>Net (take-home)</span><span className="tabular-nums">{formatMoney(preview.net, currency)}</span>
+          </div>
+        </div>
+
+        {isEdit ? <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-primary" /> Active</label> : null}
+      </div>
+    </DetailDrawer>
+  );
+}
+
+// ── Payslips (flattened across runs) ─────────────────────────────────────────
+type PayslipRow = { run: PayrollRun; line: PayrollLine };
+function PayslipsTab({ entity, currency }: { entity: string; currency?: string | null }) {
+  const [searchInput, setSearchInput] = useState("");
+  const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity });
+  const runs = useMemo(() => toArray(data?.data), [data]);
+  const rows = useMemo<PayslipRow[]>(() => {
+    const flat = runs.flatMap((run) => run.lines.map((line) => ({ run, line })));
+    const q = searchInput.trim().toLowerCase();
+    return q ? flat.filter(({ line }) => (line.employee_name || "").toLowerCase().includes(q)) : flat;
+  }, [runs, searchInput]);
+
+  const cols: Column<PayslipRow>[] = [
+    { header: "Employee", cell: ({ line }) => isStripped(line, "employee_name") ? <span className="text-gray-05">••••</span> : <span className="font-medium text-gray-01">{line.employee_name || "—"}</span> },
+    { header: "Period", cell: ({ run }) => run.period_label || "—" },
+    { header: "Run no.", cell: ({ run }) => <span className="tabular-nums text-gray-05">{run.document_number}</span> },
+    { header: "Pay date", cell: ({ run }) => <span className="tabular-nums text-gray-05">{fmtDate(run.pay_date)}</span> },
+    { header: "Gross", align: "right", cell: ({ line }) => maskedMoney(line, "gross_amount", line.gross_amount, currency) },
+    { header: "Net", align: "right", cell: ({ line }) => maskedMoney(line, "net_amount", line.net_amount, currency) },
+    { header: "Status", cell: ({ run }) => <RunPill status={run.run_status} /> },
+    { header: "", align: "right", cell: ({ run, line }) => !isStripped(line, "net_amount")
+      ? <button type="button" onClick={() => printPayslip(run, line, currency)} className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline"><Printer className="size-3" /> Payslip</button>
+      : null },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
+          <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search employee" className="h-9 w-64 bg-white pl-8 font-mont" />
+        </div>
+        <p className="font-mont text-[11px] text-gray-05">Every payslip across all runs. Figures need the sensitive payroll grant.</p>
+      </div>
+      <DataTable columns={cols} rows={rows} rowKey={({ run, line }) => `${run.id}-${line.id}`}
+        loading={isLoading || isFetching} error={isError} onRetry={refetch}
+        emptyTitle={searchInput ? "No matching payslips" : "No payslips yet"}
+        emptyMessage={searchInput ? "Try a different search." : "Generate and post a payroll run to produce payslips."} />
+    </div>
+  );
+}
+
+// ── Statutory returns (filing-ready PAYE / pension schedules) ─────────────────
+function StatutoryTab({ entity, currency }: { entity: string; currency?: string | null }) {
+  const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity });
+  const runs = useMemo(() => toArray(data?.data).filter((r) => r.run_status === "POSTED" || r.run_status === "PAID"), [data]);
+  const kpis = useMemo(() => ({
+    paye: runs.reduce((s, r) => s + r.paye_total, 0),
+    pension: runs.reduce((s, r) => s + r.pension_total, 0),
+  }), [runs]);
+
+  const schedBtn = (run: PayrollRun, kind: "PAYE" | "PENSION") => {
+    const stripped = run.lines.some((l) => isStripped(l, kind === "PAYE" ? "paye_amount" : "pension_amount"));
+    return (
+      <button type="button" disabled={stripped} onClick={() => printSchedule(run, kind, currency)}
+        title={stripped ? "Needs the sensitive payroll grant to list per-employee figures" : `Print the ${kind} schedule`}
+        className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-gray-05 disabled:no-underline">
+        <Printer className="size-3" /> {kind === "PAYE" ? "PAYE" : "Pension"}
+      </button>
+    );
+  };
+
+  const cols: Column<PayrollRun>[] = [
+    { header: "Period", cell: (r) => r.period_label || "—" },
+    { header: "Run no.", cell: (r) => <span className="tabular-nums text-gray-05">{r.document_number}</span> },
+    { header: "Pay date", cell: (r) => <span className="tabular-nums text-gray-05">{fmtDate(r.pay_date)}</span> },
+    { header: "PAYE payable", align: "right", cell: (r) => <Money kobo={r.paye_total} currency={currency} align="right" /> },
+    { header: "Pension payable", align: "right", cell: (r) => <Money kobo={r.pension_total} currency={currency} align="right" /> },
+    { header: "Status", cell: (r) => <RunPill status={r.run_status} /> },
+    { header: "Schedules", align: "right", cell: (r) => <span className="inline-flex items-center gap-3">{schedBtn(r, "PAYE")}{schedBtn(r, "PENSION")}</span> },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Kpi label="PAYE payable (all posted runs)" value={formatMoney(kpis.paye, currency)} hint="Remit via Tax Remittance" />
+        <Kpi label="Pension payable (all posted runs)" value={formatMoney(kpis.pension, currency)} hint="Remit to the PFA" />
+        <Kpi label="Posted runs" value={String(runs.length)} />
+      </div>
+      <p className="font-mont text-xs text-gray-05">Filing-ready PAYE & pension schedules per posted run — print the per-employee breakdown to file with the tax authority / PFA. The liabilities are settled under Tax Remittance.</p>
+      <DataTable columns={cols} rows={runs} rowKey={(r) => r.id}
+        loading={isLoading || isFetching} error={isError} onRetry={refetch}
+        emptyTitle="No statutory returns yet" emptyMessage="Post a payroll run to raise PAYE and pension liabilities to file." />
+    </div>
+  );
+}
+
+function printSchedule(run: PayrollRun, kind: "PAYE" | "PENSION", currency?: string | null) {
+  const money = (k?: number) => formatMoney(k ?? 0, currency);
+  const field = kind === "PAYE" ? "paye_amount" : "pension_amount";
+  const title = kind === "PAYE" ? "PAYE remittance schedule" : "Pension remittance schedule";
+  const total = kind === "PAYE" ? run.paye_total : run.pension_total;
+  const rows = run.lines.map((l) => `<tr><td>${l.employee_name || "—"}</td><td class="r">${money(money2(l, field))}</td></tr>`).join("");
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${title} — ${run.document_number}</title>
+  <style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;padding:32px;max-width:560px;margin:auto}
+  h1{font-size:18px;margin:0 0 2px}.sub{color:#666;font-size:12px;margin-bottom:20px}
+  table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 0;border-bottom:1px solid #eee;text-align:left}
+  td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}.tot td{font-weight:700;border-top:2px solid #ddd;border-bottom:none}</style></head><body>
+  <h1>${title}</h1>
+  <div class="sub">${run.period_label || ""} · ${run.document_number} · pay date ${fmtDate(run.pay_date)}</div>
+  <table><thead><tr><th>Employee</th><th class="r">${kind} withheld</th></tr></thead><tbody>
+    ${rows}
+    <tr class="tot"><td>Total ${kind} payable</td><td class="r">${money(total)}</td></tr>
+  </tbody></table></body></html>`;
+  const w = window.open("", "_blank", "width=600,height=760");
+  if (!w) { toast.error("Pop-up blocked — allow pop-ups to print."); return; }
+  w.document.write(html); w.document.close(); w.focus(); w.print();
+}
+// reads the (possibly FLS-stripped) numeric field off a line; schedules are only offered
+// when the lines aren't stripped, so this is always a number here.
+function money2(line: PayrollLine, field: string): number {
+  return (line as unknown as Record<string, number>)[field] ?? 0;
+}
+
 function printPayslip(run: PayrollRun, line: PayrollLine, currency?: string | null) {
   const money = (k?: number) => formatMoney(k ?? 0, currency);
+  const comps = line.components ?? [];
+  const earnings = comps.filter((c) => c.kind === "EARNING");
+  const deductions = comps.filter((c) => c.kind === "DEDUCTION");
+  // With a structure: itemise the earning tranches and each deduction. Flat lines fall
+  // back to the gross / PAYE / pension / net summary.
+  const body = comps.length
+    ? `<tr class="sec"><td colspan="2">Earnings</td></tr>
+       ${earnings.map((c) => `<tr><td>${c.name}</td><td class="r">${money(c.amount)}</td></tr>`).join("")}
+       <tr class="sub2"><td>Gross pay</td><td class="r">${money(line.gross_amount)}</td></tr>
+       <tr class="sec"><td colspan="2">Deductions</td></tr>
+       ${deductions.map((c) => `<tr><td>${c.name} (${c.statutory_type})</td><td class="r">− ${money(c.amount)}</td></tr>`).join("")}
+       <tr class="net"><td>Net pay</td><td class="r">${money(line.net_amount)}</td></tr>`
+    : `<tr><td>Gross pay</td><td class="r">${money(line.gross_amount)}</td></tr>
+       <tr><td>PAYE (income tax)</td><td class="r">− ${money(line.paye_amount)}</td></tr>
+       <tr><td>Pension</td><td class="r">− ${money(line.pension_amount)}</td></tr>
+       <tr class="net"><td>Net pay</td><td class="r">${money(line.net_amount)}</td></tr>`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>Payslip — ${line.employee_name}</title>
   <style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;padding:32px;max-width:520px;margin:auto}
   h1{font-size:18px;margin:0 0 2px}.sub{color:#666;font-size:12px;margin-bottom:20px}
   table{width:100%;border-collapse:collapse;font-size:13px}td{padding:7px 0;border-bottom:1px solid #eee}
-  td.r{text-align:right;font-variant-numeric:tabular-nums}.net td{font-weight:700;border-top:2px solid #ddd;border-bottom:none}</style></head><body>
+  td.r{text-align:right;font-variant-numeric:tabular-nums}
+  .sec td{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#888;padding-top:14px;border-bottom:none}
+  .sub2 td{font-weight:600;border-top:1px solid #ddd}
+  .net td{font-weight:700;border-top:2px solid #ddd;border-bottom:none}</style></head><body>
   <h1>Payslip</h1>
   <div class="sub">${line.employee_name} · ${run.period_label || ""} · ${run.document_number} · paid ${fmtDate(run.pay_date)}</div>
-  <table>
-    <tr><td>Gross pay</td><td class="r">${money(line.gross_amount)}</td></tr>
-    <tr><td>PAYE (income tax)</td><td class="r">− ${money(line.paye_amount)}</td></tr>
-    <tr><td>Pension</td><td class="r">− ${money(line.pension_amount)}</td></tr>
-    <tr class="net"><td>Net pay</td><td class="r">${money(line.net_amount)}</td></tr>
-  </table></body></html>`;
+  <table>${body}</table></body></html>`;
   const w = window.open("", "_blank", "width=560,height=720");
   if (!w) { toast.error("Pop-up blocked — allow pop-ups to print."); return; }
   w.document.write(html); w.document.close(); w.focus(); w.print();
