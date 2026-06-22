@@ -12,9 +12,12 @@
 // sensitive grant. PAYE/pension are remitted via Tax Remittance.
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Link } from "react-router";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { Plus, Trash2, Search, Sparkles, Banknote, Printer, Pencil, FileText, Users, Layers3, ScrollText, Landmark } from "lucide-react";
+import { Plus, Trash2, Search, Sparkles, Banknote, Printer, Pencil, FileText, Users, Layers3, ScrollText, Landmark, ArrowUpRight } from "lucide-react";
+import { routesPath } from "@/routes/routes-path";
+import { useGetTrialBalanceQuery } from "@/redux/services/finance/reports-api";
 import { FinanceShell } from "./finance-shell";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CostCenterPicker, Segmented, InfoHint, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
@@ -561,7 +564,7 @@ function StructuresTab({ entity, currency }: { entity: string; currency?: string
 }
 
 const KIND_OPTS: [SalaryComponent["kind"], string][] = [["EARNING", "Earning"], ["DEDUCTION", "Deduction"]];
-const METHOD_OPTS: [SalaryComponent["calc_method"], string][] = [["PERCENT_OF_GROSS", "% of gross"], ["PERCENT_OF_BASIC", "% of basic"], ["FIXED", "Fixed"]];
+const METHOD_OPTS: [SalaryComponent["calc_method"], string][] = [["PERCENT_OF_GROSS", "% of gross"], ["PERCENT_OF_BASIC", "% of basic"], ["FIXED", "Fixed ₦ amount"]];
 const emptyComp = (kind: SalaryComponent["kind"] = "EARNING"): SalaryComponent => ({
   name: "", kind, calc_method: "PERCENT_OF_GROSS", rate_bps: 0, amount: 0,
   is_basic: false, statutory_type: kind === "DEDUCTION" ? "PAYE" : "NONE", sequence: 0,
@@ -633,10 +636,15 @@ function StructureDrawer({ open, structure, entity, currency, onClose }: { open:
                   <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Type</p><Select value={c.kind} onChange={(v) => setKind(i, v as SalaryComponent["kind"])}>{KIND_OPTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></div>
                   <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Method</p><Select value={c.calc_method} onChange={(v) => setComp(i, { calc_method: v as SalaryComponent["calc_method"] })}>{METHOD_OPTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></div>
                   <div className="col-span-2">
-                    <p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">{c.calc_method === "FIXED" ? "Amount" : "Rate %"}</p>
+                    <p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">{c.calc_method === "FIXED" ? "Naira amount" : "Rate"}</p>
                     {c.calc_method === "FIXED"
                       ? <MoneyInput valueKobo={c.amount} onChangeKobo={(k) => setComp(i, { amount: k })} currency={currency} className="[&_input]:h-9" />
-                      : <Input type="number" min={0} step="0.5" value={c.rate_bps ? c.rate_bps / 100 : ""} onChange={(e) => setComp(i, { rate_bps: Math.round(Number(e.target.value || 0) * 100) })} placeholder="0" className="h-9 bg-white text-sm" />}
+                      : (
+                        <div className="relative">
+                          <Input type="number" min={0} step="0.5" value={c.rate_bps ? c.rate_bps / 100 : ""} onChange={(e) => setComp(i, { rate_bps: Math.round(Number(e.target.value || 0) * 100) })} placeholder="0" className="h-9 bg-white pr-7 text-sm tabular-nums" />
+                          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 font-mont text-xs text-gray-05">%</span>
+                        </div>
+                      )}
                   </div>
                   <div className="col-span-12 flex items-center gap-3">
                     {c.kind === "EARNING"
@@ -678,6 +686,7 @@ function StructureDrawer({ open, structure, entity, currency, onClose }: { open:
 type PayslipRow = { run: PayrollRun; line: PayrollLine };
 function PayslipsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [searchInput, setSearchInput] = useState("");
+  const [selected, setSelected] = useState<PayslipRow | null>(null);
   const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity });
   const runs = useMemo(() => toArray(data?.data), [data]);
   const rows = useMemo<PayslipRow[]>(() => {
@@ -695,7 +704,7 @@ function PayslipsTab({ entity, currency }: { entity: string; currency?: string |
     { header: "Net", align: "right", cell: ({ line }) => maskedMoney(line, "net_amount", line.net_amount, currency) },
     { header: "Status", cell: ({ run }) => <RunPill status={run.run_status} /> },
     { header: "", align: "right", cell: ({ run, line }) => !isStripped(line, "net_amount")
-      ? <button type="button" onClick={() => printPayslip(run, line, currency)} className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline"><Printer className="size-3" /> Payslip</button>
+      ? <button type="button" onClick={(e) => { e.stopPropagation(); printPayslip(run, line, currency); }} className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline"><Printer className="size-3" /> Print</button>
       : null },
   ];
 
@@ -706,35 +715,99 @@ function PayslipsTab({ entity, currency }: { entity: string; currency?: string |
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
           <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search employee" className="h-9 w-64 bg-white pl-8 font-mont" />
         </div>
-        <p className="font-mont text-[11px] text-gray-05">Every payslip across all runs. Figures need the sensitive payroll grant.</p>
+        <p className="font-mont text-[11px] text-gray-05">Every payslip across all runs — click a row for the breakdown. Figures need the sensitive payroll grant.</p>
       </div>
       <DataTable columns={cols} rows={rows} rowKey={({ run, line }) => `${run.id}-${line.id}`}
-        loading={isLoading || isFetching} error={isError} onRetry={refetch}
+        loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(r) => !isStripped(r.line, "net_amount") && setSelected(r)}
         emptyTitle={searchInput ? "No matching payslips" : "No payslips yet"}
         emptyMessage={searchInput ? "Try a different search." : "Generate and post a payroll run to produce payslips."} />
+      <PayslipDrawer row={selected} currency={currency} onClose={() => setSelected(null)} />
     </div>
   );
 }
 
+// Shared earnings/deductions/net breakdown — itemised when a structure populated the
+// line's components, else the flat gross / PAYE / pension / net summary.
+function PayslipBreakdown({ line, currency }: { line: PayrollLine; currency?: string | null }) {
+  const comps = line.components ?? [];
+  const rows = comps.length
+    ? [
+        { sec: "Earnings" as const },
+        ...comps.filter((c) => c.kind === "EARNING").map((c) => ({ label: c.name, amount: c.amount, ded: false })),
+        { label: "Gross pay", amount: line.gross_amount ?? 0, ded: false, strong: true },
+        { sec: "Deductions" as const },
+        ...comps.filter((c) => c.kind === "DEDUCTION").map((c) => ({ label: `${c.name} (${c.statutory_type})`, amount: c.amount, ded: true })),
+      ]
+    : [
+        { label: "Gross pay", amount: line.gross_amount ?? 0, ded: false },
+        { label: "PAYE (income tax)", amount: line.paye_amount ?? 0, ded: true },
+        { label: "Pension", amount: line.pension_amount ?? 0, ded: true },
+      ];
+  return (
+    <div className="overflow-hidden rounded-md border border-gray-03 bg-white">
+      <div className="divide-y divide-gray-03">
+        {rows.map((r, i) => "sec" in r
+          ? <p key={i} className="bg-gray-03/40 px-3 py-1.5 font-mont text-[10px] font-semibold uppercase tracking-wide text-gray-05">{r.sec}</p>
+          : (
+            <div key={i} className={cn("flex items-center justify-between px-3 py-2 font-mont text-xs", r.strong && "font-semibold")}>
+              <span className={r.ded ? "text-gray-05" : "text-black-01"}>{r.label}</span>
+              <span className={cn("tabular-nums", r.ded ? "text-destructive" : "text-black-01")}>{r.ded ? "− " : ""}{formatMoney(r.amount, currency)}</span>
+            </div>
+          ))}
+        <div className="flex items-center justify-between bg-gray-03 px-3 py-2.5 font-mont text-sm font-semibold">
+          <span>Net pay</span><span className="tabular-nums">{formatMoney(line.net_amount ?? 0, currency)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PayslipDrawer({ row, currency, onClose }: { row: PayslipRow | null; currency?: string | null; onClose: () => void }) {
+  if (!row) return null;
+  const { run, line } = row;
+  return (
+    <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
+      title={line.employee_name || "Payslip"} description={`${run.period_label || "—"} · ${run.document_number} · paid ${fmtDate(run.pay_date)}`}
+      widthClass="sm:max-w-lg"
+      footer={<>
+        <Button variant="outline" onClick={onClose}>Close</Button>
+        <Button onClick={() => printPayslip(run, line, currency)} className="gap-1.5"><Printer className="size-4" /> Print payslip</Button>
+      </>}>
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <Metric label="Gross" kobo={line.gross_amount ?? 0} currency={currency} />
+          <Metric label="Net pay" kobo={line.net_amount ?? 0} currency={currency} />
+        </div>
+        <PayslipBreakdown line={line} currency={currency} />
+        {line.cost_center ? <p className="font-mont text-[11px] text-gray-05">Cost center · {line.cost_center}</p> : null}
+      </div>
+    </DetailDrawer>
+  );
+}
+
 // ── Statutory returns (filing-ready PAYE / pension schedules) ─────────────────
+function schedStripped(run: PayrollRun, kind: "PAYE" | "PENSION") {
+  return run.lines.some((l) => isStripped(l, kind === "PAYE" ? "paye_amount" : "pension_amount"));
+}
+function SchedButton({ run, kind, currency, label }: { run: PayrollRun; kind: "PAYE" | "PENSION"; currency?: string | null; label?: string }) {
+  const stripped = schedStripped(run, kind);
+  return (
+    <button type="button" disabled={stripped} onClick={(e) => { e.stopPropagation(); printSchedule(run, kind, currency); }}
+      title={stripped ? "Needs the sensitive payroll grant to list per-employee figures" : `Print the ${kind} schedule`}
+      className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-gray-05 disabled:no-underline">
+      <Printer className="size-3" /> {label ?? (kind === "PAYE" ? "PAYE" : "Pension")}
+    </button>
+  );
+}
+
 function StatutoryTab({ entity, currency }: { entity: string; currency?: string | null }) {
+  const [selected, setSelected] = useState<PayrollRun | null>(null);
   const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity });
   const runs = useMemo(() => toArray(data?.data).filter((r) => r.run_status === "POSTED" || r.run_status === "PAID"), [data]);
   const kpis = useMemo(() => ({
     paye: runs.reduce((s, r) => s + r.paye_total, 0),
     pension: runs.reduce((s, r) => s + r.pension_total, 0),
   }), [runs]);
-
-  const schedBtn = (run: PayrollRun, kind: "PAYE" | "PENSION") => {
-    const stripped = run.lines.some((l) => isStripped(l, kind === "PAYE" ? "paye_amount" : "pension_amount"));
-    return (
-      <button type="button" disabled={stripped} onClick={() => printSchedule(run, kind, currency)}
-        title={stripped ? "Needs the sensitive payroll grant to list per-employee figures" : `Print the ${kind} schedule`}
-        className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-gray-05 disabled:no-underline">
-        <Printer className="size-3" /> {kind === "PAYE" ? "PAYE" : "Pension"}
-      </button>
-    );
-  };
 
   const cols: Column<PayrollRun>[] = [
     { header: "Period", cell: (r) => r.period_label || "—" },
@@ -743,7 +816,7 @@ function StatutoryTab({ entity, currency }: { entity: string; currency?: string 
     { header: "PAYE payable", align: "right", cell: (r) => <Money kobo={r.paye_total} currency={currency} align="right" /> },
     { header: "Pension payable", align: "right", cell: (r) => <Money kobo={r.pension_total} currency={currency} align="right" /> },
     { header: "Status", cell: (r) => <RunPill status={r.run_status} /> },
-    { header: "Schedules", align: "right", cell: (r) => <span className="inline-flex items-center gap-3">{schedBtn(r, "PAYE")}{schedBtn(r, "PENSION")}</span> },
+    { header: "Schedules", align: "right", cell: (r) => <span className="inline-flex items-center gap-3"><SchedButton run={r} kind="PAYE" currency={currency} /><SchedButton run={r} kind="PENSION" currency={currency} /></span> },
   ];
 
   return (
@@ -753,10 +826,99 @@ function StatutoryTab({ entity, currency }: { entity: string; currency?: string 
         <Kpi label="Pension payable (all posted runs)" value={formatMoney(kpis.pension, currency)} hint="Remit to the PFA" />
         <Kpi label="Posted runs" value={String(runs.length)} />
       </div>
-      <p className="font-mont text-xs text-gray-05">Filing-ready PAYE & pension schedules per posted run — print the per-employee breakdown to file with the tax authority / PFA. The liabilities are settled under Tax Remittance.</p>
+      <p className="font-mont text-xs text-gray-05">Filing-ready PAYE & pension schedules per posted run — click a row for the per-employee breakdown and remittance status. The liabilities are settled under Tax Remittance.</p>
       <DataTable columns={cols} rows={runs} rowKey={(r) => r.id}
-        loading={isLoading || isFetching} error={isError} onRetry={refetch}
+        loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(r) => setSelected(r)}
         emptyTitle="No statutory returns yet" emptyMessage="Post a payroll run to raise PAYE and pension liabilities to file." />
+      <StatutoryDrawer run={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
+    </div>
+  );
+}
+
+function StatutoryDrawer({ run, entity, currency, onClose }: { run: PayrollRun | null; entity: string; currency?: string | null; onClose: () => void }) {
+  // Real outstanding balance of the run's PAYE / pension payable accounts (from the
+  // trial balance). Honest: this is the entity-wide unremitted liability for that
+  // account — remittance isn't tracked per run, so we never fake a per-run "remitted".
+  const { data: tb, isSuccess: tbReady } = useGetTrialBalanceQuery(run ? { entity } : skipToken);
+  const outstanding = (accountId: number | null) => {
+    // Unknown (null) until the trial balance actually loads — otherwise a forbidden or
+    // pending query would read as a misleading "Settled". An absent row in a loaded TB
+    // means the liability netted to zero (genuinely settled).
+    if (accountId == null || !tbReady) return null;
+    const row = toArray(tb?.data?.rows).find((r) => r.account_id === accountId);
+    return row ? row.credit.kobo - row.debit.kobo : 0; // net credit (liability still owed)
+  };
+  if (!run) return null;
+  const payeOut = outstanding(run.paye_payable_account_id);
+  const pensionOut = outstanding(run.pension_payable_account_id);
+
+  return (
+    <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
+      title={`Statutory · ${run.period_label || run.document_number}`} description={`${run.document_number} · pay date ${fmtDate(run.pay_date)}`}
+      widthClass="sm:max-w-2xl"
+      footer={<>
+        <SchedButton run={run} kind="PAYE" currency={currency} label="PAYE schedule" />
+        <SchedButton run={run} kind="PENSION" currency={currency} label="Pension schedule" />
+        <div className="flex-1" />
+        <Button variant="outline" onClick={onClose}>Close</Button>
+      </>}>
+      <div className="space-y-5">
+        <div className="grid grid-cols-2 gap-3">
+          <Metric label={`PAYE payable (this run · ${run.paye_payable_account || "2310"})`} kobo={run.paye_total} currency={currency} />
+          <Metric label={`Pension payable (this run · ${run.pension_payable_account || "2320"})`} kobo={run.pension_total} currency={currency} />
+        </div>
+
+        <div className="rounded-md border border-gray-03 bg-white">
+          <div className="flex items-center justify-between border-b border-gray-03 px-3 py-2">
+            <p className="font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Remittance status</p>
+            <Link to={`${routesPath.PROTECTED.FINANCE.BUDGETS}/tax`} className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline">Tax Remittance <ArrowUpRight className="size-3" /></Link>
+          </div>
+          <div className="divide-y divide-gray-03">
+            <RemitRow label="PAYE payable" code={run.paye_payable_account} outstanding={payeOut} currency={currency} />
+            <RemitRow label="Pension payable" code={run.pension_payable_account} outstanding={pensionOut} currency={currency} />
+          </div>
+          <p className="border-t border-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">Outstanding is the current balance on the liability account (all runs, this entity) — remittance is tracked against the account, not per run. Settle it under Tax Remittance.</p>
+        </div>
+
+        <div>
+          <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Per-employee schedule · {run.lines.length}</p>
+          <div className="overflow-hidden rounded-md border border-gray-03">
+            <table className="w-full border-collapse">
+              <thead><tr>
+                <th className={thCls}>Employee</th><th className={cn(thCls, "text-right")}>PAYE</th><th className={cn(thCls, "text-right")}>Pension</th>
+              </tr></thead>
+              <tbody>
+                {run.lines.map((l) => (
+                  <tr key={l.id}>
+                    <td className={tdCls}>{isStripped(l, "employee_name") ? <span className="text-gray-05">••••</span> : l.employee_name || "—"}</td>
+                    <td className={cn(tdCls, "text-right tabular-nums")}>{maskedMoney(l, "paye_amount", l.paye_amount, currency)}</td>
+                    <td className={cn(tdCls, "text-right tabular-nums")}>{maskedMoney(l, "pension_amount", l.pension_amount, currency)}</td>
+                  </tr>
+                ))}
+                <tr>
+                  <td className={cn(tdCls, "font-semibold")}>Total</td>
+                  <td className={cn(tdCls, "text-right font-semibold tabular-nums")}>{formatMoney(run.paye_total, currency)}</td>
+                  <td className={cn(tdCls, "text-right font-semibold tabular-nums")}>{formatMoney(run.pension_total, currency)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </DetailDrawer>
+  );
+}
+
+function RemitRow({ label, code, outstanding, currency }: { label: string; code: string | null; outstanding: number | null; currency?: string | null }) {
+  const settled = outstanding === 0;
+  return (
+    <div className="flex items-center justify-between px-3 py-2.5 font-mont text-xs">
+      <span className="text-black-01">{label}{code ? <span className="ml-1 text-[11px] text-gray-05">· {code}</span> : null}</span>
+      {outstanding == null
+        ? <span className="text-gray-05">—</span>
+        : settled
+          ? <span className={cn(PILL, "bg-green-01/10 text-green-01")}>Settled</span>
+          : <span className="inline-flex items-center gap-2"><span className="tabular-nums text-destructive">{formatMoney(outstanding, currency)}</span><span className={cn(PILL, "bg-amber-50 text-amber-700")}>Outstanding</span></span>}
     </div>
   );
 }

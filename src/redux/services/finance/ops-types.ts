@@ -259,6 +259,10 @@ export interface PayrollRun {
   net_total: number;
   net_total_naira: string;
   bank_account_id: number | null;
+  paye_payable_account: string | null; // GL code (e.g. "2310")
+  paye_payable_account_id: number | null;
+  pension_payable_account: string | null;
+  pension_payable_account_id: number | null;
   journal_id: number | null;
   disbursement_journal_id: number | null;
   lines: PayrollLine[];
