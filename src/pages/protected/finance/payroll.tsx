@@ -288,7 +288,7 @@ function NewRunDrawer({ open, onClose, entity, currency }: { open: boolean; onCl
         </Button>
       </>}>
       <div className="space-y-4">
-        <Segmented value={mode} onChange={setMode} options={[{ value: "roster", label: "From roster" }, { value: "manual", label: "Manual" }]} />
+        <Segmented value={mode} onChange={setMode} options={[["roster", "From roster"], ["manual", "Manual"]]} />
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Period" ><Input value={periodLabel} onChange={(e) => setPeriodLabel(e.target.value)} placeholder="e.g. June 2026" className="h-9 bg-white" /></FormField>
           <FormField label="Payment date" required><Input type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} className="h-9 bg-white" /></FormField>
