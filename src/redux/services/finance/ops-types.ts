@@ -287,6 +287,50 @@ export interface Budget {
   is_locked: boolean;
   approved_at: string | null;
   lines: BudgetLine[];
+  // headline figures the list view enriches each budget with
+  budgeted_total?: number;
+  actual_ytd?: number;
+  consumed_pct?: number | null;
+}
+
+export interface KoboNaira { kobo: number; naira: string }
+
+export interface BudgetVarianceRow {
+  account_id: number;
+  code: string;
+  name: string;
+  account_type: string;
+  budget: KoboNaira;
+  actual: KoboNaira;
+  variance: KoboNaira;
+}
+export interface BudgetVariance {
+  budget_id: number;
+  fiscal_year_id: number;
+  period_no: number | null;
+  rows: BudgetVarianceRow[];
+  total_budget: KoboNaira;
+  total_actual: KoboNaira;
+  total_variance: KoboNaira;
+}
+
+export interface BudgetHeatmapCell { period_no: number; budget: number; actual: number }
+export interface BudgetHeatmapRow {
+  account_id: number;
+  code: string;
+  name: string;
+  account_type: string;
+  cells: BudgetHeatmapCell[];
+  budget_total: number;
+  actual_total: number;
+}
+export interface BudgetHeatmap {
+  budget_id: number;
+  fiscal_year_id: number;
+  periods: { period_no: number; label: string }[];
+  rows: BudgetHeatmapRow[];
+  total_budget: number;
+  total_actual: number;
 }
 
 // ── Fixed assets ─────────────────────────────────────────────────────────────

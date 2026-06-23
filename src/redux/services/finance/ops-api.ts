@@ -12,6 +12,8 @@ import type {
   BankReconciliationRun,
   BankStatementLine,
   Budget,
+  BudgetVariance,
+  BudgetHeatmap,
   ExpenseClaim,
   FixedAsset,
   EmployeeSalary,
@@ -213,12 +215,28 @@ export const opsApi = baseApi.injectEndpoints({
     }),
 
     // Budgets
-    getBudgets: b.query<PaginatedEnvelope<Budget>, E>({
+    getBudgets: b.query<ApiEnvelope<Budget[]>, { entity: string; status?: string }>({
       query: (p) => ({ url: `/finance/budgets/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinanceBudgets"],
+    }),
+    getBudget: b.query<ApiEnvelope<Budget>, Act>({
+      query: ({ id, entity }) => ({ url: `/finance/budgets/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinanceBudgets"],
+    }),
+    getBudgetVariance: b.query<ApiEnvelope<BudgetVariance>, Act & { period_no?: number }>({
+      query: ({ id, entity, period_no }) => ({ url: `/finance/budgets/${id}/variance/${qs({ entity, period_no })}`, method: "GET" }),
+      providesTags: ["FinanceBudgets"],
+    }),
+    getBudgetHeatmap: b.query<ApiEnvelope<BudgetHeatmap>, Act>({
+      query: ({ id, entity }) => ({ url: `/finance/budgets/${id}/heatmap/${qs({ entity })}`, method: "GET" }),
       providesTags: ["FinanceBudgets"],
     }),
     createBudget: b.mutation<ApiEnvelope<Budget>, { entity: string; name: string; fiscal_year?: number }>({
       query: ({ entity, ...body }) => ({ url: `/finance/budgets/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBudgets"],
+    }),
+    addBudgetLine: b.mutation<ApiEnvelope<Budget>, { id: number; entity: string; account: string; period_no: number; amount: number; cost_center?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/budgets/${id}/lines/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBudgets"],
     }),
     approveBudget: b.mutation<ApiEnvelope<Budget>, Act>({
@@ -316,7 +334,11 @@ export const {
   useUpdateSalaryStructureMutation,
   useDeleteSalaryStructureMutation,
   useGetBudgetsQuery,
+  useGetBudgetQuery,
+  useGetBudgetVarianceQuery,
+  useGetBudgetHeatmapQuery,
   useCreateBudgetMutation,
+  useAddBudgetLineMutation,
   useApproveBudgetMutation,
   useGetFixedAssetsQuery,
   useCreateFixedAssetMutation,

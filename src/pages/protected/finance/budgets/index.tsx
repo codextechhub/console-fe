@@ -8,18 +8,23 @@ import { BudgetsTab } from "./budgets-tab";
 import { AssetsTab } from "./assets-tab";
 import { TaxTab } from "./tax-tab";
 
-const LABELS: Record<string, string> = { budgets: "Budgets", assets: "Fixed Assets", tax: "Tax" };
+const META: Record<string, { title: string; sub: string }> = {
+  budgets: { title: "Budgets & Forecasts", sub: "Compare planned vs actual spending — find your overruns before close does." },
+  assets: { title: "Fixed Assets", sub: "The fixed-asset register: acquisition, depreciation and net book value." },
+  tax: { title: "Tax Remittance", sub: "Tax obligations and filings — amounts due, paid and outstanding." },
+};
 
 export default function BudgetsAssetsTaxPage() {
   const { code: entity, currency } = useActiveEntity();
   const { section = "budgets" } = useParams();
+  const meta = META[section] ?? { title: "Budgets, Assets & Tax", sub: "" };
 
   return (
     <FinanceShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
-          <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Budgets, Assets & Tax"}</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">Budgets and variance, the fixed-asset register, and tax filing/remittance.</p>
+          <h1 className="font-mont text-lg font-semibold text-gray-01">{meta.title}</h1>
+          {meta.sub ? <p className="mt-0.5 font-mont text-xs text-gray-05">{meta.sub}</p> : null}
         </div>
         {!entity ? (
           <EmptyState title="Select an entity" />
@@ -28,7 +33,7 @@ export default function BudgetsAssetsTaxPage() {
         ) : section === "tax" ? (
           <TaxTab entity={entity} currency={currency} />
         ) : (
-          <BudgetsTab entity={entity} />
+          <BudgetsTab entity={entity} currency={currency} />
         )}
       </main>
     </FinanceShell>
