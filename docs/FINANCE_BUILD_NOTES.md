@@ -155,7 +155,23 @@ Existing negative-AR credit was reclassed once via
 - New journal + New account converted to drawers; sidebar scroll persists.
 
 **Receivables area: COMPLETE** (redesigned to prototype). **Next:**
-Budgets/Assets/Tax, Reports.
+Fixed Assets, Tax Remittance, Reports.
+
+**Operations → Budgets & Forecasts: DONE** (redesigned to prototype). Route
+`/finance/budgets/budgets` (the `:section` page, `BudgetsTab`). List (Name · FY ·
+Budgeted · Actual YTD · Consumed bar · Status) from the **enriched list** endpoint;
+**variance heatmap** (per-account × 12-month grid for a selected budget, cells
+coloured on-track/approaching/over/severe by consumed ratio, YTD at right, legend,
+sticky account column) from `GET /budgets/<id>/heatmap/`; **detail drawer** (Budgeted
+/ Actual YTD / Variance-remaining / %Consumed cards + account-level variance lines +
+inline **Add-line** editor via `POST /budgets/<id>/lines/` + **Approve & lock**);
+**New budget** drawer (Name + Fiscal year, both required). Backend additions:
+`budget_monthly_matrix` report + heatmap view; budget list enriched with
+budgeted_total/actual_ytd/consumed_pct (one variance compute per budget). Honest
+adaptations: no code/scope/currency on Budget; variance is **per GL account**
+(AccountBalance has no cost-centre split); copy-from-prior / CSV import omitted (CSV
+is a no-op in the prototype); no stored FY forecast; no aggregate KPI row (summing
+per-budget actuals across budgets sharing a fiscal year would double-count).
 
 **Operations → Payroll: DONE** (redesigned to prototype, then extended into a
 versatile bureau-style module). **Five tabs**: Payroll runs · Employee salaries ·
