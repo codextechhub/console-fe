@@ -177,6 +177,7 @@ export const routesPath = {
       LEDGER: "/finance/ledger",
       RECEIVABLES: "/finance/receivables",
       COLLECTIONS: "/finance/collections",
+      PAYMENTS: "/finance/payments",
       BANKING: "/finance/banking",
       BANK_RECON: "/finance/bank-reconciliation",
       EXPENSES: "/finance/expenses",
@@ -197,7 +198,6 @@ export const routesPath = {
       CONTRACTS: "/procurement/contracts",
       INVENTORY: "/procurement/inventory",
       ANALYTICS: "/procurement/analytics",
-      PAYOUTS: "/procurement/payouts",
     },
   },
 };

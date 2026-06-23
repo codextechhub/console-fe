@@ -13,6 +13,7 @@ const Expenses = lazy(() => import("@/pages/protected/finance/expenses"));
 const Payroll = lazy(() => import("@/pages/protected/finance/payroll"));
 const BudgetsAssetsTax = lazy(() => import("@/pages/protected/finance/budgets"));
 const Setup = lazy(() => import("@/pages/protected/finance/setup"));
+const Payments = lazy(() => import("@/pages/protected/finance/payments"));
 const Reports = lazy(() => import("@/pages/protected/finance/reports"));
 const FinanceAudit = lazy(() => import("@/pages/protected/finance/audit"));
 
@@ -36,6 +37,8 @@ export const financeRoutes: RouteObject[] = [
   { path: F.PAYROLL, element: <Payroll /> },
   { path: F.BUDGETS, element: <BudgetsAssetsTax /> },
   { path: `${F.BUDGETS}/:section`, element: <BudgetsAssetsTax /> },
+  { path: F.PAYMENTS, element: <Payments /> },
+  { path: `${F.PAYMENTS}/:section`, element: <Payments /> },
   { path: F.REPORTS, element: <Reports /> },
   { path: `${F.REPORTS}/:section`, element: <Reports /> },
   { path: F.AUDIT, element: <FinanceAudit /> },

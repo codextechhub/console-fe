@@ -5,7 +5,7 @@
 import {
   LayoutDashboard, FileText, ShoppingCart, PackageCheck, ReceiptText, Banknote,
   ClipboardCheck, Store, Tags, Package, Send, FileSignature, Boxes, ArrowLeftRight,
-  BarChart3, Scale, TrendingUp, Layers, ScrollText,
+  BarChart3, Scale, TrendingUp,
 } from "lucide-react";
 import type { ConsoleNavGroup } from "@/components/finance-ui/console-nav";
 import { routesPath } from "@/routes/routes-path";
@@ -64,13 +64,4 @@ export const procurementNav: ConsoleNavGroup[] = [
     ],
   },
 
-  {
-    label: "Payments",
-    items: [
-      { title: "Payouts", url: `${P.PAYOUTS}/payouts`, icon: Send, prefixes: ["payments.payout."] },
-      { title: "Batches", url: `${P.PAYOUTS}/batches`, icon: Layers, prefixes: ["payments.payout."] },
-      { title: "Settlement", url: `${P.PAYOUTS}/settlement`, icon: ArrowLeftRight, prefixes: ["payments.report."] },
-      { title: "Transactions Log", url: `${P.PAYOUTS}/transactions`, icon: ScrollText, prefixes: ["payments.report."] },
-    ],
-  },
 ];

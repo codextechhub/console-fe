@@ -8,6 +8,7 @@ import {
   Coins, Percent, Layers, ReceiptText, Users, CreditCard, FileMinus, Undo2,
   CalendarClock, BadgePercent, BellRing, ListChecks, Landmark, Wallet,
   PiggyBank, Boxes, Scale, TrendingUp, ArrowLeftRight, GitBranch, ScrollText,
+  CircleDollarSign, Send,
 } from "lucide-react";
 import type { ConsoleNavGroup } from "@/components/finance-ui/console-nav";
 import { routesPath } from "@/routes/routes-path";
@@ -42,7 +43,6 @@ export const financeNav: ConsoleNavGroup[] = [
       { title: "Concessions", url: `${F.RECEIVABLES}/concessions`, icon: BadgePercent, prefixes: ["finance.concession."] },
       { title: "Dunning", url: `${F.RECEIVABLES}/dunning`, icon: BellRing, prefixes: ["finance.dunning."] },
       { title: "Fee Structures", url: `${F.RECEIVABLES}/fee-structures`, icon: ListChecks, prefixes: ["finance.feestructure."] },
-      { title: "Virtual Accounts", url: `${F.COLLECTIONS}/virtual-accounts`, icon: Landmark, prefixes: ["payments.collection."] },
     ],
   },
 
@@ -57,6 +57,18 @@ export const financeNav: ConsoleNavGroup[] = [
       { title: "Budgets & Forecasts", url: `${F.BUDGETS}/budgets`, icon: PiggyBank, prefixes: ["finance.budget."] },
       { title: "Fixed Assets", url: `${F.BUDGETS}/assets`, icon: Boxes, prefixes: ["finance.fixedasset."] },
       { title: "Tax Remittance", url: `${F.BUDGETS}/tax`, icon: Percent, prefixes: ["finance.tax."] },
+    ],
+  },
+
+  {
+    label: "Payments",
+    items: [
+      { title: "Collections", url: F.COLLECTIONS, icon: CircleDollarSign, prefixes: ["payments.collection."] },
+      { title: "Virtual Accounts", url: `${F.COLLECTIONS}/virtual-accounts`, icon: Landmark, prefixes: ["payments.collection."] },
+      { title: "Payouts", url: `${F.PAYMENTS}/payouts`, icon: Send, prefixes: ["payments.payout."] },
+      { title: "Batches", url: `${F.PAYMENTS}/batches`, icon: Layers, prefixes: ["payments.payout."] },
+      { title: "Settlement", url: `${F.PAYMENTS}/settlement`, icon: ArrowLeftRight, prefixes: ["payments.report."] },
+      { title: "Transactions Log", url: `${F.PAYMENTS}/transactions`, icon: ScrollText, prefixes: ["payments.report."] },
     ],
   },
 

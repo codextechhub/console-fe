@@ -51,6 +51,24 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
 
   const childVisible = (prefixes?: string[]) => !prefixes?.length || hasModuleAccess(...prefixes);
 
+  // Find the single best-matching leaf URL (longest URL whose path is a prefix
+  // of the current location). This prevents a shorter sibling URL from also
+  // lighting up when a more-specific sibling is the real active item —
+  // e.g. /finance/collections must not be active when at /finance/collections/virtual-accounts.
+  const matches = (url: string) => location === url || location.startsWith(url + "/");
+  const activeUrl = (() => {
+    let best: string | null = null;
+    for (const g of nav) {
+      for (const item of g.items) {
+        const leaves = item.children?.length ? item.children : [item];
+        for (const leaf of leaves) {
+          if (matches(leaf.url) && (!best || leaf.url.length > best.length)) best = leaf.url;
+        }
+      }
+    }
+    return best;
+  })();
+
   const mapItems = (navItems: ConsoleNavItem[]) => navItems.flatMap((item) => {
     const kids = (item.children ?? []).filter((c) => childVisible(c.prefixes));
     // A parent shows if it has visible children, or (no children) its own keys pass.
@@ -65,21 +83,19 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
         url: item.url,
         icon: item.icon,
         isActive: false,
-        childActive: location === item.url || location.startsWith(item.url + "/"),
+        childActive: kids.some((c) => c.url === activeUrl),
         items: kids.map((c) => ({
           title: c.title,
           url: c.url,
-          isActive: location === c.url || location.startsWith(c.url + "/"),
+          isActive: c.url === activeUrl,
         })),
       }];
     }
-    // Leaf: dashboard (the console root) matches exactly; others by prefix.
-    const isRoot = item.url === routesPath.PROTECTED.FINANCE.INDEX || item.url === routesPath.PROTECTED.PROCUREMENT.INDEX;
     return [{
       title: item.title,
       url: item.url,
       icon: item.icon,
-      isActive: isRoot ? location === item.url : location === item.url || location.startsWith(item.url + "/"),
+      isActive: item.url === activeUrl,
       childActive: false,
     }];
   });
