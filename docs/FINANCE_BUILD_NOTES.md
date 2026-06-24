@@ -165,13 +165,24 @@ coloured on-track/approaching/over/severe by consumed ratio, YTD at right, legen
 sticky account column) from `GET /budgets/<id>/heatmap/`; **detail drawer** (Budgeted
 / Actual YTD / Variance-remaining / %Consumed cards + account-level variance lines +
 inline **Add-line** editor via `POST /budgets/<id>/lines/` + **Approve & lock**);
-**New budget** drawer (Name + Fiscal year, both required). Backend additions:
-`budget_monthly_matrix` report + heatmap view; budget list enriched with
-budgeted_total/actual_ytd/consumed_pct (one variance compute per budget). Honest
-adaptations: no code/scope/currency on Budget; variance is **per GL account**
-(AccountBalance has no cost-centre split); copy-from-prior / CSV import omitted (CSV
-is a no-op in the prototype); no stored FY forecast; no aggregate KPI row (summing
-per-budget actuals across budgets sharing a fiscal year would double-count).
+Backend additions: `budget_monthly_matrix` report + heatmap view; budget list
+enriched with budgeted_total/actual_ytd/consumed_pct (one variance compute per
+budget). Honest adaptations: variance is **per GL account** (AccountBalance has no
+cost-centre split); copy-from-prior / CSV import omitted (CSV is a no-op in the
+prototype); no stored FY forecast; no aggregate KPI row (summing per-budget actuals
+across budgets sharing a fiscal year would double-count).
+
+**v2 (rebuilt from the backend model, not the prototype's empty header):** budgets
+get an **auto code** (`DocType.BUDGET` + `Budget.code`, allocated from the per-entity
+document sequence → `CFX-CODEX-BDG-2026-00001`); **create-with-lines** (`create_budget(lines=…)`)
+so the **New budget** drawer (wide, `max-w-4xl`) carries a Name + a **fiscal-year
+dropdown** (open years from `GET /finance/fiscal-years/`) + an inline **lines editor**
+(account × cost centre × period × amount); **drafts are fully editable** — rename
+(`PATCH /budgets/<id>/`), wholesale replace (`PUT /budgets/<id>/lines/`), delete one
+(`DELETE …/lines/<id>/`), all draft-only (locked on approval); budget lines are
+**income/expense GLs only** (services reject balance-sheet accounts; accounts list
+accepts a comma `account_type=INCOME,EXPENSE` so the picker narrows). Detail drawer:
+DRAFT → editor (Save / Save & approve); APPROVED → read-only variance.
 
 **Operations → Payroll: DONE** (redesigned to prototype, then extended into a
 versatile bureau-style module). **Five tabs**: Payroll runs · Employee salaries ·
