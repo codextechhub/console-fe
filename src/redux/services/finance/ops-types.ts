@@ -278,8 +278,17 @@ export interface BudgetLine {
   amount: number;
 }
 
+export interface FiscalYear {
+  id: number;
+  year: number;
+  start_date: string;
+  end_date: string;
+  status: string;
+}
+
 export interface Budget {
   id: number;
+  code: string;
   name: string;
   fiscal_year: number;
   fiscal_year_id: number;
@@ -291,6 +300,14 @@ export interface Budget {
   budgeted_total?: number;
   actual_ytd?: number;
   consumed_pct?: number | null;
+}
+
+// Payload for creating/replacing budget cells (account × cost-centre × period).
+export interface BudgetLineInput {
+  account: string;
+  cost_center?: string;
+  period_no: number;
+  amount: number;
 }
 
 export interface KoboNaira { kobo: number; naira: string }

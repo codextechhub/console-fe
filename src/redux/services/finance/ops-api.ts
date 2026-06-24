@@ -12,8 +12,10 @@ import type {
   BankReconciliationRun,
   BankStatementLine,
   Budget,
+  BudgetLineInput,
   BudgetVariance,
   BudgetHeatmap,
+  FiscalYear,
   ExpenseClaim,
   FixedAsset,
   EmployeeSalary,
@@ -231,12 +233,23 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/finance/budgets/${id}/heatmap/${qs({ entity })}`, method: "GET" }),
       providesTags: ["FinanceBudgets"],
     }),
-    createBudget: b.mutation<ApiEnvelope<Budget>, { entity: string; name: string; fiscal_year?: number }>({
+    getFiscalYears: b.query<ApiEnvelope<FiscalYear[]>, { entity: string; status?: string }>({
+      query: (p) => ({ url: `/finance/fiscal-years/${qs(p)}`, method: "GET" }),
+    }),
+    createBudget: b.mutation<ApiEnvelope<Budget>, { entity: string; name: string; fiscal_year: number; lines?: BudgetLineInput[] }>({
       query: ({ entity, ...body }) => ({ url: `/finance/budgets/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBudgets"],
     }),
-    addBudgetLine: b.mutation<ApiEnvelope<Budget>, { id: number; entity: string; account: string; period_no: number; amount: number; cost_center?: string }>({
-      query: ({ id, entity, ...body }) => ({ url: `/finance/budgets/${id}/lines/${qs({ entity })}`, method: "POST", body }),
+    updateBudget: b.mutation<ApiEnvelope<Budget>, { id: number; entity: string; name?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/budgets/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["FinanceBudgets"],
+    }),
+    setBudgetLines: b.mutation<ApiEnvelope<Budget>, { id: number; entity: string; lines: BudgetLineInput[] }>({
+      query: ({ id, entity, lines }) => ({ url: `/finance/budgets/${id}/lines/${qs({ entity })}`, method: "PUT", body: { lines } }),
+      invalidatesTags: ["FinanceBudgets"],
+    }),
+    deleteBudgetLine: b.mutation<ApiEnvelope<Budget>, { id: number; entity: string; lineId: number }>({
+      query: ({ id, entity, lineId }) => ({ url: `/finance/budgets/${id}/lines/${lineId}/${qs({ entity })}`, method: "DELETE" }),
       invalidatesTags: ["FinanceBudgets"],
     }),
     approveBudget: b.mutation<ApiEnvelope<Budget>, Act>({
@@ -337,8 +350,11 @@ export const {
   useGetBudgetQuery,
   useGetBudgetVarianceQuery,
   useGetBudgetHeatmapQuery,
+  useGetFiscalYearsQuery,
   useCreateBudgetMutation,
-  useAddBudgetLineMutation,
+  useUpdateBudgetMutation,
+  useSetBudgetLinesMutation,
+  useDeleteBudgetLineMutation,
   useApproveBudgetMutation,
   useGetFixedAssetsQuery,
   useCreateFixedAssetMutation,
