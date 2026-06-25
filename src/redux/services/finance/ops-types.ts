@@ -374,6 +374,7 @@ export interface FixedAsset {
   salvage_value: number;
   useful_life_months: number;
   method: string;
+  method_display: string;
   asset_status: string;
   status: string;
   accumulated_depreciation: number;

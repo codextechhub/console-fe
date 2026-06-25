@@ -35,6 +35,7 @@ const CATEGORIES: [string, string][] = [
   ["VEHICLES", "Vehicles"], ["BUILDINGS", "Buildings"], ["PLANT_MACHINERY", "Plant & machinery"],
   ["IT_EQUIPMENT", "IT equipment"], ["FURNITURE", "Furniture & fittings"], ["EQUIPMENT", "Equipment"], ["OTHER", "Other"],
 ];
+const METHODS: [string, string][] = [["STRAIGHT_LINE", "Straight line"], ["DECLINING_BALANCE", "Declining balance"]];
 const STATUS: Record<string, { label: string; cls: string }> = {
   DRAFT: { label: "Draft", cls: "bg-gray-03/60 text-gray-05" },
   ACTIVE: { label: "In use", cls: "bg-green-01/10 text-green-01" },
@@ -101,7 +102,7 @@ export function AssetsTab({ entity, currency }: { entity: string; currency?: str
     { header: "Cost", align: "right", cell: (a) => <Money kobo={a.cost} currency={currency} align="right" /> },
     { header: "Accum. dep.", align: "right", cell: (a) => <Money kobo={a.accumulated_depreciation} currency={currency} align="right" /> },
     { header: "Net book value", align: "right", cell: (a) => <Money kobo={a.net_book_value} currency={currency} align="right" /> },
-    { header: "Method", cell: () => <span className="font-mont text-[11px] text-gray-05">Straight-line</span> },
+    { header: "Method", cell: (a) => <span className="font-mont text-[11px] text-gray-05">{a.method_display}</span> },
     { header: "Status", cell: (a) => <StatusPill status={a.asset_status} /> },
   ];
 
@@ -191,7 +192,7 @@ function AssetDrawer({ assetId, assets, entity, currency, onClose }: { assetId: 
 
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">
-              Depreciation schedule · straight-line · {asset.useful_life_months}-month life
+              Depreciation schedule · {asset.method_display} · {asset.useful_life_months}-month life
             </p>
             {years.length === 0 ? (
               <p className="rounded-md border border-dashed border-gray-03 px-3 py-4 text-center font-mont text-[11px] text-gray-05">No schedule yet — acquire the asset to build it.</p>
@@ -295,15 +296,16 @@ function NewAssetDrawer({ open, onClose, entity, currency }: { open: boolean; on
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [category, setCategory] = useState("OTHER");
+  const [method, setMethod] = useState("STRAIGHT_LINE");
   const [acqDate, setAcqDate] = useState(todayISO);
   const [cost, setCost] = useState(0);
   const [salvage, setSalvage] = useState(0);
   const [life, setLife] = useState("");
   const [create, { isLoading }] = useCreateFixedAssetMutation();
-  const close = () => { setName(""); setCode(""); setCategory("OTHER"); setAcqDate(todayISO); setCost(0); setSalvage(0); setLife(""); onClose(); };
+  const close = () => { setName(""); setCode(""); setCategory("OTHER"); setMethod("STRAIGHT_LINE"); setAcqDate(todayISO); setCost(0); setSalvage(0); setLife(""); onClose(); };
   const submit = async () => {
     try {
-      const r = await create({ entity, name: name.trim(), asset_code: code.trim() || undefined, category, acquisition_date: acqDate, cost, salvage_value: salvage, useful_life_months: Number(life) }).unwrap();
+      const r = await create({ entity, name: name.trim(), asset_code: code.trim() || undefined, category, method, acquisition_date: acqDate, cost, salvage_value: salvage, useful_life_months: Number(life) }).unwrap();
       toast.success(r.message || "Asset created."); close();
     } catch { /* central */ }
   };
@@ -327,6 +329,11 @@ function NewAssetDrawer({ open, onClose, entity, currency }: { open: boolean; on
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Acquisition date" required><Input type="date" value={acqDate} onChange={(e) => setAcqDate(e.target.value)} className="h-9 bg-white" /></FormField>
           <FormField label="Useful life (months)" required><Input type="number" min={1} value={life} onChange={(e) => setLife(e.target.value)} placeholder="e.g. 96" className="h-9 bg-white" /></FormField>
+        </div>
+        <div>
+          <p className="mb-1 font-mont text-xs text-gray-05">Depreciation method</p>
+          <Select value={method} onChange={setMethod} className="w-full">{METHODS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select>
+          <p className="mt-1 font-mont text-[11px] text-gray-05">{method === "DECLINING_BALANCE" ? "Front-loaded: more depreciation early, tapering to salvage." : "Equal charge each month over the life."}</p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Cost" required><MoneyInput valueKobo={cost} onChangeKobo={setCost} currency={currency} className="[&_input]:h-9" /></FormField>
