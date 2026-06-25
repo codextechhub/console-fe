@@ -155,7 +155,27 @@ Existing negative-AR credit was reclassed once via
 - New journal + New account converted to drawers; sidebar scroll persists.
 
 **Receivables area: COMPLETE** (redesigned to prototype). **Next:**
-Fixed Assets, Tax Remittance, Reports.
+Tax Remittance, Reports.
+
+**Operations → Fixed Assets: DONE** (redesigned to prototype). Route
+`/finance/budgets/assets`. Register with KPIs (total cost / accum dep / NBV /
+monthly dep), **category + status filters**, table (Tag=document_number · Asset ·
+Category · Cost · Accum dep · NBV · Method · Status). Detail drawer: cost/accum/NBV/
+in-service cards + a depreciation schedule **rolled up monthly→yearly** (Opening/Dep/
+Closing NBV + posted x/n); footer **Acquire** (draft) · **Depreciate-to-date**
+(active, per-asset, only when due) · **Dispose** (active/fully-dep). **Add asset**
+drawer (proper create → draft; acquire to capitalise). **Run depreciation** drawer =
+a period-wide `PostingRecap` preview (one compound journal Dr 5400 / Cr 1900 across
+all due assets) with a nothing-due empty state. **Dispose** drawer (date, proceeds,
+bank, gain/loss account, live gain/loss). Backend additions: `AssetCategory` +
+`FixedAsset.category`; `run_period_depreciation`/`preview_period_depreciation`
+(GET/POST `/fixed-assets/run-depreciation/`); `dispose_asset` (POST
+`/fixed-assets/<id>/dispose/`, posts Dr accum + Dr bank + Dr loss|Cr gain, Cr cost) +
+`disposal_date`/`disposal_journal`; new RBAC key `finance.fixedasset.dispose`
+(P.FIN_DISPOSE_FIXED_ASSET=202441). Honest adaptations: straight-line only (no
+reducing balance); schedule is monthly (shown yearly); the prototype's empty
+"Add asset" button is now a real create drawer. (Acquire/depreciate post real
+journals, so verify-design seed assets are left on CODEX rather than scrubbed.)
 
 **Operations → Budgets & Forecasts: DONE** (redesigned to prototype). Route
 `/finance/budgets/budgets` (the `:section` page, `BudgetsTab`). List (Name · FY ·
