@@ -172,8 +172,10 @@ bank, gain/loss account, live gain/loss). Backend additions: `AssetCategory` +
 (GET/POST `/fixed-assets/run-depreciation/`); `dispose_asset` (POST
 `/fixed-assets/<id>/dispose/`, posts Dr accum + Dr bank + Dr loss|Cr gain, Cr cost) +
 `disposal_date`/`disposal_journal`; new RBAC key `finance.fixedasset.dispose`
-(P.FIN_DISPOSE_FIXED_ASSET=202441). Honest adaptations: straight-line only (no
-reducing balance); schedule is monthly (shown yearly); the prototype's empty
+(P.FIN_DISPOSE_FIXED_ASSET=202441). Depreciation methods: **straight-line** and
+**declining balance** (double-declining with a switch to straight-line of the
+remaining base, landing exactly on salvage) — pick on Add-asset. Honest
+adaptations: schedule is monthly (shown yearly); the prototype's empty
 "Add asset" button is now a real create drawer. (Acquire/depreciate post real
 journals, so verify-design seed assets are left on CODEX rather than scrubbed.)
 
