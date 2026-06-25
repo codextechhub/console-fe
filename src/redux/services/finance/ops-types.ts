@@ -415,6 +415,8 @@ export interface TaxFiling {
   obligation_code: string;
   obligation_type: string;
   authority_name: string;
+  liability_account: string | null;
+  liability_account_name: string | null;
   period_start: string;
   period_end: string;
   due_date: string | null;

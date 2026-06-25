@@ -289,7 +289,7 @@ export const opsApi = baseApi.injectEndpoints({
     }),
 
     // Tax
-    getTaxObligations: b.query<PaginatedEnvelope<TaxObligation>, E>({
+    getTaxObligations: b.query<ApiEnvelope<TaxObligation[]>, { entity: string; is_active?: string }>({
       query: (p) => ({ url: `/finance/tax-obligations/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceTax"],
     }),
@@ -297,7 +297,7 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/tax-obligations/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceTax"],
     }),
-    getTaxFilings: b.query<PaginatedEnvelope<TaxFiling>, E>({
+    getTaxFilings: b.query<ApiEnvelope<TaxFiling[]>, { entity: string; filing_status?: string; obligation?: number }>({
       query: (p) => ({ url: `/finance/tax-filings/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceTax"],
     }),
@@ -305,13 +305,13 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/tax-filings/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceTax"],
     }),
-    fileTaxFiling: b.mutation<ApiEnvelope<TaxFiling>, Act>({
-      query: ({ id, entity }) => ({ url: `/finance/tax-filings/${id}/file/${qs({ entity })}`, method: "POST" }),
+    fileTaxFiling: b.mutation<ApiEnvelope<TaxFiling>, { id: number; entity: string; filed_date: string; filing_reference?: string; adjustment_amount?: number; adjustment_account?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/tax-filings/${id}/file/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceTax", "FinanceJournals"],
     }),
-    payTaxFiling: b.mutation<ApiEnvelope<TaxFiling>, Act>({
-      query: ({ id, entity }) => ({ url: `/finance/tax-filings/${id}/pay/${qs({ entity })}`, method: "POST" }),
-      invalidatesTags: ["FinanceTax", "FinanceJournals"],
+    payTaxFiling: b.mutation<ApiEnvelope<TaxFiling>, { id: number; entity: string; bank_account: string; pay_date: string; amount?: number }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/tax-filings/${id}/pay/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceTax", "FinanceJournals", "FinanceReports"],
     }),
   }),
 });
