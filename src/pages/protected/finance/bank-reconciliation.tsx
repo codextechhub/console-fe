@@ -172,7 +172,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
         </div>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         {/* Bank statement unmatched */}
         <Column title="Bank statement (unmatched)" count={`${unmatched.length} of ${totalLines}`}>
           {unmatched.length === 0 ? <ColEmpty msg="Every statement line is matched." /> : unmatched.map((l) => (
@@ -266,9 +266,6 @@ function MatchedLineDrawer({ line, currency, onClose, onUnmatch, canUnmatch, unm
 }) {
   if (!line) return null;
   const isAdjustment = line.match_source === "ADJUSTMENT";
-  const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div><p className="font-mont text-[11px] text-gray-05">{label}</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</p></div>
-  );
   return (
     <DetailDrawer
       open onOpenChange={(o) => (o ? undefined : onClose())}
@@ -282,12 +279,12 @@ function MatchedLineDrawer({ line, currency, onClose, onUnmatch, canUnmatch, unm
     >
       <div className="space-y-5">
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Statement date">{line.txn_date}</Field>
-          <Field label="Amount"><span className={signedCls(line.amount)}>{formatMoney(line.amount, currency)}</span></Field>
-          <Field label="Description">{line.description || "—"}</Field>
-          <Field label="Reference">{line.reference || "—"}</Field>
-          <Field label="Book entry / JE">{line.matched_reference || (isAdjustment ? "Adjusting entry" : "—")}</Field>
-          <Field label="Matched">{line.match_source_display || "Manual"}{line.reconciled_at ? ` · ${fmtDate(line.reconciled_at)}` : ""}</Field>
+          <ReconField label="Statement date">{line.txn_date}</ReconField>
+          <ReconField label="Amount"><span className={signedCls(line.amount)}>{formatMoney(line.amount, currency)}</span></ReconField>
+          <ReconField label="Description">{line.description || "—"}</ReconField>
+          <ReconField label="Reference">{line.reference || "—"}</ReconField>
+          <ReconField label="Book entry / JE">{line.matched_reference || (isAdjustment ? "Adjusting entry" : "—")}</ReconField>
+          <ReconField label="Matched">{line.match_source_display || "Manual"}{line.reconciled_at ? ` · ${fmtDate(line.reconciled_at)}` : ""}</ReconField>
         </div>
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
           {isAdjustment
@@ -302,6 +299,10 @@ function MatchedLineDrawer({ line, currency, onClose, onUnmatch, canUnmatch, unm
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 
+function ReconField({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div><p className="font-mont text-[11px] text-gray-05">{label}</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</p></div>;
+}
+
 function Column({ title, count, children }: { title: string; count: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col overflow-hidden rounded-lg border border-gray-03 bg-white">
@@ -309,7 +310,9 @@ function Column({ title, count, children }: { title: string; count: string; chil
         <p className="font-mont text-xs font-semibold text-gray-01">{title}</p>
         <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 font-mont text-[11px] font-medium text-gray-05 ring-1 ring-gray-03">{count}</span>
       </div>
-      <div className="min-h-[120px] divide-y divide-gray-03">{children}</div>
+      {/* Fill the viewport but cap it, so a long reconciliation scrolls inside
+          the box rather than pushing the whole page down. */}
+      <div className="min-h-[280px] max-h-[calc(100dvh-24rem)] divide-y divide-gray-03 overflow-y-auto">{children}</div>
     </div>
   );
 }
