@@ -22,6 +22,7 @@
 //                       27=activate  28=cancel  29=refresh  30=submit  31=match
 //                       32=award  33=issue  34=renew  35=terminate  36=replenish
 //                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
+//                       41=dispose
 //
 // ── Adding a permission ───────────────────────────────────────────────────────
 //   1. Pick the next free code in the right MM RR range.
@@ -224,6 +225,7 @@ const REGISTRY: Record<string, string> = {
   "202402": "finance.fixedasset.create",
   "202422": "finance.fixedasset.acquire",
   "202423": "finance.fixedasset.depreciate",
+  "202441": "finance.fixedasset.dispose",
   "202501": "finance.audit.view",
   "202601": "finance.customer.view",
   "202602": "finance.customer.create",
@@ -486,6 +488,7 @@ export const P = {
   FIN_CREATE_FIXED_ASSET:   "202402",
   FIN_ACQUIRE_FIXED_ASSET:  "202422",
   FIN_DEPRECIATE_FIXED_ASSET:"202423",
+  FIN_DISPOSE_FIXED_ASSET:  "202441",
   FIN_VIEW_FINANCE_AUDIT:   "202501",
 
   // ── Procurement ─────────────────────────────────────────────────────────────

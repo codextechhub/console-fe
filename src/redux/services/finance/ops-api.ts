@@ -18,6 +18,7 @@ import type {
   FiscalYear,
   ExpenseClaim,
   FixedAsset,
+  DepreciationPreview,
   EmployeeSalary,
   PayrollRun,
   SalaryComponent,
@@ -258,21 +259,33 @@ export const opsApi = baseApi.injectEndpoints({
     }),
 
     // Fixed assets
-    getFixedAssets: b.query<PaginatedEnvelope<FixedAsset>, E>({
+    getFixedAssets: b.query<ApiEnvelope<FixedAsset[]>, { entity: string; category?: string; asset_status?: string }>({
       query: (p) => ({ url: `/finance/fixed-assets/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceFixedAssets"],
     }),
-    createFixedAsset: b.mutation<ApiEnvelope<FixedAsset>, { entity: string; name: string; asset_code?: string; acquisition_date: string; cost: number; salvage_value?: number; useful_life_months: number; method?: string }>({
+    createFixedAsset: b.mutation<ApiEnvelope<FixedAsset>, { entity: string; name: string; asset_code?: string; category?: string; acquisition_date: string; cost: number; salvage_value?: number; useful_life_months: number; method?: string }>({
       query: ({ entity, ...body }) => ({ url: `/finance/fixed-assets/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceFixedAssets"],
     }),
-    acquireFixedAsset: b.mutation<ApiEnvelope<FixedAsset>, Act>({
-      query: ({ id, entity }) => ({ url: `/finance/fixed-assets/${id}/acquire/${qs({ entity })}`, method: "POST" }),
+    acquireFixedAsset: b.mutation<ApiEnvelope<FixedAsset>, Act & { bank_account?: string; credit_account?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/fixed-assets/${id}/acquire/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceFixedAssets", "FinanceJournals"],
     }),
-    depreciateFixedAsset: b.mutation<ApiEnvelope<FixedAsset>, Act>({
-      query: ({ id, entity }) => ({ url: `/finance/fixed-assets/${id}/depreciate/${qs({ entity })}`, method: "POST" }),
+    depreciateFixedAsset: b.mutation<ApiEnvelope<FixedAsset>, Act & { up_to_date: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/fixed-assets/${id}/depreciate/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceFixedAssets", "FinanceJournals"],
+    }),
+    getDepreciationPreview: b.query<ApiEnvelope<DepreciationPreview>, { entity: string; up_to_date: string }>({
+      query: (p) => ({ url: `/finance/fixed-assets/run-depreciation/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinanceFixedAssets"],
+    }),
+    runDepreciation: b.mutation<ApiEnvelope<{ journal_id: number; total: number; charge_count: number; asset_count: number }>, { entity: string; up_to_date: string }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/fixed-assets/run-depreciation/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceFixedAssets", "FinanceJournals", "FinanceReports"],
+    }),
+    disposeFixedAsset: b.mutation<ApiEnvelope<FixedAsset>, { id: number; entity: string; disposal_date: string; proceeds?: number; bank_account?: string; gain_loss_account?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/fixed-assets/${id}/dispose/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceFixedAssets", "FinanceJournals", "FinanceReports"],
     }),
 
     // Tax
@@ -360,6 +373,9 @@ export const {
   useCreateFixedAssetMutation,
   useAcquireFixedAssetMutation,
   useDepreciateFixedAssetMutation,
+  useGetDepreciationPreviewQuery,
+  useRunDepreciationMutation,
+  useDisposeFixedAssetMutation,
   useGetTaxObligationsQuery,
   useCreateTaxObligationMutation,
   useGetTaxFilingsQuery,

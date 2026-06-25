@@ -366,6 +366,8 @@ export interface FixedAsset {
   document_number: string;
   name: string;
   asset_code: string;
+  category: string;
+  category_display: string;
   acquisition_date: string;
   cost: number;
   cost_naira: string;
@@ -378,7 +380,18 @@ export interface FixedAsset {
   net_book_value: number;
   depreciable_base: number;
   acquisition_journal_id: number | null;
+  disposal_date: string | null;
+  disposal_journal_id: number | null;
   schedule: DepreciationScheduleRow[];
+}
+
+// Run-depreciation preview: the compound journal a period run will post.
+export interface DepreciationPreviewLine { account: string; name: string; amount: number }
+export interface DepreciationPreview {
+  debits: DepreciationPreviewLine[];
+  credits: DepreciationPreviewLine[];
+  total: number;
+  asset_count: number;
 }
 
 // ── Tax ──────────────────────────────────────────────────────────────────────
