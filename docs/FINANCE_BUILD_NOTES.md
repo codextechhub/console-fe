@@ -154,8 +154,23 @@ Existing negative-AR credit was reclassed once via
   Duplicate / Archive omitted (no backend).
 - New journal + New account converted to drawers; sidebar scroll persists.
 
-**Receivables area: COMPLETE** (redesigned to prototype). **Next:**
-Tax Remittance, Reports.
+**Receivables area: COMPLETE** (redesigned to prototype). **Next:** Reports.
+
+**Operations → Tax Remittance: DONE** (redesigned to prototype). Route
+`/finance/budgets/tax`. KPIs (total outstanding / open / filed-awaiting-payment /
+paid) + a filings table (Tax=obligation_code · Period label · Authority · Accrued=
+gross_liability · Outstanding=balance_due · Due date · Filing ref · Status, mapped
+DRAFT→Open/FILED/PAID) with a status filter. Detail drawer: cards + a **filing-
+lifecycle stepper** (Accrued ✓ → Filed → Paid) + an **on-remittance `PostingRecap`**
+(Dr liability control acct / Cr bank — bank "chosen on payment") + Mark-as-filed / Pay.
+File drawer (filed date, reference, optional adjustment+account → `file_filing`); Pay
+drawer (bank, date, amount/partials → `pay_filing` Dr liability Cr bank); **New filing**
+(obligation + period → `prepare_filing` accrues from the GL control account); **New
+obligation** (code/type/name/liability account/authority/frequency/day). **Printable
+filing pack** (period summary). Backend: only added `liability_account`(+name) to
+`TaxFilingSerializer` — obligations/filings/file/pay/outstanding endpoints already
+existed. Honest adaptations: period shown as a derived label; the prototype's no-op
+"Generate filing pack" is now a real print.
 
 **Operations → Fixed Assets: DONE** (redesigned to prototype). Route
 `/finance/budgets/assets`. Register with KPIs (total cost / accum dep / NBV /
