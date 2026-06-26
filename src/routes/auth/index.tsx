@@ -2,6 +2,7 @@ import { lazy } from "react";
 import { Navigate, type RouteObject } from "react-router";
 import { routesPath } from "../routes-path";
 import AuthLayout from "@/components/layout/auth-layout";
+import Guest from "@/middleware/guest";
 
 // Route-level code splitting: each page loads on first visit instead of
 // shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
@@ -16,9 +17,17 @@ export const authRoutes = [
   {
     Component: AuthLayout,
     children: [
-      { index: true, element: <Navigate to={routesPath.AUTH.LOGIN} /> },
-      { path: routesPath.AUTH.LOGIN, Component: Login },
-      { path: routesPath.AUTH.SIGNUP, Component: SignUp },
+      // Sign-in pages: an already-authenticated user is bounced to the app, so
+      // /login can't be reopened (e.g. via Back) once signed in.
+      {
+        Component: Guest,
+        children: [
+          { index: true, element: <Navigate to={routesPath.AUTH.LOGIN} /> },
+          { path: routesPath.AUTH.LOGIN, Component: Login },
+          { path: routesPath.AUTH.SIGNUP, Component: SignUp },
+        ],
+      },
+      // Email-link / out-of-band flows stay reachable even with a live session.
       { path: routesPath.AUTH.FORGOT_PASSWORD, Component: ForgotPassword },
       { path: routesPath.AUTH.RESET_PASSWORD, Component: ResetPassword },
       { path: routesPath.AUTH.ACTIVATE, Component: ActivateAccount },
