@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
+import { installStaleChunkReload } from "@/utils/stale-chunk";
 import "@fontsource/montserrat/400.css";
 import "@fontsource/montserrat/500.css";
 import "@fontsource/montserrat/600.css";
@@ -15,6 +16,8 @@ import "@fontsource/outfit/800.css";
 // Geist (Sans + Mono) — scoped to the Finance & Procurement consoles via `.console-geist`.
 import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
+
+installStaleChunkReload();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
