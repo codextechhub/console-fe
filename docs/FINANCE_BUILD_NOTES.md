@@ -346,6 +346,26 @@ id** (fixed `_entity_obj` so numeric account *codes* aren't mistaken for pks).
 The serializer exposes `source_account_code`/`name` for the recap. Route
 `/finance/payments/payouts`.
 
+**Payments → Batches: DONE** (Vision "Bulk Disbursement"). A batch is many
+PayoutInstructions submitted in one run. KPIs (Batches / Queued value =
+DRAFT+PROCESSING totals / Completed 7d / Drafts) over the batch list; table
+(Batch · Run date · Purpose · Items · Total · Provider · Status — real statuses
+Draft/Processing/Completed/Partial/Failed). **Build batch** drawer is a
+multi-line **vendor** editor — each line picks a vendor (beneficiary auto-fills
+from its bank details) + amount + **per-line WHT** (net = amount − WHT); live
+summary (Items / Batch total / WHT withheld) and a settlement recap (Dr Accounts
+payable gross / Cr bank net / Cr WHT payable); footer **Save draft** or **Submit
+batch** (`submit:true` dispatches now). **Detail drawer**: KPIs + an Items &
+results table (per-item Amount/WHT/Net + a result pill), footer "N settled · M
+failed · K items", **Submit batch** (drafts / any pending) and **Bank file**
+(CSV — honest, no proprietary format). **Upload CSV** is deferred
+(disabled-with-tooltip) per the build decision. Backend: new
+`createPayoutBatch` mutation + `wht_amount` on the instruction serializer; the
+batch POST view now resolves each line's vendor by **code or id** and **requires
+a vendor per line** (so every line can book). Each line is a vendor disbursement
+(the prototype's "employees" are payroll, a separate module). Route
+`/finance/payments/batches`.
+
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
 transfer to a customer's number arrives as a Collection that reconciles to AR.
