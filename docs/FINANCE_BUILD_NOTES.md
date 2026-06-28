@@ -305,6 +305,25 @@ adds `GET …/book-lines/` (unmatched GL cash lines) + `POST …/reconcile/compl
 Honest: click-both-then-Match (no drag-drop), equal-amount candidate highlight
 (no AI suggest), account-level (not per statement file). Route F.BANK_RECON.
 
+**Collections → Gateway: DONE** (Vision prototype). Money-in via hosted gateway
+checkouts (Paystack/OPay/Fake-for-dev) and their settlement. KPIs (Collected
+settled / Pending awaiting / Failed / success rate) computed over the full flat
+list (backend returns `list[:200]`, no pagination → `getCollections` is now an
+`ApiEnvelope<Collection[]>`); client-side status + provider filters; table with
+a provider dot tag, customer (`customer_name`/`payer_name`/code + narration sub),
+amount, status pill. Detail drawer: Amount/Provider/Status metric cards, a
+**status timeline** (created → link ready → confirmed/failed), and a **settlement
+PostingRecap** that mirrors the *real* receipt journal (Dr deposit account or
+"Bank / collections" / Cr Accounts receivable) — labelled "Booked automatically
+when the provider confirmed payment" once paid, else "Will post on confirmation
+… no manual receipt" (honest: cash arrives by webhook/`?verify=1`, never a
+manual receipt form). **Re-verify** (non-terminal rows) re-polls the PSP;
+**Copy link** copies `checkout_url`; **Export** is a client CSV. **New checkout**
+drawer (CustomerPicker, amount, provider, email, narration + the same recap)
+POSTs `/payments/collections/` and copies the returned checkout link. Backend:
+exposed `customer_name`/`deposit_account_code`/`deposit_account_name` on
+`CollectionIntentSerializer`. Route `/finance/collections` (section `gateway`).
+
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
 transfer to a customer's number arrives as a Collection that reconciles to AR.
