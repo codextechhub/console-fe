@@ -2,7 +2,7 @@
 // (cash-out) and batches. Bank/beneficiary fields are FLS-stripped unless the
 // caller holds the matching *.view_sensitive grant (use @/utils/fls).
 
-export type CollectionStatus = "PENDING" | "PROCESSING" | "SUCCEEDED" | "FAILED" | "ABANDONED";
+export type CollectionStatus = "PENDING" | "PROCESSING" | "SUCCEEDED" | "FAILED" | "ABANDONED" | "REFUNDED";
 
 export interface Collection {
   id: number;
@@ -15,6 +15,9 @@ export interface Collection {
   amount_naira: string;
   status: CollectionStatus;
   customer_code: string | null;
+  customer_name: string | null;
+  deposit_account_code: string | null;
+  deposit_account_name: string | null;
   invoice_id: number | null;
   payer_email: string;
   payer_name: string;

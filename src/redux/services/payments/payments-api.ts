@@ -24,7 +24,7 @@ const qs = (p: object) => generateQueryString(p as Record<string, string | numbe
 
 export const paymentsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getCollections: builder.query<PaginatedEnvelope<Collection>, { entity: string; page?: number; status?: string; virtual_account?: number }>({
+    getCollections: builder.query<ApiEnvelope<Collection[]>, { entity: string; status?: string; virtual_account?: number }>({
       query: (p) => ({ url: `/payments/collections/${qs(p)}`, method: "GET" }),
       providesTags: ["PaymentsCollections"],
     }),
