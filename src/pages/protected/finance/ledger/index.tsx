@@ -172,9 +172,12 @@ export default function GeneralLedgerPage() {
         />
 
         {summary && (
-          <div className="flex items-center justify-between rounded-md bg-white px-4 py-2.5 font-mont text-xs text-gray-05">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-white px-4 py-2.5 font-mont text-xs text-gray-05">
             <span>{summary.total} entries</span>
-            <span>Posted total: <span className="font-semibold text-black-01">{formatMoney(summary.posted_total.kobo, currency)}</span></span>
+            <span className="flex gap-4">
+              <span>Posted total: <span className="font-semibold text-black-01">{formatMoney(summary.posted_total.kobo, currency)}</span></span>
+              <span>Reversed total: <span className="font-semibold text-black-01">{formatMoney(summary.reversed_total.kobo, currency)}</span></span>
+            </span>
           </div>
         )}
       </main>

@@ -27,6 +27,7 @@ export interface JournalSummary {
   total: number;
   by_status: Partial<Record<JournalStatus, number>>;
   posted_total: { kobo: number; naira: string };
+  reversed_total: { kobo: number; naira: string };
 }
 
 /** JournalLineSerializer (debit/credit are kobo). */
