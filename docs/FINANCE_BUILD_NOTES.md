@@ -324,6 +324,31 @@ POSTs `/payments/collections/` and copies the returned checkout link. Backend:
 exposed `customer_name`/`deposit_account_code`/`deposit_account_name` on
 `CollectionIntentSerializer`. Route `/finance/collections` (section `gateway`).
 
+**Payments → Payouts: DONE** (Vision prototype). Money-out via the gateway —
+single disbursements to recipients. KPIs (Settled 7d / Pending / Failed count /
+Payouts count) over the full flat list (`getPayouts` is now `ApiEnvelope<[]>`,
+backend returns `list[:200]`); status + provider filters (provider client-side);
+table with provider dot, recipient (beneficiary + bank·account sub, **FLS-masked
+to ••••** without `payments.payout.view_sensitive`), amount, status (PAID→
+"Settled"). Detail drawer: Amount/Provider/Status cards, a **status timeline**
+(created → sent to provider → settled/awaiting/failed) and a **settlement
+PostingRecap** mirroring the real journal (Dr payable·or·disbursement / Cr source
+bank), "Booked when the provider confirmed" once PAID. Settlement is webhook/PSP-
+driven — **no fake re-verify** (there's no single-payout verify endpoint). The
+**Bulk disbursement** button routes to Batches; **Export** is a client CSV.
+
+**New payout** has two honest shapes (a toggle): *Pay a vendor* settles the
+vendor's payable (`confirm_payout` → `_book_vendor_payment`, Dr AP / Cr bank;
+beneficiary auto-fills from the vendor's saved bank details) — or *Free-form
+recipient*, which has no payable so the operator nominates a **Debit account**
+and confirm books a direct bank disbursement (new `_book_generic_disbursement`,
+Dr that GL / Cr bank). Backend: `initiate_payout`/POST view take `debit_account`
+and **require it when there's no vendor** (else the payout could dispatch but
+never book); the POST view resolves vendor & accounts by **code or id** (fixed
+`_entity_obj` so numeric account *codes* aren't mistaken for pks); serializer
+exposes `source_account_code`/`name`. Tests: free-form booking + the no-debit
+guard. Route `/finance/payments/payouts`.
+
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
 transfer to a customer's number arrives as a Collection that reconciles to AR.
