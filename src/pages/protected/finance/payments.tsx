@@ -1,51 +1,17 @@
 // Payments (§6.Payments) — single payouts, payout batches, settlement
 // reconciliation (gateway vs bank), and the gateway transactions log.
 // Beneficiary details are FLS-masked unless payments.payout.view_sensitive.
-import { useState } from "react";
 import { useParams } from "react-router";
-import { toast } from "sonner";
 import { FinanceShell } from "./finance-shell";
 import { PayoutsTab } from "./payouts-tab";
-import { DataTable, Money, StatusPill, ActionButton, toArray, useActiveEntity, type Column } from "@/components/finance-ui";
+import { BatchesTab } from "./batches-tab";
+import { DataTable, Money, StatusPill, toArray, useActiveEntity, type Column } from "@/components/finance-ui";
 import { EmptyState, LoadingState } from "@/components/finance-ui/states";
-import { P } from "@/permissions";
 import {
-  useGetPayoutBatchesQuery, useSubmitPayoutBatchMutation, useGetSettlementReconciliationQuery,
+  useGetSettlementReconciliationQuery,
   useGetTransactionsLogQuery,
 } from "@/redux/services/payments/payments-api";
-import type { PayoutBatchSummary, TransactionLogEntry } from "@/redux/services/payments/payments-types";
-
-function BatchesTab({ entity, currency }: { entity: string; currency?: string | null }) {
-  const [page, setPage] = useState(1);
-  const { data, isLoading, isFetching, isError, refetch } = useGetPayoutBatchesQuery({ entity, page });
-  const [submit] = useSubmitPayoutBatchMutation();
-  const rows = data?.data ?? [];
-  const pg = data?.pagination;
-  const columns: Column<PayoutBatchSummary>[] = [
-    { header: "Reference", cell: (b) => <span className="font-semibold">{b.reference}</span> },
-    { header: "Title", cell: (b) => b.title },
-    { header: "Items", align: "right", cell: (b) => b.item_count },
-    { header: "Total", align: "right", cell: (b) => <Money kobo={b.total_amount} currency={currency} align="right" /> },
-    { header: "Status", cell: (b) => <StatusPill status={b.status} /> },
-    {
-      header: "", cell: (b) => (
-        <div onClick={(e) => e.stopPropagation()}>
-          {(b.status === "DRAFT" || b.status === "PENDING") && (
-            <ActionButton asLink label="Submit" permission={P.PAY_CREATE_PAYOUT} title="Submit payout batch?"
-              description={`Submits ${b.reference}'s pending instructions to the gateway. Only settled items book.`}
-              onConfirm={async () => { const r = await submit({ id: b.id, entity }).unwrap(); toast.success(r.message || "Submitted."); }} />
-          )}
-        </div>
-      ),
-    },
-  ];
-  return (
-    <DataTable columns={columns} rows={rows} rowKey={(b) => b.id}
-      loading={isLoading || isFetching} error={isError} onRetry={refetch}
-      emptyTitle="No payout batches" emptyMessage="Payout batches will appear here."
-      page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
-  );
-}
+import type { TransactionLogEntry } from "@/redux/services/payments/payments-types";
 
 function SettlementTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const { data, isLoading } = useGetSettlementReconciliationQuery({ entity });
