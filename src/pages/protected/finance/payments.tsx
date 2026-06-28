@@ -5,35 +5,15 @@ import { useState } from "react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { FinanceShell } from "./finance-shell";
+import { PayoutsTab } from "./payouts-tab";
 import { DataTable, Money, StatusPill, ActionButton, toArray, useActiveEntity, type Column } from "@/components/finance-ui";
 import { EmptyState, LoadingState } from "@/components/finance-ui/states";
 import { P } from "@/permissions";
-import { isStripped } from "@/utils/fls";
 import {
-  useGetPayoutsQuery, useGetPayoutBatchesQuery, useSubmitPayoutBatchMutation, useGetSettlementReconciliationQuery,
+  useGetPayoutBatchesQuery, useSubmitPayoutBatchMutation, useGetSettlementReconciliationQuery,
   useGetTransactionsLogQuery,
 } from "@/redux/services/payments/payments-api";
-import type { PayoutBatchSummary, PayoutInstruction, TransactionLogEntry } from "@/redux/services/payments/payments-types";
-
-function PayoutsTab({ entity, currency }: { entity: string; currency?: string | null }) {
-  const [page, setPage] = useState(1);
-  const { data, isLoading, isFetching, isError, refetch } = useGetPayoutsQuery({ entity, page });
-  const rows = data?.data ?? [];
-  const pg = data?.pagination;
-  const columns: Column<PayoutInstruction>[] = [
-    { header: "Reference", cell: (p) => <span className="font-semibold">{p.reference}</span> },
-    { header: "Beneficiary", cell: (p) => isStripped(p, "beneficiary_name") ? <span className="text-gray-05">••••</span> : p.beneficiary_name || "—" },
-    { header: "Account", cell: (p) => isStripped(p, "beneficiary_account_number") ? <span className="text-gray-05">••••</span> : p.beneficiary_account_number || "—" },
-    { header: "Amount", align: "right", cell: (p) => <Money kobo={p.amount} currency={currency} align="right" /> },
-    { header: "Status", cell: (p) => <StatusPill status={p.status} /> },
-  ];
-  return (
-    <DataTable columns={columns} rows={rows} rowKey={(p) => p.id}
-      loading={isLoading || isFetching} error={isError} onRetry={refetch}
-      emptyTitle="No payouts" emptyMessage="Single payouts will appear here."
-      page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
-  );
-}
+import type { PayoutBatchSummary, TransactionLogEntry } from "@/redux/services/payments/payments-types";
 
 function BatchesTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [page, setPage] = useState(1);
@@ -106,17 +86,20 @@ function TransactionsTab({ entity }: { entity: string }) {
 export default function PaymentsPage() {
   const { code: entity, currency } = useActiveEntity();
   const { section = "payouts" } = useParams();
-  const label = section === "batches" ? "Payout Batches"
-    : section === "settlement" ? "Settlement"
-    : section === "transactions" ? "Transactions Log"
-    : "Payouts";
+  const { label, subtitle } = section === "batches"
+    ? { label: "Payout Batches", subtitle: "Assemble a batch of payouts and submit them in one run." }
+    : section === "settlement"
+    ? { label: "Settlement", subtitle: "Reconcile gateway settlements against the bank." }
+    : section === "transactions"
+    ? { label: "Transactions Log", subtitle: "Every gateway action — collections, payouts and webhooks." }
+    : { label: "Payouts", subtitle: "Money out — single disbursements to recipients." };
 
   return (
     <FinanceShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">{label}</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">Single and bulk payouts, batches and settlement reconciliation.</p>
+          <p className="mt-0.5 font-mont text-xs text-gray-05">{subtitle}</p>
         </div>
         {!entity ? (
           <EmptyState title="Select an entity" />
