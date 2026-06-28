@@ -5,7 +5,7 @@
 
 import { useLayoutEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useLocation } from "react-router";
+import { Link, useLocation } from "react-router";
 import {
   Sidebar,
   SidebarContent,
@@ -120,9 +120,9 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
       <SidebarHeader className="bg-white">
         <SidebarMenu>
           <SidebarMenuItem className="mt-2">
-            <div className="flex items-center justify-center">
+            <Link to={routesPath.PROTECTED.OVERVIEW.INDEX} aria-label="Go to dashboard" className="flex items-center justify-center">
               <img src="/image/logo.png" alt="XVS logo" className="h-10 w-auto" />
-            </div>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
