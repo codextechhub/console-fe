@@ -11,6 +11,7 @@ import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "../finance/api-types";
 import type {
   Collection,
+  CreatePayoutBatchPayload,
   InitiateCollectionPayload,
   InitiatePayoutPayload,
   PayoutBatch,
@@ -87,6 +88,15 @@ export const paymentsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/payments/payout-batches/${qs(p)}`, method: "GET" }),
       providesTags: ["PaymentsPayoutBatches"],
     }),
+    // Assemble a batch (DRAFT) of vendor payouts; pass submit:true to dispatch now.
+    createPayoutBatch: builder.mutation<ApiEnvelope<PayoutBatch>, CreatePayoutBatchPayload>({
+      query: ({ entity, ...body }) => ({
+        url: `/payments/payout-batches/${qs({ entity })}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["PaymentsPayoutBatches", "PaymentsPayouts", "PaymentsTransactions"],
+    }),
     getPayoutBatch: builder.query<ApiEnvelope<PayoutBatch>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({ url: `/payments/payout-batches/${id}/${qs({ entity })}`, method: "GET" }),
       providesTags: ["PaymentsPayoutBatches"],
@@ -117,6 +127,7 @@ export const {
   useGetPayoutsQuery,
   useInitiatePayoutMutation,
   useGetPayoutBatchesQuery,
+  useCreatePayoutBatchMutation,
   useGetPayoutBatchQuery,
   useSubmitPayoutBatchMutation,
   useGetSettlementReconciliationQuery,

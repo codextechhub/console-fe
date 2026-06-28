@@ -69,11 +69,32 @@ export interface PayoutInstruction {
   narration: string;
   source_account_code: string | null;
   source_account_name: string | null;
+  wht_amount: number; // kobo withheld; net = amount − wht_amount
   vendor_payment_id: number | null;
   failure_reason: string | null;
   confirmed_at: string | null;
   created_at: string;
   _stripped_fields?: string[];
+}
+
+export interface PayoutBatchItemPayload {
+  vendor: string | number;
+  amount: number; // kobo
+  beneficiary_name: string;
+  beneficiary_account_number: string;
+  beneficiary_bank_code?: string;
+  wht_amount?: number; // kobo
+  narration?: string;
+}
+
+export interface CreatePayoutBatchPayload {
+  entity: string;
+  title?: string;
+  provider?: string;
+  source_account?: string;
+  narration?: string;
+  submit?: boolean; // true → dispatch to the provider immediately after assembly
+  items: PayoutBatchItemPayload[];
 }
 
 export interface InitiatePayoutPayload {
