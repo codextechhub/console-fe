@@ -12,6 +12,7 @@ import type { ApiEnvelope, PaginatedEnvelope } from "../finance/api-types";
 import type {
   Collection,
   InitiateCollectionPayload,
+  InitiatePayoutPayload,
   PayoutBatch,
   PayoutBatchSummary,
   PayoutInstruction,
@@ -66,10 +67,21 @@ export const paymentsApi = baseApi.injectEndpoints({
       invalidatesTags: ["PaymentsVirtualAccounts"],
     }),
 
-    // Payouts (slice 6)
-    getPayouts: builder.query<PaginatedEnvelope<PayoutInstruction>, { entity: string; page?: number; status?: string }>({
+    // Payouts (slice 6). Backend returns a flat list[:200] (no pagination); the
+    // console computes KPIs over the whole set and filters provider client-side.
+    getPayouts: builder.query<ApiEnvelope<PayoutInstruction[]>, { entity: string; status?: string }>({
       query: (p) => ({ url: `/payments/payouts/${qs(p)}`, method: "GET" }),
       providesTags: ["PaymentsPayouts"],
+    }),
+    // Initiate a single payout to a vendor; the provider transfer is requested
+    // immediately (PROCESSING) and the ledger entry books on confirmation.
+    initiatePayout: builder.mutation<ApiEnvelope<PayoutInstruction>, InitiatePayoutPayload>({
+      query: ({ entity, ...body }) => ({
+        url: `/payments/payouts/${qs({ entity })}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["PaymentsPayouts", "PaymentsTransactions"],
     }),
     getPayoutBatches: builder.query<PaginatedEnvelope<PayoutBatchSummary>, { entity: string; page?: number; status?: string }>({
       query: (p) => ({ url: `/payments/payout-batches/${qs(p)}`, method: "GET" }),
@@ -103,6 +115,7 @@ export const {
   useCreateVirtualAccountMutation,
   useUpdateVirtualAccountMutation,
   useGetPayoutsQuery,
+  useInitiatePayoutMutation,
   useGetPayoutBatchesQuery,
   useGetPayoutBatchQuery,
   useSubmitPayoutBatchMutation,

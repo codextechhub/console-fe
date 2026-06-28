@@ -7,6 +7,7 @@ import { SearchSelect } from "@/components/custom/search-select";
 import { useGetAccountsQuery, useGetChartOfAccountsQuery, useGetCurrenciesQuery, useGetTaxCodesQuery, useGetCostCentersQuery } from "@/redux/services/finance/setup-api";
 import { useGetTaxObligationsQuery, useGetPettyCashFundsQuery, useGetBankAccountsQuery } from "@/redux/services/finance/ops-api";
 import { useGetCustomersQuery } from "@/redux/services/finance/ar-api";
+import { useGetVendorsQuery } from "@/redux/services/procurement/procurement-api";
 import { toArray } from "@/redux/services/finance/api-types";
 
 interface PickerProps {
@@ -44,6 +45,16 @@ export function ReceivableAccountPicker({ entity, value, onChange, label, placeh
 export function CustomerPicker({ entity, value, onChange, label, placeholder = "Select customer", isRequired, disabled }: PickerProps) {
   const { data, isLoading } = useGetCustomersQuery({ entity, is_active: "true" });
   const options = toArray(data?.data).map((c) => ({ value: c.code, label: `${c.code} — ${c.name}` }));
+  return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} revealOnSearch />;
+}
+
+/** Vendor picker — entity's active vendors; reports the vendor code. Used by
+ *  payouts (a payout settles a vendor's payable). List-backed → reveal-on-search. */
+export function VendorPicker({ entity, value, onChange, label, placeholder = "Select vendor", isRequired, disabled }: PickerProps) {
+  const { data, isLoading } = useGetVendorsQuery({ entity });
+  const options = toArray(data?.data)
+    .filter((v) => v.is_active)
+    .map((v) => ({ value: v.code, label: `${v.code} — ${v.name}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} revealOnSearch />;
 }
 

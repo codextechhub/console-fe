@@ -67,11 +67,26 @@ export interface PayoutInstruction {
   beneficiary_account_number?: string; // FLS
   beneficiary_bank_code: string;
   narration: string;
+  source_account_code: string | null;
+  source_account_name: string | null;
   vendor_payment_id: number | null;
   failure_reason: string | null;
   confirmed_at: string | null;
   created_at: string;
   _stripped_fields?: string[];
+}
+
+export interface InitiatePayoutPayload {
+  entity: string;
+  vendor?: string | number; // vendor mode — settles the vendor's payable
+  debit_account?: string; // free-form mode — GL to debit (no vendor payable exists)
+  amount: number; // kobo
+  beneficiary_name: string;
+  beneficiary_account_number: string;
+  beneficiary_bank_code?: string;
+  source_account?: string;
+  provider?: string;
+  narration?: string;
 }
 
 export interface PayoutBatchSummary {
