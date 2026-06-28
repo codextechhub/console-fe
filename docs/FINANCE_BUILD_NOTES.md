@@ -332,22 +332,19 @@ table with provider dot, recipient (beneficiary + bank·account sub, **FLS-maske
 to ••••** without `payments.payout.view_sensitive`), amount, status (PAID→
 "Settled"). Detail drawer: Amount/Provider/Status cards, a **status timeline**
 (created → sent to provider → settled/awaiting/failed) and a **settlement
-PostingRecap** mirroring the real journal (Dr payable·or·disbursement / Cr source
-bank), "Booked when the provider confirmed" once PAID. Settlement is webhook/PSP-
-driven — **no fake re-verify** (there's no single-payout verify endpoint). The
-**Bulk disbursement** button routes to Batches; **Export** is a client CSV.
+PostingRecap** mirroring the real journal (Dr Accounts payable / Cr source bank),
+"Booked when the provider confirmed" once PAID. Settlement is webhook/PSP-driven
+— **no fake re-verify** (there's no single-payout verify endpoint). The **Bulk
+disbursement** button routes to Batches; **Export** is a client CSV.
 
-**New payout** has two honest shapes (a toggle): *Pay a vendor* settles the
-vendor's payable (`confirm_payout` → `_book_vendor_payment`, Dr AP / Cr bank;
-beneficiary auto-fills from the vendor's saved bank details) — or *Free-form
-recipient*, which has no payable so the operator nominates a **Debit account**
-and confirm books a direct bank disbursement (new `_book_generic_disbursement`,
-Dr that GL / Cr bank). Backend: `initiate_payout`/POST view take `debit_account`
-and **require it when there's no vendor** (else the payout could dispatch but
-never book); the POST view resolves vendor & accounts by **code or id** (fixed
-`_entity_obj` so numeric account *codes* aren't mistaken for pks); serializer
-exposes `source_account_code`/`name`. Tests: free-form booking + the no-debit
-guard. Route `/finance/payments/payouts`.
+**New payout** pays a **vendor**: it settles the vendor's payable on confirmation
+(`confirm_payout` → `_book_vendor_payment`, Dr AP / Cr source bank), and the
+beneficiary fields auto-fill from the vendor's saved bank details (editable). A
+payout must be linked to a vendor — the POST view requires it (a payout with no
+payable has nothing to book), and resolves the vendor & accounts by **code or
+id** (fixed `_entity_obj` so numeric account *codes* aren't mistaken for pks).
+The serializer exposes `source_account_code`/`name` for the recap. Route
+`/finance/payments/payouts`.
 
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a

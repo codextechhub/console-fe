@@ -4,17 +4,16 @@
 // a New-payout drawer (vendor OR free-form), and a CSV export.
 //
 // Backed by the real model: initiate asks the provider to transfer out (PROCESSING); the
-// ledger entry books on confirmation (webhook / PSP), never here. Two honest shapes — a
-// vendor payout settles the vendor's payable (Dr AP / Cr bank); a free-form payout has no
-// payable, so the operator nominates the GL to debit (Dr that account / Cr bank). The
-// recap mirrors the real journal. Beneficiary name/account are FLS-masked to •••• without
+// ledger entry books on confirmation (webhook / PSP), never here. A payout settles a
+// vendor's payable, so it books a VendorPayment (Dr AP / Cr bank) — the recap mirrors that
+// real journal. Beneficiary name/account are FLS-masked to •••• without
 // payments.payout.view_sensitive. Settlement is webhook-driven — no fake "re-verify".
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Plus, Download, Layers, Banknote } from "lucide-react";
-import { DataTable, Money, MoneyInput, DetailDrawer, FormField, Segmented, VendorPicker, AccountPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
+import { DataTable, Money, MoneyInput, DetailDrawer, FormField, VendorPicker, AccountPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,9 +167,7 @@ function PayoutDrawer({ payoutId, payouts, currency, onClose }: { payoutId: numb
   const paid = p.status === "PAID";
   const failed = p.status === "FAILED" || p.status === "REVERSED";
   const dispatched = p.status === "PROCESSING" || paid || (failed && !!p.provider_reference);
-  const isVendor = !!p.vendor_payment_id; // known once booked
-  const drName = paid ? (isVendor ? "Accounts payable (vendor)" : "Bank disbursement") : "Vendor payable / nominated GL";
-  const dr: RecapRow[] = [{ code: "", name: drName, amount: p.amount }];
+  const dr: RecapRow[] = [{ code: "", name: "Accounts payable (vendor)", amount: p.amount }];
   const cr: RecapRow[] = [{ code: p.source_account_code || "", name: p.source_account_name || "Cash & bank", amount: p.amount }];
 
   return (
@@ -209,16 +206,11 @@ function PayoutDrawer({ payoutId, payouts, currency, onClose }: { payoutId: numb
   );
 }
 
-type Mode = "vendor" | "free";
-const MODES = [["vendor", "Pay a vendor"], ["free", "Free-form recipient"]] as const;
-
 function NewPayoutDrawer({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
-  const [mode, setMode] = useState<Mode>("vendor");
   const [vendor, setVendor] = useState("");
   const [name, setName] = useState("");
   const [acct, setAcct] = useState("");
   const [bankCode, setBankCode] = useState("");
-  const [debitAccount, setDebitAccount] = useState("");
   const [sourceAccount, setSourceAccount] = useState("");
   const [amount, setAmount] = useState(0);
   const [provider, setProvider] = useState("PAYSTACK");
@@ -227,56 +219,46 @@ function NewPayoutDrawer({ open, onClose, entity, currency }: { open: boolean; o
 
   // Vendor prefill: when a vendor is picked, fill the beneficiary fields from its
   // saved bank details (editable). RTK dedupes this with the picker's own query.
-  const { data: vendorsData } = useGetVendorsQuery({ entity }, { skip: mode !== "vendor" });
+  const { data: vendorsData } = useGetVendorsQuery({ entity });
   const { data: acctData } = useGetAccountsQuery({ entity });
   const acctName = (code: string) => toArray(acctData?.data).find((a) => a.code === code)?.name;
   useEffect(() => {
-    if (mode !== "vendor" || !vendor) return;
+    if (!vendor) return;
     const v = toArray(vendorsData?.data).find((x) => x.code === vendor);
     if (v) { setName(v.bank_account_name || v.name); setAcct(v.bank_account_number || ""); }
-  }, [vendor, vendorsData, mode]);
+  }, [vendor, vendorsData]);
 
   const close = () => {
-    setMode("vendor"); setVendor(""); setName(""); setAcct(""); setBankCode(""); setDebitAccount("");
+    setVendor(""); setName(""); setAcct(""); setBankCode("");
     setSourceAccount(""); setAmount(0); setProvider("PAYSTACK"); setNarration(""); onClose();
   };
 
-  const valid = amount > 0 && name.trim() && acct.trim() &&
-    (mode === "vendor" ? !!vendor : !!debitAccount);
+  const valid = amount > 0 && !!vendor && name.trim() && acct.trim();
 
   const submit = async () => {
     try {
       await initiate({
-        entity, amount, beneficiary_name: name.trim(), beneficiary_account_number: acct.trim(),
+        entity, vendor, amount, beneficiary_name: name.trim(), beneficiary_account_number: acct.trim(),
         beneficiary_bank_code: bankCode.trim() || undefined, provider,
         source_account: sourceAccount || undefined, narration: narration.trim() || undefined,
-        ...(mode === "vendor" ? { vendor } : { debit_account: debitAccount }),
       }).unwrap();
       toast.success("Payout sent to the provider.");
       close();
     } catch { /* central */ }
   };
 
-  const dr: RecapRow[] = [{
-    code: mode === "free" ? debitAccount : "",
-    name: mode === "vendor" ? "Accounts payable (vendor)" : (acctName(debitAccount) || "Debit account"),
-    amount: amount || 0,
-  }];
+  const dr: RecapRow[] = [{ code: "", name: "Accounts payable (vendor)", amount: amount || 0 }];
   const cr: RecapRow[] = [{ code: sourceAccount, name: acctName(sourceAccount) || "Cash & bank", amount: amount || 0 }];
 
   return (
     <DetailDrawer open={open} onOpenChange={(o) => (o ? undefined : close())}
-      title="New payout" description="Send money to a recipient account." widthClass="sm:max-w-2xl"
+      title="New payout" description="Pay a vendor — money out to a recipient account." widthClass="sm:max-w-2xl"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
         <Button disabled={isLoading || !valid} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Sending…" : "Send payout"}</Button>
       </>}>
       <div className="space-y-4">
-        <Segmented value={mode} onChange={setMode} options={MODES} />
-
-        {mode === "vendor" ? (
-          <FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} /></FormField>
-        ) : null}
+        <FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} /></FormField>
 
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Recipient name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Beneficiary" className="h-9 bg-white" /></FormField>
@@ -287,10 +269,6 @@ function NewPayoutDrawer({ open, onClose, entity, currency }: { open: boolean; o
           <FormField label="Bank code"><Input value={bankCode} onChange={(e) => setBankCode(e.target.value)} placeholder="e.g. 058" className="h-9 bg-white" /></FormField>
         </div>
 
-        {mode === "free" ? (
-          <FormField label="Debit account" required><AccountPicker entity={entity} value={debitAccount} onChange={setDebitAccount} accountType="EXPENSE" postableOnly placeholder="Expense / clearing GL" /></FormField>
-        ) : null}
-
         <div className="grid grid-cols-2 gap-3">
           <div><p className="mb-1 font-mont text-xs text-gray-05">Provider</p><Select value={provider} onChange={setProvider} className="w-full">{Object.entries(PROVIDERS).map(([v, pr]) => <option key={v} value={v}>{pr.label}</option>)}</Select></div>
           <FormField label="From bank account"><AccountPicker entity={entity} value={sourceAccount} onChange={setSourceAccount} accountType="ASSET" postableOnly placeholder="Defaults to cash & bank" /></FormField>
@@ -300,9 +278,7 @@ function NewPayoutDrawer({ open, onClose, entity, currency }: { open: boolean; o
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">On settlement (via webhook)</p>
           <PostingRecap title="Will post on confirmation" dr={dr} cr={cr} currency={currency}
-            helper={mode === "vendor"
-              ? "Settles the vendor's payable when the provider confirms — no manual entry."
-              : "Posts a direct bank disbursement when the provider confirms — no manual entry."} />
+            helper="Settles the vendor's payable when the provider confirms — no manual entry." />
         </div>
       </div>
     </DetailDrawer>

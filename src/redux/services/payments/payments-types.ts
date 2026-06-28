@@ -78,8 +78,7 @@ export interface PayoutInstruction {
 
 export interface InitiatePayoutPayload {
   entity: string;
-  vendor?: string | number; // vendor mode — settles the vendor's payable
-  debit_account?: string; // free-form mode — GL to debit (no vendor payable exists)
+  vendor: string | number; // a payout settles the vendor's payable
   amount: number; // kobo
   beneficiary_name: string;
   beneficiary_account_number: string;
