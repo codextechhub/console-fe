@@ -8,7 +8,6 @@ import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { cn } from "@/lib/utils";
 import { downloadReportExport } from "@/utils/finance-export";
 import {
-  useGetTrialBalanceQuery,
   useGetIncomeStatementQuery,
   useGetBalanceSheetQuery,
   useGetCashFlowQuery,
@@ -43,35 +42,6 @@ function Frame({ title, entity, path, children }: { title: string; entity: strin
       </div>
       <div className="overflow-x-auto rounded-md bg-white">{children}</div>
     </div>
-  );
-}
-
-export function TrialBalanceReport({ entity, currency }: { entity: string; currency?: string | null }) {
-  const { data, isLoading, isError, refetch } = useGetTrialBalanceQuery({ entity });
-  if (isLoading) return <LoadingState />;
-  if (isError || !data) return <ErrorState onRetry={refetch} />;
-  const d = data.data;
-  return (
-    <Frame title="Trial Balance" entity={entity} path="/finance/reports/trial-balance/">
-      <table className="w-full">
-        <thead><tr><th className={th + " text-left"}>Code</th><th className={th + " text-left"}>Account</th><th className={th + " text-right"}>Debit</th><th className={th + " text-right"}>Credit</th></tr></thead>
-        <tbody>
-          {d.rows.map((r) => (
-            <tr key={r.account_id}>
-              <td className={td}>{r.code}</td><td className={td}>{r.name}</td>
-              <td className={td + " text-right"}>{r.debit.kobo ? <Money kobo={r.debit.kobo} currency={currency} align="right" /> : "—"}</td>
-              <td className={td + " text-right"}>{r.credit.kobo ? <Money kobo={r.credit.kobo} currency={currency} align="right" /> : "—"}</td>
-            </tr>
-          ))}
-          <tr className="font-semibold">
-            <td className={td} /><td className={td + " text-right"}>TOTAL</td>
-            <td className={td + " text-right"}><Money kobo={d.total_debit.kobo} currency={currency} align="right" /></td>
-            <td className={td + " text-right"}><Money kobo={d.total_credit.kobo} currency={currency} align="right" /></td>
-          </tr>
-        </tbody>
-      </table>
-      <p className={cn("px-3 py-2 font-mont text-xs font-semibold", d.is_balanced ? "text-green-01" : "text-destructive")}>{d.is_balanced ? "Balanced ✓" : "Out of balance"}</p>
-    </Frame>
   );
 }
 

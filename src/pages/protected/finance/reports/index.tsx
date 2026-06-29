@@ -6,9 +6,10 @@ import { FinanceShell } from "../finance-shell";
 import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import {
-  TrialBalanceReport, IncomeStatementReport, BalanceSheetReport,
+  IncomeStatementReport, BalanceSheetReport,
   CashFlowReport, EquityReport,
 } from "./statements";
+import { TrialBalanceReport } from "./trial-balance-tab";
 import { PeriodsTab } from "./periods-tab";
 
 const LABELS: Record<string, string> = {
