@@ -384,6 +384,23 @@ shown as an *observation*, the very gap Bank Reconciliation later books. Backend
 The endpoint was already there (`payments.report.view`); the FE response is now
 fully typed (`SettlementReconciliation`). Route `/finance/payments/settlement`.
 
+**Payments → Transactions Log: DONE** (Vision prototype). A **unified
+money-movement feed** — Collections (money **in**) + Payouts (money **out**)
+merged into one read-only ledger, **client-side** from the two existing flat
+endpoints (no backend change). KPIs (Money in 7d / Money out 7d / Pending /
+Failed) + direction / status / provider filters; table (Reference · Date ·
+Direction · Party · Provider · Amount · Status) on the shared DataTable; CSV
+**Export**. Each row opens a **lightweight drawer** branching by kind — a
+collection shows Counterparty (customer, payer email, narration) + Settlement
+(confirmed, deposit account, booked receipt #); a payout shows Beneficiary
+(FLS-masked name/account, WHT, narration) + Settlement (source account, booked
+vendor payment #, failure reason). **Honest adaptation:** the prototype's
+"Transactions Log" is a movement ledger, whereas our `/payments/transactions/`
+endpoint is the **PaymentEvent action/audit log** (initiated/confirmed/webhook/
+rejected) — a *separate* stream left available but not surfaced by this screen.
+Route `/finance/payments/transactions`. (The whole Payments group is now rebuilt:
+Collections, Virtual Accounts, Payouts, Batches, Settlement, Transactions Log.)
+
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
 transfer to a customer's number arrives as a Collection that reconciles to AR.
