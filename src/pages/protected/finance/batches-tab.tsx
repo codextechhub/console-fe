@@ -274,6 +274,20 @@ function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: nu
     catch { /* central */ }
   };
 
+  const itemCols: Column<PayoutInstruction>[] = [
+    {
+      header: "Beneficiary", cell: (p) => {
+        const name = isStripped(p, "beneficiary_name") ? MASK : p.beneficiary_name || "—";
+        const acct = isStripped(p, "beneficiary_account_number") ? MASK : p.beneficiary_account_number || "";
+        return <span><span className="font-medium text-gray-01">{name}</span>{acct ? <span className="block font-mont text-[11px] tabular-nums text-gray-05">{p.beneficiary_bank_code ? `${p.beneficiary_bank_code} · ` : ""}{acct}</span> : null}</span>;
+      },
+    },
+    { header: "Amount", align: "right", cell: (p) => <Money kobo={p.amount} currency={currency} align="right" /> },
+    { header: "WHT", align: "right", cell: (p) => <span className="tabular-nums text-gray-05">{p.wht_amount ? formatMoney(p.wht_amount, currency) : "—"}</span> },
+    { header: "Net", align: "right", cell: (p) => <span className="tabular-nums">{formatMoney(p.amount - (p.wht_amount || 0), currency)}</span> },
+    { header: "Result", cell: (p) => <ItemStatusPill status={p.status} /> },
+  ];
+
   return (
     <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
       title={batch?.reference || "Batch"} description={batch?.title || (isFetching ? "Loading…" : "")} widthClass="sm:max-w-3xl"
@@ -294,35 +308,8 @@ function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: nu
           <Metric label="WHT withheld" value={formatMoney(whtTotal, currency)} />
         </div>
 
-        <div className="overflow-hidden rounded-md border border-gray-03 bg-white">
-          <table className="w-full font-mont text-xs">
-            <thead>
-              <tr className="border-b border-gray-03 text-left text-[11px] uppercase tracking-wide text-gray-05">
-                <th className="px-3 py-2 font-medium">Beneficiary</th>
-                <th className="px-3 py-2 text-right font-medium">Amount</th>
-                <th className="px-3 py-2 text-right font-medium">WHT</th>
-                <th className="px-3 py-2 text-right font-medium">Net</th>
-                <th className="px-3 py-2 font-medium">Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((p) => {
-                const name = isStripped(p, "beneficiary_name") ? MASK : p.beneficiary_name || "—";
-                const acct = isStripped(p, "beneficiary_account_number") ? MASK : p.beneficiary_account_number || "";
-                return (
-                  <tr key={p.id} className="border-b border-gray-02 last:border-0">
-                    <td className="px-3 py-2"><span className="font-medium text-gray-01">{name}</span>{acct ? <span className="block text-[11px] tabular-nums text-gray-05">{p.beneficiary_bank_code ? `${p.beneficiary_bank_code} · ` : ""}{acct}</span> : null}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{formatMoney(p.amount, currency)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-gray-05">{p.wht_amount ? formatMoney(p.wht_amount, currency) : "—"}</td>
-                    <td className="px-3 py-2 text-right font-medium tabular-nums">{formatMoney(p.amount - (p.wht_amount || 0), currency)}</td>
-                    <td className="px-3 py-2"><ItemStatusPill status={p.status} /></td>
-                  </tr>
-                );
-              })}
-              {!items.length && !isFetching ? <tr><td colSpan={5} className="px-3 py-6 text-center text-gray-05">No items.</td></tr> : null}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={itemCols} rows={items} rowKey={(p) => p.id} loading={isFetching && !items.length}
+          emptyTitle="No items" emptyMessage="This batch has no payout lines." />
       </div>
     </DetailDrawer>
   );
