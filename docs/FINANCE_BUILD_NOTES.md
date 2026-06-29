@@ -366,6 +366,24 @@ a vendor per line** (so every line can book). Each line is a vendor disbursement
 (the prototype's "employees" are payroll, a separate module). Route
 `/finance/payments/batches`.
 
+**Payments → Settlement: DONE** (Vision "Settlement Recon"). A **read-only PSP
+lens**: confirmed collections (in) + paid payouts (out) matched against the
+entity's imported bank statement lines (by reference, then exact signed amount).
+KPIs (Settled matched / Unsettled / Unmatched bank lines / Unexplained bank
+total) + three tabs — **Matched** (Date · Type · Provider · Reference · Gross ·
+**Fees** · Net settled · Settlement ref · Match basis), **Unsettled** (gateway
+records with no bank line — "Awaiting bank"), **Unmatched bank lines** (bank
+lines with no gateway record). **Re-run match** refetches (recomputed
+server-side; nothing posted); provider filter + per-tab CSV **Export**.
+Distinct from **Finance → Bank Reconciliation** (the authoritative book-vs-bank
+close, which *writes* adjusting entries + a snapshot) — Settlement is a
+gateway-scoped read-only view, and the **Fees** column (gross − net settled) is
+shown as an *observation*, the very gap Bank Reconciliation later books. Backend:
+`SettlementRow` now carries the matched bank line's `settled_amount` +
+`settlement_reference`, and a `fee_amount` (gross − net); the view exposes them.
+The endpoint was already there (`payments.report.view`); the FE response is now
+fully typed (`SettlementReconciliation`). Route `/finance/payments/settlement`.
+
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
 transfer to a customer's number arrives as a Collection that reconciles to AR.
