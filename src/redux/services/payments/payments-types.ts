@@ -141,6 +141,54 @@ export interface InitiateCollectionPayload {
   narration?: string;
 }
 
+// Settlement reconciliation — gateway records (confirmed collections / paid payouts)
+// matched against imported bank statement lines. Read-only; recomputed each GET.
+export interface SettlementRow {
+  kind: "COLLECTION" | "PAYOUT";
+  gateway_id: number;
+  reference: string;
+  provider: string;
+  provider_reference: string;
+  amount: number; // signed kobo (+ in, − out) — the gateway gross
+  amount_naira: string;
+  confirmed_at: string | null;
+  settled: boolean;
+  match_basis: "reference" | "amount" | "";
+  matched_bank_line_id: number | null;
+  settled_amount: number | null; // the matched bank line's signed amount (net of fees)
+  fee_amount: number; // |gross| − |net| — the PSP fee
+  settlement_reference: string; // the matched bank line's reference
+}
+
+export interface UnmatchedBankLine {
+  bank_line_id: number;
+  bank_account_id: number;
+  txn_date: string;
+  description: string;
+  reference: string;
+  amount: number; // signed kobo
+  amount_naira: string;
+}
+
+export interface SettlementReconciliation {
+  entity_code: string;
+  start_date: string | null;
+  end_date: string | null;
+  provider: string;
+  is_reconciled: boolean;
+  summary: {
+    settled_count: number;
+    unsettled_count: number;
+    gateway_total: number;
+    settled_total: number;
+    unsettled_total: number;
+    unmatched_bank_total: number;
+    unmatched_bank_count: number;
+  };
+  rows: SettlementRow[];
+  unmatched_bank_lines: UnmatchedBankLine[];
+}
+
 // Append-only gateway action log (PaymentEvent) — the transactions log.
 export interface TransactionLogEntry {
   id: number;

@@ -17,6 +17,7 @@ import type {
   PayoutBatch,
   PayoutBatchSummary,
   PayoutInstruction,
+  SettlementReconciliation,
   TransactionLogEntry,
   VirtualAccount,
   VirtualAccountKpis,
@@ -106,7 +107,7 @@ export const paymentsApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/payments/payout-batches/${id}/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["PaymentsPayoutBatches", "PaymentsPayouts"],
     }),
-    getSettlementReconciliation: builder.query<ApiEnvelope<Record<string, unknown>>, { entity: string; provider?: string }>({
+    getSettlementReconciliation: builder.query<ApiEnvelope<SettlementReconciliation>, { entity: string; provider?: string; start_date?: string; end_date?: string }>({
       query: (p) => ({ url: `/payments/reports/settlement-reconciliation/${qs(p)}`, method: "GET" }),
     }),
     // Append-only gateway action log (PaymentEvent). Non-paginated, capped at 200.
