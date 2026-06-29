@@ -6,14 +6,14 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2, BookCheck } from "lucide-react";
-import { DetailDrawer, MoneyInput, Money, AccountPicker } from "@/components/finance-ui";
+import { DetailDrawer, MoneyInput, Money, AccountPicker, CostCenterPicker } from "@/components/finance-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { usePostDirectEntryMutation } from "@/redux/services/finance/gl-api";
 
-interface Row { account: string; amountKobo: number; side: "debit" | "credit"; }
-const emptyRow = (): Row => ({ account: "", amountKobo: 0, side: "debit" });
+interface Row { account: string; amountKobo: number; side: "debit" | "credit"; costCenter: string; }
+const emptyRow = (): Row => ({ account: "", amountKobo: 0, side: "debit", costCenter: "" });
 const fieldLabel = "font-mont text-xs text-gray-05";
 
 export function DirectEntryDrawer({ open, onClose, entity, currency }: {
@@ -41,6 +41,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
         account: r.account.trim(),
         debit: r.side === "debit" ? r.amountKobo : 0,
         credit: r.side === "credit" ? r.amountKobo : 0,
+        cost_center: r.costCenter || undefined,
       }));
       const res = await post({ entity, date: date || undefined, narration, reference, lines }).unwrap();
       toast.success(res.message || "Direct entry posted.");
@@ -111,6 +112,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
                 </div>
                 <MoneyInput valueKobo={r.amountKobo} onChangeKobo={(k) => setRow(i, { amountKobo: k })} currency={currency} className="flex-1" />
               </div>
+              <CostCenterPicker entity={entity} value={r.costCenter} onChange={(v) => setRow(i, { costCenter: v })} placeholder="Cost centre — optional" />
             </div>
           ))}
         </div>

@@ -63,11 +63,14 @@ export interface JournalListParams {
   search?: string;
 }
 
-/** One Direct Entry line: an account code with a one-sided kobo amount. */
+/** One Direct Entry line: an account code with a one-sided kobo amount, and an
+ *  optional cost-centre code carried onto the GL line (P&L lines only; the contra
+ *  leg is usually left unallocated). */
 export interface DirectEntryLine {
   account: string;
   debit: number;
   credit: number;
+  cost_center?: string;
 }
 
 export interface DirectEntryPayload {
