@@ -8,8 +8,8 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { Download, Info } from "lucide-react";
-import { Money, KpiCard } from "@/components/finance-ui";
+import { Download } from "lucide-react";
+import { Money, KpiCard, InfoHint } from "@/components/finance-ui";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
@@ -80,11 +80,11 @@ export function TrialBalanceReport({ entity, currency }: { entity: string; curre
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start gap-2 rounded-md border border-blue-100 bg-blue-50/60 p-3">
-        <Info className="mt-0.5 size-4 shrink-0 text-blue-600" />
-        <p className="font-mont text-[11px] leading-relaxed text-blue-900/80">
+      <div className="flex items-center gap-1.5">
+        <span className="font-mont text-sm font-semibold text-gray-01">Trial balance</span>
+        <InfoHint>
           The trial balance always totals equal — every debit has a matching credit. It's the input to the <span className="font-semibold">Income Statement</span> (income &amp; expense) and the <span className="font-semibold">Balance Sheet</span> (asset, liability &amp; equity); investigate any imbalance here before producing those.
-        </p>
+        </InfoHint>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -136,7 +136,9 @@ export function TrialBalanceReport({ entity, currency }: { entity: string; curre
             {rows.map((r) => {
               const cur = netOf(r);
               const pri = priorNetByCode.get(r.code) ?? 0;
-              const change = cur - pri;
+              // Compare the balance's magnitude on its own side, so the figures line
+              // up with the Debit/Credit columns (no confusing net-sign mismatch).
+              const change = Math.abs(cur) - Math.abs(pri);
               return (
                 <tr key={r.account_id} className="border-t border-gray-03 font-mont text-sm">
                   <td className="px-3 py-2 tabular-nums text-gray-05">{r.code}</td>
@@ -146,7 +148,7 @@ export function TrialBalanceReport({ entity, currency }: { entity: string; curre
                   <td className="px-3 py-2 text-right tabular-nums">{r.credit.kobo ? <Money kobo={r.credit.kobo} currency={currency} align="right" /> : "—"}</td>
                   {comparing ? (
                     <>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-05">{pri ? signed(pri, currency) : "—"}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-gray-05">{pri ? formatMoney(Math.abs(pri), currency) : "—"}</td>
                       <td className={cn("px-3 py-2 text-right tabular-nums", change > 0 ? "text-green-01" : change < 0 ? "text-destructive" : "text-gray-04")}>{change ? signed(change, currency) : "—"}</td>
                     </>
                   ) : null}
