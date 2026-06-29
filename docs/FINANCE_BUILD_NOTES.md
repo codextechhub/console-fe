@@ -154,7 +154,9 @@ Existing negative-AR credit was reclassed once via
   Duplicate / Archive omitted (no backend).
 - New journal + New account converted to drawers; sidebar scroll persists.
 
-**Receivables area: COMPLETE** (redesigned to prototype). **Next:** Reports.
+**Receivables area: COMPLETE** (redesigned to prototype). Payments group COMPLETE.
+**Reports & Close:** Trial Balance redesigned; **Next:** Income Statement, Balance
+Sheet, Cash Flow, Changes in Equity (still the generic `statements.tsx` renderers).
 
 **Operations → Tax Remittance: DONE** (redesigned to prototype). Route
 `/finance/budgets/tax`. KPIs (total outstanding / open / filed-awaiting-payment /
@@ -400,6 +402,21 @@ endpoint is the **PaymentEvent action/audit log** (initiated/confirmed/webhook/
 rejected) — a *separate* stream left available but not surfaced by this screen.
 Route `/finance/payments/transactions`. (The whole Payments group is now rebuilt:
 Collections, Virtual Accounts, Payouts, Batches, Settlement, Transactions Log.)
+
+**Reports & Close → Trial Balance: DONE** (Vision prototype). The balanced list of
+every account's net position — and the input to the Income Statement & Balance
+Sheet. An "always balances" **info note**, KPIs (Total debit / Total credit /
+Status / Accounts), a **period** filter (fiscal periods via `getPeriods`, grouped
+sorted), an **account-type** filter, and an optional **Compare to prior period**
+toggle that adds **Prior (net) + Change** columns — fetched as a *second* real TB
+call for the immediately-preceding fiscal period and merged by account (no backend
+change; the toggle only enables when a specific period with an earlier neighbour is
+selected). Table Code · Account · Type (pill) · Debit · Credit + a totals row with
+a Balanced badge. Export is the **real** backend CSV/XLSX/PDF (`downloadReportExport`
+→ `?export=`). Money + `is_balanced` come straight from the endpoint. Honest
+adaptation: period is a *fiscal period*, not the prototype's free "as of" date.
+Lives in `reports/trial-balance-tab.tsx` (replaces the generic stub in
+`statements.tsx`); route `/finance/reports/trial-balance`.
 
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
