@@ -158,6 +158,8 @@ export interface SettlementRow {
   settled_amount: number | null; // the matched bank line's signed amount (net of fees)
   fee_amount: number; // |gross| − |net| — the PSP fee
   settlement_reference: string; // the matched bank line's reference
+  settlement_date: string | null; // the matched bank line's txn date
+  settlement_description: string; // the matched bank line's description
 }
 
 export interface UnmatchedBankLine {

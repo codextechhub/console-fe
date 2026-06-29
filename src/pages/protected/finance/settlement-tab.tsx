@@ -1,14 +1,16 @@
 // Settlement — gateway settlement reconciliation (Vision "Settlement Recon"), house theme.
 // A READ-ONLY PSP lens: confirmed collections (in) + paid payouts (out) matched against the
 // entity's imported bank statement lines, by reference then exact amount. Three tabs
-// (Matched / Unsettled / Unmatched bank lines) + KPIs. "Re-run match" just refetches (the
-// reconciliation recomputes server-side; nothing is posted). The Fees column surfaces the
-// PSP fee (gross − net settled) as an OBSERVATION — the authoritative book-vs-bank close
-// lives in Finance → Bank Reconciliation, which is where such a fee gets an adjusting entry.
+// (Matched / Unsettled / Unmatched bank lines) + KPIs, all on the shared DataTable so the
+// typography matches every other screen. Clicking a row opens a read-only drawer with both
+// sides of the match. "Re-run match" just refetches (recomputed server-side; nothing
+// posted). The Fees column surfaces the PSP fee (gross − net settled) as an OBSERVATION —
+// the authoritative book-vs-bank close lives in Finance → Bank Reconciliation, which is
+// where such a fee gets an adjusting entry.
 
 import { useMemo, useState, type ReactNode } from "react";
 import { Download, RefreshCw, ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { Money, KpiCard } from "@/components/finance-ui";
+import { DataTable, Money, KpiCard, DetailDrawer, type Column } from "@/components/finance-ui";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
@@ -18,6 +20,7 @@ import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const signed = (kobo: number, currency?: string | null) => `${kobo < 0 ? "−" : ""}${formatMoney(Math.abs(kobo), currency)}`;
 
 const PROVIDERS: Record<string, { label: string; dot: string }> = {
   PAYSTACK: { label: "Paystack", dot: "bg-blue-500" },
@@ -26,18 +29,16 @@ const PROVIDERS: Record<string, { label: string; dot: string }> = {
 };
 function ProviderTag({ provider }: { provider: string }) {
   const p = PROVIDERS[provider] ?? { label: provider || "—", dot: "bg-gray-400" };
-  return <span className="inline-flex items-center gap-1.5 font-mont text-xs text-black-01"><span className={cn("size-2 rounded-sm", p.dot)} /> {p.label}</span>;
+  return <span className="inline-flex items-center gap-1.5 font-mont text-sm text-black-01"><span className={cn("size-2 rounded-sm", p.dot)} /> {p.label}</span>;
 }
-
 function TypeTag({ kind }: { kind: string }) {
   const inbound = kind === "COLLECTION";
   return (
-    <span className={cn("inline-flex items-center gap-1 font-mont text-[11px] font-medium", inbound ? "text-green-01" : "text-gray-01")}>
+    <span className={cn("inline-flex items-center gap-1 font-mont text-sm font-medium", inbound ? "text-green-01" : "text-gray-01")}>
       {inbound ? <ArrowDownLeft className="size-3.5" /> : <ArrowUpRight className="size-3.5" />}{inbound ? "Collection" : "Payout"}
     </span>
   );
 }
-
 function BasisPill({ basis }: { basis: string }) {
   if (!basis) return <span className="text-gray-05">—</span>;
   return <span className={cn(PILL, "bg-blue-50 text-blue-700")}>By {basis}</span>;
@@ -53,10 +54,12 @@ function Select({ value, onChange, children, className }: { value: string; onCha
 }
 
 type Tab = "matched" | "unsettled" | "unmatched";
+type Picked = { kind: "gw"; row: SettlementRow } | { kind: "bank"; line: UnmatchedBankLine };
 
 export function SettlementTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [provider, setProvider] = useState("");
   const [tab, setTab] = useState<Tab>("matched");
+  const [picked, setPicked] = useState<Picked | null>(null);
   const { data, isLoading, isFetching, isError, refetch } = useGetSettlementReconciliationQuery({ entity, ...(provider ? { provider } : {}) });
   const recon = data?.data;
 
@@ -73,6 +76,31 @@ export function SettlementTab({ entity, currency }: { entity: string; currency?:
     { id: "matched", label: "Matched", n: s?.settled_count ?? matched.length },
     { id: "unsettled", label: "Unsettled", n: s?.unsettled_count ?? unsettled.length },
     { id: "unmatched", label: "Unmatched bank lines", n: s?.unmatched_bank_count ?? unmatched.length },
+  ];
+
+  const gwBase: Column<SettlementRow>[] = [
+    { header: "Date", cell: (r) => <span className="tabular-nums text-gray-05">{fmtDate(r.confirmed_at)}</span> },
+    { header: "Type", cell: (r) => <TypeTag kind={r.kind} /> },
+    { header: "Provider", cell: (r) => <ProviderTag provider={r.provider} /> },
+    { header: "Reference", cell: (r) => <span className="tabular-nums text-gray-01">{r.reference}</span> },
+    { header: "Gross", align: "right", cell: (r) => <Money kobo={Math.abs(r.amount)} currency={currency} align="right" /> },
+  ];
+  const matchedCols: Column<SettlementRow>[] = [
+    ...gwBase,
+    { header: "Fees", align: "right", cell: (r) => <span className="tabular-nums text-destructive">{r.fee_amount ? formatMoney(r.fee_amount, currency) : "—"}</span> },
+    { header: "Net settled", align: "right", cell: (r) => <span className="tabular-nums">{formatMoney(Math.abs(r.settled_amount ?? r.amount), currency)}</span> },
+    { header: "Settlement ref", cell: (r) => <span className="tabular-nums text-gray-05">{r.settlement_reference || "—"}</span> },
+    { header: "Match basis", cell: (r) => <BasisPill basis={r.match_basis} /> },
+  ];
+  const unsettledCols: Column<SettlementRow>[] = [
+    ...gwBase,
+    { header: "Status", cell: () => <span className={cn(PILL, "bg-amber-50 text-amber-700")}>Awaiting bank</span> },
+  ];
+  const unmatchedCols: Column<UnmatchedBankLine>[] = [
+    { header: "Date", cell: (b) => <span className="tabular-nums text-gray-05">{fmtDate(b.txn_date)}</span> },
+    { header: "Description", cell: (b) => b.description || "—" },
+    { header: "Reference", cell: (b) => <span className="tabular-nums text-gray-05">{b.reference || "—"}</span> },
+    { header: "Amount", align: "right", cell: (b) => <span className={cn("tabular-nums font-medium", b.amount < 0 ? "text-destructive" : "text-black-01")}>{signed(b.amount, currency)}</span> },
   ];
 
   return (
@@ -109,79 +137,106 @@ export function SettlementTab({ entity, currency }: { entity: string; currency?:
       </p>
 
       {tab === "unmatched" ? (
-        <UnmatchedTable lines={unmatched} currency={currency} />
+        <DataTable columns={unmatchedCols} rows={unmatched} rowKey={(b) => b.bank_line_id} onRowClick={(line) => setPicked({ kind: "bank", line })}
+          emptyTitle="Nothing unexplained" emptyMessage="Every bank line maps to a gateway record." />
       ) : (
-        <SettlementTable rows={tab === "matched" ? matched : unsettled} matched={tab === "matched"} currency={currency} />
+        <DataTable columns={tab === "matched" ? matchedCols : unsettledCols} rows={tab === "matched" ? matched : unsettled}
+          rowKey={(r) => `${r.kind}-${r.gateway_id}`} onRowClick={(row) => setPicked({ kind: "gw", row })}
+          emptyTitle={tab === "matched" ? "No matched settlements" : "Nothing awaiting the bank"}
+          emptyMessage={tab === "matched" ? "Imported bank lines will match here by reference or amount." : "Every gateway record has settled to the bank."} />
       )}
+
+      <SettlementDrawer picked={picked} currency={currency} onClose={() => setPicked(null)} />
     </div>
   );
 }
 
-function Th({ children, right }: { children: ReactNode; right?: boolean }) {
-  return <th className={cn("px-3 py-2 font-medium", right && "text-right")}>{children}</th>;
-}
-
-function SettlementTable({ rows, matched, currency }: { rows: SettlementRow[]; matched: boolean; currency?: string | null }) {
+function Field({ label, children, mono }: { label: string; children: ReactNode; mono?: boolean }) {
   return (
-    <div className="overflow-x-auto rounded-md border border-gray-03 bg-white">
-      <table className="w-full font-mont text-xs">
-        <thead>
-          <tr className="border-b border-gray-03 text-left text-[11px] uppercase tracking-wide text-gray-05">
-            <Th>Date</Th><Th>Type</Th><Th>Provider</Th><Th>Reference</Th>
-            <Th right>Gross</Th>
-            {matched ? <><Th right>Fees</Th><Th right>Net settled</Th><Th>Settlement ref</Th><Th>Match basis</Th></> : <Th>Status</Th>}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={`${r.kind}-${r.gateway_id}`} className="border-b border-gray-02 last:border-0">
-              <td className="px-3 py-2 tabular-nums text-gray-05">{fmtDate(r.confirmed_at)}</td>
-              <td className="px-3 py-2"><TypeTag kind={r.kind} /></td>
-              <td className="px-3 py-2"><ProviderTag provider={r.provider} /></td>
-              <td className="px-3 py-2 tabular-nums text-gray-01">{r.reference}</td>
-              <td className="px-3 py-2 text-right tabular-nums font-medium"><Money kobo={Math.abs(r.amount)} currency={currency} align="right" /></td>
-              {matched ? (
-                <>
-                  <td className="px-3 py-2 text-right tabular-nums text-destructive">{r.fee_amount ? formatMoney(r.fee_amount, currency) : "—"}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{formatMoney(Math.abs(r.settled_amount ?? r.amount), currency)}</td>
-                  <td className="px-3 py-2 tabular-nums text-gray-05">{r.settlement_reference || "—"}</td>
-                  <td className="px-3 py-2"><BasisPill basis={r.match_basis} /></td>
-                </>
-              ) : (
-                <td className="px-3 py-2"><span className={cn(PILL, "bg-amber-50 text-amber-700")}>Awaiting bank</span></td>
-              )}
-            </tr>
-          ))}
-          {!rows.length ? <tr><td colSpan={matched ? 9 : 6} className="px-3 py-8 text-center text-gray-05">{matched ? "No matched settlements in range." : "Everything is settled — nothing awaiting the bank."}</td></tr> : null}
-        </tbody>
-      </table>
+    <div className="flex items-baseline justify-between gap-4 py-1.5">
+      <span className="font-mont text-[11px] text-gray-05">{label}</span>
+      <span className={cn("text-right font-mont text-xs font-medium text-black-01", mono && "tabular-nums")}>{children}</span>
+    </div>
+  );
+}
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="rounded-md border border-gray-03 bg-white p-4">
+      <p className="mb-1.5 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">{title}</p>
+      <div className="divide-y divide-gray-02">{children}</div>
     </div>
   );
 }
 
-function UnmatchedTable({ lines, currency }: { lines: UnmatchedBankLine[]; currency?: string | null }) {
+function SettlementDrawer({ picked, currency, onClose }: { picked: Picked | null; currency?: string | null; onClose: () => void }) {
+  if (!picked) return null;
+
+  if (picked.kind === "bank") {
+    const b = picked.line;
+    return (
+      <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
+        title={b.reference || b.description || "Bank line"} description={`Unexplained · ${signed(b.amount, currency)}`} widthClass="sm:max-w-md"
+        footer={<span className={cn(PILL, "bg-amber-50 text-amber-700")}>No gateway record</span>}>
+        <div className="space-y-4">
+          <Section title="Bank statement line">
+            <Field label="Date" mono>{fmtDate(b.txn_date)}</Field>
+            <Field label="Description">{b.description || "—"}</Field>
+            <Field label="Reference" mono>{b.reference || "—"}</Field>
+            <Field label="Amount" mono><span className={b.amount < 0 ? "text-destructive" : ""}>{signed(b.amount, currency)}</span></Field>
+          </Section>
+          <p className="font-mont text-[11px] leading-relaxed text-gray-05">
+            No confirmed collection or paid payout matches this line by reference or amount. It may be a PSP fee, a manual transfer, or a movement that belongs in <span className="font-medium text-gray-01">Bank Reconciliation</span> — settle it there, not here.
+          </p>
+        </div>
+      </DetailDrawer>
+    );
+  }
+
+  const r = picked.row;
+  const inbound = r.kind === "COLLECTION";
   return (
-    <div className="overflow-x-auto rounded-md border border-gray-03 bg-white">
-      <table className="w-full font-mont text-xs">
-        <thead>
-          <tr className="border-b border-gray-03 text-left text-[11px] uppercase tracking-wide text-gray-05">
-            <Th>Date</Th><Th>Description</Th><Th>Reference</Th><Th right>Amount</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {lines.map((b) => (
-            <tr key={b.bank_line_id} className="border-b border-gray-02 last:border-0">
-              <td className="px-3 py-2 tabular-nums text-gray-05">{fmtDate(b.txn_date)}</td>
-              <td className="px-3 py-2 text-gray-01">{b.description || "—"}</td>
-              <td className="px-3 py-2 tabular-nums text-gray-05">{b.reference || "—"}</td>
-              <td className={cn("px-3 py-2 text-right tabular-nums font-medium", b.amount < 0 ? "text-destructive" : "text-black-01")}>{b.amount < 0 ? "−" : ""}{formatMoney(Math.abs(b.amount), currency)}</td>
-            </tr>
-          ))}
-          {!lines.length ? <tr><td colSpan={4} className="px-3 py-8 text-center text-gray-05">No unexplained bank lines — every line maps to a gateway record.</td></tr> : null}
-        </tbody>
-      </table>
-    </div>
+    <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
+      title={r.reference} description={`${inbound ? "Collection in" : "Payout out"} · ${ProvidersLabel(r.provider)} · ${formatMoney(Math.abs(r.amount), currency)}`} widthClass="sm:max-w-md"
+      footer={r.settled
+        ? <span className={cn(PILL, "bg-green-01/10 text-green-01")}>Settled · by {r.match_basis}</span>
+        : <span className={cn(PILL, "bg-amber-50 text-amber-700")}>Awaiting bank</span>}>
+      <div className="space-y-4">
+        <Section title="Gateway record">
+          <Field label="Type"><TypeTag kind={r.kind} /></Field>
+          <Field label="Provider"><ProviderTag provider={r.provider} /></Field>
+          <Field label="Reference" mono>{r.reference}</Field>
+          {r.provider_reference ? <Field label="Provider ref" mono>{r.provider_reference}</Field> : null}
+          <Field label="Confirmed" mono>{fmtDate(r.confirmed_at)}</Field>
+          <Field label="Gross" mono>{formatMoney(Math.abs(r.amount), currency)}</Field>
+        </Section>
+
+        {r.settled ? (
+          <Section title="Bank settlement">
+            <Field label="Settlement ref" mono>{r.settlement_reference || "—"}</Field>
+            <Field label="Bank date" mono>{fmtDate(r.settlement_date)}</Field>
+            {r.settlement_description ? <Field label="Description">{r.settlement_description}</Field> : null}
+            <Field label="Net settled" mono>{formatMoney(Math.abs(r.settled_amount ?? r.amount), currency)}</Field>
+            <Field label="PSP fee" mono><span className={r.fee_amount ? "text-destructive" : ""}>{r.fee_amount ? formatMoney(r.fee_amount, currency) : "—"}</span></Field>
+            <Field label="Matched by">{r.match_basis || "—"}</Field>
+          </Section>
+        ) : (
+          <p className="font-mont text-[11px] leading-relaxed text-gray-05">
+            This {inbound ? "collection" : "payout"} confirmed on the gateway but no bank statement line matches it yet. It settles automatically once the line imports (matched by reference or exact amount) — import the statement on <span className="font-medium text-gray-01">Bank Reconciliation</span> and re-run the match.
+          </p>
+        )}
+
+        {r.settled && r.fee_amount ? (
+          <p className="font-mont text-[11px] leading-relaxed text-gray-05">
+            The {formatMoney(r.fee_amount, currency)} fee is the gap between gross and what the bank received. It's shown here as an observation; the adjusting entry that books it lives in <span className="font-medium text-gray-01">Bank Reconciliation</span>.
+          </p>
+        ) : null}
+      </div>
+    </DetailDrawer>
   );
+}
+
+function ProvidersLabel(p: string) {
+  return PROVIDERS[p]?.label ?? p ?? "—";
 }
 
 function exportCsv(tab: Tab, matched: SettlementRow[], unsettled: SettlementRow[], unmatched: UnmatchedBankLine[], currency?: string | null) {
