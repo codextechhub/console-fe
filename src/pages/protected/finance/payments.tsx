@@ -6,31 +6,9 @@ import { FinanceShell } from "./finance-shell";
 import { PayoutsTab } from "./payouts-tab";
 import { BatchesTab } from "./batches-tab";
 import { SettlementTab } from "./settlement-tab";
-import { DataTable, StatusPill, toArray, useActiveEntity, type Column } from "@/components/finance-ui";
+import { TransactionsTab } from "./transactions-tab";
+import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
-import { useGetTransactionsLogQuery } from "@/redux/services/payments/payments-api";
-import type { TransactionLogEntry } from "@/redux/services/payments/payments-types";
-
-// The append-only gateway action log (PaymentEvent): every collection, payout,
-// virtual-account and webhook action, including failed/rejected attempts.
-function TransactionsTab({ entity }: { entity: string }) {
-  const { data, isLoading, isFetching, isError, refetch } = useGetTransactionsLogQuery({ entity });
-  const rows = toArray<TransactionLogEntry>(data?.data);
-  const columns: Column<TransactionLogEntry>[] = [
-    { header: "When", cell: (t) => <span className="text-gray-05">{new Date(t.created_at).toLocaleString()}</span> },
-    { header: "Action", cell: (t) => <span className="font-semibold">{t.action_display || t.action}</span> },
-    { header: "Provider", cell: (t) => t.provider || "—" },
-    { header: "Reference", cell: (t) => <span className="font-mono text-xs">{t.reference || "—"}</span> },
-    { header: "Result", cell: (t) => <StatusPill status={t.succeeded ? "SUCCESS" : "FAILED"} /> },
-    { header: "Message", cell: (t) => <span className="text-gray-05">{t.message || "—"}</span> },
-    { header: "Actor", cell: (t) => t.actor_email || "System" },
-  ];
-  return (
-    <DataTable columns={columns} rows={rows} rowKey={(t) => t.id}
-      loading={isLoading || isFetching} error={isError} onRetry={refetch}
-      emptyTitle="No transactions" emptyMessage="Gateway actions (collections, payouts, webhooks) will appear here." />
-  );
-}
 
 export default function PaymentsPage() {
   const { code: entity, currency } = useActiveEntity();
@@ -40,7 +18,7 @@ export default function PaymentsPage() {
     : section === "settlement"
     ? { label: "Settlement", subtitle: "Reconcile gateway settlements against the bank." }
     : section === "transactions"
-    ? { label: "Transactions Log", subtitle: "Every gateway action — collections, payouts and webhooks." }
+    ? { label: "Transactions Log", subtitle: "Unified ledger of all collections, payouts and settlements." }
     : { label: "Payouts", subtitle: "Money out — single disbursements to recipients." };
 
   return (
@@ -57,7 +35,7 @@ export default function PaymentsPage() {
         ) : section === "settlement" ? (
           <SettlementTab entity={entity} currency={currency} />
         ) : section === "transactions" ? (
-          <TransactionsTab entity={entity} />
+          <TransactionsTab entity={entity} currency={currency} />
         ) : (
           <PayoutsTab entity={entity} currency={currency} />
         )}
