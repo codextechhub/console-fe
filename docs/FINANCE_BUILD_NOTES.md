@@ -410,10 +410,21 @@ exposed banner), KPIs (Total debit / Total credit / Status / Accounts), a
 **period** filter (fiscal periods via `getPeriods`, grouped sorted), an
 **account-type** filter, and an optional **Compare to prior period** toggle that
 adds **Prior + Change** columns — fetched as a *second* real TB call for the
-immediately-preceding fiscal period and merged by account (no backend change; the
-toggle only enables when a specific period with an earlier neighbour is selected).
-Prior shows the prior balance's magnitude (on its own side, aligned with the
-Debit/Credit columns) and Change is the signed growth/shrink of that balance. Table Code · Account · Type (pill) · Debit · Credit + a totals row with
+immediately-preceding fiscal period and merged by account (no backend change). The
+compare control is **only rendered** when a specific period with an earlier
+neighbour is selected (hidden on "All periods" / the first period). Prior shows the
+prior balance's magnitude (on its own side, aligned with the Debit/Credit columns)
+and Change is the signed growth/shrink of that balance.
+
+**Backend TB semantics fix:** `trial_balance(entity, period=)` now returns the
+**cumulative balance as of that period** (every movement with
+`period__start_date <= period.start_date`), not just that one period's movement — a
+trial balance is a point-in-time statement, so "Jun 2026" means the running balance
+through June. "All periods" remains the cumulative all-time balance. (Earlier worry
+about a double-count was wrong: openings are never rolled forward — each
+`AccountBalance` row carries only its period's movement and `opening_*` stays 0 — so
+the all-periods sum was already correct; the actual bug was the period filter showing
+movement-only.) Multi-period test added; all 184 vs_finance tests pass. Table Code · Account · Type (pill) · Debit · Credit + a totals row with
 a Balanced badge. Export is the **real** backend CSV/XLSX/PDF (`downloadReportExport`
 → `?export=`). Money + `is_balanced` come straight from the endpoint. Honest
 adaptation: period is a *fiscal period*, not the prototype's free "as of" date.

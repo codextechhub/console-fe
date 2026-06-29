@@ -104,11 +104,12 @@ export function TrialBalanceReport({ entity, currency }: { entity: string; curre
             <option value="">All account types</option>
             {TYPES.map((t) => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
           </Select>
-          <label className={cn("inline-flex items-center gap-1.5 font-mont text-xs", (!period || !priorId) ? "cursor-not-allowed text-gray-04" : "cursor-pointer text-gray-01")}
-            title={!period ? "Select a period to compare" : !priorId ? "No earlier period to compare" : ""}>
-            <input type="checkbox" checked={comparing} disabled={!period || !priorId} onChange={(e) => setCompare(e.target.checked)} className="size-3.5 accent-primary" />
-            Compare to prior period
-          </label>
+          {period && priorId ? (
+            <label className="inline-flex cursor-pointer items-center gap-1.5 font-mont text-xs text-gray-01">
+              <input type="checkbox" checked={comparing} onChange={(e) => setCompare(e.target.checked)} className="size-3.5 accent-primary" />
+              Compare to prior period
+            </label>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           {(["csv", "xlsx", "pdf"] as const).map((f) => (
