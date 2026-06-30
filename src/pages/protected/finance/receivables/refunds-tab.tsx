@@ -4,8 +4,9 @@
 // the bank and writing off bad debt to expense — each with a live posting preview.
 //
 // Honest adaptations vs the mockup:
-//   • a refund's real journal is Dr AR control · Cr Bank (we hold customer credit
-//     as a credit balance on AR — there's no separate "customer credit" account);
+//   • a refund's real journal is Dr customer credit (2140) · Cr Bank — it pays out
+//     the customer's stored credit balance (not an open receivable), capped at the
+//     available credit;
 //   • a write-off is per-invoice in our ledger, so the write-off form picks one of
 //     the customer's open invoices (amount defaults to / caps at its balance);
 //   • write-offs post immediately (no approval engine) → always "Posted"; the

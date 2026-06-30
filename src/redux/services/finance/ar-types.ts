@@ -33,6 +33,7 @@ export interface CreditNoteLine {
   tax_code: string | null;
   net_amount: number;
   tax_amount: number;
+  cost_center: string | null;
 }
 
 export interface CreditNote {

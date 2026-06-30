@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { Plus, Printer, Check, Search } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, ConfirmActionModal, DetailDrawer, FormField,
-  CustomerPicker, AccountPicker, PostingRecap, Segmented, toArray, type Column, type RecapRow,
+  CustomerPicker, AccountPicker, CostCenterPicker, PostingRecap, Segmented, toArray, type Column, type RecapRow,
 } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -80,10 +80,11 @@ function noteRecap(n: CreditNote): { dr: RecapRow[]; cr: RecapRow[] } {
   const debit = n.kind === "DEBIT";
   const lines = n.lines.length
     ? n.lines
-    : [{ revenue_account: "—", net_amount: n.total, tax_amount: 0 } as CreditNote["lines"][number]];
+    : [{ revenue_account: "—", net_amount: n.total, tax_amount: 0, cost_center: null } as CreditNote["lines"][number]];
   const rev: RecapRow[] = [];
   for (const l of lines) {
-    rev.push({ code: l.revenue_account || "—", name: debit ? "Revenue" : "Revenue / returns", amount: l.net_amount });
+    const base = debit ? "Revenue" : "Revenue / returns";
+    rev.push({ code: l.revenue_account || "—", name: l.cost_center ? `${base} · ${l.cost_center}` : base, amount: l.net_amount });
     if (l.tax_amount) rev.push({ code: "TAX", name: debit ? "Output tax" : "Output tax reversal", amount: l.tax_amount });
   }
   if (debit) {
@@ -278,6 +279,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
   const [account, setAccount] = useState("");
   const [invoice, setInvoice] = useState(""); // invoice id, optional
   const [amount, setAmount] = useState(0);
+  const [costCenter, setCostCenter] = useState(""); // optional analytics tag on the line
   const [reason, setReason] = useState("");
   const [applyNow, setApplyNow] = useState(false); // credit notes only
 
@@ -297,18 +299,19 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
   [invQ.data, customer, currency]);
 
   const recap = useMemo(() => {
-    const rev: RecapRow = { code: account || "—", name: debit ? "Income" : "Revenue (reversed)", amount };
+    const revName = (debit ? "Income" : "Revenue (reversed)") + (costCenter ? ` · ${costCenter}` : "");
+    const rev: RecapRow = { code: account || "—", name: revName, amount };
     const ar: RecapRow = { code: "AR", name: "Accounts Receivable (control)", amount };
     if (debit) return { dr: [ar], cr: [rev] };
     // A credit applied on issue settles invoices (Cr AR); otherwise it sits as
     // customer credit (Cr 2140) until applied or refunded.
     const target: RecapRow = applyNow ? ar : { code: "2140", name: "Customer credit", amount };
     return { dr: [rev], cr: [target] };
-  }, [debit, account, amount, applyNow]);
+  }, [debit, account, amount, costCenter, applyNow]);
 
   const canSubmit = !!customer && !!account && amount > 0 && reason.trim() !== "";
 
-  const reset = () => { setKind("CREDIT"); setDate(todayISO); setCustomer(""); setAccount(""); setInvoice(""); setAmount(0); setReason(""); setApplyNow(false); };
+  const reset = () => { setKind("CREDIT"); setDate(todayISO); setCustomer(""); setAccount(""); setInvoice(""); setAmount(0); setCostCenter(""); setReason(""); setApplyNow(false); };
   const close = () => { reset(); onClose(); };
   const changeKind = (k: string) => { setKind(k); if (k === "DEBIT") setApplyNow(false); };
 
@@ -317,7 +320,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
       const res = await create({
         entity, customer: customer.trim().toUpperCase(), kind, note_date: date,
         invoice: invoice ? Number(invoice) : undefined, reason: reason.trim(),
-        lines: [{ revenue_account: account, description: reason.trim(), quantity: 1, unit_price: amount }],
+        lines: [{ revenue_account: account, description: reason.trim(), quantity: 1, unit_price: amount, cost_center: costCenter || undefined }],
       }).unwrap();
       // Post immediately. For credit notes the toggle decides: auto-allocate
       // oldest-first ("Applied") or leave the credit unapplied ("Issued").
@@ -364,6 +367,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
 
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} /></FormField>
+          <FormField label="Cost centre"><CostCenterPicker entity={entity} value={costCenter} onChange={setCostCenter} /></FormField>
         </div>
 
         <FormField label="Reason" required><Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why this adjustment?" className="bg-white" /></FormField>
