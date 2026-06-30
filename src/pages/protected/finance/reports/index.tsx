@@ -6,9 +6,9 @@ import { FinanceShell } from "../finance-shell";
 import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import {
-  IncomeStatementReport, BalanceSheetReport,
-  CashFlowReport, EquityReport,
+  BalanceSheetReport, CashFlowReport, EquityReport,
 } from "./statements";
+import { IncomeStatementReport } from "./income-statement-tab";
 import { TrialBalanceReport } from "./trial-balance-tab";
 import { AnalyticsSliceReport } from "./analytics-slice-tab";
 import { PeriodsTab } from "./periods-tab";

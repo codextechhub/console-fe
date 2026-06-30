@@ -55,14 +55,38 @@ export interface StatementLine {
   amount: ReportMoney;
 }
 
+// Income Statement (P&L) with optional Budget + Prior-year comparison columns.
+// `budget`/`variance`/`prior_year` are null when that comparison isn't available.
+export interface IncomeStatementLine {
+  account_id: number;
+  code: string;
+  name: string;
+  account_type: string;
+  amount: ReportMoney;
+  budget: ReportMoney | null;
+  variance: ReportMoney | null;
+  prior_year: ReportMoney | null;
+}
+export interface IncomeStatementTotals {
+  amount: ReportMoney;
+  budget: ReportMoney | null;
+  variance: ReportMoney | null;
+  prior_year: ReportMoney | null;
+}
 export interface IncomeStatement {
   entity: string;
   period: string | null;
-  income: StatementLine[];
-  expense: StatementLine[];
-  total_income: ReportMoney;
-  total_expense: ReportMoney;
-  net_income: ReportMoney;
+  fiscal_year: number | null;
+  prior_fiscal_year: number | null;
+  has_budget: boolean;
+  has_prior_year: boolean;
+  income: IncomeStatementLine[];
+  expense: IncomeStatementLine[];
+  totals: {
+    income: IncomeStatementTotals;
+    expense: IncomeStatementTotals;
+    net: IncomeStatementTotals;
+  };
 }
 
 export interface ArAgingRow {

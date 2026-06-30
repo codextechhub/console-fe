@@ -8,7 +8,6 @@ import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { cn } from "@/lib/utils";
 import { downloadReportExport } from "@/utils/finance-export";
 import {
-  useGetIncomeStatementQuery,
   useGetBalanceSheetQuery,
   useGetCashFlowQuery,
   useGetChangesInEquityQuery,
@@ -45,29 +44,8 @@ function Frame({ title, entity, path, children }: { title: string; entity: strin
   );
 }
 
-export function IncomeStatementReport({ entity, currency }: { entity: string; currency?: string | null }) {
-  const { data, isLoading, isError, refetch } = useGetIncomeStatementQuery({ entity });
-  if (isLoading) return <LoadingState />;
-  if (isError || !data) return <ErrorState onRetry={refetch} />;
-  const d = data.data;
-  const section = (label: string, rows: typeof d.income) => rows.map((r) => (
-    <tr key={label + r.account_id}><td className={td}>{label}</td><td className={td}>{r.code} · {r.name}</td><td className={td + " text-right"}><Money kobo={r.amount.kobo} currency={currency} align="right" /></td></tr>
-  ));
-  return (
-    <Frame title="Income Statement" entity={entity} path="/finance/reports/income-statement/">
-      <table className="w-full">
-        <thead><tr><th className={th + " text-left"}>Section</th><th className={th + " text-left"}>Account</th><th className={th + " text-right"}>Amount</th></tr></thead>
-        <tbody>
-          {section("Income", d.income)}
-          {section("Expense", d.expense)}
-          <tr className="font-semibold"><td className={td} /><td className={td + " text-right"}>Total income</td><td className={td + " text-right"}><Money kobo={d.total_income.kobo} currency={currency} align="right" /></td></tr>
-          <tr className="font-semibold"><td className={td} /><td className={td + " text-right"}>Total expense</td><td className={td + " text-right"}><Money kobo={d.total_expense.kobo} currency={currency} align="right" /></td></tr>
-          <tr className="font-semibold"><td className={td} /><td className={td + " text-right"}>Net income</td><td className={td + " text-right"}><Money kobo={d.net_income.kobo} currency={currency} align="right" /></td></tr>
-        </tbody>
-      </table>
-    </Frame>
-  );
-}
+// Income Statement now lives in ./income-statement-tab (rebuilt to the prototype with
+// Budget + Prior-year comparison columns).
 
 export function BalanceSheetReport({ entity, currency }: { entity: string; currency?: string | null }) {
   const { data, isLoading, isError, refetch } = useGetBalanceSheetQuery({ entity });
