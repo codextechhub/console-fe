@@ -95,23 +95,27 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
               <div className="overflow-x-auto rounded-md border border-gray-03">
                 <table className="w-full border-collapse">
                   <thead><tr>
-                    <th className={th}>Account</th><th className={th}>Description</th><th className={th}>Cost centre</th>
+                    <th className={th}>Account</th><th className={th}>Description</th><th className={th}>Cost centre</th><th className={th}>Dimensions</th>
                     <th className={cn(th, "text-right")}>Debit</th><th className={cn(th, "text-right")}>Credit</th>
                   </tr></thead>
                   <tbody>
-                    {j.lines.map((l) => (
+                    {j.lines.map((l) => {
+                      const dims = Object.entries(l.dimensions || {});
+                      return (
                       <tr key={l.id}>
                         <td className={td}><span className="font-semibold tabular-nums">{l.account_code}</span><span className="ml-2 text-gray-01">{l.account_name}</span></td>
                         <td className={cn(td, "max-w-xs truncate text-gray-05")}>{l.description || "—"}</td>
                         <td className={cn(td, "text-gray-05")}>{l.cost_center || "—"}</td>
+                        <td className={td}>{dims.length ? <span className="flex flex-wrap gap-1">{dims.map(([k, v]) => <span key={k} className="rounded bg-gray-02/70 px-1.5 py-0.5 font-mont text-[10px] text-gray-01">{k}: {v}</span>)}</span> : <span className="text-gray-05">—</span>}</td>
                         <td className={cn(td, "text-right tabular-nums")}>{l.debit ? <Money kobo={l.debit} currency={currency} align="right" /> : "—"}</td>
                         <td className={cn(td, "text-right tabular-nums")}>{l.credit ? <Money kobo={l.credit} currency={currency} align="right" /> : "—"}</td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                   <tfoot>
                     <tr className="border-t-2 border-gray-03 font-semibold">
-                      <td className={cn(td, "border-t-0")} colSpan={3}>Totals</td>
+                      <td className={cn(td, "border-t-0")} colSpan={4}>Totals</td>
                       <td className={cn(td, "border-t-0 text-right tabular-nums")}><Money kobo={j.total_debit} currency={currency} align="right" /></td>
                       <td className={cn(td, "border-t-0 text-right tabular-nums")}><Money kobo={j.total_credit} currency={currency} align="right" /></td>
                     </tr>

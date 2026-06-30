@@ -11,10 +11,12 @@ import { PeriodsTab } from "../reports/periods-tab";
 import { CurrenciesTab } from "./currencies-tab";
 import { TaxCodesTab } from "./tax-codes-tab";
 import { CostCentersTab } from "./cost-centers-tab";
+import { DimensionsTab } from "./dimensions-tab";
 
 const LABELS: Record<string, string> = {
   entities: "Entities", accounts: "Chart of Accounts", periods: "Periods",
   currencies: "Currencies & FX", "tax-codes": "Tax Codes", "cost-centers": "Cost Centres",
+  dimensions: "Dimensions",
 };
 
 const HINTS: Record<string, string> = {
@@ -24,6 +26,7 @@ const HINTS: Record<string, string> = {
   currencies: "FX rates convert foreign-currency amounts to your base currency for the GL; unrealised gains/losses on foreign balances are recognised by the FX revaluation step at period close.",
   "tax-codes": "Tax codes attach rates and accounting rules to lines — a VAT code posts to VAT Payable; a WHT code reduces cash and credits WHT Payable. \"Recoverable\" marks input tax that offsets output tax.",
   "cost-centers": "Cost centres tag journal lines with the department or branch that owns the spend, so reports can slice income and expense by unit.",
+  dimensions: "Dimensions are extra analytical axes (e.g. fund, project) you can tag on journal lines, each with a constrained value list. The Cost & Dimension Analysis report slices net activity per account by any axis.",
 };
 
 export default function SetupPage() {
@@ -46,6 +49,7 @@ export default function SetupPage() {
           : section === "currencies" ? <CurrenciesTab />
           : section === "tax-codes" ? needsEntity(<TaxCodesTab entity={entity!} />)
           : section === "cost-centers" ? needsEntity(<CostCentersTab entity={entity!} />)
+          : section === "dimensions" ? needsEntity(<DimensionsTab entity={entity!} />)
           : <EntitiesTab />}
       </main>
     </FinanceShell>

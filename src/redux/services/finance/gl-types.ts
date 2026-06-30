@@ -43,6 +43,7 @@ export interface JournalLine extends JournalLineView {
   credit_naira: string;
   description: string | null;
   cost_center: string | null;
+  dimensions: Record<string, string>; // analytical axis → value, e.g. { FUND: "GRANT-A" }
 }
 
 /** JournalEntryDetailSerializer. */
@@ -71,6 +72,7 @@ export interface DirectEntryLine {
   debit: number;
   credit: number;
   cost_center?: string;
+  dimensions?: Record<string, string>; // analytical axis → value (each an allowed value)
 }
 
 export interface DirectEntryPayload {

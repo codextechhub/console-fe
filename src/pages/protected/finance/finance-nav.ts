@@ -28,6 +28,7 @@ export const financeNav: ConsoleNavGroup[] = [
       { title: "Currencies & FX", url: `${F.SETUP}/currencies`, icon: Coins, prefixes: ["finance.currency.", "finance.fxrate."] },
       { title: "Tax Codes", url: `${F.SETUP}/tax-codes`, icon: Percent, prefixes: ["finance.taxcode."] },
       { title: "Cost Centres", url: `${F.SETUP}/cost-centers`, icon: Layers, prefixes: ["finance.costcenter."] },
+      { title: "Dimensions", url: `${F.SETUP}/dimensions`, icon: GitBranch, prefixes: ["finance.dimension."] },
     ],
   },
 

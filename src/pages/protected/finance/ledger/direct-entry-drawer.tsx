@@ -6,14 +6,16 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2, BookCheck } from "lucide-react";
-import { DetailDrawer, MoneyInput, Money, AccountPicker, CostCenterPicker } from "@/components/finance-ui";
+import { DetailDrawer, MoneyInput, Money, AccountPicker, CostCenterPicker, toArray } from "@/components/finance-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { usePostDirectEntryMutation } from "@/redux/services/finance/gl-api";
+import { useGetDimensionsQuery } from "@/redux/services/finance/setup-api";
+import type { Dimension } from "@/redux/services/finance/setup-types";
 
-interface Row { account: string; amountKobo: number; side: "debit" | "credit"; costCenter: string; }
-const emptyRow = (): Row => ({ account: "", amountKobo: 0, side: "debit", costCenter: "" });
+interface Row { account: string; amountKobo: number; side: "debit" | "credit"; costCenter: string; dimensions: Record<string, string>; }
+const emptyRow = (): Row => ({ account: "", amountKobo: 0, side: "debit", costCenter: "", dimensions: {} });
 const fieldLabel = "font-mont text-xs text-gray-05";
 
 export function DirectEntryDrawer({ open, onClose, entity, currency }: {
@@ -24,6 +26,8 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
   const [reference, setReference] = useState("");
   const [rows, setRows] = useState<Row[]>([emptyRow(), emptyRow()]);
   const [post, { isLoading }] = usePostDirectEntryMutation();
+  const { data: dimsData } = useGetDimensionsQuery({ entity });
+  const dims = toArray<Dimension>(dimsData?.data).filter((d) => d.is_active);
 
   const totalDebit = rows.reduce((s, r) => s + (r.side === "debit" ? r.amountKobo : 0), 0);
   const totalCredit = rows.reduce((s, r) => s + (r.side === "credit" ? r.amountKobo : 0), 0);
@@ -37,12 +41,16 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
 
   const submit = async () => {
     try {
-      const lines = rows.filter((r) => r.amountKobo > 0 && r.account.trim()).map((r) => ({
-        account: r.account.trim(),
-        debit: r.side === "debit" ? r.amountKobo : 0,
-        credit: r.side === "credit" ? r.amountKobo : 0,
-        cost_center: r.costCenter || undefined,
-      }));
+      const lines = rows.filter((r) => r.amountKobo > 0 && r.account.trim()).map((r) => {
+        const dimensions = Object.fromEntries(Object.entries(r.dimensions).filter(([, v]) => v));
+        return {
+          account: r.account.trim(),
+          debit: r.side === "debit" ? r.amountKobo : 0,
+          credit: r.side === "credit" ? r.amountKobo : 0,
+          cost_center: r.costCenter || undefined,
+          ...(Object.keys(dimensions).length ? { dimensions } : {}),
+        };
+      });
       const res = await post({ entity, date: date || undefined, narration, reference, lines }).unwrap();
       toast.success(res.message || "Direct entry posted.");
       close();
@@ -113,6 +121,19 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
                 <MoneyInput valueKobo={r.amountKobo} onChangeKobo={(k) => setRow(i, { amountKobo: k })} currency={currency} className="flex-1" />
               </div>
               <CostCenterPicker entity={entity} value={r.costCenter} onChange={(v) => setRow(i, { costCenter: v })} placeholder="Cost centre — optional" />
+              {dims.length > 0 && (
+                <div className="grid grid-cols-2 gap-2">
+                  {dims.map((dim) => (
+                    <select key={dim.code} aria-label={dim.name}
+                      value={r.dimensions[dim.code] ?? ""}
+                      onChange={(e) => setRow(i, { dimensions: { ...r.dimensions, [dim.code]: e.target.value } })}
+                      className="h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-xs text-black-01 focus:border-primary focus:outline-none">
+                      <option value="">{dim.name} — none</option>
+                      {dim.allowed_values.map((v) => <option key={v} value={v}>{v}</option>)}
+                    </select>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
