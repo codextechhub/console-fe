@@ -5,7 +5,7 @@
 //
 // A plan is a scheduling overlay on an invoice: installment "paid" status is derived
 // from the invoice's settlement, so the invoice is required, and "Record installment"
-// posts a real receipt against it then refreshes the plan.
+// posts a real receipt against it — the backend auto-advances the plan on settlement.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Search, Receipt, Ban } from "lucide-react";
@@ -23,7 +23,7 @@ import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
   useGetPaymentPlansQuery, useCreatePaymentPlanMutation, useActivatePaymentPlanMutation,
-  useRefreshPaymentPlanMutation, useCancelPaymentPlanMutation, useRecordPaymentMutation,
+  useCancelPaymentPlanMutation, useRecordPaymentMutation,
   useGetInvoicesQuery,
 } from "@/redux/services/finance/ar-api";
 import type { PaymentPlan, PaymentPlanInstallment } from "@/redux/services/finance/ar-types";
@@ -256,16 +256,15 @@ function RecordInstallmentDrawer({ plan, installment, entity, currency, onClose 
   const [date, setDate] = useState(todayISO);
   const [method, setMethod] = useState("BANK_TRANSFER");
   const [account, setAccount] = useState("");
-  const [pay, { isLoading: paying }] = useRecordPaymentMutation();
-  const [refresh, { isLoading: refreshing }] = useRefreshPaymentPlanMutation();
-  const saving = paying || refreshing;
+  const [pay, { isLoading: saving }] = useRecordPaymentMutation();
   const canSubmit = amount > 0 && !!account && !!date;
 
   const submit = async () => {
     if (!plan.invoice_id) return;
     try {
+      // The receipt advances the plan server-side (post_payment auto-syncs it), and
+      // recordPayment invalidates FinancePaymentPlans, so no explicit refresh needed.
       await pay({ id: plan.invoice_id, entity, amount, payment_date: date, method, deposit_account: account }).unwrap();
-      await refresh({ id: plan.id, entity }).unwrap();
       toast.success("Installment recorded.");
       onClose();
     } catch { /* central */ }
@@ -285,7 +284,7 @@ function RecordInstallmentDrawer({ plan, installment, entity, currency, onClose 
     >
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
-          Posts a real receipt against invoice {plan.invoice_number} (Dr bank · Cr AR), then refreshes the plan's progress.
+          Posts a real receipt against invoice {plan.invoice_number} (Dr bank · Cr AR); the plan's progress updates automatically.
         </p>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} /></FormField>

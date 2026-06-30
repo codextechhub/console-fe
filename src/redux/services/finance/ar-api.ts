@@ -62,14 +62,14 @@ export const arApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals", "FinanceCustomers"],
+      invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals", "FinanceCustomers", "FinancePaymentPlans"],
     }),
     recordPayment: builder.mutation<ApiEnvelope<Invoice>, {
       id: number; entity: string; amount: number; payment_date: string;
       method?: string; deposit_account: string | number; reference?: string; narration?: string;
     }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/invoices/${id}/pay/${qs({ entity })}`, method: "POST", body }),
-      invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals"],
+      invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals", "FinancePaymentPlans"],
     }),
     remindInvoice: builder.mutation<ApiEnvelope<DunningNotice>, { id: number; entity: string; message?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/invoices/${id}/remind/${qs({ entity })}`, method: "POST", body }),
@@ -93,7 +93,7 @@ export const arApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["FinanceCreditNotes", "FinanceReports", "FinanceJournals"],
+      invalidatesTags: ["FinanceCreditNotes", "FinanceReports", "FinanceJournals", "FinanceInvoices", "FinancePaymentPlans"],
     }),
     // Backend reads `allocations` ([{invoice, amount}]) or `auto_allocate` (oldest-first).
     allocateCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { id: number; entity: string; allocations?: { invoice: number; amount: number }[]; auto_allocate?: boolean }>({
@@ -102,7 +102,7 @@ export const arApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["FinanceCreditNotes", "FinanceInvoices", "FinanceReports", "FinanceJournals"],
+      invalidatesTags: ["FinanceCreditNotes", "FinanceInvoices", "FinanceReports", "FinanceJournals", "FinancePaymentPlans"],
     }),
 
     // Refunds
@@ -224,7 +224,7 @@ export const arApi = baseApi.injectEndpoints({
     }),
     recordCustomerReceipt: builder.mutation<ApiEnvelope<{ id: number; payment: string; allocated: number; unallocated: number }>, { entity: string; id: string | number; amount: number; payment_date: string; method?: string; deposit_account: string | number; reference?: string; auto_allocate?: boolean; allocation_strategy?: string }>({
       query: ({ entity, id, ...body }) => ({ url: `/finance/customers/${id}/receipt/${qs({ entity })}`, method: "POST", body }),
-      invalidatesTags: ["FinanceCustomers", "FinanceInvoices", "FinanceReports", "FinanceJournals", "FinancePayments"],
+      invalidatesTags: ["FinanceCustomers", "FinanceInvoices", "FinanceReports", "FinanceJournals", "FinancePayments", "FinancePaymentPlans"],
     }),
     getPayments: builder.query<PaginatedEnvelope<Payment>, { entity: string; page?: number; status?: string; method?: string; customer?: string; search?: string }>({
       query: (p) => ({ url: `/finance/payments/${qs(p)}`, method: "GET" }),
@@ -241,7 +241,7 @@ export const arApi = baseApi.injectEndpoints({
     }),
     allocatePayment: builder.mutation<ApiEnvelope<Payment>, { entity: string; id: number; allocations?: { invoice: number; amount: number }[]; auto_allocate?: boolean; allocation_strategy?: string }>({
       query: ({ entity, id, ...body }) => ({ url: `/finance/payments/${id}/allocate/${qs({ entity })}`, method: "POST", body }),
-      invalidatesTags: ["FinancePayments", "FinanceInvoices", "FinanceCustomers", "FinanceReports"],
+      invalidatesTags: ["FinancePayments", "FinanceInvoices", "FinanceCustomers", "FinanceReports", "FinancePaymentPlans"],
     }),
     remindCustomer: builder.mutation<ApiEnvelope<{ created: number }>, { entity: string; customer: string | number }>({
       query: ({ entity, ...body }) => ({ url: `/finance/dunning/generate/${qs({ entity })}`, method: "POST", body }),
