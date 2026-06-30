@@ -465,7 +465,18 @@ FLS-masking payout beneficiary details, gated `payments.report.view` — replaci
 the old client-side merge (which broke once the two lists paginated). FE: the four
 gateway tabs are `PaginatedEnvelope` with pagers + summary KPIs; the movements
 drawer reads the flattened row. `page_size = 25` is set explicitly in the finance
-+ payments `_paginate` helpers (procurement will inherit it when paginated).
++ payments `_paginate` helpers.
+
+**Procurement pagination: DONE** (no caps). Dropped the `[:200]`/`[:300]` slices on
+every procurement list — vendors, categories, catalog, requisitions, purchase
+orders, RFQs, quotations, goods receipts, vendor invoices, vendor payments, stock
+items and stock movements — via a `paginate()` helper on `_ProcBase` (page size
+25). These are simple tables (no client-side KPIs), so each just got a pager; no
+summary endpoints. Pickers (vendor/category/requisition/PO + the shared
+customer/vendor pickers) request `page_size=100` so dropdowns aren't truncated to
+one page. **Still capped (next):** the finance-ops lists — refunds, dunning,
+expense claims, payroll, petty cash, fixed assets, tax filings, FX rates, audit
+log, bank statement lines (`[:200]`/`[:300]`/`[:500]`).
 
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
