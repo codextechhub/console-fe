@@ -474,9 +474,25 @@ items and stock movements — via a `paginate()` helper on `_ProcBase` (page siz
 25). These are simple tables (no client-side KPIs), so each just got a pager; no
 summary endpoints. Pickers (vendor/category/requisition/PO + the shared
 customer/vendor pickers) request `page_size=100` so dropdowns aren't truncated to
-one page. **Still capped (next):** the finance-ops lists — refunds, dunning,
-expense claims, payroll, petty cash, fixed assets, tax filings, FX rates, audit
-log, bank statement lines (`[:200]`/`[:300]`/`[:500]`).
+one page.
+
+**Finance-ops pagination: DONE** (no caps; every ops table paginates). Added a
+`paginate()` helper on `_FinanceBase` (page size 25). Paginated: audit log, FX
+rates, petty-cash vouchers, bank statement lines, refunds, dunning notices,
+expense claims, payroll runs, fixed assets, tax filings, **budgets** (its per-row
+budget-vs-actual enrichment now runs over the page, not the whole entity). The
+four KPI-bearing screens got `/summary/` endpoints aggregating over ALL rows so
+header cards stay accurate under pagination: `expense-claims/summary/`,
+`payroll-runs/summary/`, `fixed-assets/summary/`, `tax-filings/summary/` (assets'
+straight-line monthly is summed in Python over the bounded active set). Expense
+claims gained a server-side `q` search + a `display_status` translator
+(Draft/Approved/Paid/Rejected → the underlying status × payment_status filters).
+Cross-run roll-ups that must stay whole — payroll Payslips/Statutory and the
+petty-cash fund drawer's vouchers — request `page_size=100` rather than a pager.
+Left as bounded **detail sub-sections** (not top-level tables, so not paginated):
+a bank account's embedded statements/reconciliations (`[:50]`), reconciliation
+matching candidates (`[:200]`), and customer-statement invoice/payment lines
+(`[:500]`).
 
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
