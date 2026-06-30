@@ -205,3 +205,59 @@ export interface TransactionLogEntry {
   actor_email: string | null;
   created_at: string;
 }
+
+// ── Header KPI summaries (computed over ALL rows, accurate while lists paginate) ──
+interface Money { kobo: number; naira: string }
+
+export interface CollectionSummary {
+  total: number;
+  collected: Money;
+  pending: Money;
+  failed: Money;
+  success_rate: number | null;
+  group_counts: Record<string, number>; // PAID / PENDING / FAILED / REFUNDED
+}
+
+export interface PayoutSummary {
+  total: number;
+  settled7d: Money;
+  pending: Money;
+  failed: number;
+  group_counts: Record<string, number>; // PAID / PENDING / FAILED
+}
+
+export interface PayoutBatchKpis {
+  total: number;
+  queued: Money;
+  completed7d: number;
+  drafts: number;
+}
+
+// Unified money-movement feed row (collections in + payouts out).
+export interface Movement {
+  kind: "collection" | "payout";
+  gateway_id: number;
+  reference: string;
+  created_at: string | null;
+  direction: "in" | "out";
+  party: string;
+  provider: string;
+  amount: number;
+  amount_naira: string;
+  status: string;
+  narration: string;
+  provider_reference: string | null;
+  confirmed_at: string | null;
+  linked_id: number | null;
+  email: string;
+  account_code: string | null;
+  account_name: string | null;
+  beneficiary_account: string;
+}
+
+export interface MovementsSummary {
+  in7d: Money;
+  out7d: Money;
+  pending: number;
+  failed: number;
+}

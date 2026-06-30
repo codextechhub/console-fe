@@ -8,7 +8,7 @@
 // Fake for testing); no email is sent (Copy link copies the real URL); the receipt
 // journal posts automatically on confirmation — the recap mirrors it, never a 2nd post.
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Plus, Download, RefreshCw, Link2, Receipt } from "lucide-react";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CustomerPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
-import { useGetCollectionsQuery, useInitiateCollectionMutation, useVerifyCollectionMutation } from "@/redux/services/payments/payments-api";
+import { useGetCollectionsQuery, useGetCollectionsSummaryQuery, useInitiateCollectionMutation, useVerifyCollectionMutation } from "@/redux/services/payments/payments-api";
 import type { Collection } from "@/redux/services/payments/payments-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
@@ -66,22 +66,15 @@ export function CollectionsTab({ entity, currency }: { entity: string; currency?
   const [creating, setCreating] = useState(false);
   const [group, setGroup] = useState("");
   const [provider, setProvider] = useState("");
-  const { data, isLoading, isFetching, isError, refetch } = useGetCollectionsQuery({ entity });
-  const all = useMemo(() => toArray(data?.data), [data]);
-  const rows = useMemo(() => all.filter((c) =>
-    (!group || STATUS_GROUP[c.status] === group) && (!provider || c.provider === provider)), [all, group, provider]);
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [group, provider]);
 
-  const kpis = useMemo(() => {
-    const sum = (pred: (c: Collection) => boolean) => all.filter(pred).reduce((s, c) => s + c.amount, 0);
-    const succeeded = all.filter((c) => c.status === "SUCCEEDED").length;
-    const terminal = all.filter((c) => ["SUCCEEDED", "FAILED", "ABANDONED"].includes(c.status)).length;
-    return {
-      collected: sum((c) => c.status === "SUCCEEDED"),
-      pending: sum((c) => c.status === "PENDING" || c.status === "PROCESSING"),
-      failed: sum((c) => c.status === "FAILED" || c.status === "ABANDONED"),
-      rate: terminal ? Math.round((succeeded * 100) / terminal) : null,
-    };
-  }, [all]);
+  const listParams = useMemo(() => ({ entity, page, ...(group ? { group } : {}), ...(provider ? { provider } : {}) }), [entity, page, group, provider]);
+  const { data, isLoading, isFetching, isError, refetch } = useGetCollectionsQuery(listParams);
+  const { data: summaryRes } = useGetCollectionsSummaryQuery({ entity, ...(provider ? { provider } : {}) });
+  const rows = useMemo(() => toArray<Collection>(data?.data), [data]);
+  const pg = data?.pagination;
+  const s = summaryRes?.data;
 
   const columns: Column<Collection>[] = [
     { header: "Reference", cell: (c) => <span className="font-semibold tabular-nums text-gray-01">{c.reference}</span> },
@@ -95,10 +88,10 @@ export function CollectionsTab({ entity, currency }: { entity: string; currency?
   return (
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Collected (settled)" value={formatMoney(kpis.collected, currency)} foot="Confirmed receipts" />
-        <KpiCard label="Pending" value={formatMoney(kpis.pending, currency)} foot="Awaiting payment" />
-        <KpiCard label="Failed" value={formatMoney(kpis.failed, currency)} tone={kpis.failed > 0 ? "warn" : "default"} />
-        <KpiCard label="Success rate" value={kpis.rate == null ? "—" : `${kpis.rate}%`} foot="Settled ÷ completed" />
+        <KpiCard label="Collected (settled)" value={formatMoney(s?.collected.kobo ?? 0, currency)} foot="Confirmed receipts" />
+        <KpiCard label="Pending" value={formatMoney(s?.pending.kobo ?? 0, currency)} foot="Awaiting payment" />
+        <KpiCard label="Failed" value={formatMoney(s?.failed.kobo ?? 0, currency)} tone={(s?.failed.kobo ?? 0) > 0 ? "warn" : "default"} />
+        <KpiCard label="Success rate" value={s?.success_rate == null ? "—" : `${s.success_rate}%`} foot="Settled ÷ completed" />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -122,9 +115,10 @@ export function CollectionsTab({ entity, currency }: { entity: string; currency?
 
       <DataTable columns={columns} rows={rows} rowKey={(c) => c.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(c) => setSelectedId(c.id)}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No collections" emptyMessage="Create a checkout to collect money via the gateway." />
 
-      <CollectionDrawer collectionId={selectedId} collections={all} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
+      <CollectionDrawer collectionId={selectedId} collections={rows} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
       <NewCheckoutDrawer open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
     </div>
   );

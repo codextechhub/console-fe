@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { isStripped } from "@/utils/fls";
 import { P } from "@/permissions";
-import { useGetPayoutBatchesQuery, useCreatePayoutBatchMutation, useGetPayoutBatchQuery, useSubmitPayoutBatchMutation } from "@/redux/services/payments/payments-api";
+import { useGetPayoutBatchesQuery, useGetPayoutBatchesSummaryQuery, useCreatePayoutBatchMutation, useGetPayoutBatchQuery, useSubmitPayoutBatchMutation } from "@/redux/services/payments/payments-api";
 import { useGetVendorsQuery } from "@/redux/services/procurement/procurement-api";
 import type { PayoutBatchSummary, PayoutInstruction, PayoutBatchItemPayload } from "@/redux/services/payments/payments-types";
 import type { Vendor } from "@/redux/services/procurement/procurement-types";
@@ -28,7 +28,6 @@ import type { Vendor } from "@/redux/services/procurement/procurement-types";
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const MASK = "••••";
 const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
-const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
 const BATCH_STATUS: Record<string, { label: string; cls: string }> = {
   DRAFT: { label: "Draft", cls: "bg-gray-02/70 text-gray-01" },
@@ -77,18 +76,12 @@ function Select({ value, onChange, children, className }: { value: string; onCha
 export function BatchesTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [building, setBuilding] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetPayoutBatchesQuery({ entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, isError, refetch } = useGetPayoutBatchesQuery({ entity, page });
+  const { data: summaryRes } = useGetPayoutBatchesSummaryQuery({ entity });
   const rows = useMemo(() => toArray<PayoutBatchSummary>(data?.data), [data]);
-
-  const kpis = useMemo(() => {
-    const cutoff = Date.now() - SEVEN_DAYS;
-    return {
-      batches: rows.length,
-      queued: rows.filter((b) => b.status === "DRAFT" || b.status === "PROCESSING").reduce((s, b) => s + b.total_amount, 0),
-      completed7d: rows.filter((b) => b.status === "COMPLETED" && new Date(b.submitted_at || b.created_at).getTime() >= cutoff).length,
-      drafts: rows.filter((b) => b.status === "DRAFT").length,
-    };
-  }, [rows]);
+  const pg = data?.pagination;
+  const s = summaryRes?.data;
 
   const columns: Column<PayoutBatchSummary>[] = [
     { header: "Batch", cell: (b) => <span className="font-semibold tabular-nums text-gray-01">{b.reference}</span> },
@@ -103,10 +96,10 @@ export function BatchesTab({ entity, currency }: { entity: string; currency?: st
   return (
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Batches" value={String(kpis.batches)} foot="In view" />
-        <KpiCard label="Queued value" value={formatMoney(kpis.queued, currency)} foot="Draft + processing" />
-        <KpiCard label="Completed (7d)" value={String(kpis.completed7d)} foot="Fully settled" />
-        <KpiCard label="Drafts" value={String(kpis.drafts)} tone={kpis.drafts > 0 ? "warn" : "default"} foot="Awaiting submit" />
+        <KpiCard label="Batches" value={String(s?.total ?? 0)} foot="Total" />
+        <KpiCard label="Queued value" value={formatMoney(s?.queued.kobo ?? 0, currency)} foot="Draft + processing" />
+        <KpiCard label="Completed (7d)" value={String(s?.completed7d ?? 0)} foot="Fully settled" />
+        <KpiCard label="Drafts" value={String(s?.drafts ?? 0)} tone={(s?.drafts ?? 0) > 0 ? "warn" : "default"} foot="Awaiting submit" />
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -118,6 +111,7 @@ export function BatchesTab({ entity, currency }: { entity: string; currency?: st
 
       <DataTable columns={columns} rows={rows} rowKey={(b) => b.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(b) => setSelectedId(b.id)}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No payout batches" emptyMessage="Build a batch to disburse to many vendors at once." />
 
       <BatchDetailDrawer batchId={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />

@@ -22,7 +22,7 @@ import { formatMoney } from "@/utils/money";
 import { isStripped } from "@/utils/fls";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
-import { useGetPayoutsQuery, useInitiatePayoutMutation } from "@/redux/services/payments/payments-api";
+import { useGetPayoutsQuery, useGetPayoutsSummaryQuery, useInitiatePayoutMutation } from "@/redux/services/payments/payments-api";
 import { useGetVendorsQuery } from "@/redux/services/procurement/procurement-api";
 import { useGetAccountsQuery } from "@/redux/services/finance/setup-api";
 import type { PayoutInstruction } from "@/redux/services/payments/payments-types";
@@ -67,7 +67,6 @@ function Select({ value, onChange, children, className }: { value: string; onCha
 
 const beneficiary = (p: PayoutInstruction) => (isStripped(p, "beneficiary_name") ? MASK : p.beneficiary_name || "—");
 const account = (p: PayoutInstruction) => (isStripped(p, "beneficiary_account_number") ? MASK : p.beneficiary_account_number || "");
-const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 
 export function PayoutsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const navigate = useNavigate();
@@ -75,21 +74,15 @@ export function PayoutsTab({ entity, currency }: { entity: string; currency?: st
   const [creating, setCreating] = useState(false);
   const [group, setGroup] = useState("");
   const [provider, setProvider] = useState("");
-  const { data, isLoading, isFetching, isError, refetch } = useGetPayoutsQuery({ entity });
-  const all = useMemo(() => toArray<PayoutInstruction>(data?.data), [data]);
-  const rows = useMemo(() => all.filter((p) =>
-    (!group || STATUS_GROUP[p.status] === group) && (!provider || p.provider === provider)), [all, group, provider]);
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [group, provider]);
 
-  const kpis = useMemo(() => {
-    const cutoff = Date.now() - SEVEN_DAYS;
-    const sum = (pred: (p: PayoutInstruction) => boolean) => all.filter(pred).reduce((s, p) => s + p.amount, 0);
-    return {
-      settled7d: sum((p) => p.status === "PAID" && !!p.confirmed_at && new Date(p.confirmed_at).getTime() >= cutoff),
-      pending: sum((p) => p.status === "PENDING" || p.status === "PROCESSING"),
-      failed: all.filter((p) => p.status === "FAILED" || p.status === "REVERSED").length,
-      count: all.length,
-    };
-  }, [all]);
+  const listParams = useMemo(() => ({ entity, page, ...(group ? { group } : {}), ...(provider ? { provider } : {}) }), [entity, page, group, provider]);
+  const { data, isLoading, isFetching, isError, refetch } = useGetPayoutsQuery(listParams);
+  const { data: summaryRes } = useGetPayoutsSummaryQuery({ entity, ...(provider ? { provider } : {}) });
+  const rows = useMemo(() => toArray<PayoutInstruction>(data?.data), [data]);
+  const pg = data?.pagination;
+  const s = summaryRes?.data;
 
   const columns: Column<PayoutInstruction>[] = [
     { header: "Reference", cell: (p) => <span className="font-semibold tabular-nums text-gray-01">{p.reference}</span> },
@@ -103,10 +96,10 @@ export function PayoutsTab({ entity, currency }: { entity: string; currency?: st
   return (
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="Settled (7d)" value={formatMoney(kpis.settled7d, currency)} foot="Confirmed disbursements" />
-        <KpiCard label="Pending" value={formatMoney(kpis.pending, currency)} foot="Awaiting settlement" />
-        <KpiCard label="Failed" value={String(kpis.failed)} tone={kpis.failed > 0 ? "warn" : "default"} foot="Rejected / reversed" />
-        <KpiCard label="Payouts" value={String(kpis.count)} foot="In view" />
+        <KpiCard label="Settled (7d)" value={formatMoney(s?.settled7d.kobo ?? 0, currency)} foot="Confirmed disbursements" />
+        <KpiCard label="Pending" value={formatMoney(s?.pending.kobo ?? 0, currency)} foot="Awaiting settlement" />
+        <KpiCard label="Failed" value={String(s?.failed ?? 0)} tone={(s?.failed ?? 0) > 0 ? "warn" : "default"} foot="Rejected / reversed" />
+        <KpiCard label="Payouts" value={String(s?.total ?? 0)} foot="Total" />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -131,9 +124,10 @@ export function PayoutsTab({ entity, currency }: { entity: string; currency?: st
 
       <DataTable columns={columns} rows={rows} rowKey={(p) => p.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(p) => setSelectedId(p.id)}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No payouts" emptyMessage="Send a payout to disburse money via the gateway." />
 
-      <PayoutDrawer payoutId={selectedId} payouts={all} currency={currency} onClose={() => setSelectedId(null)} />
+      <PayoutDrawer payoutId={selectedId} payouts={rows} currency={currency} onClose={() => setSelectedId(null)} />
       <NewPayoutDrawer open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
     </div>
   );

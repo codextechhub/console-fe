@@ -11,12 +11,17 @@ import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "../finance/api-types";
 import type {
   Collection,
+  CollectionSummary,
   CreatePayoutBatchPayload,
   InitiateCollectionPayload,
   InitiatePayoutPayload,
+  Movement,
+  MovementsSummary,
   PayoutBatch,
+  PayoutBatchKpis,
   PayoutBatchSummary,
   PayoutInstruction,
+  PayoutSummary,
   SettlementReconciliation,
   TransactionLogEntry,
   VirtualAccount,
@@ -27,8 +32,12 @@ const qs = (p: object) => generateQueryString(p as Record<string, string | numbe
 
 export const paymentsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getCollections: builder.query<ApiEnvelope<Collection[]>, { entity: string; status?: string; virtual_account?: number }>({
+    getCollections: builder.query<PaginatedEnvelope<Collection>, { entity: string; page?: number; group?: string; status?: string; provider?: string; virtual_account?: number }>({
       query: (p) => ({ url: `/payments/collections/${qs(p)}`, method: "GET" }),
+      providesTags: ["PaymentsCollections"],
+    }),
+    getCollectionsSummary: builder.query<ApiEnvelope<CollectionSummary>, { entity: string; provider?: string }>({
+      query: (p) => ({ url: `/payments/collections/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["PaymentsCollections"],
     }),
     initiateCollection: builder.mutation<ApiEnvelope<Collection>, InitiateCollectionPayload>({
@@ -69,10 +78,13 @@ export const paymentsApi = baseApi.injectEndpoints({
       invalidatesTags: ["PaymentsVirtualAccounts"],
     }),
 
-    // Payouts (slice 6). Backend returns a flat list[:200] (no pagination); the
-    // console computes KPIs over the whole set and filters provider client-side.
-    getPayouts: builder.query<ApiEnvelope<PayoutInstruction[]>, { entity: string; status?: string }>({
+    // Payouts (slice 6): paginated; KPIs + group counts come from the summary endpoint.
+    getPayouts: builder.query<PaginatedEnvelope<PayoutInstruction>, { entity: string; page?: number; group?: string; status?: string; provider?: string }>({
       query: (p) => ({ url: `/payments/payouts/${qs(p)}`, method: "GET" }),
+      providesTags: ["PaymentsPayouts"],
+    }),
+    getPayoutsSummary: builder.query<ApiEnvelope<PayoutSummary>, { entity: string; provider?: string }>({
+      query: (p) => ({ url: `/payments/payouts/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["PaymentsPayouts"],
     }),
     // Initiate a single payout to a vendor; the provider transfer is requested
@@ -87,6 +99,10 @@ export const paymentsApi = baseApi.injectEndpoints({
     }),
     getPayoutBatches: builder.query<PaginatedEnvelope<PayoutBatchSummary>, { entity: string; page?: number; status?: string }>({
       query: (p) => ({ url: `/payments/payout-batches/${qs(p)}`, method: "GET" }),
+      providesTags: ["PaymentsPayoutBatches"],
+    }),
+    getPayoutBatchesSummary: builder.query<ApiEnvelope<PayoutBatchKpis>, { entity: string }>({
+      query: (p) => ({ url: `/payments/payout-batches/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["PaymentsPayoutBatches"],
     }),
     // Assemble a batch (DRAFT) of vendor payouts; pass submit:true to dispatch now.
@@ -110,27 +126,41 @@ export const paymentsApi = baseApi.injectEndpoints({
     getSettlementReconciliation: builder.query<ApiEnvelope<SettlementReconciliation>, { entity: string; provider?: string; start_date?: string; end_date?: string }>({
       query: (p) => ({ url: `/payments/reports/settlement-reconciliation/${qs(p)}`, method: "GET" }),
     }),
-    // Append-only gateway action log (PaymentEvent). Non-paginated, capped at 200.
-    getTransactionsLog: builder.query<ApiEnvelope<TransactionLogEntry[]>, { entity: string; action?: string; provider?: string; succeeded?: string }>({
+    // Append-only gateway action log (PaymentEvent), paginated.
+    getTransactionsLog: builder.query<PaginatedEnvelope<TransactionLogEntry>, { entity: string; page?: number; action?: string; provider?: string; succeeded?: string }>({
       query: (p) => ({ url: `/payments/transactions/${qs(p)}`, method: "GET" }),
       providesTags: ["PaymentsTransactions"],
+    }),
+    // Unified, paginated money-movement feed (collections in + payouts out) + its summary.
+    getMovements: builder.query<PaginatedEnvelope<Movement>, { entity: string; page?: number; direction?: string; group?: string; provider?: string }>({
+      query: (p) => ({ url: `/payments/movements/${qs(p)}`, method: "GET" }),
+      providesTags: ["PaymentsCollections", "PaymentsPayouts"],
+    }),
+    getMovementsSummary: builder.query<ApiEnvelope<MovementsSummary>, { entity: string; provider?: string }>({
+      query: (p) => ({ url: `/payments/movements/summary/${qs(p)}`, method: "GET" }),
+      providesTags: ["PaymentsCollections", "PaymentsPayouts"],
     }),
   }),
 });
 
 export const {
   useGetCollectionsQuery,
+  useGetCollectionsSummaryQuery,
   useInitiateCollectionMutation,
   useVerifyCollectionMutation,
   useGetVirtualAccountsQuery,
   useCreateVirtualAccountMutation,
   useUpdateVirtualAccountMutation,
   useGetPayoutsQuery,
+  useGetPayoutsSummaryQuery,
   useInitiatePayoutMutation,
   useGetPayoutBatchesQuery,
+  useGetPayoutBatchesSummaryQuery,
   useCreatePayoutBatchMutation,
   useGetPayoutBatchQuery,
   useSubmitPayoutBatchMutation,
+  useGetMovementsQuery,
+  useGetMovementsSummaryQuery,
   useGetSettlementReconciliationQuery,
   useGetTransactionsLogQuery,
 } = paymentsApi;
