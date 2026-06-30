@@ -431,6 +431,28 @@ adaptation: period is a *fiscal period*, not the prototype's free "as of" date.
 Lives in `reports/trial-balance-tab.tsx` (replaces the generic stub in
 `statements.tsx`); route `/finance/reports/trial-balance`.
 
+**Cost-centre / dimension analytics + AR pagination: DONE** (FE for the backend's
+cost-centre/dimension + AR commits). Four pieces:
+1. **AR lists paginate.** `getCustomers`/`getPayments` became `PaginatedEnvelope`;
+   Customers + Receipts gained pagers, and their KPIs + status/method tab counts now
+   come from new `customers/summary/` + `payments/summary/` endpoints (accurate
+   entity-wide). **All** filters are server-side — customer status (incl. INACTIVE,
+   a derived-status filter added to the list view), receipt status + method, search.
+2. **Allocation strategy.** The allocation drawer offers *oldest / largest first*
+   (`allocation_strategy` on the receipt/allocate endpoints); the auto-allocate preview
+   re-orders to match.
+3. **Cost & Dimension Analysis report** (`/finance/reports/analytics`): net posted
+   activity per account, grouped by an axis (cost centre or a dimension), with per-bucket
+   subtotals, period + account-type filters and the real CSV/XLSX/PDF export. New
+   `reports/analytics-slice-tab.tsx`; reuses `finance.report.view`.
+4. **Dimensions end-to-end.** A Setup → **Dimensions** tab (manage axes + allowed
+   values), per-line dimension value selects on the New-journal-entry drawer (beside the
+   cost-centre picker), and a **Dimensions** column on the journal detail. The cost-centre
+   picker on direct entries was wired earlier. Note: this required applying the backend's
+   migrations 0018 (InvoiceSource.OPENING) + 0019 (Dimension.allowed_values) to the dev DB
+   — the dimensions GET 500'd until then. New backend tests for the two summaries + the
+   customer status filter.
+
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
 transfer to a customer's number arrives as a Collection that reconciles to AR.
