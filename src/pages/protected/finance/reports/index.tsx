@@ -10,12 +10,14 @@ import {
   CashFlowReport, EquityReport,
 } from "./statements";
 import { TrialBalanceReport } from "./trial-balance-tab";
+import { AnalyticsSliceReport } from "./analytics-slice-tab";
 import { PeriodsTab } from "./periods-tab";
 
 const LABELS: Record<string, string> = {
   "trial-balance": "Trial Balance", "income-statement": "Income Statement",
   "balance-sheet": "Balance Sheet", "cash-flow": "Cash Flow",
-  "changes-in-equity": "Changes in Equity", periods: "Periods & Close",
+  "changes-in-equity": "Changes in Equity", analytics: "Cost & Dimension Analysis",
+  periods: "Periods & Close",
 };
 
 export default function ReportsPage() {
@@ -39,6 +41,8 @@ export default function ReportsPage() {
           <CashFlowReport entity={entity} currency={currency} />
         ) : section === "changes-in-equity" ? (
           <EquityReport entity={entity} currency={currency} />
+        ) : section === "analytics" ? (
+          <AnalyticsSliceReport entity={entity} currency={currency} />
         ) : section === "periods" ? (
           <PeriodsTab entity={entity} />
         ) : (

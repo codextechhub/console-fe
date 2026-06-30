@@ -103,6 +103,16 @@ export interface CostCenter {
   is_active: boolean;
 }
 
+// Analytical axis (e.g. FUND, PROJECT) with a constrained value list, tagged on
+// journal lines and sliced by the analytics-slice report.
+export interface Dimension {
+  id: number;
+  code: string;
+  name: string;
+  allowed_values: string[];
+  is_active: boolean;
+}
+
 export interface FinanceAuditLog {
   id: number;
   action: string;

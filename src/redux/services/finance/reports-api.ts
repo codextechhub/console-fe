@@ -6,6 +6,7 @@ import { generateQueryString } from "@/utils/helpers";
 import { baseApi } from "../base-api";
 import type { ApiEnvelope } from "./api-types";
 import type {
+  AnalyticsSlice,
   ArAging,
   BalanceSheet,
   CashFlow,
@@ -44,6 +45,11 @@ export const reportsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/reports/ar-aging/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceReports"],
     }),
+    // Net activity per account bucketed by an axis (cost_center or a dimension code).
+    getAnalyticsSlice: builder.query<ApiEnvelope<AnalyticsSlice>, ReportParams & { axis: string; account_type?: string }>({
+      query: (p) => ({ url: `/finance/reports/analytics-slice/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinanceReports"],
+    }),
     // Aggregated Finance-overview dashboard — every block in one call.
     getFinanceDashboard: builder.query<ApiEnvelope<FinanceDashboard>, ReportParams>({
       query: (p) => ({ url: `/finance/reports/dashboard/${qs(p)}`, method: "GET" }),
@@ -59,5 +65,6 @@ export const {
   useGetCashFlowQuery,
   useGetChangesInEquityQuery,
   useGetArAgingQuery,
+  useGetAnalyticsSliceQuery,
   useGetFinanceDashboardQuery,
 } = reportsApi;

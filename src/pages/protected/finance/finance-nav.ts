@@ -80,6 +80,7 @@ export const financeNav: ConsoleNavGroup[] = [
       { title: "Balance Sheet", url: `${F.REPORTS}/balance-sheet`, icon: Scale, prefixes: ["finance.report."] },
       { title: "Cash Flow", url: `${F.REPORTS}/cash-flow`, icon: ArrowLeftRight, prefixes: ["finance.report."] },
       { title: "Changes in Equity", url: `${F.REPORTS}/changes-in-equity`, icon: GitBranch, prefixes: ["finance.report."] },
+      { title: "Cost & Dimension Analysis", url: `${F.REPORTS}/analytics`, icon: Layers, prefixes: ["finance.report."] },
       { title: "Audit Trail", url: F.AUDIT, icon: ScrollText, prefixes: ["finance.audit."] },
     ],
   },

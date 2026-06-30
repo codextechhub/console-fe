@@ -16,6 +16,28 @@ export interface TrialBalanceRow {
   credit: ReportMoney;
 }
 
+// Analytics slice — net activity per account, bucketed by one axis (a cost centre
+// or a dimension). Reads posted journal lines, so it can answer "per bucket".
+export interface AnalyticsSliceRow {
+  bucket: string;
+  account_id: number;
+  code: string;
+  name: string;
+  account_type: string;
+  debit: ReportMoney;
+  credit: ReportMoney;
+  net: ReportMoney;
+}
+
+export interface AnalyticsSlice {
+  entity: string;
+  period: string | null;
+  axis: string;
+  rows: AnalyticsSliceRow[];
+  bucket_totals: Record<string, ReportMoney>;
+  total_net: ReportMoney;
+}
+
 export interface TrialBalance {
   entity: string;
   period: string | null;

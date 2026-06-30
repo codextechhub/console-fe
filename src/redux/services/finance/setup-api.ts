@@ -13,6 +13,7 @@ import type {
   AccountDetail,
   FxRate,
   CostCenter,
+  Dimension,
   Currency,
   FinanceAuditLog,
   FiscalPeriod,
@@ -79,6 +80,14 @@ export const setupApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/cost-centers/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceSetup"],
     }),
+    getDimensions: b.query<PaginatedEnvelope<Dimension>, { entity: string }>({
+      query: (p) => ({ url: `/finance/dimensions/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinanceSetup"],
+    }),
+    upsertDimension: b.mutation<ApiEnvelope<Dimension>, { entity: string; code: string; name: string; allowed_values?: string[]; is_active?: boolean }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/dimensions/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceSetup"],
+    }),
     getFxRates: b.query<PaginatedEnvelope<FxRate>, void>({
       query: () => ({ url: `/finance/fx-rates/`, method: "GET" }),
       providesTags: ["FinanceSetup"],
@@ -109,6 +118,8 @@ export const {
   useCreateTaxCodeMutation,
   useGetCostCentersQuery,
   useCreateCostCenterMutation,
+  useGetDimensionsQuery,
+  useUpsertDimensionMutation,
   useGetFxRatesQuery,
   useGetAuditLogQuery,
 } = setupApi;
