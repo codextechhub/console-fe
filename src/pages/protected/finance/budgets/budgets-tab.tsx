@@ -5,6 +5,7 @@
 // once approved, read its variance. Budget lines are income/expense GLs only.
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { Plus, Trash2, CheckCircle2, Lock } from "lucide-react";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, AccountPicker, CostCenterPicker, InfoHint, toArray, type Column } from "@/components/finance-ui";
@@ -15,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
-  useGetBudgetsQuery, useGetBudgetVarianceQuery, useGetBudgetHeatmapQuery, useGetFiscalYearsQuery,
+  useGetBudgetsQuery, useGetBudgetQuery, useGetBudgetVarianceQuery, useGetBudgetHeatmapQuery, useGetFiscalYearsQuery,
   useCreateBudgetMutation, useUpdateBudgetMutation, useSetBudgetLinesMutation, useApproveBudgetMutation,
 } from "@/redux/services/finance/ops-api";
 import type { Budget, BudgetLineInput } from "@/redux/services/finance/ops-types";
@@ -76,8 +77,10 @@ export function BudgetsTab({ entity, currency }: { entity: string; currency?: st
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [heatmapId, setHeatmapId] = useState<number | null>(null);
-  const { data, isLoading, isFetching, isError, refetch } = useGetBudgetsQuery({ entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, isError, refetch } = useGetBudgetsQuery({ entity, page });
   const rows = useMemo(() => toArray(data?.data), [data]);
+  const pg = data?.pagination;
   const activeHeatmapId = heatmapId ?? rows[0]?.id ?? null;
 
   const columns: Column<Budget>[] = [
@@ -103,6 +106,7 @@ export function BudgetsTab({ entity, currency }: { entity: string; currency?: st
 
       <DataTable columns={columns} rows={rows} rowKey={(b) => b.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(b) => setSelectedId(b.id)}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No budgets" emptyMessage="Create a budget for a fiscal year and add its lines." />
 
       {activeHeatmapId != null ? (
@@ -268,8 +272,9 @@ function NewBudgetDrawer({ open, onClose, entity, currency }: { open: boolean; o
 }
 
 function BudgetDrawer({ budgetId, entity, currency, onClose }: { budgetId: number | null; entity: string; currency?: string | null; onClose: () => void }) {
-  const { data: bd } = useGetBudgetsQuery({ entity });
-  const budget = useMemo(() => toArray(bd?.data).find((b) => b.id === budgetId) ?? null, [bd, budgetId]);
+  // Fetch by id (not the paginated list) so the drawer works regardless of page.
+  const { data: bd } = useGetBudgetQuery(budgetId != null ? { id: budgetId, entity } : skipToken);
+  const budget = bd?.data ?? null;
   const isDraft = !!budget && budget.status === "DRAFT" && !budget.is_locked;
 
   if (budgetId == null || !budget) return null;

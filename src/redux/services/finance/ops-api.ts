@@ -226,7 +226,7 @@ export const opsApi = baseApi.injectEndpoints({
     }),
 
     // Budgets
-    getBudgets: b.query<ApiEnvelope<Budget[]>, { entity: string; status?: string }>({
+    getBudgets: b.query<PaginatedEnvelope<Budget>, { entity: string; page?: number; page_size?: number; status?: string }>({
       query: (p) => ({ url: `/finance/budgets/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceBudgets"],
     }),
