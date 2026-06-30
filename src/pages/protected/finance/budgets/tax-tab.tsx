@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
-  useGetTaxFilingsQuery, useGetTaxObligationsQuery, useCreateTaxObligationMutation,
+  useGetTaxFilingsQuery, useGetTaxFilingSummaryQuery, useGetTaxObligationsQuery, useCreateTaxObligationMutation,
   useCreateTaxFilingMutation, useFileTaxFilingMutation, usePayTaxFilingMutation,
 } from "@/redux/services/finance/ops-api";
 import type { TaxFiling } from "@/redux/services/finance/ops-types";
@@ -65,15 +65,13 @@ export function TaxTab({ entity, currency }: { entity: string; currency?: string
   const [newFiling, setNewFiling] = useState(false);
   const [newObligation, setNewObligation] = useState(false);
   const [status, setStatus] = useState("");
-  const { data, isLoading, isFetching, isError, refetch } = useGetTaxFilingsQuery({ entity, ...(status ? { filing_status: status } : {}) });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, isError, refetch } = useGetTaxFilingsQuery({ entity, page, ...(status ? { filing_status: status } : {}) });
   const rows = useMemo(() => toArray(data?.data), [data]);
+  const pg = data?.pagination;
 
-  const kpis = useMemo(() => ({
-    outstanding: rows.filter((f) => f.filing_status !== "PAID").reduce((s, f) => s + f.balance_due, 0),
-    open: rows.filter((f) => f.filing_status === "DRAFT").length,
-    filed: rows.filter((f) => f.filing_status === "FILED").length,
-    paid: rows.filter((f) => f.filing_status === "PAID").length,
-  }), [rows]);
+  const summaryQ = useGetTaxFilingSummaryQuery({ entity });
+  const kpis = summaryQ.data?.data ?? { outstanding: 0, open: 0, filed: 0, paid: 0 };
 
   const columns: Column<TaxFiling>[] = [
     { header: "Tax", cell: (f) => <span className="font-semibold text-gray-01">{f.obligation_code}</span> },
@@ -96,7 +94,7 @@ export function TaxTab({ entity, currency }: { entity: string; currency?: string
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Select value={status} onChange={setStatus} className="w-40">
+        <Select value={status} onChange={(v) => { setStatus(v); setPage(1); }} className="w-40">
           <option value="">All status</option>
           {Object.entries(STATUS).map(([v, s]) => <option key={v} value={v}>{s.label}</option>)}
         </Select>
@@ -113,6 +111,7 @@ export function TaxTab({ entity, currency }: { entity: string; currency?: string
 
       <DataTable columns={columns} rows={rows} rowKey={(f) => f.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(f) => setSelectedId(f.id)}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No tax filings" emptyMessage="Prepare a filing from an obligation to accrue, file and remit." />
 
       <FilingDrawer filingId={selectedId} filings={rows} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />

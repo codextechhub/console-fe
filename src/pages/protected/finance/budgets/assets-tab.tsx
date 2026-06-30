@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
-  useGetFixedAssetsQuery, useCreateFixedAssetMutation, useAcquireFixedAssetMutation,
+  useGetFixedAssetsQuery, useGetFixedAssetSummaryQuery, useCreateFixedAssetMutation, useAcquireFixedAssetMutation,
   useDepreciateFixedAssetMutation, useGetDepreciationPreviewQuery, useRunDepreciationMutation,
   useDisposeFixedAssetMutation,
 } from "@/redux/services/finance/ops-api";
@@ -77,23 +77,16 @@ export function AssetsTab({ entity, currency }: { entity: string; currency?: str
   const [running, setRunning] = useState(false);
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetFixedAssetsQuery({
-    entity, ...(category ? { category } : {}), ...(status ? { asset_status: status } : {}),
+    entity, page, ...(category ? { category } : {}), ...(status ? { asset_status: status } : {}),
   });
   const rows = useMemo(() => toArray(data?.data), [data]);
+  const pg = data?.pagination;
+  const resetPage = () => setPage(1);
 
-  const kpis = useMemo(() => {
-    const live = rows.filter((a) => a.asset_status !== "DISPOSED");
-    const monthly = rows
-      .filter((a) => a.asset_status === "ACTIVE" && a.useful_life_months > 0)
-      .reduce((s, a) => s + Math.floor(a.depreciable_base / a.useful_life_months), 0);
-    return {
-      cost: live.reduce((s, a) => s + a.cost, 0),
-      accum: live.reduce((s, a) => s + a.accumulated_depreciation, 0),
-      nbv: live.reduce((s, a) => s + a.net_book_value, 0),
-      monthly,
-    };
-  }, [rows]);
+  const summaryQ = useGetFixedAssetSummaryQuery({ entity });
+  const kpis = summaryQ.data?.data ?? { cost: 0, accum: 0, nbv: 0, monthly: 0 };
 
   const columns: Column<FixedAsset>[] = [
     { header: "Tag", cell: (a) => <span className="font-semibold tabular-nums text-gray-01">{a.document_number || "—"}</span> },
@@ -117,11 +110,11 @@ export function AssetsTab({ entity, currency }: { entity: string; currency?: str
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Select value={category} onChange={setCategory} className="w-44">
+          <Select value={category} onChange={(v) => { setCategory(v); resetPage(); }} className="w-44">
             <option value="">All categories</option>
             {CATEGORIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </Select>
-          <Select value={status} onChange={setStatus} className="w-40">
+          <Select value={status} onChange={(v) => { setStatus(v); resetPage(); }} className="w-40">
             <option value="">All status</option>
             {Object.entries(STATUS).map(([v, s]) => <option key={v} value={v}>{s.label}</option>)}
           </Select>
@@ -138,6 +131,7 @@ export function AssetsTab({ entity, currency }: { entity: string; currency?: str
 
       <DataTable columns={columns} rows={rows} rowKey={(a) => a.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(a) => setSelectedId(a.id)}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No fixed assets" emptyMessage="Add an asset, then acquire it to capitalise and start depreciation." />
 
       <AssetDrawer assetId={selectedId} assets={rows} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />

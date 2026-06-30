@@ -31,7 +31,7 @@ import type {
 } from "./ops-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
-type E = { entity: string; page?: number; status?: string };
+type E = { entity: string; page?: number; page_size?: number; status?: string };
 type Act = { id: number; entity: string };
 
 export const opsApi = baseApi.injectEndpoints({
@@ -87,8 +87,12 @@ export const opsApi = baseApi.injectEndpoints({
     }),
 
     // Expense claims
-    getExpenseClaims: b.query<PaginatedEnvelope<ExpenseClaim>, E>({
+    getExpenseClaims: b.query<PaginatedEnvelope<ExpenseClaim>, E & { payment_status?: string; display_status?: string; q?: string }>({
       query: (p) => ({ url: `/finance/expense-claims/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinanceExpenseClaims"],
+    }),
+    getExpenseClaimSummary: b.query<ApiEnvelope<{ open: number; month_total: number; avg: number; awaiting: number }>, { entity: string }>({
+      query: (p) => ({ url: `/finance/expense-claims/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceExpenseClaims"],
     }),
     createExpenseClaim: b.mutation<ApiEnvelope<ExpenseClaim>, { entity: string; claimant_name?: string; claim_date: string; title?: string; narration?: string; lines: { description: string; expense_account: string; quantity: number; unit_price: number; tax_code?: string; cost_center?: string }[] }>({
@@ -158,8 +162,12 @@ export const opsApi = baseApi.injectEndpoints({
     }),
 
     // Payroll
-    getPayrollRuns: b.query<PaginatedEnvelope<PayrollRun>, E>({
+    getPayrollRuns: b.query<PaginatedEnvelope<PayrollRun>, E & { run_status?: string }>({
       query: (p) => ({ url: `/finance/payroll-runs/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinancePayroll"],
+    }),
+    getPayrollSummary: b.query<ApiEnvelope<{ runs: number; employees: number; net: number; to_pay: number }>, { entity: string }>({
+      query: (p) => ({ url: `/finance/payroll-runs/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePayroll"],
     }),
     createPayrollRun: b.mutation<ApiEnvelope<PayrollRun>, { entity: string; pay_date: string; period_label?: string; narration?: string; lines: { employee_name: string; gross_amount: number; paye_amount: number; pension_amount: number }[] }>({
@@ -259,8 +267,12 @@ export const opsApi = baseApi.injectEndpoints({
     }),
 
     // Fixed assets
-    getFixedAssets: b.query<ApiEnvelope<FixedAsset[]>, { entity: string; category?: string; asset_status?: string }>({
+    getFixedAssets: b.query<PaginatedEnvelope<FixedAsset>, { entity: string; page?: number; category?: string; asset_status?: string }>({
       query: (p) => ({ url: `/finance/fixed-assets/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinanceFixedAssets"],
+    }),
+    getFixedAssetSummary: b.query<ApiEnvelope<{ cost: number; accum: number; nbv: number; monthly: number }>, { entity: string }>({
+      query: (p) => ({ url: `/finance/fixed-assets/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceFixedAssets"],
     }),
     createFixedAsset: b.mutation<ApiEnvelope<FixedAsset>, { entity: string; name: string; asset_code?: string; category?: string; acquisition_date: string; cost: number; salvage_value?: number; useful_life_months: number; method?: string }>({
@@ -297,8 +309,12 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/tax-obligations/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceTax"],
     }),
-    getTaxFilings: b.query<ApiEnvelope<TaxFiling[]>, { entity: string; filing_status?: string; obligation?: number }>({
+    getTaxFilings: b.query<PaginatedEnvelope<TaxFiling>, { entity: string; page?: number; filing_status?: string; obligation?: number }>({
       query: (p) => ({ url: `/finance/tax-filings/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinanceTax"],
+    }),
+    getTaxFilingSummary: b.query<ApiEnvelope<{ outstanding: number; open: number; filed: number; paid: number }>, { entity: string }>({
+      query: (p) => ({ url: `/finance/tax-filings/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceTax"],
     }),
     createTaxFiling: b.mutation<ApiEnvelope<TaxFiling>, { entity: string; obligation: number; period_start: string; period_end: string; due_date?: string }>({
@@ -330,6 +346,7 @@ export const {
   useUnmatchStatementLineMutation,
   useCompleteReconciliationMutation,
   useGetExpenseClaimsQuery,
+  useGetExpenseClaimSummaryQuery,
   useGetExpenseClaimQuery,
   useCreateExpenseClaimMutation,
   usePostExpenseClaimMutation,
@@ -346,6 +363,7 @@ export const {
   useCreatePettyCashVoucherMutation,
   usePostPettyCashVoucherMutation,
   useGetPayrollRunsQuery,
+  useGetPayrollSummaryQuery,
   useGetPayrollRunQuery,
   useCreatePayrollRunMutation,
   usePostPayrollRunMutation,
@@ -370,6 +388,7 @@ export const {
   useDeleteBudgetLineMutation,
   useApproveBudgetMutation,
   useGetFixedAssetsQuery,
+  useGetFixedAssetSummaryQuery,
   useCreateFixedAssetMutation,
   useAcquireFixedAssetMutation,
   useDepreciateFixedAssetMutation,
@@ -379,6 +398,7 @@ export const {
   useGetTaxObligationsQuery,
   useCreateTaxObligationMutation,
   useGetTaxFilingsQuery,
+  useGetTaxFilingSummaryQuery,
   useCreateTaxFilingMutation,
   useFileTaxFilingMutation,
   usePayTaxFilingMutation,

@@ -29,7 +29,7 @@ import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import { isStripped } from "@/utils/fls";
 import {
-  useGetPayrollRunsQuery, useGetPayrollRunQuery, usePostPayrollRunMutation,
+  useGetPayrollRunsQuery, useGetPayrollSummaryQuery, useGetPayrollRunQuery, usePostPayrollRunMutation,
   usePayPayrollRunMutation, useCreatePayrollRunMutation, useGeneratePayrollRunMutation,
   useGetEmployeeSalariesQuery, useCreateEmployeeSalaryMutation, useUpdateEmployeeSalaryMutation,
   useDeleteEmployeeSalaryMutation, useGetSalaryStructuresQuery, useCreateSalaryStructureMutation,
@@ -146,19 +146,14 @@ export default function PayrollPage() {
 function RunsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity, page });
   const rows = useMemo(() => toArray(data?.data), [data]);
+  const pg = data?.pagination;
 
-  const kpis = useMemo(() => {
-    const latest = rows[0];
-    const toPay = rows.filter((r) => r.run_status === "POSTED").reduce((s, r) => s + r.net_total, 0);
-    return {
-      runs: rows.length,
-      employees: latest?.lines.length ?? 0,
-      net: latest?.net_total ?? 0,
-      toPay,
-    };
-  }, [rows]);
+  const summaryQ = useGetPayrollSummaryQuery({ entity });
+  const s = summaryQ.data?.data;
+  const kpis = { runs: s?.runs ?? 0, employees: s?.employees ?? 0, net: s?.net ?? 0, toPay: s?.to_pay ?? 0 };
 
   const columns: Column<PayrollRun>[] = [
     { header: "Run no.", cell: (r) => <span className="font-semibold tabular-nums">{r.document_number}</span> },
@@ -188,6 +183,7 @@ function RunsTab({ entity, currency }: { entity: string; currency?: string | nul
 
       <DataTable columns={columns} rows={rows} rowKey={(r) => r.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(r) => setSelectedId(r.id)}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No payroll runs" emptyMessage="Generate a run from the employee roster with New payroll run." />
 
       <RunDrawer runId={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
@@ -687,7 +683,9 @@ type PayslipRow = { run: PayrollRun; line: PayrollLine };
 function PayslipsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [searchInput, setSearchInput] = useState("");
   const [selected, setSelected] = useState<PayslipRow | null>(null);
-  const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity });
+  // This view flattens *every* run into payslips, so pull a wide page rather than the
+  // default 25 (no per-payslip endpoint exists yet).
+  const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity, page_size: 100 });
   const runs = useMemo(() => toArray(data?.data), [data]);
   const rows = useMemo<PayslipRow[]>(() => {
     const flat = runs.flatMap((run) => run.lines.map((line) => ({ run, line })));
@@ -802,7 +800,8 @@ function SchedButton({ run, kind, currency, label }: { run: PayrollRun; kind: "P
 
 function StatutoryTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [selected, setSelected] = useState<PayrollRun | null>(null);
-  const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity });
+  // Roll-up of statutory liabilities across all posted runs — pull a wide page.
+  const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity, page_size: 100 });
   const runs = useMemo(() => toArray(data?.data).filter((r) => r.run_status === "POSTED" || r.run_status === "PAID"), [data]);
   const kpis = useMemo(() => ({
     paye: runs.reduce((s, r) => s + r.paye_total, 0),

@@ -95,7 +95,7 @@ function FundWorkbench({ fund, entity, currency, onEstablish }: { fund: PettyCas
   const { data: detailData } = useGetPettyCashFundQuery({ id: fund.id, entity });
   const detail = detailData?.data;
   const register = useMemo(() => detail?.register ?? [], [detail]);
-  const vouchersQ = useGetPettyCashVouchersQuery({ entity, fund: fund.id });
+  const vouchersQ = useGetPettyCashVouchersQuery({ entity, fund: fund.id, page_size: 100 });
   const vouchers = useMemo(() => toArray(vouchersQ.data?.data), [vouchersQ.data]);
 
   const registerCols: Column<PettyCashMovement>[] = [

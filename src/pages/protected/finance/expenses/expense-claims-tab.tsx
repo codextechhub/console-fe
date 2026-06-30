@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
-  useGetExpenseClaimsQuery, useGetExpenseClaimQuery, useCreateExpenseClaimMutation,
+  useGetExpenseClaimsQuery, useGetExpenseClaimSummaryQuery, useGetExpenseClaimQuery, useCreateExpenseClaimMutation,
   usePostExpenseClaimMutation, useRejectExpenseClaimMutation, useSettleExpenseClaimMutation,
   useUploadExpenseReceiptMutation, useDeleteExpenseReceiptMutation,
 } from "@/redux/services/finance/ops-api";
@@ -73,34 +73,25 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
 
 export function ExpenseClaimsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [searchInput, setSearchInput] = useState("");
-  const search = useDebounce(searchInput.trim().toLowerCase(), 250);
+  const search = useDebounce(searchInput.trim(), 250);
   const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<ExpenseClaim | null>(null);
 
-  const { data, isLoading, isFetching, isError, refetch } = useGetExpenseClaimsQuery({ entity });
+  const { data, isLoading, isFetching, isError, refetch } = useGetExpenseClaimsQuery({
+    entity, page, ...(search ? { q: search } : {}), ...(status ? { display_status: status } : {}),
+  });
   const rows = useMemo(() => toArray(data?.data), [data]);
-  const filtered = useMemo(() => rows.filter((c) => {
-    if (status && disp(c).key !== status && !(status === "APPROVED" && disp(c).key === "PART_PAID")) return false;
-    if (!search) return true;
-    return (c.claimant_name || "").toLowerCase().includes(search)
-      || (c.title || "").toLowerCase().includes(search)
-      || c.document_number.toLowerCase().includes(search);
-  }), [rows, status, search]);
+  const pg = data?.pagination;
+  const resetPage = () => setPage(1);
 
-  const kpis = useMemo(() => {
-    const now = new Date(); const m = now.getMonth(); const y = now.getFullYear();
-    const live = rows.filter((c) => c.status !== "CANCELLED");
-    const open = rows.filter((c) => c.status === "DRAFT" || (c.status === "POSTED" && c.payment_status !== "PAID")).length;
-    const monthTotal = rows.filter((c) => { const d = new Date(c.claim_date); return d.getMonth() === m && d.getFullYear() === y && c.status !== "CANCELLED"; }).reduce((s, c) => s + c.total, 0);
-    const avg = live.length ? Math.round(live.reduce((s, c) => s + c.total, 0) / live.length) : 0;
-    const awaiting = rows.filter((c) => c.status === "POSTED" && c.payment_status !== "PAID").reduce((s, c) => s + c.balance_due, 0);
-    return { open, monthTotal, avg, awaiting };
-  }, [rows]);
+  const summaryQ = useGetExpenseClaimSummaryQuery({ entity });
+  const kpis = summaryQ.data?.data ?? { open: 0, month_total: 0, avg: 0, awaiting: 0 };
 
   const exportCsv = () => {
     const head = ["Claim no", "Claimant", "Date", "Purpose", "Total (naira)", "Status"];
-    const lines = filtered.map((c) => [c.document_number, c.claimant_name, c.claim_date, (c.title || "").replace(/,/g, " "), (c.total / 100).toFixed(2), disp(c).label]);
+    const lines = rows.map((c) => [c.document_number, c.claimant_name, c.claim_date, (c.title || "").replace(/,/g, " "), (c.total / 100).toFixed(2), disp(c).label]);
     const csv = [head, ...lines].map((r) => r.join(",")).join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
@@ -120,7 +111,7 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi label="Open claims" value={String(kpis.open)} hint="Draft or awaiting payment" />
-        <Kpi label="Submitted this month" value={formatMoney(kpis.monthTotal, currency)} />
+        <Kpi label="Submitted this month" value={formatMoney(kpis.month_total, currency)} />
         <Kpi label="Average claim" value={formatMoney(kpis.avg, currency)} />
         <Kpi label="Awaiting payment" value={formatMoney(kpis.awaiting, currency)} hint="Approved, not yet reimbursed" />
       </div>
@@ -129,9 +120,9 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
-            <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search claimant, purpose or no." className="h-9 w-72 bg-white pl-8 font-mont" />
+            <Input value={searchInput} onChange={(e) => { setSearchInput(e.target.value); resetPage(); }} placeholder="Search claimant, purpose or no." className="h-9 w-72 bg-white pl-8 font-mont" />
           </div>
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
+          <select value={status} onChange={(e) => { setStatus(e.target.value); resetPage(); }} className="h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
             <option value="">All statuses</option>
             {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -145,8 +136,9 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
       </div>
 
       <DataTable
-        columns={columns} rows={filtered} rowKey={(c) => c.id}
+        columns={columns} rows={rows} rowKey={(c) => c.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle={search || status ? "No matching claims" : "No expense claims"}
         emptyMessage={search || status ? "Try a different search or filter." : "Staff reimbursement claims appear here."}
       />
