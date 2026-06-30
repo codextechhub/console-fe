@@ -453,6 +453,20 @@ cost-centre/dimension + AR commits). Four pieces:
    — the dimensions GET 500'd until then. New backend tests for the two summaries + the
    customer status filter.
 
+**Payments pagination: DONE** (no caps; all tables paginate). Removed the `[:200]`
+slices on collections, payouts, payout-batches and the PaymentEvent transactions
+log — all paginate via XVSPagination (`_paginate`, **page size 25**, `?page_size=`
+≤100). Each KPI-bearing list got a summary endpoint (`collections/summary/`,
+`payouts/summary/`, `payout-batches/summary/`) over ALL rows, and collections/
+payouts gained server-side **status-group + provider** filters. The **Transactions
+Log** is rebuilt on a new **movements** union endpoint (`/payments/movements/` +
+`/summary/`) — a paginated cross-model feed of collections (in) + payouts (out),
+FLS-masking payout beneficiary details, gated `payments.report.view` — replacing
+the old client-side merge (which broke once the two lists paginated). FE: the four
+gateway tabs are `PaginatedEnvelope` with pagers + summary KPIs; the movements
+drawer reads the flattened row. `page_size = 25` is set explicitly in the finance
++ payments `_paginate` helpers (procurement will inherit it when paginated).
+
 **Collections → Virtual Accounts: DONE** (no prototype — built in house theme).
 Dedicated NUBANs per customer via the gateway (Paystack/OPay/Fake-for-dev); a
 transfer to a customer's number arrives as a Collection that reconciles to AR.
