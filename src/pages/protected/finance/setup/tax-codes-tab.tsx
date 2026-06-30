@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
-import { DataTable, StatusPill, FormModal, FormField, AccountPicker, toArray, type Column } from "@/components/finance-ui";
+import { DataTable, StatusPill, FormDrawer, FormField, AccountPicker, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,7 +81,7 @@ function NewTaxCodeModal({ open, onClose, entity }: { open: boolean; onClose: ()
   };
 
   return (
-    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New tax code"
+    <FormDrawer open={open} onOpenChange={(o) => !o && onClose()} title="New tax code"
       description="Define a rate and the GL accounts it books to." onSubmit={submit}
       loading={isLoading} canSubmit={canSubmit} widthClass="sm:max-w-lg">
       <div className="grid grid-cols-2 gap-3">
@@ -96,6 +96,6 @@ function NewTaxCodeModal({ open, onClose, entity }: { open: boolean; onClose: ()
       <label className="flex items-center gap-2 font-mont text-sm text-gray-01">
         <input type="checkbox" checked={recoverable} onChange={(e) => setRecoverable(e.target.checked)} /> Recoverable (input tax offsets output)
       </label>
-    </FormModal>
+    </FormDrawer>
   );
 }

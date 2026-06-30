@@ -6,7 +6,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, TrendingUp, TrendingDown } from "lucide-react";
-import { DataTable, StatusPill, Sparkline, FormModal, FormField, CHART_COLORS, toArray, type Column } from "@/components/finance-ui";
+import { DataTable, StatusPill, Sparkline, FormDrawer, FormField, CHART_COLORS, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -154,7 +154,7 @@ function NewFxRateModal({ open, onClose, currencies }: { open: boolean; onClose:
   };
 
   return (
-    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New FX rate"
+    <FormDrawer open={open} onOpenChange={(o) => !o && onClose()} title="New FX rate"
       description="1 unit of base = rate units of quote, on the given date." onSubmit={submit}
       loading={isLoading} canSubmit={canSubmit} widthClass="sm:max-w-lg">
       <div className="grid grid-cols-2 gap-3">
@@ -176,6 +176,6 @@ function NewFxRateModal({ open, onClose, currencies }: { open: boolean; onClose:
         <FormField label="As of" required><Input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} className="bg-white" /></FormField>
         <FormField label="Source"><Input value={src} onChange={(e) => setSrc(e.target.value)} placeholder="e.g. CBN" className="bg-white" /></FormField>
       </div>
-    </FormModal>
+    </FormDrawer>
   );
 }

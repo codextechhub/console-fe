@@ -1,10 +1,10 @@
 // Setup → Dimensions. Analytical axes (e.g. FUND, PROJECT) with a constrained value
 // list, tagged per journal line and sliced by the Cost & Dimension Analysis report.
 // Upsert-by-code, so the same form creates or edits an axis.
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
-import { DataTable, StatusPill, FormModal, FormField, toArray, type Column } from "@/components/finance-ui";
+import { Plus, Search } from "lucide-react";
+import { DataTable, StatusPill, FormDrawer, FormField, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,13 @@ export function DimensionsTab({ entity }: { entity: string }) {
   const dims = toArray<Dimension>(data?.data);
   const [editing, setEditing] = useState<Dimension | null>(null);
   const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return q ? dims.filter((d) => d.code.toLowerCase().includes(q) || d.name.toLowerCase().includes(q)
+      || d.allowed_values.some((v) => v.toLowerCase().includes(q))) : dims;
+  }, [dims, search]);
 
   const columns: Column<Dimension>[] = [
     { header: "Code", cell: (d) => <span className="font-semibold tabular-nums">{d.code}</span> },
@@ -30,13 +37,17 @@ export function DimensionsTab({ entity }: { entity: string }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-between gap-2">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search code, name or value" className="h-9 w-64 pl-8 font-mont text-sm" />
+        </div>
         <Can permission={P.FIN_CREATE_DIMENSION}>
           <Button onClick={() => setCreating(true)} className="h-9 gap-1.5 font-mont text-xs font-semibold"><Plus className="size-3.5" /> New dimension</Button>
         </Can>
       </div>
 
-      <DataTable columns={columns} rows={dims} rowKey={(d) => d.id}
+      <DataTable columns={columns} rows={rows} rowKey={(d) => d.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch}
         onRowClick={(d) => setEditing(d)}
         emptyTitle="No dimensions" emptyMessage="Analytical axes (fund, project…) will appear here." />
@@ -77,7 +88,7 @@ function DimensionModal({ open, existing, entity, onClose }: { open: boolean; ex
   };
 
   return (
-    <FormModal open={open} onOpenChange={(o) => { if (!o) { setSeeded(null); onClose(); } }}
+    <FormDrawer open={open} onOpenChange={(o) => { if (!o) { setSeeded(null); onClose(); } }}
       title={existing ? `Edit ${existing.code}` : "New dimension"}
       description="An analytical axis with a constrained value list (leave blank for any value)."
       onSubmit={submit} loading={isLoading} canSubmit={canSubmit} widthClass="sm:max-w-lg">
@@ -89,6 +100,6 @@ function DimensionModal({ open, existing, entity, onClose }: { open: boolean; ex
       <label className="flex items-center gap-2 font-mont text-xs text-gray-01">
         <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-primary" /> Active
       </label>
-    </FormModal>
+    </FormDrawer>
   );
 }

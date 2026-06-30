@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { DetailDrawer } from "./detail-drawer";
 
 interface FormModalProps {
   open: boolean;
@@ -51,6 +52,40 @@ export function FormModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** <FormDrawer> — the slide-out (right-side) equivalent of FormModal, for create/edit
+ *  forms that should match the record drawers used across the consoles. Same API as
+ *  FormModal so callers can swap one for the other. */
+export function FormDrawer({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+  onSubmit,
+  submitText = "Save",
+  loading,
+  canSubmit = true,
+  widthClass = "sm:max-w-lg",
+}: FormModalProps) {
+  return (
+    <DetailDrawer
+      open={open}
+      onOpenChange={(o) => { if (!loading) onOpenChange(o); }}
+      title={title}
+      description={description}
+      widthClass={widthClass}
+      footer={
+        <>
+          <Button variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button disabled={loading || !canSubmit} onClick={onSubmit}>{loading ? "Saving…" : submitText}</Button>
+        </>
+      }
+    >
+      <div className="space-y-4">{children}</div>
+    </DetailDrawer>
   );
 }
 

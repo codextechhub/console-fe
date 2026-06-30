@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
-import { DataTable, StatusPill, FormModal, FormField, toArray, type Column } from "@/components/finance-ui";
+import { DataTable, StatusPill, FormDrawer, FormField, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +69,7 @@ function NewCostCentreModal({ open, onClose, entity, parents }: { open: boolean;
   };
 
   return (
-    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New cost centre"
+    <FormDrawer open={open} onOpenChange={(o) => !o && onClose()} title="New cost centre"
       description="Tag spend by department or branch." onSubmit={submit}
       loading={isLoading} canSubmit={canSubmit} widthClass="sm:max-w-lg">
       <div className="grid grid-cols-2 gap-3">
@@ -82,6 +82,6 @@ function NewCostCentreModal({ open, onClose, entity, parents }: { open: boolean;
         </FormField>
       </div>
       <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Lekki — Facilities" className="bg-white" /></FormField>
-    </FormModal>
+    </FormDrawer>
   );
 }
