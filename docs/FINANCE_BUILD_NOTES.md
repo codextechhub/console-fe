@@ -155,8 +155,13 @@ Existing negative-AR credit was reclassed once via
 - New journal + New account converted to drawers; sidebar scroll persists.
 
 **Receivables area: COMPLETE** (redesigned to prototype). Payments group COMPLETE.
-**Reports & Close:** Trial Balance redesigned; **Next:** Income Statement, Balance
-Sheet, Cash Flow, Changes in Equity (still the generic `statements.tsx` renderers).
+**Reports & Close:** Trial Balance + **Income Statement** redesigned to the
+prototype. The Income Statement (`income-statement-tab.tsx`) is **fiscal-year
+scoped** with real **Budget + Variance** and **Prior-year** comparison columns
+(backend `reports.income_statement_compare`; toggles disable when there's no
+budget / no prior FY). Variance is favourable-signed (revenue actual−budget,
+expense budget−actual). **Next:** Balance Sheet, Cash Flow, Changes in Equity
+(still the generic `statements.tsx` renderers).
 
 **Operations → Tax Remittance: DONE** (redesigned to prototype). Route
 `/finance/budgets/tax`. KPIs (total outstanding / open / filed-awaiting-payment /
