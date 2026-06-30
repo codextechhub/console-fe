@@ -19,9 +19,11 @@ export default function RequisitionsPage() {
   const { code: entity, currency } = useActiveEntity();
   const [selected, setSelected] = useState<Requisition | null>(null);
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetRequisitionsQuery({ entity: entity! }, { skip: !entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, isError, refetch } = useGetRequisitionsQuery({ entity: entity!, page }, { skip: !entity });
   const [submit] = useSubmitRequisitionMutation();
   const rows = toArray(data?.data);
+  const pg = data?.pagination;
 
   const columns: Column<Requisition>[] = [
     { header: "Document", cell: (r) => <span className="font-semibold">{r.document_number}</span> },
@@ -58,6 +60,7 @@ export default function RequisitionsPage() {
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(r) => r.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
           emptyTitle="No requisitions" emptyMessage="Requisitions will appear here."
         />
       </main>

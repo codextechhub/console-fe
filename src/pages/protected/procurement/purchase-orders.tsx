@@ -18,9 +18,11 @@ export default function PurchaseOrdersPage() {
   const { code: entity, currency } = useActiveEntity();
   const [selected, setSelected] = useState<PurchaseOrder | null>(null);
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetPurchaseOrdersQuery({ entity: entity! }, { skip: !entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, isError, refetch } = useGetPurchaseOrdersQuery({ entity: entity!, page }, { skip: !entity });
   const [submit] = useSubmitPurchaseOrderMutation();
   const rows = toArray(data?.data);
+  const pg = data?.pagination;
 
   const columns: Column<PurchaseOrder>[] = [
     { header: "PO", cell: (o) => <span className="font-semibold">{o.document_number}</span> },
@@ -59,6 +61,7 @@ export default function PurchaseOrdersPage() {
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(o) => o.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
           emptyTitle="No purchase orders" emptyMessage="Purchase orders will appear here."
         />
       </main>

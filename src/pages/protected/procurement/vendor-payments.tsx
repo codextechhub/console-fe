@@ -22,9 +22,11 @@ export default function VendorPaymentsPage() {
   const { code: entity, currency } = useActiveEntity();
   const [selected, setSelected] = useState<VendorPayment | null>(null);
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetVendorPaymentsQuery({ entity: entity! }, { skip: !entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, isError, refetch } = useGetVendorPaymentsQuery({ entity: entity!, page }, { skip: !entity });
   const [post] = usePostVendorPaymentMutation();
   const rows = toArray(data?.data);
+  const pg = data?.pagination;
 
   const columns: Column<VendorPayment>[] = [
     { header: "Payment", cell: (p) => <span className="font-semibold">{p.document_number}</span> },
@@ -52,6 +54,7 @@ export default function VendorPaymentsPage() {
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(p) => p.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
           emptyTitle="No vendor payments" emptyMessage="Vendor payments will appear here."
         />
       </main>

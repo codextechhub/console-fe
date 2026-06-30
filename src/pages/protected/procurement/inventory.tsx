@@ -16,8 +16,10 @@ import type { StockItem, StockMovement } from "@/redux/services/procurement/proc
 
 function ItemsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetStockItemsQuery({ entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, isError, refetch } = useGetStockItemsQuery({ entity, page });
   const rows = toArray(data?.data);
+  const pg = data?.pagination;
   const columns: Column<StockItem>[] = [
     { header: "Code", cell: (i) => <span className="font-semibold">{i.code}</span> },
     { header: "Name", cell: (i) => i.name },
@@ -33,6 +35,7 @@ function ItemsTab({ entity, currency }: { entity: string; currency?: string | nu
       </div>
       <DataTable columns={columns} rows={rows} rowKey={(i) => i.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No stock items" emptyMessage="Stock items will appear here."
         />
       <CreateStockItemModal open={creating} onClose={() => setCreating(false)} entity={entity} />
@@ -74,8 +77,10 @@ function CreateStockItemModal({ open, onClose, entity }: { open: boolean; onClos
 }
 
 function MovementsTab({ entity, currency }: { entity: string; currency?: string | null }) {
-  const { data, isLoading, isError, refetch } = useGetStockMovementsQuery({ entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, refetch } = useGetStockMovementsQuery({ entity, page });
   const rows = toArray(data?.data);
+  const pg = data?.pagination;
   const columns: Column<StockMovement>[] = [
     { header: "Date", cell: (m) => m.movement_date },
     { header: "Item", cell: (m) => m.stock_item_code ?? "—" },
@@ -85,7 +90,7 @@ function MovementsTab({ entity, currency }: { entity: string; currency?: string 
     { header: "Bal. qty", align: "right", cell: (m) => m.balance_qty },
     { header: "Bal. value", align: "right", cell: (m) => <Money kobo={m.balance_value} currency={currency} align="right" /> },
   ];
-  return <DataTable columns={columns} rows={rows} rowKey={(m) => m.id} loading={isLoading} error={isError} onRetry={refetch} emptyTitle="No movements" emptyMessage="Stock movements will appear here." />;
+  return <DataTable columns={columns} rows={rows} rowKey={(m) => m.id} loading={isLoading} error={isError} onRetry={refetch} page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} emptyTitle="No movements" emptyMessage="Stock movements will appear here." />;
 }
 
 export default function InventoryPage() {

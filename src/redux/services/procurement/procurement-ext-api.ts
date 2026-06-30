@@ -3,7 +3,7 @@
 
 import { generateQueryString } from "@/utils/helpers";
 import { baseApi } from "../base-api";
-import type { ApiEnvelope } from "../finance/api-types";
+import type { ApiEnvelope, PaginatedEnvelope } from "../finance/api-types";
 import type {
   Quotation,
   Rfq,
@@ -26,7 +26,7 @@ type Act = { id: number; entity: string };
 export const procurementExtApi = baseApi.injectEndpoints({
   endpoints: (b) => ({
     // Contracts
-    getContracts: b.query<ApiEnvelope<VendorContract[]>, E & { vendor?: string }>({
+    getContracts: b.query<PaginatedEnvelope<VendorContract>, E & { vendor?: string }>({
       query: (p) => ({ url: `/procurement/contracts/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcContracts"],
     }),
@@ -48,7 +48,7 @@ export const procurementExtApi = baseApi.injectEndpoints({
     }),
 
     // RFQs
-    getRfqs: b.query<ApiEnvelope<Rfq[]>, E>({
+    getRfqs: b.query<PaginatedEnvelope<Rfq>, E>({
       query: (p) => ({ url: `/procurement/rfqs/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcRfqs"],
     }),
@@ -62,7 +62,7 @@ export const procurementExtApi = baseApi.injectEndpoints({
     }),
 
     // Quotations
-    getQuotations: b.query<ApiEnvelope<Quotation[]>, E & { rfq?: string; vendor?: string }>({
+    getQuotations: b.query<PaginatedEnvelope<Quotation>, E & { rfq?: string; vendor?: string }>({
       query: (p) => ({ url: `/procurement/quotations/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcQuotations"],
     }),
@@ -80,7 +80,7 @@ export const procurementExtApi = baseApi.injectEndpoints({
     }),
 
     // Inventory
-    getStockItems: b.query<ApiEnvelope<StockItem[]>, E & { q?: string; needs_reorder?: string }>({
+    getStockItems: b.query<PaginatedEnvelope<StockItem>, E & { q?: string; needs_reorder?: string }>({
       query: (p) => ({ url: `/procurement/stock-items/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
@@ -88,7 +88,7 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/procurement/stock-items/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcStock"],
     }),
-    getStockMovements: b.query<ApiEnvelope<StockMovement[]>, { entity: string; stock_item?: string; movement_type?: string }>({
+    getStockMovements: b.query<PaginatedEnvelope<StockMovement>, { entity: string; page?: number; stock_item?: string; movement_type?: string }>({
       query: (p) => ({ url: `/procurement/stock-movements/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),

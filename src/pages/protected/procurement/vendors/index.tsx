@@ -17,7 +17,9 @@ import { useGetCategoriesQuery, useGetCatalogItemsQuery, useCreateCategoryMutati
 import type { CatalogItem, VendorCategory } from "@/redux/services/procurement/procurement-types";
 
 function CategoriesTab({ entity }: { entity: string }) {
-  const { data, isLoading, isError, refetch } = useGetCategoriesQuery({ entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, refetch } = useGetCategoriesQuery({ entity, page });
+  const pg = data?.pagination;
   const [creating, setCreating] = useState(false);
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
@@ -35,7 +37,7 @@ function CategoriesTab({ entity }: { entity: string }) {
   return (
     <>
       <div className="mb-4 flex justify-end"><Can permission={P.PROC_CREATE_CATEGORY}><Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New category</Button></Can></div>
-      <DataTable columns={columns} rows={data?.data ?? []} rowKey={(c) => c.id} loading={isLoading} error={isError} onRetry={refetch} emptyTitle="No categories" />
+      <DataTable columns={columns} rows={data?.data ?? []} rowKey={(c) => c.id} loading={isLoading} error={isError} onRetry={refetch} page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} emptyTitle="No categories" />
       <FormModal open={creating} onOpenChange={(o) => !o && setCreating(false)} title="New vendor category" onSubmit={submit} loading={saving} canSubmit={!!code.trim() && !!name.trim()}>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} className="bg-white font-mont" /></FormField>
@@ -48,7 +50,9 @@ function CategoriesTab({ entity }: { entity: string }) {
 }
 
 function CatalogTab({ entity, currency }: { entity: string; currency?: string | null }) {
-  const { data, isLoading, isError, refetch } = useGetCatalogItemsQuery({ entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, refetch } = useGetCatalogItemsQuery({ entity, page });
+  const pg = data?.pagination;
   const [creating, setCreating] = useState(false);
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
@@ -71,7 +75,7 @@ function CatalogTab({ entity, currency }: { entity: string; currency?: string | 
   return (
     <>
       <div className="mb-4 flex justify-end"><Can permission={P.PROC_CREATE_CATALOG_ITEM}><Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New item</Button></Can></div>
-      <DataTable columns={columns} rows={data?.data ?? []} rowKey={(i) => i.id} loading={isLoading} error={isError} onRetry={refetch} emptyTitle="No catalog items" />
+      <DataTable columns={columns} rows={data?.data ?? []} rowKey={(i) => i.id} loading={isLoading} error={isError} onRetry={refetch} page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} emptyTitle="No catalog items" />
       <FormModal open={creating} onOpenChange={(o) => !o && setCreating(false)} title="New catalog item" onSubmit={submit} loading={saving} canSubmit={!!code.trim() && !!name.trim()}>
         <div className="grid grid-cols-3 gap-3">
           <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} className="bg-white font-mont" /></FormField>

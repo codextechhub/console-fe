@@ -21,7 +21,9 @@ import type { Quotation, Rfq } from "@/redux/services/procurement/procurement-ty
 import { RfqPicker, VendorPicker } from "./pickers";
 
 function RfqTab({ entity }: { entity: string }) {
-  const { data, isLoading, isError, refetch } = useGetRfqsQuery({ entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, refetch } = useGetRfqsQuery({ entity, page });
+  const pg = data?.pagination;
   const [issue] = useIssueRfqMutation();
   const [creating, setCreating] = useState(false);
   const columns: Column<Rfq>[] = [
@@ -45,7 +47,7 @@ function RfqTab({ entity }: { entity: string }) {
   return (
     <>
       <div className="mb-4 flex justify-end"><Can permission={P.PROC_CREATE_RFQ}><Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New RFQ</Button></Can></div>
-      <DataTable columns={columns} rows={data?.data ?? []} rowKey={(r) => r.id} loading={isLoading} error={isError} onRetry={refetch} emptyTitle="No RFQs" />
+      <DataTable columns={columns} rows={data?.data ?? []} rowKey={(r) => r.id} loading={isLoading} error={isError} onRetry={refetch} page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} emptyTitle="No RFQs" />
       <CreateRfqModal open={creating} onClose={() => setCreating(false)} entity={entity} />
     </>
   );
@@ -85,7 +87,9 @@ function CreateRfqModal({ open, onClose, entity }: { open: boolean; onClose: () 
 }
 
 function QuotationsTab({ entity, currency }: { entity: string; currency?: string | null }) {
-  const { data, isLoading, isError, refetch } = useGetQuotationsQuery({ entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isError, refetch } = useGetQuotationsQuery({ entity, page });
+  const pg = data?.pagination;
   const [submit] = useSubmitQuotationMutation();
   const [award] = useAwardQuotationMutation();
   const [creating, setCreating] = useState(false);
@@ -115,7 +119,7 @@ function QuotationsTab({ entity, currency }: { entity: string; currency?: string
   return (
     <>
       <div className="mb-4 flex justify-end"><Can permission={P.PROC_CREATE_QUOTATION}><Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New quotation</Button></Can></div>
-      <DataTable columns={columns} rows={data?.data ?? []} rowKey={(q) => q.id} loading={isLoading} error={isError} onRetry={refetch} emptyTitle="No quotations" />
+      <DataTable columns={columns} rows={data?.data ?? []} rowKey={(q) => q.id} loading={isLoading} error={isError} onRetry={refetch} page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} emptyTitle="No quotations" />
       <CreateQuotationModal open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
     </>
   );

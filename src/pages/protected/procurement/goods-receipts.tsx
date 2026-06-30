@@ -18,9 +18,11 @@ export default function GoodsReceiptsPage() {
   const { code: entity, currency } = useActiveEntity();
   const [selected, setSelected] = useState<GoodsReceipt | null>(null);
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetching, isError, refetch } = useGetGoodsReceiptsQuery({ entity: entity! }, { skip: !entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, isError, refetch } = useGetGoodsReceiptsQuery({ entity: entity!, page }, { skip: !entity });
   const [post] = usePostGoodsReceiptMutation();
   const rows = toArray(data?.data);
+  const pg = data?.pagination;
 
   const columns: Column<GoodsReceipt>[] = [
     { header: "GRN", cell: (g) => <span className="font-semibold">{g.document_number}</span> },
@@ -57,6 +59,7 @@ export default function GoodsReceiptsPage() {
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(g) => g.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
           emptyTitle="No goods receipts" emptyMessage="GRNs will appear here."
         />
       </main>

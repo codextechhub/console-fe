@@ -44,6 +44,7 @@ export default function VendorInvoicesPage() {
   const [submit] = useSubmitVendorInvoiceMutation();
   const [post] = usePostVendorInvoiceMutation();
   const rows = toArray(data?.data);
+  const pg = data?.pagination;
 
   const columns: Column<VendorInvoice>[] = [
     { header: "Invoice", cell: (i) => <span className="font-semibold">{i.document_number}</span> },
@@ -77,6 +78,7 @@ export default function VendorInvoicesPage() {
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(i) => i.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
           emptyTitle="No vendor invoices" emptyMessage="Vendor bills will appear here."
         />
       </main>

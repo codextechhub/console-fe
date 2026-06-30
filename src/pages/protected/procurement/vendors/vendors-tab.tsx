@@ -30,6 +30,7 @@ export function VendorsTab({ entity }: { entity: string }) {
   const params = useMemo(() => ({ entity, page, ...(q ? { q } : {}) }), [entity, page, q]);
   const { data, isLoading, isFetching, isError, refetch } = useGetVendorsQuery(params);
   const rows = toArray(data?.data);
+  const pg = data?.pagination;
 
   const columns: Column<Vendor>[] = [
     { header: "Code", cell: (v) => <span className="font-semibold">{v.code}</span> },
@@ -50,6 +51,7 @@ export function VendorsTab({ entity }: { entity: string }) {
       </div>
       <DataTable columns={columns} rows={rows} rowKey={(v) => v.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No vendors" emptyMessage="Vendors will appear here."
         />
 

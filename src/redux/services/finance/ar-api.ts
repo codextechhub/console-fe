@@ -201,7 +201,7 @@ export const arApi = baseApi.injectEndpoints({
     }),
 
     // Customers / payers (non-paginated, capped server-side; use toArray)
-    getCustomers: builder.query<PaginatedEnvelope<Customer>, { entity: string; page?: number; search?: string; is_active?: string; status?: string }>({
+    getCustomers: builder.query<PaginatedEnvelope<Customer>, { entity: string; page?: number; page_size?: number; search?: string; is_active?: string; status?: string }>({
       query: (params) => ({ url: `/finance/customers/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceCustomers"],
     }),

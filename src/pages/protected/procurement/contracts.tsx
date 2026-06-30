@@ -25,11 +25,13 @@ export default function ContractsPage() {
   const [selected, setSelected] = useState<VendorContract | null>(null);
   const [creating, setCreating] = useState(false);
   const [reason, setReason] = useState("");
-  const { data, isLoading, isFetching, isError, refetch } = useGetContractsQuery({ entity: entity! }, { skip: !entity });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching, isError, refetch } = useGetContractsQuery({ entity: entity!, page }, { skip: !entity });
   const [activate] = useActivateContractMutation();
   const [renew] = useRenewContractMutation();
   const [terminate] = useTerminateContractMutation();
   const rows = toArray(data?.data);
+  const pg = data?.pagination;
 
   const columns: Column<VendorContract>[] = [
     { header: "Reference", cell: (c) => <span className="font-semibold">{c.reference}</span> },
@@ -56,6 +58,7 @@ export default function ContractsPage() {
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(c) => c.id}
           loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
+          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
           emptyTitle="No contracts" emptyMessage="Vendor contracts will appear here."
         />
       </main>
