@@ -31,6 +31,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
 }) {
   const { data, isLoading, isError, refetch } = useGetPaymentDetailQuery(id ? { entity, id } : skipToken);
   const [auto, setAuto] = useState(true);
+  const [strategy, setStrategy] = useState<"oldest" | "largest">("oldest");
   const [amounts, setAmounts] = useState<Record<number, string>>({});
   const [allocate, { isLoading: saving }] = useAllocatePaymentMutation();
   const d = data?.data;
@@ -38,17 +39,19 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
   const open = useMemo(() => d?.open_invoices ?? [], [d]);
   const unallocated = p?.unallocated_amount ?? 0;
 
-  // Oldest-first suggested fill of the remaining cash across open invoices.
+  // Suggested fill of the remaining cash across open invoices, in the chosen order
+  // (oldest-first as returned, or largest-balance first) — mirrors the server strategy.
   const suggestion = useMemo(() => {
     const m: Record<number, number> = {};
     let remaining = unallocated;
-    for (const inv of open) {
+    const ordered = strategy === "largest" ? [...open].sort((a, b) => b.balance.kobo - a.balance.kobo) : open;
+    for (const inv of ordered) {
       if (remaining <= 0) break;
       const take = Math.min(inv.balance.kobo, remaining);
       if (take > 0) { m[inv.id] = take; remaining -= take; }
     }
     return m;
-  }, [open, unallocated]);
+  }, [open, unallocated, strategy]);
 
   const lineKobo = (invId: number) => (auto ? suggestion[invId] ?? 0 : toKobo(amounts[invId] ?? ""));
   const allocatedNow = open.reduce((s, inv) => s + lineKobo(inv.id), 0);
@@ -70,7 +73,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
     if (!p) return;
     try {
       const body = auto
-        ? { entity, id: p.id, auto_allocate: true }
+        ? { entity, id: p.id, auto_allocate: true, allocation_strategy: strategy }
         : { entity, id: p.id, allocations: open.filter((inv) => lineKobo(inv.id) > 0).map((inv) => ({ invoice: inv.id, amount: lineKobo(inv.id) })) };
       const res = await allocate(body).unwrap();
       toast.success(res.message || "Receipt allocated.");
@@ -111,9 +114,19 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-mont text-sm font-semibold text-black-01">Apply to open invoices</span>
-                  <label className="flex items-center gap-2 font-mont text-xs text-gray-01">
-                    <input type="checkbox" checked={auto} onChange={(e) => toggleAuto(e.target.checked)} className="accent-primary" /> Auto-allocate oldest first
-                  </label>
+                  <div className="flex items-center gap-2 font-mont text-xs text-gray-01">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" checked={auto} onChange={(e) => toggleAuto(e.target.checked)} className="accent-primary" /> Auto-allocate
+                    </label>
+                    {auto && (
+                      <select value={strategy} onChange={(e) => setStrategy(e.target.value as "oldest" | "largest")}
+                        aria-label="Allocation strategy"
+                        className="h-7 rounded-md border border-gray-03 bg-white px-1.5 font-mont text-[11px] focus:border-primary focus:outline-none">
+                        <option value="oldest">oldest first</option>
+                        <option value="largest">largest first</option>
+                      </select>
+                    )}
+                  </div>
                 </div>
                 {open.length === 0 ? <EmptyState title="No open invoices" message="Nothing to allocate to — the cash stays as customer credit." /> : (
                   <div className="overflow-hidden rounded-md border border-gray-03">

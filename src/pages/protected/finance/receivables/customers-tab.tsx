@@ -2,7 +2,7 @@
 // prototype's shape: KPI cards (total / receivable / in-credit / overdue), search
 // + status filter, an avatar table with each customer's net balance and status,
 // Export, New customer, and a rich detail drawer (with the Customer Statement tab).
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Plus, Download } from "lucide-react";
 import { DataTable, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
@@ -12,7 +12,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
-import { useGetCustomersQuery } from "@/redux/services/finance/ar-api";
+import { useGetCustomersQuery, useGetCustomerSummaryQuery } from "@/redux/services/finance/ar-api";
 import type { Customer } from "@/redux/services/finance/ar-types";
 import { NewCustomerDrawer } from "./new-customer-drawer";
 import { CustomerDetailDrawer } from "./customer-detail-drawer";
@@ -48,33 +48,24 @@ export function CustomersTab({ entity, currency }: { entity: string; currency?: 
   const [searchInput, setSearchInput] = useState("");
   const search = useDebounce(searchInput.trim(), 350);
   const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
   const [newOpen, setNewOpen] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
 
-  const { data, isLoading, isFetching, isError, refetch } = useGetCustomersQuery({ entity, search: search || undefined });
+  // Filters are server-side; reset to page 1 whenever search or status changes.
+  useEffect(() => { setPage(1); }, [search, status]);
+
+  const listParams = useMemo(() => ({ entity, page, ...(search ? { search } : {}), ...(status ? { status } : {}) }), [entity, page, search, status]);
+  const { data, isLoading, isFetching, isError, refetch } = useGetCustomersQuery(listParams);
+  const { data: summaryRes } = useGetCustomerSummaryQuery({ entity, ...(search ? { search } : {}) });
   const rows = toArray<Customer>(data?.data);
-
-  const kpis = useMemo(() => {
-    let receivable = 0, credit = 0, overdue = 0;
-    for (const c of rows) {
-      const bal = c.balance ?? 0;
-      if (bal > 0) receivable += bal;
-      if (bal < 0) credit += 1;
-      if (c.is_active && c.account_status === "OVERDUE") overdue += 1;
-    }
-    return { total: rows.length, receivable, credit, overdue };
-  }, [rows]);
-
-  const filtered = useMemo(() => rows.filter((c) => !status || statusOf(c) === status), [rows, status]);
-  const counts = useMemo(() => {
-    const m: Record<string, number> = {};
-    for (const c of rows) m[statusOf(c)] = (m[statusOf(c)] ?? 0) + 1;
-    return m;
-  }, [rows]);
+  const pg = data?.pagination;
+  const sum = summaryRes?.data;
+  const counts = sum?.status_counts ?? {};
 
   const exportCsv = () => {
     const head = ["Code", "Name", "Email", "Phone", "Balance (kobo)", "Status"];
-    const lines = filtered.map((c) => [c.code, c.name, c.billing_email, c.billing_phone, String(c.balance ?? 0), STATUS_LABEL[statusOf(c)]]
+    const lines = rows.map((c) => [c.code, c.name, c.billing_email, c.billing_phone, String(c.balance ?? 0), STATUS_LABEL[statusOf(c)]]
       .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","));
     const blob = new Blob([[head.join(","), ...lines].join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -103,10 +94,10 @@ export function CustomersTab({ entity, currency }: { entity: string; currency?: 
     <div className="space-y-4">
       {/* KPI cards */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Total customers" value={String(kpis.total)} />
-        <Kpi label="Total receivable" value={formatMoney(kpis.receivable, currency)} hint="Across open invoices" />
-        <Kpi label="Customers in credit" value={String(kpis.credit)} />
-        <Kpi label="Overdue accounts" value={String(kpis.overdue)} />
+        <Kpi label="Total customers" value={String(sum?.total ?? 0)} />
+        <Kpi label="Total receivable" value={formatMoney(sum?.receivable.kobo ?? 0, currency)} hint="Across open invoices" />
+        <Kpi label="Customers in credit" value={String(sum?.on_credit ?? 0)} />
+        <Kpi label="Overdue accounts" value={String(sum?.overdue ?? 0)} />
       </div>
 
       {/* status tabs */}
@@ -114,7 +105,7 @@ export function CustomersTab({ entity, currency }: { entity: string; currency?: 
         {STATUS_TABS.map((t) => (
           <button key={t.key} onClick={() => setStatus(t.key)}
             className={cn("rounded-md px-3 py-1.5 font-mont text-xs font-semibold", status === t.key ? "bg-primary text-white" : "text-gray-05 hover:bg-gray-50 hover:text-gray-01")}>
-            {t.label} <span className="ml-1 opacity-70">{t.key ? (counts[t.key] ?? 0) : rows.length}</span>
+            {t.label} <span className="ml-1 opacity-70">{t.key ? (counts[t.key] ?? 0) : (sum?.total ?? 0)}</span>
           </button>
         ))}
       </div>
@@ -126,16 +117,17 @@ export function CustomersTab({ entity, currency }: { entity: string; currency?: 
           <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search code or name" className="h-9 w-64 pl-8 font-mont text-sm" />
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" onClick={exportCsv} disabled={!filtered.length} className="gap-1.5"><Download className="size-4" /> Export</Button>
+          <Button variant="outline" onClick={exportCsv} disabled={!rows.length} className="gap-1.5"><Download className="size-4" /> Export</Button>
           <Can permission={P.FIN_CREATE_CUSTOMER}>
             <Button onClick={() => setNewOpen(true)} className="gap-1.5"><Plus className="size-4" /> New customer</Button>
           </Can>
         </div>
       </div>
 
-      <DataTable columns={columns} rows={filtered} rowKey={(c) => c.id}
+      <DataTable columns={columns} rows={rows} rowKey={(c) => c.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch}
         onRowClick={(c) => setSelected(c.id)}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No customers" emptyMessage="Customers / payers will appear here." />
 
       <NewCustomerDrawer open={newOpen} onOpenChange={setNewOpen} entity={entity} />

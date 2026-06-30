@@ -3,7 +3,7 @@
 // this week / unallocated / count), status + method filters, an avatar table with
 // each receipt's unallocated amount + status, Export, Record receipt, and a row-
 // click allocation drawer.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Plus, Download } from "lucide-react";
 import { DataTable, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
@@ -13,7 +13,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
-import { useGetPaymentsQuery } from "@/redux/services/finance/ar-api";
+import { useGetPaymentsQuery, useGetPaymentSummaryQuery } from "@/redux/services/finance/ar-api";
 import type { Payment } from "@/redux/services/finance/ar-types";
 import { RecordReceiptDrawer } from "./record-receipt-drawer";
 import { PaymentAllocationDrawer } from "./payment-allocation-drawer";
@@ -30,8 +30,6 @@ const STATUS_LABEL: Record<string, string> = { ALLOCATED: "Allocated", PARTIAL: 
 const METHODS = ["BANK_TRANSFER", "CASH", "CARD", "CHEQUE", "ONLINE", "OTHER"];
 const methodLabel = (m: string) => m.replace("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
 const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
-const todayISO = new Date().toISOString().slice(0, 10);
-const weekAgoISO = new Date(Date.now() - 6 * 864e5).toISOString().slice(0, 10);
 
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
@@ -55,32 +53,21 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
   const [newOpen, setNewOpen] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
 
-  const { data, isLoading, isFetching, isError, refetch } = useGetPaymentsQuery({ entity, search: search || undefined });
+  const [page, setPage] = useState(1);
+  // All filters are server-side; reset to page 1 when any of them changes.
+  useEffect(() => { setPage(1); }, [search, status, method]);
+
+  const listParams = useMemo(() => ({ entity, page, ...(search ? { search } : {}), ...(status ? { status } : {}), ...(method ? { method } : {}) }), [entity, page, search, status, method]);
+  const { data, isLoading, isFetching, isError, refetch } = useGetPaymentsQuery(listParams);
+  const { data: summaryRes } = useGetPaymentSummaryQuery({ entity, ...(search ? { search } : {}), ...(method ? { method } : {}) });
   const rows = toArray<Payment>(data?.data);
-
-  const kpis = useMemo(() => {
-    let today = 0, week = 0, unallocated = 0;
-    for (const p of rows) {
-      if (p.payment_date === todayISO) today += p.amount;
-      if (p.payment_date >= weekAgoISO) week += p.amount;
-      unallocated += p.unallocated_amount;
-    }
-    return { today, week, unallocated, count: rows.length };
-  }, [rows]);
-
-  const filtered = useMemo(
-    () => rows.filter((p) => (!status || p.allocation_status === status) && (!method || p.method === method)),
-    [rows, status, method],
-  );
-  const counts = useMemo(() => {
-    const m: Record<string, number> = {};
-    for (const p of rows) m[p.allocation_status] = (m[p.allocation_status] ?? 0) + 1;
-    return m;
-  }, [rows]);
+  const pg = data?.pagination;
+  const sum = summaryRes?.data;
+  const counts = sum?.status_counts ?? {};
 
   const exportCsv = () => {
     const head = ["Receipt", "Date", "Customer", "Method", "Amount (kobo)", "Unallocated (kobo)", "Status"];
-    const lines = filtered.map((p) => [p.document_number, p.payment_date, p.customer_name, methodLabel(p.method), String(p.amount), String(p.unallocated_amount), STATUS_LABEL[p.allocation_status]]
+    const lines = rows.map((p) => [p.document_number, p.payment_date, p.customer_name, methodLabel(p.method), String(p.amount), String(p.unallocated_amount), STATUS_LABEL[p.allocation_status]]
       .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","));
     const blob = new Blob([[head.join(","), ...lines].join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -101,17 +88,17 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Received today" value={formatMoney(kpis.today, currency)} />
-        <Kpi label="This week" value={formatMoney(kpis.week, currency)} hint="Last 7 days" />
-        <Kpi label="Unallocated" value={formatMoney(kpis.unallocated, currency)} hint="Sitting unapplied" />
-        <Kpi label="Receipts" value={String(kpis.count)} />
+        <Kpi label="Received today" value={formatMoney(sum?.today.kobo ?? 0, currency)} />
+        <Kpi label="This week" value={formatMoney(sum?.week.kobo ?? 0, currency)} hint="Last 7 days" />
+        <Kpi label="Unallocated" value={formatMoney(sum?.unallocated.kobo ?? 0, currency)} hint="Sitting unapplied" />
+        <Kpi label="Receipts" value={String(sum?.count ?? 0)} />
       </div>
 
       <div className="flex flex-wrap items-center gap-1 rounded-md border border-gray-03 bg-white p-1">
         {STATUS_TABS.map((t) => (
           <button key={t.key} onClick={() => setStatus(t.key)}
             className={cn("rounded-md px-3 py-1.5 font-mont text-xs font-semibold", status === t.key ? "bg-primary text-white" : "text-gray-05 hover:bg-gray-50 hover:text-gray-01")}>
-            {t.label} <span className="ml-1 opacity-70">{t.key ? (counts[t.key] ?? 0) : rows.length}</span>
+            {t.label} <span className="ml-1 opacity-70">{t.key ? (counts[t.key] ?? 0) : (sum?.count ?? 0)}</span>
           </button>
         ))}
       </div>
@@ -126,16 +113,17 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
           {METHODS.map((m) => <option key={m} value={m}>{methodLabel(m)}</option>)}
         </select>
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" onClick={exportCsv} disabled={!filtered.length} className="gap-1.5"><Download className="size-4" /> Export</Button>
+          <Button variant="outline" onClick={exportCsv} disabled={!rows.length} className="gap-1.5"><Download className="size-4" /> Export</Button>
           <Can permission={P.FIN_RECORD_PAYMENT}>
             <Button onClick={() => setNewOpen(true)} className="gap-1.5"><Plus className="size-4" /> Record receipt</Button>
           </Can>
         </div>
       </div>
 
-      <DataTable columns={columns} rows={filtered} rowKey={(p) => p.id}
+      <DataTable columns={columns} rows={rows} rowKey={(p) => p.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch}
         onRowClick={(p) => setSelected(p.id)}
+        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No receipts" emptyMessage="Recorded receipts will appear here." />
 
       <RecordReceiptDrawer open={newOpen} onOpenChange={setNewOpen} entity={entity} currency={currency}

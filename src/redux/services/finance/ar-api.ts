@@ -11,6 +11,8 @@ import type {
   CreditNote,
   Customer,
   CustomerDetail,
+  CustomerSummary,
+  PaymentSummary,
   DunningNotice,
   DunningPolicy,
   DunningStage,
@@ -199,8 +201,13 @@ export const arApi = baseApi.injectEndpoints({
     }),
 
     // Customers / payers (non-paginated, capped server-side; use toArray)
-    getCustomers: builder.query<ApiEnvelope<Customer[]>, { entity: string; search?: string; is_active?: string }>({
+    getCustomers: builder.query<PaginatedEnvelope<Customer>, { entity: string; page?: number; search?: string; is_active?: string; status?: string }>({
       query: (params) => ({ url: `/finance/customers/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceCustomers"],
+    }),
+    // Entity-wide KPI totals + status counts (accurate while the list paginates).
+    getCustomerSummary: builder.query<ApiEnvelope<CustomerSummary>, { entity: string; search?: string; is_active?: string }>({
+      query: (p) => ({ url: `/finance/customers/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceCustomers"],
     }),
     createCustomer: builder.mutation<ApiEnvelope<Customer>, { entity: string; code: string; name: string; billing_email?: string; billing_phone?: string; billing_address?: string; receivable_account?: string; opening_balance?: number; is_active?: boolean }>({
@@ -215,19 +222,24 @@ export const arApi = baseApi.injectEndpoints({
       query: ({ entity, id, ...body }) => ({ url: `/finance/customers/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinanceCustomers"],
     }),
-    recordCustomerReceipt: builder.mutation<ApiEnvelope<{ id: number; payment: string; allocated: number; unallocated: number }>, { entity: string; id: string | number; amount: number; payment_date: string; method?: string; deposit_account: string | number; reference?: string; auto_allocate?: boolean }>({
+    recordCustomerReceipt: builder.mutation<ApiEnvelope<{ id: number; payment: string; allocated: number; unallocated: number }>, { entity: string; id: string | number; amount: number; payment_date: string; method?: string; deposit_account: string | number; reference?: string; auto_allocate?: boolean; allocation_strategy?: string }>({
       query: ({ entity, id, ...body }) => ({ url: `/finance/customers/${id}/receipt/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceCustomers", "FinanceInvoices", "FinanceReports", "FinanceJournals", "FinancePayments"],
     }),
-    getPayments: builder.query<ApiEnvelope<Payment[]>, { entity: string; status?: string; method?: string; customer?: string; search?: string }>({
+    getPayments: builder.query<PaginatedEnvelope<Payment>, { entity: string; page?: number; status?: string; method?: string; customer?: string; search?: string }>({
       query: (p) => ({ url: `/finance/payments/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinancePayments"],
+    }),
+    // Entity-wide receipts KPI totals + allocation-status counts.
+    getPaymentSummary: builder.query<ApiEnvelope<PaymentSummary>, { entity: string; method?: string; customer?: string; search?: string }>({
+      query: (p) => ({ url: `/finance/payments/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePayments"],
     }),
     getPaymentDetail: builder.query<ApiEnvelope<PaymentDetail>, { entity: string; id: number }>({
       query: ({ entity, id }) => ({ url: `/finance/payments/${id}/${qs({ entity })}`, method: "GET" }),
       providesTags: ["FinancePayments"],
     }),
-    allocatePayment: builder.mutation<ApiEnvelope<Payment>, { entity: string; id: number; allocations?: { invoice: number; amount: number }[]; auto_allocate?: boolean }>({
+    allocatePayment: builder.mutation<ApiEnvelope<Payment>, { entity: string; id: number; allocations?: { invoice: number; amount: number }[]; auto_allocate?: boolean; allocation_strategy?: string }>({
       query: ({ entity, id, ...body }) => ({ url: `/finance/payments/${id}/allocate/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePayments", "FinanceInvoices", "FinanceCustomers", "FinanceReports"],
     }),
@@ -297,12 +309,14 @@ export const {
   useCreateDunningPolicyMutation,
   useUpdateDunningPolicyMutation,
   useGetCustomersQuery,
+  useGetCustomerSummaryQuery,
   useCreateCustomerMutation,
   useGetCustomerDetailQuery,
   useUpdateCustomerMutation,
   useRecordCustomerReceiptMutation,
   useRemindCustomerMutation,
   useGetPaymentsQuery,
+  useGetPaymentSummaryQuery,
   useGetPaymentDetailQuery,
   useAllocatePaymentMutation,
   useGetFeeStructuresQuery,

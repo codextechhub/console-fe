@@ -234,8 +234,26 @@ export interface Customer {
   account_status?: CustomerAccountStatus;
 }
 
+// Header KPI totals computed over ALL rows (so they stay accurate while the list
+// paginates). { kobo, naira } mirrors the report money shape.
+export interface CustomerSummary {
+  total: number;
+  receivable: { kobo: number; naira: string };
+  on_credit: number;
+  overdue: number;
+  status_counts: Record<string, number>; // ACTIVE / CREDIT / OVERDUE / INACTIVE
+}
+
 // Customer receipts + allocation (Receipts & Allocation screen).
 export type PaymentAllocationStatus = "ALLOCATED" | "PARTIAL" | "UNALLOCATED";
+
+export interface PaymentSummary {
+  count: number;
+  today: { kobo: number; naira: string };
+  week: { kobo: number; naira: string };
+  unallocated: { kobo: number; naira: string };
+  status_counts: Record<string, number>; // ALLOCATED / PARTIAL / UNALLOCATED
+}
 
 export interface Payment {
   id: number;
