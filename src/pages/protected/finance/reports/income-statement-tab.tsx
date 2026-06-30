@@ -25,17 +25,17 @@ function Select({ value, onChange, children, className }: { value: string; onCha
   );
 }
 
-function CompareToggle({ label, checked, disabled, onChange }: { label: string; checked: boolean; disabled: boolean; onChange: (v: boolean) => void }) {
+function CompareToggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className={cn("inline-flex items-center gap-1.5 font-mont text-xs", disabled ? "cursor-not-allowed text-gray-04" : "cursor-pointer text-gray-01")}
-      title={disabled ? "No data available for this comparison" : undefined}>
-      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} className="size-3.5 accent-primary disabled:opacity-50" />
+    <label className="inline-flex cursor-pointer items-center gap-1.5 font-mont text-xs text-gray-01">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="size-3.5 accent-primary" />
       {label}
     </label>
   );
 }
 
-const thNum = "px-3 py-2 text-right font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05";
+// Canonical report-table header (matches Trial Balance / the rest of the console).
+const thBase = "px-3 py-2 font-mont text-xs font-semibold text-gray-01";
 // Favourable variance reads positive (revenue over / expense under budget) → green.
 function Variance({ kobo, currency }: { kobo: number; currency?: string | null }) {
   if (!kobo) return <span className="text-gray-04">—</span>;
@@ -111,8 +111,8 @@ export function IncomeStatementReport({ entity, currency }: { entity: string; cu
             <option value="">Year to date</option>
             {periods.map((p) => <option key={p.id} value={String(p.id)}>{p.name}</option>)}
           </Select>
-          <CompareToggle label="vs Budget" checked={showBudget} disabled={!d.has_budget} onChange={setWantBudget} />
-          <CompareToggle label={`vs Prior year${d.prior_fiscal_year ? ` (${d.prior_fiscal_year})` : ""}`} checked={showPrior} disabled={!d.has_prior_year} onChange={setWantPrior} />
+          {d.has_budget ? <CompareToggle label="vs Budget" checked={wantBudget} onChange={setWantBudget} /> : null}
+          {d.has_prior_year ? <CompareToggle label={`vs Prior year${d.prior_fiscal_year ? ` (${d.prior_fiscal_year})` : ""}`} checked={wantPrior} onChange={setWantPrior} /> : null}
         </div>
         <div className="flex items-center gap-2">
           {(["csv", "xlsx", "pdf"] as const).map((f) => (
@@ -128,11 +128,11 @@ export function IncomeStatementReport({ entity, currency }: { entity: string; cu
         <table className="w-full">
           <thead>
             <tr className="bg-[#F1F1F1] text-left">
-              <th className="px-3 py-2 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Account</th>
-              <th className={thNum}>{periodLabel}</th>
-              {showBudget ? <th className={thNum}>Budget</th> : null}
-              {showBudget ? <th className={thNum}>Variance</th> : null}
-              {showPrior ? <th className={thNum}>Prior year</th> : null}
+              <th className={thBase}>Account</th>
+              <th className={cn(thBase, "text-right")}>{periodLabel}</th>
+              {showBudget ? <th className={cn(thBase, "text-right")}>Budget</th> : null}
+              {showBudget ? <th className={cn(thBase, "text-right")}>Variance</th> : null}
+              {showPrior ? <th className={cn(thBase, "text-right")}>Prior year</th> : null}
             </tr>
           </thead>
           <tbody className={cn(isFetching && "opacity-60")}>
