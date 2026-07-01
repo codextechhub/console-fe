@@ -7,7 +7,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { Download } from "lucide-react";
-import { Money, InfoHint } from "@/components/finance-ui";
+import { Money } from "@/components/finance-ui";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
@@ -98,13 +98,6 @@ export function IncomeStatementReport({ entity, currency }: { entity: string; cu
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-1.5">
-        <span className="font-mont text-sm font-semibold text-gray-01">Income statement (P&amp;L)</span>
-        <InfoHint>
-          The P&amp;L tells you whether the entity is making or losing money — revenue (what was earned or invoiced) less the expenses of running it. The difference is <span className="font-semibold">net income</span>, which closes to Retained Earnings at year-end.
-        </InfoHint>
-      </div>
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <Select value={period} onChange={setPeriod} className="w-44">

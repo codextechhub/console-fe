@@ -5,7 +5,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { Download } from "lucide-react";
-import { KpiCard, InfoHint } from "@/components/finance-ui";
+import { KpiCard } from "@/components/finance-ui";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
@@ -67,13 +67,6 @@ export function AnalyticsSliceReport({ entity, currency }: { entity: string; cur
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-1.5">
-        <span className="font-mont text-sm font-semibold text-gray-01">Cost &amp; dimension analysis</span>
-        <InfoHint>
-          Net posted activity per account, grouped by one analytical axis — a <span className="font-semibold">cost centre</span> or a <span className="font-semibold">dimension</span> (e.g. fund, project). Lines with no value on the axis fall under <span className="font-semibold">Unassigned</span>. Net is debit − credit, so it reads naturally for both sides of the books.
-        </InfoHint>
-      </div>
-
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard label="Axis" value={axisLabel} foot={periodLabel || "All periods"} />
         <KpiCard label="Buckets" value={String(Object.keys(sl.bucket_totals).length)} foot="Distinct values" />
