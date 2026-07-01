@@ -2,7 +2,7 @@
 // paid / Open invoices) and tabs: Transactions · Statement · Contact. The Customer
 // Statement is a printable statement-of-account document (entity letterhead,
 // customer + period, a debit/credit ledger with opening + closing balance) with
-// Print and Send-to-customer actions. Footer: Send reminder · Record receipt.
+// Print and Send-to-customer actions. Footer: Run reminders · Record payment.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { skipToken } from "@reduxjs/toolkit/query";
@@ -72,7 +72,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
     if (!c) return;
     try {
       const res = await remind({ entity, customer: c.id }).unwrap();
-      toast.success(res.message || "Reminder generated.");
+      toast.success(res.message || "Reminders run.");
       setRemindOpen(false);
     } catch { /* central */ }
   };
@@ -90,7 +90,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
       footer={c && owes ? (
         <div className="flex w-full items-center justify-end gap-2">
           <Can permission={P.FIN_SEND_DUNNING}>
-            <Button variant="outline" onClick={() => setRemindOpen(true)} className="gap-1.5"><BellRing className="size-4" /> Send reminder</Button>
+            <Button variant="outline" onClick={() => setRemindOpen(true)} className="gap-1.5"><BellRing className="size-4" /> Run reminders</Button>
           </Can>
           <Can permission={P.FIN_RECORD_PAYMENT}>
             <Button onClick={() => setReceiptOpen(true)} className="gap-1.5"><CreditCard className="size-4" /> Record payment</Button>
@@ -162,9 +162,9 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
           <ConfirmActionModal
             open={remindOpen}
             onOpenChange={setRemindOpen}
-            title="Send a payment reminder?"
-            description={`Raises dunning reminders for ${c.name}'s overdue invoices (per the entity's policy).`}
-            confirmText="Send reminder"
+            title={`Run reminders for ${c.name}?`}
+            description={`Advances each of ${c.name}'s overdue invoices by one reminder level, following the entity's dunning policy. Running again the same day makes no change.`}
+            confirmText="Run reminders"
             loading={reminding}
             onConfirm={sendReminder}
           />

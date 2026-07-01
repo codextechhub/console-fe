@@ -230,8 +230,8 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
           <ConfirmActionModal
             open={remindOpen}
             onOpenChange={setRemindOpen}
-            title="Send a payment reminder?"
-            description={`Raises and sends a dunning reminder to ${inv.customer_name} for ${inv.document_number}.`}
+            title={`Send a reminder for ${inv.document_number}?`}
+            description={`Sends a single dunning reminder to ${inv.customer_name} for this invoice, at its current overdue level.`}
             confirmText="Send reminder"
             loading={reminding}
             onConfirm={sendReminder}
