@@ -65,8 +65,10 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/finance/bank-accounts/${id}/auto-reconcile/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
-    getBookLines: b.query<ApiEnvelope<BankBookLine[]>, Act>({
-      query: ({ id, entity }) => ({ url: `/finance/bank-accounts/${id}/book-lines/${qs({ entity })}`, method: "GET" }),
+    // Unmatched GL lines — paginated server-side (page_size capped at 100). Request
+    // the max page so the matcher shows as many as possible; page through the rest.
+    getBookLines: b.query<PaginatedEnvelope<BankBookLine>, Act & { page?: number }>({
+      query: ({ id, entity, page }) => ({ url: `/finance/bank-accounts/${id}/book-lines/${qs({ entity, page_size: 100, ...(page ? { page } : {}) })}`, method: "GET" }),
       providesTags: ["FinanceStatementLines"],
     }),
     matchStatementLine: b.mutation<ApiEnvelope<BankStatementLine>, { id: number; entity: string; journal_line: number }>({

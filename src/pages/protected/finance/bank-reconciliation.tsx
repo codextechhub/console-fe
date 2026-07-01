@@ -78,7 +78,7 @@ export default function BankReconciliationPage() {
         {!account ? (
           <EmptyState title="No bank accounts" message="Add a bank account to reconcile." />
         ) : (
-          <Workbench account={account} entity={entity} currency={currency} />
+          <Workbench key={account.id} account={account} entity={entity} currency={currency} />
         )}
       </main>
     </FinanceShell>
@@ -91,13 +91,15 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   const [selBook, setSelBook] = useState<number | null>(null);
   const [adjusting, setAdjusting] = useState(false);
   const [viewing, setViewing] = useState<BankStatementLine | null>(null);
+  const [bookPage, setBookPage] = useState(1);
 
   const { data: detailData } = useGetBankAccountQuery({ id: account.id, entity });
   const detail = detailData?.data;
   const { data: linesData } = useGetStatementLinesQuery({ id: account.id, entity });
-  const { data: bookData } = useGetBookLinesQuery({ id: account.id, entity });
+  const { data: bookData } = useGetBookLinesQuery({ id: account.id, entity, page: bookPage });
   const allLines = useMemo(() => toArray(linesData?.data), [linesData]);
   const bookLines = useMemo(() => toArray(bookData?.data), [bookData]);
+  const bookPg = bookData?.pagination;
   const unmatched = allLines.filter((l) => l.status === "UNMATCHED");
   const matched = allLines.filter((l) => l.status === "MATCHED");
 
@@ -182,8 +184,9 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
           ))}
         </Column>
 
-        {/* Book entries unmatched */}
-        <Column title="Book entries (unmatched)" count={`${bookLines.length} of ${bookLines.length}`}>
+        {/* Book entries unmatched (server-paginated) */}
+        <Column title="Book entries (unmatched)" count={`${bookLines.length} of ${bookPg?.totalItems ?? bookLines.length}`}
+          footer={bookPg && bookPg.totalPages > 1 ? <Pager pg={bookPg} onPage={setBookPage} /> : undefined}>
           {bookLines.length === 0 ? <ColEmpty msg="No unmatched book entries." /> : bookLines.map((b) => {
             const candidate = selBankLine != null && b.amount === selBankLine.amount;
             return (
@@ -303,7 +306,7 @@ function ReconField({ label, children }: { label: string; children: React.ReactN
   return <div><p className="font-mont text-[11px] text-gray-05">{label}</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</p></div>;
 }
 
-function Column({ title, count, children }: { title: string; count: string; children: React.ReactNode }) {
+function Column({ title, count, children, footer }: { title: string; count: string; children: React.ReactNode; footer?: React.ReactNode }) {
   return (
     <div className="flex flex-col overflow-hidden rounded-lg border border-gray-03 bg-white">
       <div className="flex items-center justify-between border-b border-gray-03 bg-[#F7F7F7] px-3.5 py-2.5">
@@ -313,6 +316,21 @@ function Column({ title, count, children }: { title: string; count: string; chil
       {/* Fill the viewport but cap it, so a long reconciliation scrolls inside
           the box rather than pushing the whole page down. */}
       <div className="min-h-[280px] max-h-[calc(100dvh-24rem)] divide-y divide-gray-03 overflow-y-auto">{children}</div>
+      {footer ? <div className="border-t border-gray-03 px-3 py-2">{footer}</div> : null}
+    </div>
+  );
+}
+
+/** Compact prev/next pager for a server-paginated matcher column. */
+function Pager({ pg, onPage }: { pg: { currentPage: number; totalPages: number }; onPage: (p: number) => void }) {
+  const btn = "rounded px-2 py-1 font-mont text-[11px] font-semibold text-gray-05 hover:bg-gray-03/40 disabled:opacity-40 disabled:hover:bg-transparent";
+  return (
+    <div className="flex items-center justify-between">
+      <span className="font-mont text-[11px] text-gray-05">Page {pg.currentPage} of {pg.totalPages}</span>
+      <div className="flex gap-1">
+        <button type="button" className={btn} disabled={pg.currentPage <= 1} onClick={() => onPage(pg.currentPage - 1)}>Prev</button>
+        <button type="button" className={btn} disabled={pg.currentPage >= pg.totalPages} onClick={() => onPage(pg.currentPage + 1)}>Next</button>
+      </div>
     </div>
   );
 }
