@@ -5,10 +5,8 @@
 import { Download } from "lucide-react";
 import { Money } from "@/components/finance-ui";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
-import { cn } from "@/lib/utils";
 import { downloadReportExport } from "@/utils/finance-export";
 import {
-  useGetBalanceSheetQuery,
   useGetCashFlowQuery,
   useGetChangesInEquityQuery,
 } from "@/redux/services/finance/reports-api";
@@ -44,34 +42,8 @@ function Frame({ title, entity, path, children }: { title: string; entity: strin
   );
 }
 
-// Income Statement now lives in ./income-statement-tab (rebuilt to the prototype with
-// Budget + Prior-year comparison columns).
-
-export function BalanceSheetReport({ entity, currency }: { entity: string; currency?: string | null }) {
-  const { data, isLoading, isError, refetch } = useGetBalanceSheetQuery({ entity });
-  if (isLoading) return <LoadingState />;
-  if (isError || !data) return <ErrorState onRetry={refetch} />;
-  const d = data.data;
-  const block = (label: string, rows: typeof d.assets, total: number) => (
-    <>
-      <tr className="bg-white-02/40"><td className={td + " font-semibold"} colSpan={2}>{label}</td><td className={td} /></tr>
-      {rows.map((r) => <tr key={label + r.account_id}><td className={td} colSpan={2}>{r.code} · {r.name}</td><td className={td + " text-right"}><Money kobo={r.amount.kobo} currency={currency} align="right" /></td></tr>)}
-      <tr className="font-semibold"><td className={td} colSpan={2}>Total {label.toLowerCase()}</td><td className={td + " text-right"}><Money kobo={total} currency={currency} align="right" /></td></tr>
-    </>
-  );
-  return (
-    <Frame title="Balance Sheet" entity={entity} path="/finance/reports/balance-sheet/">
-      <table className="w-full">
-        <tbody>
-          {block("Assets", d.assets, d.total_assets.kobo)}
-          {block("Liabilities", d.liabilities, d.total_liabilities.kobo)}
-          {block("Equity", d.equity, d.total_equity.kobo)}
-        </tbody>
-      </table>
-      <p className={cn("px-3 py-2 font-mont text-xs font-semibold", d.is_balanced ? "text-green-01" : "text-destructive")}>{d.is_balanced ? "Balanced ✓" : "Out of balance"}</p>
-    </Frame>
-  );
-}
+// Income Statement lives in ./income-statement-tab and Balance Sheet in
+// ./balance-sheet-tab — both rebuilt to the Vision prototype.
 
 export function CashFlowReport({ entity, currency }: { entity: string; currency?: string | null }) {
   const { data, isLoading, isError, refetch } = useGetCashFlowQuery({ entity });

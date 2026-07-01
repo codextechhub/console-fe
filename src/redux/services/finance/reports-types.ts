@@ -107,17 +107,29 @@ export interface ArAging {
   total_net: ReportMoney;
 }
 
+// Balance Sheet grouped into IFRS Statement-of-Financial-Position sections.
+export interface BalanceSheetGroup {
+  line: string;
+  label: string;
+  amount: ReportMoney;
+  accounts: { account_id: number; code: string; name: string; amount: ReportMoney }[];
+}
+export interface BalanceSheetSection {
+  key: string;   // non_current_assets | current_assets | equity | non_current_liabilities | current_liabilities
+  label: string;
+  total: ReportMoney;
+  groups: BalanceSheetGroup[];
+}
 export interface BalanceSheet {
   entity: string;
   as_of: string;
-  assets: StatementLine[];
-  liabilities: StatementLine[];
-  equity: StatementLine[];
+  sections: BalanceSheetSection[];
   total_assets: ReportMoney;
   total_liabilities: ReportMoney;
-  retained_earnings: ReportMoney;
   total_equity: ReportMoney;
+  retained_earnings: ReportMoney;   // current-year (unclosed) earnings
   is_balanced: boolean;
+  difference: ReportMoney;
 }
 
 export interface CashFlow {

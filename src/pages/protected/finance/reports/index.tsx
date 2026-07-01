@@ -6,10 +6,9 @@ import { useParams } from "react-router";
 import { FinanceShell } from "../finance-shell";
 import { useActiveEntity, InfoHint } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
-import {
-  BalanceSheetReport, CashFlowReport, EquityReport,
-} from "./statements";
+import { CashFlowReport, EquityReport } from "./statements";
 import { IncomeStatementReport } from "./income-statement-tab";
+import { BalanceSheetReport } from "./balance-sheet-tab";
 import { TrialBalanceReport } from "./trial-balance-tab";
 import { AnalyticsSliceReport } from "./analytics-slice-tab";
 import { PeriodsTab } from "./periods-tab";
@@ -28,6 +27,9 @@ const TITLE_HINT: Record<string, ReactNode> = {
   ),
   analytics: (
     <>Net posted activity per account, grouped by one analytical axis — a <span className="font-semibold">cost centre</span> or a <span className="font-semibold">dimension</span> (e.g. fund, project). Only lines tagged on that axis are shown. Net is debit − credit, so it reads naturally for both sides of the books.</>
+  ),
+  "balance-sheet": (
+    <>The fundamental accounting equation: <span className="font-semibold">Assets = Liabilities + Equity</span>. Both sides must balance. The balance sheet is a snapshot at a point in time — unlike the P&L, which covers a period.</>
   ),
 };
 
