@@ -83,6 +83,13 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/finance/statement-lines/${id}/unmatch/${qs({ entity })}`, method: "POST", body: {} }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
+    // Mark an unmatched line IGNORED (known dup / opening balance), or revert with
+    // { ignored: false }. Ignored lines carry no ledger effect and drop out of the
+    // unreconciled count, so MATCHED + IGNORED can still reconcile.
+    ignoreStatementLine: b.mutation<ApiEnvelope<BankStatementLine>, { id: number; entity: string; ignored?: boolean; reason?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/statement-lines/${id}/ignore/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
     completeReconciliation: b.mutation<ApiEnvelope<BankReconciliationRun>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/bank-accounts/${id}/reconcile/complete/${qs({ entity })}`, method: "POST", body: {} }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
@@ -346,6 +353,7 @@ export const {
   useMatchStatementLineMutation,
   useAdjustStatementLineMutation,
   useUnmatchStatementLineMutation,
+  useIgnoreStatementLineMutation,
   useCompleteReconciliationMutation,
   useGetExpenseClaimsQuery,
   useGetExpenseClaimSummaryQuery,

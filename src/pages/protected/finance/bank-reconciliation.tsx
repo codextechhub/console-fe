@@ -12,7 +12,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Link2, RefreshCw, CheckCircle2, Printer, FilePlus2, Unlink, Check } from "lucide-react";
+import { Link2, RefreshCw, CheckCircle2, Printer, FilePlus2, Unlink, Check, EyeOff, RotateCcw } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
 import { DetailDrawer, FormField, AccountPicker, InfoHint, useActiveEntity, toArray } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
@@ -25,6 +25,7 @@ import {
   useGetBankAccountsQuery, useGetBankAccountQuery, useGetStatementLinesQuery,
   useGetBookLinesQuery, useAutoReconcileMutation, useMatchStatementLineMutation,
   useAdjustStatementLineMutation, useUnmatchStatementLineMutation, useCompleteReconciliationMutation,
+  useIgnoreStatementLineMutation,
 } from "@/redux/services/finance/ops-api";
 import type { BankAccount, BankStatementLine } from "@/redux/services/finance/ops-types";
 
@@ -102,17 +103,26 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   const bookPg = bookData?.pagination;
   const unmatched = allLines.filter((l) => l.status === "UNMATCHED");
   const matched = allLines.filter((l) => l.status === "MATCHED");
+  const ignored = allLines.filter((l) => l.status === "IGNORED");
 
   const [match, { isLoading: matching }] = useMatchStatementLineMutation();
   const [autoReconcile, { isLoading: autoing }] = useAutoReconcileMutation();
   const [complete, { isLoading: completing }] = useCompleteReconciliationMutation();
   const [unmatch, { isLoading: unmatching }] = useUnmatchStatementLineMutation();
+  const [setIgnored, { isLoading: ignoringBusy }] = useIgnoreStatementLineMutation();
 
   const doUnmatch = async (id: number) => {
     try {
       await unmatch({ id, entity }).unwrap();
       toast.success("Line unmatched.");
       setViewing(null);
+    } catch { /* central */ }
+  };
+  const doIgnore = async (id: number, ignore: boolean) => {
+    try {
+      await setIgnored({ id, entity, ignored: ignore }).unwrap();
+      toast.success(ignore ? "Line ignored." : "Line restored.");
+      setSelBank((s) => (s === id ? null : s));
     } catch { /* central */ }
   };
 
@@ -203,6 +213,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
         <div className="flex flex-wrap items-center gap-2">
           <Button onClick={doMatch} disabled={!canMatch || matching} className="gap-1.5"><Link2 className="size-4" />{matching ? "Matching…" : "Match selected"}</Button>
           <Button variant="outline" onClick={() => setAdjusting(true)} disabled={selBank == null} className="gap-1.5"><FilePlus2 className="size-4" /> Add adjusting entry</Button>
+          <Button variant="outline" onClick={() => selBank != null && doIgnore(selBank, true)} disabled={selBank == null || ignoringBusy} className="gap-1.5"><EyeOff className="size-4" /> Ignore line</Button>
           <Button variant="outline" onClick={doAuto} disabled={autoing} className="gap-1.5"><RefreshCw className="size-4" />{autoing ? "Matching…" : "Auto-match"}</Button>
           {mismatch ? (
             <span className="font-mont text-[11px] text-destructive">Amounts differ ({formatMoney(selBankLine!.amount, currency)} vs {formatMoney(selBookLine!.amount, currency)}) — a match needs the same amount. Raise an adjusting entry for this charge/credit instead.</span>
@@ -245,6 +256,38 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
           </div>
         )}
       </div>
+
+      {ignored.length > 0 && (
+        <div>
+          <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Ignored lines · {ignored.length}</p>
+          <div className="overflow-hidden rounded-md border border-gray-03">
+            <table className="w-full border-collapse">
+              <thead><tr>
+                <th className={th}>Date</th><th className={th}>Bank statement</th>
+                <th className={cn(th, "text-right")}>Amount</th><th className={cn(th, "text-right")} />
+              </tr></thead>
+              <tbody>
+                {ignored.map((l) => (
+                  <tr key={l.id}>
+                    <td className={cn(td, "tabular-nums text-gray-05")}>{l.txn_date}</td>
+                    <td className={td}>{l.description || "—"}</td>
+                    <td className={cn(td, "text-right tabular-nums", signedCls(l.amount))}>{formatMoney(l.amount, currency)}</td>
+                    <td className={cn(td, "text-right")}>
+                      <Can permission={P.FIN_RECONCILE_BANK}>
+                        <button type="button" onClick={() => doIgnore(l.id, false)} disabled={ignoringBusy}
+                          className="inline-flex items-center gap-1 rounded px-2 py-1 font-mont text-[11px] text-gray-05 hover:bg-primary/5 hover:text-primary disabled:opacity-40">
+                          <RotateCcw className="size-3.5" /> Restore
+                        </button>
+                      </Can>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-1 font-mont text-[11px] text-gray-05">Ignored lines carry no ledger effect and don't block reconciliation (known duplicates or opening-balance lines).</p>
+        </div>
+      )}
 
       {adjusting && selBankLine ? (
         <AdjustDrawer line={selBankLine} entity={entity} currency={currency} onClose={() => setAdjusting(false)} onDone={() => { setAdjusting(false); setSelBank(null); }} />
