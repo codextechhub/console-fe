@@ -392,15 +392,16 @@ function ImportStatementDrawer({ id, entity, onClose }: { id: number; entity: st
   const [periodLabel, setPeriodLabel] = useState("");
   const [opening, setOpening] = useState("");
   const [rows, setRows] = useState<ImportRow[]>([emptyRow()]);
+  const [dupWarning, setDupWarning] = useState<number>(0);   // suspected dupes held back on last attempt
   const [doImport, { isLoading }] = useImportStatementMutation();
 
   const setRow = (i: number, patch: Partial<ImportRow>) => setRows((s) => s.map((r, idx) => idx === i ? { ...r, ...patch } : r));
   const valid = rows.filter((r) => r.txn_date && r.amount.trim() !== "" && !Number.isNaN(Number(r.amount)));
 
-  const submit = async () => {
+  const submit = async (force = false) => {
     try {
       const res = await doImport({
-        id, entity,
+        id, entity, force,
         period_label: periodLabel.trim() || undefined,
         opening_balance: opening.trim() ? Math.round(Number(opening) * 100) : undefined,
         lines: valid.map((r) => ({
@@ -408,6 +409,14 @@ function ImportStatementDrawer({ id, entity, onClose }: { id: number; entity: st
           reference: r.reference.trim() || undefined, amount: Math.round(Number(r.amount) * 100),
         })),
       }).unwrap();
+      const held = res.data?.suspected_duplicates?.length ?? 0;
+      // Some rows look like duplicates of existing lines — keep the drawer open and
+      // let the user decide to import them anyway (force), rather than double a charge.
+      if (held > 0 && !force) {
+        setDupWarning(held);
+        toast.warning(res.message || `${held} suspected duplicate(s) held back.`);
+        return;
+      }
       toast.success(res.message || "Statement imported.");
       onClose();
     } catch { /* central */ }
@@ -420,13 +429,23 @@ function ImportStatementDrawer({ id, entity, onClose }: { id: number; entity: st
       widthClass="sm:max-w-3xl"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={onClose}>Cancel</Button>
-        <Button disabled={isLoading || valid.length === 0} onClick={submit} className="gap-1.5"><Upload className="size-4" />{isLoading ? "Importing…" : `Import ${valid.length} line(s)`}</Button>
+        {dupWarning > 0 && (
+          <Button variant="outline" disabled={isLoading} onClick={() => submit(true)} className="border-amber-300 text-amber-700 hover:bg-amber-50">
+            {isLoading ? "Importing…" : "Import anyway"}
+          </Button>
+        )}
+        <Button disabled={isLoading || valid.length === 0} onClick={() => submit(false)} className="gap-1.5"><Upload className="size-4" />{isLoading ? "Importing…" : `Import ${valid.length} line(s)`}</Button>
       </>}
     >
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
           Amount is signed in naira from your side: <span className="font-medium">positive = money in</span>, negative = money out. Lines group under one statement (closing = opening + Σ amounts).
         </p>
+        {dupWarning > 0 && (
+          <p className="rounded-md bg-amber-50 px-3 py-2 font-mont text-[11px] text-amber-900 ring-1 ring-amber-200">
+            <span className="font-semibold">{dupWarning} line(s) look like duplicates</span> of statement lines already on this account and were <span className="font-semibold">held back</span> to avoid doubling a charge. If they're genuinely new, use <span className="font-semibold">Import anyway</span>.
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Period label"><Input value={periodLabel} onChange={(e) => setPeriodLabel(e.target.value)} placeholder="e.g. Apr 2026" className="bg-white" /></FormField>
           <FormField label="Opening balance (₦)"><Input type="number" value={opening} onChange={(e) => setOpening(e.target.value)} placeholder="0.00" className="bg-white font-mont" /></FormField>

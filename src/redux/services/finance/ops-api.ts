@@ -57,7 +57,9 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, ...p }) => ({ url: `/finance/bank-accounts/${id}/statement-lines/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceStatementLines"],
     }),
-    importStatement: b.mutation<ApiEnvelope<BankStatementLine[]>, Act & { lines: { txn_date: string; amount: number; description?: string; reference?: string }[]; period_label?: string; statement_date?: string; opening_balance?: number; closing_balance?: number }>({
+    // Returns { imported, suspected_duplicates }: rows matching an existing line on
+    // (date, amount, description, reference) are held back unless force=true.
+    importStatement: b.mutation<ApiEnvelope<{ imported: BankStatementLine[]; suspected_duplicates: Record<string, unknown>[] }>, Act & { lines: { txn_date: string; amount: number; description?: string; reference?: string }[]; period_label?: string; statement_date?: string; opening_balance?: number; closing_balance?: number; force?: boolean }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/bank-accounts/${id}/statement-lines/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
