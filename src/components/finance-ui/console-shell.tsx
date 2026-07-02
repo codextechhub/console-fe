@@ -25,7 +25,7 @@ export function ConsoleShell({ title, nav, children }: ConsoleShellProps) {
   const screenTitle = activeNavTitle(nav, pathname) ?? title;
   return (
     <DashboardLayout title={screenTitle} sidebar={<ConsoleSidebar title={title} nav={nav} />}>
-      <div className="console-geist">
+      <div className="console-geist min-w-0">
         <div className="flex items-center justify-end border-b border-white-02 bg-white px-4.5 py-2.5">
           <EntitySelect />
         </div>
