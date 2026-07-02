@@ -166,9 +166,12 @@ export default function FinanceAuditPage() {
   const rows = data?.data ?? [];
   const pg = data?.pagination;
 
-  const actionOptions = useMemo(() => (facets?.actions ?? []).map((a) => ({ value: a.value, label: a.label })), [facets]);
-  const entityOptions = useMemo(() => (facets?.target_types ?? []).map((t) => ({ value: t, label: t })), [facets]);
-  const actorOptions = useMemo(() => (facets?.actors ?? []).map((a) => ({ value: String(a.id), label: a.email })), [facets]);
+  // Lead each list with an explicit "All …" option so the default (value "")
+  // renders as a real, dark-text selection — matching the plain dropdowns beside
+  // it — instead of a faint placeholder.
+  const actionOptions = useMemo(() => [{ value: "", label: "All actions" }, ...(facets?.actions ?? []).map((a) => ({ value: a.value, label: a.label }))], [facets]);
+  const entityOptions = useMemo(() => [{ value: "", label: "All entities" }, ...(facets?.target_types ?? []).map((t) => ({ value: t, label: t }))], [facets]);
+  const actorOptions = useMemo(() => [{ value: "", label: "All actors" }, ...(facets?.actors ?? []).map((a) => ({ value: String(a.id), label: a.email }))], [facets]);
 
   const columns: Column<FinanceAuditLog>[] = [
     { header: "When", cell: (l) => <span className="whitespace-nowrap tabular-nums text-gray-01">{new Date(l.created_at).toLocaleString("en-GB")}</span> },
