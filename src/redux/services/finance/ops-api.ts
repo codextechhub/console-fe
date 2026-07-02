@@ -90,6 +90,12 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/finance/statement-lines/${id}/ignore/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
+    // Many-to-one: match one statement line to several cash journal lines whose signed
+    // amounts sum to it (a settlement covering many receipts).
+    groupMatchStatementLine: b.mutation<ApiEnvelope<BankStatementLine>, { id: number; entity: string; journal_lines: number[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/statement-lines/${id}/match-group/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
     completeReconciliation: b.mutation<ApiEnvelope<BankReconciliationRun>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/bank-accounts/${id}/reconcile/complete/${qs({ entity })}`, method: "POST", body: {} }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
@@ -354,6 +360,7 @@ export const {
   useAdjustStatementLineMutation,
   useUnmatchStatementLineMutation,
   useIgnoreStatementLineMutation,
+  useGroupMatchStatementLineMutation,
   useCompleteReconciliationMutation,
   useGetExpenseClaimsQuery,
   useGetExpenseClaimSummaryQuery,

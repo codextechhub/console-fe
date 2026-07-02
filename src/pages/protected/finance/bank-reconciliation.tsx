@@ -25,7 +25,7 @@ import {
   useGetBankAccountsQuery, useGetBankAccountQuery, useGetStatementLinesQuery,
   useGetBookLinesQuery, useAutoReconcileMutation, useMatchStatementLineMutation,
   useAdjustStatementLineMutation, useUnmatchStatementLineMutation, useCompleteReconciliationMutation,
-  useIgnoreStatementLineMutation,
+  useIgnoreStatementLineMutation, useGroupMatchStatementLineMutation,
 } from "@/redux/services/finance/ops-api";
 import type { BankAccount, BankStatementLine } from "@/redux/services/finance/ops-types";
 
@@ -89,7 +89,9 @@ export default function BankReconciliationPage() {
 function Workbench({ account, entity, currency }: { account: BankAccount; entity: string; currency?: string | null }) {
   const { can } = useCan();
   const [selBank, setSelBank] = useState<number | null>(null);
-  const [selBook, setSelBook] = useState<number | null>(null);
+  // Book lines are multi-select: one book line → 1:1 match; several that sum to the
+  // bank line → group (many-to-one) match.
+  const [selBooks, setSelBooks] = useState<number[]>([]);
   const [adjusting, setAdjusting] = useState(false);
   const [viewing, setViewing] = useState<BankStatementLine | null>(null);
   const [bookPage, setBookPage] = useState(1);
@@ -110,6 +112,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   const [complete, { isLoading: completing }] = useCompleteReconciliationMutation();
   const [unmatch, { isLoading: unmatching }] = useUnmatchStatementLineMutation();
   const [setIgnored, { isLoading: ignoringBusy }] = useIgnoreStatementLineMutation();
+  const [groupMatch, { isLoading: groupMatching }] = useGroupMatchStatementLineMutation();
 
   const doUnmatch = async (id: number) => {
     try {
@@ -133,18 +136,26 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   const progress = totalLines ? Math.round((matched.length / totalLines) * 100) : 0;
 
   const selBankLine = unmatched.find((l) => l.id === selBank) ?? null;
-  const selBookLine = bookLines.find((b) => b.id === selBook) ?? null;
-  // Match needs the *same signed amount* (the backend enforces it too).
-  const amountsEqual = selBankLine != null && selBookLine != null && selBankLine.amount === selBookLine.amount;
-  const canMatch = amountsEqual;
-  const mismatch = selBankLine != null && selBookLine != null && !amountsEqual;
+  const selBookLines = bookLines.filter((b) => selBooks.includes(b.id));
+  // A match (1:1 or group) needs the selected book line(s) to sum to the bank line's
+  // signed amount — the backend enforces this too.
+  const bookSum = selBookLines.reduce((s, b) => s + b.amount, 0);
+  const sumsMatch = selBankLine != null && selBookLines.length >= 1 && bookSum === selBankLine.amount;
+  const canMatch = sumsMatch;
+  const mismatch = selBankLine != null && selBookLines.length >= 1 && bookSum !== selBankLine.amount;
+  const toggleBook = (id: number) => setSelBooks((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   const doMatch = async () => {
-    if (!canMatch) return;
+    if (!canMatch || selBankLine == null) return;
     try {
-      await match({ id: selBank!, entity, journal_line: selBook! }).unwrap();
-      toast.success("Lines matched.");
-      setSelBank(null); setSelBook(null);
+      if (selBooks.length === 1) {
+        await match({ id: selBank!, entity, journal_line: selBooks[0] }).unwrap();
+        toast.success("Lines matched.");
+      } else {
+        await groupMatch({ id: selBank!, entity, journal_lines: selBooks }).unwrap();
+        toast.success(`Grouped ${selBooks.length} book lines to the statement line.`);
+      }
+      setSelBank(null); setSelBooks([]);
     } catch { /* central (e.g. amount mismatch) */ }
   };
   const doAuto = async () => {
@@ -200,8 +211,8 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
           {bookLines.length === 0 ? <ColEmpty msg="No unmatched book entries." /> : bookLines.map((b) => {
             const candidate = selBankLine != null && b.amount === selBankLine.amount;
             return (
-              <LineCard key={b.id} selected={selBook === b.id} candidate={candidate}
-                onClick={() => setSelBook(selBook === b.id ? null : b.id)}
+              <LineCard key={b.id} selected={selBooks.includes(b.id)} candidate={candidate}
+                onClick={() => toggleBook(b.id)}
                 title={b.description} sub={`${b.date}${b.reference ? ` · ${b.reference}` : ""}`}
                 amount={b.amount} currency={currency} />
             );
@@ -211,14 +222,14 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
 
       <Can permission={P.FIN_RECONCILE_BANK}>
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={doMatch} disabled={!canMatch || matching} className="gap-1.5"><Link2 className="size-4" />{matching ? "Matching…" : "Match selected"}</Button>
+          <Button onClick={doMatch} disabled={!canMatch || matching || groupMatching} className="gap-1.5"><Link2 className="size-4" />{matching || groupMatching ? "Matching…" : selBooks.length > 1 ? `Match group (${selBooks.length})` : "Match selected"}</Button>
           <Button variant="outline" onClick={() => setAdjusting(true)} disabled={selBank == null} className="gap-1.5"><FilePlus2 className="size-4" /> Add adjusting entry</Button>
           <Button variant="outline" onClick={() => selBank != null && doIgnore(selBank, true)} disabled={selBank == null || ignoringBusy} className="gap-1.5"><EyeOff className="size-4" /> Ignore line</Button>
           <Button variant="outline" onClick={doAuto} disabled={autoing} className="gap-1.5"><RefreshCw className="size-4" />{autoing ? "Matching…" : "Auto-match"}</Button>
           {mismatch ? (
-            <span className="font-mont text-[11px] text-destructive">Amounts differ ({formatMoney(selBankLine!.amount, currency)} vs {formatMoney(selBookLine!.amount, currency)}) — a match needs the same amount. Raise an adjusting entry for this charge/credit instead.</span>
+            <span className="font-mont text-[11px] text-destructive">Selected book total {formatMoney(bookSum, currency)} ≠ bank line {formatMoney(selBankLine!.amount, currency)} — a match needs the same total. Adjust your selection or raise an adjusting entry.</span>
           ) : selBankLine ? (
-            <span className="font-mont text-[11px] text-gray-05">Selected bank line: {formatMoney(selBankLine.amount, currency)} — pick a book line of the same amount, or raise an adjusting entry.</span>
+            <span className="font-mont text-[11px] text-gray-05">Bank line {formatMoney(selBankLine.amount, currency)} — pick one book line of the same amount, or several that sum to it, then Match.</span>
           ) : null}
         </div>
       </Can>
