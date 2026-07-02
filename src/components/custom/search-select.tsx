@@ -105,6 +105,10 @@ export function SearchSelect({
         <ComboboxInput
           id={id}
           placeholder={placeholder}
+          // Darken the selected value + placeholder — the base Input renders
+          // them faint (gray-01 / gray-02), which reads washed-out next to plain
+          // dropdowns. Target the inner <input> (className lands on the wrapper).
+          className="[&_input]:text-black-01 [&_input]:placeholder:text-gray-05"
           showTrigger
           showClear={!!value && clearable}
           disabled={disabled || loading}

@@ -41,6 +41,15 @@ function diffRows(before: Record<string, unknown>, after: Record<string, unknown
 }
 function fmt(v: unknown): string {
   if (v === null || v === undefined) return "—";
+  if (typeof v === "string") {
+    // Render ISO timestamps the human way (matches the "When" column) rather
+    // than the raw "2026-06-30T09:51:10.585498+00:00" the ledger stores.
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v)) {
+      const d = new Date(v);
+      if (!Number.isNaN(d.getTime())) return d.toLocaleString("en-GB");
+    }
+    return v;
+  }
   return typeof v === "object" ? JSON.stringify(v) : String(v);
 }
 
