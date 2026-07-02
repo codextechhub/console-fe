@@ -25,7 +25,7 @@ import {
   useGetBankAccountsQuery, useGetBankAccountQuery, useGetStatementLinesQuery,
   useGetBookLinesQuery, useAutoReconcileMutation, useMatchStatementLineMutation,
   useAdjustStatementLineMutation, useUnmatchStatementLineMutation, useCompleteReconciliationMutation,
-  useIgnoreStatementLineMutation, useGroupMatchStatementLineMutation,
+  useIgnoreStatementLineMutation, useGroupMatchStatementLineMutation, useSplitMatchLineMutation,
 } from "@/redux/services/finance/ops-api";
 import type { BankAccount, BankStatementLine } from "@/redux/services/finance/ops-types";
 
@@ -88,9 +88,11 @@ export default function BankReconciliationPage() {
 
 function Workbench({ account, entity, currency }: { account: BankAccount; entity: string; currency?: string | null }) {
   const { can } = useCan();
-  const [selBank, setSelBank] = useState<number | null>(null);
-  // Book lines are multi-select: one book line → 1:1 match; several that sum to the
-  // bank line → group (many-to-one) match.
+  // Both columns are multi-select; the selection shape decides the match kind:
+  //   1 bank + 1 book (equal)      → 1:1 match
+  //   1 bank + N books (sum)       → group match (many-to-one)
+  //   N banks + 1 book (sum)       → split match (one-to-many)
+  const [selBanks, setSelBanks] = useState<number[]>([]);
   const [selBooks, setSelBooks] = useState<number[]>([]);
   const [adjusting, setAdjusting] = useState(false);
   const [viewing, setViewing] = useState<BankStatementLine | null>(null);
@@ -113,6 +115,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   const [unmatch, { isLoading: unmatching }] = useUnmatchStatementLineMutation();
   const [setIgnored, { isLoading: ignoringBusy }] = useIgnoreStatementLineMutation();
   const [groupMatch, { isLoading: groupMatching }] = useGroupMatchStatementLineMutation();
+  const [splitMatch, { isLoading: splitMatching }] = useSplitMatchLineMutation();
 
   const doUnmatch = async (id: number) => {
     try {
@@ -125,7 +128,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
     try {
       await setIgnored({ id, entity, ignored: ignore }).unwrap();
       toast.success(ignore ? "Line ignored." : "Line restored.");
-      setSelBank((s) => (s === id ? null : s));
+      setSelBanks((s) => s.filter((x) => x !== id));
     } catch { /* central */ }
   };
 
@@ -135,27 +138,41 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   const totalLines = matched.length + unmatched.length;
   const progress = totalLines ? Math.round((matched.length / totalLines) * 100) : 0;
 
-  const selBankLine = unmatched.find((l) => l.id === selBank) ?? null;
+  const selBankLines = unmatched.filter((l) => selBanks.includes(l.id));
   const selBookLines = bookLines.filter((b) => selBooks.includes(b.id));
-  // A match (1:1 or group) needs the selected book line(s) to sum to the bank line's
-  // signed amount — the backend enforces this too.
+  const bankSum = selBankLines.reduce((s, l) => s + l.amount, 0);
   const bookSum = selBookLines.reduce((s, b) => s + b.amount, 0);
-  const sumsMatch = selBankLine != null && selBookLines.length >= 1 && bookSum === selBankLine.amount;
-  const canMatch = sumsMatch;
-  const mismatch = selBankLine != null && selBookLines.length >= 1 && bookSum !== selBankLine.amount;
+  // A single selected bank line — the target for adjusting-entry / ignore actions.
+  const soleBank = selBanks.length === 1 ? selBankLines[0] ?? null : null;
+  const toggleBank = (id: number) => setSelBanks((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const toggleBook = (id: number) => setSelBooks((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
+  // The selection shape decides the match kind; all three need the two sides to sum equal.
+  const totalsEqual = selBankLines.length >= 1 && selBookLines.length >= 1 && bankSum === bookSum;
+  const kind: "match" | "group" | "split" | null =
+    !totalsEqual ? null
+      : selBanks.length === 1 && selBooks.length === 1 ? "match"
+        : selBanks.length === 1 && selBooks.length >= 2 ? "group"
+          : selBanks.length >= 2 && selBooks.length === 1 ? "split"
+            : null;              // N-banks × N-books is ambiguous — not supported
+  const canMatch = kind !== null;
+  const matchBusy = matching || groupMatching || splitMatching;
+  const mismatch = selBankLines.length >= 1 && selBookLines.length >= 1 && !canMatch;
+
   const doMatch = async () => {
-    if (!canMatch || selBankLine == null) return;
+    if (!canMatch) return;
     try {
-      if (selBooks.length === 1) {
-        await match({ id: selBank!, entity, journal_line: selBooks[0] }).unwrap();
+      if (kind === "match") {
+        await match({ id: selBanks[0], entity, journal_line: selBooks[0] }).unwrap();
         toast.success("Lines matched.");
-      } else {
-        await groupMatch({ id: selBank!, entity, journal_lines: selBooks }).unwrap();
+      } else if (kind === "group") {
+        await groupMatch({ id: selBanks[0], entity, journal_lines: selBooks }).unwrap();
         toast.success(`Grouped ${selBooks.length} book lines to the statement line.`);
+      } else {
+        await splitMatch({ id: account.id, entity, journal_line: selBooks[0], statement_lines: selBanks }).unwrap();
+        toast.success(`Split one book line across ${selBanks.length} statement lines.`);
       }
-      setSelBank(null); setSelBooks([]);
+      setSelBanks([]); setSelBooks([]);
     } catch { /* central (e.g. amount mismatch) */ }
   };
   const doAuto = async () => {
@@ -198,18 +215,22 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
       <div className="grid items-start gap-4 lg:grid-cols-2">
         {/* Bank statement unmatched */}
         <Column title="Bank statement (unmatched)" count={`${unmatched.length} of ${totalLines}`}>
-          {unmatched.length === 0 ? <ColEmpty msg="Every statement line is matched." /> : unmatched.map((l) => (
-            <LineCard key={l.id} selected={selBank === l.id} onClick={() => setSelBank(selBank === l.id ? null : l.id)}
-              title={l.description || "—"} sub={`${l.txn_date}${l.reference ? ` · ${l.reference}` : ""}`}
-              amount={l.amount} currency={currency} />
-          ))}
+          {unmatched.length === 0 ? <ColEmpty msg="Every statement line is matched." /> : unmatched.map((l) => {
+            const candidate = soleBank == null && selBookLines.length >= 1 && l.amount === bookSum;
+            return (
+              <LineCard key={l.id} selected={selBanks.includes(l.id)} candidate={candidate}
+                onClick={() => toggleBank(l.id)}
+                title={l.description || "—"} sub={`${l.txn_date}${l.reference ? ` · ${l.reference}` : ""}`}
+                amount={l.amount} currency={currency} />
+            );
+          })}
         </Column>
 
         {/* Book entries unmatched (server-paginated) */}
         <Column title="Book entries (unmatched)" count={`${bookLines.length} of ${bookPg?.totalItems ?? bookLines.length}`}
           footer={bookPg && bookPg.totalPages > 1 ? <Pager pg={bookPg} onPage={setBookPage} /> : undefined}>
           {bookLines.length === 0 ? <ColEmpty msg="No unmatched book entries." /> : bookLines.map((b) => {
-            const candidate = selBankLine != null && b.amount === selBankLine.amount;
+            const candidate = soleBank != null && b.amount === soleBank.amount;
             return (
               <LineCard key={b.id} selected={selBooks.includes(b.id)} candidate={candidate}
                 onClick={() => toggleBook(b.id)}
@@ -222,15 +243,17 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
 
       <Can permission={P.FIN_RECONCILE_BANK}>
         <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={doMatch} disabled={!canMatch || matching || groupMatching} className="gap-1.5"><Link2 className="size-4" />{matching || groupMatching ? "Matching…" : selBooks.length > 1 ? `Match group (${selBooks.length})` : "Match selected"}</Button>
-          <Button variant="outline" onClick={() => setAdjusting(true)} disabled={selBank == null} className="gap-1.5"><FilePlus2 className="size-4" /> Add adjusting entry</Button>
-          <Button variant="outline" onClick={() => selBank != null && doIgnore(selBank, true)} disabled={selBank == null || ignoringBusy} className="gap-1.5"><EyeOff className="size-4" /> Ignore line</Button>
+          <Button onClick={doMatch} disabled={!canMatch || matchBusy} className="gap-1.5"><Link2 className="size-4" />{matchBusy ? "Matching…" : selBanks.length >= 2 && selBooks.length === 1 ? `Split match (${selBanks.length})` : selBanks.length === 1 && selBooks.length >= 2 ? `Match group (${selBooks.length})` : "Match selected"}</Button>
+          <Button variant="outline" onClick={() => setAdjusting(true)} disabled={soleBank == null} className="gap-1.5"><FilePlus2 className="size-4" /> Add adjusting entry</Button>
+          <Button variant="outline" onClick={() => soleBank && doIgnore(soleBank.id, true)} disabled={soleBank == null || ignoringBusy} className="gap-1.5"><EyeOff className="size-4" /> Ignore line</Button>
           <Button variant="outline" onClick={doAuto} disabled={autoing} className="gap-1.5"><RefreshCw className="size-4" />{autoing ? "Matching…" : "Auto-match"}</Button>
           {mismatch ? (
-            <span className="font-mont text-[11px] text-destructive">Selected book total {formatMoney(bookSum, currency)} ≠ bank line {formatMoney(selBankLine!.amount, currency)} — a match needs the same total. Adjust your selection or raise an adjusting entry.</span>
-          ) : selBankLine ? (
-            <span className="font-mont text-[11px] text-gray-05">Bank line {formatMoney(selBankLine.amount, currency)} — pick one book line of the same amount, or several that sum to it, then Match.</span>
-          ) : null}
+            <span className="font-mont text-[11px] text-destructive">Bank total {formatMoney(bankSum, currency)} vs book total {formatMoney(bookSum, currency)} — match one-to-one, one bank line to several books, or several bank lines to one book, with equal totals.</span>
+          ) : selBankLines.length || selBookLines.length ? (
+            <span className="font-mont text-[11px] text-gray-05">Selected: {selBanks.length} bank · {selBooks.length} book — totals must be equal to match. Adjusting entry / ignore act on a single selected bank line.</span>
+          ) : (
+            <span className="font-mont text-[11px] text-gray-05">Select bank + book lines that sum to the same total, then Match. One line each side, or many-to-one either way.</span>
+          )}
         </div>
       </Can>
 
@@ -300,8 +323,8 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
         </div>
       )}
 
-      {adjusting && selBankLine ? (
-        <AdjustDrawer line={selBankLine} entity={entity} currency={currency} onClose={() => setAdjusting(false)} onDone={() => { setAdjusting(false); setSelBank(null); }} />
+      {adjusting && soleBank ? (
+        <AdjustDrawer line={soleBank} entity={entity} currency={currency} onClose={() => setAdjusting(false)} onDone={() => { setAdjusting(false); setSelBanks([]); }} />
       ) : null}
       <MatchedLineDrawer line={viewing} currency={currency} onClose={() => setViewing(null)}
         onUnmatch={(id) => doUnmatch(id)} canUnmatch={can(P.FIN_RECONCILE_BANK)} unmatching={unmatching} />

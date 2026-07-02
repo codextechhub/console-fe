@@ -96,6 +96,12 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/finance/statement-lines/${id}/match-group/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
+    // The reverse (one-to-many): match one cash journal line to several statement lines
+    // that sum to it (a ledger movement the bank split). `id` is the bank account.
+    splitMatchLine: b.mutation<ApiEnvelope<Record<string, unknown>>, { id: number; entity: string; journal_line: number; statement_lines: number[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/bank-accounts/${id}/split-match/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
     completeReconciliation: b.mutation<ApiEnvelope<BankReconciliationRun>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/bank-accounts/${id}/reconcile/complete/${qs({ entity })}`, method: "POST", body: {} }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
@@ -361,6 +367,7 @@ export const {
   useUnmatchStatementLineMutation,
   useIgnoreStatementLineMutation,
   useGroupMatchStatementLineMutation,
+  useSplitMatchLineMutation,
   useCompleteReconciliationMutation,
   useGetExpenseClaimsQuery,
   useGetExpenseClaimSummaryQuery,
