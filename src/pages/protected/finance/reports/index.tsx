@@ -6,9 +6,10 @@ import { useParams } from "react-router";
 import { FinanceShell } from "../finance-shell";
 import { useActiveEntity, InfoHint } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
-import { CashFlowReport, EquityReport } from "./statements";
+import { EquityReport } from "./statements";
 import { IncomeStatementReport } from "./income-statement-tab";
 import { BalanceSheetReport } from "./balance-sheet-tab";
+import { CashFlowReport } from "./cash-flow-tab";
 import { TrialBalanceReport } from "./trial-balance-tab";
 import { AnalyticsSliceReport } from "./analytics-slice-tab";
 import { PeriodsTab } from "./periods-tab";
@@ -30,6 +31,9 @@ const TITLE_HINT: Record<string, ReactNode> = {
   ),
   "balance-sheet": (
     <>The fundamental accounting equation: <span className="font-semibold">Assets = Liabilities + Equity</span>. Both sides must balance. The balance sheet is a snapshot at a point in time — unlike the P&L, which covers a period.</>
+  ),
+  "cash-flow": (
+    <>Where cash actually came from and went — the <span className="font-semibold">direct method</span>: every posted transaction that moved cash, grouped into operating, investing and financing. Opening cash plus the net change equals closing cash.</>
   ),
 };
 

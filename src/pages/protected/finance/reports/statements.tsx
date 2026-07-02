@@ -7,7 +7,6 @@ import { Money } from "@/components/finance-ui";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { downloadReportExport } from "@/utils/finance-export";
 import {
-  useGetCashFlowQuery,
   useGetChangesInEquityQuery,
 } from "@/redux/services/finance/reports-api";
 
@@ -42,27 +41,8 @@ function Frame({ title, entity, path, children }: { title: string; entity: strin
   );
 }
 
-// Income Statement lives in ./income-statement-tab and Balance Sheet in
-// ./balance-sheet-tab — both rebuilt to the Vision prototype.
-
-export function CashFlowReport({ entity, currency }: { entity: string; currency?: string | null }) {
-  const { data, isLoading, isError, refetch } = useGetCashFlowQuery({ entity });
-  if (isLoading) return <LoadingState />;
-  if (isError || !data) return <ErrorState onRetry={refetch} />;
-  const d = data.data;
-  return (
-    <Frame title="Cash Flow Statement" entity={entity} path="/finance/reports/cash-flow/">
-      <table className="w-full">
-        <tbody>
-          <tr><td className={td}>Opening cash</td><td className={td + " text-right"}><Money kobo={d.opening_cash.kobo} currency={currency} align="right" /></td></tr>
-          {Object.entries(d.by_activity).map(([k, v]) => <tr key={k}><td className={td + " capitalize"}>{k} activities</td><td className={td + " text-right"}><Money kobo={v.kobo} currency={currency} align="right" /></td></tr>)}
-          <tr className="font-semibold"><td className={td}>Net change</td><td className={td + " text-right"}><Money kobo={d.net_change.kobo} currency={currency} align="right" /></td></tr>
-          <tr className="font-semibold"><td className={td}>Closing cash</td><td className={td + " text-right"}><Money kobo={d.closing_cash.kobo} currency={currency} align="right" /></td></tr>
-        </tbody>
-      </table>
-    </Frame>
-  );
-}
+// Income Statement (./income-statement-tab), Balance Sheet (./balance-sheet-tab) and
+// Cash Flow (./cash-flow-tab) are rebuilt to the Vision prototype.
 
 export function EquityReport({ entity, currency }: { entity: string; currency?: string | null }) {
   const { data, isLoading, isError, refetch } = useGetChangesInEquityQuery({ entity });

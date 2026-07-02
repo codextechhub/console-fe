@@ -132,12 +132,19 @@ export interface BalanceSheet {
   difference: ReportMoney;
 }
 
+export interface CashFlowLine {
+  account_id: number;
+  code: string;
+  name: string;
+  amount: ReportMoney;   // credit − debit on the non-cash leg: + = cash in, − = cash out
+}
 export interface CashFlow {
   entity: string;
   period: string | null;
   opening_cash: ReportMoney;
   closing_cash: ReportMoney;
   by_activity: Record<string, ReportMoney>;
+  activity_lines: Record<string, CashFlowLine[]>;   // operating | investing | financing
   net_change: ReportMoney;
   is_reconciled: boolean;
 }
