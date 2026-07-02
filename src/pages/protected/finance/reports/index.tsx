@@ -6,10 +6,10 @@ import { useParams } from "react-router";
 import { FinanceShell } from "../finance-shell";
 import { useActiveEntity, InfoHint } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
-import { EquityReport } from "./statements";
 import { IncomeStatementReport } from "./income-statement-tab";
 import { BalanceSheetReport } from "./balance-sheet-tab";
 import { CashFlowReport } from "./cash-flow-tab";
+import { EquityReport } from "./equity-tab";
 import { TrialBalanceReport } from "./trial-balance-tab";
 import { AnalyticsSliceReport } from "./analytics-slice-tab";
 import { PeriodsTab } from "./periods-tab";
@@ -34,6 +34,9 @@ const TITLE_HINT: Record<string, ReactNode> = {
   ),
   "cash-flow": (
     <>Where cash actually came from and went — the <span className="font-semibold">direct method</span>: every posted transaction that moved cash, grouped into operating, investing and financing. Opening cash plus the net change equals closing cash.</>
+  ),
+  "changes-in-equity": (
+    <>How each equity component moved over the period: <span className="font-semibold">opening + profit + contributions − distributions = closing</span>. Closing equity reconciles to the balance sheet.</>
   ),
 };
 
