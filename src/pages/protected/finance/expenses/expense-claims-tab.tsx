@@ -12,10 +12,10 @@ import { useMemo, useRef, useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import {
-  Plus, Search, Trash2, Download, Check, X, Printer, Wallet, Paperclip, UploadCloud, CircleDashed, CircleCheck,
+  Plus, Search, Trash2, Download, Check, X, Printer, Wallet, Paperclip, UploadCloud, CircleDashed, CircleCheck, Ban,
 } from "lucide-react";
 import {
-  DataTable, Money, MoneyInput, DetailDrawer, FormField,
+  DataTable, Money, MoneyInput, DetailDrawer, FormField, ConfirmActionModal,
   AccountPicker, TaxCodePicker, CostCenterPicker, BankAccountPicker, toArray, type Column,
 } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
@@ -27,7 +27,7 @@ import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
   useGetExpenseClaimsQuery, useGetExpenseClaimSummaryQuery, useGetExpenseClaimQuery, useCreateExpenseClaimMutation,
-  usePostExpenseClaimMutation, useRejectExpenseClaimMutation, useSettleExpenseClaimMutation,
+  usePostExpenseClaimMutation, useRejectExpenseClaimMutation, useSettleExpenseClaimMutation, useVoidExpenseClaimMutation,
   useUploadExpenseReceiptMutation, useDeleteExpenseReceiptMutation,
 } from "@/redux/services/finance/ops-api";
 import type { ExpenseClaim, ExpenseClaimLine } from "@/redux/services/finance/ops-types";
@@ -165,19 +165,25 @@ function Step({ done, active, title, sub }: { done: boolean; active?: boolean; t
 function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: ExpenseClaim | null; entity: string; currency?: string | null; onClose: () => void }) {
   const { can } = useCan();
   const [paying, setPaying] = useState(false);
+  const [voidOpen, setVoidOpen] = useState(false);
   const { data } = useGetExpenseClaimQuery(claim ? { id: claim.id, entity } : skipToken);
   const full = data?.data ?? claim;
   const [post, { isLoading: posting }] = usePostExpenseClaimMutation();
   const [reject, { isLoading: rejecting }] = useRejectExpenseClaimMutation();
+  const [voidClaim, { isLoading: voiding }] = useVoidExpenseClaimMutation();
   if (!claim || !full) return null;
 
   const d = disp(full);
   const isDraft = full.status === "DRAFT";
   const isApprovedUnpaid = full.status === "POSTED" && full.payment_status !== "PAID";
+  // Void needs a posted claim with NO reimbursement yet (the backend refuses once
+  // amount_paid > 0 — including partial); reject is the DRAFT path.
+  const canVoid = full.status === "POSTED" && full.payment_status === "UNPAID";
   const attachable = full.status !== "CANCELLED" && full.payment_status !== "PAID";
 
   const doPost = async () => { try { const r = await post({ id: full.id, entity }).unwrap(); toast.success(r.message || "Claim approved."); } catch { /* central */ } };
   const doReject = async () => { try { const r = await reject({ id: full.id, entity }).unwrap(); toast.success(r.message || "Claim rejected."); } catch { /* central */ } };
+  const doVoid = async () => { try { const r = await voidClaim({ id: full.id, entity }).unwrap(); toast.success(r.message || "Claim voided."); setVoidOpen(false); } catch { /* central */ } };
 
   return (
     <>
@@ -195,6 +201,11 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
               <Can permission={P.FIN_POST_EXPENSE_CLAIM}>
                 <Button variant="outline" disabled={rejecting} onClick={doReject} className="gap-1.5"><X className="size-4" /> Reject</Button>
                 <Button disabled={posting} onClick={doPost} className="gap-1.5"><Check className="size-4" />{posting ? "Approving…" : "Approve"}</Button>
+              </Can>
+            ) : null}
+            {canVoid ? (
+              <Can permission={P.FIN_POST_EXPENSE_CLAIM}>
+                <Button variant="outline" disabled={voiding} onClick={() => setVoidOpen(true)} className="gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/5"><Ban className="size-4" /> Void</Button>
               </Can>
             ) : null}
             {isApprovedUnpaid ? (
@@ -253,6 +264,16 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
       </DetailDrawer>
 
       {paying ? <PayDrawer claim={full} entity={entity} currency={currency} onClose={() => setPaying(false)} /> : null}
+      <ConfirmActionModal
+        open={voidOpen}
+        onOpenChange={setVoidOpen}
+        title={`Void ${full.document_number}?`}
+        description="Reverses the claim's posting journal (a mirror entry backing out the expense and accrued reimbursement) and cancels the claim. Use this to undo a claim posted in error — it can't be voided once any reimbursement has been paid."
+        confirmText="Void claim"
+        destructive
+        loading={voiding}
+        onConfirm={doVoid}
+      />
     </>
   );
 }
