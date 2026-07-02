@@ -492,15 +492,15 @@ header cards stay accurate under pagination: `expense-claims/summary/`,
 straight-line monthly is summed in Python over the bounded active set). Expense
 claims gained a server-side `q` search + a `display_status` translator
 (Draft/Approved/Paid/Rejected → the underlying status × payment_status filters).
-**Reports & Close design (update):** Trial Balance, Income Statement (P&L, with
-Budget/Prior-year compare), **Balance Sheet** (IFRS SOFP sections; fixed a
-pre-existing contra-account sign bug so accumulated depreciation nets against
-PP&E and the sheet balances — `_net_by_account` signs by account **type**, not
-`normal_balance`), and **Cash Flow** (direct method, each activity broken into
-counter-account line items) are all rebuilt to the prototype. Each statement's ⓘ
-explainer now sits beside the page title (`reports/index.tsx` `TITLE_HINT`), not
-a duplicate in-tab heading. **Next:** Changes in Equity (still generic
-`statements.tsx`).
+**Reports & Close design: COMPLETE.** All six report screens are rebuilt to the
+prototype in dedicated tabs — Trial Balance, Income Statement (P&L, Budget/Prior-
+year compare), Balance Sheet (IFRS SOFP sections), Cash Flow (direct method, per-
+activity line items), Changes in Equity (component × movement matrix), and Cost &
+Dimension Analysis. The generic `statements.tsx` renderer is deleted. Each
+statement's ⓘ explainer sits beside the page title (`reports/index.tsx`
+`TITLE_HINT`). Fixed a pre-existing contra-account sign bug in `_net_by_account`
+(sign by account **type**, not `normal_balance`) so accumulated depreciation nets
+against PP&E and the balance sheet balances.
 
 Cross-run roll-ups that must stay whole — payroll Payslips/Statutory and the
 petty-cash fund drawer's vouchers — request `page_size=100` rather than a pager.
