@@ -116,14 +116,24 @@ export interface Dimension {
 export interface FinanceAuditLog {
   id: number;
   action: string;
+  action_display: string;
   status: string;
   actor: string | null;
   target_type: string;
   target_id: number | null;
   document_number: string | null;
   message: string;
-  metadata: Record<string, unknown>;
+  // Field-level snapshot of the audited change; the UI summarises the diff.
+  before: Record<string, unknown>;
+  after: Record<string, unknown>;
   created_at: string;
+}
+
+// Distinct filter options for the entity's audit trail (drives the dropdowns).
+export interface FinanceAuditFacets {
+  actors: { id: number; email: string }[];
+  target_types: string[];
+  actions: { value: string; label: string }[];
 }
 
 export interface CloseChecklistItem {

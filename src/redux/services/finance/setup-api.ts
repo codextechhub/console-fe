@@ -16,6 +16,7 @@ import type {
   Dimension,
   Currency,
   FinanceAuditLog,
+  FinanceAuditFacets,
   FiscalPeriod,
   PeriodChecklist,
   PeriodCloseResult,
@@ -96,8 +97,13 @@ export const setupApi = baseApi.injectEndpoints({
       query: (body) => ({ url: `/finance/fx-rates/`, method: "POST", body }),
       invalidatesTags: ["FinanceSetup"],
     }),
-    getAuditLog: b.query<PaginatedEnvelope<FinanceAuditLog>, { entity: string; page?: number; action?: string }>({
+    getAuditLog: b.query<PaginatedEnvelope<FinanceAuditLog>, { entity: string; page?: number; action?: string; status?: string; target_type?: string; actor?: number | string; date_from?: string; date_to?: string }>({
       query: (p) => ({ url: `/finance/audit-logs/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinanceAuditLog"],
+    }),
+    // Distinct filter options (actors / target types / actions) present for the entity.
+    getAuditFacets: b.query<ApiEnvelope<FinanceAuditFacets>, { entity: string }>({
+      query: (p) => ({ url: `/finance/audit-logs/facets/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceAuditLog"],
     }),
   }),
@@ -122,4 +128,5 @@ export const {
   useUpsertDimensionMutation,
   useGetFxRatesQuery,
   useGetAuditLogQuery,
+  useGetAuditFacetsQuery,
 } = setupApi;
