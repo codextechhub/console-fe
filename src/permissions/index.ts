@@ -205,9 +205,15 @@ const REGISTRY: Record<string, string> = {
   "201915": "finance.expenseclaim.settle",
   "202001": "finance.pettycash.view",
   "202002": "finance.pettycash.create",
-  "202008": "finance.pettycash.manage",
-  "202013": "finance.pettycash.post",
+  "202003": "finance.pettycash.update",
+  "202008": "finance.pettycash.manage",       // orphan — superseded by the split below
+  "202013": "finance.pettycash.post",         // orphan — now finance.pettycashvoucher.post
   "202036": "finance.pettycash.replenish",
+  "202040": "finance.pettycash.establish",
+  // petty cash *voucher* — split out as its own resource (RR=29)
+  "202901": "finance.pettycashvoucher.view",
+  "202902": "finance.pettycashvoucher.create",
+  "202913": "finance.pettycashvoucher.post",
   "202101": "finance.tax.view",
   "202108": "finance.tax.manage",
   "202116": "finance.tax.pay",
@@ -468,9 +474,14 @@ export const P = {
   FIN_SETTLE_EXPENSE_CLAIM: "201915",
   FIN_VIEW_PETTY_CASH:      "202001",
   FIN_CREATE_PETTY_CASH:    "202002",
-  FIN_MANAGE_PETTY_CASH:    "202008",
-  FIN_POST_PETTY_CASH:      "202013",
+  FIN_UPDATE_PETTY_CASH:    "202003",
+  FIN_MANAGE_PETTY_CASH:    "202008",   // deprecated — see the split keys below
+  FIN_POST_PETTY_CASH:      "202013",   // deprecated — use FIN_POST_PETTY_CASH_VOUCHER
   FIN_REPLENISH_PETTY_CASH: "202036",
+  FIN_ESTABLISH_PETTY_CASH: "202040",
+  FIN_VIEW_PETTY_CASH_VOUCHER:   "202901",
+  FIN_CREATE_PETTY_CASH_VOUCHER: "202902",
+  FIN_POST_PETTY_CASH_VOUCHER:   "202913",
   FIN_VIEW_TAX:             "202101",
   FIN_MANAGE_TAX:           "202108",
   FIN_PAY_TAX:              "202116",

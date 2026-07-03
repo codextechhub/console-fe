@@ -188,6 +188,11 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/finance/petty-cash-vouchers/${id}/post/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinancePettyCash", "FinanceJournals"],
     }),
+    // Void a posted voucher: reverses its journal, returns cash to the tin, CANCELLED.
+    voidPettyCashVoucher: b.mutation<ApiEnvelope<PettyCashVoucher>, Act>({
+      query: ({ id, entity }) => ({ url: `/finance/petty-cash-vouchers/${id}/void/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinancePettyCash", "FinanceJournals", "FinanceReports"],
+    }),
 
     // Payroll
     getPayrollRuns: b.query<PaginatedEnvelope<PayrollRun>, E & { run_status?: string }>({
@@ -394,6 +399,7 @@ export const {
   useGetPettyCashVouchersQuery,
   useCreatePettyCashVoucherMutation,
   usePostPettyCashVoucherMutation,
+  useVoidPettyCashVoucherMutation,
   useGetPayrollRunsQuery,
   useGetPayrollSummaryQuery,
   useGetPayrollRunQuery,

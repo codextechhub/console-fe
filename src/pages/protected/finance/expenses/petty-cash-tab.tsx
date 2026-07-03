@@ -9,9 +9,9 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Coins, ArrowDownToLine, RefreshCw, FileText, ListChecks } from "lucide-react";
+import { Plus, Coins, ArrowDownToLine, RefreshCw, FileText, ListChecks, Ban } from "lucide-react";
 import {
-  DataTable, Money, MoneyInput, DetailDrawer, FormField,
+  DataTable, Money, MoneyInput, DetailDrawer, FormField, ConfirmActionModal,
   AccountPicker, TaxCodePicker, BankAccountPicker, StatusPill, toArray, type Column,
 } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
@@ -24,7 +24,7 @@ import { P } from "@/permissions";
 import {
   useGetPettyCashFundsQuery, useGetPettyCashFundQuery, useCreatePettyCashFundMutation,
   useEstablishPettyCashMutation, useReplenishPettyCashMutation, useGetPettyCashVouchersQuery,
-  useCreatePettyCashVoucherMutation, usePostPettyCashVoucherMutation,
+  useCreatePettyCashVoucherMutation, usePostPettyCashVoucherMutation, useVoidPettyCashVoucherMutation,
 } from "@/redux/services/finance/ops-api";
 import type { PettyCashFund, PettyCashVoucher, PettyCashMovement } from "@/redux/services/finance/ops-types";
 
@@ -66,7 +66,7 @@ export function PettyCashTab({ entity, currency }: { entity: string; currency?: 
       <>
         <EmptyState title="No petty-cash floats" message="Establish a float — set it up and fund it in one step." />
         <div className="mt-3 flex justify-center">
-          <Can permission={P.FIN_REPLENISH_PETTY_CASH}><Button onClick={() => setEstablishing(true)} className="gap-1.5"><ArrowDownToLine className="size-4" /> Establish float</Button></Can>
+          <Can permission={P.FIN_ESTABLISH_PETTY_CASH}><Button onClick={() => setEstablishing(true)} className="gap-1.5"><ArrowDownToLine className="size-4" /> Establish float</Button></Can>
         </div>
         {establishDrawer}
       </>
@@ -118,11 +118,13 @@ function FundWorkbench({ fund, entity, currency, onEstablish }: { fund: PettyCas
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Can permission={P.FIN_REPLENISH_PETTY_CASH}>
+          <Can permission={P.FIN_ESTABLISH_PETTY_CASH}>
             <Button variant="outline" onClick={onEstablish} className="gap-1.5"><ArrowDownToLine className="size-4" /> Establish float</Button>
+          </Can>
+          <Can permission={P.FIN_REPLENISH_PETTY_CASH}>
             <Button variant="outline" onClick={() => setDrawer("replenish")} className="gap-1.5"><RefreshCw className="size-4" /> Replenish</Button>
           </Can>
-          <Can permission={P.FIN_CREATE_PETTY_CASH}>
+          <Can permission={P.FIN_CREATE_PETTY_CASH_VOUCHER}>
             <Button onClick={() => setDrawer("voucher")} className="gap-1.5"><Plus className="size-4" /> New voucher</Button>
           </Can>
         </div>
@@ -161,7 +163,14 @@ function FundWorkbench({ fund, entity, currency, onEstablish }: { fund: PettyCas
 function VouchersList({ vouchers, entity, currency, loading }: { vouchers: PettyCashVoucher[]; entity: string; currency?: string | null; loading: boolean }) {
   const { can } = useCan();
   const [post] = usePostPettyCashVoucherMutation();
+  const [voidVoucher, { isLoading: voiding }] = useVoidPettyCashVoucherMutation();
+  const [voidTarget, setVoidTarget] = useState<PettyCashVoucher | null>(null);
+  const canManage = can(P.FIN_POST_PETTY_CASH_VOUCHER);
   const doPost = async (id: number) => { try { const r = await post({ id, entity }).unwrap(); toast.success(r.message || "Voucher posted."); } catch { /* central */ } };
+  const doVoid = async () => {
+    if (!voidTarget) return;
+    try { const r = await voidVoucher({ id: voidTarget.id, entity }).unwrap(); toast.success(r.message || "Voucher voided."); setVoidTarget(null); } catch { /* central */ }
+  };
   const cols: Column<PettyCashVoucher>[] = [
     { header: "Voucher no.", cell: (v) => <span className="font-semibold tabular-nums">{v.document_number}</span> },
     { header: "Expense account", cell: (v) => <span className="tabular-nums text-gray-05">{v.expense_account || "—"}</span> },
@@ -169,12 +178,28 @@ function VouchersList({ vouchers, entity, currency, loading }: { vouchers: Petty
     { header: "Date", cell: (v) => <span className="tabular-nums text-gray-05">{fmtDate(v.voucher_date)}</span> },
     { header: "Amount", align: "right", cell: (v) => <Money kobo={v.total} currency={currency} align="right" /> },
     { header: "Status", cell: (v) => <StatusPill status={v.status} /> },
-    { header: "", align: "right", cell: (v) => v.status === "DRAFT" && can(P.FIN_POST_PETTY_CASH)
-      ? <button type="button" onClick={() => doPost(v.id)} className="font-mont text-[11px] font-medium text-primary hover:underline">Post</button> : null },
+    { header: "", align: "right", cell: (v) => !canManage ? null
+      : v.status === "DRAFT"
+        ? <button type="button" onClick={() => doPost(v.id)} className="font-mont text-[11px] font-medium text-primary hover:underline">Post</button>
+        : v.status === "POSTED"
+          ? <button type="button" onClick={() => setVoidTarget(v)} className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-destructive hover:underline"><Ban className="size-3" /> Void</button>
+          : null },
   ];
   return (
-    <DataTable columns={cols} rows={vouchers} rowKey={(v) => v.id} loading={loading}
-      emptyTitle="No vouchers" emptyMessage="Record a voucher with New voucher." />
+    <>
+      <DataTable columns={cols} rows={vouchers} rowKey={(v) => v.id} loading={loading}
+        emptyTitle="No vouchers" emptyMessage="Record a voucher with New voucher." />
+      <ConfirmActionModal
+        open={!!voidTarget}
+        onOpenChange={(o) => !o && setVoidTarget(null)}
+        title={voidTarget ? `Void ${voidTarget.document_number}?` : "Void voucher?"}
+        description="Reverses the voucher's posting journal and returns the cash to the tin, then cancels the voucher. Use this to undo a voucher posted in error."
+        confirmText="Void voucher"
+        destructive
+        loading={voiding}
+        onConfirm={doVoid}
+      />
+    </>
   );
 }
 
@@ -184,6 +209,8 @@ function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCash
   const [amount, setAmount] = useState(0);
   const [tax, setTax] = useState("");
   const [narration, setNarration] = useState("");
+  const { can } = useCan();
+  const canPost = can(P.FIN_POST_PETTY_CASH_VOUCHER);
   const [create, { isLoading }] = useCreatePettyCashVoucherMutation();
   const [post, { isLoading: posting }] = usePostPettyCashVoucherMutation();
 
@@ -207,7 +234,9 @@ function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCash
       widthClass="sm:max-w-lg"
       footer={<>
         <Button variant="outline" disabled={isLoading || posting} onClick={() => submit(false)}>Save draft</Button>
-        <Button disabled={!canSubmit || isLoading || posting} onClick={() => submit(true)} className="gap-1.5"><Coins className="size-4" />{posting ? "Posting…" : "Save & post"}</Button>
+        {canPost && (
+          <Button disabled={!canSubmit || isLoading || posting} onClick={() => submit(true)} className="gap-1.5"><Coins className="size-4" />{posting ? "Posting…" : "Save & post"}</Button>
+        )}
       </>}
     >
       <div className="space-y-4">
