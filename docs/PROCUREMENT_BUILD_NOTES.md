@@ -228,7 +228,51 @@ build time; (a) recommended. This is the **only** screen likely needing backend.
   or the error boundary is a failure even if the run "succeeded". Entity-scoped
   screens need a ledger entity (CODEX / CREST in dev).
 
+## Seeding data for checks & cleanup — READ before verifying a screen
+Use entity **`CODEX`** for all checks (CREST also exists; stick to CODEX so data
+is consistent — same convention finance uses). Procurement is entity-scoped over
+the **same `vs_finance.LedgerEntity`**, and its postings write **real finance
+journals**, so before any populated check the entity must have:
+- **RBAC keys**: `python manage.py seed_procurement_permissions` (idempotent).
+- **Finance chart of accounts + at least one OPEN fiscal period** for the posting
+  date — `python manage.py seed_finance_ar_demo --all` gives CODEX its chart + 12
+  open periods. Without them GRN/invoice/payment posting 409s `PERIOD_CLOSED`
+  (or fails on a missing GL account: GR/IR clearing, AP, Inventory/Expense, Bank).
+
+**There is NO procurement demo-data seed command yet** — only
+`seed_procurement_permissions`. So dummy business data (a vendor, a PO, a GRN to
+post, a matchable invoice) must be created **ad-hoc via the Django shell using the
+real services**, never raw status writes:
+- Services: `create_po_from_requisition`, `issue_rfq`, `award_quotation`,
+  `post_grn`, `match_vendor_invoice`, `post_vendor_invoice`, `post_vendor_payment`,
+  `receive_stock`, `issue_stock` (in `vs_procurement`).
+- Models: `Vendor`, `VendorCategory`, `CatalogItem`, `PurchaseOrder(+Line)`,
+  `GoodsReceipt`, `VendorInvoice(+Line)`, `VendorPayment(+Allocation)`,
+  `Requisition`, `Rfq(+Line)`, `VendorQuotation(+Line)`, `VendorContract(+Milestone)`,
+  `StockItem`.
+- Amounts are **kobo** (₦80,000 = `8000000`). The **canonical example of how to
+  build valid records + open period + vendor + tax codes** is the fixture in
+  `vs_procurement/tests.py` (`setUp` / the `_FixtureMixin` — it does
+  `seed_chart_of_accounts(entity)` + an open `FiscalPeriod` + a `Vendor`). Copy it.
+- **Early task worth doing** (like finance's AR demo): add a `seed_procurement_demo`
+  management command so populated click-throughs are repeatable instead of hand-built.
+
+**Cleanup after a test:** `/verify-design` drives are **read-only**, and its
+`scrub.sh` deletes **only** the test-login trail (loginsession / authattempt /
+LOGIN_SUCCESS audit since the baseline + resets `last_login`) — it **never** touches
+procurement business rows. So anything you seed **stays in the dev DB for reuse**;
+delete ad-hoc rows by hand if you want a clean slate (harmless either way). Record
+the standing demo rows you create here (as finance's notes do) so later checks know
+what exists.
+
+## Tests (mirror finance — security first)
+Procurement tests live in `vs_procurement/tests.py`. For any backend change, add:
+the **permission-denied (403)** case and **cross-entity isolation** first, then the
+happy path + each action/filter. Run with `--keepdb` (avoids the `test_cx_db`
+lock). Every posting test asserts the **real journal** (Dr/Cr) it writes.
+
 ## Status
 Roadmap authored; **no screens rebuilt yet**. Nav/shell/backend already in place.
 Next: build the **Dashboard** first (resolve its data-source decision), then work
-top-to-bottom through the nav.
+top-to-bottom through the nav. **No procurement demo-seed command exists** — seed
+ad-hoc on CODEX (see above) or add one early.
