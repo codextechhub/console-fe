@@ -65,6 +65,48 @@ Render recipe (SPA — `networkidle` fires before it mounts):
   sentence-case; drawer sub-table `th`/`td` as specified). Consoles render in
   Geist via `.console-geist`.
 
+## Drawer styles (reuse the finance-ui primitives — do not hand-roll)
+Everything opens in a **right-side drawer**, never a centered modal (unless the
+prototype explicitly shows one). All portal to `<body>` and carry `.console-geist`
+themselves. Full typography rules: `FINANCE_BUILD_NOTES.md` §Typography.
+
+**Detail drawer — `DetailDrawer` (`@/components/finance-ui`)**
+- Props: `open`, `onOpenChange`, `title`, `description?`, `children`, `footer?`,
+  `widthClass` (default `sm:max-w-xl`; use `sm:max-w-3xl` for wide records like the
+  3-way match or a Dr/Cr posting recap).
+- Header (component-set): title `font-mont text-base font-semibold text-black-01`
+  + description `text-xs text-gray-05`. Body scrolls; `footer` is a right-aligned
+  actions row.
+- Rich records → **tabs with icons** (e.g. Lines · Match · GL · Activity).
+- **Field row** (the `Stat`/`Field` helper): label `font-mont text-[11px]
+  text-gray-05` (sentence case — no uppercase/tracking); value `mt-1 font-mont
+  text-sm font-semibold tabular-nums text-black-01`; long prose → `font-normal`.
+- **Sub-table** inside a drawer: `th = bg-[#F1F1F1] px-3 py-2 font-mont text-[11px]
+  font-semibold text-gray-01`; `td = border-t border-gray-03 px-3 py-2 font-mont
+  text-xs text-black-01`.
+- **GL / posting recap**: `PostingRecap` + `RecapRow` (Dr/Cr grouped card,
+  "Debits = Credits" badge). Recaps the **real** journal only.
+- Footer actions: Post / Submit / Match etc.; Print = `window.print()`;
+  email/comms = **disabled-with-tooltip**.
+
+**Form (create/edit) drawer — `FormDrawer` (`@/components/finance-ui`)**
+- Built on `DetailDrawer`; owns the Cancel/Submit footer. Props: `open`,
+  `onOpenChange`, `title`, `description?`, `onSubmit`, `submitText`, `loading`,
+  `canSubmit` (gates the submit button), `widthClass` (default `sm:max-w-lg`).
+- Wrap each field in **`FormField`** (`label`, `required`) — label renders
+  `font-mont text-xs text-gray-05`.
+- Inputs: **pickers over `SearchSelect`** for references (`VendorPicker`,
+  `AccountPicker`, `CategoryPicker`/catalog, `BankAccountPicker`…); **`MoneyInput`**
+  for kobo money; **`Segmented`** for enum toggles (options are **tuples not
+  objects** — see [[finance_ui_gotchas]]); **`LineEditor`** (+ `emptyLine`,
+  `toApiLines`, `DocLine`) for document line grids.
+- Gate `canSubmit` on validity (and dirty, for edit). Keep input heights even with
+  the `h-9` / `[&_input]:h-9` pattern. `FormField` has **no** `hint` prop.
+- A create drawer that will **post** shows a **live `PostingRecap` preview** of the
+  journal that will be written (mirrors the real posting — no second journal).
+- `FormModal` is the centered-dialog sibling; use it only where the prototype
+  shows a centered modal.
+
 ## Honesty rules
 Never fake an action. **Email/comms** actions (email a PO to a vendor, send an
 RFQ) are present but **disabled-with-tooltip** until a service exists. **Posting**
