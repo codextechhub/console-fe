@@ -124,7 +124,7 @@ function ImpersonationDetailDrawer({
               </div>
 
               {/* Stat strip */}
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {[
                   { label: "Started", value: formatRelativeDate(session.started_at) },
                   {

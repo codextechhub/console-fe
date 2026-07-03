@@ -69,7 +69,7 @@ export function WizardStepper({ currentStep }: { currentStep: WizardStep }) {
           const isComplete = num < currentStep;
           const isActive = num === currentStep;
           return (
-            <div key={num} className="flex items-center flex-1">
+            <div key={num} className="flex min-w-0 items-center flex-1">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className={cn(
                   "size-7 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-all",
@@ -79,7 +79,7 @@ export function WizardStepper({ currentStep }: { currentStep: WizardStep }) {
                 )}>
                   {isComplete ? <Check className="size-3.5" /> : num}
                 </div>
-                <div className="min-w-0 hidden md:block">
+                <div className="min-w-0 hidden lg:block">
                   <p className={cn(
                     "text-[10px] uppercase tracking-wide",
                     isActive ? "text-gray-500" : "text-gray-300",
@@ -94,7 +94,7 @@ export function WizardStepper({ currentStep }: { currentStep: WizardStep }) {
               </div>
               {i < STEP_LABELS.length - 1 && (
                 <div className={cn(
-                  "flex-1 h-px mx-3",
+                  "flex-1 h-px mx-3 min-w-3",
                   isComplete ? "bg-green-600" : "bg-gray-200",
                 )} />
               )}
@@ -501,7 +501,7 @@ export function HeaderReviewStep({
         </Badge>
       </div>
 
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         {/* Template headers */}
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -1058,7 +1058,7 @@ export function ImportProgressStep({
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <CounterCard label="Processed" value={processed} />
         <CounterCard label="Succeeded" value={succeeded} accent="success" />
         <CounterCard label="Failed" value={failed} accent="destructive" />
@@ -1168,7 +1168,7 @@ export function CompleteStep({
       </div>
 
       {job && (
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard label="Succeeded" value={job.succeeded_rows} icon={<Check className="size-4" />} iconBg="bg-green-50 text-green-600" />
           <StatCard label="Failed" value={job.failed_rows} icon={<X className="size-4" />} iconBg="bg-red-50 text-destructive" />
           <StatCard label="Skipped" value={job.skipped_rows} icon={<ChevronRight className="size-4" />} iconBg="bg-amber-50 text-amber-600" />

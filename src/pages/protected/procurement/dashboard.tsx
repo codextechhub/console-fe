@@ -62,7 +62,7 @@ export default function ProcurementDashboard() {
           <EmptyState title="Select an entity" message="Choose an entity to see procurement." />
         ) : (
           <>
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
               <KpiCard label="Vendors" value={count(vendors)} help="Active vendors on this entity." />
               <KpiCard label="Open requisitions" value={count(reqs)} help="Purchase requisitions not yet fully ordered." />
               <KpiCard label="Open purchase orders" value={count(pos)} help="POs raised, awaiting receipt/invoicing." />
@@ -72,14 +72,15 @@ export default function ProcurementDashboard() {
             {/* P2P pipeline */}
             <div>
               <p className="mb-2 font-mont text-sm font-semibold text-gray-01">Procure-to-Pay pipeline</p>
-              <div className="flex flex-wrap items-stretch gap-2">
+              {/* Phone: 2-up grid without flow chevrons; sm+: the chevroned strip. */}
+              <div className="grid grid-cols-2 items-stretch gap-2 sm:flex sm:flex-wrap">
                 {stages.map((s, i) => (
                   <div key={s.label} className="flex items-center gap-2">
-                    <button onClick={() => navigate(s.url)} className="min-w-40 rounded-md bg-white px-4 py-3 text-left transition-colors hover:bg-primary/5">
+                    <button onClick={() => navigate(s.url)} className="w-full rounded-md bg-white px-4 py-3 text-left transition-colors hover:bg-primary/5 sm:w-auto sm:min-w-40">
                       <p className="font-mont text-xs text-gray-05">{s.label}</p>
                       <p className="mt-1 font-mont text-xl font-semibold text-black-01">{s.value}</p>
                     </button>
-                    {i < stages.length - 1 && <ChevronRight className="size-5 shrink-0 text-gray-03" />}
+                    {i < stages.length - 1 && <ChevronRight className="hidden size-5 shrink-0 text-gray-03 sm:block" />}
                   </div>
                 ))}
               </div>

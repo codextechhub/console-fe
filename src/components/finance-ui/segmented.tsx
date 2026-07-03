@@ -15,7 +15,7 @@ export function Segmented<T extends string>({ value, onChange, options, label, i
   return (
     <div>
       {label ? <p className="mb-2 font-mont text-xs text-gray-05">{label}</p> : null}
-      <div className={cn("inline-flex gap-1 rounded-lg bg-[#ECECEC] p-1", className)}>
+      <div className={cn("inline-flex max-w-full gap-1 overflow-x-auto rounded-lg bg-[#ECECEC] p-1", className)}>
         {options.map(([v, lbl]) => {
           const dis = isDisabled?.(v) ?? false;
           return (

@@ -175,7 +175,7 @@ export default function EntityTrailDetail() {
               </div>
 
               {/* Stat strip — 4 tiles */}
-              <div className="grid grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 sm:grid-cols-4">
                 <div>
                   <p className="text-[10px] uppercase text-gray-01 tracking-wide mb-0.5">Events</p>
                   <p className="text-xl font-semibold">{trail.event_count}</p>

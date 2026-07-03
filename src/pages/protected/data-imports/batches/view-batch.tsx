@@ -306,7 +306,7 @@ export default function ViewBatch() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
                   <StatBlock label="Total Rows" value={batch.total_rows.toLocaleString()} />
                   <StatBlock label="Columns" value={batch.total_columns.toLocaleString()} />
                   <StatBlock
@@ -325,7 +325,7 @@ export default function ViewBatch() {
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 pt-2">
+                <div className="grid grid-cols-1 gap-4 pt-2 sm:grid-cols-3">
                   <ReadyChip label="Structure matches template" ok={batch.structure_matches_template} />
                   <ReadyChip label="No critical errors" ok={!batch.has_critical_errors} />
                   <ReadyChip label="Ready for import" ok={batch.is_ready_for_import} />

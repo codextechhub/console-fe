@@ -194,7 +194,7 @@ export function TaskModal({
               className="resize-none"
             />
           </Field>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Metric">
               <Input value={form.metric} onChange={set("metric")} placeholder="e.g. Deals closed" />
             </Field>
@@ -202,7 +202,7 @@ export function TaskModal({
               <Input value={form.target} onChange={set("target")} placeholder="e.g. 15 deals" />
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Deadline" error={errors.deadline}>
               <Input type="date" value={form.deadline} onChange={set("deadline")} />
             </Field>

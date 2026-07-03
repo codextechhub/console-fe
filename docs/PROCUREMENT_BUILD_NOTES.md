@@ -64,6 +64,16 @@ Render recipe (SPA — `networkidle` fires before it mounts):
   text-[11px] font-medium`; drawer field label `text-[11px] text-gray-05`
   sentence-case; drawer sub-table `th`/`td` as specified). Consoles render in
   Geist via `.console-geist`.
+- **Responsive (phone/tablet)**: pages must never overflow horizontally.
+  `DashboardLayout` wraps pages in `grid grid-cols-1 min-w-0` (don't remove — it
+  stops nowrap tables stretching `<main>`). `DataTable` renders rows as stacked
+  label/value cards below `md` (opt out per table with `mobile="scroll"` for
+  dense reports; custom card via `mobileCard`). Toolbars `flex-wrap`; tab strips
+  `max-w-full overflow-x-auto`; form grids `grid-cols-1 sm:grid-cols-N`;
+  count-KPI strips `grid-cols-2 … lg:grid-cols-4`, money-KPI strips stay 1-col
+  on phones; drawers `w-full sm:max-w-[…]`. Verify with
+  `.claude/skills/verify-design/_mobile_audit.mjs` (drive.mjs at 390/820px + a
+  page-overflow probe): run from the skill dir with `BASE_URL`+`ROUTES`.
 
 ## Drawer styles (reuse the finance-ui primitives — do not hand-roll)
 Everything opens in a **right-side drawer**, never a centered modal (unless the

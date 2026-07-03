@@ -33,6 +33,16 @@ theme** (never copy its palette).
 - Guard every non-paginated list with `toArray()` — an empty list serialises as `{}`.
 - Gate controls with `Can`/`P.FIN_*`; seed new keys via
   `python manage.py seed_finance_permissions` and update `PERMISSIONS_AUDIT.md`.
+- **Responsive (phone/tablet)**: pages must never overflow horizontally.
+  `DashboardLayout` wraps pages in `grid grid-cols-1 min-w-0` (don't remove — it
+  stops nowrap tables stretching `<main>`). `DataTable`/`CustomTable` render rows
+  as stacked label/value cards below `md` (opt out per table with
+  `mobile="scroll"` for dense reports; custom card via `mobileCard`). Toolbars
+  `flex-wrap`; tab strips `max-w-full overflow-x-auto`; form grids
+  `grid-cols-1 sm:grid-cols-N`; count-KPI strips `grid-cols-2 … lg:grid-cols-4`,
+  money-KPI strips stay 1-col on phones; drawers `w-full sm:max-w-[…]`. Verify
+  with `.claude/skills/verify-design/_mobile_audit.mjs` (drive.mjs at 390/820px
+  + a page-overflow probe): run from the skill dir with `BASE_URL`+`ROUTES`.
 
 ## Font / theme structure
 House theme = `font-mont` + palette gray-01 / black-01 / gray-05 / green-01 /

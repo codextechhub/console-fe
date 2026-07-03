@@ -361,7 +361,7 @@ export default function ComplianceRuleForm() {
               {/* Scope summary */}
               <div className="rounded-md border px-4 py-3 space-y-1.5">
                 <p className="text-[10px] font-semibold font-mont text-gray-01 uppercase tracking-wide">Scope</p>
-                <div className="grid grid-cols-3 gap-x-4 gap-y-1.5 text-xs">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-3">
                   <div>
                     <span className="text-gray-01">School</span>
                     <p className="font-medium mt-0.5">{detail.data.school?.name ?? "Global"}</p>
