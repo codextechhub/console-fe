@@ -168,7 +168,7 @@ export default function ImportTemplatesList() {
     <DashboardLayout title="Import Templates">
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="font-semibold font-mont text-gray-01">Import Templates</p>
             <p className="text-xs text-gray-01 mt-0.5">
@@ -192,7 +192,7 @@ export default function ImportTemplatesList() {
         </div>
 
         {/* Stat cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
           {cards.map((card, i) => {
             const isClickable = isCxStaff && card.key !== "all";
             const isActive = isCxStaff && cardFilter === card.key && card.key !== "all";

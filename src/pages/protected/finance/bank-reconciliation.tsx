@@ -186,7 +186,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-mont text-xs text-gray-05">{account.bank_name || "—"} · {account.gl_account}{detail?.statements?.[0]?.period_label ? ` · ${detail.statements[0].period_label}` : ""}</p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => printReport({ account, currency, book, statement, difference, matched, unmatched })} className="gap-1.5"><Printer className="size-4" /> Reconciliation report</Button>
           <Can permission={P.FIN_RECONCILE_BANK}>
             <Button onClick={doComplete} disabled={completing} className="gap-1.5"><CheckCircle2 className="size-4" />{completing ? "Saving…" : "Complete reconciliation"}</Button>

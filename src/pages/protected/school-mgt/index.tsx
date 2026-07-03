@@ -123,12 +123,12 @@ export default function SchoolManagement() {
           </PermissionGate>
         </div>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
           {metricCards.map((item, idx) => (
             <div
               key={idx}
               className={cn(
-                "bg-white rounded-md h-26 w-full px-5.5 pt-5 space-y-2.5 cursor-pointer",
+                "bg-white rounded-md min-h-26 w-full px-4 sm:px-5.5 pt-5 pb-4 space-y-2.5 cursor-pointer",
                 item.active && "bg-pry-01",
               )}
               onClick={() => { setPage(1); setSearchParams({ status: item.query }); }}

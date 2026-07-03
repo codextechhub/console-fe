@@ -260,7 +260,7 @@ export default function MyActivity() {
         </div>
 
         {/* ── Tabs ── */}
-        <div className="h-10 w-fit bg-white rounded-sm py-1 px-1.5 flex items-center gap-x-2">
+        <div className="h-10 w-fit max-w-full overflow-x-auto bg-white rounded-sm py-1 px-1.5 flex items-center gap-x-2">
           {TABS.map((tab) => (
             <button
               key={tab.key}

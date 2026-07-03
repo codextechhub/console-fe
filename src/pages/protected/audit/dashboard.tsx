@@ -137,7 +137,7 @@ export default function AuditDashboard() {
         )}
 
         {/* KPI strip */}
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-6">
           <KpiCard
             label="Active sessions"
             value={kpis?.active_sessions ?? "—"}

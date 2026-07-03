@@ -113,7 +113,7 @@ export function PayoutsTab({ entity, currency }: { entity: string; currency?: st
             {Object.entries(PROVIDERS).map(([v, p]) => <option key={v} value={v}>{p.label}</option>)}
           </Select>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={() => navigate(`${routesPath.PROTECTED.FINANCE.PAYMENTS}/batches`)} className="gap-1.5"><Layers className="size-4" /> Bulk disbursement</Button>
           <Button variant="outline" onClick={() => exportCsv(rows, currency)} disabled={!rows.length} className="gap-1.5"><Download className="size-4" /> Export</Button>
           <Can permission={P.PAY_CREATE_PAYOUT}>

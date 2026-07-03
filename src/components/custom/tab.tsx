@@ -27,7 +27,7 @@ export default function Tabs({ tabKey, tabs }: TabsProps) {
 
   return (
     <div
-      className="h-11 w-fit bg-white rounded-sm py-1 px-1.5 flex items-center gap-x-4"
+      className="h-11 w-fit max-w-full overflow-x-auto bg-white rounded-sm py-1 px-1.5 flex items-center gap-x-4"
       role="tablist"
       aria-label={tabKey}
     >

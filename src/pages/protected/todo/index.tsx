@@ -304,7 +304,7 @@ export default function TodoPage() {
 function DashboardSkeleton() {
   return (
     <div className="space-y-5">
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-26 rounded-md bg-white" />
         ))}

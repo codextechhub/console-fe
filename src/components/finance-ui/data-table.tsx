@@ -24,6 +24,28 @@ export interface Column<T> {
   className?: string;
 }
 
+/** One row as a stacked label/value card — the phone rendering of a list row. */
+function RowCard<T>({ columns, row, onClick }: { columns: Column<T>[]; row: T; onClick?: () => void }) {
+  const [first, ...rest] = columns;
+  return (
+    <div
+      onClick={onClick}
+      className={cn(
+        "space-y-2 border-b border-gray-03 px-3.5 py-3 last:border-0",
+        onClick && "cursor-pointer transition-colors active:bg-primary/5",
+      )}
+    >
+      <div className="font-mont text-sm font-semibold text-black-01">{first.cell(row)}</div>
+      {rest.map((col, i) => (
+        <div key={i} className="flex items-start justify-between gap-3">
+          <span className="shrink-0 font-mont text-[11px] text-gray-05">{col.header}</span>
+          <span className="min-w-0 text-right font-mont text-sm font-medium text-black-01">{col.cell(row)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface DataTableProps<T> {
   columns: Column<T>[];
   rows: T[];
@@ -40,6 +62,12 @@ interface DataTableProps<T> {
   page?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  /** Phone rendering (<md). "cards" (default) stacks each row as a label/value
+   *  card; "scroll" keeps the table with horizontal scroll — for dense
+   *  ledger/report-style tables where column alignment carries meaning. */
+  mobile?: "cards" | "scroll";
+  /** Custom phone card for one row; overrides the generic label/value card. */
+  mobileCard?: (row: T) => React.ReactNode;
 }
 
 const headCls =
@@ -61,11 +89,16 @@ export function DataTable<T>({
   page,
   totalPages,
   onPageChange,
+  mobile = "cards",
+  mobileCard,
 }: DataTableProps<T>) {
   const colCount = columns.length;
   // Defensive: the backend returns `{}` (not `[]`) for an empty list endpoint,
   // so a caller may hand us a non-array. Never let `.map` throw.
   const safeRows: T[] = Array.isArray(rows) ? rows : [];
+  // Cards replace the table on phones only when there are rows to show; the
+  // loading/empty/error/forbidden states render inside the table at any width.
+  const cardsOnPhone = mobile === "cards" && safeRows.length > 0 && !loading && !forbidden;
 
   const body = () => {
     if (forbidden) {
@@ -124,7 +157,32 @@ export function DataTable<T>({
 
   return (
     <div className="rounded-md bg-white">
-      <Table>
+      {cardsOnPhone && (
+        <div className="md:hidden">
+          {safeRows.map((row) =>
+            mobileCard ? (
+              <div
+                key={rowKey(row)}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                className={cn(
+                  "border-b border-gray-03 px-3.5 py-3 last:border-0",
+                  onRowClick && "cursor-pointer transition-colors active:bg-primary/5",
+                )}
+              >
+                {mobileCard(row)}
+              </div>
+            ) : (
+              <RowCard
+                key={rowKey(row)}
+                columns={columns}
+                row={row}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+              />
+            ),
+          )}
+        </div>
+      )}
+      <Table containerClassName={cn(cardsOnPhone && "max-md:hidden")}>
         <TableHeader className="border-0">
           <TableRow>
             {columns.map((col, i) => (

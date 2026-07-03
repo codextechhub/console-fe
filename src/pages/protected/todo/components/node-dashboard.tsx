@@ -49,7 +49,7 @@ export function Breadcrumb({ chain, onJump }: { chain: Person[]; onJump: (index:
 // ── KPI grid (house style: roles/audit metric rows) ───────────────────────────
 function StatsGrid({ stats, scope }: { stats: TaskStats; scope: "branch" | "personal" }) {
   return (
-    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
       <KpiCard label={scope === "branch" ? "Tasks in branch" : "Total tasks"} value={stats.total} />
       <KpiCard label="Completed" value={stats.done} foot={`${stats.pct}% complete`} />
       <KpiCard label="In progress" value={stats.in_progress} />

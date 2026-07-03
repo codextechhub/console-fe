@@ -288,7 +288,7 @@ export default function ImportBatchesList() {
         )}
 
         {/* Stat cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
           {cards.map((card) => {
             const isActive = cardFilter === card.key && card.key !== "all";
             const Icon = card.icon;

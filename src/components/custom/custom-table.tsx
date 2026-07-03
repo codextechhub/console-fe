@@ -36,6 +36,10 @@ interface myComponentProps {
   disabledDropdown?: boolean;
   loadingText?: string;
   emptyText?: string;
+  /** Phone rendering (<md). "cards" (default) stacks each row as a label/value
+   *  card built from the header/cell pairs; "scroll" keeps the table with
+   *  horizontal scroll. */
+  mobile?: "cards" | "scroll";
 }
 
 const CustomTable = ({
@@ -56,6 +60,7 @@ const CustomTable = ({
   hidePagination,
   loadingText,
   emptyText,
+  mobile = "cards",
 }: myComponentProps) => {
   //   pagination here ------
   // Function to generate page numbers with ellipsis
@@ -94,6 +99,62 @@ const CustomTable = ({
     }
   };
 
+  // The action button / kebab menu for one row — shared between the table's
+  // action cell and the phone card's top-right corner.
+  const RowActions = ({ item }: { item: any }) => {
+    const resolvedDropDownList =
+      typeof dropDownList === "function" ? dropDownList(item) : dropDownList;
+    return actionButton ? (
+      <button
+        type="button"
+        disabled={disabledDropdown}
+        onClick={() => {
+          if (actionButtonOnClick) {
+            actionButtonOnClick(item);
+          }
+        }}
+        className="w-13 h-6 rounded-xm border-[0.5px] border-black-02 text-black-02 font-medium text-xs cursor-pointer"
+      >
+        {actionButton}
+      </button>
+    ) : (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          asChild
+          className={cn(
+            "cursor-pointer px-2",
+            disabledDropdown && "cursor-not-allowed",
+          )}
+          disabled={disabledDropdown}
+        >
+          <EllipsisVertical className="size-8" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="border rounded-sm"
+          align="end"
+          style={{ width: width ? width : "170px" }}
+        >
+          {resolvedDropDownList?.map((child: any, idx: any) => (
+            <DropdownMenuItem
+              key={idx}
+              onClick={() => {
+                if (child?.onActionClick) {
+                  child.onActionClick(item);
+                }
+              }}
+              className={cn(
+                "font-light text-sm cursor-pointer text-custom-gray-scale-400",
+                child?.className,
+              )}
+            >
+              {child?.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
   const TableRowComponet = ({
     row,
     children,
@@ -120,10 +181,68 @@ const CustomTable = ({
     </TableRow>
   );
 
+  const showCards = mobile === "cards" && !loading && tableBodyList?.length > 0;
+
   return (
     <>
+      {/* Phone rendering: each row as a stacked label/value card (loading and
+          empty states stay in the table, which renders fine at any width). */}
+      {showCards && (
+        <div className="rounded-md bg-white md:hidden">
+          {tableBodyList?.map((item: any, rowIndex: any) => {
+            const cells = Object.entries(item)
+              .filter(([key]) => !key.startsWith("_"))
+              .map(([, v]) => v as React.ReactNode);
+            const labels = tableHeaderList.filter(
+              (h) => h.toLowerCase() !== "action",
+            );
+            const rowKey =
+              item?._id ?? item?._slug ?? item?._code ?? item?._key ?? rowIndex;
+            const handleRowClick = () => {
+              if (onRowClick) {
+                if (defaultBodyList?.length > 0) {
+                  onRowClick(handlePickObjFromDefaultList(rowIndex));
+                } else {
+                  onRowClick(item);
+                }
+              }
+            };
+            return (
+              <div
+                key={rowKey}
+                onClick={handleRowClick}
+                className={cn(
+                  "space-y-2 border-b border-gray-03 px-3.5 py-3 last:border-0",
+                  onRowClick && "cursor-pointer transition-colors active:bg-primary/5",
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 font-mont text-sm font-semibold text-black-01">
+                    {cells[0]}
+                  </div>
+                  {dropDown && (
+                    <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+                      <RowActions item={item} />
+                    </div>
+                  )}
+                </div>
+                {cells.slice(1).map((cell, i) => (
+                  <div key={i} className="flex items-start justify-between gap-3">
+                    <span className="shrink-0 font-mont text-[11px] capitalize text-gray-01">
+                      {labels[i + 1]}
+                    </span>
+                    <span className="min-w-0 text-right font-mont text-sm font-medium text-black-01">
+                      {cell}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
       {/* table component start here ------ */}
-      <Table>
+      <Table containerClassName={cn(showCards && "max-md:hidden")}>
         {tableHeaderList?.length > 0 && (
           <TableHeader className="border-0">
             <TableRow>
@@ -180,10 +299,6 @@ const CustomTable = ({
                     // re-keyed by position. Falls back to index when absent.
                     const rowKey =
                       item?._id ?? item?._slug ?? item?._code ?? item?._key ?? rowIndex;
-                    const resolvedDropDownList =
-                      typeof dropDownList === "function"
-                        ? dropDownList(item)
-                        : dropDownList;
                     return (
                       <TableRowComponet
                         key={rowKey}
@@ -212,59 +327,8 @@ const CustomTable = ({
                                 alignItems: "center",
                                 height: "100%",
                               }}
-                              className=""
                             >
-                              {actionButton ? (
-                                <button
-                                  type="button"
-                                  disabled={disabledDropdown}
-                                  onClick={() => {
-                                    if (actionButtonOnClick) {
-                                      actionButtonOnClick(item);
-                                    }
-                                  }}
-                                  className="w-13 h-6 rounded-xm border-[0.5px] border-black-02 text-black-02 font-medium text-xs cursor-pointer"
-                                >
-                                  {actionButton}
-                                </button>
-                              ) : (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger
-                                    asChild
-                                    className={cn(
-                                      "cursor-pointer px-2",
-                                      disabledDropdown && "cursor-not-allowed",
-                                    )}
-                                    disabled={disabledDropdown}
-                                  >
-                                    <EllipsisVertical className="size-8" />
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent
-                                    className="border rounded-sm"
-                                    align="end"
-                                    style={{ width: width ? width : "170px" }}
-                                  >
-                                    {resolvedDropDownList?.map(
-                                      (child: any, idx: any) => (
-                                        <DropdownMenuItem
-                                          key={idx}
-                                          onClick={() => {
-                                            if (child?.onActionClick) {
-                                              child.onActionClick(item);
-                                            }
-                                          }}
-                                          className={cn(
-                                            "font-light text-sm cursor-pointer text-custom-gray-scale-400",
-                                            child?.className,
-                                          )}
-                                        >
-                                          {child?.label}
-                                        </DropdownMenuItem>
-                                      ),
-                                    )}
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              )}
+                              <RowActions item={item} />
                             </div>
                           </TableCell>
                         )}

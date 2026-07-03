@@ -278,7 +278,11 @@ export default function DashboardLayout({
         {sidebar ?? <AppSidebar />}
         <SidebarInset className="bg-white-05 min-w-0 w-auto">
           <DashboardHeader hasBack={hasBack} onBack={onBack} title={title} />
-          <div className="grid min-w-0 pt-0">{children}</div>
+          {/* grid-cols-1 (minmax(0,1fr)) zeroes the track's min-content floor so a
+              page's <main> can never be stretched past the viewport by wide
+              nowrap content (tables) — each page's own overflow-x-auto then
+              clips it. Without this every page needed its own min-w-0. */}
+          <div className="grid grid-cols-1 min-w-0 pt-0">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </>

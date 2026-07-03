@@ -74,7 +74,7 @@ function StatCard({ label, kpi, currency, color }: { label: string; kpi: Dashboa
   return (
     <div className="rounded-md bg-white p-4">
       <p className="font-mont text-xs text-gray-05">{label}</p>
-      <div className="mt-1 flex items-end justify-between gap-2">
+      <div className="mt-1 flex flex-wrap items-end justify-between gap-2">
         <p className="font-mont text-xl font-semibold text-black-01 tabular-nums">{formatMoney(kpi.value.kobo, currency)}</p>
         <Sparkline data={kpi.spark} color={color} />
       </div>
@@ -201,7 +201,7 @@ export default function FinanceDashboard() {
         ) : (
           <>
             {/* KPI strip */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <StatCard label="Cash position" kpi={d.kpis.cash_position} currency={currency} color={CHART_COLORS.green} />
               <StatCard label="Outstanding receivables" kpi={d.kpis.receivables} currency={currency} color={CHART_COLORS.primary} />
               <StatCard label="Outstanding payables" kpi={d.kpis.payables} currency={currency} color={CHART_COLORS.amber} />
@@ -209,7 +209,7 @@ export default function FinanceDashboard() {
             </div>
 
             {/* Revenue vs Budget + AR Aging */}
-            <div className="grid gap-5 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <Card title="Revenue vs Budget" subtitle={d.revenue_vs_budget.has_budget ? `${d.revenue_vs_budget.budget_name} · YTD performance` : "YTD · no approved budget set"}>
                 <div className="space-y-4">
                   <BudgetBar label="Revenue YTD" pct={d.revenue_vs_budget.revenue.pct_of_plan}
@@ -260,7 +260,7 @@ export default function FinanceDashboard() {
             </Card>
 
             {/* Overdue + vendor due */}
-            <div className="grid gap-5 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <Card title="Top overdue invoices" subtitle="By outstanding balance"
                 action={<LinkAction label="All overdue" onClick={() => navigate(`${F.RECEIVABLES}/invoices`)} />}>
                 {d.top_overdue.length === 0 ? <EmptyState title="Nothing overdue" /> : (
@@ -305,7 +305,7 @@ export default function FinanceDashboard() {
             </div>
 
             {/* Approvals + close progress */}
-            <div className="grid gap-5 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <Card title="Pending approvals" subtitle="Awaiting action across procurement">
                 {d.approvals.items.length === 0 ? <EmptyState title="Nothing pending" /> : (
                   <div className="space-y-2">

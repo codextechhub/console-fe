@@ -122,7 +122,7 @@ export function SettlementTab({ entity, currency }: { entity: string; currency?:
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={provider} onChange={setProvider} className="w-40">
             <option value="">All providers</option>
             {Object.entries(PROVIDERS).map(([v, p]) => <option key={v} value={v}>{p.label}</option>)}
