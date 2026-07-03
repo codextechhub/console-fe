@@ -15,11 +15,11 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { Plus, Trash2, Search, Sparkles, Banknote, Printer, Pencil, FileText, Users, Layers3, ScrollText, Landmark, ArrowUpRight } from "lucide-react";
+import { Plus, Trash2, Search, Sparkles, Banknote, Printer, Pencil, FileText, Users, Layers3, ScrollText, Landmark, ArrowUpRight, Ban } from "lucide-react";
 import { routesPath } from "@/routes/routes-path";
 import { useGetTrialBalanceQuery } from "@/redux/services/finance/reports-api";
 import { FinanceShell } from "./finance-shell";
-import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CostCenterPicker, Segmented, InfoHint, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
+import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CostCenterPicker, Segmented, InfoHint, ConfirmActionModal, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ import { P } from "@/permissions";
 import { isStripped } from "@/utils/fls";
 import {
   useGetPayrollRunsQuery, useGetPayrollSummaryQuery, useGetPayrollRunQuery, usePostPayrollRunMutation,
-  usePayPayrollRunMutation, useCreatePayrollRunMutation, useGeneratePayrollRunMutation,
+  useCancelPayrollRunMutation, usePayPayrollRunMutation, useCreatePayrollRunMutation, useGeneratePayrollRunMutation,
   useGetEmployeeSalariesQuery, useCreateEmployeeSalaryMutation, useUpdateEmployeeSalaryMutation,
   useDeleteEmployeeSalaryMutation, useGetSalaryStructuresQuery, useCreateSalaryStructureMutation,
   useUpdateSalaryStructureMutation, useDeleteSalaryStructureMutation,
@@ -193,14 +193,20 @@ function RunsTab({ entity, currency }: { entity: string; currency?: string | nul
 }
 
 function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null; entity: string; currency?: string | null; onClose: () => void }) {
-  const { can } = useCan();
   const [paying, setPaying] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const { data } = useGetPayrollRunQuery(runId != null ? { id: runId, entity } : skipToken);
   const [post, { isLoading: posting }] = usePostPayrollRunMutation();
+  const [cancelRun, { isLoading: cancelling }] = useCancelPayrollRunMutation();
   const r = data?.data;
   if (runId == null || !r) return null;
 
   const doPost = async () => { try { const res = await post({ id: r.id, entity }).unwrap(); toast.success(res.message || "Run posted."); } catch { /* central */ } };
+  // Undo a run raised in error. Only offered before it's paid (DRAFT/POSTED); the
+  // backend refuses a paid run — reverse the disbursement first.
+  const canCancel = r.run_status === "DRAFT" || r.run_status === "POSTED";
+  const isPosted = r.run_status === "POSTED";
+  const doCancel = async () => { try { const res = await cancelRun({ id: r.id, entity }).unwrap(); toast.success(res.message || "Run cancelled."); setCancelOpen(false); } catch { /* central */ } };
 
   return (
     <>
@@ -210,6 +216,7 @@ function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null;
           <>
             <RunPill status={r.run_status} />
             <div className="flex-1" />
+            {canCancel ? <Can permission={P.FIN_POST_PAYROLL}><Button variant="outline" disabled={cancelling} onClick={() => setCancelOpen(true)} className="gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/5"><Ban className="size-4" />{isPosted ? "Void run" : "Cancel run"}</Button></Can> : null}
             {r.run_status === "DRAFT" ? <Can permission={P.FIN_POST_PAYROLL}><Button disabled={posting} onClick={doPost} className="gap-1.5"><Banknote className="size-4" />{posting ? "Posting…" : "Calculate & post"}</Button></Can> : null}
             {r.run_status === "POSTED" ? <Can permission={P.FIN_PAY_PAYROLL}><Button onClick={() => setPaying(true)} className="gap-1.5"><Banknote className="size-4" /> Pay net</Button></Can> : null}
           </>
@@ -253,6 +260,18 @@ function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null;
       </DetailDrawer>
 
       {paying ? <PayDrawer run={r} entity={entity} currency={currency} onClose={() => setPaying(false)} /> : null}
+      <ConfirmActionModal
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        title={`${isPosted ? "Void" : "Cancel"} ${r.document_number}?`}
+        description={isPosted
+          ? "Reverses this run's accrual journal (a mirror entry backing out the salary expense and the PAYE, pension and net-wages payables) and cancels the run. Use this to undo a run posted in error — it can't be voided once net pay has been paid."
+          : "Discards this draft run. Nothing was posted, so no journal is affected."}
+        confirmText={isPosted ? "Void run" : "Cancel run"}
+        destructive
+        loading={cancelling}
+        onConfirm={doCancel}
+      />
     </>
   );
 }
