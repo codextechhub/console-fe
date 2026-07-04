@@ -8,8 +8,8 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import { Plus, Printer, CheckCircle2, Circle, CircleDot, Banknote, FileCheck2 } from "lucide-react";
-import { DataTable, Money, MoneyInput, DetailDrawer, FormField, AccountPicker, BankAccountPicker, TaxObligationPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
+import { Plus, Printer, CheckCircle2, Circle, CircleDot, Banknote, FileCheck2, Undo2 } from "lucide-react";
+import { DataTable, Money, MoneyInput, DetailDrawer, FormField, AccountPicker, BankAccountPicker, TaxObligationPicker, PostingRecap, KpiCard, ConfirmActionModal, toArray, type Column, type RecapRow } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
   useGetTaxFilingsQuery, useGetTaxFilingSummaryQuery, useGetTaxObligationsQuery, useCreateTaxObligationMutation,
-  useCreateTaxFilingMutation, useFileTaxFilingMutation, usePayTaxFilingMutation,
+  useCreateTaxFilingMutation, useFileTaxFilingMutation, useUnfileTaxFilingMutation, usePayTaxFilingMutation,
 } from "@/redux/services/finance/ops-api";
 import type { TaxFiling } from "@/redux/services/finance/ops-types";
 
@@ -147,10 +147,20 @@ function FilingDrawer({ filingId, filings, entity, currency, onClose }: { filing
   const f = useMemo(() => filings.find((x) => x.id === filingId) ?? null, [filings, filingId]);
   const [filing, setFiling] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [unfiling, setUnfiling] = useState(false);
+  const [unfile, { isLoading: unfilingBusy }] = useUnfileTaxFilingMutation();
+  const doUnfile = async () => {
+    if (!f) return;
+    try { const r = await unfile({ id: f.id, entity }).unwrap(); toast.success(r.message || "Filing reverted to draft."); setUnfiling(false); onClose(); }
+    catch { /* central */ }
+  };
   if (filingId == null || !f) return null;
 
   const filed = f.filing_status === "FILED" || f.filing_status === "PAID";
   const paid = f.filing_status === "PAID";
+  // A filed-but-unpaid return can be reverted to draft; once any cash is remitted the
+  // backend refuses, so only offer it while nothing has been paid.
+  const canUnfile = f.filing_status === "FILED" && f.amount_paid === 0;
   const dr: RecapRow[] = [{ code: f.liability_account || "—", name: f.liability_account_name || `${f.obligation_code} payable`, amount: f.balance_due || f.amount_due }];
   const cr: RecapRow[] = [{ code: "Bank", name: paid ? "remitted" : "chosen on payment", amount: f.balance_due || f.amount_due }];
 
@@ -163,6 +173,7 @@ function FilingDrawer({ filingId, filings, entity, currency, onClose }: { filing
           <StatusPill status={f.filing_status} />
           <div className="flex-1" />
           {f.filing_status === "DRAFT" ? <Can permission={P.FIN_FILE_TAX}><Button onClick={() => setFiling(true)} className="gap-1.5"><FileCheck2 className="size-4" /> Mark as filed</Button></Can> : null}
+          {canUnfile ? <Can permission={P.FIN_FILE_TAX}><Button variant="outline" disabled={unfilingBusy} onClick={() => setUnfiling(true)} className="gap-1.5"><Undo2 className="size-4" /> Un-file</Button></Can> : null}
           {f.filing_status === "FILED" ? <Can permission={P.FIN_PAY_TAX}><Button onClick={() => setPaying(true)} className="gap-1.5"><Banknote className="size-4" /> Pay {formatMoney(f.balance_due, currency)}</Button></Can> : null}
         </>}>
         <div className="space-y-5">
@@ -193,6 +204,16 @@ function FilingDrawer({ filingId, filings, entity, currency, onClose }: { filing
 
       {filing ? <FileDrawer filing={f} entity={entity} currency={currency} onClose={() => setFiling(false)} /> : null}
       {paying ? <PayDrawer filing={f} entity={entity} currency={currency} onClose={() => setPaying(false)} /> : null}
+      <ConfirmActionModal
+        open={unfiling}
+        onOpenChange={setUnfiling}
+        title={`Un-file ${f.obligation_code} — ${periodLabel(f.period_start, f.period_end)}?`}
+        description="Reverts this return to draft and reverses its netting/penalty journal. Use it to correct a return filed in error. Only possible while nothing has been remitted."
+        confirmText="Un-file return"
+        destructive
+        loading={unfilingBusy}
+        onConfirm={doUnfile}
+      />
     </>
   );
 }

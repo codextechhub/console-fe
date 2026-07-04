@@ -413,10 +413,10 @@ function EmployeesTab({ entity, currency }: { entity: string; currency?: string 
     { header: "Pension", align: "right", cell: (e) => maskedMoney(e, "pension_amount", e.pension_amount, currency) },
     { header: "Net", align: "right", cell: (e) => maskedMoney(e, "net_amount", e.net_amount, currency) },
     { header: "Status", cell: (e) => <span className={cn(PILL, e.is_active ? "bg-green-01/10 text-green-01" : "bg-gray-03/60 text-gray-05")}>{e.is_active ? "Active" : "Inactive"}</span> },
-    { header: "", align: "right", cell: (e) => can(P.FIN_CREATE_PAYROLL) ? (
+    { header: "", align: "right", cell: (e) => (can(P.FIN_UPDATE_SALARY) || can(P.FIN_DELETE_SALARY)) ? (
       <span className="inline-flex items-center gap-2">
-        <button type="button" onClick={() => setEditing(e)} className="text-gray-05 hover:text-primary" aria-label="Edit"><Pencil className="size-3.5" /></button>
-        <button type="button" onClick={() => doRemove(e.id)} className="text-gray-05 hover:text-destructive" aria-label="Remove"><Trash2 className="size-3.5" /></button>
+        {can(P.FIN_UPDATE_SALARY) ? <button type="button" onClick={() => setEditing(e)} className="text-gray-05 hover:text-primary" aria-label="Edit"><Pencil className="size-3.5" /></button> : null}
+        {can(P.FIN_DELETE_SALARY) ? <button type="button" onClick={() => doRemove(e.id)} className="text-gray-05 hover:text-destructive" aria-label="Remove"><Trash2 className="size-3.5" /></button> : null}
       </span>
     ) : null },
   ];
@@ -428,7 +428,7 @@ function EmployeesTab({ entity, currency }: { entity: string; currency?: string 
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
           <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search employee" className="h-9 w-64 bg-white pl-8 font-mont" />
         </div>
-        <Can permission={P.FIN_CREATE_PAYROLL}>
+        <Can permission={P.FIN_CREATE_SALARY}>
           <Button onClick={() => setEditing("new")} className="gap-1.5"><Plus className="size-4" /> Add employee</Button>
         </Can>
       </div>
@@ -557,10 +557,10 @@ function StructuresTab({ entity, currency }: { entity: string; currency?: string
     { header: "Components", cell: (s) => <span className="font-mont text-[11px] text-gray-05">{summarize(s)}</span> },
     { header: "Employees", align: "right", cell: (s) => <span className="tabular-nums text-gray-05">{s.employee_count}</span> },
     { header: "Status", cell: (s) => <span className={cn(PILL, s.is_active ? "bg-green-01/10 text-green-01" : "bg-gray-03/60 text-gray-05")}>{s.is_active ? "Active" : "Inactive"}</span> },
-    { header: "", align: "right", cell: (s) => can(P.FIN_CREATE_PAYROLL) ? (
+    { header: "", align: "right", cell: (s) => (can(P.FIN_UPDATE_SALARY) || can(P.FIN_DELETE_SALARY)) ? (
       <span className="inline-flex items-center gap-2">
-        <button type="button" onClick={(e) => { e.stopPropagation(); setEditing(s); }} className="text-gray-05 hover:text-primary" aria-label="Edit"><Pencil className="size-3.5" /></button>
-        <button type="button" onClick={(e) => { e.stopPropagation(); doRemove(s.id); }} className="text-gray-05 hover:text-destructive" aria-label="Remove"><Trash2 className="size-3.5" /></button>
+        {can(P.FIN_UPDATE_SALARY) ? <button type="button" onClick={(e) => { e.stopPropagation(); setEditing(s); }} className="text-gray-05 hover:text-primary" aria-label="Edit"><Pencil className="size-3.5" /></button> : null}
+        {can(P.FIN_DELETE_SALARY) ? <button type="button" onClick={(e) => { e.stopPropagation(); doRemove(s.id); }} className="text-gray-05 hover:text-destructive" aria-label="Remove"><Trash2 className="size-3.5" /></button> : null}
       </span>
     ) : null },
   ];
@@ -569,7 +569,7 @@ function StructuresTab({ entity, currency }: { entity: string; currency?: string
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-xl font-mont text-xs text-gray-05">Reusable pay templates — split gross into tranches (Basic, Housing…) and set PAYE & pension as a % of gross or basic. Assign one to an employee and their figures are derived.</p>
-        <Can permission={P.FIN_CREATE_PAYROLL}><Button onClick={() => setEditing("new")} className="gap-1.5"><Plus className="size-4" /> New structure</Button></Can>
+        <Can permission={P.FIN_CREATE_SALARY}><Button onClick={() => setEditing("new")} className="gap-1.5"><Plus className="size-4" /> New structure</Button></Can>
       </div>
       <DataTable columns={cols} rows={rows} rowKey={(s) => s.id} loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(s) => setEditing(s)}
         emptyTitle="No salary structures" emptyMessage="Create a structure to split salaries into components and derive PAYE/pension." />

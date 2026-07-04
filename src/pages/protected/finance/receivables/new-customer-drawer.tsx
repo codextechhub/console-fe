@@ -21,11 +21,12 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
   const [address, setAddress] = useState("");
   const [account, setAccount] = useState("");
   const [opening, setOpening] = useState("");
+  const [openingDate, setOpeningDate] = useState("");
   const [active, setActive] = useState(true);
   const [create, { isLoading }] = useCreateCustomerMutation();
 
   const canSubmit = code.trim() !== "" && name.trim() !== "";
-  const reset = () => { setCode(""); setName(""); setEmail(""); setPhone(""); setAddress(""); setAccount(""); setOpening(""); setActive(true); };
+  const reset = () => { setCode(""); setName(""); setEmail(""); setPhone(""); setAddress(""); setAccount(""); setOpening(""); setOpeningDate(""); setActive(true); };
   const close = () => { reset(); onOpenChange(false); };
 
   const submit = async () => {
@@ -36,6 +37,7 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
         billing_address: address || undefined,
         receivable_account: account || undefined,
         opening_balance: opening ? toKobo(opening) : undefined,
+        opening_date: opening && openingDate ? openingDate : undefined,
         is_active: active,
       }).unwrap();
       toast.success(res.message || "Customer created.");
@@ -72,12 +74,16 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
         <FormField label="Receivable account">
           <ReceivableAccountPicker entity={entity} value={account} onChange={setAccount} placeholder="Defaults to 1200 Accounts Receivable" />
         </FormField>
-        <div className="grid grid-cols-2 items-end gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <FormField label="Opening balance (₦)"><Input type="number" min="0" step="0.01" value={opening} onChange={(e) => setOpening(e.target.value)} placeholder="0.00" className="bg-white" /></FormField>
-          <label className="flex items-center gap-2 pb-2 font-mont text-sm text-gray-01">
-            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-primary" /> Active
-          </label>
+          <FormField label="Opening as of">
+            <Input type="date" value={openingDate} onChange={(e) => setOpeningDate(e.target.value)} disabled={!opening} className="bg-white disabled:opacity-50" />
+          </FormField>
         </div>
+        {opening ? <p className="-mt-1 font-mont text-[11px] text-gray-05">Backdates the opening-balance invoice into its period. Leave blank to date it today. The period must be open.</p> : null}
+        <label className="flex items-center gap-2 font-mont text-sm text-gray-01">
+          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-primary" /> Active
+        </label>
       </div>
     </DetailDrawer>
   );

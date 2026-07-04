@@ -61,6 +61,16 @@ export const setupApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/finance/periods/${id}/close/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePeriods", "FinanceReports"],
     }),
+    // Re-open a CLOSED/SOFT_CLOSED period (a LOCKED one can't be reopened).
+    reopenPeriod: b.mutation<ApiEnvelope<FiscalPeriod>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/periods/${id}/reopen/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinancePeriods", "FinanceReports"],
+    }),
+    // Permanently seal a CLOSED period — irreversible.
+    lockPeriod: b.mutation<ApiEnvelope<FiscalPeriod>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/periods/${id}/lock/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinancePeriods", "FinanceReports"],
+    }),
     getCurrencies: b.query<PaginatedEnvelope<Currency>, void>({
       query: () => ({ url: `/finance/currencies/`, method: "GET" }),
       providesTags: ["FinanceSetup"],
@@ -118,6 +128,8 @@ export const {
   useGetPeriodsQuery,
   useGetPeriodChecklistQuery,
   useClosePeriodMutation,
+  useReopenPeriodMutation,
+  useLockPeriodMutation,
   useGetCurrenciesQuery,
   useCreateFxRateMutation,
   useGetTaxCodesQuery,

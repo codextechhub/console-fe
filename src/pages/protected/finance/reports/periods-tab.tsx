@@ -12,7 +12,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/st
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
-import { useGetPeriodsQuery, useGetPeriodChecklistQuery, useClosePeriodMutation } from "@/redux/services/finance/setup-api";
+import { useGetPeriodsQuery, useGetPeriodChecklistQuery, useClosePeriodMutation, useReopenPeriodMutation, useLockPeriodMutation } from "@/redux/services/finance/setup-api";
 import type { FiscalPeriod } from "@/redux/services/finance/setup-types";
 
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
@@ -72,7 +72,7 @@ export function PeriodsTab({ entity }: { entity: string }) {
       {/* Period strips per fiscal year */}
       {years.map((y) => (
         <div key={y.year}>
-          <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Period strip · {y.year} — click a period to close</p>
+          <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Period strip · {y.year} — click a period to close, re-open or lock</p>
           <div className="flex flex-wrap gap-2">
             {y.periods.map((p) => (
               <button key={p.id} onClick={() => setSelected(p.id)}
@@ -94,9 +94,14 @@ export function PeriodsTab({ entity }: { entity: string }) {
 function PeriodCloseDrawer({ id, entity, onClose }: { id: number | null; entity: string; onClose: () => void }) {
   const { data, isLoading, isError, refetch } = useGetPeriodChecklistQuery(id ? { id, entity } : skipToken);
   const [close, { isLoading: closing }] = useClosePeriodMutation();
+  const [reopen, { isLoading: reopening }] = useReopenPeriodMutation();
+  const [lock, { isLoading: locking }] = useLockPeriodMutation();
   const d = data?.data;
   const p = d?.period;
+  const busy = closing || reopening || locking;
   const canClose = !!p && (p.status === "OPEN" || p.status === "SOFT_CLOSED");
+  const canReopen = !!p && (p.status === "CLOSED" || p.status === "SOFT_CLOSED");
+  const canLock = !!p && p.status === "CLOSED";
 
   const doClose = async (soft: boolean) => {
     try {
@@ -106,6 +111,14 @@ function PeriodCloseDrawer({ id, entity, onClose }: { id: number | null; entity:
       onClose();
     } catch { /* central */ }
   };
+  const doReopen = async () => {
+    try { const r = await reopen({ id: id!, entity }).unwrap(); toast.success(r.message || `Re-opened ${p?.name}.`); onClose(); }
+    catch { /* central */ }
+  };
+  const doLock = async () => {
+    try { const r = await lock({ id: id!, entity }).unwrap(); toast.success(r.message || `Locked ${p?.name}.`); onClose(); }
+    catch { /* central */ }
+  };
 
   return (
     <DetailDrawer
@@ -114,13 +127,25 @@ function PeriodCloseDrawer({ id, entity, onClose }: { id: number | null; entity:
       title={p ? `Close ${p.name}` : "Period close"}
       description={p ? `Period ${p.period_no} · ${p.start_date} → ${p.end_date}` : undefined}
       widthClass="sm:max-w-2xl"
-      footer={canClose ? (
-        <Can permission={P.FIN_CLOSE_PERIOD}>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => doClose(true)} disabled={closing}>Soft close</Button>
-            <Button onClick={() => doClose(false)} disabled={closing}>Run close steps</Button>
-          </div>
-        </Can>
+      footer={(canClose || canReopen || canLock) ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {canReopen ? (
+            <Can permission={P.FIN_REOPEN_PERIOD}>
+              <Button variant="outline" onClick={doReopen} disabled={busy}>Re-open</Button>
+            </Can>
+          ) : null}
+          {canLock ? (
+            <Can permission={P.FIN_LOCK_PERIOD}>
+              <Button variant="outline" onClick={doLock} disabled={busy} className="border-destructive/40 text-destructive hover:bg-destructive/5">Lock period</Button>
+            </Can>
+          ) : null}
+          {canClose ? (
+            <Can permission={P.FIN_CLOSE_PERIOD}>
+              <Button variant="outline" onClick={() => doClose(true)} disabled={busy}>Soft close</Button>
+              <Button onClick={() => doClose(false)} disabled={busy}>Run close steps</Button>
+            </Can>
+          ) : null}
+        </div>
       ) : null}
     >
       {isLoading ? <LoadingState rows={5} /> : isError || !d || !p ? <ErrorState onRetry={refetch} /> : (

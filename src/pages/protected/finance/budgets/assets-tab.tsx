@@ -255,13 +255,17 @@ function DisposeDrawer({ asset, entity, currency, onClose }: { asset: FixedAsset
   const nbv = asset.net_book_value;
   const gainLoss = proceeds - nbv;
   const needsGl = gainLoss !== 0;
+  // The backend refuses disposal while depreciation due on/before the disposal date is
+  // unposted (gain/loss must be computed on an up-to-date book value). Surface that here
+  // rather than letting the request 400.
+  const hasUnpostedDue = asset.schedule.some((r) => !r.is_posted && r.depreciation_date <= date);
   const submit = async () => {
     try {
       const r = await dispose({ id: asset.id, entity, disposal_date: date, proceeds, bank_account: bank || undefined, gain_loss_account: glAccount || undefined }).unwrap();
       toast.success(r.message || "Asset disposed."); onClose();
     } catch { /* central */ }
   };
-  const canSubmit = !!date && (proceeds <= 0 || !!bank) && (!needsGl || !!glAccount);
+  const canSubmit = !!date && !hasUnpostedDue && (proceeds <= 0 || !!bank) && (!needsGl || !!glAccount);
   return (
     <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
       title="Dispose asset" description={`${asset.name} · NBV ${formatMoney(nbv, currency)}`} widthClass="sm:max-w-md"
@@ -270,6 +274,11 @@ function DisposeDrawer({ asset, entity, currency, onClose }: { asset: FixedAsset
         <Button disabled={isLoading || !canSubmit} onClick={submit} className="gap-1.5"><PackageX className="size-4" />{isLoading ? "Posting…" : "Dispose"}</Button>
       </>}>
       <div className="space-y-4">
+        {hasUnpostedDue ? (
+          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 font-mont text-[11px] text-amber-700">
+            Depreciation is still due on or before this date. Post it first (Depreciate to date) so the gain/loss is computed on an up-to-date book value, then dispose.
+          </p>
+        ) : null}
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Disposal date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 bg-white" /></FormField>
           <FormField label="Proceeds"><MoneyInput valueKobo={proceeds} onChangeKobo={setProceeds} currency={currency} className="[&_input]:h-9" /></FormField>
@@ -370,7 +379,7 @@ function RunDepreciationDrawer({ open, onClose, entity, currency }: { open: bool
           ) : (
             <>
               <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 font-mont text-[11px] text-amber-700">
-                This posts one compound journal covering {preview.asset_count} in-use asset(s) for the period.
+                This posts depreciation for {preview.asset_count} in-use asset(s) — one compound journal per fiscal period in range. A closed period in the range will block the run; re-open it first.
               </p>
               <PostingRecap title={`Depreciation posting — to ${fmtDate(upTo)}`} dr={dr} cr={cr} currency={currency} />
             </>

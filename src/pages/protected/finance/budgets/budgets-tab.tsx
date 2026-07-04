@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { Plus, Trash2, CheckCircle2, Lock } from "lucide-react";
-import { DataTable, Money, MoneyInput, DetailDrawer, FormField, AccountPicker, CostCenterPicker, InfoHint, toArray, type Column } from "@/components/finance-ui";
+import { DataTable, Money, MoneyInput, DetailDrawer, FormField, AccountPicker, CostCenterPicker, InfoHint, ConfirmActionModal, toArray, type Column } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
   useGetBudgetsQuery, useGetBudgetQuery, useGetBudgetVarianceQuery, useGetBudgetHeatmapQuery, useGetFiscalYearsQuery,
-  useCreateBudgetMutation, useUpdateBudgetMutation, useSetBudgetLinesMutation, useApproveBudgetMutation,
+  useCreateBudgetMutation, useUpdateBudgetMutation, useSetBudgetLinesMutation, useApproveBudgetMutation, useDeleteBudgetMutation,
 } from "@/redux/services/finance/ops-api";
 import type { Budget, BudgetLineInput } from "@/redux/services/finance/ops-types";
 
@@ -29,7 +29,6 @@ const PL_TYPES = "INCOME,EXPENSE";
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, string> = {
     DRAFT: "bg-gray-03/60 text-gray-05", APPROVED: "bg-green-01/10 text-green-01",
-    LOCKED: "bg-blue-50 text-blue-700",
   };
   const label = status.charAt(0) + status.slice(1).toLowerCase();
   return <span className={cn(PILL, map[status] ?? map.DRAFT)}>{label}</span>;
@@ -287,9 +286,11 @@ function DraftEditor({ budget, entity, currency, onClose }: { budget: Budget; en
   const { can } = useCan();
   const [name, setName] = useState(budget.name);
   const [rows, setRows] = useState<EditLine[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [update] = useUpdateBudgetMutation();
   const [setLines, { isLoading: saving }] = useSetBudgetLinesMutation();
   const [approve, { isLoading: approving }] = useApproveBudgetMutation();
+  const [remove, { isLoading: deleting }] = useDeleteBudgetMutation();
 
   useEffect(() => {
     setName(budget.name);
@@ -314,12 +315,18 @@ function DraftEditor({ budget, entity, currency, onClose }: { budget: Budget; en
       onClose();
     } catch { /* central */ }
   };
+  const doDelete = async () => {
+    try { const r = await remove({ id: budget.id, entity }).unwrap(); toast.success(r.message || "Budget deleted."); setConfirmDelete(false); onClose(); }
+    catch { /* central */ }
+  };
 
   return (
+    <>
     <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
       title={`Edit ${budget.code}`} description="Draft — editable until approved." widthClass="sm:max-w-4xl"
       footer={<>
         <StatusPill status={budget.status} />
+        {can(P.FIN_DELETE_BUDGET) ? <Button variant="outline" disabled={deleting} onClick={() => setConfirmDelete(true)} className="gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/5"><Trash2 className="size-4" /> Delete</Button> : null}
         <div className="flex-1" />
         <Button variant="outline" disabled={saving} onClick={save} className="gap-1.5">{saving ? "Saving…" : "Save"}</Button>
         {can(P.FIN_APPROVE_BUDGET) ? <Button disabled={approving} onClick={doApprove} className="gap-1.5"><CheckCircle2 className="size-4" />{approving ? "Approving…" : "Save & approve"}</Button> : null}
@@ -333,6 +340,17 @@ function DraftEditor({ budget, entity, currency, onClose }: { budget: Budget; en
         <LinesEditor entity={entity} currency={currency} rows={rows} setRows={setRows} />
       </div>
     </DetailDrawer>
+    <ConfirmActionModal
+      open={confirmDelete}
+      onOpenChange={setConfirmDelete}
+      title={`Delete ${budget.code}?`}
+      description="Permanently removes this draft budget and its lines. Nothing is posted to the ledger, so no journal is affected. Approved budgets can't be deleted."
+      confirmText="Delete budget"
+      destructive
+      loading={deleting}
+      onConfirm={doDelete}
+    />
+    </>
   );
 }
 

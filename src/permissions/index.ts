@@ -22,7 +22,7 @@
 //                       27=activate  28=cancel  29=refresh  30=submit  31=match
 //                       32=award  33=issue  34=renew  35=terminate  36=replenish
 //                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
-//                       41=dispose
+//                       41=dispose  42=reopen  43=lock
 //
 // ── Adding a permission ───────────────────────────────────────────────────────
 //   1. Pick the next free code in the right MM RR range.
@@ -145,7 +145,8 @@ const REGISTRY: Record<string, string> = {
   // 05 invoice · 06 creditnote · 07 refund · 08 concession · 09 paymentplan ·
   // 10 dunning · 11 directentry · 12 report · 13 currency · 14 fxrate ·
   // 15 taxcode · 16 costcenter · 17 dimension · 18 bankaccount · 19 expenseclaim ·
-  // 20 pettycash · 21 tax · 22 payrollrun · 23 budget · 24 fixedasset · 25 audit.
+  // 20 pettycash · 21 tax · 22 payrollrun · 23 budget · 24 fixedasset · 25 audit ·
+  // 26 customer · 27 feestructure · 28 payment · 29 pettycashvoucher · 30 salary.
   // Every key matches an rbac_permission on a vs_finance view (verified against source).
   "200101": "finance.entity.view",
   "200102": "finance.entity.create",
@@ -154,6 +155,8 @@ const REGISTRY: Record<string, string> = {
   "200203": "finance.account.update",
   "200301": "finance.period.view",
   "200324": "finance.period.close",
+  "200342": "finance.period.reopen",
+  "200343": "finance.period.lock",
   "200401": "finance.journal.view",
   "200413": "finance.journal.post",
   "200414": "finance.journal.reverse",
@@ -226,6 +229,7 @@ const REGISTRY: Record<string, string> = {
   "202301": "finance.budget.view",
   "202302": "finance.budget.create",
   "202303": "finance.budget.edit",
+  "202304": "finance.budget.delete",
   "202305": "finance.budget.approve",
   "202401": "finance.fixedasset.view",
   "202402": "finance.fixedasset.create",
@@ -240,6 +244,12 @@ const REGISTRY: Record<string, string> = {
   "202702": "finance.feestructure.create",
   "202703": "finance.feestructure.edit",
   "202725": "finance.feestructure.generate",
+  // salary roster / structures — own resource so editing them isn't conflated with
+  // running payroll (pay-figure FLS visibility stays on finance.payrollrun.view_sensitive)
+  "203001": "finance.salary.view",
+  "203002": "finance.salary.create",
+  "203003": "finance.salary.update",
+  "203004": "finance.salary.delete",
 
   // ── PROCUREMENT  (MM=70) ─────────────────────────────────────────────────────
   // RR: 01 category · 02 vendor · 03 catalog_item · 04 contract · 05 requisition ·
@@ -415,6 +425,8 @@ export const P = {
   FIN_UPDATE_ACCOUNT:       "200203",
   FIN_VIEW_PERIODS:         "200301",
   FIN_CLOSE_PERIOD:         "200324",
+  FIN_REOPEN_PERIOD:        "200342",
+  FIN_LOCK_PERIOD:          "200343",
   FIN_VIEW_JOURNALS:        "200401",
   FIN_POST_JOURNAL:         "200413",
   FIN_REVERSE_JOURNAL:      "200414",
@@ -491,9 +503,14 @@ export const P = {
   FIN_POST_PAYROLL:         "202213",
   FIN_PAY_PAYROLL:          "202216",
   FIN_VIEW_PAYROLL_SENSITIVE:"202239",
+  FIN_VIEW_SALARIES:        "203001",
+  FIN_CREATE_SALARY:        "203002",
+  FIN_UPDATE_SALARY:        "203003",
+  FIN_DELETE_SALARY:        "203004",
   FIN_VIEW_BUDGETS:         "202301",
   FIN_CREATE_BUDGET:        "202302",
   FIN_EDIT_BUDGET:          "202303",
+  FIN_DELETE_BUDGET:        "202304",
   FIN_APPROVE_BUDGET:       "202305",
   FIN_VIEW_FIXED_ASSETS:    "202401",
   FIN_CREATE_FIXED_ASSET:   "202402",

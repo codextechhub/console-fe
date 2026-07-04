@@ -304,6 +304,11 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/finance/budgets/${id}/approve/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinanceBudgets"],
     }),
+    // Delete a DRAFT budget (backend refuses once approved).
+    deleteBudget: b.mutation<ApiEnvelope<unknown>, Act>({
+      query: ({ id, entity }) => ({ url: `/finance/budgets/${id}/${qs({ entity })}`, method: "DELETE" }),
+      invalidatesTags: ["FinanceBudgets"],
+    }),
 
     // Fixed assets
     getFixedAssets: b.query<PaginatedEnvelope<FixedAsset>, { entity: string; page?: number; category?: string; asset_status?: string }>({
@@ -330,7 +335,7 @@ export const opsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/fixed-assets/run-depreciation/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceFixedAssets"],
     }),
-    runDepreciation: b.mutation<ApiEnvelope<{ journal_id: number; total: number; charge_count: number; asset_count: number }>, { entity: string; up_to_date: string }>({
+    runDepreciation: b.mutation<ApiEnvelope<{ journal_id: number; journal_ids?: number[]; period_count?: number; total: number; charge_count: number; asset_count: number }>, { entity: string; up_to_date: string }>({
       query: ({ entity, ...body }) => ({ url: `/finance/fixed-assets/run-depreciation/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceFixedAssets", "FinanceJournals", "FinanceReports"],
     }),
@@ -362,6 +367,12 @@ export const opsApi = baseApi.injectEndpoints({
     }),
     fileTaxFiling: b.mutation<ApiEnvelope<TaxFiling>, { id: number; entity: string; filed_date: string; filing_reference?: string; adjustment_amount?: number; adjustment_account?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/tax-filings/${id}/file/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceTax", "FinanceJournals"],
+    }),
+    // Revert a FILED return to DRAFT (reverses the netting/penalty journal). Backend
+    // refuses once any remittance is recorded.
+    unfileTaxFiling: b.mutation<ApiEnvelope<TaxFiling>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/tax-filings/${id}/unfile/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinanceTax", "FinanceJournals"],
     }),
     payTaxFiling: b.mutation<ApiEnvelope<TaxFiling>, { id: number; entity: string; bank_account: string; pay_date: string; amount?: number }>({
@@ -432,6 +443,7 @@ export const {
   useSetBudgetLinesMutation,
   useDeleteBudgetLineMutation,
   useApproveBudgetMutation,
+  useDeleteBudgetMutation,
   useGetFixedAssetsQuery,
   useGetFixedAssetSummaryQuery,
   useCreateFixedAssetMutation,
@@ -446,5 +458,6 @@ export const {
   useGetTaxFilingSummaryQuery,
   useCreateTaxFilingMutation,
   useFileTaxFilingMutation,
+  useUnfileTaxFilingMutation,
   usePayTaxFilingMutation,
 } = opsApi;
