@@ -20,5 +20,12 @@ export function endSession(banner?: string): void {
   Cookies.remove("refresh_token");
   clearStorageItem();
   clearActivity();
+  // Synchronously drop the persisted Redux state. Every endSession caller
+  // hard-navigates (window.location.href/replace) immediately after, which
+  // races redux-persist's debounced write of resetAuth — so the user + perms
+  // would otherwise survive in persist:root and rehydrate on the next login.
+  // A synchronous removeItem is the only write that reliably beats the
+  // navigation; the store is rebuilt from scratch on the next document load.
+  localStorage.removeItem("persist:root");
   if (banner) sessionStorage.setItem("_auth_banner", banner);
 }

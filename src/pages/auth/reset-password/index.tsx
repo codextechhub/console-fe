@@ -11,7 +11,9 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { swipAnimateVariant } from "@/utils/animation";
+import { humanizeAuthError } from "@/utils/auth-errors";
 import { useFormik } from "formik";
+import { toast } from "sonner";
 
 export default function ResetPassword() {
   const { activation_key } = useParams<{ activation_key: string }>();
@@ -31,7 +33,17 @@ export default function ResetPassword() {
       passwordResetConfirm({ activation_key: activation_key!, ...values })
         .unwrap()
         .then(() => setSuccess(true))
-        .catch(() => {});
+        .catch((err) => {
+          // The 400/422 interceptor toast is silenced on auth routes, so this
+          // catch must surface its own feedback or the confirm failure would be
+          // silently swallowed.
+          toast.error(
+            humanizeAuthError(
+              err,
+              "Couldn't reset your password. Please try again.",
+            ),
+          );
+        });
     },
   });
 

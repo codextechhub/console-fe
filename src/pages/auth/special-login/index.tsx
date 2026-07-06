@@ -6,6 +6,7 @@ import {
 import { useState } from "react";
 import { routesPath } from "@/routes/routes-path";
 import { consumeReturnTo } from "@/utils/return-to";
+import { humanizeAuthError } from "@/utils/auth-errors";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
 
@@ -27,13 +28,12 @@ export default function SpecialLogin() {
 
   const previewErrorMsg = (() => {
     if (!previewError) return "";
-    const err = previewError as { data?: { message?: string }; status?: number };
-    return (
-      err?.data?.message ||
-      (err?.status === 404
-        ? `User with ${email} does not exist.`
-        : "Something went wrong. Please try again.")
-    );
+    const err = previewError as { status?: number };
+    // Keep the specific, friendly copy for the common "no such user" case; route
+    // everything else through humanizeAuthError so a raw backend detail or a
+    // machine code can never surface in this panel.
+    if (err?.status === 404) return `User with ${email} does not exist.`;
+    return humanizeAuthError(previewError, "Something went wrong. Please try again.");
   })();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -46,12 +46,8 @@ export default function SpecialLogin() {
         navigate(consumeReturnTo() ?? routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true }),
       )
       .catch((err) => {
-        const msg =
-          err?.data?.message ||
-          err?.data?.error?.detail ||
-          "Invalid credentials. Please try again.";
         setApiError(
-          typeof msg === "string" ? msg : "Invalid credentials. Please try again.",
+          humanizeAuthError(err, "Invalid credentials. Please try again."),
         );
       });
   };

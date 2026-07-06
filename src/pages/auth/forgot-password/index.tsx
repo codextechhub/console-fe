@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { Link } from "react-router";
 import { swipAnimateVariant } from "@/utils/animation";
+import { humanizeAuthError } from "@/utils/auth-errors";
 import { useFormik } from "formik";
 import { toast } from "sonner";
 
@@ -26,8 +27,10 @@ export default function ForgotPassword() {
           setSentEmail(values.email);
           setSubmitted(true);
         })
-        .catch(() => {
-          toast.error("Something went wrong. Please try again.");
+        .catch((err) => {
+          toast.error(
+            humanizeAuthError(err, "Something went wrong. Please try again."),
+          );
         });
     },
   });

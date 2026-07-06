@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { swipAnimateVariant } from "@/utils/animation";
+import { humanizeAuthError } from "@/utils/auth-errors";
 import { useFormik } from "formik";
 
 export default function ActivateAccount() {
@@ -37,11 +38,9 @@ export default function ActivateAccount() {
         .unwrap()
         .then(() => setSuccess(true))
         .catch((err) => {
-          const msg =
-            err?.data?.message ||
-            err?.data?.error?.detail ||
-            "Activation failed. Please try again.";
-          setApiError(typeof msg === "string" ? msg : "Activation failed. Please try again.");
+          setApiError(
+            humanizeAuthError(err, "Activation failed. Please try again."),
+          );
         });
     },
   });

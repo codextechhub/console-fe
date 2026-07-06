@@ -12,6 +12,7 @@ beforeEach(() => {
   Cookies.set("token", "acc");
   Cookies.set("refresh_token", "ref");
   localStorage.setItem("_last_activity", String(Date.now()));
+  localStorage.setItem("persist:root", '{"auth":"{}"}');
   sessionStorage.setItem("anything", "1");
 });
 
@@ -32,6 +33,15 @@ describe("endSession", () => {
     expect(Cookies.get("refresh_token")).toBeUndefined();
     expect(sessionStorage.getItem("anything")).toBeNull();
     expect(localStorage.getItem("_last_activity")).toBeNull();
+  });
+
+  it("synchronously removes the persisted Redux state (persist:root)", async () => {
+    const { endSession } = await freshImports();
+    // The debounced redux-persist write of resetAuth loses the race against the
+    // hard-navigate, so endSession must drop persist:root itself.
+    endSession();
+
+    expect(localStorage.getItem("persist:root")).toBeNull();
   });
 
   it("writes the banner after clearing sessionStorage so it survives", async () => {

@@ -127,25 +127,29 @@ export const baseQueryInterceptor: BaseQueryFn<
   const res: any = result.error;
 
   if (res?.status === 400 || res?.status === 422) {
-    const message =
-      extractFirstDetailError(res?.data?.error?.detail) ||
-      extractFirstDetailError(res?.data?.error) ||
-      res?.data?.message;
-    if (message) notify(message);
+    // Auth routes (login, reset, activate, special-login…) own their own
+    // inline/panel error UX and route the message through humanizeAuthError, so
+    // never fire a global toast here — doing so leaks the raw backend detail (and
+    // even machine codes like INVITATION_NOT_FOUND) into the UI beside the
+    // friendly panel.
+    if (!isAuthRoute(args)) {
+      const message =
+        extractFirstDetailError(res?.data?.error?.detail) ||
+        extractFirstDetailError(res?.data?.error) ||
+        res?.data?.message;
+      if (message) notify(message);
+    }
     return result;
   }
 
   if (res?.status === 401) {
     // A 401 on an auth route (login, reset, activate…) means bad credentials or
     // an expired link — not a recoverable session. Never run the refresh/retry
-    // machinery here; just surface the message. Doing otherwise would attempt a
-    // token refresh and retry the login itself.
+    // machinery here — doing otherwise would attempt a token refresh and retry
+    // the login itself. No toast either: the page owns the error UI (it routes
+    // the caught error through humanizeAuthError), so a global toast here would
+    // duplicate the inline message.
     if (isAuthRoute(args)) {
-      const msg =
-        extractFirstDetailError(res?.data?.error?.detail) ||
-        res?.data?.message ||
-        "Invalid credentials. Please try again.";
-      notify(msg);
       return result;
     }
 
@@ -205,13 +209,18 @@ export const baseQueryInterceptor: BaseQueryFn<
   }
 
   if (typeof res?.status === "number" && res.status >= 500) {
-    notify("A server error occurred. Please try again later.");
+    // Auth pages surface their own error state (friendly panel / inline copy).
+    if (!isAuthRoute(args)) notify("A server error occurred. Please try again later.");
     return result;
   }
 
-  if (res?.status === "TIMEOUT_ERROR") notify("The request timed out. Please try again.");
-  else if (res?.status === "FETCH_ERROR") notify("Could not reach the server. Please try again.");
-  else if (res?.status === "PARSING_ERROR") notify("Unexpected response from the server. Please try again.");
+  // Transport-level failures (offline, DNS, timeout). Auth pages render their
+  // own friendly panel/inline copy from the query's isError, so stay quiet there.
+  if (!isAuthRoute(args)) {
+    if (res?.status === "TIMEOUT_ERROR") notify("The request timed out. Please try again.");
+    else if (res?.status === "FETCH_ERROR") notify("Could not reach the server. Please try again.");
+    else if (res?.status === "PARSING_ERROR") notify("Unexpected response from the server. Please try again.");
+  }
 
   return result;
 };

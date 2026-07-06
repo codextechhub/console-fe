@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useLoginMutation } from "@/redux/services/auth/auth-api";
 import { routesPath } from "@/routes/routes-path";
 import { consumeReturnTo } from "@/utils/return-to";
+import { humanizeAuthError } from "@/utils/auth-errors";
 import { loginSchema } from "@/schema/auth";
 import { useFormik } from "formik";
 import { useState, useEffect } from "react";
@@ -34,11 +35,9 @@ export default function Login() {
           navigate(consumeReturnTo() ?? routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
         })
         .catch((err) => {
-          const msg =
-            err?.data?.message ||
-            err?.data?.error?.detail ||
-            "Invalid credentials. Please try again.";
-          setApiError(typeof msg === "string" ? msg : "Invalid credentials. Please try again.");
+          setApiError(
+            humanizeAuthError(err, "Invalid credentials. Please try again."),
+          );
         });
     },
   });
