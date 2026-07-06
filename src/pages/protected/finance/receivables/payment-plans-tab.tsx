@@ -198,6 +198,11 @@ function PlanDetailDrawer({ plan, entity, currency, onClose }: {
             <Field label="Against invoice">{plan.invoice_number ?? "—"}</Field>
             <Field label="Total"><Money kobo={plan.total_amount} currency={currency} /></Field>
             <Field label="Outstanding"><Money kobo={plan.outstanding_total} currency={currency} /></Field>
+            <Field label="Settled">
+              <Money kobo={plan.settled_total} currency={currency} />
+              {plan.baseline_settled > 0 ? <span className="ml-1 font-mont text-[11px] font-normal text-gray-05">(incl. {formatMoney(plan.baseline_settled, currency)} pre-plan credit)</span> : null}
+            </Field>
+            <Field label="Scheduled"><Money kobo={plan.scheduled_total} currency={currency} /></Field>
             <Field label="Frequency"><span className="font-normal capitalize">{plan.frequency.toLowerCase()}</span></Field>
             <Field label="Installments">{plan.installment_count}</Field>
           </div>

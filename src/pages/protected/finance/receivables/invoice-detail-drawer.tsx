@@ -19,7 +19,7 @@ import { RequestPaymentModal } from "./request-payment-modal";
 
 const TABS = [
   { key: "lines", label: "Lines", icon: List },
-  { key: "payments", label: "Payments", icon: CreditCard },
+  { key: "settlements", label: "Settlements", icon: CreditCard },
   { key: "gl", label: "GL postings", icon: BookOpen },
   { key: "reminders", label: "Reminders", icon: BellRing },
   { key: "activity", label: "Activity", icon: Activity },
@@ -28,6 +28,19 @@ const TABS = [
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const todayISO = new Date().toISOString().slice(0, 10);
+
+// Settlement / GL source-document type → short label + pill colour.
+const SETTLEMENT_META: Record<string, { label: string; cls: string }> = {
+  PAYMENT: { label: "Payment", cls: "bg-green-01/10 text-green-01" },
+  CREDIT_NOTE: { label: "Credit note", cls: "bg-blue-50 text-blue-700" },
+  CONCESSION: { label: "Concession", cls: "bg-violet-50 text-violet-700" },
+  WRITE_OFF: { label: "Write-off", cls: "bg-amber-50 text-amber-700" },
+  INVOICE: { label: "Invoice", cls: "bg-gray-03/60 text-gray-05" },
+};
+function TypeBadge({ type }: { type: string }) {
+  const m = SETTLEMENT_META[type] ?? { label: type, cls: "bg-gray-03/60 text-gray-05" };
+  return <span className={cn("inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium", m.cls)}>{m.label}</span>;
+}
 
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -63,7 +76,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
   };
 
   const count = (key: string) =>
-    key === "lines" ? d?.lines.length : key === "payments" ? d?.payments.length : key === "reminders" ? d?.reminders.length : undefined;
+    key === "lines" ? d?.lines.length : key === "settlements" ? d?.settlements.length : key === "gl" ? d?.gl_journals.length : key === "reminders" ? d?.reminders.length : undefined;
 
   return (
     <DetailDrawer
@@ -96,12 +109,12 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
               <Can permission={P.FIN_WRITE_OFF_INVOICE}>
                 <Button variant="outline" onClick={onWriteOff} className="border-destructive/40 text-destructive hover:bg-destructive/5">Write off</Button>
               </Can>
-              {tab === "payments" && (
+              {tab === "settlements" && (
                 <Can permission={P.PAY_CREATE_COLLECTION}>
                   <Button variant="outline" onClick={() => setRequestOpen(true)} className="gap-1.5"><Globe className="size-4" /> Request payment</Button>
                 </Can>
               )}
-              {tab === "payments" && (
+              {tab === "settlements" && (
                 <Can permission={P.FIN_RECORD_PAYMENT}>
                   <Button onClick={() => setPayOpen(true)} className="gap-1.5"><CreditCard className="size-4" /> Record payment</Button>
                 </Can>
@@ -115,10 +128,13 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
         <div className="space-y-4">
           <div><StatusPill status={inv.status} /> <span className="ml-1"><StatusPill status={inv.payment_status} /></span></div>
 
-          {/* stat cards */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {/* stat cards — Paid (cash) and Credited (notes/concessions/write-offs) are
+              distinct legs of Settled; Balance is the real outstanding. */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Stat label="Total"><Money kobo={s.total.kobo} currency={currency} /></Stat>
-            <Stat label="Paid"><Money kobo={s.paid.kobo} currency={currency} /></Stat>
+            <Stat label="Paid (cash)"><Money kobo={s.paid.kobo} currency={currency} /></Stat>
+            <Stat label="Credited"><Money kobo={s.credited.kobo} currency={currency} /></Stat>
+            <Stat label="Settled"><Money kobo={s.settled.kobo} currency={currency} /></Stat>
             <Stat label="Balance due"><Money kobo={s.balance.kobo} currency={currency} /></Stat>
             <Stat label="Aging">
               {s.due_date ? <span className={cn(overdue && "text-destructive")}>{overdue ? "Overdue · " : "Due "}{s.due_date}</span> : "—"}
@@ -167,21 +183,44 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
             )
           )}
 
-          {tab === "payments" && (
-            d.payments.length === 0 ? <EmptyState title="No payments" message="Receipts allocated to this invoice will appear here." /> : (
-              <SimpleTable head={["Date", "Reference", "Method", "Amount"]} rows={d.payments.map((p) => [
-                p.date, p.reference, p.method, <Money key="a" kobo={p.amount.kobo} currency={currency} align="right" />,
-              ])} rightCols={[3]} />
+          {tab === "settlements" && (
+            d.settlements.length === 0 ? <EmptyState title="No settlements" message="Cash receipts, credit notes, concessions and write-offs applied to this invoice appear here." /> : (
+              <SimpleTable head={["Date", "Type", "Reference", "Method", "Amount"]} rows={d.settlements.map((st) => [
+                st.date,
+                <TypeBadge key="t" type={st.type} />,
+                st.reference,
+                st.method || "—",
+                <Money key="a" kobo={st.amount.kobo} currency={currency} align="right" />,
+              ])} rightCols={[4]} />
             )
           )}
 
           {tab === "gl" && (
-            d.gl_postings.length === 0 ? <EmptyState title="No GL postings" message="The AR journal posts when the invoice is posted." /> : (
-              <SimpleTable head={["Account", "Debit", "Credit"]} rows={d.gl_postings.map((g) => [
-                <span key="a"><span className="font-semibold tabular-nums">{g.account_code}</span> {g.account_name}</span>,
-                g.debit.kobo ? <Money key="d" kobo={g.debit.kobo} currency={currency} align="right" /> : "—",
-                g.credit.kobo ? <Money key="c" kobo={g.credit.kobo} currency={currency} align="right" /> : "—",
-              ])} rightCols={[1, 2]} />
+            d.gl_journals.length === 0 ? <EmptyState title="No GL postings" message="The AR journal posts when the invoice is posted." /> : (
+              <div className="space-y-3">
+                {d.gl_journals.map((j, i) => (
+                  <div key={i} className="overflow-hidden rounded-md border border-gray-03">
+                    <div className="flex items-center justify-between gap-2 bg-[#F1F1F1] px-3 py-2">
+                      <span className="flex items-center gap-2"><TypeBadge type={j.document_type} /><span className="font-mont text-xs font-semibold text-gray-01">{j.reference}</span></span>
+                      <span className="font-mont text-[11px] tabular-nums text-gray-05">{j.date}</span>
+                    </div>
+                    <table className="w-full border-collapse">
+                      <thead><tr>
+                        <th className={th}>Account</th><th className={cn(th, "text-right")}>Debit</th><th className={cn(th, "text-right")}>Credit</th>
+                      </tr></thead>
+                      <tbody>
+                        {j.lines.map((g, k) => (
+                          <tr key={k}>
+                            <td className={td}><span className="font-semibold tabular-nums">{g.account_code}</span> {g.account_name}</td>
+                            <td className={cn(td, "text-right tabular-nums")}>{g.debit.kobo ? <Money kobo={g.debit.kobo} currency={currency} align="right" /> : "—"}</td>
+                            <td className={cn(td, "text-right tabular-nums")}>{g.credit.kobo ? <Money kobo={g.credit.kobo} currency={currency} align="right" /> : "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+              </div>
             )
           )}
 

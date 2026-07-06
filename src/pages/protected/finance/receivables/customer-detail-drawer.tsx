@@ -6,7 +6,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { ArrowLeftRight, ScrollText, User, BellRing, CreditCard, Printer, Send } from "lucide-react";
+import { ArrowLeftRight, ScrollText, User, BellRing, CreditCard, Printer, Send, Receipt } from "lucide-react";
 import { DetailDrawer, Money, ConfirmActionModal, FormField, useActiveEntity } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { LoadingState, ErrorState, EmptyState } from "@/components/finance-ui/states";
@@ -23,6 +23,7 @@ import type { Customer, CustomerDetail } from "@/redux/services/finance/ar-types
 import { CustomerReceiptModal } from "./customer-receipt-modal";
 
 const TABS = [
+  { key: "open", label: "Open items", icon: Receipt },
   { key: "transactions", label: "Transactions", icon: ArrowLeftRight },
   { key: "statement", label: "Statement", icon: ScrollText },
   { key: "contact", label: "Contact", icon: User },
@@ -36,6 +37,13 @@ const ACCOUNT_LABEL: Record<string, string> = { ACTIVE: "Active", OVERDUE: "Over
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const todayISO = new Date().toISOString().slice(0, 10);
+// Statement transaction type → badge. DEBIT notes are supplementary AR charges (debit
+// side), distinct from an invoice.
+const TXN_META: Record<string, { label: string; cls: string }> = {
+  PAYMENT: { label: "Receipt", cls: "bg-green-01/10 text-green-01" },
+  INVOICE: { label: "Invoice", cls: "bg-blue-50 text-blue-700" },
+  DEBIT_NOTE: { label: "Debit note", cls: "bg-indigo-50 text-indigo-700" },
+};
 
 function Pill({ status }: { status: string }) {
   return <span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", ACCOUNT_PILL[status] ?? "bg-gray-03/60 text-gray-05")}>{ACCOUNT_LABEL[status] ?? status}</span>;
@@ -78,7 +86,8 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
   };
 
   const count = (k: string) =>
-    k === "transactions" ? d?.transactions.length : k === "statement" ? d?.statement.length : undefined;
+    k === "open" ? (d ? d.open_invoices.length + d.open_debit_notes.length : undefined)
+      : k === "transactions" ? d?.transactions.length : k === "statement" ? d?.statement.length : undefined;
 
   return (
     <DetailDrawer
@@ -118,6 +127,8 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
             ))}
           </div>
 
+          {tab === "open" && <OpenItemsTab d={d} currency={currency} />}
+
           {tab === "transactions" && (
             d.transactions.length === 0 ? <EmptyState title="No transactions" /> : (
               <div className="overflow-x-auto rounded-md border border-gray-03">
@@ -129,7 +140,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
                     {d.transactions.map((t, i) => (
                       <tr key={`${t.reference}-${i}`}>
                         <td className={cn(td, "tabular-nums text-gray-05")}>{t.date}</td>
-                        <td className={td}><span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", t.type === "PAYMENT" ? "bg-green-01/10 text-green-01" : "bg-blue-50 text-blue-700")}>{t.type === "PAYMENT" ? "Receipt" : "Invoice"}</span></td>
+                        <td className={td}><span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", TXN_META[t.type]?.cls ?? "bg-blue-50 text-blue-700")}>{TXN_META[t.type]?.label ?? t.type}</span></td>
                         <td className={cn(td, "font-semibold")}>{t.reference}</td>
                         <td className={cn(td, "text-right tabular-nums")}><Money kobo={t.amount.kobo} currency={currency} align="right" /></td>
                       </tr>
@@ -171,6 +182,36 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
         </>
       )}
     </DetailDrawer>
+  );
+}
+
+/** Outstanding AR items — open invoices and open DEBIT notes (both settleable). */
+function OpenItemsTab({ d, currency }: { d: CustomerDetail; currency?: string | null }) {
+  const rows = [
+    ...d.open_invoices.map((i) => ({ kind: "INVOICE" as const, reference: i.document_number, date: i.due_date, total: i.total.kobo, balance: i.balance.kobo, status: i.status })),
+    ...d.open_debit_notes.map((n) => ({ kind: "DEBIT_NOTE" as const, reference: n.document_number, date: n.note_date, total: n.total.kobo, balance: n.balance.kobo, status: n.status })),
+  ];
+  if (rows.length === 0) return <EmptyState title="No open items" message="Outstanding invoices and debit notes will appear here." />;
+  return (
+    <div className="overflow-x-auto rounded-md border border-gray-03">
+      <table className="w-full border-collapse">
+        <thead><tr>
+          <th className={th}>Type</th><th className={th}>Reference</th><th className={th}>Due</th>
+          <th className={cn(th, "text-right")}>Total</th><th className={cn(th, "text-right")}>Balance</th>
+        </tr></thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={`${r.reference}-${i}`}>
+              <td className={td}><span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", TXN_META[r.kind]?.cls)}>{TXN_META[r.kind]?.label}</span></td>
+              <td className={cn(td, "font-semibold")}>{r.reference}</td>
+              <td className={cn(td, "tabular-nums text-gray-05")}>{r.date ?? "—"}</td>
+              <td className={cn(td, "text-right tabular-nums")}><Money kobo={r.total} currency={currency} align="right" /></td>
+              <td className={cn(td, "text-right font-medium tabular-nums")}><Money kobo={r.balance} currency={currency} align="right" /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

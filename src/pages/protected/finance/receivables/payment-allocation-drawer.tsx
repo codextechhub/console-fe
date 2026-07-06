@@ -26,45 +26,53 @@ const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const toKobo = (naira: string) => Math.round((parseFloat(naira) || 0) * 100);
 
+// A settleable open AR item — an invoice or a posted DEBIT note.
+type AllocTarget = { key: string; kind: "invoice" | "debit_note"; id: number; document_number: string; date: string | null; balanceKobo: number };
+
 export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
   id: number | null; entity: string; currency?: string | null; onClose: () => void;
 }) {
   const { data, isLoading, isError, refetch } = useGetPaymentDetailQuery(id ? { entity, id } : skipToken);
   const [auto, setAuto] = useState(true);
   const [strategy, setStrategy] = useState<"oldest" | "largest">("oldest");
-  const [amounts, setAmounts] = useState<Record<number, string>>({});
+  const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [allocate, { isLoading: saving }] = useAllocatePaymentMutation();
   const d = data?.data;
   const p = d?.payment;
-  const open = useMemo(() => d?.open_invoices ?? [], [d]);
+  // Open AR items settleable by this receipt: invoices AND posted DEBIT notes (both
+  // debit AR). Keyed with a kind-prefixed key so ids can't collide across the two.
+  const open = useMemo<AllocTarget[]>(() => [
+    ...(d?.open_invoices ?? []).map((i) => ({ key: `inv-${i.id}`, kind: "invoice" as const, id: i.id, document_number: i.document_number, date: i.due_date, balanceKobo: i.balance.kobo })),
+    ...(d?.open_debit_notes ?? []).map((n) => ({ key: `dn-${n.id}`, kind: "debit_note" as const, id: n.id, document_number: n.document_number, date: n.note_date, balanceKobo: n.balance.kobo })),
+  ], [d]);
   const unallocated = p?.unallocated_amount ?? 0;
 
-  // Suggested fill of the remaining cash across open invoices, in the chosen order
+  // Suggested fill of the remaining cash across open items, in the chosen order
   // (oldest-first as returned, or largest-balance first) — mirrors the server strategy.
   const suggestion = useMemo(() => {
-    const m: Record<number, number> = {};
+    const m: Record<string, number> = {};
     let remaining = unallocated;
-    const ordered = strategy === "largest" ? [...open].sort((a, b) => b.balance.kobo - a.balance.kobo) : open;
-    for (const inv of ordered) {
+    const ordered = strategy === "largest" ? [...open].sort((a, b) => b.balanceKobo - a.balanceKobo) : open;
+    for (const t of ordered) {
       if (remaining <= 0) break;
-      const take = Math.min(inv.balance.kobo, remaining);
-      if (take > 0) { m[inv.id] = take; remaining -= take; }
+      const take = Math.min(t.balanceKobo, remaining);
+      if (take > 0) { m[t.key] = take; remaining -= take; }
     }
     return m;
   }, [open, unallocated, strategy]);
 
-  const lineKobo = (invId: number) => (auto ? suggestion[invId] ?? 0 : toKobo(amounts[invId] ?? ""));
-  const allocatedNow = open.reduce((s, inv) => s + lineKobo(inv.id), 0);
+  const lineKobo = (key: string) => (auto ? suggestion[key] ?? 0 : toKobo(amounts[key] ?? ""));
+  const allocatedNow = open.reduce((s, t) => s + lineKobo(t.key), 0);
   const remainder = unallocated - allocatedNow;
-  const overBalance = open.some((inv) => lineKobo(inv.id) > inv.balance.kobo);
+  const overBalance = open.some((t) => lineKobo(t.key) > t.balanceKobo);
   const canApply = unallocated > 0 && open.length > 0 && allocatedNow > 0 && remainder >= 0 && !overBalance;
 
   const toggleAuto = (checked: boolean) => {
     setAuto(checked);
     if (!checked) {
       // Seed the editable inputs from the suggestion so the user can tweak.
-      const seed: Record<number, string> = {};
-      for (const inv of open) if (suggestion[inv.id]) seed[inv.id] = (suggestion[inv.id] / 100).toFixed(2);
+      const seed: Record<string, string> = {};
+      for (const t of open) if (suggestion[t.key]) seed[t.key] = (suggestion[t.key] / 100).toFixed(2);
       setAmounts(seed);
     }
   };
@@ -74,7 +82,10 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
     try {
       const body = auto
         ? { entity, id: p.id, auto_allocate: true, allocation_strategy: strategy }
-        : { entity, id: p.id, allocations: open.filter((inv) => lineKobo(inv.id) > 0).map((inv) => ({ invoice: inv.id, amount: lineKobo(inv.id) })) };
+        : { entity, id: p.id, allocations: open.filter((t) => lineKobo(t.key) > 0).map((t) => (
+            t.kind === "invoice"
+              ? { invoice: t.id, amount: lineKobo(t.key) }
+              : { debit_note: t.id, amount: lineKobo(t.key) })) };
       const res = await allocate(body).unwrap();
       toast.success(res.message || "Receipt allocated.");
       onClose();
@@ -113,7 +124,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
               {/* apply to open invoices */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-mont text-sm font-semibold text-black-01">Apply to open invoices</span>
+                  <span className="font-mont text-sm font-semibold text-black-01">Apply to open items</span>
                   <div className="flex items-center gap-2 font-mont text-xs text-gray-01">
                     <label className="flex items-center gap-2">
                       <input type="checkbox" checked={auto} onChange={(e) => toggleAuto(e.target.checked)} className="accent-primary" /> Auto-allocate
@@ -128,19 +139,22 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
                     )}
                   </div>
                 </div>
-                {open.length === 0 ? <EmptyState title="No open invoices" message="Nothing to allocate to — the cash stays as customer credit." /> : (
+                {open.length === 0 ? <EmptyState title="No open items" message="Nothing to allocate to — the cash stays as customer credit." /> : (
                   <div className="overflow-hidden rounded-md border border-gray-03">
-                    {open.map((inv) => (
-                      <div key={inv.id} className="flex items-center gap-3 border-t border-gray-03 px-3 py-2 first:border-t-0">
+                    {open.map((t) => (
+                      <div key={t.key} className="flex items-center gap-3 border-t border-gray-03 px-3 py-2 first:border-t-0">
                         <div className="min-w-0 flex-1">
-                          <p className="truncate font-mont text-xs font-semibold text-black-01">{inv.document_number}</p>
-                          <p className="font-mont text-[11px] text-gray-05">Due {inv.due_date ?? "—"} · bal <Money kobo={inv.balance.kobo} currency={currency} /></p>
+                          <p className="flex items-center gap-1.5 truncate font-mont text-xs font-semibold text-black-01">
+                            {t.document_number}
+                            {t.kind === "debit_note" ? <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mont text-[10px] font-medium text-indigo-700">Debit note</span> : null}
+                          </p>
+                          <p className="font-mont text-[11px] text-gray-05">{t.kind === "debit_note" ? "Dated" : "Due"} {t.date ?? "—"} · bal <Money kobo={t.balanceKobo} currency={currency} /></p>
                         </div>
-                        <Input type="number" min="0" step="0.01" aria-label={`Allocate to ${inv.document_number}`}
-                          value={auto ? (suggestion[inv.id] ? (suggestion[inv.id] / 100).toFixed(2) : "") : (amounts[inv.id] ?? "")}
+                        <Input type="number" min="0" step="0.01" aria-label={`Allocate to ${t.document_number}`}
+                          value={auto ? (suggestion[t.key] ? (suggestion[t.key] / 100).toFixed(2) : "") : (amounts[t.key] ?? "")}
                           disabled={auto}
-                          onChange={(e) => setAmounts((m) => ({ ...m, [inv.id]: e.target.value }))}
-                          className={cn("h-9 w-32 bg-white text-right tabular-nums", lineKobo(inv.id) > inv.balance.kobo && "border-destructive")} />
+                          onChange={(e) => setAmounts((m) => ({ ...m, [t.key]: e.target.value }))}
+                          className={cn("h-9 w-32 bg-white text-right tabular-nums", lineKobo(t.key) > t.balanceKobo && "border-destructive")} />
                       </div>
                     ))}
                   </div>

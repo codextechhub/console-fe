@@ -239,7 +239,9 @@ export const arApi = baseApi.injectEndpoints({
       query: ({ entity, id }) => ({ url: `/finance/payments/${id}/${qs({ entity })}`, method: "GET" }),
       providesTags: ["FinancePayments"],
     }),
-    allocatePayment: builder.mutation<ApiEnvelope<Payment>, { entity: string; id: number; allocations?: { invoice: number; amount: number }[]; auto_allocate?: boolean; allocation_strategy?: string }>({
+    // An allocation targets an invoice ({invoice}) or a posted DEBIT note ({debit_note}) —
+    // both debit AR and are settled by a receipt.
+    allocatePayment: builder.mutation<ApiEnvelope<Payment>, { entity: string; id: number; allocations?: ({ invoice: number; amount: number } | { debit_note: number; amount: number })[]; auto_allocate?: boolean; allocation_strategy?: string }>({
       query: ({ entity, id, ...body }) => ({ url: `/finance/payments/${id}/allocate/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePayments", "FinanceInvoices", "FinanceCustomers", "FinanceReports", "FinancePaymentPlans"],
     }),

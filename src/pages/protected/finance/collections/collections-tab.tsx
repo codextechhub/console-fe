@@ -152,8 +152,13 @@ function CollectionDrawer({ collectionId, collections, entity, currency, onClose
 
   const paid = c.status === "SUCCEEDED";
   const failed = c.status === "FAILED" || c.status === "ABANDONED";
+  // An invoice-linked checkout settles AR against that invoice; a standalone one parks
+  // the cash as the customer's credit (a 2140 liability) instead.
+  const linked = c.invoice_id != null;
   const dr: RecapRow[] = [{ code: c.deposit_account_code || "", name: c.deposit_account_name || "Bank / collections", amount: c.amount }];
-  const cr: RecapRow[] = [{ code: "", name: "Accounts receivable", amount: c.amount }];
+  const cr: RecapRow[] = linked
+    ? [{ code: "", name: "Accounts receivable", amount: c.amount }]
+    : [{ code: "2140", name: "Customer credit / advances", amount: c.amount }];
 
   const doVerify = async () => { try { const r = await verify({ id: c.id, entity }).unwrap(); toast.success(r.message || "Re-checked with provider."); } catch { /* central */ } };
   const copyLink = async () => {
@@ -184,7 +189,7 @@ function CollectionDrawer({ collectionId, collections, entity, currency, onClose
             <TimelineStep done title="Checkout created" sub={fmtDateTime(c.created_at)} />
             <TimelineStep done={paid || failed} current={!paid && !failed} title="Checkout link ready" sub={c.checkout_url ? (c.payer_email ? `Hand off to ${c.payer_email}` : "Link ready to share") : "No hosted link"} />
             <TimelineStep done={paid} current={!paid && !failed} title={failed ? "Payment failed" : "Payment confirmed"}
-              sub={paid ? `Webhook received — receipt booked (Dr bank / Cr AR)${c.confirmed_at ? ` · ${fmtDateTime(c.confirmed_at)}` : ""}` : failed ? "The provider reported a failed/abandoned payment" : "Awaiting the provider's confirmation"} />
+              sub={paid ? `Webhook received — receipt booked (Dr bank / Cr ${linked ? "AR" : "customer credit"})${c.confirmed_at ? ` · ${fmtDateTime(c.confirmed_at)}` : ""}` : failed ? "The provider reported a failed/abandoned payment" : "Awaiting the provider's confirmation"} />
           </div>
         </div>
 
@@ -212,25 +217,27 @@ function NewCheckoutDrawer({ open, onClose, entity, currency }: { open: boolean;
   const close = () => { setCustomer(""); setAmount(0); setProvider("PAYSTACK"); setEmail(""); setNarration(""); onClose(); };
   const submit = async () => {
     try {
-      const r = await initiate({ entity, amount, customer: customer || undefined, provider, payer_email: email.trim() || undefined, narration: narration.trim() || undefined }).unwrap();
+      const r = await initiate({ entity, amount, customer, provider, payer_email: email.trim() || undefined, narration: narration.trim() || undefined }).unwrap();
       const url = r.data?.checkout_url;
       if (url) { try { await navigator.clipboard.writeText(url); } catch { /* ignore */ } }
       toast.success(url ? "Checkout link created and copied." : r.message || "Checkout created.");
       close();
     } catch { /* central */ }
   };
+  // A standalone checkout (no invoice) parks the confirmed cash as customer credit
+  // (a 2140 liability), to be drawn down against invoices later — it does NOT touch AR.
   const dr: RecapRow[] = [{ code: "", name: "Bank / collections", amount: amount || 0 }];
-  const cr: RecapRow[] = [{ code: "", name: "Accounts receivable", amount: amount || 0 }];
+  const cr: RecapRow[] = [{ code: "2140", name: "Customer credit / advances", amount: amount || 0 }];
 
   return (
     <DetailDrawer open={open} onOpenChange={(o) => (o ? undefined : close())}
       title="New checkout" description="Create a hosted payment link to hand off to the customer." widthClass="sm:max-w-lg"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
-        <Button disabled={isLoading || amount <= 0} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Creating…" : "Create checkout link"}</Button>
+        <Button disabled={isLoading || amount <= 0 || !customer} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Creating…" : "Create checkout link"}</Button>
       </>}>
       <div className="space-y-4">
-        <FormField label="Customer"><CustomerPicker entity={entity} value={customer} onChange={setCustomer} /></FormField>
+        <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={setCustomer} /></FormField>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} className="[&_input]:h-9" /></FormField>
           <div><p className="mb-1 font-mont text-xs text-gray-05">Provider</p><Select value={provider} onChange={setProvider} className="w-full">{Object.entries(PROVIDERS).map(([v, p]) => <option key={v} value={v}>{p.label}</option>)}</Select></div>
@@ -239,7 +246,7 @@ function NewCheckoutDrawer({ open, onClose, entity, currency }: { open: boolean;
         <FormField label="Narration"><Input value={narration} onChange={(e) => setNarration(e.target.value)} placeholder="e.g. Term 3 tuition — A. Williams" className="h-9 bg-white" /></FormField>
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">On settlement (via webhook)</p>
-          <PostingRecap title="Will post on confirmation" dr={dr} cr={cr} currency={currency} helper="The journal posts automatically when the provider confirms payment." />
+          <PostingRecap title="Will post on confirmation" dr={dr} cr={cr} currency={currency} helper="Standalone checkout — the confirmed cash is held as the customer's credit (2140) and drawn down against invoices later. The journal posts automatically when the provider confirms payment." />
         </div>
       </div>
     </DetailDrawer>

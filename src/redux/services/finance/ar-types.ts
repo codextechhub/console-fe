@@ -18,6 +18,8 @@ export interface Invoice {
   total: number;
   total_naira: string;
   amount_paid: number;
+  amount_credited: number;
+  settled_amount: number;
   balance_due: number;
   reference: string;
   narration: string;
@@ -131,6 +133,9 @@ export interface PaymentPlan {
   installment_count: number;
   total_amount: number;
   total_naira: string;
+  // Credit already applied to the invoice before the plan began (opening/prior credit),
+  // so settled_total = baseline_settled + what the plan's own installments have paid.
+  baseline_settled: number;
   scheduled_total: number;
   settled_total: number;
   outstanding_total: number;
@@ -190,12 +195,37 @@ export interface InvoiceListParams {
 
 type ArMoney = { kobo: number; naira: string };
 
+// How an invoice was settled down — cash, credit notes, concessions or write-offs.
+export type SettlementType = "PAYMENT" | "CREDIT_NOTE" | "CONCESSION" | "WRITE_OFF";
+
+export interface InvoiceSettlement {
+  type: SettlementType;
+  date: string;
+  reference: string;
+  method: string | null;
+  amount: ArMoney;
+}
+
+// A settlement/source journal grouped for the GL history (invoice posting + each
+// settlement's own journal).
+export interface InvoiceGlJournal {
+  document_type: "INVOICE" | SettlementType;
+  reference: string;
+  date: string;
+  source: string;
+  lines: { account_code: string; account_name: string; debit: ArMoney; credit: ArMoney }[];
+}
+
 export interface InvoiceDetail {
   invoice: Invoice;
-  summary: { subtotal: ArMoney; tax: ArMoney; total: ArMoney; paid: ArMoney; balance: ArMoney; due_date: string | null };
+  summary: { subtotal: ArMoney; tax: ArMoney; total: ArMoney; paid: ArMoney; credited: ArMoney; settled: ArMoney; balance: ArMoney; due_date: string | null };
   lines: { description: string; account_code: string; account_name: string; quantity: string; unit_price: ArMoney; tax_code: string | null; tax_amount: ArMoney; line_total: ArMoney }[];
+  // Cash receipts only — kept for back-compat; use `settlements` for the full picture.
   payments: { date: string; reference: string; method: string; amount: ArMoney }[];
+  settlements: InvoiceSettlement[];
+  // The invoice's own AR journal only — kept for back-compat; use `gl_journals`.
   gl_postings: { account_code: string; account_name: string; debit: ArMoney; credit: ArMoney }[];
+  gl_journals: InvoiceGlJournal[];
   reminders: { date: string; level: number | null; channel: string; status: string }[];
   activity: { date: string; label: string }[];
 }
@@ -277,10 +307,21 @@ export interface Payment {
   status: string;
 }
 
+// An allocation row settles either an invoice or a DEBIT note (both debit AR); the
+// pair of keys present distinguishes them.
+export interface PaymentAllocationRow {
+  invoice?: string;
+  invoice_id?: number;
+  debit_note?: string;
+  debit_note_id?: number;
+  amount: ArMoney;
+}
+
 export interface PaymentDetail {
   payment: Payment;
-  allocations: { invoice: string; invoice_id: number; amount: ArMoney }[];
+  allocations: PaymentAllocationRow[];
   open_invoices: { id: number; document_number: string; due_date: string | null; balance: ArMoney }[];
+  open_debit_notes: { id: number; document_number: string; note_date: string | null; balance: ArMoney }[];
   gl_postings: { account_code: string; account_name: string; debit: ArMoney; credit: ArMoney }[];
 }
 
@@ -291,7 +332,9 @@ export interface CustomerDetail {
     open_invoice_count: number; account_status: CustomerAccountStatus;
   };
   open_invoices: { document_number: string; invoice_date: string; due_date: string | null; total: ArMoney; balance: ArMoney; status: string }[];
-  transactions: { date: string; type: "INVOICE" | "PAYMENT"; reference: string; amount: ArMoney; status: string }[];
+  // Open DEBIT notes are supplementary AR charges, outstanding like an invoice.
+  open_debit_notes: { document_number: string; note_date: string | null; total: ArMoney; balance: ArMoney; status: string }[];
+  transactions: { date: string; type: "INVOICE" | "DEBIT_NOTE" | "PAYMENT"; reference: string; amount: ArMoney; status: string }[];
   statement: { date: string | null; description: string; debit: ArMoney; credit: ArMoney; balance: ArMoney }[];
 }
 
