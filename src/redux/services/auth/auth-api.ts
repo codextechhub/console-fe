@@ -1,10 +1,11 @@
-import { resetAuth, setAuthUser, updatePermissions } from "@/redux/features/auth/auth-slice";
+import { resetAuth, setAuthUser, updatePermissions, updateSchool } from "@/redux/features/auth/auth-slice";
 import { baseApi } from "../base-api";
 import { routesPath } from "@/routes/routes-path";
 import { recordActivity } from "@/utils/session-activity";
 import { resetSessionInvalidation, setAuthCookies } from "@/utils/token-refresh";
 import { endSession } from "@/utils/end-session";
 import type { LoginResponse } from "./auth-types";
+import type { AuthSchool } from "@/redux/features/auth/auth-types";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -88,12 +89,13 @@ export const authApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
-    getMe: builder.query<{ message: string; data: { user: unknown; permissions: string[] } }, void>({
+    getMe: builder.query<{ message: string; data: { user: unknown; school: AuthSchool | null; permissions: string[] } }, void>({
       query: () => ({ url: `/user/auth/me/`, method: "GET" }),
       async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
           const { data } = await queryFulfilled;
           dispatch(updatePermissions(data.data.permissions));
+          dispatch(updateSchool(data.data.school ?? null));
         } catch {
           // /me failed (e.g. transient 5xx) — keep the persisted permissions;
           // the 401 interceptor handles a genuinely dead session.

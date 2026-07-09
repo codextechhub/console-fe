@@ -14,8 +14,8 @@ import "@fontsource/outfit/600.css";
 import "@fontsource/outfit/700.css";
 import "@fontsource/outfit/800.css";
 // Geist (Sans + Mono) — scoped to the Finance & Procurement consoles via `.console-geist`.
-import "@fontsource-variable/geist";
-import "@fontsource-variable/geist-mono";
+import "@fontsource-variable/geist/index.css";
+import "@fontsource-variable/geist-mono/index.css";
 
 installStaleChunkReload();
 

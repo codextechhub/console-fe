@@ -9,18 +9,17 @@
 //     available credit;
 //   • a write-off is per-invoice in our ledger, so the write-off form picks one of
 //     the customer's open invoices (amount defaults to / caps at its balance);
-//   • write-offs post immediately (no approval engine) → always "Posted"; the
-//     Pending KPI counts DRAFT refunds. A refund posts on issue unless "Save as
-//     draft" is ticked.
+//   • refunds and write-offs can either post directly or be submitted into the
+//     shared approval workflow, depending on the school's published templates.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Info, Search, Printer, Check } from "lucide-react";
+import { Plus, Info, Search, Printer, Check, Send } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField, Segmented,
   CustomerPicker, AccountPicker, BankAccountPicker, PostingRecap, toArray,
   type Column, type RecapRow,
 } from "@/components/finance-ui";
-import { Can, useCan } from "@/components/finance-ui/can";
+import { useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -30,7 +29,8 @@ import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
   useGetArAdjustmentsQuery, useCreateRefundMutation, usePostRefundMutation,
-  useWriteOffInvoiceMutation, useGetInvoicesQuery, useGetCustomersQuery,
+  useSubmitRefundMutation, useCreateWriteOffRequestMutation, usePostWriteOffRequestMutation,
+  useSubmitWriteOffRequestMutation, useGetInvoicesQuery, useGetCustomersQuery,
 } from "@/redux/services/finance/ar-api";
 import type { ArAdjustment } from "@/redux/services/finance/ar-types";
 
@@ -46,11 +46,15 @@ function TypeChip({ kind }: { kind: Mode }) {
     </span>
   );
 }
-function StatusPill({ status }: { status: "POSTED" | "DRAFT" }) {
+function StatusPill({ status }: { status: string }) {
+  const normalized = status.toUpperCase();
+  const label = normalized.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
   return (
     <span className={cn("inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium",
-      status === "POSTED" ? "bg-green-01/10 text-green-01" : "bg-amber-50 text-amber-700")}>
-      {status === "POSTED" ? "Posted" : "Pending"}
+      normalized === "POSTED" ? "bg-green-01/10 text-green-01"
+        : normalized === "PENDING_APPROVAL" ? "bg-blue-50 text-blue-700"
+          : "bg-amber-50 text-amber-700")}>
+      {label}
     </span>
   );
 }
@@ -76,6 +80,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export function RefundsTab({ entity, currency }: { entity: string; currency?: string | null }) {
+  const { can } = useCan();
   const [filter, setFilter] = useState<"" | Mode>("");
   const [searchInput, setSearchInput] = useState("");
   const search = useDebounce(searchInput.trim(), 350);
@@ -95,7 +100,10 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
   const rows = useMemo(() => toArray(data?.data), [data]);
   const pg = data?.pagination;
   const refundableCredit = useMemo(
-    () => toArray(customersQ.data?.data).reduce((s, c) => s + (c.balance < 0 ? -c.balance : 0), 0),
+    () => toArray(customersQ.data?.data).reduce((s, c) => {
+      const balance = c.balance ?? 0;
+      return s + (balance < 0 ? -balance : 0);
+    }, 0),
     [customersQ.data],
   );
   const resetPage = () => setPage(1);
@@ -108,7 +116,7 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
     { header: "Customer", cell: (r) => <span className="text-gray-01">{r.customer_name}</span> },
     { header: "Reason", cell: (r) => <span className="block max-w-[260px] truncate text-gray-01" title={r.reason}>{r.reason || "—"}</span> },
     { header: "Amount", align: "right", cell: (r) => <Money kobo={r.amount} currency={currency} align="right" /> },
-    { header: "Status", cell: (r) => <StatusPill status={r.status === "POSTED" ? "POSTED" : "DRAFT"} /> },
+    { header: "Status", cell: (r) => <StatusPill status={r.status || "DRAFT"} /> },
   ];
 
   return (
@@ -132,9 +140,9 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
             <option value="WRITEOFF">Write-offs</option>
           </select>
         </div>
-        <Can permission={P.FIN_CREATE_REFUND}>
+        {can(P.FIN_CREATE_REFUND) || can(P.FIN_CREATE_WRITE_OFF) || can(P.FIN_WRITE_OFF_INVOICE) ? (
           <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New action</Button>
-        </Can>
+        ) : null}
       </div>
 
       <DataTable
@@ -156,11 +164,14 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
 }) {
   const { can } = useCan();
   const [post, { isLoading: posting }] = usePostRefundMutation();
+  const [submitRefund, { isLoading: submittingRefund }] = useSubmitRefundMutation();
+  const [postWriteOff, { isLoading: postingWriteOff }] = usePostWriteOffRequestMutation();
+  const [submitWriteOff, { isLoading: submittingWriteOff }] = useSubmitWriteOffRequestMutation();
   if (!row) return null;
 
   const wo = row.kind === "WRITEOFF";
   const posted = row.status === "POSTED";
-  const isDraftRefund = !wo && !posted;
+  const isDraft = !posted && row.status !== "PENDING_APPROVAL";
   const recap = wo
     ? { dr: [{ code: "5300", name: "Bad debt expense", amount: row.amount }], cr: [{ code: "AR", name: "Accounts Receivable (control)", amount: row.amount }] }
     : { dr: [{ code: "2140", name: "Customer credit", amount: row.amount }], cr: [{ code: "Bank", name: "cash out", amount: row.amount }] };
@@ -171,10 +182,24 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
       : "The journal that will post when this draft refund is posted — draws down the customer's credit, cash out.";
 
   const doPost = async () => {
-    if (!row.refund_id) return;
+    if (wo && !row.write_off_id) return;
+    if (!wo && !row.refund_id) return;
     try {
-      const res = await post({ id: row.refund_id, entity }).unwrap();
-      toast.success(res.message || "Refund posted.");
+      const res = wo
+        ? await postWriteOff({ id: row.write_off_id!, entity }).unwrap()
+        : await post({ id: row.refund_id!, entity }).unwrap();
+      toast.success(res.message || (wo ? "Write-off posted." : "Refund posted."));
+      onClose();
+    } catch { /* central */ }
+  };
+  const doSubmit = async () => {
+    if (wo && !row.write_off_id) return;
+    if (!wo && !row.refund_id) return;
+    try {
+      const res = wo
+        ? await submitWriteOff({ id: row.write_off_id!, entity }).unwrap()
+        : await submitRefund({ id: row.refund_id!, entity }).unwrap();
+      toast.success(res.message || `${wo ? "Write-off" : "Refund"} submitted for approval.`);
       onClose();
     } catch { /* central */ }
   };
@@ -188,8 +213,13 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
       footer={
         <>
           <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>
-          {isDraftRefund && can(P.FIN_POST_REFUND) ? (
-            <Button onClick={doPost} disabled={posting} className="gap-1.5"><Check className="size-4" />{posting ? "Posting…" : "Post refund"}</Button>
+          {isDraft && can(wo ? P.FIN_SUBMIT_WRITE_OFF : P.FIN_SUBMIT_REFUND) ? (
+            <Button variant="outline" onClick={doSubmit} disabled={submittingRefund || submittingWriteOff} className="gap-1.5">
+              <Send className="size-4" />{submittingRefund || submittingWriteOff ? "Submitting…" : "Submit"}
+            </Button>
+          ) : null}
+          {isDraft && can(wo ? P.FIN_POST_WRITE_OFF : P.FIN_POST_REFUND) ? (
+            <Button onClick={doPost} disabled={posting || postingWriteOff} className="gap-1.5"><Check className="size-4" />{posting || postingWriteOff ? "Posting…" : "Post"}</Button>
           ) : null}
         </>
       }
@@ -197,7 +227,7 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
       <div className="space-y-5">
         <div className="grid grid-cols-2 gap-4">
           <Field label="Amount"><Money kobo={row.amount} currency={currency} /></Field>
-          <Field label="Status"><StatusPill status={posted ? "POSTED" : "DRAFT"} /></Field>
+          <Field label="Status"><StatusPill status={row.status || "DRAFT"} /></Field>
           <Field label={wo ? "Against invoice" : "Reference"}>{row.reference || "—"}</Field>
           <Field label="Date">{row.date}</Field>
         </div>
@@ -223,12 +253,15 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
   const [bankAccount, setBankAccount] = useState("");
   const [invoice, setInvoice] = useState("");
   const [expenseAccount, setExpenseAccount] = useState("");
-  const [draft, setDraft] = useState(false);
+  const [nextAction, setNextAction] = useState<"post" | "submit" | "draft">("post");
 
   const [createRefund, { isLoading: creatingR }] = useCreateRefundMutation();
   const [postRefund, { isLoading: postingR }] = usePostRefundMutation();
-  const [writeOff, { isLoading: writingOff }] = useWriteOffInvoiceMutation();
-  const saving = creatingR || postingR || writingOff;
+  const [submitRefund, { isLoading: submittingR }] = useSubmitRefundMutation();
+  const [createWriteOff, { isLoading: creatingW }] = useCreateWriteOffRequestMutation();
+  const [postWriteOff, { isLoading: postingW }] = usePostWriteOffRequestMutation();
+  const [submitWriteOff, { isLoading: submittingW }] = useSubmitWriteOffRequestMutation();
+  const saving = creatingR || postingR || submittingR || creatingW || postingW || submittingW;
   const wo = mode === "WRITEOFF";
 
   // Open invoices (with a balance due) for the chosen customer — write-off targets.
@@ -258,10 +291,10 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
 
   const reset = () => {
     setMode("REFUND"); setDate(todayISO); setCustomer(""); setAmount(0); setReason("");
-    setBankAccount(""); setInvoice(""); setExpenseAccount(""); setDraft(false);
+    setBankAccount(""); setInvoice(""); setExpenseAccount(""); setNextAction("post");
   };
   const close = () => { reset(); onClose(); };
-  const changeMode = (m: Mode) => { setMode(m); setInvoice(""); setAmount(0); if (m === "WRITEOFF") setDraft(false); };
+  const changeMode = (m: Mode) => { setMode(m); setInvoice(""); setAmount(0); setNextAction("post"); };
   const pickInvoice = (id: string) => {
     setInvoice(id);
     const inv = openInvoices.find((i) => String(i.id) === id);
@@ -271,21 +304,39 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
   const submit = async () => {
     try {
       if (wo) {
-        const res = await writeOff({ id: Number(invoice), entity, amount, write_off_account: expenseAccount || undefined, narration: reason.trim() || undefined }).unwrap();
-        toast.success(res.message || "Write-off posted.");
+        const res = await createWriteOff({
+          entity, invoice: Number(invoice), amount, write_off_account: expenseAccount || undefined,
+          write_off_date: date, narration: reason.trim() || undefined, reason: reason.trim() || undefined,
+        }).unwrap();
+        if (nextAction === "submit") {
+          const submitted = await submitWriteOff({ id: res.data.id, entity }).unwrap();
+          toast.success(submitted.message || "Write-off submitted for approval.");
+        } else if (nextAction === "post") {
+          const postedRes = await postWriteOff({ id: res.data.id, entity }).unwrap();
+          toast.success(postedRes.message || "Write-off posted.");
+        } else {
+          toast.success(res.message || "Write-off request saved as draft.");
+        }
       } else {
         const res = await createRefund({
           entity, customer: customer.trim().toUpperCase(), refund_date: date, method: "BANK_TRANSFER",
           amount, bank_account: bankAccount ? Number(bankAccount) : undefined, narration: reason.trim() || undefined,
         }).unwrap();
-        if (!draft) await postRefund({ id: res.data.id, entity }).unwrap();
-        toast.success(draft ? "Refund saved as draft." : "Refund processed.");
+        if (nextAction === "submit") {
+          const submitted = await submitRefund({ id: res.data.id, entity }).unwrap();
+          toast.success(submitted.message || "Refund submitted for approval.");
+        } else if (nextAction === "post") {
+          const postedRes = await postRefund({ id: res.data.id, entity }).unwrap();
+          toast.success(postedRes.message || "Refund processed.");
+        } else {
+          toast.success("Refund saved as draft.");
+        }
       }
       close();
     } catch { /* central */ }
   };
 
-  const canWriteOff = can(P.FIN_WRITE_OFF_INVOICE);
+  const canWriteOff = can(P.FIN_CREATE_WRITE_OFF) || can(P.FIN_WRITE_OFF_INVOICE);
 
   return (
     <DetailDrawer
@@ -298,7 +349,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
           <Button variant="outline" disabled={saving} onClick={close}>Cancel</Button>
           <Button disabled={saving || !canSubmit} onClick={submit} className="gap-1.5">
             <Plus className="size-4" />
-            {saving ? "Working…" : wo ? "Post write-off" : draft ? "Save draft" : "Process refund"}
+            {saving ? "Working…" : nextAction === "submit" ? "Submit for approval" : nextAction === "draft" ? "Save draft" : wo ? "Post write-off" : "Process refund"}
           </Button>
         </>
       }
@@ -346,12 +397,13 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
             : "A refund pays out a credit balance — cash leaves the bank."}
         />
 
-        {!wo ? (
-          <label className="flex items-center gap-2 font-mont text-sm text-gray-01">
-            <input type="checkbox" checked={draft} onChange={(e) => setDraft(e.target.checked)} className="accent-primary" />
-            Save as draft (post later for approval)
-          </label>
-        ) : null}
+        <FormField label="Next action">
+          <select value={nextAction} onChange={(e) => setNextAction(e.target.value as "post" | "submit" | "draft")} className="h-9 w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-black-01 focus:border-primary focus:outline-none">
+            <option value="post">Post now</option>
+            <option value="submit">Submit for approval</option>
+            <option value="draft">Save as draft</option>
+          </select>
+        </FormField>
       </div>
     </DetailDrawer>
   );

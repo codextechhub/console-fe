@@ -4,7 +4,8 @@
 // each receipt's unallocated amount + status, Export, Record receipt, and a row-
 // click allocation drawer.
 import { useEffect, useMemo, useState } from "react";
-import { Search, Plus, Download } from "lucide-react";
+import { Search, Plus, Download, Printer } from "lucide-react";
+import { toast } from "sonner";
 import { DataTable, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import { useGetPaymentsQuery, useGetPaymentSummaryQuery } from "@/redux/services/finance/ar-api";
 import type { Payment } from "@/redux/services/finance/ar-types";
+import { openPaymentReceipt } from "@/utils/finance-documents";
 import { RecordReceiptDrawer } from "./record-receipt-drawer";
 import { PaymentAllocationDrawer } from "./payment-allocation-drawer";
 
@@ -75,6 +77,14 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
     URL.revokeObjectURL(url);
   };
 
+  const openReceipt = async (id: number) => {
+    try {
+      await openPaymentReceipt(id, entity, "pdf");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not open the receipt PDF.");
+    }
+  };
+
   const columns: Column<Payment>[] = [
     { header: "Receipt No.", cell: (p) => <span className="font-semibold">{p.document_number}</span> },
     { header: "Date", cell: (p) => <span className="tabular-nums text-gray-05">{p.payment_date}</span> },
@@ -83,6 +93,15 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
     { header: "Amount", align: "right", cell: (p) => <span className="block text-right tabular-nums">{formatMoney(p.amount, currency)}</span> },
     { header: "Unallocated", align: "right", cell: (p) => p.unallocated_amount ? <span className="block text-right font-medium tabular-nums text-amber-700">{formatMoney(p.unallocated_amount, currency)}</span> : <span className="block text-right text-gray-05">—</span> },
     { header: "Status", cell: (p) => <span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[p.allocation_status])}>{STATUS_LABEL[p.allocation_status]}</span> },
+    { header: "", align: "right", cell: (p) => (
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); void openReceipt(p.id); }}
+        className="inline-flex items-center gap-1 rounded-md border border-gray-03 px-2 py-1 font-mont text-[11px] text-gray-01 hover:bg-gray-03"
+      >
+        <Printer className="size-3.5" /> PDF
+      </button>
+    ) },
   ];
 
   return (

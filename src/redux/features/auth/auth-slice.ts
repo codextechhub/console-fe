@@ -1,10 +1,11 @@
 import type { RootStateType } from "@/redux/store";
 import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { type Auth, type User } from "./auth-types";
+import { type Auth, type AuthSchool, type User } from "./auth-types";
 
 // Shape of the login / activation response's `data` envelope.
 interface AuthPayload {
   user: User | null;
+  school?: AuthSchool | null;
   access: string;
   refresh?: string;
   session_id?: number;
@@ -16,6 +17,7 @@ const initialState: Auth = {
    refresh: "",
    session_id: 0,
    user: null,
+   school: null,
    permissions: [],
 };
 
@@ -26,6 +28,7 @@ const authSlice = createSlice({
     reset: () => initialState,
     setAuthUser: (state, action: PayloadAction<AuthPayload>) => {
       state.user = action.payload.user;
+      state.school = action.payload.school ?? null;
       state.access = action.payload.access;
       state.refresh = action.payload.refresh || "";
       state.session_id = action.payload.session_id || 0;
@@ -33,6 +36,9 @@ const authSlice = createSlice({
     },
     updateAuthUser: (state, action: PayloadAction<Partial<User>>) => {
       state.user = { ...(state.user as User), ...action.payload };
+    },
+    updateSchool: (state, action: PayloadAction<AuthSchool | null>) => {
+      state.school = action.payload;
     },
     setToken: (state, action: PayloadAction<string>) => {
       state.access = action.payload;
@@ -43,10 +49,11 @@ const authSlice = createSlice({
   },
 });
 
-export const { setAuthUser, setToken, updateAuthUser, updatePermissions } = authSlice.actions;
+export const { setAuthUser, setToken, updateAuthUser, updateSchool, updatePermissions } = authSlice.actions;
 export const resetAuth = authSlice.actions.reset;
 
 export const authSliceReducer = authSlice.reducer;
 
 export const selectUser = (state: RootStateType) => state.auth.user;
+export const selectSchool = (state: RootStateType) => state.auth.school ?? null;
 export const selectPermissions = (state: RootStateType) => state.auth.permissions ?? [];

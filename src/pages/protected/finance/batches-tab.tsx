@@ -311,7 +311,7 @@ function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: nu
 
 function exportBankFile(reference: string, items: PayoutInstruction[], currency?: string | null) {
   const head = ["Beneficiary", "Bank code", "Account", "Amount", "WHT", "Net", "Status"];
-  const esc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+  const esc = (v: string | number | undefined) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const body = items.map((p) => [
     isStripped(p, "beneficiary_name") ? "••••" : p.beneficiary_name, p.beneficiary_bank_code || "",
     isStripped(p, "beneficiary_account_number") ? "••••" : p.beneficiary_account_number,

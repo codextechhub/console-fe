@@ -23,8 +23,6 @@ import {
 import type { TaxFiling } from "@/redux/services/finance/ops-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
-const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const todayISO = new Date().toISOString().slice(0, 10);
 const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
 

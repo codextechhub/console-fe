@@ -3,7 +3,15 @@ export interface Auth {
   refresh?: string
   session_id?: number
   user?: User | null
+  school?: AuthSchool | null
   permissions?: string[]
+}
+
+export interface AuthSchool {
+  id: number
+  name: string
+  slug: string
+  logo: string | null
 }
 
 export interface User {

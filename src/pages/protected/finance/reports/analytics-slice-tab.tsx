@@ -51,7 +51,8 @@ export function AnalyticsSliceReport({ entity, currency }: { entity: string; cur
 
   // Group rows by bucket (rows arrive sorted by bucket then code).
   const groups = useMemo(() => {
-    const m = new Map<string, typeof sl.rows>();
+    type SliceRow = NonNullable<typeof sl>["rows"][number];
+    const m = new Map<string, SliceRow[]>();
     for (const r of sl?.rows ?? []) {
       if (!m.has(r.bucket)) m.set(r.bucket, []);
       m.get(r.bucket)!.push(r);

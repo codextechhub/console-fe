@@ -85,6 +85,7 @@ export default function BankingPage() {
         <div className="flex items-center gap-2">
           <span className="font-semibold text-gray-01">{a.name}</span>
           {a.is_primary ? <span className={cn(PILL, "bg-blue-50 text-blue-700")}>Primary</span> : null}
+          {a.is_primary_collection ? <span className={cn(PILL, "bg-green-01/10 text-green-01")}>Collection</span> : null}
         </div>
         <div className="mt-0.5 font-mont text-[11px] tabular-nums text-gray-05">A/C {listAcctNo(a)}</div>
       </div>
@@ -348,6 +349,7 @@ function SettingsTab({ account, entity, canEdit }: { account: BankAccount; entit
   const [currency, setCurrency] = useState(account.currency ?? "");
   const [active, setActive] = useState(account.is_active);
   const [primary, setPrimary] = useState(account.is_primary);
+  const [primaryCollection, setPrimaryCollection] = useState(account.is_primary_collection);
   const [update, { isLoading }] = useUpdateBankAccountMutation();
   const numberStripped = isStripped(account, "account_number");
 
@@ -357,6 +359,7 @@ function SettingsTab({ account, entity, canEdit }: { account: BankAccount; entit
         id: account.id, entity, name: name.trim(), bank_name: bankName.trim(),
         ...(numberStripped ? {} : { account_number: accountNumber.trim() }),
         currency: currency || undefined, is_active: active, is_primary: primary,
+        is_primary_collection: primaryCollection,
       }).unwrap();
       toast.success(res.message || "Bank account updated.");
     } catch { /* central */ }
@@ -376,6 +379,7 @@ function SettingsTab({ account, entity, canEdit }: { account: BankAccount; entit
         <div className="flex items-end gap-4 pb-2">
           <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} disabled={!canEdit} className="accent-primary" /> Active</label>
           <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={primary} onChange={(e) => setPrimary(e.target.checked)} disabled={!canEdit} className="accent-primary" /> Primary</label>
+          <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={primaryCollection} onChange={(e) => setPrimaryCollection(e.target.checked)} disabled={!canEdit} className="accent-primary" /> Collection</label>
         </div>
       </div>
       {canEdit ? (
@@ -482,9 +486,10 @@ function CreateBankAccountModal({ open, onClose, entity }: { open: boolean; onCl
   const [currency, setCurrency] = useState("");
   const [active, setActive] = useState(true);
   const [primary, setPrimary] = useState(false);
+  const [primaryCollection, setPrimaryCollection] = useState(false);
   const [create, { isLoading }] = useCreateBankAccountMutation();
 
-  const reset = () => { setName(""); setBankName(""); setAccountNumber(""); setGlAccount(""); setCurrency(""); setActive(true); setPrimary(false); };
+  const reset = () => { setName(""); setBankName(""); setAccountNumber(""); setGlAccount(""); setCurrency(""); setActive(true); setPrimary(false); setPrimaryCollection(false); };
   const close = () => { reset(); onClose(); };
 
   const submit = async () => {
@@ -493,6 +498,7 @@ function CreateBankAccountModal({ open, onClose, entity }: { open: boolean; onCl
         entity, name: name.trim(), bank_name: bankName.trim() || undefined,
         account_number: accountNumber.trim() || undefined, gl_account: glAccount,
         currency: currency || undefined, is_active: active, is_primary: primary,
+        is_primary_collection: primaryCollection,
       }).unwrap();
       toast.success(res.message || "Bank account created.");
       close();
@@ -525,6 +531,7 @@ function CreateBankAccountModal({ open, onClose, entity }: { open: boolean; onCl
         <div className="flex items-center gap-5">
           <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-primary" /> Active</label>
           <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={primary} onChange={(e) => setPrimary(e.target.checked)} className="accent-primary" /> Primary operating account</label>
+          <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={primaryCollection} onChange={(e) => setPrimaryCollection(e.target.checked)} className="accent-primary" /> Print on invoices/receipts</label>
         </div>
       </div>
     </DetailDrawer>

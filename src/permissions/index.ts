@@ -146,7 +146,8 @@ const REGISTRY: Record<string, string> = {
   // 10 dunning · 11 directentry · 12 report · 13 currency · 14 fxrate ·
   // 15 taxcode · 16 costcenter · 17 dimension · 18 bankaccount · 19 expenseclaim ·
   // 20 pettycash · 21 tax · 22 payrollrun · 23 budget · 24 fixedasset · 25 audit ·
-  // 26 customer · 27 feestructure · 28 payment · 29 pettycashvoucher · 30 salary.
+  // 26 customer · 27 feestructure · 28 payment · 29 pettycashvoucher · 30 salary ·
+  // 31 writeoff.
   // Every key matches an rbac_permission on a vs_finance view (verified against source).
   "200101": "finance.entity.view",
   "200102": "finance.entity.create",
@@ -160,6 +161,9 @@ const REGISTRY: Record<string, string> = {
   "200401": "finance.journal.view",
   "200413": "finance.journal.post",
   "200414": "finance.journal.reverse",
+  "200430": "finance.journal.submit",
+  "200405": "finance.journal.approve",
+  "200438": "finance.journal.approve_high_value",
   "200501": "finance.invoice.view",
   "200502": "finance.invoice.create",
   "200521": "finance.invoice.writeoff",
@@ -173,6 +177,9 @@ const REGISTRY: Record<string, string> = {
   "200701": "finance.refund.view",
   "200702": "finance.refund.create",
   "200713": "finance.refund.post",
+  "200730": "finance.refund.submit",
+  "200705": "finance.refund.approve",
+  "200738": "finance.refund.approve_high_value",
   "200801": "finance.concession.view",
   "200802": "finance.concession.create",
   "200813": "finance.concession.post",
@@ -250,6 +257,12 @@ const REGISTRY: Record<string, string> = {
   "203002": "finance.salary.create",
   "203003": "finance.salary.update",
   "203004": "finance.salary.delete",
+  "203101": "finance.writeoff.view",
+  "203102": "finance.writeoff.create",
+  "203113": "finance.writeoff.post",
+  "203130": "finance.writeoff.submit",
+  "203105": "finance.writeoff.approve",
+  "203138": "finance.writeoff.approve_high_value",
 
   // ── PROCUREMENT  (MM=70) ─────────────────────────────────────────────────────
   // RR: 01 category · 02 vendor · 03 catalog_item · 04 contract · 05 requisition ·
@@ -430,6 +443,9 @@ export const P = {
   FIN_VIEW_JOURNALS:        "200401",
   FIN_POST_JOURNAL:         "200413",
   FIN_REVERSE_JOURNAL:      "200414",
+  FIN_SUBMIT_JOURNAL:       "200430",
+  FIN_APPROVE_JOURNAL:      "200405",
+  FIN_APPROVE_HIGH_VALUE_JOURNAL: "200438",
   FIN_VIEW_INVOICES:        "200501",
   FIN_CREATE_INVOICE:       "200502",
   FIN_WRITE_OFF_INVOICE:    "200521",
@@ -443,6 +459,15 @@ export const P = {
   FIN_VIEW_REFUNDS:         "200701",
   FIN_CREATE_REFUND:        "200702",
   FIN_POST_REFUND:          "200713",
+  FIN_SUBMIT_REFUND:        "200730",
+  FIN_APPROVE_REFUND:       "200705",
+  FIN_APPROVE_HIGH_VALUE_REFUND: "200738",
+  FIN_VIEW_WRITE_OFFS:      "203101",
+  FIN_CREATE_WRITE_OFF:     "203102",
+  FIN_POST_WRITE_OFF:       "203113",
+  FIN_SUBMIT_WRITE_OFF:     "203130",
+  FIN_APPROVE_WRITE_OFF:    "203105",
+  FIN_APPROVE_HIGH_VALUE_WRITE_OFF: "203138",
   FIN_VIEW_CONCESSIONS:     "200801",
   FIN_CREATE_CONCESSION:    "200802",
   FIN_POST_CONCESSION:      "200813",

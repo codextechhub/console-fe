@@ -1,4 +1,4 @@
-import type { User } from "@/redux/features/auth/auth-types";
+import type { AuthSchool, User } from "@/redux/features/auth/auth-types";
 
 export interface ResponseMessage {
     status: boolean;
@@ -11,6 +11,7 @@ export interface LoginResponse extends ResponseMessage {
     refresh: string
     session_id: number
     user: User
+    school: AuthSchool | null
     permissions: string[]
   }
 }

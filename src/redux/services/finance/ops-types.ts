@@ -14,6 +14,7 @@ export interface BankAccount {
   currency: string | null;
   is_active: boolean;
   is_primary: boolean;
+  is_primary_collection: boolean;
   book_balance: number;
   book_balance_naira: string;
   unreconciled_count: number;

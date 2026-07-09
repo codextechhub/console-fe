@@ -95,7 +95,7 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
 
   const rows = toArray<Invoice>(data?.data);
   const pg = data?.pagination;
-  const count = (key: string) => key ? (summary?.by_status?.[key as "draft"] ?? 0) : (summary?.total ?? summary?.by_status?.total ?? 0);
+  const count = (key: string) => key ? (summary?.by_status?.[key as "draft"] ?? 0) : (summary?.totals.count ?? summary?.by_status?.total ?? 0);
 
   const inv = summary?.monthly.map((m) => m.invoiced) ?? [];
   const col = summary?.monthly.map((m) => m.collected) ?? [];
@@ -104,8 +104,8 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
   const submitWriteOff = async () => {
     if (!selected) return;
     try {
-      const res = await doWriteOff({ id: selected.id, entity, narration: reason }).unwrap();
-      toast.success(res.message || "Invoice written off.");
+      const res = await doWriteOff({ id: selected.id, entity, narration: reason, reason }).unwrap();
+      toast.success(res.message || ("invoice_id" in res.data ? "Write-off request created." : "Invoice written off."));
       setWriteOff(false); setReason(""); setSelected(null);
     } catch { /* central */ }
   };

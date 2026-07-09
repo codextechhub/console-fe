@@ -107,14 +107,14 @@ export function DunningTab({ entity, currency }: { entity: string; currency?: st
       </div>
 
       {tab === "queue"
-        ? <ReminderQueue entity={entity} currency={currency} policies={policies} canCancel={can(P.FIN_SEND_DUNNING)} />
+        ? <ReminderQueue entity={entity} policies={policies} canCancel={can(P.FIN_SEND_DUNNING)} />
         : <PoliciesPanel entity={entity} policies={policies} />}
     </>
   );
 }
 
-function ReminderQueue({ entity, currency, policies, canCancel }: {
-  entity: string; currency?: string | null; policies: DunningPolicy[]; canCancel: boolean;
+function ReminderQueue({ entity, policies, canCancel }: {
+  entity: string; policies: DunningPolicy[]; canCancel: boolean;
 }) {
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetDunningNoticesQuery({ entity, page });

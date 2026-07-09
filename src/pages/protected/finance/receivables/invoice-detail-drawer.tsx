@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { useGetInvoiceDetailQuery, useRemindInvoiceMutation } from "@/redux/services/finance/ar-api";
+import { openInvoiceDocument } from "@/utils/finance-documents";
 import { RecordPaymentModal } from "./record-payment-modal";
 import { RequestPaymentModal } from "./request-payment-modal";
 
@@ -66,6 +67,15 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
   const overdue = !!(s?.due_date && s.due_date < todayISO && (s?.balance.kobo ?? 0) > 0);
   const canAct = !!inv && inv.status === "POSTED" && inv.balance_due > 0;
 
+  const openPdf = async () => {
+    if (!inv) return;
+    try {
+      await openInvoiceDocument(inv.id, entity, "pdf");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not open the invoice PDF.");
+    }
+  };
+
   const sendReminder = async () => {
     if (!inv) return;
     try {
@@ -88,7 +98,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
       footer={
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print PDF</Button>
+            <Button variant="outline" onClick={openPdf} disabled={!inv} className="gap-1.5"><Printer className="size-4" /> Print PDF</Button>
             <TooltipProvider delayDuration={100}>
               <Tooltip>
                 <TooltipTrigger asChild>

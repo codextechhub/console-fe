@@ -76,6 +76,25 @@ export interface Refund {
   narration: string;
 }
 
+export interface WriteOffRequest {
+  id: number;
+  document_number: string;
+  status: string;
+  invoice_id: number;
+  invoice_number: string;
+  customer_code: string;
+  customer_name: string;
+  amount: number;
+  amount_naira: string;
+  write_off_account_id: number | null;
+  write_off_date: string | null;
+  narration: string;
+  reason: string;
+  journal_id: number | null;
+}
+
+export type InvoiceWriteOffResult = Invoice | WriteOffRequest;
+
 // Unified AR adjustment row (refund or write-off) from /finance/ar-adjustments/.
 export interface ArAdjustment {
   key: string;
@@ -89,6 +108,7 @@ export interface ArAdjustment {
   amount_naira: string;
   status: string;
   refund_id: number | null;
+  write_off_id?: number | null;
 }
 
 export interface Concession {

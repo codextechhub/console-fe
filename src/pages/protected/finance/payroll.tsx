@@ -747,7 +747,10 @@ function PayslipsTab({ entity, currency }: { entity: string; currency?: string |
 // line's components, else the flat gross / PAYE / pension / net summary.
 function PayslipBreakdown({ line, currency }: { line: PayrollLine; currency?: string | null }) {
   const comps = line.components ?? [];
-  const rows = comps.length
+  type BreakdownRow =
+    | { sec: string }
+    | { label: string; amount: number; ded: boolean; strong?: boolean };
+  const rows: BreakdownRow[] = comps.length
     ? [
         { sec: "Earnings" as const },
         ...comps.filter((c) => c.kind === "EARNING").map((c) => ({ label: c.name, amount: c.amount, ded: false })),

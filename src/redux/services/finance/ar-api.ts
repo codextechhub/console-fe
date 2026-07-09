@@ -22,10 +22,12 @@ import type {
   FeeStructure,
   Invoice,
   InvoiceDetail,
+  InvoiceWriteOffResult,
   InvoiceListParams,
   InvoiceSummary,
   PaymentPlan,
   Refund,
+  WriteOffRequest,
 } from "./ar-types";
 
 type EntityList = { entity: string; page?: number; status?: string; customer?: string };
@@ -56,13 +58,13 @@ export const arApi = baseApi.injectEndpoints({
       invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals"],
     }),
     // Backend keys: amount? · write_off_account? · write_off_date? · narration.
-    writeOffInvoice: builder.mutation<ApiEnvelope<Invoice>, { id: number; entity: string; amount?: number; write_off_account?: string | number; write_off_date?: string; narration?: string }>({
+    writeOffInvoice: builder.mutation<ApiEnvelope<InvoiceWriteOffResult>, { id: number; entity: string; amount?: number; write_off_account?: string | number; write_off_date?: string; narration?: string; reason?: string }>({
       query: ({ id, entity, ...body }) => ({
         url: `/finance/invoices/${id}/write-off/${qs({ entity })}`,
         method: "POST",
         body,
       }),
-      invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals", "FinanceCustomers", "FinancePaymentPlans"],
+      invalidatesTags: ["FinanceInvoices", "FinanceReports", "FinanceJournals", "FinanceCustomers", "FinancePaymentPlans", "FinanceWriteOffs", "WorkflowPending", "WorkflowSubmissions"],
     }),
     recordPayment: builder.mutation<ApiEnvelope<Invoice>, {
       id: number; entity: string; amount: number; payment_date: string;
@@ -121,13 +123,44 @@ export const arApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["FinanceRefunds", "FinanceReports", "FinanceJournals", "FinanceCustomers"],
     }),
+    submitRefund: builder.mutation<ApiEnvelope<Refund>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({
+        url: `/finance/refunds/${id}/submit/${qs({ entity })}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["FinanceRefunds", "WorkflowPending", "WorkflowSubmissions"],
+    }),
+    // First-class bad-debt write-off requests.
+    getWriteOffRequests: builder.query<PaginatedEnvelope<WriteOffRequest>, EntityList & { invoice?: string | number }>({
+      query: (params) => ({ url: `/finance/write-offs/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceWriteOffs"],
+    }),
+    getWriteOffRequest: builder.query<ApiEnvelope<WriteOffRequest>, { entity: string; id: number }>({
+      query: ({ entity, id }) => ({ url: `/finance/write-offs/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinanceWriteOffs"],
+    }),
+    createWriteOffRequest: builder.mutation<ApiEnvelope<WriteOffRequest>, {
+      entity: string; invoice: string | number; amount?: number; write_off_account?: string | number;
+      write_off_date?: string; narration?: string; reason?: string;
+    }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/write-offs/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinanceWriteOffs"],
+    }),
+    postWriteOffRequest: builder.mutation<ApiEnvelope<WriteOffRequest>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/write-offs/${id}/post/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinanceWriteOffs", "FinanceInvoices", "FinanceReports", "FinanceJournals", "FinanceCustomers", "FinancePaymentPlans"],
+    }),
+    submitWriteOffRequest: builder.mutation<ApiEnvelope<WriteOffRequest>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/write-offs/${id}/submit/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinanceWriteOffs", "WorkflowPending", "WorkflowSubmissions"],
+    }),
     // Unified refunds + write-offs, paginated, with KPI totals in the envelope.
     getArAdjustments: builder.query<
       { pagination: Pagination; kpis: { written_off_ytd: number; pending: number }; data: ArAdjustment[] },
       { entity: string; type?: string; search?: string; page?: number }
     >({
       query: (params) => ({ url: `/finance/ar-adjustments/${qs(params)}`, method: "GET" }),
-      providesTags: ["FinanceRefunds", "FinanceInvoices"],
+      providesTags: ["FinanceRefunds", "FinanceInvoices", "FinanceWriteOffs"],
     }),
 
     // Concessions
@@ -293,6 +326,12 @@ export const {
   useGetRefundsQuery,
   useCreateRefundMutation,
   usePostRefundMutation,
+  useSubmitRefundMutation,
+  useGetWriteOffRequestsQuery,
+  useGetWriteOffRequestQuery,
+  useCreateWriteOffRequestMutation,
+  usePostWriteOffRequestMutation,
+  useSubmitWriteOffRequestMutation,
   useGetArAdjustmentsQuery,
   useGetConcessionsQuery,
   useGetConcessionSummaryQuery,

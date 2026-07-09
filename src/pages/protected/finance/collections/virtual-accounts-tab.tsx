@@ -17,7 +17,6 @@ import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
-import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { isStripped } from "@/utils/fls";
 import {

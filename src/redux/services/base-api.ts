@@ -284,6 +284,7 @@ export const baseApi = createApi({
     "FinanceInvoices",
     "FinanceCreditNotes",
     "FinanceRefunds",
+    "FinanceWriteOffs",
     "FinanceConcessions",
     "FinancePaymentPlans",
     "FinanceDunning",

@@ -3,6 +3,7 @@
 // free-form journal editor (spec §1.4).
 //   GET  /finance/journals/                 finance.journal.view
 //   GET  /finance/journals/{id}/            finance.journal.view
+//   POST /finance/journals/{id}/submit/     finance.journal.submit
 //   POST /finance/journals/{id}/reverse/    finance.journal.reverse
 //   POST /finance/direct-entries/           finance.directentry.post
 
@@ -42,10 +43,18 @@ export const glApi = baseApi.injectEndpoints({
       }),
       providesTags: ["FinanceJournals"],
     }),
-    reverseJournal: builder.mutation<ApiEnvelope<JournalDetail>, { id: number; entity: string }>({
+    submitJournal: builder.mutation<ApiEnvelope<JournalDetail>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({
+        url: `/finance/journals/${id}/submit/${generateQueryString({ entity })}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["FinanceJournals", "WorkflowPending", "WorkflowSubmissions"],
+    }),
+    reverseJournal: builder.mutation<ApiEnvelope<JournalDetail>, { id: number; entity: string; date?: string; reversal_date?: string }>({
+      query: ({ id, entity, ...body }) => ({
         url: `/finance/journals/${id}/reverse/${generateQueryString({ entity })}`,
         method: "POST",
+        body,
       }),
       invalidatesTags: ["FinanceJournals", "FinanceReports"],
     }),
@@ -64,6 +73,7 @@ export const {
   useGetJournalsQuery,
   useGetJournalSummaryQuery,
   useGetJournalQuery,
+  useSubmitJournalMutation,
   useReverseJournalMutation,
   usePostDirectEntryMutation,
 } = glApi;

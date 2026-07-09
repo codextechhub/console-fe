@@ -5,14 +5,14 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Printer } from "lucide-react";
+import { Check, Printer, Send } from "lucide-react";
 import { DetailDrawer, Money, StatusPill, ConfirmActionModal, InfoHint } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
-import { useGetJournalQuery, useReverseJournalMutation } from "@/redux/services/finance/gl-api";
+import { useGetJournalQuery, useReverseJournalMutation, useSubmitJournalMutation } from "@/redux/services/finance/gl-api";
 
 const cap = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
@@ -32,7 +32,9 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
 }) {
   const open = journalId != null;
   const { data, isLoading, isError, refetch } = useGetJournalQuery({ id: journalId!, entity }, { skip: !open });
+  const [submitJournal, { isLoading: submitting }] = useSubmitJournalMutation();
   const [reverse, { isLoading: reversing }] = useReverseJournalMutation();
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [confirmReverse, setConfirmReverse] = useState(false);
   const j = data?.data;
   const diff = j ? j.total_debit - j.total_credit : 0;
@@ -42,6 +44,15 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
       const res = await reverse({ id: journalId!, entity }).unwrap();
       toast.success(res.message || "Journal reversed.");
       setConfirmReverse(false);
+      onClose();
+    } catch { /* handled centrally */ }
+  };
+
+  const doSubmit = async () => {
+    try {
+      const res = await submitJournal({ id: journalId!, entity }).unwrap();
+      toast.success(res.message || "Journal submitted for approval.");
+      setConfirmSubmit(false);
       onClose();
     } catch { /* handled centrally */ }
   };
@@ -60,6 +71,11 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
               Created by {j?.created_by ?? "—"}{j?.posted_at ? ` · Posted ${new Date(j.posted_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
             </span>
             <div className="flex items-center gap-2">
+              {j?.status === "DRAFT" && (
+                <Can permission={P.FIN_SUBMIT_JOURNAL}>
+                  <Button onClick={() => setConfirmSubmit(true)} className="gap-1.5"><Send className="size-4" /> Submit</Button>
+                </Can>
+              )}
               {j?.status === "POSTED" && (
                 <Can permission={P.FIN_REVERSE_JOURNAL}>
                   <Button variant="outline" onClick={() => setConfirmReverse(true)} className="border-destructive/40 text-destructive hover:bg-destructive/5">Reverse</Button>
@@ -127,6 +143,16 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
           </div>
         )}
       </DetailDrawer>
+
+      <ConfirmActionModal
+        open={confirmSubmit}
+        onOpenChange={setConfirmSubmit}
+        title="Submit this journal for approval?"
+        description={`Moves ${j?.document_number} into the shared approval workflow. It will post only after final approval.`}
+        confirmText="Submit for approval"
+        loading={submitting}
+        onConfirm={doSubmit}
+      />
 
       <ConfirmActionModal
         open={confirmReverse}
