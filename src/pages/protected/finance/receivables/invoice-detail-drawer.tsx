@@ -70,7 +70,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
   const openPdf = async () => {
     if (!inv) return;
     try {
-      await openInvoiceDocument(inv.id, entity, "pdf");
+      await openInvoiceDocument(inv.id, entity);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not open the invoice PDF.");
     }

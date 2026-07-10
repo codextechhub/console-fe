@@ -79,7 +79,7 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
 
   const openReceipt = async (id: number) => {
     try {
-      await openPaymentReceipt(id, entity, "pdf");
+      await openPaymentReceipt(id, entity);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not open the receipt PDF.");
     }

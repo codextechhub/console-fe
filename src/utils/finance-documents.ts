@@ -12,7 +12,11 @@ function buildUrl(path: string, params: Record<string, string | number | undefin
   return `${cleanBase}${cleanPath}${query ? `?${query}` : ""}`;
 }
 
-async function openAuthenticatedDocument(path: string, params: Record<string, string | number | undefined>) {
+// The backend serves print-ready HTML documents (@media print / @page A4); there
+// is no server-side PDF. We fetch the HTML (the endpoint needs the Bearer token,
+// so a plain navigation won't authenticate), open it in a new tab, and trigger
+// the browser's print dialog — from which the user saves as PDF.
+async function openPrintableDocument(path: string, params: Record<string, string | number | undefined>) {
   const token = Cookies.get("token");
   const res = await fetch(buildUrl(path, params), {
     headers: {
@@ -32,18 +36,14 @@ async function openAuthenticatedDocument(path: string, params: Record<string, st
 
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
-  window.open(url, "_blank", "noopener,noreferrer");
+  // No `noopener` — we need the window handle to call print() on our own blob.
+  const win = window.open(url, "_blank");
+  if (win) win.addEventListener("load", () => { win.focus(); win.print(); }, { once: true });
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-export const openInvoiceDocument = (id: number, entity: string, format: "html" | "pdf" = "pdf") =>
-  openAuthenticatedDocument(
-    `/finance/invoices/${id}/${format === "pdf" ? "document.pdf" : "document/"}`,
-    { entity },
-  );
+export const openInvoiceDocument = (id: number, entity: string) =>
+  openPrintableDocument(`/finance/invoices/${id}/document/`, { entity });
 
-export const openPaymentReceipt = (id: number, entity: string, format: "html" | "pdf" = "pdf") =>
-  openAuthenticatedDocument(
-    `/finance/payments/${id}/${format === "pdf" ? "receipt.pdf" : "receipt/"}`,
-    { entity },
-  );
+export const openPaymentReceipt = (id: number, entity: string) =>
+  openPrintableDocument(`/finance/payments/${id}/receipt/`, { entity });
