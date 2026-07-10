@@ -17,29 +17,38 @@ function buildUrl(path: string, params: Record<string, string | number | undefin
 // so a plain navigation won't authenticate), open it in a new tab, and trigger
 // the browser's print dialog — from which the user saves as PDF.
 async function openPrintableDocument(path: string, params: Record<string, string | number | undefined>) {
-  const token = Cookies.get("token");
-  const res = await fetch(buildUrl(path, params), {
-    headers: {
-      ...(token && token !== "undefined" ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
-  if (!res.ok) {
-    let message = "Could not open the document.";
-    try {
-      const data = await res.json();
-      message = data?.detail || data?.message || message;
-    } catch {
-      // Non-JSON document errors fall through to the generic message.
+  // Open the tab synchronously, inside the click gesture — if we opened it after
+  // the await, popup blockers would treat it as non-user-initiated and swallow it.
+  // No `noopener`: we need the handle to navigate + print() our own blob.
+  const win = window.open("", "_blank");
+  if (!win) throw new Error("Allow pop-ups for this site to open the document.");
+  try {
+    const token = Cookies.get("token");
+    const res = await fetch(buildUrl(path, params), {
+      headers: {
+        ...(token && token !== "undefined" ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    if (!res.ok) {
+      let message = "Could not open the document.";
+      try {
+        const data = await res.json();
+        message = data?.detail || data?.message || message;
+      } catch {
+        // Non-JSON document errors fall through to the generic message.
+      }
+      throw new Error(message);
     }
-    throw new Error(message);
-  }
 
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  // No `noopener` — we need the window handle to call print() on our own blob.
-  const win = window.open(url, "_blank");
-  if (win) win.addEventListener("load", () => { win.focus(); win.print(); }, { once: true });
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    win.addEventListener("load", () => { win.focus(); win.print(); }, { once: true });
+    win.location.href = url;
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (error) {
+    win.close(); // don't leave a blank tab open on failure
+    throw error;
+  }
 }
 
 export const openInvoiceDocument = (id: number, entity: string) =>
