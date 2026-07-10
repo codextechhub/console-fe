@@ -118,10 +118,17 @@ export const paymentsApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/payments/payout-batches/${id}/${qs({ entity })}`, method: "GET" }),
       providesTags: ["PaymentsPayoutBatches"],
     }),
-    // POST the batch detail submits its pending instructions to the PSP.
+    // POST the batch detail submits its pending instructions to the PSP directly.
+    // Refused (400) once the batch is approval-gated — use submitPayoutBatchForApproval.
     submitPayoutBatch: builder.mutation<ApiEnvelope<PayoutBatch>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({ url: `/payments/payout-batches/${id}/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["PaymentsPayoutBatches", "PaymentsPayouts"],
+    }),
+    // Route an approval-gated batch through vs_workflow; the PSP submission fires only
+    // on final approval (handled in the workflow approvals inbox).
+    submitPayoutBatchForApproval: builder.mutation<ApiEnvelope<PayoutBatch>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/payments/payout-batches/${id}/submit-for-approval/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["PaymentsPayoutBatches", "PaymentsPayouts", "WorkflowPending", "WorkflowSubmissions"],
     }),
     getSettlementReconciliation: builder.query<ApiEnvelope<SettlementReconciliation>, { entity: string; provider?: string; start_date?: string; end_date?: string }>({
       query: (p) => ({ url: `/payments/reports/settlement-reconciliation/${qs(p)}`, method: "GET" }),
@@ -159,6 +166,7 @@ export const {
   useCreatePayoutBatchMutation,
   useGetPayoutBatchQuery,
   useSubmitPayoutBatchMutation,
+  useSubmitPayoutBatchForApprovalMutation,
   useGetMovementsQuery,
   useGetMovementsSummaryQuery,
   useGetSettlementReconciliationQuery,

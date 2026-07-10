@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { isStripped } from "@/utils/fls";
 import { P } from "@/permissions";
-import { useGetPayoutBatchesQuery, useGetPayoutBatchesSummaryQuery, useCreatePayoutBatchMutation, useGetPayoutBatchQuery, useSubmitPayoutBatchMutation } from "@/redux/services/payments/payments-api";
+import { useGetPayoutBatchesQuery, useGetPayoutBatchesSummaryQuery, useCreatePayoutBatchMutation, useGetPayoutBatchQuery, useSubmitPayoutBatchMutation, useSubmitPayoutBatchForApprovalMutation } from "@/redux/services/payments/payments-api";
 import { useGetVendorsQuery } from "@/redux/services/procurement/procurement-api";
 import type { PayoutBatchSummary, PayoutInstruction, PayoutBatchItemPayload } from "@/redux/services/payments/payments-types";
 import type { Vendor } from "@/redux/services/procurement/procurement-types";
@@ -169,7 +169,10 @@ function BuildBatchDrawer({ open, onClose, entity, currency }: { open: boolean; 
     if (!validItems.length) return;
     try {
       const r = await create({ entity, title: title.trim() || undefined, provider, source_account: sourceAccount || undefined, narration: narration.trim() || undefined, submit: dispatch, items: validItems }).unwrap();
-      toast.success(dispatch ? "Batch submitted to the provider." : (r.message || "Draft batch saved."));
+      // When the batch is approval-gated the backend ignores submit and leaves it DRAFT —
+      // don't claim it dispatched; surface the backend's "submit it for approval" message.
+      const dispatched = dispatch && r.data?.status && r.data.status !== "DRAFT";
+      toast.success(dispatched ? "Batch submitted to the provider." : (r.message || (dispatch ? "Batch created — submit it for approval." : "Draft batch saved.")));
       close();
     } catch { /* central */ }
   };
@@ -252,6 +255,7 @@ function BuildBatchDrawer({ open, onClose, entity, currency }: { open: boolean; 
 function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: number | null; entity: string; currency?: string | null; onClose: () => void }) {
   const { data, isFetching } = useGetPayoutBatchQuery(batchId == null ? skipToken : { id: batchId, entity });
   const [submit, { isLoading: submitting }] = useSubmitPayoutBatchMutation();
+  const [submitForApproval, { isLoading: routing }] = useSubmitPayoutBatchForApprovalMutation();
   const batch = data?.data ?? null;
   if (batchId == null) return null;
 
@@ -260,11 +264,21 @@ function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: nu
   const settled = items.filter((p) => p.status === "PAID").length;
   const failed = items.filter((p) => p.status === "FAILED" || p.status === "REVERSED").length;
   const hasPending = items.some((p) => p.status === "PENDING");
-  const canSubmit = batch ? (batch.status === "DRAFT" || hasPending) : false;
+  // Maker-checker: a batch already routed shows as awaiting approval (no re-submit).
+  // `approval_required` (when the serializer exposes it) picks the right action; while it's
+  // undefined we offer both — direct submit 400s if gated, approval errors if no template.
+  const awaitingApproval = batch?.approval_status === "PENDING";
+  const gated = batch?.approval_required;
+  const canSubmit = batch ? ((batch.status === "DRAFT" || hasPending) && !awaitingApproval) : false;
 
   const doSubmit = async () => {
     if (!batch) return;
     try { const r = await submit({ id: batch.id, entity }).unwrap(); toast.success(r.message || "Batch submitted."); }
+    catch { /* central */ }
+  };
+  const doSubmitForApproval = async () => {
+    if (!batch) return;
+    try { const r = await submitForApproval({ id: batch.id, entity }).unwrap(); toast.success(r.message || "Batch submitted for approval."); }
     catch { /* central */ }
   };
 
@@ -288,10 +302,16 @@ function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: nu
       footer={<>
         <span className="font-mont text-xs text-gray-05">{settled} settled · {failed} failed · {items.length} items</span>
         <div className="flex-1" />
+        {awaitingApproval ? <span className={cn(PILL, "bg-amber-50 text-amber-700")}>Awaiting approval</span> : null}
         <Button variant="outline" disabled={!items.length} onClick={() => batch && exportBankFile(batch.reference, items, currency)} className="gap-1.5"><Download className="size-4" /> Bank file</Button>
-        {canSubmit ? (
+        {canSubmit && gated !== false ? (
+          <Can permission={P.PAY_SUBMIT_PAYOUT_BATCH}>
+            <Button disabled={routing} onClick={doSubmitForApproval} className="gap-1.5"><Send className="size-4" />{routing ? "Submitting…" : "Submit for approval"}</Button>
+          </Can>
+        ) : null}
+        {canSubmit && gated !== true ? (
           <Can permission={P.PAY_CREATE_PAYOUT}>
-            <Button disabled={submitting} onClick={doSubmit} className="gap-1.5"><Send className="size-4" />{submitting ? "Submitting…" : "Submit batch"}</Button>
+            <Button variant={gated === undefined ? "outline" : "default"} disabled={submitting} onClick={doSubmit} className="gap-1.5"><Send className="size-4" />{submitting ? "Submitting…" : "Submit batch"}</Button>
           </Can>
         ) : null}
       </>}>

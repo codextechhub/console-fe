@@ -71,6 +71,13 @@ export const setupApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/finance/periods/${id}/lock/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinancePeriods", "FinanceReports"],
     }),
+    // Year-end close: post the closing entry (zero every P&L account, roll net profit/loss
+    // into Retained Earnings 3200) and seal the fiscal year. `force` closes even while some
+    // periods are still OPEN; closing_date defaults to the year end_date server-side.
+    closeFiscalYear: b.mutation<ApiEnvelope<{ fiscal_year: { id: number; year: number; status: string }; closing_journal: { id: number } | null; net_income: { kobo: number; naira: string } }>, { id: number; entity: string; force?: boolean; closing_date?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/finance/fiscal-years/${id}/close/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinancePeriods", "FinanceReports", "FinanceJournals"],
+    }),
     getCurrencies: b.query<PaginatedEnvelope<Currency>, void>({
       query: () => ({ url: `/finance/currencies/`, method: "GET" }),
       providesTags: ["FinanceSetup"],
@@ -130,6 +137,7 @@ export const {
   useClosePeriodMutation,
   useReopenPeriodMutation,
   useLockPeriodMutation,
+  useCloseFiscalYearMutation,
   useGetCurrenciesQuery,
   useCreateFxRateMutation,
   useGetTaxCodesQuery,

@@ -6,13 +6,14 @@ import { useMemo, useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
-import { DetailDrawer, StatusPill, InfoHint } from "@/components/finance-ui";
+import { DetailDrawer, StatusPill, InfoHint, ConfirmActionModal } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
-import { useGetPeriodsQuery, useGetPeriodChecklistQuery, useClosePeriodMutation, useReopenPeriodMutation, useLockPeriodMutation } from "@/redux/services/finance/setup-api";
+import { useGetPeriodsQuery, useGetPeriodChecklistQuery, useClosePeriodMutation, useReopenPeriodMutation, useLockPeriodMutation, useCloseFiscalYearMutation } from "@/redux/services/finance/setup-api";
+import { useGetFiscalYearsQuery } from "@/redux/services/finance/ops-api";
 import type { FiscalPeriod } from "@/redux/services/finance/setup-types";
 
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
@@ -23,6 +24,25 @@ export function PeriodsTab({ entity }: { entity: string }) {
   const { data, isLoading, isFetching, isError, refetch } = useGetPeriodsQuery({ entity });
   const periods = useMemo(() => data?.data ?? [], [data]);
   const [selected, setSelected] = useState<number | null>(null);
+  // Real fiscal-year records (id + status) — needed to seal a year (the period rows only
+  // carry the year number). A year is year-end-closable while its FY status is OPEN.
+  const { data: fyData } = useGetFiscalYearsQuery({ entity });
+  const fyByYear = useMemo(() => {
+    const m = new Map<number, { id: number; status: string }>();
+    for (const f of fyData?.data ?? []) m.set(f.year, { id: f.id, status: f.status });
+    return m;
+  }, [fyData]);
+  const [closing, setClosing] = useState<{ id: number; year: number; hasOpen: boolean } | null>(null);
+  const [closeYear, { isLoading: closingYear }] = useCloseFiscalYearMutation();
+  const doCloseYear = async () => {
+    if (!closing) return;
+    try {
+      const r = await closeYear({ id: closing.id, entity, force: closing.hasOpen }).unwrap();
+      const ni = r.data?.net_income?.naira;
+      toast.success(`${r.message || `Fiscal year ${closing.year} closed.`}${ni ? ` · Net ${ni} → Retained Earnings` : ""}`);
+      setClosing(null);
+    } catch { /* central */ }
+  };
 
   // Group periods by fiscal year for the summary table + the per-year strips.
   const years = useMemo(() => {
@@ -53,18 +73,29 @@ export function PeriodsTab({ entity }: { entity: string }) {
           <thead><tr>
             <th className={th}>Fiscal year</th><th className={th}>Start</th><th className={th}>End</th>
             <th className={th}>Frequency</th><th className={cn(th, "text-right")}>Periods</th><th className={th}>Status</th>
+            <th className={cn(th, "text-right")}>Year-end</th>
           </tr></thead>
           <tbody>
-            {years.map((y) => (
+            {years.map((y) => {
+              const fy = fyByYear.get(y.year);
+              return (
               <tr key={y.year}>
                 <td className={cn(td, "font-semibold")}>{y.year}</td>
                 <td className={cn(td, "text-gray-05")}>{y.start}</td>
                 <td className={cn(td, "text-gray-05")}>{y.end}</td>
                 <td className={cn(td, "text-gray-05")}>Monthly</td>
                 <td className={cn(td, "text-right tabular-nums")}>{y.count}</td>
-                <td className={td}><StatusPill status={y.status} /></td>
+                <td className={td}><StatusPill status={fy?.status ?? y.status} /></td>
+                <td className={cn(td, "text-right")}>
+                  {fy && fy.status === "OPEN" ? (
+                    <Can permission={P.FIN_CLOSE_PERIOD}>
+                      <Button variant="outline" size="sm" onClick={() => setClosing({ id: fy.id, year: y.year, hasOpen: y.status === "OPEN" })}>Close year</Button>
+                    </Can>
+                  ) : fy ? <span className="font-mont text-[11px] text-gray-05">Sealed</span> : <span className="text-gray-05">—</span>}
+                </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -87,6 +118,17 @@ export function PeriodsTab({ entity }: { entity: string }) {
       ))}
 
       <PeriodCloseDrawer id={selected} entity={entity} onClose={() => setSelected(null)} />
+
+      <ConfirmActionModal
+        open={closing != null}
+        onOpenChange={(o) => !o && setClosing(null)}
+        title={closing ? `Close fiscal year ${closing.year}?` : ""}
+        description={`Posts the year-end closing entry — zeroes every income and expense account and rolls the net profit or loss into Retained Earnings (3200), then permanently seals FY ${closing?.year}.${closing?.hasOpen ? " Some periods are still open; the year will be closed anyway (force)." : ""} The final period must still accept the closing entry. This can't be undone.`}
+        confirmText="Close year"
+        destructive
+        loading={closingYear}
+        onConfirm={doCloseYear}
+      />
     </div>
   );
 }

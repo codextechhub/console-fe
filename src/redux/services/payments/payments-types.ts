@@ -121,6 +121,12 @@ export interface PayoutBatchSummary {
   item_count: number;
   submitted_at: string | null;
   created_at: string;
+  // Maker-checker approval phase. Only present once the backend serializer exposes it
+  // (from metadata["approval_status"]); a DRAFT batch stays DRAFT while awaiting approval.
+  // `approval_required` is true when a payments.payout_batch workflow template covers the
+  // batch's scope, so direct submit is refused and it must be routed for approval instead.
+  approval_status?: "PENDING" | "APPROVED" | "REJECTED" | null;
+  approval_required?: boolean;
 }
 
 export interface PayoutBatch extends PayoutBatchSummary {
