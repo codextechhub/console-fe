@@ -15,7 +15,7 @@ import {
   PermissionsIcon,
   DataImportsIcon,
 } from "@/assets/navbar-svg";
-import { ClipboardCheck, FileOutput, Landmark, Network, Shield, ShoppingCart, Workflow } from "lucide-react";
+import { Bell, ClipboardCheck, FileOutput, Landmark, LifeBuoy, Network, Settings, Shield, ShoppingCart, Workflow } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routes-path";
 import { Link, useLocation } from "react-router";
@@ -393,6 +393,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             }]
           : []),
       ],
+    },
+    {
+      title: "Notifications",
+      url: R.NOTIFICATIONS,
+      icon: Bell,
+      isActive: location.startsWith(R.NOTIFICATIONS),
+      childActive: false,
+      permission: null,
+      permissionMode: "any" as const,
+    },
+    {
+      title: "Settings",
+      url: R.SETTINGS.INDEX,
+      icon: Settings,
+      isActive: location.startsWith(R.SETTINGS.INDEX),
+      childActive: false,
+      permission: null,
+      permissionMode: "any" as const,
+    },
+    {
+      title: "Support",
+      url: R.SUPPORT.INDEX,
+      icon: LifeBuoy,
+      isActive: location.startsWith(R.SUPPORT.INDEX),
+      childActive: false,
+      permission: null,
+      permissionMode: "any" as const,
     },
   ];
 

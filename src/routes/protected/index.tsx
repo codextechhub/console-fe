@@ -18,9 +18,16 @@ import { routesPath } from "@/routes/routes-path";
 // Route-level code splitting: each page loads on first visit instead of
 // shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
 const Notifications = lazy(() => import("@/pages/protected/notifications"));
+const Settings = lazy(() => import("@/pages/protected/settings"));
+const Support = lazy(() => import("@/pages/protected/support"));
+const TicketDetail = lazy(() => import("@/pages/protected/support/detail"));
 
 export const protectedRoutes = [
   { path: routesPath.PROTECTED.NOTIFICATIONS, element: <Notifications /> },
+  { path: routesPath.PROTECTED.SETTINGS.INDEX, element: <Settings /> },
+  { path: routesPath.PROTECTED.SUPPORT.INDEX, element: <Support /> },
+  { path: routesPath.PROTECTED.SUPPORT.TICKETS, element: <Support /> },
+  { path: routesPath.PROTECTED.SUPPORT.DETAIL_PATH, element: <TicketDetail /> },
   ...overviewRoutes,
   ...schoolRoutes,
   ...teamMgtRoutes,

@@ -1,86 +1,29 @@
-import { useNavigate } from "react-router";
-import { CheckCheck, ChevronRight, ClipboardCheck, CornerUpLeft, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Bell, CheckCheck, Loader2, MailOpen, Search } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import { Input } from "@/components/ui/input";
 import { formatRelativeDate } from "@/utils/helpers";
-import { useNotifications, type NotificationType } from "@/hooks/use-notifications";
+import { cn } from "@/lib/utils";
+import { useGetNotificationQuery,useGetNotificationsQuery,useMarkAllNotificationsReadMutation,useMarkNotificationsReadMutation } from "@/redux/services/notifications-api";
+import { NotificationAdminPanels } from "./admin-panels";
 
-const TYPE_ICON: Record<NotificationType, React.ReactNode> = {
-  approval: <ClipboardCheck className="size-4" />,
-  returned: <CornerUpLeft className="size-4" />,
-};
-
-export default function Notifications() {
-  const navigate = useNavigate();
-  const { groups, items, count, isLoading } = useNotifications();
-
-  return (
-    <DashboardLayout title="Notifications">
-      <main className="px-4.5 py-6 space-y-5 text-black-01 max-w-3xl">
-        <div>
-          <p className="font-semibold font-mont text-gray-01">Notifications</p>
-          <p className="text-xs text-gray-01 mt-0.5">
-            {count > 0
-              ? `You have ${count} notification${count === 1 ? "" : "s"} across ${groups.length} module${groups.length === 1 ? "" : "s"}.`
-              : "Everything that needs your attention shows up here."}
-          </p>
-        </div>
-
-        {isLoading ? (
-          <div className="flex h-48 items-center justify-center">
-            <Loader2 className="size-6 animate-spin text-primary" />
-          </div>
-        ) : groups.length === 0 ? (
-          <div className="rounded-lg border border-white-02 bg-white py-16 text-center">
-            <span className="mx-auto grid size-14 place-content-center rounded-full bg-green-01/10 text-green-01">
-              <CheckCheck className="size-7" />
-            </span>
-            <p className="mt-3 text-base font-semibold">You're all caught up</p>
-            <p className="text-sm text-gray-01">No notifications right now.</p>
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {groups.map((g) => {
-              const groupItems = items.filter((i) => i.type === g.type);
-              return (
-                <section key={g.key} className="rounded-lg border border-white-02 bg-white">
-                  <div className="flex items-center gap-3 border-b border-white-02 px-5 py-3.5">
-                    <span className="grid size-8 place-content-center rounded-full bg-pry-01 text-primary">
-                      {TYPE_ICON[g.type]}
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold">{g.title}</p>
-                      <p className="text-xs text-gray-01">{g.description}</p>
-                    </div>
-                    <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
-                      {g.count}
-                    </span>
-                  </div>
-                  <ul className="divide-y divide-white-02">
-                    {groupItems.map((n) => (
-                      <li key={n.id}>
-                        <button
-                          type="button"
-                          onClick={() => navigate(n.href)}
-                          className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-gray-50"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-black-01">{n.title}</p>
-                            <p className="truncate text-xs text-gray-01">{n.description}</p>
-                            {n.time && (
-                              <p className="text-[11px] text-gray-05">{formatRelativeDate(n.time)}</p>
-                            )}
-                          </div>
-                          <ChevronRight className="size-4 shrink-0 text-gray-01" />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              );
-            })}
-          </div>
-        )}
-      </main>
-    </DashboardLayout>
-  );
+type Filter="all"|"unread"|"read";
+export default function Notifications(){
+ const [filter,setFilter]=useState<Filter>("all");const [page,setPage]=useState(1);const [selected,setSelected]=useState<string|null>(null);const [search,setSearch]=useState("");
+ const params={page,page_size:20,...(filter==="all"?{}:{is_read:filter==="read"})};
+ const {data,isLoading,isError,refetch}=useGetNotificationsQuery(params);const [markRead]=useMarkNotificationsReadMutation();const [markAll,{isLoading:markingAll}]=useMarkAllNotificationsReadMutation();
+ const detail=useGetNotificationQuery(selected??"",{skip:!selected});const rows=(data?.data??[]).filter(n=>!search||`${n.subject} ${n.event_type_label}`.toLowerCase().includes(search.toLowerCase()));const unread=(data?.data??[]).filter(n=>!n.is_read).length;
+ const open=async(id:string,isRead:boolean)=>{setSelected(id);if(!isRead)await markRead({ids:[id]})};
+ return <DashboardLayout title="Notifications"><main className="px-4.5 py-6 lg:px-8">
+  <div className="mx-auto max-w-6xl space-y-6">
+   <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-2xl font-semibold tracking-tight">Notification centre</p><p className="mt-1 text-sm text-gray-01">Stay on top of activity across every part of the platform.</p></div><button disabled={!unread||markingAll} onClick={()=>markAll()} className="inline-flex h-9 items-center justify-center gap-2 rounded-md border bg-white px-3 text-sm font-medium disabled:opacity-40"><CheckCheck className="size-4"/>{markingAll?"Marking…":"Mark all as read"}</button></div>
+   <section className="overflow-hidden rounded-xl border border-white-02 bg-white shadow-sm">
+    <div className="flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center lg:justify-between"><div className="flex gap-1 rounded-lg bg-white-05 p-1">{(["all","unread","read"] as Filter[]).map(x=><button key={x} onClick={()=>{setFilter(x);setPage(1)}} className={cn("rounded-md px-3 py-1.5 text-sm capitalize",filter===x&&"bg-white font-medium text-primary shadow-sm")}>{x}</button>)}</div><div className="relative w-full lg:w-72"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-01"/><Input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search this page" className="pl-9"/></div></div>
+    {isLoading?<div className="grid h-72 place-content-center"><Loader2 className="size-6 animate-spin text-primary"/></div>:isError?<div className="py-20 text-center"><p className="font-medium">Notifications couldn’t be loaded</p><button onClick={refetch} className="mt-2 text-sm font-medium text-primary">Try again</button></div>:!rows.length?<div className="py-20 text-center"><span className="mx-auto grid size-14 place-content-center rounded-full bg-pry-01 text-primary"><Bell className="size-6"/></span><p className="mt-3 font-semibold">Nothing to show</p><p className="text-sm text-gray-01">New activity will appear here.</p></div>:<div className="divide-y">{rows.map(n=><button key={n.id} onClick={()=>open(n.id,n.is_read)} className={cn("flex w-full items-start gap-4 px-5 py-4 text-left hover:bg-gray-50",!n.is_read&&"bg-pry-01/30")}><span className={cn("mt-1 grid size-9 shrink-0 place-content-center rounded-full",n.is_read?"bg-gray-100 text-gray-500":"bg-primary text-white")}><MailOpen className="size-4"/></span><span className="min-w-0 flex-1"><span className="flex items-start justify-between gap-3"><span className={cn("truncate text-sm",!n.is_read&&"font-semibold")}>{n.subject}</span><span className="shrink-0 text-xs text-gray-01">{formatRelativeDate(n.created_at)}</span></span><span className="mt-1 block text-xs text-gray-01">{n.event_type_label}</span></span>{!n.is_read&&<span className="mt-3 size-2 rounded-full bg-primary"/>}</button>)}</div>}
+    {(data?.pagination.totalPages??0)>1&&<div className="flex items-center justify-between border-t px-5 py-3 text-sm"><span className="text-gray-01">Page {page} of {data?.pagination.totalPages}</span><div className="flex gap-2"><button disabled={page===1} onClick={()=>setPage(p=>p-1)} className="rounded border px-3 py-1.5 disabled:opacity-40">Previous</button><button disabled={page===data?.pagination.totalPages} onClick={()=>setPage(p=>p+1)} className="rounded border px-3 py-1.5 disabled:opacity-40">Next</button></div></div>}
+   </section>
+   <NotificationAdminPanels />
+  </div>
+  {selected&&<div className="fixed inset-0 z-50 flex justify-end bg-black/25" onMouseDown={()=>setSelected(null)}><aside onMouseDown={e=>e.stopPropagation()} className="h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-xl"><button onClick={()=>setSelected(null)} className="text-sm text-gray-01">← Close</button>{detail.isLoading?<Loader2 className="mx-auto mt-24 size-6 animate-spin"/>:<div className="mt-8"><span className="rounded-full bg-pry-01 px-2.5 py-1 text-xs font-medium text-primary">{detail.data?.data.event_type_label}</span><h2 className="mt-4 text-xl font-semibold">{detail.data?.data.subject}</h2><p className="mt-2 text-xs text-gray-01">{detail.data&&new Date(detail.data.data.created_at).toLocaleString()}</p><div className="mt-6 whitespace-pre-wrap text-sm leading-7 text-gray-700">{detail.data?.data.body}</div></div>}</aside></div>}
+ </main></DashboardLayout>
 }

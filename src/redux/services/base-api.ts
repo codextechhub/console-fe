@@ -276,6 +276,12 @@ export const baseApi = createApi({
     "TodoAssignable",
     "QueueJobs",
     "QueueSummary",
+    "Notifications",
+    "NotificationHistory",
+    "NotificationSettings",
+    "NotificationTemplates",
+    "Config",
+    "Tickets",
     // ── Finance & Procurement consoles ──────────────────────────────────────
     "FinanceEntities",
     "FinanceAccounts",

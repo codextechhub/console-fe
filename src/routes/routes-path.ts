@@ -15,6 +15,8 @@ export const routesPath = {
   PROTECTED: {
     OVERVIEW: { INDEX: "/overview" },
     NOTIFICATIONS: "/notifications",
+    SETTINGS: { INDEX: "/settings" },
+    SUPPORT: { INDEX: "/support", TICKETS: "/support/tickets", NEW: "/support/tickets/new", DETAIL_PATH: "/support/tickets/:id", DETAIL: (id:string)=>`/support/tickets/${id}` },
     SCHOOL_MGT: {
       INDEX: "/school-management",
       CREATE: "/school-management/create",

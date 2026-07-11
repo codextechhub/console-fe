@@ -100,6 +100,38 @@ const REGISTRY: Record<string, string> = {
   "101101": "platform.staff_payroll.view",
   "101108": "platform.staff_payroll.manage",
 
+  // ── communication / global notifications  (MM=40) ────────────────────────
+  "400108": "communication.notification_templates.configure",
+  "400208": "communication.communication_permissions.enforce",
+  "400307": "communication.message_activity.audit",
+
+  // ── configuration catalogue and scoped values  (MM=90) ───────────────────
+  "900101": "config.definition.view",
+  "900102": "config.definition.create",
+  "900103": "config.definition.update",
+  "900104": "config.definition.archive",
+  "900201": "config.value.view",
+  "900203": "config.value.update",
+  "900301": "config.capability.view",
+  "900308": "config.capability.manage",
+  "900401": "config.entitlement.view",
+  "900408": "config.entitlement.manage",
+  "900501": "config.override.view",
+  "900508": "config.override.manage",
+  "900601": "config.audit.view",
+  "900702": "config.export.create",
+
+  // ── support tickets  (MM=91) ──────────────────────────────────────────────
+  "910101": "tickets.ticket.view",
+  "910103": "tickets.ticket.update",
+  "910108": "tickets.ticket.manage",
+  "910111": "tickets.ticket.assign",
+  "910205": "tickets.comment.post",
+  "910305": "tickets.internal_note.post",
+  "910402": "tickets.attachment.create",
+  "910501": "tickets.audit.view",
+  "910601": "tickets.report.view",
+
   // ── imports / templates  (MM=50, RR=01) ──────────────────────────────────
   "500101": "import.templates.view",
   "500102": "import.templates.create",
@@ -431,6 +463,26 @@ export const P = {
   // ── Staff payroll (sensitive, field-level secured) ─────────────────────────
   VIEW_STAFF_PAYROLL:   "101101",  // read bank/account details on staff profiles
   MANAGE_STAFF_PAYROLL: "101108",  // edit bank/account details on staff profiles
+
+  // ── Notifications administration ──────────────────────────────────────────
+  CONFIGURE_NOTIFICATION_TEMPLATES: "400108",
+  ENFORCE_NOTIFICATION_SETTINGS:    "400208",
+  AUDIT_NOTIFICATION_ACTIVITY:      "400307",
+
+  // ── Settings / configuration ──────────────────────────────────────────────
+  VIEW_CONFIG_DEFINITIONS: "900101", CREATE_CONFIG_DEFINITION: "900102",
+  UPDATE_CONFIG_DEFINITION: "900103", ARCHIVE_CONFIG_DEFINITION: "900104",
+  VIEW_CONFIG_VALUES: "900201", UPDATE_CONFIG_VALUES: "900203",
+  VIEW_CAPABILITIES: "900301", MANAGE_CAPABILITIES: "900308",
+  VIEW_ENTITLEMENTS: "900401", MANAGE_ENTITLEMENTS: "900408",
+  VIEW_CONFIG_OVERRIDES: "900501", MANAGE_CONFIG_OVERRIDES: "900508",
+  VIEW_CONFIG_AUDIT: "900601", EXPORT_CONFIG: "900702",
+
+  // ── Support ────────────────────────────────────────────────────────────────
+  VIEW_TICKETS: "910101", UPDATE_TICKET: "910103", MANAGE_TICKETS: "910108",
+  ASSIGN_TICKET: "910111", POST_TICKET_COMMENT: "910205",
+  POST_INTERNAL_NOTE: "910305", ATTACH_TICKET_FILE: "910402",
+  VIEW_TICKET_AUDIT: "910501", VIEW_TICKET_REPORTS: "910601",
 
   // ── Finance ─────────────────────────────────────────────────────────────────
   // Per-control gating key = the rbac_permission on the backend view it calls.
