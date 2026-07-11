@@ -39,3 +39,8 @@ health.html
 
 # ChatGPT Code
 .codex/*
+.agents/*
+!.agents/skills
+.agents/skills/**/node_modules/
+.agents/skills/**/package.json
+.agents/skills/**/package-lock.json
