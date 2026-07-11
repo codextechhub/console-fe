@@ -3,13 +3,13 @@
 // entered in naira and sent as integer kobo. Defaults the AR control to 1200.
 import { useState } from "react";
 import { toast } from "sonner";
+import { toKobo } from "@/utils/money";
 import { Plus } from "lucide-react";
 import { DetailDrawer, FormField, ReceivableAccountPicker } from "@/components/finance-ui";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateCustomerMutation } from "@/redux/services/finance/ar-api";
 
-const toKobo = (naira: string) => Math.round((parseFloat(naira) || 0) * 100);
 
 export function NewCustomerDrawer({ open, onOpenChange, entity }: {
   open: boolean; onOpenChange: (o: boolean) => void; entity: string;

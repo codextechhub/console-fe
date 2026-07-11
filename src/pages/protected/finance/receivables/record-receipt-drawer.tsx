@@ -4,6 +4,7 @@
 // preview (Dr bank · Cr AR) before you continue to allocation. Naira → integer kobo.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { toKobo } from "@/utils/money";
 import { ArrowRight } from "lucide-react";
 import { DetailDrawer, FormField, Money, CustomerPicker, AccountPicker, toArray } from "@/components/finance-ui";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,6 @@ const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold
 const todayISO = new Date().toISOString().slice(0, 10);
 const METHODS = ["BANK_TRANSFER", "CASH", "CARD", "CHEQUE", "ONLINE", "OTHER"] as const;
 const methodLabel = (m: string) => m.replace("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
-const toKobo = (naira: string) => Math.round((parseFloat(naira) || 0) * 100);
 
 export function RecordReceiptDrawer({ open, onOpenChange, entity, currency, onCreated }: {
   open: boolean; onOpenChange: (o: boolean) => void; entity: string;

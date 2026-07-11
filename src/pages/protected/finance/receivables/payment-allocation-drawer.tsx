@@ -13,7 +13,7 @@ import { LoadingState, ErrorState, EmptyState } from "@/components/finance-ui/st
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { formatMoney } from "@/utils/money";
+import { formatMoney, toKobo } from "@/utils/money";
 import { P } from "@/permissions";
 import { useGetPaymentDetailQuery, useAllocatePaymentMutation } from "@/redux/services/finance/ar-api";
 
@@ -24,7 +24,6 @@ const STATUS_PILL: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = { ALLOCATED: "Allocated", PARTIAL: "Partial", UNALLOCATED: "Unallocated" };
 const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const toKobo = (naira: string) => Math.round((parseFloat(naira) || 0) * 100);
 
 // A settleable open AR item — an invoice or a posted DEBIT note.
 type AllocTarget = { key: string; kind: "invoice" | "debit_note"; id: number; document_number: string; date: string | null; balanceKobo: number };

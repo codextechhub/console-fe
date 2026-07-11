@@ -4,6 +4,7 @@
 // integer kobo; "Issue now" posts the AR journal, else it saves a priced draft.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { toKobo } from "@/utils/money";
 import { Plus, Trash2 } from "lucide-react";
 import { DetailDrawer, Money, CustomerPicker, AccountPicker, TaxCodePicker, toArray } from "@/components/finance-ui";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -19,7 +20,6 @@ const fieldLabel = "font-mont text-xs text-gray-05";
 
 type Line = { account: string; description: string; qty: string; price: string; tax: string };
 const blankLine = (): Line => ({ account: "", description: "", qty: "1", price: "", tax: "" });
-const toKobo = (naira: string) => Math.round((parseFloat(naira) || 0) * 100);
 
 export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
   open: boolean; onOpenChange: (o: boolean) => void; entity: string; currency?: string | null;
