@@ -57,16 +57,14 @@ const REJECT_OPTIONS = [
   { value: "TERMINAL", label: "Ends the workflow" },
   { value: "RETURN_TO_REQUESTER", label: "Returns to requester" },
 ];
-const NOTIF_EVENT_KEYS = [
-  "workflow.submitted",
-  "workflow.stage_activated",
-  "workflow.stage_approved",
-  "workflow.stage_rejected",
-  "workflow.returned",
-  "workflow.approved",
-  "workflow.rejected",
-  "workflow.withdrawn",
-  "workflow.cancelled",
+// The lifecycle points the engine actually emits (backend NOTIF_WIRED_EVENT_KEYS).
+// An untouched template notifies for all of these; toggling any switch makes
+// the dict exact intent (unchecked = off).
+const NOTIF_EVENTS = [
+  { key: "workflow.stage_activated", label: "Stage activated — notify that stage's approvers" },
+  { key: "workflow.returned", label: "Returned for revision — notify the requester" },
+  { key: "workflow.rejected", label: "Rejected — notify the requester" },
+  { key: "workflow.final_approved", label: "Fully approved — notify the requester" },
 ];
 
 export default function TemplateBuilder() {
@@ -523,12 +521,12 @@ export default function TemplateBuilder() {
         {/* Notifications */}
         <Section title="Notification events">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {NOTIF_EVENT_KEYS.map((k) => (
-              <label key={k} className="flex items-center justify-between gap-2 rounded-md border border-white-02 px-3 py-2 text-xs">
-                <span className="font-mono text-gray-01">{k}</span>
+            {NOTIF_EVENTS.map(({ key, label }) => (
+              <label key={key} className="flex items-center justify-between gap-2 rounded-md border border-white-02 px-3 py-2 text-xs">
+                <span className="text-gray-01">{label}</span>
                 <Switch
-                  checked={!!notifEvents[k]}
-                  onCheckedChange={(v) => setNotifEvents((prev) => ({ ...prev, [k]: v }))}
+                  checked={!!notifEvents[key]}
+                  onCheckedChange={(v) => setNotifEvents((prev) => ({ ...prev, [key]: v }))}
                 />
               </label>
             ))}

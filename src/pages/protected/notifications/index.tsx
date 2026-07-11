@@ -1,14 +1,17 @@
-// Notifications page — the user's in-app feed over /notify/, with a detail
-// drawer. Admin panels (delivery history, settings matrix, templates, event
-// types) render below for users holding the communication.* keys.
+// Notifications page — the user's personal in-app feed over /notify/, with a
+// detail drawer. Platform administration (history, settings, templates, event
+// catalogue) lives on its own gated page at /notifications/admin.
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
-import { Bell, CheckCheck, Loader2, MailOpen, Search } from "lucide-react";
+import { Link, useSearchParams } from "react-router";
+import { Bell, CheckCheck, Loader2, MailOpen, Search, Settings2 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Input } from "@/components/ui/input";
 import { formatRelativeDate } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
+import { routesPath } from "@/routes/routes-path";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 import {
   useGetNotificationQuery,
   useGetNotificationsQuery,
@@ -16,12 +19,17 @@ import {
   useMarkAllNotificationsReadMutation,
   useMarkNotificationsReadMutation,
 } from "@/redux/services/notifications-api";
-import { NotificationAdminPanels } from "./admin-panels";
 
 type Filter = "all" | "unread" | "read";
 
 export default function Notifications() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { hasAnyPermission } = usePermissions();
+  const canAdminister = hasAnyPermission(
+    P.AUDIT_NOTIFICATION_ACTIVITY,
+    P.ENFORCE_NOTIFICATION_SETTINGS,
+    P.CONFIGURE_NOTIFICATION_TEMPLATES,
+  );
   const [filter, setFilter] = useState<Filter>("all");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<string | null>(null);
@@ -69,14 +77,25 @@ export default function Notifications() {
                 Stay on top of activity across every part of the platform.
               </p>
             </div>
-            <button
-              disabled={!unreadCount || markingAll}
-              onClick={() => markAll()}
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-md border bg-white px-3 text-sm font-medium disabled:opacity-40"
-            >
-              <CheckCheck className="size-4" />
-              {markingAll ? "Marking…" : "Mark all as read"}
-            </button>
+            <div className="flex items-center gap-2">
+              {canAdminister && (
+                <Link
+                  to={routesPath.PROTECTED.NOTIFICATIONS_ADMIN}
+                  className="inline-flex h-9 items-center gap-2 rounded-md border bg-white px-3 text-sm font-medium"
+                >
+                  <Settings2 className="size-4" />
+                  Administration
+                </Link>
+              )}
+              <button
+                disabled={!unreadCount || markingAll}
+                onClick={() => markAll()}
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-md border bg-white px-3 text-sm font-medium disabled:opacity-40"
+              >
+                <CheckCheck className="size-4" />
+                {markingAll ? "Marking…" : "Mark all as read"}
+              </button>
+            </div>
           </div>
 
           <section className="overflow-hidden rounded-xl border border-white-02 bg-white shadow-sm">
@@ -188,8 +207,6 @@ export default function Notifications() {
               </div>
             )}
           </section>
-
-          <NotificationAdminPanels />
         </div>
 
         {selected && (

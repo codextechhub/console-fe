@@ -40,7 +40,8 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Workflow | Templates | `P.VIEW_WORKFLOW_TEMPLATES` | own check via `hasPermission` |
 | Finance | â | _(module access: any `finance.*` or `payments.*` key)_ | gated via `hasModuleAccess("finance.", "payments.")`, **not** a single `P.*` constant â a user with only `finance.report.view` should still reach the console. Opens its own sub-navigated console (`ConsoleShell` + `financeNav`); each area's sub-nav item is gated by the backend key prefixes its screens call |
 | Procurement | â | _(module access: any `procurement.*` key)_ | gated via `hasModuleAccess("procurement.")`. Opens its own console (`ConsoleShell` + `procurementNav`); area sub-nav gated by key prefixes |
-| Notifications | — | _(none — always visible)_ | personal in-app feed (`/notify/`, recipient-scoped server-side). Admin panels on the page (History / Settings / Templates) each gate on their own `communication.*` key (see §2) |
+| Notifications | Inbox | _(none — always visible)_ | personal in-app feed (`/notify/`, recipient-scoped server-side) |
+| Notifications | Administration | any of `P.AUDIT_NOTIFICATION_ACTIVITY` `P.ENFORCE_NOTIFICATION_SETTINGS` `P.CONFIGURE_NOTIFICATION_TEMPLATES` | child spread in only for holders (collapsible group appears); flat single item otherwise. Page at `/notifications/admin` re-checks and falls back to `PageAccessDenied` |
 | Settings | — | any of `P.VIEW_CONFIG_VALUES` `P.VIEW_CONFIG_DEFINITIONS` `P.VIEW_CAPABILITIES` `P.VIEW_ENTITLEMENTS` `P.VIEW_CONFIG_OVERRIDES` `P.VIEW_CONFIG_AUDIT` | `permissionMode: "any"`; the page shows only the tabs the user can read and falls back to `PageAccessDenied` with none (direct-URL case) |
 | Support | — | _(none — always visible)_ | anyone authenticated may file a ticket (backend keeps creation keyless; ticket visibility is participant/school-scoped server-side). Staff actions gate per-control on the detail page (see §2) |
 
@@ -307,15 +308,20 @@ Reached from Team Management "View Details" (by-user route) or the org chart dra
 
 ### Notifications (`src/pages/protected/notifications/`)
 
+Inbox (`/notifications`) and administration (`/notifications/admin`) are separate pages.
+
 | Element | Type | Permission Constant |
 |---|---|---|
-| Feed, detail drawer, mark-read / mark-all-read | page | _(none — recipient-scoped server-side)_ |
-| History panel (delivery log) | admin panel | `P.AUDIT_NOTIFICATION_ACTIVITY` (`communication.message_activity.audit`) |
-| Settings panel (channel matrix) | admin panel | `P.ENFORCE_NOTIFICATION_SETTINGS` (`communication.communication_permissions.enforce`) |
-| Templates panel + editor | admin panel | `P.CONFIGURE_NOTIFICATION_TEMPLATES` (`communication.notification_templates.configure`) |
-| Event types panel | admin panel | _(none — catalogue endpoint is open to authenticated users)_ |
+| Inbox: feed, detail drawer, mark-read / mark-all-read | page | _(none — recipient-scoped server-side)_ |
+| Inbox → "Administration" header link | button | any of the three `communication.*` keys below |
+| Administration page | page | any of the three keys; `PageAccessDenied` otherwise |
+| History tab (delivery log) | admin tab | `P.AUDIT_NOTIFICATION_ACTIVITY` (`communication.message_activity.audit`) |
+| Settings tab (channel matrix) | admin tab | `P.ENFORCE_NOTIFICATION_SETTINGS` (`communication.communication_permissions.enforce`) |
+| Templates tab + editor | admin tab | `P.CONFIGURE_NOTIFICATION_TEMPLATES` (`communication.notification_templates.configure`) |
+| Event types tab | admin tab | _(shown to anyone on the admin page; lists only `is_active` events — inactive registry entries are hidden until an emitter exists)_ |
 
 > In-app toggles and transactional rows render disabled with a tooltip — backend policy (in-app always on; transactional always dispatches), not a missing grant.
+> Workflow lifecycle events now actually emit (vs_workflow/services/routing.py): stage activation → approvers; returned/rejected/final-approved → requester.
 
 ---
 

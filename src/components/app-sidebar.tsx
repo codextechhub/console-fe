@@ -47,6 +47,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return mode === "all" ? hasAllPermissions(...codes) : hasAnyPermission(...codes);
   };
 
+  // Any communication.* admin key turns the Notifications nav item into a
+  // collapsible group (Inbox + Administration).
+  const canAdminNotifications = hasAnyPermission(
+    P.AUDIT_NOTIFICATION_ACTIVITY,
+    P.ENFORCE_NOTIFICATION_SETTINGS,
+    P.CONFIGURE_NOTIFICATION_TEMPLATES,
+  );
+
   const allNavItems = [
     {
       title: "Home",
@@ -395,13 +403,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
     {
+      // Everyone gets the inbox; holders of a communication.* admin key get a
+      // collapsible group with the Administration page as a second child.
       title: "Notifications",
       url: R.NOTIFICATIONS,
       icon: Bell,
-      isActive: location.startsWith(R.NOTIFICATIONS),
-      childActive: false,
+      isActive: canAdminNotifications ? false : location.startsWith(R.NOTIFICATIONS),
+      childActive: canAdminNotifications ? location.startsWith(R.NOTIFICATIONS) : false,
       permission: null,
       permissionMode: "any" as const,
+      ...(canAdminNotifications
+        ? {
+            items: [
+              {
+                title: "Inbox",
+                url: R.NOTIFICATIONS,
+                isActive:
+                  location.startsWith(R.NOTIFICATIONS) &&
+                  !location.startsWith(R.NOTIFICATIONS_ADMIN),
+              },
+              {
+                title: "Administration",
+                url: R.NOTIFICATIONS_ADMIN,
+                isActive: location.startsWith(R.NOTIFICATIONS_ADMIN),
+              },
+            ],
+          }
+        : {}),
     },
     {
       title: "Settings",

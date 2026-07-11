@@ -15,6 +15,7 @@ export const routesPath = {
   PROTECTED: {
     OVERVIEW: { INDEX: "/overview" },
     NOTIFICATIONS: "/notifications",
+    NOTIFICATIONS_ADMIN: "/notifications/admin",
     SETTINGS: { INDEX: "/settings" },
     SUPPORT: { INDEX: "/support", TICKETS: "/support/tickets", NEW: "/support/tickets/new", DETAIL_PATH: "/support/tickets/:id", DETAIL: (id:string)=>`/support/tickets/${id}` },
     HEALTH: { INDEX:"/health", UPTIME:"/health/uptime", API:"/health/api-endpoints", JOBS:"/health/jobs", INCIDENTS:"/health/incidents", TENANTS:"/health/tenants", SLOS:"/health/slos" },

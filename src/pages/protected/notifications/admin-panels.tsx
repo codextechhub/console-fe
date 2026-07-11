@@ -1,6 +1,7 @@
-// Admin panels rendered under the notification feed for holders of the
-// communication.* keys: delivery history, the effective settings matrix,
-// template editing, and the event-type catalogue.
+// Admin panels for the Notification administration page (./admin.tsx):
+// delivery history, the effective settings matrix, template editing, and the
+// event-type catalogue. Each panel maps to one communication.* key — the page
+// decides which tabs to show.
 
 import { useMemo, useState } from "react";
 import { FileText, Loader2, Mail, Save, Settings2, X } from "lucide-react";
@@ -9,8 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
-import { usePermissions } from "@/hooks/use-permissions";
-import { P } from "@/permissions";
 import {
   useGetNotificationEventTypesQuery,
   useGetNotificationHistoryQuery,
@@ -24,8 +23,6 @@ import {
   type NotificationTemplate,
 } from "@/redux/services/notifications-api";
 
-type Panel = "history" | "settings" | "templates" | "events";
-
 /** "vs_finance" → "Finance", "task_completed" → "Task Completed". */
 const label = (s: string) =>
   s.replace(/^vs_/, "").replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -36,44 +33,9 @@ const groupBy = <T,>(items: T[], key: (item: T) => string) =>
     return out;
   }, {});
 
-export function NotificationAdminPanels() {
-  const { hasPermission } = usePermissions();
-
-  const panels: Panel[] = [];
-  if (hasPermission(P.AUDIT_NOTIFICATION_ACTIVITY)) panels.push("history");
-  if (hasPermission(P.ENFORCE_NOTIFICATION_SETTINGS)) panels.push("settings");
-  if (hasPermission(P.CONFIGURE_NOTIFICATION_TEMPLATES)) panels.push("templates");
-  panels.push("events");
-
-  const [panel, setPanel] = useState<Panel>(panels[0]);
-
-  return (
-    <section className="overflow-hidden rounded-xl border border-white-02 bg-white shadow-sm">
-      <div className="flex overflow-x-auto border-b px-3">
-        {panels.map((p) => (
-          <button
-            key={p}
-            onClick={() => setPanel(p)}
-            className={cn(
-              "whitespace-nowrap border-b-2 px-4 py-3 text-sm capitalize",
-              panel === p ? "border-primary font-semibold text-primary" : "border-transparent text-gray-01",
-            )}
-          >
-            {p === "events" ? "Event types" : p}
-          </button>
-        ))}
-      </div>
-      {panel === "history" && <HistoryPanel />}
-      {panel === "settings" && <SettingsPanel />}
-      {panel === "templates" && <TemplatesPanel />}
-      {panel === "events" && <EventsPanel />}
-    </section>
-  );
-}
-
 // ── Delivery history ──────────────────────────────────────────────────────────
 
-function HistoryPanel() {
+export function HistoryPanel() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
   const debouncedEmail = useDebounce(email, 400);
@@ -166,7 +128,7 @@ function HistoryPanel() {
 
 // ── Settings matrix ───────────────────────────────────────────────────────────
 
-function SettingsPanel() {
+export function SettingsPanel() {
   const q = useGetNotificationSettingsQuery();
   const [update, { isLoading }] = useUpdateNotificationSettingsMutation();
   const grouped = useMemo(
@@ -236,7 +198,7 @@ function SettingsPanel() {
 
 // ── Templates ─────────────────────────────────────────────────────────────────
 
-function TemplatesPanel() {
+export function TemplatesPanel() {
   const q = useGetNotificationTemplatesQuery();
   const [selected, setSelected] = useState<NotificationTemplate | null>(null);
 
@@ -342,9 +304,14 @@ function TemplateEditor({ value, close }: { value: NotificationTemplate; close: 
 
 // ── Event-type catalogue ──────────────────────────────────────────────────────
 
-function EventsPanel() {
+export function EventsPanel() {
   const q = useGetNotificationEventTypesQuery();
-  const grouped = groupBy<NotificationEventType>(q.data?.data ?? [], (x) => x.source_module);
+  // Inactive event types are registered-but-not-yet-emitting — hide them so
+  // the catalogue only documents notifications that can actually fire.
+  const grouped = groupBy<NotificationEventType>(
+    (q.data?.data ?? []).filter((x) => x.is_active),
+    (x) => x.source_module,
+  );
 
   if (q.isLoading) return <Busy />;
 
