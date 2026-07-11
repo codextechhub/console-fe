@@ -27,7 +27,9 @@ export default function PackageSetup({ defaultValues, onSubmit, isSubmitting }: 
 
 
   const planOptions = (plansRes?.data ?? []).map((p) => ({ label: p.name, value: p.code }));
-  const moduleOptions = (modulesRes?.data ?? []).map((m) => ({ label: m.name, value: m.key }));
+  // /i/modules/ now serves the capability catalogue (vs_config), which names
+  // things `label`; selecting a module grants its plan entitlement on create.
+  const moduleOptions = (modulesRes?.data ?? []).map((m) => ({ label: m.label, value: m.key }));
 
   const formik = useFormik<PackageStepData>({
     initialValues: defaultValues,

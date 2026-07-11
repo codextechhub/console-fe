@@ -66,10 +66,12 @@ export interface PackagePlan {
   is_active: boolean
 }
 
+// /i/modules/ serves the vs_config capability catalogue (MODULE kind) since
+// the legacy XVSModule table was retired — hence `label`, not `name`.
 export interface XVSModule {
   id: string
   key: string
-  name: string
+  label: string
   description: string
   is_active: boolean
 }

@@ -65,6 +65,7 @@ import {
   type Override,
 } from "@/redux/services/config-api";
 import CustomTable from "@/components/custom/custom-table";
+import { UserAvatar } from "@/components/custom/user-avatar";
 import { ConfigDialog } from "./config-dialog";
 
 type Tab = "system" | "features" | "audit";
@@ -638,26 +639,79 @@ function FeatureDetail({
 
 // ── Audit ─────────────────────────────────────────────────────────────────────
 
+// Plain wording per audit action code; tone follows the change's weight.
+const AUDIT_ACTIONS: Record<string, { label: string; className: string }> = {
+  "config.value.updated": { label: "Setting changed", className: "bg-primary/10 text-primary" },
+  "config.definition.created": { label: "Setting created", className: "bg-green-01/10 text-green-01" },
+  "config.definition.updated": { label: "Setting updated", className: "bg-primary/10 text-primary" },
+  "config.definition.archived": { label: "Setting archived", className: "bg-gray-05/10 text-gray-05" },
+  "config.capability.created": { label: "Feature created", className: "bg-green-01/10 text-green-01" },
+  "config.capability.updated": { label: "Feature updated", className: "bg-primary/10 text-primary" },
+  "config.capability.archived": { label: "Feature archived", className: "bg-gray-05/10 text-gray-05" },
+  "config.entitlement.updated": { label: "Plan grant changed", className: "bg-primary/10 text-primary" },
+  "config.override.updated": { label: "Forced status changed", className: "bg-yellow-01/10 text-yellow-01" },
+};
+
 function Audit() {
   const [page, setPage] = useState(1);
+  const [school, setSchool] = useState("");
   const [createdAfter] = useState(() => new Date(Date.now() - 30 * 864e5).toISOString());
-  const q = useGetConfigAuditQuery({ page: String(page), created_after: createdAfter });
+  // The backend list is scope-resolved: platform rows by default, one
+  // school's rows with ?school= — same picker as the Features tab.
+  const q = useGetConfigAuditQuery({
+    page: String(page),
+    created_after: createdAfter,
+    ...(school ? { school } : {}),
+  });
 
-  const tableData = (q.data?.data ?? []).map((x) => ({
-    action: x.action,
-    target: `${x.target_type} · ${x.target_id}`,
-    actor: x.actor?.full_name ?? "System",
-    reason: x.reason || "—",
-    date: new Date(x.created_at).toLocaleString(),
-  }));
+  const tableData = (q.data?.data ?? []).map((x) => {
+    const action = AUDIT_ACTIONS[x.action] ?? {
+      label: x.action.replace("config.", "").replaceAll(".", " "),
+      className: "bg-gray-05/10 text-gray-05",
+    };
+    return {
+      action: (
+        <Badge className={`font-mont text-xs ${action.className}`}>{action.label}</Badge>
+      ),
+      target: <span className="text-sm font-medium">{x.target_label || "—"}</span>,
+      actor: x.actor ? (
+        <div className="flex items-center gap-2.5">
+          <UserAvatar
+            userId={x.actor.id}
+            name={x.actor.full_name}
+            className="size-8 shrink-0"
+            fallbackClassName="text-xs font-semibold bg-pry-01 text-primary"
+          />
+          <span className="text-sm">{x.actor.full_name}</span>
+        </div>
+      ) : (
+        <span className="text-sm text-gray-01">System</span>
+      ),
+      reason: (
+        <span className="block max-w-[220px] truncate text-sm text-gray-01" title={x.reason}>
+          {x.reason || "—"}
+        </span>
+      ),
+      date: <span className="text-xs text-gray-01">{new Date(x.created_at).toLocaleString()}</span>,
+    };
+  });
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="font-mont text-sm font-semibold">Configuration audit trail</h2>
-        <p className="text-xs text-gray-01 mt-0.5">
-          Immutable record of every settings and feature change — last 30 days.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-mont text-sm font-semibold">Configuration audit trail</h2>
+          <p className="text-xs text-gray-01 mt-0.5">
+            Immutable record of every settings and feature change — last 30 days.
+          </p>
+        </div>
+        <ScopePicker
+          value={school}
+          onChange={(s) => {
+            setSchool(s);
+            setPage(1);
+          }}
+        />
       </div>
       <CustomTable
         tableHeaderList={["Action", "Target", "Actor", "Reason", "Date"]}

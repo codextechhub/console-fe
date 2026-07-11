@@ -73,9 +73,11 @@ export interface ConfigAudit {
   action: string;
   target_type: string;
   target_id: string;
+  /** Human name of the audited object ("" when the target was deleted). */
+  target_label: string;
   school: string | null;
   branch: string | null;
-  actor: { full_name: string; email: string } | null;
+  actor: { id: string; full_name: string; email: string } | null;
   before_data: unknown;
   after_data: unknown;
   reason: string;
