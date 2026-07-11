@@ -49,6 +49,7 @@ export default function PermissionsList() {
     refetchOnMountOrArgChange: true,
   });
 
+  const { data: allData } = useGetPermissionsQuery({ page: 1, page_size: 1 });
   const { data: activeData } = useGetPermissionsQuery({ page: 1, page_size: 1, is_active: "true" });
   const { data: restrictedData } = useGetPermissionsQuery({ page: 1, page_size: 1, is_restricted: "true" });
   const { data: criticalData } = useGetPermissionsQuery({ page: 1, page_size: 1, sensitivity_level: "CRITICAL" });
@@ -56,7 +57,7 @@ export default function PermissionsList() {
   const [deletePermission] = useDeletePermissionMutation();
 
   const perms = data?.data ?? [];
-  const totalPerms = data?.pagination?.totalItems ?? 0;
+  const totalPerms = allData?.pagination?.totalItems ?? 0;
 
   const activeCount = activeData?.pagination?.totalItems ?? 0;
   const restrictedCount = restrictedData?.pagination?.totalItems ?? 0;

@@ -15,6 +15,7 @@ import {
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
@@ -27,10 +28,15 @@ export default function EditRole() {
   const navigate = useNavigate();
   const { data: roleData, isLoading: roleLoading } = useGetPlatformRoleDetailQuery(id ?? "", { skip: !id });
   const { data: groupsData } = useGetPermissionGroupsQuery({ page_size: 100 });
-  const { data: permissionsData } = useGetPermissionsQuery({ page_size: 500 });
   const [updateRole, { isLoading }] = useUpdatePlatformRoleMutation();
   const [groupSearch, setGroupSearch] = useState("");
   const [permSearch, setPermSearch] = useState("");
+  const debouncedPermSearch = useDebounce(permSearch, 350);
+  const { data: permissionsData } = useGetPermissionsQuery({
+    page_size: 100,
+    is_active: "true",
+    ...(debouncedPermSearch.trim() ? { search: debouncedPermSearch.trim() } : {}),
+  });
 
   const role = roleData?.data;
   const groups = groupsData?.data ?? [];
@@ -110,13 +116,7 @@ export default function EditRole() {
               ? groups.filter((g) => g.name.toLowerCase().includes(groupSearch.toLowerCase()))
               : groups;
 
-            const filteredPerms = permSearch
-              ? permissions.filter(
-                  (p) =>
-                    p.key.toLowerCase().includes(permSearch.toLowerCase()) ||
-                    (p.description || "").toLowerCase().includes(permSearch.toLowerCase()),
-                )
-              : permissions;
+            const filteredPerms = permissions;
 
             return (
               <Form className="space-y-5">

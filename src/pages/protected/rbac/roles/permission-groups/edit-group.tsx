@@ -13,6 +13,7 @@ import {
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Group name is required"),
@@ -23,9 +24,13 @@ export default function EditPermissionGroup() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: groupData, isLoading: groupLoading } = useGetPermissionGroupDetailQuery(id ?? "", { skip: !id });
-  const { data: permissionsData } = useGetPermissionsQuery({ page_size: 200 });
   const [updateGroup, { isLoading }] = useUpdatePermissionGroupMutation();
   const [permSearch, setPermSearch] = useState("");
+  const debouncedPermSearch = useDebounce(permSearch, 350);
+  const { data: permissionsData } = useGetPermissionsQuery({
+    page_size: 100,
+    ...(debouncedPermSearch.trim() ? { search: debouncedPermSearch.trim() } : {}),
+  });
 
   const group = groupData?.data;
   const permissions = permissionsData?.data ?? [];
@@ -89,9 +94,7 @@ export default function EditPermissionGroup() {
           }}
         >
           {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting, dirty }) => {
-            const filteredPermissions = permSearch
-              ? permissions.filter((p) => p.key.toLowerCase().includes(permSearch.toLowerCase()))
-              : permissions;
+            const filteredPermissions = permissions;
 
             return (
               <Form className="space-y-5">

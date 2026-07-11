@@ -14,6 +14,7 @@ import {
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
@@ -25,11 +26,16 @@ export default function CreateRole() {
   const navigate = useNavigate();
   const [createRole, { isLoading }] = useCreatePlatformRoleMutation();
   const { data: groupsData } = useGetPermissionGroupsQuery({ page_size: 100 });
-  const { data: permissionsData } = useGetPermissionsQuery({ page_size: 500 });
   const groups = groupsData?.data ?? [];
-  const permissions = (permissionsData?.data ?? []).filter((p) => p.is_active);
   const [groupSearch, setGroupSearch] = useState("");
   const [permSearch, setPermSearch] = useState("");
+  const debouncedPermSearch = useDebounce(permSearch, 350);
+  const { data: permissionsData } = useGetPermissionsQuery({
+    page_size: 100,
+    is_active: "true",
+    ...(debouncedPermSearch.trim() ? { search: debouncedPermSearch.trim() } : {}),
+  });
+  const permissions = (permissionsData?.data ?? []).filter((p) => p.is_active);
 
   return (
     <DashboardLayout title="Create Role" hasBack onBack={() => navigate(routesPath.PROTECTED.ROLES.INDEX)}>
@@ -70,13 +76,7 @@ export default function CreateRole() {
               ? groups.filter((g) => g.name.toLowerCase().includes(groupSearch.toLowerCase()))
               : groups;
 
-            const filteredPerms = permSearch
-              ? permissions.filter(
-                  (p) =>
-                    p.key.toLowerCase().includes(permSearch.toLowerCase()) ||
-                    (p.description || "").toLowerCase().includes(permSearch.toLowerCase()),
-                )
-              : permissions;
+            const filteredPerms = permissions;
 
             return (
               <Form className="space-y-5">

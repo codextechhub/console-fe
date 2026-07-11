@@ -9,6 +9,7 @@ import { routesPath } from "@/routes/routes-path";
 import { useCreatePermissionGroupMutation, useGetPermissionsQuery } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Search } from "lucide-react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Group name is required"),
@@ -19,9 +20,13 @@ const schema = Yup.object({
 export default function CreatePermissionGroup() {
   const navigate = useNavigate();
   const [createGroup, { isLoading }] = useCreatePermissionGroupMutation();
-  const { data: permissionsData } = useGetPermissionsQuery({ page_size: 200 });
-  const permissions = permissionsData?.data ?? [];
   const [permSearch, setPermSearch] = useState("");
+  const debouncedPermSearch = useDebounce(permSearch, 350);
+  const { data: permissionsData } = useGetPermissionsQuery({
+    page_size: 100,
+    ...(debouncedPermSearch.trim() ? { search: debouncedPermSearch.trim() } : {}),
+  });
+  const permissions = permissionsData?.data ?? [];
 
   return (
     <DashboardLayout title="Create Permission Group" hasBack onBack={() => navigate(routesPath.PROTECTED.ROLES.GROUPS.INDEX)}>
@@ -51,9 +56,7 @@ export default function CreatePermissionGroup() {
           }}
         >
           {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting, dirty }) => {
-            const filteredPermissions = permSearch
-              ? permissions.filter((p) => p.key.toLowerCase().includes(permSearch.toLowerCase()))
-              : permissions;
+            const filteredPermissions = permissions;
 
             return (
               <Form className="space-y-5">
