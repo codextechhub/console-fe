@@ -258,9 +258,13 @@ export default function Overview() {
   return (
     <DashboardLayout>
       <main className="min-w-0 space-y-5 bg-[#f8f9fb] px-4.5 py-5 text-black-01 lg:px-7 lg:py-5">
-        <section className="relative overflow-hidden rounded-2xl bg-[#17281f] px-6 py-5 text-white shadow-sm lg:px-7 lg:py-5">
-          <div className="absolute -right-20 -top-24 size-72 rounded-full bg-primary/25 blur-2xl" />
-          <div className="absolute bottom-0 right-24 size-28 rounded-full border border-white/10" />
+        <section
+          className="relative overflow-hidden rounded-2xl bg-[#17281f] px-6 py-5 text-white shadow-sm lg:px-7 lg:py-5"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 0% 50%, rgba(255,255,255,.045), transparent 24%), radial-gradient(circle at 100% 50%, rgba(56,189,128,.11), transparent 24%)",
+          }}
+        >
           <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-2xl">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,.12)] backdrop-blur-sm">

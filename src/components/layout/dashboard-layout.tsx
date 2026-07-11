@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AppSidebar } from "../app-sidebar";
-import { ChevronLeft, ChevronRight, ChevronDown, LogOut, Search, ShieldCheck, UserRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, Search, ShieldCheck, UserRound } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAppSelector } from "@/redux/store";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
@@ -159,14 +159,10 @@ function DashboardHeader({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="hidden sm:inline-flex items-center gap-x-3 pl-2.5 py-1 rounded-lg hover:bg-white-02/60 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              aria-label="Open account menu"
+              className="hidden rounded-full p-1 sm:inline-flex hover:bg-white-02/60 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               <UserAvatar userId={user?.id} name={user?.full_name ?? "O"} />
-              <div className="hidden md:grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user?.full_name || ""}</span>
-                <span className="text-muted-foreground truncate text-xs">{user?.email || ""}</span>
-              </div>
-              <ChevronDown className="hidden md:block size-4 text-gray-01" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
