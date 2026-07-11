@@ -2,9 +2,17 @@
 // each maps to a single backend write endpoint under /config/.
 
 import { useState } from "react";
-import { X } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useCreateCapabilityMutation,
@@ -121,22 +129,13 @@ export function ConfigDialog({ mode, close }: { mode: ConfigDialogMode; close: (
   };
 
   return (
-    <div className="fixed inset-0 z-50 grid place-content-center bg-black/30 p-4">
-      <form
-        onSubmit={submit}
-        className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
-      >
-        <div className="flex justify-between">
-          <div>
-            <p className="text-xs text-gray-01">Platform settings</p>
-            <h2 className="text-xl font-semibold">{TITLES[mode]}</h2>
-          </div>
-          <button type="button" onClick={close}>
-            <X />
-          </button>
-        </div>
-
-        <div className="mt-6 space-y-4">
+    <Dialog open onOpenChange={(v) => !v && close()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+        <DialogHeader>
+          <p className="text-xs text-gray-01">Platform settings</p>
+          <DialogTitle>{TITLES[mode]}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={submit} className="space-y-4">
           {mode === "definition" && (
             <>
               <Field label="Key">
@@ -250,18 +249,18 @@ export function ConfigDialog({ mode, close }: { mode: ConfigDialogMode; close: (
               </Field>
             </>
           )}
-        </div>
 
-        <div className="mt-6 flex justify-end gap-2">
-          <button type="button" onClick={close} className="rounded-md border px-4 py-2 text-sm">
-            Cancel
-          </button>
-          <button disabled={busy} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white">
-            {busy ? "Saving…" : "Save"}
-          </button>
-        </div>
-      </form>
-    </div>
+          <DialogFooter className="gap-3">
+            <Button type="button" variant="white" size="sm" onClick={close}>
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" disabled={busy}>
+              {busy ? "Saving…" : "Save"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -287,17 +286,12 @@ function Select({
 }) {
   return (
     <Field label={label}>
-      <select
-        required
-        className="h-9 rounded-md border bg-white px-3 text-sm"
-        value={value}
-        onChange={onChange}
-      >
+      <NativeSelect required value={value} onChange={onChange}>
         <option value="">Select…</option>
         {options.map((x) => (
           <option key={x}>{x}</option>
         ))}
-      </select>
+      </NativeSelect>
     </Field>
   );
 }

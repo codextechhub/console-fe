@@ -11,13 +11,25 @@ import {
   FileKey2,
   Flag,
   Layers3,
-  Loader2,
   Plus,
   Search,
   SlidersHorizontal,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import CustomTable from "@/components/custom/custom-table";
 import PageAccessDenied from "@/components/custom/page-access-denied";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -80,14 +92,10 @@ export default function Settings() {
               </p>
             </div>
             {hasPermission(P.EXPORT_CONFIG) && (
-              <button
-                disabled={isFetching}
-                onClick={download}
-                className="inline-flex items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm font-medium"
-              >
+              <Button variant="white" size="sm" disabled={isFetching} onClick={download}>
                 <Download className="size-4" />
                 {isFetching ? "Exporting…" : "Export snapshot"}
-              </button>
+              </Button>
             )}
           </div>
 
@@ -157,13 +165,10 @@ function Header({
           <p className="text-xs text-gray-01">{description}</p>
         </div>
         {allowed && (
-          <button
-            onClick={() => setOpen(true)}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-white"
-          >
+          <Button size="sm" onClick={() => setOpen(true)}>
             <Plus className="size-4" />
             {add}
-          </button>
+          </Button>
         )}
       </div>
       {open && mode && <ConfigDialog mode={mode} close={() => setOpen(false)} />}
@@ -201,15 +206,10 @@ function Definitions() {
           new Date(x.updated_at).toLocaleDateString(),
           ...(canArchive
             ? [
-                <button
-                  className="text-xs font-medium text-destructive"
-                  onClick={() => {
-                    if (confirm(`Archive ${x.label}?`))
-                      archive({ key: x.key, reason: "Archived from Settings console" });
-                  }}
-                >
-                  Archive
-                </button>,
+                <ArchiveButton
+                  label={x.label}
+                  onConfirm={() => archive({ key: x.key, reason: "Archived from Settings console" })}
+                />,
               ]
             : []),
         ])}
@@ -288,15 +288,10 @@ function Capabilities() {
           x.dependencies.length || "—",
           ...(canManage
             ? [
-                <button
-                  className="text-xs font-medium text-destructive"
-                  onClick={() => {
-                    if (confirm(`Archive ${x.label}?`))
-                      archive({ key: x.key, reason: "Archived from Settings console" });
-                  }}
-                >
-                  Archive
-                </button>,
+                <ArchiveButton
+                  label={x.label}
+                  onConfirm={() => archive({ key: x.key, reason: "Archived from Settings console" })}
+                />,
               ]
             : []),
         ])}
@@ -377,41 +372,45 @@ function Audit() {
   );
 }
 
-// ── Generic panel table ───────────────────────────────────────────────────────
+// ── Generic panel table (house CustomTable: loading, empty and phone cards) ──
 
 function Data({ loading, heads, rows }: { loading: boolean; heads: string[]; rows: React.ReactNode[][] }) {
-  if (loading)
-    return (
-      <div className="grid h-60 place-content-center">
-        <Loader2 className="animate-spin text-primary" />
-      </div>
-    );
-
+  const tableData = rows.map((r) => Object.fromEntries(r.map((cell, i) => [`c${i}`, cell])));
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="bg-white-05 text-left text-xs text-gray-01">
-          <tr>
-            {heads.map((h) => (
-              <th className="p-3 font-medium" key={h}>
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {rows.map((r, i) => (
-            <tr className="hover:bg-gray-50" key={i}>
-              {r.map((c, j) => (
-                <td className="p-3" key={j}>
-                  {c}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {!rows.length && <div className="py-16 text-center text-sm text-gray-01">No records found.</div>}
-    </div>
+    <CustomTable
+      tableHeaderList={heads}
+      tableBodyList={tableData}
+      loading={loading}
+      emptyText="No records found."
+      hidePagination
+    />
+  );
+}
+
+// Destructive archive action behind the house confirm dialog (no browser confirm()).
+function ArchiveButton({ label, onConfirm }: { label: string; onConfirm: () => void }) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <button className="text-xs font-medium text-destructive">Archive</button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Archive “{label}”?</AlertDialogTitle>
+          <AlertDialogDescription>
+            The record is deactivated and disappears from these lists. The audit trail keeps the change.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-white hover:bg-destructive/90"
+            onClick={onConfirm}
+          >
+            Archive
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

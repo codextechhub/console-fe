@@ -4,11 +4,16 @@
 // decides which tabs to show.
 
 import { useMemo, useState } from "react";
-import { FileText, Loader2, Mail, Save, Settings2, X } from "lucide-react";
+import { FileText, Loader2, Mail, Save } from "lucide-react";
 import { toast } from "sonner";
+import CustomTable from "@/components/custom/custom-table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import {
   useGetNotificationEventTypesQuery,
@@ -53,11 +58,31 @@ export function HistoryPanel() {
 
   const q = useGetNotificationHistoryQuery(params);
 
+  const tableData = (q.data?.data ?? []).map((r) => ({
+    recipient: (
+      <div>
+        <p className="text-sm font-medium text-black-01">{r.recipient_name}</p>
+        <p className="text-xs text-gray-01">{r.recipient_email}</p>
+      </div>
+    ),
+    event: <span className="text-sm">{r.event_type_label}</span>,
+    channel: <span className="text-sm capitalize">{r.channel.replace("_", "-")}</span>,
+    status: (
+      <Badge
+        variant={r.status === "SENT" ? "success" : r.status === "FAILED" ? "rejected" : "pending"}
+        className="font-mont text-xs"
+      >
+        {r.status}
+      </Badge>
+    ),
+    created: <span className="text-xs text-gray-01">{new Date(r.created_at).toLocaleString()}</span>,
+  }));
+
   return (
     <div>
-      <div className="flex flex-wrap gap-3 border-b p-4">
+      <div className="flex flex-wrap gap-3 border-b border-white-02 p-4">
         <div className="relative min-w-60 flex-1">
-          <Mail className="absolute left-3 top-2.5 size-4 text-gray-01" />
+          <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-01" />
           <Input
             className="pl-9"
             value={email}
@@ -65,63 +90,24 @@ export function HistoryPanel() {
             placeholder="Filter recipient email"
           />
         </div>
-        <select
-          className="h-9 rounded-md border bg-white px-3 text-sm"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="">All statuses (last 7 days)</option>
-          <option>PENDING</option>
-          <option>SENT</option>
-          <option>FAILED</option>
-        </select>
+        {/* NativeSelect's wrapper is w-full; size it from a parent div. */}
+        <div className="w-full sm:w-60">
+          <NativeSelect value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="">All statuses (last 7 days)</option>
+            <option>PENDING</option>
+            <option>SENT</option>
+            <option>FAILED</option>
+          </NativeSelect>
+        </div>
       </div>
 
-      {q.isLoading ? (
-        <Busy />
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-white-05 text-left text-xs text-gray-01">
-              <tr>
-                <th className="p-3">Recipient</th>
-                <th className="p-3">Event</th>
-                <th className="p-3">Channel</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Created</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {(q.data?.data ?? []).map((r) => (
-                <tr key={r.id}>
-                  <td className="p-3">
-                    <p className="font-medium">{r.recipient_name}</p>
-                    <p className="text-xs text-gray-01">{r.recipient_email}</p>
-                  </td>
-                  <td className="p-3">{r.event_type_label}</td>
-                  <td className="p-3 capitalize">{r.channel.replace("_", "-")}</td>
-                  <td className="p-3">
-                    <span
-                      className={cn(
-                        "rounded-full px-2 py-1 text-xs",
-                        r.status === "SENT"
-                          ? "bg-green-50 text-green-700"
-                          : r.status === "FAILED"
-                            ? "bg-red-50 text-red-700"
-                            : "bg-amber-50 text-amber-700",
-                      )}
-                    >
-                      {r.status}
-                    </span>
-                  </td>
-                  <td className="p-3 text-xs text-gray-01">{new Date(r.created_at).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!q.data?.data.length && <Empty text="No deliveries match these filters." />}
-        </div>
-      )}
+      <CustomTable
+        tableHeaderList={["Recipient", "Event", "Channel", "Status", "Created"]}
+        tableBodyList={tableData}
+        loading={q.isLoading}
+        emptyText="No deliveries match these filters."
+        hidePagination
+      />
     </div>
   );
 }
@@ -156,8 +142,7 @@ export function SettingsPanel() {
                       {r.channel === "in_app" ? "In-app feed" : "Email delivery"} · inherited from {r.source}
                     </p>
                   </div>
-                  <button
-                    disabled={isLoading || locked}
+                  <span
                     title={
                       r.is_transactional
                         ? "Transactional events always dispatch"
@@ -165,27 +150,20 @@ export function SettingsPanel() {
                           ? "The in-app feed is always on"
                           : undefined
                     }
-                    onClick={async () => {
-                      await update({
-                        updates: [
-                          { event_type_key: r.event_type_key, channel: r.channel, is_enabled: !r.is_enabled },
-                        ],
-                      }).unwrap();
-                      toast.success("Notification setting updated");
-                    }}
-                    className={cn(
-                      "relative h-6 w-11 rounded-full transition",
-                      r.is_enabled ? "bg-primary" : "bg-gray-200",
-                      "disabled:opacity-50",
-                    )}
                   >
-                    <span
-                      className={cn(
-                        "absolute top-1 size-4 rounded-full bg-white transition",
-                        r.is_enabled ? "left-6" : "left-1",
-                      )}
+                    <Switch
+                      disabled={isLoading || locked}
+                      checked={r.is_enabled}
+                      onCheckedChange={async (v) => {
+                        await update({
+                          updates: [
+                            { event_type_key: r.event_type_key, channel: r.channel, is_enabled: v },
+                          ],
+                        }).unwrap();
+                        toast.success("Notification setting updated");
+                      }}
                     />
-                  </button>
+                  </span>
                 </div>
               );
             })}
@@ -242,17 +220,12 @@ function TemplateEditor({ value, close }: { value: NotificationTemplate; close: 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
-      <div className="h-full w-full max-w-2xl overflow-y-auto bg-white p-6 shadow-xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-01">{value.event_type_key}</p>
-            <h2 className="text-xl font-semibold">Edit notification template</h2>
-          </div>
-          <button onClick={close}>
-            <X />
-          </button>
-        </div>
+    <Sheet open onOpenChange={(v) => !v && close()}>
+      <SheetContent side="right" className="w-full overflow-y-auto p-6 sm:max-w-2xl">
+        <SheetHeader className="p-0">
+          <p className="text-xs text-gray-01">{value.event_type_key}</p>
+          <SheetTitle>Edit notification template</SheetTitle>
+        </SheetHeader>
 
         <div className="mt-6 space-y-4">
           <label className="grid gap-1 text-sm font-medium">
@@ -274,20 +247,13 @@ function TemplateEditor({ value, close }: { value: NotificationTemplate; close: 
           </label>
 
           <div className="flex gap-2">
-            <button
-              onClick={() => preview({ id: value.id, context: {} })}
-              className="rounded-md border px-4 py-2 text-sm"
-            >
+            <Button variant="outline" size="sm" onClick={() => preview({ id: value.id, context: {} })}>
               {previewing ? "Rendering…" : "Preview"}
-            </button>
-            <button
-              onClick={save}
-              disabled={isLoading}
-              className="ml-auto inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white"
-            >
+            </Button>
+            <Button size="sm" className="ml-auto" onClick={save} disabled={isLoading}>
               <Save className="size-4" />
               Save
-            </button>
+            </Button>
           </div>
 
           {data && (
@@ -297,8 +263,8 @@ function TemplateEditor({ value, close }: { value: NotificationTemplate; close: 
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -348,15 +314,6 @@ function Busy() {
   return (
     <div className="grid h-48 place-content-center">
       <Loader2 className="size-6 animate-spin text-primary" />
-    </div>
-  );
-}
-
-function Empty({ text }: { text: string }) {
-  return (
-    <div className="py-14 text-center text-sm text-gray-01">
-      <Settings2 className="mx-auto mb-2 size-6" />
-      {text}
     </div>
   );
 }

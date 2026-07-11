@@ -6,7 +6,9 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { Bell, CheckCheck, Loader2, MailOpen, Search, Settings2 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatRelativeDate } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routes-path";
@@ -209,34 +211,28 @@ export default function Notifications() {
           </section>
         </div>
 
-        {selected && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-black/25" onMouseDown={() => setSelected(null)}>
-            <aside
-              onMouseDown={(e) => e.stopPropagation()}
-              className="h-full w-full max-w-lg overflow-y-auto bg-white p-6 shadow-xl"
-            >
-              <button onClick={() => setSelected(null)} className="text-sm text-gray-01">
-                ← Close
-              </button>
-              {detail.isLoading ? (
-                <Loader2 className="mx-auto mt-24 size-6 animate-spin" />
-              ) : (
-                <div className="mt-8">
-                  <span className="rounded-full bg-pry-01 px-2.5 py-1 text-xs font-medium text-primary">
-                    {detail.data?.data.event_type_label}
-                  </span>
-                  <h2 className="mt-4 text-xl font-semibold">{detail.data?.data.subject}</h2>
-                  <p className="mt-2 text-xs text-gray-01">
-                    {detail.data && new Date(detail.data.data.created_at).toLocaleString()}
-                  </p>
-                  <div className="mt-6 whitespace-pre-wrap text-sm leading-7 text-gray-700">
-                    {detail.data?.data.body}
-                  </div>
+        <Sheet open={!!selected} onOpenChange={(v) => !v && setSelected(null)}>
+          <SheetContent side="right" className="w-full overflow-y-auto p-6 sm:max-w-lg">
+            {detail.isLoading ? (
+              <Loader2 className="mx-auto mt-24 size-6 animate-spin" />
+            ) : (
+              <div className="mt-4">
+                <Badge className="bg-pry-01 text-primary">{detail.data?.data.event_type_label}</Badge>
+                <SheetHeader className="p-0">
+                  <SheetTitle className="mt-4 text-xl font-semibold">
+                    {detail.data?.data.subject}
+                  </SheetTitle>
+                </SheetHeader>
+                <p className="mt-2 text-xs text-gray-01">
+                  {detail.data && new Date(detail.data.data.created_at).toLocaleString()}
+                </p>
+                <div className="mt-6 whitespace-pre-wrap text-sm leading-7 text-gray-700">
+                  {detail.data?.data.body}
                 </div>
-              )}
-            </aside>
-          </div>
-        )}
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
       </main>
     </DashboardLayout>
   );
