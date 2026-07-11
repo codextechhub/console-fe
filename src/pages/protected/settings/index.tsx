@@ -1,23 +1,25 @@
-// Platform settings console over /config/.
+// Platform settings console over /config/, in plain language:
 //
-// Tabs (each gated by its config.* view key):
-//   Configuration — the definitions catalogue with EFFECTIVE platform values
-//                   (default overlaid by any explicit platform row) and a
-//                   per-row type-aware "Set value" action.
-//   Capabilities  — scope switchboard: pick Platform or a school and see each
-//                   capability's effective on/off (GET /config/effective-
-//                   capabilities/), with per-row entitlement/override actions.
-//   Entitlements / Overrides — the physical grant/override registries at the
-//                   picked scope (backend lists are scope-resolved).
-//   Audit Trail   — immutable change log (last 30 days).
-// Writes are gated per-action and enforced again server-side (creation
-// endpoints are platform-only).
+//   System Settings — GitHub-style rows: every typed setting grouped by
+//                     module, with its description and an inline control
+//                     (toggle / number / text; JSON behind an Edit dialog).
+//                     Shows the EFFECTIVE platform value (default overlaid
+//                     by any explicit platform row).
+//   Features        — per-scope switchboard over capabilities. Pick Platform
+//                     or a school; each feature shows its live On/Off plus
+//                     the two levers in plain words: "In plan" (entitlement)
+//                     and "Status: Follow plan / Force on / Force off"
+//                     (override). A row click opens the record drawer.
+//   Audit Trail     — the immutable change log.
+//
+// Reads/writes are gated by the config.* keys and enforced again server-side
+// (definition/capability creation is platform-only).
 
 import { useState } from "react";
 import { useSearchParams } from "react-router";
-import { Download, Plus } from "lucide-react";
+import { Download, Loader2, Plus } from "lucide-react";
+import { toast } from "sonner";
 import DashboardLayout from "@/components/layout/dashboard-layout";
-import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -35,6 +37,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P, type PermissionCode } from "@/permissions";
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
@@ -49,19 +55,28 @@ import {
   useGetEntitlementsQuery,
   useGetOverridesQuery,
   useLazyExportConfigQuery,
+  useSetConfigValuesMutation,
+  useSetEntitlementMutation,
+  useSetOverrideMutation,
+  type Capability,
+  type ConfigDefinition,
+  type ConfigValue,
+  type Entitlement,
+  type Override,
 } from "@/redux/services/config-api";
-import { ConfigDialog, type ConfigDialogInitial, type ConfigDialogMode } from "./config-dialog";
+import CustomTable from "@/components/custom/custom-table";
+import { ConfigDialog } from "./config-dialog";
 
-type Tab = "configuration" | "capabilities" | "entitlements" | "overrides" | "audit";
+type Tab = "system" | "features" | "audit";
 
 const TABS: Array<{ key: Tab; label: string; permissions: PermissionCode[] }> = [
-  // The catalogue view joins definitions and values, so either read key works.
-  { key: "configuration", label: "Configuration", permissions: [P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CONFIG_VALUES] },
-  { key: "capabilities", label: "Capabilities", permissions: [P.VIEW_CAPABILITIES] },
-  { key: "entitlements", label: "Entitlements", permissions: [P.VIEW_ENTITLEMENTS] },
-  { key: "overrides", label: "Overrides", permissions: [P.VIEW_CONFIG_OVERRIDES] },
+  { key: "system", label: "System Settings", permissions: [P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CONFIG_VALUES] },
+  { key: "features", label: "Features", permissions: [P.VIEW_CAPABILITIES] },
   { key: "audit", label: "Audit Trail", permissions: [P.VIEW_CONFIG_AUDIT] },
 ];
+
+/** "notifications" → "Notifications", "parent_portal" → "Parent Portal". */
+const pretty = (s: string) => s.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 export default function Settings() {
   const { hasPermission, hasAnyPermission } = usePermissions();
@@ -97,7 +112,7 @@ export default function Settings() {
           <div>
             <p className="font-semibold font-mont text-gray-01">Platform Settings</p>
             <p className="text-xs text-gray-01 mt-0.5">
-              Control configuration, capabilities and scoped access from one place.
+              System settings and per-school feature access, in one place.
             </p>
           </div>
           {hasPermission(P.EXPORT_CONFIG) && (
@@ -110,10 +125,8 @@ export default function Settings() {
 
         <Tabs tabKey="tab" tabs={visible.map((t) => ({ label: t.label, value: t.key }))} />
 
-        {tab === "configuration" && <Configuration />}
-        {tab === "capabilities" && <Capabilities />}
-        {tab === "entitlements" && <Entitlements />}
-        {tab === "overrides" && <Overrides />}
+        {tab === "system" && <SystemSettings />}
+        {tab === "features" && <Features />}
         {tab === "audit" && <Audit />}
       </main>
     </DashboardLayout>
@@ -122,59 +135,7 @@ export default function Settings() {
 
 // ── Shared bits ───────────────────────────────────────────────────────────────
 
-const ADD_PERMISSION: Record<ConfigDialogMode, PermissionCode> = {
-  definition: P.CREATE_CONFIG_DEFINITION,
-  value: P.UPDATE_CONFIG_VALUES,
-  capability: P.MANAGE_CAPABILITIES,
-  entitlement: P.MANAGE_ENTITLEMENTS,
-  override: P.MANAGE_CONFIG_OVERRIDES,
-};
-
-function Header({
-  title,
-  description,
-  add,
-  mode,
-  dialogInitial,
-  children,
-}: {
-  title: string;
-  description: string;
-  /** Button label; omit for read-only panels (audit). */
-  add?: string;
-  mode?: ConfigDialogMode;
-  /** Prefill for the dialog the add button opens (e.g. the picked school). */
-  dialogInitial?: ConfigDialogInitial;
-  /** Extra toolbar content (e.g. a search input) rendered left of the action. */
-  children?: React.ReactNode;
-}) {
-  const { hasPermission } = usePermissions();
-  const [open, setOpen] = useState(false);
-  const allowed = add && mode && hasPermission(ADD_PERMISSION[mode]);
-
-  return (
-    <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-mont text-sm font-semibold">{title}</h2>
-          <p className="text-xs text-gray-01 mt-0.5">{description}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {children}
-          {allowed && (
-            <Button size="lg" onClick={() => setOpen(true)}>
-              <Plus className="size-4" />
-              {add}
-            </Button>
-          )}
-        </div>
-      </div>
-      {open && mode && <ConfigDialog mode={mode} initial={dialogInitial} close={() => setOpen(false)} />}
-    </>
-  );
-}
-
-/** Platform-or-school scope picker shared by the scoped tabs ("" = platform). */
+/** Platform-or-school scope picker ("" = platform). */
 function ScopePicker({ value, onChange }: { value: string; onChange: (schoolId: string) => void }) {
   const schools = useGetSchoolsQuery({ page_size: 100 });
   return (
@@ -190,38 +151,15 @@ function ScopePicker({ value, onChange }: { value: string; onChange: (schoolId: 
   );
 }
 
-// Generic panel table (house CustomTable: loading, empty, phone cards, pager).
-function Data({
-  loading,
-  heads,
-  rows,
-  totalPage,
-  currentPage,
-  onPageChange,
-}: {
-  loading: boolean;
-  heads: string[];
-  rows: React.ReactNode[][];
-  totalPage?: number;
-  currentPage?: number;
-  onPageChange?: (page?: string | number) => void;
-}) {
-  const tableData = rows.map((r) => Object.fromEntries(r.map((cell, i) => [`c${i}`, cell])));
+function Busy() {
   return (
-    <CustomTable
-      tableHeaderList={heads}
-      tableBodyList={tableData}
-      loading={loading}
-      emptyText="No records found."
-      totalPage={totalPage}
-      currentPage={currentPage}
-      onPageChange={onPageChange}
-      hidePagination={(totalPage ?? 0) <= 1}
-    />
+    <div className="grid h-48 place-content-center rounded-md bg-white">
+      <Loader2 className="size-6 animate-spin text-primary" />
+    </div>
   );
 }
 
-// Destructive archive action behind the house confirm dialog (no browser confirm()).
+// Destructive archive action behind the house confirm dialog.
 function ArchiveButton({ label, onConfirm }: { label: string; onConfirm: () => void }) {
   return (
     <AlertDialog>
@@ -249,284 +187,450 @@ function ArchiveButton({ label, onConfirm }: { label: string; onConfirm: () => v
   );
 }
 
-// ── Configuration: catalogue + effective platform values ─────────────────────
+// ── System Settings ───────────────────────────────────────────────────────────
 
-function Configuration() {
+function SystemSettings() {
   const { hasPermission } = usePermissions();
-  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [setValueFor, setSetValueFor] = useState<string | null>(null);
-  const [archive] = useArchiveConfigDefinitionMutation();
-  const defs = useGetConfigDefinitionsQuery({ page: String(page) });
-  // Explicit platform rows overlay the definition defaults. page_size=100 is
-  // the backend max — plenty for the current catalogue size.
+  const defs = useGetConfigDefinitionsQuery({ page_size: "100" });
   const values = useGetConfigValuesQuery({ page_size: "100" });
   const canSet = hasPermission(P.UPDATE_CONFIG_VALUES);
+  const canCreate = hasPermission(P.CREATE_CONFIG_DEFINITION);
   const canArchive = hasPermission(P.ARCHIVE_CONFIG_DEFINITION);
+  const [creating, setCreating] = useState(false);
+
+  if (defs.isLoading || values.isLoading) return <Busy />;
 
   const explicit = new Map((values.data?.data ?? []).map((v) => [v.key, v]));
   const rows = (defs.data?.data ?? []).filter(
-    (d) =>
-      !search ||
-      `${d.label} ${d.key}`.toLowerCase().includes(search.toLowerCase()),
+    (d) => !search || `${d.label} ${d.key} ${d.description}`.toLowerCase().includes(search.toLowerCase()),
   );
+  // Group by the key's module prefix ("notifications.email_max_retries" → Notifications).
+  const groups = new Map<string, ConfigDefinition[]>();
+  for (const d of rows) {
+    const g = pretty(d.key.includes(".") ? d.key.split(".")[0] : "general");
+    groups.set(g, [...(groups.get(g) ?? []), d]);
+  }
 
   return (
     <div className="space-y-5">
-      <Header
-        title="Configuration"
-        description="Every typed setting with its effective platform value."
-        add="New definition"
-        mode="definition"
-      >
-        <CustomInput
-          id="config-search"
-          canSearch
-          placeholder="Filter by name or key"
-          className="h-10"
-          containerClass="w-full sm:w-[260px]"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </Header>
-      <Data
-        loading={defs.isLoading || values.isLoading}
-        heads={[
-          "Setting",
-          "Type",
-          "Effective value",
-          "Source",
-          "Updated",
-          ...(canSet || canArchive ? ["Action"] : []),
-        ]}
-        rows={rows.map((d) => {
-          const row = explicit.get(d.key);
-          const effective = row ? row.value : d.default_value;
-          return [
-            <div>
-              <p className="font-medium">{d.label}</p>
-              <code className="text-[11px] text-gray-01">{d.key}</code>
-            </div>,
-            d.value_type,
-            <code className="max-w-60 truncate text-xs">{JSON.stringify(effective)}</code>,
-            row ? (
-              <Badge className="bg-primary/10 font-mont text-xs text-primary">Platform</Badge>
-            ) : (
-              <Badge variant="inactive" className="font-mont text-xs">Default</Badge>
-            ),
-            new Date((row ?? d).updated_at).toLocaleDateString(),
-            ...(canSet || canArchive
-              ? [
-                  <div className="flex items-center gap-3">
-                    {canSet && (
-                      <button
-                        className="text-xs font-medium text-primary"
-                        onClick={() => setSetValueFor(d.key)}
-                      >
-                        Set value
-                      </button>
-                    )}
-                    {canArchive && (
-                      <ArchiveButton
-                        label={d.label}
-                        onConfirm={() => archive({ key: d.key, reason: "Archived from Settings console" })}
-                      />
-                    )}
-                  </div>,
-                ]
-              : []),
-          ];
-        })}
-        totalPage={defs.data?.pagination?.totalPages}
-        currentPage={defs.data?.pagination?.currentPage}
-        onPageChange={(p) => setPage(p as number)}
-      />
-      {setValueFor && (
-        <ConfigDialog mode="value" initial={{ key: setValueFor }} close={() => setSetValueFor(null)} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-mont text-sm font-semibold">System Settings</h2>
+          <p className="text-xs text-gray-01 mt-0.5">
+            Platform-wide behaviour. Changes apply immediately and are recorded in the audit trail.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <CustomInput
+            id="system-settings-search"
+            canSearch
+            placeholder="Search settings"
+            className="h-10"
+            containerClass="w-full sm:w-[260px]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {canCreate && (
+            <Button size="lg" onClick={() => setCreating(true)}>
+              <Plus className="size-4" />
+              New setting
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {!rows.length ? (
+        <div className="grid h-40 place-content-center rounded-md bg-white text-sm text-gray-01">
+          No settings match your search.
+        </div>
+      ) : (
+        <div className="divide-y divide-white-02 rounded-md bg-white">
+          {[...groups.entries()].map(([group, defsInGroup]) => (
+            <div key={group} className="p-5">
+              <h3 className="font-mont font-semibold">{group}</h3>
+              <div className="mt-3 divide-y divide-white-02 rounded-lg border border-white-02">
+                {defsInGroup.map((d) => (
+                  <SettingRow
+                    key={d.key}
+                    def={d}
+                    row={explicit.get(d.key)}
+                    canSet={canSet}
+                    canArchive={canArchive}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {creating && <ConfigDialog mode="definition" close={() => setCreating(false)} />}
+    </div>
+  );
+}
+
+/** One setting: name + description on the left, its control on the right. */
+function SettingRow({
+  def,
+  row,
+  canSet,
+  canArchive,
+}: {
+  def: ConfigDefinition;
+  row?: ConfigValue;
+  canSet: boolean;
+  canArchive: boolean;
+}) {
+  const [save, { isLoading }] = useSetConfigValuesMutation();
+  const [archive] = useArchiveConfigDefinitionMutation();
+  const effective = row ? row.value : def.default_value;
+  const [draft, setDraft] = useState<string>(effective == null ? "" : String(effective));
+  const [editingJson, setEditingJson] = useState(false);
+
+  const write = async (value: unknown) => {
+    await save({
+      values: [{ key: def.key, value, reason: "Updated from System Settings" }],
+    }).unwrap();
+    toast.success(`${def.label} updated`);
+  };
+
+  const isDirty = draft !== (effective == null ? "" : String(effective));
+  const inline =
+    def.value_type === "BOOLEAN"
+      ? "toggle"
+      : ["INTEGER", "DECIMAL"].includes(def.value_type)
+        ? "number"
+        : ["STRING", "CHOICE"].includes(def.value_type)
+          ? "text"
+          : "dialog"; // JSON / SECRET_REFERENCE
+
+  return (
+    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium">{def.label}</p>
+        {def.description && <p className="text-xs leading-5 text-gray-01">{def.description}</p>}
+        <p className="mt-1 flex items-center gap-2 text-[11px] text-gray-01">
+          <code>{def.key}</code>
+          {row ? (
+            <Badge className="bg-primary/10 px-1.5 font-mont text-[10px] text-primary">Customised</Badge>
+          ) : (
+            <Badge variant="inactive" className="px-1.5 font-mont text-[10px]">Default</Badge>
+          )}
+          {canArchive && (
+            <ArchiveButton
+              label={def.label}
+              onConfirm={() => archive({ key: def.key, reason: "Archived from Settings console" })}
+            />
+          )}
+        </p>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        {inline === "toggle" && (
+          <Switch
+            disabled={!canSet || isLoading}
+            checked={effective === true}
+            onCheckedChange={(v) => write(v)}
+          />
+        )}
+        {(inline === "number" || inline === "text") && (
+          <>
+            <Input
+              type={inline === "number" ? "number" : "text"}
+              step={def.value_type === "DECIMAL" ? "any" : undefined}
+              disabled={!canSet || isLoading}
+              className="h-9 w-36 sm:w-44"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+            />
+            {isDirty && canSet && (
+              <Button
+                size="sm"
+                disabled={isLoading || (inline === "number" && draft.trim() === "")}
+                onClick={() => write(inline === "number" ? Number(draft) : draft)}
+              >
+                {isLoading ? "Saving…" : "Save"}
+              </Button>
+            )}
+          </>
+        )}
+        {inline === "dialog" && (
+          <>
+            <code className="max-w-40 truncate text-xs text-gray-01">{JSON.stringify(effective)}</code>
+            {canSet && (
+              <Button variant="white" size="sm" onClick={() => setEditingJson(true)}>
+                Edit
+              </Button>
+            )}
+          </>
+        )}
+      </div>
+
+      {editingJson && (
+        <ConfigDialog mode="value" initial={{ key: def.key }} close={() => setEditingJson(false)} />
       )}
     </div>
   );
 }
 
-// ── Capabilities: effective switchboard per scope ─────────────────────────────
+// ── Features ──────────────────────────────────────────────────────────────────
 
-function Capabilities() {
+const KIND_GROUP: Record<string, string> = { MODULE: "Modules", FEATURE: "Features" };
+
+function Features() {
   const { hasPermission } = usePermissions();
-  const [page, setPage] = useState(1);
   const [school, setSchool] = useState("");
-  const [dialog, setDialog] = useState<{ mode: ConfigDialogMode; capability: string } | null>(null);
-  const catalogue = useGetCapabilitiesQuery({ page: String(page) });
-  const effective = useGetEffectiveCapabilitiesQuery(school ? { school } : {});
-  const [archiveCap] = useArchiveCapabilityMutation();
-  const canManageCaps = hasPermission(P.MANAGE_CAPABILITIES);
-  const canEntitle = hasPermission(P.MANAGE_ENTITLEMENTS);
-  const canOverride = hasPermission(P.MANAGE_CONFIG_OVERRIDES);
+  const [detail, setDetail] = useState<Capability | null>(null);
+  const [creating, setCreating] = useState(false);
+  const scope = school ? { school } : {};
+  const catalogue = useGetCapabilitiesQuery({ page_size: "100" });
+  const effective = useGetEffectiveCapabilitiesQuery(scope);
+  // The scoped lists back the two plain controls ("In plan" / "Status").
+  const entitlements = useGetEntitlementsQuery({ page_size: "100", ...scope });
+  const overrides = useGetOverridesQuery({ page_size: "100", ...scope });
+  const canCreate = hasPermission(P.MANAGE_CAPABILITIES);
+
+  if (catalogue.isLoading || effective.isLoading) return <Busy />;
 
   const enabled = new Map((effective.data?.data ?? []).map((e) => [e.key, e.enabled]));
+  const entByKey = new Map((entitlements.data?.data ?? []).map((e) => [e.capability_key, e]));
+  const overrideByKey = new Map((overrides.data?.data ?? []).map((o) => [o.capability_key, o]));
+
+  const groups = new Map<string, Capability[]>();
+  for (const c of catalogue.data?.data ?? []) {
+    const g = KIND_GROUP[c.kind] ?? pretty(c.kind.toLowerCase());
+    groups.set(g, [...(groups.get(g) ?? []), c]);
+  }
 
   return (
     <div className="space-y-5">
-      <Header
-        title="Capabilities"
-        description="What each feature resolves to at the picked scope, and the levers that change it."
-        add="New capability"
-        mode="capability"
-      >
-        <ScopePicker
-          value={school}
-          onChange={(s) => {
-            setSchool(s);
-            setPage(1);
-          }}
-        />
-      </Header>
-      <Data
-        loading={catalogue.isLoading || effective.isLoading}
-        heads={[
-          "Capability",
-          "Kind",
-          "Effective",
-          "Entitlement",
-          ...(canEntitle || canOverride || canManageCaps ? ["Action"] : []),
-        ]}
-        rows={(catalogue.data?.data ?? []).map((x) => [
-          <div>
-            <p className="font-medium">{x.label}</p>
-            <code className="text-[11px] text-gray-01">{x.key}</code>
-          </div>,
-          x.kind,
-          enabled.get(x.key) ? (
-            <Badge variant="success" className="font-mont text-xs">On</Badge>
-          ) : (
-            <Badge variant="inactive" className="font-mont text-xs">Off</Badge>
-          ),
-          x.requires_entitlement ? "Required" : "Not required",
-          ...(canEntitle || canOverride || canManageCaps
-            ? [
-                <div className="flex items-center gap-3">
-                  {canEntitle && (
-                    <button
-                      className="text-xs font-medium text-primary"
-                      onClick={() => setDialog({ mode: "entitlement", capability: x.key })}
-                    >
-                      Set entitlement
-                    </button>
-                  )}
-                  {canOverride && (
-                    <button
-                      className="text-xs font-medium text-primary"
-                      onClick={() => setDialog({ mode: "override", capability: x.key })}
-                    >
-                      Add override
-                    </button>
-                  )}
-                  {canManageCaps && (
-                    <ArchiveButton
-                      label={x.label}
-                      onConfirm={() => archiveCap({ key: x.key, reason: "Archived from Settings console" })}
-                    />
-                  )}
-                </div>,
-              ]
-            : []),
-        ])}
-        totalPage={catalogue.data?.pagination?.totalPages}
-        currentPage={catalogue.data?.pagination?.currentPage}
-        onPageChange={(p) => setPage(p as number)}
-      />
-      {dialog && (
-        <ConfigDialog
-          mode={dialog.mode}
-          initial={{ capability: dialog.capability, school }}
-          close={() => setDialog(null)}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-mont text-sm font-semibold">Features</h2>
+          <p className="text-xs text-gray-01 mt-0.5">
+            What's switched on — platform-wide or for one school. “In plan” is the commercial grant;
+            “Status” can force a feature on or off regardless.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <ScopePicker value={school} onChange={setSchool} />
+          {canCreate && (
+            <Button size="lg" onClick={() => setCreating(true)}>
+              <Plus className="size-4" />
+              New feature
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="divide-y divide-white-02 rounded-md bg-white">
+        {[...groups.entries()].map(([group, caps]) => (
+          <div key={group} className="p-5">
+            <h3 className="font-mont font-semibold">{group}</h3>
+            <div className="mt-3 divide-y divide-white-02 rounded-lg border border-white-02">
+              {caps.map((c) => (
+                <FeatureRow
+                  key={c.key}
+                  cap={c}
+                  school={school}
+                  on={enabled.get(c.key) ?? false}
+                  entitlement={entByKey.get(c.key)}
+                  override={overrideByKey.get(c.key)}
+                  openDetail={() => setDetail(c)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {detail && (
+        <FeatureDetail
+          cap={detail}
+          school={school}
+          entitlement={entByKey.get(detail.key)}
+          override={overrideByKey.get(detail.key)}
+          close={() => setDetail(null)}
         />
       )}
+      {creating && <ConfigDialog mode="capability" close={() => setCreating(false)} />}
     </div>
   );
 }
 
-// ── Entitlements / Overrides: physical rows at the picked scope ──────────────
+function FeatureRow({
+  cap,
+  school,
+  on,
+  entitlement,
+  override,
+  openDetail,
+}: {
+  cap: Capability;
+  school: string;
+  on: boolean;
+  entitlement?: Entitlement;
+  override?: Override;
+  openDetail: () => void;
+}) {
+  const { hasPermission } = usePermissions();
+  const [setEnt, entState] = useSetEntitlementMutation();
+  const [setOver, overState] = useSetOverrideMutation();
+  const canEntitle = hasPermission(P.MANAGE_ENTITLEMENTS);
+  const canOverride = hasPermission(P.MANAGE_CONFIG_OVERRIDES);
+  const scopeBody = school ? { school } : {};
 
-function Entitlements() {
-  const [page, setPage] = useState(1);
-  const [school, setSchool] = useState("");
-  const q = useGetEntitlementsQuery({ page: String(page), ...(school ? { school } : {}) });
+  const inPlan = entitlement?.state === "GRANTED";
+  const status = override?.state && override.state !== "INHERIT" ? override.state : "INHERIT";
 
   return (
-    <div className="space-y-5">
-      <Header
-        title="Entitlements"
-        description="Grants that unlock capabilities — platform-wide or per school."
-        add="Set entitlement"
-        mode="entitlement"
-        dialogInitial={{ school }}
-      >
-        <ScopePicker
-          value={school}
-          onChange={(s) => {
-            setSchool(s);
-            setPage(1);
-          }}
-        />
-      </Header>
-      <Data
-        loading={q.isLoading}
-        heads={["Capability", "State", "Source", "Period", "Updated"]}
-        rows={(q.data?.data ?? []).map((x) => [
-          x.capability_key,
-          x.state === "GRANTED" ? (
-            <Badge variant="success" className="font-mont text-xs">Granted</Badge>
-          ) : (
-            <Badge variant="rejected" className="font-mont text-xs">{x.state}</Badge>
-          ),
-          x.source,
-          x.starts_at ? new Date(x.starts_at).toLocaleDateString() : "Always",
-          new Date(x.updated_at).toLocaleDateString(),
-        ])}
-        totalPage={q.data?.pagination?.totalPages}
-        currentPage={q.data?.pagination?.currentPage}
-        onPageChange={(p) => setPage(p as number)}
-      />
+    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+      <button onClick={openDetail} className="min-w-0 flex-1 text-left">
+        <p className="text-sm font-medium">{cap.label}</p>
+        {cap.description && <p className="text-xs leading-5 text-gray-01">{cap.description}</p>}
+        <p className="mt-1 text-[11px] text-gray-01">
+          <code>{cap.key}</code>
+        </p>
+      </button>
+
+      <div className="flex shrink-0 flex-wrap items-center gap-4">
+        {cap.requires_entitlement ? (
+          <label className="flex items-center gap-2 text-xs text-gray-01">
+            In plan
+            <Switch
+              disabled={!canEntitle || entState.isLoading}
+              checked={inPlan}
+              onCheckedChange={async (v) => {
+                await setEnt({
+                  capability: cap.key,
+                  state: v ? "GRANTED" : "DENIED",
+                  source: "MANUAL",
+                  reason: "Changed from the Features switchboard",
+                  ...scopeBody,
+                }).unwrap();
+                toast.success(`${cap.label}: ${v ? "included in" : "removed from"} plan`);
+              }}
+            />
+          </label>
+        ) : (
+          <span className="text-xs text-gray-01">No plan needed</span>
+        )}
+
+        <label className="flex items-center gap-2 text-xs text-gray-01">
+          Status
+          <div className="w-36">
+            <NativeSelect
+              size="sm"
+              disabled={!canOverride || overState.isLoading}
+              value={status}
+              onChange={async (e) => {
+                await setOver({
+                  capability: cap.key,
+                  state: e.target.value,
+                  reason: "Changed from the Features switchboard",
+                  ...scopeBody,
+                }).unwrap();
+                toast.success(`${cap.label} status updated`);
+              }}
+            >
+              <option value="INHERIT">Follow plan</option>
+              <option value="ENABLED">Force on</option>
+              <option value="DISABLED">Force off</option>
+            </NativeSelect>
+          </div>
+        </label>
+
+        {on ? (
+          <Badge variant="success" className="font-mont text-xs">On</Badge>
+        ) : (
+          <Badge variant="inactive" className="font-mont text-xs">Off</Badge>
+        )}
+      </div>
     </div>
   );
 }
 
-function Overrides() {
-  const [page, setPage] = useState(1);
-  const [school, setSchool] = useState("");
-  const q = useGetOverridesQuery({ page: String(page), ...(school ? { school } : {}) });
+/** Record drawer: why is this feature on/off at this scope? */
+function FeatureDetail({
+  cap,
+  school,
+  entitlement,
+  override,
+  close,
+}: {
+  cap: Capability;
+  school: string;
+  entitlement?: Entitlement;
+  override?: Override;
+  close: () => void;
+}) {
+  const { hasPermission } = usePermissions();
+  const [archiveCap] = useArchiveCapabilityMutation();
 
   return (
-    <div className="space-y-5">
-      <Header
-        title="Overrides"
-        description="Explicit capability decisions stored at the picked scope."
-        add="Add override"
-        mode="override"
-        dialogInitial={{ school }}
-      >
-        <ScopePicker
-          value={school}
-          onChange={(s) => {
-            setSchool(s);
-            setPage(1);
-          }}
-        />
-      </Header>
-      <Data
-        loading={q.isLoading}
-        heads={["Capability", "State", "Reason", "Updated"]}
-        rows={(q.data?.data ?? []).map((x) => [
-          x.capability_key,
-          x.state,
-          x.reason || "—",
-          new Date(x.updated_at).toLocaleDateString(),
-        ])}
-        totalPage={q.data?.pagination?.totalPages}
-        currentPage={q.data?.pagination?.currentPage}
-        onPageChange={(p) => setPage(p as number)}
-      />
-    </div>
+    <Sheet open onOpenChange={(v) => !v && close()}>
+      <SheetContent side="right" className="w-full overflow-y-auto p-6 sm:max-w-lg">
+        <SheetHeader className="p-0">
+          <p className="text-xs text-gray-01">{cap.key}</p>
+          <SheetTitle>{cap.label}</SheetTitle>
+        </SheetHeader>
+
+        <div className="mt-6 space-y-4 text-sm">
+          {cap.description && <p className="text-gray-600">{cap.description}</p>}
+
+          <div className="rounded-lg border border-white-02 p-4">
+            <p className="font-mont text-xs font-semibold text-gray-01">HOW THIS RESOLVES</p>
+            <ul className="mt-2 space-y-1.5 text-xs leading-5 text-gray-600">
+              <li>1. Ships {cap.default_enabled ? "ON" : "OFF"} by default.</li>
+              <li>
+                2. {cap.requires_entitlement
+                  ? "Needs to be in the plan before it can turn on."
+                  : "No plan requirement."}
+              </li>
+              <li>3. A forced status (on/off) wins over everything.</li>
+            </ul>
+          </div>
+
+          <div className="rounded-lg border border-white-02 p-4">
+            <p className="font-mont text-xs font-semibold text-gray-01">
+              CURRENT RECORDS — {school ? "THIS SCHOOL" : "PLATFORM"}
+            </p>
+            <dl className="mt-2 space-y-3 text-xs">
+              <div>
+                <dt className="text-gray-01">Plan grant (entitlement)</dt>
+                <dd className="mt-0.5 font-medium">
+                  {entitlement
+                    ? `${entitlement.state} · via ${entitlement.source} · updated ${new Date(entitlement.updated_at).toLocaleDateString()}`
+                    : "None recorded"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-01">Forced status (override)</dt>
+                <dd className="mt-0.5 font-medium">
+                  {override && override.state !== "INHERIT"
+                    ? `${override.state === "ENABLED" ? "Forced on" : "Forced off"}${override.reason ? ` — “${override.reason}”` : ""} · updated ${new Date(override.updated_at).toLocaleDateString()}`
+                    : "None — follows the plan"}
+                </dd>
+              </div>
+            </dl>
+            <p className="mt-3 text-[11px] text-gray-01">
+              Full history lives in the Audit Trail tab.
+            </p>
+          </div>
+
+          {hasPermission(P.MANAGE_CAPABILITIES) && (
+            <ArchiveButton
+              label={cap.label}
+              onConfirm={() => {
+                archiveCap({ key: cap.key, reason: "Archived from Settings console" });
+                close();
+              }}
+            />
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -537,22 +641,31 @@ function Audit() {
   const [createdAfter] = useState(() => new Date(Date.now() - 30 * 864e5).toISOString());
   const q = useGetConfigAuditQuery({ page: String(page), created_after: createdAfter });
 
+  const tableData = (q.data?.data ?? []).map((x) => ({
+    action: x.action,
+    target: `${x.target_type} · ${x.target_id}`,
+    actor: x.actor?.full_name ?? "System",
+    reason: x.reason || "—",
+    date: new Date(x.created_at).toLocaleString(),
+  }));
+
   return (
     <div className="space-y-5">
-      <Header title="Configuration audit trail" description="Immutable changes from the last 30 days." />
-      <Data
+      <div>
+        <h2 className="font-mont text-sm font-semibold">Configuration audit trail</h2>
+        <p className="text-xs text-gray-01 mt-0.5">
+          Immutable record of every settings and feature change — last 30 days.
+        </p>
+      </div>
+      <CustomTable
+        tableHeaderList={["Action", "Target", "Actor", "Reason", "Date"]}
+        tableBodyList={tableData}
         loading={q.isLoading}
-        heads={["Action", "Target", "Actor", "Reason", "Date"]}
-        rows={(q.data?.data ?? []).map((x) => [
-          x.action,
-          `${x.target_type} · ${x.target_id}`,
-          x.actor?.full_name ?? "System",
-          x.reason || "—",
-          new Date(x.created_at).toLocaleString(),
-        ])}
+        emptyText="No changes recorded in this window."
         totalPage={q.data?.pagination?.totalPages}
         currentPage={q.data?.pagination?.currentPage}
         onPageChange={(p) => setPage(p as number)}
+        hidePagination={(q.data?.pagination?.totalPages ?? 0) <= 1}
       />
     </div>
   );

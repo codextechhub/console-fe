@@ -1,11 +1,9 @@
-// Create/update dialog shared by the Settings panels. One dialog, five modes —
-// each maps to a single backend write endpoint under /config/.
+// Create/edit dialog shared by the Settings panels: new setting definitions,
+// setting a (typed) configuration value, and new capabilities. Entitlements
+// and overrides are edited inline on the Features switchboard, not here.
 //
-// `initial` prefills the form when a row action opens the dialog (e.g. the
-// Configuration tab's per-row "Set value", or the Capabilities switchboard's
-// "Set entitlement" with the picked school). Entitlement/override writes send
-// `school` in the body; the backend resolves and authorizes the scope
-// (resolve_request_scope) and platform stays the default when omitted.
+// `initial.key` prefills the value form when a System Settings row's Edit
+// action opens the dialog.
 
 import { useState } from "react";
 import { toast } from "sonner";
@@ -20,35 +18,24 @@ import {
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { SearchSelect } from "@/components/custom/search-select";
-import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import {
   useCreateCapabilityMutation,
   useCreateConfigDefinitionMutation,
-  useGetCapabilitiesQuery,
   useGetConfigDefinitionsQuery,
   useSetConfigValuesMutation,
-  useSetEntitlementMutation,
-  useSetOverrideMutation,
 } from "@/redux/services/config-api";
 
-export type ConfigDialogMode = "definition" | "value" | "capability" | "entitlement" | "override";
+export type ConfigDialogMode = "definition" | "value" | "capability";
 
 export interface ConfigDialogInitial {
   /** Definition key to prefill (mode "value"). */
   key?: string;
-  /** Capability key to prefill (modes "entitlement" / "override"). */
-  capability?: string;
-  /** School id to prefill the scope picker with (empty = platform). */
-  school?: string;
 }
 
 const TITLES: Record<ConfigDialogMode, string> = {
-  definition: "New definition",
-  value: "Set configuration value",
-  capability: "New capability",
-  entitlement: "Set entitlement",
-  override: "Add override",
+  definition: "New setting",
+  value: "Edit setting value",
+  capability: "New feature",
 };
 
 /** Coerce the raw input string to the definition's value type. */
@@ -75,18 +62,13 @@ export function ConfigDialog({
   close: () => void;
   initial?: ConfigDialogInitial;
 }) {
-  const needsScope = mode === "entitlement" || mode === "override";
-  // Pickers only fetch when their mode needs them.
+  // The definitions list backs the key picker + type-aware value input.
   const defs = useGetConfigDefinitionsQuery({ page_size: "100" }, { skip: mode !== "value" });
-  const caps = useGetCapabilitiesQuery({ page_size: "100" }, { skip: !needsScope });
-  const schools = useGetSchoolsQuery({ page_size: 100 }, { skip: !needsScope });
 
   const [createDef, { isLoading: creatingDef }] = useCreateConfigDefinitionMutation();
   const [setValue, { isLoading: settingValue }] = useSetConfigValuesMutation();
   const [createCap, { isLoading: creatingCap }] = useCreateCapabilityMutation();
-  const [setEnt, { isLoading: settingEnt }] = useSetEntitlementMutation();
-  const [setOver, { isLoading: settingOver }] = useSetOverrideMutation();
-  const busy = creatingDef || settingValue || creatingCap || settingEnt || settingOver;
+  const busy = creatingDef || settingValue || creatingCap;
 
   const [form, setForm] = useState<Record<string, string>>({
     key: initial?.key ?? "",
@@ -101,10 +83,6 @@ export function ConfigDialog({
     kind: "MODULE",
     default_enabled: "false",
     requires_entitlement: "true",
-    capability: initial?.capability ?? "",
-    state: mode === "entitlement" ? "GRANTED" : "INHERIT",
-    source: "MANUAL",
-    school: initial?.school ?? "",
   });
 
   const set =
@@ -143,21 +121,6 @@ export function ConfigDialog({
         is_active: true,
         metadata: {},
         dependencies: [],
-      }).unwrap();
-    if (mode === "entitlement")
-      await setEnt({
-        capability: form.capability,
-        state: form.state,
-        source: form.source,
-        reason: form.reason,
-        ...(form.school ? { school: form.school } : {}),
-      }).unwrap();
-    if (mode === "override")
-      await setOver({
-        capability: form.capability,
-        state: form.state,
-        reason: form.reason,
-        ...(form.school ? { school: form.school } : {}),
       }).unwrap();
 
     toast.success(`${TITLES[mode]} saved`);
@@ -215,16 +178,12 @@ export function ConfigDialog({
           {mode === "value" && (
             <>
               <Select
-                label="Configuration key"
+                label="Setting"
                 value={form.key}
                 onChange={set("key")}
                 options={(defs.data?.data ?? []).map((x) => x.key)}
               />
-              <ValueInput
-                valueType={pickedDef?.value_type}
-                value={form.value}
-                onChange={set("value")}
-              />
+              <ValueInput valueType={pickedDef?.value_type} value={form.value} onChange={set("value")} />
               <Field label="Reason">
                 <Input value={form.reason} onChange={set("reason")} />
               </Field>
@@ -245,54 +204,18 @@ export function ConfigDialog({
               <div className="grid grid-cols-2 gap-3">
                 <Select label="Kind" value={form.kind} onChange={set("kind")} options={["MODULE", "FEATURE"]} />
                 <Select
-                  label="Default"
+                  label="On by default"
                   value={form.default_enabled}
                   onChange={set("default_enabled")}
                   options={["false", "true"]}
                 />
               </div>
               <Select
-                label="Requires entitlement"
+                label="Requires a plan (entitlement)"
                 value={form.requires_entitlement}
                 onChange={set("requires_entitlement")}
                 options={["false", "true"]}
               />
-            </>
-          )}
-
-          {needsScope && (
-            <>
-              <Select
-                label="Capability"
-                value={form.capability}
-                onChange={set("capability")}
-                options={(caps.data?.data ?? []).map((x) => x.key)}
-              />
-              <SearchSelect
-                label={mode === "entitlement" ? "School (blank = platform-wide)" : "School (blank = platform)"}
-                placeholder="Platform"
-                loading={schools.isLoading}
-                options={(schools.data?.data ?? []).map((s) => ({ value: String(s.id), label: s.name }))}
-                value={form.school}
-                onChange={set("school")}
-              />
-              <Select
-                label="State"
-                value={form.state}
-                onChange={set("state")}
-                options={mode === "entitlement" ? ["GRANTED", "DENIED"] : ["INHERIT", "ENABLED", "DISABLED"]}
-              />
-              {mode === "entitlement" && (
-                <Select
-                  label="Source"
-                  value={form.source}
-                  onChange={set("source")}
-                  options={["PACKAGE", "PLATFORM", "MANUAL", "IMPORT"]}
-                />
-              )}
-              <Field label="Reason">
-                <Textarea value={form.reason} onChange={set("reason")} />
-              </Field>
             </>
           )}
 
