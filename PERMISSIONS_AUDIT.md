@@ -327,23 +327,24 @@ Inbox (`/notifications`) and administration (`/notifications/admin`) are separat
 
 ### Settings (`src/pages/protected/settings/`)
 
+Five tabs (2026-07-11 MVP reshape): Configuration (definitions catalogue + effective platform values, replacing the old Values/Definitions pair), Capabilities (effective on/off switchboard per scope via `GET /config/effective-capabilities/`), Entitlements, Overrides, Audit Trail. Entitlements/Overrides/Capabilities carry a Platform-or-school scope picker; the entitlement/override dialogs send `school` in the body (backend `resolve_request_scope` authorizes it).
+
 | Element | Type | Permission Constant |
 |---|---|---|
-| Configuration values tab | tab | `P.VIEW_CONFIG_VALUES` |
-| Definitions tab | tab | `P.VIEW_CONFIG_DEFINITIONS` |
-| Capabilities tab | tab | `P.VIEW_CAPABILITIES` |
+| Configuration tab | tab | any of `P.VIEW_CONFIG_DEFINITIONS` `P.VIEW_CONFIG_VALUES` |
+| Capabilities tab (incl. effective read) | tab | `P.VIEW_CAPABILITIES` (`config.capability.view` also gates `/effective-capabilities/`) |
 | Entitlements tab | tab | `P.VIEW_ENTITLEMENTS` |
 | Overrides tab | tab | `P.VIEW_CONFIG_OVERRIDES` |
 | Audit trail tab | tab | `P.VIEW_CONFIG_AUDIT` |
 | New definition | button | `P.CREATE_CONFIG_DEFINITION` |
 | Archive definition | row action | `P.ARCHIVE_CONFIG_DEFINITION` |
-| Set value | button | `P.UPDATE_CONFIG_VALUES` |
+| Set value (per Configuration row) | row action | `P.UPDATE_CONFIG_VALUES` |
 | New capability / Archive capability | button / row action | `P.MANAGE_CAPABILITIES` |
-| Set entitlement | button | `P.MANAGE_ENTITLEMENTS` |
-| Add override | button | `P.MANAGE_CONFIG_OVERRIDES` |
+| Set entitlement (row action + tab button) | action | `P.MANAGE_ENTITLEMENTS` |
+| Add override (row action + tab button) | action | `P.MANAGE_CONFIG_OVERRIDES` |
 | Export snapshot | button | `P.EXPORT_CONFIG` |
 
-> Definition/capability creation is additionally platform-only server-side (`platform_methods` guard rejects non-CX users regardless of grants).
+> Definition/capability creation is additionally platform-only server-side (`platform_methods` guard rejects non-CX users regardless of grants). The school pickers read the school list (`GET /i/`, gated by `P.BROWSE_SCHOOLS` server-side); its list serializer now includes the school `id` pk that scoped config endpoints take.
 
 ---
 

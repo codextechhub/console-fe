@@ -43,18 +43,19 @@ const groupBy = <T,>(items: T[], key: (item: T) => string) =>
 export function HistoryPanel() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
   const debouncedEmail = useDebounce(email, 400);
   const [createdAfter] = useState(() => new Date(Date.now() - 7 * 864e5).toISOString());
 
   // Filters combine. The backend refuses an unfiltered dump, so the last-7-days
   // window applies whenever no explicit filter is set.
   const params = useMemo<Record<string, string>>(() => {
-    const next: Record<string, string> = {};
+    const next: Record<string, string> = { page: String(page) };
     if (debouncedEmail) next.recipient_email = debouncedEmail;
     if (status) next.status = status;
     if (!debouncedEmail && !status) next.created_after = createdAfter;
     return next;
-  }, [debouncedEmail, status, createdAfter]);
+  }, [page, debouncedEmail, status, createdAfter]);
 
   const q = useGetNotificationHistoryQuery(params);
 
@@ -87,13 +88,23 @@ export function HistoryPanel() {
           <Input
             className="h-10 bg-white pl-9"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setPage(1);
+            }}
             placeholder="Filter recipient email"
           />
         </div>
         {/* NativeSelect's wrapper is w-full; size it from a parent div. */}
         <div className="w-full sm:w-60">
-          <NativeSelect className="h-10" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <NativeSelect
+            className="h-10"
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value);
+              setPage(1);
+            }}
+          >
             <option value="">All statuses (last 7 days)</option>
             <option>PENDING</option>
             <option>SENT</option>
@@ -107,7 +118,10 @@ export function HistoryPanel() {
         tableBodyList={tableData}
         loading={q.isLoading}
         emptyText="No deliveries match these filters."
-        hidePagination
+        totalPage={q.data?.pagination?.totalPages}
+        currentPage={q.data?.pagination?.currentPage}
+        onPageChange={(p) => setPage(p as number)}
+        hidePagination={(q.data?.pagination?.totalPages ?? 0) <= 1}
       />
     </div>
   );

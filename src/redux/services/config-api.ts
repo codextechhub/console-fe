@@ -90,8 +90,8 @@ interface Page<T> {
 export const configApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // ── Definitions (the typed settings catalogue) ──────────────────────────
-    getConfigDefinitions: builder.query<Page<ConfigDefinition>, void>({
-      query: () => "/config/definitions/",
+    getConfigDefinitions: builder.query<Page<ConfigDefinition>, Record<string, string> | void>({
+      query: (params) => `/config/definitions/${generateQueryString(params ?? {})}`,
       providesTags: ["Config"],
     }),
     createConfigDefinition: builder.mutation<{ data: ConfigDefinition }, Partial<ConfigDefinition>>({
@@ -128,8 +128,17 @@ export const configApi = baseApi.injectEndpoints({
     }),
 
     // ── Capabilities / entitlements / overrides ────────────────────────────
-    getCapabilities: builder.query<Page<Capability>, void>({
-      query: () => "/config/capabilities/",
+    getCapabilities: builder.query<Page<Capability>, Record<string, string> | void>({
+      query: (params) => `/config/capabilities/${generateQueryString(params ?? {})}`,
+      providesTags: ["Config"],
+    }),
+    // Effective on/off per active capability at a scope (?school= / ?branch=;
+    // omit both for platform). Backend: EffectiveCapabilitiesView.
+    getEffectiveCapabilities: builder.query<
+      { data: Array<{ key: string; enabled: boolean }> },
+      Record<string, string>
+    >({
+      query: (params) => `/config/effective-capabilities/${generateQueryString(params)}`,
       providesTags: ["Config"],
     }),
     createCapability: builder.mutation<{ data: Capability }, Partial<Capability>>({
@@ -188,6 +197,7 @@ export const {
   useGetConfigValuesQuery,
   useSetConfigValuesMutation,
   useGetCapabilitiesQuery,
+  useGetEffectiveCapabilitiesQuery,
   useCreateCapabilityMutation,
   useUpdateCapabilityMutation,
   useArchiveCapabilityMutation,
