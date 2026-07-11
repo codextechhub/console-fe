@@ -79,12 +79,13 @@ export function HistoryPanel() {
   }));
 
   return (
-    <div>
-      <div className="flex flex-wrap gap-3 border-b border-white-02 p-4">
-        <div className="relative min-w-60 flex-1">
+    <div className="space-y-5">
+      {/* Filters float on the page background, house-style. */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-full sm:max-w-[280px]">
           <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-01" />
           <Input
-            className="pl-9"
+            className="h-10 bg-white pl-9"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Filter recipient email"
@@ -92,7 +93,7 @@ export function HistoryPanel() {
         </div>
         {/* NativeSelect's wrapper is w-full; size it from a parent div. */}
         <div className="w-full sm:w-60">
-          <NativeSelect value={status} onChange={(e) => setStatus(e.target.value)}>
+          <NativeSelect className="h-10" value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="">All statuses (last 7 days)</option>
             <option>PENDING</option>
             <option>SENT</option>
@@ -125,11 +126,11 @@ export function SettingsPanel() {
   if (q.isLoading) return <Busy />;
 
   return (
-    <div className="divide-y">
+    <div className="divide-y divide-white-02 rounded-md bg-white">
       {Object.entries(grouped).map(([module, rows]) => (
         <div key={module} className="p-5">
-          <h3 className="font-semibold">{label(module)}</h3>
-          <div className="mt-3 divide-y rounded-lg border">
+          <h3 className="font-mont font-semibold">{label(module)}</h3>
+          <div className="mt-3 divide-y divide-white-02 rounded-lg border border-white-02">
             {rows.map((r) => {
               // In-app rows are always-on by product policy; transactional
               // events bypass settings entirely. Both are read-only here.
@@ -181,7 +182,7 @@ export function TemplatesPanel() {
   const [selected, setSelected] = useState<NotificationTemplate | null>(null);
 
   return (
-    <div className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {q.isLoading ? (
         <Busy />
       ) : (
@@ -189,13 +190,13 @@ export function TemplatesPanel() {
           <button
             key={t.id}
             onClick={() => setSelected(t)}
-            className="rounded-lg border p-4 text-left hover:border-primary/40 hover:shadow-sm"
+            className="rounded-md bg-white p-4 text-left hover:shadow-sm"
           >
             <div className="flex justify-between">
               <FileText className="size-5 text-primary" />
-              <span className="rounded bg-white-05 px-2 py-1 text-xs uppercase">{t.channel}</span>
+              <span className="rounded bg-white-05 px-2 py-1 font-mont text-xs uppercase">{t.channel}</span>
             </div>
-            <p className="mt-4 font-semibold">{t.subject || "Untitled template"}</p>
+            <p className="mt-4 font-mont font-semibold">{t.subject || "Untitled template"}</p>
             <p className="mt-1 text-xs text-gray-01">{t.event_type_key}</p>
           </button>
         ))
@@ -282,19 +283,19 @@ export function EventsPanel() {
   if (q.isLoading) return <Busy />;
 
   return (
-    <div className="divide-y">
+    <div className="divide-y divide-white-02 rounded-md bg-white">
       {Object.entries(grouped).map(([module, events]) => (
         <div className="p-5" key={module}>
-          <h3 className="font-semibold">{label(module)}</h3>
+          <h3 className="font-mont font-semibold">{label(module)}</h3>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             {events.map((e) => (
-              <div key={e.id} className="rounded-lg border p-4">
+              <div key={e.id} className="rounded-lg border border-white-02 p-4">
                 <div className="flex justify-between gap-3">
                   <p className="text-sm font-semibold">{e.label}</p>
                   {e.is_transactional && (
-                    <span className="h-fit rounded bg-amber-50 px-2 py-1 text-[10px] text-amber-700">
+                    <Badge variant="pending" className="h-fit text-[10px]">
                       Transactional
-                    </span>
+                    </Badge>
                   )}
                 </div>
                 <p className="mt-1 text-xs leading-5 text-gray-01">{e.description}</p>

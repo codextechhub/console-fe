@@ -3,10 +3,10 @@
 // editing and the event-type catalogue. Gated on any communication.* key;
 // each tab additionally requires its own key.
 
-import { useState } from "react";
+import { useSearchParams } from "react-router";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import PageAccessDenied from "@/components/custom/page-access-denied";
-import { cn } from "@/lib/utils";
+import Tabs from "@/components/custom/tab";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { EventsPanel, HistoryPanel, SettingsPanel, TemplatesPanel } from "./admin-panels";
@@ -14,20 +14,20 @@ import { EventsPanel, HistoryPanel, SettingsPanel, TemplatesPanel } from "./admi
 type Panel = "history" | "settings" | "templates" | "events";
 
 const PANEL_LABELS: Record<Panel, string> = {
-  history: "Delivery history",
+  history: "Delivery History",
   settings: "Settings",
   templates: "Templates",
-  events: "Event types",
+  events: "Event Types",
 };
 
 export default function NotificationsAdmin() {
   const { hasPermission, hasAnyPermission } = usePermissions();
+  const [searchParams] = useSearchParams();
 
   const panels: Panel[] = [];
   if (hasPermission(P.AUDIT_NOTIFICATION_ACTIVITY)) panels.push("history");
   if (hasPermission(P.ENFORCE_NOTIFICATION_SETTINGS)) panels.push("settings");
   if (hasPermission(P.CONFIGURE_NOTIFICATION_TEMPLATES)) panels.push("templates");
-  const [panel, setPanel] = useState<Panel | undefined>(panels[0]);
 
   if (
     !hasAnyPermission(
@@ -39,42 +39,28 @@ export default function NotificationsAdmin() {
     return <PageAccessDenied layoutTitle="Notifications" />;
   }
   // The catalogue is reference material for whoever administers the above.
-  if (!panels.includes("events")) panels.push("events");
+  panels.push("events");
+
+  // A pasted ?panel= the user can't read falls back to their first tab.
+  const requested = searchParams.get("panel") as Panel | null;
+  const panel = requested && panels.includes(requested) ? requested : panels[0];
 
   return (
     <DashboardLayout title="Notifications">
-      <main className="px-4.5 py-6 lg:px-8">
-        <div className="mx-auto max-w-6xl space-y-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Notification administration</h1>
-            <p className="mt-1 text-sm text-gray-01">
-              Delivery history, channel settings, templates and the event catalogue.
-            </p>
-          </div>
-
-          <section className="overflow-hidden rounded-xl border border-white-02 bg-white shadow-sm">
-            <div className="flex overflow-x-auto border-b px-3">
-              {panels.map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPanel(p)}
-                  className={cn(
-                    "whitespace-nowrap border-b-2 px-4 py-3 text-sm",
-                    panel === p
-                      ? "border-primary font-semibold text-primary"
-                      : "border-transparent text-gray-01",
-                  )}
-                >
-                  {PANEL_LABELS[p]}
-                </button>
-              ))}
-            </div>
-            {panel === "history" && <HistoryPanel />}
-            {panel === "settings" && <SettingsPanel />}
-            {panel === "templates" && <TemplatesPanel />}
-            {panel === "events" && <EventsPanel />}
-          </section>
+      <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+        <div>
+          <p className="font-semibold font-mont text-gray-01">Notification Administration</p>
+          <p className="text-xs text-gray-01 mt-0.5">
+            Delivery history, channel settings, templates and the event catalogue.
+          </p>
         </div>
+
+        <Tabs tabKey="panel" tabs={panels.map((p) => ({ label: PANEL_LABELS[p], value: p }))} />
+
+        {panel === "history" && <HistoryPanel />}
+        {panel === "settings" && <SettingsPanel />}
+        {panel === "templates" && <TemplatesPanel />}
+        {panel === "events" && <EventsPanel />}
       </main>
     </DashboardLayout>
   );

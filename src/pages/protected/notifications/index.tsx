@@ -4,10 +4,11 @@
 
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
-import { Bell, CheckCheck, Loader2, MailOpen, Search, Settings2 } from "lucide-react";
+import { Bell, CheckCheck, Loader2, MailOpen, Settings2 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import { CustomInput } from "@/components/custom/custom-input";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatRelativeDate } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,12 @@ import {
 } from "@/redux/services/notifications-api";
 
 type Filter = "all" | "unread" | "read";
+
+const FILTERS: Array<{ value: Filter; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "unread", label: "Unread" },
+  { value: "read", label: "Read" },
+];
 
 export default function Notifications() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -47,14 +54,21 @@ export default function Notifications() {
   const detail = useGetNotificationQuery(selected ?? "", { skip: !selected });
 
   // Deep link from the header bell: /notifications?notification=<id> opens
-  // that item's drawer (and marks it read). Param is consumed once so closing
-  // the drawer doesn't reopen it.
+  // that item's drawer (and marks it read). Only this param is consumed so
+  // any other query state survives.
   useEffect(() => {
     const target = searchParams.get("notification");
     if (!target) return;
     setSelected(target);
     markRead({ ids: [target] });
-    setSearchParams({}, { replace: true });
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("notification");
+        return next;
+      },
+      { replace: true },
+    );
   }, [searchParams, setSearchParams, markRead]);
 
   // Client-side filter over the loaded page only (the feed has no server-side
@@ -70,146 +84,152 @@ export default function Notifications() {
 
   return (
     <DashboardLayout title="Notifications">
-      <main className="px-4.5 py-6 lg:px-8">
-        <div className="mx-auto max-w-6xl space-y-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-2xl font-semibold tracking-tight">Notification centre</p>
-              <p className="mt-1 text-sm text-gray-01">
-                Stay on top of activity across every part of the platform.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {canAdminister && (
-                <Link
-                  to={routesPath.PROTECTED.NOTIFICATIONS_ADMIN}
-                  className="inline-flex h-9 items-center gap-2 rounded-md border bg-white px-3 text-sm font-medium"
-                >
+      <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+        {/* Intro row */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold font-mont text-gray-01">Notification Centre</p>
+            <p className="text-xs text-gray-01 mt-0.5">
+              Stay on top of activity across every part of the platform.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {canAdminister && (
+              <Button variant="white" size="lg" asChild>
+                <Link to={routesPath.PROTECTED.NOTIFICATIONS_ADMIN}>
                   <Settings2 className="size-4" />
                   Administration
                 </Link>
-              )}
+              </Button>
+            )}
+            <Button
+              variant="white"
+              size="lg"
+              disabled={!unreadCount || markingAll}
+              onClick={() => markAll()}
+            >
+              <CheckCheck className="size-4" />
+              {markingAll ? "Marking…" : "Mark all as read"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Filter pill + page search */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            className="flex h-11 w-fit items-center gap-x-1 rounded-sm bg-white px-1.5 py-1"
+            role="tablist"
+            aria-label="Read state"
+          >
+            {FILTERS.map(({ value, label }) => (
               <button
-                disabled={!unreadCount || markingAll}
-                onClick={() => markAll()}
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-md border bg-white px-3 text-sm font-medium disabled:opacity-40"
+                key={value}
+                role="tab"
+                aria-selected={filter === value}
+                onClick={() => {
+                  setFilter(value);
+                  setPage(1);
+                }}
+                className={cn(
+                  "h-full min-w-20 cursor-pointer rounded bg-transparent px-2 font-mont text-sm font-medium text-black-01",
+                  filter === value && "bg-pry-01",
+                )}
               >
-                <CheckCheck className="size-4" />
-                {markingAll ? "Marking…" : "Mark all as read"}
+                {label}
+              </button>
+            ))}
+          </div>
+          <CustomInput
+            id="notifications-search"
+            canSearch
+            placeholder="Search this page"
+            className="h-10"
+            containerClass="w-full sm:max-w-[280px]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Feed */}
+        <section className="rounded-md bg-white">
+          {isLoading ? (
+            <div className="grid h-72 place-content-center">
+              <Loader2 className="size-6 animate-spin text-primary" />
+            </div>
+          ) : isError ? (
+            <div className="py-20 text-center">
+              <p className="font-mont text-sm font-medium text-gray-05">
+                Notifications couldn’t be loaded
+              </p>
+              <button onClick={refetch} className="mt-2 text-sm font-medium text-primary">
+                Try again
               </button>
             </div>
-          </div>
-
-          <section className="overflow-hidden rounded-xl border border-white-02 bg-white shadow-sm">
-            <div className="flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex gap-1 rounded-lg bg-white-05 p-1">
-                {(["all", "unread", "read"] as Filter[]).map((x) => (
-                  <button
-                    key={x}
-                    onClick={() => {
-                      setFilter(x);
-                      setPage(1);
-                    }}
+          ) : !rows.length ? (
+            <div className="py-20 text-center">
+              <span className="mx-auto grid size-14 place-content-center rounded-full bg-pry-01 text-primary">
+                <Bell className="size-6" />
+              </span>
+              <p className="mt-3 font-mont font-semibold">Nothing to show</p>
+              <p className="text-sm text-gray-01">New activity will appear here.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white-02">
+              {rows.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => open(n.id, n.is_read)}
+                  className={cn(
+                    "flex w-full items-start gap-4 px-5 py-4 text-left hover:bg-gray-50",
+                    !n.is_read && "bg-pry-01/30",
+                  )}
+                >
+                  <span
                     className={cn(
-                      "rounded-md px-3 py-1.5 text-sm capitalize",
-                      filter === x && "bg-white font-medium text-primary shadow-sm",
+                      "mt-1 grid size-9 shrink-0 place-content-center rounded-full",
+                      n.is_read ? "bg-gray-100 text-gray-500" : "bg-primary text-white",
                     )}
                   >
-                    {x}
-                  </button>
-                ))}
-              </div>
-              <div className="relative w-full lg:w-72">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-01" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search this page"
-                  className="pl-9"
-                />
+                    <MailOpen className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-start justify-between gap-3">
+                      <span className={cn("truncate text-sm", !n.is_read && "font-semibold")}>
+                        {n.subject}
+                      </span>
+                      <span className="shrink-0 text-xs text-gray-01">
+                        {formatRelativeDate(n.created_at)}
+                      </span>
+                    </span>
+                    <span className="mt-1 block text-xs text-gray-01">{n.event_type_label}</span>
+                  </span>
+                  {!n.is_read && <span className="mt-3 size-2 rounded-full bg-primary" />}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {(data?.pagination.totalPages ?? 0) > 1 && (
+            <div className="flex items-center justify-between border-t border-white-02 px-5 py-3 text-sm">
+              <span className="text-gray-01">
+                Page {page} of {data?.pagination.totalPages}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="white" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+                  Previous
+                </Button>
+                <Button
+                  variant="white"
+                  size="sm"
+                  disabled={page === data?.pagination.totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
               </div>
             </div>
-
-            {isLoading ? (
-              <div className="grid h-72 place-content-center">
-                <Loader2 className="size-6 animate-spin text-primary" />
-              </div>
-            ) : isError ? (
-              <div className="py-20 text-center">
-                <p className="font-medium">Notifications couldn’t be loaded</p>
-                <button onClick={refetch} className="mt-2 text-sm font-medium text-primary">
-                  Try again
-                </button>
-              </div>
-            ) : !rows.length ? (
-              <div className="py-20 text-center">
-                <span className="mx-auto grid size-14 place-content-center rounded-full bg-pry-01 text-primary">
-                  <Bell className="size-6" />
-                </span>
-                <p className="mt-3 font-semibold">Nothing to show</p>
-                <p className="text-sm text-gray-01">New activity will appear here.</p>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {rows.map((n) => (
-                  <button
-                    key={n.id}
-                    onClick={() => open(n.id, n.is_read)}
-                    className={cn(
-                      "flex w-full items-start gap-4 px-5 py-4 text-left hover:bg-gray-50",
-                      !n.is_read && "bg-pry-01/30",
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "mt-1 grid size-9 shrink-0 place-content-center rounded-full",
-                        n.is_read ? "bg-gray-100 text-gray-500" : "bg-primary text-white",
-                      )}
-                    >
-                      <MailOpen className="size-4" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-start justify-between gap-3">
-                        <span className={cn("truncate text-sm", !n.is_read && "font-semibold")}>
-                          {n.subject}
-                        </span>
-                        <span className="shrink-0 text-xs text-gray-01">
-                          {formatRelativeDate(n.created_at)}
-                        </span>
-                      </span>
-                      <span className="mt-1 block text-xs text-gray-01">{n.event_type_label}</span>
-                    </span>
-                    {!n.is_read && <span className="mt-3 size-2 rounded-full bg-primary" />}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {(data?.pagination.totalPages ?? 0) > 1 && (
-              <div className="flex items-center justify-between border-t px-5 py-3 text-sm">
-                <span className="text-gray-01">
-                  Page {page} of {data?.pagination.totalPages}
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    disabled={page === 1}
-                    onClick={() => setPage((p) => p - 1)}
-                    className="rounded border px-3 py-1.5 disabled:opacity-40"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    disabled={page === data?.pagination.totalPages}
-                    onClick={() => setPage((p) => p + 1)}
-                    className="rounded border px-3 py-1.5 disabled:opacity-40"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </section>
-        </div>
+          )}
+        </section>
 
         <Sheet open={!!selected} onOpenChange={(v) => !v && setSelected(null)}>
           <SheetContent side="right" className="w-full overflow-y-auto p-6 sm:max-w-lg">

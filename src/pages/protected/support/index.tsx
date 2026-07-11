@@ -4,9 +4,10 @@
 // (phone cards + pagination), Dialog, Badge.
 
 import { useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useNavigate } from "react-router";
 import DashboardLayout from "@/components/layout/dashboard-layout";
+import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import KpiCard from "@/components/custom/kpi-card";
 import { Button } from "@/components/ui/button";
@@ -74,80 +75,78 @@ export default function Support() {
 
   return (
     <DashboardLayout title="Support">
-      <main className="px-4.5 py-6 lg:px-8">
-        <div className="mx-auto max-w-7xl space-y-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="font-mont text-2xl font-semibold text-black-01">Support centre</h1>
-              <p className="mt-1 text-sm text-gray-01">
-                Track requests, collaborate with support and resolve issues faster.
-              </p>
-            </div>
-            <Button size="sm" onClick={() => setCreating(true)}>
-              <Plus className="size-4" />
-              Create ticket
-            </Button>
+      <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+        {/* Intro row */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold font-mont text-gray-01">Support Centre</p>
+            <p className="text-xs text-gray-01 mt-0.5">
+              Track requests, collaborate with support and resolve issues faster.
+            </p>
           </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <KpiCard label="Total tickets" value={d?.total ?? "—"} />
-            <KpiCard label="Open" value={d?.by_status.OPEN ?? "—"} />
-            <KpiCard label="In progress" value={d?.by_status.IN_PROGRESS ?? "—"} />
-            <KpiCard
-              label="Urgent"
-              value={d?.by_priority.URGENT ?? "—"}
-              tone={d?.by_priority.URGENT ? "alert" : "default"}
-            />
-            <KpiCard label="Assigned to me" value={d?.assigned_to_me ?? "—"} />
-            <KpiCard label="Resolved" value={d?.by_status.RESOLVED ?? "—"} />
-          </div>
-
-          <section className="rounded-md bg-white">
-            <div className="flex flex-col gap-3 border-b border-white-02 p-4 md:flex-row">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-01" />
-                <Input
-                  className="pl-9"
-                  value={q}
-                  onChange={(e) => {
-                    setQ(e.target.value);
-                    setPage(1);
-                  }}
-                  placeholder="Search number, title or description"
-                />
-              </div>
-              {/* NativeSelect's wrapper is w-full; size it from a parent div. */}
-              <div className="md:w-48">
-                <NativeSelect
-                  value={status}
-                  onChange={(e) => {
-                    setStatus(e.target.value);
-                    setPage(1);
-                  }}
-                >
-                  <option value="">All statuses</option>
-                  {["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </NativeSelect>
-              </div>
-            </div>
-
-            <CustomTable
-              tableHeaderList={TABLE_HEADERS}
-              tableBodyList={tableData}
-              loading={list.isLoading}
-              emptyText="No tickets match these filters."
-              onRowClick={(row) =>
-                nav(routesPath.PROTECTED.SUPPORT.DETAIL((row as { _raw: Ticket })._raw.id))
-              }
-              totalPage={list.data?.pagination.totalPages}
-              currentPage={list.data?.pagination.currentPage}
-              onPageChange={(p) => setPage(p as number)}
-              hidePagination={(list.data?.pagination.totalPages ?? 0) <= 1}
-            />
-          </section>
+          <Button size="lg" onClick={() => setCreating(true)}>
+            <Plus /> Create Ticket
+          </Button>
         </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-6">
+          <KpiCard label="Total tickets" value={d?.total ?? "—"} />
+          <KpiCard label="Open" value={d?.by_status.OPEN ?? "—"} />
+          <KpiCard label="In progress" value={d?.by_status.IN_PROGRESS ?? "—"} />
+          <KpiCard
+            label="Urgent"
+            value={d?.by_priority.URGENT ?? "—"}
+            tone={d?.by_priority.URGENT ? "alert" : "default"}
+          />
+          <KpiCard label="Assigned to me" value={d?.assigned_to_me ?? "—"} />
+          <KpiCard label="Resolved" value={d?.by_status.RESOLVED ?? "—"} />
+        </div>
+
+        {/* Filters float on the page background, house-style. */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <CustomInput
+            id="tickets-search"
+            canSearch
+            placeholder="Search number, title or description"
+            className="h-10"
+            containerClass="w-full sm:max-w-[280px]"
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(1);
+            }}
+          />
+          {/* NativeSelect's wrapper is w-full; size it from a parent div. */}
+          <div className="w-full sm:w-48">
+            <NativeSelect
+              className="h-10"
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">All statuses</option>
+              {["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((s) => (
+                <option key={s}>{s}</option>
+              ))}
+            </NativeSelect>
+          </div>
+        </div>
+
+        <CustomTable
+          tableHeaderList={TABLE_HEADERS}
+          tableBodyList={tableData}
+          loading={list.isLoading}
+          emptyText="No tickets match these filters."
+          onRowClick={(row) =>
+            nav(routesPath.PROTECTED.SUPPORT.DETAIL((row as { _raw: Ticket })._raw.id))
+          }
+          totalPage={list.data?.pagination.totalPages}
+          currentPage={list.data?.pagination.currentPage}
+          onPageChange={(p) => setPage(p as number)}
+          hidePagination={(list.data?.pagination.totalPages ?? 0) <= 1}
+        />
 
         {/* Mounted per-open so the form starts fresh each time. */}
         {creating && (

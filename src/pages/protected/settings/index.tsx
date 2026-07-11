@@ -4,20 +4,13 @@
 // again server-side (creation endpoints are platform-only).
 
 import { useState } from "react";
-import {
-  Activity,
-  Blocks,
-  Download,
-  FileKey2,
-  Flag,
-  Layers3,
-  Plus,
-  Search,
-  SlidersHorizontal,
-} from "lucide-react";
+import { useSearchParams } from "react-router";
+import { Download, Plus } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
+import { CustomInput } from "@/components/custom/custom-input";
 import PageAccessDenied from "@/components/custom/page-access-denied";
+import Tabs from "@/components/custom/tab";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,8 +23,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P, type PermissionCode } from "@/permissions";
 import {
@@ -49,24 +40,28 @@ import { ConfigDialog, type ConfigDialogMode } from "./config-dialog";
 
 type Tab = "values" | "definitions" | "capabilities" | "entitlements" | "overrides" | "audit";
 
-const tabs: Array<{ key: Tab; label: string; icon: typeof Layers3; permission: PermissionCode }> = [
-  { key: "values", label: "Configuration values", icon: SlidersHorizontal, permission: P.VIEW_CONFIG_VALUES },
-  { key: "definitions", label: "Definitions", icon: FileKey2, permission: P.VIEW_CONFIG_DEFINITIONS },
-  { key: "capabilities", label: "Capabilities", icon: Blocks, permission: P.VIEW_CAPABILITIES },
-  { key: "entitlements", label: "Entitlements", icon: Layers3, permission: P.VIEW_ENTITLEMENTS },
-  { key: "overrides", label: "Overrides", icon: Flag, permission: P.VIEW_CONFIG_OVERRIDES },
-  { key: "audit", label: "Audit trail", icon: Activity, permission: P.VIEW_CONFIG_AUDIT },
+const TABS: Array<{ key: Tab; label: string; permission: PermissionCode }> = [
+  { key: "values", label: "Values", permission: P.VIEW_CONFIG_VALUES },
+  { key: "definitions", label: "Definitions", permission: P.VIEW_CONFIG_DEFINITIONS },
+  { key: "capabilities", label: "Capabilities", permission: P.VIEW_CAPABILITIES },
+  { key: "entitlements", label: "Entitlements", permission: P.VIEW_ENTITLEMENTS },
+  { key: "overrides", label: "Overrides", permission: P.VIEW_CONFIG_OVERRIDES },
+  { key: "audit", label: "Audit Trail", permission: P.VIEW_CONFIG_AUDIT },
 ];
 
 export default function Settings() {
   const { hasPermission } = usePermissions();
-  const visible = tabs.filter((t) => hasPermission(t.permission));
-  const [tab, setTab] = useState<Tab | undefined>(visible[0]?.key);
+  const [searchParams] = useSearchParams();
+  const visible = TABS.filter((t) => hasPermission(t.permission));
   const [exportConfig, { isFetching }] = useLazyExportConfigQuery();
 
   // No config.* view key at all → the sidebar hides this page, but guard the
   // direct-URL case too instead of rendering an empty shell.
   if (!visible.length) return <PageAccessDenied layoutTitle="Settings" />;
+
+  // A pasted ?tab= the user can't read falls back to their first tab.
+  const requested = searchParams.get("tab") as Tab | null;
+  const tab = requested && visible.some((t) => t.key === requested) ? requested : visible[0].key;
 
   const download = async () => {
     const result = await exportConfig().unwrap();
@@ -82,50 +77,31 @@ export default function Settings() {
 
   return (
     <DashboardLayout title="Settings">
-      <main className="px-4.5 py-6 lg:px-8">
-        <div className="mx-auto max-w-7xl space-y-6">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold">Platform settings</h1>
-              <p className="mt-1 text-sm text-gray-01">
-                Control configuration, capabilities and scoped access from one place.
-              </p>
-            </div>
-            {hasPermission(P.EXPORT_CONFIG) && (
-              <Button variant="white" size="sm" disabled={isFetching} onClick={download}>
-                <Download className="size-4" />
-                {isFetching ? "Exporting…" : "Export snapshot"}
-              </Button>
-            )}
+      <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+        {/* Intro row */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold font-mont text-gray-01">Platform Settings</p>
+            <p className="text-xs text-gray-01 mt-0.5">
+              Control configuration, capabilities and scoped access from one place.
+            </p>
           </div>
-
-          <div className="grid gap-5 lg:grid-cols-[230px_minmax(0,1fr)]">
-            <nav className="h-fit rounded-xl border bg-white p-2 shadow-sm">
-              {visible.map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm",
-                    tab === t.key ? "bg-pry-01 font-semibold text-primary" : "text-gray-600 hover:bg-gray-50",
-                  )}
-                >
-                  <t.icon className="size-4" />
-                  {t.label}
-                </button>
-              ))}
-            </nav>
-
-            <section className="min-w-0 overflow-hidden rounded-xl border bg-white shadow-sm">
-              {tab === "definitions" && <Definitions />}
-              {tab === "values" && <Values />}
-              {tab === "capabilities" && <Capabilities />}
-              {tab === "entitlements" && <Entitlements />}
-              {tab === "overrides" && <Overrides />}
-              {tab === "audit" && <Audit />}
-            </section>
-          </div>
+          {hasPermission(P.EXPORT_CONFIG) && (
+            <Button variant="white" size="lg" disabled={isFetching} onClick={download}>
+              <Download className="size-4" />
+              {isFetching ? "Exporting…" : "Export snapshot"}
+            </Button>
+          )}
         </div>
+
+        <Tabs tabKey="tab" tabs={visible.map((t) => ({ label: t.label, value: t.key }))} />
+
+        {tab === "definitions" && <Definitions />}
+        {tab === "values" && <Values />}
+        {tab === "capabilities" && <Capabilities />}
+        {tab === "entitlements" && <Entitlements />}
+        {tab === "overrides" && <Overrides />}
+        {tab === "audit" && <Audit />}
       </main>
     </DashboardLayout>
   );
@@ -146,12 +122,15 @@ function Header({
   description,
   add,
   mode,
+  children,
 }: {
   title: string;
   description: string;
   /** Button label; omit for read-only panels (audit). */
   add?: string;
   mode?: ConfigDialogMode;
+  /** Extra toolbar content (e.g. a search input) rendered left of the action. */
+  children?: React.ReactNode;
 }) {
   const { hasPermission } = usePermissions();
   const [open, setOpen] = useState(false);
@@ -159,17 +138,20 @@ function Header({
 
   return (
     <>
-      <div className="flex items-center justify-between border-b p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-semibold">{title}</h2>
-          <p className="text-xs text-gray-01">{description}</p>
+          <h2 className="font-mont text-sm font-semibold">{title}</h2>
+          <p className="text-xs text-gray-01 mt-0.5">{description}</p>
         </div>
-        {allowed && (
-          <Button size="sm" onClick={() => setOpen(true)}>
-            <Plus className="size-4" />
-            {add}
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          {children}
+          {allowed && (
+            <Button size="lg" onClick={() => setOpen(true)}>
+              <Plus className="size-4" />
+              {add}
+            </Button>
+          )}
+        </div>
       </div>
       {open && mode && <ConfigDialog mode={mode} close={() => setOpen(false)} />}
     </>
@@ -185,7 +167,7 @@ function Definitions() {
   const canArchive = hasPermission(P.ARCHIVE_CONFIG_DEFINITION);
 
   return (
-    <>
+    <div className="space-y-5">
       <Header
         title="Configuration definitions"
         description="The catalogue of typed settings and their validation rules."
@@ -214,7 +196,7 @@ function Definitions() {
             : []),
         ])}
       />
-    </>
+    </div>
   );
 }
 
@@ -227,24 +209,23 @@ function Values() {
   );
 
   return (
-    <>
+    <div className="space-y-5">
       <Header
         title="Configuration values"
         description="Explicit values at platform, school and branch scope."
         add="Set value"
         mode="value"
-      />
-      <div className="border-b p-4">
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-2.5 size-4 text-gray-01" />
-          <Input
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filter loaded values by key"
-          />
-        </div>
-      </div>
+      >
+        <CustomInput
+          id="config-values-search"
+          canSearch
+          placeholder="Filter loaded values by key"
+          className="h-10"
+          containerClass="w-full sm:w-[260px]"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </Header>
       <Data
         loading={q.isLoading}
         heads={["Key", "Value", "Scope", "Updated by", "Updated"]}
@@ -256,7 +237,7 @@ function Values() {
           new Date(x.updated_at).toLocaleDateString(),
         ])}
       />
-    </>
+    </div>
   );
 }
 
@@ -267,7 +248,7 @@ function Capabilities() {
   const canManage = hasPermission(P.MANAGE_CAPABILITIES);
 
   return (
-    <>
+    <div className="space-y-5">
       <Header
         title="Capabilities"
         description="Feature availability, limits and dependency rules."
@@ -296,14 +277,14 @@ function Capabilities() {
             : []),
         ])}
       />
-    </>
+    </div>
   );
 }
 
 function Entitlements() {
   const q = useGetEntitlementsQuery({});
   return (
-    <>
+    <div className="space-y-5">
       <Header
         title="Entitlements"
         description="Platform and school grants that unlock capabilities."
@@ -321,14 +302,14 @@ function Entitlements() {
           x.starts_at ? new Date(x.starts_at).toLocaleDateString() : "Always",
         ])}
       />
-    </>
+    </div>
   );
 }
 
 function Overrides() {
   const q = useGetOverridesQuery({});
   return (
-    <>
+    <div className="space-y-5">
       <Header
         title="Overrides"
         description="Explicit school and branch capability decisions."
@@ -346,7 +327,7 @@ function Overrides() {
           new Date(x.updated_at).toLocaleDateString(),
         ])}
       />
-    </>
+    </div>
   );
 }
 
@@ -355,7 +336,7 @@ function Audit() {
   const q = useGetConfigAuditQuery({ created_after: createdAfter });
 
   return (
-    <>
+    <div className="space-y-5">
       <Header title="Configuration audit trail" description="Immutable changes from the last 30 days." />
       <Data
         loading={q.isLoading}
@@ -368,7 +349,7 @@ function Audit() {
           new Date(x.created_at).toLocaleString(),
         ])}
       />
-    </>
+    </div>
   );
 }
 
