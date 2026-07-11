@@ -14,6 +14,7 @@ import { exportRoutes } from "./export-routes";
 import { financeRoutes } from "./finance-routes";
 import { procurementRoutes } from "./procurement-routes";
 import { routesPath } from "@/routes/routes-path";
+import { healthRoutes } from "./health-routes";
 
 // Route-level code splitting: each page loads on first visit instead of
 // shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
@@ -36,6 +37,7 @@ export const protectedRoutes = [
   ...rbacRoutes,
   ...dataImportRoutes,
   ...auditRoutes,
+  ...healthRoutes,
   ...workflowRoutes,
   ...organogramRoutes,
   ...todoRoutes,

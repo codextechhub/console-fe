@@ -15,7 +15,7 @@ import {
   PermissionsIcon,
   DataImportsIcon,
 } from "@/assets/navbar-svg";
-import { Bell, ClipboardCheck, FileOutput, Landmark, LifeBuoy, Network, Settings, Shield, ShoppingCart, Workflow } from "lucide-react";
+import { Bell, ClipboardCheck, FileOutput, HeartPulse, Landmark, LifeBuoy, Network, Settings, Shield, ShoppingCart, Workflow } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routes-path";
 import { Link, useLocation } from "react-router";
@@ -26,6 +26,10 @@ type NavPermission = PermissionCode | PermissionCode[] | null;
 
 const R = routesPath.PROTECTED;
 
+// The app shell can remount as protected routes change. Keep the main menu at
+// the exact offset the user left it instead of jumping back to the first item.
+let rememberedMainSidebarScroll: number | null = null;
+
 // First path segment of a route, e.g. "/workflow/approvals" → "/workflow".
 // Group-level active-state matching derives its prefix from a real routesPath
 // constant via this, so renaming a path in routesPath propagates here instead
@@ -34,6 +38,7 @@ const moduleRoot = (path: string) => "/" + path.split("/")[1];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation().pathname;
+  const scrollRef = React.useRef<HTMLDivElement>(null);
 
   const { hasPermission, hasAnyPermission, hasAllPermissions, hasModuleAccess } = usePermissions();
 
@@ -403,6 +408,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
     {
+      title: "Health",
+      url: R.HEALTH.INDEX,
+      icon: HeartPulse,
+      isActive: false,
+      childActive: location.startsWith(R.HEALTH.INDEX),
+      permission: P.VIEW_HEALTH,
+      permissionMode: "any" as const,
+      items: [
+        { title: "Command Center", url: R.HEALTH.INDEX, isActive: location === R.HEALTH.INDEX },
+        { title: "Uptime", url: R.HEALTH.UPTIME, isActive: location.startsWith(R.HEALTH.UPTIME) },
+        { title: "API & Endpoints", url: R.HEALTH.API, isActive: location.startsWith(R.HEALTH.API) },
+        { title: "Jobs & Queues", url: R.HEALTH.JOBS, isActive: location.startsWith(R.HEALTH.JOBS) },
+        { title: "Incidents & Alerts", url: R.HEALTH.INCIDENTS, isActive: location.startsWith(R.HEALTH.INCIDENTS) },
+        { title: "Tenant Health", url: R.HEALTH.TENANTS, isActive: location.startsWith(R.HEALTH.TENANTS) },
+        { title: "SLOs", url: R.HEALTH.SLOS, isActive: location.startsWith(R.HEALTH.SLOS) },
+      ],
+    },
+    {
       // Everyone gets the inbox; holders of a communication.* admin key get a
       // collapsible group with the Administration page as a second child.
       title: "Notifications",
@@ -466,6 +489,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ),
   };
 
+  React.useLayoutEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+    if (rememberedMainSidebarScroll !== null) {
+      element.scrollTop = rememberedMainSidebarScroll;
+      return;
+    }
+    const active = element.querySelector<HTMLElement>('[data-active="true"]');
+    if (active) {
+      const containerRect = element.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      element.scrollTop +=
+        activeRect.top - containerRect.top -
+        (element.clientHeight - activeRect.height) / 2;
+    }
+  }, [location]);
+
   return (
     <>
       <Sidebar className="bg-white" collapsible="icon" {...props}>
@@ -486,7 +526,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
-        <SidebarContent className="bg-white pt-3 pb-6">
+        <SidebarContent
+          ref={scrollRef}
+          onScroll={(event) => {
+            rememberedMainSidebarScroll = event.currentTarget.scrollTop;
+          }}
+          className="bg-white pt-3 pb-6"
+        >
           <NavMain items={data.navMain} />
         </SidebarContent>
         <SidebarRail />

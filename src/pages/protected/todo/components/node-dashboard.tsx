@@ -20,6 +20,15 @@ import { cn } from "@/lib/utils";
 import { Avatar, HealthPill, ProgressRing } from "./primitives";
 import { PersonTaskList } from "./person-task-list";
 
+type TaskFilter = "all" | "completed" | "in_progress" | "overdue";
+
+function filterTasks(tasks: Task[], filter: TaskFilter) {
+  if (filter === "all") return tasks;
+  if (filter === "completed") return tasks.filter((task) => task.status === "COMPLETED");
+  if (filter === "overdue") return tasks.filter((task) => task.status === "OVERDUE");
+  return tasks.filter((task) => task.status === "IN_PROGRESS");
+}
+
 // ── Breadcrumb (root viewer → focused person) ─────────────────────────────────
 export function Breadcrumb({ chain, onJump }: { chain: Person[]; onJump: (index: number) => void }) {
   return (
@@ -47,18 +56,39 @@ export function Breadcrumb({ chain, onJump }: { chain: Person[]; onJump: (index:
 }
 
 // ── KPI grid (house style: roles/audit metric rows) ───────────────────────────
-function StatsGrid({ stats, scope }: { stats: TaskStats; scope: "branch" | "personal" }) {
+function StatsGrid({
+  stats,
+  scope,
+  active,
+  onFilter,
+}: {
+  stats: TaskStats;
+  scope: "branch" | "personal";
+  active: TaskFilter;
+  onFilter: (filter: TaskFilter) => void;
+}) {
+  const cards: Array<{ filter: TaskFilter; node: React.ReactNode }> = [
+    { filter: "all", node: <KpiCard label={scope === "branch" ? "Tasks in branch" : "Total tasks"} value={stats.total} /> },
+    { filter: "completed", node: <KpiCard label="Completed" value={stats.done} foot={`${stats.pct}% complete`} /> },
+    { filter: "in_progress", node: <KpiCard label="In progress" value={stats.in_progress} /> },
+    { filter: "overdue", node: <KpiCard label="Overdue" value={stats.overdue} foot={stats.overdue ? "needs attention" : undefined} tone={stats.overdue ? "alert" : "default"} /> },
+  ];
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-      <KpiCard label={scope === "branch" ? "Tasks in branch" : "Total tasks"} value={stats.total} />
-      <KpiCard label="Completed" value={stats.done} foot={`${stats.pct}% complete`} />
-      <KpiCard label="In progress" value={stats.in_progress} />
-      <KpiCard
-        label="Overdue"
-        value={stats.overdue}
-        foot={stats.overdue ? "needs attention" : undefined}
-        tone={stats.overdue ? "alert" : "default"}
-      />
+      {cards.map((card) => (
+        <button
+          key={card.filter}
+          type="button"
+          aria-pressed={active === card.filter}
+          onClick={() => onFilter(active === card.filter && card.filter !== "all" ? "all" : card.filter)}
+          className={cn(
+            "h-full rounded-md text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring [&>div]:h-full",
+            active === card.filter && "[&>div]:border-transparent [&>div]:bg-pry-01",
+          )}
+        >
+          {card.node}
+        </button>
+      ))}
     </div>
   );
 }
@@ -161,6 +191,7 @@ export function NodeDashboardView({
   const isViewerNode = person.id === viewerId;
 
   const [query, setQuery] = useState("");
+  const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
   // Direct reports start minimised so the manager sees the tasks first and
   // expands the roll-up only when they want to scan the team.
   const [reportsOpen, setReportsOpen] = useState(false);
@@ -190,7 +221,7 @@ export function NodeDashboardView({
 
       {is_manager ? (
         <>
-          <StatsGrid stats={area_stats} scope="branch" />
+          <StatsGrid stats={area_stats} scope="branch" active={taskFilter} onFilter={setTaskFilter} />
 
           <div>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -225,7 +256,7 @@ export function NodeDashboardView({
               {isViewerNode ? "My own tasks" : `${person.name.split(" ")[0]}'s own tasks`}
             </p>
             <PersonTaskList
-              tasks={own_tasks}
+              tasks={filterTasks(own_tasks, taskFilter)}
               onToggle={onToggle}
               onEdit={onEdit}
               onDelete={onDelete}
@@ -237,9 +268,9 @@ export function NodeDashboardView({
         </>
       ) : (
         <>
-          <StatsGrid stats={own_stats} scope="personal" />
+          <StatsGrid stats={own_stats} scope="personal" active={taskFilter} onFilter={setTaskFilter} />
           <PersonTaskList
-            tasks={own_tasks}
+            tasks={filterTasks(own_tasks, taskFilter)}
             onToggle={onToggle}
             onEdit={onEdit}
             onDelete={onDelete}
@@ -268,13 +299,14 @@ export function MyTasksView({
   togglingId?: number | null;
 }) {
   const { person, tasks, stats } = dashboard;
+  const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
   const canModify = (t: Task) => t.assignee.id === person.id || t.assigned_by?.id === person.id;
 
   return (
     <div className="space-y-5">
-      <StatsGrid stats={stats} scope="personal" />
+      <StatsGrid stats={stats} scope="personal" active={taskFilter} onFilter={setTaskFilter} />
       <PersonTaskList
-        tasks={tasks}
+        tasks={filterTasks(tasks, taskFilter)}
         onToggle={onToggle}
         onEdit={onEdit}
         onDelete={onDelete}
