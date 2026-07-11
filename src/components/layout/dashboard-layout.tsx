@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { UserAvatar } from "@/components/custom/user-avatar";
@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AppSidebar } from "../app-sidebar";
-import { ChevronLeft, ChevronRight, ChevronDown, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, LogOut, Search, ShieldCheck, UserRound } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAppSelector } from "@/redux/store";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
@@ -23,80 +23,8 @@ import { useLogout } from "@/hooks/use-logout";
 import useToggleModal from "@/hooks/use-toggle";
 import PromptModal from "@/components/modal/prompt-modal";
 import { routesPath } from "@/routes/routes-path";
-
-// Self-hosted Google Noto animated emojis (public/emoji/*.webp). The artwork
-// itself moves — the clap claps, the wave waves — because the WebP is an
-// animated, looping image.
-const GREETING_EMOJIS = [
-  "wave",
-  "clap",
-  "party",
-  "raising-hands",
-  "sparkles",
-  "star",
-  "hug",
-  "smile",
-  "fire",
-] as const;
-
-// Picked once per login session and persisted, so it stays put on refresh but
-// shuffles to a new one the next time the user signs in (a fresh session has no
-// stored key yet).
-function pickSessionEmoji() {
-  try {
-    const stored = sessionStorage.getItem("_greeting_emoji");
-    if (stored !== null) {
-      const i = Number(stored);
-      if (Number.isInteger(i) && i >= 0 && i < GREETING_EMOJIS.length) {
-        return GREETING_EMOJIS[i];
-      }
-    }
-    const i = Math.floor(Math.random() * GREETING_EMOJIS.length);
-    sessionStorage.setItem("_greeting_emoji", String(i));
-    return GREETING_EMOJIS[i];
-  } catch {
-    return GREETING_EMOJIS[0];
-  }
-}
-
-// True only on the first dashboard view of a login session, so the greeting
-// auto-plays once right after sign-in (not on every refresh/navigation).
-function consumeLoginAutoPlay() {
-  try {
-    if (sessionStorage.getItem("_greeting_played")) return false;
-    sessionStorage.setItem("_greeting_played", "1");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function GreetingEmoji() {
-  const [emoji] = useState(pickSessionEmoji);
-  const [hovered, setHovered] = useState(false);
-  const [autoPlay, setAutoPlay] = useState(consumeLoginAutoPlay);
-
-  // Auto-play for 5s after login, then freeze back to the still poster.
-  useEffect(() => {
-    if (!autoPlay) return;
-    const id = setTimeout(() => setAutoPlay(false), 5000);
-    return () => clearTimeout(id);
-  }, [autoPlay]);
-
-  // Static PNG poster at rest; animated WebP while auto-playing or hovered.
-  const animated = autoPlay || hovered;
-  return (
-    <img
-      src={`/emoji/${emoji}.${animated ? "webp" : "png"}`}
-      alt=""
-      aria-hidden="true"
-      className="inline-block size-6 select-none align-text-bottom"
-      draggable={false}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    />
-  );
-}
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 function DashboardHeader({
   hasBack,
@@ -110,13 +38,45 @@ function DashboardHeader({
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
   const { state, toggleSidebar } = useSidebar();
+  const { hasPermission, hasModuleAccess } = usePermissions();
+  const [search, setSearch] = useState("");
   const { handleLogout, isLoggingOut } = useLogout();
   const { isOpen: openLogout, toggleClick: toggleLogout } = useToggleModal(false);
+  const searchResults = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return [];
+    return [
+      { label: "Home", detail: "Admin overview", to: routesPath.PROTECTED.OVERVIEW.INDEX, show: true },
+      { label: "School Management", detail: "Schools and branches", to: routesPath.PROTECTED.SCHOOL_MGT.INDEX, show: hasPermission(P.BROWSE_SCHOOLS) },
+      { label: "Team Management", detail: "People and invitations", to: routesPath.PROTECTED.TEAM_MGT.INDEX, show: hasPermission(P.ACCESS_TEAM_PANEL) },
+      { label: "Organogram", detail: "Structure and reporting", to: routesPath.PROTECTED.ORGANOGRAM.INDEX, show: hasPermission(P.VIEW_ORGANOGRAM) },
+      { label: "Tasks", detail: "Goals and accountability", to: routesPath.PROTECTED.TODO.INDEX, show: true },
+      { label: "Roles", detail: "Roles and assignments", to: routesPath.PROTECTED.ROLES.INDEX, show: hasPermission(P.VIEW_ROLES) },
+      { label: "Permissions", detail: "Permission registry", to: routesPath.PROTECTED.PERMISSIONS.INDEX, show: hasPermission(P.VIEW_PERMISSIONS) },
+      { label: "Data Imports", detail: "Batches and templates", to: routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX, show: hasPermission(P.VIEW_IMPORT_BATCHES) || hasPermission(P.VIEW_IMPORT_TEMPLATES) },
+      { label: "Export", detail: "Export queues", to: routesPath.PROTECTED.EXPORT.QUEUES, show: true },
+      { label: "Workflow", detail: "Approvals and submissions", to: routesPath.PROTECTED.WORKFLOW.APPROVALS, show: true },
+      { label: "Audit & Security", detail: "Events and safeguards", to: routesPath.PROTECTED.AUDIT.DASHBOARD, show: hasPermission(P.VIEW_AUDIT) },
+      { label: "System Health", detail: "Services and incidents", to: routesPath.PROTECTED.HEALTH.INDEX, show: hasPermission(P.VIEW_HEALTH) },
+      { label: "Notifications", detail: "Your updates", to: routesPath.PROTECTED.NOTIFICATIONS, show: true },
+      { label: "Settings", detail: "Platform configuration", to: routesPath.PROTECTED.SETTINGS.INDEX, show: true },
+      { label: "Support", detail: "Tickets and assistance", to: routesPath.PROTECTED.SUPPORT.INDEX, show: true },
+      { label: "My Profile", detail: "Personal details", to: routesPath.PROTECTED.ME_PROFILE.INDEX, show: true },
+      { label: "My Security", detail: "Password and sessions", to: routesPath.PROTECTED.ME_SECURITY.OVERVIEW, show: true },
+      { label: "Finance", detail: "Finance console", to: routesPath.PROTECTED.FINANCE.INDEX, show: hasModuleAccess("finance.", "payments.") },
+      { label: "Procurement", detail: "Procurement console", to: routesPath.PROTECTED.PROCUREMENT.INDEX, show: hasModuleAccess("procurement.") },
+    ].filter((item) => item.show && `${item.label} ${item.detail}`.toLowerCase().includes(q)).slice(0, 6);
+  }, [hasModuleAccess, hasPermission, search]);
+
+  const openSearchResult = (to: string) => {
+    setSearch("");
+    navigate(to);
+  };
 
   // `sticky` is itself a positioned context for the absolute children
   // (collapse toggle, progress bar) — adding `relative` would conflict.
   return (
-    <header className="flex justify-between h-15 px-3 lg:px-10 shrink-0 sticky top-0 z-10 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 bg-white border border-l-0 border-white-02">
+    <header className="grid h-15 shrink-0 sticky top-0 z-10 grid-cols-[1fr_auto] items-center gap-3 border border-l-0 border-white-02 bg-white px-3 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 lg:px-10">
       {/* Sidebar collapse toggle — on the left border, vertically centered in the header */}
       <button
         type="button"
@@ -130,7 +90,7 @@ function DashboardHeader({
         )}
       </button>
 
-      <div className="inline-flex items-center gap-2">
+      <div className="inline-flex min-w-0 items-center gap-2">
         <SidebarTrigger className="md:hidden size-8" />
 
         {hasBack && (
@@ -152,23 +112,38 @@ function DashboardHeader({
           </>
         )}
 
-        {title ? (
-          <h6 className="text-base uppercase font-semibold text-black-01">{title}</h6>
-        ) : (
-          <h6
-            className="text-lg font-medium text-black-01 inline-flex items-center gap-1.5"
-            style={{ fontFamily: '"Trebuchet MS", "Segoe UI", Tahoma, sans-serif' }}
-          >
-            {(() => {
-              const h = new Date().getHours();
-              const period = h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening";
-              // first_name is the canonical field; full_name is a display
-              // string ("Dr. Jane A. Doe") whose first token may be a title.
-              const first = user?.first_name || user?.full_name?.split(" ")[0];
-              return `Good ${period}${first ? `, ${first}` : ""}`;
-            })()}
-            <GreetingEmoji />
-          </h6>
+        <h6 className="truncate text-sm font-semibold uppercase tracking-wide text-black-01 sm:text-base">
+          {title || "Home"}
+        </h6>
+      </div>
+      <div className="absolute left-1/2 top-1/2 hidden w-[min(38vw,430px)] -translate-x-1/2 -translate-y-1/2 md:block">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && searchResults[0]) openSearchResult(searchResults[0].to);
+            if (event.key === "Escape") setSearch("");
+          }}
+          aria-label="Search the workspace"
+          placeholder="Search the workspace"
+          className="h-9 w-full rounded-xl border border-gray-200 bg-gray-50/70 pl-9 pr-3 text-sm outline-none transition placeholder:text-gray-400 focus:border-primary/35 focus:bg-white focus:ring-3 focus:ring-primary/8"
+        />
+        {search.trim() && (
+          <div className="absolute left-0 top-11 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
+            {searchResults.length ? searchResults.map((result) => (
+              <button
+                key={result.to}
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => openSearchResult(result.to)}
+                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-gray-50"
+              >
+                <span><span className="block text-sm font-medium text-black-01">{result.label}</span><span className="block text-[11px] text-gray-400">{result.detail}</span></span>
+                <ChevronRight className="size-4 text-gray-300" />
+              </button>
+            )) : <p className="px-3 py-4 text-center text-xs text-gray-400">No accessible pages found.</p>}
+          </div>
         )}
       </div>
       <TopProgressBar />
