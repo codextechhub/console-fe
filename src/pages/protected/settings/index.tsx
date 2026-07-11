@@ -308,22 +308,23 @@ function SettingRow({
   return (
     <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{def.label}</p>
-        {def.description && <p className="text-xs leading-5 text-gray-01">{def.description}</p>}
-        <p className="mt-1 flex items-center gap-2 text-[11px] text-gray-01">
-          <code>{def.key}</code>
+        <p className="flex items-center gap-2 text-sm font-medium">
+          {def.label}
           {row ? (
             <Badge className="bg-primary/10 px-1.5 font-mont text-[10px] text-primary">Customised</Badge>
           ) : (
             <Badge variant="inactive" className="px-1.5 font-mont text-[10px]">Default</Badge>
           )}
-          {canArchive && (
+        </p>
+        {def.description && <p className="text-xs leading-5 text-gray-01">{def.description}</p>}
+        {canArchive && (
+          <p className="mt-1 text-[11px]">
             <ArchiveButton
               label={def.label}
               onConfirm={() => archive({ key: def.key, reason: "Archived from Settings console" })}
             />
-          )}
-        </p>
+          </p>
+        )}
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
@@ -487,11 +488,15 @@ function FeatureRow({
   return (
     <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
       <button onClick={openDetail} className="min-w-0 flex-1 text-left">
-        <p className="text-sm font-medium">{cap.label}</p>
-        {cap.description && <p className="text-xs leading-5 text-gray-01">{cap.description}</p>}
-        <p className="mt-1 text-[11px] text-gray-01">
-          <code>{cap.key}</code>
+        <p className="flex items-center gap-2 text-sm font-medium">
+          {cap.label}
+          {on ? (
+            <Badge variant="success" className="font-mont text-xs">On</Badge>
+          ) : (
+            <Badge variant="inactive" className="font-mont text-xs">Off</Badge>
+          )}
         </p>
+        {cap.description && <p className="text-xs leading-5 text-gray-01">{cap.description}</p>}
       </button>
 
       <div className="flex shrink-0 flex-wrap items-center gap-4">
@@ -540,12 +545,6 @@ function FeatureRow({
             </NativeSelect>
           </div>
         </label>
-
-        {on ? (
-          <Badge variant="success" className="font-mont text-xs">On</Badge>
-        ) : (
-          <Badge variant="inactive" className="font-mont text-xs">Off</Badge>
-        )}
       </div>
     </div>
   );
@@ -572,7 +571,6 @@ function FeatureDetail({
     <Sheet open onOpenChange={(v) => !v && close()}>
       <SheetContent side="right" className="w-full overflow-y-auto p-6 sm:max-w-lg">
         <SheetHeader className="p-0">
-          <p className="text-xs text-gray-01">{cap.key}</p>
           <SheetTitle>{cap.label}</SheetTitle>
         </SheetHeader>
 
@@ -582,13 +580,17 @@ function FeatureDetail({
           <div className="rounded-lg border border-white-02 p-4">
             <p className="font-mont text-xs font-semibold text-gray-01">HOW THIS RESOLVES</p>
             <ul className="mt-2 space-y-1.5 text-xs leading-5 text-gray-600">
-              <li>1. Ships {cap.default_enabled ? "ON" : "OFF"} by default.</li>
-              <li>
-                2. {cap.requires_entitlement
-                  ? "Needs to be in the plan before it can turn on."
-                  : "No plan requirement."}
-              </li>
-              <li>3. A forced status (on/off) wins over everything.</li>
+              {cap.requires_entitlement ? (
+                <>
+                  <li>1. In the plan → on. Not in the plan → off.</li>
+                  <li>2. A forced status (on/off) wins over the plan.</li>
+                </>
+              ) : (
+                <>
+                  <li>1. No plan needed — ships {cap.default_enabled ? "ON" : "OFF"} by default.</li>
+                  <li>2. A forced status (on/off) wins over the default.</li>
+                </>
+              )}
             </ul>
           </div>
 

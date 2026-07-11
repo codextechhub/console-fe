@@ -177,12 +177,22 @@ export function ConfigDialog({
 
           {mode === "value" && (
             <>
-              <Select
-                label="Setting"
-                value={form.key}
-                onChange={set("key")}
-                options={(defs.data?.data ?? []).map((x) => x.key)}
-              />
+              {initial?.key ? (
+                // Opened from a settings row — the setting is already chosen.
+                <div>
+                  <p className="text-sm font-medium">{pickedDef?.label ?? initial.key}</p>
+                  {pickedDef?.description && (
+                    <p className="text-xs text-gray-01">{pickedDef.description}</p>
+                  )}
+                </div>
+              ) : (
+                <Select
+                  label="Setting"
+                  value={form.key}
+                  onChange={set("key")}
+                  options={(defs.data?.data ?? []).map((x) => x.key)}
+                />
+              )}
               <ValueInput valueType={pickedDef?.value_type} value={form.value} onChange={set("value")} />
               <Field label="Reason">
                 <Input value={form.reason} onChange={set("reason")} />
