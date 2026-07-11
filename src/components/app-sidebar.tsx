@@ -409,7 +409,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Settings,
       isActive: location.startsWith(R.SETTINGS.INDEX),
       childActive: false,
-      permission: null,
+      // Visible with any config.* view key; the page itself shows only the
+      // tabs the user can read and falls back to PageAccessDenied without any.
+      permission: [
+        P.VIEW_CONFIG_VALUES,
+        P.VIEW_CONFIG_DEFINITIONS,
+        P.VIEW_CAPABILITIES,
+        P.VIEW_ENTITLEMENTS,
+        P.VIEW_CONFIG_OVERRIDES,
+        P.VIEW_CONFIG_AUDIT,
+      ] as PermissionCode[],
       permissionMode: "any" as const,
     },
     {

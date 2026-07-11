@@ -40,6 +40,9 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Workflow | Templates | `P.VIEW_WORKFLOW_TEMPLATES` | own check via `hasPermission` |
 | Finance | â | _(module access: any `finance.*` or `payments.*` key)_ | gated via `hasModuleAccess("finance.", "payments.")`, **not** a single `P.*` constant â a user with only `finance.report.view` should still reach the console. Opens its own sub-navigated console (`ConsoleShell` + `financeNav`); each area's sub-nav item is gated by the backend key prefixes its screens call |
 | Procurement | â | _(module access: any `procurement.*` key)_ | gated via `hasModuleAccess("procurement.")`. Opens its own console (`ConsoleShell` + `procurementNav`); area sub-nav gated by key prefixes |
+| Notifications | — | _(none — always visible)_ | personal in-app feed (`/notify/`, recipient-scoped server-side). Admin panels on the page (History / Settings / Templates) each gate on their own `communication.*` key (see §2) |
+| Settings | — | any of `P.VIEW_CONFIG_VALUES` `P.VIEW_CONFIG_DEFINITIONS` `P.VIEW_CAPABILITIES` `P.VIEW_ENTITLEMENTS` `P.VIEW_CONFIG_OVERRIDES` `P.VIEW_CONFIG_AUDIT` | `permissionMode: "any"`; the page shows only the tabs the user can read and falls back to `PageAccessDenied` with none (direct-URL case) |
+| Support | — | _(none — always visible)_ | anyone authenticated may file a ticket (backend keeps creation keyless; ticket visibility is participant/school-scoped server-side). Staff actions gate per-control on the detail page (see §2) |
 
 > The Workflow parent group is always visible (permission `null`) because Approvals/Submissions/Delegations are open to every authenticated user. Admin-only children (All Instances, Team Load, Templates) are spread in by their own permission check.
 
@@ -302,6 +305,57 @@ Reached from Team Management "View Details" (by-user route) or the org chart dra
 
 ---
 
+### Notifications (`src/pages/protected/notifications/`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Feed, detail drawer, mark-read / mark-all-read | page | _(none — recipient-scoped server-side)_ |
+| History panel (delivery log) | admin panel | `P.AUDIT_NOTIFICATION_ACTIVITY` (`communication.message_activity.audit`) |
+| Settings panel (channel matrix) | admin panel | `P.ENFORCE_NOTIFICATION_SETTINGS` (`communication.communication_permissions.enforce`) |
+| Templates panel + editor | admin panel | `P.CONFIGURE_NOTIFICATION_TEMPLATES` (`communication.notification_templates.configure`) |
+| Event types panel | admin panel | _(none — catalogue endpoint is open to authenticated users)_ |
+
+> In-app toggles and transactional rows render disabled with a tooltip — backend policy (in-app always on; transactional always dispatches), not a missing grant.
+
+---
+
+### Settings (`src/pages/protected/settings/`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Configuration values tab | tab | `P.VIEW_CONFIG_VALUES` |
+| Definitions tab | tab | `P.VIEW_CONFIG_DEFINITIONS` |
+| Capabilities tab | tab | `P.VIEW_CAPABILITIES` |
+| Entitlements tab | tab | `P.VIEW_ENTITLEMENTS` |
+| Overrides tab | tab | `P.VIEW_CONFIG_OVERRIDES` |
+| Audit trail tab | tab | `P.VIEW_CONFIG_AUDIT` |
+| New definition | button | `P.CREATE_CONFIG_DEFINITION` |
+| Archive definition | row action | `P.ARCHIVE_CONFIG_DEFINITION` |
+| Set value | button | `P.UPDATE_CONFIG_VALUES` |
+| New capability / Archive capability | button / row action | `P.MANAGE_CAPABILITIES` |
+| Set entitlement | button | `P.MANAGE_ENTITLEMENTS` |
+| Add override | button | `P.MANAGE_CONFIG_OVERRIDES` |
+| Export snapshot | button | `P.EXPORT_CONFIG` |
+
+> Definition/capability creation is additionally platform-only server-side (`platform_methods` guard rejects non-CX users regardless of grants).
+
+---
+
+### Support (`src/pages/protected/support/`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| List, dashboard KPIs, Create ticket | page | _(none — creation is deliberately keyless; visibility scoped server-side)_ |
+| Edit ticket (detail sidebar) | button | `P.MANAGE_TICKETS` |
+| Assignment select | control | `P.ASSIGN_TICKET` |
+| Update status (transitions) | buttons | `P.MANAGE_TICKETS` |
+| Internal note toggle | control | `P.POST_INTERNAL_NOTE` |
+| View audit history | drawer | `P.VIEW_TICKET_AUDIT` |
+
+> Comment/attachment posting renders ungated (participants always may); the backend enforces `tickets.comment.post` / `tickets.attachment.create` for non-participants.
+
+---
+
 ## 3. Route-level Guards
 
 No route-level guards. The previous `RequirePermission` middleware was deleted as dead code. All page-level protection is handled inside the page components themselves via `<PermissionGate>` and `hasPermission()`. The backend is the authoritative gate â anyone who reaches a page they shouldn't see still gets a 403 from the API.
@@ -382,6 +436,12 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.VIEW_IMPORT_ROLLBACKS` | `import.rollbacks.view` | Defined; rollback list not yet shown in UI (only the rollback action). |
 | `P.VIEW_IMPORT_AUDIT` | `import.audit.view` | Defined; Audit tab inherits batch-view permission. |
 | `P.VIEW_IMPORT_NOTIFICATIONS` | `import.notifications.view` | Defined; Notifications tab inherits batch-view permission. |
+
+---
+
+### Notifications / Settings / Support constants (added 2026-07-11)
+
+All 26 registered in `src/permissions/index.ts` and wired in the UI (see the three page sections in §2): `CONFIGURE_NOTIFICATION_TEMPLATES` / `ENFORCE_NOTIFICATION_SETTINGS` / `AUDIT_NOTIFICATION_ACTIVITY` (communication, MM=40); the 14 `config.*` view/write keys (MM=90); the 9 `tickets.*` keys (MM=91) — of which `VIEW_TICKETS`, `UPDATE_TICKET`, `POST_TICKET_COMMENT`, `ATTACH_TICKET_FILE` and `VIEW_TICKET_REPORTS` are registered but not yet gating any control (list/create/comment/attach are deliberately open in the UI; reports page not built). Backend seeding: `seed_all_permissions` now runs `seed_config_permissions`, `seed_ticket_permissions` and the new `seed_notification_permissions` (grants to both platform roles; school-admin defaults for tickets + notification settings/history).
 
 ---
 
