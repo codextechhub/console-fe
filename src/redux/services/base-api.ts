@@ -282,6 +282,7 @@ export const baseApi = createApi({
     "NotificationTemplates",
     "Config",
     "Tickets",
+    "Health",
     // ── Finance & Procurement consoles ──────────────────────────────────────
     "FinanceEntities",
     "FinanceAccounts",

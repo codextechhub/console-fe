@@ -99,6 +99,8 @@ const REGISTRY: Record<string, string> = {
   // ── platform / staff payroll (FLS-gated)  (MM=10, RR=11) ───────────────────
   "101101": "platform.staff_payroll.view",
   "101108": "platform.staff_payroll.manage",
+  "101201": "platform.health.view",
+  "101208": "platform.health.manage",
 
   // ── communication / global notifications  (MM=40) ────────────────────────
   "400108": "communication.notification_templates.configure",
@@ -463,6 +465,8 @@ export const P = {
   // ── Staff payroll (sensitive, field-level secured) ─────────────────────────
   VIEW_STAFF_PAYROLL:   "101101",  // read bank/account details on staff profiles
   MANAGE_STAFF_PAYROLL: "101108",  // edit bank/account details on staff profiles
+  VIEW_HEALTH: "101201",
+  MANAGE_HEALTH: "101208",
 
   // ── Notifications administration ──────────────────────────────────────────
   CONFIGURE_NOTIFICATION_TEMPLATES: "400108",
