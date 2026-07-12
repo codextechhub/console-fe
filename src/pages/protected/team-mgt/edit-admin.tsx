@@ -16,6 +16,9 @@ import { toast } from "sonner";
 export default function EditAdmin() {
   const navigate = useNavigate();
   const params = useParams();
+  const returnTo = params.scope === "schools"
+    ? routesPath.PROTECTED.TEAM_MGT.SCHOOL
+    : routesPath.PROTECTED.TEAM_MGT.CX;
   const { data: teamMember, isLoading } = useGetTeamMembersDetailsQuery(
     params?.id || "",
     { skip: !params?.id },
@@ -38,13 +41,13 @@ export default function EditAdmin() {
         .unwrap()
         .then(() => {
           toast.success("Team member updated successfully!");
-          navigate(routesPath.PROTECTED.TEAM_MGT.INDEX);
+          navigate(returnTo);
         })
         .catch(() => {});
     },
   });
   return (
-    <DashboardLayout title="Team Management" hasBack>
+    <DashboardLayout title={params.scope === "schools" ? "School Users" : "CX Users"} hasBack>
       {!isLoading && teamMember?.data ? (
         <section className="px-4.5 py-6">
           <>

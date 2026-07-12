@@ -101,7 +101,7 @@ export default function CreateAdmin() {
   }, [positions, orgNodeMap, formik.values.position]);
 
   return (
-    <DashboardLayout title="Team Management" hasBack>
+    <DashboardLayout title="CX Users" hasBack>
       <section className="px-4.5 py-6">
         <>
           <form onSubmit={formik.handleSubmit} className="max-w-235">
@@ -281,7 +281,7 @@ export default function CreateAdmin() {
               navigate(
                 pendingApproval
                   ? routesPath.PROTECTED.WORKFLOW.MY_SUBMISSIONS
-                  : routesPath.PROTECTED.TEAM_MGT.INDEX + "?tab=invites",
+                  : routesPath.PROTECTED.TEAM_MGT.CX + "?tab=invites",
                 { replace: true },
               );
             }}

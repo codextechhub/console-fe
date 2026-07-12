@@ -261,7 +261,8 @@ export default function Overview() {
           className="relative overflow-hidden rounded-2xl bg-[#17281f] px-6 py-5 text-white shadow-sm lg:px-7 lg:py-5"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 0% 50%, rgba(255,255,255,.045), transparent 24%), radial-gradient(circle at 100% 50%, rgba(56,189,128,.11), transparent 24%)",
+              "linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px), radial-gradient(circle at 12% 0%, rgba(126,221,171,.17), transparent 34%), radial-gradient(circle at 88% 100%, rgba(48,178,121,.2), transparent 38%), linear-gradient(118deg, #14291f 0%, #17382a 54%, #10251d 100%)",
+            backgroundSize: "28px 28px, 28px 28px, auto, auto, auto",
           }}
         >
           <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

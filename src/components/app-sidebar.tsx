@@ -80,13 +80,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       permissionMode: "any" as const,
     },
     {
-      title: "Team Management",
+      title: "Users",
       url: routesPath.PROTECTED.TEAM_MGT.INDEX,
       icon: TeamMgtIcon,
-      isActive: location.startsWith(routesPath.PROTECTED.TEAM_MGT.INDEX),
-      childActive: false,
+      isActive: false,
+      childActive:
+        location.startsWith(routesPath.PROTECTED.TEAM_MGT.CX) ||
+        location.startsWith(routesPath.PROTECTED.TEAM_MGT.SCHOOL) ||
+        location === routesPath.PROTECTED.TEAM_MGT.LEGACY,
       permission: P.ACCESS_TEAM_PANEL,
       permissionMode: "any" as const,
+      items: [
+        {
+          title: "CX Users",
+          url: routesPath.PROTECTED.TEAM_MGT.CX,
+          isActive: location.startsWith(routesPath.PROTECTED.TEAM_MGT.CX),
+        },
+        {
+          title: "School Users",
+          url: routesPath.PROTECTED.TEAM_MGT.SCHOOL,
+          isActive: location.startsWith(routesPath.PROTECTED.TEAM_MGT.SCHOOL),
+        },
+      ],
     },
     {
       title: "Organogram",

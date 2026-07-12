@@ -1,12 +1,17 @@
 import Tabs from "@/components/custom/tab";
 import DashboardLayout from "@/components/layout/dashboard-layout";
-import { useSearchParams } from "react-router";
+import { useLocation, useSearchParams } from "react-router";
 import InvitesTab from "./tabs/invites";
 import MembersTab from "./tabs/members";
+import { routesPath } from "@/routes/routes-path";
 
 export default function TeamManagement() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const activeTab = searchParams.get("tab");
+  const scope = location.pathname.startsWith(routesPath.PROTECTED.TEAM_MGT.SCHOOL)
+    ? "school"
+    : "cx";
 
   const tabList = [
     { label: "Members", value: "members" },
@@ -14,11 +19,11 @@ export default function TeamManagement() {
   ];
 
   return (
-    <DashboardLayout title="Team Management">
+    <DashboardLayout title={scope === "cx" ? "CX Users" : "School Users"}>
       <main className="px-4.5 py-6 space-y-5 text-black-01 grid ">
         <Tabs tabs={tabList} tabKey="tab" />
 
-        {activeTab === "invites" ? <InvitesTab /> : <MembersTab />}
+        {activeTab === "invites" ? <InvitesTab scope={scope} /> : <MembersTab scope={scope} />}
       </main>
     </DashboardLayout>
   );

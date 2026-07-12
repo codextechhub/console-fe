@@ -29,8 +29,11 @@ import { SearchSelect } from "@/components/custom/search-select";
 import { CustomDateInput } from "@/components/custom/custom-date-input";
 import { useAllRoles } from "@/hooks/use-all-roles";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
+import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
+import { SchoolUserDetail, USER_TYPE_LABELS } from "../school-user-detail";
+import { usePermissions } from "@/hooks/use-permissions";
 
-const tableHeader = [
+const CX_TABLE_HEADER = [
   "Full Name",
   "Email",
   "Role",
@@ -41,11 +44,25 @@ const tableHeader = [
   "Action",
 ];
 
+const SCHOOL_TABLE_HEADER = [
+  "User",
+  "School",
+  "Branch",
+  "User Type",
+  "Email Delivery",
+  "Expires",
+  "Invited By",
+  "Date Created",
+  "Action",
+];
+
 const INITIAL_FILTERS = {
   role: "",
   date_from: "",
   date_to: "",
   invited_by: "",
+  school_id: "",
+  user_type: "",
 };
 
 const SORT_OPTIONS = [
@@ -55,10 +72,12 @@ const SORT_OPTIONS = [
   { column: "created_at", label: "Date" },
 ];
 
-export default function InvitesTab() {
+export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
+  const { hasPermission } = usePermissions();
   const [value, setValue] = useState("");
   const debouncedValue = useDebounce(value, 1000);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedSchoolUser, setSelectedSchoolUser] = useState<TeamMember | null>(null);
   const [appliedFilters, setAppliedFilters] = useState(INITIAL_FILTERS);
   const [draftFilters, setDraftFilters] = useState(INITIAL_FILTERS);
   const [sort, setSort] = useState({ sortColumn: "", sortOrder: "" as "asc" | "desc" | "" });
@@ -69,6 +88,10 @@ export default function InvitesTab() {
   });
 
   const { roles } = useAllRoles();
+  const { data: schoolsRes } = useGetSchoolsQuery(
+    { page_size: 100 },
+    { skip: scope !== "school" },
+  );
 
   const activeFilterCount = Object.values(appliedFilters).filter(Boolean).length;
 
@@ -84,10 +107,11 @@ export default function InvitesTab() {
     () => ({
       ...query,
       ...appliedFilters,
+      ...(scope === "cx" ? { user_type: "CX_STAFF" } : { scope: "school" }),
       search: debouncedValue,
       ordering: buildOrdering(sort.sortColumn, sort.sortOrder),
     }),
-    [query, appliedFilters, debouncedValue, sort],
+    [query, appliedFilters, debouncedValue, scope, sort],
   );
 
   const { data, isLoading, isError, refetch, isFetching } =
@@ -117,13 +141,15 @@ export default function InvitesTab() {
     <>
       <div className="flex items-center justify-between">
         <p className="font-semibold font-mont text-gray-01"></p>
-        <PermissionGate permission={P.INVITE_TEAM_MEMBER}>
-          <Link to={routesPath.PROTECTED.TEAM_MGT.CREATE}>
-            <Button size="lg">
-              <Plus /> Add New User
-            </Button>
-          </Link>
-        </PermissionGate>
+        {scope === "cx" && (
+          <PermissionGate permission={P.INVITE_TEAM_MEMBER}>
+            <Link to={routesPath.PROTECTED.TEAM_MGT.CREATE}>
+              <Button size="lg">
+                <Plus /> Add New CX User
+              </Button>
+            </Link>
+          </PermissionGate>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-8 gap-3">
@@ -171,7 +197,7 @@ export default function InvitesTab() {
       </div>
 
       <SortBar
-        options={SORT_OPTIONS}
+        options={scope === "school" ? SORT_OPTIONS.filter((option) => option.column !== "role") : SORT_OPTIONS}
         sortColumn={sort.sortColumn}
         sortOrder={sort.sortOrder}
         onSort={onSort}
@@ -179,26 +205,42 @@ export default function InvitesTab() {
       />
 
       <CustomTable
-        tableHeaderList={tableHeader}
-        tableBodyList={isError ? [] : FORMAT_TABLE_DATA(data?.data)}
+        tableHeaderList={scope === "school" ? SCHOOL_TABLE_HEADER : CX_TABLE_HEADER}
+        tableBodyList={isError ? [] : FORMAT_TABLE_DATA(data?.data, scope)}
         emptyText={
           isError ? "Failed to load data. Please try again." : undefined
         }
         loading={isLoading}
         dropDown={!isError}
-        dropDownList={[
-          {
+        dropDownList={(row: { _slug: string }) => {
+          const resendAction = {
             label: "Resend Invite",
             className: "",
-            onActionClick: (param: { _slug: string }) => {
-              toast.promise(resendInvite(param._slug).unwrap(), {
+            onActionClick: () => {
+              toast.promise(resendInvite(row._slug).unwrap(), {
                 loading: "Resending invite...",
                 success: "Invite resent successfully",
                 error: "Failed to resend invite",
               });
             },
-          },
-        ]}
+          };
+
+          if (scope === "school") {
+            return [
+              {
+                label: "View Details",
+                className: "",
+                onActionClick: () => {
+                  const selected = data?.data?.find((item) => item.id === row._slug) ?? null;
+                  setSelectedSchoolUser(selected);
+                },
+              },
+              ...(hasPermission(P.INVITE_TEAM_MEMBER) ? [resendAction] : []),
+            ];
+          }
+
+          return hasPermission(P.INVITE_TEAM_MEMBER) ? [resendAction] : [];
+        }}
         perPage={data?.pagination?.pageSize}
         totalPage={data?.pagination?.totalPages}
         currentPage={data?.pagination?.currentPage}
@@ -216,6 +258,31 @@ export default function InvitesTab() {
           </SheetHeader>
           <div className="flex-1 overflow-y-auto px-4 space-y-5">
             <SearchSelect
+              id="filter-school"
+              label="School"
+              placeholder="All schools"
+              options={(schoolsRes?.data ?? []).map((school) => ({
+                value: String(school.id),
+                label: school.name,
+              }))}
+              value={draftFilters.school_id}
+              onChange={(e) =>
+                setDraftFilters((p) => ({ ...p, school_id: e.target.value }))
+              }
+              containerClass={scope === "school" ? undefined : "hidden"}
+            />
+            <SearchSelect
+              id="filter-user-type"
+              label="User Type"
+              placeholder="All user types"
+              options={Object.entries(USER_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
+              value={draftFilters.user_type}
+              onChange={(e) =>
+                setDraftFilters((p) => ({ ...p, user_type: e.target.value }))
+              }
+              containerClass={scope === "school" ? undefined : "hidden"}
+            />
+            <SearchSelect
               id="filter-role"
               label="Role"
               placeholder="All roles"
@@ -224,6 +291,7 @@ export default function InvitesTab() {
               onChange={(e) =>
                 setDraftFilters((p) => ({ ...p, role: e.target.value }))
               }
+              containerClass={scope === "school" ? "hidden" : undefined}
             />
             <CustomDateInput
               id="filter-date-from"
@@ -267,6 +335,10 @@ export default function InvitesTab() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      {scope === "school" && (
+        <SchoolUserDetail user={selectedSchoolUser} onClose={() => setSelectedSchoolUser(null)} />
+      )}
     </>
   );
 }
@@ -292,9 +364,28 @@ const daysLeft = (expiresAt?: string): string => {
   return `${days}d left`;
 };
 
-const FORMAT_TABLE_DATA = (data?: TeamMember[]) => {
+const FORMAT_TABLE_DATA = (data: TeamMember[] | undefined, scope: "cx" | "school") => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return data?.map((item: any) => ({
+  return data?.map((item: any) => scope === "school" ? {
+    user: (
+      <div className="min-w-40">
+        <p className="capitalize truncate">{item?.full_name?.trim() || "---"}</p>
+        <p className="mt-0.5 truncate text-xs font-normal text-gray-01">{item?.email?.trim() || "---"}</p>
+      </div>
+    ),
+    school: item?.school_name?.trim() || "---",
+    branch: item?.branch_name?.trim() || "School-wide",
+    userType: USER_TYPE_LABELS[item?.user_type] || item?.user_type || "---",
+    emailSent: item?.invitation_email_status ? (
+      <Badge variant={EMAIL_STATUS_VARIANT[item.invitation_email_status] ?? "pending"} className="min-w-16">
+        {item.invitation_email_status}
+      </Badge>
+    ) : "---",
+    daysLeft: daysLeft(item?.invitation_expires_at),
+    invitedBy: item?.invited_by_name?.trim() || "---",
+    date: item?.created_at ? formatRelativeDate(item.created_at) : "---",
+    _slug: item?.id,
+  } : ({
     name: <p className="capitalize truncate">{item?.full_name?.trim() || "---"}</p>,
     email: item?.email?.trim() || "---",
     role: item?.role?.trim() || "---",

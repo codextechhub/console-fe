@@ -34,10 +34,13 @@ export const routesPath = {
       CREATE_BRANCH: (slug: string) => `/school-management/${slug}/branches/create`,
     },
     TEAM_MGT: {
-      INDEX: '/team-management',
-      EDIT_PATH: "/team-management/:id/edit",
-      EDIT: (id:string) => `/team-management/${id}/edit`,
-      CREATE: "/team-management/create",
+      INDEX: "/users/cx",
+      CX: "/users/cx",
+      SCHOOL: "/users/schools",
+      LEGACY: "/team-management",
+      EDIT_PATH: "/users/:scope/:id/edit",
+      EDIT: (id: string, scope: "cx" | "schools" = "cx") => `/users/${scope}/${id}/edit`,
+      CREATE: "/users/cx/create",
       // View Details opens the staff profile (ORGANOGRAM.STAFF_BY_USER).
     },
     ROLES: {
