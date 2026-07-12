@@ -15,7 +15,7 @@ import {
   PermissionsIcon,
   DataImportsIcon,
 } from "@/assets/navbar-svg";
-import { Bell, ClipboardCheck, FileOutput, HeartPulse, Landmark, LifeBuoy, Network, Settings, Shield, ShoppingCart, Workflow } from "lucide-react";
+import { Bell, ClipboardCheck, FileOutput, Headset, HeartPulse, Landmark, Network, Settings, Shield, ShoppingCart, Workflow } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routes-path";
 import { Link, useLocation } from "react-router";
@@ -475,7 +475,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: "Support",
       url: R.SUPPORT.INDEX,
-      icon: LifeBuoy,
+      icon: Headset,
       isActive: location.startsWith(R.SUPPORT.INDEX),
       childActive: false,
       permission: null,

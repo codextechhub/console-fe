@@ -22,7 +22,6 @@ import {
   Workflow,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
-import { UserAvatar } from "@/components/custom/user-avatar";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -375,10 +374,7 @@ export default function Overview() {
           </section>
 
           <section className="mb-4 break-inside-avoid rounded-xl border border-white-02 bg-white p-4">
-            <div className="flex items-center justify-between">
-              <div><h2 className="text-base font-semibold">Your workspace</h2><p className="mt-0.5 text-xs text-gray-400">Shortcuts matched to your access.</p></div>
-              <UserAvatar userId={user?.id} name={user?.full_name ?? "Admin"} />
-            </div>
+            <div><h2 className="text-base font-semibold">Your workspace</h2><p className="mt-0.5 text-xs text-gray-400">Shortcuts matched to your access.</p></div>
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
               {modules.map(({ label, copy, to, icon: Icon }) => (
                 <Link key={label} to={to} className="group flex items-center gap-3 rounded-xl border border-gray-100 p-3 hover:border-primary/20 hover:bg-primary/[0.025]">

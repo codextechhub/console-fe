@@ -25,6 +25,7 @@ import PromptModal from "@/components/modal/prompt-modal";
 import { routesPath } from "@/routes/routes-path";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
+import { SupportTicketComposer } from "@/components/support-ticket-composer";
 
 function DashboardHeader({
   hasBack,
@@ -255,6 +256,7 @@ export default function DashboardLayout({
               clips it. Without this every page needed its own min-w-0. */}
           <div className="grid grid-cols-1 min-w-0 pt-0">{children}</div>
         </SidebarInset>
+        <SupportTicketComposer />
       </SidebarProvider>
     </>
   );

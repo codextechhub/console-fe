@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
@@ -14,23 +15,23 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { Textarea } from "@/components/ui/textarea";
 import { routesPath } from "@/routes/routes-path";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { TicketStatusBadge } from "./status-badge";
 import {
-  useCreateTicketMutation,
+  CreateTicketForm,
+  EMPTY_TICKET_DRAFT,
+  type TicketDraft,
+} from "@/components/support-ticket-composer";
+import {
   useGetTicketDashboardQuery,
   useGetTicketsQuery,
   type Ticket,
-  type TicketPriority,
 } from "@/redux/services/tickets-api";
 
 const TABLE_HEADERS = ["Ticket", "Requester", "Category", "Priority", "Status", "Assignee", "Updated"];
@@ -170,20 +171,8 @@ function CreateTicket({
   close: () => void;
   done: (id: string) => void;
 }) {
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    category: "SUPPORT",
-    priority: "MEDIUM" as TicketPriority,
-  });
-  const [create, { isLoading }] = useCreateTicketMutation();
-  const canSubmit = form.title.trim() && form.description.trim();
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const r = await create(form).unwrap();
-    done(r.data.id);
-  };
+  const [draft, setDraft] = useState<TicketDraft>(EMPTY_TICKET_DRAFT);
+  const [files, setFiles] = useState<File[]>([]);
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && close()}>
@@ -191,54 +180,20 @@ function CreateTicket({
         <DialogHeader>
           <DialogTitle>Create support ticket</DialogTitle>
         </DialogHeader>
-        <form onSubmit={submit} className="space-y-4">
-          <p className="text-sm text-gray-01">Tell the support team what you need help with.</p>
-          <label className="grid gap-1 text-sm font-medium">
-            Title
-            <Input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          </label>
-          <label className="grid gap-1 text-sm font-medium">
-            Description
-            <Textarea
-              required
-              rows={7}
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="grid gap-1 text-sm font-medium">
-              Category
-              <NativeSelect
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-              >
-                {["BUG", "SUPPORT", "HELP", "ACCOUNT", "BILLING", "OTHER"].map((x) => (
-                  <option key={x}>{x}</option>
-                ))}
-              </NativeSelect>
-            </label>
-            <label className="grid gap-1 text-sm font-medium">
-              Priority
-              <NativeSelect
-                value={form.priority}
-                onChange={(e) => setForm({ ...form, priority: e.target.value as TicketPriority })}
-              >
-                {["LOW", "MEDIUM", "HIGH", "URGENT"].map((x) => (
-                  <option key={x}>{x}</option>
-                ))}
-              </NativeSelect>
-            </label>
-          </div>
-          <DialogFooter className="gap-3">
-            <Button type="button" variant="white" size="sm" onClick={close}>
-              Cancel
-            </Button>
-            <Button type="submit" size="sm" disabled={isLoading || !canSubmit}>
-              {isLoading ? "Creating…" : "Create ticket"}
-            </Button>
-          </DialogFooter>
-        </form>
+        <p className="text-sm text-gray-01">Tell the support team what you need help with.</p>
+        <CreateTicketForm
+          draft={draft}
+          setDraft={setDraft}
+          files={files}
+          setFiles={setFiles}
+          onCancel={close}
+          onCreated={(ticket, failedFiles) => {
+            if (failedFiles.length) {
+              toast.warning(`Ticket created, but ${failedFiles.length} attachment${failedFiles.length === 1 ? "" : "s"} failed to upload.`);
+            }
+            done(ticket.id);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
