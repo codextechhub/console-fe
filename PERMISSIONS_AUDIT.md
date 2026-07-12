@@ -44,6 +44,7 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Notifications | Administration | any of `P.AUDIT_NOTIFICATION_ACTIVITY` `P.ENFORCE_NOTIFICATION_SETTINGS` `P.CONFIGURE_NOTIFICATION_TEMPLATES` | child spread in only for holders (collapsible group appears); flat single item otherwise. Page at `/notifications/admin` re-checks and falls back to `PageAccessDenied` |
 | Settings | — | any of `P.VIEW_CONFIG_VALUES` `P.VIEW_CONFIG_DEFINITIONS` `P.VIEW_CAPABILITIES` `P.VIEW_ENTITLEMENTS` `P.VIEW_CONFIG_OVERRIDES` `P.VIEW_CONFIG_AUDIT` | `permissionMode: "any"`; the page shows only the tabs the user can read and falls back to `PageAccessDenied` with none (direct-URL case) |
 | Support | — | _(none — always visible)_ | anyone authenticated may file a ticket (backend keeps creation keyless; ticket visibility is participant/school-scoped server-side). Staff actions gate per-control on the detail page (see §2) |
+| Health | Command Center / Uptime / API & Endpoints / Jobs & Queues / Incidents & Alerts / Tenant Health / SLOs | `P.VIEW_HEALTH` | one gate for the whole group; children inherit. Backend enforces `platform.health.view` on every read and `platform.health.manage` on writes (method-based) |
 
 > The Workflow parent group is always visible (permission `null`) because Approvals/Submissions/Delegations are open to every authenticated user. Admin-only children (All Instances, Team Load, Templates) are spread in by their own permission check.
 
@@ -358,6 +359,17 @@ Three tabs (2026-07-11 plain-language redesign): System Settings (GitHub-style r
 | View audit history | drawer | `P.VIEW_TICKET_AUDIT` |
 
 > Comment/attachment posting renders ungated (participants always may); the backend enforces `tickets.comment.post` / `tickets.attachment.create` for non-participants.
+
+---
+
+### Health (`src/pages/protected/health/`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| All seven screens + drawers | pages | `P.VIEW_HEALTH` (`platform.health.view`, enforced on every /health/ read) |
+| _(no write controls yet)_ | — | `P.MANAGE_HEALTH` (`platform.health.manage`) registered; backend gates non-GET methods with it, UI has no mutating controls |
+
+> Telemetry is collected server-side (request middleware, celery-beat probes/snapshots); `seed_health` seeds configuration + the two permission rows only — never measurements.
 
 ---
 
