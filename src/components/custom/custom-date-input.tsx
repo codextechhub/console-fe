@@ -1,12 +1,5 @@
 import { cn } from "@/lib/utils";
-import { CalendarDays } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { DatePickerInput } from "@/components/ui/date-picker-input";
 
 interface CustomDateInputProps {
   label: string;
@@ -32,16 +25,6 @@ export const CustomDateInput = ({
   placeholder,
   disabled,
 }: CustomDateInputProps) => {
-  const parsedDate = value ? new Date(value) : undefined;
-  const validDate = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : undefined;
-
-  const formatDateToLocalString = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
   return (
     <div className="grid w-full items-center gap-1">
       <label
@@ -54,35 +37,16 @@ export const CustomDateInput = ({
         {label}
       </label>
       <div className="relative">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              id="date"
-              disabled={disabled}
-              className={cn(
-                "w-full h-10.5 border-none justify-between font-normal text-gray-02 hover:bg-white bg-white hover:text-gray-02 group shadow-none rounded-md text-sm",
-                validDate && "text-black-01",
-                className,
-              )}
-            >
-              {validDate ? validDate.toLocaleDateString() : (placeholder ?? "Select date")}
-              <CalendarDays className="group-hover:text-primary" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={validDate}
-              captionLayout="dropdown"
-              onSelect={(date) => {
-                if (date && onValueChange) {
-                  onValueChange(formatDateToLocalString(date));
-                }
-              }}
-            />
-          </PopoverContent>
-        </Popover>
+        <DatePickerInput
+          id={id}
+          value={value ?? ""}
+          disabled={disabled}
+          required={isRequired}
+          placeholder={placeholder}
+          aria-invalid={Boolean(error)}
+          onChange={(event) => onValueChange?.(event.target.value)}
+          className={cn("border-none", className)}
+        />
       </div>
       {error && <p className="text-xs font-medium text-error">{error}</p>}
     </div>
