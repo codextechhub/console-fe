@@ -10,6 +10,7 @@ import {
 } from "@/redux/services/dashboard/school-mgt-api";
 import { packageStepSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
+import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import type { PackageStepData } from "../create-school";
 
@@ -31,13 +32,31 @@ export default function PackageSetup({ defaultValues, onSubmit, isSubmitting }: 
   // things `label`; selecting a module grants its plan entitlement on create.
   // Dependency hint: a module stays off unless its requirements are also
   // enabled (e.g. Procurement needs Finance), so say so in the option itself.
-  const moduleLabel = new Map((modulesRes?.data ?? []).map((m) => [m.key, m.label]));
+  const moduleByKey = new Map((modulesRes?.data ?? []).map((m) => [m.key, m]));
   const moduleOptions = (modulesRes?.data ?? []).map((m) => ({
     label: m.dependencies?.length
-      ? `${m.label} (requires ${m.dependencies.map((d) => moduleLabel.get(d) ?? d).join(", ")})`
+      ? `${m.label} (requires ${m.dependencies.map((d) => moduleByKey.get(d)?.label ?? d).join(", ")})`
       : m.label,
     value: m.key,
   }));
+
+  // Picking a module pulls its requirements in with it (transitively), so a
+  // school is never created with a module that would resolve Off. The added
+  // chips appear in the multiselect and a toast says why.
+  const expandWithDependencies = (keys: string[]) => {
+    const out = new Set(keys);
+    const stack = [...keys];
+    while (stack.length) {
+      const key = stack.pop()!;
+      for (const dep of moduleByKey.get(key)?.dependencies ?? []) {
+        if (!out.has(dep)) {
+          out.add(dep);
+          stack.push(dep);
+        }
+      }
+    }
+    return [...out];
+  };
 
   const formik = useFormik<PackageStepData>({
     initialValues: defaultValues,
@@ -84,7 +103,18 @@ export default function PackageSetup({ defaultValues, onSubmit, isSubmitting }: 
               maxCount={3}
               isRequired
               defaultValue={formik.values.enabled_modules as string[]}
-              onValueChange={(vals) => formik.setFieldValue("enabled_modules", vals)}
+              onValueChange={(vals) => {
+                const expanded = expandWithDependencies(vals);
+                const added = expanded.filter((k) => !vals.includes(k));
+                if (added.length) {
+                  toast.info(
+                    `Also added ${added
+                      .map((k) => moduleByKey.get(k)?.label ?? k)
+                      .join(", ")} — required by your selection`,
+                  );
+                }
+                formik.setFieldValue("enabled_modules", expanded);
+              }}
               error={
                 formik.touched.enabled_modules
                   ? (formik.errors.enabled_modules as string)
