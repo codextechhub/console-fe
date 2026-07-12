@@ -8,17 +8,19 @@
 // Fake for testing); no email is sent (Copy link copies the real URL); the receipt
 // journal posts automatically on confirmation — the recap mirrors it, never a 2nd post.
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Plus, Download, RefreshCw, Link2, Receipt } from "lucide-react";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CustomerPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SearchSelect } from "@/components/custom/search-select";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import { useGetCollectionsQuery, useGetCollectionsSummaryQuery, useInitiateCollectionMutation, useVerifyCollectionMutation } from "@/redux/services/payments/payments-api";
+import { useGetInvoicesQuery } from "@/redux/services/finance/ar-api";
 import type { Collection } from "@/redux/services/payments/payments-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
@@ -67,8 +69,6 @@ export function CollectionsTab({ entity, currency }: { entity: string; currency?
   const [group, setGroup] = useState("");
   const [provider, setProvider] = useState("");
   const [page, setPage] = useState(1);
-  useEffect(() => { setPage(1); }, [group, provider]);
-
   const listParams = useMemo(() => ({ entity, page, ...(group ? { group } : {}), ...(provider ? { provider } : {}) }), [entity, page, group, provider]);
   const { data, isLoading, isFetching, isError, refetch } = useGetCollectionsQuery(listParams);
   const { data: summaryRes } = useGetCollectionsSummaryQuery({ entity, ...(provider ? { provider } : {}) });
@@ -96,11 +96,11 @@ export function CollectionsTab({ entity, currency }: { entity: string; currency?
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Select value={group} onChange={setGroup} className="w-36">
+          <Select value={group} onChange={(value) => { setGroup(value); setPage(1); }} className="w-36">
             <option value="">All status</option>
             {Object.entries(GROUP).map(([v, g]) => <option key={v} value={v}>{g.label}</option>)}
           </Select>
-          <Select value={provider} onChange={setProvider} className="w-40">
+          <Select value={provider} onChange={(value) => { setProvider(value); setPage(1); }} className="w-40">
             <option value="">All providers</option>
             {Object.entries(PROVIDERS).map(([v, p]) => <option key={v} value={v}>{p.label}</option>)}
           </Select>
@@ -209,25 +209,46 @@ function CollectionDrawer({ collectionId, collections, entity, currency, onClose
 
 function NewCheckoutDrawer({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
   const [customer, setCustomer] = useState("");
+  const [invoice, setInvoice] = useState("");
   const [amount, setAmount] = useState(0);
   const [provider, setProvider] = useState("PAYSTACK");
   const [email, setEmail] = useState("");
   const [narration, setNarration] = useState("");
   const [initiate, { isLoading }] = useInitiateCollectionMutation();
-  const close = () => { setCustomer(""); setAmount(0); setProvider("PAYSTACK"); setEmail(""); setNarration(""); onClose(); };
+  const invoicesQ = useGetInvoicesQuery(
+    { entity, search: customer, status: "POSTED" },
+    { skip: !open || !customer },
+  );
+  const openInvoices = useMemo(
+    () => toArray(invoicesQ.data?.data).filter((i) => i.customer_code === customer && i.balance_due > 0),
+    [invoicesQ.data, customer],
+  );
+  const invoiceOptions = openInvoices.map((i) => ({
+    value: String(i.id),
+    label: `${i.document_number} · ${formatMoney(i.balance_due, currency)} due`,
+  }));
+  const selectedInvoice = openInvoices.find((i) => String(i.id) === invoice);
+  const close = () => { setCustomer(""); setInvoice(""); setAmount(0); setProvider("PAYSTACK"); setEmail(""); setNarration(""); onClose(); };
+  const pickInvoice = (id: string) => {
+    setInvoice(id);
+    const selected = openInvoices.find((i) => String(i.id) === id);
+    if (selected) setAmount(selected.balance_due);
+  };
   const submit = async () => {
     try {
-      const r = await initiate({ entity, amount, customer, provider, payer_email: email.trim() || undefined, narration: narration.trim() || undefined }).unwrap();
+      const r = await initiate({ entity, amount, customer, invoice: invoice ? Number(invoice) : undefined, provider, payer_email: email.trim() || undefined, narration: narration.trim() || undefined }).unwrap();
       const url = r.data?.checkout_url;
       if (url) { try { await navigator.clipboard.writeText(url); } catch { /* ignore */ } }
       toast.success(url ? "Checkout link created and copied." : r.message || "Checkout created.");
       close();
     } catch { /* central */ }
   };
-  // A standalone checkout (no invoice) parks the confirmed cash as customer credit
-  // (a 2140 liability), to be drawn down against invoices later — it does NOT touch AR.
+  // Invoice-linked collections settle AR; an intentionally standalone checkout parks
+  // the confirmed cash as customer credit until it is allocated later.
   const dr: RecapRow[] = [{ code: "", name: "Bank / collections", amount: amount || 0 }];
-  const cr: RecapRow[] = [{ code: "2140", name: "Customer credit / advances", amount: amount || 0 }];
+  const cr: RecapRow[] = invoice
+    ? [{ code: "", name: "Accounts receivable", amount: amount || 0 }]
+    : [{ code: "2140", name: "Customer credit / advances", amount: amount || 0 }];
 
   return (
     <DetailDrawer open={open} onOpenChange={(o) => (o ? undefined : close())}
@@ -237,7 +258,17 @@ function NewCheckoutDrawer({ open, onClose, entity, currency }: { open: boolean;
         <Button disabled={isLoading || amount <= 0 || !customer} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Creating…" : "Create checkout link"}</Button>
       </>}>
       <div className="space-y-4">
-        <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={setCustomer} /></FormField>
+        <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={(value) => { setCustomer(value); setInvoice(""); setAmount(0); }} /></FormField>
+        <FormField label="Invoice (optional)">
+          <SearchSelect
+            options={invoiceOptions}
+            value={invoice}
+            onChange={(e) => pickInvoice(e.target.value)}
+            placeholder={customer ? (invoicesQ.isFetching ? "Loading invoices…" : "No invoice — customer credit") : "Select a customer first"}
+            disabled={!customer || invoicesQ.isFetching}
+          />
+        </FormField>
+        <p className="-mt-2 font-mont text-[11px] text-gray-05">Select an invoice to settle Accounts Receivable; leave blank to hold the payment as customer credit.</p>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} className="[&_input]:h-9" /></FormField>
           <div><p className="mb-1 font-mont text-xs text-gray-05">Provider</p><Select value={provider} onChange={setProvider} className="w-full">{Object.entries(PROVIDERS).map(([v, p]) => <option key={v} value={v}>{p.label}</option>)}</Select></div>
@@ -246,7 +277,9 @@ function NewCheckoutDrawer({ open, onClose, entity, currency }: { open: boolean;
         <FormField label="Narration"><Input value={narration} onChange={(e) => setNarration(e.target.value)} placeholder="e.g. Term 3 tuition — A. Williams" className="h-9 bg-white" /></FormField>
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">On settlement (via webhook)</p>
-          <PostingRecap title="Will post on confirmation" dr={dr} cr={cr} currency={currency} helper="Standalone checkout — the confirmed cash is held as the customer's credit (2140) and drawn down against invoices later. The journal posts automatically when the provider confirms payment." />
+          <PostingRecap title="Will post on confirmation" dr={dr} cr={cr} currency={currency} helper={invoice
+            ? `Invoice ${selectedInvoice?.document_number ?? "selected"} — the confirmed payment settles Accounts Receivable automatically.`
+            : "No invoice selected — the confirmed cash is held as customer credit (2140) until it is allocated later."} />
         </div>
       </div>
     </DetailDrawer>

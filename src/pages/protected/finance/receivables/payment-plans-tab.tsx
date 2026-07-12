@@ -270,7 +270,7 @@ function RecordInstallmentDrawer({ plan, installment, entity, currency, onClose 
       // The receipt advances the plan server-side (post_payment auto-syncs it), and
       // recordPayment invalidates FinancePaymentPlans, so no explicit refresh needed.
       await pay({ id: plan.invoice_id, entity, amount, payment_date: date, method, deposit_account: account }).unwrap();
-      toast.success("Installment recorded.");
+      toast.success("Installment recorded. Receipt email queued.");
       onClose();
     } catch { /* central */ }
   };
