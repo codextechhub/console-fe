@@ -216,25 +216,23 @@ export function SupportTicketComposer() {
 
   return (
     <>
-      <div className="group fixed bottom-5 right-5 z-40 sm:bottom-6 sm:right-6">
-        <span className="pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-lg bg-black-01 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-md transition group-hover:opacity-100 group-focus-within:opacity-100">
+      <div className="group relative">
+        <span className="pointer-events-none absolute right-0 top-full z-50 mt-2 whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-md transition group-hover:opacity-100 group-focus-within:opacity-100">
           Need any help?
         </span>
         <button
           type="button"
           aria-label="Create support ticket"
           onClick={() => setOpen(true)}
-          className="relative isolate grid size-14 place-items-center overflow-hidden rounded-full border border-white/75 bg-white/10 text-[#153c2b] shadow-[0_14px_38px_rgba(15,23,42,.2),inset_0_1px_1px_rgba(255,255,255,.95),inset_0_-1px_1px_rgba(15,23,42,.08)] [backdrop-filter:blur(13px)_saturate(190%)_contrast(112%)] transition duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:bg-white/18 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 active:translate-y-0"
+          className="relative grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700 transition hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
         >
-          <span className="absolute inset-0 -z-10 rounded-full bg-[radial-gradient(circle_at_34%_24%,rgba(255,255,255,.92),rgba(255,255,255,.2)_34%,transparent_62%),radial-gradient(circle_at_50%_78%,rgba(28,140,88,.2),transparent_58%)]" />
-          <span className="absolute inset-[2px] -z-10 rounded-full border border-white/35" />
-          <Headset className="relative size-6 stroke-[2.15] drop-shadow-[0_1px_0_rgba(255,255,255,.9)]" />
+          <Headset className="size-4.5 stroke-[2.15]" />
         </button>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="left-3 right-3 top-auto bottom-3 max-h-[calc(100dvh-1.5rem)] w-auto max-w-none translate-x-0 translate-y-0 gap-0 overflow-y-auto rounded-3xl border-white/75 bg-white/72 p-0 shadow-[0_24px_80px_rgba(15,23,42,.24),inset_0_1px_0_rgba(255,255,255,.92)] [backdrop-filter:blur(22px)_saturate(165%)_contrast(108%)] sm:left-auto sm:right-6 sm:bottom-24 sm:w-[430px] sm:max-w-[calc(100vw-3rem)]"
+          className="left-3 right-3 top-auto bottom-3 max-h-[calc(100dvh-1.5rem)] w-auto max-w-none translate-x-0 translate-y-0 gap-0 overflow-y-auto rounded-3xl border-white bg-white/95 p-0 shadow-[0_24px_80px_rgba(15,23,42,.24),inset_0_1px_0_rgba(255,255,255,.98)] [backdrop-filter:blur(22px)_saturate(150%)] sm:left-auto sm:right-6 sm:top-[72px] sm:bottom-auto sm:w-[430px] sm:max-w-[calc(100vw-3rem)]"
         >
           <div className="pointer-events-none absolute inset-x-3 top-1 h-12 rounded-[22px] bg-gradient-to-b from-white/90 to-transparent" />
           {!created ? (

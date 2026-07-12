@@ -127,7 +127,7 @@ export default function Overview() {
     skip: !canViewSchools,
   });
   const { data: teamMembers, isLoading: teamLoading } = useGetTeamMembersQuery(
-    { page_size: 1 },
+    { page_size: 1, user_type: "CX_STAFF" },
     { skip: !canViewTeam },
   );
   const { data: todo, isLoading: todoLoading } = useGetTodoMineQuery();
@@ -220,7 +220,7 @@ export default function Overview() {
     {
       label: "Invite your team",
       description: "Bring the people you work with into the platform.",
-      to: R.TEAM_MGT.INDEX,
+      to: R.TEAM_MGT.CX,
       done: (teamMembers?.pagination.totalItems ?? 0) > 1,
       visible: canViewTeam,
     },
@@ -245,7 +245,7 @@ export default function Overview() {
 
   const modules = [
     { label: "School Management", copy: "Schools and branches", to: R.SCHOOL_MGT.INDEX, icon: School, show: canViewSchools },
-    { label: "Team Management", copy: "People and invitations", to: R.TEAM_MGT.INDEX, icon: Users, show: canViewTeam },
+    { label: "Users", copy: "CX and school accounts", to: R.TEAM_MGT.CX, icon: Users, show: canViewTeam },
     { label: "Organogram", copy: "Structure and reporting", to: R.ORGANOGRAM.INDEX, icon: Network, show: hasPermission(P.VIEW_ORGANOGRAM) },
     { label: "Tasks", copy: "Goals and accountability", to: R.TODO.INDEX, icon: ClipboardCheck, show: true },
     { label: "Workflow", copy: "Approvals and submissions", to: R.WORKFLOW.APPROVALS, icon: Workflow, show: true },
@@ -299,7 +299,7 @@ export default function Overview() {
               <MetricCard icon={School} label="Active schools" value={schoolStats?.data.active ?? 0} note="Currently active on the platform" to={R.SCHOOL_MGT.INDEX} loading={schoolsLoading} />
             )}
             {canViewTeam && (
-              <MetricCard icon={Users} label="CX team members" value={teamMembers?.pagination.totalItems ?? 0} note="People in your admin workspace" to={R.TEAM_MGT.INDEX} tone="blue" loading={teamLoading} />
+              <MetricCard icon={Users} label="CX team members" value={teamMembers?.pagination.totalItems ?? 0} note="People in your admin workspace" to={R.TEAM_MGT.CX} tone="blue" loading={teamLoading} />
             )}
             <MetricCard icon={ClipboardCheck} label="Open tasks" value={taskStats?.in_progress ?? 0} note={`${taskStats?.overdue ?? 0} overdue`} to={R.TODO.INDEX} tone="amber" loading={todoLoading} />
             <MetricCard icon={Workflow} label="Pending approvals" value={approvals?.count ?? 0} note={`${returned.length} returned to you`} to={R.WORKFLOW.APPROVALS} tone="green" loading={approvalsLoading || submissionsLoading} />

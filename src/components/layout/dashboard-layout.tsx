@@ -49,7 +49,8 @@ function DashboardHeader({
     return [
       { label: "Home", detail: "Admin overview", to: routesPath.PROTECTED.OVERVIEW.INDEX, show: true },
       { label: "School Management", detail: "Schools and branches", to: routesPath.PROTECTED.SCHOOL_MGT.INDEX, show: hasPermission(P.BROWSE_SCHOOLS) },
-      { label: "Team Management", detail: "People and invitations", to: routesPath.PROTECTED.TEAM_MGT.INDEX, show: hasPermission(P.ACCESS_TEAM_PANEL) },
+      { label: "CX Users", detail: "Platform people and invitations", to: routesPath.PROTECTED.TEAM_MGT.CX, show: hasPermission(P.ACCESS_TEAM_PANEL) },
+      { label: "School Users", detail: "School accounts and invitations", to: routesPath.PROTECTED.TEAM_MGT.SCHOOL, show: hasPermission(P.ACCESS_TEAM_PANEL) },
       { label: "Organogram", detail: "Structure and reporting", to: routesPath.PROTECTED.ORGANOGRAM.INDEX, show: hasPermission(P.VIEW_ORGANOGRAM) },
       { label: "Tasks", detail: "Goals and accountability", to: routesPath.PROTECTED.TODO.INDEX, show: true },
       { label: "Roles", detail: "Roles and assignments", to: routesPath.PROTECTED.ROLES.INDEX, show: hasPermission(P.VIEW_ROLES) },
@@ -150,6 +151,7 @@ function DashboardHeader({
       <TopProgressBar />
       <div className="gap-x-3 inline-flex items-center">
         <NotificationsBell />
+        <SupportTicketComposer />
 
         <Separator
           orientation="vertical"
@@ -256,7 +258,6 @@ export default function DashboardLayout({
               clips it. Without this every page needed its own min-w-0. */}
           <div className="grid grid-cols-1 min-w-0 pt-0">{children}</div>
         </SidebarInset>
-        <SupportTicketComposer />
       </SidebarProvider>
     </>
   );
