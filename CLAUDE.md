@@ -1,34 +1,5 @@
 # CLAUDE.md — console-fe
 
-## Study the prototype FIRST — before every design rebuild (required)
-
-The finance/procurement consoles are rebuilt **screen-by-screen to match the
-Claude Design prototype** `Vision-Finance-Board.html` (repo root, gitignored), in
-our **house theme** (never the prototype's palette). Before rebuilding ANY screen:
-
-1. **Render it — do not grep it.** The prototype is a *rendered app*; a raw
-   `grep`/`rg` of the HTML returns **zero** hits for screen labels and will make
-   you wrongly conclude "no design exists." Open it in a headless browser
-   (Playwright, system Chrome — the `verify-design` skill's setup works):
-   `file://<repo>/Vision-Finance-Board.html`, click the nav item for the screen,
-   and screenshot.
-2. **Study it exhaustively — every state, not just the landing view.** Capture and
-   look at: the list/table + its **filters, tabs, KPIs, empty state**; the **detail
-   drawer and EACH of its tabs**; every **create/edit modal or drawer** (open them
-   in the prototype); **footer/row actions**; and any **multi-step flow**. Note
-   exact labels, columns, field order, and button wording.
-3. **Plan, then confirm.** Present the screen's structure as a short plan and get
-   sign-off before building. Call out **honest adaptations** where our generic
-   model lacks a prototype field (e.g. school-specific "Guardian type"/student
-   sub-name) — adapt, don't fake.
-4. Only then build (house theme) → `/verify-design` → scrub → commit in batches to
-   `main`.
-
-Honesty rules carry over: never fake an action (email-type actions are present but
-disabled-with-tooltip until a service exists); "posting" panels recap the **real**
-journal, never imply a second one. See `docs/FINANCE_BUILD_NOTES.md` for the full
-workflow, conventions, theme structure, progress/roadmap and endpoint map.
-
 ## Pre-ship review (`ship-check`)
 
 When I say **`ship-check`** (or "run the ship-check") on a change, answer these
