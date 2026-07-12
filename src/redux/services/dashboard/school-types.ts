@@ -73,6 +73,8 @@ export interface XVSModule {
   key: string
   label: string
   description: string
+  /** Module keys that must also be enabled or this one stays off. */
+  dependencies: string[]
   is_active: boolean
 }
 

@@ -398,6 +398,14 @@ function Features() {
   const enabled = new Map((effective.data?.data ?? []).map((e) => [e.key, e.enabled]));
   const entByKey = new Map((entitlements.data?.data ?? []).map((e) => [e.capability_key, e]));
   const overrideByKey = new Map((overrides.data?.data ?? []).map((o) => [o.capability_key, o]));
+  const labelByKey = new Map((catalogue.data?.data ?? []).map((c) => [c.key, c.label]));
+  // A feature with any dependency off at this scope resolves Off no matter
+  // what its own levers say — the rows must explain that.
+  const depsStatus = (c: Capability) =>
+    (c.dependencies ?? []).map((key) => ({
+      label: labelByKey.get(key) ?? pretty(key),
+      on: enabled.get(key) ?? false,
+    }));
 
   const groups = new Map<string, Capability[]>();
   for (const c of catalogue.data?.data ?? []) {
@@ -437,6 +445,7 @@ function Features() {
                   cap={c}
                   school={school}
                   on={enabled.get(c.key) ?? false}
+                  deps={depsStatus(c)}
                   entitlement={entByKey.get(c.key)}
                   override={overrideByKey.get(c.key)}
                   openDetail={() => setDetail(c)}
@@ -451,6 +460,7 @@ function Features() {
         <FeatureDetail
           cap={detail}
           school={school}
+          deps={depsStatus(detail)}
           entitlement={entByKey.get(detail.key)}
           override={overrideByKey.get(detail.key)}
           close={() => setDetail(null)}
@@ -461,10 +471,13 @@ function Features() {
   );
 }
 
+type DepStatus = { label: string; on: boolean };
+
 function FeatureRow({
   cap,
   school,
   on,
+  deps,
   entitlement,
   override,
   openDetail,
@@ -472,6 +485,7 @@ function FeatureRow({
   cap: Capability;
   school: string;
   on: boolean;
+  deps: DepStatus[];
   entitlement?: Entitlement;
   override?: Override;
   openDetail: () => void;
@@ -485,16 +499,23 @@ function FeatureRow({
 
   const inPlan = entitlement?.state === "GRANTED";
   const status = override?.state && override.state !== "INHERIT" ? override.state : "INHERIT";
+  const unmet = deps.filter((d) => !d.on);
 
   return (
     <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
       <button onClick={openDetail} className="min-w-0 flex-1 text-left">
-        <p className="flex items-center gap-2 text-sm font-medium">
+        <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
           {cap.label}
           {on ? (
             <Badge variant="success" className="font-mont text-xs">On</Badge>
           ) : (
             <Badge variant="inactive" className="font-mont text-xs">Off</Badge>
+          )}
+          {/* An unmet dependency keeps the feature off regardless of its own levers. */}
+          {!on && unmet.length > 0 && (
+            <Badge variant="pending" className="font-mont text-xs">
+              Needs {unmet.map((d) => d.label).join(", ")}
+            </Badge>
           )}
         </p>
         {cap.description && <p className="text-xs leading-5 text-gray-01">{cap.description}</p>}
@@ -555,12 +576,14 @@ function FeatureRow({
 function FeatureDetail({
   cap,
   school,
+  deps,
   entitlement,
   override,
   close,
 }: {
   cap: Capability;
   school: string;
+  deps: DepStatus[];
   entitlement?: Entitlement;
   override?: Override;
   close: () => void;
@@ -581,6 +604,9 @@ function FeatureDetail({
           <div className="rounded-lg border border-white-02 p-4">
             <p className="font-mont text-xs font-semibold text-gray-01">HOW THIS RESOLVES</p>
             <ul className="mt-2 space-y-1.5 text-xs leading-5 text-gray-600">
+              {deps.length > 0 && (
+                <li>0. Needs {deps.map((d) => d.label).join(" and ")} switched on first — without that it stays off no matter what.</li>
+              )}
               {cap.requires_entitlement ? (
                 <>
                   <li>1. In the plan → on. Not in the plan → off.</li>
@@ -594,6 +620,26 @@ function FeatureDetail({
               )}
             </ul>
           </div>
+
+          {deps.length > 0 && (
+            <div className="rounded-lg border border-white-02 p-4">
+              <p className="font-mont text-xs font-semibold text-gray-01">
+                REQUIRES — {school ? "AT THIS SCHOOL" : "AT PLATFORM"}
+              </p>
+              <ul className="mt-2 space-y-2">
+                {deps.map((d) => (
+                  <li key={d.label} className="flex items-center justify-between text-xs">
+                    <span className="font-medium">{d.label}</span>
+                    {d.on ? (
+                      <Badge variant="success" className="font-mont text-xs">On</Badge>
+                    ) : (
+                      <Badge variant="rejected" className="font-mont text-xs">Off — blocking</Badge>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="rounded-lg border border-white-02 p-4">
             <p className="font-mont text-xs font-semibold text-gray-01">
