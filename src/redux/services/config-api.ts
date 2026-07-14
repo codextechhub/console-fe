@@ -117,11 +117,19 @@ export const configApi = baseApi.injectEndpoints({
       query: (params) => `/config/values/${generateQueryString(params)}`,
       providesTags: ["Config"],
     }),
+    // Scope is the asserted tenant (?tenant=<slug>, injected centrally or set
+    // explicitly to target another tenant's config) plus optional ?branch=.
+    // The old body-level `school` scope field is gone.
     setConfigValues: builder.mutation<
       { data: ConfigValue[] },
-      { values: Array<{ key: string; value: unknown; reason: string }>; school?: string; branch?: string }
+      { values: Array<{ key: string; value: unknown; reason: string }>; tenant?: string; branch?: string }
     >({
-      query: (body) => ({ url: "/config/values/", method: "POST", body }),
+      query: ({ tenant, branch, ...body }) => ({
+        url: "/config/values/",
+        method: "POST",
+        body,
+        params: { ...(tenant ? { tenant } : {}), ...(branch ? { branch } : {}) },
+      }),
       invalidatesTags: ["Config"],
     }),
     getEffectiveConfig: builder.query<{ data: Record<string, unknown> }, Record<string, string>>({
@@ -134,8 +142,8 @@ export const configApi = baseApi.injectEndpoints({
       query: (params) => `/config/capabilities/${generateQueryString(params ?? {})}`,
       providesTags: ["Config"],
     }),
-    // Effective on/off per active capability at a scope (?school= / ?branch=;
-    // omit both for platform). Backend: EffectiveCapabilitiesView.
+    // Effective on/off per active capability at a scope (?tenant= / ?branch=;
+    // omit for the caller's own platform scope). Backend: EffectiveCapabilitiesView.
     getEffectiveCapabilities: builder.query<
       { data: Array<{ key: string; enabled: boolean }> },
       Record<string, string>
@@ -159,8 +167,15 @@ export const configApi = baseApi.injectEndpoints({
       query: (params) => `/config/entitlements/${generateQueryString(params)}`,
       providesTags: ["Config"],
     }),
+    // Scope (tenant/branch) rides as query params — the backend derives it from
+    // the asserted tenant, not a body field.
     setEntitlement: builder.mutation<{ data: Entitlement }, Record<string, unknown>>({
-      query: (body) => ({ url: "/config/entitlements/", method: "POST", body }),
+      query: ({ tenant, branch, ...body }) => ({
+        url: "/config/entitlements/",
+        method: "POST",
+        body,
+        params: { ...(tenant ? { tenant } : {}), ...(branch ? { branch } : {}) },
+      }),
       invalidatesTags: ["Config"],
     }),
     getOverrides: builder.query<Page<Override>, Record<string, string>>({
@@ -168,7 +183,12 @@ export const configApi = baseApi.injectEndpoints({
       providesTags: ["Config"],
     }),
     setOverride: builder.mutation<{ data: Override }, Record<string, unknown>>({
-      query: (body) => ({ url: "/config/overrides/", method: "POST", body }),
+      query: ({ tenant, branch, ...body }) => ({
+        url: "/config/overrides/",
+        method: "POST",
+        body,
+        params: { ...(tenant ? { tenant } : {}), ...(branch ? { branch } : {}) },
+      }),
       invalidatesTags: ["Config"],
     }),
 

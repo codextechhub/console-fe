@@ -1,4 +1,5 @@
 import { generateQueryString } from "@/utils/helpers";
+import { getTenantSlug } from "@/utils/tenant-context";
 import { baseApi } from "../base-api";
 import type {
   ChangeRequest,
@@ -19,29 +20,32 @@ import type {
 export const rbacApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
 
-    // ── Platform Roles ─────────────────────────────────────────────────────────
+    // ── Tenant Roles (unified; addressed by per-tenant KEY, not id) ─────────────
+    // Old /rbac/platform/roles/... and /rbac/schools/<slug>/roles/... are gone;
+    // this single surface is scoped by the asserted ?tenant= (added centrally)
+    // and the matching path slug from the auth slice.
     getPlatformRoles: builder.query<PaginatedResponse<PlatformRole>, Record<string, string | number>>({
-      query: (params) => ({ url: `/rbac/platform/roles/${generateQueryString(params)}`, method: "GET" }),
+      query: (params) => ({ url: `/rbac/tenants/${getTenantSlug()}/roles/${generateQueryString(params)}`, method: "GET" }),
       providesTags: ["PlatformRoles"],
     }),
 
     getPlatformRoleDetail: builder.query<{ data: PlatformRoleDetail }, string>({
-      query: (id) => ({ url: `/rbac/platform/roles/${id}/`, method: "GET" }),
+      query: (key) => ({ url: `/rbac/tenants/${getTenantSlug()}/roles/${encodeURIComponent(key)}/`, method: "GET" }),
       providesTags: ["PlatformRoles"],
     }),
 
     createPlatformRole: builder.mutation<{ data: PlatformRoleDetail }, Record<string, unknown>>({
-      query: (body) => ({ url: `/rbac/platform/roles/`, method: "POST", body }),
+      query: (body) => ({ url: `/rbac/tenants/${getTenantSlug()}/roles/`, method: "POST", body }),
       invalidatesTags: ["PlatformRoles"],
     }),
 
-    updatePlatformRole: builder.mutation<{ data: PlatformRoleDetail }, { id: string; body: Record<string, unknown> }>({
-      query: ({ id, body }) => ({ url: `/rbac/platform/roles/${id}/`, method: "PATCH", body }),
+    updatePlatformRole: builder.mutation<{ data: PlatformRoleDetail }, { key: string; body: Record<string, unknown> }>({
+      query: ({ key, body }) => ({ url: `/rbac/tenants/${getTenantSlug()}/roles/${encodeURIComponent(key)}/`, method: "PATCH", body }),
       invalidatesTags: ["PlatformRoles"],
     }),
 
     deletePlatformRole: builder.mutation<void, string>({
-      query: (id) => ({ url: `/rbac/platform/roles/${id}/`, method: "DELETE" }),
+      query: (key) => ({ url: `/rbac/tenants/${getTenantSlug()}/roles/${encodeURIComponent(key)}/`, method: "DELETE" }),
       invalidatesTags: ["PlatformRoles"],
     }),
 
@@ -191,35 +195,45 @@ export const rbacApi = baseApi.injectEndpoints({
       invalidatesTags: ["PermissionDependencies"],
     }),
 
-    // ── User Assignments ───────────────────────────────────────────────────────
+    // ── Tenant Role Assignments (was /rbac/platform/role-assignments/) ──────────
     getUserAssignments: builder.query<PaginatedResponse<UserAssignment>, Record<string, string | number>>({
-      query: (params) => ({ url: `/rbac/platform/role-assignments/${generateQueryString(params)}`, method: "GET" }),
+      query: (params) => ({ url: `/rbac/tenants/${getTenantSlug()}/role-assignments/${generateQueryString(params)}`, method: "GET" }),
       providesTags: ["UserAssignments"],
     }),
 
     assignRole: builder.mutation<{ data: UserAssignment }, { user_id: string; role_id: string }>({
-      query: ({ user_id, role_id }) => ({ url: `/rbac/platform/role-assignments/`, method: "POST", body: { user: user_id, role: role_id } }),
+      query: ({ user_id, role_id }) => ({ url: `/rbac/tenants/${getTenantSlug()}/role-assignments/`, method: "POST", body: { user: user_id, role: role_id } }),
       invalidatesTags: ["UserAssignments"],
     }),
 
     revokeAssignment: builder.mutation<{ data: UserAssignment }, { id: string; reason_note: string }>({
-      query: ({ id, reason_note }) => ({ url: `/rbac/platform/role-assignments/${id}/revoke/`, method: "POST", body: { reason_note } }),
+      query: ({ id, reason_note }) => ({ url: `/rbac/tenants/${getTenantSlug()}/role-assignments/${id}/revoke/`, method: "POST", body: { reason_note } }),
       invalidatesTags: ["UserAssignments"],
     }),
 
-    // ── Change Requests ────────────────────────────────────────────────────────
+    // ── Tenant Role Change Requests (was /rbac/platform/change-requests/) ───────
     getChangeRequests: builder.query<PaginatedResponse<ChangeRequest>, Record<string, string | number>>({
-      query: (params) => ({ url: `/rbac/platform/change-requests/${generateQueryString(params)}`, method: "GET" }),
+      query: (params) => ({ url: `/rbac/tenants/${getTenantSlug()}/role-change-requests/${generateQueryString(params)}`, method: "GET" }),
       providesTags: ["ChangeRequests"],
     }),
 
     createChangeRequest: builder.mutation<{ data: ChangeRequest }, { target_role_id: string; delta_items: { permission_key: string; operation: "ADD" | "REMOVE" }[]; justification: string }>({
-      query: (body) => ({ url: `/rbac/platform/change-requests/`, method: "POST", body }),
+      // `target_role` (a role pk) is the wire field; the page still speaks `target_role_id`.
+      query: ({ target_role_id, ...rest }) => ({
+        url: `/rbac/tenants/${getTenantSlug()}/role-change-requests/`,
+        method: "POST",
+        body: { target_role: target_role_id, ...rest },
+      }),
       invalidatesTags: ["ChangeRequests"],
     }),
 
     decideChangeRequest: builder.mutation<{ data: ChangeRequest }, { id: string; decision: "APPROVED" | "DENIED"; reviewer_note?: string }>({
-      query: ({ id, ...body }) => ({ url: `/rbac/platform/change-requests/${id}/decide/`, method: "POST", body }),
+      // New contract: { action: APPROVE|DENY, notes }. Map from the page's decision/reviewer_note.
+      query: ({ id, decision, reviewer_note }) => ({
+        url: `/rbac/tenants/${getTenantSlug()}/role-change-requests/${id}/decide/`,
+        method: "POST",
+        body: { action: decision === "APPROVED" ? "APPROVE" : "DENY", notes: reviewer_note },
+      }),
       invalidatesTags: ["ChangeRequests"],
     }),
 

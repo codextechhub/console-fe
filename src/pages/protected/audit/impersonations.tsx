@@ -111,7 +111,7 @@ function ImpersonationDetailDrawer({
                     <ActorCell label={session.target_email} email={session.target_email} userId={session.target_user} />
                     <div className="min-w-0">
                       <p className="text-xs font-medium truncate">{session.target_email}</p>
-                      <p className="text-[10px] text-gray-01">School #{session.school}</p>
+                      <p className="text-[10px] text-gray-01">Tenant #{session.tenant}</p>
                     </div>
                   </div>
                 </div>
@@ -241,7 +241,7 @@ export default function Impersonations() {
   // Derive unique values for secondary filters from loaded data
   const staffOptions = useMemo(() => [...new Set(raw.map((i) => i.staff_email))].sort(), [raw]);
   const targetOptions = useMemo(() => [...new Set(raw.map((i) => i.target_email))].sort(), [raw]);
-  const schoolOptions = useMemo(() => [...new Set(raw.map((i) => i.school))].sort(), [raw]);
+  const schoolOptions = useMemo(() => [...new Set(raw.map((i) => i.tenant))].sort(), [raw]);
 
   // Client-side filter + sort
   const list = useMemo(() => {
@@ -253,7 +253,7 @@ export default function Impersonations() {
     return raw
       .filter((i) => !staffFilter || i.staff_email === staffFilter)
       .filter((i) => !targetFilter || i.target_email === targetFilter)
-      .filter((i) => !schoolFilter || String(i.school) === schoolFilter)
+      .filter((i) => !schoolFilter || String(i.tenant) === schoolFilter)
       .filter((i) => cutoff === 0 || new Date(i.started_at).getTime() >= cutoff)
       .sort((a, b) => {
         if (a.status === "ACTIVE" && b.status !== "ACTIVE") return -1;
@@ -413,14 +413,14 @@ export default function Impersonations() {
                           <ActorCell label={i.target_email} email={i.target_email} userId={i.target_user} />
                           <div className="min-w-0">
                             <p className="text-xs font-medium truncate max-w-[160px]">{i.target_email}</p>
-                            <p className="text-[10px] text-gray-01">School #{i.school}</p>
+                            <p className="text-[10px] text-gray-01">Tenant #{i.tenant}</p>
                           </div>
                         </div>
                       </td>
 
                       {/* School */}
                       <td className="px-3 py-3">
-                        <span className="text-xs text-gray-01">#{i.school}</span>
+                        <span className="text-xs text-gray-01">#{i.tenant}</span>
                       </td>
 
                       {/* Justification */}

@@ -4,6 +4,10 @@ export interface Auth {
   session_id?: number
   user?: User | null
   school?: AuthSchool | null
+  /** The caller's own tenant — asserted on every authenticated request as ?tenant=<slug>. */
+  tenant?: AuthTenant | null
+  /** When set, requests run as an impersonated target: overrides the tenant assertion + sends the session header. */
+  impersonation?: ActiveImpersonation | null
   permissions?: string[]
 }
 
@@ -12,6 +16,18 @@ export interface AuthSchool {
   name: string
   slug: string
   logo: string | null
+}
+
+/** Session tenant context — from the login/`/me` `data.tenant` and the `tenant_slug` JWT claim. */
+export interface AuthTenant {
+  slug: string
+  name: string
+}
+
+/** Active impersonation session — the target tenant's slug is asserted in place of the caller's. */
+export interface ActiveImpersonation {
+  id: number
+  tenantSlug: string
 }
 
 export interface User {

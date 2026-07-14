@@ -177,7 +177,7 @@ export function EndpointDrawer({
             <div className="mt-3 space-y-2">
               {d.affected_tenants.length ? (
                 d.affected_tenants.map((t) => (
-                  <div key={t.school_id} className="flex items-center justify-between rounded-md border p-3">
+                  <div key={t.tenant_id} className="flex items-center justify-between rounded-md border p-3">
                     <div>
                       <p className="text-sm font-medium">{t.name}</p>
                       <p className="text-xs text-gray-01">{t.requests.toLocaleString()} requests</p>

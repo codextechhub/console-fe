@@ -79,11 +79,11 @@ export interface ImpersonationSession {
   id: number;
   staff_user: number;
   staff_email: string;
-  school: number;
+  tenant: number;
   target_user: number;
   target_email: string;
   justification: string;
-  status: "ACTIVE" | "ENDED";
+  status: "ACTIVE" | "ENDED" | "EXPIRED";
   started_at: string;
   ends_at: string;
   ended_at: string | null;

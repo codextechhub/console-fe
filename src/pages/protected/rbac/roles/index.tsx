@@ -90,7 +90,7 @@ export default function RolesList() {
     users: <span className="font-medium">{role.assigned_users_count}</span>,
     perms: <span className="font-medium">{role.permissions_count}</span>,
     created: formatRelativeDate(role.created_at),
-    _id: role.id,
+    _key: role.key,
     _system: role.is_system_role,
     _locked: role.is_locked,
   }));
@@ -164,18 +164,18 @@ export default function RolesList() {
             tableBodyList={tableData}
             loading={isLoading}
             dropDown
-            dropDownList={(row: { _id: string; _system: boolean; _locked: boolean }) => [
+            dropDownList={(row: { _key: string; _system: boolean; _locked: boolean }) => [
               ...(hasPermission(P.MODIFY_ROLE) ? [{
                 label: "Edit",
                 className: "",
-                onActionClick: () => navigate(routesPath.PROTECTED.ROLES.EDIT(row._id)),
+                onActionClick: () => navigate(routesPath.PROTECTED.ROLES.EDIT(row._key)),
               }] : []),
               ...(hasPermission(P.REVOKE_ROLE) && !row._system && !row._locked
                 ? [{
                     label: "Delete",
                     className: "text-destructive focus:text-destructive focus:bg-destructive/10",
                     onActionClick: () =>
-                      deleteRole(row._id)
+                      deleteRole(row._key)
                         .unwrap()
                         .then(() => toast.success("Role deleted."))
                         .catch(() => {}),

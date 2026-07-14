@@ -73,11 +73,13 @@ function NewRequestSheet({
 
   const addDelta = () => setDeltas((s) => [...s, { permission_key: "", operation: "ADD" }]);
   const removeDelta = (i: number) => setDeltas((s) => s.filter((_, j) => j !== i));
-  const updateDelta = (i: number, field: keyof ChangeRequestDelta, value: string) =>
+  const updateDelta = (i: number, field: "permission_key" | "operation", value: string) =>
     setDeltas((s) => s.map((d, j) => j === i ? { ...d, [field]: value } : d));
 
   const handleSubmit = () => {
-    const validDeltas = deltas.filter((d) => d.permission_key);
+    const validDeltas = deltas
+      .filter((d) => d.permission_key)
+      .map((d) => ({ permission_key: d.permission_key as string, operation: d.operation }));
     if (!targetRoleId || !justification.trim() || validDeltas.length === 0) {
       toast.error("Fill in all required fields and add at least one delta.");
       return;
@@ -244,7 +246,7 @@ function RequestDetailSheet({
                   <Badge variant={d.operation === "ADD" ? "active" : "deactivated"}>
                     {d.operation}
                   </Badge>
-                  <span className="font-mono text-xs text-black-01">{d.permission_key}</span>
+                  <span className="font-mono text-xs text-black-01">{d.permission?.key ?? d.permission_key}</span>
                 </div>
               ))}
               {request.delta_items.length === 0 && (
@@ -253,22 +255,14 @@ function RequestDetailSheet({
             </div>
           </div>
 
-          {(request.decided_by_name || request.reviewer_note) && (
+          {request.reviewer_notes && (
             <div className="space-y-2">
               <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Reviewer</p>
               <div className="bg-white border border-white-02 rounded-md divide-y divide-white-02">
-                {request.decided_by_name && (
-                  <div className="flex items-start justify-between gap-4 px-4 py-3">
-                    <p className="text-xs text-gray-01 font-mont shrink-0">Reviewer</p>
-                    <p className="text-xs font-medium text-black-01">{request.decided_by_name}</p>
-                  </div>
-                )}
-                {request.reviewer_note && (
-                  <div className="flex items-start justify-between gap-4 px-4 py-3">
-                    <p className="text-xs text-gray-01 font-mont shrink-0">Notes</p>
-                    <p className="text-xs font-medium text-black-01 text-right">{request.reviewer_note}</p>
-                  </div>
-                )}
+                <div className="flex items-start justify-between gap-4 px-4 py-3">
+                  <p className="text-xs text-gray-01 font-mont shrink-0">Notes</p>
+                  <p className="text-xs font-medium text-black-01 text-right">{request.reviewer_notes}</p>
+                </div>
               </div>
             </div>
           )}
@@ -390,7 +384,23 @@ export default function ChangeRequests() {
     refetchOnMountOrArgChange: true,
   });
 
-  const requests = data?.data ?? [];
+  // The change-request payload carries only the target role's pk, so resolve a
+  // display name from the tenant roles list.
+  const { data: rolesData } = useGetPlatformRolesQuery({ page: 1, page_size: 200 });
+  const roleNameByPk = useMemo(
+    () => new Map((rolesData?.data ?? []).map((r) => [String(r.id), r.name])),
+    [rolesData],
+  );
+
+  const requests = useMemo(
+    () =>
+      (data?.data ?? []).map((r) => ({
+        ...r,
+        target_role_name: roleNameByPk.get(String(r.target_role)) ?? r.target_role_name ?? String(r.target_role),
+        requested_by_name: r.requested_by_name ?? String(r.requested_by),
+      })),
+    [data, roleNameByPk],
+  );
   const pending = requests.filter((r) => r.status === "PENDING").length;
   const approved = requests.filter((r) => r.status === "APPROVED" || r.status === "APPLIED").length;
   const denied = requests.filter((r) => r.status === "DENIED").length;

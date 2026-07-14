@@ -81,7 +81,7 @@ export default function TenantsPage() {
       </div>
       <HealthTable
         onRowClick={(index) =>
-          setSelectedTenant({ id: tenants[index].school_id, name: tenants[index].name })
+          setSelectedTenant({ id: tenants[index].tenant_id, name: tenants[index].name })
         }
         headers={["Tenant", "Status", "Requests", "RPM", "P95 latency", "Error rate", "Volume"]}
         rows={tenants.map((t) => [

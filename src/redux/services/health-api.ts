@@ -16,10 +16,10 @@ export interface Task { id: string; task_name: string; label: string; kind: stri
 export interface Alert { id: string; rule_name: string; severity: number; title: string; service_key: string | null; value: number; threshold: number; status: string; fired_at: string; resolved_at: string | null; incident_id: string | null }
 export interface AlertRule { id: string; name: string; metric: string; comparator: string; threshold: number; duration_sec: number; severity: number; target_service_key: string | null; target_queue: string; channel: string; is_enabled: boolean }
 export interface Reliability { mtta_min: number | null; mttr_min: number | null; incidents: number; active: number; window_days: number }
-export interface TenantHealth { school_id: number; name: string; requests: number; rpm: number; error_rate: number; p95: number; noisy: boolean; status: HealthStatus }
+export interface TenantHealth { tenant_id: number; name: string; requests: number; rpm: number; error_rate: number; p95: number; noisy: boolean; status: HealthStatus }
 export interface Slo { service: string; service_key: string; target: number; current: number; window_days: number; error_budget_remaining: number; breached: boolean }
 export interface ServiceDetail extends Service { uptime: Monitor | null; recent_alerts: Alert[] }
-export interface EndpointDetail { route: string; totals: { requests: number; error_rate: number; avg_ms: number; s2: number; s3: number; s4: number; s5: number; throttled: number }; p50: number; p95: number; p99: number; series: SeriesPoint[]; affected_tenants: Array<{ school_id: number; name: string; requests: number; error_rate: number }> }
+export interface EndpointDetail { route: string; totals: { requests: number; error_rate: number; avg_ms: number; s2: number; s3: number; s4: number; s5: number; throttled: number }; p50: number; p95: number; p99: number; series: SeriesPoint[]; affected_tenants: Array<{ tenant_id: number; name: string; requests: number; error_rate: number }> }
 export interface IncidentDetail extends Incident { postmortem?: string; acknowledged_at?: string | null; resolved_at?: string | null; timeline: Array<{ id: string; kind: string; who: string; text: string; created_at: string }> }
 export interface TenantDetail { range: string; school_id: number; kpis: Record<"latency" | "traffic" | "errors" | "saturation", Signal>; series: SeriesPoint[]; endpoints: Endpoint[] }
 interface Page<T> { data: T[]; pagination: { currentPage: number; pageSize: number; totalItems: number; totalPages: number } }

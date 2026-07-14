@@ -1,5 +1,10 @@
 export interface PlatformRole {
   id: string;
+  /** Per-tenant slug key — how roles are addressed on the unified RBAC surface. */
+  key: string;
+  /** Owning tenant slug (read-only). */
+  tenant?: string;
+  branch?: string | null;
   name: string;
   description?: string;
   status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
@@ -105,25 +110,31 @@ export interface UserAssignment {
 }
 
 export interface ChangeRequestDelta {
-  permission_key: string;
+  /** Write shape (create): the permission key being added/removed. */
+  permission_key?: string;
+  /** Read shape: the resolved permission object returned by the backend. */
+  permission?: { key: string; description?: string } | null;
   operation: "ADD" | "REMOVE";
   permission_description?: string;
 }
 
 export interface ChangeRequest {
   id: string;
-  target_role_id: string;
-  target_role_name: string;
+  /** Target role primary key (read-only from the backend). */
+  target_role: string;
+  /** Resolved client-side from the tenant roles list for display. */
+  target_role_name?: string;
   delta_items: ChangeRequestDelta[];
   status: "PENDING" | "APPROVED" | "DENIED" | "APPLIED" | "APPLY_FAILED";
-  requested_by_id: string;
-  requested_by_name: string;
+  /** Requester / reviewer primary keys (the backend no longer returns display names). */
+  requested_by: string;
+  requested_by_name?: string;
+  reviewer: string | null;
+  reviewer_notes: string | null;
+  impact_summary?: unknown;
   justification: string;
   submitted_at: string;
   decided_at: string | null;
-  decided_by_id: string | null;
-  decided_by_name: string | null;
-  reviewer_note: string | null;
 }
 
 export interface PaginatedResponse<T> {

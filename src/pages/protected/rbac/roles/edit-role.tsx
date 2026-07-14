@@ -24,9 +24,10 @@ const schema = Yup.object({
 });
 
 export default function EditRole() {
-  const { id } = useParams<{ id: string }>();
+  // The `:id` route segment now carries the per-tenant role KEY, not a numeric id.
+  const { id: roleKey } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: roleData, isLoading: roleLoading } = useGetPlatformRoleDetailQuery(id ?? "", { skip: !id });
+  const { data: roleData, isLoading: roleLoading } = useGetPlatformRoleDetailQuery(roleKey ?? "", { skip: !roleKey });
   const { data: groupsData } = useGetPermissionGroupsQuery({ page_size: 100 });
   const [updateRole, { isLoading }] = useUpdatePlatformRoleMutation();
   const [groupSearch, setGroupSearch] = useState("");
@@ -93,7 +94,7 @@ export default function EditRole() {
           validationSchema={schema}
           onSubmit={(values, { setSubmitting }) => {
             updateRole({
-              id: id!,
+              key: roleKey!,
               body: {
                 name: values.name,
                 description: values.description,

@@ -144,7 +144,7 @@ function ScopePicker({ value, onChange }: { value: string; onChange: (schoolId: 
       <SearchSelect
         placeholder="Platform (all schools)"
         loading={schools.isLoading}
-        options={(schools.data?.data ?? []).map((s) => ({ value: String(s.id), label: s.name }))}
+        options={(schools.data?.data ?? []).map((s) => ({ value: s.slug, label: s.name }))}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
@@ -385,7 +385,7 @@ function Features() {
   const [school, setSchool] = useState("");
   const [detail, setDetail] = useState<Capability | null>(null);
   const [creating, setCreating] = useState(false);
-  const scope = school ? { school } : {};
+  const scope: Record<string, string> = school ? { tenant: school } : {};
   const catalogue = useGetCapabilitiesQuery({ page_size: "100" });
   const effective = useGetEffectiveCapabilitiesQuery(scope);
   // The scoped lists back the two plain controls ("In plan" / "Status").
@@ -495,7 +495,7 @@ function FeatureRow({
   const [setOver, overState] = useSetOverrideMutation();
   const canEntitle = hasPermission(P.MANAGE_ENTITLEMENTS);
   const canOverride = hasPermission(P.MANAGE_CONFIG_OVERRIDES);
-  const scopeBody = school ? { school } : {};
+  const scopeBody: Record<string, string> = school ? { tenant: school } : {};
 
   const inPlan = entitlement?.state === "GRANTED";
   const status = override?.state && override.state !== "INHERIT" ? override.state : "INHERIT";
@@ -707,7 +707,7 @@ function Audit() {
   const q = useGetConfigAuditQuery({
     page: String(page),
     created_after: createdAfter,
-    ...(school ? { school } : {}),
+    ...(school ? { tenant: school } : {}),
   });
 
   const tableData = (q.data?.data ?? []).map((x) => {

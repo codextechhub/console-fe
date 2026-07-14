@@ -5,7 +5,8 @@ import {
   createApi,
   fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
-import { resetAuth, setToken, updatePermissions } from "../features/auth/auth-slice";
+import { resetAuth, setToken, updatePermissions, updateTenant } from "../features/auth/auth-slice";
+import type { AuthTenant } from "../features/auth/auth-types";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { routesPath } from "@/routes/routes-path";
@@ -34,17 +35,83 @@ const AUTH_ENDPOINTS = new Set([
   "specialLoginPreview",
 ]);
 
+// Endpoints that operate purely on the caller and therefore must NOT carry the
+// mandatory `?tenant=` assertion (the backend 400s if one is sent to these).
+// Union of the unauthenticated auth routes plus the self-service `/me` family
+// and logout. Mirrors the "Exempt" list in docs/tenants/frontend-migration.md.
+const TENANT_EXEMPT_ENDPOINTS = new Set([
+  ...AUTH_ENDPOINTS,
+  "logout",
+  "getMe",
+  "getMySecurityStats",
+  "getMyPasswordResets",
+  "changeMyPassword",
+]);
+
+// Impersonation management endpoints act as the platform admin, never as the
+// impersonated target — so they never receive the impersonation session header.
+const IMPERSONATION_ENDPOINTS = new Set([
+  "getImpersonations",
+  "startImpersonation",
+  "endImpersonation",
+]);
+
+const readAuth = (getState: () => unknown): {
+  tenantSlug: string;
+  impersonation: { id: number; tenantSlug: string } | null;
+} => {
+  const auth = (getState() as { auth?: {
+    tenant?: { slug?: string } | null;
+    impersonation?: { id: number; tenantSlug: string } | null;
+  } })?.auth;
+  return {
+    tenantSlug: auth?.tenant?.slug ?? "",
+    impersonation: auth?.impersonation ?? null,
+  };
+};
+
 export const baseQuery = fetchBaseQuery({
   baseUrl,
-  prepareHeaders: (headers, { endpoint }) => {
+  prepareHeaders: (headers, { endpoint, getState }) => {
     const accessToken = getAccessToken();
     if (accessToken && !AUTH_ENDPOINTS.has(endpoint)) {
       headers.set("Authorization", `Bearer ${accessToken}`);
+    }
+    // While an impersonation session is active, every data call (but not the
+    // impersonation management endpoints themselves, nor self-service routes)
+    // rides with the session header so the backend runs it as the target user.
+    const { impersonation } = readAuth(getState);
+    if (
+      impersonation &&
+      !TENANT_EXEMPT_ENDPOINTS.has(endpoint) &&
+      !IMPERSONATION_ENDPOINTS.has(endpoint)
+    ) {
+      headers.set("X-Impersonation-Session", String(impersonation.id));
     }
     headers.set("accept", "application/json");
     return headers;
   },
 });
+
+// True when the request already carries an explicit `tenant` assertion (e.g.
+// impersonation start targeting another tenant, or the config API targeting a
+// school) — those must never be re-stamped with the caller's own tenant.
+const hasTenantParam = (args: string | FetchArgs): boolean => {
+  if (typeof args === "string") return /[?&]tenant=/.test(args);
+  if (typeof args.url === "string" && /[?&]tenant=/.test(args.url)) return true;
+  const params = (args as FetchArgs).params as Record<string, unknown> | undefined;
+  return !!params && params.tenant != null && params.tenant !== "";
+};
+
+// Append `?tenant=<slug>` to a request unless it is exempt or already asserts a
+// tenant. Handles both string and object (FetchArgs) forms.
+const injectTenant = (args: string | FetchArgs, slug: string): string | FetchArgs => {
+  if (typeof args === "string") {
+    const sep = args.includes("?") ? "&" : "?";
+    return `${args}${sep}tenant=${encodeURIComponent(slug)}`;
+  }
+  return { ...args, params: { ...(args.params as object), tenant: slug } };
+};
 
 let sessionRecoveryInProgress = false;
 
@@ -59,16 +126,23 @@ const forceLogoutAndRedirect = (api: Parameters<BaseQueryFn>[1]) => {
   window.location.href = routesPath.AUTH.LOGIN;
 };
 
-const fetchFreshPermissions = async (accessToken: string): Promise<string[] | null> => {
+// `/user/auth/me/` is tenant-exempt, so this raw fetch needs no `?tenant=`.
+// It refreshes both the permission set and the cached tenant context.
+const fetchFreshMe = async (
+  accessToken: string,
+): Promise<{ permissions: string[] | null; tenant: AuthTenant | null }> => {
   try {
     const response = await fetch(`${baseUrl}/user/auth/me/`, {
       headers: { Authorization: `Bearer ${accessToken}`, accept: "application/json" },
     });
-    if (!response.ok) return null;
+    if (!response.ok) return { permissions: null, tenant: null };
     const data = await response.json();
-    return data?.data?.permissions ?? null;
+    return {
+      permissions: data?.data?.permissions ?? null,
+      tenant: data?.data?.tenant ?? null,
+    };
   } catch {
-    return null;
+    return { permissions: null, tenant: null };
   }
 };
 
@@ -104,12 +178,32 @@ const isAuthRoute = (args: string | FetchArgs): boolean => {
   return AUTH_URLS.some((u) => url.includes(u));
 };
 
+// Wraps the raw fetch base query so the mandatory `?tenant=` assertion is
+// appended centrally to every authenticated request. Exempt endpoints (auth,
+// `/me` family, logout) and requests that already assert a tenant are left
+// untouched. When an impersonation session is active, the TARGET tenant slug is
+// asserted instead of the caller's own.
+const baseQueryWithTenant: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  const endpoint = api.endpoint;
+  let finalArgs = args;
+  if (!TENANT_EXEMPT_ENDPOINTS.has(endpoint) && !hasTenantParam(args)) {
+    const { tenantSlug, impersonation } = readAuth(api.getState);
+    const slug = impersonation?.tenantSlug || tenantSlug;
+    if (slug) finalArgs = injectTenant(args, slug);
+  }
+  return baseQuery(finalArgs, api, extraOptions);
+};
+
 export const baseQueryInterceptor: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  const result = await baseQuery(args, api, extraOptions);
+  const result = await baseQueryWithTenant(args, api, extraOptions);
   if (!result?.error) return result;
 
   // Background requests (e.g. the notifications bell poll, which resumes the
@@ -160,11 +254,13 @@ export const baseQueryInterceptor: BaseQueryFn<
       // selector reading state.auth.access stays consistent.
       api.dispatch(setToken(refreshed.access));
 
-      // Role may have changed since last login — keep permissions fresh.
-      const freshPermissions = await fetchFreshPermissions(refreshed.access);
-      if (freshPermissions) api.dispatch(updatePermissions(freshPermissions));
+      // Role may have changed since last login — keep permissions and the
+      // cached tenant context fresh.
+      const fresh = await fetchFreshMe(refreshed.access);
+      if (fresh.permissions) api.dispatch(updatePermissions(fresh.permissions));
+      if (fresh.tenant) api.dispatch(updateTenant(fresh.tenant));
 
-      const retry = await baseQuery(args, api, extraOptions);
+      const retry = await baseQueryWithTenant(args, api, extraOptions);
       if (retry?.error?.status === 401) {
         forceLogoutAndRedirect(api);
       }

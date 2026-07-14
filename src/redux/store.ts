@@ -16,6 +16,7 @@ import {
 import localStorage from "redux-persist/es/storage";
 import { baseApi } from "./services/base-api";
 import rootReducer, { type RootState } from "./features/root-reducer";
+import { bindTenantStore } from "@/utils/tenant-context";
 
 const persistConfig = {
   key: "root",
@@ -44,6 +45,10 @@ export const store = configureStore({
 // Tracks window focus/online state so queries can use skipPollingIfUnfocused /
 // refetchOnFocus. Existing queries are unaffected (those behaviors are opt-in).
 setupListeners(store.dispatch);
+
+// Let non-hook call sites (tenant-scoped RBAC URL paths) read the asserted
+// tenant slug straight from the live store.
+bindTenantStore(store.getState);
 
 export type AppDispatch = typeof store.dispatch;
 export const useAppDispatch = () => useDispatch<AppDispatch>();

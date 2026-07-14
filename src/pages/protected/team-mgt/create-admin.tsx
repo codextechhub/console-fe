@@ -156,7 +156,7 @@ export default function CreateAdmin() {
                 id="role"
                 label="Role Title"
                 placeholder="Select role"
-                options={roles.map((role) => ({ label: role.name, value: role.id }))}
+                options={roles.map((role) => ({ label: role.name, value: role.key }))}
                 isRequired
                 {...formik.getFieldProps("role")}
                 error={formik.touched.role ? formik.errors.role : undefined}
