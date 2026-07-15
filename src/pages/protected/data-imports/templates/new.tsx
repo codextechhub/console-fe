@@ -10,7 +10,6 @@ import {
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useAppSelector } from "@/redux/store";
 import { toast } from "sonner";
 import { routesPath } from "@/routes/routes-path";
 import { useCreateImportTemplateMutation } from "@/redux/services/dashboard/import-api";
@@ -66,8 +65,6 @@ const blankColumn = (order: number): DraftColumn => ({
 
 export default function NewTemplate() {
   const navigate = useNavigate();
-  const user = useAppSelector((s) => s.auth.user);
-  const isCxStaff = user?.user_type === "CX_STAFF";
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission(P.CREATE_IMPORT_TEMPLATE);
 
@@ -162,17 +159,13 @@ export default function NewTemplate() {
     } catch { /* interceptor shows the toast */ }
   };
 
-  if (!isCxStaff || !canCreate) {
+  if (!canCreate) {
     return (
       <PageAccessDenied
         layoutTitle="New Import Template"
         hasBack
         onBack={back}
-        message={
-          !isCxStaff
-            ? "Only CX staff can create import templates."
-            : "You don't have permission to create import templates."
-        }
+        message="You don't have permission to create import templates."
       />
     );
   }

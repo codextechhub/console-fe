@@ -182,11 +182,9 @@ export default function ImportTemplatesList() {
               <RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Refresh
             </Button>
             <PermissionGate permission={P.CREATE_IMPORT_TEMPLATE}>
-              {isCxStaff && (
-                <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.NEW)}>
-                  <Plus className="size-4" /> New Template
-                </Button>
-              )}
+              <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.NEW)}>
+                <Plus className="size-4" /> New Template
+              </Button>
             </PermissionGate>
           </div>
         </div>
