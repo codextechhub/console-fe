@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Cookies from "js-cookie";
 import { useNavigate } from "react-router";
 import {
   ChevronDown, ChevronUp, Clock, Eye, EyeOff, Globe, LogIn, LogOut,
@@ -13,6 +12,7 @@ import {
   useGetLoginSessionsQuery,
   useForceLogoutMutation,
 } from "@/redux/services/dashboard/security-api";
+import { useAppSelector } from "@/redux/store";
 import { formatRelativeDate } from "@/utils/helpers";
 import { routesPath } from "@/routes/routes-path";
 import type { LoginSession } from "@/redux/services/dashboard/security-types";
@@ -48,19 +48,6 @@ function maskIp(ip: string | null | undefined): string {
   return `${parts[0]}.•••.•••.${parts[3]}`;
 }
 
-function getRefreshJti(): string | null {
-  try {
-    const token = Cookies.get("refresh_token");
-    if (!token) return null;
-    // JWTs use base64url (- and _ instead of + and /); atob needs standard base64.
-    const b64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    const payload = JSON.parse(atob(b64));
-    return typeof payload.jti === "string" ? payload.jti : null;
-  } catch {
-    return null;
-  }
-}
-
 const DEVICE_ICON: Record<DeviceType, typeof Monitor> = {
   desktop: Monitor,
   mobile: Smartphone,
@@ -77,8 +64,10 @@ function endReasonLabel(reason: string): string {
 
 export default function MyActiveSessions() {
   const navigate = useNavigate();
-  const refreshJti = getRefreshJti();
-  const isCurrent = (s: LoginSession) => !!refreshJti && s.refresh_jti === refreshJti;
+  // The backend doesn't expose refresh_jti on session rows; the login
+  // response's session_id (persisted in the auth slice) is the identity.
+  const sessionId = useAppSelector((s) => s.auth.session_id);
+  const isCurrent = (s: LoginSession) => !!sessionId && Number(s.id) === Number(sessionId);
 
   const [revealedIps, setRevealedIps] = useState<Set<string>>(new Set());
   const [confirmEnd, setConfirmEnd] = useState<LoginSession | null>(null);
@@ -156,8 +145,10 @@ export default function MyActiveSessions() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Gap 7 — sign out all other sessions */}
-            {otherSessions.length > 0 && (
+            {/* Gap 7 — sign out all other sessions. Hidden when the current
+                session can't be identified (no persisted session_id), because
+                "others" would then include this device. */}
+            {!!sessionId && otherSessions.length > 0 && (
               <Button variant="white" size="sm" onClick={() => setConfirmEndAll(true)}>
                 <LogOut className="size-3.5" />
                 Sign out of all other sessions

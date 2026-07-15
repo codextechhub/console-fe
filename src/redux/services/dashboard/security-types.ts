@@ -23,7 +23,6 @@ export interface LoginSession {
   user_agent: string;
   device_label: string;
   last_seen_at: string;
-  refresh_jti: string;
   is_active: boolean;
   ended_at: string | null;
   end_reason: string;

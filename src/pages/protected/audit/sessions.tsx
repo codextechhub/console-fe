@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import {
   RefreshCw, Download, LogOut, ExternalLink, GitBranch,
-  AlertTriangle, EllipsisVertical, X, Eye, EyeOff,
+  AlertTriangle, EllipsisVertical, X,
 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,6 @@ export default function LiveSessions() {
 
   // Detail drawer
   const [detailSession, setDetailSession] = useState<LoginSession | null>(null);
-  const [jtiRevealed, setJtiRevealed] = useState(false);
 
   // End-session modal
   const [modal, setModal] = useState<ModalState>(null);
@@ -634,34 +633,6 @@ export default function LiveSessions() {
                         </div>
                       </div>
                     </div>
-
-                    {/* Refresh token JTI */}
-                    {detailSession.refresh_jti && (
-                      <div className="rounded-lg border p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide">
-                            Refresh token JTI
-                          </p>
-                          <button
-                            type="button"
-                            className="text-gray-01 hover:text-black-01 transition-colors"
-                            onClick={() => setJtiRevealed((v) => !v)}
-                          >
-                            {jtiRevealed
-                              ? <EyeOff className="size-3.5" />
-                              : <Eye className="size-3.5" />}
-                          </button>
-                        </div>
-                        <div
-                          className={cn(
-                            "font-mono text-[11px] bg-gray-50 px-2 py-1.5 rounded break-all transition-all duration-200",
-                            !jtiRevealed && "blur-sm select-none",
-                          )}
-                        >
-                          {detailSession.refresh_jti}
-                        </div>
-                      </div>
-                    )}
 
                     {/* Related events */}
                     <div className="rounded-lg border p-3">
