@@ -512,7 +512,7 @@ export default function LiveSessions() {
         <Sheet
           open={!!detailSession}
           onOpenChange={(open) => {
-            if (!open) { setDetailSession(null); setJtiRevealed(false); }
+            if (!open) setDetailSession(null);
           }}
         >
           <SheetContent
