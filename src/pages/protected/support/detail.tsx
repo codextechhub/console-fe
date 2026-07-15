@@ -22,12 +22,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
-import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
 import { TicketStatusBadge } from "./status-badge";
 import {
   useAddTicketCommentMutation,
   useAssignTicketMutation,
   useDownloadTicketAttachmentMutation,
+  useGetEligibleTicketAssigneesQuery,
   useGetTicketAuditQuery,
   useGetTicketQuery,
   useTransitionTicketMutation,
@@ -121,10 +121,8 @@ export default function TicketDetail() {
   const canAssign = hasPermission(P.ASSIGN_TICKET);
   const canInternal = hasPermission(P.POST_INTERNAL_NOTE);
   const canAudit = hasPermission(P.VIEW_TICKET_AUDIT);
-  const { data: members } = useGetTeamMembersQuery(
-    { page_size: 200, user_type: "CX_STAFF" },
-    { skip: !canAssign },
-  );
+  const { data: eligibleAssignees, isLoading: assigneesLoading } =
+    useGetEligibleTicketAssigneesQuery(id, { skip: !canAssign });
   const audit = useGetTicketAuditQuery(id, { skip: !canAudit });
   const [transition, transitionState] = useTransitionTicketMutation();
   const [assign, assignState] = useAssignTicketMutation();
@@ -331,8 +329,8 @@ export default function TicketDetail() {
                   <NativeSelect
                     className="mt-3"
                     size="sm"
-                    disabled={assignState.isLoading}
-                    loading={assignState.isLoading}
+                    disabled={assignState.isLoading || assigneesLoading}
+                    loading={assignState.isLoading || assigneesLoading}
                     value={ticket.assignee?.id ?? ""}
                     onChange={async (e) => {
                       await assign({ id, assignee_id: e.target.value || null }).unwrap();
@@ -340,9 +338,9 @@ export default function TicketDetail() {
                     }}
                   >
                     <option value="">Unassigned</option>
-                    {(members?.data ?? []).map((m) => (
+                    {(eligibleAssignees?.data ?? []).map((m) => (
                       <option value={m.id} key={m.id}>
-                        {m.full_name}
+                        {m.name}
                       </option>
                     ))}
                   </NativeSelect>

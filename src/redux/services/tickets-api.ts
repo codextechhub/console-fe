@@ -118,6 +118,10 @@ export const ticketsApi = baseApi.injectEndpoints({
       query: ({ id, ...body }) => ({ url: `/support/tickets/${id}/assign/`, method: "POST", body }),
       invalidatesTags: ["Tickets"],
     }),
+    getEligibleTicketAssignees: builder.query<{ data: TicketUser[] }, string>({
+      query: (id) => `/support/tickets/${id}/eligible-assignees/`,
+      providesTags: ["Tickets"],
+    }),
     transitionTicket: builder.mutation<{ data: Ticket }, { id: string; status: TicketStatus }>({
       query: ({ id, ...body }) => ({ url: `/support/tickets/${id}/transition/`, method: "POST", body }),
       invalidatesTags: ["Tickets"],
@@ -165,6 +169,7 @@ export const {
   useCreateTicketMutation,
   useUpdateTicketMutation,
   useAssignTicketMutation,
+  useGetEligibleTicketAssigneesQuery,
   useTransitionTicketMutation,
   useAddTicketCommentMutation,
   useUploadTicketAttachmentMutation,

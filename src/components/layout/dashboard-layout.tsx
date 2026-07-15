@@ -120,7 +120,7 @@ function DashboardHeader({
           {title || "Home"}
         </h6>
       </div>
-      <div className="absolute left-1/2 top-1/2 hidden w-[min(38vw,430px)] -translate-x-1/2 -translate-y-1/2 md:block">
+      <div className="absolute left-1/2 top-1/2 hidden w-[min(38vw,430px)] -translate-x-1/2 -translate-y-1/2 lg:block">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
         <input
           value={search}
@@ -160,7 +160,7 @@ function DashboardHeader({
             setMobileSearchOpen((open) => !open);
             if (mobileSearchOpen) setSearch("");
           }}
-          className="grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700 md:hidden"
+          className="grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700 lg:hidden"
         >
           <Search className="size-4.5" />
         </button>
@@ -209,7 +209,7 @@ function DashboardHeader({
       </div>
 
       {mobileSearchOpen && (
-        <div className="relative col-span-2 mb-3 mt-1 md:hidden">
+        <div className="relative col-span-2 mb-3 mt-1 lg:hidden">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
           <input
             autoFocus
