@@ -27,6 +27,14 @@ const KPI_LABELS = {
   saturation: "Saturation",
 } as const;
 
+const SERVICE_STATUS_PRIORITY: Record<string, number> = {
+  critical: 0,
+  warning: 1,
+  healthy: 2,
+  operational: 2,
+  unknown: 3,
+};
+
 export default function CommandCenter() {
   const [range, setRange] = useState("1h");
   const [selectedService, setSelectedService] = useState<string | null>(null);
@@ -55,6 +63,11 @@ export default function CommandCenter() {
   }
 
   const operational = data.posture.overall === "operational";
+  const orderedServices = [...data.services].sort(
+    (a, b) =>
+      (SERVICE_STATUS_PRIORITY[a.status] ?? SERVICE_STATUS_PRIORITY.unknown) -
+      (SERVICE_STATUS_PRIORITY[b.status] ?? SERVICE_STATUS_PRIORITY.unknown),
+  );
 
   return (
     <HealthFrame>
@@ -142,7 +155,7 @@ export default function CommandCenter() {
           <p className="text-xs text-gray-01">Select a service to inspect uptime and recent alerts</p>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {data.services.map((service) => (
+          {orderedServices.map((service) => (
             <button
               type="button"
               onClick={() => setSelectedService(service.key)}
