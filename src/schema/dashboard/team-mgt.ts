@@ -11,8 +11,8 @@ export const createTeamMemberSchema = Yup.object({
     .string()
     .required("Phone number is required")
     .matches(
-      /^\+[1-9]\d{1,14}$/,
-      "Phone number must be in international format (e.g. +2347033327493)"
+      /^(?:\+[1-9]\d{7,14}|0\d{9,10})$/,
+      "Enter an international or Nigerian local number (e.g. +2347033327493 or 08012345678)"
     ),
   // Seat is required — its title becomes the job title. Other HR fields optional.
   position: Yup.string().required("Position is required"),
@@ -33,7 +33,7 @@ export const editTeamMemberSchema = Yup.object({
     .string()
     .required("Phone number is required")
     .matches(
-      /^\+[1-9]\d{1,14}$/,
-      "Phone number must be in international format (e.g. +2347033327493)"
+      /^(?:\+[1-9]\d{7,14}|0\d{9,10})$/,
+      "Enter an international or Nigerian local number (e.g. +2347033327493 or 08012345678)"
     ),
 });

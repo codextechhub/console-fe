@@ -86,7 +86,8 @@ export default function CreateAdmin() {
       createTeamMember(payload)
         .unwrap()
         .then((res) => {
-          setPendingApproval(!!(res as { workflow_instance?: unknown })?.workflow_instance);
+          const workflow = (res as { workflow_instance?: { status?: string } })?.workflow_instance;
+          setPendingApproval(Boolean(workflow && workflow.status !== "APPROVED"));
           toggleClick();
         })
         .catch(() => {}); // errors are shown by the global baseQueryInterceptor
@@ -164,7 +165,7 @@ export default function CreateAdmin() {
               <CustomInput
                 id="phone"
                 label="Phone Number"
-                placeholder="Enter phone number e.g., +23481..."
+                placeholder="e.g., 08012345678 or +2348012345678"
                 isRequired
                 {...formik.getFieldProps("phone")}
                 error={formik.touched.phone ? formik.errors.phone : undefined}
@@ -244,7 +245,7 @@ export default function CreateAdmin() {
               <CustomInput
                 id="employee_id"
                 label="Employee ID"
-                placeholder="e.g., CX-0042"
+                placeholder="Optional — next CX number is generated"
                 {...formik.getFieldProps("employee_id")}
                 error={formik.touched.employee_id ? formik.errors.employee_id : undefined}
               />
