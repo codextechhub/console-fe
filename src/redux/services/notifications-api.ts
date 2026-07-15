@@ -12,12 +12,13 @@ export interface NotificationItem {
   event_type_label: string;
   channel: "in_app";
   subject: string;
+  body: string;
+  action_url: string;
   is_read: boolean;
   created_at: string;
 }
 
 export interface NotificationDetail extends NotificationItem {
-  body: string;
   status: "PENDING" | "SENT" | "FAILED";
   read_at: string | null;
   dispatched_at: string | null;

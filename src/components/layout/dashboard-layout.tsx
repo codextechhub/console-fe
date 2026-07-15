@@ -41,6 +41,7 @@ function DashboardHeader({
   const { state, toggleSidebar } = useSidebar();
   const { hasPermission, hasModuleAccess } = usePermissions();
   const [search, setSearch] = useState("");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const { handleLogout, isLoggingOut } = useLogout();
   const { isOpen: openLogout, toggleClick: toggleLogout } = useToggleModal(false);
   const searchResults = useMemo(() => {
@@ -72,13 +73,14 @@ function DashboardHeader({
 
   const openSearchResult = (to: string) => {
     setSearch("");
+    setMobileSearchOpen(false);
     navigate(to);
   };
 
   // `sticky` is itself a positioned context for the absolute children
   // (collapse toggle, progress bar) — adding `relative` would conflict.
   return (
-    <header className="grid h-15 shrink-0 sticky top-0 z-10 grid-cols-[1fr_auto] items-center gap-3 border border-l-0 border-white-02 bg-white px-3 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 lg:px-10">
+    <header className="grid min-h-15 shrink-0 sticky top-0 z-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 border border-l-0 border-white-02 bg-white px-3 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-12 lg:px-10">
       {/* Sidebar collapse toggle — on the left border, vertically centered in the header */}
       <button
         type="button"
@@ -149,7 +151,19 @@ function DashboardHeader({
         )}
       </div>
       <TopProgressBar />
-      <div className="gap-x-3 inline-flex items-center">
+      <div className="inline-flex items-center gap-x-1 sm:gap-x-3">
+        <button
+          type="button"
+          aria-label={mobileSearchOpen ? "Close workspace search" : "Search the workspace"}
+          aria-expanded={mobileSearchOpen}
+          onClick={() => {
+            setMobileSearchOpen((open) => !open);
+            if (mobileSearchOpen) setSearch("");
+          }}
+          className="grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700 md:hidden"
+        >
+          <Search className="size-4.5" />
+        </button>
         <NotificationsBell />
         <SupportTicketComposer />
 
@@ -163,7 +177,7 @@ function DashboardHeader({
             <button
               type="button"
               aria-label="Open account menu"
-              className="hidden rounded-full p-1 sm:inline-flex hover:bg-white-02/60 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              className="inline-flex rounded-full p-1 hover:bg-white-02/60 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               <UserAvatar userId={user?.id} name={user?.full_name ?? "O"} />
             </button>
@@ -193,6 +207,42 @@ function DashboardHeader({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {mobileSearchOpen && (
+        <div className="relative col-span-2 mb-3 mt-1 md:hidden">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+          <input
+            autoFocus
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && searchResults[0]) openSearchResult(searchResults[0].to);
+              if (event.key === "Escape") {
+                setSearch("");
+                setMobileSearchOpen(false);
+              }
+            }}
+            aria-label="Search the workspace"
+            placeholder="Search the workspace"
+            className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 pl-9 pr-3 text-sm outline-none focus:border-primary/35 focus:bg-white focus:ring-3 focus:ring-primary/8"
+          />
+          {search.trim() && (
+            <div className="absolute left-0 top-12 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
+              {searchResults.length ? searchResults.map((result) => (
+                <button
+                  key={result.to}
+                  type="button"
+                  onClick={() => openSearchResult(result.to)}
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-gray-50"
+                >
+                  <span><span className="block text-sm font-medium text-black-01">{result.label}</span><span className="block text-[11px] text-gray-400">{result.detail}</span></span>
+                  <ChevronRight className="size-4 text-gray-300" />
+                </button>
+              )) : <p className="px-3 py-4 text-center text-xs text-gray-400">No accessible pages found.</p>}
+            </div>
+          )}
+        </div>
+      )}
 
       <PromptModal
         isOpen={openLogout}

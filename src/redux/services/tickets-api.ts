@@ -61,6 +61,7 @@ export interface Ticket {
   /** Present on the detail serializer only. */
   comments?: TicketComment[];
   attachments?: TicketAttachment[];
+  capabilities?: { can_comment: boolean; can_attach: boolean };
 }
 
 export interface TicketDashboard {
@@ -140,6 +141,16 @@ export const ticketsApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ["Tickets"],
     }),
+    downloadTicketAttachment: builder.mutation<
+      Blob,
+      { id: string; attachmentId: string }
+    >({
+      query: ({ id, attachmentId }) => ({
+        url: `/support/tickets/${id}/attachments/${attachmentId}/download/`,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
     getTicketAudit: builder.query<{ data: TicketAudit[] }, string>({
       query: (id) => `/support/tickets/${id}/audit/`,
       providesTags: ["Tickets"],
@@ -157,5 +168,6 @@ export const {
   useTransitionTicketMutation,
   useAddTicketCommentMutation,
   useUploadTicketAttachmentMutation,
+  useDownloadTicketAttachmentMutation,
   useGetTicketAuditQuery,
 } = ticketsApi;

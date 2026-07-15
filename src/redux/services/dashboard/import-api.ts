@@ -55,6 +55,14 @@ export const importApi = baseApi.injectEndpoints({
       invalidatesTags: (_res, _err, { id }) => [{ type: "ImportTemplates", id }, "ImportTemplates"],
     }),
 
+    downloadImportTemplate: builder.mutation<Blob, { id: number; format: "csv" | "xlsx" }>({
+      query: ({ id, format }) => ({
+        url: `/import/system-import-templates/${id}/download/?file_format=${format}`,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+    }),
+
     // ── Batches ─────────────────────────────────────────────────────────────
     createImportBatch: builder.mutation<{ data: ImportBatchListItem }, FormData>({
       query: (formData) => ({
@@ -242,6 +250,7 @@ export const {
   useGetImportTemplateQuery,
   useCreateImportTemplateMutation,
   useUpdateImportTemplateMutation,
+  useDownloadImportTemplateMutation,
   // batches
   useCreateImportBatchMutation,
   useGetImportBatchesQuery,

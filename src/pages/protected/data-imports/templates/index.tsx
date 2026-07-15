@@ -22,7 +22,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetImportTemplatesQuery,
-  importDownloadUrls,
+  useDownloadImportTemplateMutation,
 } from "@/redux/services/dashboard/import-api";
 import type {
   DatasetType,
@@ -42,20 +42,25 @@ const STATUS_BADGE: Record<TemplateStatus, "active" | "pending" | "inactive"> = 
 
 const TABLE_HEADERS = ["Code", "Template", "Dataset", "Format", "Status", "Columns", "Updated", "Action"];
 
-async function triggerDownload(url: string, filename: string) {
+function saveBlob(blob: Blob, filename: string) {
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+}
+
+async function triggerDownload(
+  download: (args: { id: number; format: "csv" | "xlsx" }) => { unwrap: () => Promise<Blob> },
+  id: number,
+  format: "csv" | "xlsx",
+  filename: string,
+) {
   try {
-    const token = document.cookie.match(/(?:^|;\s*)token=([^;]*)/)?.[1];
-    const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-    if (!res.ok) throw new Error(`${res.status}`);
-    const blob = await res.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = blobUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(blobUrl);
+    saveBlob(await download({ id, format }).unwrap(), filename);
   } catch {
     toast.error("Download failed. Please try again.");
   }
@@ -70,6 +75,7 @@ export default function ImportTemplatesList() {
   const user = useAppSelector((s) => s.auth.user);
   const isCxStaff = user?.user_type === "CX_STAFF";
   const { hasPermission } = usePermissions();
+  const [downloadTemplate] = useDownloadImportTemplateMutation();
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
@@ -307,13 +313,13 @@ export default function ImportTemplatesList() {
                   label: "Download CSV",
                   className: "",
                   onActionClick: () =>
-                    triggerDownload(importDownloadUrls.templateDownload(tpl.id, "csv"), `${tpl.code}_template.csv`),
+                    triggerDownload(downloadTemplate, tpl.id, "csv", `${tpl.code}_template.csv`),
                 });
                 items.push({
                   label: "Download XLSX",
                   className: "",
                   onActionClick: () =>
-                    triggerDownload(importDownloadUrls.templateDownload(tpl.id, "xlsx"), `${tpl.code}_template.xlsx`),
+                    triggerDownload(downloadTemplate, tpl.id, "xlsx", `${tpl.code}_template.xlsx`),
                 });
               }
               return items;

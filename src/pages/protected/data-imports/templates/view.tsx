@@ -12,7 +12,7 @@ import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetImportTemplateQuery,
-  importDownloadUrls,
+  useDownloadImportTemplateMutation,
 } from "@/redux/services/dashboard/import-api";
 import type {
   ImportTemplate,
@@ -30,12 +30,14 @@ const unwrap = <T,>(res: { data: T } | T | undefined): T | undefined => {
   return (res as { data: T }).data ?? (res as T);
 };
 
-async function triggerDownload(url: string, filename: string) {
+async function triggerDownload(
+  download: (args: { id: number; format: "csv" | "xlsx" }) => { unwrap: () => Promise<Blob> },
+  id: number,
+  format: "csv" | "xlsx",
+  filename: string,
+) {
   try {
-    const token = document.cookie.match(/(?:^|;\s*)token=([^;]*)/)?.[1];
-    const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-    if (!res.ok) throw new Error(`${res.status}`);
-    const blob = await res.blob();
+    const blob = await download({ id, format }).unwrap();
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = blobUrl;
@@ -57,6 +59,7 @@ export default function ViewTemplate() {
   const { id } = useParams<{ id: string }>();
   const templateId = Number(id);
   const canView = hasPermission(P.VIEW_IMPORT_TEMPLATES);
+  const [downloadTemplate, downloadState] = useDownloadImportTemplateMutation();
 
   const { data, isLoading, isError, refetch } = useGetImportTemplateQuery(templateId, {
     skip: !templateId || isNaN(templateId) || !canView,
@@ -144,14 +147,16 @@ export default function ViewTemplate() {
                 <Button
                   variant="white"
                   size="sm"
-                  onClick={() => triggerDownload(importDownloadUrls.templateDownload(template.id, "csv"), `${template.code}_template.csv`)}
+                  disabled={downloadState.isLoading}
+                  onClick={() => triggerDownload(downloadTemplate, template.id, "csv", `${template.code}_template.csv`)}
                 >
                   <Download className="size-3.5" /> Download CSV
                 </Button>
                 <Button
                   variant="white"
                   size="sm"
-                  onClick={() => triggerDownload(importDownloadUrls.templateDownload(template.id, "xlsx"), `${template.code}_template.xlsx`)}
+                  disabled={downloadState.isLoading}
+                  onClick={() => triggerDownload(downloadTemplate, template.id, "xlsx", `${template.code}_template.xlsx`)}
                 >
                   <Download className="size-3.5" /> Download XLSX
                 </Button>

@@ -1,22 +1,20 @@
 // Notifications page — the user's personal in-app feed over /notify/, with a
-// detail drawer. Platform administration (history, settings, templates, event
+// actionable links. Platform administration (history, settings, templates, event
 // catalogue) lives on its own gated page at /notifications/admin.
 
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
-import { Bell, CheckCheck, Loader2, MailOpen, Settings2 } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { Bell, CheckCheck, Loader2, Settings2 } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { CustomInput } from "@/components/custom/custom-input";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { NotificationEventIcon } from "@/components/custom/notification-event-icon";
 import { formatRelativeDate } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routes-path";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import {
-  useGetNotificationQuery,
   useGetNotificationsQuery,
   useGetUnreadCountQuery,
   useMarkAllNotificationsReadMutation,
@@ -32,7 +30,7 @@ const FILTERS: Array<{ value: Filter; label: string }> = [
 ];
 
 export default function Notifications() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { hasAnyPermission } = usePermissions();
   const canAdminister = hasAnyPermission(
     P.AUDIT_NOTIFICATION_ACTIVITY,
@@ -41,7 +39,6 @@ export default function Notifications() {
   );
   const [filter, setFilter] = useState<Filter>("all");
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   const params = { page, page_size: 20, ...(filter === "all" ? {} : { is_read: filter === "read" }) };
@@ -51,35 +48,16 @@ export default function Notifications() {
   const unreadCount = useGetUnreadCountQuery().data?.data.unread_count ?? 0;
   const [markRead] = useMarkNotificationsReadMutation();
   const [markAll, { isLoading: markingAll }] = useMarkAllNotificationsReadMutation();
-  const detail = useGetNotificationQuery(selected ?? "", { skip: !selected });
-
-  // Deep link from the header bell: /notifications?notification=<id> opens
-  // that item's drawer (and marks it read). Only this param is consumed so
-  // any other query state survives.
-  useEffect(() => {
-    const target = searchParams.get("notification");
-    if (!target) return;
-    setSelected(target);
-    markRead({ ids: [target] });
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        next.delete("notification");
-        return next;
-      },
-      { replace: true },
-    );
-  }, [searchParams, setSearchParams, markRead]);
 
   // Client-side filter over the loaded page only (the feed has no server-side
   // text search) — the placeholder says so honestly.
   const rows = (data?.data ?? []).filter(
-    (n) => !search || `${n.subject} ${n.event_type_label}`.toLowerCase().includes(search.toLowerCase()),
+    (n) => !search || `${n.subject} ${n.body} ${n.event_type_label}`.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const open = async (id: string, isRead: boolean) => {
-    setSelected(id);
-    if (!isRead) await markRead({ ids: [id] });
+  const open = async (notification: (typeof rows)[number]) => {
+    if (!notification.is_read) await markRead({ ids: [notification.id] });
+    if (notification.action_url) navigate(notification.action_url);
   };
 
   return (
@@ -178,7 +156,7 @@ export default function Notifications() {
               {rows.map((n) => (
                 <button
                   key={n.id}
-                  onClick={() => open(n.id, n.is_read)}
+                  onClick={() => open(n)}
                   className={cn(
                     "flex w-full items-start gap-4 px-5 py-4 text-left hover:bg-gray-50",
                     !n.is_read && "bg-pry-01/30",
@@ -190,7 +168,7 @@ export default function Notifications() {
                       n.is_read ? "bg-gray-100 text-gray-500" : "bg-primary text-white",
                     )}
                   >
-                    <MailOpen className="size-4" />
+                    <NotificationEventIcon eventKey={n.event_type_key} />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-start justify-between gap-3">
@@ -201,7 +179,8 @@ export default function Notifications() {
                         {formatRelativeDate(n.created_at)}
                       </span>
                     </span>
-                    <span className="mt-1 block text-xs text-gray-01">{n.event_type_label}</span>
+                    <span className="mt-1 line-clamp-2 block text-xs leading-5 text-gray-01">{n.body}</span>
+                    <span className="mt-1 block text-[11px] font-medium text-primary/80">{n.event_type_label}</span>
                   </span>
                   {!n.is_read && <span className="mt-3 size-2 rounded-full bg-primary" />}
                 </button>
@@ -231,28 +210,6 @@ export default function Notifications() {
           )}
         </section>
 
-        <Sheet open={!!selected} onOpenChange={(v) => !v && setSelected(null)}>
-          <SheetContent side="right" className="w-full overflow-y-auto p-6 sm:max-w-lg">
-            {detail.isLoading ? (
-              <Loader2 className="mx-auto mt-24 size-6 animate-spin" />
-            ) : (
-              <div className="mt-4">
-                <Badge className="bg-pry-01 text-primary">{detail.data?.data.event_type_label}</Badge>
-                <SheetHeader className="p-0">
-                  <SheetTitle className="mt-4 text-xl font-semibold">
-                    {detail.data?.data.subject}
-                  </SheetTitle>
-                </SheetHeader>
-                <p className="mt-2 text-xs text-gray-01">
-                  {detail.data && new Date(detail.data.data.created_at).toLocaleString()}
-                </p>
-                <div className="mt-6 whitespace-pre-wrap text-sm leading-7 text-gray-700">
-                  {detail.data?.data.body}
-                </div>
-              </div>
-            )}
-          </SheetContent>
-        </Sheet>
       </main>
     </DashboardLayout>
   );

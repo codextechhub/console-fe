@@ -8,15 +8,17 @@ import {
 import { formatRelativeDate } from "@/utils/helpers";
 import { routesPath } from "@/routes/routes-path";
 import { useNotifications } from "@/hooks/use-notifications";
+import { NotificationEventIcon } from "@/components/custom/notification-event-icon";
+import { useMarkNotificationsReadMutation } from "@/redux/services/notifications-api";
 
 /**
  * Header bell fed by the universal notification feed (/notify/). Shows the
- * latest unread items; clicking one deep-links to the Notifications page,
- * which opens that item's detail drawer via the ?notification= param.
+ * latest unread items; clicking one takes the user directly to the event.
  */
 export function NotificationsBell() {
   const navigate = useNavigate();
   const { items, count } = useNotifications();
+  const [markRead] = useMarkNotificationsReadMutation();
 
   return (
     <DropdownMenu>
@@ -58,15 +60,19 @@ export function NotificationsBell() {
             {items.map((n) => (
               <li key={n.id}>
                 <button
-                  onClick={() => navigate(`${routesPath.PROTECTED.NOTIFICATIONS}?notification=${n.id}`)}
+                  onClick={async () => {
+                    await markRead({ ids: [n.id] });
+                    navigate(n.action_url || routesPath.PROTECTED.NOTIFICATIONS);
+                  }}
                   className="flex w-full gap-3 px-4 py-3 text-left hover:bg-gray-50"
                 >
-                  <span className="mt-1 size-2 shrink-0 rounded-full bg-primary" />
-                  <span className="min-w-0">
+                  <span className="mt-0.5 grid size-8 shrink-0 place-content-center rounded-full bg-pry-01 text-primary">
+                    <NotificationEventIcon eventKey={n.event_type_key} className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium">{n.subject}</span>
-                    <span className="block text-xs text-gray-01">
-                      {n.event_type_label} · {formatRelativeDate(n.created_at)}
-                    </span>
+                    <span className="mt-0.5 line-clamp-2 block text-xs text-gray-01">{n.body}</span>
+                    <span className="mt-1 block text-[10px] text-gray-400">{n.event_type_label} · {formatRelativeDate(n.created_at)}</span>
                   </span>
                 </button>
               </li>

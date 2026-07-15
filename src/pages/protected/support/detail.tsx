@@ -2,8 +2,8 @@
 // actions (edit, assignment, status transitions, audit history), each gated
 // by its tickets.* key. House kit: Dialog, Sheet, NativeSelect, Badge.
 
-import { useState } from "react";
-import { ArrowLeft, History, Loader2, Lock, MessageSquare, Paperclip, Send, Upload } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Download, FileText, History, Image, Loader2, Lock, MessageSquare, Paperclip, Send, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/layout/dashboard-layout";
@@ -27,12 +27,14 @@ import { TicketStatusBadge } from "./status-badge";
 import {
   useAddTicketCommentMutation,
   useAssignTicketMutation,
+  useDownloadTicketAttachmentMutation,
   useGetTicketAuditQuery,
   useGetTicketQuery,
   useTransitionTicketMutation,
   useUpdateTicketMutation,
   useUploadTicketAttachmentMutation,
   type TicketStatus,
+  type TicketAttachment,
 } from "@/redux/services/tickets-api";
 
 // Mirrors backend VALID_STATUS_TRANSITIONS (vs_tickets/constants.py).
@@ -43,6 +45,71 @@ const transitions: Record<TicketStatus, TicketStatus[]> = {
   RESOLVED: ["CLOSED", "IN_PROGRESS"],
   CLOSED: ["IN_PROGRESS"],
 };
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function TicketAttachmentCard({ ticketId, attachment }: { ticketId: string; attachment: TicketAttachment }) {
+  const [download, state] = useDownloadTicketAttachmentMutation();
+  const [previewUrl, setPreviewUrl] = useState("");
+  const isImage = attachment.content_type.startsWith("image/");
+
+  useEffect(() => {
+    if (!isImage) return;
+    let active = true;
+    let objectUrl = "";
+    download({ id: ticketId, attachmentId: attachment.id })
+      .unwrap()
+      .then((blob) => {
+        if (!active) return;
+        objectUrl = URL.createObjectURL(blob);
+        setPreviewUrl(objectUrl);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [attachment.id, download, isImage, ticketId]);
+
+  const save = async () => {
+    try {
+      const blob = await download({ id: ticketId, attachmentId: attachment.id }).unwrap();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = attachment.original_filename;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Unable to download this attachment");
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={save}
+      className="mt-3 flex w-full max-w-sm items-center gap-3 overflow-hidden rounded-lg border border-gray-200 bg-gray-50/70 p-2.5 text-left hover:border-primary/30 hover:bg-primary/5"
+    >
+      {isImage && previewUrl ? (
+        <img src={previewUrl} alt={attachment.original_filename} className="size-14 shrink-0 rounded-md object-cover" />
+      ) : (
+        <span className="grid size-10 shrink-0 place-items-center rounded-md bg-white text-primary">
+          {isImage ? <Image className="size-5" /> : <FileText className="size-5" />}
+        </span>
+      )}
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-medium text-black-01">{attachment.original_filename}</span>
+        <span className="mt-0.5 block text-[11px] text-gray-01">{formatFileSize(attachment.size)}</span>
+      </span>
+      {state.isLoading ? <Loader2 className="size-4 shrink-0 animate-spin" /> : <Download className="size-4 shrink-0 text-gray-01" />}
+    </button>
+  );
+}
 
 export default function TicketDetail() {
   const { id = "" } = useParams();
@@ -65,6 +132,7 @@ export default function TicketDetail() {
   const [comment, commentState] = useAddTicketCommentMutation();
   const [upload, uploadState] = useUploadTicketAttachmentMutation();
   const [body, setBody] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [internal, setInternal] = useState(false);
   const [editing, setEditing] = useState(false);
   const [showAudit, setShowAudit] = useState(false);
@@ -86,14 +154,22 @@ export default function TicketDetail() {
 
   const send = async () => {
     if (!body.trim()) return;
-    await comment({ id, body, visibility: internal ? "INTERNAL" : "PUBLIC" }).unwrap();
-    setBody("");
-    toast.success(internal ? "Internal note added" : "Reply sent");
-  };
-  const uploadFile = async (file?: File) => {
-    if (!file) return;
-    await upload({ id, file }).unwrap();
-    toast.success("Attachment uploaded");
+    try {
+      const created = await comment({ id, body, visibility: internal ? "INTERNAL" : "PUBLIC" }).unwrap();
+      setBody("");
+      if (pendingFile) {
+        try {
+          await upload({ id, file: pendingFile, comment_id: created.data.id }).unwrap();
+          setPendingFile(null);
+        } catch {
+          toast.warning("Reply sent, but the attachment could not be uploaded. You can try the file again.");
+          return;
+        }
+      }
+      toast.success(internal ? "Internal note added" : "Reply sent");
+    } catch {
+      toast.error("Unable to send your reply");
+    }
   };
 
   return (
@@ -121,6 +197,16 @@ export default function TicketDetail() {
                 <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-gray-600">
                   {ticket.description}
                 </p>
+                {!!ticket.attachments?.filter((attachment) => !attachment.comment_id).length && (
+                  <div className="mt-4 border-t border-white-02 pt-3">
+                    <p className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-01">
+                      <Paperclip className="size-3.5" /> Ticket attachments
+                    </p>
+                    {ticket.attachments.filter((attachment) => !attachment.comment_id).map((attachment) => (
+                      <TicketAttachmentCard key={attachment.id} ticketId={id} attachment={attachment} />
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="p-6">
@@ -150,21 +236,14 @@ export default function TicketDetail() {
                         </p>
                       )}
                       <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{c.body}</p>
-                      {c.attachments.map((a) => (
-                        <a
-                          className="mt-3 inline-flex items-center gap-2 text-xs text-primary"
-                          href={a.url}
-                          key={a.id}
-                        >
-                          <Paperclip className="size-3" />
-                          {a.original_filename}
-                        </a>
+                      {c.attachments.map((attachment) => (
+                        <TicketAttachmentCard key={attachment.id} ticketId={id} attachment={attachment} />
                       ))}
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-6 rounded-lg border border-white-02 p-3">
+                {ticket.capabilities?.can_comment !== false ? <div className="mt-6 rounded-lg border border-white-02 p-3">
                   <Textarea
                     rows={4}
                     value={body}
@@ -172,16 +251,16 @@ export default function TicketDetail() {
                     placeholder={internal ? "Add a private note for support staff…" : "Write a reply…"}
                   />
                   <div className="mt-2 flex items-center gap-2">
-                    <label className="inline-flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-xs text-gray-01 hover:bg-gray-50">
-                      <Upload className="size-3" />
-                      {uploadState.isLoading ? "Uploading…" : "Attach file"}
+                    {ticket.capabilities?.can_attach !== false && <label className="inline-flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-xs text-gray-01 hover:bg-gray-50">
+                      <Paperclip className="size-3" />
+                      Attach file
                       <input
                         type="file"
                         accept=".csv,.xlsx,.png,.jpg,.jpeg,.pdf"
                         className="hidden"
-                        onChange={(e) => uploadFile(e.target.files?.[0])}
+                        onChange={(e) => setPendingFile(e.target.files?.[0] ?? null)}
                       />
-                    </label>
+                    </label>}
                     {canInternal && (
                       <button
                         onClick={() => setInternal((x) => !x)}
@@ -198,13 +277,24 @@ export default function TicketDetail() {
                       size="sm"
                       className="ml-auto"
                       onClick={send}
-                      disabled={commentState.isLoading || !body.trim()}
+                      disabled={commentState.isLoading || uploadState.isLoading || !body.trim()}
                     >
                       <Send className="size-3" />
                       {commentState.isLoading ? "Sending…" : "Send reply"}
                     </Button>
                   </div>
-                </div>
+                  {pendingFile && (
+                    <div className="mt-2 inline-flex max-w-full items-center gap-2 rounded-md bg-gray-50 px-2.5 py-1.5 text-xs text-gray-600">
+                      <Paperclip className="size-3.5 shrink-0" />
+                      <span className="truncate">{pendingFile.name}</span>
+                      <button type="button" aria-label="Remove attachment" onClick={() => setPendingFile(null)}>
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div> : (
+                  <p className="mt-6 rounded-lg bg-gray-50 p-4 text-sm text-gray-01">You can view this ticket, but you cannot reply to its conversation.</p>
+                )}
               </div>
             </section>
 
