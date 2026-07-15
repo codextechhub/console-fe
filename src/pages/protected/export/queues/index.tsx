@@ -134,7 +134,7 @@ export default function QueuesPage() {
     return p;
   }, [scope, status, kind, since, page]);
 
-  const pollOpts = { pollingInterval: POLL_MS, skipPollingIfUnfocused: true } as const;
+  const pollOpts = { pollingInterval: POLL_MS, skipPollingIfUnfocused: true, refetchOnFocus: true } as const;
   const { data: listRes, isLoading: listLoading, isError: listError, error: listErr, refetch } = useGetMyTasksQuery(params, pollOpts);
   const { data: summaryRes } = useGetMyTasksSummaryQuery(params, pollOpts);
 
