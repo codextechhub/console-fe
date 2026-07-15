@@ -16,6 +16,8 @@ import {
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
@@ -27,6 +29,7 @@ export default function EditRole() {
   // The `:id` route segment now carries the per-tenant role KEY, not a numeric id.
   const { id: roleKey } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const { data: roleData, isLoading: roleLoading } = useGetPlatformRoleDetailQuery(roleKey ?? "", { skip: !roleKey });
   const { data: groupsData } = useGetPermissionGroupsQuery({ page_size: 100 });
   const [updateRole, { isLoading }] = useUpdatePlatformRoleMutation();
@@ -45,7 +48,12 @@ export default function EditRole() {
   const attachedGroupIds = role?.role_groups?.map((rg) => rg.group.id) ?? [];
   const attachedPermissionKeys = role?.role_permissions?.filter((rp) => rp.granted).map((rp) => rp.permission_key) ?? [];
 
-  const isNameLocked = !!(role?.is_system_role || role?.is_locked);
+  // platform.roles.transfer is deliberately reserved for the active super
+  // admin, making it the frontend equivalent of the backend super-admin check.
+  const canEditProtectedRole = hasPermission(P.TRANSFER_SUPER_ADMIN);
+  const isNameLocked = !!(
+    (role?.is_system_role || role?.is_locked) && !canEditProtectedRole
+  );
 
   if (roleLoading) {
     return (

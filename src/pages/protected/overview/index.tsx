@@ -127,7 +127,7 @@ export default function Overview() {
     skip: !canViewSchools,
   });
   const { data: teamMembers, isLoading: teamLoading } = useGetTeamMembersQuery(
-    { page_size: 1, user_type: "CX_STAFF" },
+    { page_size: 1, user_type: "CX_STAFF", status: "ACTIVE" },
     { skip: !canViewTeam },
   );
   const { data: todo, isLoading: todoLoading } = useGetTodoMineQuery();
