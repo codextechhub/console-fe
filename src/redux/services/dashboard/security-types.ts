@@ -78,9 +78,13 @@ export interface ImpersonationSession {
   id: number;
   staff_user: number;
   staff_email: string;
+  staff_type_label: string;
   tenant: number;
+  tenant_name: string;
+  tenant_slug: string;
   target_user: number;
   target_email: string;
+  target_type_label: string;
   justification: string;
   status: "ACTIVE" | "ENDED" | "EXPIRED";
   started_at: string;

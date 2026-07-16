@@ -35,6 +35,12 @@ export const FRIENDLY_ACTION: Record<string, string> = {
   ROLE_CHANGED: "Role changed",
   PERMISSION_CHANGED: "Permission changed",
 
+  // Proxy sessions
+  IMPERSONATION_STARTED: "Proxy session started",
+  IMPERSONATION_ENDED: "Proxy session ended",
+  PROXY_CHANGE: "Change through proxy",
+  PROXY_ACTION_FAILED: "Proxy action failed",
+
   // Other
   CONFIG_CHANGED: "Config changed",
   FINANCIAL_TRANSACTION: "Financial transaction",

@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { RefreshCw, Timer, MoreHorizontal, XCircle, List, GitBranch, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router";
+import { RefreshCw, Timer, MoreHorizontal, XCircle, List, ArrowRight } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +18,6 @@ import { useNow } from "@/hooks/use-now";
 import { ActorCell } from "./components/audit-cells";
 import { friendlyAction } from "./audit-constants";
 import { P } from "@/permissions";
-import { routesPath } from "@/routes/routes-path";
 import type { ImpersonationSession } from "@/redux/services/dashboard/security-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -52,9 +50,7 @@ function ImpersonationDetailDrawer({
   ending: boolean;
 }) {
   const eventsParams = useMemo<Record<string, string | number>>(() => ({
-    actor_id: session?.staff_user ?? 0,
-    date_from: session?.started_at ?? "",
-    date_to: (session?.ended_at || session?.ends_at) ?? "",
+    impersonation_session_id: session?.id ?? 0,
     page_size: 20,
   }), [session]);
 
@@ -68,7 +64,7 @@ function ImpersonationDetailDrawer({
   return (
     <Sheet open={!!session} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="right" className="w-full sm:max-w-[680px] overflow-y-auto p-0">
-        <SheetTitle className="sr-only">Impersonation session detail</SheetTitle>
+        <SheetTitle className="sr-only">Proxy session details</SheetTitle>
         {session && (
           <>
             {/* Drawer header */}
@@ -87,19 +83,19 @@ function ImpersonationDetailDrawer({
                 <span className="text-gray-01 text-xs">·</span>
                 <span className="font-mono text-[10px] text-gray-01 truncate">#{session.id}</span>
               </div>
-              <p className="font-semibold font-mont text-sm">Impersonation session</p>
+              <p className="font-semibold font-mont text-sm">Proxy session</p>
             </div>
 
             <div className="px-5 py-4 space-y-4">
               {/* Impersonator → Target */}
               <div className="grid grid-cols-[1fr_32px_1fr] gap-2 items-center">
                 <div className="rounded-md border bg-gray-50 p-3 space-y-2">
-                  <p className="text-[10px] font-semibold uppercase text-gray-01">Impersonator</p>
+                  <p className="text-[10px] font-semibold uppercase text-gray-01">Proxier</p>
                   <div className="flex items-center gap-2.5">
                     <ActorCell label={session.staff_email} email={session.staff_email} userId={session.staff_user} />
                     <div className="min-w-0">
                       <p className="text-xs font-medium truncate">{session.staff_email}</p>
-                      <p className="text-[10px] text-gray-01">Vision Staff</p>
+                      <p className="text-[10px] text-gray-01">{session.staff_type_label}</p>
                     </div>
                   </div>
                 </div>
@@ -112,7 +108,7 @@ function ImpersonationDetailDrawer({
                     <ActorCell label={session.target_email} email={session.target_email} userId={session.target_user} />
                     <div className="min-w-0">
                       <p className="text-xs font-medium truncate">{session.target_email}</p>
-                      <p className="text-[10px] text-gray-01">Tenant #{session.tenant}</p>
+                      <p className="text-[10px] text-gray-01">{session.tenant_name}</p>
                     </div>
                   </div>
                 </div>
@@ -162,7 +158,7 @@ function ImpersonationDetailDrawer({
                   </div>
                 ) : events.length === 0 ? (
                   <div className="flex h-24 items-center justify-center text-xs text-gray-01 border rounded-md bg-gray-50">
-                    No audited actions recorded for this window.
+                    No meaningful audited actions recorded for this session.
                   </div>
                 ) : (
                   <div className="divide-y border rounded-md overflow-hidden">
@@ -200,7 +196,7 @@ function ImpersonationDetailDrawer({
                   disabled={ending}
                   onClick={() => onEnd(session)}
                 >
-                  <XCircle className="size-3.5" /> End impersonation now
+                  <XCircle className="size-3.5" /> End proxy session now
                 </Button>
               </div>
             )}
@@ -214,13 +210,12 @@ function ImpersonationDetailDrawer({
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function Impersonations() {
-  const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<"" | "ACTIVE" | "ENDED">("");
   const [staffFilter, setStaffFilter] = useState("");
   const [targetFilter, setTargetFilter] = useState("");
-  const [schoolFilter, setSchoolFilter] = useState("");
+  const [tenantFilter, setTenantFilter] = useState("");
   const [dateRange, setDateRange] = useState("30d");
   const [detail, setDetail] = useState<ImpersonationSession | null>(null);
   const [confirmEnd, setConfirmEnd] = useState<ImpersonationSession | null>(null);
@@ -242,7 +237,10 @@ export default function Impersonations() {
   // Derive unique values for secondary filters from loaded data
   const staffOptions = useMemo(() => [...new Set(raw.map((i) => i.staff_email))].sort(), [raw]);
   const targetOptions = useMemo(() => [...new Set(raw.map((i) => i.target_email))].sort(), [raw]);
-  const schoolOptions = useMemo(() => [...new Set(raw.map((i) => i.tenant))].sort(), [raw]);
+  const tenantOptions = useMemo(() => (
+    [...new Map(raw.map((i) => [i.tenant_slug, i.tenant_name])).entries()]
+      .sort((a, b) => a[1].localeCompare(b[1]))
+  ), [raw]);
 
   // Client-side filter + sort
   const list = useMemo(() => {
@@ -254,14 +252,14 @@ export default function Impersonations() {
     return raw
       .filter((i) => !staffFilter || i.staff_email === staffFilter)
       .filter((i) => !targetFilter || i.target_email === targetFilter)
-      .filter((i) => !schoolFilter || String(i.tenant) === schoolFilter)
+      .filter((i) => !tenantFilter || i.tenant_slug === tenantFilter)
       .filter((i) => cutoff === 0 || new Date(i.started_at).getTime() >= cutoff)
       .sort((a, b) => {
         if (a.status === "ACTIVE" && b.status !== "ACTIVE") return -1;
         if (b.status === "ACTIVE" && a.status !== "ACTIVE") return 1;
         return b.started_at.localeCompare(a.started_at);
       });
-  }, [raw, staffFilter, targetFilter, schoolFilter, dateRange, now]);
+  }, [raw, staffFilter, targetFilter, tenantFilter, dateRange, now]);
 
   const activeCount = raw.filter((i) => i.status === "ACTIVE").length;
 
@@ -270,7 +268,7 @@ export default function Impersonations() {
     endImpersonation({ session_id: confirmEnd.id })
       .unwrap()
       .then(() => {
-        toast.success("Impersonation ended.");
+        toast.success("Proxy session ended");
         setConfirmEnd(null);
         setDetail(null);
       })
@@ -280,18 +278,18 @@ export default function Impersonations() {
   const canEnd = hasPermission(P.END_IMPERSONATION);
 
   return (
-    <DashboardLayout title="Impersonations">
+    <DashboardLayout title="Proxy Sessions">
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-semibold font-mont text-gray-01">Impersonation Sessions</p>
+            <p className="font-semibold font-mont text-gray-01">Proxy Sessions</p>
             <p className="text-xs text-gray-01 mt-0.5">
               {activeCount > 0 ? (
                 <><span className="text-destructive font-medium">{activeCount} active</span> · </>
               ) : null}
-              All actions taken under impersonation are logged.
+              Meaningful changes and failed actions made through proxy are logged.
             </p>
           </div>
           <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
@@ -333,10 +331,10 @@ export default function Impersonations() {
 
           <div className="w-40 shrink-0">
             <SearchSelect
-              value={schoolFilter}
-              onChange={(e) => setSchoolFilter(e.target.value)}
-              placeholder="All schools"
-              options={schoolOptions.map((id) => ({ value: String(id), label: `School #${id}` }))}
+              value={tenantFilter}
+              onChange={(e) => setTenantFilter(e.target.value)}
+              placeholder="All organisations"
+              options={tenantOptions.map(([slug, name]) => ({ value: slug, label: name }))}
             />
           </div>
 
@@ -359,7 +357,7 @@ export default function Impersonations() {
         {/* Body */}
         {isError ? (
           <div className="flex h-56 flex-col items-center justify-center gap-3 bg-white rounded-md border">
-            <p className="text-sm font-medium text-destructive">Failed to load impersonations.</p>
+            <p className="text-sm font-medium text-destructive">Failed to load proxy sessions.</p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               <RefreshCw className="size-3.5" /> Retry
             </Button>
@@ -373,7 +371,7 @@ export default function Impersonations() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#F1F1F1] border-b">
-                  {["Staff (impersonator)", "Target user", "School", "Justification", "Status", "Started", "Ends / Ended", ""].map((h, i) => (
+                  {["Staff (proxier)", "Target user", "Organisation", "Justification", "Status", "Started", "Ends / Ended", ""].map((h, i) => (
                     <th key={i} className="px-3 py-3 text-left text-xs font-semibold font-mont text-gray-01 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -382,7 +380,7 @@ export default function Impersonations() {
                 {list.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="h-48 text-center">
-                      <p className="text-xs text-gray-01">No impersonation sessions in this range.</p>
+                      <p className="text-xs text-gray-01">No proxy sessions in this range.</p>
                     </td>
                   </tr>
                 ) : (
@@ -403,7 +401,7 @@ export default function Impersonations() {
                           <ActorCell label={i.staff_email} email={i.staff_email} userId={i.staff_user} />
                           <div className="min-w-0">
                             <p className="text-xs font-medium truncate max-w-[160px]">{i.staff_email}</p>
-                            <p className="text-[10px] text-gray-01">Vision Staff</p>
+                            <p className="text-[10px] text-gray-01">{i.staff_type_label}</p>
                           </div>
                         </div>
                       </td>
@@ -414,14 +412,14 @@ export default function Impersonations() {
                           <ActorCell label={i.target_email} email={i.target_email} userId={i.target_user} />
                           <div className="min-w-0">
                             <p className="text-xs font-medium truncate max-w-[160px]">{i.target_email}</p>
-                            <p className="text-[10px] text-gray-01">Tenant #{i.tenant}</p>
+                            <p className="text-[10px] text-gray-01">{i.tenant_name}</p>
                           </div>
                         </div>
                       </td>
 
                       {/* School */}
                       <td className="px-3 py-3">
-                        <span className="text-xs text-gray-01">#{i.tenant}</span>
+                        <span className="text-xs text-gray-01">{i.tenant_name}</span>
                       </td>
 
                       {/* Justification */}
@@ -471,15 +469,9 @@ export default function Impersonations() {
                           <DropdownMenuContent align="end" style={{ width: 220 }}>
                             <DropdownMenuItem
                               className="text-xs gap-2"
-                              onClick={() => navigate(`${routesPath.PROTECTED.AUDIT.EVENTS}?actor_id=${i.staff_user}`)}
+                              onClick={() => setDetail(i)}
                             >
-                              <List className="size-3.5 shrink-0" /> View actions taken
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-xs gap-2"
-                              onClick={() => navigate(routesPath.PROTECTED.AUDIT.ENTITY_TRAIL_DETAIL("User", String(i.target_user)))}
-                            >
-                              <GitBranch className="size-3.5 shrink-0" /> View target trail
+                              <List className="size-3.5 shrink-0" /> View session details
                             </DropdownMenuItem>
                             {canEnd && i.status === "ACTIVE" && (
                               <>
@@ -488,7 +480,7 @@ export default function Impersonations() {
                                   className="text-xs gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
                                   onClick={() => setConfirmEnd(i)}
                                 >
-                                  <XCircle className="size-3.5 shrink-0" /> End impersonation
+                                  <XCircle className="size-3.5 shrink-0" /> End proxy session
                                 </DropdownMenuItem>
                               </>
                             )}
@@ -517,9 +509,9 @@ export default function Impersonations() {
         isOpen={!!confirmEnd}
         onClose={() => setConfirmEnd(null)}
         onConfirm={handleEnd}
-        title="End impersonation?"
+        title="End proxy session?"
         description={`This will immediately end ${confirmEnd?.staff_email}'s session as ${confirmEnd?.target_email}. The action is logged.`}
-        onConfirmText="End impersonation"
+        onConfirmText="End proxy session"
         onConfirmClass="bg-error-01 text-white hover:bg-error-01/90"
         canCancel
         loading={ending}

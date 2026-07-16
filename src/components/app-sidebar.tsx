@@ -400,7 +400,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           isActive: location.startsWith(routesPath.PROTECTED.AUDIT.PASSWORD_ACTIVITY),
         },
         {
-          title: "Impersonations",
+          title: "Proxy Sessions",
           url: routesPath.PROTECTED.AUDIT.IMPERSONATIONS,
           isActive: location.startsWith(routesPath.PROTECTED.AUDIT.IMPERSONATIONS),
         },
