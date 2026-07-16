@@ -241,7 +241,8 @@ export default function MyLoginHistory() {
         </div>
 
         {/* Main content: table + sidebar */}
-        <div className="flex gap-4 items-start">
+        {/* Phone: month-stats stack above the list (2×2); sm+: 200px sidebar. */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <div className="flex-1 min-w-0 flex flex-col gap-3">
 
             {/* Filter + range chip rows */}
@@ -379,8 +380,8 @@ export default function MyLoginHistory() {
           </div>
 
           {/* "This month" stats sidebar */}
-          <div className="w-[200px] shrink-0 bg-white rounded-md border border-gray-100 p-4 flex flex-col gap-3 self-start">
-            <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide">This month</p>
+          <div className="order-first grid w-full shrink-0 grid-cols-2 gap-3 self-start rounded-md border border-gray-100 bg-white p-4 sm:order-none sm:flex sm:w-[200px] sm:flex-col">
+            <p className="col-span-2 text-[10px] font-semibold text-gray-01 uppercase tracking-wide">This month</p>
             <div>
               <p className="text-xs text-gray-01">Sign-ins</p>
               <p className="text-xl font-semibold tabular-nums">{stats.signins}</p>

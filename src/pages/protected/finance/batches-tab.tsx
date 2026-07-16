@@ -221,8 +221,9 @@ function BuildBatchDrawer({ open, onClose, entity, currency }: { open: boolean; 
               const warn = !!l.vendor && !acct;
               return (
                 <div key={l.id} className="rounded-md border border-gray-03 bg-white p-2.5">
-                  <div className="grid grid-cols-[1.6fr_1fr_1fr_auto] items-end gap-2">
-                    <div>
+                  {/* Phone: vendor takes its own row; amounts + remove share the second. */}
+                  <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-2 sm:grid-cols-[1.6fr_1fr_1fr_auto]">
+                    <div className="col-span-3 sm:col-span-1">
                       <VendorPicker entity={entity} value={l.vendor} onChange={(code) => setLine(l.id, { vendor: code })} label="Vendor" />
                     </div>
                     <div><p className="mb-1 font-mont text-[11px] text-gray-05">Amount</p><MoneyInput valueKobo={l.amount} onChangeKobo={(k) => setLine(l.id, { amount: k })} currency={currency} className="[&_input]:h-9" /></div>

@@ -148,7 +148,7 @@ export default function AuditEventsExplorer() {
   return (
     <DashboardLayout title="Audit Events">
       <main className="px-4.5 py-6 space-y-5 text-black-01">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="font-semibold font-mont text-gray-01">Audit Events Explorer</p>
             <p className="text-xs text-gray-01 mt-0.5">
@@ -167,7 +167,8 @@ export default function AuditEventsExplorer() {
           </div>
         </div>
 
-        <div className="grid grid-cols-[260px_1fr] gap-5 items-start">
+        {/* Phone: filter rail stacks above the feed; md+: fixed 260px rail. */}
+        <div className="grid grid-cols-1 gap-5 items-start md:grid-cols-[260px_1fr]">
           {/* Filter rail */}
           <aside className="bg-white rounded-md p-4 space-y-5 h-fit">
             <div className="flex items-center justify-between">

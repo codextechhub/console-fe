@@ -91,7 +91,8 @@ function ImpersonationDetailDrawer({
 
             <div className="px-5 py-4 space-y-4">
               {/* Impersonator → Target */}
-              <div className="grid grid-cols-[1fr_32px_1fr] gap-2 items-center">
+              {/* Phone: Proxier stacks above Target (arrow turns down); sm+: side by side. */}
+              <div className="grid grid-cols-1 gap-2 items-center sm:grid-cols-[1fr_32px_1fr]">
                 <div className="rounded-md border bg-gray-50 p-3 space-y-2">
                   <p className="text-[10px] font-semibold uppercase text-gray-01">Proxier</p>
                   <div className="flex items-center gap-2.5">
@@ -103,7 +104,7 @@ function ImpersonationDetailDrawer({
                   </div>
                 </div>
                 <div className="flex justify-center text-gray-01">
-                  <ArrowRight className="size-4" />
+                  <ArrowRight className="size-4 rotate-90 sm:rotate-0" />
                 </div>
                 <div className="rounded-md border bg-gray-50 p-3 space-y-2">
                   <p className="text-[10px] font-semibold uppercase text-gray-01">Target</p>
