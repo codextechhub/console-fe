@@ -26,7 +26,8 @@ import { cn } from "@/lib/utils";
 
 function Countdown({ iso, className }: { iso: string | null; className?: string }) {
   const now = useNow();
-  if (!iso) return <span className={className}>Until exit</span>;
+  // Open-ended sessions expire server-side after 30 minutes without activity.
+  if (!iso) return <span className={className}>Until exit · idle cap</span>;
   const ms = new Date(iso).getTime() - now;
   if (ms <= 0) return <span className={cn("text-destructive", className)}>Expired</span>;
   const m = Math.floor(ms / 60_000);
@@ -78,7 +79,9 @@ function ImpersonationDetailDrawer({
                     <Countdown iso={session.ends_at} className="text-xs font-mono text-destructive" />
                   </>
                 ) : (
-                  <Badge variant="inactive" className="text-[10px] uppercase">Ended</Badge>
+                  <Badge variant="inactive" className="text-[10px] uppercase">
+                    {session.status === "EXPIRED" ? "Expired" : "Ended"}
+                  </Badge>
                 )}
                 <span className="text-gray-01 text-xs">·</span>
                 <span className="font-mono text-[10px] text-gray-01 truncate">#{session.id}</span>
@@ -136,7 +139,12 @@ function ImpersonationDetailDrawer({
                   { label: "Actions captured", value: eventsLoading ? "…" : String(events.length) },
                   // The backend ImpersonationSessionSerializer has no
                   // end_reason field — status is the closest real signal.
-                  { label: "Status", value: session.status === "ACTIVE" ? "Active" : "Ended" },
+                  {
+                    label: "Status",
+                    value: session.status === "ACTIVE" ? "Active"
+                      : session.status === "EXPIRED" ? "Expired"
+                      : "Ended",
+                  },
                 ].map(({ label, value, countdown }) => (
                   <div key={label} className="rounded-md border bg-gray-50 p-2.5 space-y-1">
                     <p className="text-[10px] font-semibold uppercase text-gray-01">{label}</p>
@@ -147,6 +155,29 @@ function ImpersonationDetailDrawer({
                     )}
                   </div>
                 ))}
+              </div>
+
+              {/* Read trail — what the proxier viewed, deduped by endpoint */}
+              <div>
+                <p className="text-xs font-semibold font-mont mb-2">Data accessed during session</p>
+                {(session.access_log ?? []).length === 0 ? (
+                  <div className="flex h-16 items-center justify-center text-xs text-gray-01 border rounded-md bg-gray-50">
+                    No reads recorded for this session.
+                  </div>
+                ) : (
+                  <div className="divide-y border rounded-md overflow-hidden max-h-56 overflow-y-auto">
+                    {[...session.access_log]
+                      .sort((a, b) => b.last_at.localeCompare(a.last_at))
+                      .map((entry) => (
+                        <div key={entry.path} className="flex items-center gap-3 px-3 py-2 bg-white hover:bg-gray-50">
+                          <p className="flex-1 min-w-0 truncate font-mono text-[11px] text-black-01">{entry.path}</p>
+                          <span className="shrink-0 text-[10px] text-gray-01 tabular-nums">
+                            ×{entry.count} · {formatRelativeDate(entry.last_at)}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
 
               {/* Actions timeline */}
@@ -289,7 +320,7 @@ export default function Impersonations() {
               {activeCount > 0 ? (
                 <><span className="text-destructive font-medium">{activeCount} active</span> · </>
               ) : null}
-              Meaningful changes and failed actions made through proxy are logged.
+              Changes and failed actions are audited; reads land in each session&apos;s access trail.
             </p>
           </div>
           <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>

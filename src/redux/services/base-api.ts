@@ -306,8 +306,10 @@ export const baseQueryInterceptor: BaseQueryFn<
           api.dispatch(clearSelectedEntity());
           api.dispatch(baseApi.util.resetApiState());
           toast.info("Proxy session ended");
-          window.history.replaceState({}, "", routesPath.PROTECTED.OVERVIEW.INDEX);
-          window.dispatchEvent(new PopStateEvent("popstate"));
+          // Imported lazily: the route table imports pages that import this
+          // module, so a static import would be circular.
+          const { router } = await import("@/routes");
+          router.navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
         } else {
           forceLogoutAndRedirect(api);
         }

@@ -479,7 +479,7 @@ they cannot actually open. Equivalent treatment was applied to the
 | `/audit/login-attempts` | `P.VIEW_AUDIT` (group) | â (read-only) |
 | `/audit/lockouts` | `P.VIEW_AUDIT` (group) | "Unlock account" â `P.REACTIVATE_TEAM_MEMBER` |
 | `/audit/password-activity` | `P.VIEW_AUDIT` (group) | â (read-only) |
-| `/audit/impersonations` | `P.VIEW_AUDIT` (group) | "End impersonation" â `P.END_IMPERSONATION` |
+| `/audit/impersonations` | `P.VIEW_AUDIT` (group) | "End proxy session" â `P.END_IMPERSONATION` (backend `platform.impersonation.end` may terminate ANY active session since 2026-07-16; `start_*`-only holders stay owner-only) |
 | `/audit/exports`, `/audit/exports/new` | `P.VIEW_AUDIT` (group) + `P.EXPORT_AUDIT` (sub-item) | "New export" â `P.EXPORT_AUDIT` |
 | `/audit/compliance-rules` and form | `P.VIEW_AUDIT` (group) + `P.MANAGE_AUDIT` (sub-item) | Add / Edit / Delete â `P.MANAGE_AUDIT` |
 | `/roles/change-requests` | `P.VIEW_ROLES` (group) + `P.MODIFY_ROLE` (sub-item) | â |

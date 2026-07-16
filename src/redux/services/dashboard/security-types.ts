@@ -90,8 +90,18 @@ export interface ImpersonationSession {
   started_at: string;
   ends_at: string | null;
   ended_at: string | null;
+  last_activity_at: string;
+  access_log: ProxyAccessEntry[];
   created_at: string;
   updated_at: string;
+}
+
+/** One deduped read-trail row: a path the proxier viewed during the session. */
+export interface ProxyAccessEntry {
+  path: string;
+  count: number;
+  first_at: string;
+  last_at: string;
 }
 
 export interface ProxyTarget {
