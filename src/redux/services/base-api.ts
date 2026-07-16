@@ -5,14 +5,22 @@ import {
   createApi,
   fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
-import { resetAuth, setToken, updatePermissions, updateTenant } from "../features/auth/auth-slice";
-import type { AuthTenant } from "../features/auth/auth-types";
+import {
+  resetAuth,
+  setAuthContext,
+  setImpersonation,
+  setToken,
+  updatePermissions,
+  updateTenant,
+} from "../features/auth/auth-slice";
+import type { ActiveImpersonation, AuthTenant } from "../features/auth/auth-types";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { routesPath } from "@/routes/routes-path";
 import { refreshTokenSingleFlight } from "@/utils/token-refresh";
 import { endSession } from "@/utils/end-session";
 import { captureReturnTo } from "@/utils/return-to";
+import { clearSelectedEntity } from "../features/finance/entity-slice";
 
 const getAccessToken = () => {
   const token = Cookies.get("token");
@@ -52,17 +60,26 @@ const TENANT_EXEMPT_ENDPOINTS = new Set([
 // impersonated target — so they never receive the impersonation session header.
 const IMPERSONATION_ENDPOINTS = new Set([
   "getImpersonations",
+  "getProxyTargets",
   "startImpersonation",
   "endImpersonation",
 ]);
 
+// Logout must always operate on the original token owner. Self-service `/me`
+// endpoints are intentionally absent: while proxying they should behave
+// exactly as they do for the effective target user.
+const IMPERSONATION_HEADER_EXEMPT_ENDPOINTS = new Set([
+  ...AUTH_ENDPOINTS,
+  "logout",
+]);
+
 const readAuth = (getState: () => unknown): {
   tenantSlug: string;
-  impersonation: { id: number; tenantSlug: string } | null;
+  impersonation: ActiveImpersonation | null;
 } => {
   const auth = (getState() as { auth?: {
     tenant?: { slug?: string } | null;
-    impersonation?: { id: number; tenantSlug: string } | null;
+    impersonation?: ActiveImpersonation | null;
   } })?.auth;
   return {
     tenantSlug: auth?.tenant?.slug ?? "",
@@ -83,7 +100,7 @@ export const baseQuery = fetchBaseQuery({
     const { impersonation } = readAuth(getState);
     if (
       impersonation &&
-      !TENANT_EXEMPT_ENDPOINTS.has(endpoint) &&
+      !IMPERSONATION_HEADER_EXEMPT_ENDPOINTS.has(endpoint) &&
       !IMPERSONATION_ENDPOINTS.has(endpoint)
     ) {
       headers.set("X-Impersonation-Session", String(impersonation.id));
@@ -130,10 +147,17 @@ const forceLogoutAndRedirect = (api: Parameters<BaseQueryFn>[1]) => {
 // It refreshes both the permission set and the cached tenant context.
 const fetchFreshMe = async (
   accessToken: string,
+  impersonation: ActiveImpersonation | null,
 ): Promise<{ permissions: string[] | null; tenant: AuthTenant | null }> => {
   try {
     const response = await fetch(`${baseUrl}/user/auth/me/`, {
-      headers: { Authorization: `Bearer ${accessToken}`, accept: "application/json" },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        accept: "application/json",
+        ...(impersonation
+          ? { "X-Impersonation-Session": String(impersonation.id) }
+          : {}),
+      },
     });
     if (!response.ok) return { permissions: null, tenant: null };
     const data = await response.json();
@@ -256,13 +280,27 @@ export const baseQueryInterceptor: BaseQueryFn<
 
       // Role may have changed since last login — keep permissions and the
       // cached tenant context fresh.
-      const fresh = await fetchFreshMe(refreshed.access);
+      const activeImpersonation = readAuth(api.getState).impersonation;
+      const fresh = await fetchFreshMe(refreshed.access, activeImpersonation);
       if (fresh.permissions) api.dispatch(updatePermissions(fresh.permissions));
       if (fresh.tenant) api.dispatch(updateTenant(fresh.tenant));
 
       const retry = await baseQueryWithTenant(args, api, extraOptions);
       if (retry?.error?.status === 401) {
-        forceLogoutAndRedirect(api);
+        if (activeImpersonation) {
+          // The actor's refreshed token is valid, so a second 401 while
+          // proxying means the proxy session/target became invalid. Restore
+          // the original actor instead of incorrectly logging them out.
+          api.dispatch(setImpersonation(null));
+          api.dispatch(setAuthContext(activeImpersonation.actor));
+          api.dispatch(clearSelectedEntity());
+          api.dispatch(baseApi.util.resetApiState());
+          toast.info("Proxy session ended. You are back in your own account.");
+          window.history.replaceState({}, "", routesPath.PROTECTED.OVERVIEW.INDEX);
+          window.dispatchEvent(new PopStateEvent("popstate"));
+        } else {
+          forceLogoutAndRedirect(api);
+        }
       }
       return retry;
     }

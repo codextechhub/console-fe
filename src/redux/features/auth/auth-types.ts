@@ -28,6 +28,27 @@ export interface AuthTenant {
 export interface ActiveImpersonation {
   id: number
   tenantSlug: string
+  target: ProxyTargetIdentity
+  /** Original signed-in context, retained while the effective user changes. */
+  actor: AuthContextSnapshot
+}
+
+export interface ProxyTargetIdentity {
+  id: number
+  email: string
+  full_name: string
+  user_type: string
+  role: string
+  tenant_slug: string
+  tenant_name: string
+  school_name: string | null
+}
+
+export interface AuthContextSnapshot {
+  user: User | null
+  school: AuthSchool | null
+  tenant: AuthTenant | null
+  permissions: string[]
 }
 
 export interface User {

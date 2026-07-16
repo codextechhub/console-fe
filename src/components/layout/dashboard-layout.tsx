@@ -11,9 +11,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AppSidebar } from "../app-sidebar";
-import { ChevronLeft, ChevronRight, LogOut, Search, ShieldCheck, UserRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, LogOut, Search, ShieldCheck, Undo2, UserRound, UsersRound } from "lucide-react";
 import { useNavigate } from "react-router";
-import { useAppSelector } from "@/redux/store";
+import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { SessionTimeoutModal } from "@/components/session-timeout-modal";
@@ -26,6 +26,13 @@ import { routesPath } from "@/routes/routes-path";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { SupportTicketComposer } from "@/components/support-ticket-composer";
+import { ProxyUserDialog } from "@/components/proxy-user-dialog";
+import { setAuthContext, setImpersonation } from "@/redux/features/auth/auth-slice";
+import { useEndImpersonationMutation } from "@/redux/services/dashboard/security-api";
+import { baseApi } from "@/redux/services/base-api";
+import { authApi } from "@/redux/services/auth/auth-api";
+import { toast } from "sonner";
+import { clearSelectedEntity } from "@/redux/features/finance/entity-slice";
 
 function DashboardHeader({
   hasBack,
@@ -37,13 +44,55 @@ function DashboardHeader({
   title?: string;
 }) {
   const navigate = useNavigate();
-  const user = useAppSelector((state) => state.auth.user);
+  const dispatch = useAppDispatch();
+  const auth = useAppSelector((state) => state.auth);
+  const user = auth.user;
+  const impersonation = auth.impersonation ?? null;
   const { state, toggleSidebar } = useSidebar();
   const { hasPermission, hasModuleAccess } = usePermissions();
   const [search, setSearch] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [proxyOpen, setProxyOpen] = useState(false);
+  const [endImpersonation, { isLoading: isEndingProxy }] = useEndImpersonationMutation();
   const { handleLogout, isLoggingOut } = useLogout();
   const { isOpen: openLogout, toggleClick: toggleLogout } = useToggleModal(false);
+  const actorPermissions = impersonation?.actor.permissions ?? auth.permissions ?? [];
+  const canProxy = actorPermissions.some((permission) =>
+    [
+      "platform.impersonation.start_all",
+      "platform.impersonation.start_cx",
+      "platform.impersonation.start_school",
+    ].includes(permission),
+  );
+
+  const exitProxy = async () => {
+    if (!impersonation || isEndingProxy) return;
+    let endedOnServer = false;
+    try {
+      await endImpersonation({ session_id: impersonation.id }).unwrap();
+      endedOnServer = true;
+    } catch {
+      // Restore the actor locally even when the already-ended session returns
+      // an error; a future proxy start atomically closes any stale server row.
+    } finally {
+      dispatch(setImpersonation(null));
+      dispatch(setAuthContext(impersonation.actor));
+      dispatch(clearSelectedEntity());
+      dispatch(baseApi.util.resetApiState());
+      try {
+        await dispatch(
+          authApi.endpoints.getMe.initiate(undefined, {
+            forceRefetch: true,
+            subscribe: false,
+          }),
+        ).unwrap();
+      } catch {
+        // The retained actor snapshot keeps the account usable until refetch.
+      }
+      navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
+      if (endedOnServer) toast.success("You are back in your own account.");
+    }
+  };
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return [];
@@ -196,6 +245,21 @@ function DashboardHeader({
               <ShieldCheck className="size-4" />
               My Security
             </DropdownMenuItem>
+            {canProxy && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setProxyOpen(true)}>
+                  <UsersRound className="size-4" />
+                  Proxy user
+                </DropdownMenuItem>
+                {impersonation && (
+                  <DropdownMenuItem disabled={isEndingProxy} onClick={exitProxy}>
+                    {isEndingProxy ? <Loader2 className="size-4 animate-spin" /> : <Undo2 className="size-4" />}
+                    Exit proxy
+                  </DropdownMenuItem>
+                )}
+              </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
@@ -207,6 +271,8 @@ function DashboardHeader({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <ProxyUserDialog open={proxyOpen} onOpenChange={setProxyOpen} />
 
       {mobileSearchOpen && (
         <div className="relative col-span-2 mb-3 mt-1 lg:hidden">

@@ -3,6 +3,7 @@ import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
 import {
   type ActiveImpersonation,
   type Auth,
+  type AuthContextSnapshot,
   type AuthSchool,
   type AuthTenant,
   type User,
@@ -56,6 +57,12 @@ const authSlice = createSlice({
     setImpersonation: (state, action: PayloadAction<ActiveImpersonation | null>) => {
       state.impersonation = action.payload;
     },
+    setAuthContext: (state, action: PayloadAction<AuthContextSnapshot>) => {
+      state.user = action.payload.user;
+      state.school = action.payload.school;
+      state.tenant = action.payload.tenant;
+      state.permissions = action.payload.permissions;
+    },
     setToken: (state, action: PayloadAction<string>) => {
       state.access = action.payload;
     },
@@ -72,6 +79,7 @@ export const {
   updateSchool,
   updateTenant,
   setImpersonation,
+  setAuthContext,
   updatePermissions,
 } = authSlice.actions;
 export const resetAuth = authSlice.actions.reset;

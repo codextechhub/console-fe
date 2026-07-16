@@ -26,8 +26,9 @@ import { cn } from "@/lib/utils";
 
 // ── Countdown ─────────────────────────────────────────────────────────────────
 
-function Countdown({ iso, className }: { iso: string; className?: string }) {
+function Countdown({ iso, className }: { iso: string | null; className?: string }) {
   const now = useNow();
+  if (!iso) return <span className={className}>Until exit</span>;
   const ms = new Date(iso).getTime() - now;
   if (ms <= 0) return <span className={cn("text-destructive", className)}>Expired</span>;
   const m = Math.floor(ms / 60_000);

@@ -84,8 +84,19 @@ export interface ImpersonationSession {
   justification: string;
   status: "ACTIVE" | "ENDED" | "EXPIRED";
   started_at: string;
-  ends_at: string;
+  ends_at: string | null;
   ended_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ProxyTarget {
+  id: number;
+  email: string;
+  full_name: string;
+  user_type: string;
+  role: string;
+  tenant_slug: string;
+  tenant_name: string;
+  school_name: string | null;
 }

@@ -8,6 +8,7 @@ import type {
   PasswordReset,
   MyPasswordReset,
   PaginatedResponse,
+  ProxyTarget,
 } from "./security-types";
 
 export const securityApi = baseApi.injectEndpoints({
@@ -57,6 +58,14 @@ export const securityApi = baseApi.injectEndpoints({
     }),
 
     // ── Impersonation sessions ──────────────────────────────────────────────
+    getProxyTargets: builder.query<PaginatedResponse<ProxyTarget>, { tenant_slug: string; search: string; page?: number; page_size?: number }>({
+      query: ({ tenant_slug, ...params }) => ({
+        url: `/admin/impersonations/targets/`,
+        method: "GET",
+        params: { ...params, tenant: tenant_slug },
+      }),
+    }),
+
     getImpersonations: builder.query<PaginatedResponse<ImpersonationSession>, Record<string, string | number>>({
       query: (params) => ({ url: `/admin/impersonations/${generateQueryString(params)}`, method: "GET" }),
       providesTags: ["ImpersonationSessions"],
@@ -65,7 +74,7 @@ export const securityApi = baseApi.injectEndpoints({
     // Start asserts the TARGET tenant's slug (?tenant=<slug>) — the one place a
     // platform admin addresses another tenant directly. Because the request
     // carries its own tenant param, the central injection leaves it untouched.
-    startImpersonation: builder.mutation<{ data: ImpersonationSession }, { tenant_slug: string; target_user: number; justification: string; duration_minutes?: number }>({
+    startImpersonation: builder.mutation<{ data: ImpersonationSession }, { tenant_slug: string; target_user: number }>({
       query: ({ tenant_slug, ...body }) => ({
         url: `/admin/impersonations/start/`,
         method: "POST",
@@ -122,6 +131,7 @@ export const {
   useGetMySecurityStatsQuery,
   useGetAuthEventsQuery,
   useGetImpersonationsQuery,
+  useGetProxyTargetsQuery,
   useStartImpersonationMutation,
   useEndImpersonationMutation,
   useGetPendingResetsQuery,
