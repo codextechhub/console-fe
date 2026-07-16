@@ -63,10 +63,13 @@ function TicketAttachmentCard({ ticketId, attachment }: { ticketId: string; atta
     let objectUrl = "";
     download({ id: ticketId, attachmentId: attachment.id })
       .unwrap()
-      .then((blob) => {
-        if (!active) return;
-        objectUrl = URL.createObjectURL(blob);
-        setPreviewUrl(objectUrl);
+      .then((url) => {
+        if (!active) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+        objectUrl = url;
+        setPreviewUrl(url);
       })
       .catch(() => undefined);
     return () => {
@@ -77,13 +80,14 @@ function TicketAttachmentCard({ ticketId, attachment }: { ticketId: string; atta
 
   const save = async () => {
     try {
-      const blob = await download({ id: ticketId, attachmentId: attachment.id }).unwrap();
-      const url = URL.createObjectURL(blob);
+      // Images were already fetched for the preview — reuse that object URL
+      // instead of downloading the file a second time.
+      const url = previewUrl || (await download({ id: ticketId, attachmentId: attachment.id }).unwrap());
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = attachment.original_filename;
       anchor.click();
-      URL.revokeObjectURL(url);
+      if (!previewUrl) URL.revokeObjectURL(url);
     } catch {
       toast.error("Unable to download this attachment");
     }
@@ -150,21 +154,35 @@ export default function TicketDetail() {
       </DashboardLayout>
     );
 
+  // A file may be sent without text (it attaches to the ticket itself), but an
+  // internal note needs text: a ticket-level attachment has no visibility flag,
+  // so a file-only "internal" send would be visible to the requester.
+  const canSend = !!body.trim() || (!!pendingFile && !internal);
+
   const send = async () => {
-    if (!body.trim()) return;
+    if (!canSend) return;
+    const text = body.trim();
     try {
-      const created = await comment({ id, body, visibility: internal ? "INTERNAL" : "PUBLIC" }).unwrap();
-      setBody("");
+      let commentId: string | undefined;
+      if (text) {
+        const created = await comment({ id, body, visibility: internal ? "INTERNAL" : "PUBLIC" }).unwrap();
+        setBody("");
+        commentId = created.data.id;
+      }
       if (pendingFile) {
         try {
-          await upload({ id, file: pendingFile, comment_id: created.data.id }).unwrap();
+          await upload({ id, file: pendingFile, comment_id: commentId }).unwrap();
           setPendingFile(null);
         } catch {
-          toast.warning("Reply sent, but the attachment could not be uploaded. You can try the file again.");
+          toast.warning(
+            text
+              ? "Reply sent, but the attachment could not be uploaded. You can try the file again."
+              : "The attachment could not be uploaded. Please try again.",
+          );
           return;
         }
       }
-      toast.success(internal ? "Internal note added" : "Reply sent");
+      toast.success(text ? (internal ? "Internal note added" : "Reply sent") : "Attachment uploaded");
     } catch {
       toast.error("Unable to send your reply");
     }
@@ -275,7 +293,7 @@ export default function TicketDetail() {
                       size="sm"
                       className="ml-auto"
                       onClick={send}
-                      disabled={commentState.isLoading || uploadState.isLoading || !body.trim()}
+                      disabled={commentState.isLoading || uploadState.isLoading || !canSend}
                     >
                       <Send className="size-3" />
                       {commentState.isLoading ? "Sending…" : "Send reply"}
@@ -289,6 +307,12 @@ export default function TicketDetail() {
                         <X className="size-3.5" />
                       </button>
                     </div>
+                  )}
+                  {pendingFile && internal && !body.trim() && (
+                    <p className="mt-1.5 text-[11px] text-gray-01">
+                      Write the note text to send this file with an internal note — a file sent
+                      alone is visible to everyone on the ticket.
+                    </p>
                   )}
                 </div> : (
                   <p className="mt-6 rounded-lg bg-gray-50 p-4 text-sm text-gray-01">You can view this ticket, but you cannot reply to its conversation.</p>

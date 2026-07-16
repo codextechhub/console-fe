@@ -55,8 +55,9 @@ export default function Notifications() {
     (n) => !search || `${n.subject} ${n.body} ${n.event_type_label}`.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const open = async (notification: (typeof rows)[number]) => {
-    if (!notification.is_read) await markRead({ ids: [notification.id] });
+  const open = (notification: (typeof rows)[number]) => {
+    // Fire-and-forget so navigation isn't held on the mark-read round-trip.
+    if (!notification.is_read) markRead({ ids: [notification.id] });
     if (notification.action_url) navigate(notification.action_url);
   };
 

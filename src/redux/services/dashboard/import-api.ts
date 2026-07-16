@@ -55,12 +55,15 @@ export const importApi = baseApi.injectEndpoints({
       invalidatesTags: (_res, _err, { id }) => [{ type: "ImportTemplates", id }, "ImportTemplates"],
     }),
 
-    downloadImportTemplate: builder.mutation<Blob, { id: number; format: "csv" | "xlsx" }>({
+    // Resolves to an object URL (caller must revokeObjectURL when done) —
+    // storing the raw Blob in redux state trips the serializability check.
+    downloadImportTemplate: builder.mutation<string, { id: number; format: "csv" | "xlsx" }>({
       query: ({ id, format }) => ({
         url: `/import/system-import-templates/${id}/download/?file_format=${format}`,
         method: "GET",
         responseHandler: (response) => response.blob(),
       }),
+      transformResponse: (blob: Blob) => URL.createObjectURL(blob),
     }),
 
     // ── Batches ─────────────────────────────────────────────────────────────

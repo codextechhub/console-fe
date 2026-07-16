@@ -118,9 +118,11 @@ export const ticketsApi = baseApi.injectEndpoints({
       query: ({ id, ...body }) => ({ url: `/support/tickets/${id}/assign/`, method: "POST", body }),
       invalidatesTags: ["Tickets"],
     }),
+    // Own tag: eligibility depends on roles/permissions, not ticket state, so
+    // ticket mutations (assign, comment, transition) must not refetch it.
     getEligibleTicketAssignees: builder.query<{ data: TicketUser[] }, string>({
       query: (id) => `/support/tickets/${id}/eligible-assignees/`,
-      providesTags: ["Tickets"],
+      providesTags: ["TicketAssignees"],
     }),
     transitionTicket: builder.mutation<{ data: Ticket }, { id: string; status: TicketStatus }>({
       query: ({ id, ...body }) => ({ url: `/support/tickets/${id}/transition/`, method: "POST", body }),
@@ -145,8 +147,10 @@ export const ticketsApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ["Tickets"],
     }),
+    // Resolves to an object URL (caller must revokeObjectURL when done) —
+    // storing the raw Blob in redux state trips the serializability check.
     downloadTicketAttachment: builder.mutation<
-      Blob,
+      string,
       { id: string; attachmentId: string }
     >({
       query: ({ id, attachmentId }) => ({
@@ -154,6 +158,7 @@ export const ticketsApi = baseApi.injectEndpoints({
         method: "GET",
         responseHandler: (response) => response.blob(),
       }),
+      transformResponse: (blob: Blob) => URL.createObjectURL(blob),
     }),
     getTicketAudit: builder.query<{ data: TicketAudit[] }, string>({
       query: (id) => `/support/tickets/${id}/audit/`,

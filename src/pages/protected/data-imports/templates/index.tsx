@@ -42,25 +42,23 @@ const STATUS_BADGE: Record<TemplateStatus, "active" | "pending" | "inactive"> = 
 
 const TABLE_HEADERS = ["Code", "Template", "Dataset", "Format", "Status", "Columns", "Updated", "Action"];
 
-function saveBlob(blob: Blob, filename: string) {
-  const blobUrl = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = blobUrl;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(blobUrl);
-}
-
+// The mutation resolves to an object URL (not a Blob) so redux state stays
+// serializable; revoke it here once the browser has taken the download.
 async function triggerDownload(
-  download: (args: { id: number; format: "csv" | "xlsx" }) => { unwrap: () => Promise<Blob> },
+  download: (args: { id: number; format: "csv" | "xlsx" }) => { unwrap: () => Promise<string> },
   id: number,
   format: "csv" | "xlsx",
   filename: string,
 ) {
   try {
-    saveBlob(await download({ id, format }).unwrap(), filename);
+    const blobUrl = await download({ id, format }).unwrap();
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
   } catch {
     toast.error("Download failed. Please try again.");
   }

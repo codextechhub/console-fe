@@ -60,8 +60,10 @@ export function NotificationsBell() {
             {items.map((n) => (
               <li key={n.id}>
                 <button
-                  onClick={async () => {
-                    await markRead({ ids: [n.id] });
+                  onClick={() => {
+                    // Fire-and-forget so navigation isn't held on the
+                    // mark-read round-trip.
+                    markRead({ ids: [n.id] });
                     navigate(n.action_url || routesPath.PROTECTED.NOTIFICATIONS);
                   }}
                   className="flex w-full gap-3 px-4 py-3 text-left hover:bg-gray-50"

@@ -30,15 +30,16 @@ const unwrap = <T,>(res: { data: T } | T | undefined): T | undefined => {
   return (res as { data: T }).data ?? (res as T);
 };
 
+// The mutation resolves to an object URL (not a Blob) so redux state stays
+// serializable; revoke it here once the browser has taken the download.
 async function triggerDownload(
-  download: (args: { id: number; format: "csv" | "xlsx" }) => { unwrap: () => Promise<Blob> },
+  download: (args: { id: number; format: "csv" | "xlsx" }) => { unwrap: () => Promise<string> },
   id: number,
   format: "csv" | "xlsx",
   filename: string,
 ) {
   try {
-    const blob = await download({ id, format }).unwrap();
-    const blobUrl = URL.createObjectURL(blob);
+    const blobUrl = await download({ id, format }).unwrap();
     const a = document.createElement("a");
     a.href = blobUrl;
     a.download = filename;
