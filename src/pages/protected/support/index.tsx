@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -42,7 +42,15 @@ export default function Support() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
-  const [creating, setCreating] = useState(false);
+  // /support/tickets/new is this same page with the composer open on arrival —
+  // a deep-linkable "new ticket" URL (also reachable via the page button).
+  const isNewRoute = useLocation().pathname === routesPath.PROTECTED.SUPPORT.NEW;
+  const [creating, setCreating] = useState(isNewRoute);
+  const closeCreate = () => {
+    setCreating(false);
+    // Leaving the composer must also leave the /new URL, or refresh would reopen it.
+    if (isNewRoute) nav(routesPath.PROTECTED.SUPPORT.TICKETS, { replace: true });
+  };
 
   const debouncedQ = useDebounce(q, 400);
   const list = useGetTicketsQuery({ page, q: debouncedQ, ...(status ? { status } : {}) });
@@ -153,7 +161,7 @@ export default function Support() {
         {creating && (
           <CreateTicket
             open
-            close={() => setCreating(false)}
+            close={closeCreate}
             done={(id) => nav(routesPath.PROTECTED.SUPPORT.DETAIL(id))}
           />
         )}

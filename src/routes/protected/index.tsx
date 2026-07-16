@@ -30,6 +30,8 @@ export const protectedRoutes = [
   { path: routesPath.PROTECTED.SETTINGS.INDEX, element: <Settings /> },
   { path: routesPath.PROTECTED.SUPPORT.INDEX, element: <Support /> },
   { path: routesPath.PROTECTED.SUPPORT.TICKETS, element: <Support /> },
+  // Deep-linkable "new ticket": the Support page with the composer already open.
+  { path: routesPath.PROTECTED.SUPPORT.NEW, element: <Support /> },
   { path: routesPath.PROTECTED.SUPPORT.DETAIL_PATH, element: <TicketDetail /> },
   ...overviewRoutes,
   ...schoolRoutes,
