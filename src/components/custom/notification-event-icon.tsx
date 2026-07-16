@@ -3,14 +3,14 @@ import {
   CircleDollarSign,
   ClipboardCheck,
   DatabaseZap,
+  Headset,
   KeyRound,
-  LifeBuoy,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
 
 export function NotificationEventIcon({ eventKey, className = "size-4" }: { eventKey: string; className?: string }) {
-  if (eventKey.startsWith("ticket.")) return <LifeBuoy className={className} />;
+  if (eventKey.startsWith("ticket.")) return <Headset className={className} />;
   if (eventKey.startsWith("workflow.")) return <ClipboardCheck className={className} />;
   if (eventKey.startsWith("import.")) return <DatabaseZap className={className} />;
   if (["finance.", "payments.", "procurement."].some((prefix) => eventKey.startsWith(prefix))) return <CircleDollarSign className={className} />;
