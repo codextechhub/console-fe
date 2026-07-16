@@ -38,6 +38,8 @@ export interface AuditEventListItem {
   status: AuditStatus;
   actor_type: AuditActorType;
   actor_user: ActorSlim | null;
+  effective_user: ActorSlim | null;
+  impersonation_session: number | null;
   actor_label: string;
   entity_type: string;
   entity_id: string;

@@ -53,14 +53,26 @@ export default function EventDetailDrawer({ eventId, onClose, onFilterEntity }: 
               </div>
               <p className="text-base font-semibold">{friendlyAction(event.action_type)}</p>
               <p className="text-sm text-gray-01">{event.summary}</p>
+              {event.impersonation_session && event.effective_user && (
+                <p className="mt-2 inline-flex w-fit items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-200">
+                  Performed through proxy as {event.effective_user.full_name || event.effective_user.email}
+                </p>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className={`grid gap-3 ${event.impersonation_session && event.effective_user ? "sm:grid-cols-3" : "grid-cols-2"}`}>
               <div className="bg-gray-50 rounded p-3 space-y-1.5">
                 <p className="text-[10px] font-semibold uppercase text-gray-01">Actor</p>
                 <p className="text-sm font-medium">{event.actor_user?.full_name || event.actor_user?.email || event.actor_label || "System"}</p>
                 <p className="text-[10px] text-gray-01 uppercase">{event.actor_type}</p>
               </div>
+              {event.impersonation_session && event.effective_user && (
+                <div className="rounded bg-amber-50/70 p-3 space-y-1.5 ring-1 ring-inset ring-amber-100">
+                  <p className="text-[10px] font-semibold uppercase text-amber-700">Proxied as</p>
+                  <p className="text-sm font-medium">{event.effective_user.full_name || event.effective_user.email}</p>
+                  <p className="truncate text-[10px] text-gray-01">{event.effective_user.email}</p>
+                </div>
+              )}
               <div className="bg-gray-50 rounded p-3 space-y-1.5">
                 <p className="text-[10px] font-semibold uppercase text-gray-01">Entity</p>
                 <p className="text-sm font-medium">{event.entity_label || "—"}</p>
