@@ -11,9 +11,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  useGetAuthAttemptsQuery,
-  useGetLoginSessionsQuery,
-  useForceLogoutMutation,
+  useGetMyAuthAttemptsQuery,
+  useGetMyLoginSessionsQuery,
+  useEndAllMySessionsMutation,
 } from "@/redux/services/dashboard/security-api";
 import { useAppSelector } from "@/redux/store";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -117,7 +117,7 @@ type Filter = (typeof FILTERS)[number];
 
 export default function MyLoginHistory() {
   const navigate = useNavigate();
-  const user = useAppSelector((s) => s.auth.user);
+  const impersonation = useAppSelector((s) => s.auth.impersonation);
 
   const [filter, setFilter] = useState<Filter>("All");
   const [range, setRange] = useState("30d");
@@ -125,15 +125,15 @@ export default function MyLoginHistory() {
   const [reportModal, setReportModal] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
 
-  const { data: attemptsData, isLoading, isError, refetch, isFetching } = useGetAuthAttemptsQuery(
-    { ...(user?.id ? { user_id: user.id } : {}), page_size: 50 },
+  const { data: attemptsData, isLoading, isError, refetch, isFetching } = useGetMyAuthAttemptsQuery(
+    { page_size: 50 },
     { refetchOnMountOrArgChange: true },
   );
-  const { data: endedSessionsData } = useGetLoginSessionsQuery(
+  const { data: endedSessionsData } = useGetMyLoginSessionsQuery(
     { is_active: "false", page_size: 20 },
     { refetchOnMountOrArgChange: true },
   );
-  const [forceLogout] = useForceLogoutMutation();
+  const [endAllMySessions] = useEndAllMySessionsMutation();
 
   const attempts = useMemo(() => attemptsData?.data ?? [], [attemptsData]);
   const endedSessions = useMemo(() => endedSessionsData?.data ?? [], [endedSessionsData]);
@@ -203,12 +203,11 @@ export default function MyLoginHistory() {
     });
 
   const handleReport = async () => {
-    if (!user?.id) return;
     setIsReporting(true);
     try {
-      await forceLogout({ user_id: String(user.id), reason: "SUSPECTED_COMPROMISE" }).unwrap();
+      await endAllMySessions().unwrap();
       toast.success("All sessions ended. Sign in again and change your password.");
-      navigate(routesPath.AUTH.LOGIN);
+      if (!impersonation) navigate(routesPath.AUTH.LOGIN);
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {

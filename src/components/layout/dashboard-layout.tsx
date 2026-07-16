@@ -90,7 +90,7 @@ function DashboardHeader({
         // The retained actor snapshot keeps the account usable until refetch.
       }
       navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
-      if (endedOnServer) toast.success("You are back in your own account.");
+      if (endedOnServer) toast.success("Proxy session ended");
     }
   };
   const searchResults = useMemo(() => {

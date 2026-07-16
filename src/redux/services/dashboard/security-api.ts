@@ -19,6 +19,21 @@ export const securityApi = baseApi.injectEndpoints({
       providesTags: ["LoginSessions"],
     }),
 
+    getMyLoginSessions: builder.query<PaginatedResponse<LoginSession>, Record<string, string | number>>({
+      query: (params) => ({ url: `/user/sessions/mine/${generateQueryString(params)}`, method: "GET" }),
+      providesTags: ["LoginSessions"],
+    }),
+
+    endMySession: builder.mutation<{ data: { ended_sessions: number } }, { session_id: string }>({
+      query: ({ session_id }) => ({ url: `/user/sessions/${session_id}/end-mine/`, method: "POST" }),
+      invalidatesTags: ["LoginSessions"],
+    }),
+
+    endAllMySessions: builder.mutation<{ data: { ended_sessions: number } }, void>({
+      query: () => ({ url: `/user/sessions/end-all-mine/`, method: "POST" }),
+      invalidatesTags: ["LoginSessions"],
+    }),
+
     forceLogout: builder.mutation<{ data: { ended_sessions: number } }, { user_id?: string; session_id?: string; reason: string }>({
       query: (body) => ({ url: `/user/sessions/force-logout/`, method: "POST", body }),
       invalidatesTags: ["LoginSessions"],
@@ -27,6 +42,11 @@ export const securityApi = baseApi.injectEndpoints({
     // ── Login attempts ──────────────────────────────────────────────────────
     getAuthAttempts: builder.query<PaginatedResponse<AuthAttempt>, Record<string, string | number>>({
       query: (params) => ({ url: `/user/auth-attempts/${generateQueryString(params)}`, method: "GET" }),
+      providesTags: ["AuthAttempts"],
+    }),
+
+    getMyAuthAttempts: builder.query<PaginatedResponse<AuthAttempt>, Record<string, string | number>>({
+      query: (params) => ({ url: `/user/auth-attempts/mine/${generateQueryString(params)}`, method: "GET" }),
       providesTags: ["AuthAttempts"],
     }),
 
@@ -124,8 +144,12 @@ export const securityApi = baseApi.injectEndpoints({
 
 export const {
   useGetLoginSessionsQuery,
+  useGetMyLoginSessionsQuery,
+  useEndMySessionMutation,
+  useEndAllMySessionsMutation,
   useForceLogoutMutation,
   useGetAuthAttemptsQuery,
+  useGetMyAuthAttemptsQuery,
   useGetAccountLockoutsQuery,
   useUnlockAccountMutation,
   useGetMySecurityStatsQuery,

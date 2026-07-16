@@ -11,7 +11,7 @@ import { Banknote, Briefcase, Building2, ChevronRight, Lock, LockOpen, Pencil, S
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import {
-  useGetAssignmentsQuery,
+  useGetMyAssignmentsQuery,
   useGetMyStaffProfileQuery,
   useUpdateMyStaffProfileMutation,
 } from "@/redux/services/dashboard/organogram-api";
@@ -117,10 +117,9 @@ export default function MyProfile() {
   const profile = data?.data ?? null;
   const [editing, setEditing] = useState(false);
 
-  const { data: assignmentsRes } = useGetAssignmentsQuery(
-    { user: profile?.user.id ?? "", page_size: 50 },
-    { skip: !profile?.user.id },
-  );
+  const { data: assignmentsRes } = useGetMyAssignmentsQuery(undefined, {
+    skip: !profile?.user.id,
+  });
   const history = Array.isArray(assignmentsRes?.data) ? assignmentsRes!.data : [];
 
   return (

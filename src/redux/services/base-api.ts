@@ -244,6 +244,16 @@ export const baseQueryInterceptor: BaseQueryFn<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const res: any = result.error;
 
+  // Cache resets intentionally abort in-flight requests during identity
+  // changes. They are not connectivity failures and must not produce a burst
+  // of misleading "Could not reach the server" toasts.
+  if (
+    res?.status === "FETCH_ERROR" &&
+    /abort|aborted/i.test(String(res?.error ?? ""))
+  ) {
+    return result;
+  }
+
   if (res?.status === 400 || res?.status === 422) {
     // Auth routes (login, reset, activate, special-login…) own their own
     // inline/panel error UX and route the message through humanizeAuthError, so
@@ -295,7 +305,7 @@ export const baseQueryInterceptor: BaseQueryFn<
           api.dispatch(setAuthContext(activeImpersonation.actor));
           api.dispatch(clearSelectedEntity());
           api.dispatch(baseApi.util.resetApiState());
-          toast.info("Proxy session ended. You are back in your own account.");
+          toast.info("Proxy session ended");
           window.history.replaceState({}, "", routesPath.PROTECTED.OVERVIEW.INDEX);
           window.dispatchEvent(new PopStateEvent("popstate"));
         } else {

@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PromptModal from "@/components/modal/prompt-modal";
 import {
-  useGetLoginSessionsQuery,
-  useForceLogoutMutation,
+  useGetMyLoginSessionsQuery,
+  useEndMySessionMutation,
 } from "@/redux/services/dashboard/security-api";
 import { useAppSelector } from "@/redux/store";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -81,15 +81,15 @@ export default function MyActiveSessions() {
     isError,
     refetch,
     isFetching,
-  } = useGetLoginSessionsQuery(
+  } = useGetMyLoginSessionsQuery(
     { is_active: "true", page_size: 20 },
     { refetchOnMountOrArgChange: true },
   );
-  const { data: endedData } = useGetLoginSessionsQuery(
+  const { data: endedData } = useGetMyLoginSessionsQuery(
     { is_active: "false", page_size: 5 },
     { refetchOnMountOrArgChange: true },
   );
-  const [forceLogout, { isLoading: ending }] = useForceLogoutMutation();
+  const [endMySession, { isLoading: ending }] = useEndMySessionMutation();
 
   const activeSessions = activeData?.data ?? [];
   const endedSessions = endedData?.data ?? [];
@@ -105,7 +105,7 @@ export default function MyActiveSessions() {
 
   const handleEnd = () => {
     if (!confirmEnd) return;
-    forceLogout({ session_id: confirmEnd.id, reason: "SELF_SIGNOUT" })
+    endMySession({ session_id: confirmEnd.id })
       .unwrap()
       .then(() => {
         toast.success("Session ended.");
@@ -119,7 +119,7 @@ export default function MyActiveSessions() {
     try {
       await Promise.allSettled(
         otherSessions.map((s) =>
-          forceLogout({ session_id: s.id, reason: "SELF_SIGNOUT" }).unwrap(),
+          endMySession({ session_id: s.id }).unwrap(),
         ),
       );
       toast.success(

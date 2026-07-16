@@ -87,6 +87,10 @@ export const organogramApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/user/organogram/assignments/${generateQueryString(params ?? {})}`, method: "GET" }),
       providesTags: ["OrgAssignments"],
     }),
+    getMyAssignments: builder.query<AssignmentsResponse, void>({
+      query: () => ({ url: `/user/organogram/assignments/mine/?page_size=50`, method: "GET" }),
+      providesTags: ["OrgAssignments"],
+    }),
     // Routes through OrganogramService server-side (primary-seat handling + sync).
     createAssignment: builder.mutation<DataEnvelope<PositionAssignment>, AssignmentCreatePayload>({
       query: (body) => ({ url: `/user/organogram/assignments/`, method: "POST", body }),
@@ -168,6 +172,7 @@ export const {
   useUpdatePositionMutation,
   useDeletePositionMutation,
   useGetAssignmentsQuery,
+  useGetMyAssignmentsQuery,
   useCreateAssignmentMutation,
   useCloseAssignmentMutation,
   useGetMatrixReportsQuery,
