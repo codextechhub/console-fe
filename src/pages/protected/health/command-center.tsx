@@ -103,7 +103,7 @@ export default function CommandCenter() {
       </div>
 
       {/* Golden signals */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
         {(["latency", "traffic", "errors", "saturation"] as const).map((key) => (
           <HealthKpi key={key} label={KPI_LABELS[key]} {...data.kpis[key]} />
         ))}
@@ -154,7 +154,7 @@ export default function CommandCenter() {
           <h2 className="font-mont font-semibold">Service health</h2>
           <p className="text-xs text-gray-01">Select a service to inspect uptime and recent alerts</p>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {orderedServices.map((service) => (
             <button
               type="button"

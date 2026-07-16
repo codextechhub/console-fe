@@ -48,7 +48,7 @@ export default function UptimePage() {
   return (
     <HealthFrame>
       {intro}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
         <HealthKpi label="Monitors" value={monitors.length} />
         <HealthKpi label="Healthy" value={monitors.filter((m) => m.status === "healthy").length} />
         <HealthKpi

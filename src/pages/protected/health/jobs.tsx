@@ -48,7 +48,7 @@ export default function JobsPage() {
         <QueryState loading={queues.isLoading} error={queues.isError} retry={queues.refetch} />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
             <HealthKpi label="Queued jobs" value={data.queues.reduce((s, q) => s + q.depth, 0)} />
             <HealthKpi label="Active workers" value={data.workers.active} />
             <HealthKpi label="Idle workers" value={data.workers.idle} />

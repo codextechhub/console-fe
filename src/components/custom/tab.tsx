@@ -40,7 +40,7 @@ export default function Tabs({ tabKey, tabs }: TabsProps) {
             aria-selected={isActive}
             onClick={() => handleTabClick(tab.value)}
             className={cn(
-              "min-w-26.75 h-full cursor-pointer px-2 rounded bg-transparent font-medium font-mont text-base text-black-01",
+              "min-w-26.75 h-full cursor-pointer whitespace-nowrap px-2 rounded bg-transparent font-medium font-mont text-base text-black-01",
               isActive && "bg-pry-01",
             )}
           >
