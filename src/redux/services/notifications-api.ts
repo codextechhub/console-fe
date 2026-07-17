@@ -107,12 +107,15 @@ export const notificationsApi = baseApi.injectEndpoints({
       query: () => ({ url: "/notify/mark-all-read/", method: "POST" }),
       invalidatesTags: ["Notifications"],
     }),
+    // Fires on every route change (DashboardLayout), so only refetch the feed
+    // when something was actually acknowledged — most navigations update 0 rows.
     acknowledgeNotificationRoute: builder.mutation<
       { data: { updated_count: number } },
       { path: string }
     >({
       query: (body) => ({ url: "/notify/acknowledge-route/", method: "POST", body }),
-      invalidatesTags: (_result, error) => error ? [] : ["Notifications"],
+      invalidatesTags: (result, error) =>
+        !error && result?.data.updated_count ? ["Notifications"] : [],
     }),
 
     // ── History (admin — communication.message_activity.audit) ─────────────
