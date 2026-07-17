@@ -73,6 +73,24 @@ const IMPERSONATION_HEADER_EXEMPT_ENDPOINTS = new Set([
   "logout",
 ]);
 
+// ── Identity-swap gate ────────────────────────────────────────────────────
+// While a proxy start/exit is hydrating the new identity, screens mounted for
+// the OLD identity can refire their queries faster than React unmounts them
+// (router.navigate resolves before the commit). Those requests would be
+// discarded by the post-swap cache reset anyway — short-circuit them here so
+// they never reach the network: no misleading permission toasts, and no false
+// PROXY_ACTION_FAILED rows in the backend audit trail. The caller resets the
+// api state AFTER the gate lifts so nothing is left in a dropped-error state.
+let identitySwapInProgress = false;
+export const runWithIdentitySwap = async <T>(work: () => Promise<T>): Promise<T> => {
+  identitySwapInProgress = true;
+  try {
+    return await work();
+  } finally {
+    identitySwapInProgress = false;
+  }
+};
+
 const readAuth = (getState: () => unknown): {
   tenantSlug: string;
   impersonation: ActiveImpersonation | null;
@@ -213,6 +231,20 @@ const baseQueryWithTenant: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   const endpoint = api.endpoint;
+  if (
+    identitySwapInProgress &&
+    endpoint !== "getMe" &&
+    !IMPERSONATION_ENDPOINTS.has(endpoint) &&
+    !IMPERSONATION_HEADER_EXEMPT_ENDPOINTS.has(endpoint)
+  ) {
+    // Matches the abort-suppression in the interceptor: silent, no toast.
+    return {
+      error: {
+        status: "FETCH_ERROR",
+        error: "AbortError: identity swap in progress",
+      } as FetchBaseQueryError,
+    };
+  }
   let finalArgs = args;
   if (!TENANT_EXEMPT_ENDPOINTS.has(endpoint) && !hasTenantParam(args)) {
     const { tenantSlug, impersonation } = readAuth(api.getState);
@@ -301,15 +333,17 @@ export const baseQueryInterceptor: BaseQueryFn<
           // The actor's refreshed token is valid, so a second 401 while
           // proxying means the proxy session/target became invalid. Restore
           // the original actor instead of incorrectly logging them out.
-          api.dispatch(setImpersonation(null));
-          api.dispatch(setAuthContext(activeImpersonation.actor));
-          api.dispatch(clearSelectedEntity());
+          await runWithIdentitySwap(async () => {
+            api.dispatch(setImpersonation(null));
+            api.dispatch(setAuthContext(activeImpersonation.actor));
+            api.dispatch(clearSelectedEntity());
+            // Imported lazily: the route table imports pages that import this
+            // module, so a static import would be circular.
+            const { router } = await import("@/routes");
+            await router.navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
+          });
           api.dispatch(baseApi.util.resetApiState());
           toast.info("Proxy session ended");
-          // Imported lazily: the route table imports pages that import this
-          // module, so a static import would be circular.
-          const { router } = await import("@/routes");
-          router.navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
         } else {
           forceLogoutAndRedirect(api);
         }

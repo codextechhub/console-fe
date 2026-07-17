@@ -29,7 +29,7 @@ import { SupportTicketComposer } from "@/components/support-ticket-composer";
 import { ProxyUserDialog } from "@/components/proxy-user-dialog";
 import { setAuthContext, setImpersonation } from "@/redux/features/auth/auth-slice";
 import { useEndImpersonationMutation } from "@/redux/services/dashboard/security-api";
-import { baseApi } from "@/redux/services/base-api";
+import { baseApi, runWithIdentitySwap } from "@/redux/services/base-api";
 import { authApi } from "@/redux/services/auth/auth-api";
 import { toast } from "sonner";
 import { clearSelectedEntity } from "@/redux/features/finance/entity-slice";
@@ -75,21 +75,27 @@ function DashboardHeader({
       // Restore the actor locally even when the already-ended session returns
       // an error; a future proxy start atomically closes any stale server row.
     } finally {
-      dispatch(setImpersonation(null));
-      dispatch(setAuthContext(impersonation.actor));
-      dispatch(clearSelectedEntity());
+      // Gate the swap so the target's still-mounted screens cannot refire
+      // their queries under the restored actor identity (misleading 403s,
+      // e.g. a school screen the platform actor cannot read).
+      await runWithIdentitySwap(async () => {
+        dispatch(setImpersonation(null));
+        dispatch(setAuthContext(impersonation.actor));
+        dispatch(clearSelectedEntity());
+        await navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
+        try {
+          await dispatch(
+            authApi.endpoints.getMe.initiate(undefined, {
+              forceRefetch: true,
+              subscribe: false,
+            }),
+          ).unwrap();
+        } catch {
+          // The retained actor snapshot keeps the account usable until refetch.
+        }
+      });
+      // Reset AFTER the gate lifts so everything refetches under the actor.
       dispatch(baseApi.util.resetApiState());
-      try {
-        await dispatch(
-          authApi.endpoints.getMe.initiate(undefined, {
-            forceRefetch: true,
-            subscribe: false,
-          }),
-        ).unwrap();
-      } catch {
-        // The retained actor snapshot keeps the account usable until refetch.
-      }
-      navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
       if (endedOnServer) toast.success("Proxy session ended");
     }
   };

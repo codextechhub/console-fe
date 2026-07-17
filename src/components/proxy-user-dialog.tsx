@@ -20,7 +20,7 @@ import {
 import type { AuthContextSnapshot } from "@/redux/features/auth/auth-types";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { authApi } from "@/redux/services/auth/auth-api";
-import { baseApi } from "@/redux/services/base-api";
+import { baseApi, runWithIdentitySwap } from "@/redux/services/base-api";
 import {
   useGetProxyTargetsQuery,
   useEndImpersonationMutation,
@@ -84,41 +84,46 @@ export function ProxyUserDialog({
       }).unwrap();
       startedSessionId = result.data.id;
 
-      dispatch(setImpersonation({
-        id: result.data.id,
-        tenantSlug: target.tenant_slug,
-        target,
-        actor,
-      }));
-      // Drop the actor-facing identity and permissions before resetting cached
-      // queries. Otherwise mounted screens can briefly relaunch privileged
-      // actor queries with the target's proxy header and receive avoidable 403s.
-      dispatch(setAuthContext({
-        user: null,
-        school: null,
-        tenant: { slug: target.tenant_slug, name: target.tenant_name },
-        permissions: [],
-      }));
-      dispatch(clearSelectedEntity());
-      dispatch(baseApi.util.resetApiState());
+      // The gate drops every non-exempt request fired while screens mounted
+      // for the OLD identity are still tearing down — they would otherwise
+      // reach the backend under the target's proxy header and 403 (misleading
+      // toast + false PROXY_ACTION_FAILED audit rows).
+      await runWithIdentitySwap(async () => {
+        dispatch(setImpersonation({
+          id: result.data.id,
+          tenantSlug: target.tenant_slug,
+          target,
+          actor,
+        }));
+        dispatch(setAuthContext({
+          user: null,
+          school: null,
+          tenant: { slug: target.tenant_slug, name: target.tenant_name },
+          permissions: [],
+        }));
+        dispatch(clearSelectedEntity());
+        onOpenChange(false);
+        await navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
 
-      const me = await dispatch(
-        authApi.endpoints.getMe.initiate(undefined, {
-          forceRefetch: true,
-          subscribe: false,
-        }),
-      ).unwrap();
-      // Apply the effective identity explicitly before navigation. The query's
-      // lifecycle handler also syncs this context, but awaiting that side effect
-      // is racy relative to unwrap().
-      dispatch(setAuthContext({
-        user: me.data.user,
-        permissions: me.data.permissions,
-        school: me.data.school ?? null,
-        tenant: me.data.tenant ?? null,
-      }));
-      onOpenChange(false);
-      navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
+        const me = await dispatch(
+          authApi.endpoints.getMe.initiate(undefined, {
+            forceRefetch: true,
+            subscribe: false,
+          }),
+        ).unwrap();
+        // Apply the effective identity explicitly. The query's lifecycle
+        // handler also syncs this context, but awaiting that side effect is
+        // racy relative to unwrap().
+        dispatch(setAuthContext({
+          user: me.data.user,
+          permissions: me.data.permissions,
+          school: me.data.school ?? null,
+          tenant: me.data.tenant ?? null,
+        }));
+      });
+      // Reset AFTER the gate lifts: every mounted screen refetches once,
+      // cleanly, under the settled target identity.
+      dispatch(baseApi.util.resetApiState());
       toast.success(`You are now using ${target.full_name}'s account.`);
     } catch {
       if (startedSessionId !== null) {
@@ -130,12 +135,14 @@ export function ProxyUserDialog({
         } catch {
           // Local restoration is still safer; logout/switch closes stale rows.
         }
-        dispatch(setImpersonation(null));
-        dispatch(setAuthContext(actor));
-        dispatch(clearSelectedEntity());
+        await runWithIdentitySwap(async () => {
+          dispatch(setImpersonation(null));
+          dispatch(setAuthContext(actor));
+          dispatch(clearSelectedEntity());
+          onOpenChange(false);
+          await navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
+        });
         dispatch(baseApi.util.resetApiState());
-        onOpenChange(false);
-        navigate(routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
         toast.error("The proxy account could not be loaded. You are back in your own account.");
       }
     } finally {
