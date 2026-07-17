@@ -34,7 +34,7 @@ import { authApi } from "@/redux/services/auth/auth-api";
 import { toast } from "sonner";
 import { clearSelectedEntity } from "@/redux/features/finance/entity-slice";
 import { useAcknowledgeNotificationRouteMutation } from "@/redux/services/notifications-api";
-import { isPrimaryShortcut } from "@/utils/keyboard-shortcuts";
+import { isPrimaryShortcut, isPrimaryShiftShortcut } from "@/utils/keyboard-shortcuts";
 
 function DashboardHeader({
   hasBack,
@@ -60,10 +60,18 @@ function DashboardHeader({
     () => (/Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "⌘ E" : "Ctrl E"),
     [],
   );
+  const logoutShortcutLabel = useMemo(
+    () => (/Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "⌘ ⇧ L" : "Ctrl Shift L"),
+    [],
+  );
   const [proxyOpen, setProxyOpen] = useState(false);
   const [endImpersonation, { isLoading: isEndingProxy }] = useEndImpersonationMutation();
   const { handleLogout, isLoggingOut } = useLogout();
-  const { isOpen: openLogout, toggleClick: toggleLogout } = useToggleModal(false);
+  const {
+    isOpen: openLogout,
+    toggleClose: closeLogout,
+    toggleOpen: showLogout,
+  } = useToggleModal(false);
   const actorPermissions = impersonation?.actor.permissions ?? auth.permissions ?? [];
   const canProxy = actorPermissions.some((permission) =>
     [
@@ -90,6 +98,17 @@ function DashboardHeader({
     window.addEventListener("keydown", focusWorkspaceSearch);
     return () => window.removeEventListener("keydown", focusWorkspaceSearch);
   }, []);
+
+  useEffect(() => {
+    const openLogoutConfirmation = (event: KeyboardEvent) => {
+      if (!isPrimaryShiftShortcut(event, "KeyL")) return;
+      event.preventDefault();
+      showLogout();
+    };
+
+    window.addEventListener("keydown", openLogoutConfirmation);
+    return () => window.removeEventListener("keydown", openLogoutConfirmation);
+  }, [showLogout]);
 
   const exitProxy = async () => {
     if (!impersonation || isEndingProxy) return;
@@ -300,10 +319,14 @@ function DashboardHeader({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
-              onClick={toggleLogout}
+              aria-keyshortcuts="Control+Shift+L Meta+Shift+L"
+              onClick={showLogout}
             >
               <LogOut className="size-4" />
               Logout
+              <kbd className="ml-auto rounded border border-error-01/15 bg-error-01/5 px-1.5 py-0.5 font-sans text-[9px] font-semibold tracking-wide text-error-01/70">
+                {logoutShortcutLabel}
+              </kbd>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -354,7 +377,7 @@ function DashboardHeader({
 
       <PromptModal
         isOpen={openLogout}
-        onClose={toggleLogout}
+        onClose={closeLogout}
         onConfirm={handleLogout}
         title="Log Out?"
         description="Are you sure you want to log out of your account?"
