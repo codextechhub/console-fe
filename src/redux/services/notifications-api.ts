@@ -107,6 +107,13 @@ export const notificationsApi = baseApi.injectEndpoints({
       query: () => ({ url: "/notify/mark-all-read/", method: "POST" }),
       invalidatesTags: ["Notifications"],
     }),
+    acknowledgeNotificationRoute: builder.mutation<
+      { data: { updated_count: number } },
+      { path: string }
+    >({
+      query: (body) => ({ url: "/notify/acknowledge-route/", method: "POST", body }),
+      invalidatesTags: (_result, error) => error ? [] : ["Notifications"],
+    }),
 
     // ── History (admin — communication.message_activity.audit) ─────────────
     // The backend requires at least one filter so the whole log can't be dumped.
@@ -164,6 +171,7 @@ export const {
   useGetUnreadCountQuery,
   useMarkNotificationsReadMutation,
   useMarkAllNotificationsReadMutation,
+  useAcknowledgeNotificationRouteMutation,
   useGetNotificationHistoryQuery,
   useGetNotificationSettingsQuery,
   useUpdateNotificationSettingsMutation,

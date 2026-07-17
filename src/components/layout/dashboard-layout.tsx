@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { UserAvatar } from "@/components/custom/user-avatar";
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AppSidebar } from "../app-sidebar";
 import { ChevronLeft, ChevronRight, Loader2, LogOut, Search, ShieldCheck, Undo2, UserRound, UsersRound } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
@@ -33,6 +33,7 @@ import { baseApi, runWithIdentitySwap } from "@/redux/services/base-api";
 import { authApi } from "@/redux/services/auth/auth-api";
 import { toast } from "sonner";
 import { clearSelectedEntity } from "@/redux/features/finance/entity-slice";
+import { useAcknowledgeNotificationRouteMutation } from "@/redux/services/notifications-api";
 
 function DashboardHeader({
   hasBack,
@@ -358,7 +359,13 @@ export default function DashboardLayout({
   sidebar?: React.ReactNode;
 }) {
   useTokenRefresh();
+  const { pathname } = useLocation();
+  const [acknowledgeNotificationRoute] = useAcknowledgeNotificationRouteMutation();
   const { open, secondsLeft, isExpired, onContinue, onLogout, goToLogin } = useSessionTimeout();
+
+  useEffect(() => {
+    void acknowledgeNotificationRoute({ path: pathname });
+  }, [acknowledgeNotificationRoute, pathname]);
 
   return (
     <>
