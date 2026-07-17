@@ -108,7 +108,7 @@ export default function PurchaseOrdersPage() {
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
   }), [entity, page, status, debouncedSearch]);
   const { currentData: data, isLoading, isFetching, isError, refetch } = useGetPurchaseOrdersQuery(
-    params, { skip: !entity, refetchOnMountOrArgChange: true },
+    params, { skip: !entity },
   );
   const { data: summaryData, isLoading: summaryLoading } = useGetPurchaseOrderSummaryQuery(
     { entity: entity! }, { skip: !entity },
@@ -187,7 +187,8 @@ function PurchaseOrderDrawer({ id, entity, currency, onClose }: { id: number | n
     try {
       await submit({ id: po.id, entity }).unwrap();
       toast.success("Purchase order submitted for approval.");
-      await refetch();
+      // The mutation invalidates ProcPurchaseOrders, so this drawer, the list and
+      // the summary all refetch automatically — no manual refetch needed.
     } catch { /* Central API handling presents the server validation message. */ }
   };
   const openRoute = (route: string) => { onClose(); navigate(route); };
