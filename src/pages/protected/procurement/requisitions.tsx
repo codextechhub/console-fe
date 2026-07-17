@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { formatDistanceToNowStrict } from "date-fns";
 import {
-  Check, ChevronRight, Clock3, Download, FilePenLine, FileText, Plus,
+  Check, ChevronRight, Clock3, FilePenLine, FileText, Plus,
   RotateCcw, Search, Send, Trash2, TrendingDown, TrendingUp, X,
 } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -12,14 +12,11 @@ import { useUserDirectory } from "../workflow/components/use-user-directory";
 import { sameId } from "../workflow/components/workflow-format";
 import { SearchSelect } from "@/components/custom/search-select";
 import {
-  DataTable, DetailDrawer, EmptyState, ErrorState, FormField, LoadingState,
+  DataTable, DetailDrawer, EmptyState, ErrorState, FormField, InfoHint, LoadingState,
   MoneyInput, StatusPill, toArray, useActiveEntity, type Column,
 } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -38,7 +35,6 @@ import {
 import type { VoteAction } from "@/redux/services/dashboard/workflow-types";
 import { useGetCostCentersQuery } from "@/redux/services/finance/setup-api";
 import { routesPath } from "@/routes/routes-path";
-import { downloadReportExport } from "@/utils/finance-export";
 import { formatMoney } from "@/utils/money";
 
 const STATUS_TABS = [
@@ -104,7 +100,13 @@ export default function RequisitionsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    const normalizedSearch = search.trim();
+    if (!normalizedSearch) {
+      // Clearing the field must immediately restore the unfiltered query instead of waiting on the typing delay.
+      setDebouncedSearch("");
+      return;
+    }
+    const timer = window.setTimeout(() => setDebouncedSearch(normalizedSearch), 350);
     return () => window.clearTimeout(timer);
   }, [search]);
 
@@ -112,7 +114,7 @@ export default function RequisitionsPage() {
     entity: entity!, page, ...(status ? { status } : {}),
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
   }), [entity, page, status, debouncedSearch]);
-  const { data, isLoading, isFetching, isError, refetch } = useGetRequisitionsQuery(
+  const { currentData: data, isLoading, isFetching, isError, refetch } = useGetRequisitionsQuery(
     params, { skip: !entity, refetchOnMountOrArgChange: true },
   );
   const { data: summaryData, isLoading: summaryLoading } = useGetRequisitionSummaryQuery(
@@ -162,7 +164,10 @@ export default function RequisitionsPage() {
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="font-mont text-lg font-semibold text-gray-01">Purchase Requisitions</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="font-mont text-lg font-semibold text-gray-01">Purchase Requisitions</h1>
+              <InfoHint>A requisition is an internal request to buy to goods and services. It becomes a purchase order only after approval.</InfoHint>
+            </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Create, track, and approve internal purchase requests.</p>
           </div>
           <Can permission={P.PROC_CREATE_REQUISITION}>
@@ -180,7 +185,7 @@ export default function RequisitionsPage() {
         </div>
 
         <section className="min-w-0 rounded-md bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-03 px-4 pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
             <div className="max-w-full overflow-x-auto">
               <div className="flex min-w-max gap-5">
                 {STATUS_TABS.map((tab) => (
@@ -190,14 +195,11 @@ export default function RequisitionsPage() {
                 ))}
               </div>
             </div>
-            <div className="flex w-full flex-wrap items-center gap-2 pb-3 sm:w-auto sm:pb-0">
+            <div className="flex w-full items-center py-2 sm:ml-auto sm:w-auto">
               <label className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
                 <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-05" />
                 <Input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search requisitions" className="h-9 bg-white pl-9" />
               </label>
-              <Button variant="outline" size="default" className="gap-1.5" onClick={() => downloadReportExport(
-                "/procurement/requisitions/export/", { entity, status: status || undefined, search: debouncedSearch || undefined }, "csv",
-              )}><Download className="size-4" /> Export</Button>
             </div>
           </div>
           <DataTable columns={columns} rows={rows} rowKey={(r) => r.id}
@@ -408,13 +410,19 @@ function RequisitionForm({ open, onClose, entity, currency, initial, onSaved }: 
 
   const budget = budgetData?.data;
   return (
-    <Dialog open={open} onOpenChange={(value) => !saving && !value && onClose()}>
-      <DialogContent className="console-geist max-h-[94dvh] overflow-y-auto sm:max-w-4xl">
-        <DialogHeader>
-          <DialogTitle className="font-mont text-base font-semibold">{initial ? "Edit Requisition" : "New Requisition"}</DialogTitle>
-          <DialogDescription className="font-mont text-xs">Capture the request details and estimated line costs.</DialogDescription>
-        </DialogHeader>
-
+    <DetailDrawer
+      open={open}
+      onOpenChange={(value) => !saving && !value && onClose()}
+      widthClass="sm:max-w-[760px]"
+      title={initial ? "Edit Requisition" : "New Requisition"}
+      description="Capture the request details and estimated line costs."
+      footer={<>
+        <Button variant="outline" disabled={saving} onClick={onClose}>Cancel</Button>
+        <Button variant="outline" disabled={!canSave} loading={creating || updating} onClick={() => save(false)}>Save Draft</Button>
+        {!initial && <Button disabled={!canSave} loading={saving} onClick={() => save(true)}>Create Requisition</Button>}
+      </>}
+    >
+      <div className="space-y-5">
         <section className="rounded-md border border-gray-03 bg-gray-50 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-mont text-sm font-semibold">Budget Availability</p><span className="font-mont text-xs text-gray-05">{budget?.period || "Select a department"}</span></div>
           {!costCenter ? <p className="mt-2 font-mont text-xs text-gray-05">Choose a department to check its approved budget and current commitments.</p>
@@ -454,13 +462,8 @@ function RequisitionForm({ open, onClose, entity, currency, initial, onSaved }: 
         </section>
 
         <FormField label="Business case"><Textarea value={justification} onChange={(e) => setJustification(e.target.value)} placeholder="Explain why this purchase is needed" className="min-h-24" /></FormField>
-        <DialogFooter className="flex-wrap">
-          <Button variant="outline" disabled={saving} onClick={onClose}>Cancel</Button>
-          <Button variant="outline" disabled={!canSave} loading={creating || updating} onClick={() => save(false)}>Save Draft</Button>
-          {!initial && <Button disabled={!canSave} loading={saving} onClick={() => save(true)}>Create Requisition</Button>}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </DetailDrawer>
   );
 }
 

@@ -40,7 +40,7 @@ export function MoneyInput({
   }, [valueKobo]);
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative self-start", className)}>
       <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mont text-sm text-gray-05">
         {currencySymbol(currency)}
       </span>

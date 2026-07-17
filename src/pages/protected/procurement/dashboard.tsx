@@ -8,7 +8,7 @@ import { useNavigate } from "react-router";
 import { ProcurementShell } from "./procurement-shell";
 import {
   BarChart, CHART_COLORS, Donut, EmptyState, ErrorState, InfoHint,
-  LoadingState, StatusPill, TrendArea, useActiveEntity,
+  LoadingState, StatusPill, TrendArea, useActiveEntity, kpiValueClass,
 } from "@/components/finance-ui";
 import { useCan } from "@/components/finance-ui/can";
 import { cn } from "@/lib/utils";
@@ -77,25 +77,22 @@ function Kpi({ label, value, sub, icon: Icon, tone = "primary", onClick, ariaLab
   ariaLabel: string;
 }) {
   const tones = {
-    primary: { border: "border-l-primary", icon: "bg-primary/10 text-primary" },
-    amber: { border: "border-l-amber-500", icon: "bg-amber-100 text-amber-700" },
-    red: { border: "border-l-destructive", icon: "bg-red-100 text-destructive" },
-    green: { border: "border-l-green-01", icon: "bg-green-01/10 text-green-01" },
+    primary: { icon: "bg-primary/10 text-primary" },
+    amber: { icon: "bg-amber-100 text-amber-700" },
+    red: { icon: "bg-red-100 text-destructive" },
+    green: { icon: "bg-green-01/10 text-green-01" },
   }[tone];
   return (
     <button type="button" onClick={onClick} aria-label={ariaLabel}
-      className={cn(
-        "min-w-0 rounded-md border-l-2 bg-white p-4 text-left transition-shadow hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
-        tones.border,
-      )}>
-      <div className="flex items-start justify-between gap-3">
+      className="flex min-w-0 items-start justify-between gap-3 rounded-md bg-white p-4 text-left transition-shadow hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+      <div className="min-w-0">
         <p className="font-mont text-xs font-medium text-gray-05">{label}</p>
-        <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-md", tones.icon)}>
-          <Icon className="size-4" />
-        </span>
+        <p className={cn("mt-2 font-mont font-semibold tabular-nums text-black-01", typeof value === "string" ? kpiValueClass(value) : "text-xl")}>{value}</p>
+        <div className="mt-2 min-h-4 font-mont text-[11px] text-gray-05">{sub}</div>
       </div>
-      <p className="mt-1 font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
-      <div className="mt-1.5 min-h-4 font-mont text-[11px] text-gray-05">{sub}</div>
+      <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-md", tones.icon)}>
+        <Icon className="size-4" />
+      </span>
     </button>
   );
 }
@@ -222,8 +219,8 @@ export default function ProcurementDashboard() {
                 )}
               </Card>
 
-              <Card title="Purchase Order Status" subtitle="Open documents by stage"
-                action={<CardLink label="Open purchase orders" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS)} />}>
+              <Card title="Purchase Order Status" subtitle="Documents by approval and receipt stage"
+                action={<div className="flex items-center gap-1"><InfoHint>This chart counts purchase orders only. Requisitions are tracked separately in the Requisitions console.</InfoHint><CardLink label="Open purchase orders" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS)} /></div>}>
                 {!hasPoData ? <EmptyBlock>No purchase orders yet.</EmptyBlock> : (
                   <BarChart
                     height={190}
