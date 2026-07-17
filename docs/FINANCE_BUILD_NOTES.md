@@ -43,6 +43,9 @@ theme** (never copy its palette).
   money-KPI strips stay 1-col on phones; drawers `w-full sm:max-w-[…]`. Verify
   with `.claude/skills/verify-design/_mobile_audit.mjs` (drive.mjs at 390/820px
   + a page-overflow probe): run from the skill dir with `BASE_URL`+`ROUTES`.
+  Depth policy: phones are **view + simple actions** — browsing, details,
+  approvals and simple forms must be great; complex multi-line editors stay
+  desktop-first (usable on phone, not optimized, desktop never degraded).
 
 ## Font / theme structure
 House theme = `font-mont` + palette gray-01 / black-01 / gray-05 / green-01 /

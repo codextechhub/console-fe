@@ -74,6 +74,9 @@ Render recipe (SPA — `networkidle` fires before it mounts):
   on phones; drawers `w-full sm:max-w-[…]`. Verify with
   `.claude/skills/verify-design/_mobile_audit.mjs` (drive.mjs at 390/820px + a
   page-overflow probe): run from the skill dir with `BASE_URL`+`ROUTES`.
+  Depth policy: phones are **view + simple actions** — browsing, details,
+  approvals and simple forms must be great; complex multi-line editors stay
+  desktop-first (usable on phone, not optimized, desktop never degraded).
 
 ## Drawer styles (reuse the finance-ui primitives — do not hand-roll)
 Everything opens in a **right-side drawer**, never a centered modal (unless the
