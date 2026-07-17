@@ -12,6 +12,7 @@ import {
   useGetImportJobsQuery,
   useGetImportJobQuery,
   useRollbackImportJobMutation,
+  useDownloadImportTemplateMutation,
   importDownloadUrls,
 } from "@/redux/services/dashboard/import-api";
 import type { DatasetType, ImportBatch, ImportTemplate, ValidationSeverity } from "@/redux/services/dashboard/import-types";
@@ -394,6 +395,25 @@ export function UploadStep({
 
 function TemplateCard({ template }: { template: ImportTemplate }) {
   const requiredCount = template.columns.filter((c) => c.is_required).length;
+  const [downloadTemplate, { isLoading: isDownloading }] = useDownloadImportTemplateMutation();
+  const format = template.default_file_format === "xls" ? "xlsx" : template.default_file_format;
+
+  const handleDownload = async () => {
+    try {
+      // Use the shared API client so the bearer token, impersonation header,
+      // and mandatory tenant assertion are applied consistently.
+      const blobUrl = await downloadTemplate({ id: template.id, format }).unwrap();
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `${template.code}_template.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      toast.error("Download failed. Please try again.");
+    }
+  };
 
   return (
     <div className="mt-3 rounded-md border border-gray-200 bg-gray-50/50 p-4 space-y-3">
@@ -403,13 +423,14 @@ function TemplateCard({ template }: { template: ImportTemplate }) {
           <Badge variant="inactive" className="capitalize text-[10px]">{template.dataset_type}</Badge>
           <Badge variant="active" className="text-[10px]">Active</Badge>
         </div>
-        <a
-          href={importDownloadUrls.templateDownload(template.id, template.default_file_format === "xls" ? "xlsx" : template.default_file_format)}
-          className="text-xs text-primary font-medium inline-flex items-center gap-1 hover:underline"
-          onClick={(e) => { e.preventDefault(); const fmt = template.default_file_format === "xls" ? "xlsx" : template.default_file_format; triggerDownload(importDownloadUrls.templateDownload(template.id, fmt), `${template.code}_template.${fmt}`); }}
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+          onClick={handleDownload}
+          disabled={isDownloading}
         >
-          <Download className="size-3" /> Download template
-        </a>
+          <Download className="size-3" /> {isDownloading ? "Downloading…" : "Download template"}
+        </button>
       </div>
       <div className="flex gap-4 flex-wrap text-xs text-gray-01">
         <span>Code: <b className="text-black-01">{template.code}</b></span>
@@ -1339,4 +1360,3 @@ function StepFooter({ step, children }: { step: number; children: React.ReactNod
     </div>
   );
 }
-

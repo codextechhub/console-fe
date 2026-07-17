@@ -28,3 +28,11 @@ export const getTenantSlug = (): string => {
   const state = readState?.();
   return state?.auth?.impersonation?.tenantSlug || state?.auth?.tenant?.slug || "";
 };
+
+/** Add the active tenant assertion to direct URLs that bypass RTK Query. */
+export const appendTenantQuery = (url: string): string => {
+  const tenant = getTenantSlug();
+  if (!tenant) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}tenant=${encodeURIComponent(tenant)}`;
+};

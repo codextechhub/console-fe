@@ -1,4 +1,5 @@
 import { generateQueryString } from "@/utils/helpers";
+import { appendTenantQuery } from "@/utils/tenant-context";
 import { baseApi } from "../base-api";
 import type {
   CreateTemplatePayload,
@@ -282,9 +283,9 @@ const BASE_URL = import.meta.env.VITE_BACKEND_URL as string;
 
 export const importDownloadUrls = {
   templateDownload: (templateId: number, format: "csv" | "xlsx") =>
-    `${BASE_URL}/import/system-import-templates/${templateId}/download/?file_format=${format}`,
+    appendTenantQuery(`${BASE_URL}/import/system-import-templates/${templateId}/download/?file_format=${format}`),
   validationIssuesExport: (batchId: number) =>
-    `${BASE_URL}/import/batches/${batchId}/issues/export/`,
+    appendTenantQuery(`${BASE_URL}/import/batches/${batchId}/issues/export/`),
   batchFileDownload: (batchId: number) =>
-    `${BASE_URL}/import/batches/${batchId}/download/`,
+    appendTenantQuery(`${BASE_URL}/import/batches/${batchId}/download/`),
 };
