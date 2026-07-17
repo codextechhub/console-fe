@@ -175,15 +175,21 @@ export interface GoodsReceipt {
   id: number;
   document_number: string;
   status: string;
+  receipt_status: string;
   vendor_id: number;
   vendor_code: string;
+  vendor_name: string;
+  received_by_name: string;
   purchase_order_id: number | null;
+  purchase_order_number: string | null;
   received_date: string;
   reference: string;
   narration: string;
   total_value: number;
   total_value_naira: string;
   journal_id: number | null;
+  received_item_count: string;
+  ordered_item_count: string;
   lines: GRNLine[];
 }
 

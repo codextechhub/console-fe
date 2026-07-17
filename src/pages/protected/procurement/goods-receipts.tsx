@@ -1,145 +1,51 @@
-// P2P → Goods Receipts (§7.2). The first GL event in the chain. List + detail +
-// post.
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Plus, Printer, ReceiptText, Send } from "lucide-react";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField, MoneyInput, AccountPicker, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
-import { EmptyState } from "@/components/finance-ui/states";
+import { PurchaseOrderPicker, VendorPicker } from "./pickers";
 import { Can } from "@/components/finance-ui/can";
+import { DataTable, DetailDrawer, EmptyState, FormDrawer, FormField, InfoHint, MoneyInput, PostingRecap, StatusPill, toArray, useActiveEntity, type Column } from "@/components/finance-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
-import { useGetGoodsReceiptsQuery, usePostGoodsReceiptMutation, useCreateGoodsReceiptMutation } from "@/redux/services/procurement/procurement-api";
+import { useCreateGoodsReceiptMutation, useGetGoodsReceiptsQuery, useGetPurchaseOrderQuery, usePostGoodsReceiptMutation } from "@/redux/services/procurement/procurement-api";
 import type { GoodsReceipt } from "@/redux/services/procurement/procurement-types";
-import { VendorPicker, PurchaseOrderPicker } from "./pickers";
+import { formatMoney } from "@/utils/money";
+
+const date = (value?: string | null) => value ? new Date(`${value}T00:00:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
 export default function GoodsReceiptsPage() {
-  const { code: entity, currency } = useActiveEntity();
-  const [selected, setSelected] = useState<GoodsReceipt | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [page, setPage] = useState(1);
+  const { code: entity, currency } = useActiveEntity(); const [selected, setSelected] = useState<GoodsReceipt | null>(null); const [creating, setCreating] = useState(false); const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetGoodsReceiptsQuery({ entity: entity!, page }, { skip: !entity });
-  const [post] = usePostGoodsReceiptMutation();
-  const rows = toArray(data?.data);
-  const pg = data?.pagination;
-
+  const rows = toArray(data?.data); const pg = data?.pagination;
   const columns: Column<GoodsReceipt>[] = [
-    { header: "GRN", cell: (g) => <span className="font-semibold">{g.document_number}</span> },
-    { header: "Vendor", cell: (g) => g.vendor_code },
-    { header: "Received", cell: (g) => g.received_date },
-    { header: "Value", align: "right", cell: (g) => <Money kobo={g.total_value} currency={currency} align="right" /> },
-    { header: "Status", cell: (g) => <StatusPill status={g.status} /> },
-    {
-      header: "", cell: (g) => (
-        <div onClick={(e) => e.stopPropagation()}>
-          {g.status === "DRAFT" && (
-            <ActionButton asLink label="Post" permission={P.PROC_POST_GOODS_RECEIPT} title="Post goods receipt?"
-              description={`Posts ${g.document_number} (Dr GR/IR clearing, Cr accruals).`}
-              onConfirm={async () => { const res = await post({ id: g.id, entity: entity! }).unwrap(); toast.success(res.message || "Posted."); }} />
-          )}
-        </div>
-      ),
-    },
+    { header: "GR Number", cell: (g) => <span className="font-mont text-xs font-semibold text-primary">{g.document_number}</span> },
+    { header: "PO Ref", cell: (g) => g.purchase_order_number || "—" },
+    { header: "Vendor", cell: (g) => <span className="font-mont text-sm font-semibold">{g.vendor_name || g.vendor_code}</span> },
+    { header: "Received", cell: (g) => date(g.received_date) },
+    { header: "Items", cell: (g) => `${g.received_item_count} of ${g.ordered_item_count}` },
+    { header: "Status", cell: (g) => <StatusPill status={g.receipt_status} /> },
   ];
-
-  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" /></main></ProcurementShell>;
-
-  return (
-    <ProcurementShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-mont text-lg font-semibold text-gray-01">Goods Receipts</h1>
-            <p className="mt-0.5 font-mont text-xs text-gray-05">Goods received notes — the first GL event in the chain.</p>
-          </div>
-          <Can permission={P.PROC_CREATE_GOODS_RECEIPT}>
-            <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New GRN</Button>
-          </Can>
-        </div>
-        <DataTable columns={columns} rows={rows} rowKey={(g) => g.id}
-          loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
-          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
-          emptyTitle="No goods receipts" emptyMessage="GRNs will appear here."
-        />
-      </main>
-
-      <DetailDrawer open={!!selected} onOpenChange={(o) => !o && setSelected(null)}
-        title={selected?.document_number ?? "GRN"} description={selected ? `${selected.vendor_code} · ${selected.received_date}` : undefined}>
-        {selected && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3"><StatusPill status={selected.status} /><span className="font-mont text-sm text-gray-05">Value <Money kobo={selected.total_value} currency={currency} className="font-semibold text-black-01" /></span></div>
-            <div className="space-y-1.5">
-              {selected.lines.map((l) => (
-                <div key={l.id} className="flex items-center justify-between rounded-md border border-gray-03 px-3 py-2 font-mont text-sm">
-                  <span>{l.description}<span className="ml-2 text-gray-05">acc {l.accepted_qty} · rej {l.rejected_qty}</span></span>
-                  <Money kobo={l.value_amount} currency={currency} className="font-semibold" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </DetailDrawer>
-      <CreateGRNModal open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
-    </ProcurementShell>
-  );
+  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view goods receipts." /></main></ProcurementShell>;
+  return <ProcurementShell><main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01"><header className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Goods Receipts</h1><InfoHint>Record deliveries against purchase orders. Posting a receipt creates the first GL entry in the chain.</InfoHint></div><p className="mt-0.5 font-mont text-xs text-gray-05">Track accepted and rejected delivery quantities.</p></div><Can permission={P.PROC_CREATE_GOODS_RECEIPT}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> New Goods Receipt</Button></Can></header><section className="rounded-md bg-white"><DataTable columns={columns} rows={rows} rowKey={(g) => g.id} loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected} page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} emptyTitle="No goods receipts yet" emptyMessage="Record a delivery against an open purchase order." /></section></main><ReceiptDrawer receipt={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />{creating && <ReceiptForm entity={entity} currency={currency} onClose={() => setCreating(false)} />}</ProcurementShell>;
 }
 
-interface GRNRow { description: string; expense_account: string; accepted_qty: number; rejected_qty: number; unitPriceKobo: number }
-const emptyGRNRow = (): GRNRow => ({ description: "", expense_account: "", accepted_qty: 0, rejected_qty: 0, unitPriceKobo: 0 });
-
-function CreateGRNModal({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
-  const [vendor, setVendor] = useState("");
-  const [po, setPo] = useState("");
-  const [receivedDate, setReceivedDate] = useState(new Date().toISOString().slice(0, 10));
-  const [reference, setReference] = useState("");
-  const [lines, setLines] = useState<GRNRow[]>([emptyGRNRow()]);
-  const [create, { isLoading }] = useCreateGoodsReceiptMutation();
-  const setRow = (i: number, patch: Partial<GRNRow>) => setLines((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-
-  const apiLines = lines.filter((l) => l.expense_account && (l.accepted_qty > 0 || l.rejected_qty > 0))
-    .map((l) => ({ description: l.description, expense_account: l.expense_account, accepted_qty: l.accepted_qty, rejected_qty: l.rejected_qty, unit_price: l.unitPriceKobo }));
-
-  const submit = async () => {
-    try {
-      const r = await create({ entity, vendor, purchase_order: po ? Number(po) : undefined, received_date: receivedDate, reference: reference.trim() || undefined, lines: apiLines }).unwrap();
-      toast.success(r.message || "Goods receipt created.");
-      setVendor(""); setPo(""); setReference(""); setLines([emptyGRNRow()]); onClose();
-    } catch { /* central */ }
-  };
-
-  return (
-    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New goods receipt"
-      description="Record what was received. Posting it books the first GL event." onSubmit={submit}
-      loading={isLoading} canSubmit={!!vendor && !!receivedDate && apiLines.length > 0} widthClass="sm:max-w-2xl">
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} /></FormField>
-        <FormField label="Purchase order"><PurchaseOrderPicker entity={entity} value={po} onChange={setPo} /></FormField>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="Received date" required><Input type="date" value={receivedDate} onChange={(e) => setReceivedDate(e.target.value)} className="bg-white" /></FormField>
-        <FormField label="Reference"><Input value={reference} onChange={(e) => setReference(e.target.value)} className="bg-white" /></FormField>
-      </div>
-      <div className="pt-1">
-        <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
-        <div className="space-y-3">
-          {lines.map((l, i) => (
-            <div key={i} className="space-y-2 rounded-md border border-gray-03 p-3">
-              <div className="flex items-center gap-2">
-                <Input value={l.description} onChange={(e) => setRow(i, { description: e.target.value })} placeholder="Description" className="flex-1 bg-white" />
-                <button type="button" onClick={() => setLines((rs) => rs.filter((_, idx) => idx !== i))} disabled={lines.length <= 1} className="text-gray-05 hover:text-destructive disabled:opacity-30"><Trash2 className="size-4" /></button>
-              </div>
-              <AccountPicker entity={entity} value={l.expense_account} onChange={(v) => setRow(i, { expense_account: v })} placeholder="Expense account" postableOnly accountType="EXPENSE" />
-              <div className="grid grid-cols-3 gap-2">
-                <Input type="number" min={0} step="any" value={l.accepted_qty} onChange={(e) => setRow(i, { accepted_qty: Number(e.target.value) })} placeholder="Accepted" className="bg-white" aria-label="Accepted qty" />
-                <Input type="number" min={0} step="any" value={l.rejected_qty} onChange={(e) => setRow(i, { rejected_qty: Number(e.target.value) })} placeholder="Rejected" className="bg-white" aria-label="Rejected qty" />
-                <MoneyInput valueKobo={l.unitPriceKobo} onChangeKobo={(k) => setRow(i, { unitPriceKobo: k })} currency={currency} placeholder="Unit price" />
-              </div>
-            </div>
-          ))}
-          <Button variant="outline" size="sm" onClick={() => setLines((rs) => [...rs, emptyGRNRow()])} className="gap-1.5"><Plus className="size-4" /> Add line</Button>
-        </div>
-      </div>
-    </FormModal>
-  );
+function ReceiptDrawer({ receipt, entity, currency, onClose }: { receipt: GoodsReceipt | null; entity: string; currency?: string | null; onClose: () => void }) {
+  const [post, { isLoading }] = usePostGoodsReceiptMutation();
+  const doPost = async () => { if (!receipt) return; try { await post({ id: receipt.id, entity }).unwrap(); toast.success("Goods receipt posted."); onClose(); } catch {} };
+  const total = receipt?.total_value || 0;
+  return <DetailDrawer open={!!receipt} onOpenChange={(open) => !open && onClose()} title={receipt?.document_number || "Goods receipt"} description={receipt ? `${receipt.vendor_name || receipt.vendor_code} · ${date(receipt.received_date)}` : undefined} widthClass="sm:max-w-[720px]" footer={receipt && <><Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>{receipt.status === "DRAFT" && <Can permission={P.PROC_POST_GOODS_RECEIPT}><Button loading={isLoading} onClick={doPost}><Send className="size-4" /> Post Receipt</Button></Can>}</>}>
+    {receipt && <div className="space-y-5"><div className="flex items-center justify-between"><StatusPill status={receipt.receipt_status} /><p className="font-mont text-lg font-semibold">{formatMoney(total, currency)}</p></div><dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2"><Field label="Purchase order" value={receipt.purchase_order_number || "Not linked"} /><Field label="Received by" value={receipt.received_by_name} /><Field label="Received date" value={date(receipt.received_date)} /><Field label="Reference" value={receipt.reference || "—"} /></dl><section><p className="mb-2 font-mont text-sm font-semibold">Received Items</p><div className="overflow-hidden rounded-md border border-gray-03">{receipt.lines.map((line) => <div key={line.id} className="flex items-center justify-between gap-3 border-t border-gray-03 px-3 py-3 first:border-t-0"><span className="min-w-0 font-mont text-sm">{line.description}<span className="ml-2 text-xs text-gray-05">Accepted {line.accepted_qty} · Rejected {line.rejected_qty}</span></span><span className="font-mont text-sm font-semibold">{formatMoney(line.value_amount, currency)}</span></div>)}</div></section>{receipt.status === "DRAFT" && <PostingRecap title="Posting preview" currency={currency} dr={[{ code: "Expense", name: "Accepted delivery value", amount: total }]} cr={[{ code: "GR/IR", name: "Goods received / invoice received", amount: total }]} helper="Posting records only accepted quantities; rejected quantities are retained for the quality trail." />}</div>}
+  </DetailDrawer>;
+}
+function Field({ label, value }: { label: string; value: string }) { return <div><dt className="font-mont text-xs text-gray-05">{label}</dt><dd className="mt-1 font-mont text-sm font-semibold">{value}</dd></div>; }
+type Line = { po_line?: number; description: string; expense_account: string; accepted_qty: number; rejected_qty: number; unit_price: number };
+function ReceiptForm({ entity, currency, onClose }: { entity: string; currency?: string | null; onClose: () => void }) {
+  const [vendor, setVendor] = useState(""); const [po, setPo] = useState(""); const [receivedDate, setReceivedDate] = useState(new Date().toISOString().slice(0, 10)); const [reference, setReference] = useState(""); const { data: poData } = useGetPurchaseOrderQuery({ id: Number(po), entity }, { skip: !po }); const [create, { isLoading }] = useCreateGoodsReceiptMutation();
+  useEffect(() => { if (poData?.data.vendor_code) setVendor(poData.data.vendor_code); }, [poData?.data.vendor_code]);
+  const lines: Line[] = (poData?.data.lines || []).map((line) => ({ po_line: line.id, description: line.description, expense_account: line.expense_code, accepted_qty: 0, rejected_qty: 0, unit_price: line.unit_price }));
+  const [entered, setEntered] = useState<Line[]>([]); const active = entered.length ? entered : lines; const update = (i: number, patch: Partial<Line>) => setEntered(active.map((line, index) => index === i ? { ...line, ...patch } : line));
+  const acceptedValue = active.reduce((sum, line) => sum + Math.round(line.accepted_qty * line.unit_price), 0); const canSubmit = !!vendor && !!po && active.some((line) => line.accepted_qty > 0 || line.rejected_qty > 0);
+  const save = async () => { try { await create({ entity, vendor, purchase_order: Number(po), received_date: receivedDate, reference: reference || undefined, lines: active.filter((l) => l.accepted_qty || l.rejected_qty).map((l) => ({ ...l })) }).unwrap(); toast.success("Goods receipt draft created."); onClose(); } catch {} };
+  return <FormDrawer open onOpenChange={(open) => !open && onClose()} title="New Goods Receipt" description="Select an open PO and record what was accepted or rejected." onSubmit={save} submitText="Create Draft" loading={isLoading} canSubmit={canSubmit} widthClass="sm:max-w-[820px]"><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Purchase order" required><PurchaseOrderPicker entity={entity} value={po} onChange={(value) => { setPo(value); setEntered([]); }} /></FormField><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} /></FormField><FormField label="Received date" required><Input type="date" value={receivedDate} onChange={(e) => setReceivedDate(e.target.value)} /></FormField><FormField label="Reference"><Input value={reference} onChange={(e) => setReference(e.target.value)} /></FormField></div><section><p className="mb-2 font-mont text-sm font-semibold">Received Items</p>{!po ? <p className="rounded-md border border-dashed border-gray-03 p-4 font-mont text-xs text-gray-05">Choose a purchase order to load its real line items.</p> : <div className="space-y-2">{active.map((line, index) => <div key={line.po_line} className="grid grid-cols-1 gap-2 rounded-md border border-gray-03 p-3 sm:grid-cols-[minmax(0,1fr)_100px_100px]"><span className="font-mont text-sm">{line.description}<span className="ml-2 text-xs text-gray-05">@ {formatMoney(line.unit_price, currency)}</span></span><Input type="number" min="0" value={line.accepted_qty} onChange={(e) => update(index, { accepted_qty: Number(e.target.value) })} aria-label="Accepted quantity" placeholder="Accepted" /><Input type="number" min="0" value={line.rejected_qty} onChange={(e) => update(index, { rejected_qty: Number(e.target.value) })} aria-label="Rejected quantity" placeholder="Rejected" /></div>)}</div>}</section><PostingRecap title="Live posting preview" currency={currency} dr={[{ code: "Expense", name: "Accepted delivery value", amount: acceptedValue }]} cr={[{ code: "GR/IR", name: "Goods received / invoice received", amount: acceptedValue }]} helper="This preview becomes the journal only when you post the saved receipt." /></FormDrawer>;
 }
