@@ -8,11 +8,11 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   ArrowUpRight, Check, Plus, FileText, Receipt, ShoppingCart, BarChart3, Info,
-  TrendingUp, TrendingDown,
+  ArrowUp, ArrowDown, Wallet, HandCoins, TrendingUp,
 } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
 import {
-  Money, StatusPill, Sparkline, BudgetBar, AgingStack, TrendArea,
+  Money, StatusPill, BudgetBar, AgingStack, TrendArea, kpiValueClass,
   CHART_COLORS, useActiveEntity, type AgingDatum,
 } from "@/components/finance-ui";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
@@ -60,28 +60,41 @@ function Card({ title, subtitle, action, className, children }: {
 }
 
 function Delta({ pct }: { pct: number | null }) {
-  if (pct == null) return <span className="font-mont text-xs text-gray-05">—</span>;
+  if (pct == null) return <span className="font-mont text-[11px] text-gray-05">—</span>;
   const up = pct >= 0;
-  const Icon = up ? TrendingUp : TrendingDown;
+  const Icon = up ? ArrowUp : ArrowDown;
   return (
-    <span className={cn("inline-flex items-center gap-0.5 font-mont text-xs font-semibold", up ? "text-green-01" : "text-destructive")}>
-      <Icon className="size-3.5" />{up ? "+" : ""}{pct}%
+    <span className={cn("inline-flex items-center gap-0.5 font-mont text-[11px] font-semibold", up ? "text-green-01" : "text-destructive")}>
+      <Icon className="size-3" />{up ? "+" : ""}{pct}%
     </span>
   );
 }
 
-function StatCard({ label, kpi, currency, color }: { label: string; kpi: DashboardKpi; currency?: string | null; color: string }) {
+const STAT_TONES = {
+  green: "bg-green-01/10 text-green-01",
+  primary: "bg-primary/10 text-primary",
+  amber: "bg-amber-100 text-amber-700",
+  violet: "bg-violet-100 text-violet-700",
+} as const;
+
+function StatCard({ label, kpi, currency, icon: Icon, tone }: {
+  label: string; kpi: DashboardKpi; currency?: string | null;
+  icon: React.ComponentType<{ className?: string }>; tone: keyof typeof STAT_TONES;
+}) {
+  const amount = formatMoney(kpi.value.kobo, currency);
   return (
-    <div className="rounded-md bg-white p-4">
-      <p className="font-mont text-xs text-gray-05">{label}</p>
-      <div className="mt-1 flex flex-wrap items-end justify-between gap-2">
-        <p className="font-mont text-xl font-semibold text-black-01 tabular-nums">{formatMoney(kpi.value.kobo, currency)}</p>
-        <Sparkline data={kpi.spark} color={color} />
+    <div className="flex min-w-0 items-start justify-between gap-3 rounded-md bg-white p-4">
+      <div className="min-w-0">
+        <p className="font-mont text-xs text-gray-05">{label}</p>
+        <p className={cn("mt-2 font-mont font-semibold text-black-01 tabular-nums", kpiValueClass(amount))}>{amount}</p>
+        <div className="mt-2 flex items-center gap-1.5">
+          <Delta pct={kpi.delta_pct} />
+          <span className="font-mont text-[11px] text-gray-05">vs prior month</span>
+        </div>
       </div>
-      <div className="mt-1.5 flex items-center gap-1.5">
-        <Delta pct={kpi.delta_pct} />
-        <span className="font-mont text-[11px] text-gray-05">vs prior month</span>
-      </div>
+      <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-md", STAT_TONES[tone])}>
+        <Icon className="size-4" />
+      </span>
     </div>
   );
 }
@@ -202,10 +215,10 @@ export default function FinanceDashboard() {
           <>
             {/* KPI strip */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <StatCard label="Cash position" kpi={d.kpis.cash_position} currency={currency} color={CHART_COLORS.green} />
-              <StatCard label="Outstanding receivables" kpi={d.kpis.receivables} currency={currency} color={CHART_COLORS.primary} />
-              <StatCard label="Outstanding payables" kpi={d.kpis.payables} currency={currency} color={CHART_COLORS.amber} />
-              <StatCard label="Net income YTD" kpi={d.kpis.net_income_ytd} currency={currency} color={CHART_COLORS.violet} />
+              <StatCard label="Cash position" kpi={d.kpis.cash_position} currency={currency} icon={Wallet} tone="green" />
+              <StatCard label="Outstanding receivables" kpi={d.kpis.receivables} currency={currency} icon={HandCoins} tone="primary" />
+              <StatCard label="Outstanding payables" kpi={d.kpis.payables} currency={currency} icon={Receipt} tone="amber" />
+              <StatCard label="Net income YTD" kpi={d.kpis.net_income_ytd} currency={currency} icon={TrendingUp} tone="violet" />
             </div>
 
             {/* Revenue vs Budget + AR Aging */}

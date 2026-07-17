@@ -5,8 +5,8 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Search, TrendingUp, TrendingDown, Layers, Plus } from "lucide-react";
-import { DataTable, Money, ConfirmActionModal, Sparkline, InfoHint, CHART_COLORS, toArray, type Column } from "@/components/finance-ui";
+import { Search, ArrowUp, ArrowDown, Layers, Plus } from "lucide-react";
+import { DataTable, Money, ConfirmActionModal, InfoHint, toArray, kpiValueClass, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,22 +52,19 @@ function Initials({ name }: { name: string }) {
   return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
 }
 
-function Kpi({ label, value, spark, delta, color, deltaIsPoints }: {
-  label: string; value: string; spark?: number[]; delta: number | null; color: string; deltaIsPoints?: boolean;
+function Kpi({ label, value, delta, deltaIsPoints }: {
+  label: string; value: string; delta: number | null; deltaIsPoints?: boolean;
 }) {
   const up = (delta ?? 0) >= 0;
-  const Icon = up ? TrendingUp : TrendingDown;
+  const Icon = up ? ArrowUp : ArrowDown;
   return (
     <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
       <p className="font-mont text-xs text-gray-05">{label}</p>
-      <div className="mt-1 flex items-end justify-between gap-2">
-        <p className="font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
-        {spark && spark.length > 1 && <Sparkline data={spark} color={color} />}
-      </div>
-      <div className="mt-1 flex items-center gap-1.5">
-        {delta == null ? <span className="font-mont text-xs text-gray-05">—</span> : (
-          <span className={cn("inline-flex items-center gap-0.5 font-mont text-xs font-semibold", up ? "text-green-01" : "text-destructive")}>
-            <Icon className="size-3.5" />{up ? "+" : ""}{delta.toFixed(1)}{deltaIsPoints ? "pp" : "%"}
+      <p className={cn("mt-2 font-mont font-semibold tabular-nums text-black-01", kpiValueClass(value))}>{value}</p>
+      <div className="mt-2 flex items-center gap-1.5">
+        {delta == null ? <span className="font-mont text-[11px] text-gray-05">—</span> : (
+          <span className={cn("inline-flex items-center gap-0.5 font-mont text-[11px] font-semibold", up ? "text-green-01" : "text-destructive")}>
+            <Icon className="size-3" />{up ? "+" : ""}{delta.toFixed(1)}{deltaIsPoints ? "pp" : "%"}
           </span>
         )}
         <span className="font-mont text-[11px] text-gray-05">vs prior month</span>
@@ -130,10 +127,10 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
     <div className="space-y-4">
       {/* KPI cards */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Total invoiced" value={formatMoney(summary?.kpis.total_invoiced.kobo ?? 0, currency)} spark={inv} delta={pctChange(inv)} color={CHART_COLORS.primary} />
-        <Kpi label="Total collected" value={formatMoney(summary?.kpis.total_collected.kobo ?? 0, currency)} spark={col} delta={pctChange(col)} color={CHART_COLORS.green} />
-        <Kpi label="Collection rate" value={`${(summary?.kpis.collection_rate ?? 0).toFixed(1)}%`} spark={rate} delta={rate.length > 1 ? rate[rate.length - 1] - rate[rate.length - 2] : null} deltaIsPoints color={CHART_COLORS.violet} />
-        <Kpi label="Overdue balance" value={formatMoney(summary?.kpis.overdue_balance.kobo ?? 0, currency)} delta={null} color={CHART_COLORS.red} />
+        <Kpi label="Total invoiced" value={formatMoney(summary?.kpis.total_invoiced.kobo ?? 0, currency)} delta={pctChange(inv)} />
+        <Kpi label="Total collected" value={formatMoney(summary?.kpis.total_collected.kobo ?? 0, currency)} delta={pctChange(col)} />
+        <Kpi label="Collection rate" value={`${(summary?.kpis.collection_rate ?? 0).toFixed(1)}%`} delta={rate.length > 1 ? rate[rate.length - 1] - rate[rate.length - 2] : null} deltaIsPoints />
+        <Kpi label="Overdue balance" value={formatMoney(summary?.kpis.overdue_balance.kobo ?? 0, currency)} delta={null} />
       </div>
 
       {/* status tabs */}

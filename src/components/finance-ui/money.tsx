@@ -15,6 +15,15 @@ interface MoneyProps {
   muted?: boolean;
 }
 
+/**
+ * Font-size step for KPI card values. Money is never truncated or abbreviated,
+ * and a formatted amount has no break points, so once it outgrows the card's
+ * width the type must shrink: text-xl fits ~14 tabular chars in a 4-up strip.
+ */
+export function kpiValueClass(text: string) {
+  return text.length > 17 ? "text-base" : text.length > 14 ? "text-lg" : "text-xl";
+}
+
 export function Money({ kobo, currency, className, align = "left", muted }: MoneyProps) {
   const value = kobo ?? 0;
   return (

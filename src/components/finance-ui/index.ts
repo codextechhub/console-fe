@@ -3,7 +3,7 @@
 // finance-ui".
 
 export { Can, useCan } from "./can";
-export { Money } from "./money";
+export { Money, kpiValueClass } from "./money";
 export { MoneyInput } from "./money-input";
 export { StatusPill } from "./status-pill";
 export { JournalTable, type JournalLineView } from "./journal-table";
