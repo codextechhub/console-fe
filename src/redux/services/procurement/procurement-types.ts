@@ -53,8 +53,10 @@ export interface CatalogItem {
 export interface RequisitionLine {
   id: number;
   line_no: number;
+  catalog_item_id: number | null;
   description: string;
   quantity: string;
+  unit: string;
   estimated_unit_price: number;
   expense_code: string | null;
   estimated_line_total: number;
@@ -63,12 +65,37 @@ export interface Requisition {
   id: number;
   document_number: string;
   status: string;
+  approval_state: string;
+  title: string;
   request_date: string;
   needed_by: string | null;
+  requested_by_id: number | null;
+  requested_by_name: string;
+  cost_center_id: number | null;
+  cost_center_code: string | null;
+  cost_center_name: string | null;
   justification: string;
   estimated_total: number;
   estimated_total_naira: string;
+  created_at: string;
+  workflow_instance_id?: string | null;
   lines: RequisitionLine[];
+}
+
+export interface RequisitionSummary {
+  as_of: string;
+  pending_approval: { count: number; amount: number };
+  approved_mtd: { count: number; amount: number; change_pct: number | null };
+  draft: { count: number; amount: number };
+  total_value_mtd: { amount: number; change_pct: number | null };
+}
+
+export interface RequisitionBudgetAvailability {
+  has_budget: boolean;
+  period: string | null;
+  budget: number;
+  committed: number;
+  available: number;
 }
 
 export interface POLine {
