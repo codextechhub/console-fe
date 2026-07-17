@@ -10,6 +10,7 @@ import type {
   CatalogItem,
   GoodsReceipt,
   PurchaseOrder,
+  PurchaseOrderSummary,
   Requisition,
   RequisitionBudgetAvailability,
   RequisitionSummary,
@@ -90,6 +91,14 @@ export const procurementApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/procurement/purchase-orders/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcPurchaseOrders"],
     }),
+    getPurchaseOrder: b.query<ApiEnvelope<PurchaseOrder>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/purchase-orders/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcPurchaseOrders"],
+    }),
+    getPurchaseOrderSummary: b.query<ApiEnvelope<PurchaseOrderSummary>, { entity: string }>({
+      query: ({ entity }) => ({ url: `/procurement/purchase-orders/summary/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcPurchaseOrders"],
+    }),
     createPurchaseOrder: b.mutation<ApiEnvelope<PurchaseOrder>, { entity: string; requisition: number; vendor: string; order_date: string; expected_date?: string }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/purchase-orders/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcPurchaseOrders", "ProcRequisitions"],
@@ -167,6 +176,8 @@ export const {
   useUpdateRequisitionMutation,
   useSubmitRequisitionMutation,
   useGetPurchaseOrdersQuery,
+  useGetPurchaseOrderQuery,
+  useGetPurchaseOrderSummaryQuery,
   useCreatePurchaseOrderMutation,
   useSubmitPurchaseOrderMutation,
   useGetGoodsReceiptsQuery,

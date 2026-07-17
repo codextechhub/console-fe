@@ -20,8 +20,8 @@ export function CategoryPicker({ entity, value, onChange, label, placeholder = "
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} />;
 }
 
-export function RequisitionPicker({ entity, value, onChange, label, placeholder = "Select requisition", isRequired }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string; isRequired?: boolean }) {
-  const { data, isLoading } = useGetRequisitionsQuery({ entity, page_size: 100 });
+export function RequisitionPicker({ entity, value, onChange, label, placeholder = "Select requisition", isRequired, status }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string; isRequired?: boolean; status?: string }) {
+  const { data, isLoading } = useGetRequisitionsQuery({ entity, page_size: 100, ...(status ? { status } : {}) });
   const options = (data?.data ?? []).map((r) => ({ value: String(r.id), label: `${r.document_number} (${r.status})` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} revealOnSearch />;
 }

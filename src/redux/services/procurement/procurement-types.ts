@@ -110,13 +110,33 @@ export interface POLine {
   received_qty: string;
   invoiced_qty: string;
 }
+export interface POReceiptDocument {
+  id: number;
+  document_number: string;
+  received_date: string;
+  status: string;
+  item_count: number;
+}
+export interface POInvoiceDocument {
+  id: number;
+  document_number: string;
+  invoice_date: string;
+  total: number;
+  status: string;
+  match_status: string;
+}
 export interface PurchaseOrder {
   id: number;
   document_number: string;
   status: string;
+  approval_state: string;
+  display_status: string;
   vendor_id: number;
   vendor_code: string;
+  vendor_name: string;
   requisition_id: number | null;
+  requisition_number: string | null;
+  quotation_number: string | null;
   order_date: string;
   expected_date: string | null;
   narration: string;
@@ -127,6 +147,17 @@ export interface PurchaseOrder {
   received_pct: string;
   invoiced_pct: string;
   lines: POLine[];
+  receipt_documents: POReceiptDocument[];
+  invoice_documents: POInvoiceDocument[];
+  workflow_instance_id?: string | null;
+}
+
+export interface PurchaseOrderSummary {
+  as_of: string;
+  open: { count: number; amount: number };
+  partially_received: { count: number };
+  awaiting_receipt: { count: number };
+  po_value_mtd: { amount: number; change_pct: number | null };
 }
 
 export interface GRNLine {
