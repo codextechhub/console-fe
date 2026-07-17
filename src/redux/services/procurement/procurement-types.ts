@@ -85,7 +85,7 @@ export interface Requisition {
 export interface RequisitionSummary {
   as_of: string;
   pending_approval: { count: number; amount: number };
-  approved_mtd: { count: number; amount: number; change_pct: number | null };
+  approved_mtd: { count: number; amount: number; change: number };
   draft: { count: number; amount: number };
   total_value_mtd: { amount: number; change_pct: number | null };
 }

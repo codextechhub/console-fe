@@ -115,7 +115,7 @@ export default function RequisitionsPage() {
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
   }), [entity, page, status, debouncedSearch]);
   const { currentData: data, isLoading, isFetching, isError, refetch } = useGetRequisitionsQuery(
-    params, { skip: !entity, refetchOnMountOrArgChange: true },
+    params, { skip: !entity },
   );
   const { data: summaryData, isLoading: summaryLoading } = useGetRequisitionSummaryQuery(
     { entity: entity! }, { skip: !entity },
@@ -148,12 +148,25 @@ export default function RequisitionsPage() {
     { header: "", align: "right", cell: () => <ChevronRight className="ml-auto size-4 text-gray-04" /> },
   ];
 
+  // Money KPI: percentage swing against the comparable prior period (null when
+  // there is no prior spend to divide by).
   const change = (value: number | null | undefined) => value == null ? (
     <span>No prior MTD comparison</span>
   ) : (
     <span className={cn("inline-flex items-center gap-1 font-semibold", value >= 0 ? "text-green-01" : "text-destructive")}>
       {value >= 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
       {value > 0 ? "+" : ""}{value}% <span className="font-normal text-gray-05">vs prior MTD</span>
+    </span>
+  );
+
+  // Count KPI: an absolute integer delta — a percentage on a small count reads as
+  // noise, and a zero prior month is a real comparison, not a missing one.
+  const countChange = (value: number) => value === 0 ? (
+    <span className="text-gray-05">No change vs prior month</span>
+  ) : (
+    <span className={cn("inline-flex items-center gap-1 font-semibold", value > 0 ? "text-green-01" : "text-destructive")}>
+      {value > 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+      {value > 0 ? "+" : ""}{value} <span className="font-normal text-gray-05">vs prior month</span>
     </span>
   );
 
@@ -178,7 +191,7 @@ export default function RequisitionsPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
             <Kpi label="Pending Approval" value={summary.pending_approval.count} icon={Clock3} tone="amber" sub={money(summary.pending_approval.amount)} />
-            <Kpi label="Approved (MTD)" value={summary.approved_mtd.count} icon={Check} tone="green" sub={change(summary.approved_mtd.change_pct)} />
+            <Kpi label="Approved (MTD)" value={summary.approved_mtd.count} icon={Check} tone="green" sub={countChange(summary.approved_mtd.change)} />
             <Kpi label="Draft" value={summary.draft.count} icon={FilePenLine} tone="gray" sub={money(summary.draft.amount)} />
             <Kpi label="Total Value (MTD)" value={money(summary.total_value_mtd.amount)} icon={FileText} sub={change(summary.total_value_mtd.change_pct)} />
           </>}
@@ -232,7 +245,7 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
   );
   const req = data?.data;
   const workflowId = req?.workflow_instance_id ?? "";
-  const { data: workflow, refetch: refetchWorkflow } = useGetWorkflowInstanceQuery(workflowId, { skip: !workflowId });
+  const { data: workflow } = useGetWorkflowInstanceQuery(workflowId, { skip: !workflowId });
   const [recordAction, { isLoading: voting }] = useRecordWorkflowActionMutation();
   const [submitRequisition, { isLoading: submitting }] = useSubmitRequisitionMutation();
 
@@ -250,7 +263,8 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
       await recordAction({ id: workflowId, action, comment: comment.trim() }).unwrap();
       toast.success(action === "APPROVED" ? "Approval recorded." : action === "RETURNED" ? "Revision requested." : "Requisition rejected.");
       setComment("");
-      await Promise.all([refetchWorkflow(), refetch()]);
+      // The mutation invalidates WorkflowInstances + ProcRequisitions, so the
+      // workflow panel, this drawer, the list and the KPI summary all refetch.
     } catch { /* Central API handling shows the server message. */ }
   };
 
@@ -259,7 +273,8 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
     try {
       await submitRequisition({ id: req.id, entity }).unwrap();
       toast.success("Requisition submitted for approval.");
-      await refetch();
+      // submitRequisition invalidates ProcRequisitions; this drawer's detail query
+      // (and the list/summary) refetch from that tag rather than a manual call.
     } catch { /* Central API handling shows the server message. */ }
   };
 

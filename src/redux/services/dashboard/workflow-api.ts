@@ -19,6 +19,13 @@ import type {
 
 type QueryParams = Record<string, string | number>;
 
+// A workflow vote/withdraw/cancel/reverse changes the state of the *business
+// document* underneath (a requisition, PO or vendor invoice), so those consoles'
+// list / summary / detail caches must drop alongside the workflow caches —
+// otherwise a status only refreshes after a manual refetch. RTK only refetches
+// mounted queries, so the cross-domain tags are effectively free off-screen.
+const PROC_DOC_TAGS = ["ProcRequisitions", "ProcPurchaseOrders", "ProcVendorInvoices"] as const;
+
 export const workflowApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // ── Templates ───────────────────────────────────────────────────────────
@@ -58,17 +65,17 @@ export const workflowApi = baseApi.injectEndpoints({
         method: "POST",
         body: { action, comment: comment ?? "" },
       }),
-      invalidatesTags: ["WorkflowInstances", "WorkflowPending", "WorkflowSubmissions", "WorkflowTeamLoad"],
+      invalidatesTags: ["WorkflowInstances", "WorkflowPending", "WorkflowSubmissions", "WorkflowTeamLoad", ...PROC_DOC_TAGS],
     }),
 
     withdrawWorkflowInstance: builder.mutation<WorkflowInstanceDetail, string>({
       query: (id) => ({ url: `/workflow/instances/${id}/withdraw/`, method: "POST" }),
-      invalidatesTags: ["WorkflowInstances", "WorkflowSubmissions", "WorkflowPending", "WorkflowTeamLoad"],
+      invalidatesTags: ["WorkflowInstances", "WorkflowSubmissions", "WorkflowPending", "WorkflowTeamLoad", ...PROC_DOC_TAGS],
     }),
 
     resubmitWorkflowInstance: builder.mutation<WorkflowInstanceDetail, string>({
       query: (id) => ({ url: `/workflow/instances/${id}/resubmit/`, method: "POST" }),
-      invalidatesTags: ["WorkflowInstances", "WorkflowSubmissions", "WorkflowPending", "WorkflowTeamLoad"],
+      invalidatesTags: ["WorkflowInstances", "WorkflowSubmissions", "WorkflowPending", "WorkflowTeamLoad", ...PROC_DOC_TAGS],
     }),
 
     cancelWorkflowInstance: builder.mutation<WorkflowInstanceDetail, { id: string; reason: string }>({
@@ -77,7 +84,7 @@ export const workflowApi = baseApi.injectEndpoints({
         method: "POST",
         body: { reason },
       }),
-      invalidatesTags: ["WorkflowInstances", "WorkflowSubmissions", "WorkflowPending", "WorkflowTeamLoad"],
+      invalidatesTags: ["WorkflowInstances", "WorkflowSubmissions", "WorkflowPending", "WorkflowTeamLoad", ...PROC_DOC_TAGS],
     }),
 
     // Admin reverses a recorded vote and re-activates the stage.
@@ -87,7 +94,7 @@ export const workflowApi = baseApi.injectEndpoints({
         method: "POST",
         body: { reason },
       }),
-      invalidatesTags: ["WorkflowInstances", "WorkflowPending", "WorkflowTeamLoad"],
+      invalidatesTags: ["WorkflowInstances", "WorkflowPending", "WorkflowTeamLoad", ...PROC_DOC_TAGS],
     }),
 
     // ── Dashboards ──────────────────────────────────────────────────────────
