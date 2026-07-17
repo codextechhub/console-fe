@@ -42,7 +42,14 @@ type Phase = "idle" | "running" | "finishing";
 // Compiler to mis-memoise. Phase transitions happen via the sanctioned
 // render-phase adjustment pattern; "finishing" → "idle" is event-driven
 // (onAnimationEnd).
+// The request trace is a local development aid. Keep the environment gate in
+// the shared component so future placements cannot expose it in built apps.
 export function TopProgressBar() {
+  if (!import.meta.env.DEV) return null;
+  return <DevelopmentTopProgressBar />;
+}
+
+function DevelopmentTopProgressBar() {
   const isActive = useSelector(selectAnyPending);
   const [phase, setPhase] = useState<Phase>("idle");
 
@@ -56,7 +63,7 @@ export function TopProgressBar() {
   if (phase === "idle" && !isActive) return null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-[3px]">
+    <div data-testid="api-progress-bar" className="absolute bottom-0 left-0 right-0 h-[3px]">
       <style>{`
         @keyframes tpb-grow { from { width: 0 } to { width: 85% } }
         @keyframes tpb-finish {

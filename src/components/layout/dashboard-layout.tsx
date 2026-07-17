@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { UserAvatar } from "@/components/custom/user-avatar";
@@ -34,6 +34,7 @@ import { authApi } from "@/redux/services/auth/auth-api";
 import { toast } from "sonner";
 import { clearSelectedEntity } from "@/redux/features/finance/entity-slice";
 import { useAcknowledgeNotificationRouteMutation } from "@/redux/services/notifications-api";
+import { isPrimaryShortcut } from "@/utils/keyboard-shortcuts";
 
 function DashboardHeader({
   hasBack,
@@ -53,6 +54,12 @@ function DashboardHeader({
   const { hasPermission, hasModuleAccess } = usePermissions();
   const [search, setSearch] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const desktopSearchRef = useRef<HTMLInputElement>(null);
+  const mobileSearchRef = useRef<HTMLInputElement>(null);
+  const searchShortcutLabel = useMemo(
+    () => (/Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "⌘ E" : "Ctrl E"),
+    [],
+  );
   const [proxyOpen, setProxyOpen] = useState(false);
   const [endImpersonation, { isLoading: isEndingProxy }] = useEndImpersonationMutation();
   const { handleLogout, isLoggingOut } = useLogout();
@@ -65,6 +72,24 @@ function DashboardHeader({
       "platform.impersonation.start_school",
     ].includes(permission),
   );
+
+  useEffect(() => {
+    const focusWorkspaceSearch = (event: KeyboardEvent) => {
+      if (!isPrimaryShortcut(event, "KeyE")) return;
+      event.preventDefault();
+
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        desktopSearchRef.current?.focus();
+        return;
+      }
+
+      setMobileSearchOpen(true);
+      requestAnimationFrame(() => mobileSearchRef.current?.focus());
+    };
+
+    window.addEventListener("keydown", focusWorkspaceSearch);
+    return () => window.removeEventListener("keydown", focusWorkspaceSearch);
+  }, []);
 
   const exitProxy = async () => {
     if (!impersonation || isEndingProxy) return;
@@ -179,6 +204,7 @@ function DashboardHeader({
       <div className="absolute left-1/2 top-1/2 hidden w-[min(38vw,430px)] -translate-x-1/2 -translate-y-1/2 lg:block">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
         <input
+          ref={desktopSearchRef}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           onKeyDown={(event) => {
@@ -186,9 +212,13 @@ function DashboardHeader({
             if (event.key === "Escape") setSearch("");
           }}
           aria-label="Search the workspace"
+          aria-keyshortcuts="Control+E Meta+E"
           placeholder="Search the workspace"
-          className="h-9 w-full rounded-xl border border-gray-200 bg-gray-50/70 pl-9 pr-3 text-sm outline-none transition placeholder:text-gray-400 focus:border-primary/35 focus:bg-white focus:ring-3 focus:ring-primary/8"
+          className="h-9 w-full rounded-xl border border-gray-200 bg-gray-50/70 pl-9 pr-17 text-sm outline-none transition placeholder:text-gray-400 focus:border-primary/35 focus:bg-white focus:ring-3 focus:ring-primary/8"
         />
+        <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-gray-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold tracking-wide text-gray-400 shadow-sm">
+          {searchShortcutLabel}
+        </kbd>
         {search.trim() && (
           <div className="absolute left-0 top-11 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
             {searchResults.length ? searchResults.map((result) => (
@@ -285,6 +315,7 @@ function DashboardHeader({
         <div className="relative col-span-2 mb-3 mt-1 lg:hidden">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
           <input
+            ref={mobileSearchRef}
             autoFocus
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -296,9 +327,13 @@ function DashboardHeader({
               }
             }}
             aria-label="Search the workspace"
+            aria-keyshortcuts="Control+E Meta+E"
             placeholder="Search the workspace"
-            className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 pl-9 pr-3 text-sm outline-none focus:border-primary/35 focus:bg-white focus:ring-3 focus:ring-primary/8"
+            className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 pl-9 pr-17 text-sm outline-none focus:border-primary/35 focus:bg-white focus:ring-3 focus:ring-primary/8"
           />
+          <kbd className="pointer-events-none absolute right-2 top-5 -translate-y-1/2 rounded-md border border-gray-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold tracking-wide text-gray-400 shadow-sm">
+            {searchShortcutLabel}
+          </kbd>
           {search.trim() && (
             <div className="absolute left-0 top-12 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
               {searchResults.length ? searchResults.map((result) => (
