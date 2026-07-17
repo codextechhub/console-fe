@@ -44,6 +44,36 @@ After building or changing any screen, run `/verify-design` (project skill) to
 drive it in the real running app and **look at the screenshots** — build-green ≠
 works. It scrubs its own test-login rows afterward.
 
+## Responsive views — every screen must work on phone AND desktop
+
+Every screen you build or change must render well at desktop **and** small
+widths — a user switching from PC to phone must never get a broken view.
+Horizontal page overflow is a bug, full stop.
+
+Build to the house conventions (full list: `docs/FINANCE_BUILD_NOTES.md`
+§Responsive — they apply app-wide, not just finance):
+- Never remove `grid grid-cols-1 min-w-0` from DashboardLayout's children
+  wrapper — it stops nowrap tables stretching pages past the viewport.
+- Lists: `DataTable`/`CustomTable` already render phone cards below `md`;
+  dense report tables opt out per-table with `mobile="scroll"`.
+- Toolbars/action rows get `flex-wrap`; tab strips `max-w-full
+  overflow-x-auto` with `whitespace-nowrap` buttons; form grids
+  `grid-cols-1 sm:grid-cols-N`; count-KPI strips `grid-cols-2 … lg:grid-cols-4`
+  (money KPIs stay 1-col on phones); drawers `w-full sm:max-w-[…]`; fixed side
+  rails/sidebars stack below `md` (`grid-cols-1 md:grid-cols-[260px_1fr]`).
+- In a flex row, a `flex-1` wrapper needs `min-w-0` or descendant `truncate`
+  silently stops working.
+
+**Verify, don't assume.** After any screen work, alongside `/verify-design` run
+the overflow probe:
+`cd .claude/skills/verify-design && BASE_URL=<vite-url> ROUTES="/your/routes" node ./_mobile_audit.mjs`
+It drives each route logged-in at 390px (phone) and 820px (tablet), screenshots
+both, and reports page-level horizontal overflow with the offending elements
+(`_net_probe.mjs` does the same for failing network calls). **Look at the phone
+screenshots** in `/tmp/verify-design/shots-responsive/` — zero overflow with a
+crushed side-by-side layout is still a fail. Desktop remains the design source
+of truth; phone adapts (stack, wrap, cards) — never hide or truncate data away.
+
 ## Fixing problems: root cause, not symptom
 
 When I ask you to fix a problem, treat the reported issue as one *instance* of
