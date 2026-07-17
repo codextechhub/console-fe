@@ -15,6 +15,7 @@ import type {
   ApAging,
   ApReconciliation,
   GrirBalance,
+  ProcurementDashboard,
   SpendAnalysis,
   VendorPerformance,
 } from "./procurement-ext-types";
@@ -94,6 +95,14 @@ export const procurementExtApi = baseApi.injectEndpoints({
     }),
 
     // Analytics reports
+    getProcurementDashboard: b.query<ApiEnvelope<ProcurementDashboard>, { entity: string }>({
+      query: (p) => ({ url: `/procurement/reports/dashboard/${qs(p)}`, method: "GET" }),
+      providesTags: [
+        "ProcVendors", "ProcContracts", "ProcRequisitions", "ProcPurchaseOrders",
+        "ProcGoodsReceipts", "ProcVendorInvoices", "ProcVendorPayments", "ProcStock",
+        "WorkflowPending",
+      ],
+    }),
     getApAging: b.query<ApiEnvelope<ApAging>, { entity: string; as_of?: string }>({
       query: (p) => ({ url: `/procurement/reports/ap-aging/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
@@ -129,6 +138,7 @@ export const {
   useGetStockItemsQuery,
   useCreateStockItemMutation,
   useGetStockMovementsQuery,
+  useGetProcurementDashboardQuery,
   useGetApAgingQuery,
   useGetApReconciliationQuery,
   useGetGrirBalanceQuery,

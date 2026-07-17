@@ -3,6 +3,49 @@
 
 import type { ReportMoney } from "../finance/reports-types";
 
+export interface ProcurementDashboard {
+  entity: string;
+  currency: string;
+  as_of: string;
+  month_start: string;
+  kpis: {
+    total_spend_mtd: { value: ReportMoney; prior_value: ReportMoney; delta_pct: number | null };
+    open_purchase_orders: { count: number; partial_count: number };
+    pending_approvals: { count: number };
+    overdue_invoices: { count: number; amount: ReportMoney };
+    active_vendors: { count: number; on_hold_count: number };
+  };
+  spend_by_category: {
+    total: ReportMoney;
+    items: { key: string; label: string; amount: ReportMoney }[];
+  };
+  purchase_order_status: {
+    items: { key: string; label: string; count: number }[];
+  };
+  monthly_spend_trend: { labels: string[]; values: number[] };
+  recent_activity: {
+    id: number;
+    action: string;
+    label: string;
+    summary: string;
+    reference: string;
+    actor: string;
+    occurred_at: string;
+  }[];
+  approvals_awaiting_user: {
+    workflow_id: string;
+    document_type: string;
+    document_id: number;
+    reference: string;
+    title: string;
+    requester: string;
+    amount: ReportMoney;
+    stage: string;
+    awaiting_since: string | null;
+    on_behalf_of: string | null;
+  }[];
+}
+
 export interface ApAgingRow {
   vendor_id: number;
   code: string;

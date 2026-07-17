@@ -35,17 +35,23 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
     if (!el) return;
     const remembered = scrollByConsole.get(title);
     if (remembered != null) {
-      // In-console navigation (the shell remounts): keep where the user left it.
+      // In-console navigation (the shell remounts): start where the user left it.
       el.scrollTop = remembered;
-      return;
     }
-    // Fresh load (e.g. a browser refresh wiped the in-memory position): centre the
-    // active menu item so the user lands where they are, not at the top.
+    // Always reveal the newly active item. A sidebar link that was already in
+    // view keeps its position; programmatic navigation from a dashboard card
+    // scrolls only enough to bring the destination row into view.
     const active = el.querySelector<HTMLElement>('[data-active="true"]');
     if (active) {
       const c = el.getBoundingClientRect();
       const a = active.getBoundingClientRect();
-      el.scrollTop += (a.top - c.top) - (el.clientHeight - a.height) / 2;
+      if (remembered == null) {
+        el.scrollTop += (a.top - c.top) - (el.clientHeight - a.height) / 2;
+      } else if (a.top < c.top) {
+        el.scrollTop -= c.top - a.top + 8;
+      } else if (a.bottom > c.bottom) {
+        el.scrollTop += a.bottom - c.bottom + 8;
+      }
     }
   }, [title, location]);
 

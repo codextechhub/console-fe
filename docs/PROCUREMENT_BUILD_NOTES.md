@@ -157,7 +157,7 @@ specific verb key.
 | Contracts | `contracts/` (+ `renewals/`, `<id>/`, `activate/`, `renew/`, `terminate/`, `milestones/<id>/complete/`) | `procurement.contract.view` / `.update` / `.activate` / `.renew` / `.terminate` |
 | Stock Items | `stock-items/` (+ `<id>/`, `<id>/issue/`, `<id>/adjust/`) | `procurement.stock.view` / `.issue` / `.adjust` |
 | Stock Movements | `stock-movements/` | `procurement.stock.view` |
-| Reports | `reports/ap-aging/`, `ap-reconciliation/`, `ap-cash-requirements/`, `grir/`, `grir-aging/`, `spend-analysis/`, `vendor-performance/`, `cycle-time/`, `stock-reorder/`, `stock-valuation/` | `procurement.report.view` |
+| Reports | `reports/dashboard/`, `ap-aging/`, `ap-reconciliation/`, `ap-cash-requirements/`, `grir/`, `grir-aging/`, `spend-analysis/`, `vendor-performance/`, `cycle-time/`, `stock-reorder/`, `stock-valuation/` | `procurement.report.view` |
 
 FE API slice: `src/redux/services/procurement/procurement-api.ts` currently wires
 only vendors / categories / catalog-items / requisitions / purchase-orders /
@@ -169,16 +169,21 @@ their screens are built.
 Status legend: ☐ not started · ◐ in progress · ☑ done (redesigned to prototype).
 All ☐ at time of writing. Study each screen's every state before building.
 
-### 1. Dashboard ☐ (build FIRST)
+### 1. Dashboard ☑
 Prototype: 5 KPI tiles (Total Spend MTD · Open Purchase Orders · Pending
 Approvals · Overdue Invoices · Active Vendors) · **Spend by Category** donut ·
 **Purchase Order Status** bars · **Monthly Spend Trend** line · **Recent Activity**
 feed · **Approvals Awaiting You** list. Charts reuse the finance-ui `charts`.
-**Open decision — data source:** there is **no** procurement dashboard aggregate
-endpoint. Either (a) add one (`reports/dashboard/`, one payload like finance's
-`FinanceDashboard`) — cleaner, one round-trip; or (b) compose client-side from
-`spend-analysis/` + `ap-aging/` + list counts + the workflow queue. Resolve at
-build time; (a) recommended. This is the **only** screen likely needing backend.
+**Data-source decision — resolved:** the screen uses the entity-scoped
+`GET reports/dashboard/?entity=<code>` aggregate, gated by
+`procurement.report.view`. One server response supplies KPIs, category spend, PO
+statuses, the eight-month trend, safe procurement audit activity, and the
+signed-in actor's pending procurement approvals. The server owns status and
+period derivation, avoids client-side fan-out, and filters every contributing
+record to the resolved entity. Honest adaptations: “On hold” is not presented as
+“blacklisted”; the PO chart mirrors the persisted status used by the PO list
+(receipt-aware open/partial counts remain KPI-only); spend is grouped by vendor
+category; and only real workflow document types are included.
 
 ### 2. Procure to Pay
 - **Requisitions ☐** — list (KPIs/status tabs) · detail drawer (lines, approval
@@ -249,10 +254,12 @@ journals**, so before any populated check the entity must have:
   open periods. Without them GRN/invoice/payment posting 409s `PERIOD_CLOSED`
   (or fails on a missing GL account: GR/IR clearing, AP, Inventory/Expense, Bank).
 
-**There is NO procurement demo-data seed command yet** — only
-`seed_procurement_permissions`. So dummy business data (a vendor, a PO, a GRN to
-post, a matchable invoice) must be created **ad-hoc via the Django shell using the
-real services**, never raw status writes:
+Run `python manage.py seed_procurement_demo` for repeatable CODEX dashboard data.
+The command is idempotent and creates three vendors/categories, seven posted
+monthly vendor invoices, four purchase orders, and partial/full goods receipts
+through the real procurement services. It expects the finance chart and open
+periods above to exist. For screen-specific scenarios beyond that standing data,
+use the real services, never raw status writes:
 - Services: `create_po_from_requisition`, `issue_rfq`, `award_quotation`,
   `post_grn`, `match_vendor_invoice`, `post_vendor_invoice`, `post_vendor_payment`,
   `receive_stock`, `issue_stock` (in `vs_procurement`).
@@ -264,8 +271,6 @@ real services**, never raw status writes:
   build valid records + open period + vendor + tax codes** is the fixture in
   `vs_procurement/tests.py` (`setUp` / the `_FixtureMixin` — it does
   `seed_chart_of_accounts(entity)` + an open `FiscalPeriod` + a `Vendor`). Copy it.
-- **Early task worth doing** (like finance's AR demo): add a `seed_procurement_demo`
-  management command so populated click-throughs are repeatable instead of hand-built.
 
 **Cleanup after a test:** `/verify-design` drives are **read-only**, and its
 `scrub.sh` deletes **only** the test-login trail (loginsession / authattempt /
@@ -282,7 +287,6 @@ happy path + each action/filter. Run with `--keepdb` (avoids the `test_cx_db`
 lock). Every posting test asserts the **real journal** (Dr/Cr) it writes.
 
 ## Status
-Roadmap authored; **no screens rebuilt yet**. Nav/shell/backend already in place.
-Next: build the **Dashboard** first (resolve its data-source decision), then work
-top-to-bottom through the nav. **No procurement demo-seed command exists** — seed
-ad-hoc on CODEX (see above) or add one early.
+Dashboard rebuilt and verified against populated CODEX data; its server aggregate,
+security coverage, and repeatable demo seed are in place. Next: continue
+top-to-bottom through the nav with **Requisitions**.

@@ -3,6 +3,8 @@
 // palette/typography. Used on dashboards for real data (aging buckets, income
 // vs expense, spend) — not fabricated trend series.
 
+import { useState } from "react";
+
 import { cn } from "@/lib/utils";
 
 // House chart palette (maps to our tokens; falls back to hex for SVG fills).
@@ -19,6 +21,7 @@ export const CHART_COLORS = {
 export interface BarDatum {
   label: string;
   value: number;
+  color?: string;
 }
 
 /** Vertical bars from {label, value}. `format` renders the hover/tooltip value. */
@@ -27,11 +30,13 @@ export function BarChart({
   height = 180,
   color = CHART_COLORS.primary,
   format = (v: number) => String(v),
+  showValues = false,
 }: {
   data: BarDatum[];
   height?: number;
   color?: string;
   format?: (v: number) => string;
+  showValues?: boolean;
 }) {
   const max = Math.max(1, ...data.map((d) => d.value));
   return (
@@ -39,11 +44,20 @@ export function BarChart({
       {data.map((d) => (
         <div key={d.label} className="flex min-w-12 flex-1 flex-col items-center gap-1.5">
           <div className="flex w-full flex-1 items-end justify-center">
-            <div
-              className="w-7 rounded-t-sm transition-[height]"
-              style={{ height: `${(d.value / max) * (height - 40)}px`, minHeight: 2, background: color }}
-              title={`${d.label}: ${format(d.value)}`}
-            />
+            <div className="flex h-full flex-col items-center justify-end gap-1.5">
+              {showValues && (
+                <span className="font-mont text-xs font-semibold tabular-nums text-black-01">
+                  {format(d.value)}
+                </span>
+              )}
+              {d.value > 0 && (
+                <div
+                  className="w-7 rounded-t-sm transition-[height]"
+                  style={{ height: `${(d.value / max) * (height - (showValues ? 62 : 40))}px`, background: d.color ?? color }}
+                  title={`${d.label}: ${format(d.value)}`}
+                />
+              )}
+            </div>
           </div>
           <span className="font-mont text-[10.5px] text-gray-05">{d.label}</span>
         </div>
@@ -64,11 +78,13 @@ export function Donut({
   size = 132,
   thickness = 18,
   center,
+  formatValue,
 }: {
   data: DonutDatum[];
   size?: number;
   thickness?: number;
   center?: { main: string; sub?: string };
+  formatValue?: (value: number) => string;
 }) {
   const total = data.reduce((s, d) => s + d.value, 0) || 1;
   const r = (size - thickness) / 2;
@@ -79,7 +95,7 @@ export function Donut({
   const lens = data.map((d) => (d.value / total) * circ);
   const offsets = lens.map((_, i) => lens.slice(0, i).reduce((s, l) => s + l, 0));
   return (
-    <div className="flex items-center gap-5">
+    <div className="grid min-w-0 grid-cols-1 items-center gap-5 sm:grid-cols-[auto_minmax(0,1fr)]">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
         <circle cx={cx} cy={cx} r={r} fill="none" stroke="#eef0f3" strokeWidth={thickness} />
         {data.map((d, i) => (
@@ -103,11 +119,12 @@ export function Donut({
           </>
         )}
       </svg>
-      <div className="space-y-1.5">
+      <div className="min-w-0 space-y-1.5">
         {data.map((d) => (
-          <div key={d.label} className="flex items-center gap-2 font-mont text-xs text-gray-01">
+          <div key={d.label} className="flex min-w-0 items-center gap-2 font-mont text-xs text-gray-01">
             <span className="inline-block size-2.5 rounded-full" style={{ background: d.color }} />
-            {d.label}
+            <span className="min-w-0 flex-1 truncate">{d.label}</span>
+            {formatValue && <span className="font-semibold tabular-nums text-black-01">{formatValue(d.value)}</span>}
           </div>
         ))}
       </div>
@@ -229,59 +246,108 @@ export function TrendArea({
   labels,
   series,
   height = 220,
+  minWidth = 520,
   format = (v: number) => String(v),
+  showLegend = true,
 }: {
   labels: string[];
   series: { name: string; data: number[]; color: string }[];
   height?: number;
+  minWidth?: number;
   format?: (v: number) => string;
+  showLegend?: boolean;
 }) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const W = 760;
-  const H = height;
+  const H = Math.max(height - 24, 80);
   const padL = 8;
-  const padB = 22;
   const max = Math.max(1, ...series.flatMap((s) => s.data));
   const n = labels.length;
   const dx = n > 1 ? (W - padL) / (n - 1) : 0;
-  const y = (v: number) => (H - padB) - (v / max) * (H - padB - 8);
+  const y = (v: number) => H - (v / max) * (H - 8);
   const ticks = 4;
+  const activeX = activeIndex == null ? 0 : padL + activeIndex * dx;
+  const activeLeft = `${(activeX / W) * 100}%`;
+  const tooltipTransform = activeIndex === 0 ? "translateX(0)"
+    : activeIndex === n - 1 ? "translateX(-100%)" : "translateX(-50%)";
   return (
     <div className="overflow-x-auto">
-      <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ minWidth: 520 }}>
-        {Array.from({ length: ticks + 1 }).map((_, i) => {
-          const gy = ((H - padB) / ticks) * i + 0;
-          return <line key={i} x1={0} y1={gy} x2={W} y2={gy} stroke="#eef0f3" strokeWidth={1} />;
-        })}
-        {series.map((s) => {
-          const pts = s.data.map((v, i) => `${(padL + i * dx).toFixed(1)},${y(v).toFixed(1)}`);
-          const gid = `ta-${s.color.replace(/[^a-z0-9]/gi, "")}`;
-          return (
-            <g key={s.name}>
-              <defs>
-                <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={s.color} stopOpacity={0.16} />
-                  <stop offset="100%" stopColor={s.color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <polygon points={`${padL},${H - padB} ${pts.join(" ")} ${padL + (n - 1) * dx},${H - padB}`} fill={`url(#${gid})`} />
-              <polyline points={pts.join(" ")} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" />
-            </g>
-          );
-        })}
-        {labels.map((l, i) => (
-          (n <= 12 || i % 2 === 0) ? (
-            <text key={l} x={padL + i * dx} y={H - 6} textAnchor="middle" className="fill-gray-05 font-mont" style={{ fontSize: 10 }}>{l}</text>
-          ) : null
-        ))}
-      </svg>
-      <div className="mt-1 flex items-center gap-4">
-        {series.map((s) => (
-          <span key={s.name} className="inline-flex items-center gap-1.5 font-mont text-xs text-gray-01">
-            <span className="inline-block size-2.5 rounded-full" style={{ background: s.color }} />{s.name}
-          </span>
-        ))}
-        <span className="ml-auto font-mont text-[11px] text-gray-05">max {format(max)}</span>
+      <div style={{ minWidth }} onMouseLeave={() => setActiveIndex(null)}>
+        <div className="relative" style={{ height: H }}>
+          <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+          {Array.from({ length: ticks + 1 }).map((_, i) => {
+            const gy = (H / ticks) * i;
+            return <line key={i} x1={0} y1={gy} x2={W} y2={gy} stroke="#eef0f3" strokeWidth={1} />;
+          })}
+          {series.map((s) => {
+            const pts = s.data.map((v, i) => `${(padL + i * dx).toFixed(1)},${y(v).toFixed(1)}`);
+            const gid = `ta-${s.color.replace(/[^a-z0-9]/gi, "")}`;
+            return (
+              <g key={s.name}>
+                <defs>
+                  <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={s.color} stopOpacity={0.16} />
+                    <stop offset="100%" stopColor={s.color} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <polygon points={`${padL},${H} ${pts.join(" ")} ${padL + (n - 1) * dx},${H}`} fill={`url(#${gid})`} />
+                <polyline points={pts.join(" ")} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" />
+              </g>
+            );
+          })}
+          {labels.map((label, index) => {
+            const left = index === 0 ? 0 : padL + index * dx - dx / 2;
+            const width = index === 0 || index === labels.length - 1 ? dx / 2 + padL : dx;
+            return <rect key={`hit-${label}-${index}`} x={left} y={0} width={Math.max(width, 1)} height={H}
+              fill="transparent" onMouseEnter={() => setActiveIndex(index)} />;
+          })}
+          {activeIndex != null && (
+            <line pointerEvents="none" x1={activeX} y1={4} x2={activeX} y2={H}
+              stroke="#94a3b8" strokeWidth={1} strokeDasharray="4 4" />
+          )}
+          </svg>
+          {series.flatMap((s) => s.data.map((value, index) => (
+            <span key={`${s.name}-${index}`} aria-hidden="true"
+              className={cn(
+                "pointer-events-none absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white transition-transform duration-150",
+                activeIndex === index && "scale-150",
+              )}
+              style={{ left: `${((padL + index * dx) / W) * 100}%`, top: `${(y(value) / H) * 100}%`, background: s.color }} />
+          )))}
+          {activeIndex != null && (
+            <div className="pointer-events-none absolute top-2 z-10 min-w-28 rounded-md bg-gray-950/95 px-2.5 py-2 font-mont text-[11px] text-white shadow-lg"
+              style={{ left: activeLeft, transform: tooltipTransform }}>
+              <p className="font-semibold">{labels[activeIndex]}</p>
+              {series.map((s) => (
+                <p key={s.name} className="mt-1 whitespace-nowrap tabular-nums">
+                  {s.name}: {format(s.data[activeIndex] ?? 0)}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="relative mt-1 h-4">
+          {labels.map((label, index) => (
+            <span key={`${label}-${index}`} className="absolute whitespace-nowrap font-mont text-[11px] font-medium text-gray-01"
+              style={{
+                left: `${((padL + index * dx) / W) * 100}%`,
+                transform: index === 0 ? "translateX(0)" : index === n - 1 ? "translateX(-100%)" : "translateX(-50%)",
+              }}>
+              {n <= 12 || index % 2 === 0 ? label : ""}
+            </span>
+          ))}
+        </div>
       </div>
+      {showLegend && (
+        <div className="mt-1 flex items-center gap-4">
+          {series.map((s) => (
+            <span key={s.name} className="inline-flex items-center gap-1.5 font-mont text-xs text-gray-01">
+              <span className="inline-block size-2.5 rounded-full" style={{ background: s.color }} />{s.name}
+            </span>
+          ))}
+          <span className="ml-auto font-mont text-[11px] text-gray-05">max {format(max)}</span>
+        </div>
+      )}
     </div>
   );
 }
