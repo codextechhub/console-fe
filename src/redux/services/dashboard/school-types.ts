@@ -112,6 +112,7 @@ export interface SchoolDetail extends School {
   currency: string
   registration_id: string
   deactivated_at: string | null
+  main_branch: BranchDetail | null
   branches: BranchDetail[]
   branding: SchoolBranding | null
   primary_admin: SchoolPrimaryAdmin | null

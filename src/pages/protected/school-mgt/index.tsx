@@ -25,7 +25,7 @@ import { formatEnum } from "@/utils/helpers";
 import { Plus, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useDebounce } from "react-haiku";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 
 const TABLE_HEADERS = ["S/N", "School Name", "Location", "Total Students", "Type", "Status", "Action"];
@@ -73,7 +73,15 @@ export default function SchoolManagement() {
 
   const tableData = schoolsRes?.data?.map((item: School, idx: number) => ({
     sn: <p>{idx + 1}</p>,
-    name: <p className="capitalize font-medium">{item.name || "—"}</p>,
+    name: (
+      <Link
+        to={routesPath.PROTECTED.SCHOOL_MGT.VIEW(item.slug)}
+        onClick={(event) => event.stopPropagation()}
+        className="font-medium capitalize text-black-01 underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+      >
+        {item.name || "—"}
+      </Link>
+    ),
     location: item.main_branch
       ? [item.main_branch.state, item.main_branch.country].filter(Boolean).join(", ") || "—"
       : "—",
@@ -189,6 +197,9 @@ export default function SchoolManagement() {
           perPage={schoolsRes?.pagination?.pageSize}
           onPageChange={(p) => setPage(p as number)}
           dropDown
+          onRowClick={(row: { _slug: string }) =>
+            navigate(routesPath.PROTECTED.SCHOOL_MGT.VIEW(row._slug))
+          }
           dropDownList={(row: { _slug: string }) => [
             {
               label: "View Details",

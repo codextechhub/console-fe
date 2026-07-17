@@ -165,7 +165,10 @@ const CustomTable = ({
     onClick: (val: any) => void;
   }) => (
     <TableRow
-      className="transition-all duration-300 hover:bg-primary/5"
+      className={cn(
+        "transition-all duration-300 hover:bg-primary/5",
+        onRowClick && "cursor-pointer",
+      )}
       key={row?.id}
     >
       {row?.map((cell: any, index: any) => (
@@ -196,6 +199,10 @@ const CustomTable = ({
             const labels = tableHeaderList.filter(
               (h) => h.toLowerCase() !== "action",
             );
+            const serialColumn = labels.findIndex((label) =>
+              ["s/n", "sn", "#"].includes(label.trim().toLowerCase()),
+            );
+            const primaryColumn = serialColumn === 0 && cells.length > 1 ? 1 : 0;
             const rowKey =
               item?._id ?? item?._slug ?? item?._code ?? item?._key ?? rowIndex;
             const handleRowClick = () => {
@@ -218,7 +225,7 @@ const CustomTable = ({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 font-mont text-sm font-semibold text-black-01">
-                    {cells[0]}
+                    {cells[primaryColumn]}
                   </div>
                   {dropDown && (
                     <div onClick={(e) => e.stopPropagation()} className="shrink-0">
@@ -226,10 +233,10 @@ const CustomTable = ({
                     </div>
                   )}
                 </div>
-                {cells.slice(1).map((cell, i) => (
+                {cells.map((cell, i) => i !== primaryColumn && i !== serialColumn && (
                   <div key={i} className="flex items-start justify-between gap-3">
                     <span className="shrink-0 font-mont text-[11px] capitalize text-gray-01">
-                      {labels[i + 1]}
+                      {labels[i]}
                     </span>
                     <span className="min-w-0 text-right font-mont text-sm font-medium text-black-01">
                       {cell}
