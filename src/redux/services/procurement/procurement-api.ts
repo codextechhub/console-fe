@@ -117,6 +117,10 @@ export const procurementApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/procurement/goods-receipts/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcGoodsReceipts"],
     }),
+    getGoodsReceipt: b.query<ApiEnvelope<GoodsReceipt>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/goods-receipts/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcGoodsReceipts"],
+    }),
     createGoodsReceipt: b.mutation<ApiEnvelope<GoodsReceipt>, { entity: string; vendor: string; purchase_order?: number; received_date: string; reference?: string; narration?: string; lines: Record<string, unknown>[] }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/goods-receipts/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcGoodsReceipts"],
@@ -190,6 +194,7 @@ export const {
   useUpdatePurchaseOrderMutation,
   useSubmitPurchaseOrderMutation,
   useGetGoodsReceiptsQuery,
+  useGetGoodsReceiptQuery,
   useCreateGoodsReceiptMutation,
   useUpdateGoodsReceiptMutation,
   usePostGoodsReceiptMutation,

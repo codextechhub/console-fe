@@ -8,10 +8,10 @@ import { useGetRfqsQuery } from "@/redux/services/procurement/procurement-ext-ap
 const adapt = (onChange: (v: string) => void) =>
   (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value);
 
-export function VendorPicker({ entity, value, onChange, label, placeholder = "Select vendor", isRequired }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string; isRequired?: boolean }) {
+export function VendorPicker({ entity, value, onChange, label, placeholder = "Select vendor", isRequired, disabled }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string; isRequired?: boolean; disabled?: boolean }) {
   const { data, isLoading } = useGetVendorsQuery({ entity, page_size: 100 });
   const options = (data?.data ?? []).map((v) => ({ value: v.code, label: `${v.code} — ${v.name}` }));
-  return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} revealOnSearch />;
+  return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} revealOnSearch />;
 }
 
 export function CategoryPicker({ entity, value, onChange, label, placeholder = "No category" }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string }) {

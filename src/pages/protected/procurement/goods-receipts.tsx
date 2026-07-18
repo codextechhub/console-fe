@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { ProcurementShell } from "./procurement-shell";
 import { PurchaseOrderPicker, VendorPicker } from "./pickers";
 import {
-  DataTable, DetailDrawer, EmptyState, FormField, InfoHint, PostingRecap,
-  StatusPill, toArray, useActiveEntity, type Column,
+  DataTable, DetailDrawer, EmptyState, ErrorState, FormField, InfoHint, LoadingState,
+  PostingRecap, StatusPill, toArray, useActiveEntity, type Column,
 } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import {
-  useCreateGoodsReceiptMutation, useGetGoodsReceiptsQuery,
+  useCreateGoodsReceiptMutation, useGetGoodsReceiptQuery, useGetGoodsReceiptsQuery,
   useGetPurchaseOrderQuery, usePostGoodsReceiptMutation, useUpdateGoodsReceiptMutation,
 } from "@/redux/services/procurement/procurement-api";
 import type { GoodsReceipt } from "@/redux/services/procurement/procurement-types";
@@ -39,7 +39,7 @@ function shortDate(value?: string | null) {
 
 export default function GoodsReceiptsPage() {
   const { code: entity, currency } = useActiveEntity();
-  const [selected, setSelected] = useState<GoodsReceipt | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetGoodsReceiptsQuery(
@@ -49,7 +49,7 @@ export default function GoodsReceiptsPage() {
   const pg = data?.pagination;
 
   const columns: Column<GoodsReceipt>[] = [
-    { header: "GR Number", cell: (receipt) => <span className="font-mont text-xs font-semibold text-primary">{receipt.document_number}</span> },
+    { header: "GR Number", cell: (receipt) => <span className="font-mont text-sm font-semibold text-primary">{receipt.document_number}</span> },
     { header: "PO Ref", cell: (receipt) => receipt.purchase_order_number || "—" },
     { header: "Vendor", cell: (receipt) => <span className="font-mont text-sm font-semibold">{receipt.vendor_name || receipt.vendor_code}</span> },
     { header: "Received", cell: (receipt) => shortDate(receipt.received_date) },
@@ -80,26 +80,31 @@ export default function GoodsReceiptsPage() {
         <section className="min-w-0 rounded-md bg-white">
           <DataTable columns={columns} rows={rows} rowKey={(receipt) => receipt.id}
             loading={isLoading || isFetching} error={isError} onRetry={refetch}
-            onRowClick={setSelected} page={pg?.currentPage} totalPages={pg?.totalPages}
+            onRowClick={(receipt) => setSelectedId(receipt.id)} page={pg?.currentPage} totalPages={pg?.totalPages}
             onPageChange={setPage} emptyTitle="No goods receipts yet"
             emptyMessage="Record a delivery against an open purchase order."
           />
         </section>
       </main>
 
-      <ReceiptDrawer receipt={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
+      <ReceiptDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
       {creating && <ReceiptForm entity={entity} currency={currency} onClose={() => setCreating(false)} />}
     </ProcurementShell>
   );
 }
 
-function ReceiptDrawer({ receipt, entity, currency, onClose }: {
-  receipt: GoodsReceipt | null; entity: string; currency?: string | null; onClose: () => void;
+function ReceiptDrawer({ id, entity, currency, onClose }: {
+  id: number | null; entity: string; currency?: string | null; onClose: () => void;
 }) {
   const [tab, setTab] = useState<DetailTab>("overview");
   const [editing, setEditing] = useState(false);
   const [receivingRemaining, setReceivingRemaining] = useState(false);
-  const [post, { isLoading }] = usePostGoodsReceiptMutation();
+  // The list ships only summary columns; the drawer fetches its own line-level detail.
+  const { data, isLoading: loadingReceipt, isError, refetch } = useGetGoodsReceiptQuery(
+    { id: id!, entity }, { skip: id == null },
+  );
+  const receipt = data?.data;
+  const [post, { isLoading: posting }] = usePostGoodsReceiptMutation();
   const total = receipt?.total_value ?? 0;
 
   const postReceipt = async () => {
@@ -112,18 +117,18 @@ function ReceiptDrawer({ receipt, entity, currency, onClose }: {
   };
 
   return (
-    <DetailDrawer open={!!receipt} onOpenChange={(open) => !open && onClose()}
+    <DetailDrawer open={id != null} onOpenChange={(open) => !open && onClose()}
       title={receipt?.document_number || "Goods receipt"}
-      description={receipt ? `${receipt.vendor_name || receipt.vendor_code} delivery · Against ${receipt.purchase_order_number || "no PO"}` : undefined}
+      description={receipt ? `${receipt.vendor_name || receipt.vendor_code} delivery · Against ${receipt.purchase_order_number || "no PO"}` : "Loading goods receipt"}
       widthClass="sm:max-w-[720px]"
       footer={receipt && <>
         <Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
         {receipt.status === "DRAFT" && <Can permission={P.PROC_UPDATE_GOODS_RECEIPT}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
         {receipt.status !== "DRAFT" && receipt.receipt_status === "PARTIAL" && receipt.purchase_order_id && <Can permission={P.PROC_CREATE_GOODS_RECEIPT}><Button variant="outline" onClick={() => setReceivingRemaining(true)}><PackageCheck className="size-4" /> Receive Remaining</Button></Can>}
-        {receipt.status === "DRAFT" && <Can permission={P.PROC_POST_GOODS_RECEIPT}><Button loading={isLoading} onClick={postReceipt}><Send className="size-4" /> Post Receipt</Button></Can>}
+        {receipt.status === "DRAFT" && <Can permission={P.PROC_POST_GOODS_RECEIPT}><Button loading={posting} onClick={postReceipt}><Send className="size-4" /> Post Receipt</Button></Can>}
       </>}
     >
-      {receipt && <div className="space-y-5">
+      {loadingReceipt ? <LoadingState rows={7} /> : isError || !receipt ? <ErrorState onRetry={refetch} /> : <div className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5"><StatusPill status={receipt.status} /><StatusPill status={receipt.receipt_status} /></div>
           <p className="font-mont text-sm font-semibold text-gray-05">{formatQuantity(receipt.received_item_count)} of {formatQuantity(receipt.ordered_item_count)} items</p>
@@ -283,7 +288,7 @@ function ReceiptForm({ entity, currency, onClose, initial, sourcePurchaseOrderId
           <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Receipt</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="Against PO" required><PurchaseOrderPicker entity={entity} value={purchaseOrder} onChange={(value) => { setPurchaseOrder(value); setEnteredLines([]); }} /></FormField>
-            <FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} /></FormField>
+            <FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} disabled={!!purchaseOrder} /></FormField>
             <FormField label="Received date" required><Input type="date" value={receivedDate} onChange={(event) => setReceivedDate(event.target.value)} /></FormField>
             <FormField label="Reference"><Input value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Delivery note or waybill" /></FormField>
           </div>
