@@ -147,7 +147,7 @@ specific verb key.
 | Area | Endpoints | Permission |
 |---|---|---|
 | Vendors | `vendors/` (+ `summary/`, `<id>/`, `<id>/insights/`) | `procurement.vendor.view` / `.create` / `.update`; sensitive detail fields use `.view_sensitive`; summary/insights use `procurement.report.view` |
-| Categories | `GET/POST categories/` | `procurement.category.view` |
+| Categories | `categories/` (+ `<id>/`, `insights/`) | `procurement.category.view` / `.create` / `.update`; spend insights use `procurement.report.view` |
 | Catalog | `GET catalog-items/`, `GET catalog-items/<id>/` | `procurement.catalog_item.view` |
 | Requisitions | `requisitions/` (+ `<id>/`, `<id>/submit/`) | `procurement.requisition.view` / `.submit` |
 | RFQs | `rfqs/` (+ `<id>/`, `<id>/issue/`, `<id>/cancel/`) | `procurement.rfq.view` / `.issue` |
@@ -331,7 +331,36 @@ category; and only real workflow document types are included.
   all five detail tabs and create/edit drawers render with zero console/page errors; 390px
   phone and 820px tablet screenshots were inspected with zero page overflow; verification
   login rows were scrubbed. `vendors/`.
-- **Categories ☐** — list/tree · create/edit drawer. `categories/`.
+- **Categories ☑** — prototype-aligned three-level taxonomy tree with All / Active /
+  Inactive filters, debounced search, linked-vendor counts, report-gated realised spend,
+  three-tab detail drawer (Overview · Usage · Spend), and create/edit form drawers.
+  **Hierarchy contract:** `VendorCategory.parent` is an optional same-entity self-FK.
+  Level is derived from ancestry: roots are Level 1, their children Level 2, and
+  grandchildren Level 3; users never type a level number. The backend rejects level-4
+  creation, cycles, self/descendant parents, cross-entity parents, and re-parenting that
+  would push any existing descendant below Level 3. Hierarchy mutations lock the entity's
+  bounded category set so concurrent re-parenting cannot race those checks. Active
+  categories require active parents, and an active parent cannot be deactivated until its
+  active direct children are deactivated. The list and vendor CategoryPicker render the
+  persisted hierarchy with indentation and explicit level/parent labels. Catalog items
+  still have no category relation, so Usage does not invent item counts. Codes are
+  trimmed/uppercased, immutable after
+  creation, and case-insensitively unique per entity at both API and database boundaries.
+  Default accounts are entity-scoped, active, postable EXPENSE accounts. Inactive
+  categories remain visible on historical vendor links but cannot be assigned to another
+  vendor or seed a new PO, quotation-award or contract default; unrelated edits preserve
+  an existing inactive link. Updates require the dedicated
+  `procurement.category.update`, not the broader view/create grants. Linked-vendor counts
+  and posted-invoice spend explicitly constrain every join to the selected entity; no
+  export is offered. Dismissing create/edit outside the drawer clears only local state and
+  was request-monitored to emit zero POST/PATCH calls. Verification fixtures persist a
+  populated Level 1 → Level 2 → Level 3 branch plus one inactive Level 2 category without
+  fabricating transactions. Verified 2026-07-18:
+  all 108 Procurement backend tests pass; Django, migration-drift and production frontend
+  build checks are green; populated desktop list, all three detail tabs, and create/edit
+  states rendered without console/page errors; inspected 390px phone and 820px tablet
+  states show complete cards and drawers with zero page overflow; verifier login rows were
+  scrubbed. `categories/`.
 - **Catalog ☐** — catalog-item list (category, unit, price) · detail · create/edit
   drawer with category + vendor pickers. `catalog-items/`.
 
@@ -427,5 +456,8 @@ and populated desktop/phone/tablet visual proof. Vendors is now rebuilt and veri
 with safe list/detail contracts, backend field-level security, entity-scoped uniqueness
 and references, governance-aware commitment/payment locking, authoritative aggregates,
 94 passing Procurement tests, a clean production build, and inspected desktop/phone/
-tablet states with no overflow or runtime errors. Next: study **Categories**—the next
-unchecked navigation section—before proposing its implementation plan.
+tablet states with no overflow or runtime errors. Categories is now rebuilt and verified
+as an entity-safe three-level hierarchy with derived depth, cycle-safe re-parenting,
+governed inactive-category assignment, 108 passing Procurement tests, a clean production
+build, and inspected desktop/phone/tablet list and drawer states. Next: study **Catalog**—
+the next unchecked navigation section—before proposing its implementation plan.

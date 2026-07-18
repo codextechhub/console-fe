@@ -5,9 +5,23 @@ import { SearchSelect } from "@/components/custom/search-select";
 import { toArray } from "@/components/finance-ui";
 import { useGetVendorsQuery, useGetCategoriesQuery, useGetRequisitionsQuery, useGetPurchaseOrdersQuery } from "@/redux/services/procurement/procurement-api";
 import { useGetRfqsQuery } from "@/redux/services/procurement/procurement-ext-api";
+import type { VendorCategory } from "@/redux/services/procurement/procurement-types";
 
 const adapt = (onChange: (v: string) => void) =>
   (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value);
+
+function categoryTree(rows: VendorCategory[]) {
+  const children = new Map<number | null, VendorCategory[]>();
+  for (const category of rows) children.set(category.parent_id, [...(children.get(category.parent_id) || []), category]);
+  for (const group of children.values()) group.sort((a, b) => a.code.localeCompare(b.code));
+  const ordered: VendorCategory[] = [];
+  const visit = (parent: number | null) => (children.get(parent) || []).forEach((category) => {
+    ordered.push(category);
+    visit(category.id);
+  });
+  visit(null);
+  return ordered;
+}
 
 export function VendorPicker({ entity, value, onChange, label, placeholder = "Select vendor", isRequired, disabled, purchaseEligible = false }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string; isRequired?: boolean; disabled?: boolean; purchaseEligible?: boolean }) {
   const { data, isLoading } = useGetVendorsQuery({ entity, page_size: 100, ...(purchaseEligible ? { purchase_eligible: true } : {}) });
@@ -17,7 +31,14 @@ export function VendorPicker({ entity, value, onChange, label, placeholder = "Se
 
 export function CategoryPicker({ entity, value, onChange, label, placeholder = "No category" }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string }) {
   const { data, isLoading } = useGetCategoriesQuery({ entity, page_size: 100 });
-  const options = toArray(data?.data).map((c) => ({ value: c.code, label: `${c.code} — ${c.name}` }));
+  // Active rows are assignable; preserve a selected inactive legacy link so an
+  // unrelated vendor edit does not silently clear or rewrite history.
+  const options = categoryTree(toArray(data?.data))
+    .filter((category) => category.is_active || category.code === value)
+    .map((category) => ({
+      value: category.code,
+      label: `${"— ".repeat(category.level - 1)}${category.code} — ${category.name} · L${category.level}${category.is_active ? "" : " (Inactive)"}`,
+    }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} />;
 }
 

@@ -5,9 +5,22 @@ export interface VendorCategory {
   id: number;
   code: string;
   name: string;
+  parent_id: number | null;
+  parent_code: string | null;
+  parent_name: string | null;
+  level: 1 | 2 | 3;
   default_expense_account_id: number | null;
   default_expense_code: string | null;
   is_active: boolean;
+  vendor_count: number;
+  child_count: number;
+}
+
+export interface VendorCategoryInsight {
+  category_id: number;
+  spend_mtd: number;
+  spend_prior_month: number;
+  spend_ytd: number;
 }
 
 export interface Vendor {

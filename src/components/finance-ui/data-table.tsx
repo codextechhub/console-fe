@@ -68,6 +68,8 @@ interface DataTableProps<T> {
   mobile?: "cards" | "scroll";
   /** Custom phone card for one row; overrides the generic label/value card. */
   mobileCard?: (row: T) => React.ReactNode;
+  /** Keep cards through tablet widths when a persistent side rail narrows the content area. */
+  cardBreakpoint?: "md" | "lg";
 }
 
 const headCls =
@@ -91,6 +93,7 @@ export function DataTable<T>({
   onPageChange,
   mobile = "cards",
   mobileCard,
+  cardBreakpoint = "md",
 }: DataTableProps<T>) {
   const colCount = columns.length;
   // Defensive: the backend returns `{}` (not `[]`) for an empty list endpoint,
@@ -158,7 +161,7 @@ export function DataTable<T>({
   return (
     <div className="rounded-md bg-white">
       {cardsOnPhone && (
-        <div className="md:hidden">
+        <div className={cardBreakpoint === "lg" ? "lg:hidden" : "md:hidden"}>
           {safeRows.map((row) =>
             mobileCard ? (
               <div
@@ -182,7 +185,7 @@ export function DataTable<T>({
           )}
         </div>
       )}
-      <Table containerClassName={cn(cardsOnPhone && "max-md:hidden")}>
+      <Table containerClassName={cn(cardsOnPhone && (cardBreakpoint === "lg" ? "max-lg:hidden" : "max-md:hidden"))}>
         <TableHeader className="border-0">
           <TableRow>
             {columns.map((col, i) => (

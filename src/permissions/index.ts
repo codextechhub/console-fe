@@ -304,6 +304,7 @@ const REGISTRY: Record<string, string> = {
   // 11 vendor_payment · 12 approval · 13 stock · 14 report.
   "700101": "procurement.category.view",
   "700102": "procurement.category.create",
+  "700103": "procurement.category.update",
   "700201": "procurement.vendor.view",
   "700202": "procurement.vendor.create",
   "700203": "procurement.vendor.update",
@@ -615,6 +616,7 @@ export const P = {
   // ── Procurement ─────────────────────────────────────────────────────────────
   PROC_VIEW_CATEGORIES:     "700101",
   PROC_CREATE_CATEGORY:     "700102",
+  PROC_UPDATE_CATEGORY:     "700103",
   PROC_VIEW_VENDORS:        "700201",
   PROC_CREATE_VENDOR:       "700202",
   PROC_UPDATE_VENDOR:       "700203",

@@ -16,6 +16,7 @@ import type {
   RequisitionSummary,
   Vendor,
   VendorCategory,
+  VendorCategoryInsight,
   VendorInsights,
   VendorInvoice,
   VendorInvoiceSummary,
@@ -55,13 +56,25 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/vendors/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcVendors"],
     }),
-    getCategories: b.query<PaginatedEnvelope<VendorCategory>, E>({
+    getCategories: b.query<PaginatedEnvelope<VendorCategory>, E & { q?: string; is_active?: boolean }>({
       query: (p) => ({ url: `/procurement/categories/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcCategories"],
     }),
-    createCategory: b.mutation<ApiEnvelope<VendorCategory>, { entity: string; code: string; name: string; default_expense_account?: string }>({
+    getCategory: b.query<ApiEnvelope<VendorCategory>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/categories/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcCategories"],
+    }),
+    getCategoryInsights: b.query<ApiEnvelope<VendorCategoryInsight[]>, { entity: string }>({
+      query: ({ entity }) => ({ url: `/procurement/categories/insights/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcCategories"],
+    }),
+    createCategory: b.mutation<ApiEnvelope<VendorCategory>, { entity: string; code: string; name: string; parent?: string; default_expense_account?: string; is_active?: boolean }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/categories/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcCategories"],
+    }),
+    updateCategory: b.mutation<ApiEnvelope<VendorCategory>, { id: number; entity: string; code?: string; name?: string; parent?: string; default_expense_account?: string; is_active?: boolean }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/categories/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["ProcCategories", "ProcVendors"],
     }),
     getCatalogItems: b.query<PaginatedEnvelope<CatalogItem>, E & { q?: string }>({
       query: (p) => ({ url: `/procurement/catalog-items/${qs(p)}`, method: "GET" }),
@@ -232,7 +245,10 @@ export const {
   useCreateVendorMutation,
   useUpdateVendorMutation,
   useGetCategoriesQuery,
+  useGetCategoryQuery,
+  useGetCategoryInsightsQuery,
   useCreateCategoryMutation,
+  useUpdateCategoryMutation,
   useGetCatalogItemsQuery,
   useCreateCatalogItemMutation,
   useGetRequisitionsQuery,
