@@ -23,8 +23,9 @@ import { useLogout } from "@/hooks/use-logout";
 import useToggleModal from "@/hooks/use-toggle";
 import PromptModal from "@/components/modal/prompt-modal";
 import { routesPath } from "@/routes/routes-path";
-import { usePermissions } from "@/hooks/use-permissions";
-import { P } from "@/permissions";
+import { useActionSearch } from "@/hooks/use-action-search";
+import { groupByConsole } from "@/lib/action-palette";
+import type { ActionDef } from "@/lib/action-palette";
 import { SupportTicketComposer } from "@/components/support-ticket-composer";
 import { ProxyUserDialog } from "@/components/proxy-user-dialog";
 import { setAuthContext, setImpersonation } from "@/redux/features/auth/auth-slice";
@@ -56,12 +57,14 @@ function DashboardHeader({
   const user = auth.user;
   const impersonation = auth.impersonation ?? null;
   const { state, toggleSidebar } = useSidebar();
-  const { hasPermission, hasModuleAccess } = usePermissions();
   const [search, setSearch] = useState(rememberedWorkspaceSearch);
   const [activeResult, setActiveResult] = useState(0);
   // Whether the results dropdown is showing — follows focus, independent of the
   // (persisted) text: click-away closes it, refocusing reopens it.
   const [resultsOpen, setResultsOpen] = useState(false);
+  // Collapsed shows the top few matches + a "show all" row; expanded shows every
+  // match, grouped by console, in a scrollable box. Resets on each query change.
+  const [resultsExpanded, setResultsExpanded] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const desktopSearchRef = useRef<HTMLInputElement>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
@@ -159,51 +162,57 @@ function DashboardHeader({
       if (endedOnServer) toast.success("Proxy session ended");
     }
   };
-  const searchResults = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return [];
-    return [
-      { label: "Home", detail: "Admin overview", to: routesPath.PROTECTED.OVERVIEW.INDEX, show: true },
-      { label: "School Management", detail: "Schools and branches", to: routesPath.PROTECTED.SCHOOL_MGT.INDEX, show: hasPermission(P.BROWSE_SCHOOLS) },
-      { label: "CX Users", detail: "Platform people and invitations", to: routesPath.PROTECTED.TEAM_MGT.CX, show: hasPermission(P.ACCESS_TEAM_PANEL) },
-      { label: "School Users", detail: "School accounts and invitations", to: routesPath.PROTECTED.TEAM_MGT.SCHOOL, show: hasPermission(P.ACCESS_TEAM_PANEL) },
-      { label: "Organogram", detail: "Structure and reporting", to: routesPath.PROTECTED.ORGANOGRAM.INDEX, show: hasPermission(P.VIEW_ORGANOGRAM) },
-      { label: "Tasks", detail: "Goals and accountability", to: routesPath.PROTECTED.TODO.INDEX, show: true },
-      { label: "Roles", detail: "Roles and assignments", to: routesPath.PROTECTED.ROLES.INDEX, show: hasPermission(P.VIEW_ROLES) },
-      { label: "Permissions", detail: "Permission registry", to: routesPath.PROTECTED.PERMISSIONS.INDEX, show: hasPermission(P.VIEW_PERMISSIONS) },
-      { label: "Data Imports", detail: "Batches and templates", to: routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX, show: hasPermission(P.VIEW_IMPORT_BATCHES) || hasPermission(P.VIEW_IMPORT_TEMPLATES) },
-      { label: "Export", detail: "Export queues", to: routesPath.PROTECTED.EXPORT.QUEUES, show: true },
-      { label: "Workflow", detail: "Approvals and submissions", to: routesPath.PROTECTED.WORKFLOW.APPROVALS, show: true },
-      { label: "Audit & Security", detail: "Events and safeguards", to: routesPath.PROTECTED.AUDIT.DASHBOARD, show: hasPermission(P.VIEW_AUDIT) },
-      { label: "System Health", detail: "Services and incidents", to: routesPath.PROTECTED.HEALTH.INDEX, show: hasPermission(P.VIEW_HEALTH) },
-      { label: "Notifications", detail: "Your updates", to: routesPath.PROTECTED.NOTIFICATIONS, show: true },
-      { label: "Settings", detail: "Platform configuration", to: routesPath.PROTECTED.SETTINGS.INDEX, show: true },
-      { label: "Support", detail: "Tickets and assistance", to: routesPath.PROTECTED.SUPPORT.INDEX, show: true },
-      { label: "My Profile", detail: "Personal details", to: routesPath.PROTECTED.ME_PROFILE.INDEX, show: true },
-      { label: "My Security", detail: "Password and sessions", to: routesPath.PROTECTED.ME_SECURITY.OVERVIEW, show: true },
-      { label: "Finance", detail: "Finance console", to: routesPath.PROTECTED.FINANCE.INDEX, show: hasModuleAccess("finance.", "payments.") },
-      { label: "Procurement", detail: "Procurement console", to: routesPath.PROTECTED.PROCUREMENT.INDEX, show: hasModuleAccess("procurement.") },
-    ].filter((item) => item.show && `${item.label} ${item.detail}`.toLowerCase().includes(q)).slice(0, 6);
-  }, [hasModuleAccess, hasPermission, search]);
+  // The action palette: rank the permission-gated action catalog by the query.
+  const { results, total, onLaunch } = useActionSearch(search);
 
-  // Navigating keeps the typed text (persisted until refresh) — only the
-  // dropdown closes, so Cmd/Ctrl+E on the next screen resumes the same query.
-  const openSearchResult = (to: string) => {
+  // Collapsed shows the top few; a broad query ("v") can match dozens, so the
+  // rest hide behind a keyboard-reachable "show all" row.
+  const COLLAPSED_COUNT = 4;
+  const hasMore = !resultsExpanded && total > COLLAPSED_COUNT;
+
+  // Actions in the order they visually appear (== the order arrows traverse):
+  // collapsed = ranked top-N; expanded = grouped by console (fixed order),
+  // preserving relevance within each group.
+  const visualActions = useMemo(
+    () => (resultsExpanded ? groupByConsole(results).flatMap((g) => g.items) : results.slice(0, COLLAPSED_COUNT)),
+    [resultsExpanded, results],
+  );
+  // Index of each action within visualActions, for O(1) aria/active lookup while
+  // rendering the grouped (reordered) expanded view.
+  const indexById = useMemo(() => {
+    const m = new Map<string, number>();
+    visualActions.forEach((r, i) => m.set(r.action.id, i));
+    return m;
+  }, [visualActions]);
+  // Total number of keyboard-navigable rows (the "show all" row is the last).
+  const navCount = visualActions.length + (hasMore ? 1 : 0);
+
+  // Run an action: remember the pick (adaptive + frecency), close the dropdown
+  // keeping the text, then navigate or fire the header command (proxy/logout).
+  const launchAction = (action: ActionDef) => {
+    onLaunch(action, search);
     setResultsOpen(false);
+    setResultsExpanded(false);
     setMobileSearchOpen(false);
-    navigate(to);
+    if ("command" in action.run) {
+      if (action.run.command === "proxy") setProxyOpen(true);
+      else showLogout();
+      return;
+    }
+    navigate(action.run.to);
   };
 
   const updateSearch = (value: string) => {
     setSearch(value);
     rememberedWorkspaceSearch = value;
     setActiveResult(0);
+    setResultsExpanded(false); // a new query collapses back to the top matches
     setResultsOpen(true);
   };
 
-  // Arrow keys move the highlighted result (wrapping), Enter opens it. Without
-  // preventDefault the browser scrolls the page instead of the result list.
-  // With the dropdown closed (Escape), arrows reopen it and Enter is inert.
+  // Arrow keys move the highlight (wrapping over the "show all" row too), Enter
+  // activates it. preventDefault stops the browser scrolling the page instead.
+  // With the dropdown closed (after Escape), arrows reopen it and Enter is inert.
   const handleResultNavigation = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
@@ -211,16 +220,53 @@ function DashboardHeader({
         setResultsOpen(true);
         return;
       }
-      if (!searchResults.length) return;
+      if (!navCount) return;
       const step = event.key === "ArrowDown" ? 1 : -1;
-      setActiveResult((index) => (index + step + searchResults.length) % searchResults.length);
+      setActiveResult((index) => (index + step + navCount) % navCount);
       return;
     }
     if (event.key === "Enter" && resultsOpen) {
-      const target = searchResults[activeResult] ?? searchResults[0];
-      if (target) openSearchResult(target.to);
+      if (hasMore && activeResult === visualActions.length) {
+        setResultsExpanded(true);
+        setActiveResult(0);
+        return;
+      }
+      const target = visualActions[activeResult] ?? visualActions[0];
+      if (target) launchAction(target.action);
     }
   };
+
+  const expandResults = () => {
+    setResultsExpanded(true);
+    setActiveResult(0);
+  };
+
+  // One result row. `scrollActive` keeps the highlighted row in view inside the
+  // scrollable expanded box as arrows move through it.
+  const renderOption = (action: ActionDef, index: number, variant: "desktop" | "mobile") => (
+    <button
+      key={action.id}
+      id={`workspace-search-option-${variant}-${index}`}
+      ref={index === activeResult ? (el) => el?.scrollIntoView({ block: "nearest" }) : undefined}
+      type="button"
+      role="option"
+      aria-selected={index === activeResult}
+      onMouseDown={(event) => event.preventDefault()}
+      onMouseEnter={() => setActiveResult(index)}
+      onClick={() => launchAction(action)}
+      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left ${index === activeResult ? "bg-gray-50" : ""}`}
+    >
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-medium text-black-01">{action.label}</span>
+        <span className="block truncate text-[11px] text-gray-400">
+          {action.console === "Main" ? action.group : `${action.console} · ${action.group}`}
+        </span>
+      </span>
+      {action.kind === "do"
+        ? <span className="ml-2 shrink-0 rounded-md bg-primary/8 px-1.5 py-0.5 text-[10px] font-medium text-primary">Action</span>
+        : <ChevronRight className="ml-2 size-4 shrink-0 text-gray-300" />}
+    </button>
+  );
 
   const renderSearchResults = (variant: "desktop" | "mobile") => (
     <div
@@ -229,22 +275,39 @@ function DashboardHeader({
       aria-label="Workspace search results"
       className={`absolute left-0 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl ${variant === "desktop" ? "top-11" : "top-12"}`}
     >
-      {searchResults.length ? searchResults.map((result, index) => (
-        <button
-          key={result.to}
-          id={`workspace-search-option-${variant}-${index}`}
-          type="button"
-          role="option"
-          aria-selected={index === activeResult}
-          onMouseDown={(event) => event.preventDefault()}
-          onMouseEnter={() => setActiveResult(index)}
-          onClick={() => openSearchResult(result.to)}
-          className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left ${index === activeResult ? "bg-gray-50" : ""}`}
-        >
-          <span><span className="block text-sm font-medium text-black-01">{result.label}</span><span className="block text-[11px] text-gray-400">{result.detail}</span></span>
-          <ChevronRight className="size-4 text-gray-300" />
-        </button>
-      )) : <p className="px-3 py-4 text-center text-xs text-gray-400">No accessible pages found.</p>}
+      {total === 0 ? (
+        <p className="px-3 py-4 text-center text-xs text-gray-400">No accessible actions found.</p>
+      ) : resultsExpanded ? (
+        <div className="max-h-[60vh] overflow-y-auto">
+          {groupByConsole(results).map((group) => (
+            <div key={group.console}>
+              <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                {group.console === "Main" ? "Main console" : group.console}
+              </p>
+              {group.items.map((r) => renderOption(r.action, indexById.get(r.action.id) ?? -1, variant))}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          {visualActions.map((r, index) => renderOption(r.action, index, variant))}
+          {hasMore && (
+            <button
+              id={`workspace-search-option-${variant}-${visualActions.length}`}
+              type="button"
+              role="option"
+              aria-selected={activeResult === visualActions.length}
+              onMouseDown={(event) => event.preventDefault()}
+              onMouseEnter={() => setActiveResult(visualActions.length)}
+              onClick={expandResults}
+              className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-medium text-primary ${activeResult === visualActions.length ? "bg-gray-50" : ""}`}
+            >
+              <span>Showing top {COLLAPSED_COUNT} of {total}</span>
+              <span className="inline-flex items-center gap-0.5">Show all <ChevronRight className="size-3.5" /></span>
+            </button>
+          )}
+        </>
+      )}
     </div>
   );
 
@@ -254,7 +317,7 @@ function DashboardHeader({
     role: "combobox" as const,
     "aria-expanded": showResults,
     "aria-controls": `workspace-search-listbox-${variant}`,
-    "aria-activedescendant": showResults && searchResults.length
+    "aria-activedescendant": showResults && activeResult < visualActions.length
       ? `workspace-search-option-${variant}-${activeResult}`
       : undefined,
     onFocus: () => setResultsOpen(true),
