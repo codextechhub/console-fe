@@ -17,7 +17,7 @@ import { useGetProcurementDashboardQuery } from "@/redux/services/procurement/pr
 import { routesPath } from "@/routes/routes-path";
 import { currencySymbol, formatMoney, toNaira } from "@/utils/money";
 
-const W = routesPath.PROTECTED.WORKFLOW;
+const PROC = routesPath.PROTECTED.PROCUREMENT;
 const DONUT_COLORS = [
   CHART_COLORS.primary, "#5b5ce2", "#7587f0", "#94a7f8", "#b7c5fb", "#d8e0fd",
 ];
@@ -193,7 +193,7 @@ export default function ProcurementDashboard() {
                 ariaLabel="Open purchase orders" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS)}
                 sub={`${d.kpis.open_purchase_orders.partial_count} partial`} />
               <Kpi label="Pending Approvals" value={d.kpis.pending_approvals.count} icon={ClipboardCheck} tone="amber"
-                ariaLabel="Open approvals queue" onClick={() => navigate(W.APPROVALS)}
+                ariaLabel="Open approvals queue" onClick={() => navigate(PROC.APPROVALS)}
                 sub="awaiting you" />
               <Kpi label="Overdue Invoices" value={d.kpis.overdue_invoices.count} icon={CircleAlert} tone="red"
                 ariaLabel="Open vendor invoices" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.VENDOR_INVOICES)}
@@ -277,7 +277,7 @@ export default function ProcurementDashboard() {
                       const Icon = item.document_type.includes("purchase_order") ? ShoppingCart
                         : item.document_type.includes("vendor_invoice") ? ReceiptText : FileText;
                       return (
-                        <button key={item.workflow_id} type="button" onClick={() => navigate(W.APPROVALS)}
+                        <button key={item.workflow_id} type="button" onClick={() => navigate(`${PROC.APPROVALS}?approval=${item.workflow_id}`)}
                           className="flex w-full min-w-0 items-center gap-3 rounded-md border border-gray-03 p-3 text-left transition-colors hover:bg-primary/5">
                           <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon className="size-4" /></span>
                           <span className="min-w-0 flex-1">
@@ -293,7 +293,7 @@ export default function ProcurementDashboard() {
                     })}
                   </div>
                 )}
-                <button type="button" onClick={() => navigate(W.APPROVALS)}
+                <button type="button" onClick={() => navigate(PROC.APPROVALS)}
                   className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 font-mont text-xs font-semibold text-primary hover:bg-primary/10">
                   <PackageCheck className="size-3.5" /> Open Approvals Queue
                 </button>

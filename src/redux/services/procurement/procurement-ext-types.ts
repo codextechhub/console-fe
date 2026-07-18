@@ -3,6 +3,66 @@
 
 import type { ReportMoney } from "../finance/reports-types";
 
+export type ProcurementApprovalAction = "APPROVED" | "REJECTED" | "RETURNED";
+
+export interface ProcurementApprovalRow {
+  id: string;
+  document_type: string;
+  document_type_label: string;
+  document_id: number;
+  reference: string;
+  title: string;
+  requester: string;
+  amount: number;
+  currency: string;
+  submitted_at: string | null;
+  awaiting_since: string | null;
+  stage: string;
+  status: string;
+  on_behalf_of: string | null;
+}
+
+export interface ProcurementApprovalStageAction {
+  id: string;
+  action: ProcurementApprovalAction;
+  actor: string;
+  on_behalf_of: string | null;
+  comment: string;
+  acted_at: string;
+  attempt: number;
+  is_reversal: boolean;
+  reversed_at: string | null;
+}
+
+export interface ProcurementApprovalStage {
+  id: string;
+  label: string;
+  status: string;
+  on_rejection: "TERMINAL" | "RETURN_TO_REQUESTER";
+  advance_rule: "ANY" | "QUORUM" | "UNANIMOUS";
+  quorum_count: number | null;
+  eligible_count: number;
+  activated_at: string | null;
+  resolved_at: string | null;
+  skip_reason: string;
+  attempt: number;
+  actions: ProcurementApprovalStageAction[];
+}
+
+export interface ProcurementApprovalDetail extends ProcurementApprovalRow {
+  document_status: string;
+  approval_state: string;
+  next_stage: { label: string | null; is_final: boolean } | null;
+  stages: ProcurementApprovalStage[];
+  activity: {
+    id: string;
+    event_type: string;
+    actor: string | null;
+    message: string;
+    occurred_at: string;
+  }[];
+}
+
 export interface ProcurementDashboard {
   entity: string;
   currency: string;

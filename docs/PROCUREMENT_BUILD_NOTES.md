@@ -156,7 +156,7 @@ specific verb key.
 | Goods Receipts | `goods-receipts/` (+ `<id>/`, `<id>/post/`) | `procurement.goods_receipt.view` / `.update` / `.post` |
 | Vendor Invoices | `vendor-invoices/` (+ `summary/`, `<id>/`, `<id>/match/`, `<id>/submit/`, `<id>/post/`) | `procurement.vendor_invoice.view` / `.create` / `.update` / `.match` / `.submit` / `.post` |
 | Vendor Payments | `vendor-payments/` (+ `eligible-invoices/`, `<id>/`, `<id>/submit/`, `<id>/post/`, `<id>/cancel/`, `<id>/reverse/`) | `procurement.vendor_payment.view` / `.create` / `.update` / `.submit` / `.post` / `.cancel` / `.reverse` |
-| Approvals | vs_workflow queue + `approvals/default-templates/` | `procurement.approval.manage` (+ workflow) |
+| Approvals | `approvals/` (+ `<workflow_id>/`, `<workflow_id>/actions/`, `default-templates/`) backed by vs_workflow | Actor eligibility snapshot + entity entitlement; template setup uses `procurement.approval.manage` |
 | Contracts | `contracts/` (+ `renewals/`, `<id>/`, `activate/`, `renew/`, `terminate/`, `milestones/<id>/complete/`) | `procurement.contract.view` / `.update` / `.activate` / `.renew` / `.terminate` |
 | Stock Items | `stock-items/` (+ `<id>/`, `<id>/issue/`, `<id>/adjust/`) | `procurement.stock.view` / `.issue` / `.adjust` |
 | Stock Movements | `stock-movements/` | `procurement.stock.view` |
@@ -268,9 +268,33 @@ category; and only real workflow document types are included.
   usable approval drawer and stacked create form. The drawer now resets to Overview when
   switching records—a screenshot-discovered regression fixed before completion. The
   verifier login/session/auth/audit rows were scrubbed after the run.
-- **Approvals ☐** — the shared **vs_workflow** queue scoped to procurement
-  (approve / reject with the real workflow actions). Confirm whether this reuses
-  the existing Workflow screen or gets a procurement-framed view.
+- **Approvals ☑** — **decision resolved:** a Procurement-framed queue at
+  `/procurement/approvals`, not a link to the global Workflow console. The backend
+  adapters resolve the selected ledger entity against the real generic workflow
+  target, restrict document types to Requisition / Purchase Order / Vendor Invoice /
+  Vendor Payment, and return only the signed-in actor's current frozen approver
+  snapshots. They delegate votes directly to `vs_workflow` so row locking, requester
+  self-approval protection, delegated eligibility, quorum/threshold rules, skipped
+  stages, returns, terminal decisions, callbacks and audit remain authoritative.
+  `procurement.approval.manage` is only for provisioning templates; it is deliberately
+  not required to open the personal queue because a frozen delegation can make a user
+  eligible without the source RBAC grant. List/detail responses re-resolve the real
+  document inside `?entity=`, bulk-load generic targets to avoid N+1 queries, paginate
+  server-side, and exclude raw workflow audit context/metadata. The screen matches the
+  prototype's pending-only table and Overview/Activity right drawer, with real stage
+  progress and actions. Approval comments are optional; revision and rejection reasons
+  are required by the shared engine. Reject copy reflects the stage's actual terminal
+  vs return-to-requester policy. Terminal/returned items leave this actionable inbox;
+  no fake history tabs or Export control are added. The canonical Procurement workflow
+  allow-list now includes Vendor Payments, fixing the adjacent dashboard omission.
+  Verified against the real CODEX backend with the genuine pending Vendor Payment
+  `COD-VP-2600006`: the populated desktop table, Overview decision panel, real Manager
+  approval trail and Activity tab rendered without console/page errors. The read-only
+  drive did not cast a business decision; approve/return/reject transitions are proven
+  by focused service/API tests instead. The 390px phone and 820px tablet audits reported
+  zero page-level horizontal overflow; inspected phone screenshots show the full card
+  and a stacked, reachable decision drawer. Verifier-created login/session/auth/audit
+  rows were scrubbed afterward.
 
 ### 3. Vendors & Catalog
 - **Vendors ☐** — list (avatar table, status) · detail drawer (contact, bank,
@@ -363,5 +387,8 @@ Dashboard, Requisitions, Purchase Orders, Goods Receipts, Vendor Invoices and Ve
 Payments are rebuilt and verified. Vendor Payments has real workflow, posting,
 allocation and reversal contracts; focused backend tests, Django/migration checks,
 the frontend production build, populated desktop drawer inspection, and phone/tablet
-overflow verification are green. Next: study **Approvals**—the next unchecked nav
-section—before proposing its implementation plan.
+overflow verification are green. Approvals is rebuilt and verified with the entity-safe
+shared-workflow adapter, Procurement-framed responsive list/drawer, focused security and
+workflow regression tests, a clean frontend production build, Django/migration checks,
+and populated desktop/phone/tablet visual proof. Next: study **Vendors**—the next
+unchecked navigation section—before proposing its implementation plan.

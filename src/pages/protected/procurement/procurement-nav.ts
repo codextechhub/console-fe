@@ -23,8 +23,10 @@ export const procurementNav: ConsoleNavGroup[] = [
       { title: "Goods Receipts", url: P.GOODS_RECEIPTS, icon: PackageCheck, prefixes: ["procurement.goods_receipt."] },
       { title: "Vendor Invoices", url: P.VENDOR_INVOICES, icon: ReceiptText, prefixes: ["procurement.vendor_invoice."] },
       { title: "Vendor Payments", url: P.VENDOR_PAYMENTS, icon: Banknote, prefixes: ["procurement.vendor_payment."] },
-      // Approvals live in the Workflow module — links out to its queue.
-      { title: "Approvals", url: routesPath.PROTECTED.WORKFLOW.APPROVALS, icon: ClipboardCheck, prefixes: ["procurement.approval."] },
+      // Frozen workflow snapshots can delegate a vote to a user who does not
+      // currently hold the source RBAC key, so eligibility is enforced by the
+      // entity-scoped queue endpoint rather than hiding this link by permission.
+      { title: "Approvals", url: P.APPROVALS, icon: ClipboardCheck },
     ],
   },
 

@@ -16,6 +16,8 @@ import type {
   ApReconciliation,
   GrirBalance,
   ProcurementDashboard,
+  ProcurementApprovalDetail,
+  ProcurementApprovalRow,
   SpendAnalysis,
   VendorPerformance,
 } from "./procurement-ext-types";
@@ -26,6 +28,23 @@ type Act = { id: number; entity: string };
 
 export const procurementExtApi = baseApi.injectEndpoints({
   endpoints: (b) => ({
+    // Approvals — entity-safe adapters over the shared vs_workflow engine.
+    getProcurementApprovals: b.query<PaginatedEnvelope<ProcurementApprovalRow>, { entity: string; page?: number; search?: string; document_type?: string }>({
+      query: (p) => ({ url: `/procurement/approvals/${qs(p)}`, method: "GET" }),
+      providesTags: ["WorkflowPending"],
+    }),
+    getProcurementApproval: b.query<ApiEnvelope<ProcurementApprovalDetail>, { id: string; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/procurement/approvals/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["WorkflowInstances"],
+    }),
+    recordProcurementApprovalAction: b.mutation<ApiEnvelope<{ id: string; status: string; current_stage_label: string | null }>, { id: string; entity: string; action: "APPROVED" | "REJECTED" | "RETURNED"; comment?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/approvals/${id}/actions/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: [
+        "WorkflowPending", "WorkflowInstances", "WorkflowSubmissions", "WorkflowTeamLoad",
+        "ProcRequisitions", "ProcPurchaseOrders", "ProcVendorInvoices", "ProcVendorPayments",
+      ],
+    }),
+
     // Contracts
     getContracts: b.query<PaginatedEnvelope<VendorContract>, E & { vendor?: string }>({
       query: (p) => ({ url: `/procurement/contracts/${qs(p)}`, method: "GET" }),
@@ -123,6 +142,9 @@ export const procurementExtApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetProcurementApprovalsQuery,
+  useGetProcurementApprovalQuery,
+  useRecordProcurementApprovalActionMutation,
   useGetContractsQuery,
   useCreateContractMutation,
   useActivateContractMutation,

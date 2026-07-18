@@ -201,6 +201,7 @@ export const routesPath = {
       GOODS_RECEIPTS: "/procurement/goods-receipts",
       VENDOR_INVOICES: "/procurement/vendor-invoices",
       VENDOR_PAYMENTS: "/procurement/vendor-payments",
+      APPROVALS: "/procurement/approvals",
       SOURCING: "/procurement/sourcing",
       CONTRACTS: "/procurement/contracts",
       INVENTORY: "/procurement/inventory",

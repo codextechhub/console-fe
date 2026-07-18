@@ -9,6 +9,7 @@ const PurchaseOrders = lazy(() => import("@/pages/protected/procurement/purchase
 const GoodsReceipts = lazy(() => import("@/pages/protected/procurement/goods-receipts"));
 const VendorInvoices = lazy(() => import("@/pages/protected/procurement/vendor-invoices"));
 const VendorPayments = lazy(() => import("@/pages/protected/procurement/vendor-payments"));
+const Approvals = lazy(() => import("@/pages/protected/procurement/approvals"));
 const Sourcing = lazy(() => import("@/pages/protected/procurement/sourcing"));
 const Contracts = lazy(() => import("@/pages/protected/procurement/contracts"));
 const Inventory = lazy(() => import("@/pages/protected/procurement/inventory"));
@@ -25,6 +26,7 @@ export const procurementRoutes: RouteObject[] = [
   { path: P.GOODS_RECEIPTS, element: <GoodsReceipts /> },
   { path: P.VENDOR_INVOICES, element: <VendorInvoices /> },
   { path: P.VENDOR_PAYMENTS, element: <VendorPayments /> },
+  { path: P.APPROVALS, element: <Approvals /> },
   { path: P.SOURCING, element: <Sourcing /> },
   { path: `${P.SOURCING}/:section`, element: <Sourcing /> },
   { path: P.CONTRACTS, element: <Contracts /> },

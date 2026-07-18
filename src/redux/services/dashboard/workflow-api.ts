@@ -24,7 +24,9 @@ type QueryParams = Record<string, string | number>;
 // list / summary / detail caches must drop alongside the workflow caches —
 // otherwise a status only refreshes after a manual refetch. RTK only refetches
 // mounted queries, so the cross-domain tags are effectively free off-screen.
-const PROC_DOC_TAGS = ["ProcRequisitions", "ProcPurchaseOrders", "ProcVendorInvoices"] as const;
+const PROC_DOC_TAGS = [
+  "ProcRequisitions", "ProcPurchaseOrders", "ProcVendorInvoices", "ProcVendorPayments",
+] as const;
 
 export const workflowApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
