@@ -105,6 +105,7 @@ export interface POLine {
   expense_code: string;
   quantity: string;
   unit_price: number;
+  tax_code_id: number | null;
   net_amount: number;
   tax_amount: number;
   received_qty: string;
@@ -205,18 +206,44 @@ export interface VendorInvoiceLine {
   expense_code: string;
   quantity: string;
   unit_price: number;
+  tax_code_id: number | null;
   net_amount: number;
   tax_amount: number;
+}
+export interface VendorInvoiceMatchComparison {
+  invoice_line_id: number;
+  description: string;
+  po_line_id: number | null;
+  po_quantity: string | null;
+  received_quantity: string | null;
+  previously_invoiced_quantity: string | null;
+  invoice_quantity: string;
+  po_unit_price: number | null;
+  invoice_unit_price: number;
+  grn_number: string | null;
+  grn_accepted_quantity: string | null;
+}
+export interface VendorInvoicePaymentHistory {
+  id: number;
+  document_number: string;
+  payment_date: string;
+  amount: number;
+  status: string;
 }
 export interface VendorInvoice {
   id: number;
   document_number: string;
   status: string;
+  approval_state: string;
   match_status: string;
   payment_status: string;
+  display_status: string;
+  is_overdue: boolean;
   vendor_id: number;
   vendor_code: string;
+  vendor_name: string;
   purchase_order_id: number | null;
+  purchase_order_number: string | null;
   invoice_date: string;
   due_date: string | null;
   vendor_reference: string;
@@ -229,6 +256,19 @@ export interface VendorInvoice {
   balance_due: number;
   journal_id: number | null;
   lines: VendorInvoiceLine[];
+  workflow_instance_id?: string | null;
+  match_comparisons?: VendorInvoiceMatchComparison[];
+  payments?: VendorInvoicePaymentHistory[];
+  posting_lines?: { account_code: string; account_name: string; debit: number; credit: number }[];
+  activity?: { id: number; action: string; message: string; status: string; actor_name: string; created_at: string }[];
+}
+
+export interface VendorInvoiceSummary {
+  as_of: string;
+  under_review: { count: number };
+  approved: { count: number };
+  overdue: { count: number; amount: number };
+  disputed: { count: number };
 }
 
 export interface VendorPaymentAllocation {

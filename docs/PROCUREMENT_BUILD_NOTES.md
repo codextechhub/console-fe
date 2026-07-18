@@ -154,7 +154,7 @@ specific verb key.
 | Quotations | `quotations/` (+ `<id>/`, `<id>/submit/`, `<id>/award/`) | `procurement.quotation.view` / `.submit` / `.award` |
 | Purchase Orders | `purchase-orders/` (+ `<id>/`, `<id>/submit/`) | `procurement.purchase_order.view` / `.update` / `.submit` |
 | Goods Receipts | `goods-receipts/` (+ `<id>/`, `<id>/post/`) | `procurement.goods_receipt.view` / `.update` / `.post` |
-| Vendor Invoices | `vendor-invoices/` (+ `<id>/`, `<id>/match/`, `<id>/submit/`, `<id>/post/`) | `procurement.vendor_invoice.view` / `.match` / `.submit` / `.post` |
+| Vendor Invoices | `vendor-invoices/` (+ `summary/`, `<id>/`, `<id>/match/`, `<id>/submit/`, `<id>/post/`) | `procurement.vendor_invoice.view` / `.create` / `.update` / `.match` / `.submit` / `.post` |
 | Vendor Payments | `vendor-payments/` (+ `<id>/`, `<id>/post/`) | `procurement.vendor_payment.view` / `.post` |
 | Approvals | vs_workflow queue + `approvals/default-templates/` | `procurement.approval.manage` (+ workflow) |
 | Contracts | `contracts/` (+ `renewals/`, `<id>/`, `activate/`, `renew/`, `terminate/`, `milestones/<id>/complete/`) | `procurement.contract.view` / `.update` / `.activate` / `.renew` / `.terminate` |
@@ -217,9 +217,30 @@ category; and only real workflow document types are included.
   posted receipts are immutable because their journal and PO quantities are authoritative,
   and expose **Receive Remaining** to create the next GRN against the outstanding PO quantity.
   `goods-receipts/` (+post).
-- **Vendor Invoices ☐** — list · detail drawer with the **3-way match** (PO ↔ GRN
-  ↔ invoice, tolerance) · Match · Submit · **Post** (`Dr GR/IR · Cr AP`) recap.
-  `vendor-invoices/` (+match/submit/post).
+- **Vendor Invoices ☑** — prototype-aligned KPI/list tabs plus a right-side create/edit
+  drawer and detail tabs (Overview · Line Items · 3-Way Match · Payment History ·
+  Activity). Ledger status, workflow approval, match outcome, payment coverage and
+  overdue state remain separate fields; the list may show an actionable display
+  overlay without replacing the persisted lifecycle. There is no configured match
+  tolerance, so quantity and unit-price comparisons are exact and the UI says so
+  instead of inventing a threshold. Draft edits clear the old match. Pending,
+  approved and posted invoices are immutable; posting requires real workflow approval
+  and re-prices/re-matches while holding the invoice and referenced PO-line row locks.
+  Multiple invoice rows against one PO row are aggregated before the ordered/received
+  caps are tested, closing the split-line overbilling gap. PO/vendor/GRN joins are
+  entity-scoped and mutually validated, duplicate nonblank vendor invoice references
+  are rejected per vendor, and create/edit is atomic. Posted detail recaps the actual
+  journal (`Dr GR/IR or expense + input VAT · Cr AP`); drafts show the corresponding
+  preview. `vendor-invoices/` (+summary/detail/update/match/submit/post). Export is
+  intentionally absent. Verified against the real CODEX backend on desktop, tablet
+  and 390px phone: the populated list, posted detail, line items, activity, create
+  drawer and responsive cards rendered without console/page errors or page-level
+  horizontal overflow. Real-data screenshots prove the posted, unpaid and overdue
+  presentations; draft, pending-approval, approved-unposted, disputed, partial and
+  paid rendering is covered by the distinct server contract and regression tests but
+  was not visually proven because the seeded entity did not contain those lifecycle
+  examples. The verifier was kept read-only and did not manufacture transactional
+  invoice states merely to improve screenshot coverage.
 - **Vendor Payments ☐** — list · detail drawer (allocations) · new-payment drawer ·
   **Post** (`Dr AP · Cr Bank`) recap. `vendor-payments/` (+post).
 - **Approvals ☐** — the shared **vs_workflow** queue scoped to procurement
@@ -310,6 +331,8 @@ happy path + each action/filter. Run with `--keepdb` (avoids the `test_cx_db`
 lock). Every posting test asserts the **real journal** (Dr/Cr) it writes.
 
 ## Status
-Dashboard rebuilt and verified against populated CODEX data; its server aggregate,
-security coverage, and repeatable demo seed are in place. Next: continue
-top-to-bottom through the nav with **Requisitions**.
+Dashboard, Requisitions, Purchase Orders, Goods Receipts and Vendor Invoices are
+rebuilt. Vendor Invoices has real server aggregates and detail data, backend-enforced
+approval/matching/posting rules, permission and entity-isolation coverage, and
+desktop/phone/tablet verification against populated CODEX data. Next: continue
+top-to-bottom through the nav with **Vendor Payments**.

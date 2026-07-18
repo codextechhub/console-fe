@@ -17,6 +17,7 @@ import type {
   Vendor,
   VendorCategory,
   VendorInvoice,
+  VendorInvoiceSummary,
   VendorPayment,
 } from "./procurement-types";
 
@@ -135,12 +136,24 @@ export const procurementApi = baseApi.injectEndpoints({
     }),
 
     // Vendor invoices (3-way match)
-    getVendorInvoices: b.query<PaginatedEnvelope<VendorInvoice>, E & { match_status?: string; payment_status?: string }>({
+    getVendorInvoices: b.query<PaginatedEnvelope<VendorInvoice>, E & { match_status?: string; payment_status?: string; display_status?: string }>({
       query: (p) => ({ url: `/procurement/vendor-invoices/${qs(p)}`, method: "GET" }),
+      providesTags: ["ProcVendorInvoices"],
+    }),
+    getVendorInvoice: b.query<ApiEnvelope<VendorInvoice>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/vendor-invoices/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcVendorInvoices"],
+    }),
+    getVendorInvoiceSummary: b.query<ApiEnvelope<VendorInvoiceSummary>, { entity: string }>({
+      query: ({ entity }) => ({ url: `/procurement/vendor-invoices/summary/${qs({ entity })}`, method: "GET" }),
       providesTags: ["ProcVendorInvoices"],
     }),
     createVendorInvoice: b.mutation<ApiEnvelope<VendorInvoice>, { entity: string; vendor: string; purchase_order?: number; invoice_date: string; due_date?: string; vendor_reference?: string; lines: Record<string, unknown>[] }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/vendor-invoices/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcVendorInvoices"],
+    }),
+    updateVendorInvoice: b.mutation<ApiEnvelope<VendorInvoice>, { id: number; entity: string; vendor?: string; purchase_order?: number | null; invoice_date?: string; due_date?: string; vendor_reference?: string; narration?: string; lines?: Record<string, unknown>[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/vendor-invoices/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcVendorInvoices"],
     }),
     matchVendorInvoice: b.mutation<ApiEnvelope<VendorInvoice>, Act>({
@@ -199,7 +212,10 @@ export const {
   useUpdateGoodsReceiptMutation,
   usePostGoodsReceiptMutation,
   useGetVendorInvoicesQuery,
+  useGetVendorInvoiceQuery,
+  useGetVendorInvoiceSummaryQuery,
   useCreateVendorInvoiceMutation,
+  useUpdateVendorInvoiceMutation,
   useMatchVendorInvoiceMutation,
   useSubmitVendorInvoiceMutation,
   usePostVendorInvoiceMutation,

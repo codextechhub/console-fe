@@ -89,6 +89,18 @@ Pending-approval orders stay locked so a reviewer cannot approve values that cha
 
 Posted receipts are immutable because they have already advanced PO quantities and created a journal; only `DRAFT` receipts expose Edit.
 
+### Procurement → Vendor Invoices
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Record Invoice / Save Draft | create drawer | `P.PROC_CREATE_VENDOR_INVOICE` |
+| Edit unsubmitted/rejected draft | detail drawer | `P.PROC_UPDATE_VENDOR_INVOICE` (`procurement.vendor_invoice.update`, `701003`) |
+| Run Match | 3-way match action | `P.PROC_MATCH_VENDOR_INVOICE` |
+| Create & Submit / Submit for Approval | workflow submission | `P.PROC_SUBMIT_VENDOR_INVOICE` |
+| Post Invoice | AP posting action | `P.PROC_POST_VENDOR_INVOICE` |
+
+Pending, approved and posted invoices are locked. The backend independently enforces draft-only edits and requires completed workflow approval before posting.
+
 ### Roles (`src/pages/protected/rbac/roles/index.tsx`)
 
 | Element | Type | Permission Constant |
