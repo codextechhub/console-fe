@@ -187,10 +187,15 @@ function DashboardHeader({
   // Total number of keyboard-navigable rows (the "show all" row is the last).
   const navCount = visualActions.length + (hasMore ? 1 : 0);
 
-  // Run an action: remember the pick (adaptive + frecency), close the dropdown
-  // keeping the text, then navigate or fire the header command (proxy/logout).
+  // Run an action: remember the pick (adaptive + frecency) FIRST — while `search`
+  // still holds the query — then clear the bar (acting on a result finishes the
+  // search; click-away, which keeps the text, is the "resume later" path) and
+  // navigate or fire the header command (proxy/logout).
   const launchAction = (action: ActionDef) => {
     onLaunch(action, search);
+    setSearch("");
+    rememberedWorkspaceSearch = "";
+    setActiveResult(0);
     setResultsOpen(false);
     setResultsExpanded(false);
     setMobileSearchOpen(false);
