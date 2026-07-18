@@ -58,6 +58,9 @@ function isForbidden(error: unknown) {
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return <div><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "—"}</dd></div>;
 }
+function OpenStat({ label, value, highlight }: { label: string; value: React.ReactNode; highlight?: boolean }) {
+  return <div className="min-w-0"><p className="font-mont text-[11px] text-gray-05">{label}</p><p className={cn("mt-0.5 font-mont text-sm font-semibold tabular-nums", highlight ? "text-primary" : "text-black-01")}>{value}</p></div>;
+}
 function EmptyPanel({ children }: { children: React.ReactNode }) {
   return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">{children}</div>;
 }
@@ -219,6 +222,14 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
   const total = mode === "po" ? poLines.reduce((sum, line) => sum + Math.round(line.quantity * line.unit_price), 0) : directLines.reduce((sum, line) => sum + Math.round(Number(line.quantity || 0) * Number(line.unitPriceKobo || 0)), 0);
   const saving = creating || updating || submitting;
   const canSave = !!vendor && !!invoiceDate && !!reference.trim() && lines.length > 0 && (mode === "direct" || !!po) && total > 0;
+  // Open-to-invoice position, straight off the PO's running received/invoiced
+  // totals — so AP bills against one figure instead of hunting through receipts.
+  const poLineById = source ? new Map(source.lines.map((l) => [l.id, l])) : null;
+  const poPosition = source ? {
+    received: source.lines.reduce((s, l) => s + Math.round(Number(l.received_qty) * l.unit_price), 0),
+    invoiced: source.lines.reduce((s, l) => s + Math.round(Number(l.invoiced_qty) * l.unit_price), 0),
+    open: source.lines.reduce((s, l) => s + Math.round(Math.max(0, Number(l.received_qty) - Number(l.invoiced_qty)) * l.unit_price), 0),
+  } : null;
   const save = async (submitAfter: boolean) => {
     if (!canSave) return;
     const body = { vendor, purchase_order: mode === "po" ? Number(po) : null, invoice_date: invoiceDate, due_date: dueDate || undefined, vendor_reference: reference.trim(), narration: narration.trim(), lines };
@@ -235,7 +246,26 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} disabled={mode === "po" && !!source} /></FormField>{mode === "po" && <FormField label="Purchase order" required><PurchaseOrderPicker entity={entity} value={po} onChange={setPo} placeholder="Select a received PO" /></FormField>}</div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><FormField label="Vendor invoice #" required><Input value={reference} onChange={(event) => setReference(event.target.value)} className="bg-white" /></FormField><FormField label="Invoice date" required><Input type="date" value={invoiceDate} onChange={(event) => setInvoiceDate(event.target.value)} className="bg-white" /></FormField><FormField label="Due date"><Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="bg-white" /></FormField></div>
       <FormField label="Narration"><Textarea value={narration} onChange={(event) => setNarration(event.target.value)} className="bg-white" /></FormField>
-      {mode === "po" ? <div className="space-y-3"><p className="font-mont text-xs font-semibold text-gray-05">Received quantities available to invoice</p>{poLines.length ? poLines.map((line, index) => <div key={line.po_line} className="grid grid-cols-1 gap-3 rounded-md border border-gray-03 p-3 sm:grid-cols-[minmax(0,1fr)_110px_150px]"><div><p className="font-mont text-sm font-semibold">{line.description}</p><p className="mt-1 font-mont text-xs text-gray-05">PO unit price {formatMoney(line.unit_price, currency)}</p></div><Input type="number" min="0.0001" step="0.0001" value={line.quantity} onChange={(event) => setPoLines((rows) => rows.map((row, i) => i === index ? { ...row, quantity: Number(event.target.value) } : row))} aria-label={`${line.description} quantity`} className="bg-white text-right tabular-nums" /><p className="self-center text-right font-mont text-sm font-semibold tabular-nums">{formatMoney(Math.round(line.quantity * line.unit_price), currency)}</p></div>) : <EmptyPanel>Select a PO with posted, uninvoiced receipt quantities.</EmptyPanel>}</div> : <LineEditor entity={entity} lines={directLines} onChange={setDirectLines} accountLabel="Expense account" accountType="EXPENSE" currency={currency} showCostCenter={false} />}
+      {mode === "po" ? <div className="space-y-3">
+        {poPosition && <div className="grid grid-cols-3 gap-2 rounded-md border border-primary/15 bg-primary/5 p-3">
+          <OpenStat label="Received" value={formatMoney(poPosition.received, currency)} />
+          <OpenStat label="Already invoiced" value={formatMoney(poPosition.invoiced, currency)} />
+          <OpenStat label="Open to invoice" value={formatMoney(poPosition.open, currency)} highlight />
+        </div>}
+        <p className="font-mont text-xs font-semibold text-gray-05">Received quantities available to invoice</p>
+        {poLines.length ? poLines.map((line, index) => {
+          const src = poLineById?.get(line.po_line);
+          const open = src ? Math.max(0, Number(src.received_qty) - Number(src.invoiced_qty)) : line.quantity;
+          return <div key={line.po_line} className="grid grid-cols-1 gap-3 rounded-md border border-gray-03 p-3 sm:grid-cols-[minmax(0,1fr)_110px_150px]">
+            <div className="min-w-0">
+              <p className="font-mont text-sm font-semibold">{line.description}</p>
+              <p className="mt-1 font-mont text-xs text-gray-05">{src && <>Received {formatQuantity(src.received_qty)} · Invoiced {formatQuantity(src.invoiced_qty)} · <span className="font-semibold text-primary">Open {formatQuantity(open)}</span> · </>}{formatMoney(line.unit_price, currency)} each</p>
+            </div>
+            <Input type="number" min="0" max={open || undefined} step="0.0001" value={line.quantity} onChange={(event) => setPoLines((rows) => rows.map((row, i) => i === index ? { ...row, quantity: Number(event.target.value) } : row))} aria-label={`${line.description} quantity`} className="bg-white text-right tabular-nums" />
+            <p className="self-center text-right font-mont text-sm font-semibold tabular-nums">{formatMoney(Math.round(line.quantity * line.unit_price), currency)}</p>
+          </div>;
+        }) : <EmptyPanel>Select a PO with posted, uninvoiced receipt quantities.</EmptyPanel>}
+      </div> : <LineEditor entity={entity} lines={directLines} onChange={setDirectLines} accountLabel="Expense account" accountType="EXPENSE" currency={currency} showCostCenter={false} />}
       <PostingRecap title="Live posting preview" currency={currency} dr={[{ code: mode === "po" ? "GR/IR" : "Expense", name: mode === "po" ? "Goods received / invoice received" : "Direct purchase expense", amount: total }]} cr={[{ code: "AP", name: "Accounts payable", amount: total }]} helper="Tax, when selected on a direct line, is priced by the server and shown on the saved draft." />
     </div>
   </DetailDrawer>;
