@@ -116,3 +116,9 @@ needed, the console-error text + the offending endpoint's real shape
 - Works for every area: pass any route, or let step 2 target your changes.
 - Some screens are entity-scoped (finance/procurement) and need a ledger entity
   to show data; `preflight.sh` reports whether any exist.
+- **Loading/error states**: `drive.mjs` can only capture the loaded screen. To
+  screenshot a route's LOADING and ERROR render states (invisible-skeleton and
+  broken-error-UI bugs only surface there), run `probe-loading.mjs` — it delays
+  then aborts the matching API calls:
+  `BASE_URL=<vite-url> ROUTES="/finance" PATTERN="/finance/reports/" node .claude/skills/verify-design/probe-loading.mjs`
+  (`net::ERR_FAILED` console errors in its output are the probe's own aborts.)
