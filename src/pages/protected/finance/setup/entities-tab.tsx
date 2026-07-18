@@ -23,6 +23,7 @@ export function EntitiesTab() {
 
   const columns: Column<LedgerEntity>[] = [
     { header: "Code", cell: (e) => <span className="font-semibold">{e.code}</span> },
+    { header: "Doc code", cell: (e) => <span className="font-mont text-gray-05">{e.number_code}</span> },
     { header: "Name", cell: (e) => e.name },
     { header: "Kind", cell: (e) => <span className="capitalize">{e.kind.toLowerCase()}</span> },
     { header: "Base currency", cell: (e) => e.base_currency },
@@ -48,6 +49,7 @@ export function EntitiesTab() {
 
 function CreateEntityModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [code, setCode] = useState("");
+  const [numberCode, setNumberCode] = useState("");
   const [name, setName] = useState("");
   const [baseCurrency, setBaseCurrency] = useState("");
   const [fiscalYear, setFiscalYear] = useState("");
@@ -60,13 +62,14 @@ function CreateEntityModal({ open, onClose }: { open: boolean; onClose: () => vo
     try {
       const res = await create({
         code: code.trim().toUpperCase(),
+        number_code: numberCode.trim().toUpperCase() || undefined,
         name: name.trim(),
         base_currency: baseCurrency || undefined,
         fiscal_year: fiscalYear ? Number(fiscalYear) : undefined,
         fiscal_start_month: startMonth ? Number(startMonth) : undefined,
       }).unwrap();
       toast.success(res.message || "Entity created.");
-      setCode(""); setName(""); setBaseCurrency(""); setFiscalYear(""); setStartMonth("");
+      setCode(""); setNumberCode(""); setName(""); setBaseCurrency(""); setFiscalYear(""); setStartMonth("");
       onClose();
     } catch { /* central */ }
   };
@@ -77,15 +80,16 @@ function CreateEntityModal({ open, onClose }: { open: boolean; onClose: () => vo
       loading={isLoading} canSubmit={canSubmit} widthClass="sm:max-w-lg">
       <div className="grid grid-cols-2 gap-3">
         <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="CREST" className="bg-white font-mont" /></FormField>
+        <FormField label="Doc code"><Input value={numberCode} onChange={(e) => setNumberCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3))} placeholder="Auto (e.g. CRE)" maxLength={3} className="bg-white font-mont" /></FormField>
+      </div>
+      <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Crestfield Academy" className="bg-white" /></FormField>
+      <div className="grid grid-cols-3 gap-3">
         <FormField label="Base currency">
           <select value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)} className={selectCls}>
             <option value="">Default</option>
             {(currencies?.data ?? []).map((c) => <option key={c.code} value={c.code}>{c.code}</option>)}
           </select>
         </FormField>
-      </div>
-      <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Crestfield Academy" className="bg-white" /></FormField>
-      <div className="grid grid-cols-2 gap-3">
         <FormField label="Fiscal year"><Input type="number" value={fiscalYear} onChange={(e) => setFiscalYear(e.target.value)} placeholder="2026" className="bg-white" /></FormField>
         <FormField label="Start month (1–12)"><Input type="number" min={1} max={12} value={startMonth} onChange={(e) => setStartMonth(e.target.value)} placeholder="1" className="bg-white" /></FormField>
       </div>

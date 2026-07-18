@@ -5,6 +5,7 @@
 export interface LedgerEntity {
   id: number;
   code: string;
+  number_code: string; // 2–3 char code embedded in document numbers (e.g. COD)
   name: string;
   kind: string;
   base_currency: string; // 3-letter ISO code (its PK on the backend)
@@ -25,6 +26,7 @@ export interface EntityListParams {
  */
 export interface CreateEntityPayload {
   code: string;
+  number_code?: string; // optional; backend auto-derives a unique code when blank
   name: string;
   kind?: string;
   base_currency?: string;
