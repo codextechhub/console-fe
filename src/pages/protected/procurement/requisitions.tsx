@@ -36,6 +36,7 @@ import type { VoteAction } from "@/redux/services/dashboard/workflow-types";
 import { useGetCostCentersQuery } from "@/redux/services/finance/setup-api";
 import { routesPath } from "@/routes/routes-path";
 import { formatMoney } from "@/utils/money";
+import { formatQuantity } from "@/utils/quantity";
 
 const STATUS_TABS = [
   { label: "All", value: "" },
@@ -328,7 +329,7 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
 
             {tab === "lines" && (req.lines.length ? <div className="space-y-2">
               {req.lines.map((line) => <div key={line.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-md border border-gray-03 p-3">
-                <div className="min-w-0"><p className="truncate font-mont text-sm font-semibold text-black-01">{line.description}</p><p className="mt-1 font-mont text-xs text-gray-05">{line.quantity} {line.unit} × {formatMoney(line.estimated_unit_price, currency)}</p></div>
+                <div className="min-w-0"><p className="truncate font-mont text-sm font-semibold text-black-01">{line.description}</p><p className="mt-1 font-mont text-xs text-gray-05">{formatQuantity(line.quantity)} {line.unit} × {formatMoney(line.estimated_unit_price, currency)}</p></div>
                 <p className="font-mont text-sm font-semibold tabular-nums">{formatMoney(line.estimated_line_total, currency)}</p>
               </div>)}
             </div> : <EmptyBlock text="No line items were added." />)}

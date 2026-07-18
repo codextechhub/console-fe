@@ -139,6 +139,8 @@ export interface PurchaseOrder {
   quotation_number: string | null;
   order_date: string;
   expected_date: string | null;
+  delivery_address: string;
+  payment_terms: string;
   narration: string;
   subtotal: number;
   tax_total: number;
@@ -168,6 +170,7 @@ export interface GRNLine {
   expense_code: string;
   accepted_qty: string;
   rejected_qty: string;
+  expected_qty: string;
   unit_price: number;
   value_amount: number;
 }

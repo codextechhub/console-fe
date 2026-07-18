@@ -99,9 +99,13 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ entity }) => ({ url: `/procurement/purchase-orders/summary/${qs({ entity })}`, method: "GET" }),
       providesTags: ["ProcPurchaseOrders"],
     }),
-    createPurchaseOrder: b.mutation<ApiEnvelope<PurchaseOrder>, { entity: string; requisition: number; vendor: string; order_date: string; expected_date?: string }>({
+    createPurchaseOrder: b.mutation<ApiEnvelope<PurchaseOrder>, { entity: string; requisition: number; vendor: string; order_date: string; expected_date?: string; delivery_address?: string; payment_terms?: string }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/purchase-orders/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcPurchaseOrders", "ProcRequisitions"],
+    }),
+    updatePurchaseOrder: b.mutation<ApiEnvelope<PurchaseOrder>, { id: number; entity: string; vendor?: string; order_date?: string; expected_date?: string; delivery_address?: string; payment_terms?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/purchase-orders/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["ProcPurchaseOrders"],
     }),
     submitPurchaseOrder: b.mutation<ApiEnvelope<PurchaseOrder>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/purchase-orders/${id}/submit/${qs({ entity })}`, method: "POST" }),
@@ -113,9 +117,13 @@ export const procurementApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/procurement/goods-receipts/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcGoodsReceipts"],
     }),
-    createGoodsReceipt: b.mutation<ApiEnvelope<GoodsReceipt>, { entity: string; vendor: string; purchase_order?: number; received_date: string; reference?: string; lines: Record<string, unknown>[] }>({
+    createGoodsReceipt: b.mutation<ApiEnvelope<GoodsReceipt>, { entity: string; vendor: string; purchase_order?: number; received_date: string; reference?: string; narration?: string; lines: Record<string, unknown>[] }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/goods-receipts/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcGoodsReceipts"],
+    }),
+    updateGoodsReceipt: b.mutation<ApiEnvelope<GoodsReceipt>, { id: number; entity: string; received_date?: string; reference?: string; narration?: string; lines?: Record<string, unknown>[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/goods-receipts/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["ProcGoodsReceipts", "ProcPurchaseOrders"],
     }),
     postGoodsReceipt: b.mutation<ApiEnvelope<GoodsReceipt>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/goods-receipts/${id}/post/${qs({ entity })}`, method: "POST" }),
@@ -179,9 +187,11 @@ export const {
   useGetPurchaseOrderQuery,
   useGetPurchaseOrderSummaryQuery,
   useCreatePurchaseOrderMutation,
+  useUpdatePurchaseOrderMutation,
   useSubmitPurchaseOrderMutation,
   useGetGoodsReceiptsQuery,
   useCreateGoodsReceiptMutation,
+  useUpdateGoodsReceiptMutation,
   usePostGoodsReceiptMutation,
   useGetVendorInvoicesQuery,
   useCreateVendorInvoiceMutation,

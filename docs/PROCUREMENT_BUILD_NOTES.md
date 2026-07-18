@@ -152,8 +152,8 @@ specific verb key.
 | Requisitions | `requisitions/` (+ `<id>/`, `<id>/submit/`) | `procurement.requisition.view` / `.submit` |
 | RFQs | `rfqs/` (+ `<id>/`, `<id>/issue/`, `<id>/cancel/`) | `procurement.rfq.view` / `.issue` |
 | Quotations | `quotations/` (+ `<id>/`, `<id>/submit/`, `<id>/award/`) | `procurement.quotation.view` / `.submit` / `.award` |
-| Purchase Orders | `purchase-orders/` (+ `<id>/`, `<id>/submit/`) | `procurement.purchase_order.view` / `.submit` |
-| Goods Receipts | `goods-receipts/` (+ `<id>/`, `<id>/post/`) | `procurement.goods_receipt.view` / `.post` |
+| Purchase Orders | `purchase-orders/` (+ `<id>/`, `<id>/submit/`) | `procurement.purchase_order.view` / `.update` / `.submit` |
+| Goods Receipts | `goods-receipts/` (+ `<id>/`, `<id>/post/`) | `procurement.goods_receipt.view` / `.update` / `.post` |
 | Vendor Invoices | `vendor-invoices/` (+ `<id>/`, `<id>/match/`, `<id>/submit/`, `<id>/post/`) | `procurement.vendor_invoice.view` / `.match` / `.submit` / `.post` |
 | Vendor Payments | `vendor-payments/` (+ `<id>/`, `<id>/post/`) | `procurement.vendor_payment.view` / `.post` |
 | Approvals | vs_workflow queue + `approvals/default-templates/` | `procurement.approval.manage` (+ workflow) |
@@ -189,13 +189,33 @@ record to the resolved entity. Honest adaptations: “On hold” is not presente
 category; and only real workflow document types are included.
 
 ### 2. Procure to Pay
-- **Requisitions ☐** — list (KPIs/status tabs) · detail drawer (lines, approval
+- **Requisitions ☑** — list (KPIs/status tabs) · detail drawer (lines, approval
   trail) · new-requisition drawer (line editor + catalog/category pickers) ·
   Submit action. Endpoints: `requisitions/` (+submit).
-- **Purchase Orders ☐** — list · detail drawer (lines, linked requisition/quote,
-  receipts) · new-PO drawer · Submit · email-to-vendor **deferred**. `purchase-orders/`.
-- **Goods Receipts ☐** — list · detail drawer (received lines vs PO) · new-GRN
-  drawer · **Post** with a real journal recap (`Dr Inventory/Expense · Cr GR/IR`).
+- **Purchase Orders ☑** — list · detail drawer (lines, linked requisition/quote,
+  receipts) · new-PO drawer with delivery address and vendor-defaulted payment terms ·
+  Save Draft / Create & Submit · draft order-term editing. Pending Approval is
+  locked until the workflow returns the PO to Draft; copied requisition lines remain
+  immutable. Email-to-vendor **deferred**. `purchase-orders/`.
+- **Goods Receipts ☑** — list · detail drawer (Overview · Received Items · Quality
+  Notes) · new-GRN drawer with PO lines, accepted/rejected quantities and inspection
+  notes · **Post** with a real journal recap (`Dr Inventory/Expense · Cr GR/IR`).
+  The authenticated user is stored as Received By without a redundant form field;
+  Location is omitted because the current model has no location field. The prototype's final Create action is labelled
+  **Create & Post** so its GL effect is explicit; Save Draft remains non-posting.
+  Accepted and rejected quantities use whole-unit steppers; each input is clamped
+  against the other and their sum cannot exceed the PO line's remaining quantity.
+  List and detail rows show both lifecycle status (`DRAFT`/`POSTED`) and receipt
+  coverage (`PARTIAL`/`FULL`/`REJECTED`) so coverage never hides editability.
+  Each GRN line snapshots the PO remainder at creation, so sequential receipts read
+  `4 of 12`, then `3 of 8` rather than reusing the original PO denominator. Draft
+  line value and posting preview are calculated immediately as accepted quantity ×
+  PO unit price; they do not wait for posting.
+  Received Items uses shared aligned columns and falls back to the source PO item
+  description for legacy receipts whose copied description is blank.
+  Partial describes receipt coverage, not editability: partial drafts can be edited;
+  posted receipts are immutable because their journal and PO quantities are authoritative,
+  and expose **Receive Remaining** to create the next GRN against the outstanding PO quantity.
   `goods-receipts/` (+post).
 - **Vendor Invoices ☐** — list · detail drawer with the **3-way match** (PO ↔ GRN
   ↔ invoice, tolerance) · Match · Submit · **Post** (`Dr GR/IR · Cr AP`) recap.
