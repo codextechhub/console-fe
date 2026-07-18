@@ -2,6 +2,7 @@
 // an expandable account tree (or flat view) with type pills, normal balance,
 // currency, rolled-up GL balance and sub-ledger tags. Read-only viewer.
 import { useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { ChevronDown, ChevronRight, Check, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
@@ -106,6 +107,7 @@ export function AccountsTab({ entity }: { entity: string }) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [touched, setTouched] = useState(false);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [detailId, setDetailId] = useState<number | null>(null);
 
   // Default: expand every parent until the user starts toggling.

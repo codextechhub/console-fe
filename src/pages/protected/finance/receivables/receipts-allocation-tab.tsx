@@ -4,6 +4,7 @@
 // each receipt's unallocated amount + status, Export, Record receipt, and a row-
 // click allocation drawer.
 import { useEffect, useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { Search, Plus, Download, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable, toArray, type Column } from "@/components/finance-ui";
@@ -53,6 +54,7 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
   const [status, setStatus] = useState("");
   const [method, setMethod] = useState("");
   const [newOpen, setNewOpen] = useState(false);
+  useActionParam("new", () => setNewOpen(true));
   const [selected, setSelected] = useState<number | null>(null);
 
   const [page, setPage] = useState(1);

@@ -7,6 +7,7 @@
 // from the invoice's settlement, so the invoice is required, and "Record installment"
 // posts a real receipt against it — the backend auto-advances the plan on settlement.
 import { useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Search, Receipt, Ban } from "lucide-react";
 import {
@@ -91,6 +92,7 @@ export function PaymentPlansTab({ entity, currency }: { entity: string; currency
   const search = useDebounce(searchInput.trim(), 350);
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [selected, setSelected] = useState<PaymentPlan | null>(null);
 
   const params = useMemo(() => ({ entity, page, ...(search ? { search } : {}) }), [entity, page, search]);

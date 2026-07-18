@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { ChartNoAxesCombined, ChevronRight, Info, Plus, Search, Tags, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -88,6 +89,7 @@ export function CategoriesTab({ entity, currency }: { entity: string; currency?:
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 350);

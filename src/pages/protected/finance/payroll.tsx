@@ -12,6 +12,7 @@
 // sensitive grant. PAYE/pension are remitted via Tax Remittance.
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { Link } from "react-router";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
@@ -146,6 +147,7 @@ export default function PayrollPage() {
 function RunsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity, page });
   const rows = useMemo(() => toArray(data?.data), [data]);

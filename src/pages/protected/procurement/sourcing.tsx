@@ -1,5 +1,6 @@
 // Sourcing (§7.3) — RFQs and vendor quotations. Award a quotation to spawn a PO.
 import { useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
@@ -26,6 +27,7 @@ function RfqTab({ entity }: { entity: string }) {
   const pg = data?.pagination;
   const [issue] = useIssueRfqMutation();
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const columns: Column<Rfq>[] = [
     { header: "RFQ", cell: (r) => <span className="font-semibold">{r.document_number}</span> },
     { header: "Title", cell: (r) => r.title },
@@ -93,6 +95,7 @@ function QuotationsTab({ entity, currency }: { entity: string; currency?: string
   const [submit] = useSubmitQuotationMutation();
   const [award] = useAwardQuotationMutation();
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const columns: Column<Quotation>[] = [
     { header: "Quotation", cell: (q) => <span className="font-semibold">{q.document_number}</span> },
     { header: "Vendor", cell: (q) => q.vendor_code },

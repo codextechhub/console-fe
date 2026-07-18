@@ -10,6 +10,7 @@
 // payments.payout.view_sensitive. Settlement is webhook-driven — no fake "re-verify".
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { Plus, Download, Layers, Banknote } from "lucide-react";
@@ -72,6 +73,7 @@ export function PayoutsTab({ entity, currency }: { entity: string; currency?: st
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [group, setGroup] = useState("");
   const [provider, setProvider] = useState("");
   const [page, setPage] = useState(1);

@@ -2,6 +2,7 @@
 // list, tagged per journal line and sliced by the Cost & Dimension Analysis report.
 // Upsert-by-code, so the same form creates or edits an axis.
 import { useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Search } from "lucide-react";
 import { DataTable, StatusPill, FormDrawer, FormField, toArray, type Column } from "@/components/finance-ui";
@@ -18,6 +19,7 @@ export function DimensionsTab({ entity }: { entity: string }) {
   const dims = toArray<Dimension>(data?.data);
   const [editing, setEditing] = useState<Dimension | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [search, setSearch] = useState("");
 
   const rows = useMemo(() => {

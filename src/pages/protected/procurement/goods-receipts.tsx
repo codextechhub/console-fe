@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { ClipboardCheck, FilePenLine, FileText, PackageCheck, Plus, Printer, Send } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,6 +42,7 @@ export default function GoodsReceiptsPage() {
   const { code: entity, currency } = useActiveEntity();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetGoodsReceiptsQuery(
     { entity: entity!, page }, { skip: !entity },

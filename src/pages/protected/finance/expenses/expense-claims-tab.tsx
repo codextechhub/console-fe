@@ -9,6 +9,7 @@
 // (post: Dr expense / Cr accrued reimbursement) → Reimbursed (settle: Cr bank).
 
 import { useMemo, useRef, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import {
@@ -77,6 +78,7 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [selected, setSelected] = useState<ExpenseClaim | null>(null);
 
   const { data, isLoading, isFetching, isError, refetch } = useGetExpenseClaimsQuery({

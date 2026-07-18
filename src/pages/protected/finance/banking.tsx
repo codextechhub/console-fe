@@ -10,6 +10,7 @@
 // are dropped. We store statement *lines*, grouped under imported Statements.
 
 import { useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { Plus, Search, Trash2, Upload, RefreshCw, ListChecks, FileText, History, Settings as SettingsIcon, ArrowLeftRight } from "lucide-react";
@@ -60,6 +61,7 @@ export default function BankingPage() {
   const { code: entity, currency } = useActiveEntity();
   const [selected, setSelected] = useState<BankAccount | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [searchInput, setSearchInput] = useState("");
   const search = useDebounce(searchInput.trim().toLowerCase(), 250);
 

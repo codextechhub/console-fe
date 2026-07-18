@@ -4,6 +4,7 @@
 // lists the platform currencies. (No "Sync" — there's no live feed integration;
 // no "captured by" — FxRate has no user field.)
 import { useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { DataTable, StatusPill, Sparkline, FormDrawer, FormField, CHART_COLORS, toArray, type Column } from "@/components/finance-ui";
@@ -35,6 +36,7 @@ export function CurrenciesTab() {
   const [base, setBase] = useState("");
   const [source, setSource] = useState("");
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
 
   const bases = useMemo(() => [...new Set(rates.map((r) => r.base))].sort(), [rates]);
   const sources = useMemo(() => [...new Set(rates.map((r) => r.source).filter(Boolean))].sort(), [rates]);

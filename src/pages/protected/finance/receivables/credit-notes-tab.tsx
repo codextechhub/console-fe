@@ -12,6 +12,7 @@
 //   • "Issue note" creates then posts — the auto-allocate toggle chooses whether
 //     it lands "Issued" (auto_allocate:false) or is applied oldest-first ("Applied").
 import { useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Printer, Check, Search } from "lucide-react";
 import {
@@ -104,6 +105,7 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
   const search = useDebounce(searchInput.trim(), 350);
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [selected, setSelected] = useState<CreditNote | null>(null);
 
   // Filters + search + paging are server-side so they work across the whole set.

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import {
   BadgeCheck, Ban, Building2, ChevronRight, CircleDollarSign, FilePenLine,
   FileText, History, Landmark, Mail, MapPin, Phone, Plus, Search, ShieldCheck,
@@ -72,6 +73,7 @@ export function VendorsTab({ entity, currency }: { entity: string; currency?: st
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 350);

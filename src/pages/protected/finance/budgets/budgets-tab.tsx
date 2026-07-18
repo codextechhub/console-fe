@@ -5,6 +5,7 @@
 // once approved, read its variance. Budget lines are income/expense GLs only.
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { Plus, Trash2, CheckCircle2, Lock } from "lucide-react";
@@ -75,6 +76,7 @@ function Select({ value, onChange, children, className }: { value: string; onCha
 export function BudgetsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [heatmapId, setHeatmapId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetBudgetsQuery({ entity, page });

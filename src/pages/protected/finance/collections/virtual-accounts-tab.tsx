@@ -7,6 +7,7 @@
 // No prototype exists for this screen; built in the house theme to match AR.
 
 import { useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Search, Landmark, Power, PowerOff } from "lucide-react";
 import {
@@ -60,6 +61,7 @@ export function VirtualAccountsTab({ entity, currency }: { entity: string; curre
   const [provider, setProvider] = useState("");
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [selected, setSelected] = useState<VirtualAccount | null>(null);
 
   const params = useMemo(() => ({

@@ -9,6 +9,7 @@
 // journal posts automatically on confirmation — the recap mirrors it, never a 2nd post.
 
 import { useMemo, useState, type ReactNode } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Download, RefreshCw, Link2, Receipt } from "lucide-react";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CustomerPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
@@ -66,6 +67,7 @@ const customerLabel = (c: Collection) => c.customer_name || c.payer_name || c.cu
 export function CollectionsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [group, setGroup] = useState("");
   const [provider, setProvider] = useState("");
   const [page, setPage] = useState(1);

@@ -3,6 +3,7 @@
 // since the model has no type field; Country/Effective columns are omitted (no
 // data) rather than faked.
 import { useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { DataTable, StatusPill, FormDrawer, FormField, AccountPicker, toArray, type Column } from "@/components/finance-ui";
@@ -21,6 +22,7 @@ export function TaxCodesTab({ entity }: { entity: string }) {
   const codes = toArray<TaxCode>(data?.data);
   const [type, setType] = useState("");
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
 
   const types = useMemo(() => [...new Set(codes.map((c) => taxType(c.code)))].sort(), [codes]);
   const rows = useMemo(() => codes.filter((c) => !type || taxType(c.code) === type), [codes, type]);

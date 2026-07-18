@@ -1,6 +1,7 @@
 // Setup → Cost Centers. Design topology: cost-centre table (branch derived from
 // the code prefix) with a New cost centre form. "Owner" is omitted (no field).
 import { useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { DataTable, StatusPill, FormDrawer, FormField, toArray, type Column } from "@/components/finance-ui";
@@ -20,6 +21,7 @@ export function CostCentersTab({ entity }: { entity: string }) {
   const centres = toArray<CostCenter>(data?.data);
   const [branch, setBranch] = useState("");
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
 
   const branches = useMemo(() => [...new Set(centres.map((c) => branchOf(c.code)).filter(Boolean))].sort(), [centres]);
   const rows = useMemo(() => centres.filter((c) => !branch || branchOf(c.code) === branch), [centres, branch]);

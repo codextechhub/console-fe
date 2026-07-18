@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import {
   CheckCircle2, ChevronRight, Clock3, FilePenLine, FileText, Info, Mail, PackageCheck,
   Plus, Printer, ReceiptText, Search, Send, ShoppingCart,
@@ -89,6 +90,7 @@ export default function PurchaseOrdersPage() {
   const { code: entity, currency } = useActiveEntity();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");

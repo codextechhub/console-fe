@@ -8,6 +8,7 @@
 // real gain/loss journal. Acquisition codes the asset (FA document number = its tag).
 
 import { useMemo, useState, type ReactNode } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Sparkles, Banknote, PackageX } from "lucide-react";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, BankAccountPicker, AccountPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
@@ -74,6 +75,7 @@ function yearlySchedule(asset: FixedAsset) {
 export function AssetsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [running, setRunning] = useState(false);
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState("");

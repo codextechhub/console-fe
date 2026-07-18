@@ -3,6 +3,7 @@
 // + status filter, an avatar table with each customer's net balance and status,
 // Export, New customer, and a rich detail drawer (with the Customer Statement tab).
 import { useEffect, useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { Search, Plus, Download } from "lucide-react";
 import { DataTable, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
@@ -50,6 +51,7 @@ export function CustomersTab({ entity, currency }: { entity: string; currency?: 
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [newOpen, setNewOpen] = useState(false);
+  useActionParam("new", () => setNewOpen(true));
   const [selected, setSelected] = useState<number | null>(null);
 
   // Filters are server-side; reset to page 1 whenever search or status changes.

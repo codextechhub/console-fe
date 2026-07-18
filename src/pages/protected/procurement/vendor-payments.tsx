@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { formatDistanceToNowStrict } from "date-fns";
 import {
   Banknote, Check, ChevronRight, FilePenLine, FileText, History, ListChecks,
@@ -62,6 +63,7 @@ export default function VendorPaymentsPage() {
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const { data, isLoading, isFetching, isError, error, refetch } = useGetVendorPaymentsQuery(
     { entity: entity!, page }, { skip: !entity },
   );

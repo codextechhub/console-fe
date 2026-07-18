@@ -3,6 +3,7 @@
 // periods in one call. (No design reference — entities are a platform concept;
 // styled to match the other Setup screens.)
 import { useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { DataTable, StatusPill, FormModal, FormField, type Column } from "@/components/finance-ui";
@@ -19,6 +20,7 @@ const selectCls = "h-9 w-full rounded-md border border-gray-03 bg-white px-2 fon
 export function EntitiesTab() {
   const { data, isLoading, isFetching, isError, refetch } = useGetEntitiesQuery();
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const rows = data?.data ?? [];
 
   const columns: Column<LedgerEntity>[] = [

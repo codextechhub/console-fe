@@ -314,18 +314,30 @@ phrases/aliases first, then we implement.
 
 ---
 
-## Open questions before wiring
+## Build status (2026-07-18)
 
-1. **`?action=new` hook** — each list screen with a create drawer reads the
-   param once on arrival, opens its drawer, and strips the param from the URL.
-   One shared hook (`useActionParam("new", openDrawer)`) so screens can't
-   drift. Confirm this pattern.
-2. **Do we surface `do` actions the screen would gate anyway?** Proposal: the
-   palette lists a `do` action only with the create key; the screen's own
-   button gating stays as-is (defense in depth).
-3. **Short codes** — do you also want SAP-style codes (`po`, `pr`, `grn`, `tb`)?
+**Shipped.** The engine, UI and gating are live (commit 4e499b8) and the
+`?action=new` drawer hook is wired across every standard create screen
+(slice 2). `src/lib/action-palette/` holds the registry + matcher + local
+popularity; `useActionSearch` ranks the gated catalog; `useActionParam` opens a
+list screen's create drawer on arrival and strips the param.
+
+- **Auto-opening create drawers (32 screens):** launching a `do` action opens
+  the form immediately — verified for New payout, Create AR invoice, Create
+  vendor; a reload doesn't reopen (param stripped).
+- **Navigate-only `do` actions (4)** — these screens have no standard create
+  drawer to hook, so the palette lands on the right screen and the user clicks
+  the create button: New journal entry (`/finance/ledger`), Import bank
+  statement (`/finance/bank-reconciliation`), New petty cash voucher, Create
+  write-off (`…/refunds?action=new-writeoff`). Wire these when convenient by
+  giving each screen a `useActionParam(...)` against its open-state.
+
+## Open questions (still open)
+
+1. **Short codes** — do you also want SAP-style codes (`po`, `pr`, `grn`, `tb`)?
    The aliases column already carries the obvious ones; say the word and we
    standardise a code per action.
-4. **Verb-less matches** — typing just "schools" ranks "View schools" first,
-   with "Create school" beneath. Ranking: exact label > alias > word-prefix.
-5. Items marked *(confirm)* need their backend gate verified before shipping.
+2. **Create school (bulk)** — destination still TBD (Data Imports upload flow,
+   or a dedicated bulk screen?). Omitted from the registry until decided.
+3. Items marked *(confirm)* had their backend gate assumed at build time
+   (e.g. New journal entry → `FIN_SUBMIT_JOURNAL`); confirm against the registry.

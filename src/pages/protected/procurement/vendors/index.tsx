@@ -1,6 +1,7 @@
 // Vendors & catalog — route-selected master-data screens in the Procurement shell.
 
 import { useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
@@ -22,6 +23,7 @@ function CatalogTab({ entity, currency }: { entity: string; currency?: string | 
   const { data, isLoading, isError, refetch } = useGetCatalogItemsQuery({ entity, page });
   const pg = data?.pagination;
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [uom, setUom] = useState("each");

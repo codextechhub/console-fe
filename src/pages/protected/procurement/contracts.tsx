@@ -1,6 +1,7 @@
 // Contracts (§7.3) — vendor contracts with milestones + renewal radar, and
 // lifecycle actions (activate / renew / terminate).
 import { useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { ProcurementShell } from "./procurement-shell";
@@ -24,6 +25,7 @@ export default function ContractsPage() {
   const { code: entity, currency } = useActiveEntity();
   const [selected, setSelected] = useState<VendorContract | null>(null);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [reason, setReason] = useState("");
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetContractsQuery({ entity: entity!, page }, { skip: !entity });

@@ -1,6 +1,7 @@
 // Inventory / stock (§7.4) — stock items (issue / adjust) and the movement
 // ledger with valuation.
 import { useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
@@ -16,6 +17,7 @@ import type { StockItem, StockMovement } from "@/redux/services/procurement/proc
 
 function ItemsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetStockItemsQuery({ entity, page });
   const rows = toArray(data?.data);

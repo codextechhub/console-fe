@@ -7,6 +7,7 @@
 // required (the prototype's no-invoice scholarship isn't supported by our ledger).
 // Posting is Dr allowance (4910 Discounts & Allowances by default) · Cr AR.
 import { useMemo, useState } from "react";
+import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Search, Printer, Check, Info } from "lucide-react";
 import {
@@ -73,6 +74,7 @@ export function ConcessionsTab({ entity, currency }: { entity: string; currency?
   const search = useDebounce(searchInput.trim(), 350);
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
+  useActionParam("new", () => setCreating(true));
   const [selected, setSelected] = useState<Concession | null>(null);
 
   const params = useMemo(() => ({
