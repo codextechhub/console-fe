@@ -37,6 +37,25 @@ phrases/aliases first, then we implement.
 - **Ambiguity is fine.** "new payment" legitimately matches *Record receipt*
   (AR), *New vendor payment* (procurement), and *New payout* (payments) — the
   palette shows all the ones the user is permitted to see and they pick.
+- **Broad queries: top 4 + expand.** A short query like `v` matches dozens of
+  actions. Collapsed, the dropdown shows only the **top 4** with a final
+  footer row — e.g. **"4 of 65 — show all"** — that is itself part of the
+  keyboard flow (ArrowDown past the 4th lands on it; Enter or click expands).
+  Expanded, the list becomes a scrollable box (max ~60vh, `overflow-y-auto`)
+  showing every match **grouped by console section** (Main / Finance /
+  Procurement…) so 65 rows stay scannable; the highlight + arrows keep working
+  inside it and the scroll follows the highlight. Changing the query collapses
+  back to top-4. Fewer than 5 matches → no footer, exactly as today.
+- **Popularity ranking (learned, local).** "Top" is not alphabetical:
+  1. *Adaptive picks* — the palette remembers, per query prefix, which action
+     the user actually chose (typed `v`, picked *View Home* → next `v` puts
+     View Home first). Same trick VS Code's palette uses.
+  2. *Frecency* — a per-action use counter with recency decay breaks ties, so
+     each user's own frequent actions float up.
+  3. *Match quality* — exact label > alias > initials > substring — still
+     caps how far popularity can promote a weak match.
+  Stored in `localStorage` (per browser, per user id); no backend. A
+  shared/org-wide popularity signal can layer on later without changing the UI.
 - **Entity scope.** Finance/Procurement actions land inside the console, which
   already handles entity selection; the palette does not pick entities.
 
