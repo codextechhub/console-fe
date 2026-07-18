@@ -155,7 +155,7 @@ specific verb key.
 | Purchase Orders | `purchase-orders/` (+ `<id>/`, `<id>/submit/`) | `procurement.purchase_order.view` / `.update` / `.submit` |
 | Goods Receipts | `goods-receipts/` (+ `<id>/`, `<id>/post/`) | `procurement.goods_receipt.view` / `.update` / `.post` |
 | Vendor Invoices | `vendor-invoices/` (+ `summary/`, `<id>/`, `<id>/match/`, `<id>/submit/`, `<id>/post/`) | `procurement.vendor_invoice.view` / `.create` / `.update` / `.match` / `.submit` / `.post` |
-| Vendor Payments | `vendor-payments/` (+ `<id>/`, `<id>/post/`) | `procurement.vendor_payment.view` / `.post` |
+| Vendor Payments | `vendor-payments/` (+ `eligible-invoices/`, `<id>/`, `<id>/submit/`, `<id>/post/`, `<id>/cancel/`, `<id>/reverse/`) | `procurement.vendor_payment.view` / `.create` / `.update` / `.submit` / `.post` / `.cancel` / `.reverse` |
 | Approvals | vs_workflow queue + `approvals/default-templates/` | `procurement.approval.manage` (+ workflow) |
 | Contracts | `contracts/` (+ `renewals/`, `<id>/`, `activate/`, `renew/`, `terminate/`, `milestones/<id>/complete/`) | `procurement.contract.view` / `.update` / `.activate` / `.renew` / `.terminate` |
 | Stock Items | `stock-items/` (+ `<id>/`, `<id>/issue/`, `<id>/adjust/`) | `procurement.stock.view` / `.issue` / `.adjust` |
@@ -241,8 +241,33 @@ category; and only real workflow document types are included.
   was not visually proven because the seeded entity did not contain those lifecycle
   examples. The verifier was kept read-only and did not manufacture transactional
   invoice states merely to improve screenshot coverage.
-- **Vendor Payments ☐** — list · detail drawer (allocations) · new-payment drawer ·
-  **Post** (`Dr AP · Cr Bank`) recap. `vendor-payments/` (+post).
+- **Vendor Payments ☑** — implemented and verified against the real CODEX backend.
+  Prototype-aligned list (Payment Ref · Vendor · Invoices · Date · Method · Net Paid ·
+  separate ledger/approval/allocation pills), responsive detail drawer tabs
+  (Overview · Invoices · Posting · Activity), and a create/edit drawer that selects
+  exact posted-invoice allocations, a real active bank account, method/date/reference,
+  optional WHT code/amount and narration. Export is intentionally absent.
+  Draft allocation rows are an approval plan only: they do not touch invoice balances.
+  Edits are limited to `DRAFT` payments in `NOT_SUBMITTED` or `REJECTED`; pending and
+  approved drafts are locked. Submission uses the shared workflow. Posting requires
+  `APPROVED`, revalidates vendor active/KYC/hold gates, the active postable asset bank
+  account, WHT bounds, invoice entity/vendor/status/balances and the complete approved
+  allocation plan under stable row locks before writing `Dr AP (gross) · Cr Bank
+  (net) · Cr WHT payable`. Posted payments are immutable; Reverse creates the real
+  journal reversal and restores invoice settlement totals while retaining allocation
+  history. Cancel applies only to non-pending unposted payments. Finance activity
+  messages now render Naira amounts, including legacy immutable audit rows whose
+  metadata was stored in kobo. The same raw-minor-unit audit root cause was removed
+  from GRN posting, quotation submit/award and stock issue/adjustment so adjacent
+  Procurement feeds cannot leak internal kobo values. `vendor-payments/`
+  (+eligible/detail/update/submit/post/cancel/reverse). Desktop proof covers the
+  populated list, posted Overview/Invoices/Posting/Activity tabs, genuine pending
+  approval controls, empty create drawer and populated edit drawer; every driven state
+  rendered without console/page errors. The 390px phone and 820px tablet audit reported
+  zero page-level horizontal overflow. Phone screenshots prove the complete card list,
+  usable approval drawer and stacked create form. The drawer now resets to Overview when
+  switching records—a screenshot-discovered regression fixed before completion. The
+  verifier login/session/auth/audit rows were scrubbed after the run.
 - **Approvals ☐** — the shared **vs_workflow** queue scoped to procurement
   (approve / reject with the real workflow actions). Confirm whether this reuses
   the existing Workflow screen or gets a procurement-framed view.
@@ -300,10 +325,13 @@ journals**, so before any populated check the entity must have:
 
 Run `python manage.py seed_procurement_demo` for repeatable CODEX dashboard data.
 The command is idempotent and creates three vendors/categories, seven posted
-monthly vendor invoices, four purchase orders, and partial/full goods receipts
-through the real procurement services. It expects the finance chart and open
-periods above to exist. For screen-specific scenarios beyond that standing data,
-use the real services, never raw status writes:
+monthly vendor invoices, four purchase orders, partial/full goods receipts, a real
+operating `BankAccount`, and Vendor Payment examples covering draft, rejected,
+approved-unposted, genuine workflow-pending, posted/partial allocation and reversed
+states. Posting and reversal use the real procurement services; draft allocation rows
+remain non-settling instructions. It expects the finance chart and open periods above
+to exist. For screen-specific scenarios beyond that standing data, use the real
+services, never raw status writes:
 - Services: `create_po_from_requisition`, `issue_rfq`, `award_quotation`,
   `post_grn`, `match_vendor_invoice`, `post_vendor_invoice`, `post_vendor_payment`,
   `receive_stock`, `issue_stock` (in `vs_procurement`).
@@ -331,8 +359,9 @@ happy path + each action/filter. Run with `--keepdb` (avoids the `test_cx_db`
 lock). Every posting test asserts the **real journal** (Dr/Cr) it writes.
 
 ## Status
-Dashboard, Requisitions, Purchase Orders, Goods Receipts and Vendor Invoices are
-rebuilt. Vendor Invoices has real server aggregates and detail data, backend-enforced
-approval/matching/posting rules, permission and entity-isolation coverage, and
-desktop/phone/tablet verification against populated CODEX data. Next: continue
-top-to-bottom through the nav with **Vendor Payments**.
+Dashboard, Requisitions, Purchase Orders, Goods Receipts, Vendor Invoices and Vendor
+Payments are rebuilt and verified. Vendor Payments has real workflow, posting,
+allocation and reversal contracts; focused backend tests, Django/migration checks,
+the frontend production build, populated desktop drawer inspection, and phone/tablet
+overflow verification are green. Next: study **Approvals**—the next unchecked nav
+section—before proposing its implementation plan.

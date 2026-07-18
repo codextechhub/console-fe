@@ -1,137 +1,217 @@
-// P2P → Vendor Payments (§7.2). List + detail (allocations + WHT) + post (with
-// auto-allocate to the vendor's open invoices).
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { formatDistanceToNowStrict } from "date-fns";
+import {
+  Banknote, Check, ChevronRight, FilePenLine, FileText, History, ListChecks,
+  Plus, Printer, ReceiptText, RotateCcw, Send, Undo2, X,
+} from "lucide-react";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+
 import { ProcurementShell } from "./procurement-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, ActionButton, FormModal, FormField, MoneyInput, AccountPicker, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
-import { EmptyState } from "@/components/finance-ui/states";
+import { VendorPicker } from "./pickers";
+import { useUserDirectory } from "../workflow/components/use-user-directory";
+import { sameId } from "../workflow/components/workflow-format";
+import {
+  BankAccountPicker, DataTable, DetailDrawer, EmptyState, ErrorState, FormField,
+  InfoHint, LoadingState, MoneyInput, PostingRecap, StatusPill, TaxCodePicker,
+  toArray, useActiveEntity, type Column,
+} from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
-import { useGetVendorPaymentsQuery, usePostVendorPaymentMutation, useCreateVendorPaymentMutation } from "@/redux/services/procurement/procurement-api";
-import type { VendorPayment } from "@/redux/services/procurement/procurement-types";
-import { VendorPicker } from "./pickers";
+import {
+  useCancelVendorPaymentMutation, useCreateVendorPaymentMutation,
+  useGetVendorPaymentEligibleInvoicesQuery, useGetVendorPaymentQuery,
+  useGetVendorPaymentsQuery, usePostVendorPaymentMutation,
+  useReverseVendorPaymentMutation, useSubmitVendorPaymentMutation,
+  useUpdateVendorPaymentMutation,
+} from "@/redux/services/procurement/procurement-api";
+import type {
+  VendorPayment, VendorPaymentEligibleInvoice,
+} from "@/redux/services/procurement/procurement-types";
+import {
+  useGetWorkflowInstanceQuery, useRecordWorkflowActionMutation,
+} from "@/redux/services/dashboard/workflow-api";
+import type { VoteAction } from "@/redux/services/dashboard/workflow-types";
+import { useAppSelector } from "@/redux/store";
+import { formatMoney } from "@/utils/money";
 
+const DETAIL_TABS = [
+  ["overview", "Overview", FileText], ["invoices", "Invoices", ListChecks],
+  ["posting", "Posting", ReceiptText], ["activity", "Activity", History],
+] as const;
+
+function shortDate(value?: string | null) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(`${value}T00:00:00`));
+}
+function isForbidden(error: unknown) {
+  return !!error && typeof error === "object" && "status" in error && error.status === 403;
+}
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return <div><p className="font-mont text-xs uppercase tracking-wide text-gray-05">{label}</p><p className="mt-0.5 font-mont text-sm font-medium text-black-01">{value ?? "—"}</p></div>;
+  return <div><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "—"}</dd></div>;
+}
+function EmptyPanel({ children }: { children: React.ReactNode }) {
+  return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">{children}</div>;
 }
 
 export default function VendorPaymentsPage() {
   const { code: entity, currency } = useActiveEntity();
-  const [selected, setSelected] = useState<VendorPayment | null>(null);
-  const [creating, setCreating] = useState(false);
   const [page, setPage] = useState(1);
-  const { data, isLoading, isFetching, isError, refetch } = useGetVendorPaymentsQuery({ entity: entity!, page }, { skip: !entity });
-  const [post] = usePostVendorPaymentMutation();
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [creating, setCreating] = useState(false);
+  const { data, isLoading, isFetching, isError, error, refetch } = useGetVendorPaymentsQuery(
+    { entity: entity!, page }, { skip: !entity },
+  );
+  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view vendor payments." /></main></ProcurementShell>;
+
   const rows = toArray(data?.data);
   const pg = data?.pagination;
-
   const columns: Column<VendorPayment>[] = [
-    { header: "Payment", cell: (p) => <span className="font-semibold">{p.document_number}</span> },
-    { header: "Vendor", cell: (p) => p.vendor_code },
-    { header: "Date", cell: (p) => p.payment_date },
-    { header: "Gross", align: "right", cell: (p) => <Money kobo={p.gross_amount} currency={currency} align="right" /> },
-    { header: "WHT", align: "right", cell: (p) => <Money kobo={p.wht_amount} currency={currency} align="right" /> },
-    { header: "Net", align: "right", cell: (p) => <Money kobo={p.net_amount} currency={currency} align="right" /> },
-    { header: "Status", cell: (p) => <StatusPill status={p.status} /> },
+    { header: "Payment Ref", cell: (payment) => <div className="min-w-40"><p className="font-mont text-sm font-semibold text-primary">{payment.document_number}</p><p className="mt-1 max-w-44 truncate text-[11px] text-gray-05">{payment.reference || "No bank reference"}</p></div> },
+    { header: "Vendor", cell: (payment) => <div className="min-w-36"><p className="font-semibold">{payment.vendor_name || payment.vendor_code}</p><p className="mt-0.5 text-[11px] text-gray-05">{payment.vendor_code}</p></div> },
+    { header: "Invoice(s)", cell: (payment) => <span className="block max-w-44 truncate">{payment.allocations.map((row) => row.invoice_number).join(", ") || "—"}</span> },
+    { header: "Date", cell: (payment) => shortDate(payment.payment_date) },
+    { header: "Method", cell: (payment) => payment.method.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) },
+    { header: "Net Paid", align: "right", cell: (payment) => <span className="font-semibold tabular-nums">{formatMoney(payment.net_amount, currency)}</span> },
+    { header: "Status", cell: (payment) => <div className="flex min-w-28 flex-wrap gap-1"><StatusPill status={payment.status} />{payment.status !== "REVERSED" && <StatusPill status={payment.approval_state} />}{payment.status === "POSTED" && <StatusPill status={payment.allocation_status} />}</div> },
+    { header: "", align: "right", cell: () => <ChevronRight className="ml-auto size-4 text-gray-04" /> },
   ];
 
-  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" /></main></ProcurementShell>;
-
-  return (
-    <ProcurementShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Payments</h1>
-            <p className="mt-0.5 font-mont text-xs text-gray-05">Vendor payments with withholding tax.</p>
-          </div>
-          <Can permission={P.PROC_CREATE_VENDOR_PAYMENT}>
-            <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New payment</Button>
-          </Can>
-        </div>
-        <DataTable columns={columns} rows={rows} rowKey={(p) => p.id}
-          loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
-          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
-          emptyTitle="No vendor payments" emptyMessage="Vendor payments will appear here."
-        />
-      </main>
-
-      <DetailDrawer open={!!selected} onOpenChange={(o) => !o && setSelected(null)}
-        title={selected?.document_number ?? "Vendor payment"} description={selected ? `${selected.vendor_code} · ${selected.payment_date}` : undefined}
-        footer={selected && selected.status !== "POSTED" && (
-          <ActionButton label="Post" permission={P.PROC_POST_VENDOR_PAYMENT} title="Post vendor payment?"
-            description={`Posts ${selected.document_number} and allocates to the vendor's open invoices.`}
-            onConfirm={async () => { const r = await post({ id: selected.id, entity, auto_allocate: true }).unwrap(); toast.success(r.message || "Posted."); }} />
-        )}>
-        {selected && (
-          <div className="space-y-5">
-            <div className="flex gap-3"><StatusPill status={selected.status} /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Method" value={selected.method} />
-              <Field label="Reference" value={selected.reference} />
-              <Field label="Gross" value={<Money kobo={selected.gross_amount} currency={currency} />} />
-              <Field label="WHT" value={<Money kobo={selected.wht_amount} currency={currency} />} />
-              <Field label="Net" value={<Money kobo={selected.net_amount} currency={currency} />} />
-              <Field label="Allocated" value={<Money kobo={selected.allocated_amount} currency={currency} />} />
-            </div>
-            {selected.allocations.length > 0 && (
-              <div>
-                <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Allocations</p>
-                <div className="space-y-1.5">
-                  {selected.allocations.map((a) => (
-                    <div key={a.id} className="flex items-center justify-between rounded-md border border-gray-03 px-3 py-2 font-mont text-sm">
-                      <span>{a.invoice_number}</span><Money kobo={a.amount} currency={currency} className="font-semibold" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </DetailDrawer>
-      <CreatePaymentModal open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
-    </ProcurementShell>
-  );
+  return <ProcurementShell>
+    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <header className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Payments</h1><InfoHint>Payments settle approved supplier invoices and post through Accounts Payable.</InfoHint></div><p className="mt-0.5 font-mont text-xs text-gray-05">Disbursements against approved and posted vendor invoices.</p></div><Can permission={P.PROC_CREATE_VENDOR_PAYMENT}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> New Payment</Button></Can></header>
+      {isForbidden(error) ? <EmptyState title="Access restricted" message="You do not have permission to view vendor payments." /> : <DataTable columns={columns} rows={rows} rowKey={(payment) => payment.id} loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(payment) => setSelectedId(payment.id)} page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} emptyTitle="No vendor payments" emptyMessage="Approved supplier disbursements will appear here." />}
+    </main>
+    <PaymentDrawer id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
+    {creating && <PaymentForm key="new-payment" entity={entity} currency={currency} onClose={() => setCreating(false)} />}
+  </ProcurementShell>;
 }
 
-function CreatePaymentModal({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
-  const [vendor, setVendor] = useState("");
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
-  const [method, setMethod] = useState("BANK_TRANSFER");
-  const [gross, setGross] = useState(0);
-  const [wht, setWht] = useState(0);
-  const [paymentAccount, setPaymentAccount] = useState("");
-  const [reference, setReference] = useState("");
-  const [create, { isLoading }] = useCreateVendorPaymentMutation();
-  const submit = async () => {
+function PaymentDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {
+  const user = useAppSelector((state) => state.auth.user);
+  const uid = user?.id == null ? "" : String(user.id);
+  const { name } = useUserDirectory();
+  const [tab, setTab] = useState("overview");
+  const [comment, setComment] = useState("");
+  const [editing, setEditing] = useState(false);
+  const { data, isLoading, isError, refetch } = useGetVendorPaymentQuery({ id: id!, entity }, { skip: id == null });
+  const payment = data?.data;
+  const workflowId = payment?.workflow_instance_id || "";
+  const { data: workflow } = useGetWorkflowInstanceQuery(workflowId, { skip: !workflowId });
+  const [recordAction, { isLoading: voting }] = useRecordWorkflowActionMutation();
+  const [submit, { isLoading: submitting }] = useSubmitVendorPaymentMutation();
+  const [post, { isLoading: posting }] = usePostVendorPaymentMutation();
+  const [cancel, { isLoading: cancelling }] = useCancelVendorPaymentMutation();
+  const [reverse, { isLoading: reversing }] = useReverseVendorPaymentMutation();
+  useEffect(() => {
+    setTab("overview");
+    setComment("");
+    setEditing(false);
+  }, [id]);
+  const activeStage = useMemo(() => (workflow?.stage_instances || []).filter((stage) => stage.status === "ACTIVE").at(-1), [workflow]);
+  const canVote = !!activeStage && workflow?.status === "IN_PROGRESS" && activeStage.eligible_approvers.some((approver) => sameId(approver.user, uid) && approver.attempt === activeStage.attempt) && !activeStage.actions.some((action) => sameId(action.actor, uid) && !action.reversed_at && !action.is_reversal_of && action.attempt === activeStage.attempt);
+  const editable = payment?.status === "DRAFT" && ["NOT_SUBMITTED", "REJECTED"].includes(payment.approval_state);
+  const vote = async (action: VoteAction) => {
+    if (!workflowId || ((action === "REJECTED" || action === "RETURNED") && !comment.trim())) return;
+    try { await recordAction({ id: workflowId, action, comment: comment.trim() }).unwrap(); toast.success(action === "APPROVED" ? "Approval recorded." : action === "RETURNED" ? "Revision requested." : "Payment rejected."); setComment(""); refetch(); } catch { /* central */ }
+  };
+  const run = async (action: "submit" | "post" | "cancel" | "reverse") => {
+    if (!payment) return;
     try {
-      const r = await create({ entity, vendor, payment_date: paymentDate, method, gross_amount: gross, wht_amount: wht || undefined, payment_account: paymentAccount, reference: reference.trim() || undefined }).unwrap();
-      toast.success(r.message || "Payment created.");
-      setVendor(""); setGross(0); setWht(0); setPaymentAccount(""); setReference(""); onClose();
+      if (action === "submit") await submit({ id: payment.id, entity }).unwrap();
+      if (action === "post") await post({ id: payment.id, entity }).unwrap();
+      if (action === "cancel") { if (!window.confirm("Cancel this unposted payment?")) return; await cancel({ id: payment.id, entity }).unwrap(); }
+      if (action === "reverse") { if (!window.confirm("Reverse this posted payment and restore its invoice balances?")) return; await reverse({ id: payment.id, entity }).unwrap(); }
+      toast.success(action === "submit" ? "Payment submitted for approval." : action === "post" ? "Payment posted." : action === "cancel" ? "Payment cancelled." : "Payment reversed.");
     } catch { /* central */ }
   };
-  return (
-    <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New vendor payment"
-      description="Net is gross minus WHT. Post it afterwards to allocate to open invoices." onSubmit={submit}
-      loading={isLoading} canSubmit={!!vendor && !!paymentDate && gross > 0 && !!paymentAccount}>
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} /></FormField>
-        <FormField label="Payment date" required><Input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} className="bg-white" /></FormField>
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        <FormField label="Method">
-          <select value={method} onChange={(e) => setMethod(e.target.value)} className="h-9 w-full rounded-md border bg-white px-2 font-mont text-sm">
-            {["BANK_TRANSFER", "CASH", "CHEQUE", "CARD"].map((m) => <option key={m} value={m}>{m.replace("_", " ")}</option>)}
-          </select>
-        </FormField>
-        <FormField label="Gross" required><MoneyInput valueKobo={gross} onChangeKobo={setGross} currency={currency} /></FormField>
-        <FormField label="WHT"><MoneyInput valueKobo={wht} onChangeKobo={setWht} currency={currency} /></FormField>
-      </div>
-      <FormField label="Payment account" required><AccountPicker entity={entity} value={paymentAccount} onChange={setPaymentAccount} postableOnly accountType="ASSET" /></FormField>
-      <FormField label="Reference"><Input value={reference} onChange={(e) => setReference(e.target.value)} className="bg-white" /></FormField>
-    </FormModal>
-  );
+
+  return <>
+    <DetailDrawer open={id != null} onOpenChange={(open) => !open && onClose()} title={payment?.document_number || "Vendor payment"} description={payment ? `${payment.vendor_name || payment.vendor_code} · ${shortDate(payment.payment_date)} · ${payment.method.replaceAll("_", " ")}` : "Loading vendor payment"} widthClass="sm:max-w-[720px]" footer={payment && <>
+      <Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
+      {editable && <Can permission={P.PROC_UPDATE_VENDOR_PAYMENT}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
+      {editable && <Can permission={P.PROC_SUBMIT_VENDOR_PAYMENT}><Button loading={submitting} onClick={() => run("submit")}><Send className="size-4" /> Submit for Approval</Button></Can>}
+      {payment.status === "DRAFT" && payment.approval_state === "APPROVED" && <Can permission={P.PROC_CANCEL_VENDOR_PAYMENT}><Button variant="outline-dest" loading={cancelling} onClick={() => run("cancel")}><X className="size-4" /> Cancel</Button></Can>}
+      {payment.status === "DRAFT" && payment.approval_state === "APPROVED" && <Can permission={P.PROC_POST_VENDOR_PAYMENT}><Button loading={posting} onClick={() => run("post")}><Banknote className="size-4" /> Post Payment</Button></Can>}
+      {payment.status === "POSTED" && <Can permission={P.PROC_REVERSE_VENDOR_PAYMENT}><Button variant="outline-dest" loading={reversing} onClick={() => run("reverse")}><Undo2 className="size-4" /> Reverse</Button></Can>}
+    </>}>
+      {isLoading ? <LoadingState rows={8} /> : isError || !payment ? <ErrorState onRetry={refetch} /> : <div className="space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex flex-wrap gap-1.5"><StatusPill status={payment.status} /><StatusPill status={payment.approval_state} />{payment.status === "POSTED" && <StatusPill status={payment.allocation_status} />}</div><p className="font-mont text-lg font-semibold tabular-nums">{formatMoney(payment.net_amount, currency)}</p></div>
+        <div className="max-w-full overflow-x-auto border-b border-gray-03"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([value, label, Icon]) => <button key={value} onClick={() => setTab(value)} className={cn("flex items-center gap-1.5 border-b-2 py-2.5 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}><Icon className="size-3.5" />{label}</button>)}</div></div>
+        {tab === "overview" && <div className="space-y-5">
+          {payment.approval_state === "PENDING" && <section className="rounded-md border border-amber-200 bg-amber-50 p-4"><p className="font-mont text-sm font-semibold text-amber-900">{canVote ? "Your approval is required" : activeStage ? `Awaiting ${activeStage.stage_label}` : "Approval in progress"}</p>{canVote && <><Textarea value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Add a comment (required for revision or rejection)" className="mt-3 min-h-20 bg-white" /><div className="mt-3 flex flex-wrap gap-2"><Button size="sm" loading={voting} onClick={() => vote("APPROVED")}><Check className="size-4" /> Approve</Button><Button size="sm" variant="outline" disabled={!comment.trim() || voting} onClick={() => vote("RETURNED")}><RotateCcw className="size-4" /> Request Revision</Button><Button size="sm" variant="outline-dest" disabled={!comment.trim() || voting} onClick={() => vote("REJECTED")}><X className="size-4" /> Reject</Button></div></>}</section>}
+          <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2"><Field label="Payment reference" value={payment.reference} /><Field label="Vendor" value={payment.vendor_name || payment.vendor_code} /><Field label="Payment date" value={shortDate(payment.payment_date)} /><Field label="Method" value={payment.method.replaceAll("_", " ")} /><Field label="Bank account" value={payment.bank_account_name || payment.payment_account_name || payment.payment_code} /><Field label="WHT code" value={payment.wht_tax_code_value} /><Field label="Gross settled" value={formatMoney(payment.gross_amount, currency)} /><Field label="WHT withheld" value={formatMoney(payment.wht_amount, currency)} /><Field label="Net cash paid" value={formatMoney(payment.net_amount, currency)} /><Field label="Allocated" value={formatMoney(payment.allocated_amount, currency)} /></dl>
+          {payment.narration && <div className="rounded-md border border-gray-03 p-4"><p className="font-mont text-[11px] text-gray-05">Narration</p><p className="mt-1 font-mont text-sm">{payment.narration}</p></div>}
+        </div>}
+        {tab === "invoices" && <AllocationTable payment={payment} currency={currency} />}
+        {tab === "posting" && <PaymentPosting payment={payment} currency={currency} />}
+        {tab === "activity" && <PaymentActivity payment={payment} workflow={workflow} name={name} />}
+      </div>}
+    </DetailDrawer>
+    {payment && editing && <PaymentForm key={`edit-${payment.id}`} entity={entity} currency={currency} initial={payment} onClose={() => setEditing(false)} />}
+  </>;
+}
+
+function AllocationTable({ payment, currency }: { payment: VendorPayment; currency?: string | null }) {
+  if (!payment.allocations.length) return <EmptyPanel>No invoice allocations were recorded.</EmptyPanel>;
+  return <div className="overflow-x-auto rounded-md border border-gray-03"><table className="min-w-[560px] w-full"><thead><tr>{["Invoice", "Due", "Applied", "Invoice balance", "Status"].map((label) => <th key={label} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{label}</th>)}</tr></thead><tbody>{payment.allocations.map((row) => <tr key={row.id}><td className="border-t border-gray-03 px-3 py-3 font-mont text-xs font-semibold text-primary">{row.invoice_number}</td><td className="border-t border-gray-03 px-3 py-3 font-mont text-xs">{shortDate(row.due_date)}</td><td className="border-t border-gray-03 px-3 py-3 font-mont text-xs font-semibold tabular-nums">{formatMoney(row.amount, currency)}</td><td className="border-t border-gray-03 px-3 py-3 font-mont text-xs tabular-nums">{formatMoney(row.invoice_balance, currency)}</td><td className="border-t border-gray-03 px-3 py-3"><StatusPill status={payment.status === "DRAFT" ? "PLANNED" : payment.status === "REVERSED" ? "REVERSED" : "APPLIED"} /></td></tr>)}</tbody></table></div>;
+}
+
+function PaymentPosting({ payment, currency }: { payment: VendorPayment; currency?: string | null }) {
+  if (payment.posting_lines?.length) return <PostingRecap title={payment.status === "REVERSED" ? "Original journal (reversed)" : "Posted journal"} currency={currency} dr={payment.posting_lines.filter((line) => line.debit).map((line) => ({ code: line.account_code, name: line.account_name, amount: line.debit }))} cr={payment.posting_lines.filter((line) => line.credit).map((line) => ({ code: line.account_code, name: line.account_name, amount: line.credit }))} helper="This is the actual payment journal." />;
+  return <PostingRecap title="Posting preview" currency={currency} dr={[{ code: "AP", name: "Accounts payable", amount: payment.gross_amount }]} cr={[{ code: payment.payment_code || "BANK", name: payment.payment_account_name || "Bank account", amount: payment.net_amount }, ...(payment.wht_amount ? [{ code: payment.wht_tax_code_value || "WHT", name: "Withholding tax payable", amount: payment.wht_amount }] : [])]} helper="Posting revalidates approval and invoice balances under row locks." />;
+}
+
+function PaymentActivity({ payment, workflow, name }: { payment: VendorPayment; workflow: ReturnType<typeof useGetWorkflowInstanceQuery>["data"]; name: (id: string | number | null | undefined) => string }) {
+  const workflowLogs = (workflow?.audit_logs || []) as Array<{ id: string; message: string; event_type: string; actor: string | number | null; occurred_at: string }>;
+  return <div className="divide-y divide-gray-03"><div className="py-3 first:pt-0"><p className="font-mont text-sm font-medium">Payment draft created</p><p className="mt-1 font-mont text-xs text-gray-05">{payment.created_by_name} · {formatDistanceToNowStrict(new Date(payment.created_at), { addSuffix: true })}</p></div>{workflowLogs.map((log) => <div key={log.id} className="py-3"><p className="font-mont text-sm font-medium">{log.message || log.event_type.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 font-mont text-xs text-gray-05">{log.actor ? name(log.actor) : "System"} · {formatDistanceToNowStrict(new Date(log.occurred_at), { addSuffix: true })}</p></div>)}{payment.activity?.map((log) => <div key={`finance-${log.id}`} className="py-3"><p className="font-mont text-sm font-medium">{log.message || log.action.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 font-mont text-xs text-gray-05">{log.actor_name || "System"} · {formatDistanceToNowStrict(new Date(log.created_at), { addSuffix: true })}</p></div>)}</div>;
+}
+
+function PaymentForm({ entity, currency, initial, onClose }: { entity: string; currency?: string | null; initial?: VendorPayment; onClose: () => void }) {
+  const [vendor, setVendor] = useState(initial?.vendor_code || "");
+  const [paymentDate, setPaymentDate] = useState(initial?.payment_date || new Date().toISOString().slice(0, 10));
+  const [method, setMethod] = useState(initial?.method || "BANK_TRANSFER");
+  const [bank, setBank] = useState(initial?.bank_account_id ? String(initial.bank_account_id) : "");
+  const [reference, setReference] = useState(initial?.reference || "");
+  const [narration, setNarration] = useState(initial?.narration || "");
+  const [wht, setWht] = useState(initial?.wht_amount || 0);
+  const [whtCode, setWhtCode] = useState(initial?.wht_tax_code_value || "");
+  const [amounts, setAmounts] = useState<Record<number, number>>(() => Object.fromEntries((initial?.allocations || []).map((row) => [row.vendor_invoice_id, row.amount])));
+  const { data, isLoading: invoicesLoading } = useGetVendorPaymentEligibleInvoicesQuery({ entity, ...(vendor ? { vendor } : {}) }, { skip: !vendor });
+  const invoices = toArray(data?.data);
+  const [create, { isLoading: creating }] = useCreateVendorPaymentMutation();
+  const [update, { isLoading: updating }] = useUpdateVendorPaymentMutation();
+  const [submit, { isLoading: submitting }] = useSubmitVendorPaymentMutation();
+  const gross = Object.values(amounts).reduce((sum, amount) => sum + (amount || 0), 0);
+  const allocations = Object.entries(amounts).filter(([, amount]) => amount > 0).map(([id, amount]) => ({ vendor_invoice: Number(id), amount }));
+  const loading = creating || updating || submitting;
+  const canSave = !!vendor && !!paymentDate && !!bank && allocations.length > 0 && gross > 0 && wht <= gross;
+  const save = async (andSubmit: boolean) => {
+    if (!canSave) return;
+    const body = { entity, vendor, payment_date: paymentDate, method, bank_account: Number(bank), wht_amount: wht, wht_tax_code: whtCode || undefined, reference: reference.trim() || undefined, narration: narration.trim() || undefined, allocations };
+    try {
+      const response = initial ? await update({ id: initial.id, ...body }).unwrap() : await create(body).unwrap();
+      if (andSubmit) await submit({ id: response.data.id, entity }).unwrap();
+      toast.success(andSubmit ? "Payment created and submitted for approval." : initial ? "Payment draft updated." : "Payment draft saved.");
+      onClose();
+    } catch { /* central */ }
+  };
+  const setVendorAndReset = (value: string) => { setVendor(value); setAmounts({}); };
+  return <DetailDrawer open onOpenChange={(open) => !open && onClose()} title={initial ? `Edit ${initial.document_number}` : "New Payment"} description="Disburse against approved and posted invoices" widthClass="sm:max-w-[720px]" footer={<><Button variant="outline" disabled={loading} onClick={onClose}>Cancel</Button><Button variant="outline" loading={loading} disabled={!canSave} onClick={() => save(false)}>Save Draft</Button><Button loading={loading} disabled={!canSave} onClick={() => save(true)}>{initial ? "Save & Submit" : "Create & Submit"}</Button></>}>
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendorAndReset} /></FormField><FormField label="Method" required><select value={method} onChange={(event) => setMethod(event.target.value)} className="h-9 w-full rounded-md border bg-white px-3 font-mont text-sm">{["BANK_TRANSFER", "CHEQUE", "CASH", "CARD"].map((value) => <option key={value} value={value}>{value.replaceAll("_", " ")}</option>)}</select></FormField><FormField label="Payment date" required><Input type="date" value={paymentDate} onChange={(event) => setPaymentDate(event.target.value)} className="bg-white" /></FormField><FormField label="Pay from" required><BankAccountPicker entity={entity} value={bank} onChange={setBank} /></FormField><FormField label="Reference"><Input value={reference} onChange={(event) => setReference(event.target.value)} className="bg-white" /></FormField><FormField label="WHT code"><TaxCodePicker entity={entity} value={whtCode} onChange={setWhtCode} placeholder="No WHT code" /></FormField></div>
+      <FormField label="Narration"><Textarea value={narration} onChange={(event) => setNarration(event.target.value)} className="min-h-20 bg-white" /></FormField>
+      <section><div className="mb-2 flex items-center justify-between gap-3"><div><p className="font-mont text-xs font-semibold text-gray-01">Outstanding invoices</p><p className="mt-0.5 font-mont text-[11px] text-gray-05">Select the exact liability amounts the approver should review.</p></div><span className="font-mont text-sm font-semibold tabular-nums">{formatMoney(gross, currency)}</span></div>{!vendor ? <EmptyPanel>Select a vendor to load posted unpaid invoices.</EmptyPanel> : invoicesLoading ? <LoadingState rows={4} /> : invoices.length ? <div className="space-y-2">{invoices.map((invoice) => <InvoiceAllocationRow key={invoice.id} invoice={invoice} amount={amounts[invoice.id] || 0} currency={currency} onChange={(amount) => setAmounts((current) => ({ ...current, [invoice.id]: Math.min(amount, invoice.balance_due) }))} />)}</div> : <EmptyPanel>This vendor has no posted invoices with an outstanding balance.</EmptyPanel>}</section>
+      <div className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-3"><Field label="Gross settled" value={formatMoney(gross, currency)} /><div><p className="font-mont text-[11px] text-gray-05">WHT withheld</p><MoneyInput valueKobo={wht} onChangeKobo={setWht} currency={currency} /></div><Field label="Net cash paid" value={formatMoney(Math.max(0, gross - wht), currency)} /></div>
+      <PostingRecap title="Live posting preview" currency={currency} dr={[{ code: "AP", name: "Accounts payable", amount: gross }]} cr={[{ code: "BANK", name: "Selected bank account", amount: Math.max(0, gross - wht) }, ...(wht ? [{ code: "WHT", name: "Withholding tax payable", amount: wht }] : [])]} helper="No invoice balance changes until the approved payment is posted." />
+    </div>
+  </DetailDrawer>;
+}
+
+function InvoiceAllocationRow({ invoice, amount, currency, onChange }: { invoice: VendorPaymentEligibleInvoice; amount: number; currency?: string | null; onChange: (amount: number) => void }) {
+  const checked = amount > 0;
+  return <div className="grid grid-cols-1 gap-3 rounded-md border border-gray-03 p-3 sm:grid-cols-[auto_minmax(0,1fr)_160px]"><input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked ? invoice.balance_due : 0)} className="mt-1 size-4 accent-primary" aria-label={`Select ${invoice.document_number}`} /><div className="min-w-0"><p className="font-mont text-sm font-semibold text-primary">{invoice.document_number}</p><p className="mt-1 font-mont text-[11px] text-gray-05">Due {shortDate(invoice.due_date)} · balance {formatMoney(invoice.balance_due, currency)}</p></div><MoneyInput valueKobo={amount} onChangeKobo={onChange} currency={currency} disabled={!checked} /></div>;
 }

@@ -275,14 +275,34 @@ export interface VendorPaymentAllocation {
   id: number;
   vendor_invoice_id: number;
   invoice_number: string;
+  invoice_date: string;
+  due_date: string | null;
+  invoice_total: number;
+  invoice_balance: number;
+  invoice_payment_status: string;
   amount: number;
+}
+export interface VendorPaymentEligibleInvoice {
+  id: number;
+  document_number: string;
+  vendor_id: number;
+  vendor_code: string;
+  invoice_date: string;
+  due_date: string | null;
+  total: number;
+  amount_paid: number;
+  balance_due: number;
+  payment_status: string;
 }
 export interface VendorPayment {
   id: number;
   document_number: string;
   status: string;
+  approval_state: string;
+  allocation_status: string;
   vendor_id: number;
   vendor_code: string;
+  vendor_name: string;
   payment_date: string;
   method: string;
   gross_amount: number;
@@ -290,11 +310,23 @@ export interface VendorPayment {
   net_amount: number;
   net_naira: string;
   allocated_amount: number;
+  unallocated_amount: number;
+  payment_account_id: number | null;
   payment_code: string | null;
+  payment_account_name: string | null;
+  bank_account_id: number | null;
+  bank_account_name: string | null;
+  wht_tax_code_id: number | null;
+  wht_tax_code_value: string | null;
   reference: string;
   narration: string;
   journal_id: number | null;
+  created_at: string;
+  created_by_name: string;
   allocations: VendorPaymentAllocation[];
+  workflow_instance_id?: string | null;
+  posting_lines?: { account_code: string; account_name: string; debit: number; credit: number }[];
+  activity?: { id: number; action: string; message: string; status: string; actor_name: string; created_at: string }[];
 }
 
 // ── Sourcing & contracts ─────────────────────────────────────────────────────

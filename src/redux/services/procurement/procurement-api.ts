@@ -19,6 +19,7 @@ import type {
   VendorInvoice,
   VendorInvoiceSummary,
   VendorPayment,
+  VendorPaymentEligibleInvoice,
 } from "./procurement-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
@@ -170,16 +171,40 @@ export const procurementApi = baseApi.injectEndpoints({
     }),
 
     // Vendor payments
-    getVendorPayments: b.query<PaginatedEnvelope<VendorPayment>, E>({
+    getVendorPayments: b.query<PaginatedEnvelope<VendorPayment>, E & { approval_state?: string }>({
       query: (p) => ({ url: `/procurement/vendor-payments/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcVendorPayments"],
     }),
-    createVendorPayment: b.mutation<ApiEnvelope<VendorPayment>, { entity: string; vendor: string; payment_date: string; method?: string; gross_amount: number; wht_amount?: number; payment_account: string; reference?: string }>({
+    getVendorPayment: b.query<ApiEnvelope<VendorPayment>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/vendor-payments/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcVendorPayments"],
+    }),
+    getVendorPaymentEligibleInvoices: b.query<ApiEnvelope<VendorPaymentEligibleInvoice[]>, { entity: string; vendor?: string }>({
+      query: (p) => ({ url: `/procurement/vendor-payments/eligible-invoices/${qs(p)}`, method: "GET" }),
+      providesTags: ["ProcVendorInvoices"],
+    }),
+    createVendorPayment: b.mutation<ApiEnvelope<VendorPayment>, { entity: string; vendor: string; payment_date: string; method?: string; bank_account: number; wht_amount?: number; wht_tax_code?: string; reference?: string; narration?: string; allocations: { vendor_invoice: number; amount: number }[] }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/vendor-payments/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcVendorPayments"],
     }),
-    postVendorPayment: b.mutation<ApiEnvelope<VendorPayment>, Act & { auto_allocate?: boolean }>({
-      query: ({ id, entity, ...body }) => ({ url: `/procurement/vendor-payments/${id}/post/${qs({ entity })}`, method: "POST", body }),
+    updateVendorPayment: b.mutation<ApiEnvelope<VendorPayment>, { id: number; entity: string; vendor: string; payment_date: string; method?: string; bank_account: number; wht_amount?: number; wht_tax_code?: string; reference?: string; narration?: string; allocations: { vendor_invoice: number; amount: number }[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/vendor-payments/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["ProcVendorPayments"],
+    }),
+    submitVendorPayment: b.mutation<ApiEnvelope<unknown>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/vendor-payments/${id}/submit/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["ProcVendorPayments"],
+    }),
+    postVendorPayment: b.mutation<ApiEnvelope<VendorPayment>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/vendor-payments/${id}/post/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["ProcVendorPayments", "ProcVendorInvoices", "FinanceJournals"],
+    }),
+    cancelVendorPayment: b.mutation<ApiEnvelope<VendorPayment>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/vendor-payments/${id}/cancel/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["ProcVendorPayments"],
+    }),
+    reverseVendorPayment: b.mutation<ApiEnvelope<VendorPayment>, Act & { date?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/vendor-payments/${id}/reverse/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcVendorPayments", "ProcVendorInvoices", "FinanceJournals"],
     }),
   }),
@@ -220,6 +245,12 @@ export const {
   useSubmitVendorInvoiceMutation,
   usePostVendorInvoiceMutation,
   useGetVendorPaymentsQuery,
+  useGetVendorPaymentQuery,
+  useGetVendorPaymentEligibleInvoicesQuery,
   useCreateVendorPaymentMutation,
+  useUpdateVendorPaymentMutation,
+  useSubmitVendorPaymentMutation,
   usePostVendorPaymentMutation,
+  useCancelVendorPaymentMutation,
+  useReverseVendorPaymentMutation,
 } = procurementApi;
