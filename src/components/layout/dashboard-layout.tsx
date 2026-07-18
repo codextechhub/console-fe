@@ -36,6 +36,11 @@ import { clearSelectedEntity } from "@/redux/features/finance/entity-slice";
 import { useAcknowledgeNotificationRouteMutation } from "@/redux/services/notifications-api";
 import { isPrimaryShortcut, isPrimaryShiftShortcut } from "@/utils/keyboard-shortcuts";
 
+// The header remounts as routes change. Like the sidebar's remembered scroll,
+// the workspace-search text survives navigation (cleared only by a full page
+// refresh) so Cmd/Ctrl+E resumes where the user left off.
+let rememberedWorkspaceSearch = "";
+
 function DashboardHeader({
   hasBack,
   onBack,
@@ -52,8 +57,11 @@ function DashboardHeader({
   const impersonation = auth.impersonation ?? null;
   const { state, toggleSidebar } = useSidebar();
   const { hasPermission, hasModuleAccess } = usePermissions();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(rememberedWorkspaceSearch);
   const [activeResult, setActiveResult] = useState(0);
+  // Whether the results dropdown is showing — follows focus, independent of the
+  // (persisted) text: click-away closes it, refocusing reopens it.
+  const [resultsOpen, setResultsOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const desktopSearchRef = useRef<HTMLInputElement>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
@@ -87,13 +95,19 @@ function DashboardHeader({
       if (!isPrimaryShortcut(event, "KeyE")) return;
       event.preventDefault();
 
+      // Select any persisted text so the user can either continue (arrows /
+      // Enter reuse it) or just type to start a fresh query.
       if (window.matchMedia("(min-width: 1024px)").matches) {
         desktopSearchRef.current?.focus();
+        desktopSearchRef.current?.select();
         return;
       }
 
       setMobileSearchOpen(true);
-      requestAnimationFrame(() => mobileSearchRef.current?.focus());
+      requestAnimationFrame(() => {
+        mobileSearchRef.current?.focus();
+        mobileSearchRef.current?.select();
+      });
     };
 
     window.addEventListener("keydown", focusWorkspaceSearch);
@@ -172,28 +186,37 @@ function DashboardHeader({
     ].filter((item) => item.show && `${item.label} ${item.detail}`.toLowerCase().includes(q)).slice(0, 6);
   }, [hasModuleAccess, hasPermission, search]);
 
+  // Navigating keeps the typed text (persisted until refresh) — only the
+  // dropdown closes, so Cmd/Ctrl+E on the next screen resumes the same query.
   const openSearchResult = (to: string) => {
-    setSearch("");
+    setResultsOpen(false);
     setMobileSearchOpen(false);
     navigate(to);
   };
 
   const updateSearch = (value: string) => {
     setSearch(value);
+    rememberedWorkspaceSearch = value;
     setActiveResult(0);
+    setResultsOpen(true);
   };
 
   // Arrow keys move the highlighted result (wrapping), Enter opens it. Without
   // preventDefault the browser scrolls the page instead of the result list.
+  // With the dropdown closed (Escape), arrows reopen it and Enter is inert.
   const handleResultNavigation = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
+      if (!resultsOpen) {
+        setResultsOpen(true);
+        return;
+      }
       if (!searchResults.length) return;
       const step = event.key === "ArrowDown" ? 1 : -1;
       setActiveResult((index) => (index + step + searchResults.length) % searchResults.length);
       return;
     }
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && resultsOpen) {
       const target = searchResults[activeResult] ?? searchResults[0];
       if (target) openSearchResult(target.to);
     }
@@ -225,13 +248,17 @@ function DashboardHeader({
     </div>
   );
 
+  const showResults = resultsOpen && Boolean(search.trim());
+
   const searchComboboxProps = (variant: "desktop" | "mobile") => ({
     role: "combobox" as const,
-    "aria-expanded": Boolean(search.trim()),
+    "aria-expanded": showResults,
     "aria-controls": `workspace-search-listbox-${variant}`,
-    "aria-activedescendant": search.trim() && searchResults.length
+    "aria-activedescendant": showResults && searchResults.length
       ? `workspace-search-option-${variant}-${activeResult}`
       : undefined,
+    onFocus: () => setResultsOpen(true),
+    onBlur: () => setResultsOpen(false),
   });
 
   // `sticky` is itself a positioned context for the absolute children
@@ -285,7 +312,7 @@ function DashboardHeader({
           onChange={(event) => updateSearch(event.target.value)}
           onKeyDown={(event) => {
             handleResultNavigation(event);
-            if (event.key === "Escape") setSearch("");
+            if (event.key === "Escape") setResultsOpen(false);
           }}
           aria-label="Search the workspace"
           aria-keyshortcuts="Control+E Meta+E"
@@ -296,7 +323,7 @@ function DashboardHeader({
         <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-gray-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold tracking-wide text-gray-400 shadow-sm">
           {searchShortcutLabel}
         </kbd>
-        {search.trim() && renderSearchResults("desktop")}
+        {showResults && renderSearchResults("desktop")}
       </div>
       <TopProgressBar />
       <div className="inline-flex items-center gap-x-1 sm:gap-x-3">
@@ -304,10 +331,7 @@ function DashboardHeader({
           type="button"
           aria-label={mobileSearchOpen ? "Close workspace search" : "Search the workspace"}
           aria-expanded={mobileSearchOpen}
-          onClick={() => {
-            setMobileSearchOpen((open) => !open);
-            if (mobileSearchOpen) setSearch("");
-          }}
+          onClick={() => setMobileSearchOpen((open) => !open)}
           className="grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700 lg:hidden"
         >
           <Search className="size-4.5" />
@@ -388,7 +412,7 @@ function DashboardHeader({
             onKeyDown={(event) => {
               handleResultNavigation(event);
               if (event.key === "Escape") {
-                setSearch("");
+                setResultsOpen(false);
                 setMobileSearchOpen(false);
               }
             }}
@@ -401,7 +425,7 @@ function DashboardHeader({
           <kbd className="pointer-events-none absolute right-2 top-5 -translate-y-1/2 rounded-md border border-gray-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold tracking-wide text-gray-400 shadow-sm">
             {searchShortcutLabel}
           </kbd>
-          {search.trim() && renderSearchResults("mobile")}
+          {showResults && renderSearchResults("mobile")}
         </div>
       )}
 
