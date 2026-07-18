@@ -53,6 +53,7 @@ function DashboardHeader({
   const { state, toggleSidebar } = useSidebar();
   const { hasPermission, hasModuleAccess } = usePermissions();
   const [search, setSearch] = useState("");
+  const [activeResult, setActiveResult] = useState(0);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const desktopSearchRef = useRef<HTMLInputElement>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
@@ -177,6 +178,62 @@ function DashboardHeader({
     navigate(to);
   };
 
+  const updateSearch = (value: string) => {
+    setSearch(value);
+    setActiveResult(0);
+  };
+
+  // Arrow keys move the highlighted result (wrapping), Enter opens it. Without
+  // preventDefault the browser scrolls the page instead of the result list.
+  const handleResultNavigation = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!searchResults.length) return;
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      setActiveResult((index) => (index + step + searchResults.length) % searchResults.length);
+      return;
+    }
+    if (event.key === "Enter") {
+      const target = searchResults[activeResult] ?? searchResults[0];
+      if (target) openSearchResult(target.to);
+    }
+  };
+
+  const renderSearchResults = (variant: "desktop" | "mobile") => (
+    <div
+      id={`workspace-search-listbox-${variant}`}
+      role="listbox"
+      aria-label="Workspace search results"
+      className={`absolute left-0 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl ${variant === "desktop" ? "top-11" : "top-12"}`}
+    >
+      {searchResults.length ? searchResults.map((result, index) => (
+        <button
+          key={result.to}
+          id={`workspace-search-option-${variant}-${index}`}
+          type="button"
+          role="option"
+          aria-selected={index === activeResult}
+          onMouseDown={(event) => event.preventDefault()}
+          onMouseEnter={() => setActiveResult(index)}
+          onClick={() => openSearchResult(result.to)}
+          className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left ${index === activeResult ? "bg-gray-50" : ""}`}
+        >
+          <span><span className="block text-sm font-medium text-black-01">{result.label}</span><span className="block text-[11px] text-gray-400">{result.detail}</span></span>
+          <ChevronRight className="size-4 text-gray-300" />
+        </button>
+      )) : <p className="px-3 py-4 text-center text-xs text-gray-400">No accessible pages found.</p>}
+    </div>
+  );
+
+  const searchComboboxProps = (variant: "desktop" | "mobile") => ({
+    role: "combobox" as const,
+    "aria-expanded": Boolean(search.trim()),
+    "aria-controls": `workspace-search-listbox-${variant}`,
+    "aria-activedescendant": search.trim() && searchResults.length
+      ? `workspace-search-option-${variant}-${activeResult}`
+      : undefined,
+  });
+
   // `sticky` is itself a positioned context for the absolute children
   // (collapse toggle, progress bar) — adding `relative` would conflict.
   return (
@@ -225,35 +282,21 @@ function DashboardHeader({
         <input
           ref={desktopSearchRef}
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => updateSearch(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && searchResults[0]) openSearchResult(searchResults[0].to);
+            handleResultNavigation(event);
             if (event.key === "Escape") setSearch("");
           }}
           aria-label="Search the workspace"
           aria-keyshortcuts="Control+E Meta+E"
           placeholder="Search the workspace"
+          {...searchComboboxProps("desktop")}
           className="h-9 w-full rounded-xl border border-gray-200 bg-gray-50/70 pl-9 pr-17 text-sm outline-none transition placeholder:text-gray-400 focus:border-primary/35 focus:bg-white focus:ring-3 focus:ring-primary/8"
         />
         <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-gray-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold tracking-wide text-gray-400 shadow-sm">
           {searchShortcutLabel}
         </kbd>
-        {search.trim() && (
-          <div className="absolute left-0 top-11 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
-            {searchResults.length ? searchResults.map((result) => (
-              <button
-                key={result.to}
-                type="button"
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => openSearchResult(result.to)}
-                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-gray-50"
-              >
-                <span><span className="block text-sm font-medium text-black-01">{result.label}</span><span className="block text-[11px] text-gray-400">{result.detail}</span></span>
-                <ChevronRight className="size-4 text-gray-300" />
-              </button>
-            )) : <p className="px-3 py-4 text-center text-xs text-gray-400">No accessible pages found.</p>}
-          </div>
-        )}
+        {search.trim() && renderSearchResults("desktop")}
       </div>
       <TopProgressBar />
       <div className="inline-flex items-center gap-x-1 sm:gap-x-3">
@@ -341,9 +384,9 @@ function DashboardHeader({
             ref={mobileSearchRef}
             autoFocus
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => updateSearch(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === "Enter" && searchResults[0]) openSearchResult(searchResults[0].to);
+              handleResultNavigation(event);
               if (event.key === "Escape") {
                 setSearch("");
                 setMobileSearchOpen(false);
@@ -352,26 +395,13 @@ function DashboardHeader({
             aria-label="Search the workspace"
             aria-keyshortcuts="Control+E Meta+E"
             placeholder="Search the workspace"
+            {...searchComboboxProps("mobile")}
             className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 pl-9 pr-17 text-sm outline-none focus:border-primary/35 focus:bg-white focus:ring-3 focus:ring-primary/8"
           />
           <kbd className="pointer-events-none absolute right-2 top-5 -translate-y-1/2 rounded-md border border-gray-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold tracking-wide text-gray-400 shadow-sm">
             {searchShortcutLabel}
           </kbd>
-          {search.trim() && (
-            <div className="absolute left-0 top-12 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
-              {searchResults.length ? searchResults.map((result) => (
-                <button
-                  key={result.to}
-                  type="button"
-                  onClick={() => openSearchResult(result.to)}
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left hover:bg-gray-50"
-                >
-                  <span><span className="block text-sm font-medium text-black-01">{result.label}</span><span className="block text-[11px] text-gray-400">{result.detail}</span></span>
-                  <ChevronRight className="size-4 text-gray-300" />
-                </button>
-              )) : <p className="px-3 py-4 text-center text-xs text-gray-400">No accessible pages found.</p>}
-            </div>
-          )}
+          {search.trim() && renderSearchResults("mobile")}
         </div>
       )}
 
