@@ -146,7 +146,7 @@ specific verb key.
 
 | Area | Endpoints | Permission |
 |---|---|---|
-| Vendors | `GET vendors/`, `GET vendors/<id>/` | `procurement.vendor.view` |
+| Vendors | `vendors/` (+ `summary/`, `<id>/`, `<id>/insights/`) | `procurement.vendor.view` / `.create` / `.update`; sensitive detail fields use `.view_sensitive`; summary/insights use `procurement.report.view` |
 | Categories | `GET/POST categories/` | `procurement.category.view` |
 | Catalog | `GET catalog-items/`, `GET catalog-items/<id>/` | `procurement.catalog_item.view` |
 | Requisitions | `requisitions/` (+ `<id>/`, `<id>/submit/`) | `procurement.requisition.view` / `.submit` |
@@ -297,8 +297,40 @@ category; and only real workflow document types are included.
   rows were scrubbed afterward.
 
 ### 3. Vendors & Catalog
-- **Vendors ☐** — list (avatar table, status) · detail drawer (contact, bank,
-  contracts, spend, performance tabs) · new/edit vendor drawer. `vendors/`.
+- **Vendors ☑** — prototype-aligned responsive avatar list, authoritative status/KYC
+  filters, report-backed KPI strip, five-tab detail drawer (Profile · Contacts · Bank &
+  Compliance · Contracts & History · Performance), and new/edit form drawers. **Add Vendor**
+  follows the console convention beside the page title; dismissing an edit drawer clears
+  its local unsaved state and performs no mutation until **Save Changes** is pressed.
+  **Contract/security decisions:** list payloads never contain contact, address, tax or
+  bank fields; detail FLS strips all of those unless the caller holds
+  `procurement.vendor.view_sensitive`; sensitive writes require that key in addition to
+  the new `procurement.vendor.update`. Create always starts Active, not on hold, Low risk
+  and KYC Pending, so a creator cannot self-verify a supplier. Code is trimmed/uppercased,
+  case-insensitively unique per entity and immutable after creation; model-level
+  normalization protects non-API ORM writes too. Tax identifiers use
+  a private punctuation-insensitive canonical column with an entity-scoped conditional
+  unique constraint. Account/category/tax references are resolved inside the selected
+  entity and account types/postability are validated; text lengths, emails, enums and
+  booleans are rejected before persistence when invalid. Spend and performance come from a
+  vendor-specific `procurement.report.view` endpoint over posted invoices, real POs,
+  posted GRNs and posted payment allocations; no quality grade, responsiveness score,
+  compliance documents or manual assessment is invented. Contracts, POs and invoices
+  retain their own view permissions in History. The prototype's “Blacklisted” state is
+  rendered as the authoritative **On Hold**, and Export is omitted. A shared eligibility
+  rule blocks inactive/on-hold/KYC-rejected vendors at direct PO, draft PO reassignment,
+  quotation award and contract activation/renewal; payment retains its stricter Verified
+  KYC rule and now locks the vendor master row while revalidating. Direct PO, quotation
+  and contract services also reject cross-entity vendors and lock the vendor row while
+  creating a commitment. Existing invoices and receipts remain processable so suspending
+  a vendor does not erase an already-incurred liability. “Active POs” counts only approved
+  orders with at least one unreceived line. Verification fixtures add master-only pending/
+  rejected/inactive examples and one real contract without fabricating spend or payment
+  history. Verified 2026-07-18: all 94 Procurement backend tests pass; Django and migration
+  drift checks are green; the production frontend build passes; populated desktop list,
+  all five detail tabs and create/edit drawers render with zero console/page errors; 390px
+  phone and 820px tablet screenshots were inspected with zero page overflow; verification
+  login rows were scrubbed. `vendors/`.
 - **Categories ☐** — list/tree · create/edit drawer. `categories/`.
 - **Catalog ☐** — catalog-item list (category, unit, price) · detail · create/edit
   drawer with category + vendor pickers. `catalog-items/`.
@@ -348,8 +380,9 @@ journals**, so before any populated check the entity must have:
   (or fails on a missing GL account: GR/IR clearing, AP, Inventory/Expense, Bank).
 
 Run `python manage.py seed_procurement_demo` for repeatable CODEX dashboard data.
-The command is idempotent and creates three vendors/categories, seven posted
-monthly vendor invoices, four purchase orders, partial/full goods receipts, a real
+The command is idempotent and creates three transactional vendors/categories plus
+pending, rejected and inactive vendor-master fixtures, an active sample contract,
+seven posted monthly vendor invoices, four purchase orders, partial/full goods receipts, a real
 operating `BankAccount`, and Vendor Payment examples covering draft, rejected,
 approved-unposted, genuine workflow-pending, posted/partial allocation and reversed
 states. Posting and reversal use the real procurement services; draft allocation rows
@@ -383,12 +416,16 @@ happy path + each action/filter. Run with `--keepdb` (avoids the `test_cx_db`
 lock). Every posting test asserts the **real journal** (Dr/Cr) it writes.
 
 ## Status
-Dashboard, Requisitions, Purchase Orders, Goods Receipts, Vendor Invoices and Vendor
+Dashboard, Requisitions, Purchase Orders, Goods Receipts, Vendor Invoices, Vendor
 Payments are rebuilt and verified. Vendor Payments has real workflow, posting,
 allocation and reversal contracts; focused backend tests, Django/migration checks,
 the frontend production build, populated desktop drawer inspection, and phone/tablet
 overflow verification are green. Approvals is rebuilt and verified with the entity-safe
 shared-workflow adapter, Procurement-framed responsive list/drawer, focused security and
 workflow regression tests, a clean frontend production build, Django/migration checks,
-and populated desktop/phone/tablet visual proof. Next: study **Vendors**—the next
+and populated desktop/phone/tablet visual proof. Vendors is now rebuilt and verified
+with safe list/detail contracts, backend field-level security, entity-scoped uniqueness
+and references, governance-aware commitment/payment locking, authoritative aggregates,
+94 passing Procurement tests, a clean production build, and inspected desktop/phone/
+tablet states with no overflow or runtime errors. Next: study **Categories**—the next
 unchecked navigation section—before proposing its implementation plan.

@@ -99,10 +99,10 @@ export default function VendorsPage() {
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
+        {section !== "vendors" && <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Vendors & Catalog"}</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Vendors, categories and the item catalog.</p>
-        </div>
+        </div>}
         {!entity ? (
           <EmptyState title="Select an entity" />
         ) : section === "categories" ? (
@@ -110,7 +110,7 @@ export default function VendorsPage() {
         ) : section === "catalog" ? (
           <CatalogTab entity={entity} currency={currency} />
         ) : (
-          <VendorsTab entity={entity} />
+          <VendorsTab entity={entity} currency={currency} />
         )}
       </main>
     </ProcurementShell>

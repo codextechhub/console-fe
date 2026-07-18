@@ -16,10 +16,12 @@ import type {
   RequisitionSummary,
   Vendor,
   VendorCategory,
+  VendorInsights,
   VendorInvoice,
   VendorInvoiceSummary,
   VendorPayment,
   VendorPaymentEligibleInvoice,
+  VendorSummary,
 } from "./procurement-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
@@ -29,7 +31,7 @@ type Act = { id: number; entity: string };
 export const procurementApi = baseApi.injectEndpoints({
   endpoints: (b) => ({
     // Master data
-    getVendors: b.query<PaginatedEnvelope<Vendor>, E & { q?: string }>({
+    getVendors: b.query<PaginatedEnvelope<Vendor>, E & { q?: string; is_active?: boolean; on_hold?: boolean; kyc_status?: string; purchase_eligible?: boolean }>({
       query: (p) => ({ url: `/procurement/vendors/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcVendors"],
     }),
@@ -37,8 +39,20 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/procurement/vendors/${id}/${qs({ entity })}`, method: "GET" }),
       providesTags: ["ProcVendors"],
     }),
-    createVendor: b.mutation<ApiEnvelope<Vendor>, { entity: string; code: string; name: string; category?: string; email?: string; phone?: string; tax_id?: string; bank_name?: string; bank_account_number?: string; bank_account_name?: string; payable_account?: string; default_expense_account?: string; payment_terms?: string }>({
+    getVendorSummary: b.query<ApiEnvelope<VendorSummary>, { entity: string }>({
+      query: ({ entity }) => ({ url: `/procurement/vendors/summary/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcVendors"],
+    }),
+    getVendorInsights: b.query<ApiEnvelope<VendorInsights>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/vendors/${id}/insights/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcVendors"],
+    }),
+    createVendor: b.mutation<ApiEnvelope<Vendor>, { entity: string; code: string; name: string; category?: string; email?: string; phone?: string; address?: string; tax_id?: string; bank_name?: string; bank_account_number?: string; bank_account_name?: string; payable_account?: string; default_expense_account?: string; default_wht_tax_code?: string; payment_terms?: string }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/vendors/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcVendors"],
+    }),
+    updateVendor: b.mutation<ApiEnvelope<Vendor>, { id: number; entity: string; name?: string; category?: string; email?: string; phone?: string; address?: string; tax_id?: string; bank_name?: string; bank_account_number?: string; bank_account_name?: string; payable_account?: string; default_expense_account?: string; default_wht_tax_code?: string; payment_terms?: string; kyc_status?: string; risk?: string; on_hold?: boolean; is_active?: boolean }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/vendors/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcVendors"],
     }),
     getCategories: b.query<PaginatedEnvelope<VendorCategory>, E>({
@@ -137,7 +151,7 @@ export const procurementApi = baseApi.injectEndpoints({
     }),
 
     // Vendor invoices (3-way match)
-    getVendorInvoices: b.query<PaginatedEnvelope<VendorInvoice>, E & { match_status?: string; payment_status?: string; display_status?: string }>({
+    getVendorInvoices: b.query<PaginatedEnvelope<VendorInvoice>, E & { vendor?: string; match_status?: string; payment_status?: string; display_status?: string }>({
       query: (p) => ({ url: `/procurement/vendor-invoices/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcVendorInvoices"],
     }),
@@ -213,7 +227,10 @@ export const procurementApi = baseApi.injectEndpoints({
 export const {
   useGetVendorsQuery,
   useGetVendorQuery,
+  useGetVendorSummaryQuery,
+  useGetVendorInsightsQuery,
   useCreateVendorMutation,
+  useUpdateVendorMutation,
   useGetCategoriesQuery,
   useCreateCategoryMutation,
   useGetCatalogItemsQuery,

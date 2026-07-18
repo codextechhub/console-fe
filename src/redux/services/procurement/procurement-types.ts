@@ -16,22 +16,49 @@ export interface Vendor {
   name: string;
   category_id: number | null;
   category_code: string | null;
-  email: string;
-  phone: string;
-  tax_id: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  tax_id?: string;
   bank_name?: string; // FLS
   bank_account_number?: string; // FLS
   bank_account_name?: string; // FLS
-  payable_account_id: number | null;
-  payable_code: string | null;
-  default_expense_account_id: number | null;
-  default_expense_code: string | null;
+  payable_account_id?: number | null;
+  payable_code?: string | null;
+  default_expense_account_id?: number | null;
+  default_expense_code?: string | null;
+  default_wht_tax_code_id?: number | null;
+  default_wht_tax_code_value?: string | null;
   payment_terms: string;
   kyc_status: string;
   risk: string;
   on_hold: boolean;
   is_active: boolean;
+  active_po_count?: number;
   _stripped_fields?: string[];
+}
+
+export interface VendorSummary {
+  active: number;
+  inactive: number;
+  on_hold: number;
+  kyc_pending: number;
+  total_spend_ytd: number;
+  average_payment_days: number | null;
+}
+
+export interface VendorInsights {
+  spend_ytd: number;
+  invoice_count: number;
+  po_count: number;
+  total_ordered: number;
+  receipt_count: number;
+  on_time_receipts: number;
+  late_receipts: number;
+  on_time_rate: number | null;
+  payment_count: number;
+  total_paid: number;
+  average_payment_days: number | null;
 }
 
 export interface CatalogItem {
