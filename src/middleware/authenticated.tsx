@@ -7,7 +7,8 @@ import { Outlet } from "react-router";
 import { evaluateGate } from "@/utils/session-gate";
 import { endSession } from "@/utils/end-session";
 import { captureReturnTo } from "@/utils/return-to";
-import { LoaderCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { LoaderCircle, RefreshCw, TriangleAlert } from "lucide-react";
 import { getAuthContextGateState } from "@/utils/auth-context-gate";
 
 const { LOGIN } = routesPath.AUTH;
@@ -44,6 +45,8 @@ export default function Authenticated() {
   const {
     isLoading: isLoadingContext,
     isFetching: isFetchingContext,
+    isError: isContextError,
+    refetch: refetchContext,
   } = useGetMeQuery(undefined, { skip: shouldRedirect });
 
   useEffect(() => {
@@ -57,13 +60,14 @@ export default function Authenticated() {
     hasTenant: !!tenant,
     isLoading: isLoadingContext,
     isFetching: isFetchingContext,
+    isError: isContextError,
   });
 
-  // Context could not be prepared: /me has settled but there is still no tenant,
-  // so the session is effectively logged out. Don't strand the user on an error
-  // screen — run the standard logout sequence so they land on login cleanly.
+  // "logout": /me succeeded but carried no tenant — the context is gone, so the
+  // session is effectively logged out. Run the standard logout sequence rather
+  // than stranding the user. (A transient /me error is "retry", handled below.)
   useEffect(() => {
-    if (contextGateState !== "error") return;
+    if (contextGateState !== "logout") return;
     endSession("Your session has ended. Please sign in again.");
     captureReturnTo();
     window.location.replace(LOGIN);
@@ -88,7 +92,34 @@ export default function Authenticated() {
       );
     }
 
-    // "error" → the logout sequence above is redirecting to login; render nothing.
+    // "retry": a transient /me failure — offer a retry rather than logging out.
+    if (contextGateState === "retry") {
+      return (
+        <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+          <div className="w-full max-w-sm rounded-md border border-gray-100 bg-white p-6 text-center shadow-sm">
+            <TriangleAlert className="mx-auto mb-3 size-8 text-destructive/70" />
+            <p className="font-mont text-sm font-semibold text-black-01">
+              We couldn’t prepare your workspace
+            </p>
+            <p className="mt-1 text-xs text-gray-01">
+              This looks temporary. Retry, then reload the page.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4 gap-2"
+              onClick={() => refetchContext()}
+              disabled={isFetchingContext}
+            >
+              <RefreshCw className={isFetchingContext ? "size-4 animate-spin" : "size-4"} />
+              Retry
+            </Button>
+          </div>
+        </main>
+      );
+    }
+
+    // "logout" → the logout sequence above is redirecting to login; render nothing.
     return null;
   }
 

@@ -8,6 +8,7 @@ describe("getAuthContextGateState", () => {
       hasTenant: false,
       isLoading: true,
       isFetching: true,
+      isError: false,
     })).toBe("loading");
   });
 
@@ -17,16 +18,28 @@ describe("getAuthContextGateState", () => {
       hasTenant: true,
       isLoading: false,
       isFetching: false,
+      isError: false,
     })).toBe("ready");
   });
 
-  it("shows a recoverable error when tenant hydration fails", () => {
+  it("offers a retry when /me fails (likely transient)", () => {
     expect(getAuthContextGateState({
       shouldRedirect: false,
       hasTenant: false,
       isLoading: false,
       isFetching: false,
-    })).toBe("error");
+      isError: true,
+    })).toBe("retry");
+  });
+
+  it("logs out when /me succeeds but there is no tenant", () => {
+    expect(getAuthContextGateState({
+      shouldRedirect: false,
+      hasTenant: false,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    })).toBe("logout");
   });
 
   it("keeps expired sessions on the redirect path", () => {
@@ -35,6 +48,7 @@ describe("getAuthContextGateState", () => {
       hasTenant: false,
       isLoading: false,
       isFetching: false,
+      isError: false,
     })).toBe("redirect");
   });
 });
