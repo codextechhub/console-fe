@@ -157,7 +157,7 @@ export default function CreateAdmin() {
         .unwrap()
         .then(() => {
           toast.success("Draft updated.");
-          navigate(routesPath.PROTECTED.TEAM_MGT.CX, { replace: true });
+          navigate(`${routesPath.PROTECTED.TEAM_MGT.CX}?tab=drafts`, { replace: true });
         })
         .catch(() => {})
         .finally(() => setSavingDraft(false));
