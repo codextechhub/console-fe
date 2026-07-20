@@ -7,8 +7,7 @@ import { Outlet } from "react-router";
 import { evaluateGate } from "@/utils/session-gate";
 import { endSession } from "@/utils/end-session";
 import { captureReturnTo } from "@/utils/return-to";
-import { Button } from "@/components/ui/button";
-import { LoaderCircle, RefreshCw, TriangleAlert } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { getAuthContextGateState } from "@/utils/auth-context-gate";
 
 const { LOGIN } = routesPath.AUTH;
@@ -45,8 +44,6 @@ export default function Authenticated() {
   const {
     isLoading: isLoadingContext,
     isFetching: isFetchingContext,
-    isError: isContextError,
-    refetch: refetchContext,
   } = useGetMeQuery(undefined, { skip: shouldRedirect });
 
   useEffect(() => {
@@ -61,6 +58,16 @@ export default function Authenticated() {
     isLoading: isLoadingContext,
     isFetching: isFetchingContext,
   });
+
+  // Context could not be prepared: /me has settled but there is still no tenant,
+  // so the session is effectively logged out. Don't strand the user on an error
+  // screen — run the standard logout sequence so they land on login cleanly.
+  useEffect(() => {
+    if (contextGateState !== "error") return;
+    endSession("Your session has ended. Please sign in again.");
+    captureReturnTo();
+    window.location.replace(LOGIN);
+  }, [contextGateState]);
 
   if (contextGateState === "redirect") return null;
 
@@ -81,29 +88,8 @@ export default function Authenticated() {
       );
     }
 
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-        <div className="w-full max-w-sm rounded-md border border-gray-100 bg-white p-6 text-center shadow-sm">
-          <TriangleAlert className="mx-auto mb-3 size-8 text-destructive/70" />
-          <p className="font-mont text-sm font-semibold text-black-01">
-            We couldn’t prepare your workspace
-          </p>
-          <p className="mt-1 text-xs text-gray-01">
-            Refresh your account context, then try loading the page again.
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            className="mt-4 gap-2"
-            onClick={() => refetchContext()}
-            disabled={isFetchingContext}
-          >
-            <RefreshCw className={isFetchingContext ? "size-4 animate-spin" : "size-4"} />
-            {isContextError ? "Retry" : "Refresh context"}
-          </Button>
-        </div>
-      </main>
-    );
+    // "error" → the logout sequence above is redirecting to login; render nothing.
+    return null;
   }
 
   return <Outlet />;
