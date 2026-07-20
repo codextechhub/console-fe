@@ -365,10 +365,51 @@ category; and only real workflow document types are included.
   drawer with category + vendor pickers. `catalog-items/`.
 
 ### 4. Sourcing
-- **RFQs ☐** — list · detail (invited vendors, lines) · new-RFQ drawer · **Issue** /
-  **Cancel** (email to vendors deferred). `rfqs/` (+issue/cancel). *(FE api todo.)*
-- **Quotations ☐** — list · detail (bid lines vs RFQ) · Submit · **Award → PO**.
-  `quotations/` (+submit/award). *(FE api todo.)*
+- **RFQs ◐ / Quotations ◐** — being rebuilt **together as one section** (one
+  competitive-sourcing flow: issue → quote → submit → award; the RFQ drawer lists
+  quotations, Compare awards them, award flips both documents). Contracts ships
+  separately afterwards. **Resolved decisions (2026-07-20, approved):**
+  - *Honest adaptations*: the prototype's invited-vendor list/count, category,
+    budget estimate, warranty, spec compliance, vendor grade and free-text
+    Evaluation/Recommendation have **no model backing and are not invented**.
+    Real replacements: response count, requisition link, line specs, and — in
+    Compare — only real criteria (total, `lead_time_days`, valid-until,
+    submitted date, reference, status, per-`rfq_line` unit-price matrix, honest
+    lowest-total highlight).
+  - *Contracts*: split list vs detail serializers. RFQ list adds
+    `response_count`/`line_count`/`requisition_number` annotations + `?q=`
+    search; detail adds lines, quotations summary and an `activity` audit feed
+    (invoice pattern). Quotation list adds `vendor_name`; detail adds lines,
+    `awarded_po_number`, activity. New `rfqs/summary/` KPI endpoint (Draft ·
+    Open · Responses in · Closing ≤7d) gated `procurement.rfq.view`.
+  - *Lifecycle*: new `rfqs/<id>/close/` (ISSUED→CLOSED, no award) on the
+    `.issue` key; close/cancel flip still-in-contention quotations to REJECTED
+    (audited). Award row-locks RFQ+quotation (fixes a double-award race),
+    rejects quotes past `valid_until`. `EXPIRED` is a server-computed
+    `is_expired` display overlay, never a status rewrite (no scheduler).
+  - *Draft editing*: PATCH for DRAFT RFQs/quotations only (fields + line
+    replacement, re-price) behind new `procurement.rfq.update` /
+    `procurement.quotation.update` keys.
+  - *Eligibility*: `vendor_purchase_block_reason` now also gates quotation
+    create/submit (was award-only); already-linked legacy vendors preserved.
+  - *Validation hardening*: quantities positive/bounded; kobo strictly integer
+    ≥0; text lengths; `response_due_date ≥ issue_date`, `valid_until ≥
+    quote_date`; line expense accounts active postable EXPENSE in-entity; tax
+    codes entity-scoped; quotation create requires an ISSUED same-entity RFQ
+    and `rfq_line`s belonging to *that* RFQ (fixes a cross-RFQ line leak).
+  - *Preservation*: submitted/awarded/rejected documents immutable; award still
+    snapshots quoted prices/accounts onto the DRAFT PO; nothing rewrites
+    requisitions/POs/journals.
+  - *Seed*: `seed_procurement_demo` gains idempotent real-service fixtures — a
+    draft RFQ, an issued RFQ with 3 competing submitted quotes, an awarded RFQ
+    with its real draft PO + rejected siblings, and a cancelled RFQ.
+  - *FE*: `sourcing.tsx` replaced by `sourcing/rfqs.tsx` +
+    `sourcing/quotations.tsx` + a shared compare/status module (routes
+    unchanged). Compare is a centered modal (prototype shows one) with
+    per-column permission-gated Award. Email-to-vendors stays deferred; no
+    Export anywhere.
+  `rfqs/` (+detail/issue/cancel/close/summary/PATCH), `quotations/`
+  (+detail/submit/award/PATCH).
 - **Contracts ☐** — list (status, renewal dates) · detail (milestones, renewals) ·
   Activate / Renew / Terminate / Complete-milestone. `contracts/` (+ actions).
   *(FE api todo.)*
