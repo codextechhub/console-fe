@@ -14,7 +14,6 @@ import {
   useSuspendTeamMemberMutation,
   useReactivateTeamMemberMutation,
   useUnlockTeamMemberMutation,
-  useSubmitDraftUserMutation,
 } from "@/redux/services/dashboard/team-mgt-api";
 import { useMemo, useState } from "react";
 import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
@@ -133,7 +132,6 @@ export default function MembersTab({ scope }: { scope: "cx" | "school" }) {
   const [suspendUser] = useSuspendTeamMemberMutation();
   const [reactivateUser] = useReactivateTeamMemberMutation();
   const [unlockUser] = useUnlockTeamMemberMutation();
-  const [submitDraft] = useSubmitDraftUserMutation();
 
   const handleOpenFilter = () => {
     setDraftFilters(appliedFilters);
@@ -277,22 +275,23 @@ export default function MembersTab({ scope }: { scope: "cx" | "school" }) {
                       .catch(() => {}),
                 };
               }
-              if (row._status === "DRAFT") {
-                if (!hasPermission(P.INVITE_TEAM_MEMBER)) return null;
-                return {
-                  label: "Submit for approval",
-                  className: "text-primary focus:text-primary focus:bg-primary/10",
-                  onActionClick: () =>
-                    submitDraft({ id: row._slug })
-                      .unwrap()
-                      .then(() => toast.success("Draft submitted for approval."))
-                      .catch(() => {}),
-                };
-              }
               return null;
             };
 
             const action = statusAction();
+
+            // A draft isn't a real member yet — its only action is Resume, which
+            // reopens it in the add-user form to finish and submit.
+            if (row._status === "DRAFT") {
+              if (!hasPermission(P.INVITE_TEAM_MEMBER)) return [];
+              return [{
+                label: "Resume",
+                className: "text-primary focus:text-primary focus:bg-primary/10",
+                onActionClick: () =>
+                  navigate(`${routesPath.PROTECTED.TEAM_MGT.CREATE}?draft=${row._slug}`),
+              }];
+            }
+
             if (scope === "school") {
               return [{
                 label: "View Details",

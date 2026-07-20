@@ -2,7 +2,7 @@ import type { PaginatedResponse } from "./security-types";
 
 // ── Enums (mirrored from backend) ────────────────────────────────────────────
 
-export type DatasetType = "schools" | "branches";
+export type DatasetType = "schools" | "branches" | "cx_users";
 
 export type FileFormat = "csv" | "xlsx" | "xls";
 

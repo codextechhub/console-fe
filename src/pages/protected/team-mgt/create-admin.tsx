@@ -6,16 +6,20 @@ import PromptModal from "@/components/modal/prompt-modal";
 import { Button } from "@/components/ui/button";
 import useToggleModal from "@/hooks/use-toggle";
 import { routesPath } from "@/routes/routes-path";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { SearchSelect } from "@/components/custom/search-select";
 import { useAllRoles } from "@/hooks/use-all-roles";
 import { useFormik } from "formik";
 import { useMemo } from "react";
 import { createTeamMemberSchema } from "@/schema/dashboard/team-mgt";
-import { useCreateTeamMemberMutation } from "@/redux/services/dashboard/team-mgt-api";
+import {
+  useCreateTeamMemberMutation,
+  useGetTeamMembersDetailsQuery,
+  useUpdateTeamMemberMutation,
+  useSubmitDraftUserMutation,
+} from "@/redux/services/dashboard/team-mgt-api";
 import { useGetOrgNodesQuery, useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
 import { buildOrgNodeMap, resolveTiers } from "@/pages/protected/organogram/lib/org-helpers";
-import { BulkUploadModal } from "@/pages/protected/team-mgt/bulk-upload-modal";
 import { toast } from "sonner";
 
 const EMPLOYMENT_TYPE_OPTIONS = [
@@ -32,8 +36,16 @@ export default function CreateAdmin() {
   const { roles } = useAllRoles();
   const [createTeamMember, { isLoading: creating }] =
     useCreateTeamMemberMutation();
-  const [bulkOpen, setBulkOpen] = useState(false);
+  const [updateTeamMember] = useUpdateTeamMemberMutation();
+  const [submitDraft] = useSubmitDraftUserMutation();
   const [savingDraft, setSavingDraft] = useState(false);
+
+  // Resume mode: /create?draft=<id> reopens a saved draft to finish + submit it.
+  const [searchParams] = useSearchParams();
+  const draftId = searchParams.get("draft");
+  const isResume = !!draftId;
+  const { data: draftRes } = useGetTeamMembersDetailsQuery(draftId ?? "", { skip: !draftId });
+  const draft = draftRes?.data;
 
   // Organogram seat is required at creation; the position's title IS the job title.
   const { data: positionsRes } = useGetPositionsQuery({ page_size: 100 });
@@ -55,13 +67,15 @@ export default function CreateAdmin() {
   const [pendingApproval, setPendingApproval] = useState(false);
 
   const formik = useFormik({
+    enableReinitialize: true,
     initialValues: {
-      first_name: "",
-      last_name: "",
-      email: "",
-      role: "",
-      phone: "",
-      gender: "",
+      first_name: draft?.first_name ?? "",
+      last_name: draft?.last_name ?? "",
+      email: draft?.email ?? "",
+      // The detail returns the role's display name; map it back to its key.
+      role: draft ? (roles.find((r) => r.name === draft.role)?.key ?? "") : "",
+      phone: draft?.phone ?? "",
+      gender: draft?.gender ?? "",
       // Optional seat + HR prefill (CX staff). Empty values are stripped below.
       position: "",
       job_title: "",
@@ -71,6 +85,27 @@ export default function CreateAdmin() {
     },
     validationSchema: createTeamMemberSchema,
     onSubmit: (values) => {
+      // Resume: update the draft's editable fields, then submit it for approval.
+      if (isResume && draftId) {
+        updateTeamMember({
+          id: draftId,
+          body: {
+            first_name: values.first_name,
+            last_name: values.last_name,
+            phone: values.phone,
+            gender: values.gender,
+          },
+        })
+          .unwrap()
+          .then(() => submitDraft({ id: draftId, role: values.role }).unwrap())
+          .then((res) => {
+            const workflow = (res as { workflow_instance?: { status?: string } })?.workflow_instance;
+            setPendingApproval(Boolean(workflow && workflow.status !== "APPROVED"));
+            toggleClick();
+          })
+          .catch(() => {});
+        return;
+      }
       // Send the core fields plus only the optional seat/HR fields that were set
       // — the backend rejects an empty date and treats blanks as "not provided".
       const payload: Record<string, string> = {
@@ -106,6 +141,29 @@ export default function CreateAdmin() {
       toast.error("First name, last name and email are required to save a draft.");
       return;
     }
+    setSavingDraft(true);
+
+    // Resume: keep it a draft, just persist the editable fields.
+    if (isResume && draftId) {
+      updateTeamMember({
+        id: draftId,
+        body: {
+          first_name: v.first_name.trim(),
+          last_name: v.last_name.trim(),
+          phone: v.phone,
+          gender: v.gender,
+        },
+      })
+        .unwrap()
+        .then(() => {
+          toast.success("Draft updated.");
+          navigate(routesPath.PROTECTED.TEAM_MGT.CX, { replace: true });
+        })
+        .catch(() => {})
+        .finally(() => setSavingDraft(false));
+      return;
+    }
+
     const payload: Record<string, string | boolean> = {
       first_name: v.first_name.trim(),
       last_name: v.last_name.trim(),
@@ -121,7 +179,6 @@ export default function CreateAdmin() {
     if (v.employment_type) payload.employment_type = v.employment_type;
     if (v.date_joined) payload.date_joined = v.date_joined;
 
-    setSavingDraft(true);
     createTeamMember(payload)
       .unwrap()
       .then(() => {
@@ -140,32 +197,19 @@ export default function CreateAdmin() {
   }, [positions, orgNodeMap, formik.values.position]);
 
   return (
-    <DashboardLayout title="CX Users" hasBack>
+    <DashboardLayout title={isResume ? "Resume draft" : "CX Users"} hasBack>
       <section className="px-4.5 py-6">
         <>
           <form onSubmit={formik.handleSubmit} className="max-w-235">
-            <div className="mb-7 flex items-start justify-between gap-4">
-              <div className="space-y-1.5">
-                <h4 className="font-medium text-xl text-black-01">
-                  Add Team Member
-                </h4>
-                <p className="text-gray-01 font-mont text-xs max-w-140">
-                  Add a user to the system and select their role and module
-                  access. New members are submitted for approval — an invitation
-                  is sent automatically once the request is approved. Use{" "}
-                  <span className="font-medium">Save as draft</span> to park an
-                  incomplete hire, or <span className="font-medium">Bulk upload</span>{" "}
-                  to add many at once as drafts.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setBulkOpen(true)}
-                className="shrink-0 w-fit px-4"
-              >
-                Bulk upload
-              </Button>
+            <div className="mb-7 space-y-1.5">
+              <h4 className="font-medium text-xl text-black-01">
+                {isResume ? "Resume draft" : "Add Team Member"}
+              </h4>
+              <p className="text-gray-01 font-mont text-xs max-w-140">
+                {isResume
+                  ? "Finish this draft — set the role and any missing details, then submit for approval. Save as draft keeps it parked."
+                  : "Add a user to the system and select their role and module access. New members are submitted for approval — an invitation is sent automatically once the request is approved. Use Save as draft to park an incomplete hire and finish it later."}
+              </p>
             </div>
 
             <p className="inline-flex items-center text-gray-05 text-sm mb-4">
@@ -201,6 +245,8 @@ export default function CreateAdmin() {
                 label="Email Address"
                 placeholder="Enter email address"
                 isRequired
+                readOnly={isResume}
+                className={isResume ? "bg-gray-06/40 cursor-not-allowed" : undefined}
                 {...formik.getFieldProps("email")}
                 error={formik.touched.email ? formik.errors.email : undefined}
               />
@@ -355,8 +401,6 @@ export default function CreateAdmin() {
             }
             onConfirmText={pendingApproval ? "View My Submissions" : undefined}
           />
-
-          <BulkUploadModal open={bulkOpen} onClose={() => setBulkOpen(false)} />
         </>
       </section>
     </DashboardLayout>
