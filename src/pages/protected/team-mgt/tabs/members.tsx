@@ -8,7 +8,14 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   useGetTeamMembersQuery,
   useSuspendTeamMemberMutation,
@@ -80,7 +87,14 @@ const SORT_OPTIONS = [
   { column: "created_at", label: "Date" },
 ];
 
-export default function MembersTab({ scope }: { scope: "cx" | "school" }) {
+export default function MembersTab({
+  scope,
+  variant = "members",
+}: {
+  scope: "cx" | "school";
+  variant?: "members" | "drafts";
+}) {
+  const isDrafts = variant === "drafts";
   const [value, setValue] = useState("");
   const debouncedValue = useDebounce(value, 1000);
   const navigate = useNavigate();
@@ -89,10 +103,10 @@ export default function MembersTab({ scope }: { scope: "cx" | "school" }) {
   const [selectedSchoolUser, setSelectedSchoolUser] = useState<TeamMember | null>(null);
   const [appliedFilters, setAppliedFilters] = useState(INITIAL_FILTERS);
   const [draftFilters, setDraftFilters] = useState(INITIAL_FILTERS);
-  const [query, setQuery] = useState({
-    page: 1,
-    exclude_status: "PENDING",
-  });
+  // Drafts tab lists status=DRAFT; the members list hides drafts and invites.
+  const [query, setQuery] = useState<Record<string, string | number>>(
+    isDrafts ? { page: 1, status: "DRAFT" } : { page: 1, exclude_status: "PENDING,DRAFT" },
+  );
 
   const { roles } = useAllRoles();
   const { data: schoolsRes } = useGetSchoolsQuery(
@@ -117,11 +131,14 @@ export default function MembersTab({ scope }: { scope: "cx" | "school" }) {
     () => ({
       ...query,
       ...appliedFilters,
+      // Drafts tab is always pinned to status=DRAFT (an empty applied status
+      // filter must not widen it back to everyone).
+      ...(isDrafts ? { status: "DRAFT" } : {}),
       ...(scope === "cx" ? { user_type: "CX_STAFF" } : { scope: "school" }),
       search: debouncedValue,
       ordering: buildOrdering(sort.sortColumn, sort.sortOrder),
     }),
-    [query, appliedFilters, debouncedValue, scope, sort],
+    [query, appliedFilters, debouncedValue, scope, sort, isDrafts],
   );
 
   const currentUser = useSelector(selectUser);
@@ -154,14 +171,39 @@ export default function MembersTab({ scope }: { scope: "cx" | "school" }) {
   return (
     <>
       <div className="flex items-center justify-between">
-        <p className="font-semibold font-mont text-gray-01">User Information</p>
-        {scope === "cx" && (
+        <p className="font-semibold font-mont text-gray-01">
+          {isDrafts ? "Draft users" : "User Information"}
+        </p>
+        {scope === "cx" && !isDrafts && (
           <PermissionGate permission={P.INVITE_TEAM_MEMBER}>
-            <Link to={routesPath.PROTECTED.TEAM_MGT.CREATE}>
-              <Button size="lg">
-                <Plus /> Add New CX User
-              </Button>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="lg">
+                  <Plus /> Add New CX User
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="border rounded-sm">
+                <DropdownMenuItem
+                  onClick={() => navigate(routesPath.PROTECTED.TEAM_MGT.CREATE)}
+                  className="text-sm cursor-pointer text-custom-gray-scale-400"
+                >
+                  Create new user
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() =>
+                    navigate(
+                      `${routesPath.PROTECTED.DATA_IMPORTS.BATCHES.NEW}?dataset_type=cx_users&lock_template=true&return_to=${encodeURIComponent(
+                        `${routesPath.PROTECTED.TEAM_MGT.CX}?tab=members`,
+                      )}&return_label=${encodeURIComponent("CX Users")}`,
+                    )
+                  }
+                  className="text-sm cursor-pointer text-custom-gray-scale-400"
+                >
+                  Bulk upload
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </PermissionGate>
         )}
       </div>
