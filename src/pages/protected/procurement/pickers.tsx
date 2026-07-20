@@ -24,8 +24,13 @@ function categoryTree(rows: VendorCategory[]) {
 }
 
 export function VendorPicker({ entity, value, onChange, label, placeholder = "Select vendor", isRequired, disabled, purchaseEligible = false }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string; isRequired?: boolean; disabled?: boolean; purchaseEligible?: boolean }) {
-  const { data, isLoading } = useGetVendorsQuery({ entity, page_size: 100, ...(purchaseEligible ? { purchase_eligible: true } : {}) });
-  const options = toArray(data?.data).map((v) => ({ value: v.code, label: `${v.code} — ${v.name}` }));
+  const { data, isLoading } = useGetVendorsQuery({ entity, page_size: 100 });
+  const options = toArray(data?.data)
+    .filter((v) => !purchaseEligible || v.code === value || (v.is_active && !v.on_hold && v.kyc_status !== "REJECTED"))
+    .map((v) => ({
+      value: v.code,
+      label: `${v.code} — ${v.name}${v.is_active && !v.on_hold && v.kyc_status !== "REJECTED" ? "" : " (Unavailable for new commitments)"}`,
+    }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} revealOnSearch />;
 }
 

@@ -34,7 +34,7 @@ export interface UseActionSearch {
 export function useActionSearch(query: string): UseActionSearch {
   const perms = usePermissions();
   const permissions = useAppSelector(selectPermissions);
-  const userId = useAppSelector((s) => s.auth.user?.id);
+  const userId = useAppSelector((s) => (s.auth.user?.id == null ? undefined : String(s.auth.user.id)));
 
   // Gate once per permission set. `permissions` (the raw array) is the stable
   // memo key — the helper closures from usePermissions() are recreated each

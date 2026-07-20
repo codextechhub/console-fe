@@ -14,6 +14,7 @@ export interface VendorCategory {
   is_active: boolean;
   vendor_count: number;
   child_count: number;
+  catalog_item_count: number;
 }
 
 export interface VendorCategoryInsight {
@@ -80,13 +81,48 @@ export interface CatalogItem {
   name: string;
   description: string;
   unit_of_measure: string;
+  category_id: number | null;
+  category_code: string | null;
+  category_name: string | null;
+  category_level: 1 | 2 | 3 | null;
+  category_path: string | null;
+  preferred_vendor_id: number | null;
   preferred_vendor_code: string | null;
+  preferred_vendor_name: string | null;
+  default_expense_account_id: number | null;
   expense_code: string | null;
+  expense_name: string | null;
+  default_tax_code_id: number | null;
   tax_code: string | null;
-  lead_time_days: number;
+  tax_name: string | null;
+  lead_time_days: number | null;
   standard_unit_price: number;
   standard_unit_price_naira: string;
   is_active: boolean;
+  stock_status: "NOT_TRACKED" | "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK" | null;
+}
+
+export interface CatalogItemInsights {
+  usage: { requisition_line_count: number; stock_item_count: number };
+  vendor_pricing: Array<{
+    vendor_id: number;
+    vendor_code: string;
+    vendor_name: string;
+    order_count: number;
+    total_quantity: string;
+    minimum_unit_price: number;
+    maximum_unit_price: number;
+    latest_order_date: string;
+  }>;
+  purchase_history: Array<{
+    purchase_order_id: number;
+    document_number: string;
+    vendor_code: string;
+    vendor_name: string;
+    order_date: string;
+    quantity: string;
+    unit_price: number;
+  }>;
 }
 
 // ── P2P chain ────────────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "../finance/api-types";
 import type {
   CatalogItem,
+  CatalogItemInsights,
   GoodsReceipt,
   PurchaseOrder,
   PurchaseOrderSummary,
@@ -76,13 +77,25 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/categories/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcCategories", "ProcVendors"],
     }),
-    getCatalogItems: b.query<PaginatedEnvelope<CatalogItem>, E & { q?: string }>({
+    getCatalogItems: b.query<PaginatedEnvelope<CatalogItem>, E & { q?: string; is_active?: boolean; vendor?: string; category?: string }>({
       query: (p) => ({ url: `/procurement/catalog-items/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcCatalog"],
     }),
-    createCatalogItem: b.mutation<ApiEnvelope<CatalogItem>, { entity: string; code: string; name: string; description?: string; unit_of_measure?: string; preferred_vendor?: string; default_expense_account?: string; default_tax_code?: string; standard_unit_price?: number }>({
+    getCatalogItem: b.query<ApiEnvelope<CatalogItem>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/catalog-items/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcCatalog"],
+    }),
+    getCatalogItemInsights: b.query<ApiEnvelope<CatalogItemInsights>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/catalog-items/${id}/insights/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcCatalog"],
+    }),
+    createCatalogItem: b.mutation<ApiEnvelope<CatalogItem>, { entity: string; code: string; name: string; description?: string; unit_of_measure: string; category?: string; preferred_vendor?: string; default_expense_account?: string; default_tax_code?: string; lead_time_days?: number | null; standard_unit_price: number; is_active?: boolean }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/catalog-items/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcCatalog"],
+    }),
+    updateCatalogItem: b.mutation<ApiEnvelope<CatalogItem>, { id: number; entity: string; code?: string; name?: string; description?: string; unit_of_measure?: string; category?: string; preferred_vendor?: string; default_expense_account?: string; default_tax_code?: string; lead_time_days?: number | null; standard_unit_price?: number; is_active?: boolean }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/catalog-items/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["ProcCatalog", "ProcCategories"],
     }),
 
     // Requisitions
@@ -250,7 +263,10 @@ export const {
   useCreateCategoryMutation,
   useUpdateCategoryMutation,
   useGetCatalogItemsQuery,
+  useGetCatalogItemQuery,
+  useGetCatalogItemInsightsQuery,
   useCreateCatalogItemMutation,
+  useUpdateCatalogItemMutation,
   useGetRequisitionsQuery,
   useGetRequisitionQuery,
   useGetRequisitionSummaryQuery,

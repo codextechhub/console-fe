@@ -24,9 +24,11 @@ const adapt = (onChange: (v: string) => void) =>
   (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value);
 
 /** Chart-of-accounts picker. Pass `postableOnly` for posting lines. */
-export function AccountPicker({ entity, value, onChange, label, placeholder = "Select account", isRequired, disabled, postableOnly, accountType }: PickerProps & { postableOnly?: boolean; accountType?: string }) {
+export function AccountPicker({ entity, value, onChange, label, placeholder = "Select account", isRequired, disabled, postableOnly, accountType, activeOnly }: PickerProps & { postableOnly?: boolean; accountType?: string; activeOnly?: boolean }) {
   const { data, isLoading } = useGetAccountsQuery({ entity, ...(postableOnly ? { is_postable: true } : {}), ...(accountType ? { account_type: accountType } : {}) });
-  const options = toArray(data?.data).map((a) => ({ value: a.code, label: `${a.code} · ${a.name}` }));
+  const options = toArray(data?.data)
+    .filter((a) => !activeOnly || a.is_active || a.code === value)
+    .map((a) => ({ value: a.code, label: `${a.code} · ${a.name}${a.is_active ? "" : " (Inactive)"}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} revealOnSearch />;
 }
 
@@ -64,9 +66,11 @@ export function CurrencyPicker({ value, onChange, label, placeholder = "Default"
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }
 
-export function TaxCodePicker({ entity, value, onChange, label, placeholder = "No tax", isRequired, disabled }: PickerProps) {
+export function TaxCodePicker({ entity, value, onChange, label, placeholder = "No tax", isRequired, disabled, purchaseOnly = false }: PickerProps & { purchaseOnly?: boolean }) {
   const { data, isLoading } = useGetTaxCodesQuery({ entity });
-  const options = toArray(data?.data).map((t) => ({ value: t.code, label: `${t.code} — ${t.name}` }));
+  const options = toArray(data?.data)
+    .filter((t) => !purchaseOnly || t.code === value || (t.is_active && (t.rate_bps === 0 || (t.is_recoverable && !!t.paid_account))))
+    .map((t) => ({ value: t.code, label: `${t.code} — ${t.name}${t.is_active ? "" : " (Inactive)"}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }
 

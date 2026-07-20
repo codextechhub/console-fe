@@ -459,5 +459,26 @@ and references, governance-aware commitment/payment locking, authoritative aggre
 tablet states with no overflow or runtime errors. Categories is now rebuilt and verified
 as an entity-safe three-level hierarchy with derived depth, cycle-safe re-parenting,
 governed inactive-category assignment, 108 passing Procurement tests, a clean production
-build, and inspected desktop/phone/tablet list and drawer states. Next: study **Catalog**—
-the next unchecked navigation section—before proposing its implementation plan.
+build, and inspected desktop/phone/tablet list and drawer states.
+
+Catalog is now rebuilt (FE) as a dedicated `vendors/catalog-tab.tsx` component replacing
+the old inline stub in `vendors/index.tsx`: All/Active/Inactive tabs, debounced search,
+category + preferred-vendor filters, prototype-aligned `DataTable` columns (Item/SKU,
+Category, Unit, Standard price, Preferred vendor, Lead time, Stock*, Status) with phone
+cards, a `DetailDrawer` with Overview / Vendor Pricing / Purchase History tabs (real
+insights via `/catalog-items/{id}/insights/`, honest empty states — no fabricated pricing
+or history), and a `FormDrawer` create/edit with immutable code, hierarchy-aware category,
+`MoneyInput`, eligible-vendor/`AccountPicker`/`TaxCodePicker` defaults, and changed-fields-
+only PATCH. Pickers now filter to purchasing-eligible vendors / active-postable accounts /
+usable purchase-tax codes (keeping an already-linked ineligible value). Categories usage
+tab now shows the real `catalog_item_count`. `?action=new` action-palette landing preserved.
+Verified against the real backend (migration `0011` applied + `seed_procurement_demo`
+extended with 4 catalog items): populated list, all three drawer tabs, edit form (Save
+gated on dirty), categories no longer 500, zero console errors, no phone/tablet overflow.
+`StatusPill` gained IN_STOCK/LOW_STOCK/OUT_OF_STOCK/NOT_TRACKED variants.
+
+Backend follow-ups (separate repo, still uncommitted): (1) `makemigrations --check` reports
+drift — migration `0011`'s catalog index name doesn't match the model Meta's auto-name
+(wants a `0012` rename); align the name before the backend commit. (2) A pre-existing FE
+build-breaker in `src/hooks/use-action-search.ts` (userId typed `number` passed to string
+popularity helpers) was fixed here — unrelated to Catalog.

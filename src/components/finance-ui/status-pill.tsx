@@ -23,6 +23,7 @@ const VARIANT_BY_STATUS: Record<string, BadgeVariant> = {
   SETTLED: "success",
   ISSUED: "success",
   RECEIVED: "success",
+  IN_STOCK: "success",
   // in-flight / awaiting
   DRAFT: "pending",
   PENDING: "pending",
@@ -33,6 +34,7 @@ const VARIANT_BY_STATUS: Record<string, BadgeVariant> = {
   RUNNING: "pending",
   SUBMITTED: "pending",
   SENT: "pending",
+  LOW_STOCK: "pending",
   // closed / neutral-terminal
   UNPAID: "inactive",
   CLOSED: "inactive",
@@ -40,11 +42,13 @@ const VARIANT_BY_STATUS: Record<string, BadgeVariant> = {
   REVERSED: "inactive",
   CANCELLED: "inactive",
   EXPIRED: "inactive",
+  NOT_TRACKED: "inactive",
   // problem
   FAILED: "rejected",
   REJECTED: "rejected",
   BLOCKED: "rejected",
   OVERDUE: "rejected",
+  OUT_OF_STOCK: "rejected",
   TERMINATED: "suspended",
   OVER_TOLERANCE: "suspended",
 };
