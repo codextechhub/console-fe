@@ -15,6 +15,8 @@ import { createTeamMemberSchema } from "@/schema/dashboard/team-mgt";
 import { useCreateTeamMemberMutation } from "@/redux/services/dashboard/team-mgt-api";
 import { useGetOrgNodesQuery, useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
 import { buildOrgNodeMap, resolveTiers } from "@/pages/protected/organogram/lib/org-helpers";
+import { BulkUploadModal } from "@/pages/protected/team-mgt/bulk-upload-modal";
+import { toast } from "sonner";
 
 const EMPLOYMENT_TYPE_OPTIONS = [
   { value: "FULL_TIME", label: "Full-time" },
@@ -30,6 +32,8 @@ export default function CreateAdmin() {
   const { roles } = useAllRoles();
   const [createTeamMember, { isLoading: creating }] =
     useCreateTeamMemberMutation();
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
 
   // Organogram seat is required at creation; the position's title IS the job title.
   const { data: positionsRes } = useGetPositionsQuery({ page_size: 100 });
@@ -94,6 +98,40 @@ export default function CreateAdmin() {
     },
   });
 
+  // Save as draft: park an incomplete hire without going through validation for
+  // the role/seat (those are optional for a draft). Only identity is required.
+  const saveDraft = () => {
+    const v = formik.values;
+    if (!v.first_name.trim() || !v.last_name.trim() || !v.email.trim()) {
+      toast.error("First name, last name and email are required to save a draft.");
+      return;
+    }
+    const payload: Record<string, string | boolean> = {
+      first_name: v.first_name.trim(),
+      last_name: v.last_name.trim(),
+      email: v.email.trim(),
+      gender: v.gender,
+      phone: v.phone,
+      save_as_draft: true,
+    };
+    if (v.role) payload.role = v.role;
+    if (v.position) payload.position = v.position;
+    if (v.job_title.trim()) payload.job_title = v.job_title.trim();
+    if (v.employee_id.trim()) payload.employee_id = v.employee_id.trim();
+    if (v.employment_type) payload.employment_type = v.employment_type;
+    if (v.date_joined) payload.date_joined = v.date_joined;
+
+    setSavingDraft(true);
+    createTeamMember(payload)
+      .unwrap()
+      .then(() => {
+        toast.success("Saved as draft. You can complete and submit it later.");
+        navigate(routesPath.PROTECTED.TEAM_MGT.CX, { replace: true });
+      })
+      .catch(() => {})
+      .finally(() => setSavingDraft(false));
+  };
+
   // Division / Department / Team are derived from the selected position's org
   // node (walking up the tier hierarchy) — read-only, shown for context.
   const tiers = useMemo(() => {
@@ -106,15 +144,28 @@ export default function CreateAdmin() {
       <section className="px-4.5 py-6">
         <>
           <form onSubmit={formik.handleSubmit} className="max-w-235">
-            <div className="mb-7 space-y-1.5">
-              <h4 className="font-medium text-xl text-black-01">
-                Add Team Member
-              </h4>
-              <p className="text-gray-01 font-mont text-xs">
-                Add a user to the system and select their role and module
-                access. New members are submitted for approval — an invitation
-                is sent automatically once the request is approved.
-              </p>
+            <div className="mb-7 flex items-start justify-between gap-4">
+              <div className="space-y-1.5">
+                <h4 className="font-medium text-xl text-black-01">
+                  Add Team Member
+                </h4>
+                <p className="text-gray-01 font-mont text-xs max-w-140">
+                  Add a user to the system and select their role and module
+                  access. New members are submitted for approval — an invitation
+                  is sent automatically once the request is approved. Use{" "}
+                  <span className="font-medium">Save as draft</span> to park an
+                  incomplete hire, or <span className="font-medium">Bulk upload</span>{" "}
+                  to add many at once as drafts.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setBulkOpen(true)}
+                className="shrink-0 w-fit px-4"
+              >
+                Bulk upload
+              </Button>
             </div>
 
             <p className="inline-flex items-center text-gray-05 text-sm mb-4">
@@ -264,14 +315,24 @@ export default function CreateAdmin() {
               />
             </div>
 
-            <div className="mt-10 inline-flex items-center gap-4">
+            <div className="mt-10 flex flex-wrap items-center gap-4">
               <Button
                 type="submit"
-                disabled={!formik.isValid || creating}
+                disabled={!formik.isValid || creating || savingDraft}
                 loading={creating}
                 className="w-fit px-6"
               >
                 Submit for Approval
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={saveDraft}
+                disabled={creating || savingDraft}
+                loading={savingDraft}
+                className="w-fit px-6"
+              >
+                Save as draft
               </Button>
             </div>
           </form>
@@ -294,6 +355,8 @@ export default function CreateAdmin() {
             }
             onConfirmText={pendingApproval ? "View My Submissions" : undefined}
           />
+
+          <BulkUploadModal open={bulkOpen} onClose={() => setBulkOpen(false)} />
         </>
       </section>
     </DashboardLayout>

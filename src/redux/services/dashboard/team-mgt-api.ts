@@ -3,6 +3,20 @@ import { generateQueryString } from "@/utils/helpers";
 import { baseApi } from "../base-api";
 import type { TeamMemberRes, TeamMembersRes } from "./dashboard-types";
 
+export interface BulkUploadRowError {
+  row: number;
+  email: string;
+  errors: Record<string, unknown>;
+}
+export interface BulkUploadRes {
+  message: string;
+  data: {
+    summary: { created: number; failed: number };
+    created: { row: number; id: string; email: string }[];
+    errors: BulkUploadRowError[];
+  };
+}
+
 export const teamMgtApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getTeamMembers: builder.query<
@@ -33,6 +47,33 @@ export const teamMgtApi = baseApi.injectEndpoints({
         url: `/user/users/`,
         method: "POST",
         body: payload,
+      }),
+      invalidatesTags: ["Users"],
+    }),
+    // Promote a DRAFT user into the normal approval/invite flow. `role` is only
+    // needed when the draft doesn't already have one.
+    submitDraftUser: builder.mutation<unknown, { id: string; role?: string }>({
+      query: ({ id, role }) => ({
+        url: `/user/users/${id}/submit/`,
+        method: "POST",
+        body: role ? { role } : {},
+      }),
+      invalidatesTags: ["Users"],
+    }),
+    // Download the CSV template (blob so we can trigger a file save with auth).
+    getBulkUserTemplate: builder.query<Blob, void>({
+      query: () => ({
+        url: `/user/users/bulk-template/`,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+        cache: "no-cache",
+      }),
+    }),
+    bulkUploadUsers: builder.mutation<BulkUploadRes, FormData>({
+      query: (formData) => ({
+        url: `/user/users/bulk-upload/`,
+        method: "POST",
+        body: formData,
       }),
       invalidatesTags: ["Users"],
     }),
@@ -86,6 +127,9 @@ export const {
   useGetTeamMembersQuery,
   useResendInviteMutation,
   useCreateTeamMemberMutation,
+  useSubmitDraftUserMutation,
+  useLazyGetBulkUserTemplateQuery,
+  useBulkUploadUsersMutation,
   useGetTeamMembersDetailsQuery,
   useUpdateTeamMemberMutation,
   useSuspendTeamMemberMutation,

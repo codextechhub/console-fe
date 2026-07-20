@@ -14,6 +14,7 @@ import {
   useSuspendTeamMemberMutation,
   useReactivateTeamMemberMutation,
   useUnlockTeamMemberMutation,
+  useSubmitDraftUserMutation,
 } from "@/redux/services/dashboard/team-mgt-api";
 import { useMemo, useState } from "react";
 import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
@@ -132,6 +133,7 @@ export default function MembersTab({ scope }: { scope: "cx" | "school" }) {
   const [suspendUser] = useSuspendTeamMemberMutation();
   const [reactivateUser] = useReactivateTeamMemberMutation();
   const [unlockUser] = useUnlockTeamMemberMutation();
+  const [submitDraft] = useSubmitDraftUserMutation();
 
   const handleOpenFilter = () => {
     setDraftFilters(appliedFilters);
@@ -272,6 +274,18 @@ export default function MembersTab({ scope }: { scope: "cx" | "school" }) {
                     unlockUser(row._slug)
                       .unwrap()
                       .then(() => toast.success("User unlocked successfully."))
+                      .catch(() => {}),
+                };
+              }
+              if (row._status === "DRAFT") {
+                if (!hasPermission(P.INVITE_TEAM_MEMBER)) return null;
+                return {
+                  label: "Submit for approval",
+                  className: "text-primary focus:text-primary focus:bg-primary/10",
+                  onActionClick: () =>
+                    submitDraft({ id: row._slug })
+                      .unwrap()
+                      .then(() => toast.success("Draft submitted for approval."))
                       .catch(() => {}),
                 };
               }
