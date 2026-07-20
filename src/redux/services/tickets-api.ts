@@ -48,6 +48,8 @@ export interface Ticket {
   source: string;
   requester: TicketUser;
   assignee: TicketUser | null;
+  /** Slug of the tenant that owns the ticket (also the ticket-number prefix). */
+  tenant: string;
   school: string | null;
   school_name: string;
   branch: string | null;
