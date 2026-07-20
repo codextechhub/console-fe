@@ -1,4 +1,5 @@
 import { CustomInput } from "@/components/custom/custom-input";
+import { PasswordRequirements } from "@/components/custom/password-requirements";
 import { Button } from "@/components/ui/button";
 import { routesPath } from "@/routes/routes-path";
 import { signUpSchema } from "@/schema/auth";
@@ -52,6 +53,7 @@ export default function SignUp() {
           {...formik.getFieldProps("password")}
           error={formik.touched.password ? formik.errors.password : ""}
         />
+        <PasswordRequirements password={formik.values.password} />
         <CustomInput
           label="Confirm Password"
           id="confirm_password"

@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
-import { CheckCircle2, Circle, Key } from "lucide-react";
+import { Key } from "lucide-react";
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CustomInput } from "@/components/custom/custom-input";
+import { PasswordRequirements } from "@/components/custom/password-requirements";
+import { passwordMeetsPolicy } from "@/lib/password-policy";
 import {
   useChangeMyPasswordMutation,
   useGetMyPasswordResetsQuery,
@@ -59,17 +61,9 @@ export default function MyPassword() {
 
   const strength = useMemo(() => passwordStrength(newPassword), [newPassword]);
 
-  const policy = [
-    { check: newPassword.length >= 12, label: "At least 12 characters" },
-    { check: /[A-Z]/.test(newPassword), label: "Uppercase letter" },
-    { check: /[a-z]/.test(newPassword), label: "Lowercase letter" },
-    { check: /\d/.test(newPassword), label: "A digit" },
-    { check: /[^A-Za-z0-9]/.test(newPassword), label: "A symbol" },
-  ];
-
   const canSubmitPw =
     oldPassword.length > 0 &&
-    policy.every((p) => p.check) &&
+    passwordMeetsPolicy(newPassword) &&
     newPassword === confirmPassword;
 
   const handleSubmitPw = () => {
@@ -178,28 +172,7 @@ export default function MyPassword() {
           </div>
 
           {/* Policy checklist */}
-          {newPassword.length > 0 && (
-            <div>
-              <p className="text-xs text-gray-01 mb-2">Policy requirements</p>
-              <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-                {policy.map((p) => (
-                  <span
-                    key={p.label}
-                    className={`flex items-center gap-1.5 text-xs ${
-                      p.check ? "text-green-600" : "text-gray-400"
-                    }`}
-                  >
-                    {p.check ? (
-                      <CheckCircle2 size={12} strokeWidth={2} />
-                    ) : (
-                      <Circle size={12} strokeWidth={1.5} />
-                    )}
-                    {p.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+          <PasswordRequirements password={newPassword} />
 
           {/* Footer row */}
           <div className="flex items-center justify-between gap-4 pt-1">

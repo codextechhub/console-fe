@@ -1,4 +1,12 @@
 import * as Yup from "yup";
+import { PASSWORD_POLICY_MESSAGE, passwordMeetsPolicy } from "@/lib/password-policy";
+
+// Single reusable field enforcing the canonical policy (12 chars + upper +
+// lower + digit + special) — the same rules the backend enforces and the
+// PasswordRequirements checklist displays.
+const passwordField = Yup.string()
+  .required("Password is required")
+  .test("password-policy", PASSWORD_POLICY_MESSAGE, (value) => passwordMeetsPolicy(value ?? ""));
 
 export const loginSchema = Yup.object({
   email: Yup.string()
@@ -16,26 +24,14 @@ export const forgotPasswordSchema = Yup.object({
 });
 
 export const resetPasswordSchema = Yup.object({
-  password: Yup.string()
-    .required("Password is required")
-    .min(8, "Password must be at least 8 characters")
-    .matches(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/,
-      "Password must include 8 characters, one uppercase, one lowercase, one number and one special character",
-    ),
+  password: passwordField,
   confirm_password: Yup.string()
     .required("Confirm password is required")
     .oneOf([Yup.ref("password"), ""], "Passwords must match"),
 });
 
 export const signUpSchema = Yup.object({
-  password: Yup.string()
-    .min(8, "Password must be at least 8 characters")
-    .matches(/[A-Z]/, "Password must include uppercase letters")
-    .matches(/[a-z]/, "Password must include lowercase letters")
-    .matches(/[0-9]/, "Password must include a number")
-    .matches(/[^A-Za-z0-9]/, "Password must include a special character")
-    .required("Password is required"),
+  password: passwordField,
   password_confirmation: Yup.string()
     .oneOf([Yup.ref("password")], "Passwords must match")
     .required("Please confirm your password"),

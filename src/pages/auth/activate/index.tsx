@@ -1,5 +1,6 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
+import { PasswordRequirements } from "@/components/custom/password-requirements";
 import { Button } from "@/components/ui/button";
 import {
   useActivationPreviewQuery,
@@ -135,6 +136,7 @@ export default function ActivateAccount() {
                 onChange={(e) => { setApiError(""); formik.handleChange(e); }}
                 error={formik.touched.password ? formik.errors.password : ""}
               />
+              <PasswordRequirements password={formik.values.password} />
               <CustomInput
                 label="Confirm Password"
                 id="confirm_password"
