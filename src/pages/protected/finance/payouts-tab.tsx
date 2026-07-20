@@ -49,7 +49,6 @@ function StatusPill({ status }: { status: string }) {
 
 const PROVIDERS: Record<string, { label: string; dot: string }> = {
   PAYSTACK: { label: "Paystack", dot: "bg-blue-500" },
-  OPAY: { label: "OPay", dot: "bg-green-500" },
   FAKE: { label: "Fake (test)", dot: "bg-gray-400" },
 };
 function ProviderTag({ provider }: { provider: string }) {

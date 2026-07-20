@@ -4,7 +4,7 @@
 // posting (Dr bank/collections, Cr AR), a New-checkout drawer, and a CSV export.
 //
 // Backed by the real model: initiate returns a hosted checkout_url; verify polls the PSP
-// and books a vs_finance receipt when settled. Honest: providers are OPay/Paystack (+
+// and books a vs_finance receipt when settled. Honest: providers are Paystack (+
 // Fake for testing); no email is sent (Copy link copies the real URL); the receipt
 // journal posts automatically on confirmation — the recap mirrors it, never a 2nd post.
 
@@ -45,7 +45,6 @@ function StatusPill({ status }: { status: string }) {
 
 const PROVIDERS: Record<string, { label: string; dot: string }> = {
   PAYSTACK: { label: "Paystack", dot: "bg-blue-500" },
-  OPAY: { label: "OPay", dot: "bg-green-500" },
   FAKE: { label: "Fake (test)", dot: "bg-gray-400" },
 };
 function ProviderTag({ provider }: { provider: string }) {

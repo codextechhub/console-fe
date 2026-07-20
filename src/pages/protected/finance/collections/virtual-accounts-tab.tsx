@@ -1,5 +1,5 @@
 // Collections → Virtual accounts. Dedicated funding NUBANs per customer, minted
-// through a payment gateway (Paystack / OPay / Fake-for-dev). Money transferred
+// through a payment gateway (Paystack / Fake-for-dev). Money transferred
 // to a customer's number arrives as a Collection that reconciles to their AR.
 //
 // The funding account number/name are FLS-stripped unless the caller holds
@@ -28,7 +28,6 @@ import type { VirtualAccount } from "@/redux/services/payments/payments-types";
 
 const PROVIDERS: { value: string; label: string }[] = [
   { value: "PAYSTACK", label: "Paystack" },
-  { value: "OPAY", label: "OPay" },
   { value: "FAKE", label: "Fake (testing)" },
 ];
 const providerLabel = (p: string) => PROVIDERS.find((x) => x.value === p)?.label ?? p;
