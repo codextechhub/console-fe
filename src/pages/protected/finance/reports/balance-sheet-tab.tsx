@@ -22,6 +22,17 @@ const BAND: Record<string, string> = {
 };
 const fmtAsOf = (s: string) => new Date(s).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 
+// A titled panel wrapping a balance-sheet column's rows. Declared at module
+// scope so it isn't recreated (and its subtree remounted) on every render.
+function Column({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-md bg-white ring-1 ring-gray-03">
+      <div className="border-b border-gray-03 px-4 py-2.5 font-mont text-sm font-semibold text-gray-01">{title}</div>
+      <table className="w-full"><tbody>{children}</tbody></table>
+    </div>
+  );
+}
+
 export function BalanceSheetReport({ entity, currency }: { entity: string; currency?: string | null }) {
   const { data, isLoading, isError, refetch } = useGetBalanceSheetQuery({ entity });
   const d = data?.data;
@@ -57,13 +68,6 @@ export function BalanceSheetReport({ entity, currency }: { entity: string; curre
       <td className="px-4 py-2.5">{label}</td>
       <td className="px-4 py-2.5 text-right tabular-nums"><Money kobo={kobo} currency={currency} align="right" /></td>
     </tr>
-  );
-
-  const Column = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="overflow-hidden rounded-md bg-white ring-1 ring-gray-03">
-      <div className="border-b border-gray-03 px-4 py-2.5 font-mont text-sm font-semibold text-gray-01">{title}</div>
-      <table className="w-full"><tbody>{children}</tbody></table>
-    </div>
   );
 
   const liabEquity = d.total_liabilities.kobo + d.total_equity.kobo;

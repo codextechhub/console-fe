@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { ClipboardCheck, FilePenLine, FileText, PackageCheck, Plus, Printer, Send } from "lucide-react";
 import { toast } from "sonner";
@@ -231,12 +231,15 @@ function ReceiptForm({ entity, currency, onClose, initial, sourcePurchaseOrderId
       accepted_qty: Number(existing?.accepted_qty ?? 0), rejected_qty: Number(existing?.rejected_qty ?? 0),
       unit_price: line.unit_price,
     };
-  }), [po?.lines]);
+  }), [po?.lines, initial?.lines]);
   const lines = enteredLines.length ? enteredLines : sourceLines;
 
-  useEffect(() => {
-    if (po?.vendor_code) setVendor(po.vendor_code);
-  }, [po?.vendor_code]);
+  // Adopt the PO's vendor once it loads / changes (render-phase, not an effect).
+  const [vendorFrom, setVendorFrom] = useState<string | null>(null);
+  if (po?.vendor_code && vendorFrom !== po.vendor_code) {
+    setVendorFrom(po.vendor_code);
+    setVendor(po.vendor_code);
+  }
 
   const updateLine = (index: number, patch: Partial<ReceiptLine>) => {
     setEnteredLines(lines.map((line, current) => current === index ? { ...line, ...patch } : line));

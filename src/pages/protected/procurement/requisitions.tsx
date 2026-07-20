@@ -104,14 +104,13 @@ export default function RequisitionsPage() {
 
   useEffect(() => {
     const normalizedSearch = search.trim();
-    if (!normalizedSearch) {
-      // Clearing the field must immediately restore the unfiltered query instead of waiting on the typing delay.
-      setDebouncedSearch("");
-      return;
-    }
+    if (!normalizedSearch) return;
     const timer = window.setTimeout(() => setDebouncedSearch(normalizedSearch), 350);
     return () => window.clearTimeout(timer);
   }, [search]);
+  // Clearing the field must immediately restore the unfiltered query instead of
+  // waiting on the typing delay — adjust during render.
+  if (!search.trim() && debouncedSearch !== "") setDebouncedSearch("");
 
   const params = useMemo(() => ({
     entity: entity!, page, ...(status ? { status } : {}),

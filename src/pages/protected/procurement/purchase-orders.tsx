@@ -98,14 +98,13 @@ export default function PurchaseOrdersPage() {
 
   useEffect(() => {
     const normalized = search.trim();
-    if (!normalized) {
-      // Clearing search must drop the previous server filter immediately instead of retaining stale rows.
-      setDebouncedSearch("");
-      return;
-    }
+    if (!normalized) return;
     const timer = window.setTimeout(() => setDebouncedSearch(normalized), 350);
     return () => window.clearTimeout(timer);
   }, [search]);
+  // Clearing search must drop the previous server filter immediately instead of
+  // retaining stale rows — adjust during render, not on a delay.
+  if (!search.trim() && debouncedSearch !== "") setDebouncedSearch("");
 
   const params = useMemo(() => ({
     entity: entity!, page, ...(status ? { status } : {}),

@@ -154,8 +154,10 @@ function BuildBatchDrawer({ open, onClose, entity, currency }: { open: boolean; 
   const setLine = (id: number, patch: Partial<Line>) => setLines((ls) => ls.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
   // A line is valid when it has a vendor (with a resolvable bank account) + amount.
+  // Look vendors up inline so the memo depends on `vendors` directly (not the
+  // per-render vendorByCode closure), which the React Compiler can preserve.
   const validItems = useMemo<PayoutBatchItemPayload[]>(() => lines.flatMap((l) => {
-    const v = vendorByCode(l.vendor);
+    const v = vendors.find((vd) => vd.code === l.vendor);
     const acct = benAcct(v);
     if (!v || l.amount <= 0 || !acct || l.wht > l.amount) return [];
     return [{ vendor: l.vendor, amount: l.amount, beneficiary_name: benName(v), beneficiary_account_number: acct, wht_amount: l.wht || undefined }];

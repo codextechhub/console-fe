@@ -9,7 +9,7 @@
 // real journal. Beneficiary name/account are FLS-masked to •••• without
 // payments.payout.view_sensitive. Settlement is webhook-driven — no fake "re-verify".
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -77,7 +77,10 @@ export function PayoutsTab({ entity, currency }: { entity: string; currency?: st
   const [group, setGroup] = useState("");
   const [provider, setProvider] = useState("");
   const [page, setPage] = useState(1);
-  useEffect(() => { setPage(1); }, [group, provider]);
+  // Filters are server-side; reset to page 1 on change (render-phase, not an effect).
+  const filterKey = `${group} ${provider}`;
+  const [pagedFor, setPagedFor] = useState(filterKey);
+  if (pagedFor !== filterKey) { setPagedFor(filterKey); setPage(1); }
 
   const listParams = useMemo(() => ({ entity, page, ...(group ? { group } : {}), ...(provider ? { provider } : {}) }), [entity, page, group, provider]);
   const { data, isLoading, isFetching, isError, refetch } = useGetPayoutsQuery(listParams);
@@ -218,11 +221,17 @@ function NewPayoutDrawer({ open, onClose, entity, currency }: { open: boolean; o
   const { data: vendorsData } = useGetVendorsQuery({ entity });
   const { data: acctData } = useGetAccountsQuery({ entity });
   const acctName = (code: string) => toArray(acctData?.data).find((a) => a.code === code)?.name;
-  useEffect(() => {
-    if (!vendor) return;
-    const v = toArray(vendorsData?.data).find((x) => x.code === vendor);
-    if (v) { setName(v.bank_account_name || v.name); setAcct(v.bank_account_number || ""); }
-  }, [vendor, vendorsData]);
+  // Prefill beneficiary fields once per selected vendor, as soon as its row is
+  // available — adjusted during render so a background vendor refetch never
+  // clobbers edits the user made after picking.
+  const vendorRow = vendor ? toArray(vendorsData?.data).find((x) => x.code === vendor) : undefined;
+  const [prefilledFor, setPrefilledFor] = useState<string | null>(null);
+  if (vendor && vendorRow && prefilledFor !== vendor) {
+    setPrefilledFor(vendor);
+    setName(vendorRow.bank_account_name || vendorRow.name);
+    setAcct(vendorRow.bank_account_number || "");
+  }
+  if (!vendor && prefilledFor !== null) setPrefilledFor(null);
 
   const close = () => {
     setVendor(""); setName(""); setAcct(""); setBankCode("");

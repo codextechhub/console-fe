@@ -11,7 +11,7 @@
 // generic-valuable richness — per-line fee code, optional-vs-required, the tax
 // breakdown, usage/activity, Duplicate — and drop the school-only bits. Frequency
 // is intentionally omitted (generation raises a single invoice, not a schedule).
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Search, Trash2, FileStack, Pencil, Copy, CircleCheck, RefreshCw } from "lucide-react";
 import {
@@ -284,9 +284,14 @@ function DuplicateDrawer({ structure, entity, onClose }: { structure: FeeStructu
   const [name, setName] = useState("");
   const [duplicate, { isLoading }] = useDuplicateFeeStructureMutation();
 
-  useEffect(() => {
-    if (structure) { setCode(`${structure.code}-COPY`); setName(`${structure.name} (copy)`); }
-  }, [structure]);
+  // Seed copy fields when a structure is chosen to duplicate (render-phase).
+  const [seededFor, setSeededFor] = useState<number | null>(null);
+  if (structure && seededFor !== structure.id) {
+    setSeededFor(structure.id);
+    setCode(`${structure.code}-COPY`); setName(`${structure.name} (copy)`);
+  } else if (!structure && seededFor !== null) {
+    setSeededFor(null);
+  }
   if (!structure) return null;
 
   const submit = async () => {
@@ -335,8 +340,12 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
   const [update, { isLoading: updating }] = useUpdateFeeStructureMutation();
   const isLoading = creating || updating;
 
-  useEffect(() => {
-    if (!open) return;
+  // Seed the form when the drawer opens or the edited structure changes
+  // (render-phase, not an effect).
+  const seedKey = structure?.id ?? "new";
+  const [seededFor, setSeededFor] = useState<number | string | null>(null);
+  if (open && seededFor !== seedKey) {
+    setSeededFor(seedKey);
     if (structure) {
       setCode(structure.code);
       setName(structure.name);
@@ -349,7 +358,8 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
     } else {
       setCode(""); setName(""); setAppliesTo("CUSTOMER"); setDescription(""); setActive(true); setItems([emptyItem()]);
     }
-  }, [open, structure]);
+  }
+  if (!open && seededFor !== null) setSeededFor(null);
 
   const setItem = (i: number, patch: Partial<EditItem>) => setItems((s) => s.map((it, idx) => idx === i ? { ...it, ...patch } : it));
   const addItem = () => setItems((s) => [...s, emptyItem()]);

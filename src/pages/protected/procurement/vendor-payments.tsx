@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { formatDistanceToNowStrict } from "date-fns";
 import {
@@ -108,11 +108,14 @@ function PaymentDrawer({ id, entity, currency, onClose }: { id: number | null; e
   const [post, { isLoading: posting }] = usePostVendorPaymentMutation();
   const [cancel, { isLoading: cancelling }] = useCancelVendorPaymentMutation();
   const [reverse, { isLoading: reversing }] = useReverseVendorPaymentMutation();
-  useEffect(() => {
+  // Reset the drawer's local UI when a different payment is opened (render-phase).
+  const [uiFor, setUiFor] = useState(id);
+  if (uiFor !== id) {
+    setUiFor(id);
     setTab("overview");
     setComment("");
     setEditing(false);
-  }, [id]);
+  }
   const activeStage = useMemo(() => (workflow?.stage_instances || []).filter((stage) => stage.status === "ACTIVE").at(-1), [workflow]);
   const canVote = !!activeStage && workflow?.status === "IN_PROGRESS" && activeStage.eligible_approvers.some((approver) => sameId(approver.user, uid) && approver.attempt === activeStage.attempt) && !activeStage.actions.some((action) => sameId(action.actor, uid) && !action.reversed_at && !action.is_reversal_of && action.attempt === activeStage.attempt);
   const editable = payment?.status === "DRAFT" && ["NOT_SUBMITTED", "REJECTED"].includes(payment.approval_state);

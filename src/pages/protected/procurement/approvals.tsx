@@ -72,7 +72,10 @@ export default function ProcurementApprovalsPage() {
     return () => window.clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => setPage(1), [debouncedSearch, documentType, entity]);
+  // Reset to page 1 when the server-side filters change (render-phase, not an effect).
+  const filterKey = `${debouncedSearch} ${documentType} ${entity}`;
+  const [pagedFor, setPagedFor] = useState(filterKey);
+  if (pagedFor !== filterKey) { setPagedFor(filterKey); setPage(1); }
 
   const { data, isLoading, isFetching, isError, error, refetch } = useGetProcurementApprovalsQuery(
     {
@@ -162,11 +165,14 @@ function ApprovalDrawer({ id, entity, currency, onClose }: {
   const approval = data?.data;
   const [recordAction, { isLoading: deciding }] = useRecordProcurementApprovalActionMutation();
 
-  useEffect(() => {
+  // Reset the drawer's local UI when a different approval is opened (render-phase).
+  const [uiFor, setUiFor] = useState(id);
+  if (uiFor !== id) {
+    setUiFor(id);
     setTab("overview");
     setComment("");
     setConfirmReject(false);
-  }, [id]);
+  }
 
   const activeStage = useMemo(() => {
     const active = (approval?.stages ?? []).filter((stage) => stage.status === "ACTIVE");

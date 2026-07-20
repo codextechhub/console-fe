@@ -4,7 +4,7 @@
 // movements summary; direction / status / provider filters are server-side; a row drawer
 // shows the movement's detail. Payout beneficiary name/account are FLS-masked server-side.
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Download, ArrowDownLeft, ArrowUpRight, Receipt, Banknote } from "lucide-react";
 import { DataTable, Money, KpiCard, DetailDrawer, toArray, type Column } from "@/components/finance-ui";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,15 @@ export function TransactionsTab({ entity, currency }: { entity: string; currency
   const [provider, setProvider] = useState("");
   const [page, setPage] = useState(1);
   const [picked, setPicked] = useState<Movement | null>(null);
-  useEffect(() => { setPage(1); }, [direction, group, provider]);
+
+  // Filters are server-side; reset to page 1 when any changes (adjust during
+  // render, not an effect, so the reset lands in the same pass).
+  const filterKey = `${direction} ${group} ${provider}`;
+  const [pagedFor, setPagedFor] = useState(filterKey);
+  if (pagedFor !== filterKey) {
+    setPagedFor(filterKey);
+    setPage(1);
+  }
 
   const listParams = useMemo(() => ({ entity, page, ...(direction ? { direction } : {}), ...(group ? { group } : {}), ...(provider ? { provider } : {}) }), [entity, page, direction, group, provider]);
   const { data, isLoading, isFetching, isError, refetch } = useGetMovementsQuery(listParams);

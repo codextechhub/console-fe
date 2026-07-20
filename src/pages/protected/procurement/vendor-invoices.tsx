@@ -212,11 +212,15 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
   const [directLines, setDirectLines] = useState<DocLine[]>(initial && !initial.purchase_order_id ? initial.lines.map((line) => ({ id: crypto.randomUUID(), description: line.description, quantity: Number(line.quantity), unitPriceKobo: line.unit_price, account: line.expense_code, taxCode: line.tax_code_id ? String(line.tax_code_id) : "", costCenter: "" })) : [emptyLine()]);
   const { data: poData } = useGetPurchaseOrderQuery({ id: Number(po), entity }, { skip: !po });
   const source = poData?.data;
-  useEffect(() => {
-    if (!source || initial?.purchase_order_id === source.id) return;
+  // Prefill vendor + PO lines once when a PO different from the initial one is
+  // chosen and its data has loaded — adjusted during render so a background
+  // refetch never clobbers edits made after picking.
+  const [filledFrom, setFilledFrom] = useState<number | null>(null);
+  if (source && initial?.purchase_order_id !== source.id && filledFrom !== source.id) {
+    setFilledFrom(source.id);
     setVendor(source.vendor_code);
     setPoLines(source.lines.filter((line) => Number(line.received_qty) - Number(line.invoiced_qty) > 0).map((line) => ({ po_line: line.id, description: line.description, expense_account: line.expense_code, quantity: Math.max(0, Number(line.received_qty) - Number(line.invoiced_qty)), unit_price: line.unit_price })));
-  }, [source, initial?.purchase_order_id]);
+  }
   const [create, { isLoading: creating }] = useCreateVendorInvoiceMutation();
   const [update, { isLoading: updating }] = useUpdateVendorInvoiceMutation();
   const [submit, { isLoading: submitting }] = useSubmitVendorInvoiceMutation();

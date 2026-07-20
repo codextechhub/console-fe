@@ -23,7 +23,9 @@ export default defineConfig([
   {
     // shadcn-style component files co-export their cva variants and small
     // helpers; losing fast-refresh for these vendored files is acceptable.
-    files: ['src/components/**/*.{ts,tsx}'],
+    // The health `primitives` module is the same co-export pattern (shared
+    // building blocks + HEALTH_POLL / statusStyle helpers) by choice.
+    files: ['src/components/**/*.{ts,tsx}', 'src/pages/protected/health/primitives.tsx'],
     rules: {
       'react-refresh/only-export-components': 'off',
     },

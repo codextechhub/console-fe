@@ -3,7 +3,7 @@
 // this week / unallocated / count), status + method filters, an avatar table with
 // each receipt's unallocated amount + status, Export, Record receipt, and a row-
 // click allocation drawer.
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { Search, Plus, Download, Printer } from "lucide-react";
 import { toast } from "sonner";
@@ -59,7 +59,13 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
 
   const [page, setPage] = useState(1);
   // All filters are server-side; reset to page 1 when any of them changes.
-  useEffect(() => { setPage(1); }, [search, status, method]);
+  // Adjust during render (not an effect) so the reset lands in the same pass.
+  const filterKey = `${search} ${status} ${method}`;
+  const [pagedFor, setPagedFor] = useState(filterKey);
+  if (pagedFor !== filterKey) {
+    setPagedFor(filterKey);
+    setPage(1);
+  }
 
   const listParams = useMemo(() => ({ entity, page, ...(search ? { search } : {}), ...(status ? { status } : {}), ...(method ? { method } : {}) }), [entity, page, search, status, method]);
   const { data, isLoading, isFetching, isError, refetch } = useGetPaymentsQuery(listParams);

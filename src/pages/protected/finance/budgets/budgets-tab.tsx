@@ -4,7 +4,7 @@
 // drawer that lets you build/edit a DRAFT's lines (auto-coded like an invoice) and,
 // once approved, read its variance. Budget lines are income/expense GLs only.
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
@@ -234,9 +234,14 @@ function NewBudgetDrawer({ open, onClose, entity, currency }: { open: boolean; o
   const fys = useMemo(() => toArray(fyData?.data), [fyData]);
   const [create, { isLoading }] = useCreateBudgetMutation();
 
-  useEffect(() => { if (open) { setName(""); setYear(""); setRows([newLine()]); } }, [open]);
-  // default to the most recent open year once loaded
-  useEffect(() => { if (open && !year && fys.length) setYear(String(fys[0].year)); }, [open, fys, year]);
+  // Reset the form each time the drawer opens, then default to the newest open
+  // fiscal year once the list loads. Both adjust during render, not in effects.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) { setName(""); setYear(""); setRows([newLine()]); }
+  }
+  if (open && !year && fys.length) setYear(String(fys[0].year));
 
   const validRows = rows.filter(lineValid);
   const submit = async () => {
@@ -280,24 +285,23 @@ function BudgetDrawer({ budgetId, entity, currency, onClose }: { budgetId: numbe
 
   if (budgetId == null || !budget) return null;
   return isDraft
-    ? <DraftEditor budget={budget} entity={entity} currency={currency} onClose={onClose} />
+    ? <DraftEditor key={budget.id} budget={budget} entity={entity} currency={currency} onClose={onClose} />
     : <VarianceView budget={budget} entity={entity} currency={currency} onClose={onClose} />;
 }
 
 function DraftEditor({ budget, entity, currency, onClose }: { budget: Budget; entity: string; currency?: string | null; onClose: () => void }) {
   const { can } = useCan();
+  // The parent keys this component by budget id, so local edit state is
+  // seeded once from props here and reset by remount when a different budget
+  // is opened — no effect needed to re-sync.
   const [name, setName] = useState(budget.name);
-  const [rows, setRows] = useState<EditLine[]>([]);
+  const [rows, setRows] = useState<EditLine[]>(() =>
+    budget.lines.map((l) => ({ key: crypto.randomUUID(), account: l.account, cost_center: l.cost_center ?? "", period_no: l.period_no, amount: l.amount })));
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [update] = useUpdateBudgetMutation();
   const [setLines, { isLoading: saving }] = useSetBudgetLinesMutation();
   const [approve, { isLoading: approving }] = useApproveBudgetMutation();
   const [remove, { isLoading: deleting }] = useDeleteBudgetMutation();
-
-  useEffect(() => {
-    setName(budget.name);
-    setRows(budget.lines.map((l) => ({ key: crypto.randomUUID(), account: l.account, cost_center: l.cost_center ?? "", period_no: l.period_no, amount: l.amount })));
-  }, [budget]);
 
   const validRows = rows.filter(lineValid);
   const save = async () => {

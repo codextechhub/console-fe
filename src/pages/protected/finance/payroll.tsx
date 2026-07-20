@@ -11,7 +11,7 @@
 // schedules need per-employee figures, so they're disabled (with a tooltip) without the
 // sensitive grant. PAYE/pension are remitted via Tax Remittance.
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { Link } from "react-router";
 import { skipToken } from "@reduxjs/toolkit/query";
@@ -459,12 +459,16 @@ function EmployeeDrawer({ open, salary, entity, currency, onClose }: { open: boo
   const [update, { isLoading: updating }] = useUpdateEmployeeSalaryMutation();
   const isLoading = creating || updating;
 
-  // Sync the form to the row being edited (amounts only populate if not FLS-stripped).
-  useEffect(() => {
-    if (!open) return;
+  // Seed the form to the row being edited when the drawer opens (amounts only
+  // populate if not FLS-stripped). Adjusted during render, not in an effect.
+  const seedKey = salary?.id ?? "new";
+  const [seededFor, setSeededFor] = useState<number | string | null>(null);
+  if (open && seededFor !== seedKey) {
+    setSeededFor(seedKey);
     if (salary) { setName(salary.name); setStructureId(salary.structure_id ? String(salary.structure_id) : ""); setGross(salary.gross_amount ?? 0); setPaye(salary.paye_amount ?? 0); setPension(salary.pension_amount ?? 0); setCostCenter(salary.cost_center ?? ""); setActive(salary.is_active); }
     else { setName(""); setStructureId(""); setGross(0); setPaye(0); setPension(0); setCostCenter(""); setActive(true); }
-  }, [open, salary]);
+  }
+  if (!open && seededFor !== null) setSeededFor(null);
 
   const structure = structures.find((s) => String(s.id) === structureId);
   const derived = structure ? deriveFromStructure(gross, structure.components) : null;
@@ -598,12 +602,17 @@ function StructureDrawer({ open, structure, entity, currency, onClose }: { open:
   const [update, { isLoading: updating }] = useUpdateSalaryStructureMutation();
   const isLoading = creating || updating;
 
-  useEffect(() => {
-    if (!open) return;
+  // Seed the form when the drawer opens or the edited structure changes
+  // (render-phase, not an effect).
+  const seedKey = structure?.id ?? "new";
+  const [seededFor, setSeededFor] = useState<number | string | null>(null);
+  if (open && seededFor !== seedKey) {
+    setSeededFor(seedKey);
     if (structure) { setName(structure.name); setDescription(structure.description); setActive(structure.is_active); setComps(structure.components.length ? structure.components.map((c) => ({ ...c })) : [emptyComp()]); }
     else { setName(""); setDescription(""); setActive(true); setComps([emptyComp()]); }
     setPreviewGross(50000000);
-  }, [open, structure]);
+  }
+  if (!open && seededFor !== null) setSeededFor(null);
 
   const setComp = (i: number, patch: Partial<SalaryComponent>) => setComps((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
   const setKind = (i: number, kind: SalaryComponent["kind"]) => setComp(i, kind === "DEDUCTION"
