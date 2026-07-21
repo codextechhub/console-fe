@@ -365,7 +365,7 @@ category; and only real workflow document types are included.
   drawer with category + vendor pickers. `catalog-items/`.
 
 ### 4. Sourcing
-- **RFQs ◐ / Quotations ◐** — being rebuilt **together as one section** (one
+- **RFQs ☑ / Quotations ☑** — rebuilt and verified **together as one section** (one
   competitive-sourcing flow: issue → quote → submit → award; the RFQ drawer lists
   quotations, Compare awards them, award flips both documents). Contracts ships
   separately afterwards. **Resolved decisions (2026-07-20, approved):**
@@ -410,6 +410,42 @@ category; and only real workflow document types are included.
     Export anywhere.
   `rfqs/` (+detail/issue/cancel/close/summary/PATCH), `quotations/`
   (+detail/submit/award/PATCH).
+  - **Invited vendors + budget estimate (2026-07-21 correction).** The first
+    build wrongly dropped the prototype's **Invite Vendors** section and **Budget
+    Estimate (₦)** field; both are now built end-to-end. New `RfqInvitation`
+    model (`rfq` CASCADE FK, `vendor` PROTECT FK, `unique_together(rfq, vendor)`,
+    index on `rfq`) — a pure addressee record with **no status field**:
+    "responded" is *derived* (a quotation exists from that vendor on that RFQ).
+    New `budget_estimate` MoneyField (nullable) on `RequestForQuotation`.
+    Migration `0012_requestforquotation_budget_estimate_rfqinvitation`.
+    **Product rules (approved):** (1) **Invited-only** — a vendor may submit a
+    quotation against an RFQ *only if it holds an invitation on that RFQ*;
+    enforced at quotation-create (400) and defensively in `submit_quotation`
+    (422). (2) **Issue requires ≥1 invitation** as well as ≥1 line ("an RFQ must
+    invite at least one vendor before it can be issued"). Invitations are set via
+    `sourcing.set_rfq_invitations(rfq, vendors)` — draft-only, same-entity +
+    purchase-eligible, de-duplicated, and it **refuses to drop a vendor that has
+    already responded** (removing it would strand that bid's history). RFQ
+    create/PATCH accept `invited_vendors` (codes or ids) + `budget_estimate`
+    (strict integer kobo ≥0; float/negative rejected). RfqList adds
+    `invited_count` (annotation) + `budget_estimate`; RfqDetail adds
+    `budget_estimate` + `invitations[]` (`{vendor_id, vendor_code, vendor_name,
+    responded, quotation_id, quotation_status, quotation_total}`, joined in Python
+    over prefetched invitations+quotations — no N+1). No new permission keys
+    (invitations ride `rfq.create`/`rfq.update`, quoting rides
+    `quotation.create`). **FE:** the New/Edit RFQ drawer gained a **Budget
+    estimate** `MoneyInput` and an **Invite vendors** chip editor (purchase-
+    eligible `SearchSelect` → removable chips; a responded vendor's ✕ is disabled
+    with a tooltip), and its footer is now **Save Draft / Create & Issue**
+    (Create & Issue enabled only with ≥1 invited vendor AND ≥1 line, matching the
+    backend). The RFQ drawer gained a **Vendors invited** tab (Responded/Awaited
+    pill + quotation total) plus Budget/Invited overview fields; the list gained an
+    **Invited** column. The New Quotation drawer's Vendor picker is now
+    constrained to the selected RFQ's invited, not-yet-quoted vendors (honest with
+    the invited-only rule). Seed extended idempotently: the issued demo RFQ invites
+    the three quoting vendors **plus** a fourth (`SIDMACH`) that never responds (a
+    real "Awaited" row) and carries a budget; awarded/draft/cancelled RFQs invite
+    1–2 vendors; every RFQ is invited before it is issued.
 - **Contracts ☐** — list (status, renewal dates) · detail (milestones, renewals) ·
   Activate / Renew / Terminate / Complete-milestone. `contracts/` (+ actions).
   *(FE api todo.)*
@@ -523,3 +559,58 @@ drift — migration `0011`'s catalog index name doesn't match the model Meta's a
 (wants a `0012` rename); align the name before the backend commit. (2) A pre-existing FE
 build-breaker in `src/hooks/use-action-search.ts` (userId typed `number` passed to string
 popularity helpers) was fixed here — unrelated to Catalog.
+
+Sourcing (RFQs + Quotations) is now rebuilt and verified as one section. FE: `sourcing.tsx`
+replaced by `sourcing/rfqs.tsx` + `sourcing/quotations.tsx` + `sourcing/shared.tsx`
+(components: Field/ExpiredPill/ActivityFeed/Compare modal) + `sourcing/helpers.ts` (pure
+tab/date/forbidden helpers, split out so shared.tsx stays component-only for Fast Refresh);
+router points the two leaf routes at the two pages and the old single-component page is
+deleted. RFQs: real summary KPI strip (Draft/Open/Responses in/Closing ≤7d), status tabs,
+debounced search, `DataTable` with phone cards, `DetailDrawer` (Overview · Lines ·
+Quotations · Activity), Issue/Close/Cancel footer actions, and a draft-only create/edit
+`FormDrawer` with an approved-requisition prefill. Quotations: `Compare` + `New Quotation`
+beside the heading, status tabs + RFQ/vendor filters + search, list with honest amber
+`Expired` overlay pill (never replacing the persisted status), `DetailDrawer` (Overview ·
+Line comparison with real sibling-lowest per RFQ line · Activity), Submit/Award footer,
+awarded "Locked — awarded to <PO>" hint, and a draft-only create/edit drawer with an
+ISSUED-only RfqPicker, purchase-eligible VendorPicker, MoneyInput priced rows and RFQ-line
+prefill. The **Compare modal** is the deliberate improvement over the prototype: it drops
+the prototype's invented warranty/spec-compliance/vendor-grade/recommendation and shows only
+real recorded criteria (total with lowest-bid tag, lead time, valid-until with expiry flag,
+submitted, reference, status) plus a per-RFQ-line unit-price matrix with per-line lowest
+highlighted, an Award button per eligible column, and an explicit "no spec/warranty/grade in
+the data" footer. Backend: split list/detail serializers with count/requisition annotations
+and an audit `activity` feed; new `rfqs/summary/` KPI endpoint; new `close_rfq`
+(ISSUED→CLOSED) and draft-only PATCH for RFQs and quotations behind new
+`procurement.rfq.update` / `procurement.quotation.update` keys (registry now 58); award now
+row-locks the quotation **and** its RFQ (closes the double-award race), rejects a
+lapsed-validity award, and close/cancel reject the RFQ's live quotations (audited); quotation
+create/submit/award all re-check vendor purchasing eligibility; quotation-line `rfq_line`
+must belong to the referenced RFQ (cross-RFQ leak fixed); quantities are positive/bounded,
+kobo strictly integer ≥0, dates order-checked, line accounts active-postable EXPENSE in
+entity. Two new audit actions (`RFQ_CLOSED`, `QUOTATION_REJECTED`) → choices-only migration
+`vs_finance/0008_alter_financeauditlog_action` (no schema change). `seed_procurement_demo`
+gains idempotent real-service fixtures: a draft RFQ, an issued RFQ with 3 competing submitted
+quotes, an awarded RFQ with its real draft PO + rejected sibling, and a cancelled RFQ.
+Verified 2026-07-21 against the real CODEX backend: 126 Procurement tests pass (was 108 — adds
+sourcing security/lifecycle/eligibility/award-idempotency coverage **and** the previously
+deferred Catalog insights-permission/entity-scoping/code-immutability/validation coverage);
+Django check + `makemigrations --check` clean; frontend production build + changed-file lint
+clean. Populated desktop RFQ/quotation lists, RFQ drawer (all 4 tabs), quotation drawer (line
+comparison with real lowest), the Compare modal on the 3-bid RFQ, and both create drawers were
+driven with zero console errors; outside-click dismissal fired **zero** create/update
+mutations (request-monitored); 390px phone + 820px tablet audit reported zero page overflow
+with genuine card layouts. Verifier login/audit rows scrubbed. The unrelated `vs_audit`
+rename remains untouched and is not part of these commits.
+
+**Sourcing correction (2026-07-21) — invited vendors + budget estimate.** The section
+above shipped without the prototype's invited-vendor list and budget-estimate field; both
+are now added end-to-end (see the §4 "Invited vendors + budget estimate" note for the full
+contract). New `RfqInvitation` model + `budget_estimate` MoneyField (migration `0012`),
+invited-only quotation enforcement, and the issue-requires-invitation rule. Backend: 134
+`vs_procurement` tests pass (was 126 — adds invite validation/dedupe, issue-requires-
+invitation, invited-only create + defensive submit, PATCH replace + responded-removal
+protection, budget-estimate bounds, and RfqDetail responded-derivation + invited_count
+entity-scoping); `manage.py check` and `makemigrations --check` clean. Frontend: production
+build + changed-file ESLint clean. Not yet re-verified with `/verify-design` or the mobile
+audit (orchestrator runs those). No new permission keys; `PERMISSIONS_AUDIT.md` unchanged.

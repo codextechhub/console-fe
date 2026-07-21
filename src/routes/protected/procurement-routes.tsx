@@ -10,7 +10,8 @@ const GoodsReceipts = lazy(() => import("@/pages/protected/procurement/goods-rec
 const VendorInvoices = lazy(() => import("@/pages/protected/procurement/vendor-invoices"));
 const VendorPayments = lazy(() => import("@/pages/protected/procurement/vendor-payments"));
 const Approvals = lazy(() => import("@/pages/protected/procurement/approvals"));
-const Sourcing = lazy(() => import("@/pages/protected/procurement/sourcing"));
+const SourcingRfqs = lazy(() => import("@/pages/protected/procurement/sourcing/rfqs"));
+const SourcingQuotations = lazy(() => import("@/pages/protected/procurement/sourcing/quotations"));
 const Contracts = lazy(() => import("@/pages/protected/procurement/contracts"));
 const Inventory = lazy(() => import("@/pages/protected/procurement/inventory"));
 const Analytics = lazy(() => import("@/pages/protected/procurement/analytics"));
@@ -27,8 +28,9 @@ export const procurementRoutes: RouteObject[] = [
   { path: P.VENDOR_INVOICES, element: <VendorInvoices /> },
   { path: P.VENDOR_PAYMENTS, element: <VendorPayments /> },
   { path: P.APPROVALS, element: <Approvals /> },
-  { path: P.SOURCING, element: <Sourcing /> },
-  { path: `${P.SOURCING}/:section`, element: <Sourcing /> },
+  { path: P.SOURCING, element: <SourcingRfqs /> },
+  { path: `${P.SOURCING}/rfqs`, element: <SourcingRfqs /> },
+  { path: `${P.SOURCING}/quotations`, element: <SourcingQuotations /> },
   { path: P.CONTRACTS, element: <Contracts /> },
   { path: P.INVENTORY, element: <Inventory /> },
   { path: `${P.INVENTORY}/:section`, element: <Inventory /> },

@@ -68,7 +68,7 @@ The top-right avatar opens a dropdown. All items are visible to every authentica
 
 ## 2. Page-level Buttons & Actions
 
-> Category master editing added `procurement.category.update` in July 2026; the Procurement registry now contains 56 keys.
+> Category master editing added `procurement.category.update` in July 2026; the Procurement registry then contained 56 keys. The Sourcing rebuild (July 2026) added `procurement.rfq.update` and `procurement.quotation.update` for draft RFQ/quotation editing, bringing the Procurement registry to 58 keys.
 
 ### Procurement → Vendors
 
@@ -97,6 +97,35 @@ button is only a UI convenience. Inactive categories remain readable for history
 excluded from new assignments and future purchasing defaults. Parent changes use the same
 update grant and enforce same-entity ancestry, cycle prevention, active-parent governance,
 and a maximum of three derived levels on the backend.
+
+### Procurement → Sourcing (RFQs)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| RFQ list, detail and summary KPIs | backend view + route visibility | `P.PROC_VIEW_RFQS` (`procurement.rfq.view`, `700601`) |
+| New RFQ | create drawer | `P.PROC_CREATE_RFQ` (`procurement.rfq.create`, `700602`) |
+| Edit RFQ (draft only) | detail-drawer action | `P.PROC_UPDATE_RFQ` (`procurement.rfq.update`, `700603`) |
+| Issue / Close / Cancel RFQ | lifecycle actions | `P.PROC_ISSUE_RFQ` (`procurement.rfq.issue`, `700604`) |
+
+Edit is exposed only for `DRAFT` RFQs (the backend refuses a non-draft PATCH). Close and
+Cancel both reject the RFQ's still-in-contention quotations; Issue/Close/Cancel share the
+`rfq.issue` grant. Every read and write is entity-scoped by `resolve_entity`.
+
+### Procurement → Sourcing (Quotations)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Quotation list, detail and Compare | backend view + route visibility | `P.PROC_VIEW_QUOTATIONS` (`procurement.quotation.view`, `700701`) |
+| New Quotation | create drawer | `P.PROC_CREATE_QUOTATION` (`procurement.quotation.create`, `700702`) |
+| Edit Quotation (draft only) | detail-drawer action | `P.PROC_UPDATE_QUOTATION` (`procurement.quotation.update`, `700703`) |
+| Submit Quotation | approval-into-contention action | `P.PROC_SUBMIT_QUOTATION` (`procurement.quotation.submit`, `700704`) |
+| Award Quotation → draft PO | award action (list, drawer and Compare) | `P.PROC_AWARD_QUOTATION` (`procurement.quotation.award`, `700705`) |
+
+Edit is draft-only. Quotation create/submit/award all re-check vendor purchasing
+eligibility (active, not on hold, KYC not rejected); award additionally locks the
+quotation and its RFQ, rejects a lapsed-validity bid, builds the draft PO from the quoted
+lines and rejects the losing bids. Awarding across entities or from an ineligible vendor is
+refused on the backend regardless of the frontend gate.
 
 ### Procurement → Purchase Orders
 

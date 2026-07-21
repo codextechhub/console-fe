@@ -21,6 +21,7 @@ const VARIANT_BY_STATUS: Record<string, BadgeVariant> = {
   MATCHED: "success",
   RECONCILED: "success",
   SETTLED: "success",
+  RESPONDED: "success",
   ISSUED: "success",
   RECEIVED: "success",
   IN_STOCK: "success",
@@ -34,6 +35,7 @@ const VARIANT_BY_STATUS: Record<string, BadgeVariant> = {
   RUNNING: "pending",
   SUBMITTED: "pending",
   SENT: "pending",
+  AWAITED: "pending",
   LOW_STOCK: "pending",
   // closed / neutral-terminal
   UNPAID: "inactive",

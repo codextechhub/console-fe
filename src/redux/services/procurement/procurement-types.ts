@@ -437,18 +437,100 @@ export interface VendorContract {
   milestones: ContractMilestone[];
 }
 
+// Sourcing activity feed row (finance-audit rows for one document).
+export interface SourcingActivity {
+  id: number;
+  action: string;
+  message: string;
+  status: string;
+  actor_name: string;
+  created_at: string;
+}
+
+export interface RfqLine {
+  id: number;
+  line_no: number;
+  description: string;
+  quantity: string;
+  requisition_line_id: number | null;
+  expense_account_id: number | null;
+  expense_code: string | null;
+  tax_code_id: number | null;
+}
+
+// A received quotation as summarised inside the RFQ detail drawer.
+export interface RfqQuotationSummary {
+  id: number;
+  document_number: string;
+  vendor_code: string;
+  vendor_name: string;
+  quotation_status: string;
+  total: number;
+  lead_time_days: number | null;
+  quote_date: string;
+  valid_until: string | null;
+  is_expired: boolean;
+}
+
+// An invited vendor on an RFQ. `responded` is derived server-side (a quotation exists
+// from this vendor on this RFQ); the quotation_* fields are populated when it has.
+export interface RfqInvitation {
+  vendor_id: number;
+  vendor_code: string;
+  vendor_name: string;
+  responded: boolean;
+  quotation_id: number | null;
+  quotation_status: string | null;
+  quotation_total: number | null;
+}
+
+// List row (lean; counts are backend annotations).
 export interface Rfq {
   id: number;
   document_number: string;
   rfq_status: string;
   title: string;
   requisition_id: number | null;
+  requisition_number: string | null;
   issue_date: string | null;
   response_due_date: string | null;
-  notes: string;
-  lines: { id: number; line_no: number; description: string; quantity: string }[];
+  budget_estimate: number | null;
+  line_count: number;
+  response_count: number;
+  invited_count: number;
 }
 
+// Detail record (superset of the list row).
+export interface RfqDetail extends Rfq {
+  notes: string;
+  lines: RfqLine[];
+  invitations: RfqInvitation[];
+  quotations: RfqQuotationSummary[];
+  activity: SourcingActivity[];
+}
+
+export interface RfqSummary {
+  draft: number;
+  open: number;
+  responses_in: number;
+  closing_soon: number;
+}
+
+export interface QuotationLine {
+  id: number;
+  line_no: number;
+  description: string;
+  rfq_line_id: number | null;
+  expense_account_id: number | null;
+  expense_code: string | null;
+  quantity: string;
+  unit_price: number;
+  tax_code_id: number | null;
+  net_amount: number;
+  tax_amount: number;
+}
+
+// List row. `is_expired` is a display-only overlay (never a persisted status).
 export interface Quotation {
   id: number;
   document_number: string;
@@ -457,17 +539,25 @@ export interface Quotation {
   rfq_number: string;
   vendor_id: number;
   vendor_code: string;
+  vendor_name: string;
   quote_date: string;
   valid_until: string | null;
-  lead_time_days: number;
+  lead_time_days: number | null;
   reference: string;
+  total: number;
+  total_naira: string;
+  is_expired: boolean;
+  awarded_po_id: number | null;
+}
+
+export interface QuotationDetail extends Quotation {
+  currency_id: number | null;
   notes: string;
   subtotal: number;
   tax_total: number;
-  total: number;
-  total_naira: string;
-  awarded_po_id: number | null;
-  lines: { id: number; line_no: number; description: string; quantity: string; unit_price: number; net_amount: number }[];
+  awarded_po_number: string | null;
+  lines: QuotationLine[];
+  activity: SourcingActivity[];
 }
 
 // ── Inventory ────────────────────────────────────────────────────────────────

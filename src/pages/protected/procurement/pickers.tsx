@@ -53,9 +53,10 @@ export function RequisitionPicker({ entity, value, onChange, label, placeholder 
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} revealOnSearch />;
 }
 
-export function RfqPicker({ entity, value, onChange, label, placeholder = "Select RFQ", isRequired }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string; isRequired?: boolean }) {
-  const { data, isLoading } = useGetRfqsQuery({ entity });
-  const options = toArray(data?.data).map((r) => ({ value: String(r.id), label: `${r.document_number} — ${r.title}` }));
+export function RfqPicker({ entity, value, onChange, label, placeholder = "Select RFQ", isRequired, status }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string; isRequired?: boolean; status?: string }) {
+  // Quotation capture only makes sense against ISSUED RFQs; pass status to scope the list.
+  const { data, isLoading } = useGetRfqsQuery({ entity, ...(status ? { status } : {}) });
+  const options = toArray(data?.data).map((r) => ({ value: String(r.id), label: `${r.document_number} — ${r.title || "Untitled"}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} revealOnSearch />;
 }
 

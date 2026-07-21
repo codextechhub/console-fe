@@ -6,7 +6,10 @@ import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "../finance/api-types";
 import type {
   Quotation,
+  QuotationDetail,
   Rfq,
+  RfqDetail,
+  RfqSummary,
   StockItem,
   StockMovement,
   VendorContract,
@@ -68,35 +71,65 @@ export const procurementExtApi = baseApi.injectEndpoints({
     }),
 
     // RFQs
-    getRfqs: b.query<PaginatedEnvelope<Rfq>, E>({
+    getRfqs: b.query<PaginatedEnvelope<Rfq>, E & { q?: string }>({
       query: (p) => ({ url: `/procurement/rfqs/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcRfqs"],
     }),
-    createRfq: b.mutation<ApiEnvelope<Rfq>, { entity: string; title?: string; issue_date: string; response_due_date?: string; notes?: string; lines: Record<string, unknown>[] }>({
+    getRfq: b.query<ApiEnvelope<RfqDetail>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/rfqs/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcRfqs"],
+    }),
+    getRfqSummary: b.query<ApiEnvelope<RfqSummary>, { entity: string }>({
+      query: (p) => ({ url: `/procurement/rfqs/summary/${qs(p)}`, method: "GET" }),
+      providesTags: ["ProcRfqs"],
+    }),
+    createRfq: b.mutation<ApiEnvelope<RfqDetail>, { entity: string; title?: string; issue_date: string; response_due_date?: string; budget_estimate?: number | null; invited_vendors?: string[]; notes?: string; lines: Record<string, unknown>[] }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/rfqs/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcRfqs"],
     }),
-    issueRfq: b.mutation<ApiEnvelope<Rfq>, Act>({
+    updateRfq: b.mutation<ApiEnvelope<RfqDetail>, { id: number; entity: string; title?: string; issue_date?: string; response_due_date?: string; budget_estimate?: number | null; invited_vendors?: string[]; notes?: string; lines?: Record<string, unknown>[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/rfqs/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["ProcRfqs"],
+    }),
+    issueRfq: b.mutation<ApiEnvelope<RfqDetail>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/rfqs/${id}/issue/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["ProcRfqs"],
     }),
+    closeRfq: b.mutation<ApiEnvelope<RfqDetail>, Act & { reason?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/rfqs/${id}/close/${qs({ entity })}`, method: "POST", body }),
+      // Closing rejects the RFQ's live quotations, so refresh the quotation lists too.
+      invalidatesTags: ["ProcRfqs", "ProcQuotations"],
+    }),
+    cancelRfq: b.mutation<ApiEnvelope<RfqDetail>, Act & { reason?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/rfqs/${id}/cancel/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcRfqs", "ProcQuotations"],
+    }),
 
     // Quotations
-    getQuotations: b.query<PaginatedEnvelope<Quotation>, E & { rfq?: string; vendor?: string }>({
+    getQuotations: b.query<PaginatedEnvelope<Quotation>, E & { rfq?: string; vendor?: string; q?: string }>({
       query: (p) => ({ url: `/procurement/quotations/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcQuotations"],
     }),
-    createQuotation: b.mutation<ApiEnvelope<Quotation>, { entity: string; rfq: number; vendor: string; quote_date: string; valid_until?: string; reference?: string; lines: Record<string, unknown>[] }>({
+    getQuotation: b.query<ApiEnvelope<QuotationDetail>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/quotations/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcQuotations"],
+    }),
+    createQuotation: b.mutation<ApiEnvelope<QuotationDetail>, { entity: string; rfq: number; vendor: string; quote_date: string; valid_until?: string; lead_time_days?: number; reference?: string; notes?: string; lines: Record<string, unknown>[] }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/quotations/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcQuotations"],
     }),
-    submitQuotation: b.mutation<ApiEnvelope<Quotation>, Act>({
-      query: ({ id, entity }) => ({ url: `/procurement/quotations/${id}/submit/${qs({ entity })}`, method: "POST" }),
+    updateQuotation: b.mutation<ApiEnvelope<QuotationDetail>, { id: number; entity: string; quote_date?: string; valid_until?: string; lead_time_days?: number; reference?: string; notes?: string; lines?: Record<string, unknown>[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/quotations/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcQuotations"],
+    }),
+    submitQuotation: b.mutation<ApiEnvelope<QuotationDetail>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/quotations/${id}/submit/${qs({ entity })}`, method: "POST" }),
+      // A submitted quote becomes a "response" the RFQ list counts, so refresh RFQs too.
+      invalidatesTags: ["ProcQuotations", "ProcRfqs"],
     }),
     awardQuotation: b.mutation<ApiEnvelope<Quotation>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/quotations/${id}/award/${qs({ entity })}`, method: "POST" }),
-      invalidatesTags: ["ProcQuotations", "ProcPurchaseOrders"],
+      invalidatesTags: ["ProcQuotations", "ProcRfqs", "ProcPurchaseOrders"],
     }),
 
     // Inventory
@@ -151,10 +184,17 @@ export const {
   useRenewContractMutation,
   useTerminateContractMutation,
   useGetRfqsQuery,
+  useGetRfqQuery,
+  useGetRfqSummaryQuery,
   useCreateRfqMutation,
+  useUpdateRfqMutation,
   useIssueRfqMutation,
+  useCloseRfqMutation,
+  useCancelRfqMutation,
   useGetQuotationsQuery,
+  useGetQuotationQuery,
   useCreateQuotationMutation,
+  useUpdateQuotationMutation,
   useSubmitQuotationMutation,
   useAwardQuotationMutation,
   useGetStockItemsQuery,
