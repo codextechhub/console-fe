@@ -13,10 +13,23 @@ import { getAuthContextGateState } from "@/utils/auth-context-gate";
 
 const { LOGIN } = routesPath.AUTH;
 
+// Auto-recovery for a transient /me failure (network glitch, server blip).
+// Rather than stranding the user behind a manual button, we silently re-run the
+// context query on an escalating backoff. Full page reloads are deliberately
+// avoided — re-running the one failed query recovers just as well and stays
+// invisible when it succeeds, instead of flashing a white screen and tearing
+// down the store/cache. After MAX_AUTO_RETRIES failures the failure no longer
+// looks transient, so we fall back to the manual retry card (the honest exit
+// for a real outage rather than silent infinite retrying).
+const MAX_AUTO_RETRIES = 4;
+const RETRY_BASE_DELAY_MS = 3000;
+const RETRY_MAX_DELAY_MS = 24000;
+
 export default function Authenticated() {
   const [{ shouldRedirect, refreshExpired, idleTooLong }] = useState(evaluateGate);
   const user = useSelector(selectUser);
   const tenant = useSelector(selectTenant);
+  const [retryAttempts, setRetryAttempts] = useState(0);
 
   useEffect(() => {
     if (!shouldRedirect) return;
@@ -73,6 +86,43 @@ export default function Authenticated() {
     window.location.replace(LOGIN);
   }, [contextGateState]);
 
+  // Auto-retry a transient /me failure on an escalating backoff (3s, 6s, 12s,
+  // 24s) until the context arrives or we exhaust MAX_AUTO_RETRIES. Each failed
+  // settle re-enters "retry", bumping the attempt count and lengthening the next
+  // wait; once exhausted this effect no-ops and the manual card is shown.
+  useEffect(() => {
+    if (contextGateState !== "retry") return;
+    if (retryAttempts >= MAX_AUTO_RETRIES) return;
+
+    const delay = Math.min(
+      RETRY_BASE_DELAY_MS * 2 ** retryAttempts,
+      RETRY_MAX_DELAY_MS
+    );
+    const timer = setTimeout(() => {
+      setRetryAttempts((n) => n + 1);
+      refetchContext();
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [contextGateState, retryAttempts, refetchContext]);
+
+  // Reconnecting is a strong recovery signal: when the browser regains
+  // connectivity while we're waiting, retry immediately and reset the backoff so
+  // the user gets a fresh set of attempts instead of waiting out the current tick.
+  useEffect(() => {
+    if (contextGateState !== "retry") return;
+    const onOnline = () => {
+      setRetryAttempts(0);
+      refetchContext();
+    };
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [contextGateState, refetchContext]);
+
+  // A successful hydration clears the counter so a later glitch starts fresh.
+  useEffect(() => {
+    if (contextGateState === "ready" && retryAttempts !== 0) setRetryAttempts(0);
+  }, [contextGateState, retryAttempts]);
+
   if (contextGateState === "redirect") return null;
 
   // Older persisted sessions pre-date tenant context in the auth slice. Do not
@@ -81,18 +131,29 @@ export default function Authenticated() {
   // failed even after the tenant arrives because their query args did not
   // change. This boundary protects every tenant-scoped screen and bulk flow.
   if (contextGateState !== "ready") {
-    if (contextGateState === "loading") {
+    // A "retry" while auto-recovery is still in flight (attempts remaining), or a
+    // refetch triggered by it, is a reconnection — not the initial load and not a
+    // dead end. Show a quiet "Reconnecting…" spinner; the alarming card is
+    // reserved for when every auto-retry has failed.
+    const autoRetrying =
+      retryAttempts < MAX_AUTO_RETRIES &&
+      (contextGateState === "retry" ||
+        (contextGateState === "loading" && retryAttempts > 0));
+
+    if (contextGateState === "loading" || autoRetrying) {
       return (
         <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
           <div className="flex items-center gap-2 text-sm text-gray-01" role="status">
             <LoaderCircle className="size-4 animate-spin" />
-            Preparing your workspace…
+            {autoRetrying ? "Reconnecting…" : "Preparing your workspace…"}
           </div>
         </main>
       );
     }
 
-    // "retry": a transient /me failure — offer a retry rather than logging out.
+    // "retry" with auto-recovery exhausted — the failure no longer looks
+    // transient. Offer a manual retry (which restarts the backoff) rather than
+    // logging out or retrying forever.
     if (contextGateState === "retry") {
       return (
         <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
@@ -102,13 +163,16 @@ export default function Authenticated() {
               We couldn’t prepare your workspace
             </p>
             <p className="mt-1 text-xs text-gray-01">
-              This looks temporary. Retry, then reload the page.
+              We kept trying but couldn’t reconnect. Retry, or reload the page.
             </p>
             <Button
               type="button"
               variant="outline"
               className="mt-4 gap-2"
-              onClick={() => refetchContext()}
+              onClick={() => {
+                setRetryAttempts(0);
+                refetchContext();
+              }}
               disabled={isFetchingContext}
             >
               <RefreshCw className={isFetchingContext ? "size-4 animate-spin" : "size-4"} />
