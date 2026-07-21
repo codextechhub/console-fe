@@ -44,6 +44,7 @@ const VARIANT_BY_STATUS: Record<string, BadgeVariant> = {
   REVERSED: "inactive",
   CANCELLED: "inactive",
   EXPIRED: "inactive",
+  RENEWED: "inactive",
   NOT_TRACKED: "inactive",
   // problem
   FAILED: "rejected",
@@ -51,6 +52,7 @@ const VARIANT_BY_STATUS: Record<string, BadgeVariant> = {
   BLOCKED: "rejected",
   OVERDUE: "rejected",
   OUT_OF_STOCK: "rejected",
+  MISSED: "rejected",
   TERMINATED: "suspended",
   OVER_TOLERANCE: "suspended",
 };

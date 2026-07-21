@@ -213,6 +213,8 @@ export interface PurchaseOrder {
   vendor_name: string;
   requisition_id: number | null;
   requisition_number: string | null;
+  contract_id: number | null;
+  contract_reference: string | null;
   quotation_number: string | null;
   order_date: string;
   expected_date: string | null;
@@ -424,17 +426,44 @@ export interface VendorContract {
   status: string;
   vendor_id: number;
   vendor_code: string;
-  start_date: string;
+  vendor_name: string;
+  start_date: string | null;
   end_date: string | null;
   renewal_window_start: string | null;
+  is_expired: boolean;
   contract_value: number;
   contract_value_naira: string;
   payment_terms: string;
   auto_renew: boolean;
   renewal_notice_days: number;
   renews_id: number | null;
+  renews_reference: string | null;
+  renewed_by_reference: string | null;
   notes: string;
   milestones: ContractMilestone[];
+  // list rows only
+  milestone_count?: number;
+  // detail only
+  activity?: SourcingActivity[];
+}
+
+export interface ContractSummary {
+  active: number;
+  expiring_soon: number;
+  expired: number;
+  total_active_value: number;
+  total_active_value_naira: string;
+}
+
+export interface ContractLinkedPo {
+  id: number;
+  document_number: string;
+  total: number;
+  total_naira: string;
+  status: string;
+  order_date: string | null;
+  // "linked" = explicit call-off against this contract; "association" = same-vendor PO in term.
+  link_type: "linked" | "association";
 }
 
 // Sourcing activity feed row (finance-audit rows for one document).

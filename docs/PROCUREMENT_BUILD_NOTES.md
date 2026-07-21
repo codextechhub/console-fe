@@ -446,9 +446,38 @@ category; and only real workflow document types are included.
     the three quoting vendors **plus** a fourth (`SIDMACH`) that never responds (a
     real "Awaited" row) and carries a budget; awarded/draft/cancelled RFQs invite
     1–2 vendors; every RFQ is invited before it is issued.
-- **Contracts ☐** — list (status, renewal dates) · detail (milestones, renewals) ·
-  Activate / Renew / Terminate / Complete-milestone. `contracts/` (+ actions).
-  *(FE api todo.)*
+- **Contracts ☑** — rebuilt and verified. List (KPI strip Active/Expiring ≤30d/Expired/Total
+  active value · All/Active/Expiring/Expired tabs · debounced search · `is_expired` amber
+  overlay) · detail drawer (Overview · Terms · Milestones · **Linked POs** · Activity) ·
+  create/edit `DetailDrawer` form (Save draft / Create & activate, optional milestones editor,
+  vendor + type/title + dates + value + terms + notice + auto-renew) · Renew form · per-milestone
+  Complete · Activate / Terminate. **Owner-approved decisions:** (1) *Linked POs* — **revised
+  to explicit link + term fallback** after the owner noted that a vendor with two overlapping
+  contracts made a pure vendor+term match ambiguous (the same PO showed under both). A nullable
+  `contract` FK (`SET_NULL`) was added to `PurchaseOrder` (migration `0013`) with an optional
+  **"Against contract"** call-off picker in the PO create/edit drawer (only that vendor's ACTIVE
+  contracts; `_resolve_po_contract` rejects a cross-vendor or non-ACTIVE contract; a vendor change
+  clears a now-invalid link, FE and BE). `contracts/<id>/linked-pos/` (gated
+  `procurement.purchase_order.view`) now returns explicit call-offs tagged `link_type:"linked"`
+  **first**, then same-vendor **unlinked** (`contract IS NULL`) POs inside `[start,end]` tagged
+  `"association"` — so an explicitly-linked PO never leaks into another overlapping contract's
+  fallback. The tab renders **Linked** vs **In-term** badges. Also a **soft duplicate-type
+  guardrail** (create only, FE): a non-blocking amber warning when the chosen vendor already has
+  an ACTIVE contract of the same (case-insensitive) title — multiple contracts per vendor stay
+  valid, so it never blocks. (2) *Terms* shows only real fields (payment terms, renewal notice,
+  auto-renew, notes) — no invented SLA-uptime/penalty-clause; (3) the contract *reference* is
+  auto-generated server-side (`<ENTITY>-CT-#######`) via the shared finance document-number
+  allocator with a `CT` token (no migration — `DocumentSequence.doc_type` choices aren't
+  DB-enforced), still overridable and unique per entity. New endpoints: `contracts/summary/`
+  (honest date-derived KPIs, no fabricated trend), `contracts/<id>/linked-pos/`. List gains
+  `milestone_count`/`vendor_name`/`is_expired` + `?q=`/`?expiring=1`; detail gains an audit
+  `activity` feed and renewal-chain refs. PATCH is refused on terminal contracts and hardened
+  (value/date-order/notice/length/terms validation); milestones append (completed history never
+  clobbered). `mark_expired` stays a batch utility; expiry is date-derived on read so KPIs are
+  honest without a sweep. `seed_procurement_demo` now seeds draft/active-with-milestones/
+  expiring/expired/renewed-chain contracts. `contracts/` (+summary/detail/linked-pos/activate/
+  renew/terminate/milestone-complete/PATCH). *(FE api now wired: getContract/summary/linked-pos,
+  update, completeMilestone; renew carries a real body.)*
 
 ### 5. Inventory
 - **Stock Items ☐** — list (on-hand, reorder point, valuation) · detail (movements,
@@ -592,6 +621,39 @@ entity. Two new audit actions (`RFQ_CLOSED`, `QUOTATION_REJECTED`) → choices-o
 `vs_finance/0008_alter_financeauditlog_action` (no schema change). `seed_procurement_demo`
 gains idempotent real-service fixtures: a draft RFQ, an issued RFQ with 3 competing submitted
 quotes, an awarded RFQ with its real draft PO + rejected sibling, and a cancelled RFQ.
+Contracts is now rebuilt and verified as the final Sourcing-group leaf (2026-07-21): the
+pre-prototype FormModal stub is replaced by a house-pattern screen (summary KPIs, status tabs,
+search, `DataTable`+phone cards, five-tab `DetailDrawer`, create/edit with Save draft / Create &
+activate + milestones editor, a Renew form and per-milestone Complete). Backend adds
+auto-generated references (shared allocator, `CT` token, no migration), a `contracts/summary/`
+KPI endpoint, a permission-split `contracts/<id>/linked-pos/` (real vendor+term PO association),
+list `is_expired`/`milestone_count`/`?q=`/`?expiring=1`, a detail audit-activity feed + renewal
+chain, terminal-safe hardened PATCH, and idempotent draft/active/expiring/expired/renewed seed
+fixtures. 143 Procurement tests pass (was 134 — adds a `ContractConsoleAPITests` class covering
+permission denial across every verb, cross-entity isolation, reference auto-gen uniqueness,
+create/PATCH validation + terminal-edit rejection, summary counts, linked-pos vendor+term
+scoping + its purchase-order permission gate, the `?expiring=1` filter, empty-list shape, and
+renew-carries-body). Django check + `makemigrations --check` clean; frontend production build +
+changed-file lint clean. Populated desktop list, all five drawer tabs (milestones with Complete,
+linked POs with real data), New Contract, and the Renew form were driven against the real CODEX
+backend with zero console errors and zero mutations on dismissal; 390px phone + 820px tablet
+audit reported zero page overflow with genuine card layouts. Verifier login/audit rows scrubbed.
+
+Follow-up increment (2026-07-21, owner-requested after review): the Linked POs decision was
+revised from a pure vendor+term match to **explicit link + term fallback** — a nullable
+`PurchaseOrder.contract` FK (migration `0013`), an "Against contract" call-off picker in the PO
+create/edit drawer (that vendor's ACTIVE contracts only; cross-vendor/non-ACTIVE rejected; vendor
+change clears the link), a `link_type` (`linked`/`association`) on `linked-pos` so overlapping
+contracts no longer share the same POs (Linked vs In-term badges), and a **soft, non-blocking**
+duplicate-type guardrail warning on New Contract when a vendor already holds an active contract of
+the same title. A `LinkedPosTab` `{}`→`toArray` empty-list crash (found in review by clicking a
+contract with no linked POs — the missing empty-state case) was fixed. 145 Procurement tests pass
+(adds explicit-link/fallback + cross-vendor/non-ACTIVE + clear-on-vendor-change coverage); Django
+check + `makemigrations --check` clean; production build + changed-file lint clean. Drove real
+CODEX data: the Linked POs tab shows one **Linked** call-off + two **In-term** rows, the PO drawer
+carries the disabled-until-vendor contract picker, and the guardrail banner fires on the
+MainOne/"Cloud hosting and support" duplicate — zero console errors; verifier rows scrubbed.
+
 Verified 2026-07-21 against the real CODEX backend: 126 Procurement tests pass (was 108 — adds
 sourcing security/lifecycle/eligibility/award-idempotency coverage **and** the previously
 deferred Catalog insights-permission/entity-scoping/code-immutability/validation coverage);

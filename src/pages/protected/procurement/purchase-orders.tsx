@@ -8,7 +8,7 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { ProcurementShell } from "./procurement-shell";
-import { RequisitionPicker, VendorPicker } from "./pickers";
+import { RequisitionPicker, VendorPicker, ContractPicker } from "./pickers";
 import { useUserDirectory } from "../workflow/components/use-user-directory";
 import {
   Can, DataTable, DetailDrawer, EmptyState, ErrorState,
@@ -259,13 +259,16 @@ function EditPurchaseOrderDrawer({ po, entity, currency, onClose }: { po: Purcha
   const [expectedDate, setExpectedDate] = useState(po.expected_date || "");
   const [deliveryAddress, setDeliveryAddress] = useState(po.delivery_address || "");
   const [paymentTerms, setPaymentTerms] = useState(po.payment_terms || "");
+  const [contract, setContract] = useState(po.contract_id ? String(po.contract_id) : "");
   const [update, { isLoading }] = useUpdatePurchaseOrderMutation();
   const canSave = !!vendor && !!orderDate;
+  // A contract belongs to one vendor — changing vendor drops a now-invalid link.
+  const changeVendor = (v: string) => { setVendor(v); if (v !== po.vendor_code) setContract(""); };
 
   const save = async () => {
     if (!canSave) return;
     try {
-      await update({ id: po.id, entity, vendor, order_date: orderDate, expected_date: expectedDate, delivery_address: deliveryAddress.trim(), payment_terms: paymentTerms.trim() }).unwrap();
+      await update({ id: po.id, entity, vendor, order_date: orderDate, expected_date: expectedDate, delivery_address: deliveryAddress.trim(), payment_terms: paymentTerms.trim(), contract }).unwrap();
       toast.success("Purchase order draft updated.");
       onClose();
     } catch { /* Central API handling presents the server validation message. */ }
@@ -273,7 +276,7 @@ function EditPurchaseOrderDrawer({ po, entity, currency, onClose }: { po: Purcha
 
   return <DetailDrawer open onOpenChange={(open) => !isLoading && !open && onClose()} title={`Edit ${po.document_number}`} description="Update this draft purchase order" widthClass="sm:max-w-[720px]" footer={<><Button variant="outline" disabled={isLoading} onClick={onClose}>Cancel</Button><Button disabled={!canSave} loading={isLoading} onClick={save}>Save Changes</Button></>}>
     <div className="space-y-5">
-      <section className="space-y-3"><p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Order</p><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Source requisition"><Input value={po.requisition_number || "Not linked"} disabled /></FormField><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} purchaseEligible /></FormField><FormField label="Order date" required><Input type="date" value={orderDate} onChange={(event) => setOrderDate(event.target.value)} /></FormField><FormField label="Expected delivery"><Input type="date" min={orderDate} value={expectedDate} onChange={(event) => setExpectedDate(event.target.value)} /></FormField><FormField label="Payment terms"><Input value={paymentTerms} onChange={(event) => setPaymentTerms(event.target.value)} /></FormField><FormField label="Delivery address"><Textarea value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} className="min-h-20" /></FormField></div></section>
+      <section className="space-y-3"><p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Order</p><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Source requisition"><Input value={po.requisition_number || "Not linked"} disabled /></FormField><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={changeVendor} purchaseEligible /></FormField><FormField label="Order date" required><Input type="date" value={orderDate} onChange={(event) => setOrderDate(event.target.value)} /></FormField><FormField label="Expected delivery"><Input type="date" min={orderDate} value={expectedDate} onChange={(event) => setExpectedDate(event.target.value)} /></FormField><FormField label="Payment terms"><Input value={paymentTerms} onChange={(event) => setPaymentTerms(event.target.value)} /></FormField><FormField label="Against contract"><ContractPicker entity={entity} vendor={vendor} value={contract} onChange={setContract} /></FormField><FormField label="Delivery address"><Textarea value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} className="min-h-20" /></FormField></div></section>
       <section className="rounded-md border border-gray-03 bg-gray-50 p-4"><p className="font-mont text-sm font-semibold">Copied Line Items</p><p className="mt-1 font-mont text-xs text-gray-05">These remain the approved requisition snapshot.</p><div className="mt-3 space-y-2">{po.lines.map((line) => <div key={line.id} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 font-mont text-xs"><span className="min-w-0 truncate">{line.description}<span className="ml-2 text-gray-05">×{formatQuantity(line.quantity)}</span></span><span className="shrink-0 font-semibold tabular-nums">{formatMoney(line.net_amount + line.tax_amount, currency)}</span></div>)}</div></section>
     </div>
   </DetailDrawer>;
@@ -286,6 +289,9 @@ function CreatePurchaseOrderDrawer({ open, entity, currency, onClose }: { open: 
   const [expectedDate, setExpectedDate] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [paymentTerms, setPaymentTerms] = useState("");
+  const [contract, setContract] = useState("");
+  // A contract belongs to one vendor — changing vendor drops a now-invalid link.
+  const changeVendor = (v: string) => { setVendor(v); setContract(""); };
   const { data: requisitionData, isLoading: requisitionLoading } = useGetRequisitionQuery({ id: Number(requisition), entity }, { skip: !requisition });
   const [create, { isLoading: creating }] = useCreatePurchaseOrderMutation();
   const [submit, { isLoading: submitting }] = useSubmitPurchaseOrderMutation();
@@ -297,7 +303,7 @@ function CreatePurchaseOrderDrawer({ open, entity, currency, onClose }: { open: 
   const save = async (submitAfter: boolean) => {
     if (!canSubmit) return;
     try {
-      const response = await create({ entity, requisition: Number(requisition), vendor, order_date: orderDate, expected_date: expectedDate || undefined, delivery_address: deliveryAddress.trim() || undefined, payment_terms: paymentTerms.trim() || undefined }).unwrap();
+      const response = await create({ entity, requisition: Number(requisition), vendor, order_date: orderDate, expected_date: expectedDate || undefined, delivery_address: deliveryAddress.trim() || undefined, payment_terms: paymentTerms.trim() || undefined, contract: contract || undefined }).unwrap();
       if (submitAfter) await submit({ id: response.data.id, entity }).unwrap();
       toast.success(submitAfter ? "Purchase order created and submitted." : "Purchase order draft created.");
       onClose();
@@ -306,7 +312,7 @@ function CreatePurchaseOrderDrawer({ open, entity, currency, onClose }: { open: 
 
   return <DetailDrawer open={open} onOpenChange={(value) => !saving && !value && onClose()} title="New Purchase Order" description="Create an order from an approved requisition" widthClass="sm:max-w-[720px]" footer={<><Button variant="outline" disabled={saving} onClick={onClose}>Cancel</Button><Button variant="outline" disabled={!canSubmit} loading={creating} onClick={() => save(false)}>Save Draft</Button><Can permission={P.PROC_SUBMIT_PURCHASE_ORDER}><Button disabled={!canSubmit} loading={saving} onClick={() => save(true)}>Create & Submit</Button></Can></>}>
     <div className="space-y-5">
-    <section className="space-y-3"><p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Order</p><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Approved requisition" required><RequisitionPicker entity={entity} value={requisition} onChange={setRequisition} status="APPROVED" placeholder="Select approved requisition" /></FormField><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} purchaseEligible /></FormField><FormField label="Order date" required><Input type="date" value={orderDate} onChange={(event) => setOrderDate(event.target.value)} /></FormField><FormField label="Expected delivery"><Input type="date" min={orderDate} value={expectedDate} onChange={(event) => setExpectedDate(event.target.value)} /></FormField><FormField label="Payment terms"><Input value={paymentTerms} onChange={(event) => setPaymentTerms(event.target.value)} placeholder="Defaults from vendor" /></FormField><FormField label="Delivery address"><Textarea value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} placeholder="Where should the vendor deliver?" className="min-h-20" /></FormField></div></section>
+    <section className="space-y-3"><p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Order</p><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Approved requisition" required><RequisitionPicker entity={entity} value={requisition} onChange={setRequisition} status="APPROVED" placeholder="Select approved requisition" /></FormField><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={changeVendor} purchaseEligible /></FormField><FormField label="Order date" required><Input type="date" value={orderDate} onChange={(event) => setOrderDate(event.target.value)} /></FormField><FormField label="Expected delivery"><Input type="date" min={orderDate} value={expectedDate} onChange={(event) => setExpectedDate(event.target.value)} /></FormField><FormField label="Payment terms"><Input value={paymentTerms} onChange={(event) => setPaymentTerms(event.target.value)} placeholder="Defaults from vendor" /></FormField><FormField label="Against contract"><ContractPicker entity={entity} vendor={vendor} value={contract} onChange={setContract} /></FormField><FormField label="Delivery address"><Textarea value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} placeholder="Where should the vendor deliver?" className="min-h-20" /></FormField></div></section>
     <section className="rounded-md border border-gray-03 bg-gray-50 p-4"><div className="flex flex-wrap items-center justify-between gap-2"><p className="font-mont text-sm font-semibold">Copied Line Items</p>{source && <p className="font-mont text-sm font-semibold tabular-nums">{money(source.estimated_total)}</p>}</div>{!requisition ? <p className="mt-2 font-mont text-xs text-gray-05">Choose an approved requisition to review the lines that will be copied.</p> : requisitionLoading ? <p className="mt-2 font-mont text-xs text-gray-05">Loading requisition lines…</p> : source?.lines.length ? <div className="mt-3 space-y-2">{source.lines.map((line) => <div key={line.id} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 font-mont text-xs"><span className="min-w-0 truncate">{line.description}<span className="ml-2 text-gray-05">×{formatQuantity(line.quantity)}</span></span><span className="shrink-0 font-semibold tabular-nums">{money(line.estimated_line_total)}</span></div>)}</div> : <p className="mt-2 font-mont text-xs text-gray-05">This requisition has no available lines.</p>}</section>
     </div>
   </DetailDrawer>;

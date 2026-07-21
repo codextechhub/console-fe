@@ -127,6 +127,34 @@ quotation and its RFQ, rejects a lapsed-validity bid, builds the draft PO from t
 lines and rejects the losing bids. Awarding across entities or from an ineligible vendor is
 refused on the backend regardless of the frontend gate.
 
+### Procurement → Sourcing (Contracts)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Contract list, detail, summary KPIs and renewal radar | backend view + route visibility | `P.PROC_VIEW_CONTRACTS` (`procurement.contract.view`, `700401`) |
+| New contract / Save draft | create drawer | `P.PROC_CREATE_CONTRACT` (`procurement.contract.create`, `700402`) |
+| Edit contract (draft/active) · Complete milestone | detail-drawer actions | `P.PROC_UPDATE_CONTRACT` (`procurement.contract.update`, `700403`) |
+| Activate / Create & activate | lifecycle action | `P.PROC_ACTIVATE_CONTRACT` (`procurement.contract.activate`, `700427`) |
+| Renew | lifecycle action | `P.PROC_RENEW_CONTRACT` (`procurement.contract.renew`, `700434`) |
+| Terminate | lifecycle action | `P.PROC_TERMINATE_CONTRACT` (`procurement.contract.terminate`, `700435`) |
+| Linked POs tab | separate backend read | `procurement.purchase_order.view` (`700301`) |
+
+The contract reference is auto-generated server-side (sequential per entity). Edit is
+refused on terminal contracts (expired/terminated/renewed) and a milestone that has already
+responded/completed cannot be removed. The **Linked POs** tab is gated on the *purchase-order*
+view key, not the contract key, so a user who can see the contract but not POs gets a forbidden
+panel there. It returns explicit call-offs (POs whose `contract` FK points at this contract,
+tagged `linked`) first, then same-vendor **unlinked** POs inside the term (tagged `association`);
+overlapping contracts therefore no longer share the same POs. The **"Against contract"** call-off
+link on a PO is set/cleared through the PO create/edit flow, so it is gated by
+`procurement.purchase_order.create` / `.update` (a PO may only link to its own vendor's ACTIVE
+contract — cross-vendor/non-ACTIVE rejected on the backend). The New-Contract **duplicate-type
+warning** is a client-side, non-blocking advisory only (multiple contracts per vendor are valid);
+it enforces nothing. Summary KPIs, list rows and the linked-POs join are all constrained to the
+resolved entity; every lifecycle transition re-validates entity scope and (for activate/renew)
+vendor purchasing-eligibility on the backend. No Export control. No new permission keys were added
+for Contracts or for the PO contract link — all reuse existing contract / purchase-order keys.
+
 ### Procurement → Purchase Orders
 
 | Element | Type | Permission Constant |

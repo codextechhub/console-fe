@@ -4,7 +4,7 @@
 import { SearchSelect } from "@/components/custom/search-select";
 import { toArray } from "@/components/finance-ui";
 import { useGetVendorsQuery, useGetCategoriesQuery, useGetRequisitionsQuery, useGetPurchaseOrdersQuery } from "@/redux/services/procurement/procurement-api";
-import { useGetRfqsQuery } from "@/redux/services/procurement/procurement-ext-api";
+import { useGetRfqsQuery, useGetContractsQuery } from "@/redux/services/procurement/procurement-ext-api";
 import type { VendorCategory } from "@/redux/services/procurement/procurement-types";
 
 const adapt = (onChange: (v: string) => void) =>
@@ -64,4 +64,13 @@ export function PurchaseOrderPicker({ entity, value, onChange, label, placeholde
   const { data, isLoading } = useGetPurchaseOrdersQuery({ entity, page_size: 100 });
   const options = toArray(data?.data).map((o) => ({ value: String(o.id), label: `${o.document_number} — ${o.vendor_code}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} revealOnSearch />;
+}
+
+// A PO's optional call-off link — only the selected vendor's ACTIVE contracts are
+// eligible (matching the backend rule). Empty option lets the buyer raise an
+// unlinked PO. Disabled until a vendor is chosen.
+export function ContractPicker({ entity, vendor, value, onChange, label, placeholder = "No contract (unlinked)" }: { entity: string; vendor: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string }) {
+  const { data, isLoading } = useGetContractsQuery({ entity, vendor, status: "ACTIVE" }, { skip: !vendor });
+  const options = toArray(data?.data).map((c) => ({ value: String(c.id), label: `${c.reference} — ${c.title}` }));
+  return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={vendor ? placeholder : "Select a vendor first"} disabled={!vendor} revealOnSearch />;
 }

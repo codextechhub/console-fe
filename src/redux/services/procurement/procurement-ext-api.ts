@@ -5,6 +5,8 @@ import { generateQueryString } from "@/utils/helpers";
 import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "../finance/api-types";
 import type {
+  ContractLinkedPo,
+  ContractSummary,
   Quotation,
   QuotationDetail,
   Rfq,
@@ -49,24 +51,44 @@ export const procurementExtApi = baseApi.injectEndpoints({
     }),
 
     // Contracts
-    getContracts: b.query<PaginatedEnvelope<VendorContract>, E & { vendor?: string }>({
+    getContracts: b.query<PaginatedEnvelope<VendorContract>, E & { vendor?: string; q?: string; expiring?: number; status?: string }>({
       query: (p) => ({ url: `/procurement/contracts/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcContracts"],
     }),
-    createContract: b.mutation<ApiEnvelope<VendorContract>, { entity: string; reference: string; title: string; vendor: string; start_date?: string; end_date?: string; contract_value?: number; payment_terms?: string; auto_renew?: boolean }>({
+    getContract: b.query<ApiEnvelope<VendorContract>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/contracts/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcContracts"],
+    }),
+    getContractsSummary: b.query<ApiEnvelope<ContractSummary>, { entity: string }>({
+      query: (p) => ({ url: `/procurement/contracts/summary/${qs(p)}`, method: "GET" }),
+      providesTags: ["ProcContracts"],
+    }),
+    getContractLinkedPos: b.query<ApiEnvelope<ContractLinkedPo[]>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/contracts/${id}/linked-pos/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcContracts"],
+    }),
+    createContract: b.mutation<ApiEnvelope<VendorContract>, { entity: string; title: string; vendor: string; reference?: string; start_date?: string; end_date?: string; contract_value?: number; payment_terms?: string; auto_renew?: boolean; renewal_notice_days?: number; notes?: string; milestones?: Record<string, unknown>[] }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/contracts/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcContracts"],
+    }),
+    updateContract: b.mutation<ApiEnvelope<VendorContract>, { id: number; entity: string; title?: string; start_date?: string | null; end_date?: string | null; contract_value?: number; payment_terms?: string; auto_renew?: boolean; renewal_notice_days?: number; notes?: string; milestones?: Record<string, unknown>[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/contracts/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcContracts"],
     }),
     activateContract: b.mutation<ApiEnvelope<VendorContract>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/contracts/${id}/activate/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["ProcContracts"],
     }),
-    renewContract: b.mutation<ApiEnvelope<VendorContract>, Act>({
-      query: ({ id, entity }) => ({ url: `/procurement/contracts/${id}/renew/${qs({ entity })}`, method: "POST" }),
+    renewContract: b.mutation<ApiEnvelope<VendorContract>, Act & { reference?: string; start_date: string; end_date: string; contract_value?: number; copy_milestones?: boolean }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/contracts/${id}/renew/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcContracts"],
     }),
     terminateContract: b.mutation<ApiEnvelope<VendorContract>, Act & { reason?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/contracts/${id}/terminate/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcContracts"],
+    }),
+    completeMilestone: b.mutation<ApiEnvelope<VendorContract>, { id: number; entity: string; milestoneId: number; completed_date?: string }>({
+      query: ({ id, entity, milestoneId, ...body }) => ({ url: `/procurement/contracts/${id}/milestones/${milestoneId}/complete/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcContracts"],
     }),
 
@@ -179,10 +201,15 @@ export const {
   useGetProcurementApprovalQuery,
   useRecordProcurementApprovalActionMutation,
   useGetContractsQuery,
+  useGetContractQuery,
+  useGetContractsSummaryQuery,
+  useGetContractLinkedPosQuery,
   useCreateContractMutation,
+  useUpdateContractMutation,
   useActivateContractMutation,
   useRenewContractMutation,
   useTerminateContractMutation,
+  useCompleteMilestoneMutation,
   useGetRfqsQuery,
   useGetRfqQuery,
   useGetRfqSummaryQuery,
