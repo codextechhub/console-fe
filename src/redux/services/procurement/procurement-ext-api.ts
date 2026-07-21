@@ -13,7 +13,11 @@ import type {
   RfqDetail,
   RfqSummary,
   StockItem,
+  StockItemDetail,
   StockMovement,
+  StockReorderReport,
+  StockSummary,
+  StockValuationReport,
   VendorContract,
 } from "./procurement-types";
 import type {
@@ -159,12 +163,42 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/procurement/stock-items/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
-    createStockItem: b.mutation<ApiEnvelope<StockItem>, { entity: string; code: string; name: string; description?: string; unit_of_measure?: string; inventory_account: string; default_expense_account?: string; reorder_level?: number; reorder_qty?: number }>({
+    getStockItem: b.query<ApiEnvelope<StockItemDetail>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/stock-items/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcStock"],
+    }),
+    getStockSummary: b.query<ApiEnvelope<StockSummary>, { entity: string }>({
+      query: (p) => ({ url: `/procurement/stock-items/summary/${qs(p)}`, method: "GET" }),
+      providesTags: ["ProcStock"],
+    }),
+    createStockItem: b.mutation<ApiEnvelope<StockItemDetail>, { entity: string; code: string; name: string; description?: string; unit_of_measure?: string; catalog_item?: string; inventory_account: string; default_expense_account?: string; reorder_level?: number; reorder_qty?: number; is_active?: boolean }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/stock-items/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcStock"],
     }),
+    updateStockItem: b.mutation<ApiEnvelope<StockItemDetail>, { id: number; entity: string; name?: string; description?: string; unit_of_measure?: string; catalog_item?: string | null; inventory_account?: string; default_expense_account?: string | null; reorder_level?: number; reorder_qty?: number; is_active?: boolean }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/stock-items/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["ProcStock"],
+    }),
+    // Issue posts a real journal (Dr expense · Cr inventory) — refresh finance journals too.
+    issueStock: b.mutation<ApiEnvelope<{ movement: StockMovement; stock_item: StockItemDetail }>, { id: number; entity: string; quantity: number; movement_date?: string; expense_account?: string; reference?: string; narration?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/stock-items/${id}/issue/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcStock", "FinanceJournals"],
+    }),
+    // Adjust posts a real journal (write-up or shrinkage) — refresh finance journals too.
+    adjustStock: b.mutation<ApiEnvelope<{ movement: StockMovement; stock_item: StockItemDetail }>, { id: number; entity: string; quantity_delta: number; movement_date?: string; unit_cost?: number; adjustment_account?: string; reference?: string; narration?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/stock-items/${id}/adjust/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcStock", "FinanceJournals"],
+    }),
     getStockMovements: b.query<PaginatedEnvelope<StockMovement>, { entity: string; page?: number; stock_item?: string; movement_type?: string }>({
       query: (p) => ({ url: `/procurement/stock-movements/${qs(p)}`, method: "GET" }),
+      providesTags: ["ProcStock"],
+    }),
+    getStockReorderReport: b.query<ApiEnvelope<StockReorderReport>, { entity: string }>({
+      query: (p) => ({ url: `/procurement/reports/stock-reorder/${qs(p)}`, method: "GET" }),
+      providesTags: ["ProcStock"],
+    }),
+    getStockValuationReport: b.query<ApiEnvelope<StockValuationReport>, { entity: string }>({
+      query: (p) => ({ url: `/procurement/reports/stock-valuation/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
 
@@ -225,8 +259,15 @@ export const {
   useSubmitQuotationMutation,
   useAwardQuotationMutation,
   useGetStockItemsQuery,
+  useGetStockItemQuery,
+  useGetStockSummaryQuery,
   useCreateStockItemMutation,
+  useUpdateStockItemMutation,
+  useIssueStockMutation,
+  useAdjustStockMutation,
   useGetStockMovementsQuery,
+  useGetStockReorderReportQuery,
+  useGetStockValuationReportQuery,
   useGetProcurementDashboardQuery,
   useGetApAgingQuery,
   useGetApReconciliationQuery,

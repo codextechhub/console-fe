@@ -480,11 +480,16 @@ category; and only real workflow document types are included.
   update, completeMilestone; renew carries a real body.)*
 
 ### 5. Inventory
-- **Stock Items ☐** — list (on-hand, reorder point, valuation) · detail (movements,
-  valuation) · **Issue** / **Adjust** (real journal recaps). `stock-items/`
-  (+issue/adjust). *(FE api todo.)*
-- **Movements ☐** — the stock ledger (receipts / issues / adjustments), read-only,
-  filterable. `stock-movements/`. *(FE api todo.)*
+- **Stock Items ☑ / Movements ☑** — rebuilt and verified **together as one section**
+  (2026-07-21). Stock Items: report-backed KPI strip (Items tracked / Low / Out /
+  Total value), debounced search + "Needs reorder" filter, `DataTable` (Item · Catalog
+  item · On-hand · Reorder · Unit cost · Value · derived status pill) with phone cards,
+  three-tab `DetailDrawer` (Overview · Movements · Activity), create/edit `FormDrawer`
+  (immutable code, dirty-gated), and **Issue** / **Adjust** posting drawers each with a
+  **live `PostingRecap`** of the exact journal. Movements: read-only immutable ledger
+  (Date · Move # · Type · Item · signed Qty · Value · Bal. qty · By · Reference), type
+  filter tabs, `mobile="scroll"`. `stock-items/` (+detail/PATCH/issue/adjust/**summary**),
+  `stock-movements/`.
 
 ### 6. Analytics (all read-only reports, `procurement.report.view`)
 - **AP Aging ☐** — aging buckets by vendor. `reports/ap-aging/`.
@@ -676,3 +681,60 @@ protection, budget-estimate bounds, and RfqDetail responded-derivation + invited
 entity-scoping); `manage.py check` and `makemigrations --check` clean. Frontend: production
 build + changed-file ESLint clean. Not yet re-verified with `/verify-design` or the mobile
 audit (orchestrator runs those). No new permission keys; `PERMISSIONS_AUDIT.md` unchanged.
+
+## Inventory (§5) — rebuilt and verified (2026-07-21)
+Stock Items + Movements shipped **together as one FE section**; `inventory.tsx` rebuilt in
+place (the `:section` route + `useActionParam("new")` preserved), Movements stays its own
+leaf page (not a tab), matching the two nav items.
+
+**Resolved decisions (owner-approved):**
+- *GRN→stock wiring stays out of scope.* The `GoodsReceivedNoteLine.stock_item` FK is real
+  and `post_grn` raises the ledger for it, but the (shipped ☑) Goods-Receipts create UI never
+  sets it — reopening §2 is a separate increment. Receipts are surfaced (seeded via a real
+  stock-tracked GRN through `post_grn`); **Adjust** (a real journal) is the in-app stock-in /
+  opening-balance path. Movements is an immutable read-only ledger — no hand-created movement.
+- *Honest adaptations (fabricated → dropped):* the prototype's **Location** / **From-To**
+  column and **Transfer** movement type have no model backing (no location, enum is only
+  RECEIPT/ISSUE/ADJUSTMENT) → dropped. The prototype's **"New Movement"** on the ledger is
+  replaced by the real **Issue**/**Adjust** posting actions on a stock item. **Category** is a
+  real concept only via the optional `catalog_item` link, so the column/field is labelled
+  **"Catalog item"** (not "Category" — a catalog item is not a category; stock items have no
+  category relation). **By** column = real `created_by`. The prototype's thin **Reorder** tab
+  is replaced by a real **Activity** audit feed; reorder point/qty live in Overview. Export
+  dropped everywhere.
+- *Deliberate improvements over the prototype:* **Issue** and **Adjust** drawers (absent from
+  the view-only prototype) each show a **live `PostingRecap`** of the exact single journal
+  (Dr expense · Cr inventory at moving-average for issue; write-up Dr inventory·Cr 5150 /
+  shrinkage Dr 5150·Cr inventory for adjust), success recaps the **real** posted value — never
+  a second journal; immutable normalised code; dirty-gated edit; eligibility-filtered
+  ASSET/EXPENSE pickers; honest empty/forbidden states.
+
+**Backend (no migration — code only):** split lean `StockItemListSerializer` vs rich
+`StockItemDetailSerializer` (movements + activity, plus `*_id` prefills); `StockMovementSerializer`
+gains `created_by_name`; new `StockItemSummaryView` (`GET stock-items/summary/`, one conditional
+aggregate, gated `stock.view`, registered before `<pk>`); create/PATCH harden code
+(trim/upper/immutable), `_resolve_asset_account` (active postable ASSET) for inventory, active
+postable EXPENSE for expense/adjustment accounts, `_nonneg_qty` reorder fields, `_quantity`
+issue qty, `_signed_qty` adjust delta, `_strict_kobo` unit cost; `on_hand_qty`/`stock_value` never
+patchable; detail view prefetches movements (no N+1); inline comments added to touched joins/
+aggregates/validation/immutability. `seed_procurement_demo` extended idempotently via real
+services: 4 stock items (one low `LTO-9`, one out `PWR-APC5K`, two in-stock) and one item
+(`SCN-I4850`) with a genuine RECEIPT (stock-tracked GRN → `post_grn`) → ISSUE → ADJUSTMENT history
+and populated valuation; opening balances booked as real positive adjustments (needs an open
+period covering today).
+
+**Verification (orchestrator-run, real CODEX backend):** 162 `vs_procurement` tests pass (was 145
+— adds `StockConsoleAPITests` ×17: permission-denied per verb, cross-entity isolation, immutable
+code, active-postable ASSET/EXPENSE rejection, non-negative reorder, over-issue rejection +
+moving-average + exact Dr/Cr + never-negative, adjust signed/value/negative-guard/journal,
+integer-kobo/qty/date, summary+reorder+valuation aggregates + entity scope, empty-`{}` shape,
+movement/journal/snapshot + GRN-receipt preservation). `manage.py check` + `makemigrations --check`
+clean; FE production build (`tsc -b`) + changed-file ESLint clean. Drove the real seeded CODEX
+data: populated Stock Items list (KPIs 4/1/1/₦3.6m, correct status pills), detail Overview/Movements/
+Activity tabs, the Issue recap (₦64,000×3 = ₦192,000, Dr 5100·Cr 1400, balanced) and both Adjust
+recaps (write-up Dr 1400·Cr 5150 / shrinkage Dr 5150·Cr 1400), and the Movements ledger (real
+Receipt+20→Issue−6→Adjust−1 chain, signed colouring, By/Reference) — **zero** console/page errors;
+outside-click/Escape dismissal fired **zero** create/update mutations (request-monitored). 390px
+phone + 820px tablet audit reported **zero** page overflow with genuine card layouts (Movements
+uses `mobile="scroll"`). Verifier login/audit rows scrubbed. No new permission keys;
+`PERMISSIONS_AUDIT.md` gains an Inventory section. Both repos contain only the intended §5 changes.

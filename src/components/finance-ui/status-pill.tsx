@@ -24,6 +24,7 @@ const VARIANT_BY_STATUS: Record<string, BadgeVariant> = {
   RESPONDED: "success",
   ISSUED: "success",
   RECEIVED: "success",
+  RECEIPT: "success",
   IN_STOCK: "success",
   // in-flight / awaiting
   DRAFT: "pending",
@@ -37,6 +38,7 @@ const VARIANT_BY_STATUS: Record<string, BadgeVariant> = {
   SENT: "pending",
   AWAITED: "pending",
   LOW_STOCK: "pending",
+  ADJUSTMENT: "pending",
   // closed / neutral-terminal
   UNPAID: "inactive",
   CLOSED: "inactive",
@@ -46,6 +48,7 @@ const VARIANT_BY_STATUS: Record<string, BadgeVariant> = {
   EXPIRED: "inactive",
   RENEWED: "inactive",
   NOT_TRACKED: "inactive",
+  ISSUE: "inactive",
   // problem
   FAILED: "rejected",
   REJECTED: "rejected",

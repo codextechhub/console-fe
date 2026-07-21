@@ -596,8 +596,11 @@ export interface StockItem {
   name: string;
   description: string;
   unit_of_measure: string;
+  catalog_item_id: number | null;
   catalog_item_code: string | null;
+  inventory_account_id: number | null;
   inventory_code: string | null;
+  default_expense_account_id: number | null;
   expense_code: string | null;
   reorder_level: string;
   reorder_qty: string;
@@ -624,5 +627,54 @@ export interface StockMovement {
   balance_value_naira: string;
   reference: string;
   narration: string;
+  created_by_name: string | null;
   created_at: string;
+}
+
+// Full stock-item record for the detail drawer: header + recent movements + audit feed.
+export interface StockItemDetail extends StockItem {
+  movements: StockMovement[];
+  activity: SourcingActivity[];
+}
+
+// Entity-wide stock KPI strip (one aggregate query on the backend).
+export interface StockSummary {
+  tracked: number;
+  active: number;
+  low_stock: number;
+  out_of_stock: number;
+  total_value: number;
+  total_value_naira: string;
+}
+
+// Reorder report row — active items at/below their reorder level.
+export interface StockReorderRow {
+  stock_item_id: number;
+  code: string;
+  name: string;
+  on_hand_qty: string;
+  reorder_level: string;
+  reorder_qty: string;
+  unit_cost: number;
+}
+
+export interface StockReorderReport {
+  entity: string;
+  rows: StockReorderRow[];
+}
+
+// Valuation report row — on-hand value at moving-average cost.
+export interface StockValuationRow {
+  stock_item_id: number;
+  code: string;
+  name: string;
+  on_hand_qty: string;
+  unit_cost: number;
+  stock_value: number;
+}
+
+export interface StockValuationReport {
+  entity: string;
+  rows: StockValuationRow[];
+  total_value: number;
 }

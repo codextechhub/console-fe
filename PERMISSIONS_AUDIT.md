@@ -155,6 +155,27 @@ resolved entity; every lifecycle transition re-validates entity scope and (for a
 vendor purchasing-eligibility on the backend. No Export control. No new permission keys were added
 for Contracts or for the PO contract link — all reuse existing contract / purchase-order keys.
 
+### Procurement → Inventory (Stock Items & Movements)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Stock Items list, detail, KPI summary; Movements ledger | backend view + route visibility | `P.PROC_VIEW_STOCK` (`procurement.stock.view`, `701301`) |
+| New stock item · Edit stock item | create/edit drawer | `P.PROC_MANAGE_STOCK` (`procurement.stock.manage`, `701308`) |
+| Issue stock (Dr expense · Cr inventory) | detail-drawer posting action | `P.PROC_ISSUE_STOCK` (`procurement.stock.issue`, `701333`) |
+| Adjust stock (write-up / shrinkage) | detail-drawer posting action | `P.PROC_ADJUST_STOCK` (`procurement.stock.adjust`, `701337`) |
+
+The new `GET /procurement/stock-items/summary/` KPI aggregate (items tracked / low / out /
+total value) is gated on the **existing** `procurement.stock.view` key — no new key. The item
+`code` is normalised (trim + upper) and **immutable** after create; `inventory_account` must be
+an active, postable **ASSET** account and `default_expense_account` / issue / adjustment accounts
+active, postable **EXPENSE**, all resolved inside the selected entity. Issue rejects an over-issue
+and posts at moving-average cost; Adjust guards a decrease against on-hand and posts the value
+delta — both write a **real** journal under row locks and never drive on-hand or value negative.
+`on_hand_qty` / `stock_value` are ledger-owned and never patchable. Movements are an immutable
+read-only ledger (no create/edit) — receipts originate from GRN posting, issues/adjustments from
+these actions. Every read and write is entity-scoped by `resolve_entity`. No Export control. **No
+new permission keys were added for Inventory** — all reuse the existing `procurement.stock.*` set.
+
 ### Procurement → Purchase Orders
 
 | Element | Type | Permission Constant |
