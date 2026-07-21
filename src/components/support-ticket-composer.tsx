@@ -10,7 +10,6 @@ import {
   Send,
   X,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -97,7 +96,10 @@ export function CreateTicketForm({
       }
       onCreated(result.data, failedFiles);
     } catch {
-      toast.error("The ticket could not be created. Please review the details and try again.");
+      // The global API error interceptor (base-api) already raises a toast for
+      // every non-auth failure — validation (400/422), 5xx and network — so we
+      // intentionally stay silent here; a second local toast would double up
+      // (the bug this replaced). We only need to not advance to the success view.
     }
   };
 
