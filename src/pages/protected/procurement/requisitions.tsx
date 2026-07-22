@@ -14,7 +14,7 @@ import { sameId } from "../workflow/components/workflow-format";
 import { SearchSelect } from "@/components/custom/search-select";
 import {
   DataTable, DetailDrawer, EmptyState, ErrorState, FormField, InfoHint, LoadingState,
-  MoneyInput, StatusPill, toArray, useActiveEntity, type Column,
+  MoneyInput, StatCard, StatusPill, toArray, useActiveEntity, type Column,
 } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -63,33 +63,6 @@ function age(value?: string | null) {
   if (!value) return "—";
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? "—" : `${formatDistanceToNowStrict(date)} ago`;
-}
-
-function Kpi({ label, value, sub, icon: Icon, tone = "primary" }: {
-  label: string;
-  value: React.ReactNode;
-  sub: React.ReactNode;
-  icon: React.ComponentType<{ className?: string }>;
-  tone?: "primary" | "green" | "amber" | "gray";
-}) {
-  const toneClass = {
-    primary: "bg-primary/10 text-primary",
-    green: "bg-green-01/10 text-green-01",
-    amber: "bg-amber-100 text-amber-700",
-    gray: "bg-gray-100 text-gray-05",
-  }[tone];
-  return (
-    <section className="flex min-w-0 items-start justify-between gap-3 rounded-md bg-white p-4">
-      <div className="min-w-0">
-        <p className="font-mont text-xs font-medium text-gray-05">{label}</p>
-        <p className="mt-2 font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
-        <div className="mt-1 min-h-4 font-mont text-[11px] text-gray-05">{sub}</div>
-      </div>
-      <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-md", toneClass)}>
-        <Icon className="size-4" />
-      </span>
-    </section>
-  );
 }
 
 export default function RequisitionsPage() {
@@ -192,10 +165,10 @@ export default function RequisitionsPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
-            <Kpi label="Pending Approval" value={summary.pending_approval.count} icon={Clock3} tone="amber" sub={money(summary.pending_approval.amount)} />
-            <Kpi label="Approved (MTD)" value={summary.approved_mtd.count} icon={Check} tone="green" sub={countChange(summary.approved_mtd.change)} />
-            <Kpi label="Draft" value={summary.draft.count} icon={FilePenLine} tone="gray" sub={money(summary.draft.amount)} />
-            <Kpi label="Total Value (MTD)" value={money(summary.total_value_mtd.amount)} icon={FileText} sub={change(summary.total_value_mtd.change_pct)} />
+            <StatCard label="Pending Approval" value={summary.pending_approval.count} icon={Clock3} tone="amber" sub={money(summary.pending_approval.amount)} />
+            <StatCard label="Approved (MTD)" value={summary.approved_mtd.count} icon={Check} tone="green" sub={countChange(summary.approved_mtd.change)} />
+            <StatCard label="Draft" value={summary.draft.count} icon={FilePenLine} tone="gray" sub={money(summary.draft.amount)} />
+            <StatCard label="Total Value (MTD)" value={money(summary.total_value_mtd.amount)} icon={FileText} sub={change(summary.total_value_mtd.change_pct)} />
           </>}
         </div>
 

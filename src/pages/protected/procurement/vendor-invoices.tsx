@@ -13,7 +13,7 @@ import { useUserDirectory } from "../workflow/components/use-user-directory";
 import { sameId } from "../workflow/components/workflow-format";
 import {
   DataTable, DetailDrawer, EmptyState, ErrorState, FormField, InfoHint, LineEditor,
-  LoadingState, PostingRecap, StatusPill, emptyLine, toApiLines, toArray,
+  LoadingState, PostingRecap, StatCard, StatusPill, emptyLine, toApiLines, toArray,
   useActiveEntity, type Column, type DocLine,
 } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
@@ -101,10 +101,10 @@ export default function VendorInvoicesPage() {
       <header className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Invoices</h1><InfoHint>Supplier bills remain drafts until matched, approved, and posted to Accounts Payable.</InfoHint></div><p className="mt-0.5 font-mont text-xs text-gray-05">Review three-way matches, approval, settlement, and overdue exposure.</p></div><Can permission={P.PROC_CREATE_VENDOR_INVOICE}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> Record Invoice</Button></Can></header>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
-          <Kpi label="Under Review" value={summary.under_review.count} icon={Clock3} tone="amber" />
-          <Kpi label="Approved" value={summary.approved.count} icon={Check} tone="green" />
-          <Kpi label="Overdue" value={summary.overdue.count} sub={money(summary.overdue.amount)} icon={AlertTriangle} tone="red" />
-          <Kpi label="Disputed" value={summary.disputed.count} icon={AlertTriangle} tone="red" />
+          <StatCard label="Under Review" value={summary.under_review.count} icon={Clock3} tone="amber" />
+          <StatCard label="Approved" value={summary.approved.count} icon={Check} tone="green" />
+          <StatCard label="Overdue" value={summary.overdue.count} sub={money(summary.overdue.amount)} icon={AlertTriangle} tone="red" />
+          <StatCard label="Disputed" value={summary.disputed.count} icon={AlertTriangle} tone="red" />
         </>}
       </div>
       <section className="min-w-0 rounded-md bg-white">
@@ -118,11 +118,6 @@ export default function VendorInvoicesPage() {
     <InvoiceDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
     {creating && <InvoiceForm entity={entity} currency={currency} onClose={() => setCreating(false)} />}
   </ProcurementShell>;
-}
-
-function Kpi({ label, value, sub, icon: Icon, tone = "gray" }: { label: string; value: number; sub?: string; icon: React.ElementType; tone?: "gray" | "amber" | "green" | "red" }) {
-  const tones = { gray: "bg-gray-100 text-gray-600", amber: "bg-amber-100 text-amber-700", green: "bg-emerald-100 text-emerald-700", red: "bg-red-100 text-red-600" };
-  return <div className="rounded-md bg-white p-4"><div className="flex items-start justify-between gap-3"><p className="font-mont text-xs font-medium text-gray-05">{label}</p><span className={cn("rounded-md p-2", tones[tone])}><Icon className="size-4" /></span></div><p className="mt-2 font-mont text-xl font-semibold tabular-nums">{value}</p><p className="mt-2 min-h-4 font-mont text-[11px] text-gray-05">{sub || "—"}</p></div>;
 }
 
 function InvoiceDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {

@@ -110,6 +110,7 @@ export interface ApAgingRow {
   vendor_id: number;
   code: string;
   name: string;
+  payment_terms: string;   // vendor's net terms enum (e.g. "NET_30"); "" when unset
   buckets: Record<string, ReportMoney>;
   outstanding: ReportMoney;
   unallocated_credit: ReportMoney;
@@ -138,12 +139,62 @@ export interface GrirBalance {
   is_clear: boolean;
 }
 
+// GR/IR aging — per-GRN open positions (received-not-invoiced when open_value>0,
+// invoiced-not-received when <0). Rows with open_value==0 are excluded server-side.
+export interface GrirAgingRow {
+  grn_id: number;
+  reference: string;
+  vendor_code: string;
+  vendor_name: string;
+  received_date: string;
+  days: number;
+  bucket: string;
+  received_value: ReportMoney;
+  invoiced_value: ReportMoney;
+  open_value: ReportMoney;
+}
+export interface GrirAging {
+  entity: string;
+  as_of: string;
+  buckets: string[];
+  rows: GrirAgingRow[];
+  bucket_totals: Record<string, ReportMoney>;
+  total_open: ReportMoney;
+  control_balance: ReportMoney;
+  difference: ReportMoney;
+}
+
+// AP cash-requirements forecast — open bills bucketed by days-until-due.
+export interface ApCashRequirementsRow {
+  vendor_id: number;
+  code: string;
+  name: string;
+  buckets: Record<string, ReportMoney>;
+  total: ReportMoney;
+}
+export interface ApCashRequirements {
+  entity: string;
+  as_of: string;
+  buckets: string[];
+  rows: ApCashRequirementsRow[];
+  bucket_totals: Record<string, ReportMoney>;
+  total_due: ReportMoney;
+}
+
+// Spend group row — the backend always emits key/label/net/tax/gross/invoice_count.
 export interface SpendRow {
-  code?: string;
-  name?: string;
-  net?: ReportMoney;
-  gross?: ReportMoney;
-  [k: string]: unknown;
+  key: string;
+  label: string;
+  net: ReportMoney;
+  tax: ReportMoney;
+  gross: ReportMoney;
+  invoice_count: number;
+}
+export interface SpendPeriod {
+  period: string;   // "YYYY-MM"
+  label: string;    // "Mon YYYY"
+  gross: ReportMoney;
+  invoice_count: number;
 }
 export interface SpendAnalysis {
   entity: string;
@@ -151,33 +202,158 @@ export interface SpendAnalysis {
   end_date: string | null;
   by_vendor: SpendRow[];
   by_category: SpendRow[];
+  by_period: SpendPeriod[];
   total_net: ReportMoney;
   total_tax: ReportMoney;
   total_gross: ReportMoney;
   invoice_count: number;
 }
 
+// Latest recorded scorecard summary carried on each performance row (or null).
+export interface LatestAssessment {
+  quality_acceptance: number;
+  invoice_accuracy: number;
+  responsiveness: number;
+  overall_score: number;
+  grade: "A" | "B" | "C";
+  assessment_date: string;
+}
 export interface VendorPerformanceRow {
   vendor_id: number;
   code: string;
   name: string;
+  category: string;   // vendor's category name (table subtitle); "" when uncategorised
   po_count: number;
   total_ordered: ReportMoney;
   receipt_count: number;
   on_time_receipts: number;
   late_receipts: number;
-  on_time_rate: number;
+  // null when the vendor has no rated receipts (no PO expected-date to judge against).
+  on_time_rate: number | null;
   invoice_count: number;
   total_billed: ReportMoney;
   payment_count: number;
   total_paid: ReportMoney;
-  avg_payment_days: number;
+  // null when the vendor has no settling payments in the window.
+  avg_payment_days: number | null;
+  // Most-recent point-in-time assessment for this vendor, or null when never assessed.
+  latest_assessment: LatestAssessment | null;
 }
 export interface VendorPerformance {
   entity: string;
   start_date: string | null;
   end_date: string | null;
   rows: VendorPerformanceRow[];
+}
+
+// Full vendor assessment record (list item + create response).
+export interface VendorAssessment {
+  id: number;
+  vendor_id: number;
+  vendor_code: string;
+  vendor_name: string;
+  assessment_date: string;
+  assessor: string | null;
+  on_time_delivery: number;
+  quality_acceptance: number;
+  invoice_accuracy: number;
+  responsiveness: number;
+  overall_score: number;
+  grade: "A" | "B" | "C";
+  notes: string;
+}
+export interface VendorAssessmentInput {
+  entity: string;
+  vendor: string;
+  on_time_delivery: number;
+  quality_acceptance: number;
+  invoice_accuracy: number;
+  responsiveness: number;
+  assessment_date?: string;
+  notes?: string;
+}
+
+// AP-aging drawer: one vendor's aging buckets + open bills.
+export interface ApVendorOpenBill {
+  invoice_id: number;
+  document_number: string;
+  invoice_date: string;
+  due_date: string | null;
+  days_overdue: number;
+  bucket: string;
+  balance_due: ReportMoney;
+  payment_status: string;
+}
+export interface ApVendorDetail {
+  entity: string;
+  as_of: string;
+  buckets: string[];
+  vendor: { id: number; code: string; name: string };
+  bucket_amounts: Record<string, ReportMoney>;
+  outstanding: ReportMoney;
+  unallocated_credit: ReportMoney;
+  net: ReportMoney;
+  invoices: ApVendorOpenBill[];
+}
+
+// GR/IR at the PO-line grain — ordered vs received vs invoiced per PO line, with a
+// derived status. Quantities are decimal strings (exact); values are `{kobo, naira}`.
+export interface GrirPoLineRow {
+  po_line_id: number;
+  po_line_ref: string;   // "<PO document_number>-<line_no>"
+  item: string;
+  vendor_code: string;
+  vendor_name: string;
+  ordered_qty: string;
+  received_qty: string;
+  invoiced_qty: string;
+  received_value: ReportMoney;
+  invoiced_value: ReportMoney;
+  grir_balance: ReportMoney;
+  status: string;   // "Cleared" | "Received > Invoiced" | "Invoiced > Received"
+}
+export interface GrirPoLines {
+  entity: string;
+  as_of: string;
+  rows: GrirPoLineRow[];
+}
+
+// GR/IR PO-line drawer: reconciliation + the line's linked POSTED GRNs and invoices.
+export interface GrirPoLineDetail {
+  entity: string;
+  po_line_id: number;
+  po_line_ref: string;
+  item: string;
+  vendor_code: string;
+  vendor_name: string;
+  po_number: string;
+  ordered_qty: string;
+  received_qty: string;
+  invoiced_qty: string;
+  received_value: ReportMoney;
+  invoiced_value: ReportMoney;
+  grir_balance: ReportMoney;
+  status: string;
+  unit_price: ReportMoney;
+  grns: { id: number; reference: string; received_date: string; accepted_qty: string; value: ReportMoney }[];
+  invoices: { id: number; document_number: string; invoice_date: string; quantity: string; net: ReportMoney }[];
+}
+
+// GR/IR drawer: one GRN's reconciliation + linked documents.
+export interface GrirGrnDetail {
+  entity: string;
+  grn_id: number;
+  reference: string;
+  vendor_code: string;
+  vendor_name: string;
+  received_date: string;
+  days: number;
+  bucket: string;
+  po_number: string | null;
+  received_value: ReportMoney;
+  invoiced_value: ReportMoney;
+  open_value: ReportMoney;
+  invoices: { id: number; document_number: string; invoice_date: string; net: ReportMoney }[];
 }
 
 export interface SettlementReconciliation {

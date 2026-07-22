@@ -72,9 +72,9 @@ interface DataTableProps<T> {
   cardBreakpoint?: "md" | "lg";
 }
 
-const headCls =
+export const headCls =
   "text-gray-01 bg-[#F1F1F1] font-semibold font-mont text-xs lg:text-sm whitespace-nowrap pt-3 pb-2";
-const cellCls = "text-black-01 border-gray-03 font-medium font-mont text-sm border-y-5";
+export const cellCls = "text-black-01 border-gray-03 font-medium font-mont text-sm border-y-5";
 
 export function DataTable<T>({
   columns,

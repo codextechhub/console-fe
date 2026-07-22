@@ -506,6 +506,7 @@ export const baseApi = createApi({
     "ProcGoodsReceipts",
     "ProcVendorInvoices",
     "ProcVendorPayments",
+    "ProcVendorAssessments",
     "ProcStock",
   ],
 });

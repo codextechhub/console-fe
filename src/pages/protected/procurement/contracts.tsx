@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import {
-  ChevronRight, FileText, FilePenLine, History, Link2, ListChecks, Plus, ScrollText, Search,
+  Banknote, CalendarClock, CalendarX2, ChevronRight, FileCheck2, FileText, FilePenLine,
+  History, Link2, ListChecks, Plus, ScrollText, Search,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,7 +12,7 @@ import { ProcurementShell } from "./procurement-shell";
 import { VendorPicker } from "./pickers";
 import {
   DataTable, DetailDrawer, EmptyState, ErrorState, FormDrawer, FormField, LoadingState,
-  Money, MoneyInput, StatusPill, ActionButton, toArray, useActiveEntity, type Column,
+  Money, MoneyInput, StatCard, StatusPill, ActionButton, toArray, useActiveEntity, type Column,
 } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -97,10 +98,10 @@ export default function ContractsPage() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
-          <Kpi label="Active" value={String(summary.active)} tone="green" />
-          <Kpi label="Expiring ≤ 30 days" value={String(summary.expiring_soon)} tone="amber" />
-          <Kpi label="Expired" value={String(summary.expired)} />
-          <Kpi label="Total active value" value={formatMoney(summary.total_active_value, currency)} money />
+          <StatCard label="Active" value={String(summary.active)} icon={FileCheck2} tone="green" />
+          <StatCard label="Expiring ≤ 30 days" value={String(summary.expiring_soon)} icon={CalendarClock} tone="amber" />
+          <StatCard label="Expired" value={String(summary.expired)} icon={CalendarX2} tone="gray" />
+          <StatCard label="Total active value" value={formatMoney(summary.total_active_value, currency)} icon={Banknote} tone="primary" />
         </>}
       </div>
 
@@ -117,11 +118,6 @@ export default function ContractsPage() {
     <ContractDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
     {creating && <ContractForm entity={entity} currency={currency} onClose={() => setCreating(false)} />}
   </ProcurementShell>;
-}
-
-function Kpi({ label, value, tone = "gray", money = false }: { label: string; value: string; tone?: "gray" | "green" | "amber"; money?: boolean }) {
-  const tones = { gray: "text-black-01", green: "text-emerald-700", amber: "text-amber-700" };
-  return <div className="rounded-md bg-white p-4"><p className="font-mont text-xs font-medium text-gray-05">{label}</p><p className={cn("mt-2 font-mont font-semibold tabular-nums", money ? "text-lg" : "text-2xl", tones[tone])}>{value}</p></div>;
 }
 
 function ContractDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {

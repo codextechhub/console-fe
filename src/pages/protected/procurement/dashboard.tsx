@@ -8,7 +8,7 @@ import { useNavigate } from "react-router";
 import { ProcurementShell } from "./procurement-shell";
 import {
   BarChart, CHART_COLORS, Donut, EmptyState, ErrorState, InfoHint,
-  LoadingState, StatusPill, TrendArea, useActiveEntity, kpiValueClass,
+  LoadingState, StatCard, StatusPill, TrendArea, useActiveEntity,
 } from "@/components/finance-ui";
 import { useCan } from "@/components/finance-ui/can";
 import { cn } from "@/lib/utils";
@@ -64,36 +64,6 @@ function Card({ title, subtitle, action, className, children }: {
       </div>
       {children}
     </section>
-  );
-}
-
-function Kpi({ label, value, sub, icon: Icon, tone = "primary", onClick, ariaLabel }: {
-  label: string;
-  value: React.ReactNode;
-  sub: React.ReactNode;
-  icon: React.ComponentType<{ className?: string }>;
-  tone?: "primary" | "amber" | "red" | "green";
-  onClick: () => void;
-  ariaLabel: string;
-}) {
-  const tones = {
-    primary: { icon: "bg-primary/10 text-primary" },
-    amber: { icon: "bg-amber-100 text-amber-700" },
-    red: { icon: "bg-red-100 text-destructive" },
-    green: { icon: "bg-green-01/10 text-green-01" },
-  }[tone];
-  return (
-    <button type="button" onClick={onClick} aria-label={ariaLabel}
-      className="flex min-w-0 items-start justify-between gap-3 rounded-md bg-white p-4 text-left transition-shadow hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
-      <div className="min-w-0">
-        <p className="font-mont text-xs font-medium text-gray-05">{label}</p>
-        <p className={cn("mt-2 font-mont font-semibold tabular-nums text-black-01", typeof value === "string" ? kpiValueClass(value) : "text-xl")}>{value}</p>
-        <div className="mt-2 min-h-4 font-mont text-[11px] text-gray-05">{sub}</div>
-      </div>
-      <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-md", tones.icon)}>
-        <Icon className="size-4" />
-      </span>
-    </button>
   );
 }
 
@@ -177,7 +147,7 @@ export default function ProcurementDashboard() {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-              <Kpi
+              <StatCard
                 label="Total Spend (MTD)"
                 value={money(d.kpis.total_spend_mtd.value.kobo)}
                 icon={Banknote}
@@ -189,16 +159,16 @@ export default function ProcurementDashboard() {
                   </span>
                 )}
               />
-              <Kpi label="Open Purchase Orders" value={d.kpis.open_purchase_orders.count} icon={ShoppingCart}
+              <StatCard label="Open Purchase Orders" value={d.kpis.open_purchase_orders.count} icon={ShoppingCart}
                 ariaLabel="Open purchase orders" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS)}
                 sub={`${d.kpis.open_purchase_orders.partial_count} partial`} />
-              <Kpi label="Pending Approvals" value={d.kpis.pending_approvals.count} icon={ClipboardCheck} tone="amber"
+              <StatCard label="Pending Approvals" value={d.kpis.pending_approvals.count} icon={ClipboardCheck} tone="amber"
                 ariaLabel="Open approvals queue" onClick={() => navigate(PROC.APPROVALS)}
                 sub="awaiting you" />
-              <Kpi label="Overdue Invoices" value={d.kpis.overdue_invoices.count} icon={CircleAlert} tone="red"
+              <StatCard label="Overdue Invoices" value={d.kpis.overdue_invoices.count} icon={CircleAlert} tone="red"
                 ariaLabel="Open vendor invoices" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.VENDOR_INVOICES)}
                 sub={<span><span className="font-semibold text-destructive">{compactMoney(d.kpis.overdue_invoices.amount.kobo)}</span> past due</span>} />
-              <Kpi label="Active Vendors" value={d.kpis.active_vendors.count} icon={Store} tone="green"
+              <StatCard label="Active Vendors" value={d.kpis.active_vendors.count} icon={Store} tone="green"
                 ariaLabel="Open vendors" onClick={() => navigate(`${routesPath.PROTECTED.PROCUREMENT.VENDORS}/vendors`)}
                 sub={`${d.kpis.active_vendors.on_hold_count} on hold`} />
             </div>

@@ -8,7 +8,7 @@ export { MoneyInput } from "./money-input";
 export { StatusPill } from "./status-pill";
 export { JournalTable, type JournalLineView } from "./journal-table";
 export { PostingRecap, type RecapRow } from "./posting-recap";
-export { DataTable, type Column } from "./data-table";
+export { DataTable, headCls, cellCls, type Column } from "./data-table";
 export { DetailDrawer } from "./detail-drawer";
 export { ConfirmActionModal } from "./confirm-action-modal";
 export { ActionButton } from "./action-button";
@@ -26,6 +26,7 @@ export {
 } from "./states";
 // KpiCard already exists app-wide; re-export so finance pages import from one place.
 export { default as KpiCard } from "@/components/custom/kpi-card";
+export { StatCard, type StatTone } from "./stat-card";
 export { TeachingNote } from "./teaching-note";
 export { InfoHint } from "./info-hint";
 export { BarChart, Donut, StatStrip, WorkflowStrip, Sparkline, BudgetBar, AgingStack, TrendArea, CHART_COLORS, type BarDatum, type DonutDatum, type AgingDatum } from "./charts";

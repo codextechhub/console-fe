@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import {
-  ChevronRight, ClipboardList, FilePenLine, FileText, History, List,
-  Plus, Search, Users,
+  AlertTriangle, ChevronRight, ClipboardList, Clock, FilePenLine, FileText, History,
+  Inbox, List, Plus, Search, Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,7 +13,7 @@ import { RequisitionPicker } from "../pickers";
 import { SearchSelect } from "@/components/custom/search-select";
 import {
   DataTable, DetailDrawer, EmptyState, ErrorState, FormField, LineEditor,
-  LoadingState, Money, MoneyInput, StatusPill, ActionButton, emptyLine, toArray,
+  LoadingState, Money, MoneyInput, StatCard, StatusPill, ActionButton, emptyLine, toArray,
   useActiveEntity, type Column, type DocLine,
 } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
@@ -104,10 +104,10 @@ export default function RfqsPage() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
-          <Kpi label="Draft" value={summary.draft} />
-          <Kpi label="Open" value={summary.open} tone="green" />
-          <Kpi label="Responses in" value={summary.responses_in} tone="amber" />
-          <Kpi label="Closing ≤ 7 days" value={summary.closing_soon} tone="amber" />
+          <StatCard label="Draft" value={summary.draft} icon={FileText} />
+          <StatCard label="Open" value={summary.open} icon={Clock} tone="green" />
+          <StatCard label="Responses in" value={summary.responses_in} icon={Inbox} tone="amber" />
+          <StatCard label="Closing ≤ 7 days" value={summary.closing_soon} icon={AlertTriangle} tone="amber" />
         </>}
       </div>
 
@@ -124,11 +124,6 @@ export default function RfqsPage() {
     <RfqDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
     {creating && <RfqForm entity={entity} currency={currency} onClose={() => setCreating(false)} />}
   </ProcurementShell>;
-}
-
-function Kpi({ label, value, tone = "gray" }: { label: string; value: number; tone?: "gray" | "green" | "amber" }) {
-  const tones = { gray: "text-black-01", green: "text-emerald-700", amber: "text-amber-700" };
-  return <div className="rounded-md bg-white p-4"><p className="font-mont text-xs font-medium text-gray-05">{label}</p><p className={cn("mt-2 font-mont text-2xl font-semibold tabular-nums", tones[tone])}>{value}</p></div>;
 }
 
 function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {

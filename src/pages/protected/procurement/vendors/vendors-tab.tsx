@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 import {
   AccountPicker, DataTable, DetailDrawer, ErrorState, FormDrawer,
-  FormField, LoadingState, StatusPill, TaxCodePicker, toArray, type Column,
+  FormField, LoadingState, StatCard, StatusPill, TaxCodePicker, toArray, type Column,
 } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -113,10 +113,10 @@ export function VendorsTab({ entity, currency }: { entity: string; currency?: st
 
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {summaryLoading ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : summary ? <>
-        <Kpi label="Active Vendors" value={String(summary.active)} icon={BadgeCheck} tone="green" sub={`${summary.inactive} inactive`} />
-        <Kpi label="Total Spend YTD" value={formatMoney(summary.total_spend_ytd, currency)} icon={CircleDollarSign} tone="indigo" sub="Posted vendor invoices" />
-        <Kpi label="Average Terms" value={summary.average_payment_days == null ? "—" : `Net ${summary.average_payment_days}`} icon={FileText} tone="gray" sub={`${summary.kyc_pending} KYC pending`} />
-        <Kpi label="On Hold" value={String(summary.on_hold)} icon={Ban} tone="red" sub="New commitments blocked" />
+        <StatCard label="Active Vendors" value={String(summary.active)} icon={BadgeCheck} tone="green" sub={`${summary.inactive} inactive`} />
+        <StatCard label="Total Spend YTD" value={formatMoney(summary.total_spend_ytd, currency)} icon={CircleDollarSign} tone="indigo" sub="Posted vendor invoices" />
+        <StatCard label="Average Terms" value={summary.average_payment_days == null ? "—" : `Net ${summary.average_payment_days}`} icon={FileText} tone="gray" sub={`${summary.kyc_pending} KYC pending`} />
+        <StatCard label="On Hold" value={String(summary.on_hold)} icon={Ban} tone="red" sub="New commitments blocked" />
       </> : <div className="col-span-full rounded-md border border-dashed border-gray-03 bg-white p-4 text-xs text-gray-05">{isForbidden(summaryError) ? "Vendor financial KPIs require Procurement report access." : "Vendor KPIs could not be loaded."}</div>}
     </div>
 
@@ -144,11 +144,6 @@ function VendorIdentity({ vendor }: { vendor: Vendor }) {
 function VendorMobileCard({ vendor }: { vendor: Vendor }) {
   return <div className="space-y-3 border-b border-gray-03 px-3.5 py-3 last:border-0"><VendorIdentity vendor={vendor} /><div className="flex flex-wrap gap-1"><StatusPill status={vendorState(vendor)} /><StatusPill status={vendor.kyc_status} /></div><div className="grid grid-cols-2 gap-3 text-xs"><div><p className="text-[11px] text-gray-05">Category</p><p className="mt-1 font-medium">{vendor.category_code || "Uncategorised"}</p></div><div><p className="text-[11px] text-gray-05">Active POs</p><p className="mt-1 font-medium tabular-nums">{vendor.active_po_count ?? 0}</p></div></div></div>;
 }
-function Kpi({ label, value, sub, icon: Icon, tone }: { label: string; value: string; sub: string; icon: React.ElementType; tone: "green" | "indigo" | "gray" | "red" }) {
-  const tones = { green: "bg-emerald-100 text-emerald-700", indigo: "bg-indigo-100 text-indigo-700", gray: "bg-gray-100 text-gray-600", red: "bg-red-100 text-red-600" };
-  return <div className="rounded-md bg-white p-4"><div className="flex items-start justify-between gap-3"><p className="font-mont text-xs font-medium text-gray-05">{label}</p><span className={cn("rounded-md p-2", tones[tone])}><Icon className="size-4" /></span></div><p className="mt-2 font-mont text-xl font-semibold tabular-nums">{value}</p><p className="mt-2 min-h-4 font-mont text-[11px] text-gray-05">{sub}</p></div>;
-}
-
 function VendorDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {
   const { can } = useCan();
   const [tab, setTab] = useState("profile");

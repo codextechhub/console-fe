@@ -6,14 +6,14 @@ import { useActionParam } from "@/hooks/use-action-param";
 import { useParams } from "react-router";
 import { toast } from "sonner";
 import {
-  ArrowLeftRight, ChevronRight, FilePenLine, FileText, History,
-  PackageMinus, Plus, Search, SlidersHorizontal,
+  AlertTriangle, ArrowLeftRight, Banknote, Boxes, ChevronRight, FilePenLine, FileText,
+  History, PackageMinus, PackageX, Plus, Search, SlidersHorizontal,
 } from "lucide-react";
 
 import { ProcurementShell } from "./procurement-shell";
 import {
   AccountPicker, DataTable, DetailDrawer, EmptyState, ErrorState, FormDrawer, FormField,
-  LoadingState, Money, MoneyInput, PostingRecap, Segmented, StatusPill, toArray,
+  LoadingState, Money, MoneyInput, PostingRecap, Segmented, StatCard, StatusPill, toArray,
   useActiveEntity, type Column, type RecapRow,
 } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
@@ -129,10 +129,10 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
-            <Kpi label="Items tracked" value={String(summary.tracked)} />
-            <Kpi label="Low stock" value={String(summary.low_stock)} tone="amber" />
-            <Kpi label="Out of stock" value={String(summary.out_of_stock)} tone="red" />
-            <Kpi label="Total value" value={formatMoney(summary.total_value, currency)} money />
+            <StatCard label="Items tracked" value={String(summary.tracked)} icon={Boxes} tone="gray" />
+            <StatCard label="Low stock" value={String(summary.low_stock)} icon={AlertTriangle} tone="amber" />
+            <StatCard label="Out of stock" value={String(summary.out_of_stock)} icon={PackageX} tone="red" />
+            <StatCard label="Total value" value={formatMoney(summary.total_value, currency)} icon={Banknote} tone="primary" />
           </>}
         </div>
 
@@ -150,11 +150,6 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
       {creating && <StockItemForm entity={entity} onClose={() => setCreating(false)} />}
     </ProcurementShell>
   );
-}
-
-function Kpi({ label, value, tone = "gray", money = false }: { label: string; value: string; tone?: "gray" | "amber" | "red"; money?: boolean }) {
-  const tones = { gray: "text-black-01", amber: "text-amber-700", red: "text-destructive" };
-  return <div className="rounded-md bg-white p-4"><p className="font-mont text-xs font-medium text-gray-05">{label}</p><p className={cn("mt-2 font-mont font-semibold tabular-nums", money ? "text-lg" : "text-2xl", tones[tone])}>{value}</p></div>;
 }
 
 // ── Stock Item detail drawer ─────────────────────────────────────────────────

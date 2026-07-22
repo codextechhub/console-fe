@@ -491,15 +491,18 @@ category; and only real workflow document types are included.
   filter tabs, `mobile="scroll"`. `stock-items/` (+detail/PATCH/issue/adjust/**summary**),
   `stock-movements/`.
 
-### 6. Analytics (all read-only reports, `procurement.report.view`)
-- **AP Aging ☐** — aging buckets by vendor. `reports/ap-aging/`.
-- **GR/IR & Control ☐** — GR/IR clearing balance + aging (goods received not
-  invoiced / invoiced not received). `reports/grir/` + `grir-aging/`.
-- **Spend ☐** — spend analysis (by category / vendor / period). `reports/spend-analysis/`.
-- **Vendor Performance ☐** — on-time, price variance, quality scores.
-  `reports/vendor-performance/`.
+### 6. Analytics (all read-only reports, `procurement.report.view`) ☑
+- **AP Aging ☑** — aging buckets by vendor. `reports/ap-aging/` (+ `ap-cash-requirements/`).
+- **GR/IR & Control ☑** — GR/IR clearing balance + aging (goods received not
+  invoiced / invoiced not received). `reports/grir-aging/`.
+- **Spend ☑** — spend analysis (by category / vendor / month). `reports/spend-analysis/`.
+- **Vendor Performance ☑** — on-time delivery + payment behaviour (no quality/variance
+  grades — not tracked). `reports/vendor-performance/`.
 - *(Also available if the prototype surfaces them: `ap-reconciliation/`,
-  `ap-cash-requirements/`, `cycle-time/`, `stock-reorder/`, `stock-valuation/`.)*
+  `cycle-time/`, `stock-reorder/`, `stock-valuation/`.)*
+- **Rebuilt and verified together as one section (2026-07-22)** — see the
+  "Analytics (§6) — rebuilt and verified" note below. **This completes the
+  Procurement console rebuild.**
 
 ## Running / verifying locally
 - Backend: `cd backend/apps && ../cx/bin/python manage.py runserver --settings=apps.settings.local`
@@ -738,3 +741,192 @@ outside-click/Escape dismissal fired **zero** create/update mutations (request-m
 phone + 820px tablet audit reported **zero** page overflow with genuine card layouts (Movements
 uses `mobile="scroll"`). Verifier login/audit rows scrubbed. No new permission keys;
 `PERMISSIONS_AUDIT.md` gains an Inventory section. Both repos contain only the intended §5 changes.
+
+## Analytics (§6) — rebuilt and verified (2026-07-22) — **Procurement rebuild COMPLETE**
+The four Analytics screens (AP Aging · GR/IR & Control · Spend · Vendor Performance)
+shipped **together as one section**. `analytics.tsx` is now a thin `<ProcurementShell>`
+router that gates on `P.PROC_VIEW_PROC_REPORTS` and dispatches the `:section` route to
+one of four per-screen components under `src/pages/protected/procurement/analytics/`
+(`ap-aging.tsx`, `grir.tsx`, `spend.tsx`, `performance.tsx` + pure `helpers.ts`,
+component-only `shared.tsx`, and `assessment-form.tsx`). Routes unchanged. The reports are
+read-only (**no Export**), but each screen has a **read-only drill-down drawer** on its
+rows, and Vendor Performance carries the one real mutation in the group — recording a
+vendor assessment (see below). Every list is `toArray()`-guarded; dense tables use
+contained horizontal scroll; money-KPI strips are 1-col on phone.
+
+> **Scope correction (owner feedback, 2026-07-22).** The first Analytics build shipped
+> flat tables with **no drill-down drawers** and **dropped the prototype's "New
+> Assessment"** as a fabricated concept. Both were wrong: "no drawers that mutate" is not
+> "no drawers" — read-only detail drawers are the expected *improvement*; and the
+> honest-adaptation rule is for fabricated **data**, not for dropping a prototype-core
+> **concept** the model merely lacks (see [[feedback_prototype_intent]]). Per the RFQ
+> invited-vendor / PO→contract-call-off precedent, the assessment concept was **backed by
+> a new model**, not invented in the UI. The notes below describe the corrected build.
+
+**Resolved decisions (owner-approved):**
+- *Ship shape* — one combined FE section + one backend commit (new model + drawer
+  endpoints + the report fixes).
+- *AP Aging* — 3 KPIs (Total payable = `total_net`; Overdue = past-due buckets; **Due
+  this week** = `ap-cash-requirements` `0-7` bucket, a real backed figure), a bucket
+  BarChart (green→red), a per-vendor table with a derived Current/Due-soon/Overdue pill,
+  an **as-of date** control, and a **row drawer**: per-vendor aging breakdown stack +
+  the vendor's open POSTED bills (invoice #, dates, days overdue, bucket, balance) via
+  `reports/ap-aging/vendor/`.
+- *GR/IR & Control* — 4 KPIs (Clearing balance = `control_balance`; Received-not-invoiced
+  = Σ`open>0`; Invoiced-not-received = Σ`open<0`; **Difference** = reconciliation variance,
+  the honest replacement for the prototype's fabricated "Lines Cleared 2 of 4"), an
+  **AgingStack** of open GR/IR by age (an improvement — the prototype had no aging visual),
+  a per-GRN **value-level** table, and a **row drawer**: per-GRN reconciliation
+  (received/invoiced/open/age), linked source PO + GRN + vendor, and the matched vendor
+  invoices (honest empty state when none) via `reports/grir-aging/grn/`.
+- *Spend* — KPIs (gross/net/tax/invoice count), a category **Donut**, top-vendor
+  horizontal bars, a **monthly trend** (`by_period`, a real backend addition), a real
+  by-category detail table, a **start/end date-range** filter, and a **row drawer**:
+  per-category vendors + that category's monthly trend (`spend-analysis?category=`).
+- *Vendor Performance* — **the assessment feature is built, not dropped.** The screen
+  blends what `vendor_performance` **computes** (on-time delivery rate = receipt date vs
+  PO expected date, ordering/receipt counts, billed/paid, avg days-to-pay — correct
+  fraction→% and `null`→"—", fixing the stub's `{rate}%` bug) with the **latest recorded
+  assessment** (Quality / Invoice accuracy / Responsiveness / overall Grade). Vendors with
+  no assessment show an honest **"Not assessed"**. A **row drawer** shows computed metrics
+  + latest scorecard + full assessment history. The gated **New assessment** button opens
+  a right-side `FormDrawer` (house convention over the prototype's centered modal) that
+  records a scorecard; a footnote states exactly what is computed vs recorded.
+  - **Vendor Assessment model (the real backing).** New `VendorAssessment` — an
+    **immutable** point-in-time scorecard: four 0–100 criteria (`on_time_delivery`,
+    `quality_acceptance`, `invoice_accuracy`, `responsiveness`) with 0–100 validators, an
+    `assessor` FK (set to `request.user`), and `assessment_date`. `overall_score` and the
+    letter `grade` (A≥90 · B≥76 · C) are **computed** from `VENDOR_ASSESSMENT_WEIGHTS`
+    (35/30/20/15), never stored, so banding can evolve without a data migration. Migration
+    `0014_vendorassessment`. The FE form's live weighted-score/grade preview mirrors the
+    backend exactly; On-Time Delivery is prefilled from the vendor's computed on-time rate
+    (editable). Create-only — an assessment is never edited or deleted; a newer one
+    supersedes it.
+
+**Deliberate improvements over the prototype:** real KPI strips, real finance-ui charts
+(bucket bars, aging stack, spend donut/bars, monthly trend), per-screen period/as-of
+filters, **read-only drill-down drawers on every screen**, the real Vendor Assessment
+scorecard + history (the prototype's flat "New Assessment" made honest and durable), and
+honest empty states per chart/table/drawer. The prototype's fabricated department
+Budget/Actual/Remaining/%Used table (no dept or budget model) was replaced with a real
+by-category spend table.
+
+**New permission key:** `procurement.vendor_assessment.create` (FE numeric `701502`,
+SENSITIVE) gates **recording** an assessment; **viewing** assessments and every report/
+drawer rides `procurement.report.view`. Registered by `seed_procurement_permissions`
+(procurement registry now 57 in `PERMISSIONS_AUDIT.md`; 59 keys incl. platform actions).
+`PERMISSIONS_AUDIT.md` gains an Analytics section.
+
+**Backend:** all report/drawer reads gated `procurement.report.view`; assessment create
+gated `procurement.vendor_assessment.create` (GET list rides `report.view`). Both the
+assessment view and the two drawer views resolve the vendor/GRN **inside the request
+entity** (a foreign id 404s, never leaks). Also fixed a **latent 500** —
+`APAgingView`/`APReconciliationView` passed `as_of` as a raw query string into
+`ap_aging`/`reconcile_ap`, which computes `as_of − due_date` → `TypeError` (str − date);
+both now parse via `_date(...)`. **Spend `by_period`** accumulates a monthly series in the
+single existing pass over the invoice queryset (no second query). New endpoints:
+`vendor-assessments/` (GET/POST), `reports/ap-aging/vendor/`, `reports/grir-aging/grn/`;
+`vendor_performance` gains `latest_assessment` (one latest-per-vendor query, no N+1). FE:
+new `ProcVendorAssessments` cache tag (a new assessment refetches the performance report);
+hooks `getApAgingVendor`, `getGrirGrnDetail`, `getVendorAssessments`,
+`createVendorAssessment`, `getGrirAging`, `getApCashRequirements`, `category` param on spend.
+
+**Verification (orchestrator-run, real CODEX backend):** FE production build (`tsc -b`)
++ changed-file ESLint clean. Backend: **184 `vs_procurement` tests pass** (was 162 — adds
+`ProcurementAnalyticsReportAPITests` ×7, `VendorAssessmentTests` ×9 [weighted-score/grade
+bands + boundaries, create-gating vs list-on-report.view, assessor set, 0–100 validation,
+cross-entity reject, entity-scoped list, latest-per-vendor feeds the report, serialization
++ on-time-not-overwritten + null-when-unrated], `AnalyticsDrawerEndpointTests` ×6 [drawer
+report.view gating, AP per-vendor open bills + entity scope, GR/IR per-GRN links +
+reconciliation + 404 isolation + matched invoice, spend `category` scope]);
+`manage.py check` + `makemigrations --check` clean (`0014` committed). Drove real seeded
+CODEX data on all four routes **and every row drawer + the New Assessment form** with
+**zero** console/page errors: AP Aging (₦2.57m payable, bucket bars, per-vendor drawer
+with open-bill aging), GR/IR (₦1.68m clearing, Difference ₦0, aging stack, per-GRN
+reconciliation drawer with linked PO/GRN + honest empty matched-invoices), Spend (donut +
+vendor bars + Jan–Jul trend + per-category drawer), Vendor Performance (On-Time 100%,
+MainOne **Grade A** / Rack Centre **Grade B** / Inlaks **Not assessed**, Assessed 2/3,
+per-vendor drawer with computed metrics + scorecard + history, and the weighted New
+Assessment form previewing 80/100 · Grade B). 390px phone + 820px tablet audit across all
+four routes: **zero** page-level horizontal overflow (after the earlier GR/IR + Spend
+money-KPI 1-col fix). Verifier login/audit rows scrubbed. Both repos contain only the
+intended §6 changes (the `0014` migration + model/views/urls/tests on the backend; the
+analytics dir + api/types/permissions/base-api/PERMISSIONS_AUDIT on the FE).
+
+**The full Procurement console rebuild is finished** — every navigation group (Dashboard ·
+Procure to Pay · Vendors & Catalog · Sourcing · Inventory · Analytics) is rebuilt to the
+`Procurement_Console.html` prototype in the house theme and verified against the real
+CODEX backend.
+
+### Analytics restyle + GR/IR PO-line parity (owner feedback, 2026-07-22)
+Owner review of the first Analytics build flagged two things: the **KPI cards had no
+icons** and drifted in shape/number style (RFQ especially), and the **tables were not
+built to the prototype's arrangement**. Root cause: three divergent KPI cards (the
+approved Dashboard had a proper icon card, but RFQ had its own icon-less one and all four
+Analytics screens used the icon-less house `KpiCard`), and the tables were built to
+finance-ui defaults rather than studied against the prototype. Fixed as a class-fix:
+- **One shared `StatCard`** (`src/components/finance-ui/stat-card.tsx`) — the prototype's
+  card anatomy: **left tone accent bar + tinted rounded-square icon (top-right) + big
+  tabular number + sub-line**, optional focusable `<button>` when `onClick` is set (money
+  sizing via `kpiValueClass`). Adopted on **Dashboard** (approved — same data/layout/icons,
+  only gains the accent bar), **RFQ**, and **all four Analytics** screens, each with a
+  prototype-matching icon; the three old cards are deleted. (Owner decision: accent bar
+  everywhere, including Dashboard.)
+- **Tables restyled to the prototype** — shared `StatusDotPill` (leading tone dot), `Meter`
+  (bar + %), and a **circular `GradeBadge`** (A green · B indigo · C amber) in
+  `analytics/shared.tsx`; muted ₦0 reuses the existing `Money` dimming. AP Aging: vendor +
+  **payment-terms subtitle** ("Net 30") · buckets · Total · dot-status. Vendor Performance:
+  the prototype's 6 columns — Vendor (+ category subtitle) · On-Time/Quality/Inv.Accuracy/
+  Response as **meters** · Overall as the **circular grade badge** (honest "—"/"Not assessed"
+  when unrated; blend, footnote, drawer and gated New-assessment flow unchanged). Spend:
+  by-category **Share meter**. GR/IR: see below.
+- **GR/IR PO-line parity** (owner decision: extend the backend). New **`grir_po_lines`** +
+  **`grir_po_line_detail`** report (`reports.py`, code-only, no migration) and two
+  `report.view`-gated, entity-scoped endpoints — `GET reports/grir-lines/` and
+  `reports/grir-lines/detail/?po_line=<id>`. The GR/IR table is now **PO-line grain**
+  (PO Line · Item · Ordered · Received · Invoiced · GR/IR Bal · dot-status), with a
+  per-PO-line reconciliation drawer (the line's linked POSTED GRNs + invoices); the KPIs +
+  aging stack still come from the GRN-level `grir_aging`. Received/invoiced sum POSTED GRN/
+  invoice lines via the real `po_line` FK; balance = received value − invoiced value; status
+  compares quantities first (price variance never reads "Cleared"); two bulk aggregates, no
+  N+1; inline-commented. Also minimally surfaced the real backed `payment_terms` (AP-aging
+  row) and vendor `category` (vendor-performance row) — the prototype subtitles — rather
+  than fabricate or drop them.
+
+**Verification (orchestrator-run, real CODEX backend):** FE production build (`tsc -b`) +
+changed-file ESLint clean. Backend **190 `vs_procurement` tests pass** (was 184; +6
+`GRIRPoLinesTests`: report.view 403 on list+detail, aggregation + all three statuses +
+`po_line_ref`, excludes inactive lines/cancelled POs, empty-entity shape, detail links
+documents, entity-scoped 404). `manage.py check` + `makemigrations --check` clean (**no new
+migration** — the GR/IR report is code-only; `0014_vendorassessment` unchanged). Drove real
+CODEX data on Dashboard + RFQ + all four Analytics screens (+ GR/IR PO-line drawer): every
+card shows its icon + accent bar, Vendor Performance renders four meters + circular A/B
+grades, GR/IR shows PO-line rows with a per-line reconciliation drawer — **zero** console/
+page errors. 390px phone + 820px tablet audit across all six routes: **zero** page overflow.
+Verifier login rows scrubbed. No new permission keys.
+
+### Console-wide consistency pass (owner feedback, 2026-07-22)
+Two follow-up corrections after the owner reviewed the whole console:
+- **Every procurement KPI card is now the one shared `StatCard`.** Beyond Dashboard/RFQ/
+  Analytics, the remaining local KPI cards were replaced too — Requisitions, Purchase
+  Orders, Vendor Invoices, Vendors, Stock Items and Contracts each dropped their private
+  `Kpi` and adopted `StatCard` with a prototype-matching icon (a `gray` tone was added to
+  `StatCard` for neutral counts). Result: a single card component with icon + accent bar
+  across the entire Procurement console — no more per-screen card drift.
+- **Analytics tables now match the house table, not the prototype.** Per the owner's rule
+  ("tables follow what the other menus look like — styles and sizes"), the Analytics report
+  tables were re-aligned to the shared `DataTable` chrome: `headCls`/`cellCls` are now
+  exported from `finance-ui/data-table.tsx` and reused by the Analytics `TH`/`TD` constants
+  (`helpers.ts`), so header (`text-xs lg:text-sm`), cell weight (`font-medium`) and row
+  height match the rest of the app. Because the Analytics tables are raw `<th>`/`<td>` (not
+  shadcn `TableHead`/`TableCell`), they explicitly add the `h-10`/`py-2` that those
+  components otherwise supply — without which the rows collapsed to text height (fixed). The
+  owner-approved cell treatments (score **meters**, circular **grade badge**, **status dot
+  pills**) were kept; only the header/cell chrome changed. Drawer sub-tables were left as-is
+  per the owner.
+- **Demo seed:** `seed_procurement_demo` now seeds **3 vendor assessments** idempotently
+  (MainOne two-row A history + Rack B; Inlaks left unassessed so the "Not assessed" state is
+  demonstrable). Verified idempotent (re-running reports the same 3). Full `vs_procurement`
+  suite stays green at **190**; Django check + `makemigrations --check` clean; FE build +
+  changed-file lint clean. Drove all procurement KPI strips + the four Analytics tables on
+  real CODEX data — consistent icon+accent cards and house-height rows, zero console errors.

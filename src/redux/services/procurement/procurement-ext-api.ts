@@ -22,12 +22,20 @@ import type {
 } from "./procurement-types";
 import type {
   ApAging,
+  ApCashRequirements,
   ApReconciliation,
+  ApVendorDetail,
+  GrirAging,
   GrirBalance,
+  GrirGrnDetail,
+  GrirPoLineDetail,
+  GrirPoLines,
   ProcurementDashboard,
   ProcurementApprovalDetail,
   ProcurementApprovalRow,
   SpendAnalysis,
+  VendorAssessment,
+  VendorAssessmentInput,
   VendorPerformance,
 } from "./procurement-ext-types";
 
@@ -218,14 +226,46 @@ export const procurementExtApi = baseApi.injectEndpoints({
     getApReconciliation: b.query<ApiEnvelope<ApReconciliation>, { entity: string; as_of?: string }>({
       query: (p) => ({ url: `/procurement/reports/ap-reconciliation/${qs(p)}`, method: "GET" }),
     }),
+    getApCashRequirements: b.query<ApiEnvelope<ApCashRequirements>, { entity: string; as_of?: string }>({
+      query: (p) => ({ url: `/procurement/reports/ap-cash-requirements/${qs(p)}`, method: "GET" }),
+    }),
     getGrirBalance: b.query<ApiEnvelope<GrirBalance>, { entity: string }>({
       query: (p) => ({ url: `/procurement/reports/grir/${qs(p)}`, method: "GET" }),
     }),
-    getSpendAnalysis: b.query<ApiEnvelope<SpendAnalysis>, { entity: string; start_date?: string; end_date?: string }>({
+    getGrirAging: b.query<ApiEnvelope<GrirAging>, { entity: string; as_of?: string }>({
+      query: (p) => ({ url: `/procurement/reports/grir-aging/${qs(p)}`, method: "GET" }),
+    }),
+    // GR/IR at the PO-line grain (feeds the GR/IR table + its per-line drawer).
+    getGrirPoLines: b.query<ApiEnvelope<GrirPoLines>, { entity: string; as_of?: string }>({
+      query: (p) => ({ url: `/procurement/reports/grir-lines/${qs(p)}`, method: "GET" }),
+    }),
+    getGrirPoLineDetail: b.query<ApiEnvelope<GrirPoLineDetail>, { entity: string; po_line: number; as_of?: string }>({
+      query: (p) => ({ url: `/procurement/reports/grir-lines/detail/${qs(p)}`, method: "GET" }),
+    }),
+    getSpendAnalysis: b.query<ApiEnvelope<SpendAnalysis>, { entity: string; start_date?: string; end_date?: string; category?: string }>({
       query: (p) => ({ url: `/procurement/reports/spend-analysis/${qs(p)}`, method: "GET" }),
     }),
     getVendorPerformance: b.query<ApiEnvelope<VendorPerformance>, { entity: string; start_date?: string; end_date?: string }>({
       query: (p) => ({ url: `/procurement/reports/vendor-performance/${qs(p)}`, method: "GET" }),
+      // Refetch when a new assessment lands so the scorecard columns stay live.
+      providesTags: ["ProcVendorAssessments"],
+    }),
+    // Report-drawer detail endpoints — all report.view-gated.
+    getApAgingVendor: b.query<ApiEnvelope<ApVendorDetail>, { entity: string; vendor: string; as_of?: string }>({
+      query: (p) => ({ url: `/procurement/reports/ap-aging/vendor/${qs(p)}`, method: "GET" }),
+    }),
+    getGrirGrnDetail: b.query<ApiEnvelope<GrirGrnDetail>, { entity: string; grn: number; as_of?: string }>({
+      query: (p) => ({ url: `/procurement/reports/grir-aging/grn/${qs(p)}`, method: "GET" }),
+    }),
+
+    // Vendor assessments — list rides report.view; create needs vendor_assessment.create.
+    getVendorAssessments: b.query<ApiEnvelope<VendorAssessment[]>, { entity: string; vendor?: string }>({
+      query: (p) => ({ url: `/procurement/vendor-assessments/${qs(p)}`, method: "GET" }),
+      providesTags: ["ProcVendorAssessments"],
+    }),
+    createVendorAssessment: b.mutation<ApiEnvelope<VendorAssessment>, VendorAssessmentInput>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/vendor-assessments/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcVendorAssessments"],
     }),
   }),
 });
@@ -271,7 +311,15 @@ export const {
   useGetProcurementDashboardQuery,
   useGetApAgingQuery,
   useGetApReconciliationQuery,
+  useGetApCashRequirementsQuery,
   useGetGrirBalanceQuery,
+  useGetGrirAgingQuery,
+  useGetGrirPoLinesQuery,
+  useGetGrirPoLineDetailQuery,
   useGetSpendAnalysisQuery,
   useGetVendorPerformanceQuery,
+  useGetApAgingVendorQuery,
+  useGetGrirGrnDetailQuery,
+  useGetVendorAssessmentsQuery,
+  useCreateVendorAssessmentMutation,
 } = procurementExtApi;

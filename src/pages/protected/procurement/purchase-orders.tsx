@@ -12,7 +12,7 @@ import { RequisitionPicker, VendorPicker, ContractPicker } from "./pickers";
 import { useUserDirectory } from "../workflow/components/use-user-directory";
 import {
   Can, DataTable, DetailDrawer, EmptyState, ErrorState,
-  FormField, InfoHint, LoadingState, StatusPill, toArray, useActiveEntity, type Column,
+  FormField, InfoHint, LoadingState, StatCard, StatusPill, toArray, useActiveEntity, type Column,
 } from "@/components/finance-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,31 +59,6 @@ function shortDate(value?: string | null) {
 function percent(value: string | number | null | undefined) {
   const number = Number(value ?? 0);
   return `${Number.isFinite(number) ? Math.round(number) : 0}%`;
-}
-
-function POKpi({ label, value, sub, icon: Icon, tone = "primary" }: {
-  label: string; value: React.ReactNode; sub: React.ReactNode;
-  icon: React.ComponentType<{ className?: string }>;
-  tone?: "primary" | "green" | "amber" | "gray";
-}) {
-  const toneClass = {
-    primary: "bg-primary/10 text-primary",
-    green: "bg-green-01/10 text-green-01",
-    amber: "bg-amber-100 text-amber-700",
-    gray: "bg-gray-100 text-gray-05",
-  }[tone];
-  return (
-    <section className="flex min-w-0 items-start justify-between gap-3 rounded-md bg-white p-4">
-      <div className="min-w-0">
-        <p className="font-mont text-xs font-medium text-gray-05">{label}</p>
-        <p className="mt-2 font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
-        <p className="mt-1 min-h-4 font-mont text-[11px] text-gray-05">{sub}</p>
-      </div>
-      <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-md", toneClass)}>
-        <Icon className="size-4" />
-      </span>
-    </section>
-  );
 }
 
 export default function PurchaseOrdersPage() {
@@ -150,10 +125,10 @@ export default function PurchaseOrdersPage() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
-            <POKpi label="Open POs" value={summary.open.count} sub={money(summary.open.amount)} icon={ShoppingCart} />
-            <POKpi label="Partially Received" value={summary.partially_received.count} sub={summary.partially_received.count ? "Receipt work in progress" : "No partial receipts"} icon={PackageCheck} tone="amber" />
-            <POKpi label="Awaiting Receipt" value={summary.awaiting_receipt.count} sub={summary.awaiting_receipt.count ? "No accepted quantity yet" : "All open orders have receipts"} icon={Clock3} tone="gray" />
-            <POKpi label="PO Value (MTD)" value={money(summary.po_value_mtd.amount)} sub={summary.po_value_mtd.change_pct == null ? "No prior MTD comparison" : `${summary.po_value_mtd.change_pct >= 0 ? "+" : ""}${summary.po_value_mtd.change_pct}% vs prior MTD`} icon={FileText} tone="green" />
+            <StatCard label="Open POs" value={summary.open.count} sub={money(summary.open.amount)} icon={ShoppingCart} />
+            <StatCard label="Partially Received" value={summary.partially_received.count} sub={summary.partially_received.count ? "Receipt work in progress" : "No partial receipts"} icon={PackageCheck} tone="amber" />
+            <StatCard label="Awaiting Receipt" value={summary.awaiting_receipt.count} sub={summary.awaiting_receipt.count ? "No accepted quantity yet" : "All open orders have receipts"} icon={Clock3} tone="gray" />
+            <StatCard label="PO Value (MTD)" value={money(summary.po_value_mtd.amount)} sub={summary.po_value_mtd.change_pct == null ? "No prior MTD comparison" : `${summary.po_value_mtd.change_pct >= 0 ? "+" : ""}${summary.po_value_mtd.change_pct}% vs prior MTD`} icon={FileText} tone="green" />
           </>}
         </div>
 

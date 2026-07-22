@@ -359,6 +359,7 @@ const REGISTRY: Record<string, string> = {
   "701333": "procurement.stock.issue",
   "701337": "procurement.stock.adjust",
   "701401": "procurement.report.view",
+  "701502": "procurement.vendor_assessment.create",
 
   // ── PAYMENTS  (MM=80) ────────────────────────────────────────────────────────
   // RR: 01 collection · 02 virtual_account · 03 payout · 04 report · 05 payout_batch.
@@ -674,6 +675,7 @@ export const P = {
   PROC_ISSUE_STOCK:         "701333",
   PROC_ADJUST_STOCK:        "701337",
   PROC_VIEW_PROC_REPORTS:   "701401",
+  PROC_CREATE_VENDOR_ASSESSMENT: "701502",
 
   // ── Payments ────────────────────────────────────────────────────────────────
   PAY_VIEW_COLLECTIONS:     "800101",
