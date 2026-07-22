@@ -16,7 +16,7 @@ export const createTeamMemberSchema = Yup.object({
     ),
   // Seat is required — its title becomes the job title. Other HR fields optional.
   position: Yup.string().required("Position is required"),
-  job_title: Yup.string().max(120, "Job title is too long"),
+  job_title: Yup.string().max(150, "Job title is too long"),
   employee_id: Yup.string().max(32, "Employee ID is too long"),
   employment_type: Yup.string().oneOf(
     ["", "FULL_TIME", "PART_TIME", "CONTRACT", "INTERN"],

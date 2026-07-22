@@ -36,13 +36,16 @@ export const teamMgtApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Users"],
     }),
-    // Promote a DRAFT user into the normal approval/invite flow. `role` is only
-    // needed when the draft doesn't already have one.
-    submitDraftUser: builder.mutation<unknown, { id: string; role?: string }>({
-      query: ({ id, role }) => ({
+    // Promote a DRAFT user into the normal approval/invite flow. CX drafts must
+    // supply (or already hold) an organogram position.
+    submitDraftUser: builder.mutation<unknown, { id: string; role?: string; position?: string }>({
+      query: ({ id, role, position }) => ({
         url: `/user/users/${id}/submit/`,
         method: "POST",
-        body: role ? { role } : {},
+        body: {
+          ...(role ? { role } : {}),
+          ...(position ? { position } : {}),
+        },
       }),
       invalidatesTags: ["Users"],
     }),

@@ -19,6 +19,8 @@ export interface TeamMember {
   school_name?: string
   branch_id?: string
   branch_name?: string
+  position_id?: number | null
+  position_title?: string | null
   invited_by_id?: string
   invited_by_name?: string
   password_changed_at?: string

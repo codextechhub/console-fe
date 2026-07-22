@@ -77,8 +77,8 @@ export default function CreateAdmin() {
       phone: draft?.phone ?? "",
       gender: draft?.gender ?? "",
       // Optional seat + HR prefill (CX staff). Empty values are stripped below.
-      position: "",
-      job_title: "",
+      position: draft?.position_id ? String(draft.position_id) : "",
+      job_title: draft?.position_title ?? "",
       employee_id: "",
       employment_type: "",
       date_joined: "",
@@ -97,7 +97,11 @@ export default function CreateAdmin() {
           },
         })
           .unwrap()
-          .then(() => submitDraft({ id: draftId, role: values.role }).unwrap())
+          .then(() => submitDraft({
+            id: draftId,
+            role: values.role,
+            position: values.position,
+          }).unwrap())
           .then((res) => {
             const workflow = (res as { workflow_instance?: { status?: string } })?.workflow_instance;
             setPendingApproval(Boolean(workflow && workflow.status !== "APPROVED"));
