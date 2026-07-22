@@ -1,1 +1,1 @@
-export const SUPPORT_MAIL = 'itsupport@codexng.com' as const
+export const SUPPORT_MAIL = "support@codexng.com" as const;

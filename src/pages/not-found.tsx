@@ -1,14 +1,48 @@
 import { Button } from "@/components/ui/button";
+import { useActionSearch } from "@/hooks/use-action-search";
 import { routesPath } from "@/routes/routes-path";
-import { ArrowLeft, Home, Search } from "lucide-react";
-import { Link, useNavigate } from "react-router";
 import { SUPPORT_MAIL } from "@/utils/static";
+import { isPrimaryShortcut } from "@/utils/keyboard-shortcuts";
+import { ArrowLeft, Home, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router";
 
 export default function NotFound() {
   const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [resultsOpen, setResultsOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const shortcutLabel = useMemo(
+    () => (/Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "⌘ E" : "Ctrl E"),
+    [],
+  );
+  const { results, onLaunch } = useActionSearch(search);
+  const navigableResults = results
+    .filter((result) => "to" in result.action.run)
+    .slice(0, 4);
+
+  useEffect(() => {
+    const focusSearch = (event: KeyboardEvent) => {
+      if (!isPrimaryShortcut(event, "KeyE")) return;
+      event.preventDefault();
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    };
+
+    window.addEventListener("keydown", focusSearch);
+    return () => window.removeEventListener("keydown", focusSearch);
+  }, []);
+
+  const launchResult = (result: (typeof navigableResults)[number]) => {
+    onLaunch(result.action, search);
+    setSearch("");
+    setResultsOpen(false);
+    if ("to" in result.action.run) navigate(result.action.run.to);
+  };
+
   return (
     <div className="min-h-screen w-full bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 py-3 px-6 flex items-center">
+      <header className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 flex items-center gap-4">
         <div className="flex items-center gap-2">
           <img
             src="/image/logo.png"
@@ -17,16 +51,72 @@ export default function NotFound() {
           />
         </div>
 
-        <div className="ml-auto flex items-center gap-4">
-          <div className="relative hidden sm:block">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search Keyword#"
-              className="pl-10 pr-4 py-2 rounded-full border border-gray-200 w-64 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled
-            />
-          </div>
+        <div className="relative ml-auto min-w-0 w-full max-w-[430px]">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+          <input
+            ref={searchRef}
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setResultsOpen(true);
+            }}
+            onFocus={() => setResultsOpen(true)}
+            onBlur={() => setResultsOpen(false)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") setResultsOpen(false);
+              if (event.key === "Enter" && navigableResults[0]) {
+                event.preventDefault();
+                launchResult(navigableResults[0]);
+              }
+            }}
+            role="combobox"
+            aria-label="Search the workspace"
+            aria-expanded={resultsOpen && Boolean(search.trim())}
+            aria-controls="not-found-search-results"
+            aria-keyshortcuts="Control+E Meta+E"
+            placeholder="Search the workspace"
+            className="h-9 w-full rounded-xl border border-gray-200 bg-gray-50/70 pl-9 pr-17 text-sm outline-none transition placeholder:text-gray-400 focus:border-primary/35 focus:bg-white focus:ring-3 focus:ring-primary/8"
+          />
+          <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-md border border-gray-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold tracking-wide text-gray-400 shadow-sm sm:block">
+            {shortcutLabel}
+          </kbd>
+          {resultsOpen && search.trim() && (
+            <div
+              id="not-found-search-results"
+              role="listbox"
+              aria-label="Workspace search results"
+              className="absolute left-0 top-11 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl"
+            >
+              {navigableResults.length === 0 ? (
+                <p className="px-3 py-4 text-center text-xs text-gray-400">
+                  No accessible pages found.
+                </p>
+              ) : (
+                navigableResults.map((result) => (
+                  <button
+                    key={result.action.id}
+                    type="button"
+                    role="option"
+                    aria-selected="false"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => launchResult(result)}
+                    className="flex w-full items-center rounded-lg px-3 py-2 text-left hover:bg-gray-50"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium text-black-01">
+                        {result.action.label}
+                      </span>
+                      <span className="block truncate text-[11px] text-gray-400">
+                        {result.action.console === "Main"
+                          ? result.action.group
+                          : `${result.action.console} · ${result.action.group}`}
+                      </span>
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -64,7 +154,7 @@ export default function NotFound() {
 
           <div className="mt-8 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-500">
-              Need help?
+              Need help?{" "}
               <a
                 href={`mailto:${SUPPORT_MAIL}`}
                 className="text-primary hover:underline"
@@ -78,7 +168,7 @@ export default function NotFound() {
 
       <footer className="bg-white border-t border-gray-200 py-4 px-6 text-center text-sm text-gray-500">
         <p>
-          &copy; {new Date().getFullYear()} Codex Vision. All rights reserved.
+          &copy; {new Date().getFullYear()} CodeX Limited. All rights reserved.
         </p>
       </footer>
     </div>
