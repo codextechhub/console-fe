@@ -440,7 +440,9 @@ export default function TicketDetail() {
                     ["Requester", ticket.requester.name],
                     ["Assignee", ticket.assignee?.name ?? "Unassigned"],
                     ["Tenant", ticket.tenant?.toUpperCase() ?? "—"],
-                    ["School", ticket.school_name || "Platform"],
+                    ...(ticket.school && ticket.school_name?.trim()
+                      ? [["School", ticket.school_name]]
+                      : []),
                     ["Category", ticket.category],
                     ["Priority", ticket.priority],
                     ["Created", new Date(ticket.created_at).toLocaleString()],
