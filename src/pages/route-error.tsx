@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, isRouteErrorResponse, useRouteError } from "react-router";
+import { WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { routesPath } from "@/routes/routes-path";
 import { isStaleChunkError, reloadForStaleChunk } from "@/utils/stale-chunk";
@@ -9,13 +10,25 @@ import { isStaleChunkError, reloadForStaleChunk } from "@/utils/stale-chunk";
 // production. Registered as ErrorBoundary on the root routes in routes/index.
 export default function RouteError() {
   const error = useRouteError();
+  const [online, setOnline] = useState(() => navigator.onLine);
 
   // A failed lazy-route chunk after a redeploy: recover with a guarded reload so
   // the user lands on the fresh build instead of an error screen. If we reloaded
   // too recently (asset genuinely gone), fall through to the screen below.
   const staleChunk = isStaleChunkError(error);
   useEffect(() => {
-    if (staleChunk) reloadForStaleChunk();
+    const reconnect = () => {
+      setOnline(true);
+      if (staleChunk) window.location.reload();
+    };
+    const disconnect = () => setOnline(false);
+    window.addEventListener("online", reconnect);
+    window.addEventListener("offline", disconnect);
+    if (staleChunk && navigator.onLine) reloadForStaleChunk();
+    return () => {
+      window.removeEventListener("online", reconnect);
+      window.removeEventListener("offline", disconnect);
+    };
   }, [staleChunk]);
 
   const message = isRouteErrorResponse(error)
@@ -23,6 +36,20 @@ export default function RouteError() {
     : error instanceof Error
       ? error.message
       : "An unexpected error occurred.";
+
+  if (staleChunk && !online) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white-05 px-6 text-center">
+        <div className="grid size-14 place-items-center rounded-2xl bg-white text-gray-01 shadow-sm">
+          <WifiOff className="size-6" />
+        </div>
+        <h1 className="text-xl font-semibold text-black-01">You’re offline</h1>
+        <p className="max-w-md text-sm text-gray-01">
+          This page has not loaded on this device yet. We’ll retry automatically when your connection returns.
+        </p>
+      </div>
+    );
+  }
 
   if (staleChunk) {
     return (
@@ -35,16 +62,17 @@ export default function RouteError() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white-05 px-6 text-center">
-      <img src="/image/caution.png" alt="" className="size-20" />
       <h1 className="text-xl font-semibold text-black-01">Something went wrong</h1>
       <p className="max-w-md text-sm text-gray-01">
-        The page hit an unexpected error. You can try reloading, or head back to
-        the dashboard — if it keeps happening, report it with the message below.
+        The page hit an unexpected error. Try reloading, or head back to the dashboard.
+        {import.meta.env.DEV && " If it keeps happening, report it with the message below."}
       </p>
-      <p className="max-w-md rounded-md bg-white px-3 py-2 font-mono text-xs text-error-01 border border-gray-200 break-all">
-        {message}
-      </p>
-      <div className="flex gap-2">
+      {import.meta.env.DEV && (
+        <p className="max-w-md rounded-md bg-white px-3 py-2 font-mono text-xs text-error-01 border border-gray-200 break-all">
+          {message}
+        </p>
+      )}
+      <div className="flex flex-wrap justify-center gap-2">
         <Button variant="white" onClick={() => window.location.reload()}>
           Reload page
         </Button>

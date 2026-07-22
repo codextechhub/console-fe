@@ -89,6 +89,7 @@ export const notificationsApi = baseApi.injectEndpoints({
     // ── Feed (user-facing) ──────────────────────────────────────────────────
     getNotifications: builder.query<Page<NotificationItem>, Record<string, string | number | boolean>>({
       query: (params) => ({ url: `/notify/${generateQueryString(params)}` }),
+      extraOptions: { silent: true },
       providesTags: ["Notifications"],
     }),
     getNotification: builder.query<{ data: NotificationDetail }, string>({
@@ -97,6 +98,7 @@ export const notificationsApi = baseApi.injectEndpoints({
     }),
     getUnreadCount: builder.query<{ data: { unread_count: number } }, void>({
       query: () => ({ url: "/notify/unread-count/", method: "GET" }),
+      extraOptions: { silent: true },
       providesTags: ["Notifications"],
     }),
     markNotificationsRead: builder.mutation<{ data: { updated_count: number } }, { ids: string[] }>({
@@ -114,6 +116,7 @@ export const notificationsApi = baseApi.injectEndpoints({
       { path: string }
     >({
       query: (body) => ({ url: "/notify/acknowledge-route/", method: "POST", body }),
+      extraOptions: { silent: true },
       invalidatesTags: (result, error) =>
         !error && result?.data.updated_count ? ["Notifications"] : [],
     }),

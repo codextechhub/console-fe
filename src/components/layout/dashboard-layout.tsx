@@ -17,7 +17,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { SessionTimeoutModal } from "@/components/session-timeout-modal";
-import { TopProgressBar } from "@/components/custom/top-progress-bar";
+import { startNavigationProgress, TopProgressBar } from "@/components/custom/top-progress-bar";
 import { NotificationsBell } from "@/components/custom/notifications-bell";
 import { useLogout } from "@/hooks/use-logout";
 import useToggleModal from "@/hooks/use-toggle";
@@ -204,6 +204,7 @@ function DashboardHeader({
       else showLogout();
       return;
     }
+    startNavigationProgress();
     navigate(action.run.to);
   };
 
@@ -354,7 +355,10 @@ function DashboardHeader({
             <figure
               onClick={() => {
                 if (onBack) onBack();
-                else navigate(-1);
+                else {
+                  startNavigationProgress();
+                  navigate(-1);
+                }
               }}
               className="uppercase font-light text-gray-01 text-sm inline-flex items-center cursor-pointer"
             >
