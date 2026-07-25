@@ -35,16 +35,21 @@ interface BaseApiState {
   };
 }
 
+// Mutations are deliberately NOT tracked: every mutation in the app is fired
+// from a control with its own busy state (button spinner, disabled form), so
+// echoing it in a global bar reads as unexplained background churn.
 const selectAnyPending = (state: BaseApiState): boolean => {
   const api = state.baseApi;
   if (!api) return false;
-  return (
-    Object.values(api.queries ?? {}).some(
-      (q) => q?.status === "pending" && !SILENT_ENDPOINTS.has(q?.endpointName ?? ""),
-    ) ||
-    Object.values(api.mutations ?? {}).some((m) => m?.status === "pending")
+  return Object.values(api.queries ?? {}).some(
+    (q) => q?.status === "pending" && !SILENT_ENDPOINTS.has(q?.endpointName ?? ""),
   );
 };
+
+// Activity must persist this long before the bar appears. Fast responses (warm
+// cache, local dev, quick API hits) come and go without ever flashing the bar;
+// only genuinely slow work — the case the bar exists for — surfaces it.
+const SHOW_DELAY_MS = 300;
 
 type Phase = "idle" | "running" | "finishing";
 
@@ -84,21 +89,30 @@ export function TopProgressBar() {
     };
   }, [location.key]);
 
+  // Surface the bar only after activity has persisted past SHOW_DELAY_MS.
+  // Clearing the timeout on the inactive edge is what swallows fast requests:
+  // active → inactive within the window unschedules the show entirely.
+  useEffect(() => {
+    if (!isActive) return;
+    const timer = window.setTimeout(() => setPhase("running"), SHOW_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [isActive]);
+
   // Adjust state when the derived store value changes (guarded, render-phase).
-  if (isActive && phase !== "running") {
-    setPhase("running");
-  } else if (!isActive && phase === "running") {
+  if (!isActive && phase === "running") {
     setPhase("finishing");
   }
 
-  if (phase === "idle" && !isActive) return null;
+  // Phase alone decides visibility: while the show-delay window is open the
+  // phase is still "idle" even though activity is pending — render nothing.
+  if (phase === "idle") return null;
 
   return (
     <div
       role="progressbar"
       aria-label="Loading page"
       data-testid="api-progress-bar"
-      className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[3px]"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[1.5px]"
     >
       <style>{`
         @keyframes tpb-grow { from { width: 0 } to { width: 85% } }
