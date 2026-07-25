@@ -51,6 +51,14 @@ const selectAnyPending = (state: BaseApiState): boolean => {
 // only genuinely slow work — the case the bar exists for — surfaces it.
 const SHOW_DELAY_MS = 300;
 
+// In production the bar is a NAVIGATION signal only. Data fetches there have
+// their own in-page loading states, and real network latency would otherwise
+// keep the bar crawling on every screen — reading as background trouble rather
+// than feedback. Local dev keeps the API signal: latency is near zero, so it
+// only ever appears when something is genuinely stuck, which is exactly when a
+// developer wants to see it.
+const TRACK_API_ACTIVITY = import.meta.env.DEV;
+
 type Phase = "idle" | "running" | "finishing";
 
 // Animation is pure CSS (keyframes below) instead of timer-driven setState, so
@@ -59,7 +67,9 @@ type Phase = "idle" | "running" | "finishing";
 // render-phase adjustment pattern; "finishing" → "idle" is event-driven
 // (onAnimationEnd).
 export function TopProgressBar() {
-  const hasPendingRequest = useSelector(selectAnyPending);
+  const hasPendingRequest = useSelector(
+    TRACK_API_ACTIVITY ? selectAnyPending : () => false,
+  );
   const location = useLocation();
   const [navigationFrom, setNavigationFrom] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
