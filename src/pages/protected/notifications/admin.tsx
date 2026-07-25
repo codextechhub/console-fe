@@ -4,7 +4,6 @@
 // each tab additionally requires its own key.
 
 import { useSearchParams } from "react-router";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import Tabs from "@/components/custom/tab";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -36,7 +35,7 @@ export default function NotificationsAdmin() {
       P.CONFIGURE_NOTIFICATION_TEMPLATES,
     )
   ) {
-    return <PageAccessDenied layoutTitle="Notifications" />;
+    return <PageAccessDenied />;
   }
   // The catalogue is reference material for whoever administers the above.
   panels.push("events");
@@ -46,7 +45,7 @@ export default function NotificationsAdmin() {
   const panel = requested && panels.includes(requested) ? requested : panels[0];
 
   return (
-    <DashboardLayout title="Notifications">
+    <>
       <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
         <div>
           <p className="font-semibold font-mont text-gray-01">Notification Administration</p>
@@ -62,6 +61,6 @@ export default function NotificationsAdmin() {
         {panel === "templates" && <TemplatesPanel />}
         {panel === "events" && <EventsPanel />}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

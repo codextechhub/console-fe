@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useNow } from "@/hooks/use-now";
 import { AlertOctagon, Download, RefreshCw, TrendingUp } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/custom/user-avatar";
@@ -79,7 +78,7 @@ export default function AuditDashboard() {
   }, [feedData, feedFilter, now]);
 
   return (
-    <DashboardLayout title="Security Dashboard">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
@@ -336,6 +335,6 @@ export default function AuditDashboard() {
           onClose={() => setSelectedEventId(null)}
         />
       </main>
-    </DashboardLayout>
+    </>
   );
 }

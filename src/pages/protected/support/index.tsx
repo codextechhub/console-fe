@@ -7,7 +7,6 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import KpiCard from "@/components/custom/kpi-card";
@@ -83,7 +82,7 @@ export default function Support() {
   }));
 
   return (
-    <DashboardLayout title="Support">
+    <>
       <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
         {/* Intro row */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -166,7 +165,7 @@ export default function Support() {
           />
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }
 

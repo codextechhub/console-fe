@@ -4,7 +4,6 @@ import {
   ChevronDown, ChevronUp, Clock, Eye, EyeOff, Globe, LogIn, LogOut,
   Monitor, RefreshCw, Smartphone, Tablet,
 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PromptModal from "@/components/modal/prompt-modal";
@@ -132,7 +131,7 @@ export default function MyActiveSessions() {
   };
 
   return (
-    <DashboardLayout title="Active Sessions">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* Header */}
@@ -341,6 +340,6 @@ export default function MyActiveSessions() {
           loading={isEndingAll}
         />
       </main>
-    </DashboardLayout>
+    </>
   );
 }

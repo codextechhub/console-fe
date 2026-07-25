@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { X } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -157,7 +156,7 @@ export default function ComplianceRuleForm() {
   ];
 
   return (
-    <DashboardLayout title={isEdit ? "Edit Compliance Rule" : "New Compliance Rule"} hasBack>
+    <>
       <main className="px-4.5 py-6 text-black-01 max-w-2xl space-y-5">
 
         {/* Page heading */}
@@ -423,6 +422,6 @@ export default function ComplianceRuleForm() {
           </Button>
         </div>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

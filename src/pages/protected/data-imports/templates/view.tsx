@@ -3,7 +3,6 @@ import { Download, RefreshCw, FileText, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
@@ -70,44 +69,44 @@ export default function ViewTemplate() {
   const back = () => navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.INDEX);
 
   if (!canView) {
-    return <PageAccessDenied layoutTitle="Template Detail" hasBack onBack={back} />;
+    return <PageAccessDenied onBack={back} />;
   }
 
   if (!templateId || isNaN(templateId)) {
     return (
-      <DashboardLayout title="Template Detail" hasBack onBack={back}>
+      <>
         <div className="flex h-96 items-center justify-center">
           <p className="text-sm text-destructive">Invalid template id.</p>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Template Detail" hasBack onBack={back}>
+      <>
         <div className="flex h-96 items-center justify-center"><div className="loader" /></div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (isError || !template) {
     return (
-      <DashboardLayout title="Template Detail" hasBack onBack={back}>
+      <>
         <div className="flex h-96 flex-col items-center justify-center gap-3">
           <p className="text-sm text-destructive">Template not found or you don't have access.</p>
           <Button variant="white" size="sm" onClick={() => refetch()}>
             <RefreshCw className="size-3.5" /> Retry
           </Button>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   const cols = (template.columns ?? []).slice().sort((a, b) => a.column_order - b.column_order);
 
   return (
-    <DashboardLayout title="Template Detail" hasBack onBack={back}>
+    <>
       <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-5xl">
         {/* Header card */}
         <div className="bg-white rounded-md p-5 space-y-4">
@@ -261,7 +260,7 @@ export default function ViewTemplate() {
           )}
         </div>
       </main>
-    </DashboardLayout>
+    </>
   );
 }
 

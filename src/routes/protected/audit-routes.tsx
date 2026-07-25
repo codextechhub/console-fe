@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router";
+import type { DashboardHandle } from "@/components/layout/dashboard-header";
 
 // Route-level code splitting: each page loads on first visit instead of
 // shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
@@ -18,18 +19,18 @@ const ComplianceRules = lazy(() => import("@/pages/protected/audit/compliance-ru
 const ComplianceRuleForm = lazy(() => import("@/pages/protected/audit/compliance-rule-form"));
 
 export const auditRoutes: RouteObject[] = [
-  { path: "/audit", element: <AuditDashboard /> },
-  { path: "/audit/events", element: <AuditEventsExplorer /> },
-  { path: "/audit/entity-trails", element: <EntityTrailsList /> },
-  { path: "/audit/entity-trails/:entity_type/:entity_id", element: <EntityTrailDetail /> },
-  { path: "/audit/sessions", element: <LiveSessions /> },
-  { path: "/audit/login-attempts", element: <LoginAttempts /> },
-  { path: "/audit/lockouts", element: <AccountLockouts /> },
-  { path: "/audit/password-activity", element: <PasswordActivity /> },
-  { path: "/audit/impersonations", element: <Impersonations /> },
-  { path: "/audit/exports", element: <AuditExports /> },
-  { path: "/audit/exports/new", element: <NewAuditExport /> },
-  { path: "/audit/compliance-rules", element: <ComplianceRules /> },
-  { path: "/audit/compliance-rules/create", element: <ComplianceRuleForm /> },
-  { path: "/audit/compliance-rules/:id/edit", element: <ComplianceRuleForm /> },
+  { path: "/audit", element: <AuditDashboard />, handle: { title: "Security Dashboard" } satisfies DashboardHandle },
+  { path: "/audit/events", element: <AuditEventsExplorer />, handle: { title: "Audit Events" } satisfies DashboardHandle },
+  { path: "/audit/entity-trails", element: <EntityTrailsList />, handle: { title: "Entity Trails" } satisfies DashboardHandle },
+  { path: "/audit/entity-trails/:entity_type/:entity_id", element: <EntityTrailDetail />, handle: { title: "Entity Trails", back: true } satisfies DashboardHandle },
+  { path: "/audit/sessions", element: <LiveSessions />, handle: { title: "Live Sessions" } satisfies DashboardHandle },
+  { path: "/audit/login-attempts", element: <LoginAttempts />, handle: { title: "Login Attempts" } satisfies DashboardHandle },
+  { path: "/audit/lockouts", element: <AccountLockouts />, handle: { title: "Account Lockouts" } satisfies DashboardHandle },
+  { path: "/audit/password-activity", element: <PasswordActivity />, handle: { title: "Password Activity" } satisfies DashboardHandle },
+  { path: "/audit/impersonations", element: <Impersonations />, handle: { title: "Proxy Sessions" } satisfies DashboardHandle },
+  { path: "/audit/exports", element: <AuditExports />, handle: { title: "Audit Exports" } satisfies DashboardHandle },
+  { path: "/audit/exports/new", element: <NewAuditExport />, handle: { title: "New Audit Export", back: true } satisfies DashboardHandle },
+  { path: "/audit/compliance-rules", element: <ComplianceRules />, handle: { title: "Compliance Rules" } satisfies DashboardHandle },
+  { path: "/audit/compliance-rules/create", element: <ComplianceRuleForm />, handle: { title: "New Compliance Rule", back: true } satisfies DashboardHandle },
+  { path: "/audit/compliance-rules/:id/edit", element: <ComplianceRuleForm />, handle: { title: "Edit Compliance Rule", back: true } satisfies DashboardHandle },
 ];

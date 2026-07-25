@@ -4,7 +4,6 @@ import {
   Check, CornerDownLeft, Eye, EyeOff, Flag,
   LogOut, Monitor, RefreshCw, ShieldX, Smartphone, Tablet, X,
 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -217,7 +216,7 @@ export default function MyLoginHistory() {
   };
 
   return (
-    <DashboardLayout title="Login History">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* Header */}
@@ -436,6 +435,6 @@ export default function MyLoginHistory() {
           </DialogContent>
         </Dialog>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

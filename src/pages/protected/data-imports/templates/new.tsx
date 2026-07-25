@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { CustomInput } from "@/components/custom/custom-input";
 import {
   Combobox, ComboboxContent, ComboboxInput, ComboboxItem, ComboboxList, ComboboxEmpty,
@@ -162,8 +161,6 @@ export default function NewTemplate() {
   if (!canCreate) {
     return (
       <PageAccessDenied
-        layoutTitle="New Import Template"
-        hasBack
         onBack={back}
         message="You don't have permission to create import templates."
       />
@@ -171,7 +168,7 @@ export default function NewTemplate() {
   }
 
   return (
-      <DashboardLayout title="New Import Template" hasBack onBack={back}>
+      <>
         <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-4xl pb-32">
           {/* Header */}
           <div>
@@ -484,6 +481,6 @@ export default function NewTemplate() {
             {isLoading ? "Creating…" : "Create Template"}
           </Button>
         </div>
-      </DashboardLayout>
+      </>
   );
 }

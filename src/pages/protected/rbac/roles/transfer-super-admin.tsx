@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import { AlertTriangle, ShieldAlert, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { CustomInput } from "@/components/custom/custom-input";
 import {
   Combobox,
@@ -103,7 +102,7 @@ export default function TransferSuperAdmin() {
   };
 
   return (
-    <DashboardLayout title="Transfer Super Admin">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -293,6 +292,6 @@ export default function TransferSuperAdmin() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }

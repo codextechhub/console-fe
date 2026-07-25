@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router";
+import type { DashboardHandle } from "@/components/layout/dashboard-header";
 import { routesPath } from "@/routes/routes-path";
 
 // Route-level code splitting: the Tasks page loads on first visit instead of
@@ -7,5 +8,5 @@ import { routesPath } from "@/routes/routes-path";
 const TodoPage = lazy(() => import("@/pages/protected/todo"));
 
 export const todoRoutes: RouteObject[] = [
-  { path: routesPath.PROTECTED.TODO.INDEX, element: <TodoPage /> },
+  { path: routesPath.PROTECTED.TODO.INDEX, element: <TodoPage />, handle: { title: "Tasks" } satisfies DashboardHandle },
 ];

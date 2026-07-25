@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router";
 import { AlertTriangle, Clock, Key, Monitor, ShieldCheck } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { routesPath } from "@/routes/routes-path";
 import { useAppSelector } from "@/redux/store";
@@ -65,7 +64,7 @@ export default function MeSecurityOverview() {
   const recentEvents = activity?.data ?? [];
 
   return (
-    <DashboardLayout title="My Security">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         {/* Page header */}
         <div className="flex items-center gap-3">
@@ -241,6 +240,6 @@ export default function MeSecurityOverview() {
           )}
         </div>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

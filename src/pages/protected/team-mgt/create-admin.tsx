@@ -1,5 +1,4 @@
 import { useState } from "react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import PromptModal from "@/components/modal/prompt-modal";
@@ -21,6 +20,7 @@ import {
 import { useGetOrgNodesQuery, useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
 import { buildOrgNodeMap, resolveTiers } from "@/pages/protected/organogram/lib/org-helpers";
 import { toast } from "sonner";
+import { useDashboardTitle } from "@/components/layout/dashboard-header";
 
 const EMPLOYMENT_TYPE_OPTIONS = [
   { value: "FULL_TIME", label: "Full-time" },
@@ -44,6 +44,8 @@ export default function CreateAdmin() {
   const [searchParams] = useSearchParams();
   const draftId = searchParams.get("draft");
   const isResume = !!draftId;
+  // Otherwise the route handle's "CX Users" stands.
+  useDashboardTitle(isResume ? "Resume draft" : undefined);
   const { data: draftRes } = useGetTeamMembersDetailsQuery(draftId ?? "", { skip: !draftId });
   const draft = draftRes?.data;
 
@@ -201,7 +203,7 @@ export default function CreateAdmin() {
   }, [positions, orgNodeMap, formik.values.position]);
 
   return (
-    <DashboardLayout title={isResume ? "Resume draft" : "CX Users"} hasBack>
+    <>
       <section className="px-4.5 py-6">
         <>
           <form onSubmit={formik.handleSubmit} className="max-w-235">
@@ -407,6 +409,6 @@ export default function CreateAdmin() {
           />
         </>
       </section>
-    </DashboardLayout>
+    </>
   );
 }

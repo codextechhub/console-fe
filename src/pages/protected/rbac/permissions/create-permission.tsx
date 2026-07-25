@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { ChevronDown, Search } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { SearchSelect } from "@/components/custom/search-select";
 import { cn } from "@/lib/utils";
@@ -157,7 +156,7 @@ export default function CreatePermission() {
     .map((a) => ({ value: a.name, label: a.name }));
 
   return (
-    <DashboardLayout title="Create Permission" hasBack onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.INDEX)}>
+    <>
       <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission</h1>
@@ -343,6 +342,6 @@ export default function CreatePermission() {
           }}
         </Formik>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

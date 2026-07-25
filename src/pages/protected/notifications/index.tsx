@@ -5,7 +5,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Bell, CheckCheck, Loader2, Settings2 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
 import { NotificationEventIcon } from "@/components/custom/notification-event-icon";
@@ -62,7 +61,7 @@ export default function Notifications() {
   };
 
   return (
-    <DashboardLayout title="Notifications">
+    <>
       <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
         {/* Intro row */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -212,6 +211,6 @@ export default function Notifications() {
         </section>
 
       </main>
-    </DashboardLayout>
+    </>
   );
 }

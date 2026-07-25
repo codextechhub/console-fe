@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowLeft, Download, FileText, History, Image, Loader2, Lock, MessageSquare, Paperclip, Send, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -37,6 +36,7 @@ import {
   type TicketAttachment,
 } from "@/redux/services/tickets-api";
 import { isPrimaryShortcut } from "@/utils/keyboard-shortcuts";
+import { useDashboardTitle } from "@/components/layout/dashboard-header";
 
 // Mirrors backend VALID_STATUS_TRANSITIONS (vs_tickets/constants.py).
 const transitions: Record<TicketStatus, TicketStatus[]> = {
@@ -129,6 +129,8 @@ export default function TicketDetail() {
   const { hasPermission } = usePermissions();
   const ticketQuery = useGetTicketQuery(id, TICKET_DETAIL_POLL);
   const ticket = ticketQuery.data?.data;
+  // Until the ticket lands the route handle's "Support" shows through.
+  useDashboardTitle(ticket?.ticket_number);
   const hasTicket = Boolean(ticket);
   const commentCount = ticket?.comments?.length ?? 0;
   const canManage = hasPermission(P.MANAGE_TICKETS);
@@ -199,17 +201,17 @@ export default function TicketDetail() {
 
   if (ticketQuery.isLoading)
     return (
-      <DashboardLayout title="Support">
+      <>
         <div className="grid h-[70vh] place-content-center">
           <Loader2 className="animate-spin text-primary" />
         </div>
-      </DashboardLayout>
+      </>
     );
   if (!ticket)
     return (
-      <DashboardLayout title="Support">
+      <>
         <div className="p-10 text-center">Ticket not found.</div>
-      </DashboardLayout>
+      </>
     );
 
   // A file may be sent without text (it attaches to the ticket itself), but an
@@ -252,7 +254,7 @@ export default function TicketDetail() {
   };
 
   return (
-    <DashboardLayout title={ticket.ticket_number}>
+    <>
       <main className="px-4.5 py-6 lg:h-[calc(100dvh-3.75rem)] lg:overflow-hidden lg:px-8">
         <div className="mx-auto max-w-6xl lg:flex lg:h-full lg:flex-col">
           <button
@@ -553,7 +555,7 @@ export default function TicketDetail() {
           </Sheet>
         </div>
       </main>
-    </DashboardLayout>
+    </>
   );
 }
 

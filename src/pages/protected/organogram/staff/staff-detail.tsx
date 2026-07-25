@@ -11,7 +11,6 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { Banknote, Lock, LockOpen, Mail, Pencil, ShieldAlert } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PermissionGate from "@/components/custom/permission-gate";
@@ -102,7 +101,7 @@ export default function StaffDetail() {
   const loading = lookingUp || isLoading || (!profile && !lookupMiss);
 
   return (
-    <DashboardLayout title="Staff Profile" hasBack onBack={() => navigate(-1)}>
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         {lookupMiss ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 px-6 py-14 text-center">
@@ -262,6 +261,6 @@ export default function StaffDetail() {
           </>
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

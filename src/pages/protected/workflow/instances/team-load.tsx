@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useGetTeamLoadQuery } from "@/redux/services/dashboard/workflow-api";
@@ -26,7 +25,7 @@ export default function TeamLoad() {
   const total = rows.reduce((s, r) => s + r.active_count, 0);
 
   return (
-    <DashboardLayout title="Team Load">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-end justify-between gap-3">
           <div>
@@ -94,6 +93,6 @@ export default function TeamLoad() {
           </div>
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

@@ -8,7 +8,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Banknote, Briefcase, Building2, ChevronRight, Lock, LockOpen, Pencil, ShieldAlert, Users } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import {
   useGetMyAssignmentsQuery,
@@ -123,7 +122,7 @@ export default function MyProfile() {
   const history = Array.isArray(assignmentsRes?.data) ? assignmentsRes!.data : [];
 
   return (
-    <DashboardLayout title="My Profile">
+    <>
       <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -301,6 +300,6 @@ export default function MyProfile() {
           </>
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

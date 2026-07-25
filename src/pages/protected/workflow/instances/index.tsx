@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { RefreshCw } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -80,7 +79,7 @@ export default function AllInstances() {
   );
 
   return (
-    <DashboardLayout title="All Instances">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div>
           <p className="font-semibold font-mont text-gray-01">Workflow Instances</p>
@@ -140,6 +139,6 @@ export default function AllInstances() {
           onPageChange={(p) => setPage(p as number)}
         />
       </main>
-    </DashboardLayout>
+    </>
   );
 }

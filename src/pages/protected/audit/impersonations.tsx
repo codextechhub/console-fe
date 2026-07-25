@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { RefreshCw, Timer, MoreHorizontal, XCircle, List, ArrowRight } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -310,7 +309,7 @@ export default function Impersonations() {
   const canEnd = hasPermission(P.END_IMPERSONATION);
 
   return (
-    <DashboardLayout title="Proxy Sessions">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* Header */}
@@ -548,6 +547,6 @@ export default function Impersonations() {
         canCancel
         loading={ending}
       />
-    </DashboardLayout>
+    </>
   );
 }

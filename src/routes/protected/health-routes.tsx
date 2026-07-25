@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import type { RouteObject } from "react-router";
+import type { DashboardHandle } from "@/components/layout/dashboard-header";
 import { routesPath } from "@/routes/routes-path";
 
 const HealthPage = lazy(() => import("@/pages/protected/health"));
@@ -13,4 +14,8 @@ export const healthRoutes: RouteObject[] = [
   H.INCIDENTS,
   H.TENANTS,
   H.SLOS,
-].map((path) => ({ path, element: <HealthPage /> }));
+].map((path) => ({
+  path,
+  element: <HealthPage />,
+  handle: { title: "Health" } satisfies DashboardHandle,
+}));

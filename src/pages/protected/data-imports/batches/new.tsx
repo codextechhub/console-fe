@@ -1,5 +1,4 @@
 import { useNavigate, useSearchParams } from "react-router";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import ImportWizard from "@/components/custom/import-wizard";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -19,11 +18,11 @@ export default function NewImportBatch() {
   const returnLabel = searchParams.get("return_label") ?? undefined;
 
   if (!canUpload) {
-    return <PageAccessDenied layoutTitle="Data Imports" hasBack />;
+    return <PageAccessDenied />;
   }
 
   return (
-    <DashboardLayout title="Data Imports" hasBack>
+    <>
       <section className="px-4.5 py-6 max-w-5xl">
         <ImportWizard
           datasetType={datasetType ?? undefined}
@@ -38,6 +37,6 @@ export default function NewImportBatch() {
           }
         />
       </section>
-    </DashboardLayout>
+    </>
   );
 }

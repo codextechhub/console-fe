@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CustomTable from "@/components/custom/custom-table";
@@ -70,7 +69,7 @@ export default function AccountLockouts() {
   };
 
   return (
-    <DashboardLayout title="Account Lockouts">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
@@ -160,6 +159,6 @@ export default function AccountLockouts() {
           loading={unlocking}
         />
       </main>
-    </DashboardLayout>
+    </>
   );
 }

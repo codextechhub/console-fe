@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { Check, X, CornerUpLeft, ShieldAlert, Loader2, RefreshCw } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -170,7 +169,7 @@ export default function ApprovalDetail() {
   };
 
   return (
-    <DashboardLayout title="Approval" hasBack>
+    <>
       <main className="px-4.5 py-6 text-black-01">
         {isLoading ? (
           <CenterState>
@@ -345,7 +344,7 @@ export default function ApprovalDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }
 

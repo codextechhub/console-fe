@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { RefreshCw, Laptop, Smartphone, Tablet, Radar, UserX, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -250,7 +249,7 @@ export default function LoginAttempts() {
   const resetPage = () => setPage(1);
 
   return (
-    <DashboardLayout title="Login Attempts">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
@@ -550,6 +549,6 @@ export default function LoginAttempts() {
         </Sheet>
 
       </main>
-    </DashboardLayout>
+    </>
   );
 }

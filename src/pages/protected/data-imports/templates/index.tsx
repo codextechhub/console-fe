@@ -5,7 +5,6 @@ import { Plus, RefreshCw, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import {
@@ -165,11 +164,11 @@ export default function ImportTemplatesList() {
   }));
 
   if (!canView) {
-    return <PageAccessDenied layoutTitle="Import Templates" />;
+    return <PageAccessDenied />;
   }
 
   return (
-    <DashboardLayout title="Import Templates">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -347,6 +346,6 @@ export default function ImportTemplatesList() {
           </div>
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

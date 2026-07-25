@@ -3,7 +3,6 @@
 // (house CustomTable underneath), and the detail-drawer scaffolding.
 
 import { Database, RefreshCw, X, XCircle } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import KpiCard from "@/components/custom/kpi-card";
 import { Badge } from "@/components/ui/badge";
@@ -53,9 +52,9 @@ export function SeverityBadge({ severity }: { severity: number }) {
 
 export function HealthFrame({ children }: { children: React.ReactNode }) {
   return (
-    <DashboardLayout title="Health">
+    <>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">{children}</main>
-    </DashboardLayout>
+    </>
   );
 }
 

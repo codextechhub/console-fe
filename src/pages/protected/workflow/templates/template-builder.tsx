@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ChevronDown, ChevronUp, GripVertical, Loader2, Plus, Trash2 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -254,16 +253,16 @@ export default function TemplateBuilder() {
 
   if (isEdit && isLoadingExisting) {
     return (
-      <DashboardLayout title="Edit Template" hasBack>
+      <>
         <div className="flex h-64 items-center justify-center">
           <Loader2 className="size-6 animate-spin text-primary" />
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout title={isEdit ? "Edit Template" : "New Template"} hasBack>
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01 max-w-3xl">
         {/* Meta */}
         <Section title="Template details">
@@ -558,7 +557,7 @@ export default function TemplateBuilder() {
           </Button>
         </div>
       </main>
-    </DashboardLayout>
+    </>
   );
 }
 

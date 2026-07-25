@@ -1,4 +1,3 @@
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
@@ -12,10 +11,13 @@ import {
   useGetTeamMembersDetailsQuery,
 } from "@/redux/services/dashboard/team-mgt-api";
 import { toast } from "sonner";
+import { useDashboardTitle } from "@/components/layout/dashboard-header";
 
 export default function EditAdmin() {
   const navigate = useNavigate();
   const params = useParams();
+  // The route handle defaults to "CX Users"; :scope decides at runtime.
+  useDashboardTitle(params.scope === "schools" ? "School Users" : undefined);
   const returnTo = params.scope === "schools"
     ? routesPath.PROTECTED.TEAM_MGT.SCHOOL
     : routesPath.PROTECTED.TEAM_MGT.CX;
@@ -47,7 +49,7 @@ export default function EditAdmin() {
     },
   });
   return (
-    <DashboardLayout title={params.scope === "schools" ? "School Users" : "CX Users"} hasBack>
+    <>
       {!isLoading && teamMember?.data ? (
         <section className="px-4.5 py-6">
           <>
@@ -147,6 +149,6 @@ export default function EditAdmin() {
           <div className="loader" />
         </section>
       )}
-    </DashboardLayout>
+    </>
   );
 }

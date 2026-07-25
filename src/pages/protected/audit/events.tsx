@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useNow } from "@/hooks/use-now";
 import { useNavigate, useSearchParams } from "react-router";
 import { Download, RefreshCw, Filter } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { friendlyAction } from "./audit-constants";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -146,7 +145,7 @@ export default function AuditEventsExplorer() {
   };
 
   return (
-    <DashboardLayout title="Audit Events">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -325,6 +324,6 @@ export default function AuditEventsExplorer() {
           }}
         />
       </main>
-    </DashboardLayout>
+    </>
   );
 }

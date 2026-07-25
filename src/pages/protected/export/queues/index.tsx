@@ -6,7 +6,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, RefreshCw } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import KpiCard from "@/components/custom/kpi-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -188,7 +187,7 @@ export default function QueuesPage() {
   const counts = summary?.by_status ?? {};
 
   return (
-    <DashboardLayout title="Queues">
+    <>
       <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
         {/* Header row: title + (permission-gated) scope toggle */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -339,7 +338,7 @@ export default function QueuesPage() {
           </div>
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }
 

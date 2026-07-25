@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import { RefreshCw, Upload, FileText, Eye, Trash2, AlertTriangle, CheckCircle2, Activity, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import {
@@ -182,7 +181,7 @@ export default function ImportBatchesList() {
   };
 
   if (!canView) {
-    return <PageAccessDenied layoutTitle="Import Batches" />;
+    return <PageAccessDenied />;
   }
 
   const tableData = filtered.map((batch) => ({
@@ -250,7 +249,7 @@ export default function ImportBatchesList() {
   }));
 
   return (
-    <DashboardLayout title="Import Batches">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
@@ -477,6 +476,6 @@ export default function ImportBatchesList() {
         srcClass="size-20"
         loading={deleting}
       />
-    </DashboardLayout>
+    </>
   );
 }

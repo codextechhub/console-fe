@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router";
+import type { DashboardHandle } from "@/components/layout/dashboard-header";
 import { routesPath } from "@/routes/routes-path";
 
 // Route-level code splitting: each area page loads on first visit.
@@ -19,27 +20,35 @@ const FinanceAudit = lazy(() => import("@/pages/protected/finance/audit"));
 
 const F = routesPath.PROTECTED.FINANCE;
 
+// A pathless parent owns the console-wide chrome: every screen below it
+// renders the Finance sidebar instead of the global one. The per-screen title
+// still comes from the nav config via ConsoleShell (see console-shell.tsx).
 export const financeRoutes: RouteObject[] = [
-  // Multi-screen areas accept a :section param (the sidebar navigates between
-  // sub-screens); the bare path renders the area's default section.
-  { path: F.INDEX, element: <FinanceDashboard /> },
-  { path: F.SETUP, element: <Setup /> },
-  { path: `${F.SETUP}/:section`, element: <Setup /> },
-  { path: F.LEDGER, element: <GeneralLedger /> },
-  { path: F.RECEIVABLES, element: <Receivables /> },
-  { path: `${F.RECEIVABLES}/:section`, element: <Receivables /> },
-  { path: F.COLLECTIONS, element: <Collections /> },
-  { path: `${F.COLLECTIONS}/:section`, element: <Collections /> },
-  { path: F.BANKING, element: <Banking /> },
-  { path: F.BANK_RECON, element: <BankReconciliation /> },
-  { path: F.EXPENSES, element: <Expenses /> },
-  { path: `${F.EXPENSES}/:section`, element: <Expenses /> },
-  { path: F.PAYROLL, element: <Payroll /> },
-  { path: F.BUDGETS, element: <BudgetsAssetsTax /> },
-  { path: `${F.BUDGETS}/:section`, element: <BudgetsAssetsTax /> },
-  { path: F.PAYMENTS, element: <Payments /> },
-  { path: `${F.PAYMENTS}/:section`, element: <Payments /> },
-  { path: F.REPORTS, element: <Reports /> },
-  { path: `${F.REPORTS}/:section`, element: <Reports /> },
-  { path: F.AUDIT, element: <FinanceAudit /> },
+  {
+    handle: { sidebar: "finance", title: "Finance" } satisfies DashboardHandle,
+    children: [
+      // Multi-screen areas accept a :section param (the sidebar navigates between
+      // sub-screens); the bare path renders the area's default section.
+      { path: F.INDEX, element: <FinanceDashboard /> },
+      { path: F.SETUP, element: <Setup /> },
+      { path: `${F.SETUP}/:section`, element: <Setup /> },
+      { path: F.LEDGER, element: <GeneralLedger /> },
+      { path: F.RECEIVABLES, element: <Receivables /> },
+      { path: `${F.RECEIVABLES}/:section`, element: <Receivables /> },
+      { path: F.COLLECTIONS, element: <Collections /> },
+      { path: `${F.COLLECTIONS}/:section`, element: <Collections /> },
+      { path: F.BANKING, element: <Banking /> },
+      { path: F.BANK_RECON, element: <BankReconciliation /> },
+      { path: F.EXPENSES, element: <Expenses /> },
+      { path: `${F.EXPENSES}/:section`, element: <Expenses /> },
+      { path: F.PAYROLL, element: <Payroll /> },
+      { path: F.BUDGETS, element: <BudgetsAssetsTax /> },
+      { path: `${F.BUDGETS}/:section`, element: <BudgetsAssetsTax /> },
+      { path: F.PAYMENTS, element: <Payments /> },
+      { path: `${F.PAYMENTS}/:section`, element: <Payments /> },
+      { path: F.REPORTS, element: <Reports /> },
+      { path: `${F.REPORTS}/:section`, element: <Reports /> },
+      { path: F.AUDIT, element: <FinanceAudit /> },
+    ],
+  },
 ];

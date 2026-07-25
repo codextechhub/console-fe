@@ -5,7 +5,6 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import PermissionGate from "@/components/custom/permission-gate";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import PromptModal from "@/components/modal/prompt-modal";
@@ -100,8 +99,6 @@ export default function ViewBatch() {
   if (!canViewBatch) {
     return (
       <PageAccessDenied
-        layoutTitle="Batch Detail"
-        hasBack
         onBack={() => navigate(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX)}
       />
     );
@@ -109,30 +106,30 @@ export default function ViewBatch() {
 
   if (!batchId || isNaN(batchId)) {
     return (
-      <DashboardLayout title="Batch Detail" hasBack onBack={() => navigate(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX)}>
+      <>
         <div className="flex h-96 items-center justify-center">
           <p className="text-sm text-destructive">Invalid batch id.</p>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Batch Detail" hasBack onBack={() => navigate(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX)}>
+      <>
         <div className="flex h-96 items-center justify-center"><div className="loader" /></div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (isError || !batch) {
     return (
-      <DashboardLayout title="Batch Detail" hasBack onBack={() => navigate(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX)}>
+      <>
         <div className="flex h-96 flex-col items-center justify-center gap-3">
           <p className="text-sm text-destructive">Batch not found or you don't have access.</p>
           <Button variant="white" size="sm" onClick={() => refetch()}>Retry</Button>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
@@ -179,11 +176,7 @@ export default function ViewBatch() {
   const tabs = allTabs.filter((t) => visibleTabKeys.includes(t.key));
 
   return (
-    <DashboardLayout
-      title="Batch Detail"
-      hasBack
-      onBack={() => navigate(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.INDEX)}
-    >
+    <>
       <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-6xl">
         {/* Header card */}
         <div className="bg-white rounded-md p-5 space-y-5">
@@ -467,7 +460,7 @@ export default function ViewBatch() {
         srcClass="size-20"
         loading={deleting}
       />
-    </DashboardLayout>
+    </>
   );
 }
 

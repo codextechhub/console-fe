@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from "react-router";
 import { RefreshCw, ExternalLink, Download, X } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ActorCell } from "./components/audit-cells";
@@ -119,7 +118,7 @@ export default function EntityTrailDetail() {
   ];
 
   return (
-    <DashboardLayout title="Entity Trails" hasBack>
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         {/* Page heading */}
         <div className="flex items-center justify-between">
@@ -339,6 +338,6 @@ export default function EntityTrailDetail() {
 
         <EventDetailDrawer eventId={selectedId} onClose={() => setSelectedId(null)} />
       </main>
-    </DashboardLayout>
+    </>
   );
 }

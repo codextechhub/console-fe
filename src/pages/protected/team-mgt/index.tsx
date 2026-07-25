@@ -1,5 +1,4 @@
 import Tabs from "@/components/custom/tab";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { useLocation, useSearchParams } from "react-router";
 import InvitesTab from "./tabs/invites";
 import MembersTab from "./tabs/members";
@@ -21,7 +20,7 @@ export default function TeamManagement() {
   ];
 
   return (
-    <DashboardLayout title={scope === "cx" ? "CX Users" : "School Users"}>
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01 grid ">
         <Tabs tabs={tabList} tabKey="tab" />
 
@@ -35,6 +34,6 @@ export default function TeamManagement() {
           <MembersTab key="members" scope={scope} />
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

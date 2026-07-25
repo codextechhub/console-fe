@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router";
+import type { DashboardHandle } from "@/components/layout/dashboard-header";
 import { routesPath } from "@/routes/routes-path";
 
 // Route-level code splitting: each page loads on first visit instead of
@@ -15,11 +16,11 @@ const MyProfile = lazy(() => import("@/pages/protected/me-profile"));
 const O = routesPath.PROTECTED.ORGANOGRAM;
 
 export const organogramRoutes: RouteObject[] = [
-  { path: O.INDEX, element: <OrganogramPage /> },
-  { path: O.MANAGE, element: <OrganogramManage /> },
-  { path: O.STAFF_CREATE, element: <StaffForm /> },
-  { path: O.STAFF_VIEW_PATH, element: <StaffDetail /> },
-  { path: O.STAFF_BY_USER_PATH, element: <StaffDetail /> },
-  { path: O.STAFF_EDIT_PATH, element: <StaffForm /> },
-  { path: routesPath.PROTECTED.ME_PROFILE.INDEX, element: <MyProfile /> },
+  { path: O.INDEX, element: <OrganogramPage />, handle: { title: "Organogram" } satisfies DashboardHandle },
+  { path: O.MANAGE, element: <OrganogramManage />, handle: { title: "Manage Organogram" } satisfies DashboardHandle },
+  { path: O.STAFF_CREATE, element: <StaffForm />, handle: { title: "New Profile", back: true } satisfies DashboardHandle },
+  { path: O.STAFF_VIEW_PATH, element: <StaffDetail />, handle: { title: "Staff Profile", back: true } satisfies DashboardHandle },
+  { path: O.STAFF_BY_USER_PATH, element: <StaffDetail />, handle: { title: "Staff Profile", back: true } satisfies DashboardHandle },
+  { path: O.STAFF_EDIT_PATH, element: <StaffForm />, handle: { title: "Edit Profile", back: true } satisfies DashboardHandle },
+  { path: routesPath.PROTECTED.ME_PROFILE.INDEX, element: <MyProfile />, handle: { title: "My Profile" } satisfies DashboardHandle },
 ];

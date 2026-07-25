@@ -4,7 +4,6 @@
 
 import { useState } from "react";
 import { Building2, Briefcase, Spline } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { cn } from "@/lib/utils";
 import OrgNodeManager from "./org-node-manager";
 import PositionManager from "./position-manager";
@@ -22,7 +21,7 @@ export default function OrganogramManage() {
   const [tab, setTab] = useState<TabId>("units");
 
   return (
-    <DashboardLayout title="Manage Organogram">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div>
           <p className="font-semibold font-mont text-gray-01">Manage Organogram</p>
@@ -50,6 +49,6 @@ export default function OrganogramManage() {
         {tab === "positions" && <PositionManager />}
         {tab === "matrix" && <MatrixManager />}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

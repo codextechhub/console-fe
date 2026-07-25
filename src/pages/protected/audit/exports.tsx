@@ -4,7 +4,6 @@ import { useNavigate } from "react-router";
 import {
   CheckCircle2, Circle, Clock, Download, Loader2, Plus, RefreshCw, MoreVertical, XCircle,
 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -378,7 +377,7 @@ export default function AuditExports() {
   const resetPage = () => setPage(1);
 
   return (
-    <DashboardLayout title="Audit Exports">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* Header */}
@@ -508,7 +507,7 @@ export default function AuditExports() {
           onDone={() => setDownloadId(null)}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }
 

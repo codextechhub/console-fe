@@ -8,7 +8,6 @@ import {
   Ban, Briefcase, Building2, ChevronsDownUp, Filter, Info, Maximize,
   Minus, PlaneTakeoff, Plus, Search, Sparkles, UserPlus, Users, X,
 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -340,7 +339,7 @@ export default function OrganogramPage() {
   const peopleCtx: PeopleCtx = { expanded: expandedPeople, toggle: togglePeople, openUser, highlightId: highlightUid, profiles: profileMap };
 
   return (
-    <DashboardLayout title="Organogram">
+    <>
       <main className="min-w-0 text-slate-800">
         {/* search + summary */}
         <div className="border-b border-slate-100 bg-white px-4.5 py-3">
@@ -488,7 +487,7 @@ export default function OrganogramPage() {
       </main>
 
       <DetailDrawer target={target} onClose={closeDetail} ctx={drawerCtx} />
-    </DashboardLayout>
+    </>
   );
 }
 

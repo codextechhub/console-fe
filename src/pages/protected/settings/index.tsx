@@ -19,7 +19,6 @@ import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { Download, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { CustomInput } from "@/components/custom/custom-input";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -87,7 +86,7 @@ export default function Settings() {
 
   // No config.* view key at all → the sidebar hides this page, but guard the
   // direct-URL case too instead of rendering an empty shell.
-  if (!visible.length) return <PageAccessDenied layoutTitle="Settings" />;
+  if (!visible.length) return <PageAccessDenied />;
 
   // A pasted ?tab= the user can't read falls back to their first tab.
   const requested = searchParams.get("tab") as Tab | null;
@@ -106,7 +105,7 @@ export default function Settings() {
   };
 
   return (
-    <DashboardLayout title="Settings">
+    <>
       <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
         {/* Intro row */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -130,7 +129,7 @@ export default function Settings() {
         {tab === "features" && <Features />}
         {tab === "audit" && <Audit />}
       </main>
-    </DashboardLayout>
+    </>
   );
 }
 

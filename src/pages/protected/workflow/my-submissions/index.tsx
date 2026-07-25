@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { RefreshCw } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -55,7 +54,7 @@ export default function MySubmissions() {
   );
 
   return (
-    <DashboardLayout title="My Submissions">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div>
           <p className="font-semibold font-mont text-gray-01">My Submissions</p>
@@ -104,6 +103,6 @@ export default function MySubmissions() {
           }
         />
       </main>
-    </DashboardLayout>
+    </>
   );
 }

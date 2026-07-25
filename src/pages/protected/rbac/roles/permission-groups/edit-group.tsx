@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
 import { routesPath } from "@/routes/routes-path";
@@ -38,26 +37,26 @@ export default function EditPermissionGroup() {
 
   if (groupLoading) {
     return (
-      <DashboardLayout title="Edit Permission Group">
+      <>
         <div className="flex h-96 items-center justify-center">
           <Loader2 className="animate-spin size-6 text-primary" />
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (!group) {
     return (
-      <DashboardLayout title="Edit Permission Group">
+      <>
         <div className="flex h-96 items-center justify-center">
           <p className="text-sm text-destructive">Group not found.</p>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout title="Edit Permission Group" hasBack onBack={() => navigate(routesPath.PROTECTED.ROLES.GROUPS.INDEX)}>
+    <>
       <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Permission Group</h1>
@@ -204,6 +203,6 @@ export default function EditPermissionGroup() {
           }}
         </Formik>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

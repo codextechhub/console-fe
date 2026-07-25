@@ -1,7 +1,6 @@
 import TableToolbar from "@/components/custom/table-toolbar";
 import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -179,7 +178,7 @@ export default function ViewSchool() {
   }));
 
   return (
-    <DashboardLayout title="School Management" hasBack>
+    <>
       <main className="grid min-w-0 grid-cols-1 gap-5 px-4.5 py-6 text-black-01 sm:gap-6">
         {isLoading && (
           <div className="grid h-52 place-content-center rounded-xl bg-white">
@@ -410,6 +409,6 @@ export default function ViewSchool() {
           <div className="rounded-xl bg-white p-8 text-center"><p className="text-sm text-gray-01">School not found.</p></div>
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

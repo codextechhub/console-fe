@@ -1,4 +1,3 @@
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import PromptModal from "@/components/modal/prompt-modal";
 import { Button } from "@/components/ui/button";
 import { useCreateSchoolMutation } from "@/redux/services/dashboard/school-mgt-api";
@@ -258,7 +257,7 @@ export default function CreateSchool() {
   };
 
   return (
-    <DashboardLayout title="School Management" hasBack>
+    <>
       {isDev && (
         <div className="px-4.5 pt-4 flex justify-end">
           <Button type="button" variant="outline" size="sm" className="text-xs" onClick={handlePrefillAll}>
@@ -276,6 +275,6 @@ export default function CreateSchool() {
         title="School created successfully"
         description="The school has been set up and invitations have been sent to the administrators. You can continue to the dashboard."
       />
-    </DashboardLayout>
+    </>
   );
 }

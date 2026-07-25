@@ -3,7 +3,6 @@ import {
   RefreshCw, Download, LogOut, ExternalLink, GitBranch,
   AlertTriangle, EllipsisVertical, X,
 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -180,7 +179,7 @@ export default function LiveSessions() {
   };
 
   return (
-    <DashboardLayout title="Live Sessions">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
@@ -729,6 +728,6 @@ export default function LiveSessions() {
         </Dialog>
 
       </main>
-    </DashboardLayout>
+    </>
   );
 }

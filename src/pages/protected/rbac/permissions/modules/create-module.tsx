@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
 import { routesPath } from "@/routes/routes-path";
@@ -22,11 +21,7 @@ export default function CreateModule() {
   const [createModule, { isLoading }] = useCreatePermissionModuleMutation();
 
   return (
-    <DashboardLayout
-      title="Create Module"
-      hasBack
-      onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.MODULES.INDEX)}
-    >
+    <>
       <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission Module</h1>
@@ -123,6 +118,6 @@ export default function CreateModule() {
           )}
         </Formik>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

@@ -1,5 +1,4 @@
 import { Download, FileText, Clock, ArrowUpRight, Check } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { useCreateAuditExportMutation } from "@/redux/services/dashboard/audit-api";
 import { useAppSelector } from "@/redux/store";
@@ -89,7 +88,7 @@ export default function MyPrivacy() {
   };
 
   return (
-    <DashboardLayout title="Data & Privacy">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01 max-w-2xl">
         <div>
           <p className="font-semibold font-mont text-gray-01">Data & privacy</p>
@@ -142,6 +141,6 @@ export default function MyPrivacy() {
           </InfoCard>
         </div>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

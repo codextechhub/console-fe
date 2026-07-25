@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router";
 import { Loader2, RefreshCw, RotateCcw, Undo2 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -56,7 +55,7 @@ export default function SubmissionDetail() {
   };
 
   return (
-    <DashboardLayout title="Submission" hasBack>
+    <>
       <main className="px-4.5 py-6 text-black-01">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
@@ -132,7 +131,7 @@ export default function SubmissionDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }
 

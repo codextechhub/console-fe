@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import PageAccessDenied from "@/components/custom/page-access-denied";
+import { useDashboardBack } from "@/components/layout/dashboard-header";
 import { CustomInput } from "@/components/custom/custom-input";
 import {
   Combobox, ComboboxContent, ComboboxInput, ComboboxItem, ComboboxList, ComboboxEmpty,
@@ -120,6 +120,9 @@ export default function EditTemplate() {
       navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.VIEW(templateId));
     }
   };
+  // Not a static destination (deep-link with no history falls back to the
+  // template view), so the header's back is set imperatively.
+  useDashboardBack(back);
 
   // Pre-fill form when the fetched template arrives (guarded render-phase
   // adjustment — runs once, no setState-in-effect cascade).
@@ -143,8 +146,6 @@ export default function EditTemplate() {
   if (!isCxStaff || !canEdit) {
     return (
       <PageAccessDenied
-        layoutTitle="Edit Template"
-        hasBack
         onBack={back}
         message={
           !isCxStaff
@@ -157,30 +158,30 @@ export default function EditTemplate() {
 
   if (!templateId || isNaN(templateId)) {
     return (
-      <DashboardLayout title="Edit Template" hasBack onBack={back}>
+      <>
         <div className="flex h-96 items-center justify-center">
           <p className="text-sm text-destructive">Invalid template id.</p>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (fetching) {
     return (
-      <DashboardLayout title="Edit Template" hasBack onBack={back}>
+      <>
         <div className="flex h-96 items-center justify-center"><div className="loader" /></div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (fetchError || !template) {
     return (
-      <DashboardLayout title="Edit Template" hasBack onBack={back}>
+      <>
         <div className="flex h-96 flex-col items-center justify-center gap-3">
           <p className="text-sm text-destructive">Template not found or you don't have access.</p>
           <Button variant="white" size="sm" onClick={back}>Go back</Button>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
@@ -254,7 +255,7 @@ export default function EditTemplate() {
   };
 
   return (
-    <DashboardLayout title="Edit Template" hasBack onBack={back}>
+    <>
       <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-4xl pb-32">
         {/* Header */}
         <div>
@@ -537,6 +538,6 @@ export default function EditTemplate() {
           {saving ? "Saving…" : "Save Changes"}
         </Button>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

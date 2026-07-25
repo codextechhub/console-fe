@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { Ban, Loader2, RefreshCw, Undo2 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -102,7 +101,7 @@ export default function InstanceDetail() {
   };
 
   return (
-    <DashboardLayout title="Instance" hasBack>
+    <>
       <main className="px-4.5 py-6 text-black-01">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
@@ -245,7 +244,7 @@ export default function InstanceDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }
 

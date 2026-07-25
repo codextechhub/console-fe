@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { KeyRound, Mail, RefreshCw, Search, Timer, XCircle } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -155,7 +154,7 @@ export default function PasswordActivity() {
   };
 
   return (
-    <DashboardLayout title="Password Activity">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
@@ -468,7 +467,7 @@ export default function PasswordActivity() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }
 

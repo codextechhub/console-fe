@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Plus, RefreshCw } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,7 +46,7 @@ export default function WorkflowTemplates() {
   );
 
   return (
-    <DashboardLayout title="Templates">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
@@ -87,6 +86,6 @@ export default function WorkflowTemplates() {
           onPageChange={(p) => setPage(p as number)}
         />
       </main>
-    </DashboardLayout>
+    </>
   );
 }

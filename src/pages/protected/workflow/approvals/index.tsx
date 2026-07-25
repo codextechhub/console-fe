@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { ChevronRight, Inbox, RefreshCw, Search, Users, FileText, Layers } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -52,7 +51,7 @@ export default function PendingApprovals() {
   }, [items, selectedType, actingAs, search, name]);
 
   return (
-    <DashboardLayout title="Approvals">
+    <>
       <main className="px-4.5 py-6 text-black-01">
         <div className="grid grid-cols-1 lg:grid-cols-[230px_1fr] gap-6">
           {/* ── Filter rail ─────────────────────────────────────────────── */}
@@ -155,7 +154,7 @@ export default function PendingApprovals() {
           </section>
         </div>
       </main>
-    </DashboardLayout>
+    </>
   );
 }
 

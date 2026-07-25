@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router";
+import type { DashboardHandle } from "@/components/layout/dashboard-header";
 import { routesPath } from "@/routes/routes-path";
 
 const ProcurementDashboard = lazy(() => import("@/pages/protected/procurement/dashboard"));
@@ -18,22 +19,30 @@ const Analytics = lazy(() => import("@/pages/protected/procurement/analytics"));
 
 const P = routesPath.PROTECTED.PROCUREMENT;
 
+// A pathless parent owns the console-wide chrome: every screen below it
+// renders the Procurement sidebar instead of the global one. The per-screen title
+// still comes from the nav config via ConsoleShell (see console-shell.tsx).
 export const procurementRoutes: RouteObject[] = [
-  { path: P.INDEX, element: <ProcurementDashboard /> },
-  { path: P.VENDORS, element: <Vendors /> },
-  { path: `${P.VENDORS}/:section`, element: <Vendors /> },
-  { path: P.REQUISITIONS, element: <Requisitions /> },
-  { path: P.PURCHASE_ORDERS, element: <PurchaseOrders /> },
-  { path: P.GOODS_RECEIPTS, element: <GoodsReceipts /> },
-  { path: P.VENDOR_INVOICES, element: <VendorInvoices /> },
-  { path: P.VENDOR_PAYMENTS, element: <VendorPayments /> },
-  { path: P.APPROVALS, element: <Approvals /> },
-  { path: P.SOURCING, element: <SourcingRfqs /> },
-  { path: `${P.SOURCING}/rfqs`, element: <SourcingRfqs /> },
-  { path: `${P.SOURCING}/quotations`, element: <SourcingQuotations /> },
-  { path: P.CONTRACTS, element: <Contracts /> },
-  { path: P.INVENTORY, element: <Inventory /> },
-  { path: `${P.INVENTORY}/:section`, element: <Inventory /> },
-  { path: P.ANALYTICS, element: <Analytics /> },
-  { path: `${P.ANALYTICS}/:section`, element: <Analytics /> },
+  {
+    handle: { sidebar: "procurement", title: "Procurement" } satisfies DashboardHandle,
+    children: [
+      { path: P.INDEX, element: <ProcurementDashboard /> },
+      { path: P.VENDORS, element: <Vendors /> },
+      { path: `${P.VENDORS}/:section`, element: <Vendors /> },
+      { path: P.REQUISITIONS, element: <Requisitions /> },
+      { path: P.PURCHASE_ORDERS, element: <PurchaseOrders /> },
+      { path: P.GOODS_RECEIPTS, element: <GoodsReceipts /> },
+      { path: P.VENDOR_INVOICES, element: <VendorInvoices /> },
+      { path: P.VENDOR_PAYMENTS, element: <VendorPayments /> },
+      { path: P.APPROVALS, element: <Approvals /> },
+      { path: P.SOURCING, element: <SourcingRfqs /> },
+      { path: `${P.SOURCING}/rfqs`, element: <SourcingRfqs /> },
+      { path: `${P.SOURCING}/quotations`, element: <SourcingQuotations /> },
+      { path: P.CONTRACTS, element: <Contracts /> },
+      { path: P.INVENTORY, element: <Inventory /> },
+      { path: `${P.INVENTORY}/:section`, element: <Inventory /> },
+      { path: P.ANALYTICS, element: <Analytics /> },
+      { path: `${P.ANALYTICS}/:section`, element: <Analytics /> },
+    ],
+  },
 ];

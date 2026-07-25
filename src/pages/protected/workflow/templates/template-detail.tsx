@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from "react-router";
 import { ArrowRight, GitBranch, Loader2, Pencil, RefreshCw } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PermissionGate from "@/components/custom/permission-gate";
@@ -18,7 +17,7 @@ export default function TemplateDetail() {
   });
 
   return (
-    <DashboardLayout title="Template" hasBack>
+    <>
       <main className="px-4.5 py-6 text-black-01">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
@@ -140,7 +139,7 @@ export default function TemplateDetail() {
           </div>
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }
 

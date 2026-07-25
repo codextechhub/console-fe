@@ -1,12 +1,12 @@
 import { useNavigate, useParams } from "react-router";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import PageAccessDenied from "@/components/custom/page-access-denied";
+import { useDashboardBack } from "@/components/layout/dashboard-header";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { useCreateBranchMutation } from "@/redux/services/dashboard/school-mgt-api";
@@ -43,6 +43,8 @@ export default function CreateBranch() {
   const canCreate = hasPermission(P.ADD_BRANCH);
 
   const back = () => navigate(routesPath.PROTECTED.SCHOOL_MGT.VIEW(slug ?? ""));
+  // Destination closes over the :slug param, so it can't live in the handle.
+  useDashboardBack(back);
 
   const [createBranch, { isLoading }] = useCreateBranchMutation();
 
@@ -85,11 +87,11 @@ export default function CreateBranch() {
   });
 
   if (!canCreate) {
-    return <PageAccessDenied layoutTitle="School Management" hasBack onBack={back} />;
+    return <PageAccessDenied onBack={back} />;
   }
 
   return (
-    <DashboardLayout title="School Management" hasBack onBack={back}>
+    <>
       <main className="px-4.5 py-6">
         <div className="max-w-235 mt-5">
           <div className="mb-7 space-y-1.5">
@@ -214,6 +216,6 @@ export default function CreateBranch() {
           </form>
         </div>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

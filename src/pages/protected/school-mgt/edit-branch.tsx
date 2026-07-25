@@ -1,7 +1,6 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import {
   useGetBranchDetailQuery,
@@ -75,7 +74,7 @@ export default function EditBranch() {
   });
 
   return (
-    <DashboardLayout title="School Management" hasBack>
+    <>
       <main className="px-4.5 py-6">
         {isLoading && (
           <div className="grid h-40 place-content-center">
@@ -174,6 +173,6 @@ export default function EditBranch() {
           </div>
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

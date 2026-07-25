@@ -21,7 +21,6 @@ import {
   Users,
   Workflow,
 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -255,7 +254,7 @@ export default function Overview() {
   ].filter((item) => item.show);
 
   return (
-    <DashboardLayout>
+    <>
       <main className="min-w-0 space-y-5 bg-[#f8f9fb] px-4.5 py-5 text-black-01 lg:px-7 lg:py-5">
         <section
           className="relative overflow-hidden rounded-2xl bg-[#17281f] px-6 py-5 text-white shadow-sm lg:px-7 lg:py-5"
@@ -391,6 +390,6 @@ export default function Overview() {
           <span className="inline-flex items-center gap-1.5"><Building2 className="size-3.5" /> Platform administration overview</span>
         </footer>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

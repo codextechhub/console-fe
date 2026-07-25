@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { Plus, RefreshCw, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -438,7 +437,7 @@ export default function ChangeRequests() {
   }));
 
   return (
-    <DashboardLayout title="Change Requests">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
@@ -545,6 +544,6 @@ export default function ChangeRequests() {
         context={decideContext}
         onClose={() => setDecideContext(null)}
       />
-    </DashboardLayout>
+    </>
   );
 }

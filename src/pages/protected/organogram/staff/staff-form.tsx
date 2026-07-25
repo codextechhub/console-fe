@@ -5,7 +5,6 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routes-path";
@@ -64,7 +63,7 @@ export default function StaffForm() {
   const back = () => navigate(-1);
 
   return (
-    <DashboardLayout title={isEdit ? "Edit Profile" : "New Profile"} hasBack onBack={back}>
+    <>
       <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">{isEdit ? "Edit Staff Profile" : "New Staff Profile"}</h1>
@@ -107,6 +106,6 @@ export default function StaffForm() {
           />
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

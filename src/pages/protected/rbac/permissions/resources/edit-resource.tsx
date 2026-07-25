@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { routesPath } from "@/routes/routes-path";
 import {
@@ -26,30 +25,26 @@ export default function EditResource() {
 
   if (resourceLoading) {
     return (
-      <DashboardLayout title="Edit Resource">
+      <>
         <div className="flex h-96 items-center justify-center">
           <Loader2 className="animate-spin size-6 text-primary" />
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   if (!resource) {
     return (
-      <DashboardLayout title="Edit Resource">
+      <>
         <div className="flex h-96 items-center justify-center">
           <p className="text-sm text-destructive">Resource not found.</p>
         </div>
-      </DashboardLayout>
+      </>
     );
   }
 
   return (
-    <DashboardLayout
-      title="Edit Resource"
-      hasBack
-      onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.RESOURCES.INDEX)}
-    >
+    <>
       <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Resource</h1>
@@ -162,6 +157,6 @@ export default function EditResource() {
           )}
         </Formik>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

@@ -1,5 +1,12 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router";
+// EAGER on purpose. The shell (sidebar, header, session hooks) is a LAYOUT
+// ROUTE above every protected page, so it ships in the entry bundle and paints
+// the moment the app boots. Previously each page imported it, which made it a
+// shared dependency of the lazy page chunks only — rollup hoisted it into its
+// own ~128 kB chunk that had to be fetched before the frame could be drawn.
+import DashboardLayout from "@/components/layout/dashboard-layout";
+import type { DashboardHandle } from "@/components/layout/dashboard-header";
 import { schoolRoutes } from "./school-routes";
 import { overviewRoutes } from "./overview-routes";
 import { teamMgtRoutes } from "./team-mgt-routes";
@@ -25,26 +32,33 @@ const Support = lazy(() => import("@/pages/protected/support"));
 const TicketDetail = lazy(() => import("@/pages/protected/support/detail"));
 
 export const protectedRoutes = [
-  { path: routesPath.PROTECTED.NOTIFICATIONS, element: <Notifications /> },
-  { path: routesPath.PROTECTED.NOTIFICATIONS_ADMIN, element: <NotificationsAdmin /> },
-  { path: routesPath.PROTECTED.SETTINGS.INDEX, element: <Settings /> },
-  { path: routesPath.PROTECTED.SUPPORT.INDEX, element: <Support /> },
-  { path: routesPath.PROTECTED.SUPPORT.TICKETS, element: <Support /> },
-  // Deep-linkable "new ticket": the Support page with the composer already open.
-  { path: routesPath.PROTECTED.SUPPORT.NEW, element: <Support /> },
-  { path: routesPath.PROTECTED.SUPPORT.DETAIL_PATH, element: <TicketDetail /> },
-  ...overviewRoutes,
-  ...schoolRoutes,
-  ...teamMgtRoutes,
-  ...rbacRoutes,
-  ...dataImportRoutes,
-  ...auditRoutes,
-  ...healthRoutes,
-  ...workflowRoutes,
-  ...organogramRoutes,
-  ...todoRoutes,
-  ...exportRoutes,
-  ...financeRoutes,
-  ...procurementRoutes,
-  ...meSecurityRoutes,
+  {
+    Component: DashboardLayout,
+    children: [
+      { path: routesPath.PROTECTED.NOTIFICATIONS, element: <Notifications />, handle: { title: "Notifications" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.NOTIFICATIONS_ADMIN, element: <NotificationsAdmin />, handle: { title: "Notifications" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.SETTINGS.INDEX, element: <Settings />, handle: { title: "Settings" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.SUPPORT.INDEX, element: <Support />, handle: { title: "Support" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.SUPPORT.TICKETS, element: <Support />, handle: { title: "Support" } satisfies DashboardHandle },
+      // Deep-linkable "new ticket": the Support page with the composer already open.
+      { path: routesPath.PROTECTED.SUPPORT.NEW, element: <Support />, handle: { title: "Support" } satisfies DashboardHandle },
+      // Starts at "Support"; the page swaps in the ticket number once the
+      // ticket loads (useDashboardTitle) — exactly the old behaviour.
+      { path: routesPath.PROTECTED.SUPPORT.DETAIL_PATH, element: <TicketDetail />, handle: { title: "Support" } satisfies DashboardHandle },
+      ...overviewRoutes,
+      ...schoolRoutes,
+      ...teamMgtRoutes,
+      ...rbacRoutes,
+      ...dataImportRoutes,
+      ...auditRoutes,
+      ...healthRoutes,
+      ...workflowRoutes,
+      ...organogramRoutes,
+      ...todoRoutes,
+      ...exportRoutes,
+      ...financeRoutes,
+      ...procurementRoutes,
+      ...meSecurityRoutes,
+    ],
+  },
 ] as RouteObject[];

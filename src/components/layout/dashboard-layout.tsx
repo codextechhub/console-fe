@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AppSidebar } from "../app-sidebar";
 import { ChevronLeft, ChevronRight, Loader2, LogOut, Search, ShieldCheck, Undo2, UserRound, UsersRound } from "lucide-react";
-import { useLocation, useNavigate } from "react-router";
+import { Outlet, useLocation, useMatches, useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
@@ -36,21 +36,25 @@ import { toast } from "sonner";
 import { clearSelectedEntity } from "@/redux/features/finance/entity-slice";
 import { useAcknowledgeNotificationRouteMutation } from "@/redux/services/notifications-api";
 import { isPrimaryShortcut, isPrimaryShiftShortcut } from "@/utils/keyboard-shortcuts";
+import {
+  DashboardHeaderContext,
+  mergeHandles,
+  resolveHeader,
+  type DashboardHeaderApi,
+  type HeaderOverride,
+  type ResolvedHeader,
+  type SidebarKind,
+} from "./dashboard-header";
+import { ConsoleSidebar } from "@/components/finance-ui/console-sidebar";
+import { financeNav } from "@/pages/protected/finance/finance-nav";
+import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 
-// The header remounts as routes change. Like the sidebar's remembered scroll,
-// the workspace-search text survives navigation (cleared only by a full page
-// refresh) so Cmd/Ctrl+E resumes where the user left off.
+// The workspace-search text survives a remount of the header (and, before the
+// shell became a layout route, every navigation), so Cmd/Ctrl+E resumes where
+// the user left off. Cleared only by a full page refresh.
 let rememberedWorkspaceSearch = "";
 
-function DashboardHeader({
-  hasBack,
-  onBack,
-  title,
-}: {
-  hasBack: boolean;
-  onBack?: () => void;
-  title?: string;
-}) {
+function DashboardHeader({ back, title }: ResolvedHeader) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth);
@@ -350,15 +354,19 @@ function DashboardHeader({
       <div className="inline-flex min-w-0 items-center gap-2">
         <SidebarTrigger className="md:hidden size-8" />
 
-        {hasBack && (
+        {back !== undefined && (
           <>
             <figure
               onClick={() => {
-                if (onBack) onBack();
-                else {
-                  startNavigationProgress();
-                  navigate(-1);
+                // A closure destination (useDashboardBack) runs as-is; a route
+                // string navigates there; `true` is plain history-back.
+                if (typeof back === "function") {
+                  back();
+                  return;
                 }
+                startNavigationProgress();
+                if (typeof back === "string") navigate(back);
+                else navigate(-1);
               }}
               className="uppercase font-light text-gray-01 text-sm inline-flex items-center cursor-pointer"
             >
@@ -527,23 +535,29 @@ function getSidebarDefaultOpen(): boolean {
   return cookie.split("=")[1] !== "false";
 }
 
-export default function DashboardLayout({
-  children,
-  hasBack = false,
-  onBack,
-  title,
-  sidebar,
-}: {
-  children: React.ReactNode;
-  hasBack?: boolean;
-  title?: string;
-  onBack?: () => void;
-  // Left navigation. Defaults to the global AppSidebar; the Finance/Procurement
-  // consoles pass their own ConsoleSidebar to replace the global menu.
-  sidebar?: React.ReactNode;
-}) {
+// Left navigation for the current route. The Finance/Procurement consoles swap
+// the global menu for their own; the *choice* is route-owned (handle.sidebar)
+// while each console still builds its own nav config.
+function SidebarFor({ kind }: { kind: SidebarKind | undefined }) {
+  if (kind === "finance") return <ConsoleSidebar title="Finance" nav={financeNav} />;
+  if (kind === "procurement") return <ConsoleSidebar title="Procurement" nav={procurementNav} />;
+  return <AppSidebar />;
+}
+
+/**
+ * The protected shell, mounted as a LAYOUT ROUTE above every protected page
+ * (routes/protected/index.tsx) rather than imported by each page. It ships in
+ * the entry bundle and paints as soon as the app boots, instead of sitting in a
+ * shared chunk that every lazy page had to wait on.
+ *
+ * Per-screen header config arrives via route `handle` metadata, with
+ * `useDashboardTitle`/`useDashboardBack` as the runtime escape hatch — see
+ * dashboard-header.ts.
+ */
+export default function DashboardLayout() {
   useTokenRefresh();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const pathname = location.pathname;
   const [acknowledgeNotificationRoute] = useAcknowledgeNotificationRouteMutation();
   const { open, secondsLeft, isExpired, onContinue, onLogout, goToLogin } = useSessionTimeout();
 
@@ -551,8 +565,37 @@ export default function DashboardLayout({
     void acknowledgeNotificationRoute({ path: pathname });
   }, [acknowledgeNotificationRoute, pathname]);
 
+  const matches = useMatches();
+  const handle = useMemo(() => mergeHandles(matches), [matches]);
+
+  // Runtime header overrides, stamped with the location that set them. Stamping
+  // (rather than clearing on navigation) is what makes the reset race-free: a
+  // child's effect runs before the parent's, so a parent-side "clear on nav"
+  // would wipe the incoming screen's freshly-set title.
+  const [override, setOverride] = useState<HeaderOverride | null>(null);
+  const locationKey = location.key;
+  const headerApi = useMemo<DashboardHeaderApi>(
+    () => ({
+      setTitle: (title) =>
+        setOverride((prev) =>
+          prev?.key === locationKey && prev.title === title
+            ? prev
+            : { ...(prev?.key === locationKey ? prev : {}), key: locationKey, title },
+        ),
+      setBack: (back) =>
+        setOverride((prev) =>
+          prev?.key === locationKey && prev.back === back
+            ? prev
+            : { ...(prev?.key === locationKey ? prev : {}), key: locationKey, back },
+        ),
+    }),
+    [locationKey],
+  );
+
+  const header = resolveHeader(handle, override, locationKey);
+
   return (
-    <>
+    <DashboardHeaderContext value={headerApi}>
       <SessionTimeoutModal
         open={open}
         secondsLeft={secondsLeft}
@@ -562,16 +605,18 @@ export default function DashboardLayout({
         goToLogin={goToLogin}
       />
       <SidebarProvider defaultOpen={getSidebarDefaultOpen()}>
-        {sidebar ?? <AppSidebar />}
+        <SidebarFor kind={handle.sidebar} />
         <SidebarInset className="bg-white-05 min-w-0 w-auto">
-          <DashboardHeader hasBack={hasBack} onBack={onBack} title={title} />
+          <DashboardHeader back={header.back} title={header.title} />
           {/* grid-cols-1 (minmax(0,1fr)) zeroes the track's min-content floor so a
               page's <main> can never be stretched past the viewport by wide
               nowrap content (tables) — each page's own overflow-x-auto then
               clips it. Without this every page needed its own min-w-0. */}
-          <div className="grid grid-cols-1 min-w-0 pt-0">{children}</div>
+          <div className="grid grid-cols-1 min-w-0 pt-0">
+            <Outlet />
+          </div>
         </SidebarInset>
       </SidebarProvider>
-    </>
+    </DashboardHeaderContext>
   );
 }

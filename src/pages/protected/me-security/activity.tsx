@@ -3,7 +3,6 @@ import {
   RefreshCw, ChevronRight, Download, X,
   Globe, Clock, User, AlertTriangle,
 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -229,7 +228,7 @@ export default function MyActivity() {
   const setPage       = activeTab === "mine" ? setMinePage           : setOnMePage;
 
   return (
-    <DashboardLayout title="My Activity">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         {/* ── Header ── */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -428,6 +427,6 @@ export default function MyActivity() {
           )}
         </SheetContent>
       </Sheet>
-    </DashboardLayout>
+    </>
   );
 }

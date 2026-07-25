@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { useCreateAuditExportMutation } from "@/redux/services/dashboard/audit-api";
 import { routesPath } from "@/routes/routes-path";
@@ -50,7 +49,7 @@ export default function NewAuditExport() {
   };
 
   return (
-    <DashboardLayout title="New Audit Export" hasBack>
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01 max-w-2xl">
         <div>
           <p className="font-semibold font-mont text-gray-01">New Audit Export</p>
@@ -147,6 +146,6 @@ export default function NewAuditExport() {
           </Button>
         </div>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

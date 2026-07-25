@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { SearchSelect } from "@/components/custom/search-select";
 import { routesPath } from "@/routes/routes-path";
@@ -31,11 +30,7 @@ export default function CreateResource() {
   const [nameInput, setNameInput] = useState("");
 
   return (
-    <DashboardLayout
-      title="Create Resource"
-      hasBack
-      onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.RESOURCES.INDEX)}
-    >
+    <>
       <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission Resource</h1>
@@ -174,6 +169,6 @@ export default function CreateResource() {
           }}
         </Formik>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

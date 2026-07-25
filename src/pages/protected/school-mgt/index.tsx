@@ -1,7 +1,6 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,7 +95,7 @@ export default function SchoolManagement() {
   }));
 
   return (
-    <DashboardLayout title="School Management">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h4 className="font-medium text-xl">School Onboarding</h4>
@@ -212,6 +211,6 @@ export default function SchoolManagement() {
           ]}
         />
       </main>
-    </DashboardLayout>
+    </>
   );
 }

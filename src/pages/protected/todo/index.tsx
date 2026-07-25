@@ -7,7 +7,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, RefreshCw } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -196,7 +195,7 @@ export default function TodoPage() {
   const retry = () => (showTeam ? refetchTeam() : refetchMine());
 
   return (
-    <DashboardLayout title="Tasks">
+    <>
       <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
         {/* Intro row: heading + subtitle left, actions right (house pattern) */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -297,7 +296,7 @@ export default function TodoPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </DashboardLayout>
+    </>
   );
 }
 

@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Plus, RefreshCw, Users } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -86,7 +85,7 @@ export default function Delegations() {
   };
 
   return (
-    <DashboardLayout title="Delegations">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
@@ -206,7 +205,7 @@ export default function Delegations() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }
 

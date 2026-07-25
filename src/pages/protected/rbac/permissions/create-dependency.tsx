@@ -2,7 +2,6 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { ArrowRight, ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -184,11 +183,7 @@ export default function CreateDependency() {
   };
 
   return (
-    <DashboardLayout
-      title="Add Dependency"
-      hasBack
-      onBack={() => navigate(routesPath.PROTECTED.PERMISSIONS.DEPENDENCIES.INDEX)}
-    >
+    <>
       <main className="px-4.5 py-6 text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Add Permission Dependency</h1>
@@ -284,6 +279,6 @@ export default function CreateDependency() {
           </Button>
         </div>
       </main>
-    </DashboardLayout>
+    </>
   );
 }

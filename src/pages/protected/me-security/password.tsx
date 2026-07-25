@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { Key } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -82,7 +81,7 @@ export default function MyPassword() {
   const passwordChangedAt = user?.password_changed_at || null;
 
   return (
-    <DashboardLayout title="Password & Sign-in">
+    <>
       <main className="px-4.5 py-6 space-y-4 text-black-01 max-w-2xl">
 
         {/* Page header */}
@@ -263,6 +262,6 @@ export default function MyPassword() {
         </div>
 
       </main>
-    </DashboardLayout>
+    </>
   );
 }

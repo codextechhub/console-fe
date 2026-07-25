@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import { Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { cn } from "@/lib/utils";
@@ -74,7 +73,7 @@ export default function PermissionModulesList() {
   }));
 
   return (
-    <DashboardLayout title="Permission Modules">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
@@ -162,6 +161,6 @@ export default function PermissionModulesList() {
           />
         )}
       </main>
-    </DashboardLayout>
+    </>
   );
 }

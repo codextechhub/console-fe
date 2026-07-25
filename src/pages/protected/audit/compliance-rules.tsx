@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Copy, Edit2, MoreVertical, Plus, RefreshCw, Trash2 } from "lucide-react";
-import DashboardLayout from "@/components/layout/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -142,7 +141,7 @@ export default function ComplianceRules() {
   };
 
   return (
-    <DashboardLayout title="Compliance Rules">
+    <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* Header */}
@@ -273,7 +272,7 @@ export default function ComplianceRules() {
         canCancel
         loading={deleting}
       />
-    </DashboardLayout>
+    </>
   );
 }
 
