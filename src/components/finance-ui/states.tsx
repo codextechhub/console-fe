@@ -4,8 +4,13 @@
 
 import { Ban, Inbox, RefreshCw, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import {
+  SkeletonLoadingLabel,
+  SkeletonRow,
+  SkeletonText,
+} from "@/components/custom/skeletons";
+import { ghostWidth } from "@/components/custom/skeleton-widths";
 
 function Centered({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
@@ -15,13 +20,76 @@ function Centered({ children, className }: { children: React.ReactNode; classNam
   );
 }
 
-export function LoadingState({ rows = 6 }: { rows?: number }) {
+/**
+ * Block loading state for panels, drawers and detail sections — anywhere the
+ * incoming content is NOT a <table>. Pass `columns` when the block previews a
+ * tabular/record layout and each ghost row splits into that many ragged cells;
+ * omit it (the default) for the stacked field lists drawers show.
+ *
+ * In-table loading uses <LoadingRows> instead, so the ghosts inherit the real
+ * column widths from the header.
+ */
+export function LoadingState({
+  rows = 6,
+  columns,
+  label = "Loading…",
+}: {
+  rows?: number;
+  columns?: number;
+  label?: string;
+}) {
   return (
-    <div className="space-y-2.5 p-4">
-      {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} className="h-10 w-full rounded-md" />
-      ))}
+    <div className="p-4">
+      <SkeletonLoadingLabel text={label} />
+      <div aria-hidden className="space-y-3">
+        {Array.from({ length: Math.max(1, rows) }).map((_, r) =>
+          columns && columns > 0 ? (
+            <div key={r} className="flex items-center gap-3">
+              {Array.from({ length: columns }).map((__, c) => (
+                <SkeletonText
+                  key={c}
+                  width={ghostWidth(r * 3 + c)}
+                  className="h-4 flex-1"
+                />
+              ))}
+            </div>
+          ) : (
+            <SkeletonText
+              key={r}
+              width={ghostWidth(r)}
+              className="h-9 rounded-md"
+            />
+          ),
+        )}
+      </div>
     </div>
+  );
+}
+
+/**
+ * In-table loading state: real <tr> ghosts, so the cells line up under the real
+ * header columns. Render directly inside <TableBody>.
+ */
+export function LoadingRows({
+  rows = 6,
+  columns,
+  label = "Loading…",
+}: {
+  rows?: number;
+  columns: number;
+  label?: string;
+}) {
+  return (
+    <>
+      <tr aria-hidden={false}>
+        <td colSpan={Math.max(1, columns)} className="h-0 border-0 p-0">
+          <SkeletonLoadingLabel text={label} />
+        </td>
+      </tr>
+      {Array.from({ length: Math.max(1, rows) }).map((_, r) => (
+        <SkeletonRow key={r} rowIndex={r} columns={columns} />
+      ))}
+    </>
   );
 }
 

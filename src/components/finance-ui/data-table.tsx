@@ -12,7 +12,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "./states";
+import { EmptyState, ErrorState, ForbiddenState, LoadingRows } from "./states";
+import { SkeletonCard, SkeletonLoadingLabel } from "@/components/custom/skeletons";
+
+/** Ghost rows shown while a list loads. */
+const GHOST_ROWS = 6;
 
 export interface Column<T> {
   /** Header label. */
@@ -101,7 +105,10 @@ export function DataTable<T>({
   const safeRows: T[] = Array.isArray(rows) ? rows : [];
   // Cards replace the table on phones only when there are rows to show; the
   // loading/empty/error/forbidden states render inside the table at any width.
-  const cardsOnPhone = mobile === "cards" && safeRows.length > 0 && !loading && !forbidden;
+  // Cards own the phone viewport whenever the list would be card-shaped —
+  // including while loading, so the phone never flips table -> cards on arrival.
+  const cardsOnPhone =
+    mobile === "cards" && !forbidden && (loading || safeRows.length > 0);
 
   const body = () => {
     if (forbidden) {
@@ -114,13 +121,8 @@ export function DataTable<T>({
       );
     }
     if (loading) {
-      return (
-        <TableRow className="hover:bg-transparent">
-          <TableCell colSpan={colCount} className="p-0">
-            <LoadingState />
-          </TableCell>
-        </TableRow>
-      );
+      // Real <tr> ghosts, so the cells sit under the real header columns.
+      return <LoadingRows rows={GHOST_ROWS} columns={colCount} />;
     }
     if (error && safeRows.length === 0) {
       return (
@@ -160,7 +162,15 @@ export function DataTable<T>({
 
   return (
     <div className="rounded-md bg-white">
-      {cardsOnPhone && (
+      {cardsOnPhone && loading && (
+        <div className={cardBreakpoint === "lg" ? "lg:hidden" : "md:hidden"}>
+          <SkeletonLoadingLabel />
+          {Array.from({ length: GHOST_ROWS }).map((_, i) => (
+            <SkeletonCard key={i} rowIndex={i} lines={Math.max(1, colCount - 2)} />
+          ))}
+        </div>
+      )}
+      {cardsOnPhone && !loading && (
         <div className={cardBreakpoint === "lg" ? "lg:hidden" : "md:hidden"}>
           {safeRows.map((row) =>
             mobileCard ? (

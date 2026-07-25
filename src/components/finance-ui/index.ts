@@ -20,10 +20,18 @@ export { LineEditor, emptyLine, toApiLines, type DocLine } from "./line-editor";
 export { useActiveEntity, useEntityCode } from "./use-entity";
 export {
   LoadingState,
+  LoadingRows,
   EmptyState,
   ErrorState,
   ForbiddenState,
 } from "./states";
+export {
+  SkeletonText,
+  SkeletonRow,
+  SkeletonCard,
+  SkeletonKpi,
+  SkeletonLoadingLabel,
+} from "@/components/custom/skeletons";
 // KpiCard already exists app-wide; re-export so finance pages import from one place.
 export { default as KpiCard } from "@/components/custom/kpi-card";
 export { StatCard, type StatTone } from "./stat-card";

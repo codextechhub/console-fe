@@ -16,6 +16,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { EllipsisVertical } from "lucide-react";
+import {
+  SkeletonCard,
+  SkeletonLoadingLabel,
+  SkeletonRow,
+} from "@/components/custom/skeletons";
+
+/** Ghost rows shown while a list loads — enough to fill the fold, not so many
+ *  that the page grows past the real result. */
+const GHOST_ROWS = 6;
 
 interface myComponentProps {
   tableHeaderList: string[];
@@ -184,13 +193,31 @@ const CustomTable = ({
     </TableRow>
   );
 
-  const showCards = mobile === "cards" && !loading && tableBodyList?.length > 0;
+  // Ghost geometry is derived from the real column definitions, so the loading
+  // state previews the exact table that is about to render.
+  const ghostColumns = Math.max(1, tableHeaderList?.length ?? 1);
+  // Cards own the phone viewport whenever the table would be card-shaped —
+  // including while loading, so the phone never flips table -> cards on arrival.
+  const showCards =
+    mobile === "cards" && (loading || tableBodyList?.length > 0);
 
   return (
     <>
-      {/* Phone rendering: each row as a stacked label/value card (loading and
-          empty states stay in the table, which renders fine at any width). */}
-      {showCards && (
+      {/* Phone rendering: each row as a stacked label/value card (the empty
+          state stays in the table, which renders fine at any width). */}
+      {showCards && loading && (
+        <div className="rounded-md bg-white md:hidden">
+          <SkeletonLoadingLabel text={loadingText || "Loading…"} />
+          {Array.from({ length: GHOST_ROWS }).map((_, rowIndex) => (
+            <SkeletonCard
+              key={rowIndex}
+              rowIndex={rowIndex}
+              lines={Math.max(1, ghostColumns - 2)}
+            />
+          ))}
+        </div>
+      )}
+      {showCards && !loading && (
         <div className="rounded-md bg-white md:hidden">
           {tableBodyList?.map((item: any, rowIndex: any) => {
             const cells = Object.entries(item)
@@ -274,17 +301,21 @@ const CustomTable = ({
         <TableBody className="bg-white">
           {loading ? (
             <>
-              <TableRow>
-                <TableCell
-                  colSpan={tableHeaderList?.length + 1}
-                  className="h-60 text-center"
-                >
-                  <figure className="size-fit mx-auto">
-                    <div className="loader" />
-                  </figure>
-                  {loadingText && <p className="mt-4">{loadingText}</p>}
+              {/* One announcement for the whole surface; the ghost rows
+                  themselves are aria-hidden decoration. `loadingText` keeps
+                  working — it is now what the screen reader hears. */}
+              <TableRow aria-hidden={false} className="hover:bg-transparent">
+                <TableCell colSpan={ghostColumns} className="h-0 border-0 p-0">
+                  <SkeletonLoadingLabel text={loadingText || "Loading…"} />
                 </TableCell>
               </TableRow>
+              {Array.from({ length: GHOST_ROWS }).map((_, rowIndex) => (
+                <SkeletonRow
+                  key={rowIndex}
+                  rowIndex={rowIndex}
+                  columns={ghostColumns}
+                />
+              ))}
             </>
           ) : (
             <>
