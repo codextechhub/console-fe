@@ -5,8 +5,8 @@ import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, Check, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
-import { Money, FormField, DetailDrawer, StatusPill, toArray, useActiveEntity } from "@/components/finance-ui";
+import { ArrowLeft, ChevronDown, ChevronRight, Check, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
+import { Money, FormField, DetailDrawer, StatusPill, DataTable, toArray, useActiveEntity, type Column } from "@/components/finance-ui";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
@@ -15,9 +15,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import {
-  useGetChartOfAccountsQuery, useCreateAccountMutation, useGetAccountDetailQuery, useUpdateAccountMutation,
+  useGetChartOfAccountsQuery, useCreateAccountMutation, useGetAccountDetailQuery, useGetAccountActivityQuery, useUpdateAccountMutation,
 } from "@/redux/services/finance/setup-api";
-import type { Account } from "@/redux/services/finance/setup-types";
+import type { Account, AccountDetail, ConsolidatedAccountActivityLine } from "@/redux/services/finance/setup-types";
+import { accountGroupContribution, descendantPostingAccounts } from "./account-group";
+import { getAccountDetailTabKeys, type AccountDetailTabKey } from "./account-detail-tabs";
 
 type Node = Account & { children: Node[]; rolled: number };
 
@@ -190,7 +192,7 @@ export function AccountsTab({ entity }: { entity: string }) {
       )}
 
       <CreateAccountDrawer open={creating} onClose={() => setCreating(false)} entity={entity} parents={accounts} />
-      <AccountDetailDrawer id={detailId} entity={entity} accounts={accounts} currency={currency} onClose={() => setDetailId(null)} />
+      <AccountDetailDrawer key={detailId ?? "closed"} id={detailId} entity={entity} accounts={accounts} currency={currency} onClose={() => setDetailId(null)} />
     </div>
   );
 }
@@ -276,10 +278,14 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
   id: number | null; entity: string; accounts: Account[]; currency?: string | null; onClose: () => void;
 }) {
   const { data, isLoading, isError, refetch } = useGetAccountDetailQuery(id ? { entity, id } : skipToken);
-  const [tab, setTab] = useState<(typeof DRAWER_TABS)[number]["key"]>("activity");
+  const [tab, setTab] = useState<AccountDetailTabKey>("activity");
+  const [groupView, setGroupView] = useState<"balances" | "activity" | null>(null);
   const d = data?.data;
   const acc = d?.account;
   const kids = id ? accounts.filter((a) => a.parent_id === id) : [];
+  const availableTabKeys = getAccountDetailTabKeys(acc?.is_postable ?? true);
+  const tabs = DRAWER_TABS.filter((candidate) => availableTabKeys.includes(candidate.key));
+  const activeTab = availableTabKeys.includes(tab) ? tab : availableTabKeys[0];
 
   const cell = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
   const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
@@ -290,41 +296,73 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
       onOpenChange={(o) => !o && onClose()}
       title={acc ? `${acc.code} · ${acc.name}` : "Account"}
       description={acc ? `${acc.subtype || d?.type_label || acc.account_type} · Normal: ${acc.normal_balance === "DEBIT" ? "Debit" : "Credit"}` : undefined}
-      widthClass="sm:max-w-3xl"
+      widthClass="sm:max-w-4xl"
       footer={<Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>}
     >
       {isLoading ? <LoadingState rows={6} /> : isError || !d || !acc ? <ErrorState onRetry={refetch} /> : (
         <div className="space-y-4">
           {/* KPI cards */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {acc.is_postable ? (
+              <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+                <p className="font-mont text-[11px] text-gray-05">Current balance</p>
+                <p className="mt-1 font-mont text-base font-semibold tabular-nums"><Money kobo={d.summary.current_balance.kobo} currency={currency} /></p>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setGroupView("balances")}
+                className="rounded-md bg-white p-3 text-left ring-1 ring-gray-03 transition hover:bg-primary/5 hover:ring-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <p className="font-mont text-[11px] text-gray-05">Group balance</p>
+                <p className="mt-1 font-mont text-base font-semibold tabular-nums"><Money kobo={d.summary.current_balance.kobo} currency={currency} /></p>
+                <span className="mt-1 inline-flex items-center gap-0.5 font-mont text-[11px] font-semibold text-primary">View breakdown <ChevronRight className="size-3" /></span>
+              </button>
+            )}
             <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
-              <p className="font-mont text-[11px] text-gray-05">Current balance</p>
-              <p className="mt-1 font-mont text-base font-semibold tabular-nums"><Money kobo={d.summary.current_balance.kobo} currency={currency} /></p>
-            </div>
-            <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
-              <p className="font-mont text-[11px] text-gray-05">Opening (FY carry-in)</p>
+              <p className="font-mont text-[11px] text-gray-05">{acc.is_postable ? "Opening (FY carry-in)" : "Opening group balance"}</p>
               <p className="mt-1 font-mont text-base font-semibold tabular-nums"><Money kobo={d.summary.opening_balance.kobo} currency={currency} /></p>
             </div>
-            <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
-              <p className="font-mont text-[11px] text-gray-05">Posted YTD</p>
-              <p className="mt-1 font-mont text-base font-semibold tabular-nums">{d.summary.line_count} lines</p>
-              <p className="font-mont text-[11px] text-gray-05">across {d.summary.journal_count} journals</p>
-            </div>
+            {acc.is_postable ? (
+              <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+                <p className="font-mont text-[11px] text-gray-05">Posted YTD</p>
+                <p className="mt-1 font-mont text-base font-semibold tabular-nums">{d.summary.line_count} lines</p>
+                <p className="font-mont text-[11px] text-gray-05">across {d.summary.journal_count} journals</p>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setGroupView("activity")}
+                className="rounded-md bg-white p-3 text-left ring-1 ring-gray-03 transition hover:bg-primary/5 hover:ring-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <p className="font-mont text-[11px] text-gray-05">Posted activity YTD</p>
+                <p className="mt-1 font-mont text-base font-semibold tabular-nums">{d.summary.line_count} lines</p>
+                <p className="font-mont text-[11px] text-gray-05">across {d.summary.journal_count} journals</p>
+                <span className="mt-1 inline-flex items-center gap-0.5 font-mont text-[11px] font-semibold text-primary">View activity <ChevronRight className="size-3" /></span>
+              </button>
+            )}
           </div>
 
+          {groupView ? (
+            <GroupLedger
+              key={`${acc.id}-${groupView}`}
+              initialView={groupView}
+              entity={entity}
+              account={acc}
+              accounts={accounts}
+              summary={d.summary}
+              currency={currency}
+              onBack={() => setGroupView(null)}
+            />
+          ) : (
+            <>
           {/* tabs */}
-          <div className="flex gap-1 border-b border-gray-03">
-            {DRAWER_TABS.map((t) => (
+          <div className="flex max-w-full gap-1 overflow-x-auto border-b border-gray-03">
+            {tabs.map((t) => (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={cn("-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 font-mont text-xs font-semibold",
-                  tab === t.key ? "border-primary text-primary" : "border-transparent text-gray-05 hover:text-gray-01")}>
+                className={cn("-mb-px inline-flex whitespace-nowrap items-center gap-1.5 border-b-2 px-3 py-2 font-mont text-xs font-semibold",
+                  activeTab === t.key ? "border-primary text-primary" : "border-transparent text-gray-05 hover:text-gray-01")}>
                 <t.icon className="size-3.5" />
                 {t.label}{t.key === "subs" && kids.length ? ` (${kids.length})` : ""}
               </button>
             ))}
           </div>
 
-          {tab === "activity" && (
+          {activeTab === "activity" && (
             d.activity.length === 0 ? <EmptyState title="No postings" message="Posted journal lines hitting this account will appear here." /> : (
               <div className="overflow-x-auto rounded-md border border-gray-03">
                 <table className="w-full border-collapse">
@@ -351,8 +389,8 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
             )
           )}
 
-          {tab === "taccount" && (
-            <div className="grid grid-cols-2 gap-3">
+          {activeTab === "taccount" && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="rounded-md border border-gray-03">
                 <p className="border-b border-gray-03 bg-[#F1F1F1] px-3 py-2 font-mont text-xs font-semibold">Debits</p>
                 {d.activity.filter((a) => a.debit.kobo).map((a, i) => (
@@ -368,7 +406,7 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
             </div>
           )}
 
-          {tab === "subs" && (
+          {activeTab === "subs" && (
             kids.length === 0 ? <EmptyState title="No sub-accounts" message="This is a leaf account." /> : (
               <div className="rounded-md border border-gray-03">
                 {kids.map((k) => (
@@ -381,10 +419,248 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
             )
           )}
 
-          {tab === "settings" && <AccountSettings key={acc.id} entity={entity} account={acc} onSaved={onClose} />}
+          {activeTab === "settings" && <AccountSettings key={acc.id} entity={entity} account={acc} onSaved={onClose} />}
+            </>
+          )}
         </div>
       )}
     </DetailDrawer>
+  );
+}
+
+type GroupBalanceRow = {
+  account: Account;
+  contribution: number;
+};
+
+function GroupLedger({ initialView, entity, account, accounts, summary, currency, onBack }: {
+  initialView: "balances" | "activity";
+  entity: string;
+  account: Account;
+  accounts: Account[];
+  summary: AccountDetail["summary"];
+  currency?: string | null;
+  onBack: () => void;
+}) {
+  const [view, setView] = useState<"balances" | "activity">(initialView);
+  const [balanceSearch, setBalanceSearch] = useState("");
+  const [balancePage, setBalancePage] = useState(1);
+  const [activityPage, setActivityPage] = useState(1);
+  const [accountFilter, setAccountFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState(summary.fiscal_year_start ?? "");
+  const [dateTo, setDateTo] = useState(summary.as_of);
+  const postingAccounts = useMemo(
+    () => descendantPostingAccounts(accounts, account.id),
+    [accounts, account.id],
+  );
+
+  const balanceRows = useMemo<GroupBalanceRow[]>(() => {
+    const query = balanceSearch.trim().toLowerCase();
+    return postingAccounts
+      .filter((candidate) => (
+        !query
+        || candidate.code.toLowerCase().includes(query)
+        || candidate.name.toLowerCase().includes(query)
+      ))
+      .map((candidate) => ({
+        account: candidate,
+        contribution: accountGroupContribution(candidate, account.normal_balance),
+      }));
+  }, [postingAccounts, balanceSearch, account.normal_balance]);
+  const balancePageSize = 10;
+  const balanceTotalPages = Math.max(1, Math.ceil(balanceRows.length / balancePageSize));
+  const visibleBalances = balanceRows.slice(
+    (balancePage - 1) * balancePageSize,
+    balancePage * balancePageSize,
+  );
+
+  const activityArgs = view === "activity" ? {
+    entity,
+    id: account.id,
+    page: activityPage,
+    page_size: 25,
+    ...(accountFilter ? { account: Number(accountFilter) } : {}),
+    ...(dateFrom ? { date_from: dateFrom } : {}),
+    ...(dateTo ? { date_to: dateTo } : {}),
+  } : skipToken;
+  const {
+    data: activityData,
+    isLoading: activityLoading,
+    isFetching: activityFetching,
+    isError: activityError,
+    refetch: refetchActivity,
+  } = useGetAccountActivityQuery(activityArgs);
+  const activityRows = toArray(activityData?.data);
+
+  const balanceColumns: Column<GroupBalanceRow>[] = [
+    {
+      header: "Posting account",
+      cell: ({ account: candidate }) => (
+        <span>
+          <span className="font-semibold tabular-nums">{candidate.code}</span>
+          <span className="ml-2">{candidate.name}</span>
+          {candidate.is_contra ? <Tag label="Contra" /> : null}
+        </span>
+      ),
+    },
+    {
+      header: "Account balance",
+      align: "right",
+      cell: ({ account: candidate }) => <Money kobo={candidate.balance?.kobo ?? 0} currency={currency} align="right" />,
+    },
+    {
+      header: "Group contribution",
+      align: "right",
+      cell: (row) => <Money kobo={row.contribution} currency={currency} align="right" />,
+    },
+  ];
+  const activityColumns: Column<ConsolidatedAccountActivityLine>[] = [
+    { header: "Date", cell: (line) => <span className="whitespace-nowrap text-gray-05">{line.date}</span> },
+    {
+      header: "Account",
+      cell: (line) => (
+        <span>
+          <span className="font-semibold tabular-nums">{line.account_code}</span>
+          <span className="ml-1.5">{line.account_name}</span>
+        </span>
+      ),
+    },
+    {
+      header: "Journal & description",
+      cell: (line) => (
+        <span className="block max-w-64">
+          <span className="block font-semibold">{line.journal_no}</span>
+          <span className="block truncate text-xs font-normal text-gray-05">
+            {line.description || "No description"}
+            {line.cost_center ? ` · ${line.cost_center}` : ""}
+          </span>
+        </span>
+      ),
+    },
+    { header: "Debit", align: "right", cell: (line) => line.debit.kobo ? <Money kobo={line.debit.kobo} currency={currency} align="right" /> : "—" },
+    { header: "Credit", align: "right", cell: (line) => line.credit.kobo ? <Money kobo={line.credit.kobo} currency={currency} align="right" /> : "—" },
+  ];
+
+  const resetActivityFilters = () => {
+    setAccountFilter("");
+    setDateFrom("");
+    setDateTo("");
+    setActivityPage(1);
+  };
+
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-03 pb-3">
+        <div className="flex min-w-0 items-start gap-2">
+          <button type="button" onClick={onBack} aria-label="Back to account details"
+            className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md text-gray-05 hover:bg-gray-02 hover:text-gray-01">
+            <ArrowLeft className="size-4" />
+          </button>
+          <div className="min-w-0">
+            <h3 className="font-mont text-sm font-semibold text-black-01">Group ledger</h3>
+            <p className="font-mont text-xs text-gray-05">Balances and posted movement across every posting account under {account.code}.</p>
+          </div>
+        </div>
+        <div className="flex max-w-full overflow-x-auto rounded-md border border-gray-03 p-0.5 font-mont text-xs">
+          <button type="button" onClick={() => setView("balances")} aria-pressed={view === "balances"}
+            className={cn("whitespace-nowrap rounded px-2.5 py-1.5 font-semibold", view === "balances" ? "bg-primary text-white" : "text-gray-05 hover:text-gray-01")}>
+            Balance breakdown
+          </button>
+          <button type="button" onClick={() => setView("activity")} aria-pressed={view === "activity"}
+            className={cn("whitespace-nowrap rounded px-2.5 py-1.5 font-semibold", view === "activity" ? "bg-primary text-white" : "text-gray-05 hover:text-gray-01")}>
+            Consolidated activity
+          </button>
+        </div>
+      </div>
+
+      {view === "balances" ? (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Input
+              value={balanceSearch}
+              onChange={(event) => { setBalanceSearch(event.target.value); setBalancePage(1); }}
+              placeholder="Search posting accounts"
+              className="h-9 w-full bg-white font-mont text-sm sm:max-w-xs"
+            />
+            <p className="font-mont text-xs text-gray-05">{balanceRows.length} posting accounts</p>
+          </div>
+          <DataTable
+            columns={balanceColumns}
+            rows={visibleBalances}
+            rowKey={(row) => row.account.id}
+            emptyTitle="No posting accounts"
+            emptyMessage="This account group has no posting accounts yet."
+            page={balancePage}
+            totalPages={balanceTotalPages}
+            onPageChange={setBalancePage}
+          />
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <FormField label="Posting account">
+              <select value={accountFilter} onChange={(event) => { setAccountFilter(event.target.value); setActivityPage(1); }} className={cn(selectCls, "w-full")}>
+                <option value="">All posting accounts</option>
+                {postingAccounts.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.code} — {candidate.name}</option>)}
+              </select>
+            </FormField>
+            <FormField label="From">
+              <Input type="date" value={dateFrom} onChange={(event) => { setDateFrom(event.target.value); setActivityPage(1); }} className="bg-white" />
+            </FormField>
+            <FormField label="To">
+              <Input type="date" value={dateTo} onChange={(event) => { setDateTo(event.target.value); setActivityPage(1); }} className="bg-white" />
+            </FormField>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-mont text-xs text-gray-05">Defaults to the current fiscal year. Each row identifies the posting account it came from.</p>
+            <Button type="button" variant="outline" onClick={resetActivityFilters} className="h-8 font-mont text-xs">All history</Button>
+          </div>
+          {activityData?.totals ? (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {[
+                ["Total debits", activityData.totals.debit.kobo],
+                ["Total credits", activityData.totals.credit.kobo],
+                ["Net group movement", activityData.totals.net_movement.kobo],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-md bg-gray-02/60 px-3 py-2">
+                  <p className="font-mont text-[11px] text-gray-05">{label}</p>
+                  <p className="mt-0.5 font-mont text-sm font-semibold"><Money kobo={Number(value)} currency={currency} /></p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <DataTable
+            columns={activityColumns}
+            rows={activityRows}
+            rowKey={(line) => line.id}
+            mobileCard={(line) => (
+              <div className="space-y-2 font-mont">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-semibold"><span className="tabular-nums">{line.account_code}</span> {line.account_name}</p>
+                  <span className="shrink-0 text-xs text-gray-05">{line.date}</span>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold">{line.journal_no}</p>
+                  <p className="text-xs text-gray-05">{line.description || "No description"}{line.cost_center ? ` · ${line.cost_center}` : ""}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3 border-t border-gray-03 pt-2">
+                  <div><p className="text-[10px] uppercase tracking-wide text-gray-05">Debit</p><p className="text-sm font-semibold">{line.debit.kobo ? <Money kobo={line.debit.kobo} currency={currency} /> : "—"}</p></div>
+                  <div className="text-right"><p className="text-[10px] uppercase tracking-wide text-gray-05">Credit</p><p className="text-sm font-semibold">{line.credit.kobo ? <Money kobo={line.credit.kobo} currency={currency} /> : "—"}</p></div>
+                </div>
+              </div>
+            )}
+            loading={activityLoading || activityFetching}
+            error={activityError}
+            onRetry={refetchActivity}
+            emptyTitle="No consolidated activity"
+            emptyMessage="No posted lines match these filters."
+            page={activityData?.pagination.currentPage ?? activityPage}
+            totalPages={activityData?.pagination.totalPages ?? 1}
+            onPageChange={setActivityPage}
+          />
+        </div>
+      )}
+    </section>
   );
 }
 

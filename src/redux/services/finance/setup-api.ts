@@ -11,6 +11,8 @@ import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
 import type {
   Account,
   AccountDetail,
+  ConsolidatedAccountActivityLine,
+  ConsolidatedAccountActivityTotals,
   FxRate,
   CostCenter,
   Dimension,
@@ -43,6 +45,16 @@ export const setupApi = baseApi.injectEndpoints({
     // Per-account detail + posted ledger activity (the chart's detail drawer).
     getAccountDetail: b.query<ApiEnvelope<AccountDetail>, { entity: string; id: number }>({
       query: ({ entity, id }) => ({ url: `/finance/accounts/${id}/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinanceAccounts"],
+    }),
+    getAccountActivity: b.query<
+      PaginatedEnvelope<ConsolidatedAccountActivityLine> & { totals: ConsolidatedAccountActivityTotals },
+      { entity: string; id: number; page?: number; page_size?: number; account?: number; date_from?: string; date_to?: string }
+    >({
+      query: ({ entity, id, ...params }) => ({
+        url: `/finance/accounts/${id}/activity/${qs({ entity, ...params })}`,
+        method: "GET",
+      }),
       providesTags: ["FinanceAccounts"],
     }),
     updateAccount: b.mutation<ApiEnvelope<Account>, { entity: string; id: number; name?: string; subtype?: string; description?: string; is_active?: boolean; is_postable?: boolean }>({
@@ -131,6 +143,7 @@ export const {
   useGetChartOfAccountsQuery,
   useCreateAccountMutation,
   useGetAccountDetailQuery,
+  useGetAccountActivityQuery,
   useUpdateAccountMutation,
   useGetPeriodsQuery,
   useGetPeriodChecklistQuery,

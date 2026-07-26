@@ -36,8 +36,30 @@ export interface AccountDetail {
     opening_balance: { kobo: number; naira: string };
     line_count: number;
     journal_count: number;
+    fiscal_year_start: string | null;
+    as_of: string;
   };
   activity: AccountActivityLine[];
+}
+
+export interface ConsolidatedAccountActivityLine {
+  id: number;
+  date: string;
+  account_id: number;
+  account_code: string;
+  account_name: string;
+  journal_no: string;
+  source: string;
+  description: string;
+  cost_center: string;
+  debit: { kobo: number; naira: string };
+  credit: { kobo: number; naira: string };
+}
+
+export interface ConsolidatedAccountActivityTotals {
+  debit: { kobo: number; naira: string };
+  credit: { kobo: number; naira: string };
+  net_movement: { kobo: number; naira: string };
 }
 
 export interface FiscalPeriod {
