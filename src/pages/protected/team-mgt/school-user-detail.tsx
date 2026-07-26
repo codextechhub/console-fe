@@ -2,6 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useGetTeamMembersDetailsQuery } from "@/redux/services/dashboard/team-mgt-api";
 import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
+import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
+import PermissionOverrides, { useCanViewPermissionExceptions } from "@/components/custom/permission-overrides";
 import { formatRelativeDate } from "@/utils/helpers";
 import { Building2, CalendarDays, GitBranch, KeyRound, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
 
@@ -44,6 +46,21 @@ export function SchoolUserDetail({
     skip: !user?.id,
   });
   const detail = data?.data;
+
+  // Permission overrides are addressed by the TARGET's tenant slug, and a
+  // school user's rows carry only school_id/school_name. The schools list is
+  // where the console reads a school's slug for `?tenant=` everywhere else
+  // (see settings/index.tsx ScopePicker) — reusing the identical query arg the
+  // members tab already issues means this hits the existing RTK cache entry
+  // rather than adding a request.
+  const canSeeExceptions = useCanViewPermissionExceptions();
+  const schoolId = detail?.school_id ?? user?.school_id;
+  const { data: schoolsRes } = useGetSchoolsQuery(
+    { page_size: 100 },
+    { skip: !user || !canSeeExceptions },
+  );
+  const tenantSlug =
+    (schoolsRes?.data ?? []).find((school) => String(school.id) === String(schoolId))?.slug ?? "";
 
   return (
     <Sheet open={Boolean(user)} onOpenChange={(open) => !open && onClose()}>
@@ -102,6 +119,12 @@ export function SchoolUserDetail({
                 <DetailField icon={CalendarDays} label="Last updated" value={detail?.updated_at ? formatRelativeDate(detail.updated_at) : "—"} />
               </div>
             </section>
+
+            <PermissionOverrides
+              userId={user?.id}
+              tenantSlug={tenantSlug}
+              userName={detail?.full_name || user?.full_name}
+            />
           </div>
         )}
       </SheetContent>

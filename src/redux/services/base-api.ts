@@ -437,6 +437,7 @@ export const baseApi = createApi({
     "PermissionActions",
     "PermissionDependencies",
     "UserAssignments",
+    "UserPermissionOverrides",
     "ChangeRequests",
     "AuditEvents",
     "AuditExports",

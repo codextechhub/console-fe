@@ -102,6 +102,12 @@ const REGISTRY: Record<string, string> = {
   "101201": "platform.health.view",
   "101208": "platform.health.manage",
 
+  // ── platform / per-user permission exceptions  (MM=10, RR=13) ──────────────
+  // CRITICAL + restricted. Seeing that a user HAS exceptions is itself
+  // sensitive — without `.view` the affected user must not learn they exist.
+  "101301": "platform.team_overrides.view",
+  "101308": "platform.team_overrides.manage",
+
   // ── communication / global notifications  (MM=40) ────────────────────────
   "400108": "communication.notification_templates.configure",
   "400208": "communication.communication_permissions.enforce",
@@ -480,6 +486,14 @@ export const P = {
   VIEW_HEALTH: "101201",
   MANAGE_HEALTH: "101208",
 
+  // ── Per-user permission exceptions ─────────────────────────────────────────
+  // Gating follows the ACTOR's namespace, never the target's: a CX actor uses
+  // these keys on BOTH a CX member profile and a school user's profile (the
+  // school case additionally asserts ?tenant=<school-slug>). The school-side
+  // keys (school.user_overrides.*) belong to school-fe, not this console.
+  VIEW_PERMISSION_EXCEPTIONS:   "101301",  // see a user's permission exceptions
+  MANAGE_PERMISSION_EXCEPTIONS: "101308",  // add or lift a permission exception
+
   // ── Notifications administration ──────────────────────────────────────────
   CONFIGURE_NOTIFICATION_TEMPLATES: "400108",
   ENFORCE_NOTIFICATION_SETTINGS:    "400208",
@@ -703,4 +717,54 @@ export type PermissionCode = (typeof P)[keyof typeof P];
 // Internal resolver — used only by usePermissions and PermissionGate.
 export function resolvePermissionKey(code: PermissionCode): string {
   return REGISTRY[code] ?? "";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Human labels for raw backend keys
+//
+// The permission-exceptions screens are the one place that renders keys the
+// user did not pick from a P.* constant (they come back from the API, and for
+// school users they are `school.*` keys this console never gates on). They need
+// a readable label, so derive one from the P.* name where we have it — the
+// constant names are already written as UI capabilities ("MODIFY_SCHOOL" →
+// "Modify school") — and fall back to a title-cased reading of the dotted key.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const LABEL_BY_KEY: Record<string, string> = Object.entries(P).reduce(
+  (acc, [name, code]) => {
+    const key = REGISTRY[code];
+    // First constant wins: deprecated aliases are listed after the live name.
+    if (key && !acc[key]) {
+      // FIN_/PROC_/PAY_ are namespacing on the constant, not part of the
+      // capability's name — "FIN_CREATE_INVOICE" reads as "Create invoice".
+      const words = name
+        .replace(/^(FIN|PROC|PAY)_/, "")
+        .toLowerCase()
+        .replace(/_/g, " ");
+      acc[key] = words.charAt(0).toUpperCase() + words.slice(1);
+    }
+    return acc;
+  },
+  {} as Record<string, string>,
+);
+
+const titleCase = (segment: string) =>
+  segment.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+/**
+ * A readable label for a backend permission key. Uses the P.* registry when the
+ * key is one this console knows; otherwise reads the dotted key
+ * ("school.students.update" → "Students · Update").
+ */
+export function permissionLabel(key: string): string {
+  if (!key) return "";
+  if (LABEL_BY_KEY[key]) return LABEL_BY_KEY[key];
+  const parts = key.split(".");
+  if (parts.length < 2) return key;
+  return `${titleCase(parts[1])} · ${titleCase(parts.slice(2).join(" "))}`.trim();
+}
+
+/** The module segment of a key ("finance.invoice.view" → "finance"). */
+export function permissionModule(key: string): string {
+  return key.split(".")[0] || "other";
 }

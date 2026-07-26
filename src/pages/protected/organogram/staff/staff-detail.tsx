@@ -14,8 +14,11 @@ import { Banknote, Lock, LockOpen, Mail, Pencil, ShieldAlert } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PermissionGate from "@/components/custom/permission-gate";
+import PermissionOverrides from "@/components/custom/permission-overrides";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useAppSelector } from "@/redux/store";
+import { selectTenant } from "@/redux/features/auth/auth-slice";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetAssignmentsQuery,
@@ -74,6 +77,9 @@ export default function StaffDetail() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const { id, userId } = useParams<{ id?: string; userId?: string }>();
+  // CX staff live in the caller's own (platform) tenant, so the override
+  // endpoint asserts that slug. See permission-overrides.tsx for the gate.
+  const tenantSlug = useAppSelector(selectTenant)?.slug ?? "";
 
   // by-user entry: resolve the profile id from the owner's user id first.
   const { data: lookupRes, isLoading: lookingUp } = useGetStaffProfilesQuery(
@@ -210,6 +216,13 @@ export default function StaffDetail() {
             </section>
 
             <Payroll profile={profile} />
+
+            <PermissionOverrides
+              userId={profile.user.id}
+              tenantSlug={tenantSlug}
+              userName={profile.user.full_name}
+              className="rounded-2xl border-slate-200 p-5"
+            />
 
             {/* Change email modal */}
             <Dialog open={emailModal} onOpenChange={(open) => { setEmailModal(open); if (!open) setNewEmail(""); }}>
