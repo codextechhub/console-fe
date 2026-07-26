@@ -38,7 +38,7 @@ export const setupApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/accounts/${qs({ ...p, with_balance: "true" })}`, method: "GET" }),
       providesTags: ["FinanceAccounts"],
     }),
-    createAccount: b.mutation<ApiEnvelope<Account>, { entity: string; code: string; name: string; account_type: string; subtype?: string; parent?: number; is_postable?: boolean; is_contra?: boolean }>({
+    createAccount: b.mutation<ApiEnvelope<Account>, { entity: string; code: string; name: string; subtype?: string; parent?: number; is_postable?: boolean; is_contra?: boolean }>({
       query: ({ entity, ...body }) => ({ url: `/finance/accounts/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceAccounts"],
     }),

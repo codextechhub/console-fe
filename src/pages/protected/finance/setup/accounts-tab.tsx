@@ -5,19 +5,21 @@ import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { ArrowLeft, ChevronDown, ChevronRight, Check, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronRight, Check, Info, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
 import { Money, FormField, DetailDrawer, StatusPill, DataTable, toArray, useActiveEntity, type Column } from "@/components/finance-ui";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import {
   useGetChartOfAccountsQuery, useCreateAccountMutation, useGetAccountDetailQuery, useGetAccountActivityQuery, useUpdateAccountMutation,
 } from "@/redux/services/finance/setup-api";
 import type { Account, AccountDetail, ConsolidatedAccountActivityLine } from "@/redux/services/finance/setup-types";
+import { ACCOUNT_CODE_LENGTH, ACCOUNT_TYPES, accountCodeError, accountsInCodeLine, accountTypeFromCode, isValidAccountCode } from "@/utils/chart-of-accounts";
 import { accountGroupContribution, descendantPostingAccounts } from "./account-group";
 import { getAccountDetailTabKeys, type AccountDetailTabKey } from "./account-detail-tabs";
 
@@ -153,7 +155,7 @@ export function AccountsTab({ entity }: { entity: string }) {
         </div>
         <select value={type} onChange={(e) => setType(e.target.value)} className={selectCls} aria-label="Account type">
           <option value="">All types</option>
-          {["ASSET", "LIABILITY", "EQUITY", "INCOME", "EXPENSE"].map((t) => <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>)}
+          {ACCOUNT_TYPES.map((t) => <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>)}
         </select>
         <Can permission={P.FIN_CREATE_ACCOUNT}>
           <Button onClick={() => setCreating(true)} className="ml-auto h-9 gap-1.5 font-mont text-xs font-semibold">
@@ -203,21 +205,30 @@ function CreateAccountDrawer({ open, onClose, entity, parents }: {
   const [create, { isLoading }] = useCreateAccountMutation();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
-  const [type, setType] = useState("ASSET");
   const [subtype, setSubtype] = useState("");
   const [parent, setParent] = useState("");
   const [postable, setPostable] = useState(true);
   const [contra, setContra] = useState(false);
-  const canSubmit = code.trim() !== "" && name.trim() !== "" && !!type;
-  const parentOptions = parents.map((a) => ({ value: String(a.id), label: `${a.code} — ${a.name}` }));
+  const existingCodes = useMemo(() => new Set(parents.map((account) => account.code)), [parents]);
+  const inferredType = accountTypeFromCode(code);
+  const codeError = accountCodeError(code, existingCodes);
+  const fieldsEnabled = isValidAccountCode(code, existingCodes);
+  const canSubmit = fieldsEnabled && name.trim() !== "" && inferredType !== null;
+  const parentOptions = accountsInCodeLine(parents, code)
+    .map((account) => ({ value: String(account.id), label: `${account.code} — ${account.name}` }));
 
-  const reset = () => { setCode(""); setName(""); setType("ASSET"); setSubtype(""); setParent(""); setPostable(true); setContra(false); };
+  const reset = () => { setCode(""); setName(""); setSubtype(""); setParent(""); setPostable(true); setContra(false); };
   const close = () => { reset(); onClose(); };
+  const changeCode = (nextCode: string) => {
+    if (accountTypeFromCode(nextCode) !== inferredType) setParent("");
+    setCode(nextCode);
+  };
 
   const submit = async () => {
+    if (!canSubmit) return;
     try {
       const r = await create({
-        entity, code: code.trim(), name: name.trim(), account_type: type,
+        entity, code: code.trim(), name: name.trim(),
         subtype: subtype.trim() || undefined, parent: parent ? Number(parent) : undefined,
         is_postable: postable, is_contra: contra,
       }).unwrap();
@@ -243,27 +254,88 @@ function CreateAccountDrawer({ open, onClose, entity, parents }: {
       }
     >
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} className="bg-white font-mont" placeholder="e.g. 4200" /></FormField>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1">
+              <label htmlFor="new-account-code" className="font-mont text-xs text-gray-05">Code *</label>
+              <AccountCodeHint />
+            </div>
+            <Input
+              id="new-account-code"
+              value={code}
+              onChange={(e) => changeCode(e.target.value)}
+              className="bg-white font-mont"
+              placeholder="e.g. 4200"
+              inputMode="numeric"
+              maxLength={ACCOUNT_CODE_LENGTH}
+              pattern="[1-5][0-9]{3}"
+              aria-invalid={!!codeError}
+              aria-describedby={codeError ? "account-code-error" : undefined}
+              autoFocus
+            />
+            {codeError && <p id="account-code-error" className="font-mont text-xs text-destructive">{codeError}</p>}
+          </div>
           <FormField label="Account type" required>
-            <select value={type} onChange={(e) => setType(e.target.value)} className={cn(selectCls, "w-full")}>
-              {["ASSET", "LIABILITY", "EQUITY", "INCOME", "EXPENSE"].map((t) => <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>)}
+            <select value={inferredType ?? ""} disabled className={cn(selectCls, "w-full disabled:bg-gray-02 disabled:text-gray-05")} aria-label="Account type determined by code">
+              <option value="">Set automatically from code</option>
+              {ACCOUNT_TYPES.map((t) => <option key={t} value={t}>{t[0] + t.slice(1).toLowerCase()}</option>)}
             </select>
           </FormField>
         </div>
-        <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} className="bg-white" placeholder="e.g. Tuition revenue" /></FormField>
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Subtype"><Input value={subtype} onChange={(e) => setSubtype(e.target.value)} placeholder="e.g. Current asset" className="bg-white" /></FormField>
+        <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} disabled={!fieldsEnabled} className="bg-white" placeholder={fieldsEnabled ? "e.g. Tuition revenue" : "Enter a valid code first"} /></FormField>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <FormField label="Subtype"><Input value={subtype} onChange={(e) => setSubtype(e.target.value)} disabled={!fieldsEnabled} placeholder="e.g. Current asset" className="bg-white" /></FormField>
           <FormField label="Parent account">
-            <SearchSelect options={parentOptions} value={parent} onChange={(e) => setParent(e.target.value)} placeholder="None (top level)" revealOnSearch />
+            <SearchSelect
+              options={parentOptions}
+              value={parent}
+              onChange={(e) => setParent(e.target.value)}
+              disabled={!fieldsEnabled}
+              placeholder={inferredType ? `None (${inferredType.toLowerCase()} top level)` : "Enter a valid code first"}
+              revealOnSearch
+            />
           </FormField>
         </div>
         <div className="flex flex-wrap gap-5 rounded-md bg-gray-50 px-3 py-3 font-mont text-sm text-gray-01">
-          <label className="flex items-center gap-2"><input type="checkbox" checked={postable} onChange={(e) => setPostable(e.target.checked)} className="accent-primary" /> Postable (accepts entries)</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={contra} onChange={(e) => setContra(e.target.checked)} className="accent-primary" /> Contra account</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={postable} onChange={(e) => setPostable(e.target.checked)} disabled={!fieldsEnabled} className="accent-primary" /> Postable (accepts entries)</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={contra} onChange={(e) => setContra(e.target.checked)} disabled={!fieldsEnabled} className="accent-primary" /> Contra account</label>
         </div>
       </div>
     </DetailDrawer>
+  );
+}
+
+function AccountCodeHint() {
+  const lines = [
+    ["1", "Assets"],
+    ["2", "Liabilities"],
+    ["3", "Equity"],
+    ["4", "Income"],
+    ["5", "Expenses"],
+  ];
+
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button type="button" aria-label="View account code rules"
+            className="inline-flex size-4 shrink-0 items-center justify-center text-gray-05 hover:text-gray-01">
+            <Info className="size-3.5" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent className="w-52 font-mont text-xs">
+          <p className="mb-1.5 font-semibold">Use exactly four digits.</p>
+          <div className="grid grid-cols-[1rem_1fr] gap-x-2 gap-y-1">
+            {lines.map(([prefix, label]) => (
+              <div key={prefix} className="contents">
+                <span className="font-semibold">{prefix}</span>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
