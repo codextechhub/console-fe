@@ -48,6 +48,7 @@ import {
 import { ConsoleSidebar } from "@/components/finance-ui/console-sidebar";
 import { financeNav } from "@/pages/protected/finance/finance-nav";
 import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
+import { WorkspaceToaster } from "@/components/ui/sonner";
 
 // The workspace-search text survives a remount of the header (and, before the
 // shell became a layout route, every navigation), so Cmd/Ctrl+E resumes where
@@ -337,7 +338,7 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
   // `sticky` is itself a positioned context for the absolute children
   // (collapse toggle, progress bar) — adding `relative` would conflict.
   return (
-    <header className="grid min-h-15 shrink-0 sticky top-0 z-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 border border-l-0 border-white-02 bg-white px-3 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-12 lg:px-10">
+    <header className="grid min-h-15 shrink-0 sticky top-0 z-50 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 border border-l-0 border-white-02 bg-white px-3 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-12 lg:px-10">
       {/* Sidebar collapse toggle — on the left border, vertically centered in the header */}
       <button
         type="button"
@@ -544,6 +545,11 @@ function SidebarFor({ kind }: { kind: SidebarKind | undefined }) {
   return <AppSidebar />;
 }
 
+function DashboardToaster() {
+  const { state } = useSidebar();
+  return <WorkspaceToaster sidebarState={state} />;
+}
+
 /**
  * The protected shell, mounted as a LAYOUT ROUTE above every protected page
  * (routes/protected/index.tsx) rather than imported by each page. It ships in
@@ -608,6 +614,7 @@ export default function DashboardLayout() {
         <SidebarFor kind={handle.sidebar} />
         <SidebarInset className="bg-white-05 min-w-0 w-auto">
           <DashboardHeader back={header.back} title={header.title} />
+          <DashboardToaster />
           {/* grid-cols-1 (minmax(0,1fr)) zeroes the track's min-content floor so a
               page's <main> can never be stretched past the viewport by wide
               nowrap content (tables) — each page's own overflow-x-auto then

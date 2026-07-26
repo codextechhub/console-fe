@@ -193,6 +193,128 @@
   50% { opacity: 1; }
 }
 
+/* Global notifications — centered over the active work area, not the viewport.
+   Dashboard toasts sit one layer below the sticky header so their entrance
+   reads as a drop from the shell rather than a floating viewport alert. */
+.workspace-toaster[data-sonner-toaster][data-x-position="center"] {
+  left: var(--workspace-toast-center) !important;
+}
+
+.app-toaster [data-sonner-toast][data-styled="true"] {
+  min-height: 50px;
+  padding: 11px 44px 11px 13px;
+  gap: 10px;
+  border: 1px solid rgb(226 232 240 / 90%);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 98%);
+  color: #212121;
+  box-shadow:
+    0 12px 30px rgb(15 23 42 / 12%),
+    0 2px 8px rgb(15 23 42 / 7%);
+  font-family: 'Outfit', system-ui, Helvetica, sans-serif;
+  font-size: 13px;
+}
+
+.app-toaster [data-sonner-toast] {
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 180ms ease,
+    height 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms ease;
+}
+
+.app-toaster [data-sonner-toast][data-removed="true"] {
+  transition-duration: 160ms;
+}
+
+.app-toaster [data-sonner-toast][data-styled="true"] [data-icon] {
+  width: 26px;
+  height: 26px;
+  margin: 0;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+.app-toaster [data-sonner-toast][data-type="success"] [data-icon] {
+  background: rgb(22 163 74 / 10%);
+  color: #15803d;
+}
+
+.app-toaster [data-sonner-toast][data-type="error"] [data-icon] {
+  background: rgb(227 49 49 / 10%);
+  color: #dc2626;
+}
+
+.app-toaster [data-sonner-toast][data-type="warning"] [data-icon] {
+  background: rgb(245 158 11 / 12%);
+  color: #b45309;
+}
+
+.app-toaster [data-sonner-toast][data-type="info"] [data-icon],
+.app-toaster [data-sonner-toast][data-type="loading"] [data-icon] {
+  background: rgb(74 101 157 / 10%);
+  color: var(--primary);
+}
+
+.app-toaster [data-sonner-toast][data-styled="true"] [data-title] {
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.app-toaster [data-sonner-toast][data-styled="true"] [data-description] {
+  margin-top: 1px;
+  color: #6f706f;
+  line-height: 1.4;
+}
+
+.app-toaster [data-sonner-toast][data-styled="true"] [data-close-button] {
+  top: 50%;
+  right: 8px;
+  left: auto;
+  width: 28px;
+  height: 28px;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #8f918f;
+}
+
+.app-toaster [data-sonner-toast][data-styled="true"] [data-close-button]:hover {
+  border: 0;
+  background: #f1f5f9;
+  color: #212121;
+}
+
+.app-toaster [data-sonner-toast][data-styled="true"] [data-close-button]:focus-visible {
+  box-shadow: 0 0 0 3px rgb(74 101 157 / 18%);
+}
+
+.app-toaster [data-sonner-toast][data-styled="true"] [data-button] {
+  height: 28px;
+  border-radius: 7px;
+  background: var(--primary);
+  color: white;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+@media (max-width: 767px) and (min-width: 601px) {
+  .workspace-toaster[data-sonner-toaster][data-x-position="center"] {
+    left: 50% !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .workspace-toaster[data-sonner-toaster][data-x-position="center"] {
+    left: var(--mobile-offset-left) !important;
+  }
+
+  .app-toaster [data-sonner-toast][data-styled="true"] {
+    min-height: 48px;
+    padding-block: 10px;
+  }
+}
+
 /* Button loading — three sequential opacity-fading dots (no layout shift) */
 @keyframes dot-fade {
   0%, 80%, 100% { opacity: 0.25; }
