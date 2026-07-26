@@ -286,6 +286,21 @@ export const baseQueryInterceptor: BaseQueryFn<
     return result;
   }
 
+  if (res?.status === 409) {
+    // Domain conflicts carry useful structured context in `error.detail`
+    // (period ids/statuses, lifecycle state, available balances), but the
+    // top-level message is the backend's complete user-facing explanation.
+    // Prefer it so a missing period does not degrade to a toast like "<none>".
+    if (!isAuthRoute(args)) {
+      const message =
+        res?.data?.message ||
+        extractFirstDetailError(res?.data?.error?.detail) ||
+        extractFirstDetailError(res?.data?.error);
+      if (message) notify(message);
+    }
+    return result;
+  }
+
   if (res?.status === 400 || res?.status === 422) {
     // Auth routes (login, reset, activate, special-login…) own their own
     // inline/panel error UX and route the message through humanizeAuthError, so
