@@ -1,5 +1,7 @@
+import { toast } from "sonner";
 import { generateQueryString } from "@/utils/helpers";
 import { appendTenantQuery } from "@/utils/tenant-context";
+import { routesPath } from "@/routes/routes-path";
 import { baseApi } from "../base-api";
 import type {
   CreateTemplatePayload,
@@ -173,6 +175,35 @@ export const importApi = baseApi.injectEndpoints({
         "ImportBatches",
         "ImportJobs",
       ],
+      // Queuing is the only moment the user is told the work has *started* —
+      // BackgroundJob notifications are terminal-state only, and the Queues
+      // page's completion toasts need that page open to fire. Announcing it
+      // here covers every caller (wizard + batch detail), so neither has to
+      // toast for itself.
+      async onQueryStarted({ body }, { queryFulfilled }) {
+        // Synchronous runs return once the import is done — "started" is wrong.
+        if (body?.run_async === false) return;
+        try {
+          await queryFulfilled;
+        } catch {
+          // The base-query interceptor owns the failure toast.
+          return;
+        }
+        toast.success("Import started.", {
+          description:
+            "Runs in the background — you can leave this page. You'll get a notification when it finishes.",
+          action: {
+            label: "View queues",
+            onClick: () => {
+              // Lazy: routes/ pulls in the pages that import this slice, so a
+              // static import here would close a module cycle.
+              void import("@/routes").then(({ router }) =>
+                router.navigate(routesPath.PROTECTED.EXPORT.QUEUES),
+              );
+            },
+          },
+        });
+      },
     }),
 
     getImportJobs: builder.query<

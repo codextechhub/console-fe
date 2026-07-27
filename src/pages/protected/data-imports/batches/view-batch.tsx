@@ -149,7 +149,8 @@ export default function ViewBatch() {
   const handleStart = async () => {
     try {
       await startImport({ id: batchId, body: { run_async: true } }).unwrap();
-      toast.success("Import queued.");
+      // The mutation's onQueryStarted announces the queued job — toasting here
+      // too would double it.
       refetch();
     } catch { /* interceptor shows the toast */ }
     setConfirm(null);
