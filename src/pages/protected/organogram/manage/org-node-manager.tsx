@@ -500,7 +500,12 @@ export default function OrgNodeManager() {
       <PromptModal
         isOpen={!!toDelete} onClose={() => setToDelete(null)} onConfirm={confirmDelete}
         title="Delete org node?"
-        description={`This permanently removes "${toDelete?.name}". Child nodes or positions block deletion (PROTECT).`}
+        description={
+          toDelete?.children_count
+            ? `"${toDelete.name}" has ${toDelete.children_count} child unit${toDelete.children_count === 1 ? "" : "s"}. ` +
+              "Delete or re-parent them first — the server will refuse this delete."
+            : `This permanently removes "${toDelete?.name}". Seats (positions) still attached to it block deletion.`
+        }
         onConfirmText="Delete" canCancel loading={deleting}
         onConfirmClass="bg-error-01 text-white hover:bg-error-01/90"
       />
