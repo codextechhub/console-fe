@@ -18,13 +18,15 @@ import * as React from "react";
  * lock, the browser's native scrolling runs and these handlers stay out of the
  * way (no double-scroll).
  */
+// Module scope on purpose: it closes over nothing, so the handlers below stay
+// stable instead of taking it as a dependency.
+function scrollByHand(el: HTMLElement, dx: number, dy: number) {
+  if (dy) el.scrollTop += dy;
+  if (dx) el.scrollLeft += dx;
+}
+
 export function usePopupScroll<T extends HTMLElement = HTMLElement>() {
   const lastTouch = React.useRef<{ x: number; y: number } | null>(null);
-
-  const scrollByHand = (el: T, dx: number, dy: number) => {
-    if (dy) el.scrollTop += dy;
-    if (dx) el.scrollLeft += dx;
-  };
 
   const onWheel = React.useCallback((e: React.WheelEvent<T>) => {
     if (!document.body.hasAttribute("data-scroll-locked")) return;
