@@ -13,9 +13,9 @@ import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, Upload, RefreshCw, ListChecks, FileText, History, Settings as SettingsIcon, ArrowLeftRight, ChevronDown, Rows3, FileSpreadsheet, Download } from "lucide-react";
+import { Plus, Search, Trash2, Upload, RefreshCw, ListChecks, FileText, History, Settings as SettingsIcon, ArrowLeftRight, ChevronDown, Rows3, FileSpreadsheet, Download, Pencil } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
-import { DataTable, DetailDrawer, Money, StatusPill, FormField, AccountPicker, CurrencyPicker, InfoHint, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
+import { DataTable, DetailDrawer, Money, StatusPill, FormField, AccountPicker, CurrencyPicker, InfoHint, ConfirmActionModal, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
@@ -37,9 +37,10 @@ import {
   useGetBankAccountsQuery, useGetBankAccountQuery, useCreateBankAccountMutation,
   useUpdateBankAccountMutation, useGetStatementLinesQuery, useImportStatementMutation,
   useAutoReconcileMutation, useUploadBankStatementBatchMutation,
-  useDownloadBankStatementTemplateMutation,
+  useDownloadBankStatementTemplateMutation, useGetBankStatementQuery,
+  useUpdateBankStatementMutation, useDeleteBankStatementLineMutation,
 } from "@/redux/services/finance/ops-api";
-import type { BankAccount } from "@/redux/services/finance/ops-types";
+import type { BankAccount, BankStatementDetail } from "@/redux/services/finance/ops-types";
 
 const todayISO = new Date().toISOString().slice(0, 10);
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
@@ -176,6 +177,7 @@ function BankAccountDrawer({ account, entity, currency, onClose }: { account: Ba
   const { can } = useCan();
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("transactions");
   const [importing, setImporting] = useState<"manual" | "bulk" | null>(null);
+  const [editingStatement, setEditingStatement] = useState<number | null>(null);
   const { data } = useGetBankAccountQuery(account ? { id: account.id, entity } : skipToken);
   const detail = data?.data;
   const [reconcile, { isLoading: reconciling }] = useAutoReconcileMutation();
@@ -246,7 +248,14 @@ function BankAccountDrawer({ account, entity, currency, onClose }: { account: Ba
 
           {tab === "transactions" && <TransactionsTab detail={detail} currency={currency} />}
           {tab === "lines" && <StatementLinesTab id={account.id} entity={entity} currency={currency} />}
-          {tab === "statements" && <StatementsTab detail={detail} currency={currency} />}
+          {tab === "statements" && (
+            <StatementsTab
+              detail={detail}
+              currency={currency}
+              canEdit={can(P.FIN_IMPORT_BANK)}
+              onEdit={setEditingStatement}
+            />
+          )}
           {tab === "reconciliations" && <ReconciliationsTab detail={detail} currency={currency} />}
           {tab === "settings" && <SettingsTab account={account} entity={entity} canEdit={can(P.FIN_UPDATE_BANK_ACCOUNT)} />}
         </div>
@@ -260,6 +269,15 @@ function BankAccountDrawer({ account, entity, currency, onClose }: { account: Ba
           id={account.id}
           entity={entity}
           onClose={() => setImporting(null)}
+        />
+      ) : null}
+      {editingStatement !== null ? (
+        <EditStatementDrawer
+          id={account.id}
+          statementId={editingStatement}
+          entity={entity}
+          currency={currency}
+          onClose={() => setEditingStatement(null)}
         />
       ) : null}
     </>
@@ -296,34 +314,83 @@ function TransactionsTab({ detail, currency }: { detail?: { transactions: import
 }
 
 function StatementLinesTab({ id, entity, currency }: { id: number; entity: string; currency?: string | null }) {
+  const { can } = useCan();
   const { data, isFetching } = useGetStatementLinesQuery({ id, entity });
+  const [deleting, setDeleting] = useState<import("@/redux/services/finance/ops-types").BankStatementLine | null>(null);
+  const [deleteLine, { isLoading: isDeleting }] = useDeleteBankStatementLineMutation();
   const lines = useMemo(() => toArray(data?.data), [data]);
+  const canDelete = can(P.FIN_IMPORT_BANK);
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    try {
+      const response = await deleteLine({ id: deleting.id, entity }).unwrap();
+      toast.success(response.message || "Statement line deleted.");
+      setDeleting(null);
+    } catch { /* central */ }
+  };
   if (isFetching && lines.length === 0) return <p className="font-mont text-sm text-gray-05">Loading…</p>;
   if (lines.length === 0) return <EmptyState title="No statement lines" message="Import a statement to begin reconciling." />;
   return (
-    <div className="overflow-hidden rounded-md border border-gray-03">
-      <table className="w-full border-collapse">
-        <thead><tr>
-          <th className={thCls}>Date</th><th className={thCls}>Description</th><th className={thCls}>Reference</th>
-          <th className={cn(thCls, "text-right")}>Amount</th><th className={thCls}>Status</th>
-        </tr></thead>
-        <tbody>
-          {lines.map((l) => (
-            <tr key={l.id}>
-              <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.txn_date}</td>
-              <td className={tdCls}>{l.description || "—"}</td>
-              <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.reference || "—"}</td>
-              <td className={cn(tdCls, "text-right tabular-nums", l.amount < 0 ? "text-destructive" : "text-black-01")}>{formatMoney(l.amount, currency)}</td>
-              <td className={tdCls}><StatusPill status={l.status} /></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className="overflow-hidden rounded-md border border-gray-03">
+        <table className="w-full border-collapse">
+          <thead><tr>
+            <th className={thCls}>Date</th><th className={thCls}>Description</th><th className={thCls}>Reference</th>
+            <th className={cn(thCls, "text-right")}>Amount</th><th className={thCls}>Status</th>
+            {canDelete ? <th className={thCls} /> : null}
+          </tr></thead>
+          <tbody>
+            {lines.map((l) => (
+              <tr key={l.id}>
+                <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.txn_date}</td>
+                <td className={tdCls}>{l.description || "—"}</td>
+                <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.reference || "—"}</td>
+                <td className={cn(tdCls, "text-right tabular-nums", l.amount < 0 ? "text-destructive" : "text-black-01")}>{formatMoney(l.amount, currency)}</td>
+                <td className={tdCls}><StatusPill status={l.status} /></td>
+                {canDelete ? (
+                  <td className={cn(tdCls, "text-right")}>
+                    <button
+                      type="button"
+                      onClick={() => setDeleting(l)}
+                      disabled={!l.can_delete}
+                      title={l.delete_block_reason || "Delete statement line"}
+                      aria-label={`Delete statement line ${l.description || l.reference || l.id}`}
+                      className="rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-35"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </td>
+                ) : null}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <ConfirmActionModal
+        open={deleting !== null}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title="Delete statement line?"
+        description="This removes the incorrect unreconciled line and recalculates the statement closing balance. If it is the final line, the empty statement is also removed. The deletion remains recorded in the finance audit trail."
+        confirmText="Delete line"
+        destructive
+        loading={isDeleting}
+        onConfirm={confirmDelete}
+      />
+    </>
   );
 }
 
-function StatementsTab({ detail, currency }: { detail?: { statements: import("@/redux/services/finance/ops-types").BankStatement[] }; currency?: string | null }) {
+function StatementsTab({
+  detail,
+  currency,
+  canEdit,
+  onEdit,
+}: {
+  detail?: { statements: import("@/redux/services/finance/ops-types").BankStatement[] };
+  currency?: string | null;
+  canEdit: boolean;
+  onEdit: (statementId: number) => void;
+}) {
   const sts = detail?.statements ?? [];
   if (sts.length === 0) return <EmptyState title="No statements" message="Imported statement batches appear here." />;
   return (
@@ -333,6 +400,7 @@ function StatementsTab({ detail, currency }: { detail?: { statements: import("@/
           <th className={thCls}>Statement date</th><th className={thCls}>Period</th>
           <th className={cn(thCls, "text-right")}>Opening</th><th className={cn(thCls, "text-right")}>Closing</th>
           <th className={cn(thCls, "text-right")}>Lines</th><th className={thCls}>Status</th>
+          {canEdit ? <th className={thCls} /> : null}
         </tr></thead>
         <tbody>
           {sts.map((s) => (
@@ -343,6 +411,20 @@ function StatementsTab({ detail, currency }: { detail?: { statements: import("@/
               <td className={cn(tdCls, "text-right tabular-nums font-medium")}>{formatMoney(s.closing_balance, currency)}</td>
               <td className={cn(tdCls, "text-right tabular-nums text-gray-05")}>{s.line_count}</td>
               <td className={tdCls}><span className={cn(PILL, s.status === "RECONCILED" ? "bg-green-01/10 text-green-01" : "bg-amber-50 text-amber-700")}>{s.status_display}</span></td>
+              {canEdit ? (
+                <td className={cn(tdCls, "text-right")}>
+                  <button
+                    type="button"
+                    onClick={() => onEdit(s.id)}
+                    disabled={!s.can_edit}
+                    title={s.edit_block_reason || "Edit statement"}
+                    aria-label={`Edit statement ${s.period_label || s.statement_date}`}
+                    className="rounded p-1.5 text-gray-05 hover:bg-gray-03 hover:text-primary disabled:cursor-not-allowed disabled:opacity-35"
+                  >
+                    <Pencil className="size-3.5" />
+                  </button>
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>
@@ -423,6 +505,205 @@ function SettingsTab({ account, entity, canEdit }: { account: BankAccount; entit
       {canEdit ? (
         <div className="flex justify-end"><Button disabled={isLoading || !name.trim()} onClick={save}>{isLoading ? "Saving…" : "Save changes"}</Button></div>
       ) : null}
+    </div>
+  );
+}
+
+type CorrectionRow = {
+  id?: number;
+  txn_date: string;
+  description: string;
+  amount: string;
+  reference: string;
+  external_id: string;
+};
+
+function EditStatementDrawer({
+  id,
+  statementId,
+  entity,
+  currency,
+  onClose,
+}: {
+  id: number;
+  statementId: number;
+  entity: string;
+  currency?: string | null;
+  onClose: () => void;
+}) {
+  const { data, isFetching } = useGetBankStatementQuery({ id, statementId, entity });
+  const statement = data?.data;
+
+  return (
+    <DetailDrawer
+      open
+      onOpenChange={(open) => (open ? undefined : onClose())}
+      title="Edit statement"
+      description="Correct a manually imported statement before reconciliation."
+      widthClass="sm:max-w-3xl"
+    >
+      {isFetching && !statement ? (
+        <p className="font-mont text-sm text-gray-05">Loading statement…</p>
+      ) : statement ? (
+        <EditStatementForm
+          key={statement.id}
+          id={id}
+          entity={entity}
+          statement={statement}
+          currency={currency}
+          onClose={onClose}
+        />
+      ) : null}
+    </DetailDrawer>
+  );
+}
+
+function EditStatementForm({
+  id,
+  entity,
+  statement,
+  currency,
+  onClose,
+}: {
+  id: number;
+  entity: string;
+  statement: BankStatementDetail;
+  currency?: string | null;
+  onClose: () => void;
+}) {
+  const [statementDate, setStatementDate] = useState(statement.statement_date);
+  const [periodLabel, setPeriodLabel] = useState(statement.period_label);
+  const [opening, setOpening] = useState(String(statement.opening_balance / 100));
+  const [rows, setRows] = useState<CorrectionRow[]>(
+    statement.lines.map((line) => ({
+      id: line.id,
+      txn_date: line.txn_date,
+      description: line.description,
+      reference: line.reference,
+      amount: String(line.amount / 100),
+      external_id: line.external_id,
+    })),
+  );
+  const [update, { isLoading }] = useUpdateBankStatementMutation();
+
+  const setRow = (index: number, patch: Partial<CorrectionRow>) => {
+    setRows((current) => current.map((row, i) => (
+      i === index ? { ...row, ...patch } : row
+    )));
+  };
+  const validRows = rows.filter(
+    (row) => row.txn_date && row.amount.trim() !== "" && !Number.isNaN(Number(row.amount)),
+  );
+  const openingKobo = opening.trim() && !Number.isNaN(Number(opening))
+    ? Math.round(Number(opening) * 100)
+    : 0;
+  const closingKobo = openingKobo + validRows.reduce(
+    (total, row) => total + Math.round(Number(row.amount) * 100),
+    0,
+  );
+  const canSave = (
+    statement.can_edit
+    && statementDate
+    && opening.trim() !== ""
+    && !Number.isNaN(Number(opening))
+    && validRows.length === rows.length
+    && rows.length > 0
+  );
+
+  const save = async () => {
+    if (!canSave) return;
+    try {
+      const response = await update({
+        id,
+        statementId: statement.id,
+        entity,
+        statement_date: statementDate,
+        period_label: periodLabel.trim() || undefined,
+        opening_balance: openingKobo,
+        lines: rows.map((row) => ({
+          ...(row.id ? { id: row.id } : {}),
+          txn_date: row.txn_date,
+          description: row.description.trim() || undefined,
+          reference: row.reference.trim() || undefined,
+          amount: Math.round(Number(row.amount) * 100),
+          external_id: row.external_id || undefined,
+        })),
+      }).unwrap();
+      toast.success(response.message || "Bank statement corrected.");
+      onClose();
+    } catch { /* central */ }
+  };
+
+  return (
+    <div className="space-y-4">
+      {!statement.can_edit && statement.edit_block_reason ? (
+        <p className="rounded-md bg-amber-50 px-3 py-2 font-mont text-xs text-amber-900 ring-1 ring-amber-200">
+          {statement.edit_block_reason}
+        </p>
+      ) : null}
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Statement date" required>
+          <Input type="date" value={statementDate} onChange={(event) => setStatementDate(event.target.value)} disabled={!statement.can_edit} className="bg-white font-mont" />
+        </FormField>
+        <FormField label="Period label">
+          <Input value={periodLabel} onChange={(event) => setPeriodLabel(event.target.value)} disabled={!statement.can_edit} placeholder="e.g. Apr 2026" className="bg-white" />
+        </FormField>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <FormField label="Opening balance" required>
+          <Input type="number" value={opening} onChange={(event) => setOpening(event.target.value)} disabled={!statement.can_edit} className="bg-white font-mont" />
+        </FormField>
+        <FormField label="Calculated closing balance">
+          <div className="flex h-9 items-center rounded-md border border-gray-03 bg-gray-03 px-3 font-mont text-sm font-medium tabular-nums text-gray-01">
+            {formatMoney(closingKobo, currency)}
+          </div>
+        </FormField>
+      </div>
+      <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
+        The closing balance is recalculated as opening balance plus all corrected statement lines. Every correction is recorded in the finance audit trail.
+      </p>
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!statement.can_edit}
+            onClick={() => setRows((current) => [
+              ...current,
+              {
+                txn_date: statementDate,
+                description: "",
+                reference: "",
+                amount: "",
+                external_id: "",
+              },
+            ])}
+            className="gap-1.5"
+          >
+            <Plus className="size-3.5" /> Add line
+          </Button>
+        </div>
+        <div className="space-y-2">
+          {rows.map((row, index) => (
+            <div key={row.id ?? `new-${index}`} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+              <div className="grid flex-1 grid-cols-12 gap-2">
+                <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Date</p><Input type="date" value={row.txn_date} onChange={(event) => setRow(index, { txn_date: event.target.value })} disabled={!statement.can_edit} className="bg-white font-mont text-sm" /></div>
+                <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={row.description} onChange={(event) => setRow(index, { description: event.target.value })} disabled={!statement.can_edit} className="bg-white text-sm" /></div>
+                <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Reference</p><Input value={row.reference} onChange={(event) => setRow(index, { reference: event.target.value })} disabled={!statement.can_edit} className="bg-white font-mont text-sm" /></div>
+                <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><Input type="number" value={row.amount} onChange={(event) => setRow(index, { amount: event.target.value })} disabled={!statement.can_edit} className="bg-white font-mont text-sm" /></div>
+              </div>
+              <button type="button" onClick={() => setRows((current) => current.filter((_, i) => i !== index))} disabled={!statement.can_edit || rows.length <= 1} className="mb-0.5 shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" disabled={isLoading} onClick={onClose}>Cancel</Button>
+        <Button disabled={isLoading || !canSave} onClick={save}>
+          {isLoading ? "Saving…" : "Save corrections"}
+        </Button>
+      </div>
     </div>
   );
 }

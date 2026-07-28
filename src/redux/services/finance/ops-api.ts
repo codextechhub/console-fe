@@ -10,6 +10,7 @@ import type {
   BankAccountDetail,
   BankBookLine,
   BankReconciliationRun,
+  BankStatementDetail,
   BankStatementLine,
   Budget,
   BudgetLineInput,
@@ -57,6 +58,47 @@ export const opsApi = baseApi.injectEndpoints({
     getStatementLines: b.query<ApiEnvelope<BankStatementLine[]>, Act & { status?: string }>({
       query: ({ id, ...p }) => ({ url: `/finance/bank-accounts/${id}/statement-lines/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceStatementLines"],
+    }),
+    getBankStatement: b.query<ApiEnvelope<BankStatementDetail>, Act & { statementId: number }>({
+      query: ({ id, statementId, entity }) => ({
+        url: `/finance/bank-accounts/${id}/statements/${statementId}/${qs({ entity })}`,
+        method: "GET",
+      }),
+      providesTags: ["FinanceStatementLines"],
+    }),
+    updateBankStatement: b.mutation<
+      ApiEnvelope<BankStatementDetail>,
+      Act & {
+        statementId: number;
+        statement_date: string;
+        period_label?: string;
+        opening_balance: number;
+        lines: {
+          id?: number;
+          txn_date: string;
+          amount: number;
+          description?: string;
+          reference?: string;
+          external_id?: string;
+        }[];
+      }
+    >({
+      query: ({ id, statementId, entity, ...body }) => ({
+        url: `/finance/bank-accounts/${id}/statements/${statementId}/${qs({ entity })}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
+    deleteBankStatementLine: b.mutation<
+      ApiEnvelope<{ deleted_line_id: number; deleted_statement_id: number | null }>,
+      { id: number; entity: string }
+    >({
+      query: ({ id, entity }) => ({
+        url: `/finance/statement-lines/${id}/${qs({ entity })}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
     // Returns { imported, suspected_duplicates }: rows matching an existing line on
     // (date, amount, description, reference) are held back unless force=true.
@@ -405,6 +447,9 @@ export const {
   useCreateBankAccountMutation,
   useUpdateBankAccountMutation,
   useGetStatementLinesQuery,
+  useGetBankStatementQuery,
+  useUpdateBankStatementMutation,
+  useDeleteBankStatementLineMutation,
   useImportStatementMutation,
   useUploadBankStatementBatchMutation,
   useDownloadBankStatementTemplateMutation,

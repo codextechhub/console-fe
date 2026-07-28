@@ -52,6 +52,8 @@ export interface BankStatement {
   line_count: number;
   status: string;
   status_display: string;
+  can_edit: boolean;
+  edit_block_reason: string | null;
 }
 
 export interface BankReconciliationRun {
@@ -94,6 +96,12 @@ export interface BankStatementLine {
   matched_reference: string | null;
   external_id: string;
   reconciled_at: string | null;
+  can_delete: boolean;
+  delete_block_reason: string | null;
+}
+
+export interface BankStatementDetail extends BankStatement {
+  lines: BankStatementLine[];
 }
 
 // ── Expense claims ───────────────────────────────────────────────────────────
