@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { Link } from "react-router";
 import {
   Activity,
@@ -26,16 +25,7 @@ import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
-import { useGetSchoolStatsQuery } from "@/redux/services/dashboard/school-mgt-api";
-import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
-import { useGetTodoMineQuery } from "@/redux/services/dashboard/todo-api";
-import {
-  useGetMySubmissionsQuery,
-  useGetPendingApprovalsQuery,
-} from "@/redux/services/dashboard/workflow-api";
-import { useGetUnreadCountQuery } from "@/redux/services/notifications-api";
-import { useGetTicketDashboardQuery } from "@/redux/services/tickets-api";
-import { useGetHealthOverviewQuery } from "@/redux/services/health-api";
+import { useGetConsoleOverviewQuery } from "@/redux/services/dashboard/overview-api";
 
 const R = routesPath.PROTECTED;
 
@@ -59,6 +49,10 @@ function greetingPeriod() {
   if (hour < 12) return "morning";
   if (hour < 17) return "afternoon";
   return "evening";
+}
+
+function Shimmer({ className }: { className?: string }) {
+  return <span className={cn("block animate-pulse rounded bg-gray-100", className)} />;
 }
 
 function MetricCard({
@@ -98,9 +92,12 @@ function MetricCard({
       </div>
       <p className="mt-3 text-xs font-medium text-gray-500">{label}</p>
       <p className="mt-0.5 text-xl font-semibold tracking-tight text-black-01">
-        {loading ? <span className="text-gray-300">—</span> : value}
+        {/* A dash reads as a real answer ("none"), so the swap to a number lands
+            as a content change. A block the size of the value reads as pending
+            and the swap is invisible. */}
+        {loading ? <Shimmer className="my-1 h-5 w-14" /> : value}
       </p>
-      <p className="mt-1 text-xs text-gray-400">{note}</p>
+      <p className="mt-1 text-xs text-gray-400">{loading ? <Shimmer className="my-0.5 h-3 w-28" /> : note}</p>
     </Link>
   );
 }
@@ -122,90 +119,64 @@ export default function Overview() {
   const canViewHealth = hasPermission(P.VIEW_HEALTH);
   const canViewTickets = hasPermission(P.VIEW_TICKETS);
 
-  const { data: schoolStats, isLoading: schoolsLoading } = useGetSchoolStatsQuery(undefined, {
-    skip: !canViewSchools,
-  });
-  const { data: teamMembers, isLoading: teamLoading } = useGetTeamMembersQuery(
-    { page_size: 1, user_type: "CX_STAFF", status: "ACTIVE" },
-    { skip: !canViewTeam },
-  );
-  const { data: todo, isLoading: todoLoading } = useGetTodoMineQuery();
-  const { data: approvals, isLoading: approvalsLoading } = useGetPendingApprovalsQuery();
-  const { data: submissions, isLoading: submissionsLoading } = useGetMySubmissionsQuery({});
-  const { data: unread, isLoading: unreadLoading } = useGetUnreadCountQuery();
-  const { data: tickets, isLoading: ticketsLoading } = useGetTicketDashboardQuery(undefined, {
-    skip: !canViewTickets,
-  });
-  const { data: health, isLoading: healthLoading } = useGetHealthOverviewQuery(
-    { range: "24h" },
-    { skip: !canViewHealth },
-  );
+  // One request for the whole screen. It used to be eight, which arrived in
+  // whatever order the network settled and made the page appear in waves; the
+  // numbers are one visual unit, so they now load and reveal as one.
+  const { data: overviewRes, isLoading } = useGetConsoleOverviewQuery();
+  const overview = overviewRes?.data;
+  const revealed = !isLoading;
 
-  const taskStats = todo?.data.stats;
-  const activeTasks = useMemo(
-    () => (todo?.data.tasks ?? [])
-      .filter((task) => !task.is_done)
-      .sort((a, b) => {
-        const statusRank = (task: typeof a) => task.status === "OVERDUE" ? 0 : task.priority === "HIGH" ? 1 : task.priority === "MEDIUM" ? 2 : 3;
-        const rank = statusRank(a) - statusRank(b);
-        return rank || new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
-      })
-      .slice(0, 3),
-    [todo?.data.tasks],
-  );
-  const returned = (submissions ?? []).filter((item) => item.status === "RETURNED");
+  // Sections the caller may not see are absent from the response rather than
+  // zeroed. The cards are gated on the same permission keys the backend checks,
+  // so an absent section never renders as a real 0.
+  const taskStats = overview?.tasks?.stats;
+  const activeTasks = overview?.tasks?.items ?? [];
+  const returnedCount = overview?.submissions.returned ?? 0;
+  const approvalsCount = overview?.approvals.pending ?? 0;
+  const unreadCount = overview?.notifications.unread ?? 0;
   const attentionCount =
-    (approvals?.count ?? 0) +
-    (taskStats?.overdue ?? 0) +
-    returned.length +
-    (unread?.data.unread_count ?? 0);
+    approvalsCount + (taskStats?.overdue ?? 0) + returnedCount + unreadCount;
   const attentionItems = [
     {
       label: "Overdue tasks",
       copy: `${taskStats?.overdue ?? 0} items need a follow-up`,
-      loadingCopy: "Checking your tasks…",
       count: taskStats?.overdue ?? 0,
       urgency: 0,
       to: R.TODO.INDEX,
       icon: Clock3,
       tone: "bg-amber-50 text-amber-600",
-      loading: todoLoading,
     },
     {
       label: "Returned submissions",
-      copy: `${returned.length} sent back for changes`,
-      loadingCopy: "Checking submissions…",
-      count: returned.length,
+      copy: `${returnedCount} sent back for changes`,
+      count: returnedCount,
       urgency: 1,
       to: R.WORKFLOW.MY_SUBMISSIONS,
       icon: CircleDot,
       tone: "bg-red-50 text-red-500",
-      loading: submissionsLoading,
     },
     {
       label: "Approvals waiting",
-      copy: `${approvals?.count ?? 0} decisions ready for review`,
-      loadingCopy: "Checking your queue…",
-      count: approvals?.count ?? 0,
+      copy: `${approvalsCount} decisions ready for review`,
+      count: approvalsCount,
       urgency: 2,
       to: R.WORKFLOW.APPROVALS,
       icon: FileClock,
       tone: "bg-emerald-50 text-emerald-600",
-      loading: approvalsLoading,
     },
     {
       label: "Unread notifications",
-      copy: `${unread?.data.unread_count ?? 0} updates you have not read`,
-      loadingCopy: "Checking notifications…",
-      count: unread?.data.unread_count ?? 0,
+      copy: `${unreadCount} updates you have not read`,
+      count: unreadCount,
       urgency: 3,
       to: R.NOTIFICATIONS,
       icon: Bell,
       tone: "bg-blue-50 text-blue-600",
-      loading: unreadLoading,
     },
   ]
-    .filter((item) => item.loading || item.count > 0)
+    // Per-item loading copy is gone with the per-item queries: the section is
+    // skeletoned as a whole until the single request lands.
+    .filter((item) => item.count > 0)
     .sort((a, b) => a.urgency - b.urgency || b.count - a.count);
 
   const setupItems = [
@@ -214,13 +185,16 @@ export default function Overview() {
       description: "Keep your contact and personal details up to date.",
       to: R.ME_PROFILE.INDEX,
       done: Boolean(user?.phone),
+      // `pending` marks a state that can only be known once a query answers.
+      pending: false,
       visible: true,
     },
     {
       label: "Invite your team",
       description: "Bring the people you work with into the platform.",
       to: R.TEAM_MGT.CX,
-      done: (teamMembers?.pagination.totalItems ?? 0) > 1,
+      done: (overview?.team?.total ?? 0) > 1,
+      pending: true,
       visible: canViewTeam,
     },
     {
@@ -228,6 +202,7 @@ export default function Overview() {
       description: "Make sure responsibilities have the right permissions.",
       to: R.ROLES.INDEX,
       done: null,
+      pending: false,
       visible: hasPermission(P.VIEW_ROLES),
     },
     {
@@ -235,6 +210,7 @@ export default function Overview() {
       description: "Connect reporting lines so ownership stays clear.",
       to: R.ORGANOGRAM.INDEX,
       done: null,
+      pending: false,
       visible: hasPermission(P.VIEW_ORGANOGRAM),
     },
   ].filter((item) => item.visible);
@@ -280,7 +256,9 @@ export default function Overview() {
                 <Bell className="size-4 text-amber-300" />
               </div>
               <div>
-                <p className="text-xl font-semibold leading-none">{attentionCount}</p>
+                <p className="text-xl font-semibold leading-none">
+                  {revealed ? attentionCount : <Shimmer className="my-1 h-4 w-8 bg-white/25" />}
+                </p>
                 <p className="text-xs text-white/60">items may need your attention</p>
               </div>
             </div>
@@ -294,20 +272,20 @@ export default function Overview() {
               <p className="mt-0.5 text-xs text-gray-400">A live view of the administration areas you can access.</p>
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className={cn("grid gap-3 sm:grid-cols-2 xl:grid-cols-4", revealed && "reveal-in")}>
             {canViewSchools && (
-              <MetricCard icon={School} label="Active schools" value={schoolStats?.data.active ?? 0} note="Currently active on the platform" to={R.SCHOOL_MGT.INDEX} loading={schoolsLoading} />
+              <MetricCard icon={School} label="Active schools" value={overview?.schools?.active ?? 0} note="Currently active on the platform" to={R.SCHOOL_MGT.INDEX} loading={!revealed} />
             )}
             {canViewTeam && (
-              <MetricCard icon={Users} label="CX team members" value={teamMembers?.pagination.totalItems ?? 0} note="People in your admin workspace" to={R.TEAM_MGT.CX} tone="blue" loading={teamLoading} />
+              <MetricCard icon={Users} label="CX team members" value={overview?.team?.total ?? 0} note="People in your admin workspace" to={R.TEAM_MGT.CX} tone="blue" loading={!revealed} />
             )}
-            <MetricCard icon={ClipboardCheck} label="Open tasks" value={taskStats?.in_progress ?? 0} note={`${taskStats?.overdue ?? 0} overdue`} to={R.TODO.INDEX} tone="amber" loading={todoLoading} />
-            <MetricCard icon={Workflow} label="Pending approvals" value={approvals?.count ?? 0} note={`${returned.length} returned to you`} to={R.WORKFLOW.APPROVALS} tone="green" loading={approvalsLoading || submissionsLoading} />
+            <MetricCard icon={ClipboardCheck} label="Open tasks" value={taskStats?.in_progress ?? 0} note={`${taskStats?.overdue ?? 0} overdue`} to={R.TODO.INDEX} tone="amber" loading={!revealed} />
+            <MetricCard icon={Workflow} label="Pending approvals" value={approvalsCount} note={`${returnedCount} returned to you`} to={R.WORKFLOW.APPROVALS} tone="green" loading={!revealed} />
             {canViewTickets && (
-              <MetricCard icon={LifeBuoy} label="Open support tickets" value={tickets?.data.by_status.OPEN ?? 0} note={`${tickets?.data.assigned_to_me ?? 0} assigned to you`} to={R.SUPPORT.INDEX} tone="amber" loading={ticketsLoading} />
+              <MetricCard icon={LifeBuoy} label="Open support tickets" value={overview?.tickets?.open ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={R.SUPPORT.INDEX} tone="amber" loading={!revealed} />
             )}
             {canViewHealth && (
-              <MetricCard icon={Activity} label="System posture" value={health?.data.posture.label ?? "Unknown"} note={`${health?.data.posture.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={healthLoading} />
+              <MetricCard icon={Activity} label="System posture" value={overview?.health?.label ?? "Unknown"} note={`${overview?.health?.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={!revealed} />
             )}
           </div>
         </section>
@@ -319,15 +297,29 @@ export default function Overview() {
                 <h2 className="text-base font-semibold">Needs your attention</h2>
                 <p className="mt-0.5 text-xs text-gray-400">The most useful next actions from across your workspace.</p>
               </div>
-              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">{attentionCount} total</span>
+              <span className="shrink-0 whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                {revealed ? `${attentionCount} total` : "counting…"}
+              </span>
             </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              {attentionItems.length ? attentionItems.map((item) => {
+            <div className={cn("mt-3 grid gap-2 sm:grid-cols-2", revealed && "reveal-in")}>
+              {!revealed ? (
+                // Two rows the size of a real one: the section keeps its height
+                // instead of growing under the reader as items land.
+                [0, 1].map((i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-lg border border-gray-100 p-3">
+                    <Shimmer className="size-8 shrink-0 rounded-lg" />
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <Shimmer className="h-3 w-24" />
+                      <Shimmer className="h-2.5 w-32" />
+                    </div>
+                  </div>
+                ))
+              ) : attentionItems.length ? attentionItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link key={item.label} to={item.to} className="group flex items-center gap-3 rounded-lg border border-gray-100 p-3 hover:border-primary/20 hover:bg-primary/[0.025]">
                     <span className={cn("grid size-8 place-items-center rounded-lg", item.tone)}><Icon className="size-4" /></span>
-                    <div className="min-w-0 flex-1"><p className="text-sm font-medium">{item.label}</p><p className="mt-0.5 text-xs text-gray-400">{item.loading ? item.loadingCopy : item.copy}</p></div>
+                    <div className="min-w-0 flex-1"><p className="text-sm font-medium">{item.label}</p><p className="mt-0.5 text-xs text-gray-400">{item.copy}</p></div>
                     <ChevronRight className="size-4 text-gray-300 group-hover:text-primary" />
                   </Link>
                 );
@@ -341,19 +333,28 @@ export default function Overview() {
                 <h2 className="text-base font-semibold">Getting started</h2>
                 <p className="mt-0.5 text-xs text-gray-400">Set up the essentials for your admin workspace.</p>
               </div>
-              <span className="text-sm font-semibold text-primary">{setupPercent}%</span>
+              <span className="text-sm font-semibold text-primary">
+                {revealed ? `${setupPercent}%` : <Shimmer className="my-0.5 h-3.5 w-9" />}
+              </span>
             </div>
-            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-gray-100"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${setupPercent}%` }} /></div>
+            {/* Width stays 0 until the counts are in, so the bar grows into place
+                once instead of stepping as each answer lands. */}
+            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-gray-100"><div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: revealed ? `${setupPercent}%` : "0%" }} /></div>
             <div className="mt-4 space-y-1">
-              {setupItems.map((item) => (
+              {setupItems.map((item) => {
+                // A checkmark that depends on a query shows the neutral dot until
+                // the reveal, rather than a wrong "not done" that then flips.
+                const done = item.pending && !revealed ? null : item.done;
+                return (
                 <Link key={item.label} to={item.to} className="group flex items-start gap-3 rounded-xl px-2 py-3 hover:bg-gray-50">
-                  <span className={cn("mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border", item.done === true ? "border-primary bg-primary text-white" : item.done === false ? "border-gray-200 text-transparent" : "border-primary/25 bg-primary/5 text-primary")}>
-                    {item.done === null ? <CircleDot className="size-2.5" /> : <Check className="size-3" />}
+                  <span className={cn("mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border", done === true ? "border-primary bg-primary text-white" : done === false ? "border-gray-200 text-transparent" : "border-primary/25 bg-primary/5 text-primary")}>
+                    {done === null ? <CircleDot className="size-2.5" /> : <Check className="size-3" />}
                   </span>
-                  <div className="min-w-0 flex-1"><p className={cn("text-sm font-medium", item.done && "text-gray-400 line-through")}>{item.label}</p><p className="mt-0.5 text-xs leading-5 text-gray-400">{item.description}</p></div>
+                  <div className="min-w-0 flex-1"><p className={cn("text-sm font-medium", done && "text-gray-400 line-through")}>{item.label}</p><p className="mt-0.5 text-xs leading-5 text-gray-400">{item.description}</p></div>
                   <ChevronRight className="mt-1 size-4 text-gray-300 group-hover:text-primary" />
                 </Link>
-              ))}
+                );
+              })}
             </div>
           </section>
           <section className="mb-4 break-inside-avoid rounded-xl border border-white-02 bg-white p-4">
@@ -361,15 +362,15 @@ export default function Overview() {
               <div><h2 className="text-base font-semibold">My tasks</h2><p className="mt-0.5 text-xs text-gray-400">Keep your closest commitments in view.</p></div>
               <Link to={R.TODO.INDEX} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">View all <ArrowRight className="size-3.5" /></Link>
             </div>
-            <div className="mt-3 space-y-2">
-              {!todoLoading && activeTasks.length === 0 ? <EmptyLine>You are all caught up.</EmptyLine> : activeTasks.map((task) => (
+            <div className={cn("mt-3 space-y-2", revealed && "reveal-in")}>
+              {revealed && activeTasks.length === 0 ? <EmptyLine>You are all caught up.</EmptyLine> : activeTasks.map((task) => (
                 <Link key={task.id} to={R.TODO.INDEX} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3.5 hover:border-primary/20">
                   <span className={cn("size-2 rounded-full", task.status === "OVERDUE" ? "bg-red-500" : task.priority === "HIGH" ? "bg-amber-500" : "bg-primary")} />
                   <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{task.title}</p><p className="mt-0.5 text-xs text-gray-400">{task.department || "Personal task"}</p></div>
                   <span className={cn("rounded-lg px-2 py-1 text-xs", task.status === "OVERDUE" ? "bg-red-50 text-red-600" : "bg-gray-50 text-gray-500")}>{formatDate(task.deadline)}</span>
                 </Link>
               ))}
-              {todoLoading && <div className="h-28 animate-pulse rounded-xl bg-gray-50" />}
+              {!revealed && <div className="h-28 animate-pulse rounded-xl bg-gray-50" />}
             </div>
           </section>
 
