@@ -57,10 +57,10 @@ export default function AddSchool({ defaultValues, onNext, onPrefill, generateTe
         )}
       </div>
 
-      <p className="inline-flex items-center text-gray-05 text-sm mb-4">
+      <div className="inline-flex items-center text-gray-05 text-sm mb-4">
         School Information
-        <figure className="size-fit ml-2">{svgIcons.infoIcon}</figure>
-      </p>
+        <span className="size-fit ml-2">{svgIcons.infoIcon}</span>
+      </div>
 
       <form onSubmit={formik.handleSubmit}>
         <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
@@ -116,13 +116,6 @@ export default function AddSchool({ defaultValues, onNext, onPrefill, generateTe
             value={formik.values.ownership_type}
             onChange={(e) => formik.setFieldValue("ownership_type", e.target.value)}
             error={formik.touched.ownership_type ? formik.errors.ownership_type : ""}
-          />
-          <CustomInput
-            id="code"
-            label="School Code"
-            placeholder="Enter school code"
-            {...formik.getFieldProps("code")}
-            error={formik.touched.code ? formik.errors.code : ""}
           />
           <CustomInput
             id="website"

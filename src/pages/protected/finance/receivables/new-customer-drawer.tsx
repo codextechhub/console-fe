@@ -14,7 +14,6 @@ import { useCreateCustomerMutation } from "@/redux/services/finance/ar-api";
 export function NewCustomerDrawer({ open, onOpenChange, entity }: {
   open: boolean; onOpenChange: (o: boolean) => void; entity: string;
 }) {
-  const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -25,14 +24,14 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
   const [active, setActive] = useState(true);
   const [create, { isLoading }] = useCreateCustomerMutation();
 
-  const canSubmit = code.trim() !== "" && name.trim() !== "";
-  const reset = () => { setCode(""); setName(""); setEmail(""); setPhone(""); setAddress(""); setAccount(""); setOpening(""); setOpeningDate(""); setActive(true); };
+  const canSubmit = name.trim() !== "";
+  const reset = () => { setName(""); setEmail(""); setPhone(""); setAddress(""); setAccount(""); setOpening(""); setOpeningDate(""); setActive(true); };
   const close = () => { reset(); onOpenChange(false); };
 
   const submit = async () => {
     try {
       const res = await create({
-        entity, code: code.trim(), name: name.trim(),
+        entity, name: name.trim(),
         billing_email: email || undefined, billing_phone: phone || undefined,
         billing_address: address || undefined,
         receivable_account: account || undefined,
@@ -62,11 +61,8 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
       }
     >
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. CUST-005" className="bg-white font-mont" /></FormField>
-          <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Acme Ltd" className="bg-white" /></FormField>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+        <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Acme Ltd" className="bg-white" /></FormField>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label="Billing email"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="billing@acme.com" className="bg-white" /></FormField>
           <FormField label="Billing phone"><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234…" className="bg-white" /></FormField>
         </div>
@@ -74,7 +70,7 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
         <FormField label="Receivable account">
           <ReceivableAccountPicker entity={entity} value={account} onChange={setAccount} placeholder="Defaults to 1200 Accounts Receivable" />
         </FormField>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label="Opening balance (₦)"><Input type="number" min="0" step="0.01" value={opening} onChange={(e) => setOpening(e.target.value)} placeholder="0.00" className="bg-white" /></FormField>
           <FormField label="Opening as of">
             <Input type="date" value={openingDate} onChange={(e) => setOpeningDate(e.target.value)} disabled={!opening} className="bg-white disabled:opacity-50" />

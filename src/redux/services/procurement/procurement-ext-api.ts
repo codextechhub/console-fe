@@ -179,7 +179,7 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/procurement/stock-items/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
-    createStockItem: b.mutation<ApiEnvelope<StockItemDetail>, { entity: string; code: string; name: string; description?: string; unit_of_measure?: string; catalog_item?: string; inventory_account: string; default_expense_account?: string; reorder_level?: number; reorder_qty?: number; is_active?: boolean }>({
+    createStockItem: b.mutation<ApiEnvelope<StockItemDetail>, { entity: string; code?: string; name: string; description?: string; unit_of_measure?: string; catalog_item?: string; inventory_account: string; default_expense_account?: string; reorder_level?: number; reorder_qty?: number; is_active?: boolean }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/stock-items/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcStock"],
     }),

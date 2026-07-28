@@ -12,7 +12,6 @@ export const schoolStepSchema = Yup.object({
   address: Yup.string().required("Address is required"),
   term_structure: Yup.string().required("Term structure is required"),
   currency: Yup.string().required("Currency is required"),
-  code: Yup.string(),
   website: Yup.string().url("Must be a valid URL").nullable(),
   motto: Yup.string(),
   registration_id: Yup.string(),

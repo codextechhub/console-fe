@@ -12,7 +12,6 @@ import PackageSetup from "./component/package-setup";
 export interface SchoolStepData {
   name: string;
   slug: string;
-  code: string;
   ownership_type: string;
   address: string;
   website: string;
@@ -53,7 +52,7 @@ export interface PackageStepData {
 }
 
 const initialSchool: SchoolStepData = {
-  name: "", slug: "", code: "", ownership_type: "", address: "",
+  name: "", slug: "", ownership_type: "", address: "",
   website: "", motto: "", term_structure: "", currency: "", registration_id: "",
 };
 
@@ -86,7 +85,6 @@ function generateTestData(): PrefillData {
     school: {
       name: `Test School ${n}`,
       slug,
-      code: `TST${n}`,
       ownership_type: "PRIVATE",
       address: `${n} Test Avenue, Victoria Island`,
       website: `https://${slug}.ng`,
@@ -141,7 +139,6 @@ function buildPayload(
     currency: school.currency,
   };
   if (school.slug) payload.slug = school.slug;
-  if (school.code) payload.code = school.code;
   if (school.website) payload.website = school.website;
   if (school.motto) payload.motto = school.motto;
   if (school.registration_id) payload.registration_id = school.registration_id;

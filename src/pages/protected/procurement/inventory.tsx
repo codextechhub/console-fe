@@ -127,7 +127,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
           <Can permission={P.PROC_MANAGE_STOCK}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> New stock item</Button></Can>
         </header>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
             <StatCard label="Items tracked" value={String(summary.tracked)} icon={Boxes} tone="gray" />
             <StatCard label="Low stock" value={String(summary.low_stock)} icon={AlertTriangle} tone="amber" />
@@ -249,7 +249,7 @@ function StockItemForm({ entity, initial, onClose }: { entity: string; initial?:
     || name !== initial.name || uom !== (initial.unit_of_measure || "")
     || inventory !== (initial.inventory_code || "") || expense !== (initial.expense_code || "")
     || reorderLevel !== String(num(initial.reorder_level)) || reorderQty !== String(num(initial.reorder_qty));
-  const canSubmit = !!code.trim() && !!name.trim() && !!inventory && (!initial || dirty);
+  const canSubmit = !!name.trim() && !!inventory && (!initial || dirty);
 
   const save = async () => {
     if (!canSubmit) return;
@@ -265,7 +265,7 @@ function StockItemForm({ entity, initial, onClose }: { entity: string; initial?:
         toast.success(r.message || "Stock item updated.");
       } else {
         const r = await create({
-          entity, code: code.trim(), name: name.trim(), unit_of_measure: uom,
+          entity, code: code.trim() || undefined, name: name.trim(), unit_of_measure: uom,
           inventory_account: inventory, default_expense_account: expense || undefined,
           reorder_level: reorderLevel ? Number(reorderLevel) : undefined,
           reorder_qty: reorderQty ? Number(reorderQty) : undefined,
@@ -280,11 +280,11 @@ function StockItemForm({ entity, initial, onClose }: { entity: string; initial?:
     <FormDrawer
       open onOpenChange={(o) => !saving && !o && onClose()}
       title={initial ? "Edit stock item" : "New stock item"}
-      description={initial ? "Update this stock item. The code and on-hand balance cannot be changed here." : "Register a stock item. On-hand quantity and value build up from receipts, issues and adjustments."}
+      description={initial ? "Update this stock item. Its reference and on-hand balance cannot be changed here." : "Register a stock item. A system reference is generated unless you provide a real SKU or external code."}
       widthClass="sm:max-w-lg" onSubmit={save} submitText={initial ? "Save changes" : "Create"} loading={saving} canSubmit={canSubmit}
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} maxLength={40} disabled={!!initial} className="bg-white font-mont uppercase" placeholder="e.g. SRV-R760" /></FormField>
+        <FormField label="SKU / external code"><Input value={code} onChange={(e) => setCode(e.target.value)} maxLength={40} disabled={!!initial} className="bg-white font-mont uppercase" placeholder="Optional — generated if blank" /></FormField>
         <FormField label="Unit of measure"><Input value={uom} onChange={(e) => setUom(e.target.value)} className="bg-white" placeholder="each" /></FormField>
       </div>
       <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} className="bg-white" /></FormField>

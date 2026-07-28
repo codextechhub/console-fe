@@ -49,7 +49,7 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/procurement/vendors/${id}/insights/${qs({ entity })}`, method: "GET" }),
       providesTags: ["ProcVendors"],
     }),
-    createVendor: b.mutation<ApiEnvelope<Vendor>, { entity: string; code: string; name: string; category?: string; email?: string; phone?: string; address?: string; tax_id?: string; bank_name?: string; bank_account_number?: string; bank_account_name?: string; payable_account?: string; default_expense_account?: string; default_wht_tax_code?: string; payment_terms?: string }>({
+    createVendor: b.mutation<ApiEnvelope<Vendor>, { entity: string; name: string; category?: string; email?: string; phone?: string; address?: string; tax_id?: string; bank_name?: string; bank_account_number?: string; bank_account_name?: string; payable_account?: string; default_expense_account?: string; default_wht_tax_code?: string; payment_terms?: string }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/vendors/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcVendors"],
     }),
@@ -89,7 +89,7 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/procurement/catalog-items/${id}/insights/${qs({ entity })}`, method: "GET" }),
       providesTags: ["ProcCatalog"],
     }),
-    createCatalogItem: b.mutation<ApiEnvelope<CatalogItem>, { entity: string; code: string; name: string; description?: string; unit_of_measure: string; category?: string; preferred_vendor?: string; default_expense_account?: string; default_tax_code?: string; lead_time_days?: number | null; standard_unit_price: number; is_active?: boolean }>({
+    createCatalogItem: b.mutation<ApiEnvelope<CatalogItem>, { entity: string; code?: string; name: string; description?: string; unit_of_measure: string; category?: string; preferred_vendor?: string; default_expense_account?: string; default_tax_code?: string; lead_time_days?: number | null; standard_unit_price: number; is_active?: boolean }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/catalog-items/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcCatalog"],
     }),
