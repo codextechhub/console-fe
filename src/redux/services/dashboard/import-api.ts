@@ -21,6 +21,7 @@ import type {
   ValidationIssueDetail,
   ValidationIssueListItem,
   ValidationRunResponse,
+  CancelImportResponse,
 } from "./import-types";
 
 type Params = Record<string, string | number>;
@@ -103,6 +104,14 @@ export const importApi = baseApi.injectEndpoints({
     deleteImportBatch: builder.mutation<void, number>({
       query: (id) => ({ url: `/import/batches/${id}/`, method: "DELETE" }),
       invalidatesTags: ["ImportBatches"],
+    }),
+
+    cancelImportBatch: builder.mutation<CancelImportResponse, number>({
+      query: (id) => ({ url: `/import/batches/${id}/cancel/`, method: "POST" }),
+      invalidatesTags: (_res, _err, id) => [
+        { type: "ImportBatches", id },
+        "ImportBatches",
+      ],
     }),
 
     // ── Validation ──────────────────────────────────────────────────────────
@@ -292,6 +301,7 @@ export const {
   useGetImportBatchQuery,
   useUpdateImportBatchMutation,
   useDeleteImportBatchMutation,
+  useCancelImportBatchMutation,
   // validation
   useValidateImportBatchMutation,
   useGetValidationIssuesQuery,

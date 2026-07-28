@@ -26,6 +26,7 @@ import { useState } from "react";
 import { useDebounce } from "react-haiku";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
+import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 
 const TABLE_HEADERS = ["S/N", "School Name", "Location", "Total Students", "Type", "Status", "Action"];
 
@@ -44,6 +45,7 @@ export default function SchoolManagement() {
   const rawStatus = searchParams.get("status") ?? "";
   const filter_status = VALID_STATUSES.has(rawStatus) ? rawStatus : null;
   const [search, setSearch] = useState("");
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const debouncedSearch = useDebounce(search, 600);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState({ sortColumn: "", sortOrder: "" as "asc" | "desc" | "" });
@@ -114,17 +116,17 @@ export default function SchoolManagement() {
                 >
                   Add Manual
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigate(
-                      `${routesPath.PROTECTED.DATA_IMPORTS.BATCHES.NEW}?dataset_type=schools&lock_template=true&return_to=${encodeURIComponent(routesPath.PROTECTED.SCHOOL_MGT.INDEX)}&return_label=${encodeURIComponent("School Management")}`
-                    )
-                  }
-                  className="text-sm cursor-pointer text-custom-gray-scale-400"
-                >
-                  Bulk Upload
-                </DropdownMenuItem>
+                {hasPermission(P.UPLOAD_IMPORT_BATCH) ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={() => setBulkImportOpen(true)}
+                      className="text-sm cursor-pointer text-custom-gray-scale-400"
+                    >
+                      Bulk Upload
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
           </PermissionGate>
@@ -211,6 +213,19 @@ export default function SchoolManagement() {
           ]}
         />
       </main>
+
+      <BulkImportDrawer
+        open={bulkImportOpen}
+        datasetType="schools"
+        title="Bulk upload schools"
+        description="Upload, validate and publish schools without leaving School Management."
+        returnLabel="School Management"
+        onClose={() => setBulkImportOpen(false)}
+        onFinished={() => {
+          void refetch();
+          void refetchStats();
+        }}
+      />
     </>
   );
 }

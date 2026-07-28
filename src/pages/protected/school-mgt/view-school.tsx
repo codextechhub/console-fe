@@ -34,6 +34,7 @@ import { useState, type ComponentProps, type ReactNode } from "react";
 import { useDebounce } from "react-haiku";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { SortBar, handleSortToggle } from "@/components/custom/sort-bar";
+import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 
 const BRANCH_TABLE_HEADERS = [
   "S/N",
@@ -111,6 +112,7 @@ export default function ViewSchool() {
   const requestedTab = searchParams.get("tab");
   const activeTab = requestedTab === "branches" && canViewBranches ? "branches" : "overview";
   const [search, setSearch] = useState("");
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
@@ -366,11 +368,17 @@ export default function ViewSchool() {
                       <DropdownMenuTrigger asChild><Button><Plus className="size-4" /> Add Branch</Button></DropdownMenuTrigger>
                       <DropdownMenuContent className="rounded-sm border">
                         <DropdownMenuItem onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.CREATE_BRANCH(slug ?? ""))} className="cursor-pointer text-sm text-custom-gray-scale-400">Add Manual</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => navigate(`${routesPath.PROTECTED.DATA_IMPORTS.BATCHES.NEW}?dataset_type=branches&lock_template=true&return_to=${encodeURIComponent(`${routesPath.PROTECTED.SCHOOL_MGT.VIEW(slug ?? "")}?tab=branches`)}&return_label=${encodeURIComponent("School Branches")}`)}
-                          className="cursor-pointer text-sm text-custom-gray-scale-400"
-                        >Bulk Upload</DropdownMenuItem>
+                        {hasPermission(P.UPLOAD_IMPORT_BATCH) ? (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onSelect={() => setBulkImportOpen(true)}
+                              className="cursor-pointer text-sm text-custom-gray-scale-400"
+                            >
+                              Bulk Upload
+                            </DropdownMenuItem>
+                          </>
+                        ) : null}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </PermissionGate>
@@ -409,6 +417,16 @@ export default function ViewSchool() {
           <div className="rounded-xl bg-white p-8 text-center"><p className="text-sm text-gray-01">School not found.</p></div>
         )}
       </main>
+
+      <BulkImportDrawer
+        open={bulkImportOpen}
+        datasetType="branches"
+        title="Bulk upload school branches"
+        description="Upload, validate and publish branches without leaving this school."
+        returnLabel="School Branches"
+        onClose={() => setBulkImportOpen(false)}
+        onFinished={() => { void refetch(); }}
+      />
     </>
   );
 }

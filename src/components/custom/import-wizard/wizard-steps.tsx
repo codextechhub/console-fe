@@ -916,6 +916,9 @@ export function ConfirmStep({
   const summary = batch.validation_summary as Record<string, number> | null;
   const errorCount = summary?.error_count ?? batch.error_count;
   const rowsReady = errorCount === 0 ? batch.total_rows : 0;
+  const statementContext = batch.domain_context?.type === "bank_statement"
+    ? batch.domain_context
+    : null;
 
   return (
     <div className="bg-white rounded-md border border-gray-100 p-6 space-y-5">
@@ -926,6 +929,25 @@ export function ConfirmStep({
         </div>
         <Badge variant="active" className="text-[10px]">ready_to_import</Badge>
       </div>
+
+      {statementContext ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["Bank account", statementContext.bank_account_name],
+            [
+              "Statement date",
+              new Date(`${statementContext.statement_date}T00:00:00`).toLocaleDateString(),
+            ],
+            ["Opening balance", statementContext.opening_balance_major],
+            ["Closing balance", statementContext.closing_balance_major],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-md border border-blue-200 bg-blue-50/50 px-4 py-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-600">{label}</p>
+              <p className="mt-1 break-words text-sm font-semibold tabular-nums text-black-01">{value}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-2 rounded-md border border-gray-200 overflow-hidden">
         <SummaryCell label="Template" value={batch.template?.name ?? "—"} />
@@ -1027,7 +1049,7 @@ export function ImportProgressStep({
 }: {
   batchId: number;
   jobId: number | null;
-  onComplete: () => void;
+  onComplete: (jobId: number) => void;
 }) {
   const { data: jobsData } = useGetImportJobsQuery(
     { batchId },
@@ -1045,11 +1067,11 @@ export function ImportProgressStep({
   const isTerminal = job && ["succeeded", "failed", "cancelled", "rolled_back"].includes(job.status);
 
   useEffect(() => {
-    if (isTerminal) {
-      const timer = setTimeout(onComplete, 800);
+    if (isTerminal && latestJobId) {
+      const timer = setTimeout(() => onComplete(latestJobId), 800);
       return () => clearTimeout(timer);
     }
-  }, [isTerminal, onComplete]);
+  }, [isTerminal, latestJobId, onComplete]);
 
   const progress = job?.progress_percent ?? 0;
   const processed = job?.processed_rows ?? 0;
@@ -1314,8 +1336,8 @@ export function CompleteStep({
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <div className="flex gap-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
+        <div className="flex flex-wrap gap-2.5">
           {onViewDetails && (
             <Button variant="white" onClick={() => onViewDetails(batchId)}>
               <ExternalLink className="size-3.5" /> View import details
@@ -1327,7 +1349,7 @@ export function CompleteStep({
             </Button>
           )}
         </div>
-        <div className="flex gap-2.5 ml-auto">
+        <div className="flex flex-wrap gap-2.5 sm:ml-auto">
           {onReturn && (
             <Button variant="white" onClick={onReturn}>
               <ChevronLeft className="size-3.5" /> {returnLabel ? `Back to ${returnLabel}` : "Go back"}

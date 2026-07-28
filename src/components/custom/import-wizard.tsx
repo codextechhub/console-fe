@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   useCreateImportBatchMutation,
@@ -21,12 +21,20 @@ import {
   CompleteStep,
 } from "./import-wizard/wizard-steps";
 
+export interface ImportWizardCompletion {
+  batch: ImportBatch;
+  jobId: number;
+}
+
 interface ImportWizardProps {
   datasetType?: DatasetType;
   lockTemplate?: boolean;
   initialBatchId?: number;
   onBackFromInitialBatch?: () => void;
   onNewImport?: () => void;
+  onBatchCreated?: (batchId: number) => void;
+  onAbandonBatch?: (batchId: number) => Promise<boolean>;
+  onFinished?: (completion: ImportWizardCompletion) => void | Promise<void>;
   onComplete?: (batchId: number) => void;
   onReturn?: () => void;
   returnLabel?: string;
@@ -41,6 +49,9 @@ export default function ImportWizard({
   initialBatchId,
   onBackFromInitialBatch,
   onNewImport,
+  onBatchCreated,
+  onAbandonBatch,
+  onFinished,
   onComplete,
   onReturn,
   returnLabel,
@@ -99,6 +110,7 @@ export default function ImportWizard({
       const result = await createBatch(fd).unwrap();
       const newBatch = result.data;
       setBatchId(newBatch.id);
+      onBatchCreated?.(newBatch.id);
       toast.success(`File parsed: ${newBatch.total_rows} ${newBatch.total_rows === 1 ? "row" : "rows"}, ${newBatch.total_columns} ${newBatch.total_columns === 1 ? "column" : "columns"}`);
       setStep(2);
     } catch (err: unknown) {
@@ -131,8 +143,33 @@ export default function ImportWizard({
       }
     } catch {
       await refetchBatch();
+      setStep(5);
     }
   };
+
+  const handleHeaderBack = async () => {
+    if (!batchId) return;
+    if (onAbandonBatch && !(await onAbandonBatch(batchId))) return;
+    if (initialBatchId && onBackFromInitialBatch) {
+      onBackFromInitialBatch();
+      return;
+    }
+    setBatchId(null);
+    setStep(1);
+  };
+
+  const handleProgressComplete = useCallback(async (completedJobId: number) => {
+    setJobId(completedJobId);
+    try {
+      const refreshed = await refetchBatch();
+      const completedBatch = unwrap<ImportBatch>(refreshed.data);
+      if (completedBatch) {
+        await onFinished?.({ batch: completedBatch, jobId: completedJobId });
+      }
+    } finally {
+      setStep(7);
+    }
+  }, [onFinished, refetchBatch]);
 
   const handleReset = () => {
     if (onNewImport) {
@@ -175,14 +212,7 @@ export default function ImportWizard({
       {step === 2 && batch && (
         <HeaderReviewStep
           batch={batch}
-          onBack={() => {
-            if (initialBatchId && onBackFromInitialBatch) {
-              onBackFromInitialBatch();
-              return;
-            }
-            setBatchId(null);
-            setStep(1);
-          }}
+          onBack={() => { void handleHeaderBack(); }}
           onNext={handleValidate}
         />
       )}
@@ -215,7 +245,7 @@ export default function ImportWizard({
         <ImportProgressStep
           batchId={batchId!}
           jobId={jobId}
-          onComplete={() => { refetchBatch(); setStep(7); }}
+          onComplete={handleProgressComplete}
         />
       )}
 

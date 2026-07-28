@@ -10,6 +10,7 @@
 // are dropped. We store statement *lines*, grouped under imported Statements.
 
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
@@ -28,6 +29,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import ImportWizard from "@/components/custom/import-wizard";
+import {
+  ImportCancelDialog,
+  ImportProcessDrawer,
+} from "@/components/custom/bulk-import-drawer";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
@@ -41,6 +46,10 @@ import {
   useUpdateBankStatementMutation, useDeleteBankStatementLineMutation,
 } from "@/redux/services/finance/ops-api";
 import type { BankAccount, BankStatementDetail } from "@/redux/services/finance/ops-types";
+import { useCancelImportBatchMutation } from "@/redux/services/dashboard/import-api";
+import { baseApi } from "@/redux/services/base-api";
+import { useAppDispatch } from "@/redux/store";
+import { routesPath } from "@/routes/routes-path";
 
 const todayISO = new Date().toISOString().slice(0, 10);
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
@@ -798,6 +807,8 @@ function ImportStatementDrawer({ id, entity, onClose }: { id: number; entity: st
 }
 
 function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity: string; onClose: () => void }) {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [statementDate, setStatementDate] = useState(todayISO);
   const [periodLabel, setPeriodLabel] = useState("");
@@ -805,8 +816,10 @@ function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity
   const [closing, setClosing] = useState("");
   const [notes, setNotes] = useState("");
   const [batchId, setBatchId] = useState<number | null>(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const [uploadBatch, { isLoading: uploading }] = useUploadBankStatementBatchMutation();
   const [downloadTemplate, { isLoading: downloading }] = useDownloadBankStatementTemplateMutation();
+  const [cancelBatch, { isLoading: cancelling }] = useCancelImportBatchMutation();
 
   const amountsValid = [opening, closing].every(
     (value) => value.trim() !== "" && Number.isFinite(Number(value)),
@@ -815,6 +828,55 @@ function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity
   const returnToUpload = () => {
     setBatchId(null);
     setFile(null);
+  };
+  const startAnother = () => {
+    setBatchId(null);
+    setFile(null);
+    setStatementDate(todayISO);
+    setPeriodLabel("");
+    setOpening("");
+    setClosing("");
+    setNotes("");
+  };
+
+  const requestCancel = () => {
+    if (batchId) {
+      setCancelOpen(true);
+      return;
+    }
+    onClose();
+  };
+
+  const confirmCancel = async () => {
+    if (!batchId) return;
+    try {
+      await cancelBatch(batchId).unwrap();
+      toast.success("Import cancelled.");
+      onClose();
+    } catch {
+      // The shared API interceptor owns the failure message; keep the workflow open.
+    }
+  };
+
+  const abandonBatch = async (currentBatchId: number) => {
+    try {
+      await cancelBatch(currentBatchId).unwrap();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleFinished = () => {
+    dispatch(baseApi.util.invalidateTags([
+      "FinanceBankAccounts",
+      "FinanceStatementLines",
+    ]));
+  };
+
+  const viewDetails = (currentBatchId: number) => {
+    onClose();
+    navigate(routesPath.PROTECTED.DATA_IMPORTS.BATCHES.VIEW(String(currentBatchId)));
   };
 
   const upload = async () => {
@@ -848,25 +910,26 @@ function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity
   };
 
   return (
-    <DetailDrawer
+    <>
+    <ImportProcessDrawer
       open
-      onOpenChange={(open) => (open ? undefined : onClose())}
       title="Bulk import statement"
       description="Upload the bank statement template, review the checks, then publish."
-      widthClass="sm:max-w-5xl"
     >
       {batchId ? (
         <ImportWizard
           initialBatchId={batchId}
+          onAbandonBatch={abandonBatch}
           onBackFromInitialBatch={returnToUpload}
-          onNewImport={returnToUpload}
-          onComplete={onClose}
+          onNewImport={startAnother}
+          onFinished={handleFinished}
+          onComplete={viewDetails}
           onReturn={onClose}
           returnLabel="Return to bank account"
-          onCancel={onClose}
+          onCancel={requestCancel}
         />
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-5 rounded-md border border-gray-100 bg-white p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gray-03 bg-gray-03 px-4 py-3">
             <div>
               <p className="font-mont text-xs font-semibold text-gray-01">Use the statement template</p>
@@ -916,7 +979,7 @@ function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity
           </FormField>
 
           <div className="flex flex-wrap justify-end gap-2">
-            <Button variant="outline" disabled={uploading} onClick={onClose}>Cancel</Button>
+            <Button variant="outline" disabled={uploading} onClick={requestCancel}>Cancel</Button>
             <Button disabled={!canUpload} onClick={upload} className="gap-1.5">
               <Upload className="size-4" />
               {uploading ? "Uploading…" : "Continue to import wizard"}
@@ -924,7 +987,14 @@ function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity
           </div>
         </div>
       )}
-    </DetailDrawer>
+    </ImportProcessDrawer>
+    <ImportCancelDialog
+      open={cancelOpen}
+      cancelling={cancelling}
+      onOpenChange={setCancelOpen}
+      onConfirm={() => { void confirmCancel(); }}
+    />
+    </>
   );
 }
 

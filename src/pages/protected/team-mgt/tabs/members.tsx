@@ -42,6 +42,7 @@ import { useAllRoles } from "@/hooks/use-all-roles";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { SchoolUserDetail, USER_TYPE_LABELS } from "../school-user-detail";
+import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 
 const CX_TABLE_HEADER = [
   "Full Name",
@@ -100,6 +101,7 @@ export default function MembersTab({
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const [filterOpen, setFilterOpen] = useState(false);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const [selectedSchoolUser, setSelectedSchoolUser] = useState<TeamMember | null>(null);
   const [appliedFilters, setAppliedFilters] = useState(INITIAL_FILTERS);
   const [draftFilters, setDraftFilters] = useState(INITIAL_FILTERS);
@@ -189,19 +191,17 @@ export default function MembersTab({
                 >
                   Create new user
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() =>
-                    navigate(
-                      `${routesPath.PROTECTED.DATA_IMPORTS.BATCHES.NEW}?dataset_type=cx_users&lock_template=true&return_to=${encodeURIComponent(
-                        `${routesPath.PROTECTED.TEAM_MGT.CX}?tab=members`,
-                      )}&return_label=${encodeURIComponent("CX Users")}`,
-                    )
-                  }
-                  className="text-sm cursor-pointer text-custom-gray-scale-400"
-                >
-                  Bulk upload
-                </DropdownMenuItem>
+                {hasPermission(P.UPLOAD_IMPORT_BATCH) ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={() => setBulkImportOpen(true)}
+                      className="text-sm cursor-pointer text-custom-gray-scale-400"
+                    >
+                      Bulk upload
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
           </PermissionGate>
@@ -470,6 +470,18 @@ export default function MembersTab({
       {scope === "school" && (
         <SchoolUserDetail user={selectedSchoolUser} onClose={() => setSelectedSchoolUser(null)} />
       )}
+
+      {scope === "cx" && !isDrafts ? (
+        <BulkImportDrawer
+          open={bulkImportOpen}
+          datasetType="cx_users"
+          title="Bulk upload CX users"
+          description="Upload, validate and publish CX users without leaving the users screen."
+          returnLabel="CX Users"
+          onClose={() => setBulkImportOpen(false)}
+          onFinished={() => { void refetch(); }}
+        />
+      ) : null}
     </>
   );
 }

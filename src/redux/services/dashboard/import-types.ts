@@ -2,7 +2,7 @@ import type { PaginatedResponse } from "./security-types";
 
 // ── Enums (mirrored from backend) ────────────────────────────────────────────
 
-export type DatasetType = "schools" | "branches" | "cx_users";
+export type DatasetType = "schools" | "branches" | "cx_users" | "bank_statements";
 
 export type FileFormat = "csv" | "xlsx" | "xls";
 
@@ -351,6 +351,15 @@ export interface StartImportResponse {
     batch_id?: string;
     job_id?: string;
     job_status: JobStatus;
+  };
+}
+
+export interface CancelImportResponse {
+  status: string;
+  message: string;
+  data: {
+    batch_id: string;
+    status: "cancelled";
   };
 }
 
