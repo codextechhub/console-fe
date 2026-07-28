@@ -20,10 +20,15 @@ import {
 } from "@/redux/services/finance/setup-api";
 import type { Account, AccountDetail, ConsolidatedAccountActivityLine } from "@/redux/services/finance/setup-types";
 import { ACCOUNT_CODE_LENGTH, ACCOUNT_TYPES, accountCodeError, accountsInCodeLine, accountTypeFromCode, isValidAccountCode } from "@/utils/chart-of-accounts";
-import { accountGroupContribution, descendantPostingAccounts } from "./account-group";
+import {
+  accountGroupContribution,
+  buildAccountTree,
+  descendantPostingAccounts,
+  type AccountTreeNode,
+} from "./account-group";
 import { getAccountDetailTabKeys, type AccountDetailTabKey } from "./account-detail-tabs";
 
-type Node = Account & { children: Node[]; rolled: number };
+type Node = AccountTreeNode;
 
 const TYPE_PILL: Record<string, string> = {
   ASSET: "bg-blue-50 text-blue-700",
@@ -34,25 +39,6 @@ const TYPE_PILL: Record<string, string> = {
 };
 const headCls = "text-gray-01 bg-[#F1F1F1] font-semibold font-mont text-xs whitespace-nowrap px-3 py-2.5 text-left";
 const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
-
-function buildTree(accounts: Account[]): Node[] {
-  const byParent = new Map<number | null, Account[]>();
-  for (const a of accounts) {
-    const k = a.parent_id ?? null;
-    if (!byParent.has(k)) byParent.set(k, []);
-    byParent.get(k)!.push(a);
-  }
-  const build = (parentId: number | null): Node[] =>
-    (byParent.get(parentId) ?? [])
-      .slice()
-      .sort((a, b) => a.code.localeCompare(b.code))
-      .map((a) => {
-        const children = build(a.id);
-        const own = a.balance?.kobo ?? 0;
-        return { ...a, children, rolled: own + children.reduce((s, c) => s + c.rolled, 0) };
-      });
-  return build(null);
-}
 
 function Tag({ label }: { label: string }) {
   return <span className="ml-1.5 rounded bg-gray-03/60 px-1.5 py-0.5 font-mont text-[10px] font-semibold uppercase tracking-wide text-gray-05">{label}</span>;
@@ -132,7 +118,7 @@ export function AccountsTab({ entity }: { entity: string }) {
     );
   }, [accounts, type, search]);
 
-  const tree = useMemo(() => buildTree(filtered), [filtered]);
+  const tree = useMemo(() => buildAccountTree(filtered), [filtered]);
   const flat = useMemo(
     () => filtered.slice().sort((a, b) => a.code.localeCompare(b.code))
       .map<Node>((a) => ({ ...a, children: [], rolled: a.balance?.kobo ?? 0 })),

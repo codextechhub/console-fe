@@ -5,10 +5,11 @@
 // from the backend; money + is_balanced come straight from the endpoint; export is the
 // real backend CSV/XLSX/PDF.
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Download, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Money } from "@/components/finance-ui";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
+import { DatePickerInput } from "@/components/ui/date-picker-input";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { downloadReportExport } from "@/utils/finance-export";
@@ -20,8 +21,6 @@ const BAND: Record<string, string> = {
   liability: "bg-amber-50 text-amber-700",
   equity: "bg-violet-50 text-violet-700",
 };
-const fmtAsOf = (s: string) => new Date(s).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-
 // A titled panel wrapping a balance-sheet column's rows. Declared at module
 // scope so it isn't recreated (and its subtree remounted) on every render.
 function Column({ title, children }: { title: string; children: React.ReactNode }) {
@@ -34,7 +33,14 @@ function Column({ title, children }: { title: string; children: React.ReactNode 
 }
 
 export function BalanceSheetReport({ entity, currency }: { entity: string; currency?: string | null }) {
-  const { data, isLoading, isError, refetch } = useGetBalanceSheetQuery({ entity });
+  const [asOf, setAsOf] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  });
+  const { data, isLoading, isFetching, isError, refetch } = useGetBalanceSheetQuery({ entity, as_of: asOf });
   const d = data?.data;
   const byKey = useMemo(() => Object.fromEntries((d?.sections ?? []).map((s) => [s.key, s])), [d]);
 
@@ -75,10 +81,24 @@ export function BalanceSheetReport({ entity, currency }: { entity: string; curre
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="font-mont text-xs text-gray-05">As of <span className="font-medium text-gray-01">{fmtAsOf(d.as_of)}</span></p>
+        <div className="flex min-w-0 max-w-full items-center gap-2 font-mont text-xs text-gray-05">
+          <span className="shrink-0">As of</span>
+          <div className="w-fit max-w-full overflow-hidden rounded-md">
+            <DatePickerInput
+              id="balance-sheet-as-of"
+              aria-label="As of date"
+              required
+              value={asOf}
+              onChange={(event) => {
+                if (event.target.value) setAsOf(event.target.value);
+              }}
+              className="h-9 w-auto max-w-full gap-2 overflow-hidden border border-gray-03 px-2.5 font-mont text-xs font-medium"
+            />
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           {(["csv", "xlsx", "pdf"] as const).map((f) => (
-            <button key={f} onClick={() => downloadReportExport("/finance/reports/balance-sheet/", { entity }, f)}
+            <button key={f} onClick={() => downloadReportExport("/finance/reports/balance-sheet/", { entity, as_of: asOf }, f)}
               className="inline-flex items-center gap-1.5 rounded-md border border-gray-03 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:border-primary hover:text-primary">
               <Download className="size-3.5" /> {f.toUpperCase()}
             </button>
@@ -86,7 +106,7 @@ export function BalanceSheetReport({ entity, currency }: { entity: string; curre
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className={cn("grid gap-4 lg:grid-cols-2", isFetching && "opacity-60")}>
         <Column title="Assets">
           {section(byKey["current_assets"], "asset")}
           {section(byKey["non_current_assets"], "asset")}

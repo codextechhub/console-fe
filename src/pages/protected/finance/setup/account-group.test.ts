@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Account } from "@/redux/services/finance/setup-types";
-import { accountGroupContribution, descendantPostingAccounts } from "./account-group";
+import {
+  accountGroupContribution,
+  buildAccountTree,
+  descendantPostingAccounts,
+} from "./account-group";
 
 const account = (overrides: Partial<Account>): Account => ({
   id: 1,
@@ -39,5 +43,42 @@ describe("account group helpers", () => {
     });
 
     expect(accountGroupContribution(contra, "DEBIT")).toBe(-2500);
+  });
+
+  it("nets contra descendants from parent tree balances", () => {
+    const accounts = [
+      account({
+        id: 1,
+        code: "4000",
+        name: "Income",
+        account_type: "INCOME",
+        normal_balance: "CREDIT",
+        is_postable: false,
+        balance: { kobo: 0, naira: "0.00" },
+      }),
+      account({
+        id: 2,
+        code: "4100",
+        name: "Operating Revenue",
+        account_type: "INCOME",
+        normal_balance: "CREDIT",
+        parent_id: 1,
+        balance: { kobo: 2_912_000_000, naira: "29,120,000.00" },
+      }),
+      account({
+        id: 3,
+        code: "4900",
+        name: "Sales Returns & Allowances",
+        account_type: "INCOME",
+        normal_balance: "DEBIT",
+        is_contra: true,
+        parent_id: 1,
+        balance: { kobo: 2_500_000, naira: "25,000.00" },
+      }),
+    ];
+
+    const [income] = buildAccountTree(accounts);
+
+    expect(income.rolled).toBe(2_909_500_000);
   });
 });
