@@ -10,6 +10,10 @@ import { captureReturnTo } from "@/utils/return-to";
 import { Button } from "@/components/ui/button";
 import { LoaderCircle, RefreshCw, TriangleAlert } from "lucide-react";
 import { getAuthContextGateState } from "@/utils/auth-context-gate";
+import {
+  clearAuthContextFromLogin,
+  isAuthContextFromLogin,
+} from "@/utils/auth-context-freshness";
 
 const { LOGIN } = routesPath.AUTH;
 
@@ -54,12 +58,23 @@ export default function Authenticated() {
 
   // Sync permissions on mount — catches role changes that happened while the
   // token was still valid. onQueryStarted in getMe dispatches updatePermissions.
+  //
+  // Skipped for exactly one case: the store was written by a login response a
+  // moment ago, which carries the identical context, so the request would only
+  // add a round trip and a whole-tree re-render to the login hot path. Read once
+  // at mount and cleared below, so every later mount (reload, persisted session)
+  // syncs as before.
+  const [contextFromLogin] = useState(isAuthContextFromLogin);
+  useEffect(() => {
+    clearAuthContextFromLogin();
+  }, []);
+
   const {
     isLoading: isLoadingContext,
     isFetching: isFetchingContext,
     isError: isContextError,
     refetch: refetchContext,
-  } = useGetMeQuery(undefined, { skip: shouldRedirect });
+  } = useGetMeQuery(undefined, { skip: shouldRedirect || contextFromLogin });
 
   useEffect(() => {
     document.title = user?.first_name

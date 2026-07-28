@@ -1,6 +1,7 @@
 import { resetAuth, setAuthContext, setAuthUser } from "@/redux/features/auth/auth-slice";
 import { baseApi } from "../base-api";
 import { routesPath } from "@/routes/routes-path";
+import { markAuthContextFromLogin } from "@/utils/auth-context-freshness";
 import { recordActivity } from "@/utils/session-activity";
 import { resetSessionInvalidation, setAuthCookies } from "@/utils/token-refresh";
 import { endSession } from "@/utils/end-session";
@@ -25,6 +26,10 @@ export const authApi = baseApi.injectEndpoints({
           setAuthCookies(data?.data?.access || "", data?.data?.refresh || "");
           recordActivity();
           dispatch(setAuthUser(data?.data));
+          // The context we just stored is authoritative, so Authenticated can
+          // skip its mount-time /me sync for this one mount — see
+          // auth-context-freshness.
+          markAuthContextFromLogin();
         } catch {
           // Login failed — the mutation hook surfaces the error to the page;
           // nothing to clean up because nothing was written yet.

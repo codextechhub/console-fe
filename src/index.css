@@ -324,6 +324,78 @@
   animation: dot-fade 1.4s ease-in-out infinite both;
 }
 
+/* ── Auth submit — in-place progress ────────────────────────────────────────
+   The submit button keeps its exact footprint while a request is in flight: the
+   label leaves upward as the spinner rises from below (both layers are absolute,
+   so nothing reflows), a light bar sweeps the bottom edge to show the request is
+   still alive, and the status strip rises into flow beneath the button. Motion
+   is the feedback here, so each piece degrades to a plain fade under
+   prefers-reduced-motion rather than disappearing. */
+@keyframes auth-sweep {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+.auth-sweep {
+  animation: auth-sweep 1.15s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Rises from under the button, ~120ms after the button itself has switched, so
+   the two read as one gesture instead of a simultaneous pop. max-height is what
+   opens the space; the cap is generous enough for the copy to wrap on a phone. */
+@keyframes auth-strip-in {
+  from { opacity: 0; transform: translateY(10px); max-height: 0; margin-top: 0; }
+  to { opacity: 1; transform: translateY(0); max-height: 5rem; margin-top: 0.625rem; }
+}
+.auth-strip-in {
+  overflow: hidden;
+  /* Steady state lives on the class, not just the last keyframe, so the
+     reduced-motion fade below still gets the right spacing. */
+  margin-top: 0.625rem;
+  animation: auth-strip-in 260ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Status copy swapping inside the strip (keyed remount replays it). */
+@keyframes auth-line-in {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.auth-line-in {
+  animation: auth-line-in 240ms ease-out both;
+}
+
+/* Rejected credentials get a physical nudge — the inline message alone is easy
+   to miss when the eye is still on the button. */
+@keyframes auth-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+.auth-shake {
+  animation: auth-shake 360ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Unlayered, so these win over the Tailwind utility layer. Spinners keep
+     spinning — that one is load-bearing information, not decoration. */
+  .auth-sweep,
+  .auth-shake {
+    animation: none;
+  }
+  .auth-strip-in,
+  .auth-line-in {
+    animation-name: auth-fade-in;
+  }
+  .auth-swap {
+    transition-property: opacity;
+  }
+}
+@keyframes auth-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Organogram — highlight pulse for jump-to-node */
 @keyframes pulseHL {
   0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.45); }

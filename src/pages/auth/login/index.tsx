@@ -1,5 +1,5 @@
+import { AuthSubmitButton } from "@/components/custom/auth-submit-button";
 import { CustomInput } from "@/components/custom/custom-input";
-import { Button } from "@/components/ui/button";
 import { useLoginMutation } from "@/redux/services/auth/auth-api";
 import { routesPath } from "@/routes/routes-path";
 import { consumeReturnTo } from "@/utils/return-to";
@@ -13,6 +13,8 @@ export default function Login() {
   const navigate = useNavigate();
   const [login, { isLoading }] = useLoginMutation();
   const [apiError, setApiError] = useState("");
+  // Cleared on animationend, so a second rejection re-triggers the nudge.
+  const [rejected, setRejected] = useState(false);
   // Read once at mount (lazy initialiser); the effect only clears the flag so
   // a later manual visit to /login doesn't re-show a stale banner.
   const [sessionBanner] = useState(() => sessionStorage.getItem("_auth_banner") ?? "");
@@ -38,12 +40,20 @@ export default function Login() {
           setApiError(
             humanizeAuthError(err, "Invalid credentials. Please try again."),
           );
+          setRejected(true);
         });
     },
   });
 
   return (
-    <div className="">
+    <div
+      className={rejected ? "auth-shake" : undefined}
+      // animationend bubbles: the strip's own entrance would otherwise cancel
+      // the nudge early, so only react to this element's animation.
+      onAnimationEnd={(e) => {
+        if (e.target === e.currentTarget) setRejected(false);
+      }}
+    >
       {sessionBanner && (
         <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 text-center">
           {sessionBanner}
@@ -92,15 +102,13 @@ export default function Login() {
           <p className="text-xs font-medium text-destructive/70 -mt-1">{apiError}</p>
         )}
 
-        <Button
-          disabled={!formik.isValid || !formik.dirty || isLoading}
-          loading={isLoading}
-          loadingText="Connecting to your account"
-          type="submit"
-          className="w-full h-11"
-        >
-          Login
-        </Button>
+        <AuthSubmitButton
+          label="Login"
+          busy={isLoading}
+          disabled={!formik.isValid || !formik.dirty}
+          status="Connecting to your account"
+          slowStatus="Still connecting — the server is slow"
+        />
       </form>
     </div>
   );
