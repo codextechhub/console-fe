@@ -29,6 +29,7 @@ import type {
   TaxFiling,
   TaxObligation,
 } from "./ops-types";
+import type { ImportBatch } from "../dashboard/import-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
 type E = { entity: string; page?: number; page_size?: number; status?: string };
@@ -62,6 +63,22 @@ export const opsApi = baseApi.injectEndpoints({
     importStatement: b.mutation<ApiEnvelope<{ imported: BankStatementLine[]; suspected_duplicates: Record<string, unknown>[] }>, Act & { lines: { txn_date: string; amount: number; description?: string; reference?: string }[]; period_label?: string; statement_date?: string; opening_balance?: number; closing_balance?: number; force?: boolean }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/bank-accounts/${id}/statement-lines/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
+    }),
+    uploadBankStatementBatch: b.mutation<ApiEnvelope<ImportBatch>, Act & { formData: FormData }>({
+      query: ({ id, entity, formData }) => ({
+        url: `/finance/bank-accounts/${id}/statement-imports/${qs({ entity })}`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["ImportBatches"],
+    }),
+    downloadBankStatementTemplate: b.mutation<string, Act & { format: "csv" | "xlsx" }>({
+      query: ({ id, entity, format }) => ({
+        url: `/finance/bank-accounts/${id}/statement-imports/template/${qs({ entity, file_format: format })}`,
+        method: "GET",
+        responseHandler: (response) => response.blob(),
+      }),
+      transformResponse: (blob: Blob) => URL.createObjectURL(blob),
     }),
     autoReconcile: b.mutation<ApiEnvelope<BankStatementLine[]>, Act & { tolerance_days?: number }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/bank-accounts/${id}/auto-reconcile/${qs({ entity })}`, method: "POST", body }),
@@ -389,6 +406,8 @@ export const {
   useUpdateBankAccountMutation,
   useGetStatementLinesQuery,
   useImportStatementMutation,
+  useUploadBankStatementBatchMutation,
+  useDownloadBankStatementTemplateMutation,
   useAutoReconcileMutation,
   useGetBookLinesQuery,
   useMatchStatementLineMutation,

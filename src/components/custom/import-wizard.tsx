@@ -24,6 +24,9 @@ import {
 interface ImportWizardProps {
   datasetType?: DatasetType;
   lockTemplate?: boolean;
+  initialBatchId?: number;
+  onBackFromInitialBatch?: () => void;
+  onNewImport?: () => void;
   onComplete?: (batchId: number) => void;
   onReturn?: () => void;
   returnLabel?: string;
@@ -32,8 +35,18 @@ interface ImportWizardProps {
 
 // ── Main Wizard ─────────────────────────────────────────────────────────────
 
-export default function ImportWizard({ datasetType, lockTemplate, onComplete, onReturn, returnLabel, onCancel }: ImportWizardProps) {
-  const [step, setStep] = useState<WizardStep>(1);
+export default function ImportWizard({
+  datasetType,
+  lockTemplate,
+  initialBatchId,
+  onBackFromInitialBatch,
+  onNewImport,
+  onComplete,
+  onReturn,
+  returnLabel,
+  onCancel,
+}: ImportWizardProps) {
+  const [step, setStep] = useState<WizardStep>(initialBatchId ? 2 : 1);
 
   // Step 1 state
   const [templateId, setTemplateId] = useState<number | null>(null);
@@ -41,7 +54,7 @@ export default function ImportWizard({ datasetType, lockTemplate, onComplete, on
   const [notes, setNotes] = useState("");
 
   // Batch state (populated after upload)
-  const [batchId, setBatchId] = useState<number | null>(null);
+  const [batchId, setBatchId] = useState<number | null>(initialBatchId ?? null);
   const [jobId, setJobId] = useState<number | null>(null);
 
   // Step 3 state
@@ -122,6 +135,10 @@ export default function ImportWizard({ datasetType, lockTemplate, onComplete, on
   };
 
   const handleReset = () => {
+    if (onNewImport) {
+      onNewImport();
+      return;
+    }
     setStep(1);
     setTemplateId(null);
     setFile(null);
@@ -158,7 +175,14 @@ export default function ImportWizard({ datasetType, lockTemplate, onComplete, on
       {step === 2 && batch && (
         <HeaderReviewStep
           batch={batch}
-          onBack={() => { setBatchId(null); setStep(1); }}
+          onBack={() => {
+            if (initialBatchId && onBackFromInitialBatch) {
+              onBackFromInitialBatch();
+              return;
+            }
+            setBatchId(null);
+            setStep(1);
+          }}
           onNext={handleValidate}
         />
       )}

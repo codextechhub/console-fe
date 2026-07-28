@@ -713,7 +713,6 @@ export function ReviewIssuesStep({
   onCancel?: () => void;
 }) {
   const [sevFilter, setSevFilter] = useState<"all" | ValidationSeverity>("all");
-  const [acknowledgePartial, setAcknowledgePartial] = useState(false);
 
   const summary = batch.validation_summary as Record<string, number> | null;
   const errorCount = summary?.error_count ?? batch.error_count;
@@ -731,7 +730,7 @@ export function ReviewIssuesStep({
   const validRows = batch.total_rows - errorRows;
   const isAllBad = errorRows > 0 && validRows <= 0;
   const isPartialBad = errorRows > 0 && validRows > 0;
-  const canProceed = errorRows === 0 || (isPartialBad && acknowledgePartial);
+  const canProceed = errorCount === 0 && batch.is_ready_for_import;
 
   return (
     <div className="bg-white rounded-md border border-gray-100 p-6 space-y-5">
@@ -740,7 +739,7 @@ export function ReviewIssuesStep({
           <h2 className="text-base font-semibold font-mont text-black-01">Review validation issues</h2>
           <p className="text-xs text-gray-01 mt-1">
             {totalIssues} issue{totalIssues !== 1 ? "s" : ""} found across {batch.total_rows} {batch.total_rows === 1 ? "row" : "rows"}.
-            {errorCount > 0 && " Error rows will be skipped during import."}
+            {errorCount > 0 && " Fix every error before publishing."}
           </p>
         </div>
         <Button variant="white" size="sm" onClick={() => triggerDownload(importDownloadUrls.validationIssuesExport(batchId), `batch_${batchId}_issues.csv`)}>
@@ -864,27 +863,27 @@ export function ReviewIssuesStep({
         </div>
       )}
 
-      {/* Partial — checkbox to acknowledge skipped rows */}
+      {/* Partial files are blocked: publishing a subset would break dataset-wide
+          invariants such as a bank statement's opening-to-closing balance. */}
       {isPartialBad && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 space-y-3">
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
           <div className="flex items-start gap-3">
             <AlertTriangle className="size-4 text-amber-600 shrink-0 mt-0.5" />
             <div className="text-xs text-black-01 leading-relaxed">
-              <strong>{errorRows} {errorRows === 1 ? "row has" : "rows have"} errors and will be skipped.</strong>{" "}
-              {validRows} {validRows === 1 ? "row is" : "rows are"} valid and ready to import.
+              <strong>{errorRows} {errorRows === 1 ? "row has" : "rows have"} errors.</strong>{" "}
+              Correct those rows and upload the file again. The wizard will not publish only part of the file.
             </div>
           </div>
-          <label className="flex items-start gap-2.5 cursor-pointer">
-            <input
-              type="checkbox"
-              className="mt-0.5 accent-amber-600 shrink-0"
-              checked={acknowledgePartial}
-              onChange={(e) => setAcknowledgePartial(e.target.checked)}
-            />
-            <span className="text-xs text-black-01">
-              I understand that the {errorRows} error {errorRows === 1 ? "row" : "rows"} will be skipped, and I want to proceed with importing the {validRows} valid {validRows === 1 ? "row" : "rows"}.
-            </span>
-          </label>
+        </div>
+      )}
+
+      {errorCount > 0 && errorRows === 0 && (
+        <div className="flex items-start gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3">
+          <AlertTriangle className="size-4 text-destructive shrink-0 mt-0.5" />
+          <div className="text-xs text-black-01 leading-relaxed">
+            <strong>The file has a blocking validation error.</strong>{" "}
+            Correct the file-level issue, such as an opening/closing balance mismatch, and upload again.
+          </div>
         </div>
       )}
 
@@ -916,7 +915,7 @@ export function ConfirmStep({
 }) {
   const summary = batch.validation_summary as Record<string, number> | null;
   const errorCount = summary?.error_count ?? batch.error_count;
-  const rowsReady = batch.total_rows - errorCount;
+  const rowsReady = errorCount === 0 ? batch.total_rows : 0;
 
   return (
     <div className="bg-white rounded-md border border-gray-100 p-6 space-y-5">
@@ -935,7 +934,7 @@ export function ConfirmStep({
         <SummaryCell label="File format" value={batch.file_format.toUpperCase()} />
         <SummaryCell label="Total rows" value={String(batch.total_rows)} big />
         <SummaryCell label="Rows ready to import" value={String(rowsReady)} big accent="success" suffix={`of ${batch.total_rows}`} />
-        <SummaryCell label="Rows that will be skipped (errors)" value={String(errorCount)} big accent={errorCount > 0 ? "destructive" : undefined} />
+        <SummaryCell label="Blocking errors" value={String(errorCount)} big accent={errorCount > 0 ? "destructive" : undefined} />
         <SummaryCell label="Columns" value={String(batch.total_columns)} big />
       </div>
 
@@ -972,7 +971,7 @@ export function ConfirmStep({
         <AlertTriangle className="size-4 text-amber-600 shrink-0 mt-0.5" />
         <div>
           <p className="text-xs font-semibold text-amber-700">This action will write data to the database.</p>
-          <p className="text-[11px] text-gray-500 mt-0.5">Error rows will be skipped. You can roll back this import for up to 7 days after completion.</p>
+          <p className="text-[11px] text-gray-500 mt-0.5">Publishing starts only after every validation error is cleared. You can roll back this import for up to 7 days after completion.</p>
         </div>
       </div>
 
@@ -980,7 +979,12 @@ export function ConfirmStep({
         <Button variant="white" onClick={onBack}><ChevronLeft className="size-3.5" /> Back</Button>
         <div className="flex gap-2.5">
           {onCancel && <Button variant="ghost" onClick={onCancel}>Cancel import</Button>}
-          <Button variant="default" className="bg-green-600 hover:bg-green-700 text-white" onClick={onStart}>
+          <Button
+            variant="default"
+            className="bg-green-600 hover:bg-green-700 text-white"
+            disabled={!batch.is_ready_for_import || errorCount > 0}
+            onClick={onStart}
+          >
             <Play className="size-3.5" /> Start import
           </Button>
         </div>

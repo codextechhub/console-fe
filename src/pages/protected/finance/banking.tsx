@@ -13,13 +13,21 @@ import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, Upload, RefreshCw, ListChecks, FileText, History, Settings as SettingsIcon, ArrowLeftRight } from "lucide-react";
+import { Plus, Search, Trash2, Upload, RefreshCw, ListChecks, FileText, History, Settings as SettingsIcon, ArrowLeftRight, ChevronDown, Rows3, FileSpreadsheet, Download } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
 import { DataTable, DetailDrawer, Money, StatusPill, FormField, AccountPicker, CurrencyPicker, InfoHint, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import ImportWizard from "@/components/custom/import-wizard";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
@@ -28,7 +36,8 @@ import { isStripped } from "@/utils/fls";
 import {
   useGetBankAccountsQuery, useGetBankAccountQuery, useCreateBankAccountMutation,
   useUpdateBankAccountMutation, useGetStatementLinesQuery, useImportStatementMutation,
-  useAutoReconcileMutation,
+  useAutoReconcileMutation, useUploadBankStatementBatchMutation,
+  useDownloadBankStatementTemplateMutation,
 } from "@/redux/services/finance/ops-api";
 import type { BankAccount } from "@/redux/services/finance/ops-types";
 
@@ -166,7 +175,7 @@ function MetricCard({ label, kobo, currency, danger }: { label: string; kobo: nu
 function BankAccountDrawer({ account, entity, currency, onClose }: { account: BankAccount | null; entity: string; currency?: string | null; onClose: () => void }) {
   const { can } = useCan();
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("transactions");
-  const [importing, setImporting] = useState(false);
+  const [importing, setImporting] = useState<"manual" | "bulk" | null>(null);
   const { data } = useGetBankAccountQuery(account ? { id: account.id, entity } : skipToken);
   const detail = data?.data;
   const [reconcile, { isLoading: reconciling }] = useAutoReconcileMutation();
@@ -192,7 +201,25 @@ function BankAccountDrawer({ account, entity, currency, onClose }: { account: Ba
             <StatusPill status={account.is_active ? "ACTIVE" : "INACTIVE"} />
             <div className="flex-1" />
             <Can permission={P.FIN_IMPORT_BANK}>
-              <Button variant="outline" onClick={() => setImporting(true)} className="gap-1.5"><Upload className="size-4" /> Import statement</Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-1.5">
+                    <Upload className="size-4" /> Import statement
+                    <ChevronDown className="size-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onSelect={() => setImporting("manual")} className="cursor-pointer">
+                    <Rows3 className="size-4" />
+                    Manual import
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setImporting("bulk")} className="cursor-pointer">
+                    <FileSpreadsheet className="size-4" />
+                    Bulk import
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </Can>
             <Can permission={P.FIN_RECONCILE_BANK}>
               <Button onClick={doReconcile} disabled={reconciling} className="gap-1.5"><RefreshCw className="size-4" />{reconciling ? "Reconciling…" : "Auto-reconcile"}</Button>
@@ -225,7 +252,16 @@ function BankAccountDrawer({ account, entity, currency, onClose }: { account: Ba
         </div>
       </DetailDrawer>
 
-      {importing ? <ImportStatementDrawer id={account.id} entity={entity} onClose={() => setImporting(false)} /> : null}
+      {importing === "manual" ? (
+        <ImportStatementDrawer id={account.id} entity={entity} onClose={() => setImporting(null)} />
+      ) : null}
+      {importing === "bulk" ? (
+        <BulkImportStatementDrawer
+          id={account.id}
+          entity={entity}
+          onClose={() => setImporting(null)}
+        />
+      ) : null}
     </>
   );
 }
@@ -476,6 +512,137 @@ function ImportStatementDrawer({ id, entity, onClose }: { id: number; entity: st
           </div>
         </div>
       </div>
+    </DetailDrawer>
+  );
+}
+
+function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity: string; onClose: () => void }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [statementDate, setStatementDate] = useState(todayISO);
+  const [periodLabel, setPeriodLabel] = useState("");
+  const [opening, setOpening] = useState("");
+  const [closing, setClosing] = useState("");
+  const [notes, setNotes] = useState("");
+  const [batchId, setBatchId] = useState<number | null>(null);
+  const [uploadBatch, { isLoading: uploading }] = useUploadBankStatementBatchMutation();
+  const [downloadTemplate, { isLoading: downloading }] = useDownloadBankStatementTemplateMutation();
+
+  const amountsValid = [opening, closing].every(
+    (value) => value.trim() !== "" && Number.isFinite(Number(value)),
+  );
+  const canUpload = !!file && !!statementDate && amountsValid && !uploading;
+  const returnToUpload = () => {
+    setBatchId(null);
+    setFile(null);
+  };
+
+  const upload = async () => {
+    if (!canUpload || !file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("statement_date", statementDate);
+    formData.append("opening_balance", opening.trim());
+    formData.append("closing_balance", closing.trim());
+    if (periodLabel.trim()) formData.append("period_label", periodLabel.trim());
+    if (notes.trim()) formData.append("notes", notes.trim());
+
+    try {
+      const result = await uploadBatch({ id, entity, formData }).unwrap();
+      setBatchId(result.data.id);
+      toast.success("Statement uploaded. Review the validation checks before publishing.");
+    } catch { /* central */ }
+  };
+
+  const download = async (format: "csv" | "xlsx") => {
+    try {
+      const url = await downloadTemplate({ id, entity, format }).unwrap();
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `bank_statement_template.${format}`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+    } catch { /* central */ }
+  };
+
+  return (
+    <DetailDrawer
+      open
+      onOpenChange={(open) => (open ? undefined : onClose())}
+      title="Bulk import statement"
+      description="Upload the bank statement template, review the checks, then publish."
+      widthClass="sm:max-w-5xl"
+    >
+      {batchId ? (
+        <ImportWizard
+          initialBatchId={batchId}
+          onBackFromInitialBatch={returnToUpload}
+          onNewImport={returnToUpload}
+          onComplete={onClose}
+          onReturn={onClose}
+          returnLabel="Return to bank account"
+          onCancel={onClose}
+        />
+      ) : (
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gray-03 bg-gray-03 px-4 py-3">
+            <div>
+              <p className="font-mont text-xs font-semibold text-gray-01">Use the statement template</p>
+              <p className="mt-0.5 font-mont text-[11px] text-gray-05">Copy the bank export into the standard columns before uploading.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" disabled={downloading} onClick={() => download("xlsx")} className="gap-1.5">
+                <Download className="size-3.5" /> Excel template
+              </Button>
+              <Button variant="outline" size="sm" disabled={downloading} onClick={() => download("csv")} className="gap-1.5">
+                <Download className="size-3.5" /> CSV template
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <FormField label="Statement date" required>
+              <Input type="date" value={statementDate} onChange={(e) => setStatementDate(e.target.value)} className="bg-white font-mont" />
+            </FormField>
+            <FormField label="Period label">
+              <Input value={periodLabel} onChange={(e) => setPeriodLabel(e.target.value)} placeholder="e.g. Apr 2026" className="bg-white" />
+            </FormField>
+            <FormField label="Opening balance (₦)" required>
+              <Input type="number" step="0.01" value={opening} onChange={(e) => setOpening(e.target.value)} placeholder="0.00" className="bg-white font-mont" />
+            </FormField>
+            <FormField label="Closing balance (₦)" required>
+              <Input type="number" step="0.01" value={closing} onChange={(e) => setClosing(e.target.value)} placeholder="0.00" className="bg-white font-mont" />
+            </FormField>
+          </div>
+
+          <FormField label="Statement file" required>
+            <Input
+              type="file"
+              accept=".csv,.xlsx"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="bg-white font-mont"
+            />
+          </FormField>
+          <FormField label="Notes">
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              placeholder="Optional note for this import"
+              className="w-full rounded-md border border-gray-03 bg-white px-3 py-2 font-mont text-sm"
+            />
+          </FormField>
+
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="outline" disabled={uploading} onClick={onClose}>Cancel</Button>
+            <Button disabled={!canUpload} onClick={upload} className="gap-1.5">
+              <Upload className="size-4" />
+              {uploading ? "Uploading…" : "Continue to import wizard"}
+            </Button>
+          </div>
+        </div>
+      )}
     </DetailDrawer>
   );
 }

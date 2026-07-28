@@ -180,6 +180,20 @@ export interface ImportBatch {
   branch: SchoolMini | null;
   uploaded_by: UserMini;
   template: ImportTemplate | null;
+  domain_context?: {
+    type: "bank_statement";
+    bank_account_id: number;
+    bank_account_name: string;
+    entity_id: number;
+    entity_code: string;
+    statement_date: string;
+    period_label: string;
+    opening_balance: number;
+    opening_balance_major: string;
+    closing_balance: number;
+    closing_balance_major: string;
+    published_statement_id: number | null;
+  } | null;
   original_filename: string;
   file: string | null;
   file_format: FileFormat;
