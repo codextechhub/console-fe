@@ -43,6 +43,9 @@ const TXN_META: Record<string, { label: string; cls: string }> = {
   PAYMENT: { label: "Receipt", cls: "bg-green-01/10 text-green-01" },
   INVOICE: { label: "Invoice", cls: "bg-blue-50 text-blue-700" },
   DEBIT_NOTE: { label: "Debit note", cls: "bg-indigo-50 text-indigo-700" },
+  CREDIT_NOTE: { label: "Credit note", cls: "bg-emerald-50 text-emerald-700" },
+  REFUND: { label: "Refund", cls: "bg-amber-50 text-amber-700" },
+  ADJUSTMENT: { label: "Adjustment", cls: "bg-violet-50 text-violet-700" },
 };
 
 function Pill({ status }: { status: string }) {

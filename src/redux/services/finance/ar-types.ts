@@ -354,7 +354,13 @@ export interface CustomerDetail {
   open_invoices: { document_number: string; invoice_date: string; due_date: string | null; total: ArMoney; balance: ArMoney; status: string }[];
   // Open DEBIT notes are supplementary AR charges, outstanding like an invoice.
   open_debit_notes: { document_number: string; note_date: string | null; total: ArMoney; balance: ArMoney; status: string }[];
-  transactions: { date: string; type: "INVOICE" | "DEBIT_NOTE" | "PAYMENT"; reference: string; amount: ArMoney; status: string }[];
+  transactions: {
+    date: string;
+    type: "INVOICE" | "DEBIT_NOTE" | "CREDIT_NOTE" | "PAYMENT" | "REFUND" | "ADJUSTMENT";
+    reference: string;
+    amount: ArMoney;
+    status: string;
+  }[];
   statement: { date: string | null; description: string; debit: ArMoney; credit: ArMoney; balance: ArMoney }[];
 }
 

@@ -95,7 +95,7 @@ export const arApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["FinanceCreditNotes", "FinanceReports", "FinanceJournals", "FinanceInvoices", "FinancePaymentPlans"],
+      invalidatesTags: ["FinanceCreditNotes", "FinanceCustomers", "FinanceReports", "FinanceJournals", "FinanceInvoices", "FinancePaymentPlans"],
     }),
     // Backend reads `allocations` ([{invoice, amount}]) or `auto_allocate` (oldest-first).
     allocateCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { id: number; entity: string; allocations?: { invoice: number; amount: number }[]; auto_allocate?: boolean }>({
@@ -104,7 +104,7 @@ export const arApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["FinanceCreditNotes", "FinanceInvoices", "FinanceReports", "FinanceJournals", "FinancePaymentPlans"],
+      invalidatesTags: ["FinanceCreditNotes", "FinanceCustomers", "FinanceInvoices", "FinanceReports", "FinanceJournals", "FinancePaymentPlans"],
     }),
 
     // Refunds
