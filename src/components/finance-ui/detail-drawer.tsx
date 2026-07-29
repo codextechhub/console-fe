@@ -20,6 +20,14 @@ interface DetailDrawerProps {
   footer?: React.ReactNode;
   /** Width of the drawer; defaults to a comfortable record width. */
   widthClass?: string;
+  /**
+   * Which typeface the drawer adopts. The Sheet portals to <body>, outside the
+   * page it belongs to, so it cannot inherit — it has to be told.
+   * "geist" (default) matches the Finance and Procurement consoles; "app" is
+   * for the rest of the app, which is Montserrat. Getting this wrong is
+   * invisible until you notice the drawer's font disagrees with the page.
+   */
+  typeface?: "geist" | "app";
 }
 
 export function DetailDrawer({
@@ -30,13 +38,17 @@ export function DetailDrawer({
   children,
   footer,
   widthClass = "sm:max-w-xl",
+  typeface = "geist",
 }: DetailDrawerProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      {/* `console-geist` because the Sheet portals to <body>, outside the console
-          wrapper — without it the drawer would fall back to the app's Montserrat
-          while the page behind is Geist. */}
-      <SheetContent className={cn("console-geist flex w-full flex-col gap-0 p-0", widthClass)}>
+      <SheetContent
+        className={cn(
+          "flex w-full flex-col gap-0 p-0",
+          typeface === "geist" && "console-geist",
+          widthClass,
+        )}
+      >
         <SheetHeader className="border-b border-gray-03 px-5 py-4">
           <SheetTitle className="font-mont text-base font-semibold text-black-01">{title}</SheetTitle>
           {description ? (

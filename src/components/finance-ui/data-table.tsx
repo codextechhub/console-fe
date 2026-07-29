@@ -31,6 +31,13 @@ export interface Column<T> {
 /** One row as a stacked label/value card — the phone rendering of a list row. */
 function RowCard<T>({ columns, row, onClick }: { columns: Column<T>[]; row: T; onClick?: () => void }) {
   const [first, ...rest] = columns;
+  // A column that renders nothing for this row contributes no card line. In a
+  // table an empty cell is just whitespace under a header; on a card it is a
+  // label with nothing beside it, repeated down the whole list. Cells that mean
+  // "no value" should render an em dash — this only drops the truly absent.
+  const lines = rest
+    .map((col) => ({ header: col.header, value: col.cell(row) }))
+    .filter(({ value }) => value !== null && value !== undefined && value !== false && value !== "");
   return (
     <div
       onClick={onClick}
@@ -40,10 +47,10 @@ function RowCard<T>({ columns, row, onClick }: { columns: Column<T>[]; row: T; o
       )}
     >
       <div className="font-mont text-sm font-semibold text-black-01">{first.cell(row)}</div>
-      {rest.map((col, i) => (
+      {lines.map((line, i) => (
         <div key={i} className="flex items-start justify-between gap-3">
-          <span className="shrink-0 font-mont text-[11px] text-gray-05">{col.header}</span>
-          <span className="min-w-0 text-right font-mont text-sm font-medium text-black-01">{col.cell(row)}</span>
+          <span className="shrink-0 font-mont text-[11px] text-gray-05">{line.header}</span>
+          <span className="min-w-0 text-right font-mont text-sm font-medium text-black-01">{line.value}</span>
         </div>
       ))}
     </div>

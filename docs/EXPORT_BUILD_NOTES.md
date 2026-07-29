@@ -1,0 +1,282 @@
+# VS Export / Export Centre — Build Notes & Handoff
+
+How we build the Export Centre in `console-fe`, against **"VS Export — Spec and
+Handoff v3"** (normative) and **"VS Export — Prototype v2"** (structure, copy,
+state coverage). Where the two disagree on anything visual, the repo wins.
+
+Sibling to `docs/FINANCE_BUILD_NOTES.md` and `docs/PROCUREMENT_BUILD_NOTES.md`
+— the **conventions, typography, responsive rules and honesty rules there apply
+here unchanged**. Companion to `CLAUDE.md` and `PERMISSIONS_AUDIT.md`.
+
+---
+
+## Slice 0 — the reconciliation (DONE)
+
+The spec's Slice 0 is one job: *"Reconcile with BackgroundJob and the Queues
+page. Agree one status vocabulary and whether a run wraps a job."* Done means
+*"one word for one outcome across both surfaces, written down."* This section is
+that writing-down.
+
+### The finding that changes the plan: the backend already exists
+
+`apps/vs_exports` shipped in backend commit `2203906` ("feat(exports): add the
+Export Centre") — ~6,000 lines: models, catalogue, engine, services, writers,
+serializers, views, tasks, audit, analytics, tests, RBAC seeds. It was built
+from the same handoff document.
+
+**So this is a frontend build against a real contract, not a design exercise.**
+Nothing below is invented; every shape is read from the backend source. Do not
+design an API for this feature — read `apps/vs_exports/serializers.py`.
+
+### Answer 1 — a run **wraps** a job
+
+`ExportRun.background_job` is a nullable FK to `core.BackgroundJob`
+(`vs_exports/models.py`). `services.enqueue()` queues the Celery task through
+the platform's `TrackedTask` base with `_job_kind="export"` and
+`_job_label="Export: <name>"`, then links the resulting job row back onto the
+run.
+
+The two surfaces are therefore **two questions about the same work**, not two
+job monitors:
+
+| Surface | Reads | Answers |
+| --- | --- | --- |
+| Export → View Queues (`pages/protected/export/queues`) | `core.BackgroundJob` via `/v1/user/me/tasks/` | *Did the worker finish?* Every async task — imports, exports, emails, system runs. |
+| Export Centre → Files (Slice 1) | `vs_exports.ExportRun` + `ExportFile` via `/v1/exports/runs/` and `/v1/exports/files/` | *What came out?* Rows, columns, size, omissions, expiry, who downloaded it. |
+
+**Rule: do not build a second job monitor, and do not widen Queues into a
+domain view.** Queues stays generic. Files is export-aware and reads the run
+records. The FK is the join when a screen genuinely needs to cross over.
+
+Corollary the run detail depends on: `ExportRun.frozen_config` is mandatory and
+never back-filled. The run detail describes *that* file, not what the definition
+has since become; `drift` on the detail serializer is how "why does last month
+differ?" gets answered.
+
+### Answer 2 — the one word is **Completed**
+
+Three vocabularies exist in the codebase today:
+
+| Vocabulary | Source | Terminal-success token |
+| --- | --- | --- |
+| Background jobs | `core.BackgroundJob.Status` | `SUCCEEDED` |
+| Export runs | `vs_exports.constants.RunStatus` | `COMPLETED` |
+| Audit-log exports | `audit-types.ts` `ExportJobStatus` | `COMPLETED` |
+
+**Decision: the word a person reads is "Completed", on every surface.** Two of
+the three vocabularies already say it, and `SUCCEEDED`/`COMPLETED` for one
+outcome is exactly the confusion this product exists to remove.
+
+**We change the display word, never the wire token.** `SUCCEEDED` stays
+`SUCCEEDED` in `/v1/user/me/tasks/` params, filters and API payloads — renaming
+the job status would ripple through imports, emails and system runs for a
+cosmetic reason, and `SUCCEEDED` is not wrong *for a job*. The translation lives
+in exactly one place: `runStatusWord()` in
+`src/components/custom/run-status-pill.tsx`.
+
+`SUCCEEDED` is **not** relabelled inside the shared `StatusPill`, because it
+means something else in Payments (`CollectionStatus.SUCCEEDED` — a payment that
+went through, rendered as "Paid"). The one-word rule is scoped to asynchronous
+*work*, which is what `RunStatusPill` covers.
+
+### The closed status set, mapped onto existing Badge variants
+
+`VARIANT_BY_STATUS` in `finance-ui/status-pill.tsx` is extended, not forked.
+Only one status was genuinely new.
+
+| Status | Where it comes from | Badge variant | Word | Glyph |
+| --- | --- | --- | --- | --- |
+| `QUEUED` | run + job | `pending` | Queued | `◔` |
+| `RUNNING` | run + job | *raw `--primary`/10* | Running | pinging dot |
+| `COMPLETED` | run | `success` | Completed | `✓` |
+| `SUCCEEDED` | job only | `success` | **Completed** | `✓` |
+| `COMPLETED_WITH_OMISSIONS` | run — **NEW** | `pending` | **Partly complete** | `!` |
+| `FAILED` | run + job | `rejected` | Failed | `✕` |
+| `CANCELLED` | run + job | `inactive` | Cancelled | `⊗` |
+| `EXPIRED` | **file**, derived | `inactive` | Expired | `⊘` |
+
+- `COMPLETED_WITH_OMISSIONS` is amber, not green: a file exists, but the
+  omission is the point. It is always rendered with its reason beside it —
+  `ExportRun.omissions` is a structured `[{code, scope, detail, items[]}]` list
+  (`OmissionCode`: `FIELD_FORBIDDEN`, `FIELD_WITHDRAWN`, `ROW_CAP_HIT`), so the
+  UI renders it and never infers it.
+- `EXPIRED` is **not a run status** — the backend is explicit about this. It is
+  derived from `ExportFile.available_until` at read time
+  (`is_expired`/`is_purged`/`is_downloadable` on the serializer). The run stays
+  `COMPLETED` forever. Never overwrite history to represent expiry.
+- `CANCELLED` was previously orange (`suspended`) on the Queues page and grey
+  (`inactive`) in `StatusPill`. It is now grey on both — neutral-terminal, the
+  same treatment as `EXPIRED`.
+- Schedule states (`Active` / `Paused`) are deliberately **absent** from
+  `RunStatusPill`. **Schedules are out of the MVP** (decided 2026-07-29), so the
+  seven statuses above are the whole closed set for v1. Nothing renders a
+  schedule state, so nothing should be able to.
+
+### What Slice 0 changed in the repo
+
+1. **`src/index.css`** — four darkened `-text` tokens, for status and validation
+   text only. Measured on the composited tint over white:
+
+   | Token | Hex | On its own 10% tint | Raw sibling was |
+   | --- | --- | --- | --- |
+   | `--color-green-01-text` | `#0F6B32` | 5.94:1 | 2.96:1 ✗ |
+   | `--color-yellow-01-text` | `#8A5A08` | 5.48:1 | 1.99:1 ✗ |
+   | `--color-error-text` | `#A81E1E` | 6.15:1 | 4.01:1 ✗ |
+   | `--color-gray-06-text` | `#5C5D5C` | 6.01:1 | 2.89:1 ✗ |
+
+   `--primary` needs no sibling: 5.05:1 on `primary/10` unmodified. No other
+   colours were added.
+
+2. **`src/components/ui/badge.tsx`** — the tint variants now pair the 10%
+   background with the darkened label hue. This is the choke point every status
+   label in the app flows through, so it is a class-fix rather than a per-screen
+   patch: **every** badge in Finance, Procurement, RBAC, Audit and Health gets a
+   legible label, same hue, no geometry change.
+
+3. **`finance-ui/status-pill.tsx`** — added `COMPLETED_WITH_OMISSIONS`, plus
+   `statusVariant()` and `statusLabel()` exports so a surface that needs a glyph
+   can add one without forking the map.
+
+4. **`src/components/custom/run-status-pill.tsx`** (new) — the shared renderer.
+   Colour from `statusVariant`, a leading glyph on every status, the pinging dot
+   on Running, and `runStatusWord()` doing the one-word translation.
+
+5. **`pages/protected/export/queues`** — deleted its local `StatusChip` and
+   adopted `RunStatusPill`. Filter labels and the KPI card now read through
+   `runStatusWord()`, so the filter, the cards and the rows cannot drift apart.
+
+### The fifth variant, fixed without a fifth colour
+
+`Badge` variant `suspended` was `text-orange-500` on `bg-orange-500/10` —
+2.53:1, the same class of failure, and once everything around it was darkened it
+was the only pale label left on screen. It is not in the export status
+vocabulary, but it is used widely (RBAC sensitivity `CRITICAL`, pending change
+requests, failed invites, `TERMINATED`, `OVER_TOLERANCE`), so leaving it was
+shipping half a fix.
+
+It keeps its orange tint and borrows `--color-yellow-01-text` for the label —
+**5.35:1**, its nearest neighbour in the token set. Orange has no token of its
+own in `index.css`, and adding a colour to fix one label is worse than reusing
+the amber. The spec's "four is the whole set" is about the nine export statuses;
+no colour was added.
+
+Every tint variant in `badge.tsx` now passes AA for small text.
+
+---
+
+## The backend contract (read this before Slice 1)
+
+Mounted at `/v1/exports/` (`apps/apps/urls.py`). Platform conventions
+throughout: `{success, message, data}` envelope, `XVSPagination` at 25/page,
+`?entity=<id|code>` where an entity is meaningful, RBAC-gated per route.
+
+| Screen | Endpoint | Serializer / shape |
+| --- | --- | --- |
+| Builder steps 1–2 | `GET /catalogue/`, `GET /catalogue/<key>/` | `{modules: [{name, datasets[], available}]}`; dataset carries `fields[]`, `filters[]`, `default_columns`, `required_filters`, `supported_formats`, `format_options`, `max_date_span_days`, `row_cap`, `scope`, `requires_entity` |
+| Disable-with-reason everywhere | `GET /capabilities/` | `{can_create, can_run, can_share, can_export_sensitive, can_view_activity, allowed_entities[], row_cap, concurrent_run_limit, in_flight, retention_days}` |
+| Summary rail estimate + preview | `POST /preview/?entity=` | `{matching_rows, rows_bucket, estimated_bytes, confidence, warnings[], sample: {headers, rows}, reads_as}` |
+| Saved exports list / builder save | `GET·POST /definitions/`, `GET·PATCH·DELETE /definitions/<pk>/` | `ExportDefinitionList/Detail/WriteSerializer` |
+| Duplicate at step 5 | `POST /definitions/<pk>/duplicate/` | returns the copy, named `"<name> (copy)"`, always private |
+| Share | `POST /definitions/<pk>/share/` | replaces the share list (`{user_ids: []}`) |
+| Run now | `POST /definitions/<pk>/run/` | `{client_key}`; **201 created / 200 = the in-flight run** — this is the concurrency notice, not an error |
+| Quick export | `POST /quick/?entity=` | preview payload + `name`, `format_options`, `client_key` |
+| Files list / run detail | `GET /runs/`, `GET /runs/<pk>/` | detail adds `omissions`, `failure{code,message,recommended_action,reference,retryable}`, `configuration` (frozen, as labels), `drift{count,fields}`, `deliveries[]` |
+| Cancel · retry | `POST /runs/<pk>/cancel/`, `POST /runs/<pk>/retry/` | cooperative cancel, no partial file |
+| File cards | `GET /files/?available=true` | `{name, format, size_bytes, row_count, columns_produced, available_until, purged_at, download_count, is_expired, is_purged, is_downloadable}` |
+| Download + log | `GET /files/<pk>/download/`, `GET /files/<pk>/downloads/` | download returns **bytes** (not the envelope); the log lists allowed *and* refused attempts |
+| Revoke a link | `POST /deliveries/<pk>/revoke/` | |
+| Admin activity | `GET /activity/` | filters `actor`, `dataset`, `status`, `external_only`, `since`; reading it is itself audited |
+| Builder funnel | `POST /analytics/`, `GET /analytics/summary/` | client may only post names in `analytics.CLIENT_EVENTS`; properties are schema-filtered server-side |
+
+**Progress** on a non-terminal run: `{phase, phase_label, rows_done, rows_total,
+queue_position}`; `null` once terminal. A null `rows_total` means indeterminate
+— expected, not an error. `queue_position` is what lets a >30s wait explain
+itself instead of going quiet.
+
+**Failures** carry a `FailureCode` plus a user-safe message and
+`recommended_action` from `FAILURE_GUIDANCE`. The UI shows the message and the
+action and maps nothing itself; `retryable` is on the payload. Never a
+traceback, never a code shown raw.
+
+### Permission keys (backend, `ExportPermission`)
+
+`exports.catalogue.view` · `exports.definition.view|create|update|delete|share`
+· `exports.run.view|create|cancel` · `exports.file.download` ·
+`exports.sensitive_field.export` · `exports.activity.view`.
+
+The last two are **not** granted by default (`seed_exports_permissions`):
+sensitive-field export is a separate decision from being allowed to export, and
+activity-view is an administrator's power whose *read* is audited.
+
+These need codes in `src/permissions/index.ts` + a `PERMISSIONS_AUDIT.md` entry
+— **Slice 1**, when they first gate something. `MM` for exports is unassigned;
+pick the next free module group.
+
+### Platform limits worth putting in the UI
+
+30-day file retention · 500,000-row hard cap · 250,000-row *warning* threshold ·
+3 concurrent runs per tenant · 60s idempotency window · 10 preview rows ·
+exact counts stop at 100,000 rows and become bucketed (the honest fallback the
+spec asks for — never a spinner where a number should be).
+
+---
+
+## Scope decision — schedules are OUT of the MVP (2026-07-29)
+
+The backend has no `ExportSchedule` model and no `/schedules/` route, and the
+product decision is **not to build one for v1**. Everything scheduling implies is
+therefore out, not deferred-with-a-placeholder:
+
+- No Schedules tab, no schedules list, no schedule editor, no recurrence
+  sentence, no timezone/DST handling, no auto-pause-after-3-failures, no paused
+  banner, no owner reassignment queue.
+- No `Active` / `Paused` status pills — the closed set is the seven above.
+- Builder step 4 loses its timing cards. It asks **where the file goes**, not
+  when: run now, or save the recipe without running it. "Run once later" is a
+  schedule with one occurrence and goes with the rest.
+- Nav is **Overview · Saved exports · Files · View queues** — four items, not
+  five.
+
+What survives from the spec's Slice 4 is *delivery*, which is backed today
+(`ExportDelivery`, `DeliveryRevokeView`, `ExportDefinition.email_recipients`):
+secure links, recipients, test delivery, revocation, and per-recipient delivery
+state separate from run state.
+
+Prototype v2 shows a Schedules tab and a paused-schedule banner. **Ignore both.**
+This is a scope cut, not a visual disagreement.
+
+## Gaps to close before the slices that need them
+
+1. **Export permission codes** are not in the FE registry yet (above).
+2. **Nav.** The sidebar's `Export` group currently holds only *View Queues*
+   (`app-sidebar.tsx`). The Export Centre adds Overview · Saved exports · Files
+   above it — Slice 1 onwards, gated on the new keys.
+3. **Notification event icons** for export events are not in
+   `notification-event-icon.tsx`.
+4. **Dataset catalogue depth.** Five datasets are published today
+   (`finance.customer_invoices`, `finance.invoice_lines`, `finance.gl_postings`,
+   `payments.collections`, `audit.events`). Procurement and Audit-beyond-events
+   have none, which is *information* the Module chips must state, not hide —
+   Prototype v2 already writes this copy.
+
+---
+
+## Build order (spec's sequencing, with what we now know)
+
+| Slice | Contains | Backend |
+| --- | --- | --- |
+| **0** | Reconcile with BackgroundJob; one status vocabulary; the four `-text` tokens | ✅ done |
+| **0b** | Rework View Queues onto house components + make export rows tell the truth | ✅ ready |
+| 1 | Files list, run detail, download + logging, 30-day expiry, file card | ✅ ready |
+| 2 | Catalogue, wizard steps 1–3, preview/estimate, definitions CRUD, Saved exports | ✅ ready |
+| 3 | Failure and omission handling end to end, frozen-config diff | ✅ ready |
+| 4 | Delivery only: recipients, secure links, test delivery, revocation | ✅ ready |
+| 5 | Sharing, Quick export from module screens, admin activity + download log | ✅ ready |
+| ~~Schedules~~ | Cut from the MVP — see the scope decision above | — |
+
+Genuinely new UI in this feature is only three things — the 340px summary rail,
+the two-pane field picker, and the file card. Everything else is assembly over
+`CustomTable`, `StatusPill`, `Tabs`, `StepProgressBar`, `states.tsx`, `Sheet`,
+`ConfirmActionModal`, `PermissionGate`, `TableToolbar`, `KpiCard` and `sonner`.
+Read `custom/import-wizard` before designing the builder's state — it is the
+closest existing precedent.

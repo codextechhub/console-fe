@@ -106,6 +106,19 @@
   --color-gray-06: #6F706F;
   --color-yellow-01: #F59E0B;
   --color-green-01: #16A34A;
+
+  /* Darkened siblings, for STATUS AND VALIDATION TEXT ONLY — never for fills,
+     borders or glyphs, which keep the raw hue above.
+     The raw hues are correct as backgrounds but fail WCAG AA as small text on
+     their own 10% tint over white: green 2.96:1, amber 1.99:1, error 4.01:1,
+     gray-05 2.89:1 — all under 4.5:1, and none large enough for the 3:1
+     large-text exception at text-sm. These four measure 5.5–6.3:1 on the same
+     composited tint, so the hue still reads but the label is legible.
+     --primary needs no sibling: it measures 5.05:1 on primary/10 unmodified. */
+  --color-green-01-text: #0F6B32;  /* 5.94:1 on green-01/10  */
+  --color-yellow-01-text: #8A5A08; /* 5.48:1 on yellow-01/10 */
+  --color-error-text: #A81E1E;     /* 6.15:1 on destructive/10, 6.31:1 on error/10 */
+  --color-gray-06-text: #5C5D5C;   /* 6.01:1 on gray-05/10   */
 }
 
 .dark {

@@ -4,24 +4,31 @@ import { Slot } from "radix-ui";
 
 import { cn } from "@/lib/utils";
 
+// Tint variants pair a 10% background with the DARKENED label hue
+// (--color-*-text in index.css), not the raw one: the raw tokens measure
+// 2.0–4.4:1 on their own tints and fail WCAG AA for text. The background,
+// fills and glyphs keep the raw hue, so the colour still reads the same.
+// `suspended` keeps its orange-500 tint but borrows the amber text token
+// (5.35:1 on that tint) — orange has no token of its own in index.css, and
+// adding a colour to fix one label is worse than reusing its nearest neighbour.
 const badgeVariants = cva(
   "inline-flex items-center justify-center rounded-md border border-transparent px-2 py-0.5 text-sm font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
-        success: "bg-green-01/10 text-green-01 ",
-        active: "bg-green-01/10 text-green-01 ",
-        inactive: "bg-gray-05/10 text-gray-05 ",
-        pending: "bg-yellow-01/10 text-yellow-01",
+        success: "bg-green-01/10 text-green-01-text",
+        active: "bg-green-01/10 text-green-01-text",
+        inactive: "bg-gray-05/10 text-gray-06-text",
+        pending: "bg-yellow-01/10 text-yellow-01-text",
         secondary:
           "bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
         destructive:
           "bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        rejected: "bg-destructive/10 text-destructive",
-        suspended: "bg-orange-500/10 text-orange-500",
-        locked: "bg-destructive/10 text-destructive",
-        deactivated: "bg-gray-05/10 text-gray-05",
+        rejected: "bg-destructive/10 text-error-text",
+        suspended: "bg-orange-500/10 text-yellow-01-text",
+        locked: "bg-destructive/10 text-error-text",
+        deactivated: "bg-gray-05/10 text-gray-06-text",
         outline:
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
