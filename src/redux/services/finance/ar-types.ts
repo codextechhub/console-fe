@@ -103,6 +103,32 @@ export interface WriteOffRequest {
 
 export type InvoiceWriteOffResult = Invoice | WriteOffRequest;
 
+export type ArAdjustmentBatchKind = "REFUND" | "WRITEOFF";
+export type ArAdjustmentBatchAction = "DRAFT" | "POST" | "SUBMIT";
+
+export interface ArAdjustmentBatchInput {
+  entity: string;
+  kind: ArAdjustmentBatchKind;
+  action: ArAdjustmentBatchAction;
+  date: string;
+  bank_account?: string | number;
+  write_off_account?: string | number;
+  narration?: string;
+  reason?: string;
+  items: (
+    | { customer: string | number; amount: number; reference?: string; narration?: string }
+    | { invoice: string | number; amount: number; reason?: string; narration?: string }
+  )[];
+}
+
+export interface ArAdjustmentBatchResult {
+  kind: ArAdjustmentBatchKind;
+  action: ArAdjustmentBatchAction;
+  count: number;
+  total_amount: number;
+  items: Refund[] | WriteOffRequest[];
+}
+
 // Unified AR adjustment row (refund or write-off) from /finance/ar-adjustments/.
 export interface ArAdjustment {
   key: string;
@@ -215,6 +241,7 @@ export interface DunningNotice {
 export interface InvoiceListParams {
   entity: string;
   page?: number;
+  page_size?: number;
   status?: InvoiceStatus;
   payment_status?: PaymentStatus;
   bucket?: string;

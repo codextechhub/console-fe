@@ -14,7 +14,7 @@
 import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
-import { Plus, Search, Printer, Check, Send } from "lucide-react";
+import { Plus, Search, Printer, Check, Send, Layers } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField, Segmented,
   CustomerPicker, AccountPicker, BankAccountPicker, PostingRecap, toArray,
@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import { refundAmountIsWithinAvailableCredit } from "./refund-validation";
+import { BatchAdjustmentDrawer } from "./batch-adjustment-drawer";
 import {
   useGetArAdjustmentsQuery, useCreateRefundMutation, usePostRefundMutation,
   useSubmitRefundMutation, useCreateWriteOffRequestMutation, usePostWriteOffRequestMutation,
@@ -92,6 +93,7 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
   const search = useDebounce(searchInput.trim(), 350);
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
+  const [batching, setBatching] = useState(false);
   useActionParam("new", () => setCreating(true));
   const [selected, setSelected] = useState<ArAdjustment | null>(null);
 
@@ -139,9 +141,16 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
             <option value="WRITEOFF">Write-offs</option>
           </select>
         </div>
-        {can(P.FIN_CREATE_REFUND) || can(P.FIN_CREATE_WRITE_OFF) || can(P.FIN_WRITE_OFF_INVOICE) ? (
-          <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New action</Button>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {can(P.FIN_CREATE_REFUND) || can(P.FIN_CREATE_WRITE_OFF) ? (
+            <Button variant="outline" onClick={() => setBatching(true)} className="gap-1.5">
+              <Layers className="size-4" /> Batch actions
+            </Button>
+          ) : null}
+          {can(P.FIN_CREATE_REFUND) || can(P.FIN_CREATE_WRITE_OFF) || can(P.FIN_WRITE_OFF_INVOICE) ? (
+            <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New action</Button>
+          ) : null}
+        </div>
       </div>
 
       <DataTable
@@ -154,6 +163,7 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
 
       <AdjustmentDetailDrawer row={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
       <NewActionDrawer open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
+      <BatchAdjustmentDrawer open={batching} onClose={() => setBatching(false)} entity={entity} currency={currency} />
     </>
   );
 }

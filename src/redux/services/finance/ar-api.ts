@@ -7,6 +7,8 @@ import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope, Pagination } from "./api-types";
 import type {
   ArAdjustment,
+  ArAdjustmentBatchInput,
+  ArAdjustmentBatchResult,
   Concession,
   CreditNote,
   Customer,
@@ -169,6 +171,21 @@ export const arApi = baseApi.injectEndpoints({
     >({
       query: (params) => ({ url: `/finance/ar-adjustments/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceRefunds", "FinanceInvoices", "FinanceWriteOffs"],
+    }),
+    createArAdjustmentBatch: builder.mutation<
+      ApiEnvelope<ArAdjustmentBatchResult>,
+      ArAdjustmentBatchInput
+    >({
+      query: ({ entity, ...body }) => ({
+        url: `/finance/ar-adjustments/batch/${qs({ entity })}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [
+        "FinanceRefunds", "FinanceWriteOffs", "FinanceInvoices",
+        "FinanceCustomers", "FinanceReports", "FinanceJournals",
+        "FinancePaymentPlans", "WorkflowPending", "WorkflowSubmissions",
+      ],
     }),
 
     // Concessions
@@ -342,6 +359,7 @@ export const {
   usePostWriteOffRequestMutation,
   useSubmitWriteOffRequestMutation,
   useGetArAdjustmentsQuery,
+  useCreateArAdjustmentBatchMutation,
   useGetConcessionsQuery,
   useGetConcessionSummaryQuery,
   useCreateConcessionMutation,
