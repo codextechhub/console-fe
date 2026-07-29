@@ -9,6 +9,7 @@ import { useGetTaxObligationsQuery, useGetPettyCashFundsQuery, useGetBankAccount
 import { useGetCustomersQuery } from "@/redux/services/finance/ar-api";
 import { useGetVendorsQuery } from "@/redux/services/procurement/procurement-api";
 import { toArray } from "@/redux/services/finance/api-types";
+import { taxCodeSupportsUsage, type TaxCodeUsage } from "./tax-code-usage";
 
 interface PickerProps {
   entity: string;
@@ -66,10 +67,10 @@ export function CurrencyPicker({ value, onChange, label, placeholder = "Default"
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }
 
-export function TaxCodePicker({ entity, value, onChange, label, placeholder = "No tax", isRequired, disabled, purchaseOnly = false }: PickerProps & { purchaseOnly?: boolean }) {
+export function TaxCodePicker({ entity, value, onChange, label, placeholder = "No tax", isRequired, disabled, usage = "any" }: PickerProps & { usage?: TaxCodeUsage }) {
   const { data, isLoading } = useGetTaxCodesQuery({ entity });
   const options = toArray(data?.data)
-    .filter((t) => !purchaseOnly || t.code === value || (t.is_active && (t.rate_bps === 0 || (t.is_recoverable && !!t.paid_account))))
+    .filter((t) => t.code === value || taxCodeSupportsUsage(t, usage))
     .map((t) => ({ value: t.code, label: `${t.code} — ${t.name}${t.is_active ? "" : " (Inactive)"}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }

@@ -342,7 +342,7 @@ function QuotationForm({ entity, currency, initial, onClose }: { entity: string;
               <Input type="number" min="0" step="any" value={row.quantity} onChange={(e) => setRow(row.key, { quantity: Number(e.target.value) })} placeholder="Qty" className="bg-white tabular-nums" aria-label="Quantity" />
               <MoneyInput valueKobo={row.unitPriceKobo} onChangeKobo={(k) => setRow(row.key, { unitPriceKobo: k })} currency={currency} placeholder="Unit price" />
             </div>
-            <TaxCodePicker entity={entity} value={row.taxCode} onChange={(v) => setRow(row.key, { taxCode: v })} purchaseOnly />
+            <TaxCodePicker entity={entity} value={row.taxCode} onChange={(v) => setRow(row.key, { taxCode: v })} usage="purchase" />
           </div>
         ))}
         <div className="flex items-center justify-between">

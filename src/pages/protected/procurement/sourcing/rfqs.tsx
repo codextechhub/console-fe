@@ -391,7 +391,7 @@ function RfqForm({ entity, currency, initial, onClose }: { entity: string; curre
         <FormField label="Notes"><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="bg-white" /></FormField>
         <div className="pt-1">
           <p className="mb-2 font-mont text-xs font-semibold text-gray-05">Lines (specification only — no price)</p>
-          <LineEditor entity={entity} lines={lines} onChange={setLines} accountLabel="Expense account (optional)" accountType="EXPENSE" showTax showCostCenter={false} />
+          <LineEditor entity={entity} lines={lines} onChange={setLines} accountLabel="Expense account (optional)" accountType="EXPENSE" showTax showCostCenter={false} taxUsage="purchase" />
         </div>
       </div>
     </DetailDrawer>

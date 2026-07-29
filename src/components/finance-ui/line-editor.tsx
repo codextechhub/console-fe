@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MoneyInput } from "./money-input";
 import { AccountPicker, TaxCodePicker, CostCenterPicker } from "./pickers";
+import type { TaxCodeUsage } from "./tax-code-usage";
 
 export interface DocLine {
   description: string;
@@ -29,6 +30,7 @@ export function LineEditor({
   currency,
   showTax = true,
   showCostCenter = true,
+  taxUsage = "any",
 }: {
   entity: string;
   lines: DocLine[];
@@ -38,6 +40,7 @@ export function LineEditor({
   currency?: string | null;
   showTax?: boolean;
   showCostCenter?: boolean;
+  taxUsage?: TaxCodeUsage;
 }) {
   const set = (i: number, patch: Partial<DocLine>) => onChange(lines.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
   const remove = (i: number) => onChange(lines.filter((_, idx) => idx !== i));
@@ -61,7 +64,7 @@ export function LineEditor({
           </div>
           {(showTax || showCostCenter) && (
             <div className="grid grid-cols-2 gap-2">
-              {showTax && <TaxCodePicker entity={entity} value={l.taxCode} onChange={(v) => set(i, { taxCode: v })} />}
+              {showTax && <TaxCodePicker entity={entity} value={l.taxCode} onChange={(v) => set(i, { taxCode: v })} usage={taxUsage} />}
               {showCostCenter && <CostCenterPicker entity={entity} value={l.costCenter} onChange={(v) => set(i, { costCenter: v })} />}
             </div>
           )}

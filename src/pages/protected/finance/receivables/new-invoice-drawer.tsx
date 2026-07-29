@@ -171,7 +171,7 @@ export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
                   <Input value={l.qty} onChange={(e) => setLine(i, { qty: e.target.value })} type="number" min="0" step="1" placeholder="Qty" className="col-span-3 h-9 bg-white" aria-label="Quantity" />
                   <Input value={l.price} onChange={(e) => setLine(i, { price: e.target.value })} type="number" min="0" step="0.01" placeholder="Unit price (₦)" className="col-span-5 h-9 bg-white" aria-label="Unit price" />
                   <div className="col-span-4">
-                    <TaxCodePicker entity={entity} value={l.tax} onChange={(v) => setLine(i, { tax: v })} placeholder="No tax" />
+                    <TaxCodePicker entity={entity} value={l.tax} onChange={(v) => setLine(i, { tax: v })} placeholder="No tax" usage="sales" />
                   </div>
                 </div>
                 <div className="text-right font-mont text-[11px] text-gray-05">Net <Money kobo={net} currency={currency} /></div>

@@ -266,7 +266,7 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
             <p className="self-center text-right font-mont text-sm font-semibold tabular-nums">{formatMoney(Math.round(line.quantity * line.unit_price), currency)}</p>
           </div>;
         }) : <EmptyPanel>Select a PO with posted, uninvoiced receipt quantities.</EmptyPanel>}
-      </div> : <LineEditor entity={entity} lines={directLines} onChange={setDirectLines} accountLabel="Expense account" accountType="EXPENSE" currency={currency} showCostCenter={false} />}
+      </div> : <LineEditor entity={entity} lines={directLines} onChange={setDirectLines} accountLabel="Expense account" accountType="EXPENSE" currency={currency} showCostCenter={false} taxUsage="purchase" />}
       <PostingRecap title="Live posting preview" currency={currency} dr={[{ code: mode === "po" ? "GR/IR" : "Expense", name: mode === "po" ? "Goods received / invoice received" : "Direct purchase expense", amount: total }]} cr={[{ code: "AP", name: "Accounts payable", amount: total }]} helper="Tax, when selected on a direct line, is priced by the server and shown on the saved draft." />
     </div>
   </DetailDrawer>;

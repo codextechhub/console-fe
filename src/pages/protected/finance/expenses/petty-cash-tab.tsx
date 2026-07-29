@@ -248,7 +248,7 @@ function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCash
         </div>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} className="[&_input]:h-9" /></FormField>
-          <FormField label="Tax"><TaxCodePicker entity={entity} value={tax} onChange={setTax} /></FormField>
+          <FormField label="Tax"><TaxCodePicker entity={entity} value={tax} onChange={setTax} usage="purchase" /></FormField>
         </div>
         <FormField label="Note"><Input value={narration} onChange={(e) => setNarration(e.target.value)} placeholder="What it was for" className="h-9 bg-white" /></FormField>
       </div>
