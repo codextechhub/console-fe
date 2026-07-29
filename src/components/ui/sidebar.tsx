@@ -185,6 +185,14 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
+          onClickCapture={(event) => {
+            // Mobile navigation is an overlay. Once any link inside it is
+            // chosen, dismiss the overlay immediately so the destination is
+            // visible instead of rendering behind the still-open menu.
+            if ((event.target as HTMLElement).closest("a[href]")) {
+              setOpenMobile(false);
+            }
+          }}
           className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
           style={
             {
