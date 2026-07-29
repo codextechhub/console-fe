@@ -14,12 +14,12 @@
 import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
-import { Plus, Info, Search, Printer, Check, Send } from "lucide-react";
+import { Plus, Search, Printer, Check, Send } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField, Segmented,
   CustomerPicker, AccountPicker, BankAccountPicker, PostingRecap, toArray,
   type Column, type RecapRow,
-  PostingDateField,} from "@/components/finance-ui";
+  PostingDateField, InfoHint,} from "@/components/finance-ui";
 import { useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,7 +63,12 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
   return (
     <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
       <p className="flex items-center gap-1 font-mont text-xs text-gray-05">
-        {label}{hint ? <Info className="size-3.5 text-gray-02"><title>{hint}</title></Info> : null}
+        {label}
+        {hint ? (
+          <InfoHint ariaLabel={`About ${label}`} className="size-4 text-gray-02">
+            {hint}
+          </InfoHint>
+        ) : null}
       </p>
       <p className="mt-1 font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
     </div>
