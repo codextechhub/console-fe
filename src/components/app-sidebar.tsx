@@ -254,11 +254,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
     {
-      // Export Centre. Overview and Saved exports arrive with the builder
+      // Export Centre. Overview and Exports arrive with the builder
       // (slice 2); Schedules are not in the MVP at all.
       // Anyone can see their own queues (backend gates at IsAuthenticatedAndActive),
       // so the group itself is ungated; Files gates on the run-view key.
-      title: "Export",
+      title: "Data Exports",
       url: routesPath.PROTECTED.EXPORT.QUEUES,
       icon: FileOutput,
       isActive: false,
@@ -268,7 +268,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items: [
         ...(hasPermission(P.VIEW_SAVED_EXPORTS)
           ? [{
-              title: "Saved exports",
+              title: "Exports",
               url: routesPath.PROTECTED.EXPORT.SAVED,
               isActive:
                 location.startsWith("/export/saved") ||

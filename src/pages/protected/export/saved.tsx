@@ -1,4 +1,4 @@
-// Export Centre → Saved exports. The recipes, not the files.
+// Export Centre → Exports. The recipes, not the files.
 //
 // The distinction the page has to carry: editing an export changes FUTURE files
 // only. Files it already produced are never altered and never disappear, which
@@ -242,7 +242,7 @@ export default function SavedExportsPage() {
     <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="font-semibold font-mont text-gray-01">Saved exports</p>
+          <p className="font-semibold font-mont text-gray-01">Exports</p>
           <p className="mt-0.5 text-xs text-gray-01">
             Reusable recipes. Editing one changes future files only — files already produced are never
             altered.
@@ -263,7 +263,7 @@ export default function SavedExportsPage() {
             patchParams({ q: e.target.value });
           }}
           placeholder="Search name or description…"
-          aria-label="Search saved exports"
+          aria-label="Search Exports"
           className="h-10 w-full bg-white sm:w-72"
         />
         <CustomNativeSelect
@@ -304,10 +304,10 @@ export default function SavedExportsPage() {
         loading={isLoading}
         error={isError && !forbidden}
         forbidden={forbidden}
-        forbiddenMessage="You do not have access to saved exports."
+        forbiddenMessage="You do not have access to Exports."
         onRetry={refetch}
         onRowClick={(row) => navigate(routesPath.PROTECTED.EXPORT.EDIT(row.id))}
-        emptyTitle={hasFilters ? "No exports match these filters" : "No saved exports yet"}
+        emptyTitle={hasFilters ? "No exports match these filters" : "No Exports yet"}
         emptyMessage={
           hasFilters
             ? "Clear the filters to see everything."

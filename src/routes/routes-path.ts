@@ -161,7 +161,7 @@ export const routesPath = {
       INDEX: "/tasks",
     },
     // Export menu — more entries will be appended as export features ship.
-    // Overview and Saved exports arrive with the builder (slice 2).
+    // Overview and Exports arrive with the builder (slice 2).
     EXPORT: {
       QUEUES: "/export/queues",
       FILES: "/export/files",

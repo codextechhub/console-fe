@@ -175,7 +175,7 @@ throughout: `{success, message, data}` envelope, `XVSPagination` at 25/page,
 | Builder steps 1–2 | `GET /catalogue/`, `GET /catalogue/<key>/` | `{modules: [{name, datasets[], available}]}`; dataset carries `fields[]`, `filters[]`, `default_columns`, `required_filters`, `supported_formats`, `format_options`, `max_date_span_days`, `row_cap`, `scope`, `requires_entity` |
 | Disable-with-reason everywhere | `GET /capabilities/` | `{can_create, can_run, can_share, can_export_sensitive, can_view_activity, allowed_entities[], row_cap, concurrent_run_limit, in_flight, retention_days}` |
 | Summary rail estimate + preview | `POST /preview/?entity=` | `{matching_rows, rows_bucket, estimated_bytes, confidence, warnings[], sample: {headers, rows}, reads_as}` |
-| Saved exports list / builder save | `GET·POST /definitions/`, `GET·PATCH·DELETE /definitions/<pk>/` | `ExportDefinitionList/Detail/WriteSerializer` |
+| Exports list / builder save | `GET·POST /definitions/`, `GET·PATCH·DELETE /definitions/<pk>/` | `ExportDefinitionList/Detail/WriteSerializer` |
 | Duplicate at step 5 | `POST /definitions/<pk>/duplicate/` | returns the copy, named `"<name> (copy)"`, always private |
 | Share | `POST /definitions/<pk>/share/` | replaces the share list (`{user_ids: []}`) |
 | Run now | `POST /definitions/<pk>/run/` | `{client_key}`; **201 created / 200 = the in-flight run** — this is the concurrency notice, not an error |
@@ -234,7 +234,7 @@ therefore out, not deferred-with-a-placeholder:
 - Builder step 4 loses its timing cards. It asks **where the file goes**, not
   when: run now, or save the recipe without running it. "Run once later" is a
   schedule with one occurrence and goes with the rest.
-- Nav is **Overview · Saved exports · Files · View queues** — four items, not
+- Nav is **Overview · Exports · Files · View queues** — four items, not
   five.
 
 What survives from the spec's Slice 4 is *delivery*, which is backed today
@@ -341,6 +341,58 @@ summary bar, no overflow at 390px. Hiding a working screen behind a "use a
 bigger screen" panel would be worse than what is there. Desktop remains the
 design source of truth and no phone-first optimisation was spent on it.
 
+## Slice 3 — failure and omission handling (DONE)
+
+The run detail already had a body per outcome from slice 1. Slice 3 made the
+unhappy ones *actionable*, and fixed the two places where the backend's stated
+rules were not the rules it actually applied.
+
+### The retry rule was prose, not code
+
+`retry_run`'s docstring has always said "only genuinely retryable failures are
+offered a retry — re-running a permission or filter failure would fail again in
+exactly the same way". `RETRYABLE_FAILURE_CODES` was declared for it. **Neither
+was used anywhere.** `retry_run` checked only "is it FAILED and does it have a
+definition", and the serializer reported `retryable` from `definition_id is not
+None`, so the UI offered a Retry button on a filter failure that would queue a
+run and fail identically — a second wait and a second notification for nothing.
+
+Now enforced in both places, and the refusal quotes the code's own guidance
+rather than a generic "cannot retry".
+
+### The UI leads with the fix, not the retry
+
+`failure-actions.ts` maps each `FailureCode` to the one thing worth offering:
+
+| Codes | Offer |
+| --- | --- |
+| `FILTER_INVALID` · `REQUIRED_FILTER_MISSING` · `NO_COLUMNS` · `ROW_CAP_EXCEEDED` · `DATE_SPAN_EXCEEDED` · `DATASET_WITHDRAWN` | **Edit the export** — the fix is a configuration change |
+| `INFRASTRUCTURE` · `UNKNOWN` | **Retry now** — the only case where running it again can change anything |
+| `DATASET_FORBIDDEN` · `ENTITY_FORBIDDEN` · `OWNER_INACTIVE` | **Nothing** — says so plainly; the fix is a person or a permission elsewhere |
+
+A run whose definition has been deleted says that too, rather than showing a
+button that goes nowhere.
+
+### Omissions render structurally
+
+`ExportRun.omissions` is `[{code, scope, detail, items[]}]`. The banner now
+renders a heading per code, the detail sentence, and the affected field ids in
+mono — so the omission is *rendered*, never parsed out of prose by the reader.
+`FIELD_WITHDRAWN` and `ROW_CAP_HIT` offer an edit link; `FIELD_FORBIDDEN` does
+not, because editing the export is not how you get access back.
+
+### Drift became a real diff
+
+`config_drift` always returned `{field, then, now}`, but the serializer
+published only `{count, fields}` — so the UI could say "2 places" and nothing
+more. It now publishes `changes[]` rendered **as sentences**: column ids become
+labels, filter specs become the review step's own wording, an options object
+becomes a count. That keeps the module's rule that no raw JSONField reaches the
+wire, while letting the run detail actually answer "why does last month differ?".
+
+`definition_id` is now on the run serializer — the UI needs it to offer "Edit
+the export", and the definition is already visible to that caller.
+
 ## Gaps to close before the slices that need them
 
 1. **Dataset catalogue depth.** Five datasets are published today
@@ -358,8 +410,8 @@ design source of truth and no phone-first optimisation was spent on it.
 | **0** | Reconcile with BackgroundJob; one status vocabulary; the four `-text` tokens | ✅ done |
 | **0b** | Rework View Queues onto house components + make export rows tell the truth | ✅ done |
 | **1** | Files list, run detail, download + logging, 30-day expiry, file card | ✅ done |
-| **2** | Catalogue, wizard steps 1–3, preview/estimate, definitions CRUD, Saved exports | ✅ done |
-| 3 | Failure and omission handling end to end, frozen-config diff | ✅ ready |
+| **2** | Catalogue, wizard steps 1–3, preview/estimate, definitions CRUD, Exports | ✅ done |
+| **3** | Failure and omission handling end to end, frozen-config diff | ✅ done |
 | 4 | Delivery only: recipients, secure links, test delivery, revocation | ✅ ready |
 | 5 | Sharing, Quick export from module screens, admin activity + download log | ✅ ready |
 | ~~Schedules~~ | Cut from the MVP — see the scope decision above | — |

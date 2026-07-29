@@ -16,7 +16,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Play, Save } from "lucide-react";
 import PageAccessDenied from "@/components/custom/page-access-denied";
-import StepProgressBar from "@/components/custom/step-progress-bar";
+import { WizardStepper } from "@/components/custom/import-wizard/wizard-steps";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";
 import { Segmented } from "@/components/finance-ui/segmented";
 import { ErrorState, LoadingState } from "@/components/finance-ui/states";
@@ -203,17 +203,24 @@ function BuilderForm({
     return out;
   }, [state, dataset]);
 
-  // Markers stay off until the person actually tries to save. A form nobody has
-  // filled in yet is not "wrong", and a step bar that is red on arrival teaches
-  // people to ignore it. The review step lists the same problems in words —
-  // this only puts them back on the bar once they are standing in the way.
+  // Problems stay quiet until the person actually tries to save. A form nobody
+  // has filled in yet is not "wrong". They then surface on the review step, in
+  // words, each linking to the step that fixes it.
   const [attempted, setAttempted] = useState(false);
-  const errorsByStep = useMemo(() => {
-    if (!attempted) return undefined;
-    const out: Record<number, number> = {};
-    for (const p of problems) out[p.step] = (out[p.step] ?? 0) + 1;
-    return out;
-  }, [problems, attempted]);
+
+  // Moving ON from a step needs that step's own prerequisite. Picking a module
+  // is not picking a dataset, and everything after step 1 is meaningless without
+  // one — so Next stays disabled rather than leading somewhere empty. Step
+  // navigation via the step bar is still free; this only gates the forward walk.
+  const nextBlockedReason =
+    step === 1 && !state.datasetKey
+      ? "Choose a dataset first."
+      : step === 1 && dataset?.requires_entity && !state.entity
+        ? "Choose the entity this export reads."
+        : step === 2 && !state.columns.length
+          ? "Choose at least one column."
+          : "";
+  const canLeaveStep = !nextBlockedReason;
 
   const [createDefinition, { isLoading: creating }] = useCreateExportDefinitionMutation();
   const [updateDefinition, { isLoading: updating }] = useUpdateExportDefinitionMutation();
@@ -284,7 +291,7 @@ function BuilderForm({
         onClick={() => navigate(routesPath.PROTECTED.EXPORT.SAVED)}
         className="inline-flex items-center gap-1.5 font-mont text-xs font-medium text-gray-05 hover:text-primary"
       >
-        <ArrowLeft className="size-3.5" /> Saved exports
+        <ArrowLeft className="size-3.5" /> Exports
       </button>
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
@@ -299,14 +306,8 @@ function BuilderForm({
         </div>
       </div>
 
-      <div className="mt-5 max-w-3xl">
-        <StepProgressBar
-          totalSteps={TOTAL_STEPS}
-          currentStep={step}
-          labels={STEP_LABELS}
-          onStepClick={goStep}
-          errorsByStep={errorsByStep}
-        />
+      <div className="mt-5">
+        <WizardStepper currentStep={step} labels={STEP_LABELS} />
       </div>
 
       {loading ? (
@@ -404,7 +405,12 @@ function BuilderForm({
 
               <div className="flex flex-wrap items-center gap-2">
                 {step < TOTAL_STEPS ? (
-                  <Button onClick={() => goStep(step + 1)} className="gap-1.5">
+                  <Button
+                    onClick={() => goStep(step + 1)}
+                    disabled={!canLeaveStep}
+                    title={canLeaveStep ? undefined : nextBlockedReason}
+                    className="gap-1.5"
+                  >
                     Next <ArrowRight className="size-4" />
                   </Button>
                 ) : (

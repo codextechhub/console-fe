@@ -29,7 +29,7 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Permissions | Actions | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Dependencies | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Permission Groups | `P.VIEW_PERMISSIONS` | inherits parent |
-| Export | Saved exports | `P.VIEW_SAVED_EXPORTS` | own check via `hasPermission`; the recipes list + the builder |
+| Export | Exports | `P.VIEW_SAVED_EXPORTS` | own check via `hasPermission`; the recipes list + the builder |
 | Export | Files | `P.VIEW_EXPORT_RUNS` | own check via `hasPermission`; Export Centre run/file list. Overview arrives later; Schedules are not in the MVP |
 | Export | View Queues | _(none â always visible)_ | own queues open to any authenticated user (`IsAuthenticatedAndActive`); the All Queues scope is gated server-side (CX staff with `xvs_super_admin`/`xvs_platform_admin` role) and the Mine/All toggle only renders when the summary's `can_view_all` is true |
 | Data Imports | Import Batches | `P.VIEW_IMPORT_BATCHES` | parent visible when user has either batch or template view; sub-item hidden without this permission |

@@ -12,7 +12,7 @@ const SavedExportsPage = lazy(() => import("@/pages/protected/export/saved"));
 const ExportBuilderPage = lazy(() => import("@/pages/protected/export/builder"));
 
 export const exportRoutes: RouteObject[] = [
-  { path: routesPath.PROTECTED.EXPORT.SAVED, element: <SavedExportsPage />, handle: { title: "Saved exports" } satisfies DashboardHandle },
+  { path: routesPath.PROTECTED.EXPORT.SAVED, element: <SavedExportsPage />, handle: { title: "Exports" } satisfies DashboardHandle },
   { path: routesPath.PROTECTED.EXPORT.NEW, element: <ExportBuilderPage />, handle: { title: "New export" } satisfies DashboardHandle },
   { path: routesPath.PROTECTED.EXPORT.EDIT_PATH, element: <ExportBuilderPage />, handle: { title: "Edit export" } satisfies DashboardHandle },
   { path: routesPath.PROTECTED.EXPORT.FILES, element: <FilesPage />, handle: { title: "Files" } satisfies DashboardHandle },

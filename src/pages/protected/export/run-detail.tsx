@@ -14,7 +14,7 @@
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { ArrowLeft, RotateCcw, XCircle } from "lucide-react";
+import { ArrowLeft, Pencil, RotateCcw, XCircle } from "lucide-react";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { RunStatusPill } from "@/components/custom/run-status-pill";
 import { ConfirmActionModal } from "@/components/finance-ui/confirm-action-modal";
@@ -38,6 +38,7 @@ import type {
   ExportRunDetail,
 } from "@/redux/services/dashboard/exports-types";
 import { FileCard } from "./file-card";
+import { OMISSION_HEADING, omissionIsFixableInBuilder, remedyFor } from "./failure-actions";
 import { formatBytes, formatDay, formatDuration, formatStamp } from "./format";
 import { useFileDownload } from "./use-file-download";
 import { useState } from "react";
@@ -111,6 +112,7 @@ export default function ExportRunDetailPage() {
   const canDownload = hasPermission(P.DOWNLOAD_EXPORT_FILE);
   const canCancel = hasPermission(P.CANCEL_EXPORT_RUN);
   const canRun = hasPermission(P.RUN_EXPORT);
+  const canEdit = hasPermission(P.UPDATE_EXPORT);
 
   const [confirmCancel, setConfirmCancel] = useState(false);
 
@@ -141,6 +143,8 @@ export default function ExportRunDetailPage() {
       toast.error(apiErrorMessage(e, "That run could not be cancelled."));
     }
   };
+
+  const remedy = remedyFor(run?.failure?.code);
 
   const onRetry = async () => {
     try {
@@ -189,9 +193,21 @@ export default function ExportRunDetailPage() {
                   <XCircle className="size-4" /> Cancel run
                 </Button>
               )}
-              {run.failure?.retryable && canRun && (
+              {/* One action, and only the one that can change the outcome. The
+                  API decides retryability from the failure CODE, so a filter or
+                  permission failure never offers a button that would fail
+                  identically — it offers the edit that actually fixes it. */}
+              {run.failure && remedy.kind === "retry" && run.failure.retryable && canRun && (
                 <Button onClick={onRetry} loading={retrying} loadingText="Queueing…" className="gap-1.5">
-                  <RotateCcw className="size-4" /> Retry now
+                  <RotateCcw className="size-4" /> {remedy.label}
+                </Button>
+              )}
+              {run.failure && remedy.kind === "edit" && run.definition_id && canEdit && (
+                <Button
+                  onClick={() => navigate(routesPath.PROTECTED.EXPORT.EDIT(run.definition_id as number))}
+                  className="gap-1.5"
+                >
+                  <Pencil className="size-4" /> {remedy.label}
                 </Button>
               )}
             </div>
@@ -200,8 +216,12 @@ export default function ExportRunDetailPage() {
           <RunBody
             run={run}
             canDownload={canDownload}
+            canEdit={canEdit}
             downloadingId={busyId}
             onDownload={() => run.file && save(run.file, run.id)}
+            onEditExport={() =>
+              run.definition_id && navigate(routesPath.PROTECTED.EXPORT.EDIT(run.definition_id))
+            }
           />
 
           <div className="grid gap-5 lg:grid-cols-2">
@@ -255,12 +275,30 @@ export default function ExportRunDetailPage() {
               {/* Drift is the point of freezing the config: the export has moved
                   on, and this file did not. Stated, never silently reconciled. */}
               {run.drift.count > 0 && (
-                <p className="mt-4 border-t border-gray-03 pt-3 font-mont text-xs leading-relaxed text-gray-01">
-                  This differs from the export's current setup in {run.drift.count}{" "}
-                  {run.drift.count === 1 ? "place" : "places"}
-                  {run.drift.fields.length ? ` (${run.drift.fields.join(", ")})` : ""}. Editing an export
-                  changes future files only — this one is exactly what ran.
-                </p>
+                <div className="mt-4 border-t border-gray-03 pt-3">
+                  <p className="font-mont text-xs leading-relaxed text-gray-01">
+                    This differs from the export's current setup in {run.drift.count}{" "}
+                    {run.drift.count === 1 ? "place" : "places"}. Editing an export changes future
+                    files only — this one is exactly what ran.
+                  </p>
+                  <dl className="mt-2.5 space-y-2">
+                    {run.drift.changes.map((c) => (
+                      <div key={c.field} className="rounded-md bg-gray-04 px-3 py-2">
+                        <dt className="font-mont text-[11px] font-semibold text-gray-05">{c.label}</dt>
+                        <dd className="mt-1 space-y-0.5 font-mont text-xs text-gray-01">
+                          <p>
+                            <span className="text-gray-05">This run: </span>
+                            {c.then}
+                          </p>
+                          <p>
+                            <span className="text-gray-05">Now: </span>
+                            {c.now}
+                          </p>
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
               )}
             </Section>
           </div>
@@ -308,13 +346,17 @@ export default function ExportRunDetailPage() {
 function RunBody({
   run,
   canDownload,
+  canEdit,
   downloadingId,
   onDownload,
+  onEditExport,
 }: {
   run: ExportRunDetail;
   canDownload: boolean;
+  canEdit: boolean;
   downloadingId: number | null;
   onDownload: () => void;
+  onEditExport: () => void;
 }) {
   // Still going: a determinate bar when the total is known, the phase name when
   // it is not. Never a bar that creeps to 90% and parks.
@@ -357,6 +399,7 @@ function RunBody({
   }
 
   if (run.status === "FAILED" && run.failure) {
+    const remedy = remedyFor(run.failure.code);
     return (
       <Banner tone="error" title={run.failure.message || "This export failed"}>
         {run.failure.recommended_action && (
@@ -365,9 +408,33 @@ function RunBody({
             <p>{run.failure.recommended_action}</p>
           </>
         )}
+        {/* Retrying a filter or permission failure fails identically, so the
+            only button offered here is the one that can change the outcome. */}
+        {remedy.kind === "edit" && run.definition_id && canEdit && (
+          <button
+            type="button"
+            onClick={onEditExport}
+            className="font-mont text-xs font-medium text-primary underline underline-offset-2"
+          >
+            {remedy.label}
+          </button>
+        )}
+        {remedy.kind === "none" && (
+          <p className="text-gray-05">
+            There is nothing to change on the export itself — this needs an administrator.
+          </p>
+        )}
+        {/* An orphaned run still has to explain itself: the recipe it came from
+            is gone, so neither editing nor retrying is on offer. */}
+        {remedy.kind !== "none" && !run.definition_id && (
+          <p className="text-gray-05">
+            The export this run came from no longer exists, so there is nothing left to edit. Build
+            it again from Exports.
+          </p>
+        )}
         <p className={cn(NUM, "border-t border-destructive/20 pt-2.5 text-[11px] text-gray-05")}>
           Reference {run.failure.reference} · quote this if you contact support
-          {run.attempt > 1 ? ` · attempt ${run.attempt}` : ""}
+          {run.attempt > 1 ? ` · attempt ${run.attempt} of 3` : ""}
         </p>
       </Banner>
     );
@@ -394,11 +461,40 @@ function RunBody({
       {partial && (
         <Banner tone="caution" title="The file was produced, but something was left out">
           {run.omissions.length ? (
-            run.omissions.map((o, i) => <p key={i}>{o.detail}</p>)
+            <div className="space-y-3">
+              {run.omissions.map((o, i) => (
+                <div key={i}>
+                  <p className="font-semibold text-yellow-01-text">
+                    {OMISSION_HEADING[o.code] ?? "Something was left out"}
+                  </p>
+                  <p className="mt-0.5">{o.detail}</p>
+                  {/* The structured item list, so the omission is renderable
+                      rather than something the reader has to parse out of the
+                      sentence. The API supplies it; nothing here infers it. */}
+                  {!!o.items?.length && (
+                    <p className={cn(NUM, "mt-1 text-[11px] text-gray-05")}>
+                      {o.items.join(" · ")}
+                    </p>
+                  )}
+                  {omissionIsFixableInBuilder(o.code) && run.definition_id && canEdit && (
+                    <button
+                      type="button"
+                      onClick={onEditExport}
+                      className="mt-1.5 font-mont text-xs font-medium text-primary underline underline-offset-2"
+                    >
+                      Edit the export
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           ) : (
             <p>Part of this export could not be included. The run record has the detail.</p>
           )}
-          <p>Nothing was silently truncated — what you have is complete for the columns and rows listed.</p>
+          <p className="border-t border-yellow-01/25 pt-2">
+            Nothing was silently truncated — what you have is complete for the columns and rows
+            listed.
+          </p>
         </Banner>
       )}
 

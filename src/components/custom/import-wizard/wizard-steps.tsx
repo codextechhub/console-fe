@@ -61,7 +61,19 @@ export function extractUploadError(err: unknown): string | null {
 
 // ── Stepper ─────────────────────────────────────────────────────────────────
 
-export function WizardStepper({ currentStep }: { currentStep: WizardStep }) {
+/**
+ * The house wizard stepper. `labels` defaults to the import wizard's own steps,
+ * so its callers are unchanged; the Export Centre builder passes its four.
+ * Shared rather than copied so the two wizards cannot drift apart visually.
+ */
+export function WizardStepper({
+  currentStep,
+  labels = STEP_LABELS,
+}: {
+  currentStep: number;
+  labels?: string[];
+}) {
+  const STEP_LABELS = labels;
   return (
     <div className="bg-white rounded-md border border-gray-100 px-5 py-4">
       <div className="flex items-center">

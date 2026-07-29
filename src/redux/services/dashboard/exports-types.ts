@@ -95,6 +95,8 @@ export interface ExportRun {
   id: number;
   reference: string;
   export_name: string;
+  /** Null for a quick export, which never had a saved recipe. */
+  definition_id: number | null;
   status: ExportRunStatus;
   trigger: ExportTrigger;
   requested_by_name: string;
@@ -111,8 +113,13 @@ export interface ExportRunDetail extends ExportRun {
   omissions: ExportOmission[];
   failure: ExportFailure | null;
   configuration: ExportRunConfiguration;
-  /** How far the definition has drifted from what produced this file. */
-  drift: { count: number; fields: string[] };
+  /** How far the definition has drifted from what produced this file.
+   *  `changes` is rendered server-side as sentences, never the stored blob. */
+  drift: {
+    count: number;
+    fields: string[];
+    changes: { field: string; label: string; then: string; now: string }[];
+  };
   deliveries: ExportDelivery[];
 }
 
