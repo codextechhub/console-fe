@@ -10,7 +10,7 @@
 // equal-amount candidate highlighting; we reconcile the account's whole
 // unmatched set rather than a single uploaded statement file.
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Link2, RefreshCw, CheckCircle2, Printer, FilePlus2, Unlink, Check, EyeOff, RotateCcw } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
@@ -443,13 +443,18 @@ function AdjustDrawer({ line, entity, currency, onClose, onDone }: {
 }) {
   const [counter, setCounter] = useState("");
   const [narration, setNarration] = useState(line.description || "");
-  // Unlike the import, an adjustment posts — so it needs a date in an open period.
-  // Left empty here and seeded by the effect below once the window has loaded, to
-  // the same date the server would choose: the line's own date when that month is
-  // still open, else the earliest open day after it. Seeding with the line's date
-  // unconditionally would show a date the field then rejects, contradicting the
-  // notice that says it will be moved.
-  const [postingDate, setPostingDate] = useState("");
+  // Unlike the import, an adjustment posts — so it needs a date in an open period:
+  // the line's own date when that month is still open, else the earliest open day
+  // after it, which is the same date the server would choose. Defaulting to the
+  // line's date unconditionally would show a date the field then rejects,
+  // contradicting the notice that says it will be moved.
+  //
+  // `chosen` is null until the user picks a date, so the field simply DERIVES the
+  // suggestion rather than seeding it from an effect — no cascading render, and
+  // nothing to go stale. It stays empty while the posting window is still loading,
+  // because the suggestion is not knowable yet. An explicit clear is respected:
+  // "" is a choice, and only null falls back.
+  const [chosen, setChosen] = useState<string | null>(null);
   const { ranges, isOpen, reasonFor, isLoading: windowLoading } = usePostingWindow(entity);
   const [adjust, { isLoading }] = useAdjustStatementLineMutation();
 
@@ -457,10 +462,7 @@ function AdjustDrawer({ line, entity, currency, onClose, onDone }: {
     () => (line.txn_date ? bookingDateFor(line.txn_date, ranges) : null),
     [line.txn_date, ranges],
   );
-  useEffect(() => {
-    if (windowLoading || postingDate || !suggested) return;
-    setPostingDate(suggested);
-  }, [suggested, windowLoading, postingDate]);
+  const postingDate = chosen ?? (windowLoading ? "" : suggested ?? "");
 
   const lineDateClosed = Boolean(line.txn_date) && !windowLoading && !isOpen(line.txn_date);
   const deferred = Boolean(postingDate) && postingDate !== line.txn_date;
@@ -502,7 +504,7 @@ function AdjustDrawer({ line, entity, currency, onClose, onDone }: {
           <AccountPicker entity={entity} value={counter} onChange={setCounter} postableOnly placeholder="Defaults to 5500 Bank Charges" />
         </FormField>
         <PostingDateField
-          label="Posting date" entity={entity} value={postingDate} onChange={setPostingDate}
+          label="Posting date" entity={entity} value={postingDate} onChange={setChosen}
           hint={deferred ? `Books in this period; ${line.txn_date} stays as the bank’s value date.` : undefined}
         />
         <FormField label="Narration">
