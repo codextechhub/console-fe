@@ -28,12 +28,13 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
+import { refundAmountIsWithinAvailableCredit } from "./refund-validation";
 import {
   useGetArAdjustmentsQuery, useCreateRefundMutation, usePostRefundMutation,
   useSubmitRefundMutation, useCreateWriteOffRequestMutation, usePostWriteOffRequestMutation,
-  useSubmitWriteOffRequestMutation, useGetInvoicesQuery, useGetCustomersQuery,
+  useSubmitWriteOffRequestMutation, useGetInvoicesQuery, useGetRefundAvailabilityQuery,
 } from "@/redux/services/finance/ar-api";
-import type { ArAdjustment } from "@/redux/services/finance/ar-types";
+import type { ArAdjustment, RefundAvailabilityCustomer } from "@/redux/services/finance/ar-types";
 
 type Mode = "REFUND" | "WRITEOFF";
 
@@ -101,17 +102,9 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
     ...(search ? { search } : {}),
   }), [entity, page, filter, search]);
   const { data, isLoading, isFetching, isError, refetch } = useGetArAdjustmentsQuery(params);
-  const customersQ = useGetCustomersQuery({ entity, is_active: "true" });
 
   const rows = useMemo(() => toArray(data?.data), [data]);
   const pg = data?.pagination;
-  const refundableCredit = useMemo(
-    () => toArray(customersQ.data?.data).reduce((s, c) => {
-      const balance = c.balance ?? 0;
-      return s + (balance < 0 ? -balance : 0);
-    }, 0),
-    [customersQ.data],
-  );
   const resetPage = () => setPage(1);
   const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01";
 
@@ -128,7 +121,7 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
   return (
     <>
       <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Stat label="Refundable credit" hint="Total customer credit available to refund." value={formatMoney(refundableCredit, currency)} />
+        <Stat label="Refundable credit" hint="Total customer credit available to refund." value={formatMoney(data?.kpis.refundable_credit ?? 0, currency)} />
         <Stat label="Written off (YTD)" value={formatMoney(data?.kpis.written_off_ytd ?? 0, currency)} />
         <Stat label="Pending approval" value={String(data?.kpis.pending ?? 0)} />
       </div>
@@ -231,7 +224,7 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
       }
     >
       <div className="space-y-5">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Amount"><Money kobo={row.amount} currency={currency} /></Field>
           <Field label="Status"><StatusPill status={row.status || "DRAFT"} /></Field>
           <Field label={wo ? "Against invoice" : "Reference"}>{row.reference || "—"}</Field>
@@ -240,7 +233,7 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
         <Field label="Reason"><span className="font-normal">{row.reason || "—"}</span></Field>
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">GL posting</p>
-          <PostingRecap title={wo ? "Write-off posting" : "Refund posting"} dr={recap.dr} cr={recap.cr} currency={currency} helper={helper} />
+          <PostingRecap title={wo ? "Write-off posting" : "Refund posting"} dr={recap.dr} cr={recap.cr} currency={currency} helper={helper} stackOnMobile />
         </div>
       </div>
     </DetailDrawer>
@@ -260,6 +253,8 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
   const [invoice, setInvoice] = useState("");
   const [expenseAccount, setExpenseAccount] = useState("");
   const [nextAction, setNextAction] = useState<"post" | "submit" | "draft">("post");
+  const [refundCustomerSearch, setRefundCustomerSearch] = useState("");
+  const [selectedRefundCustomer, setSelectedRefundCustomer] = useState<RefundAvailabilityCustomer | null>(null);
 
   const [createRefund, { isLoading: creatingR }] = useCreateRefundMutation();
   const [postRefund, { isLoading: postingR }] = usePostRefundMutation();
@@ -269,6 +264,32 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
   const [submitWriteOff, { isLoading: submittingW }] = useSubmitWriteOffRequestMutation();
   const saving = creatingR || postingR || submittingR || creatingW || postingW || submittingW;
   const wo = mode === "WRITEOFF";
+  const refundSearch = useDebounce(refundCustomerSearch.trim(), 250);
+  const refundAvailabilityQ = useGetRefundAvailabilityQuery(
+    {
+      entity,
+      page_size: 100,
+      ...(refundSearch ? { search: refundSearch } : {}),
+    },
+    { skip: !open || wo },
+  );
+  const refundCustomers = useMemo(
+    () => toArray(refundAvailabilityQ.data?.data),
+    [refundAvailabilityQ.data],
+  );
+  const refundCustomerOptions = useMemo(() => {
+    const rows = selectedRefundCustomer
+      && !refundCustomers.some((item) => item.customer_code === selectedRefundCustomer.customer_code)
+      ? [selectedRefundCustomer, ...refundCustomers]
+      : refundCustomers;
+    return rows.map((item) => ({
+      value: item.customer_code,
+      label: `${item.customer_code} — ${item.customer_name} · ${formatMoney(item.refundable_credit, currency)} available`,
+    }));
+  }, [refundCustomers, selectedRefundCustomer, currency]);
+  const refundableAmount = selectedRefundCustomer?.refundable_credit ?? 0;
+  const refundAmountIsValid = refundAmountIsWithinAvailableCredit(amount, refundableAmount);
+  const refundAmountOverLimit = !wo && !!customer && amount > refundableAmount;
 
   // Open invoices (with a balance due) for the chosen customer — write-off targets.
   const invQ = useGetInvoicesQuery({ entity, search: customer, status: "POSTED" }, { skip: !customer || !wo });
@@ -292,15 +313,28 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
   }, [wo, expenseAccount, amount]);
 
   const canSubmit = wo
-    ? !!customer && !!invoice && amount > 0
-    : !!customer && !!bankAccount && amount > 0;
+    ? !!customer && !!invoice && amount > 0 && !!date
+    : !!customer && !!bankAccount && refundAmountIsValid && !!date;
 
   const reset = () => {
     setMode("REFUND"); setDate(""); setCustomer(""); setAmount(0); setReason("");
     setBankAccount(""); setInvoice(""); setExpenseAccount(""); setNextAction("post");
+    setRefundCustomerSearch(""); setSelectedRefundCustomer(null);
   };
   const close = () => { reset(); onClose(); };
-  const changeMode = (m: Mode) => { setMode(m); setInvoice(""); setAmount(0); setNextAction("post"); };
+  const changeMode = (m: Mode) => {
+    setMode(m); setCustomer(""); setInvoice(""); setAmount(0); setNextAction("post");
+    setRefundCustomerSearch(""); setSelectedRefundCustomer(null);
+  };
+  const pickRefundCustomer = (code: string) => {
+    const selected = refundCustomers.find((item) => item.customer_code === code)
+      ?? (selectedRefundCustomer?.customer_code === code ? selectedRefundCustomer : null);
+    setCustomer(code);
+    setInvoice("");
+    setSelectedRefundCustomer(selected);
+    setAmount(selected?.refundable_credit ?? 0);
+    setRefundCustomerSearch("");
+  };
   const pickInvoice = (id: string) => {
     setInvoice(id);
     const inv = openInvoices.find((i) => String(i.id) === id);
@@ -367,10 +401,31 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
           isDisabled={(v) => v === "WRITEOFF" && !canWriteOff}
         />
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
-          <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={(v) => { setCustomer(v); setInvoice(""); }} /></FormField>
+          <FormField label="Customer" required>
+            {wo ? (
+              <CustomerPicker entity={entity} value={customer} onChange={(v) => { setCustomer(v); setInvoice(""); }} />
+            ) : (
+              <SearchSelect
+                options={refundCustomerOptions}
+                value={customer}
+                onChange={(e) => pickRefundCustomer(e.target.value)}
+                onSearchChange={setRefundCustomerSearch}
+                loading={refundAvailabilityQ.isFetching}
+                placeholder="Search customers with refundable credit"
+                revealOnSearch
+              />
+            )}
+          </FormField>
         </div>
+        {!wo && refundAvailabilityQ.isError ? (
+          <p className="font-mont text-xs text-destructive">Refundable customers could not be loaded. Try again.</p>
+        ) : null}
+        {!wo && !refundAvailabilityQ.isFetching && !refundAvailabilityQ.isError
+          && refundAvailabilityQ.data && refundCustomers.length === 0 && !refundSearch ? (
+            <p className="font-mont text-xs text-gray-05">No customers currently have credit available to refund.</p>
+          ) : null}
 
         {wo ? (
           <FormField label="Against invoice" required>
@@ -384,8 +439,27 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
           </FormField>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} /></FormField>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <FormField label="Amount" required>
+            <div className="space-y-1">
+              <MoneyInput
+                valueKobo={amount}
+                onChangeKobo={setAmount}
+                currency={currency}
+                disabled={!wo && !customer}
+              />
+              {!wo && customer ? (
+                <p className={cn(
+                  "font-mont text-[11px]",
+                  refundAmountOverLimit ? "text-destructive" : "text-gray-05",
+                )}>
+                  {refundAmountOverLimit
+                    ? `Amount cannot exceed ${formatMoney(refundableAmount, currency)}.`
+                    : `${formatMoney(refundableAmount, currency)} available to refund.`}
+                </p>
+              ) : null}
+            </div>
+          </FormField>
           {wo ? (
             <FormField label="Write-off expense account">
               <AccountPicker entity={entity} value={expenseAccount} onChange={setExpenseAccount} accountType="EXPENSE" postableOnly
@@ -398,6 +472,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
 
         <PostingRecap
           title={wo ? "Write-off posting" : "Refund posting"} dr={recap.dr} cr={recap.cr} currency={currency}
+          stackOnMobile
           helper={wo
             ? "A write-off recognises the loss as expense and clears the receivable."
             : "A refund pays out a credit balance — cash leaves the bank."}

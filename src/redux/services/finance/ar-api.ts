@@ -27,6 +27,7 @@ import type {
   InvoiceSummary,
   PaymentPlan,
   Refund,
+  RefundAvailabilityCustomer,
   WriteOffRequest,
 } from "./ar-types";
 
@@ -112,6 +113,13 @@ export const arApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/finance/refunds/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceRefunds"],
     }),
+    getRefundAvailability: builder.query<
+      PaginatedEnvelope<RefundAvailabilityCustomer>,
+      { entity: string; page?: number; page_size?: number; search?: string }
+    >({
+      query: (params) => ({ url: `/finance/refunds/availability/${qs(params)}`, method: "GET" }),
+      providesTags: ["FinanceRefunds", "FinanceCustomers"],
+    }),
     createRefund: builder.mutation<ApiEnvelope<Refund>, { entity: string; customer: string; refund_date: string; method?: string; amount: number; bank_account?: string | number; reference?: string; narration?: string }>({
       query: ({ entity, ...body }) => ({ url: `/finance/refunds/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceRefunds"],
@@ -156,7 +164,7 @@ export const arApi = baseApi.injectEndpoints({
     }),
     // Unified refunds + write-offs, paginated, with KPI totals in the envelope.
     getArAdjustments: builder.query<
-      { pagination: Pagination; kpis: { written_off_ytd: number; pending: number }; data: ArAdjustment[] },
+      { pagination: Pagination; kpis: { written_off_ytd: number; pending: number; refundable_credit: number }; data: ArAdjustment[] },
       { entity: string; type?: string; search?: string; page?: number }
     >({
       query: (params) => ({ url: `/finance/ar-adjustments/${qs(params)}`, method: "GET" }),
@@ -324,6 +332,7 @@ export const {
   usePostCreditNoteMutation,
   useAllocateCreditNoteMutation,
   useGetRefundsQuery,
+  useGetRefundAvailabilityQuery,
   useCreateRefundMutation,
   usePostRefundMutation,
   useSubmitRefundMutation,

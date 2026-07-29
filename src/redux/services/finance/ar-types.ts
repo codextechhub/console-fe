@@ -76,6 +76,14 @@ export interface Refund {
   narration: string;
 }
 
+export interface RefundAvailabilityCustomer {
+  customer_id: number;
+  customer_code: string;
+  customer_name: string;
+  refundable_credit: number;
+  refundable_credit_naira: string;
+}
+
 export interface WriteOffRequest {
   id: number;
   document_number: string;

@@ -37,6 +37,7 @@ interface SearchSelectProps {
   revealOnSearch?: boolean;
   value?: string;
   onChange?: React.ChangeEventHandler<HTMLSelectElement>;
+  onSearchChange?: (query: string) => void;
   onBlur?: React.FocusEventHandler<HTMLSelectElement>;
 }
 
@@ -65,9 +66,11 @@ export function SearchSelect({
   revealOnSearch = false,
   value = "",
   onChange,
+  onSearchChange,
 }: SearchSelectProps) {
   const selected = options.find((o) => o.value === value) ?? null;
   const [query, setQuery] = React.useState("");
+  const selectedLabelRef = React.useRef<string | null>(null);
 
   // When revealOnSearch is on, withhold the list until something is typed. The
   // selected item's label fills the input, so treat a query equal to the
@@ -96,8 +99,17 @@ export function SearchSelect({
       <Combobox<SearchSelectOption>
         items={visibleItems}
         value={selected}
-        onValueChange={(item) => emitChange(item?.value ?? "")}
-        onInputValueChange={(v: string) => setQuery(v ?? "")}
+        onValueChange={(item) => {
+          selectedLabelRef.current = item?.label ?? null;
+          emitChange(item?.value ?? "");
+        }}
+        onInputValueChange={(v: string) => {
+          const next = v ?? "";
+          setQuery(next);
+          const isSelectionLabel = next === selected?.label || next === selectedLabelRef.current;
+          onSearchChange?.(isSelectionLabel ? "" : next);
+          if (isSelectionLabel) selectedLabelRef.current = null;
+        }}
         itemToStringLabel={(item) => item?.label ?? ""}
         isItemEqualToValue={(a, b) => a?.value === b?.value}
         disabled={disabled || loading}

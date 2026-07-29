@@ -36,8 +36,9 @@ function RecapColumn({ label, totalLabel, rows, currency, side }: {
   );
 }
 
-export function PostingRecap({ title, dr, cr, currency, helper }: {
+export function PostingRecap({ title, dr, cr, currency, helper, stackOnMobile = false }: {
   title: string; dr: RecapRow[]; cr: RecapRow[]; currency?: string | null; helper?: string;
+  stackOnMobile?: boolean;
 }) {
   const totalDr = dr.reduce((s, r) => s + r.amount, 0);
   const totalCr = cr.reduce((s, r) => s + r.amount, 0);
@@ -51,7 +52,12 @@ export function PostingRecap({ title, dr, cr, currency, helper }: {
           {balanced ? <Check className="size-3" /> : null} Debits = Credits
         </span>
       </div>
-      <div className="grid grid-cols-2 divide-x divide-gray-03">
+      <div className={cn(
+        "grid",
+        stackOnMobile
+          ? "grid-cols-1 divide-y divide-gray-03 sm:grid-cols-2 sm:divide-x sm:divide-y-0"
+          : "grid-cols-2 divide-x divide-gray-03",
+      )}>
         <RecapColumn label="Debit (DR)" totalLabel="Total Dr" rows={dr} currency={currency} side="DR" />
         <RecapColumn label="Credit (CR)" totalLabel="Total Cr" rows={cr} currency={currency} side="CR" />
       </div>
