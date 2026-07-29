@@ -10,16 +10,17 @@
 // equal-amount candidate highlighting; we reconcile the account's whole
 // unmatched set rather than a single uploaded statement file.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Link2, RefreshCw, CheckCircle2, Printer, FilePlus2, Unlink, Check, EyeOff, RotateCcw } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
-import { DetailDrawer, FormField, AccountPicker, InfoHint, useActiveEntity, toArray } from "@/components/finance-ui";
+import { DetailDrawer, FormField, AccountPicker, InfoHint, PostingDateField, usePostingWindow, useActiveEntity, toArray } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
+import { bookingDateFor } from "@/utils/posting-window";
 import { P } from "@/permissions";
 import {
   useGetBankAccountsQuery, useGetBankAccountQuery, useGetStatementLinesQuery,
@@ -442,11 +443,35 @@ function AdjustDrawer({ line, entity, currency, onClose, onDone }: {
 }) {
   const [counter, setCounter] = useState("");
   const [narration, setNarration] = useState(line.description || "");
+  // Unlike the import, an adjustment posts — so it needs a date in an open period.
+  // Left empty here and seeded by the effect below once the window has loaded, to
+  // the same date the server would choose: the line's own date when that month is
+  // still open, else the earliest open day after it. Seeding with the line's date
+  // unconditionally would show a date the field then rejects, contradicting the
+  // notice that says it will be moved.
+  const [postingDate, setPostingDate] = useState("");
+  const { ranges, isOpen, reasonFor, isLoading: windowLoading } = usePostingWindow(entity);
   const [adjust, { isLoading }] = useAdjustStatementLineMutation();
+
+  const suggested = useMemo(
+    () => (line.txn_date ? bookingDateFor(line.txn_date, ranges) : null),
+    [line.txn_date, ranges],
+  );
+  useEffect(() => {
+    if (windowLoading || postingDate || !suggested) return;
+    setPostingDate(suggested);
+  }, [suggested, windowLoading, postingDate]);
+
+  const lineDateClosed = Boolean(line.txn_date) && !windowLoading && !isOpen(line.txn_date);
+  const deferred = Boolean(postingDate) && postingDate !== line.txn_date;
 
   const submit = async () => {
     try {
-      await adjust({ id: line.id, entity, counter_account: counter || undefined, narration: narration.trim() || undefined }).unwrap();
+      await adjust({
+        id: line.id, entity, counter_account: counter || undefined,
+        narration: narration.trim() || undefined,
+        posting_date: postingDate || undefined,
+      }).unwrap();
       toast.success("Adjusting entry booked and matched.");
       onDone();
     } catch { /* central */ }
@@ -466,9 +491,20 @@ function AdjustDrawer({ line, entity, currency, onClose, onDone }: {
         <div className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
           Raises a journal against this statement line ({formatMoney(line.amount, currency)}, {line.amount < 0 ? "outflow" : "inflow"}) and the bank's GL cash account, then marks the line matched. Use for charges, interest, or errors the books don't have yet.
         </div>
+        {lineDateClosed && (
+          <p className="rounded-md bg-amber-50 px-3 py-2 font-mont text-[11px] text-amber-900 ring-1 ring-amber-200">
+            This line is dated {line.txn_date}. {reasonFor(line.txn_date) ?? "That period is closed."} A closed period
+            can’t be rewritten, so the entry books on the first open day after it — {line.txn_date} stays on the journal
+            as the bank’s value date.
+          </p>
+        )}
         <FormField label="Counter account">
           <AccountPicker entity={entity} value={counter} onChange={setCounter} postableOnly placeholder="Defaults to 5500 Bank Charges" />
         </FormField>
+        <PostingDateField
+          label="Posting date" entity={entity} value={postingDate} onChange={setPostingDate}
+          hint={deferred ? `Books in this period; ${line.txn_date} stays as the bank’s value date.` : undefined}
+        />
         <FormField label="Narration">
           <textarea value={narration} onChange={(e) => setNarration(e.target.value)} rows={2}
             className="w-full rounded-md border border-gray-03 bg-white px-3 py-2 font-mont text-sm" />

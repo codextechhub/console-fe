@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PeriodBrief } from "@/redux/services/finance/setup-types";
 import {
   blockedReason,
+  bookingDateFor,
   isWithinRanges,
   nearestOpenDate,
   openWindowLabel,
@@ -82,6 +83,32 @@ describe("nearestOpenDate", () => {
 
   it("returns null when nothing is open", () => {
     expect(nearestOpenDate("2026-03-15", [])).toBeNull();
+  });
+});
+
+describe("bookingDateFor", () => {
+  // Mirrors the resolve_adjustment_date cases in vs_finance/banking.py.
+  it("keeps the date when its period is open", () => {
+    expect(bookingDateFor("2026-01-15", GAPPED)).toBe("2026-01-15");
+  });
+
+  it("moves forward to the earliest open day after a closed date", () => {
+    // A March charge belongs in May (the next open month), not in whatever month
+    // happens to be current — this is what distinguishes it from nearestOpenDate.
+    expect(bookingDateFor("2026-03-15", GAPPED)).toBe("2026-05-01");
+  });
+
+  it("prefers forward even when a closer open day sits behind", () => {
+    // Feb 2 is 2 days after Jan's close and 26 before May opens; still forward.
+    expect(bookingDateFor("2026-02-02", GAPPED)).toBe("2026-05-01");
+  });
+
+  it("pre-dates only when every later period is shut", () => {
+    expect(bookingDateFor("2026-07-01", GAPPED)).toBe("2026-05-31");
+  });
+
+  it("returns null when nothing is open", () => {
+    expect(bookingDateFor("2026-03-15", [])).toBeNull();
   });
 });
 

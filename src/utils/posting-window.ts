@@ -76,6 +76,30 @@ export function nearestOpenDate(date: string, ranges: OpenRange[]): string | nul
 }
 
 /**
+ * Where an already-dated item should book, given the open calendar.
+ *
+ * `date` itself when it is open; otherwise the earliest open day *after* it, so a
+ * charge lands as close to its real date as the calendar allows rather than in
+ * whatever month happens to be current. Falls back to the latest open day before
+ * it only when every later period is shut — pre-dating beats not booking at all.
+ *
+ * Mirrors `resolve_adjustment_date` in vs_finance/banking.py; the two are covered
+ * by the same cases on both sides, so a change to one should change the other.
+ * Distinct from {@link nearestOpenDate}, which snaps by raw distance around today
+ * and is what a *new* document's default date wants.
+ */
+export function bookingDateFor(date: string, ranges: OpenRange[]): string | null {
+  if (ranges.length === 0) return null;
+  if (isWithinRanges(date, ranges)) return date;
+
+  const after = ranges.filter((r) => r.from > date).map((r) => r.from);
+  if (after.length) return after.reduce((a, b) => (a < b ? a : b));
+
+  const before = ranges.filter((r) => r.to < date).map((r) => r.to);
+  return before.length ? before.reduce((a, b) => (a > b ? a : b)) : null;
+}
+
+/**
  * Why `date` can't be used, as a sentence — or null if it's selectable.
  *
  * A greyed-out calendar day with no explanation reads as a bug. When the date

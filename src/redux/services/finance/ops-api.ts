@@ -136,7 +136,11 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/finance/statement-lines/${id}/match/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
-    adjustStatementLine: b.mutation<ApiEnvelope<BankStatementLine>, { id: number; entity: string; counter_account?: string; narration?: string }>({
+    // `posting_date` is optional: omitted, the server books on the line's own date,
+    // or the earliest open day after it when that month has since closed (a
+    // statement legitimately covers a closed period). The line's date is kept on
+    // the journal as the bank's value date either way.
+    adjustStatementLine: b.mutation<ApiEnvelope<BankStatementLine>, { id: number; entity: string; counter_account?: string; narration?: string; posting_date?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/statement-lines/${id}/adjust/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceBankAccounts", "FinanceStatementLines"],
     }),
