@@ -22,6 +22,7 @@ import { endSession } from "@/utils/end-session";
 import { captureReturnTo } from "@/utils/return-to";
 import { apiErrorMessage } from "@/utils/api-errors";
 import { clearSelectedEntity } from "../features/finance/entity-slice";
+import { dismissOpenDrawerForError } from "@/utils/drawer-errors";
 
 const getAccessToken = () => {
   const token = Cookies.get("token");
@@ -256,7 +257,10 @@ export const baseQueryInterceptor: BaseQueryFn<
   // next cycle. The refresh/retry and force-logout machinery still runs.
   const silent = !!(extraOptions as { silent?: boolean } | undefined)?.silent;
   const notify = (message: string) => {
-    if (!silent) toast.error(message);
+    if (!silent) {
+      dismissOpenDrawerForError();
+      toast.error(message);
+    }
   };
 
   // FetchBaseQueryError uses a string status for transport-level failures

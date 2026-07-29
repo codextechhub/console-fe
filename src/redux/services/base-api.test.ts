@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const toastError = vi.fn();
+const dismissOpenDrawerForError = vi.fn();
 
 vi.mock("sonner", () => ({
   toast: {
@@ -9,8 +10,13 @@ vi.mock("sonner", () => ({
   },
 }));
 
+vi.mock("@/utils/drawer-errors", () => ({
+  dismissOpenDrawerForError,
+}));
+
 afterEach(() => {
   toastError.mockClear();
+  dismissOpenDrawerForError.mockClear();
   vi.unstubAllGlobals();
 });
 
@@ -59,6 +65,7 @@ describe("baseQueryInterceptor", () => {
       "This date is outside your fiscal periods. "
       + "Choose a date within an open fiscal period.",
     );
+    expect(dismissOpenDrawerForError).toHaveBeenCalledOnce();
   });
 
   it("shows the actionable message instead of a 422 machine code", async () => {
@@ -145,5 +152,34 @@ describe("baseQueryInterceptor", () => {
     );
 
     expect(toastError).toHaveBeenCalledWith("Enter a valid date.");
+  });
+
+  it("does not close a drawer for a silent background failure", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ message: "Temporary failure" }), {
+        status: 500,
+        headers: { "content-type": "application/json" },
+      }),
+    ));
+
+    const { baseQueryInterceptor } = await import("./base-api");
+    const api = {
+      endpoint: "getNotifications",
+      getState: () => ({ auth: { tenant: { slug: "codex" } } }),
+      dispatch: vi.fn(),
+      signal: new AbortController().signal,
+      abort: vi.fn(),
+      extra: undefined,
+      type: "query" as const,
+    };
+
+    await baseQueryInterceptor(
+      "/notifications/",
+      api,
+      { silent: true },
+    );
+
+    expect(toastError).not.toHaveBeenCalled();
+    expect(dismissOpenDrawerForError).not.toHaveBeenCalled();
   });
 });
