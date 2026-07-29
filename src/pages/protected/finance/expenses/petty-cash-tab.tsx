@@ -9,7 +9,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Coins, ArrowDownToLine, RefreshCw, FileText, ListChecks, Ban } from "lucide-react";
+import { Plus, Coins, ArrowDownToLine, RefreshCw, FileText, ListChecks, Ban, Send } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField, ConfirmActionModal,
   AccountPicker, TaxCodePicker, BankAccountPicker, StatusPill, toArray, type Column,
@@ -161,11 +161,20 @@ function FundWorkbench({ fund, entity, currency, onEstablish }: { fund: PettyCas
 
 function VouchersList({ vouchers, entity, currency, loading }: { vouchers: PettyCashVoucher[]; entity: string; currency?: string | null; loading: boolean }) {
   const { can } = useCan();
-  const [post] = usePostPettyCashVoucherMutation();
+  const [post, { isLoading: posting }] = usePostPettyCashVoucherMutation();
   const [voidVoucher, { isLoading: voiding }] = useVoidPettyCashVoucherMutation();
+  const [postTarget, setPostTarget] = useState<PettyCashVoucher | null>(null);
   const [voidTarget, setVoidTarget] = useState<PettyCashVoucher | null>(null);
   const canManage = can(P.FIN_POST_PETTY_CASH_VOUCHER);
-  const doPost = async (id: number) => { try { const r = await post({ id, entity }).unwrap(); toast.success(r.message || "Voucher posted."); } catch { /* central */ } };
+  const draftCount = vouchers.filter((voucher) => voucher.status === "DRAFT").length;
+  const doPost = async () => {
+    if (!postTarget) return;
+    try {
+      const r = await post({ id: postTarget.id, entity }).unwrap();
+      toast.success(r.message || "Voucher posted.");
+      setPostTarget(null);
+    } catch { /* central */ }
+  };
   const doVoid = async () => {
     if (!voidTarget) return;
     try { const r = await voidVoucher({ id: voidTarget.id, entity }).unwrap(); toast.success(r.message || "Voucher voided."); setVoidTarget(null); } catch { /* central */ }
@@ -177,17 +186,51 @@ function VouchersList({ vouchers, entity, currency, loading }: { vouchers: Petty
     { header: "Date", cell: (v) => <span className="tabular-nums text-gray-05">{fmtDate(v.voucher_date)}</span> },
     { header: "Amount", align: "right", cell: (v) => <Money kobo={v.total} currency={currency} align="right" /> },
     { header: "Status", cell: (v) => <StatusPill status={v.status} /> },
-    { header: "", align: "right", cell: (v) => !canManage ? null
+    { header: "Action", align: "right", cell: (v) => !canManage ? null
       : v.status === "DRAFT"
-        ? <button type="button" onClick={() => doPost(v.id)} className="font-mont text-[11px] font-medium text-primary hover:underline">Post</button>
+        ? (
+          <Button type="button" size="sm" onClick={() => setPostTarget(v)} className="gap-1.5">
+            <Send className="size-3.5" /> Post voucher
+          </Button>
+        )
         : v.status === "POSTED"
-          ? <button type="button" onClick={() => setVoidTarget(v)} className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-destructive hover:underline"><Ban className="size-3" /> Void</button>
+          ? (
+            <Button type="button" size="xs" variant="ghost" onClick={() => setVoidTarget(v)} className="text-destructive hover:text-destructive">
+              <Ban className="size-3" /> Void
+            </Button>
+          )
           : null },
   ];
   return (
     <>
+      {canManage && draftCount > 0 ? (
+        <div className="mb-3 flex items-start gap-3 rounded-md border border-primary/20 bg-primary/5 px-3.5 py-3">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Send className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="font-mont text-sm font-semibold text-black-01">
+              {draftCount} draft {draftCount === 1 ? "voucher is" : "vouchers are"} ready to post
+            </p>
+            <p className="mt-0.5 font-mont text-xs text-gray-05">
+              Use the Post voucher action below to book the expense and reduce the petty-cash balance.
+            </p>
+          </div>
+        </div>
+      ) : null}
       <DataTable columns={cols} rows={vouchers} rowKey={(v) => v.id} loading={loading}
         emptyTitle="No vouchers" emptyMessage="Record a voucher with New voucher." />
+      <ConfirmActionModal
+        open={!!postTarget}
+        onOpenChange={(o) => !o && setPostTarget(null)}
+        title={postTarget ? `Post ${postTarget.document_number}?` : "Post voucher?"}
+        description={postTarget
+          ? `This will book ${formatMoney(postTarget.total, currency)} as an expense and reduce the petty-cash balance.`
+          : undefined}
+        confirmText="Post voucher"
+        loading={posting}
+        onConfirm={doPost}
+      />
       <ConfirmActionModal
         open={!!voidTarget}
         onOpenChange={(o) => !o && setVoidTarget(null)}
