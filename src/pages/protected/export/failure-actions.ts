@@ -27,6 +27,8 @@ const REMEDY_BY_CODE: Record<string, FailureRemedy> = {
   REQUIRED_FILTER_MISSING: { kind: "edit", label: "Set the filter" },
   NO_COLUMNS: { kind: "edit", label: "Choose columns" },
   ROW_CAP_EXCEEDED: { kind: "edit", label: "Narrow the filters" },
+  // Historical: a wide range no longer fails a run (it warns in the
+  // estimate instead), but runs recorded before that change still carry it.
   DATE_SPAN_EXCEEDED: { kind: "edit", label: "Shorten the date range" },
   DATASET_WITHDRAWN: { kind: "edit", label: "Pick another dataset" },
 

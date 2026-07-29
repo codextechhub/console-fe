@@ -112,9 +112,12 @@ export function FilterEditor({
 
             <FilterControl def={def} spec={spec} onPatch={(next) => patch(spec.id, next)} />
 
+            {/* Guidance about cost, not a limit: a wider range runs, and the
+                estimate warns before it does. The row cap is the real ceiling. */}
             {def.is_primary_date && maxDateSpanDays ? (
               <p className="mt-2 font-mont text-[11px] text-gray-05">
-                This dataset allows a range of at most {maxDateSpanDays} days.
+                Tuned for about {maxDateSpanDays} days at a time. A wider range still runs — it just
+                takes longer and produces a larger file.
               </p>
             ) : null}
 

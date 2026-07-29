@@ -393,6 +393,34 @@ wire, while letting the run detail actually answer "why does last month differ?"
 `definition_id` is now on the run serializer — the UI needs it to offer "Edit
 the export", and the definition is already visible to that caller.
 
+## The date span is advice, not a ceiling (2026-07-29)
+
+`Dataset.max_date_span_days` used to **fail the run**: asking for six months of
+GL postings produced `DATE_SPAN_EXCEEDED` and no file. That refused an ordinary
+request — a finance user wanting a quarter or a year of postings is not doing
+anything unreasonable — and it contradicted the spec's own posture, which warns
+above 250k rows rather than blocking.
+
+It is now advisory:
+
+- **`WIDE_DATE_RANGE`** is a warning on the estimate, so the builder says so
+  before anyone runs it. The summary rail already renders non-cap warnings in
+  amber, so nothing had to change there.
+- **The row cap stays hard.** It is measured on the actual result rather than
+  guessed at from the calendar, which is why it is the right place for the real
+  ceiling.
+- **A required date filter still needs both ends.** That is a different
+  question — "is the filter set" rather than "how wide is it" — and it now fails
+  as `REQUIRED_FILTER_MISSING`, which is what it always meant. The old message
+  conflated the two, which is how a filter with the wrong keys came back as
+  "needs both a start and an end date, no more than 31 days apart".
+- `FailureCode.DATE_SPAN_EXCEEDED` is **kept**, marked historical. Runs recorded
+  before this change still carry it and their detail screens must keep working.
+
+Only two datasets set a span at all: `finance.gl_postings` (31) and
+`audit.events` (92) — the two highest-cardinality tables. The number is now read
+as "tuned for", and the builder's filter copy says so.
+
 ## Gaps to close before the slices that need them
 
 1. **Dataset catalogue depth.** Five datasets are published today
