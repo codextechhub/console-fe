@@ -197,7 +197,7 @@ export default function FinanceDashboard() {
             <button onClick={() => navigate(F.LEDGER)} className="inline-flex items-center gap-1.5 rounded-md border border-gray-03 bg-white px-3 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:bg-gray-50">
               <FileText className="size-3.5" /> New journal
             </button>
-            <button onClick={() => navigate(F.COLLECTIONS)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 font-mont text-xs font-semibold text-white hover:bg-primary/90">
+            <button onClick={() => navigate(F.RECORD_PAYMENT)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 font-mont text-xs font-semibold text-white hover:bg-primary/90">
               <Plus className="size-3.5" /> Record payment
             </button>
           </div>
@@ -354,7 +354,7 @@ export default function FinanceDashboard() {
                 {[
                   { label: "Manual journal entry", icon: FileText, to: F.LEDGER },
                   { label: "Generate invoices", icon: Receipt, to: `${F.RECEIVABLES}/fee-structures` },
-                  { label: "Record payment", icon: Plus, to: F.COLLECTIONS },
+                  { label: "Record payment", icon: Plus, to: F.RECORD_PAYMENT },
                   { label: "Create PO", icon: ShoppingCart, to: routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS },
                   { label: "Run report", icon: BarChart3, to: `${F.REPORTS}/trial-balance` },
                 ].map((q) => (

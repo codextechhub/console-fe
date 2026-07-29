@@ -1,3 +1,5 @@
+const FINANCE_RECEIPTS_ALLOCATION = "/finance/receivables/receipts";
+
 export const routesPath = {
   AUTH: {
     LOGIN: "/login",
@@ -187,6 +189,8 @@ export const routesPath = {
       SETUP: "/finance/setup",
       LEDGER: "/finance/ledger",
       RECEIVABLES: "/finance/receivables",
+      RECEIPTS_ALLOCATION: FINANCE_RECEIPTS_ALLOCATION,
+      RECORD_PAYMENT: `${FINANCE_RECEIPTS_ALLOCATION}?action=new`,
       COLLECTIONS: "/finance/collections",
       PAYMENTS: "/finance/payments",
       BANKING: "/finance/banking",

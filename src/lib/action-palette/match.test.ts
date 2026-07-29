@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { scoreAction, TIER } from "./match";
 import { ACTIONS } from "./registry";
+import { routesPath } from "@/routes/routes-path";
 import type { ActionDef } from "./types";
 
 const byId = (id: string): ActionDef => {
@@ -77,5 +78,16 @@ describe("scoreAction — ranking", () => {
   });
   it("alias 'coa' finds chart of accounts", () => {
     expect(topMatch("coa")).toBe("view-chart-of-accounts");
+  });
+});
+
+describe("finance receipt destinations", () => {
+  it("opens Record payment from Receipts & Allocation", () => {
+    expect(routesPath.PROTECTED.FINANCE.RECORD_PAYMENT).toBe(
+      `${routesPath.PROTECTED.FINANCE.RECEIPTS_ALLOCATION}?action=new`,
+    );
+    expect(byId("record-receipt").run).toEqual({
+      to: routesPath.PROTECTED.FINANCE.RECORD_PAYMENT,
+    });
   });
 });
