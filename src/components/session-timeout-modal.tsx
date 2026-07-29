@@ -35,7 +35,12 @@ export function SessionTimeoutModal({
 
   return (
     <Dialog open={open || isExpired}>
-      <DialogContent showCloseButton={false} className="max-w-sm">
+      <DialogContent
+        data-session-timeout
+        showCloseButton={false}
+        overlayClassName="z-[70]"
+        className="z-[70] max-w-sm"
+      >
         {isExpired ? (
           <>
             <DialogHeader className="items-center text-center">
