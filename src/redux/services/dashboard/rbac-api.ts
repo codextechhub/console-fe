@@ -211,6 +211,15 @@ export const rbacApi = baseApi.injectEndpoints({
       invalidatesTags: ["UserAssignments"],
     }),
 
+    replaceAssignment: builder.mutation<{ data: UserAssignment }, { id: string; role_id: string; reason_note?: string }>({
+      query: ({ id, role_id, reason_note }) => ({
+        url: `/rbac/tenants/${getTenantSlug()}/role-assignments/${id}/replace/`,
+        method: "POST",
+        body: { role: role_id, reason_note },
+      }),
+      invalidatesTags: ["UserAssignments"],
+    }),
+
     // ── Tenant Role Change Requests (was /rbac/platform/change-requests/) ───────
     getChangeRequests: builder.query<PaginatedResponse<ChangeRequest>, Record<string, string | number>>({
       query: (params) => ({ url: `/rbac/tenants/${getTenantSlug()}/role-change-requests/${generateQueryString(params)}`, method: "GET" }),
@@ -282,6 +291,7 @@ export const {
   useGetUserAssignmentsQuery,
   useAssignRoleMutation,
   useRevokeAssignmentMutation,
+  useReplaceAssignmentMutation,
   useGetChangeRequestsQuery,
   useCreateChangeRequestMutation,
   useDecideChangeRequestMutation,

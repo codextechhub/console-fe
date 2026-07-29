@@ -98,6 +98,7 @@ export interface UserAssignment {
   user_name: string;
   user_email: string;
   role_id: string;
+  role_key: string;
   role_name: string;
   assignment_status: "ACTIVE" | "REVOKED";
   assigned_by_id: string | null;

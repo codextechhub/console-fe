@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNow } from "@/hooks/use-now";
-import { Plus, RefreshCw } from "lucide-react";
+import { ArrowRightLeft, Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
@@ -31,6 +31,7 @@ import {
   useGetUserAssignmentsQuery,
   useAssignRoleMutation,
   useRevokeAssignmentMutation,
+  useReplaceAssignmentMutation,
   useGetPlatformRolesQuery,
 } from "@/redux/services/dashboard/rbac-api";
 import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
@@ -49,49 +50,94 @@ const STATUS_OPTIONS = [
   { value: "REVOKED", label: "Revoked" },
 ];
 
+const SUPER_ADMIN_ROLE_KEY = "xvs_super_admin";
+
 // ── Assign Role Sheet ──────────────────────────────────────────────────────────
 function AssignRoleSheet({
   open,
   onClose,
+  assignmentToChange,
 }: {
   open: boolean;
   onClose: () => void;
+  assignmentToChange: UserAssignment | null;
 }) {
-  const [userId, setUserId] = useState("");
+  const [userId, setUserId] = useState(assignmentToChange?.user_id ?? "");
   const [roleId, setRoleId] = useState("");
+  const [formerAssignment, setFormerAssignment] = useState<UserAssignment | null>(assignmentToChange);
   const [assignRole, { isLoading }] = useAssignRoleMutation();
-  const { data: membersData } = useGetTeamMembersQuery({ page: 1, page_size: 200 }, { skip: !open });
+  const [replaceAssignment, { isLoading: isReplacing }] = useReplaceAssignmentMutation();
+  const isChange = !!assignmentToChange;
+  const isSaving = isLoading || isReplacing;
+  const { data: membersData } = useGetTeamMembersQuery(
+    { page: 1, page_size: 200 },
+    { skip: !open || isChange },
+  );
   const { data: rolesData } = useGetPlatformRolesQuery({ page: 1, page_size: 200 }, { skip: !open });
+  const {
+    data: activeAssignmentsData,
+    isFetching: isLoadingAssignments,
+    isError: assignmentsCheckFailed,
+  } = useGetUserAssignmentsQuery(
+    { page: 1, page_size: 200, user: userId, assignment_status: "ACTIVE" },
+    { skip: !open || isChange || !userId },
+  );
 
   const members = membersData?.data ?? [];
-  const roles = (rolesData?.data ?? []).filter((r) => r.status === "ACTIVE");
+  const roles = (rolesData?.data ?? []).filter(
+    (r) => r.status === "ACTIVE" && r.key !== SUPER_ADMIN_ROLE_KEY,
+  );
+  const activeAssignments = activeAssignmentsData?.data ?? [];
 
-  const userOptions = members.map((m) => ({ value: m.id, label: `${m.full_name} — ${m.email}` }));
-  const roleOptions = roles.map((r) => ({ value: r.id, label: r.name }));
+  const userOptions = isChange && assignmentToChange
+    ? [{
+        value: assignmentToChange.user_id,
+        label: `${assignmentToChange.user_name} — ${assignmentToChange.user_email}`,
+      }]
+    : members.map((m) => ({ value: m.id, label: `${m.full_name} — ${m.email}` }));
+  const roleOptions = roles
+    .filter((r) => r.id !== formerAssignment?.role_id)
+    .map((r) => ({ value: r.id, label: r.name }));
+
+  const closeAndReset = () => {
+    setUserId("");
+    setRoleId("");
+    setFormerAssignment(null);
+    onClose();
+  };
 
   const handleSubmit = () => {
     if (!userId || !roleId) {
       toast.error("Select both a user and a role.");
       return;
     }
-    assignRole({ user_id: userId, role_id: roleId })
+    const request = formerAssignment
+      ? replaceAssignment({
+          id: formerAssignment.id,
+          role_id: roleId,
+        })
+      : assignRole({ user_id: userId, role_id: roleId });
+
+    request
       .unwrap()
       .then(() => {
-        toast.success("Role assigned successfully.");
-        onClose();
-        setUserId("");
-        setRoleId("");
+        toast.success(formerAssignment ? "Role changed successfully." : "Role assigned successfully.");
+        closeAndReset();
       })
       .catch(() => {});
   };
 
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+    <Sheet open={open} onOpenChange={(v) => !v && closeAndReset()}>
       <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-white-02">
-          <SheetTitle className="text-base font-semibold text-black-01">Assign Role</SheetTitle>
+          <SheetTitle className="text-base font-semibold text-black-01">
+            {isChange ? "Change Role" : "Assign Role"}
+          </SheetTitle>
           <SheetDescription className="text-xs text-gray-01">
-            Grant a platform role to a CX staff member.
+            {isChange
+              ? "Switch this assignment from its current role to a new role."
+              : "Grant a platform role to a CX staff member."}
           </SheetDescription>
         </SheetHeader>
 
@@ -103,37 +149,135 @@ function AssignRoleSheet({
             placeholder="Select a staff member..."
             options={userOptions}
             value={userId}
-            onChange={(e) => setUserId(e.target.value)}
+            disabled={isChange}
+            onChange={(e) => {
+              setUserId(e.target.value);
+              setRoleId("");
+              setFormerAssignment(null);
+            }}
           />
+          {formerAssignment && (
+            <div className="rounded-md border border-primary/20 bg-pry-01/30 px-4 py-3">
+              <p className="text-xs text-gray-01">Former role</p>
+              <div className="mt-1.5 flex min-w-0 items-center justify-between gap-3">
+                <p className="min-w-0 truncate text-sm font-semibold text-black-01">
+                  {formerAssignment.role_name}
+                </p>
+                <Badge variant="inactive" className="shrink-0">Will be revoked</Badge>
+              </div>
+            </div>
+          )}
           <SearchSelect
             id="assign-role"
-            label="Role"
+            label={formerAssignment ? "New role" : "Role"}
             isRequired
-            placeholder="Select a role..."
+            placeholder={formerAssignment ? "Select the new role..." : "Select a role..."}
             options={roleOptions}
             value={roleId}
             onChange={(e) => setRoleId(e.target.value)}
           />
+          {!isChange && userId && !isLoadingAssignments && activeAssignments.length > 0 && (
+            <div className="space-y-2.5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
+              <div>
+                <p className="text-xs font-semibold text-black-01">This user already has one or more active roles</p>
+                <p className="mt-0.5 text-xs text-gray-01">
+                  Choose a former role below to switch it to the new role, or leave it unchanged to add another role.
+                </p>
+              </div>
+              <div className="space-y-2">
+                {activeAssignments.map((assignment) => {
+                  const selected = formerAssignment?.id === assignment.id;
+                  const isSuperAdmin = assignment.role_key === SUPER_ADMIN_ROLE_KEY;
+                  return (
+                    <div
+                      key={assignment.id}
+                      className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-md border border-amber-200 bg-white px-3 py-2.5"
+                    >
+                      <p className="min-w-0 truncate text-sm font-semibold text-black-01">
+                        {assignment.role_name}
+                      </p>
+                      {isSuperAdmin ? (
+                        <span className="text-xs font-medium text-gray-01">
+                          Use Transfer Super Admin
+                        </span>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className={cn("shrink-0", selected && "border-primary bg-pry-01 text-primary")}
+                          onClick={() => {
+                            setFormerAssignment(selected ? null : assignment);
+                            if (!selected && roleId === assignment.role_id) setRoleId("");
+                          }}
+                        >
+                          <ArrowRightLeft className="size-3.5" />
+                          {selected ? "Keep former role" : "Revoke former role"}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {!isChange && userId && assignmentsCheckFailed && (
+            <div className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs text-destructive">
+              We could not check this user’s active roles. Refresh and try again before assigning a role.
+            </div>
+          )}
           <div className="rounded-md bg-pry-01/30 border border-pry-01 px-4 py-3 space-y-1.5 text-xs text-gray-01">
-            <p className="font-semibold text-black-01">Rules enforced</p>
+            <p className="font-semibold text-black-01">Assignment behavior</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>You cannot assign a role to yourself.</li>
               <li>No duplicate active assignments for the same user/role.</li>
-              <li>Only CX staff can be assigned platform roles.</li>
+              <li>Other active roles stay unchanged unless you select one as the former role.</li>
+              {formerAssignment && <li>The former role is revoked only when the new assignment succeeds.</li>}
             </ul>
           </div>
         </div>
 
-        <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row justify-end gap-3">
-          <Button variant="outline" size="lg" onClick={onClose} disabled={isLoading}>
+        <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row flex-wrap justify-end gap-3">
+          <Button variant="outline" size="lg" onClick={closeAndReset} disabled={isSaving}>
             Cancel
           </Button>
-          <Button size="lg" onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? "Assigning..." : "Assign Role"}
+          <Button
+            size="lg"
+            onClick={handleSubmit}
+            disabled={isSaving || (!isChange && !!userId && (isLoadingAssignments || assignmentsCheckFailed))}
+          >
+            {isSaving
+              ? (formerAssignment ? "Changing..." : "Assigning...")
+              : (formerAssignment ? "Change Role" : "Assign Role")}
           </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function AssignedBy({
+  userId,
+  name,
+}: {
+  userId: string | null;
+  name: string | null;
+}) {
+  if (!userId && !name) {
+    return <span className="text-xs text-gray-01">—</span>;
+  }
+
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <UserAvatar
+        userId={userId}
+        name={name}
+        className="size-7 shrink-0"
+        fallbackClassName="text-[10px] font-semibold bg-pry-01 text-primary"
+      />
+      <span className="min-w-0 truncate text-xs font-semibold text-black-01">
+        {name || "Unknown user"}
+      </span>
+    </div>
   );
 }
 
@@ -142,19 +286,30 @@ function AssignmentDetailSheet({
   assignment,
   onClose,
   onRevoke,
+  onChangeRole,
   canRevoke,
 }: {
   assignment: UserAssignment | null;
   onClose: () => void;
   onRevoke: (a: UserAssignment) => void;
+  onChangeRole: (a: UserAssignment) => void;
   canRevoke: boolean;
 }) {
   if (!assignment) return null;
+  const isSuperAdmin = assignment.role_key === SUPER_ADMIN_ROLE_KEY;
 
   const rows = [
     { label: "Role", value: assignment.role_name },
     { label: "Status", value: assignment.assignment_status },
-    { label: "Assigned by", value: assignment.assigned_by_name || "—" },
+    {
+      label: "Assigned by",
+      value: (
+        <AssignedBy
+          userId={assignment.assigned_by_id}
+          name={assignment.assigned_by_name}
+        />
+      ),
+    },
     { label: "Assigned at", value: assignment.assigned_at ? formatRelativeDate(assignment.assigned_at) : "—" },
     { label: "Revoked by", value: assignment.revoked_by_name || "—" },
     { label: "Revoked at", value: assignment.revoked_at ? formatRelativeDate(assignment.revoked_at) : "—" },
@@ -194,17 +349,27 @@ function AssignmentDetailSheet({
             {rows.map(({ label, value }) => (
               <div key={label} className="flex items-start justify-between gap-4 px-4 py-3">
                 <p className="text-xs text-gray-01 font-mont shrink-0">{label}</p>
-                <p className="text-xs font-medium text-black-01 text-right">{value}</p>
+                <div className="text-xs font-medium text-black-01 text-right">{value}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row justify-end gap-3">
+        <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row flex-wrap justify-end gap-3">
           <Button variant="outline" size="lg" onClick={onClose}>
             Close
           </Button>
-          {assignment.assignment_status === "ACTIVE" && canRevoke && (
+          {assignment.assignment_status === "ACTIVE" && canRevoke && !isSuperAdmin && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => { onClose(); onChangeRole(assignment); }}
+            >
+              <ArrowRightLeft />
+              Change Role
+            </Button>
+          )}
+          {assignment.assignment_status === "ACTIVE" && canRevoke && !isSuperAdmin && (
             <Button
               variant="destructive"
               size="lg"
@@ -299,6 +464,7 @@ export default function PlatformUserAssignments() {
   const [assignOpen, setAssignOpen] = useState(false);
   const [detailItem, setDetailItem] = useState<UserAssignment | null>(null);
   const [revokeItem, setRevokeItem] = useState<UserAssignment | null>(null);
+  const [changeItem, setChangeItem] = useState<UserAssignment | null>(null);
 
   const params = useMemo(() => ({
     ...query,
@@ -356,7 +522,7 @@ export default function PlatformUserAssignments() {
         {a.assignment_status}
       </Badge>
     ),
-    assignedBy: <span className="text-xs text-gray-01">{a.assigned_by_name || "—"}</span>,
+    assignedBy: <AssignedBy userId={a.assigned_by_id} name={a.assigned_by_name} />,
     assignedAt: <span className="text-xs text-gray-01">{formatRelativeDate(a.assigned_at)}</span>,
     revokedAt: (
       <span className="text-xs text-gray-01">
@@ -365,13 +531,14 @@ export default function PlatformUserAssignments() {
     ),
     _id: a.id,
     _status: a.assignment_status,
+    _isSuperAdmin: a.role_key === SUPER_ADMIN_ROLE_KEY,
     _raw: a,
   }));
 
   return (
     <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Platform User Role Assignments</p>
             <p className="text-xs text-gray-01 mt-0.5">Assign platform roles to CX staff. Revocations require a written justification.</p>
@@ -406,7 +573,7 @@ export default function PlatformUserAssignments() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <div className="inline-flex items-center gap-3 shrink-0 flex-wrap">
+          <div className="inline-flex max-w-full items-center gap-3 shrink-0 flex-wrap">
             <SearchSelect
               id="filter-status"
               options={STATUS_OPTIONS}
@@ -445,14 +612,18 @@ export default function PlatformUserAssignments() {
             tableBodyList={tableData}
             loading={isLoading}
             dropDown
-            dropDownList={(row: { _id: string; _status: string; _raw: UserAssignment }) => [
+            dropDownList={(row: { _id: string; _status: string; _isSuperAdmin: boolean; _raw: UserAssignment }) => [
               {
                 label: "View Details",
                 className: "",
                 onActionClick: () => setDetailItem(row._raw),
               },
-              ...(row._status === "ACTIVE" && hasPermission(P.ASSIGN_ROLE)
+              ...(row._status === "ACTIVE" && !row._isSuperAdmin && hasPermission(P.ASSIGN_ROLE)
                 ? [{
+                    label: "Change Role",
+                    className: "",
+                    onActionClick: () => setChangeItem(row._raw),
+                  }, {
                     label: "Revoke",
                     className: "text-destructive focus:text-destructive focus:bg-destructive/10",
                     onActionClick: () => setRevokeItem(row._raw),
@@ -467,12 +638,21 @@ export default function PlatformUserAssignments() {
         )}
       </main>
 
-      <AssignRoleSheet open={assignOpen} onClose={() => setAssignOpen(false)} />
+      <AssignRoleSheet
+        key={changeItem?.id ?? "assign-role"}
+        open={assignOpen || !!changeItem}
+        assignmentToChange={changeItem}
+        onClose={() => {
+          setAssignOpen(false);
+          setChangeItem(null);
+        }}
+      />
 
       <AssignmentDetailSheet
         assignment={detailItem}
         onClose={() => setDetailItem(null)}
         onRevoke={(a) => setRevokeItem(a)}
+        onChangeRole={(a) => setChangeItem(a)}
         canRevoke={hasPermission(P.ASSIGN_ROLE)}
       />
 
