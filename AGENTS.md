@@ -9,6 +9,24 @@ one-off patch that only hides the reported symptom. Keep the work within the
 requested scope, preserve established behaviour, and add regression coverage
 at the lowest shared boundary so future instances are prevented.
 
+## Verification follows the current change
+
+Verification is triggered by work performed in the **current request**, not by
+pre-existing changes in the worktree or work completed in an earlier request.
+
+- Git-only and read-only requests — for example inspect, explain, diagnose,
+  stage, commit, branch, push, or report status — do not authorize rerunning
+  tests, builds, `/verify-design`, or responsive audits unless the user
+  explicitly asks for them.
+- If the current request changes no code, do not run tests or builds merely for
+  reassurance. Use only the read-only checks needed to complete the request.
+- If the current request changes code but does not change a screen or visual
+  behaviour, run only proportionate code checks. Do not run `/verify-design` or
+  responsive visual verification.
+- Run screen/design verification only when the current request actually creates
+  or changes a user-visible screen, layout, interaction, or responsive behaviour,
+  or when the user explicitly requests visual verification.
+
 ## Pre-ship review (`ship-check`)
 
 When I say **`ship-check`** (or "run the ship-check") on a change, answer these
@@ -49,9 +67,11 @@ Finish with a one-line **verdict**: ship / fix-first, and the single most
 important thing to do before shipping.
 
 ## Verifying screens
-After building or changing any screen, run `/verify-design` (project skill) to
-drive it in the real running app and **look at the screenshots** — build-green ≠
-works. It scrubs its own test-login rows afterward.
+After building or changing a screen **in the current request**, run
+`/verify-design` (project skill) to drive it in the real running app and **look
+at the screenshots** — build-green ≠ works. Do not invoke it for a later
+Git-only, read-only, or commit request that merely encounters those existing
+screen changes in the worktree. It scrubs its own test-login rows afterward.
 
 ## Responsive views — every screen must work on phone AND desktop
 
@@ -73,8 +93,8 @@ Build to the house conventions (full list: `docs/FINANCE_BUILD_NOTES.md`
 - In a flex row, a `flex-1` wrapper needs `min-w-0` or descendant `truncate`
   silently stops working.
 
-**Verify, don't assume.** After any screen work, alongside `/verify-design` run
-the overflow probe:
+**Verify, don't assume.** After screen work performed in the current request,
+alongside `/verify-design` run the overflow probe:
 `cd .claude/skills/verify-design && BASE_URL=<vite-url> ROUTES="/your/routes" node ./_mobile_audit.mjs`
 It drives each route logged-in at 390px (phone) and 820px (tablet), screenshots
 both, and reports page-level horizontal overflow with the offending elements
