@@ -290,6 +290,57 @@ at the screen). `_notify` now passes `export_run_id` in the metadata and
 `notification_action_url` deep-links to `/export/runs/<id>`, because a failure
 notice is only useful next to the thing that failed.
 
+## Slice 2 — the builder (DONE)
+
+Screens: `pages/protected/export/saved.tsx` and `pages/protected/export/builder/`
+(`index.tsx`, `field-picker.tsx`, `summary-rail.tsx`, `filter-editor.tsx`,
+`format-options.tsx`, `choice-card.tsx`, `use-builder-state.ts`, `helpers.ts`).
+
+**FOUR steps, not the spec's five.** The original step 4 asked *"when should this
+run, and where should the file go?"*. Schedules are cut, so the "when" half no
+longer exists, and the "where" half is delivery, which arrives with slice 4.
+Rather than ship a step that only says "Export Centre", timing folds into the
+review step's two actions — *Save without running* and *Save and run*. The
+delivery step comes back when there is something to put in it.
+
+**Everything in steps 1–3 is catalogue-driven.** Fields, groups, locked and
+sensitive flags, filters and their kinds, supported formats and the format
+option schema all come off `/exports/catalogue/<key>/`. Nothing is hardcoded, so
+a dataset the backend publishes tomorrow works without a frontend change.
+
+Details worth keeping:
+
+- **Filter value keys are the backend's**: `date_range → {start, end}`,
+  `choice → {values}`, `text`/`boolean` → `{value}`, `number_range → {min, max}`.
+  Getting one wrong does not fail loudly — the filter is dropped when the
+  queryset is compiled and the export quietly returns the wrong rows. The
+  mapping lives in one place, `filter-editor.tsx`.
+- **The estimate never toasts.** A half-built configuration is the *normal*
+  state of `/exports/preview/`, so the endpoint carries
+  `extraOptions: { silent: true }` and the summary rail renders the same
+  sentence inline, next to the number it is about.
+- **Stale-while-recalculating**: the previous figures stay at 60% opacity with
+  `aria-busy` while the next request is in flight; responses are sequence-checked
+  so a slow early request can never overwrite a fast later one. Debounced 400ms.
+- **Error markers stay off until the user tries to save.** A form nobody has
+  filled in is not "wrong", and a step bar that is red on arrival teaches people
+  to ignore it.
+- **The builder is loaded, then mounted** — the saved export is in hand before
+  the form renders, so state seeds from props rather than being copied in by an
+  effect. `key={definitionId}` means state can never leak between definitions.
+- `StepProgressBar` gained `labels`, `onStepClick` and `errorsByStep` (all
+  optional; it had no callers, so nothing moved).
+
+### Deliberate deviation from the spec
+
+The spec says the builder is **not offered on phones** ("exports are built on a
+larger screen"). We offer it. `CLAUDE.md`'s depth policy is explicit that phone
+must be *usable* and that we "never hide or truncate data away", and the built
+screen genuinely is usable — the two picker panes stack, the rail becomes the
+summary bar, no overflow at 390px. Hiding a working screen behind a "use a
+bigger screen" panel would be worse than what is there. Desktop remains the
+design source of truth and no phone-first optimisation was spent on it.
+
 ## Gaps to close before the slices that need them
 
 1. **Dataset catalogue depth.** Five datasets are published today
@@ -307,7 +358,7 @@ notice is only useful next to the thing that failed.
 | **0** | Reconcile with BackgroundJob; one status vocabulary; the four `-text` tokens | ✅ done |
 | **0b** | Rework View Queues onto house components + make export rows tell the truth | ✅ done |
 | **1** | Files list, run detail, download + logging, 30-day expiry, file card | ✅ done |
-| 2 | Catalogue, wizard steps 1–3, preview/estimate, definitions CRUD, Saved exports | ✅ ready |
+| **2** | Catalogue, wizard steps 1–3, preview/estimate, definitions CRUD, Saved exports | ✅ done |
 | 3 | Failure and omission handling end to end, frozen-config diff | ✅ ready |
 | 4 | Delivery only: recipients, secure links, test delivery, revocation | ✅ ready |
 | 5 | Sharing, Quick export from module screens, admin activity + download log | ✅ ready |

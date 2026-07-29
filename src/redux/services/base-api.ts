@@ -458,6 +458,8 @@ export const baseApi = createApi({
     "ExportRuns",
     "ExportDownloadLog",
     "ExportCapabilities",
+    "ExportCatalogue",
+    "ExportDefinitions",
     "Notifications",
     "NotificationHistory",
     "NotificationSettings",

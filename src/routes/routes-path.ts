@@ -167,6 +167,10 @@ export const routesPath = {
       FILES: "/export/files",
       RUN_PATH: "/export/runs/:id",
       RUN: (id: string | number) => `/export/runs/${id}`,
+      SAVED: "/export/saved",
+      NEW: "/export/new",
+      EDIT_PATH: "/export/:id/edit",
+      EDIT: (id: string | number) => `/export/${id}/edit`,
     },
     ORGANOGRAM: {
       INDEX: "/organogram",

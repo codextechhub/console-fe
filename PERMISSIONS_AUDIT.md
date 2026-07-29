@@ -29,7 +29,8 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Permissions | Actions | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Dependencies | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Permission Groups | `P.VIEW_PERMISSIONS` | inherits parent |
-| Export | Files | `P.VIEW_EXPORT_RUNS` | own check via `hasPermission`; Export Centre run/file list. Overview and Saved exports arrive with the builder; Schedules are not in the MVP |
+| Export | Saved exports | `P.VIEW_SAVED_EXPORTS` | own check via `hasPermission`; the recipes list + the builder |
+| Export | Files | `P.VIEW_EXPORT_RUNS` | own check via `hasPermission`; Export Centre run/file list. Overview arrives later; Schedules are not in the MVP |
 | Export | View Queues | _(none â always visible)_ | own queues open to any authenticated user (`IsAuthenticatedAndActive`); the All Queues scope is gated server-side (CX staff with `xvs_super_admin`/`xvs_platform_admin` role) and the Mine/All toggle only renders when the summary's `can_view_all` is true |
 | Data Imports | Import Batches | `P.VIEW_IMPORT_BATCHES` | parent visible when user has either batch or template view; sub-item hidden without this permission |
 | Data Imports | Import Templates | `P.VIEW_IMPORT_TEMPLATES` | sub-item hidden without this permission; create still gated by `P.CREATE_IMPORT_TEMPLATE` |
@@ -554,6 +555,14 @@ Three tabs (2026-07-11 plain-language redesign): System Settings (GitHub-style r
 
 | Element | Type | Permission Constant |
 |---|---|---|
+| Saved exports (`saved.tsx`) | page | `P.VIEW_SAVED_EXPORTS` (`exports.definition.view`) |
+| New export button | button | `P.CREATE_EXPORT` (`exports.definition.create`) — hidden without it |
+| Row menu · Run now | menu item | `P.RUN_EXPORT`; also disabled for a draft or a withdrawn dataset |
+| Row menu · Edit | menu item | `P.UPDATE_EXPORT`; also owner-only — sharing grants sight, never edit rights |
+| Row menu · Duplicate | menu item | `P.CREATE_EXPORT` (a copy is a new definition, owned by the copier) |
+| Row menu · Delete | menu item | `P.DELETE_EXPORT`; owner-only. Archives — files it produced survive |
+| Builder (`builder/index.tsx`) | page | `P.CREATE_EXPORT` for /export/new, `P.UPDATE_EXPORT` for /export/:id/edit |
+| Builder · Save and run | button | `P.RUN_EXPORT`, disabled-with-reason rather than hidden |
 | Files list (`files.tsx`) | page | `P.VIEW_EXPORT_RUNS` (`exports.run.view`) — renders `PageAccessDenied` without it, and the table shows `ForbiddenState` on a 403 |
 | Run detail (`run-detail.tsx`) | page | `P.VIEW_EXPORT_RUNS`; a 403 from the API also falls back to `PageAccessDenied` |
 | Download (row action + file card) | button | `P.DOWNLOAD_EXPORT_FILE` (`exports.file.download`) — hidden in the row, disabled-with-reason on the card |
@@ -626,13 +635,8 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 
 | Constant | Backend Key | Likely Home |
 |---|---|---|
-| `P.VIEW_EXPORT_CATALOGUE` | `exports.catalogue.view` | Builder step 1 (dataset picker) — slice 2 |
-| `P.VIEW_SAVED_EXPORTS` | `exports.definition.view` | Saved exports list — slice 2 |
-| `P.CREATE_EXPORT` | `exports.definition.create` | "New export" — slice 2 |
-| `P.UPDATE_EXPORT` | `exports.definition.update` | Edit an export — slice 2 |
-| `P.DELETE_EXPORT` | `exports.definition.delete` | Archive an export — slice 2 |
 | `P.SHARE_EXPORT` | `exports.definition.share` | Sharing + revoke a secure link — slice 5 |
-| `P.EXPORT_SENSITIVE_FIELDS` | `exports.sensitive_field.export` | Field picker's SENSITIVE columns — slice 2. Not granted by default |
+| `P.EXPORT_SENSITIVE_FIELDS` | `exports.sensitive_field.export` | The catalogue already hides restricted fields server-side from anyone without it, so the picker needs no FE check. Not granted by default |
 | `P.VIEW_EXPORT_ACTIVITY` | `exports.activity.view` | Admin all-activity console — slice 5. Super-admin only; the read is itself audited |
 | `P.DISMISS_TEAM_MEMBER` | `platform.team.delete` | No UI surface â DELETE on the backend is a soft-deactivate equivalent to Suspend, which already has its own gated action. Consider deprecating this constant or repurposing if hard-delete is added later. |
 | `P.VIEW_STAFF_PROFILE` | `platform.staff_profile.view` | Gates staff list/detail server-side; UI surfaces under the `P.VIEW_ORGANOGRAM` sidebar group. |
@@ -644,6 +648,7 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 | `P.MODIFY_BRANCH` | `platform.branches.update` | Branch table row â Edit |
 | `P.MANAGE_BRANCH` | `platform.branches.manage` | Branch lifecycle transitions |
 | `P.VIEW_DASHBOARD` | `platform.dashboard.view` | Home / Overview page |
+| `P.VIEW_ROLES` / `P.VIEW_ORGANOGRAM` (Overview) | `platform.roles.view` / `platform.organogram.view` | "Getting started" checklist rows. Double-gated as of 2026-07-29: the FE key hides the row, and `/admin/dashboard/overview/` independently omits the matching `setup.*` flag under the same backend key — so the tick is never rendered from a number the caller could not fetch. A row whose flag is absent after load is dropped, not shown unticked. |
 | `P.VIEW_SECURITY` | `platform.security.view` | Defined for future security-only read separation; today the Audit pages gate on `P.VIEW_AUDIT`. |
 | `P.IMPERSONATE_USER` | `platform.security.impersonate` | "Start impersonation" entry point â not yet built; the current Impersonations page only lists sessions. Nav item enabled 2026-06-11 (was a disabled placeholder; the list page and `vs_admin_console` start/end endpoints are live). |
 | `P.VIEW_IMPORT_TEMPLATES` | `import.templates.view` | Gates sidebar sub-item and list page (`PageAccessDenied` if missing). |

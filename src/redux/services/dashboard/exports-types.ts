@@ -140,6 +140,162 @@ export interface ExportCapabilities {
   retention_days: number;
 }
 
+// ── Catalogue (vs_exports/catalogue.py) ──────────────────────────────────────
+// Steps 1 and 2 are entirely catalogue-driven. The UI never hardcodes fields,
+// formats or option sets — everything below comes off the wire.
+
+export type FieldKind = "text" | "date" | "datetime" | "money" | "number" | "choice";
+
+export interface DatasetField {
+  id: string;
+  label: string;
+  group: string;
+  type: FieldKind;
+  /** Always exported, cannot be deselected — the row's identity. */
+  locked: boolean;
+  /** Needs exports.sensitive_field.export as well; called out at review. */
+  sensitive: boolean;
+  description: string;
+}
+
+export type FilterKind = "date_range" | "choice" | "text" | "boolean" | "number_range";
+
+export interface DatasetFilter {
+  id: string;
+  label: string;
+  type: FilterKind;
+  required: boolean;
+  choices: { value: string; label: string }[];
+  description: string;
+  is_primary_date: boolean;
+}
+
+/** One option's schema, discriminated by format — never a flat bag. */
+export interface FormatOptionSchema {
+  type: "choice" | "boolean" | "text";
+  values?: string[];
+  default: string | boolean;
+  max_length?: number;
+}
+
+export interface Dataset {
+  id: string;
+  module: string;
+  name: string;
+  description: string;
+  scope: "ENTITY" | "TENANT";
+  requires_entity: boolean;
+  fields: DatasetField[];
+  field_count: number;
+  default_columns: string[];
+  required_filters: string[];
+  filters: DatasetFilter[];
+  supported_formats: ExportFormat[];
+  format_options: Record<ExportFormat, Record<string, FormatOptionSchema>>;
+  max_date_span_days: number | null;
+  row_cap: number;
+}
+
+export interface CatalogueModule {
+  name: string;
+  datasets: Dataset[];
+  /** False when a module has nothing published — that is information, not a gap. */
+  available: boolean;
+}
+
+// ── Filter values as the builder holds them ──────────────────────────────────
+// The shape is the filter's kind, and the keys are the backend's:
+// date_range → {start, end}; choice → {values}; text/boolean → {value};
+// number_range → {min, max}. Getting these wrong fails silently at run time.
+export interface FilterSpec {
+  id: string;
+  start?: string;
+  end?: string;
+  values?: string[];
+  value?: string | boolean;
+  min?: number;
+  max?: number;
+}
+
+// ── Preview and estimate ──────────────────────────────────────────────────────
+
+export interface PreviewWarning {
+  code: string;
+  message: string;
+}
+
+export interface PreviewResult {
+  /** Null when counting stopped early; `rows_bucket` then carries the figure. */
+  matching_rows: number | null;
+  rows_bucket: string | null;
+  estimated_bytes: number;
+  estimate_confidence: "exact" | "bucketed";
+  columns: number;
+  row_cap: number;
+  warnings: PreviewWarning[];
+  sample: { headers: string[]; rows: string[][] };
+  /** One sentence a person can check without knowing the schema. */
+  reads_as: string;
+}
+
+// ── Definitions ───────────────────────────────────────────────────────────────
+
+export interface ExportDefinitionListItem {
+  id: number;
+  name: string;
+  description: string;
+  dataset: { id: string; name: string; module: string; available: boolean };
+  scope: { type: "ENTITY" | "TENANT"; label: string };
+  entity_code: string | null;
+  format: ExportFormat;
+  values_mode: ValuesMode;
+  column_count: number;
+  owner_name: string;
+  is_owner: boolean;
+  sharing: "PRIVATE" | "SHARED";
+  shared_with: number;
+  is_draft: boolean;
+  is_archived: boolean;
+  email_recipients: boolean;
+  last_run: { reference: string; status: ExportRunStatus; at: string } | null;
+  updated_at: string;
+}
+
+export interface ExportDefinitionDetail extends ExportDefinitionListItem {
+  columns: string[];
+  filters: FilterSpec[];
+  filters_readable: string[];
+  sort: { field: string; direction: "asc" | "desc" }[];
+  format_options: Record<string, unknown>;
+  file_name_pattern: string;
+  created_at: string;
+}
+
+/** Create/update payload. tenant, entity and owner come from the request. */
+export interface DefinitionWrite {
+  name: string;
+  description?: string;
+  dataset_key: string;
+  columns: string[];
+  filters: FilterSpec[];
+  sort?: { field: string; direction: "asc" | "desc" }[];
+  format: ExportFormat;
+  format_options?: Record<string, unknown>;
+  values_mode: ValuesMode;
+  file_name_pattern?: string;
+  sharing?: "PRIVATE" | "SHARED";
+  is_draft?: boolean;
+  email_recipients?: boolean;
+}
+
+export interface DefinitionListParams {
+  module?: string;
+  owner?: "me";
+  q?: string;
+  include_archived?: "true";
+  page?: number;
+}
+
 // ── Requests ──────────────────────────────────────────────────────────────────
 
 export interface RunListParams {

@@ -266,6 +266,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       permission: null,
       permissionMode: "any" as const,
       items: [
+        ...(hasPermission(P.VIEW_SAVED_EXPORTS)
+          ? [{
+              title: "Saved exports",
+              url: routesPath.PROTECTED.EXPORT.SAVED,
+              isActive:
+                location.startsWith("/export/saved") ||
+                location.startsWith("/export/new") ||
+                /^\/export\/\d+\/edit/.test(location),
+            }]
+          : []),
         ...(hasPermission(P.VIEW_EXPORT_RUNS)
           ? [{
               title: "Files",
