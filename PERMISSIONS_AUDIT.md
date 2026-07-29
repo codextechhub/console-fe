@@ -29,6 +29,7 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Permissions | Actions | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Dependencies | `P.VIEW_PERMISSIONS` | inherits parent |
 | Permissions | Permission Groups | `P.VIEW_PERMISSIONS` | inherits parent |
+| Export | Files | `P.VIEW_EXPORT_RUNS` | own check via `hasPermission`; Export Centre run/file list. Overview and Saved exports arrive with the builder; Schedules are not in the MVP |
 | Export | View Queues | _(none â always visible)_ | own queues open to any authenticated user (`IsAuthenticatedAndActive`); the All Queues scope is gated server-side (CX staff with `xvs_super_admin`/`xvs_platform_admin` role) and the Mine/All toggle only renders when the summary's `can_view_all` is true |
 | Data Imports | Import Batches | `P.VIEW_IMPORT_BATCHES` | parent visible when user has either batch or template view; sub-item hidden without this permission |
 | Data Imports | Import Templates | `P.VIEW_IMPORT_TEMPLATES` | sub-item hidden without this permission; create still gated by `P.CREATE_IMPORT_TEMPLATE` |
@@ -549,6 +550,22 @@ Three tabs (2026-07-11 plain-language redesign): System Settings (GitHub-style r
 
 > Telemetry is collected server-side (request middleware, celery-beat probes/snapshots); `seed_health` seeds configuration + the two permission rows only — never measurements.
 
+### Export Centre (`src/pages/protected/export/`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Files list (`files.tsx`) | page | `P.VIEW_EXPORT_RUNS` (`exports.run.view`) — renders `PageAccessDenied` without it, and the table shows `ForbiddenState` on a 403 |
+| Run detail (`run-detail.tsx`) | page | `P.VIEW_EXPORT_RUNS`; a 403 from the API also falls back to `PageAccessDenied` |
+| Download (row action + file card) | button | `P.DOWNLOAD_EXPORT_FILE` (`exports.file.download`) — hidden in the row, disabled-with-reason on the card |
+| Cancel run | button | `P.CANCEL_EXPORT_RUN` (`exports.run.cancel`); only shown while the run is live |
+| Retry now | button | `P.RUN_EXPORT` (`exports.run.create`); only shown when the API says the failure is retryable |
+| Download log | table | `P.VIEW_EXPORT_RUNS` (backend gates the endpoint with `exports.run.view`) |
+
+> The backend is authoritative on every one of these. A download is re-authorised
+> against the **downloader** (not the person who ran the export) plus the run's frozen
+> entity/dataset and the file's expiry, and both allowed and refused attempts are
+> logged — the FE check only decides whether to offer the button.
+
 ---
 
 ## 3. Route-level Guards
@@ -609,6 +626,14 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 
 | Constant | Backend Key | Likely Home |
 |---|---|---|
+| `P.VIEW_EXPORT_CATALOGUE` | `exports.catalogue.view` | Builder step 1 (dataset picker) — slice 2 |
+| `P.VIEW_SAVED_EXPORTS` | `exports.definition.view` | Saved exports list — slice 2 |
+| `P.CREATE_EXPORT` | `exports.definition.create` | "New export" — slice 2 |
+| `P.UPDATE_EXPORT` | `exports.definition.update` | Edit an export — slice 2 |
+| `P.DELETE_EXPORT` | `exports.definition.delete` | Archive an export — slice 2 |
+| `P.SHARE_EXPORT` | `exports.definition.share` | Sharing + revoke a secure link — slice 5 |
+| `P.EXPORT_SENSITIVE_FIELDS` | `exports.sensitive_field.export` | Field picker's SENSITIVE columns — slice 2. Not granted by default |
+| `P.VIEW_EXPORT_ACTIVITY` | `exports.activity.view` | Admin all-activity console — slice 5. Super-admin only; the read is itself audited |
 | `P.DISMISS_TEAM_MEMBER` | `platform.team.delete` | No UI surface â DELETE on the backend is a soft-deactivate equivalent to Suspend, which already has its own gated action. Consider deprecating this constant or repurposing if hard-delete is added later. |
 | `P.VIEW_STAFF_PROFILE` | `platform.staff_profile.view` | Gates staff list/detail server-side; UI surfaces under the `P.VIEW_ORGANOGRAM` sidebar group. |
 | `P.VIEW_STAFF_PAYROLL` | `platform.staff_payroll.view` | Read-side FLS â enforced server-side (fields stripped); no explicit UI check, the drawer/detail react to field absence. |

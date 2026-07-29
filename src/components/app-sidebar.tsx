@@ -254,9 +254,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
     {
-      // Export — submenu grows as export features ship; View Queues is first.
-      // Anyone can see their own queues (backend gates at IsAuthenticatedAndActive);
-      // the all-queues scope is gated server-side and by can_view_all in the page.
+      // Export Centre. Overview and Saved exports arrive with the builder
+      // (slice 2); Schedules are not in the MVP at all.
+      // Anyone can see their own queues (backend gates at IsAuthenticatedAndActive),
+      // so the group itself is ungated; Files gates on the run-view key.
       title: "Export",
       url: routesPath.PROTECTED.EXPORT.QUEUES,
       icon: FileOutput,
@@ -265,6 +266,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       permission: null,
       permissionMode: "any" as const,
       items: [
+        ...(hasPermission(P.VIEW_EXPORT_RUNS)
+          ? [{
+              title: "Files",
+              url: routesPath.PROTECTED.EXPORT.FILES,
+              isActive: location.startsWith("/export/files") || location.startsWith("/export/runs"),
+            }]
+          : []),
         {
           title: "View Queues",
           url: routesPath.PROTECTED.EXPORT.QUEUES,

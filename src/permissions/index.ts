@@ -11,6 +11,7 @@
 // ── Code format: MM RR AA (6 digits) ─────────────────────────────────────────
 //   MM = module group   10=platform  20=finance  30=academics  40=communication
 //                       50=imports   60=workflow  70=procurement  80=payments
+//                       90=config    91=tickets   92=exports
 //   RR = resource       01 02 03 … (assigned sequentially per module)
 //   AA = action         01=view   02=create  03=update  04=delete
 //                       05=approve  06=export  08=manage
@@ -23,6 +24,7 @@
 //                       32=award  33=issue  34=renew  35=terminate  36=replenish
 //                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
 //                       41=dispose  42=reopen  43=lock  44=approve_high_value
+//                       45=share  46=download
 //
 // ── Adding a permission ───────────────────────────────────────────────────────
 //   1. Pick the next free code in the right MM RR range.
@@ -139,6 +141,24 @@ const REGISTRY: Record<string, string> = {
   "910402": "tickets.attachment.create",
   "910501": "tickets.audit.view",
   "910601": "tickets.report.view",
+
+  // ── Export Centre  (MM=92) — vs_exports.constants.ExportPermission ────────
+  "920101": "exports.catalogue.view",
+  "920201": "exports.definition.view",
+  "920202": "exports.definition.create",
+  "920203": "exports.definition.update",
+  "920204": "exports.definition.delete",
+  "920245": "exports.definition.share",
+  "920301": "exports.run.view",
+  "920302": "exports.run.create",
+  "920328": "exports.run.cancel",
+  "920446": "exports.file.download",
+  // Not granted with the rest by seed_exports_permissions: including a
+  // restricted column is a separate decision from being allowed to export, and
+  // reading other people's export activity is an admin power whose read is
+  // itself audited.
+  "920506": "exports.sensitive_field.export",
+  "920601": "exports.activity.view",
 
   // ── imports / templates  (MM=50, RR=01) ──────────────────────────────────
   "500101": "import.templates.view",
@@ -507,6 +527,17 @@ export const P = {
   VIEW_ENTITLEMENTS: "900401", MANAGE_ENTITLEMENTS: "900408",
   VIEW_CONFIG_OVERRIDES: "900501", MANAGE_CONFIG_OVERRIDES: "900508",
   VIEW_CONFIG_AUDIT: "900601", EXPORT_CONFIG: "900702",
+
+  // ── Export Centre ──────────────────────────────────────────────────────────
+  // Whole-console visibility uses VIEW_EXPORT_RUNS: seeing the Files list is the
+  // least a person can do here, and every finer control gates on its own key.
+  VIEW_EXPORT_CATALOGUE: "920101",
+  VIEW_SAVED_EXPORTS:    "920201", CREATE_EXPORT:        "920202",
+  UPDATE_EXPORT:         "920203", DELETE_EXPORT:        "920204",
+  SHARE_EXPORT:          "920245",
+  VIEW_EXPORT_RUNS:      "920301", RUN_EXPORT:           "920302",
+  CANCEL_EXPORT_RUN:     "920328", DOWNLOAD_EXPORT_FILE: "920446",
+  EXPORT_SENSITIVE_FIELDS: "920506", VIEW_EXPORT_ACTIVITY: "920601",
 
   // ── Support ────────────────────────────────────────────────────────────────
   VIEW_TICKETS: "910101", UPDATE_TICKET: "910103", MANAGE_TICKETS: "910108",

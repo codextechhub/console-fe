@@ -245,15 +245,54 @@ state separate from run state.
 Prototype v2 shows a Schedules tab and a paused-schedule banner. **Ignore both.**
 This is a scope cut, not a visual disagreement.
 
+## Slice 1 — Files, run detail, download, expiry (DONE)
+
+Screens: `pages/protected/export/files.tsx`, `run-detail.tsx`, `file-card.tsx`.
+API: `redux/services/dashboard/exports-api.ts` + `exports-types.ts`.
+
+**Files is one row per RUN, not per file.** A run that produced no file is still
+something a person has to see and act on; hiding failures behind "Files" is how
+an export silently stops working.
+
+**Downloading goes through the API layer, never an `<a href>`.** The endpoint
+re-authorises the *downloader* (not whoever ran the export) against the run's
+frozen entity and dataset plus the file's expiry, and logs the attempt either
+way. An anchor would arrive unauthenticated and be refused. Two consequences
+worth keeping:
+
+- The response handler returns **bytes on success, parsed JSON on failure** — a
+  blanket `.blob()` hands the error path a Blob and loses the refusal sentence,
+  which is the most useful text in the feature.
+- `transformResponse` converts to an object URL so the file never lands in the
+  Redux store. Caching a Blob there holds the whole export in memory and trips
+  the serializability check. Same pattern as the other download endpoints.
+
+**Expiry is never inferred in the UI.** `is_expired` / `is_purged` /
+`is_downloadable` are derived server-side at read time, and the file card reads
+them. The run stays `COMPLETED` forever.
+
+Permission keys are registered under **MM=92** in `src/permissions/index.ts`
+(the action vocabulary gained `45=share` and `46=download`), and the gating is
+recorded in `PERMISSIONS_AUDIT.md`. Run `seed_exports_permissions` on any
+database that has not had it — a fresh dev DB has zero `exports.*` keys.
+
+### Backend gap found and fixed during this slice
+
+`vs_exports.services._notify` emits `export.run_completed` and
+`export.run_failed`, but neither was registered in
+`vs_notifications.constants.EVENT_TYPES` and neither had a template. Every
+export notification raised `UnknownEventTypeError`, which `_notify` caught and
+logged — so **no export notification had ever been delivered**, silently, while
+the spec requires in-product notification on completion, failure and omissions.
+Both event types are now registered and active with in-app templates (plus email
+on failure only — a manual success does not earn an email, the user is looking
+at the screen). `_notify` now passes `export_run_id` in the metadata and
+`notification_action_url` deep-links to `/export/runs/<id>`, because a failure
+notice is only useful next to the thing that failed.
+
 ## Gaps to close before the slices that need them
 
-1. **Export permission codes** are not in the FE registry yet (above).
-2. **Nav.** The sidebar's `Export` group currently holds only *View Queues*
-   (`app-sidebar.tsx`). The Export Centre adds Overview · Saved exports · Files
-   above it — Slice 1 onwards, gated on the new keys.
-3. **Notification event icons** for export events are not in
-   `notification-event-icon.tsx`.
-4. **Dataset catalogue depth.** Five datasets are published today
+1. **Dataset catalogue depth.** Five datasets are published today
    (`finance.customer_invoices`, `finance.invoice_lines`, `finance.gl_postings`,
    `payments.collections`, `audit.events`). Procurement and Audit-beyond-events
    have none, which is *information* the Module chips must state, not hide —
@@ -266,8 +305,8 @@ This is a scope cut, not a visual disagreement.
 | Slice | Contains | Backend |
 | --- | --- | --- |
 | **0** | Reconcile with BackgroundJob; one status vocabulary; the four `-text` tokens | ✅ done |
-| **0b** | Rework View Queues onto house components + make export rows tell the truth | ✅ ready |
-| 1 | Files list, run detail, download + logging, 30-day expiry, file card | ✅ ready |
+| **0b** | Rework View Queues onto house components + make export rows tell the truth | ✅ done |
+| **1** | Files list, run detail, download + logging, 30-day expiry, file card | ✅ done |
 | 2 | Catalogue, wizard steps 1–3, preview/estimate, definitions CRUD, Saved exports | ✅ ready |
 | 3 | Failure and omission handling end to end, frozen-config diff | ✅ ready |
 | 4 | Delivery only: recipients, secure links, test delivery, revocation | ✅ ready |

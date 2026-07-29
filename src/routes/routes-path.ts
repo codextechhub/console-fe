@@ -159,8 +159,12 @@ export const routesPath = {
       INDEX: "/tasks",
     },
     // Export menu — more entries will be appended as export features ship.
+    // Overview and Saved exports arrive with the builder (slice 2).
     EXPORT: {
       QUEUES: "/export/queues",
+      FILES: "/export/files",
+      RUN_PATH: "/export/runs/:id",
+      RUN: (id: string | number) => `/export/runs/${id}`,
     },
     ORGANOGRAM: {
       INDEX: "/organogram",
