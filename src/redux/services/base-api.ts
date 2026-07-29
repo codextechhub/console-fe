@@ -20,6 +20,7 @@ import { routesPath } from "@/routes/routes-path";
 import { refreshTokenSingleFlight } from "@/utils/token-refresh";
 import { endSession } from "@/utils/end-session";
 import { captureReturnTo } from "@/utils/return-to";
+import { apiErrorMessage } from "@/utils/api-errors";
 import { clearSelectedEntity } from "../features/finance/entity-slice";
 
 const getAccessToken = () => {
@@ -188,19 +189,6 @@ const fetchFreshMe = async (
   }
 };
 
-const extractFirstDetailError = (detail: unknown): string | null => {
-  if (!detail) return null;
-  if (typeof detail === "string") return detail;
-  if (Array.isArray(detail)) return typeof detail[0] === "string" ? detail[0] : null;
-  if (typeof detail === "object") {
-    for (const key of Object.keys(detail as Record<string, unknown>)) {
-      const found = extractFirstDetailError((detail as Record<string, unknown>)[key]);
-      if (found) return found;
-    }
-  }
-  return null;
-};
-
 const AUTH_URLS = [
   "login",
   "reset-password",
@@ -292,11 +280,7 @@ export const baseQueryInterceptor: BaseQueryFn<
     // top-level message is the backend's complete user-facing explanation.
     // Prefer it so a missing period does not degrade to a toast like "<none>".
     if (!isAuthRoute(args)) {
-      const message =
-        res?.data?.message ||
-        extractFirstDetailError(res?.data?.error?.detail) ||
-        extractFirstDetailError(res?.data?.error);
-      if (message) notify(message);
+      notify(apiErrorMessage(res?.data));
     }
     return result;
   }
@@ -308,11 +292,7 @@ export const baseQueryInterceptor: BaseQueryFn<
     // even machine codes like INVITATION_NOT_FOUND) into the UI beside the
     // friendly panel.
     if (!isAuthRoute(args)) {
-      const message =
-        extractFirstDetailError(res?.data?.error?.detail) ||
-        extractFirstDetailError(res?.data?.error) ||
-        res?.data?.message;
-      if (message) notify(message);
+      notify(apiErrorMessage(res?.data));
     }
     return result;
   }
@@ -379,11 +359,10 @@ export const baseQueryInterceptor: BaseQueryFn<
 
   if (res?.status === 403) {
     if (!isAuthRoute(args)) {
-      const msg =
-        extractFirstDetailError(res?.data?.error?.detail) ||
-        res?.data?.message ||
-        "You don't have permission to perform this action.";
-      notify(msg);
+      notify(apiErrorMessage(
+        res?.data,
+        "You don't have permission to perform this action.",
+      ));
     }
     return result;
   }

@@ -13,7 +13,7 @@
 // is intentionally omitted (generation raises a single invoice, not a schedule).
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, FileStack, Pencil, Copy, CircleCheck, RefreshCw } from "lucide-react";
+import { Plus, Search, Trash2, FileStack, Pencil, Copy, CircleCheck, RefreshCw, AlertTriangle } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField,
   AccountPicker, TaxCodePicker, toArray, type Column,
@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
+import { apiErrorMessage } from "@/utils/api-errors";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
@@ -245,14 +246,18 @@ function FeeStructureDetailDrawer({ structure, entity, currency, onClose, onEdit
 function GenerateDrawer({ structure, entity, onClose }: { structure: FeeStructure; entity: string; onClose: () => void }) {
   const [invoiceDate, setInvoiceDate] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [failure, setFailure] = useState("");
   const [generate, { isLoading }] = useGenerateFromFeeStructureMutation();
 
   const submit = async () => {
+    setFailure("");
     try {
       const res = await generate({ id: structure.code, entity, all_active: true, invoice_date: invoiceDate, due_date: dueDate || undefined }).unwrap();
       toast.success(res.message || `Generated ${res.data?.generated ?? 0} invoice(s).`);
       onClose();
-    } catch { /* central */ }
+    } catch (error) {
+      setFailure(apiErrorMessage(error, "The invoices could not be generated. Check the billing setup and try again."));
+    }
   };
 
   return (
@@ -269,10 +274,19 @@ function GenerateDrawer({ structure, entity, onClose }: { structure: FeeStructur
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
           Raises one posted invoice per active customer from this structure's lines ({formatMoney(structure.total_with_tax)} each, tax included). Customers already billed for it are skipped.
         </p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <PostingDateField label="Invoice date" entity={entity} value={invoiceDate} onChange={setInvoiceDate} />
           <FormField label="Due date"><Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="bg-white" /></FormField>
         </div>
+        {failure ? (
+          <div role="alert" className="flex gap-2 rounded-md border border-error/30 bg-error/5 px-3 py-2.5">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-error" aria-hidden="true" />
+            <div className="min-w-0">
+              <p className="font-mont text-xs font-semibold text-gray-01">Invoices could not be generated</p>
+              <p className="mt-0.5 font-mont text-[11px] leading-4 text-gray-05">{failure}</p>
+            </div>
+          </div>
+        ) : null}
       </div>
     </DetailDrawer>
   );
