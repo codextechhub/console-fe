@@ -127,32 +127,15 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
 
   return (
     <div className="space-y-4">
-      {/* KPI cards */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Total invoiced" value={formatMoney(summary?.kpis.total_invoiced.kobo ?? 0, currency)} delta={pctChange(inv)} />
-        <Kpi label="Total collected" value={formatMoney(summary?.kpis.total_collected.kobo ?? 0, currency)} delta={pctChange(col)} />
-        <Kpi label="Collection rate" value={`${(summary?.kpis.collection_rate ?? 0).toFixed(1)}%`} delta={rate.length > 1 ? rate[rate.length - 1] - rate[rate.length - 2] : null} deltaIsPoints />
-        <Kpi label="Overdue balance" value={formatMoney(summary?.kpis.overdue_balance.kobo ?? 0, currency)} delta={null} />
-      </div>
-
-      {/* status tabs */}
-      <div className="flex flex-wrap items-center gap-1 rounded-md border border-gray-03 bg-white p-1">
-        {TABS.map((t) => (
-          <button key={t.key} onClick={() => { setBucket(t.key); setPage(1); }}
-            className={cn("rounded-md px-3 py-1.5 font-mont text-xs font-semibold", bucket === t.key ? "bg-primary text-white" : "text-gray-05 hover:bg-gray-50 hover:text-gray-01")}>
-            {t.label} <span className="ml-1 opacity-70">{count(t.key)}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* search + actions */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
-          <Input value={searchInput} onChange={(e) => { setSearchInput(e.target.value); setPage(1); }} placeholder="Search invoice no / customer" className="h-9 w-64 pl-8 font-mont text-sm" />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-mont text-lg font-semibold text-gray-01">Customer Invoices</h1>
+            <InfoHint>Customer invoices debit Accounts Receivable and credit revenue on posting. A payment is recorded against the invoice; the AR control account must equal the sum of open invoice balances — a tie reconciled at period close.</InfoHint>
+          </div>
+          <p className="mt-0.5 font-mont text-xs text-gray-05">Accounts receivable for the selected entity.</p>
         </div>
-        <InfoHint>Customer invoices debit Accounts Receivable and credit revenue on posting. A payment is recorded against the invoice; the AR control account must equal the sum of open invoice balances — a tie reconciled at period close.</InfoHint>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Can permission={P.FIN_GENERATE_FEE_STRUCTURE}>
             <Button variant="outline" onClick={() => setBatchOpen(true)} className="gap-1.5">
               <Layers className="size-4" /> Batch generate
@@ -163,6 +146,32 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
               <Plus className="size-4" /> New invoice
             </Button>
           </Can>
+        </div>
+      </div>
+
+      {/* KPI cards */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi label="Total invoiced" value={formatMoney(summary?.kpis.total_invoiced.kobo ?? 0, currency)} delta={pctChange(inv)} />
+        <Kpi label="Total collected" value={formatMoney(summary?.kpis.total_collected.kobo ?? 0, currency)} delta={pctChange(col)} />
+        <Kpi label="Collection rate" value={`${(summary?.kpis.collection_rate ?? 0).toFixed(1)}%`} delta={rate.length > 1 ? rate[rate.length - 1] - rate[rate.length - 2] : null} deltaIsPoints />
+        <Kpi label="Overdue balance" value={formatMoney(summary?.kpis.overdue_balance.kobo ?? 0, currency)} delta={null} />
+      </div>
+
+      {/* search + status filters */}
+      <div className="flex min-w-0 flex-col gap-2 md:flex-row md:items-center">
+        <div className="min-w-0 flex-1">
+          <div className="flex max-w-full items-center gap-1 overflow-x-auto whitespace-nowrap rounded-md border border-gray-03 bg-white p-1">
+            {TABS.map((t) => (
+              <button key={t.key} onClick={() => { setBucket(t.key); setPage(1); }}
+                className={cn("shrink-0 rounded-md px-3 py-1.5 font-mont text-xs font-semibold", bucket === t.key ? "bg-primary text-white" : "text-gray-05 hover:bg-gray-50 hover:text-gray-01")}>
+                {t.label} <span className="ml-1 opacity-70">{count(t.key)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="relative w-full shrink-0 md:w-64">
+          <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
+          <Input value={searchInput} onChange={(e) => { setSearchInput(e.target.value); setPage(1); }} placeholder="Search invoice no / customer" className="h-9 w-full pl-8 font-mont text-sm" />
         </div>
       </div>
 

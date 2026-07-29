@@ -40,13 +40,15 @@ export default function ReceivablesPage() {
   return (
     <FinanceShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Receivables"}</h1>
-            {HINTS[section] && <InfoHint>{HINTS[section]}</InfoHint>}
+        {(section !== "invoices" || !entity) && (
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Receivables"}</h1>
+              {HINTS[section] && <InfoHint>{HINTS[section]}</InfoHint>}
+            </div>
+            <p className="mt-0.5 font-mont text-xs text-gray-05">{SUBTITLES[section] ?? "Accounts receivable for the selected entity."}</p>
           </div>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">{SUBTITLES[section] ?? "Accounts receivable for the selected entity."}</p>
-        </div>
+        )}
         {!entity ? (
           <EmptyState title="Select an entity" message="Choose a ledger entity to view receivables." />
         ) : section === "credit-notes" ? (
