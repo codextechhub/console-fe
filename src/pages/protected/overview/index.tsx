@@ -26,6 +26,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
 import { useGetConsoleOverviewQuery } from "@/redux/services/dashboard/overview-api";
+import { SnapRail } from "@/components/custom/snap-rail";
 
 const R = routesPath.PROTECTED;
 
@@ -82,7 +83,10 @@ function MetricCard({
   return (
     <Link
       to={to}
-      className="group rounded-xl border border-white-02 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.02)] transition hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
+      // `block` explicitly: a grid cell blockifies its child for free, but in
+      // the phone rail this <a> is a plain inline box and its padding and
+      // background break across lines without it.
+      className="group block rounded-xl border border-white-02 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.02)] transition hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-4">
         <span className={cn("grid size-8 place-items-center rounded-lg", tones[tone])}>
@@ -104,7 +108,9 @@ function MetricCard({
 
 function EmptyLine({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-20 flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/60 px-4 text-center">
+    // h-full so the box's leftover height centres the message rather than
+    // leaving it pinned to the top above a void.
+    <div className="flex h-full min-h-20 w-full flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/60 px-4 text-center">
       <CheckCircle2 className="mb-2 size-5 text-emerald-500" />
       <p className="text-sm font-medium text-gray-600">{children}</p>
     </div>
@@ -179,6 +185,11 @@ export default function Overview() {
     .filter((item) => item.count > 0)
     .sort((a, b) => a.urgency - b.urgency || b.count - a.count);
 
+  // Every row is answerable from the response, so every row can actually be
+  // ticked. Two of them used to be hardcoded `done: null` — the endpoint
+  // returned nothing to check them against, so they sat grey forever and the
+  // percentage was measured over a different set of items than the one on
+  // screen. `setup` now carries both flags, gated on the same keys as the rows.
   const setupItems = [
     {
       label: "Complete your profile",
@@ -198,25 +209,91 @@ export default function Overview() {
       visible: canViewTeam,
     },
     {
-      label: "Review roles and access",
-      description: "Make sure responsibilities have the right permissions.",
+      // Was "Review roles and access" — a review is not a thing the data can
+      // ever report as done. Assigning a role is, and it is the step that
+      // actually matters.
+      label: "Assign roles to your team",
+      description: "Give people the access their responsibilities need.",
       to: R.ROLES.INDEX,
-      done: null,
-      pending: false,
-      visible: hasPermission(P.VIEW_ROLES),
+      done: Boolean(overview?.setup?.roles_assigned),
+      pending: true,
+      // Kept in place while loading so the list doesn't shuffle under the
+      // reader; dropped only if the answer comes back absent (no access).
+      visible: hasPermission(P.VIEW_ROLES) && (!revealed || overview?.setup?.roles_assigned !== undefined),
     },
     {
       label: "Build your organogram",
       description: "Connect reporting lines so ownership stays clear.",
       to: R.ORGANOGRAM.INDEX,
-      done: null,
-      pending: false,
-      visible: hasPermission(P.VIEW_ORGANOGRAM),
+      done: Boolean(overview?.setup?.organogram_built),
+      pending: true,
+      visible: hasPermission(P.VIEW_ORGANOGRAM) && (!revealed || overview?.setup?.organogram_built !== undefined),
     },
   ].filter((item) => item.visible);
-  const trackedSetupItems = setupItems.filter((item) => item.done !== null);
-  const setupDone = trackedSetupItems.filter((item) => item.done).length;
-  const setupPercent = trackedSetupItems.length ? Math.round((setupDone / trackedSetupItems.length) * 100) : 100;
+  const setupDone = setupItems.filter((item) => item.done).length;
+  const setupPercent = setupItems.length ? Math.round((setupDone / setupItems.length) * 100) : 100;
+  // The checklist has an end. Once every row the reader can see is ticked it
+  // stops being guidance and becomes furniture, so it leaves the screen — but
+  // only after the data has landed, or it would flash away and back on load.
+  const showSetup = !revealed || setupDone < setupItems.length;
+
+  // Built once and rendered by both the phone rail and the desktop grid, so the
+  // two presentations can never drift apart.
+  const metricCards = [
+    canViewSchools && (
+      <MetricCard key="schools" icon={School} label="Active schools" value={overview?.schools?.active ?? 0} note="Currently active on the platform" to={R.SCHOOL_MGT.INDEX} loading={!revealed} />
+    ),
+    canViewTeam && (
+      <MetricCard key="team" icon={Users} label="CX team members" value={overview?.team?.total ?? 0} note="People in your admin workspace" to={R.TEAM_MGT.CX} tone="blue" loading={!revealed} />
+    ),
+    <MetricCard key="tasks" icon={ClipboardCheck} label="Open tasks" value={taskStats?.in_progress ?? 0} note={`${taskStats?.overdue ?? 0} overdue`} to={R.TODO.INDEX} tone="amber" loading={!revealed} />,
+    <MetricCard key="approvals" icon={Workflow} label="Pending approvals" value={approvalsCount} note={`${returnedCount} returned to you`} to={R.WORKFLOW.APPROVALS} tone="green" loading={!revealed} />,
+    canViewTickets && (
+      <MetricCard key="tickets" icon={LifeBuoy} label="Open support tickets" value={overview?.tickets?.open ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={R.SUPPORT.INDEX} tone="amber" loading={!revealed} />
+    ),
+    canViewHealth && (
+      <MetricCard key="health" icon={Activity} label="System posture" value={overview?.health?.label ?? "Unknown"} note={`${overview?.health?.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={!revealed} />
+    ),
+  ].filter(Boolean) as React.ReactElement[];
+
+  // Hero spotlight. These are the same signals the sections below carry, shown
+  // large and one at a time — the hero is the glance, the sections are the
+  // detail. Nothing is invented: a slide only exists when its section came back
+  // in the response, so a caller without health or tickets simply gets fewer.
+  const spotlightSlides = [
+    {
+      key: "attention",
+      icon: Bell,
+      label: attentionCount ? "items may need your attention" : "you are all clear",
+      value: attentionCount,
+      to: attentionCount ? R.WORKFLOW.APPROVALS : R.TODO.INDEX,
+      show: true,
+    },
+    {
+      key: "approvals",
+      icon: FileClock,
+      label: returnedCount ? `awaiting you, ${returnedCount} returned` : "awaiting your decision",
+      value: approvalsCount,
+      to: R.WORKFLOW.APPROVALS,
+      show: true,
+    },
+    {
+      key: "task",
+      icon: ClipboardCheck,
+      label: taskStats?.overdue ? "tasks now overdue" : "tasks in progress",
+      value: taskStats?.overdue || taskStats?.in_progress || 0,
+      to: R.TODO.INDEX,
+      show: Boolean(overview?.tasks),
+    },
+    {
+      key: "health",
+      icon: HeartPulse,
+      label: `${overview?.health?.active_incidents ?? 0} active incidents`,
+      value: overview?.health?.label ?? "Unknown",
+      to: R.HEALTH.INDEX,
+      show: canViewHealth && Boolean(overview?.health),
+    },
+  ].filter((slide) => slide.show);
 
   const modules = [
     { label: "School Management", copy: "Schools and branches", to: R.SCHOOL_MGT.INDEX, icon: School, show: canViewSchools },
@@ -251,17 +328,43 @@ export default function Overview() {
               </h1>
               <p className="mt-1 max-w-xl text-xs leading-5 text-white/60">{greetingCopy()}</p>
             </div>
-            <div className="flex min-w-56 items-center gap-3 rounded-xl border border-white/10 bg-white/10 px-3.5 py-3 backdrop-blur-sm">
-              <div className="grid size-9 place-items-center rounded-lg bg-white/10">
-                <Bell className="size-4 text-amber-300" />
+            {/* The single static count this replaced only ever answered one
+                question; the rail cycles the handful that actually matter at a
+                glance, and each slide is a way in to the screen behind it. */}
+            {!revealed ? (
+              <div className="flex min-w-56 items-center gap-3 rounded-xl border border-white/10 bg-white/10 px-3.5 py-3 backdrop-blur-sm lg:w-72">
+                <Shimmer className="size-9 shrink-0 rounded-lg bg-white/20" />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <Shimmer className="h-4 w-10 bg-white/25" />
+                  <Shimmer className="h-2.5 w-28 bg-white/15" />
+                </div>
               </div>
-              <div>
-                <p className="text-xl font-semibold leading-none">
-                  {revealed ? attentionCount : <Shimmer className="my-1 h-4 w-8 bg-white/25" />}
-                </p>
-                <p className="text-xs text-white/60">items may need your attention</p>
-              </div>
-            </div>
+            ) : (
+              <SnapRail
+                ariaLabel="Workspace spotlight"
+                autoAdvanceMs={6000}
+                className="w-full lg:w-72"
+                dotClassName="bg-white/30 hover:bg-white/50"
+                activeDotClassName="bg-amber-300"
+              >
+                {spotlightSlides.map(({ key, icon: Icon, label, value, to }) => (
+                  <Link
+                    key={key}
+                    to={to}
+                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 px-3.5 py-3 backdrop-blur-sm transition hover:border-white/25 hover:bg-white/15"
+                  >
+                    <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/10">
+                      <Icon className="size-4 text-amber-300" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xl font-semibold leading-none">{value}</p>
+                      <p className="mt-1 truncate text-xs text-white/60">{label}</p>
+                    </div>
+                    <ChevronRight className="size-4 shrink-0 text-white/40" />
+                  </Link>
+                ))}
+              </SnapRail>
+            )}
           </div>
         </section>
 
@@ -272,26 +375,29 @@ export default function Overview() {
               <p className="mt-0.5 text-xs text-gray-400">A live view of the administration areas you can access.</p>
             </div>
           </div>
-          <div className={cn("grid gap-3 sm:grid-cols-2 xl:grid-cols-4", revealed && "reveal-in")}>
-            {canViewSchools && (
-              <MetricCard icon={School} label="Active schools" value={overview?.schools?.active ?? 0} note="Currently active on the platform" to={R.SCHOOL_MGT.INDEX} loading={!revealed} />
-            )}
-            {canViewTeam && (
-              <MetricCard icon={Users} label="CX team members" value={overview?.team?.total ?? 0} note="People in your admin workspace" to={R.TEAM_MGT.CX} tone="blue" loading={!revealed} />
-            )}
-            <MetricCard icon={ClipboardCheck} label="Open tasks" value={taskStats?.in_progress ?? 0} note={`${taskStats?.overdue ?? 0} overdue`} to={R.TODO.INDEX} tone="amber" loading={!revealed} />
-            <MetricCard icon={Workflow} label="Pending approvals" value={approvalsCount} note={`${returnedCount} returned to you`} to={R.WORKFLOW.APPROVALS} tone="green" loading={!revealed} />
-            {canViewTickets && (
-              <MetricCard icon={LifeBuoy} label="Open support tickets" value={overview?.tickets?.open ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={R.SUPPORT.INDEX} tone="amber" loading={!revealed} />
-            )}
-            {canViewHealth && (
-              <MetricCard icon={Activity} label="System posture" value={overview?.health?.label ?? "Unknown"} note={`${overview?.health?.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={!revealed} />
-            )}
+          {/* One set of cards, two presentations. Stacked on a phone these six
+              ran ~620px — most of the first screen spent scrolling past boxes
+              to reach anything actionable — so below `sm` they become a
+              swipeable rail and the grid takes over from `sm` up. */}
+          <div className={cn("sm:hidden", revealed && "reveal-in")}>
+            {/* No auto-advance here, unlike the hero spotlight: these are
+                numbers someone is reading, and sliding one away mid-read costs
+                more than the motion is worth. Swipe and dots only. */}
+            <SnapRail ariaLabel="Platform overview metrics" slideClassName="px-0.5">
+              {metricCards}
+            </SnapRail>
+          </div>
+          <div className={cn("hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4", revealed && "reveal-in")}>
+            {metricCards}
           </div>
         </section>
 
-        <div className="space-y-4 xl:columns-2 xl:gap-4 xl:space-y-0">
-          <section className="mb-4 break-inside-avoid rounded-xl border border-white-02 bg-white p-4">
+        {/* A real 2-col grid, not CSS multi-column. `columns-2` balances the two
+            columns by measured height, so the split moved with the data (0 vs 4
+            attention items) and the boxes jumped columns when the query landed.
+            A grid fixes each box to a cell, so row tops always line up. */}
+        <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
+          <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-base font-semibold">Needs your attention</h2>
@@ -301,33 +407,61 @@ export default function Overview() {
                 {revealed ? `${attentionCount} total` : "counting…"}
               </span>
             </div>
-            <div className={cn("mt-3 grid gap-2 sm:grid-cols-2", revealed && "reveal-in")}>
-              {!revealed ? (
-                // Two rows the size of a real one: the section keeps its height
-                // instead of growing under the reader as items land.
-                [0, 1].map((i) => (
-                  <div key={i} className="flex items-center gap-3 rounded-lg border border-gray-100 p-3">
-                    <Shimmer className="size-8 shrink-0 rounded-lg" />
-                    <div className="min-w-0 flex-1 space-y-1.5">
-                      <Shimmer className="h-3 w-24" />
-                      <Shimmer className="h-2.5 w-32" />
+            {!revealed || attentionItems.length ? (
+              <div className={cn("mt-3 grid flex-1 auto-rows-min gap-2 sm:grid-cols-2", revealed && "reveal-in")}>
+                {!revealed ? (
+                  // Two rows the size of a real one: the section keeps its height
+                  // instead of growing under the reader as items land.
+                  [0, 1].map((i) => (
+                    <div key={i} className="flex items-center gap-3 rounded-lg border border-gray-100 p-3">
+                      <Shimmer className="size-8 shrink-0 rounded-lg" />
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <Shimmer className="h-3 w-24" />
+                        <Shimmer className="h-2.5 w-32" />
+                      </div>
                     </div>
-                  </div>
-                ))
-              ) : attentionItems.length ? attentionItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={item.label} to={item.to} className="group flex items-center gap-3 rounded-lg border border-gray-100 p-3 hover:border-primary/20 hover:bg-primary/[0.025]">
-                    <span className={cn("grid size-8 place-items-center rounded-lg", item.tone)}><Icon className="size-4" /></span>
-                    <div className="min-w-0 flex-1"><p className="text-sm font-medium">{item.label}</p><p className="mt-0.5 text-xs text-gray-400">{item.copy}</p></div>
-                    <ChevronRight className="size-4 text-gray-300 group-hover:text-primary" />
-                  </Link>
-                );
-              }) : <div className="sm:col-span-2"><EmptyLine>Nothing needs your attention right now.</EmptyLine></div>}
+                  ))
+                ) : attentionItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link key={item.label} to={item.to} className="group flex items-center gap-3 rounded-lg border border-gray-100 p-3 hover:border-primary/20 hover:bg-primary/[0.025]">
+                      <span className={cn("grid size-8 place-items-center rounded-lg", item.tone)}><Icon className="size-4" /></span>
+                      <div className="min-w-0 flex-1"><p className="text-sm font-medium">{item.label}</p><p className="mt-0.5 text-xs text-gray-400">{item.copy}</p></div>
+                      <ChevronRight className="size-4 text-gray-300 group-hover:text-primary" />
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              // Outside the auto-rows grid so the empty state centres in the
+              // leftover height instead of leaving a void beneath it.
+              <div className={cn("mt-3 flex flex-1", revealed && "reveal-in")}>
+                <EmptyLine>Nothing needs your attention right now.</EmptyLine>
+              </div>
+            )}
+          </section>
+
+          <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4">
+            <div className="flex items-center justify-between">
+              <div><h2 className="text-base font-semibold">My tasks</h2><p className="mt-0.5 text-xs text-gray-400">Keep your closest commitments in view.</p></div>
+              <Link to={R.TODO.INDEX} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">View all <ArrowRight className="size-3.5" /></Link>
+            </div>
+            <div className={cn("mt-3 flex-1 space-y-2", revealed && "reveal-in")}>
+              {revealed && activeTasks.length === 0 ? <EmptyLine>You are all caught up.</EmptyLine> : activeTasks.map((task) => (
+                <Link key={task.id} to={R.TODO.INDEX} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3.5 hover:border-primary/20">
+                  <span className={cn("size-2 rounded-full", task.status === "OVERDUE" ? "bg-red-500" : task.priority === "HIGH" ? "bg-amber-500" : "bg-primary")} />
+                  <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{task.title}</p><p className="mt-0.5 text-xs text-gray-400">{task.department || "Personal task"}</p></div>
+                  <span className={cn("rounded-lg px-2 py-1 text-xs", task.status === "OVERDUE" ? "bg-red-50 text-red-600" : "bg-gray-50 text-gray-500")}>{formatDate(task.deadline)}</span>
+                </Link>
+              ))}
+              {!revealed && <div className="h-28 animate-pulse rounded-xl bg-gray-50" />}
             </div>
           </section>
 
-          <section className="mb-4 break-inside-avoid rounded-xl border border-white-02 bg-white p-4">
+          {/* Row 2 pairs the two fixed-length lists. Pairing a short, data-driven
+              box with a long one is what left a tall empty half in each row. */}
+          {showSetup && (
+          <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-base font-semibold">Getting started</h2>
@@ -357,26 +491,14 @@ export default function Overview() {
               })}
             </div>
           </section>
-          <section className="mb-4 break-inside-avoid rounded-xl border border-white-02 bg-white p-4">
-            <div className="flex items-center justify-between">
-              <div><h2 className="text-base font-semibold">My tasks</h2><p className="mt-0.5 text-xs text-gray-400">Keep your closest commitments in view.</p></div>
-              <Link to={R.TODO.INDEX} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">View all <ArrowRight className="size-3.5" /></Link>
-            </div>
-            <div className={cn("mt-3 space-y-2", revealed && "reveal-in")}>
-              {revealed && activeTasks.length === 0 ? <EmptyLine>You are all caught up.</EmptyLine> : activeTasks.map((task) => (
-                <Link key={task.id} to={R.TODO.INDEX} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3.5 hover:border-primary/20">
-                  <span className={cn("size-2 rounded-full", task.status === "OVERDUE" ? "bg-red-500" : task.priority === "HIGH" ? "bg-amber-500" : "bg-primary")} />
-                  <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{task.title}</p><p className="mt-0.5 text-xs text-gray-400">{task.department || "Personal task"}</p></div>
-                  <span className={cn("rounded-lg px-2 py-1 text-xs", task.status === "OVERDUE" ? "bg-red-50 text-red-600" : "bg-gray-50 text-gray-500")}>{formatDate(task.deadline)}</span>
-                </Link>
-              ))}
-              {!revealed && <div className="h-28 animate-pulse rounded-xl bg-gray-50" />}
-            </div>
-          </section>
+          )}
 
-          <section className="mb-4 break-inside-avoid rounded-xl border border-white-02 bg-white p-4">
+          {/* With the checklist retired, this would sit alone in a half-width
+              cell next to a hole — so it takes the whole row and widens its
+              own grid instead. */}
+          <section className={cn("flex flex-col rounded-xl border border-white-02 bg-white p-4", !showSetup && "xl:col-span-2")}>
             <div><h2 className="text-base font-semibold">Your workspace</h2><p className="mt-0.5 text-xs text-gray-400">Shortcuts matched to your access.</p></div>
-            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            <div className={cn("mt-5 grid flex-1 auto-rows-min gap-2 sm:grid-cols-2", !showSetup && "xl:grid-cols-4")}>
               {modules.map(({ label, copy, to, icon: Icon }) => (
                 <Link key={label} to={to} className="group flex items-center gap-3 rounded-xl border border-gray-100 p-3 hover:border-primary/20 hover:bg-primary/[0.025]">
                   <span className="grid size-9 place-items-center rounded-lg bg-gray-50 text-gray-500 group-hover:bg-primary/10 group-hover:text-primary"><Icon className="size-4.5" /></span>

@@ -28,6 +28,10 @@ export const overviewApi = baseApi.injectEndpoints({
         "Notifications",
         "Tickets",
         "Health",
+        // The "Getting started" flags: assigning a role or adding an org node
+        // ticks a row, so the roll-up has to re-fetch with those mutations too.
+        "UserAssignments",
+        "OrgNodes",
       ],
     }),
   }),

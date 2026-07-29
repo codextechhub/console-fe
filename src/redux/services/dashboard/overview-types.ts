@@ -22,6 +22,17 @@ export interface ConsoleOverview {
   notifications: { unread: number };
   tickets?: { open: number; assigned_to_me: number };
   health?: { label: string; overall: string; active_incidents: number };
+  /**
+   * Backing for the "Getting started" checklist. Each flag follows the same
+   * omit-don't-zero rule as the sections above — absent means the caller can't
+   * see that screen, so its checklist row is hidden rather than shown unticked.
+   */
+  setup?: {
+    /** Any active role assignment in the caller's tenant. */
+    roles_assigned?: boolean;
+    /** Any active node in the CX org tree. */
+    organogram_built?: boolean;
+  };
 }
 
 export interface ConsoleOverviewRes extends ResponseMessage {
