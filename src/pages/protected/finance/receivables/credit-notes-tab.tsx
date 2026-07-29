@@ -18,7 +18,7 @@ import { Plus, Printer, Check, Search } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, ConfirmActionModal, DetailDrawer, FormField,
   CustomerPicker, AccountPicker, CostCenterPicker, PostingRecap, Segmented, toArray, type Column, type RecapRow,
-} from "@/components/finance-ui";
+  PostingDateField,} from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,6 @@ import {
 } from "@/redux/services/finance/ar-api";
 import type { CreditNote } from "@/redux/services/finance/ar-types";
 
-const todayISO = new Date().toISOString().slice(0, 10);
 const kindLabel = (k: string) => (k === "DEBIT" ? "Debit note" : "Credit note");
 const DRAWER_W = "sm:max-w-3xl";
 
@@ -276,7 +275,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
   open: boolean; onClose: () => void; entity: string; currency?: string | null;
 }) {
   const [kind, setKind] = useState("CREDIT");
-  const [date, setDate] = useState(todayISO);
+  const [date, setDate] = useState("");
   const [customer, setCustomer] = useState("");
   const [account, setAccount] = useState("");
   const [invoice, setInvoice] = useState(""); // invoice id, optional
@@ -313,7 +312,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
 
   const canSubmit = !!customer && !!account && amount > 0 && reason.trim() !== "";
 
-  const reset = () => { setKind("CREDIT"); setDate(todayISO); setCustomer(""); setAccount(""); setInvoice(""); setAmount(0); setCostCenter(""); setReason(""); setApplyNow(false); };
+  const reset = () => { setKind("CREDIT"); setDate(""); setCustomer(""); setAccount(""); setInvoice(""); setAmount(0); setCostCenter(""); setReason(""); setApplyNow(false); };
   const close = () => { reset(); onClose(); };
   const changeKind = (k: string) => { setKind(k); if (k === "DEBIT") setApplyNow(false); };
 
@@ -352,7 +351,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
         <Segmented label="Note type" value={kind} onChange={changeKind} options={[["CREDIT", "Credit note"], ["DEBIT", "Debit note"]]} />
 
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
+          <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
           <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={(v) => { setCustomer(v); setInvoice(""); }} /></FormField>
         </div>
 

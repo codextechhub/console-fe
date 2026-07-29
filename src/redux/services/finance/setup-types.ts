@@ -73,6 +73,33 @@ export interface FiscalPeriod {
   closed_at: string | null;
 }
 
+/** A period reduced to what a date picker needs: when it is, and why it's blocked. */
+export interface PeriodBrief {
+  id: number;
+  name: string;
+  period_no: number;
+  status: FiscalPeriod["status"];
+  start_date: string;
+  end_date: string;
+}
+
+/**
+ * Which dates the entity will accept a posting on right now — GET
+ * /finance/posting-window/. The read-side mirror of the backend's
+ * `ensure_period_open` guard, so a date a picker offers is one the guard accepts.
+ *
+ * `default_date` is null when the entity has no open period at all; that is a real
+ * state (nothing can be posted until finance opens one), not a loading blip.
+ */
+export interface PostingWindow {
+  today: string;
+  today_is_open: boolean;
+  default_date: string | null;
+  default_period: PeriodBrief | null;
+  open: PeriodBrief[];
+  blocked: PeriodBrief[];
+}
+
 export interface ChecklistItem {
   name: string;
   passed: boolean;

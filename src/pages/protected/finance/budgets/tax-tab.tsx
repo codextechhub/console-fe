@@ -9,7 +9,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Plus, Printer, CheckCircle2, Circle, CircleDot, Banknote, FileCheck2, Undo2 } from "lucide-react";
-import { DataTable, Money, MoneyInput, DetailDrawer, FormField, AccountPicker, BankAccountPicker, TaxObligationPicker, PostingRecap, KpiCard, ConfirmActionModal, toArray, type Column, type RecapRow } from "@/components/finance-ui";
+import { DataTable, Money, MoneyInput, DetailDrawer, FormField, AccountPicker, BankAccountPicker, TaxObligationPicker, PostingRecap, KpiCard, ConfirmActionModal, toArray, type Column, type RecapRow, PostingDateField,} from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,6 @@ import {
 import type { TaxFiling } from "@/redux/services/finance/ops-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
-const todayISO = new Date().toISOString().slice(0, 10);
 const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
 
 const OB_TYPES: [string, string][] = [["VAT", "VAT"], ["WHT", "WHT"], ["PAYE", "PAYE"], ["PENSION", "Pension"], ["OTHER", "Other levy"]];
@@ -217,7 +216,7 @@ function FilingDrawer({ filingId, filings, entity, currency, onClose }: { filing
 }
 
 function FileDrawer({ filing, entity, currency, onClose }: { filing: TaxFiling; entity: string; currency?: string | null; onClose: () => void }) {
-  const [filedDate, setFiledDate] = useState(todayISO);
+  const [filedDate, setFiledDate] = useState("");
   const [ref, setRef] = useState("");
   const [adjust, setAdjust] = useState(0);
   const [adjustAccount, setAdjustAccount] = useState("");
@@ -238,7 +237,7 @@ function FileDrawer({ filing, entity, currency, onClose }: { filing: TaxFiling; 
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03/40 px-3 py-2 font-mont text-[11px] text-gray-05">Records the return with the authority. Filing nets recoverable input tax and books any penalty/adjustment; it doesn't move cash — that's the payment.</p>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Filed date" required><Input type="date" value={filedDate} onChange={(e) => setFiledDate(e.target.value)} className="h-9 bg-white" /></FormField>
+          <PostingDateField label="Filed date" entity={entity} value={filedDate} onChange={setFiledDate} />
           <FormField label="Filing reference"><Input value={ref} onChange={(e) => setRef(e.target.value)} placeholder="e.g. FIRS-2026-4481" className="h-9 bg-white" /></FormField>
         </div>
         <FormField label="Adjustment / penalty"><MoneyInput valueKobo={adjust} onChangeKobo={setAdjust} currency={currency} className="[&_input]:h-9" /></FormField>
@@ -250,7 +249,7 @@ function FileDrawer({ filing, entity, currency, onClose }: { filing: TaxFiling; 
 
 function PayDrawer({ filing, entity, currency, onClose }: { filing: TaxFiling; entity: string; currency?: string | null; onClose: () => void }) {
   const [bank, setBank] = useState("");
-  const [payDate, setPayDate] = useState(todayISO);
+  const [payDate, setPayDate] = useState("");
   const [amount, setAmount] = useState(filing.balance_due);
   const [pay, { isLoading }] = usePayTaxFilingMutation();
   const submit = async () => {
@@ -270,7 +269,7 @@ function PayDrawer({ filing, entity, currency, onClose }: { filing: TaxFiling; e
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">Remits the liability — Dr {filing.liability_account || filing.obligation_code + " payable"}, Cr bank. Partial payments are allowed; the filing closes once the balance is cleared.</p>
         <FormField label="Pay from (bank account)" required><BankAccountPicker entity={entity} value={bank} onChange={setBank} /></FormField>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Payment date" required><Input type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} className="h-9 bg-white" /></FormField>
+          <PostingDateField label="Payment date" entity={entity} value={payDate} onChange={setPayDate} />
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} className="[&_input]:h-9" /></FormField>
         </div>
       </div>

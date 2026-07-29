@@ -15,7 +15,7 @@ import {
   AccountPicker, DataTable, DetailDrawer, EmptyState, ErrorState, FormDrawer, FormField,
   LoadingState, Money, MoneyInput, PostingRecap, Segmented, StatCard, StatusPill, toArray,
   useActiveEntity, type Column, type RecapRow,
-} from "@/components/finance-ui";
+  PostingDateField,} from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -302,7 +302,7 @@ function StockItemForm({ entity, initial, onClose }: { entity: string; initial?:
 function IssueDrawer({ entity, currency, item, onClose }: { entity: string; currency?: string | null; item: StockItemDetail; onClose: () => void }) {
   const onHand = num(item.on_hand_qty);
   const [qty, setQty] = useState("");
-  const [movementDate, setMovementDate] = useState(new Date().toISOString().slice(0, 10));
+  const [movementDate, setMovementDate] = useState("");
   const [expense, setExpense] = useState(item.expense_code || "");
   const [reference, setReference] = useState("");
   const [narration, setNarration] = useState("");
@@ -342,7 +342,7 @@ function IssueDrawer({ entity, currency, item, onClose }: { entity: string; curr
           <Input type="number" min="0" value={qty} onChange={(e) => setQty(e.target.value)} className="bg-white tabular-nums" />
           <span className="mt-1 block font-mont text-[11px] text-gray-05">{qtyValid ? `${fmtQty(String(onHand - q))} ${item.unit_of_measure} remaining` : `Up to ${fmtQty(item.on_hand_qty)} available`}</span>
         </FormField>
-        <FormField label="Movement date"><Input type="date" value={movementDate} onChange={(e) => setMovementDate(e.target.value)} className="bg-white" /></FormField>
+        <PostingDateField label="Movement date" entity={entity} value={movementDate} onChange={setMovementDate} />
       </div>
       <FormField label="Expense account" required={!item.expense_code}><AccountPicker entity={entity} value={expense} onChange={setExpense} accountType="EXPENSE" postableOnly activeOnly /></FormField>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -361,7 +361,7 @@ function AdjustDrawer({ entity, currency, item, onClose }: { entity: string; cur
   const onHand = num(item.on_hand_qty);
   const [direction, setDirection] = useState<"increase" | "decrease">("increase");
   const [qty, setQty] = useState("");
-  const [movementDate, setMovementDate] = useState(new Date().toISOString().slice(0, 10));
+  const [movementDate, setMovementDate] = useState("");
   const [adjustment, setAdjustment] = useState("5150");
   const [unitCostKobo, setUnitCostKobo] = useState(0);
   const [reference, setReference] = useState("");
@@ -418,7 +418,7 @@ function AdjustDrawer({ entity, currency, item, onClose }: { entity: string; cur
           <Input type="number" min="0" value={qty} onChange={(e) => setQty(e.target.value)} className="bg-white tabular-nums" />
           {!isIncrease && <span className="mt-1 block font-mont text-[11px] text-gray-05">Up to {fmtQty(item.on_hand_qty)} available</span>}
         </FormField>
-        <FormField label="Movement date"><Input type="date" value={movementDate} onChange={(e) => setMovementDate(e.target.value)} className="bg-white" /></FormField>
+        <PostingDateField label="Movement date" entity={entity} value={movementDate} onChange={setMovementDate} />
       </div>
       {isIncrease && (
         <FormField label={`Unit cost${fromEmpty ? "" : " (optional — defaults to average)"}`} required={fromEmpty}>

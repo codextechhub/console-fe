@@ -15,7 +15,7 @@ import {
   DataTable, DetailDrawer, EmptyState, ErrorState, FormField, InfoHint, LineEditor,
   LoadingState, PostingRecap, StatCard, StatusPill, emptyLine, toApiLines, toArray,
   useActiveEntity, type Column, type DocLine,
-} from "@/components/finance-ui";
+  PostingDateField,} from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -199,7 +199,7 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
   const [mode, setMode] = useState<"po" | "direct">(initial ? (initial.purchase_order_id ? "po" : "direct") : "po");
   const [vendor, setVendor] = useState(initial?.vendor_code || "");
   const [po, setPo] = useState(initial?.purchase_order_id ? String(initial.purchase_order_id) : "");
-  const [invoiceDate, setInvoiceDate] = useState(initial?.invoice_date || new Date().toISOString().slice(0, 10));
+  const [invoiceDate, setInvoiceDate] = useState(initial?.invoice_date || "");
   const [dueDate, setDueDate] = useState(initial?.due_date || "");
   const [reference, setReference] = useState(initial?.vendor_reference || "");
   const [narration, setNarration] = useState(initial?.narration || "");
@@ -245,7 +245,7 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
     <div className="space-y-5">
       <div className="grid grid-cols-2 rounded-md bg-gray-100 p-1">{(["po", "direct"] as const).map((value) => <button key={value} onClick={() => { setMode(value); if (value === "direct") setPo(""); }} className={cn("rounded px-3 py-2 font-mont text-xs font-medium", mode === value ? "bg-white text-primary shadow-sm" : "text-gray-05")}>{value === "po" ? "PO-backed invoice" : "Direct invoice"}</button>)}</div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} disabled={mode === "po" && !!source} /></FormField>{mode === "po" && <FormField label="Purchase order" required><PurchaseOrderPicker entity={entity} value={po} onChange={setPo} placeholder="Select a received PO" /></FormField>}</div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><FormField label="Vendor invoice #" required><Input value={reference} onChange={(event) => setReference(event.target.value)} className="bg-white" /></FormField><FormField label="Invoice date" required><Input type="date" value={invoiceDate} onChange={(event) => setInvoiceDate(event.target.value)} className="bg-white" /></FormField><FormField label="Due date"><Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="bg-white" /></FormField></div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><FormField label="Vendor invoice #" required><Input value={reference} onChange={(event) => setReference(event.target.value)} className="bg-white" /></FormField><PostingDateField label="Invoice date" entity={entity} value={invoiceDate} onChange={setInvoiceDate} /><FormField label="Due date"><Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="bg-white" /></FormField></div>
       <FormField label="Narration"><Textarea value={narration} onChange={(event) => setNarration(event.target.value)} className="bg-white" /></FormField>
       {mode === "po" ? <div className="space-y-3">
         {poPosition && <div className="grid grid-cols-3 gap-2 rounded-md border border-primary/15 bg-primary/5 p-3">

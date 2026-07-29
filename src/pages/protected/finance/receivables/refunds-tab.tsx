@@ -19,7 +19,7 @@ import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField, Segmented,
   CustomerPicker, AccountPicker, BankAccountPicker, PostingRecap, toArray,
   type Column, type RecapRow,
-} from "@/components/finance-ui";
+  PostingDateField,} from "@/components/finance-ui";
 import { useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,6 @@ import {
 } from "@/redux/services/finance/ar-api";
 import type { ArAdjustment } from "@/redux/services/finance/ar-types";
 
-const todayISO = new Date().toISOString().slice(0, 10);
 type Mode = "REFUND" | "WRITEOFF";
 
 function TypeChip({ kind }: { kind: Mode }) {
@@ -248,7 +247,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
 }) {
   const { can } = useCan();
   const [mode, setMode] = useState<Mode>("REFUND");
-  const [date, setDate] = useState(todayISO);
+  const [date, setDate] = useState("");
   const [customer, setCustomer] = useState("");
   const [amount, setAmount] = useState(0);
   const [reason, setReason] = useState("");
@@ -292,7 +291,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
     : !!customer && !!bankAccount && amount > 0;
 
   const reset = () => {
-    setMode("REFUND"); setDate(todayISO); setCustomer(""); setAmount(0); setReason("");
+    setMode("REFUND"); setDate(""); setCustomer(""); setAmount(0); setReason("");
     setBankAccount(""); setInvoice(""); setExpenseAccount(""); setNextAction("post");
   };
   const close = () => { reset(); onClose(); };
@@ -364,7 +363,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
         />
 
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
+          <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
           <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={(v) => { setCustomer(v); setInvoice(""); }} /></FormField>
         </div>
 

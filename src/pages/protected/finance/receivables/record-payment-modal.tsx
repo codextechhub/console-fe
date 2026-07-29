@@ -3,13 +3,12 @@
 // the outstanding balance; the deposit account is the bank/cash GL account debited.
 import { useState } from "react";
 import { toast } from "sonner";
-import { FormModal, FormField, AccountPicker } from "@/components/finance-ui";
+import { FormModal, FormField, AccountPicker, PostingDateField,} from "@/components/finance-ui";
 import { toKobo } from "@/utils/money";
 import { Input } from "@/components/ui/input";
 import { useRecordPaymentMutation } from "@/redux/services/finance/ar-api";
 
 const selectCls = "h-9 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
-const todayISO = new Date().toISOString().slice(0, 10);
 const METHODS = ["BANK_TRANSFER", "CASH", "CARD", "CHEQUE", "ONLINE", "OTHER"] as const;
 const methodLabel = (m: string) => m.replace("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
 
@@ -20,7 +19,7 @@ export function RecordPaymentModal({ open, onOpenChange, entity, invoiceId, docN
   // State initialises from props on mount; the parent remounts (via `key`) on each
   // open so the amount prefills with the current outstanding balance.
   const [amount, setAmount] = useState((balanceKobo / 100).toFixed(2));
-  const [date, setDate] = useState(todayISO);
+  const [date, setDate] = useState("");
   const [method, setMethod] = useState<string>("BANK_TRANSFER");
   const [account, setAccount] = useState("");
   const [reference, setReference] = useState("");
@@ -55,9 +54,7 @@ export function RecordPaymentModal({ open, onOpenChange, entity, invoiceId, docN
         <FormField label="Amount (₦)" required>
           <Input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="bg-white" />
         </FormField>
-        <FormField label="Payment date" required>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" />
-        </FormField>
+        <PostingDateField label="Payment date" entity={entity} value={date} onChange={setDate} />
       </div>
       <FormField label="Method">
         <select value={method} onChange={(e) => setMethod(e.target.value)} className={selectCls} aria-label="Payment method">

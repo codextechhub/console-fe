@@ -13,7 +13,7 @@ import { Plus, Coins, ArrowDownToLine, RefreshCw, FileText, ListChecks, Ban } fr
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField, ConfirmActionModal,
   AccountPicker, TaxCodePicker, BankAccountPicker, StatusPill, toArray, type Column,
-} from "@/components/finance-ui";
+  PostingDateField,} from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,6 @@ import {
 } from "@/redux/services/finance/ops-api";
 import type { PettyCashFund, PettyCashVoucher, PettyCashMovement } from "@/redux/services/finance/ops-types";
 
-const todayISO = new Date().toISOString().slice(0, 10);
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const fmtDate = (s: string) => new Date(s).toLocaleDateString();
 
@@ -204,7 +203,7 @@ function VouchersList({ vouchers, entity, currency, loading }: { vouchers: Petty
 }
 
 function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCashFund; entity: string; currency?: string | null; onClose: () => void }) {
-  const [date, setDate] = useState(todayISO);
+  const [date, setDate] = useState("");
   const [account, setAccount] = useState("");
   const [amount, setAmount] = useState(0);
   const [tax, setTax] = useState("");
@@ -245,7 +244,7 @@ function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCash
         </p>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Expense account" required><AccountPicker entity={entity} value={account} onChange={setAccount} accountType="EXPENSE" postableOnly placeholder="5xxx" /></FormField>
-          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 bg-white" /></FormField>
+          <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} className="[&_input]:h-9" /></FormField>
@@ -259,7 +258,7 @@ function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCash
 
 function ReplenishDrawer({ fund, entity, currency, onClose }: { fund: PettyCashFund; entity: string; currency?: string | null; onClose: () => void }) {
   const [bank, setBank] = useState("");
-  const [date, setDate] = useState(todayISO);
+  const [date, setDate] = useState("");
   const [amount, setAmount] = useState(fund.shortfall);
   const [replenish, { isLoading }] = useReplenishPettyCashMutation();
 
@@ -288,7 +287,7 @@ function ReplenishDrawer({ fund, entity, currency, onClose }: { fund: PettyCashF
         <FormField label="Bank account"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} className="[&_input]:h-9" /></FormField>
-          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 bg-white" /></FormField>
+          <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
         </div>
       </div>
     </DetailDrawer>
@@ -306,7 +305,7 @@ function EstablishFloatDrawer({ open, onClose, entity, currency, onCreated }: {
   const [ceiling, setCeiling] = useState(0);
   const [opening, setOpening] = useState(0);
   const [bank, setBank] = useState("");
-  const [date, setDate] = useState(todayISO);
+  const [date, setDate] = useState("");
   const [create, { isLoading: creating }] = useCreatePettyCashFundMutation();
   const [establish, { isLoading: funding }] = useEstablishPettyCashMutation();
   const isLoading = creating || funding;
@@ -315,7 +314,7 @@ function EstablishFloatDrawer({ open, onClose, entity, currency, onCreated }: {
   // user diverges it.
   const onCeiling = (v: number) => { setCeiling(v); setOpening((o) => (o === 0 || o === ceiling ? v : o)); };
 
-  const reset = () => { setName(""); setGlAccount(""); setCustodian(""); setCeiling(0); setOpening(0); setBank(""); setDate(todayISO); };
+  const reset = () => { setName(""); setGlAccount(""); setCustodian(""); setCeiling(0); setOpening(0); setBank(""); setDate(""); };
   const close = () => { reset(); onClose(); };
   const canSubmit = name.trim() !== "" && glAccount !== "" && ceiling > 0 && opening > 0;
 
@@ -358,7 +357,7 @@ function EstablishFloatDrawer({ open, onClose, entity, currency, onCreated }: {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="From bank"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
-          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 bg-white" /></FormField>
+          <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
         </div>
       </div>
     </DetailDrawer>

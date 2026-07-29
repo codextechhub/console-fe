@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2, BookCheck } from "lucide-react";
-import { DetailDrawer, MoneyInput, Money, AccountPicker, CostCenterPicker, toArray } from "@/components/finance-ui";
+import { DetailDrawer, MoneyInput, Money, AccountPicker, CostCenterPicker, toArray, PostingDateField,} from "@/components/finance-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -77,10 +77,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
         {/* header fields */}
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <label className="block space-y-1">
-              <span className={fieldLabel}>Date</span>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" />
-            </label>
+            <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
             <label className="block space-y-1">
               <span className={fieldLabel}>Reference</span>
               <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Optional" className="bg-white" />

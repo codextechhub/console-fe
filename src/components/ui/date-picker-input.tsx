@@ -9,8 +9,25 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+// Shared so the "jump to the nearest allowed day" rule has one definition here
+// and on the server, rather than two that can drift apart.
+import { nearestOpenDate } from "@/utils/posting-window";
 
-type DatePickerInputProps = Omit<React.ComponentProps<"input">, "type">;
+type DatePickerInputProps = Omit<React.ComponentProps<"input">, "type"> & {
+  /**
+   * Spans of selectable days; everything outside them is disabled.
+   *
+   * Needed because `min`/`max` describe one continuous span and the fiscal
+   * calendar is not one: with January and March open but February closed, bounds
+   * of Jan 1 – Mar 31 would happily offer a February date the backend rejects.
+   * A list of ranges is the only shape that can express the gap.
+   *
+   * Empty or omitted leaves the calendar unconstrained.
+   */
+  allowedRanges?: { from: string; to: string }[];
+  /** Short name for the allowed window, e.g. "Jan 2026" — shown in the popover. */
+  windowLabel?: string | null;
+};
 
 function parseDate(value: DatePickerInputProps["value"]): Date | undefined {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
@@ -51,6 +68,8 @@ function DatePickerInput({
   name,
   id,
   placeholder,
+  allowedRanges,
+  windowLabel,
   "aria-label": ariaLabel,
   "aria-invalid": ariaInvalid,
   ...props
@@ -65,10 +84,45 @@ function DatePickerInput({
   const selected = parseDate(currentValue);
   const fromDate = parseDate(min);
   const toDate = parseDate(max);
+
+  const ranges = allowedRanges ?? [];
+  const constrained = ranges.length > 0;
+  // Outer bounds of the allowed window, used to stop the month dropdowns
+  // wandering into years where nothing is selectable anyway.
+  const rangeStart = constrained
+    ? parseDate(ranges.reduce((a, r) => (r.from < a ? r.from : a), ranges[0].from))
+    : undefined;
+  const rangeEnd = constrained
+    ? parseDate(ranges.reduce((a, r) => (r.to > a ? r.to : a), ranges[0].to))
+    : undefined;
+
   const disabledDates = [
     ...(fromDate ? [{ before: fromDate }] : []),
     ...(toDate ? [{ after: toDate }] : []),
+    // A function matcher, not more bounds: it is what lets a closed month sit
+    // between two open ones and still be individually unselectable.
+    ...(constrained
+      ? [(date: Date) => {
+        const iso = toIsoDate(date);
+        return !ranges.some((r) => iso >= r.from && iso <= r.to);
+      }]
+      : []),
   ];
+
+  // The month the popover opens on: the selected date, else the first allowed
+  // day, else today. Opening on a month where every day is greyed out reads as
+  // a broken calendar.
+  const openingMonth = selected ?? rangeStart ?? fromDate ?? new Date();
+
+  // "Today" is only useful when today is selectable. When it is not, offer the
+  // nearest allowed day instead — that is the date the user actually wants, and
+  // otherwise they must page through months hunting for one that is not grey.
+  const todayIso = toIsoDate(new Date());
+  const todayAllowed =
+    !(fromDate && new Date(new Date().setHours(0, 0, 0, 0)) < fromDate)
+    && !(toDate && new Date(new Date().setHours(0, 0, 0, 0)) > toDate)
+    && (!constrained || ranges.some((r) => todayIso >= r.from && todayIso <= r.to));
+  const jumpTarget = todayAllowed ? todayIso : (nearestOpenDate(todayIso, ranges) ?? todayIso);
 
   const commit = (nextValue: string) => {
     if (!controlled) setInternalValue(nextValue);
@@ -124,9 +178,9 @@ function DatePickerInput({
         <Calendar
           mode="single"
           selected={selected}
-          defaultMonth={selected ?? fromDate ?? new Date()}
-          startMonth={fromDate ?? new Date(1900, 0)}
-          endMonth={toDate ?? new Date(new Date().getFullYear() + 20, 11)}
+          defaultMonth={openingMonth}
+          startMonth={rangeStart ?? fromDate ?? new Date(1900, 0)}
+          endMonth={rangeEnd ?? toDate ?? new Date(new Date().getFullYear() + 20, 11)}
           captionLayout="dropdown"
           disabled={disabledDates}
           onSelect={(date) => {
@@ -135,21 +189,24 @@ function DatePickerInput({
             setOpen(false);
           }}
           footer={
-            <div className="mt-3 flex items-center justify-between border-t px-1 pt-3">
+            <div className="mt-3 space-y-2 border-t px-1 pt-3">
+              {constrained && windowLabel && (
+                <p className="font-mont text-[11px] text-gray-05">
+                  Open period: <span className="font-medium text-black-01">{windowLabel}</span>
+                </p>
+              )}
+              <div className="flex items-center justify-between">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  commit(toIsoDate(new Date()));
+                  commit(jumpTarget);
                   setOpen(false);
                 }}
-                disabled={Boolean(
-                  (fromDate && new Date(new Date().setHours(0, 0, 0, 0)) < fromDate)
-                  || (toDate && new Date(new Date().setHours(0, 0, 0, 0)) > toDate),
-                )}
+                disabled={!todayAllowed && !constrained}
               >
-                Today
+                {todayAllowed ? "Today" : "Nearest open day"}
               </Button>
               {!required && currentValue && (
                 <Button type="button" variant="ghost" size="sm" onClick={() => commit("")}>
@@ -157,6 +214,7 @@ function DatePickerInput({
                   Clear
                 </Button>
               )}
+              </div>
             </div>
           }
         />

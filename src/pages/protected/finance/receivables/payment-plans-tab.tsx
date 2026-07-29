@@ -13,7 +13,7 @@ import { Plus, Search, Receipt, Ban } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField, Segmented,
   CustomerPicker, AccountPicker, toArray, type Column,
-} from "@/components/finance-ui";
+  PostingDateField,} from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,8 +28,8 @@ import {
   useGetInvoicesQuery,
 } from "@/redux/services/finance/ar-api";
 import type { PaymentPlan, PaymentPlanInstallment } from "@/redux/services/finance/ar-types";
+import { todayISO } from "@/utils/posting-window";
 
-const todayISO = new Date().toISOString().slice(0, 10);
 const METHODS = ["BANK_TRANSFER", "CASH", "CARD", "CHEQUE", "ONLINE", "OTHER"];
 const FREQS: [string, string][] = [["WEEKLY", "Weekly"], ["FORTNIGHTLY", "Fortnightly"], ["MONTHLY", "Monthly"], ["QUARTERLY", "Quarterly"]];
 
@@ -44,7 +44,7 @@ function planHealth(p: PaymentPlan): { label: string; cls: string } {
   if (p.plan_status === "CANCELLED") return { label: "Cancelled", cls: GRAY };
   if (p.plan_status === "DRAFT") return { label: "Draft", cls: GRAY };
   const n = nextUnpaid(p);
-  return n && n.due_date < todayISO ? { label: "At risk", cls: AMBER } : { label: "On track", cls: GREEN };
+  return n && n.due_date < todayISO() ? { label: "At risk", cls: AMBER } : { label: "On track", cls: GREEN };
 }
 function instLabel(inst: PaymentPlanInstallment, isNext: boolean): { label: string; cls: string } {
   if (inst.balance <= 0) return { label: "Paid", cls: GREEN };
@@ -260,7 +260,7 @@ function RecordInstallmentDrawer({ plan, installment, entity, currency, onClose 
   plan: PaymentPlan; installment: PaymentPlanInstallment; entity: string; currency?: string | null; onClose: () => void;
 }) {
   const [amount, setAmount] = useState(installment.balance);
-  const [date, setDate] = useState(todayISO);
+  const [date, setDate] = useState("");
   const [method, setMethod] = useState("BANK_TRANSFER");
   const [account, setAccount] = useState("");
   const [pay, { isLoading: saving }] = useRecordPaymentMutation();
@@ -295,7 +295,7 @@ function RecordInstallmentDrawer({ plan, installment, entity, currency, onClose 
         </p>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} /></FormField>
-          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
+          <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Method">
@@ -316,7 +316,7 @@ function NewPlanDrawer({ open, onClose, entity, currency }: {
   const [customer, setCustomer] = useState("");
   const [invoice, setInvoice] = useState("");
   const [total, setTotal] = useState(0);
-  const [startDate, setStartDate] = useState(todayISO);
+  const [startDate, setStartDate] = useState(todayISO());
   const [frequency, setFrequency] = useState("MONTHLY");
   const [count, setCount] = useState(3);
   const [create, { isLoading: creating }] = useCreatePaymentPlanMutation();
@@ -333,7 +333,7 @@ function NewPlanDrawer({ open, onClose, entity, currency }: {
   const schedule = useMemo(() => previewSchedule(total, count, startDate, frequency), [total, count, startDate, frequency]);
   const canSubmit = !!customer && !!invoice && total > 0 && count >= 1 && !!startDate;
 
-  const reset = () => { setCustomer(""); setInvoice(""); setTotal(0); setStartDate(todayISO); setFrequency("MONTHLY"); setCount(3); };
+  const reset = () => { setCustomer(""); setInvoice(""); setTotal(0); setStartDate(todayISO()); setFrequency("MONTHLY"); setCount(3); };
   const close = () => { reset(); onClose(); };
   const pickInvoice = (id: string) => {
     setInvoice(id);

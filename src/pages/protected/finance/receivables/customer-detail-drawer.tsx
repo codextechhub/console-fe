@@ -21,6 +21,7 @@ import {
 } from "@/redux/services/finance/ar-api";
 import type { Customer, CustomerDetail } from "@/redux/services/finance/ar-types";
 import { CustomerReceiptModal } from "./customer-receipt-modal";
+import { todayISO } from "@/utils/posting-window";
 
 const TABS = [
   { key: "open", label: "Open items", icon: Receipt },
@@ -36,7 +37,6 @@ const ACCOUNT_PILL: Record<string, string> = {
 const ACCOUNT_LABEL: Record<string, string> = { ACTIVE: "Active", OVERDUE: "Overdue", CREDIT: "In credit" };
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
-const todayISO = new Date().toISOString().slice(0, 10);
 // Statement transaction type → badge. DEBIT notes are supplementary AR charges (debit
 // side), distinct from an invoice.
 const TXN_META: Record<string, { label: string; cls: string }> = {
@@ -219,7 +219,7 @@ function OpenItemsTab({ d, currency }: { d: CustomerDetail; currency?: string | 
 function StatementTab({ d, entityName, currency }: { d: CustomerDetail; entityName: string; currency?: string | null }) {
   const c = d.customer;
   const [from, setFrom] = useState("");
-  const [to, setTo] = useState(todayISO);
+  const [to, setTo] = useState(todayISO());
 
   const { opening, rows, closing } = useMemo(() => {
     const inRange = (e: CustomerDetail["statement"][number]) =>

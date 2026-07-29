@@ -8,7 +8,7 @@ import { PurchaseOrderPicker, VendorPicker } from "./pickers";
 import {
   DataTable, DetailDrawer, EmptyState, ErrorState, FormField, InfoHint, LoadingState,
   PostingRecap, StatusPill, toArray, useActiveEntity, type Column,
-} from "@/components/finance-ui";
+  PostingDateField,} from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -209,7 +209,7 @@ function ReceiptForm({ entity, currency, onClose, initial, sourcePurchaseOrderId
 }) {
   const [purchaseOrder, setPurchaseOrder] = useState(initial?.purchase_order_id ? String(initial.purchase_order_id) : sourcePurchaseOrderId ? String(sourcePurchaseOrderId) : "");
   const [vendor, setVendor] = useState(initial?.vendor_code ?? sourceVendorCode ?? "");
-  const [receivedDate, setReceivedDate] = useState(initial?.received_date ?? new Date().toISOString().slice(0, 10));
+  const [receivedDate, setReceivedDate] = useState(initial?.received_date ?? "");
   const [reference, setReference] = useState(initial?.reference ?? "");
   const [inspectionNotes, setInspectionNotes] = useState(initial?.narration ?? "");
   const [enteredLines, setEnteredLines] = useState<ReceiptLine[]>([]);
@@ -294,7 +294,7 @@ function ReceiptForm({ entity, currency, onClose, initial, sourcePurchaseOrderId
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="Against PO" required><PurchaseOrderPicker entity={entity} value={purchaseOrder} onChange={(value) => { setPurchaseOrder(value); setEnteredLines([]); }} /></FormField>
             <FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} disabled={!!purchaseOrder} /></FormField>
-            <FormField label="Received date" required><Input type="date" value={receivedDate} onChange={(event) => setReceivedDate(event.target.value)} /></FormField>
+            <PostingDateField label="Received date" entity={entity} value={receivedDate} onChange={setReceivedDate} />
             <FormField label="Reference"><Input value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Delivery note or waybill" /></FormField>
           </div>
         </section>

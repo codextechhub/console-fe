@@ -22,6 +22,7 @@ import type {
   FiscalPeriod,
   PeriodChecklist,
   PeriodCloseResult,
+  PostingWindow,
   TaxCode,
 } from "./setup-types";
 
@@ -63,6 +64,14 @@ export const setupApi = baseApi.injectEndpoints({
     }),
     getPeriods: b.query<PaginatedEnvelope<FiscalPeriod>, { entity: string; status?: string; year?: number }>({
       query: (p) => ({ url: `/finance/periods/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinancePeriods"],
+    }),
+    // Which dates accept a posting today — feeds every document-date picker in both
+    // consoles. Gated on finance-or-procurement module access (not finance.period.view)
+    // so a procurement officer raising a GRN can read it, and un-paginated because
+    // /finance/periods/ pages at 25 oldest-first: the current periods fall off page one.
+    getPostingWindow: b.query<ApiEnvelope<PostingWindow>, { entity: string }>({
+      query: (p) => ({ url: `/finance/posting-window/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePeriods"],
     }),
     getPeriodChecklist: b.query<ApiEnvelope<PeriodChecklist>, { id: number; entity: string }>({
@@ -146,6 +155,7 @@ export const {
   useGetAccountActivityQuery,
   useUpdateAccountMutation,
   useGetPeriodsQuery,
+  useGetPostingWindowQuery,
   useGetPeriodChecklistQuery,
   useClosePeriodMutation,
   useReopenPeriodMutation,

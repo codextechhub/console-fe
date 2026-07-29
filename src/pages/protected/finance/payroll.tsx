@@ -20,7 +20,7 @@ import { Plus, Trash2, Search, Sparkles, Banknote, Printer, Pencil, FileText, Us
 import { routesPath } from "@/routes/routes-path";
 import { useGetTrialBalanceQuery } from "@/redux/services/finance/reports-api";
 import { FinanceShell } from "./finance-shell";
-import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CostCenterPicker, Segmented, InfoHint, ConfirmActionModal, useActiveEntity, toArray, type Column } from "@/components/finance-ui";
+import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CostCenterPicker, Segmented, InfoHint, ConfirmActionModal, useActiveEntity, toArray, type Column, PostingDateField,} from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,6 @@ import {
 } from "@/redux/services/finance/ops-api";
 import type { PayrollLine, PayrollRun, EmployeeSalary, SalaryStructure, SalaryComponent, PayslipComponent } from "@/redux/services/finance/ops-types";
 
-const todayISO = new Date().toISOString().slice(0, 10);
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
@@ -283,7 +282,7 @@ function Metric({ label, kobo, currency }: { label: string; kobo: number; curren
 }
 
 function PayDrawer({ run, entity, currency, onClose }: { run: PayrollRun; entity: string; currency?: string | null; onClose: () => void }) {
-  const [payDate, setPayDate] = useState(run.pay_date || todayISO);
+  const [payDate, setPayDate] = useState(run.pay_date || "");
   const [pay, { isLoading }] = usePayPayrollRunMutation();
   const submit = async () => {
     try { const res = await pay({ id: run.id, entity, pay_date: payDate }).unwrap(); toast.success(res.message || "Net pay disbursed."); onClose(); }
@@ -300,7 +299,7 @@ function PayDrawer({ run, entity, currency, onClose }: { run: PayrollRun; entity
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
           Disburses net pay ({formatMoney(run.net_total, currency)}) — Dr net-wages payable, Cr bank — clearing the liability raised when the run was posted.
         </p>
-        <FormField label="Payment date" required><Input type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} className="h-9 bg-white" /></FormField>
+        <PostingDateField label="Payment date" entity={entity} value={payDate} onChange={setPayDate} />
       </div>
     </DetailDrawer>
   );
@@ -312,7 +311,7 @@ const emptyEmp = (): EmpRow => ({ employee_name: "", gross: 0, paye: 0, pension:
 
 function NewRunDrawer({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
   const [mode, setMode] = useState("roster");
-  const [payDate, setPayDate] = useState(todayISO);
+  const [payDate, setPayDate] = useState("");
   const [periodLabel, setPeriodLabel] = useState("");
   const [lines, setLines] = useState<EmpRow[]>([emptyEmp()]);
   const { data: rosterData } = useGetEmployeeSalariesQuery({ entity, is_active: "true" }, { skip: !open });
@@ -323,7 +322,7 @@ function NewRunDrawer({ open, onClose, entity, currency }: { open: boolean; onCl
 
   const setRow = (i: number, patch: Partial<EmpRow>) => setLines((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   const validLines = lines.filter((l) => l.employee_name.trim() && l.gross > 0);
-  const close = () => { setMode("roster"); setPayDate(todayISO); setPeriodLabel(""); setLines([emptyEmp()]); onClose(); };
+  const close = () => { setMode("roster"); setPayDate(""); setPeriodLabel(""); setLines([emptyEmp()]); onClose(); };
 
   const submit = async () => {
     try {
@@ -356,7 +355,7 @@ function NewRunDrawer({ open, onClose, entity, currency }: { open: boolean; onCl
         <Segmented value={mode} onChange={setMode} options={[["roster", "From roster"], ["manual", "Manual"]]} />
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Period" ><Input value={periodLabel} onChange={(e) => setPeriodLabel(e.target.value)} placeholder="e.g. June 2026" className="h-9 bg-white" /></FormField>
-          <FormField label="Payment date" required><Input type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} className="h-9 bg-white" /></FormField>
+          <PostingDateField label="Payment date" entity={entity} value={payDate} onChange={setPayDate} />
         </div>
 
         {mode === "roster" ? (

@@ -17,7 +17,7 @@ import { Plus, Search, Trash2, FileStack, Pencil, Copy, CircleCheck, RefreshCw }
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField,
   AccountPicker, TaxCodePicker, toArray, type Column,
-} from "@/components/finance-ui";
+  PostingDateField,} from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,6 @@ import {
 } from "@/redux/services/finance/ar-api";
 import type { FeeStructure, FeeAppliesTo } from "@/redux/services/finance/ar-types";
 
-const todayISO = new Date().toISOString().slice(0, 10);
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
@@ -244,7 +243,7 @@ function FeeStructureDetailDrawer({ structure, entity, currency, onClose, onEdit
 }
 
 function GenerateDrawer({ structure, entity, onClose }: { structure: FeeStructure; entity: string; onClose: () => void }) {
-  const [invoiceDate, setInvoiceDate] = useState(todayISO);
+  const [invoiceDate, setInvoiceDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [generate, { isLoading }] = useGenerateFromFeeStructureMutation();
 
@@ -271,7 +270,7 @@ function GenerateDrawer({ structure, entity, onClose }: { structure: FeeStructur
           Raises one posted invoice per active customer from this structure's lines ({formatMoney(structure.total_with_tax)} each, tax included). Customers already billed for it are skipped.
         </p>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Invoice date" required><Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="bg-white" /></FormField>
+          <PostingDateField label="Invoice date" entity={entity} value={invoiceDate} onChange={setInvoiceDate} />
           <FormField label="Due date"><Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="bg-white" /></FormField>
         </div>
       </div>

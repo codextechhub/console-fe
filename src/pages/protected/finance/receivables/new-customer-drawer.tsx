@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { toKobo } from "@/utils/money";
 import { Plus } from "lucide-react";
-import { DetailDrawer, FormField, ReceivableAccountPicker } from "@/components/finance-ui";
+import { DetailDrawer, FormField, ReceivableAccountPicker, PostingDateField,} from "@/components/finance-ui";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateCustomerMutation } from "@/redux/services/finance/ar-api";
@@ -72,9 +72,7 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
         </FormField>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label="Opening balance (₦)"><Input type="number" min="0" step="0.01" value={opening} onChange={(e) => setOpening(e.target.value)} placeholder="0.00" className="bg-white" /></FormField>
-          <FormField label="Opening as of">
-            <Input type="date" value={openingDate} onChange={(e) => setOpeningDate(e.target.value)} disabled={!opening} className="bg-white disabled:opacity-50" />
-          </FormField>
+          <PostingDateField label="Opening as of" entity={entity} value={openingDate} onChange={setOpeningDate} required={false} disabled={!opening} />
         </div>
         {opening ? <p className="-mt-1 font-mont text-[11px] text-gray-05">Backdates the opening-balance invoice into its period. Leave blank to date it today. The period must be open.</p> : null}
         <label className="flex items-center gap-2 font-mont text-sm text-gray-01">

@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { toKobo } from "@/utils/money";
 import { ArrowRight } from "lucide-react";
-import { DetailDrawer, FormField, Money, CustomerPicker, AccountPicker, toArray } from "@/components/finance-ui";
+import { DetailDrawer, FormField, Money, CustomerPicker, AccountPicker, PostingDateField, toArray } from "@/components/finance-ui";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,6 @@ import type { Account } from "@/redux/services/finance/setup-types";
 const selectCls = "h-9 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
 const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const todayISO = new Date().toISOString().slice(0, 10);
 const METHODS = ["BANK_TRANSFER", "CASH", "CARD", "CHEQUE", "ONLINE", "OTHER"] as const;
 const methodLabel = (m: string) => m.replace("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
 
@@ -27,7 +26,7 @@ export function RecordReceiptDrawer({ open, onOpenChange, entity, currency, onCr
 }) {
   const [customer, setCustomer] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(todayISO);
+  const [date, setDate] = useState("");
   const [method, setMethod] = useState<string>("BANK_TRANSFER");
   const [account, setAccount] = useState("");
   const [reference, setReference] = useState("");
@@ -41,7 +40,7 @@ export function RecordReceiptDrawer({ open, onOpenChange, entity, currency, onCr
 
   const kobo = toKobo(amount);
   const canSubmit = !!customer && kobo > 0 && !!date && !!account;
-  const reset = () => { setCustomer(""); setAmount(""); setDate(todayISO); setMethod("BANK_TRANSFER"); setAccount(""); setReference(""); };
+  const reset = () => { setCustomer(""); setAmount(""); setDate(""); setMethod("BANK_TRANSFER"); setAccount(""); setReference(""); };
   const close = () => { reset(); onOpenChange(false); };
 
   const submit = async () => {
@@ -79,9 +78,7 @@ export function RecordReceiptDrawer({ open, onOpenChange, entity, currency, onCr
           <CustomerPicker entity={entity} value={customer} onChange={setCustomer} placeholder="Type a customer name…" />
         </FormField>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Date" required>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" />
-          </FormField>
+          <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
           <FormField label="Method" required>
             <select value={method} onChange={(e) => setMethod(e.target.value)} className={selectCls} aria-label="Method">
               {METHODS.map((m) => <option key={m} value={m}>{methodLabel(m)}</option>)}

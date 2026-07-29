@@ -13,7 +13,7 @@ import { Plus, Search, Printer, Check, Info } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, ConfirmActionModal, DetailDrawer, FormField, Segmented,
   CustomerPicker, AccountPicker, PostingRecap, toArray, type Column, type RecapRow,
-} from "@/components/finance-ui";
+  PostingDateField,} from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,6 @@ import {
 } from "@/redux/services/finance/ar-api";
 import type { Concession } from "@/redux/services/finance/ar-types";
 
-const todayISO = new Date().toISOString().slice(0, 10);
 const KINDS: [string, string][] = [["WAIVER", "Waiver"], ["DISCOUNT", "Discount"], ["SCHOLARSHIP", "Scholarship"]];
 const kindLabel = (k: string) => KINDS.find(([v]) => v === k)?.[1] ?? k;
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
@@ -210,7 +209,7 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
   open: boolean; onClose: () => void; entity: string; currency?: string | null;
 }) {
   const [kind, setKind] = useState("DISCOUNT");
-  const [date, setDate] = useState(todayISO);
+  const [date, setDate] = useState("");
   const [customer, setCustomer] = useState("");
   const [invoice, setInvoice] = useState("");
   const [invoiceBalance, setInvoiceBalance] = useState(0);
@@ -249,7 +248,7 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
   const canSubmit = !!customer && !!invoice && amount > 0 && reason.trim() !== "";
 
   const reset = () => {
-    setKind("DISCOUNT"); setDate(todayISO); setCustomer(""); setInvoice(""); setInvoiceBalance(0);
+    setKind("DISCOUNT"); setDate(""); setCustomer(""); setInvoice(""); setInvoiceBalance(0);
     setEntryMode("amount"); setAmount(0); setPct(""); setAllowance(""); setReason("");
   };
   const close = () => { reset(); onClose(); };
@@ -285,7 +284,7 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
         <Segmented label="Type" value={kind} onChange={setKind} options={KINDS} />
 
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="bg-white" /></FormField>
+          <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
           <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={(v) => { setCustomer(v); setInvoice(""); setInvoiceBalance(0); }} /></FormField>
         </div>
 

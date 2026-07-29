@@ -18,7 +18,7 @@ import {
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField, ConfirmActionModal,
   AccountPicker, TaxCodePicker, CostCenterPicker, BankAccountPicker, toArray, type Column,
-} from "@/components/finance-ui";
+  PostingDateField,} from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,6 @@ import {
 } from "@/redux/services/finance/ops-api";
 import type { ExpenseClaim, ExpenseClaimLine } from "@/redux/services/finance/ops-types";
 
-const todayISO = new Date().toISOString().slice(0, 10);
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
@@ -315,7 +314,7 @@ function ReceiptCell({ line, claimId, entity, attachable }: { line: ExpenseClaim
 
 function PayDrawer({ claim, entity, currency, onClose }: { claim: ExpenseClaim; entity: string; currency?: string | null; onClose: () => void }) {
   const [bank, setBank] = useState("");
-  const [payDate, setPayDate] = useState(todayISO);
+  const [payDate, setPayDate] = useState("");
   const [settle, { isLoading }] = useSettleExpenseClaimMutation();
 
   const submit = async () => {
@@ -341,7 +340,7 @@ function PayDrawer({ claim, entity, currency, onClose }: { claim: ExpenseClaim; 
           Pays the staff member {formatMoney(claim.balance_due, currency)} — Dr Accrued Reimbursement, Cr bank — clearing the liability raised on approval.
         </p>
         <FormField label="Bank account"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
-        <FormField label="Payment date" required><Input type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} className="bg-white" /></FormField>
+        <PostingDateField label="Payment date" entity={entity} value={payDate} onChange={setPayDate} />
       </div>
     </DetailDrawer>
   );
@@ -396,7 +395,7 @@ function ReceiptDropzone({ files, onAdd, onRemove }: { files: File[]; onAdd: (fs
 
 function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
   const [claimant, setClaimant] = useState("");
-  const [claimDate, setClaimDate] = useState(todayISO);
+  const [claimDate, setClaimDate] = useState("");
   const [title, setTitle] = useState("");
   const [lines, setLines] = useState<EditLine[]>([emptyLine()]);
   const [receipts, setReceipts] = useState<File[]>([]);
@@ -408,7 +407,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
   const valid = lines.filter((l) => l.description.trim() && l.expense_account && l.unit_price > 0);
   const canSubmit = claimant.trim() !== "" && title.trim() !== "" && valid.length > 0;
 
-  const reset = () => { setClaimant(""); setClaimDate(todayISO); setTitle(""); setLines([emptyLine()]); setReceipts([]); };
+  const reset = () => { setClaimant(""); setClaimDate(""); setTitle(""); setLines([emptyLine()]); setReceipts([]); };
   const close = () => { reset(); onClose(); };
 
   const submit = async () => {
@@ -441,7 +440,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
           <FormField label="Claimant" required><Input value={claimant} onChange={(e) => setClaimant(e.target.value)} placeholder="Staff name" className="bg-white" /></FormField>
-          <FormField label="Date" required><Input type="date" value={claimDate} onChange={(e) => setClaimDate(e.target.value)} className="bg-white" /></FormField>
+          <PostingDateField label="Date" entity={entity} value={claimDate} onChange={setClaimDate} />
           <FormField label="Purpose" required><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Travel to workshop" className="bg-white" /></FormField>
         </div>
         <div>

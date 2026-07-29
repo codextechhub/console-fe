@@ -17,6 +17,7 @@ import { useGetInvoiceDetailQuery, useRemindInvoiceMutation } from "@/redux/serv
 import { openInvoiceDocument } from "@/utils/finance-documents";
 import { RecordPaymentModal } from "./record-payment-modal";
 import { RequestPaymentModal } from "./request-payment-modal";
+import { todayISO } from "@/utils/posting-window";
 
 const TABS = [
   { key: "lines", label: "Lines", icon: List },
@@ -28,7 +29,6 @@ const TABS = [
 
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
-const todayISO = new Date().toISOString().slice(0, 10);
 
 // Settlement / GL source-document type → short label + pill colour.
 const SETTLEMENT_META: Record<string, { label: string; cls: string }> = {
@@ -64,7 +64,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
   const d = data?.data;
   const inv = d?.invoice;
   const s = d?.summary;
-  const overdue = !!(s?.due_date && s.due_date < todayISO && (s?.balance.kobo ?? 0) > 0);
+  const overdue = !!(s?.due_date && s.due_date < todayISO() && (s?.balance.kobo ?? 0) > 0);
   const canAct = !!inv && inv.status === "POSTED" && inv.balance_due > 0;
 
   const openPdf = async () => {

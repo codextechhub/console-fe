@@ -4,13 +4,12 @@
 // (the common case) and set the dates.
 import { useState } from "react";
 import { toast } from "sonner";
-import { FormModal, FormField, toArray } from "@/components/finance-ui";
+import { FormModal, FormField, toArray, PostingDateField,} from "@/components/finance-ui";
 import { Input } from "@/components/ui/input";
 import { useGetFeeStructuresQuery, useGenerateFromFeeStructureMutation } from "@/redux/services/finance/ar-api";
 import type { FeeStructure } from "@/redux/services/finance/ar-types";
 
 const selectCls = "h-9 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
-const todayISO = new Date().toISOString().slice(0, 10);
 
 export function BatchGenerateModal({ open, onOpenChange, entity }: {
   open: boolean; onOpenChange: (o: boolean) => void; entity: string;
@@ -18,7 +17,7 @@ export function BatchGenerateModal({ open, onOpenChange, entity }: {
   const { data } = useGetFeeStructuresQuery({ entity, is_active: "true" }, { skip: !open });
   const structures = toArray<FeeStructure>(data?.data);
   const [structure, setStructure] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState(todayISO);
+  const [invoiceDate, setInvoiceDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [generate, { isLoading }] = useGenerateFromFeeStructureMutation();
 
@@ -53,9 +52,7 @@ export function BatchGenerateModal({ open, onOpenChange, entity }: {
         </select>
       </FormField>
       <div className="grid grid-cols-2 gap-3">
-        <FormField label="Invoice date">
-          <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="bg-white" />
-        </FormField>
+        <PostingDateField label="Invoice date" entity={entity} value={invoiceDate} onChange={setInvoiceDate} required={false} />
         <FormField label="Due date">
           <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="bg-white" />
         </FormField>

@@ -50,8 +50,8 @@ import { useCancelImportBatchMutation } from "@/redux/services/dashboard/import-
 import { baseApi } from "@/redux/services/base-api";
 import { useAppDispatch } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
+import { todayISO } from "@/utils/posting-window";
 
-const todayISO = new Date().toISOString().slice(0, 10);
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
@@ -718,7 +718,7 @@ function EditStatementForm({
 }
 
 type ImportRow = { txn_date: string; description: string; amount: string; reference: string };
-const emptyRow = (): ImportRow => ({ txn_date: todayISO, description: "", amount: "", reference: "" });
+const emptyRow = (): ImportRow => ({ txn_date: todayISO(), description: "", amount: "", reference: "" });
 
 function ImportStatementDrawer({ id, entity, onClose }: { id: number; entity: string; onClose: () => void }) {
   const [periodLabel, setPeriodLabel] = useState("");
@@ -810,7 +810,7 @@ function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
-  const [statementDate, setStatementDate] = useState(todayISO);
+  const [statementDate, setStatementDate] = useState(todayISO());
   const [periodLabel, setPeriodLabel] = useState("");
   const [opening, setOpening] = useState("");
   const [closing, setClosing] = useState("");
@@ -832,7 +832,7 @@ function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity
   const startAnother = () => {
     setBatchId(null);
     setFile(null);
-    setStatementDate(todayISO);
+    setStatementDate(todayISO());
     setPeriodLabel("");
     setOpening("");
     setClosing("");

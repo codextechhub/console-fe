@@ -20,6 +20,7 @@ import type { Invoice } from "@/redux/services/finance/ar-types";
 import { InvoiceDetailDrawer } from "./invoice-detail-drawer";
 import { BatchGenerateModal } from "./batch-generate-modal";
 import { NewInvoiceDrawer } from "./new-invoice-drawer";
+import { todayISO } from "@/utils/posting-window";
 
 const TABS = [
   { key: "", label: "All" }, { key: "draft", label: "Draft" }, { key: "issued", label: "Issued" },
@@ -33,13 +34,12 @@ const STATUS_PILL: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: "Draft", ISSUED: "Issued", PARTIAL: "Partially Paid", PAID: "Paid", OVERDUE: "Overdue",
 };
-const todayISO = new Date().toISOString().slice(0, 10);
 
 function derivedStatus(i: Invoice): string {
   if (i.status === "DRAFT") return "DRAFT";
   if (i.status !== "POSTED") return i.status;
   if (i.payment_status === "PAID") return "PAID";
-  if (i.due_date && i.due_date < todayISO) return "OVERDUE";
+  if (i.due_date && i.due_date < todayISO()) return "OVERDUE";
   if (i.payment_status === "PARTIAL") return "PARTIAL";
   return "ISSUED";
 }

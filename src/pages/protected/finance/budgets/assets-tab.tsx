@@ -11,7 +11,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Sparkles, Banknote, PackageX } from "lucide-react";
-import { DataTable, Money, MoneyInput, DetailDrawer, FormField, BankAccountPicker, AccountPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
+import { DataTable, Money, MoneyInput, DetailDrawer, FormField, BankAccountPicker, AccountPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow, PostingDateField,} from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,11 +24,11 @@ import {
   useDisposeFixedAssetMutation,
 } from "@/redux/services/finance/ops-api";
 import type { FixedAsset } from "@/redux/services/finance/ops-types";
+import { todayISO } from "@/utils/posting-window";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
-const todayISO = new Date().toISOString().slice(0, 10);
 const monthEndISO = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10); };
 const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
 
@@ -160,10 +160,10 @@ function AssetDrawer({ assetId, assets, entity, currency, onClose }: { assetId: 
 
   if (assetId == null || !asset) return null;
   const years = yearlySchedule(asset);
-  const hasDue = asset.schedule.some((r) => !r.is_posted && r.depreciation_date <= todayISO);
+  const hasDue = asset.schedule.some((r) => !r.is_posted && r.depreciation_date <= todayISO());
 
   const doDepreciate = async () => {
-    try { const r = await depreciate({ id: asset.id, entity, up_to_date: todayISO }).unwrap(); toast.success(r.message || "Depreciation posted."); }
+    try { const r = await depreciate({ id: asset.id, entity, up_to_date: todayISO() }).unwrap(); toast.success(r.message || "Depreciation posted."); }
     catch { /* central */ }
   };
 
@@ -249,7 +249,7 @@ function AcquireDrawer({ asset, entity, currency, onClose }: { asset: FixedAsset
 }
 
 function DisposeDrawer({ asset, entity, currency, onClose }: { asset: FixedAsset; entity: string; currency?: string | null; onClose: () => void }) {
-  const [date, setDate] = useState(todayISO);
+  const [date, setDate] = useState("");
   const [proceeds, setProceeds] = useState(0);
   const [bank, setBank] = useState("");
   const [glAccount, setGlAccount] = useState("");
@@ -282,7 +282,7 @@ function DisposeDrawer({ asset, entity, currency, onClose }: { asset: FixedAsset
           </p>
         ) : null}
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Disposal date" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 bg-white" /></FormField>
+          <PostingDateField label="Disposal date" entity={entity} value={date} onChange={setDate} />
           <FormField label="Proceeds"><MoneyInput valueKobo={proceeds} onChangeKobo={setProceeds} currency={currency} className="[&_input]:h-9" /></FormField>
         </div>
         {proceeds > 0 ? <FormField label="Proceeds into (bank)" required><BankAccountPicker entity={entity} value={bank} onChange={setBank} /></FormField> : null}
@@ -302,12 +302,12 @@ function NewAssetDrawer({ open, onClose, entity, currency }: { open: boolean; on
   const [code, setCode] = useState("");
   const [category, setCategory] = useState("OTHER");
   const [method, setMethod] = useState("STRAIGHT_LINE");
-  const [acqDate, setAcqDate] = useState(todayISO);
+  const [acqDate, setAcqDate] = useState("");
   const [cost, setCost] = useState(0);
   const [salvage, setSalvage] = useState(0);
   const [life, setLife] = useState("");
   const [create, { isLoading }] = useCreateFixedAssetMutation();
-  const close = () => { setName(""); setCode(""); setCategory("OTHER"); setMethod("STRAIGHT_LINE"); setAcqDate(todayISO); setCost(0); setSalvage(0); setLife(""); onClose(); };
+  const close = () => { setName(""); setCode(""); setCategory("OTHER"); setMethod("STRAIGHT_LINE"); setAcqDate(""); setCost(0); setSalvage(0); setLife(""); onClose(); };
   const submit = async () => {
     try {
       const r = await create({ entity, name: name.trim(), asset_code: code.trim() || undefined, category, method, acquisition_date: acqDate, cost, salvage_value: salvage, useful_life_months: Number(life) }).unwrap();
@@ -332,7 +332,7 @@ function NewAssetDrawer({ open, onClose, entity, currency }: { open: boolean; on
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Acquisition date" required><Input type="date" value={acqDate} onChange={(e) => setAcqDate(e.target.value)} className="h-9 bg-white" /></FormField>
+          <PostingDateField label="Acquisition date" entity={entity} value={acqDate} onChange={setAcqDate} />
           <FormField label="Useful life (months)" required><Input type="number" min={1} value={life} onChange={(e) => setLife(e.target.value)} placeholder="e.g. 96" className="h-9 bg-white" /></FormField>
         </div>
         <div>

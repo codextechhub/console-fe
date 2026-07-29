@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { toKobo } from "@/utils/money";
 import { Plus, Trash2 } from "lucide-react";
-import { DetailDrawer, Money, CustomerPicker, AccountPicker, TaxCodePicker, toArray } from "@/components/finance-ui";
+import { DetailDrawer, Money, CustomerPicker, AccountPicker, TaxCodePicker, toArray, PostingDateField,} from "@/components/finance-ui";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ import { useCreateInvoiceMutation, useGetFeeStructuresQuery } from "@/redux/serv
 import type { FeeStructure } from "@/redux/services/finance/ar-types";
 import type { TaxCode } from "@/redux/services/finance/setup-types";
 
-const todayISO = new Date().toISOString().slice(0, 10);
 const fieldLabel = "font-mont text-xs text-gray-05";
 
 type Line = { account: string; description: string; qty: string; price: string; tax: string };
@@ -37,7 +36,7 @@ export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
 
   const [structure, setStructure] = useState("");
   const [customer, setCustomer] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState(todayISO);
+  const [invoiceDate, setInvoiceDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [reference, setReference] = useState("");
   const [narration, setNarration] = useState("");
@@ -78,7 +77,7 @@ export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
 
   const reset = () => {
     setStructure(""); setCustomer(""); setDueDate(""); setReference(""); setNarration("");
-    setPost(true); setLines([blankLine()]); setInvoiceDate(todayISO);
+    setPost(true); setLines([blankLine()]); setInvoiceDate("");
   };
   const close = () => { reset(); onOpenChange(false); };
 
@@ -122,10 +121,7 @@ export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
         <div className="space-y-3">
           <CustomerPicker entity={entity} value={customer} onChange={setCustomer} label="Customer" isRequired placeholder="Type a customer name…" />
           <div className="grid grid-cols-2 gap-3">
-            <label className="block space-y-1">
-              <span className={fieldLabel}>Invoice date *</span>
-              <Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} className="bg-white" />
-            </label>
+            <PostingDateField label="Invoice date" entity={entity} value={invoiceDate} onChange={setInvoiceDate} />
             <label className="block space-y-1">
               <span className={fieldLabel}>Due date</span>
               <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="bg-white" />
