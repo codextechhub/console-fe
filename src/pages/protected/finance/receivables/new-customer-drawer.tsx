@@ -24,7 +24,7 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
   const [active, setActive] = useState(true);
   const [create, { isLoading }] = useCreateCustomerMutation();
 
-  const canSubmit = name.trim() !== "";
+  const canSubmit = name.trim() !== "" && email.trim() !== "" && phone.trim() !== "";
   const reset = () => { setName(""); setEmail(""); setPhone(""); setAddress(""); setAccount(""); setOpening(""); setOpeningDate(""); setActive(true); };
   const close = () => { reset(); onOpenChange(false); };
 
@@ -32,7 +32,7 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
     try {
       const res = await create({
         entity, name: name.trim(),
-        billing_email: email || undefined, billing_phone: phone || undefined,
+        billing_email: email.trim(), billing_phone: phone.trim(),
         billing_address: address || undefined,
         receivable_account: account || undefined,
         opening_balance: opening ? toKobo(opening) : undefined,
@@ -63,8 +63,8 @@ export function NewCustomerDrawer({ open, onOpenChange, entity }: {
       <div className="space-y-4">
         <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Acme Ltd" className="bg-white" /></FormField>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <FormField label="Billing email"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="billing@acme.com" className="bg-white" /></FormField>
-          <FormField label="Billing phone"><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234…" className="bg-white" /></FormField>
+          <FormField label="Billing email" required><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="billing@acme.com" className="bg-white" /></FormField>
+          <FormField label="Billing phone" required><Input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234…" className="bg-white" /></FormField>
         </div>
         <FormField label="Billing address"><Input value={address} onChange={(e) => setAddress(e.target.value)} className="bg-white" /></FormField>
         <FormField label="Receivable account">
