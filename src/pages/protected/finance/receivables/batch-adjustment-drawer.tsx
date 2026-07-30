@@ -32,9 +32,13 @@ import type {
 import { formatMoney } from "@/utils/money";
 import { batchAdjustmentLinesAreValid } from "./batch-adjustment-validation";
 
-type Line = { id: number; target: string; amount: number; available: number };
+// `available` is deliberately NOT held in state. Every line's headroom depends on the
+// batch's posting date — refundable credit is measured as at that date — so a stored
+// snapshot goes stale the moment the date changes, and the user submits against a
+// number the backend no longer agrees with. It is derived on every render instead.
+type Line = { id: number; target: string; amount: number };
 let lineSequence = 1;
-const newLine = (): Line => ({ id: lineSequence++, target: "", amount: 0, available: 0 });
+const newLine = (): Line => ({ id: lineSequence++, target: "", amount: 0 });
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
@@ -71,9 +75,12 @@ export function BatchAdjustmentDrawer({
   const [createBatch, { isLoading }] = useCreateArAdjustmentBatchMutation();
   const writeOff = kind === "WRITEOFF";
 
+  // Every line in the batch shares one posting date, so eligibility is asked for as at
+  // that date. A customer whose credit arrives after it has nothing to refund, and an
+  // invoice raised after it cannot be written off — neither may be offered.
   const refundAvailability = useGetRefundAvailabilityQuery(
-    { entity, page_size: 100 },
-    { skip: !open || writeOff },
+    { entity, page_size: 100, ...(date ? { as_of: date } : {}) },
+    { skip: !open || writeOff || !date },
   );
   const invoices = useGetInvoicesQuery(
     { entity, status: "POSTED", page_size: 100 },
@@ -84,8 +91,10 @@ export function BatchAdjustmentDrawer({
     [refundAvailability.data],
   );
   const invoiceTargets = useMemo(
-    () => toArray(invoices.data?.data).filter((invoice) => invoice.balance_due > 0),
-    [invoices.data],
+    () => toArray(invoices.data?.data).filter(
+      (invoice) => invoice.balance_due > 0 && (!date || invoice.invoice_date <= date),
+    ),
+    [invoices.data, date],
   );
   const options = useMemo(
     () => writeOff
@@ -113,19 +122,26 @@ export function BatchAdjustmentDrawer({
     return values;
   }, [can, writeOff]);
 
+  // Headroom for a target, read from the *current* (date-scoped) eligibility lists.
+  const availableFor = (target: string) => (writeOff
+    ? invoiceTargets.find((invoice) => String(invoice.id) === target)?.balance_due ?? 0
+    : refundTargets.find((customer) => customer.customer_code === target)?.refundable_credit ?? 0);
+  const resolved = useMemo(
+    () => lines.map((line) => ({ ...line, available: availableFor(line.target) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lines, invoiceTargets, refundTargets, writeOff],
+  );
+
   const setLine = (id: number, patch: Partial<Line>) => {
     setLines((current) => current.map((line) => (
       line.id === id ? { ...line, ...patch } : line
     )));
   };
   const pickTarget = (id: number, target: string) => {
-    const available = writeOff
-      ? invoiceTargets.find((invoice) => String(invoice.id) === target)?.balance_due ?? 0
-      : refundTargets.find((customer) => customer.customer_code === target)?.refundable_credit ?? 0;
-    setLine(id, { target, amount: available, available });
+    setLine(id, { target, amount: availableFor(target) });
   };
   const total = lines.reduce((sum, line) => sum + (line.amount || 0), 0);
-  const valid = batchAdjustmentLinesAreValid(lines);
+  const valid = batchAdjustmentLinesAreValid(resolved);
   const duplicateTargets = new Set(
     lines
       .filter((line, index) => (
@@ -239,7 +255,12 @@ export function BatchAdjustmentDrawer({
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <PostingDateField label="Posting date" entity={entity} value={date} onChange={setDate} />
+          <PostingDateField
+            label="Posting date" entity={entity} value={date} onChange={setDate}
+            hint={writeOff
+              ? "Only invoices raised on or before this date can be written off."
+              : "Refundable credit is measured on this date."}
+          />
           {writeOff ? (
             <FormField label="Write-off expense account">
               <AccountPicker
@@ -282,9 +303,11 @@ export function BatchAdjustmentDrawer({
             </Button>
           </div>
           <div className="space-y-2">
-            {lines.map((line) => {
+            {resolved.map((line) => {
               const duplicate = duplicateTargets.has(line.target);
               const overLimit = line.amount > line.available;
+              // The target was picked, then the date moved and it stopped qualifying.
+              const ineligible = !!line.target && line.available <= 0;
               return (
                 <div key={line.id} className="rounded-md border border-gray-03 bg-white p-2.5">
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_auto]">
@@ -297,7 +320,10 @@ export function BatchAdjustmentDrawer({
                         value={line.target}
                         onChange={(event) => pickTarget(line.id, event.target.value)}
                         loading={writeOff ? invoices.isFetching : refundAvailability.isFetching}
-                        placeholder={writeOff ? "Select an open invoice" : "Select refundable credit"}
+                        disabled={!date}
+                        placeholder={!date
+                          ? "Choose a posting date first"
+                          : writeOff ? "Select an open invoice" : "Select refundable credit"}
                         revealOnSearch
                       />
                     </div>
@@ -329,13 +355,17 @@ export function BatchAdjustmentDrawer({
                   {line.target ? (
                     <p className={cn(
                       "mt-1.5 font-mont text-[11px]",
-                      duplicate || overLimit ? "text-destructive" : "text-gray-05",
+                      duplicate || overLimit || ineligible ? "text-destructive" : "text-gray-05",
                     )}>
                       {duplicate
                         ? "This target already appears in the batch."
-                        : overLimit
-                          ? `Amount cannot exceed ${formatMoney(line.available, currency)}.`
-                          : `${formatMoney(line.available, currency)} available.`}
+                        : ineligible
+                          ? writeOff
+                            ? `This invoice is not open as at ${date} — it cannot be written off on that date.`
+                            : `No credit available as at ${date} — pick a later posting date or another customer.`
+                          : overLimit
+                            ? `Amount cannot exceed ${formatMoney(line.available, currency)} available as at ${date}.`
+                            : `${formatMoney(line.available, currency)} available as at ${date}.`}
                     </p>
                   ) : null}
                 </div>

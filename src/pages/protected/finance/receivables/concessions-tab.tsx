@@ -228,6 +228,9 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
     [invQ.data, customer],
   );
   const invoiceOptions = openInvoices.map((i) => ({ value: String(i.id), label: `${i.document_number} · ${formatMoney(i.balance_due, currency)} due` }));
+  // A discount cannot predate the charge it discounts — conceding before the invoice
+  // date would credit AR before the invoice ever debited it.
+  const selectedInvoice = openInvoices.find((i) => String(i.id) === invoice) ?? null;
 
   const pctToKobo = (p: string, bal: number) => Math.min(Math.round(((parseFloat(p) || 0) / 100) * bal), bal);
   const impliedPct = invoiceBalance > 0 ? (amount / invoiceBalance) * 100 : 0;
@@ -284,7 +287,11 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
         <Segmented label="Type" value={kind} onChange={setKind} options={KINDS} />
 
         <div className="grid grid-cols-2 gap-3">
-          <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
+          <PostingDateField
+            label="Date" entity={entity} value={date} onChange={setDate}
+            notBefore={selectedInvoice?.invoice_date}
+            notBeforeLabel={selectedInvoice ? `invoice ${selectedInvoice.document_number}` : undefined}
+          />
           <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={(v) => { setCustomer(v); setInvoice(""); setInvoiceBalance(0); }} /></FormField>
         </div>
 

@@ -331,14 +331,20 @@ export interface CustomerSummary {
 }
 
 // Customer receipts + allocation (Receipts & Allocation screen).
-export type PaymentAllocationStatus = "ALLOCATED" | "PARTIAL" | "UNALLOCATED";
+// REFUNDED: the cash never settled an invoice, but it has since been paid back out,
+// so it is neither allocated nor still available. It used to read as UNALLOCATED,
+// which is how a refunded receipt kept advertising money the customer no longer had.
+export type PaymentAllocationStatus = "ALLOCATED" | "PARTIAL" | "UNALLOCATED" | "REFUNDED";
 
 export interface PaymentSummary {
   count: number;
   today: { kobo: number; naira: string };
   week: { kobo: number; naira: string };
+  /** Credit still sitting in 2140 — net of anything already refunded back out. */
   unallocated: { kobo: number; naira: string };
-  status_counts: Record<string, number>; // ALLOCATED / PARTIAL / UNALLOCATED
+  /** Receipt cash that has been paid back out as a customer refund. */
+  refunded: { kobo: number; naira: string };
+  status_counts: Record<string, number>; // ALLOCATED / PARTIAL / UNALLOCATED / REFUNDED
 }
 
 export interface Payment {
@@ -352,7 +358,12 @@ export interface Payment {
   amount: number;
   amount_naira: string;
   allocated_amount: number;
+  /** Cash that never settled an invoice. A sub-ledger fact — blind to refunds. */
   unallocated_amount: number;
+  /** Of that, how much has been paid back out as a customer refund. */
+  refunded_amount: number;
+  /** What is actually still available to allocate or refund: unallocated − refunded. */
+  credit_remaining: number;
   allocation_status: PaymentAllocationStatus;
   deposit_account_code: string | null;
   deposit_account_name: string | null;

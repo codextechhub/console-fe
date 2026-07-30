@@ -275,13 +275,18 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
   const saving = creatingR || postingR || submittingR || creatingW || postingW || submittingW;
   const wo = mode === "WRITEOFF";
   const refundSearch = useDebounce(refundCustomerSearch.trim(), 250);
+  // Availability is asked for **as at the chosen refund date**, not today. A refund
+  // draws on credit that must already exist on its own accounting date, so a customer
+  // whose receipt lands next week has nothing to refund on a date before it — and the
+  // list must not offer them, or the post fails with a 409 after the form is filled.
   const refundAvailabilityQ = useGetRefundAvailabilityQuery(
     {
       entity,
       page_size: 100,
+      ...(date ? { as_of: date } : {}),
       ...(refundSearch ? { search: refundSearch } : {}),
     },
-    { skip: !open || wo },
+    { skip: !open || wo || !date },
   );
   const refundCustomers = useMemo(
     () => toArray(refundAvailabilityQ.data?.data),
@@ -297,9 +302,26 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
       label: `${item.customer_code} — ${item.customer_name} · ${formatMoney(item.refundable_credit, currency)} available`,
     }));
   }, [refundCustomers, selectedRefundCustomer, currency]);
-  const refundableAmount = selectedRefundCustomer?.refundable_credit ?? 0;
+  // Changing the date changes the answer, so the figure on screen is always read off
+  // the freshest list rather than the snapshot taken when the customer was picked —
+  // a stored number would quietly disagree with the date shown beside it.
+  //
+  // The snapshot is only a fallback for when the picked customer is legitimately
+  // absent from the loaded page: mid-refetch, or narrowed out by a search. Once a
+  // full, settled list comes back without them, they genuinely have no credit on
+  // this date and the amount must drop to zero.
+  const liveRefundCustomer = useMemo(
+    () => refundCustomers.find((item) => item.customer_code === customer) ?? null,
+    [refundCustomers, customer],
+  );
+  const activeRefundCustomer = liveRefundCustomer
+    ?? ((refundAvailabilityQ.isFetching || refundSearch) ? selectedRefundCustomer : null);
+
+  const refundableAmount = activeRefundCustomer?.refundable_credit ?? 0;
   const refundAmountIsValid = refundAmountIsWithinAvailableCredit(amount, refundableAmount);
   const refundAmountOverLimit = !wo && !!customer && amount > refundableAmount;
+  const noCreditOnDate = !wo && !!customer && !!date && refundableAmount <= 0
+    && !refundAvailabilityQ.isFetching;
 
   // Open invoices (with a balance due) for the chosen customer — write-off targets.
   const invQ = useGetInvoicesQuery({ entity, search: customer, status: "POSTED" }, { skip: !customer || !wo });
@@ -308,6 +330,8 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
     [invQ.data, customer],
   );
   const invoiceOptions = openInvoices.map((i) => ({ value: String(i.id), label: `${i.document_number} · ${formatMoney(i.balance_due, currency)} due` }));
+  // A write-off cannot be dated before the debt it concedes exists.
+  const selectedInvoice = openInvoices.find((i) => String(i.id) === invoice) ?? null;
 
   const recap = useMemo<{ dr: RecapRow[]; cr: RecapRow[] }>(() => {
     if (wo) {
@@ -412,7 +436,12 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
         />
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
+          <PostingDateField
+            label="Date" entity={entity} value={date} onChange={setDate}
+            notBefore={wo ? selectedInvoice?.invoice_date : undefined}
+            notBeforeLabel={wo && selectedInvoice ? `invoice ${selectedInvoice.document_number}` : undefined}
+            hint={wo ? undefined : "Credit available is measured on this date."}
+          />
           <FormField label="Customer" required>
             {wo ? (
               <CustomerPicker entity={entity} value={customer} onChange={(v) => { setCustomer(v); setInvoice(""); }} />
@@ -434,8 +463,17 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
         ) : null}
         {!wo && !refundAvailabilityQ.isFetching && !refundAvailabilityQ.isError
           && refundAvailabilityQ.data && refundCustomers.length === 0 && !refundSearch ? (
-            <p className="font-mont text-xs text-gray-05">No customers currently have credit available to refund.</p>
+            <p className="font-mont text-xs text-gray-05">
+              No customer had credit available to refund as at {date}. Credit received
+              later cannot fund a refund dated before it — try a later date.
+            </p>
           ) : null}
+        {noCreditOnDate && refundCustomers.length > 0 ? (
+          <p className="font-mont text-xs text-destructive">
+            {customer} has no credit available as at {date}. Pick a later refund date,
+            or a different customer.
+          </p>
+        ) : null}
 
         {wo ? (
           <FormField label="Against invoice" required>
@@ -464,8 +502,8 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
                   refundAmountOverLimit ? "text-destructive" : "text-gray-05",
                 )}>
                   {refundAmountOverLimit
-                    ? `Amount cannot exceed ${formatMoney(refundableAmount, currency)}.`
-                    : `${formatMoney(refundableAmount, currency)} available to refund.`}
+                    ? `Amount cannot exceed ${formatMoney(refundableAmount, currency)} available as at ${date}.`
+                    : `${formatMoney(refundableAmount, currency)} available to refund as at ${date}.`}
                 </p>
               ) : null}
             </div>

@@ -117,7 +117,10 @@ export const arApi = baseApi.injectEndpoints({
     }),
     getRefundAvailability: builder.query<
       PaginatedEnvelope<RefundAvailabilityCustomer>,
-      { entity: string; page?: number; page_size?: number; search?: string }
+      // `as_of` is the refund's accounting date. Credit that only arrives later
+      // cannot fund a refund dated before it, so the picker must be asked for the
+      // position on that date — otherwise it offers credit the post will refuse.
+      { entity: string; page?: number; page_size?: number; search?: string; as_of?: string }
     >({
       query: (params) => ({ url: `/finance/refunds/availability/${qs(params)}`, method: "GET" }),
       providesTags: ["FinanceRefunds", "FinanceCustomers"],

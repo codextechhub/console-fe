@@ -3,6 +3,7 @@ import type { PeriodBrief } from "@/redux/services/finance/setup-types";
 import {
   blockedReason,
   bookingDateFor,
+  clipRangesFrom,
   isWithinRanges,
   nearestOpenDate,
   openWindowLabel,
@@ -189,5 +190,51 @@ describe("todayISO", () => {
 
   it("matches YYYY-MM-DD", () => {
     expect(todayISO()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe("clipRangesFrom", () => {
+  const ranges = [
+    { from: "2026-01-01", to: "2026-01-31" },
+    { from: "2026-02-01", to: "2026-02-28" },
+    { from: "2026-03-01", to: "2026-03-31" },
+  ];
+
+  it("leaves the ranges untouched when there is no floor", () => {
+    expect(clipRangesFrom(ranges, null)).toEqual(ranges);
+    expect(clipRangesFrom(ranges, undefined)).toEqual(ranges);
+    expect(clipRangesFrom(ranges, "")).toEqual(ranges);
+  });
+
+  it("drops periods that end before the floor", () => {
+    // A write-off for a 10 Feb invoice cannot be booked in January at all.
+    expect(clipRangesFrom(ranges, "2026-02-10")).toEqual([
+      { from: "2026-02-10", to: "2026-02-28" },
+      { from: "2026-03-01", to: "2026-03-31" },
+    ]);
+  });
+
+  it("starts a straddling period at the floor, not at its own start", () => {
+    const [first] = clipRangesFrom(ranges, "2026-01-15");
+    expect(first).toEqual({ from: "2026-01-15", to: "2026-01-31" });
+  });
+
+  it("keeps a period whose last day is exactly the floor", () => {
+    // The invoice date itself is always a legal settlement date.
+    expect(clipRangesFrom(ranges, "2026-01-31")).toEqual([
+      { from: "2026-01-31", to: "2026-01-31" },
+      { from: "2026-02-01", to: "2026-02-28" },
+      { from: "2026-03-01", to: "2026-03-31" },
+    ]);
+  });
+
+  it("returns nothing when the floor is past every open period", () => {
+    // Meaningful, not an error: the two constraints do not overlap, so there is
+    // no date this document could legitimately carry.
+    expect(clipRangesFrom(ranges, "2026-04-01")).toEqual([]);
+  });
+
+  it("returns nothing to clip when the window itself is unconstrained", () => {
+    expect(clipRangesFrom([], "2026-02-10")).toEqual([]);
   });
 });

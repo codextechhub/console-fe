@@ -24,12 +24,16 @@ import { PaymentAllocationDrawer } from "./payment-allocation-drawer";
 const STATUS_TABS = [
   { key: "", label: "All" }, { key: "ALLOCATED", label: "Allocated" },
   { key: "PARTIAL", label: "Partial" }, { key: "UNALLOCATED", label: "Unallocated" },
+  { key: "REFUNDED", label: "Refunded" },
 ] as const;
 const STATUS_PILL: Record<string, string> = {
   ALLOCATED: "bg-green-01/10 text-green-01", PARTIAL: "bg-blue-50 text-blue-700",
-  UNALLOCATED: "bg-amber-50 text-amber-700",
+  UNALLOCATED: "bg-amber-50 text-amber-700", REFUNDED: "bg-gray-03/60 text-gray-01",
 };
-const STATUS_LABEL: Record<string, string> = { ALLOCATED: "Allocated", PARTIAL: "Partial", UNALLOCATED: "Unallocated" };
+const STATUS_LABEL: Record<string, string> = {
+  ALLOCATED: "Allocated", PARTIAL: "Partial", UNALLOCATED: "Unallocated",
+  REFUNDED: "Refunded",
+};
 const METHODS = ["BANK_TRANSFER", "CASH", "CARD", "CHEQUE", "ONLINE", "OTHER"];
 const methodLabel = (m: string) => m.replace("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
 const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
@@ -76,8 +80,8 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
   const counts = sum?.status_counts ?? {};
 
   const exportCsv = () => {
-    const head = ["Receipt", "Date", "Customer", "Method", "Amount (kobo)", "Unallocated (kobo)", "Status"];
-    const lines = rows.map((p) => [p.document_number, p.payment_date, p.customer_name, methodLabel(p.method), String(p.amount), String(p.unallocated_amount), STATUS_LABEL[p.allocation_status]]
+    const head = ["Receipt", "Date", "Customer", "Method", "Amount (kobo)", "Unallocated (kobo)", "Refunded (kobo)", "Status"];
+    const lines = rows.map((p) => [p.document_number, p.payment_date, p.customer_name, methodLabel(p.method), String(p.amount), String(p.credit_remaining), String(p.refunded_amount), STATUS_LABEL[p.allocation_status]]
       .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","));
     const blob = new Blob([[head.join(","), ...lines].join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -99,7 +103,19 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
     { header: "Customer", cell: (p) => <span className="inline-flex items-center gap-2"><Initials name={p.customer_name} /><span className="font-medium text-gray-01">{p.customer_name}</span></span> },
     { header: "Method", cell: (p) => <span className="rounded bg-gray-03/40 px-2 py-0.5 font-mont text-[11px] text-gray-01">{methodLabel(p.method)}</span> },
     { header: "Amount", align: "right", cell: (p) => <span className="block text-right tabular-nums">{formatMoney(p.amount, currency)}</span> },
-    { header: "Unallocated", align: "right", cell: (p) => p.unallocated_amount ? <span className="block text-right font-medium tabular-nums text-amber-700">{formatMoney(p.unallocated_amount, currency)}</span> : <span className="block text-right text-gray-05">—</span> },
+    // Credit *remaining*, not merely unallocated. A receipt whose cash has been
+    // refunded has nothing left to apply, and showing the gross unapplied figure here
+    // is what made a refunded receipt look like available money.
+    { header: "Unallocated", align: "right", cell: (p) => (p.credit_remaining ? (
+      <span className="block text-right font-medium tabular-nums text-amber-700">{formatMoney(p.credit_remaining, currency)}</span>
+    ) : p.refunded_amount ? (
+      <span className="block text-right tabular-nums text-gray-05" title={`${formatMoney(p.refunded_amount, currency)} refunded to the customer`}>
+        {formatMoney(0, currency)}
+      </span>
+    ) : <span className="block text-right text-gray-05">—</span>) },
+    { header: "Refunded", align: "right", cell: (p) => (p.refunded_amount
+      ? <span className="block text-right tabular-nums text-gray-01">{formatMoney(p.refunded_amount, currency)}</span>
+      : <span className="block text-right text-gray-05">—</span>) },
     { header: "Status", cell: (p) => <span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[p.allocation_status])}>{STATUS_LABEL[p.allocation_status]}</span> },
     { header: "", align: "right", cell: (p) => (
       <button
@@ -117,7 +133,13 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi label="Received today" value={formatMoney(sum?.today.kobo ?? 0, currency)} />
         <Kpi label="This week" value={formatMoney(sum?.week.kobo ?? 0, currency)} hint="Last 7 days" />
-        <Kpi label="Unallocated" value={formatMoney(sum?.unallocated.kobo ?? 0, currency)} hint="Sitting unapplied" />
+        <Kpi
+          label="Unallocated"
+          value={formatMoney(sum?.unallocated.kobo ?? 0, currency)}
+          hint={sum?.refunded.kobo
+            ? `Sitting unapplied · ${formatMoney(sum.refunded.kobo, currency)} refunded out`
+            : "Sitting unapplied"}
+        />
         <Kpi label="Receipts" value={String(sum?.count ?? 0)} />
       </div>
 

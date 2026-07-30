@@ -41,6 +41,33 @@ export function toOpenRanges(periods: PeriodBrief[]): OpenRange[] {
     .sort((a, b) => a.from.localeCompare(b.from));
 }
 
+/**
+ * The open ranges clipped to start no earlier than `notBefore`.
+ *
+ * The second, separate date constraint. An open period answers "may we book on
+ * this date at all?"; this answers "could this have happened by then?" — a
+ * write-off cannot predate its invoice, a refund cannot predate the credit it
+ * pays out, a receipt cannot settle a bill not yet raised. Both must hold, so the
+ * selectable days are the intersection: ranges ending before the floor drop out
+ * entirely, and a range straddling it starts at the floor.
+ *
+ * An empty result is meaningful, not an error — it means the two constraints do
+ * not overlap and there is no date the user could legitimately pick. Callers must
+ * say so rather than silently offering an unconstrained calendar.
+ *
+ * A falsy `notBefore` returns the ranges untouched, so callers can pass an
+ * optional floor straight through.
+ */
+export function clipRangesFrom(
+  ranges: OpenRange[],
+  notBefore: string | null | undefined,
+): OpenRange[] {
+  if (!notBefore) return ranges;
+  return ranges
+    .filter((range) => range.to >= notBefore)
+    .map((range) => ({ from: range.from > notBefore ? range.from : notBefore, to: range.to }));
+}
+
 /** Is `date` inside any open range? An empty range list means "unconstrained". */
 export function isWithinRanges(date: string, ranges: OpenRange[]): boolean {
   if (!date) return false;
