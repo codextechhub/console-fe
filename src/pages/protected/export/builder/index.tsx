@@ -899,9 +899,12 @@ function StepReview({
         ))}
       </div>
 
+      {/* Sharing is out of the MVP, so the promise this makes is only about the
+          owner: an export is yours, and every download is re-authorised against
+          whoever clicks it. */}
       <p className={cn("font-mont text-xs leading-relaxed text-gray-01")}>
-        This export will run as you. Anyone you share it with sees the data your access allows, not
-        their own. Access is checked again every time it runs and every time a file is downloaded.
+        This export runs as you, so it shows the data your access allows. Access is checked again
+        every time it runs and every time a file is downloaded.
       </p>
     </section>
   );

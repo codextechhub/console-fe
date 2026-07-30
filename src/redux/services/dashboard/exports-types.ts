@@ -137,6 +137,7 @@ export interface ExportDownloadEntry {
 export interface ExportCapabilities {
   can_create: boolean;
   can_run: boolean;
+  /** On the wire, but the UI does not surface sharing — it is out of the MVP. */
   can_share: boolean;
   can_export_sensitive: boolean;
   can_view_activity: boolean;
@@ -259,6 +260,9 @@ export interface ExportDefinitionListItem {
   column_count: number;
   owner_name: string;
   is_owner: boolean;
+  /** Both come off the wire and are deliberately not rendered: sharing is out
+   *  of the MVP, so every export is the owner's own. Kept on the type because
+   *  the API sends them and a type that lies is worse than an unused field. */
   sharing: "PRIVATE" | "SHARED";
   shared_with: number;
   is_draft: boolean;

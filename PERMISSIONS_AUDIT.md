@@ -635,7 +635,7 @@ No route-level guards. The previous `RequirePermission` middleware was deleted a
 
 | Constant | Backend Key | Likely Home |
 |---|---|---|
-| `P.SHARE_EXPORT` | `exports.definition.share` | Sharing + revoke a secure link — slice 5 |
+| `P.SHARE_EXPORT` | `exports.definition.share` | **Cut from the MVP** — sharing an export with other people is not built. The backend key and endpoint remain; nothing in the UI calls them. |
 | `P.EXPORT_SENSITIVE_FIELDS` | `exports.sensitive_field.export` | The catalogue already hides restricted fields server-side from anyone without it, so the picker needs no FE check. Not granted by default |
 | `P.VIEW_EXPORT_ACTIVITY` | `exports.activity.view` | Admin all-activity console — slice 5. Super-admin only; the read is itself audited |
 | `P.DISMISS_TEAM_MEMBER` | `platform.team.delete` | No UI surface â DELETE on the backend is a soft-deactivate equivalent to Suspend, which already has its own gated action. Consider deprecating this constant or repurposing if hard-delete is added later. |

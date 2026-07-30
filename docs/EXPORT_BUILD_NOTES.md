@@ -221,6 +221,32 @@ spec asks for — never a spinner where a number should be).
 
 ---
 
+## Scope decision — sharing is OUT of the MVP (2026-07-29)
+
+An export belongs to the person who made it. There is no sharing an export with
+other people, no "Shared · N" badge, no share drawer or user picker, and no
+"shared with me" filter.
+
+The backend keeps `ExportDefinitionShare`, `ExportDefinition.sharing`,
+`POST /definitions/<pk>/share/` and `exports.definition.share` — nothing was
+deleted server-side — but **no UI calls any of it**. `sharing`, `shared_with`
+and `can_share` still arrive on the wire and stay on the TypeScript types,
+because a type that lies about the API is worse than an unused field; they are
+simply never rendered.
+
+Two consequences worth keeping straight:
+
+- The review step's promise is now only about the owner: *"This export runs as
+  you, so it shows the data your access allows."* The old wording explained what
+  people you shared with would see, which is a promise about a feature that does
+  not exist.
+- Visibility is still wider than "your own" for an administrator holding
+  `exports.activity.view`, so the Owner filter (Anyone / Owned by me) keeps its
+  meaning.
+
+`P.SHARE_EXPORT` stays registered and is recorded as cut in
+`PERMISSIONS_AUDIT.md`, so nobody wires it by accident.
+
 ## Scope decision — schedules are OUT of the MVP (2026-07-29)
 
 The backend has no `ExportSchedule` model and no `/schedules/` route, and the
@@ -441,7 +467,7 @@ as "tuned for", and the builder's filter copy says so.
 | **2** | Catalogue, wizard steps 1–3, preview/estimate, definitions CRUD, Exports | ✅ done |
 | **3** | Failure and omission handling end to end, frozen-config diff | ✅ done |
 | 4 | Delivery only: recipients, secure links, test delivery, revocation | ✅ ready |
-| 5 | Sharing, Quick export from module screens, admin activity + download log | ✅ ready |
+| 5 | ~~Sharing~~ (cut) · Quick export from module screens · admin activity + download log | ✅ ready |
 | ~~Schedules~~ | Cut from the MVP — see the scope decision above | — |
 
 Genuinely new UI in this feature is only three things — the 340px summary rail,

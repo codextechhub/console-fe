@@ -152,11 +152,6 @@ export default function SavedExportsPage() {
                 Draft
               </Badge>
             )}
-            {row.sharing === "SHARED" && (
-              <span className="rounded border border-primary/30 bg-pry-01/50 px-1 py-px font-geist-mono text-[9px] font-semibold uppercase text-primary">
-                Shared · {row.shared_with}
-              </span>
-            )}
             {!row.dataset.available && (
               <Badge variant="rejected" className="font-mont">
                 Dataset withdrawn
