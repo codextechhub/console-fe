@@ -1,20 +1,5 @@
 # CLAUDE.md — console-fe
 
-## Every school is a different shape
-
-This console is used by CodeX staff across **all** tenants, so any screen touching
-schools meets every shape at once: schools with one site, schools with several,
-and schools mid-onboarding with none configured yet.
-
-- **Never assume a school has branches.** A school with none must render correctly
-  in lists, detail views, filters and pickers — not as a blank, a `—`, or a crash.
-- **Where branch matters, show which school *and* which branch** a record belongs
-  to. Ambiguity is worse here than anywhere else, because every tenant is visible
-  at once.
-- **Don't let one tenant's arrangement shape a screen.** Corona Secondary School is
-  the first school onboarded, not the model for all of them.
-- **Test with at least two differently-shaped schools** in your fixtures.
-
 ## Pre-ship review (`ship-check`)
 
 When I say **`ship-check`** (or "run the ship-check") on a change, answer these
