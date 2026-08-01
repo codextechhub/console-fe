@@ -20,6 +20,7 @@ import type {
   FinanceAuditLog,
   FinanceAuditFacets,
   FiscalPeriod,
+  StartedFiscalYear,
   PeriodChecklist,
   PeriodCloseResult,
   PostingWindow,
@@ -62,9 +63,21 @@ export const setupApi = baseApi.injectEndpoints({
       query: ({ entity, id, ...body }) => ({ url: `/finance/accounts/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinanceAccounts"],
     }),
+    // Shared report pickers stay bounded but newest-first, so current periods do
+    // not disappear behind the oldest 25 rows after several years of history.
     getPeriods: b.query<PaginatedEnvelope<FiscalPeriod>, { entity: string; status?: string; year?: number }>({
-      query: (p) => ({ url: `/finance/periods/${qs(p)}`, method: "GET" }),
+      query: (p) => ({ url: `/finance/periods/${qs({ ...p, recent: "true", page_size: 100 })}`, method: "GET" }),
       providesTags: ["FinancePeriods"],
+    }),
+    // The close workbench reads exactly one complete fiscal calendar (4 or 12
+    // rows), never the entity's unbounded lifetime history.
+    getFiscalYearPeriods: b.query<ApiEnvelope<FiscalPeriod[]>, { entity: string; year: number }>({
+      query: (p) => ({ url: `/finance/periods/${qs({ ...p, all: "true" })}`, method: "GET" }),
+      providesTags: ["FinancePeriods"],
+    }),
+    startFiscalYear: b.mutation<ApiEnvelope<StartedFiscalYear>, { entity: string; year: number; start_month: number; fiscal_start_day: number; frequency: "MONTHLY" | "QUARTERLY" }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/fiscal-years/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["FinancePeriods"],
     }),
     // Which dates accept a posting today — feeds every document-date picker in both
     // consoles. Gated on finance-or-procurement module access (not finance.period.view)
@@ -93,8 +106,8 @@ export const setupApi = baseApi.injectEndpoints({
       invalidatesTags: ["FinancePeriods", "FinanceReports"],
     }),
     // Year-end close: post the closing entry (zero every P&L account, roll net profit/loss
-    // into Retained Earnings 3200) and seal the fiscal year. `force` closes even while some
-    // periods are still OPEN; closing_date defaults to the year end_date server-side.
+    // into Retained Earnings 3200) and seal the fiscal year. The formal entry may use the
+    // final OPEN, SOFT_CLOSED or CLOSED period, but never a permanently LOCKED one.
     closeFiscalYear: b.mutation<ApiEnvelope<{ fiscal_year: { id: number; year: number; status: string }; closing_journal: { id: number } | null; net_income: { kobo: number; naira: string } }>, { id: number; entity: string; force?: boolean; closing_date?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/fiscal-years/${id}/close/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePeriods", "FinanceReports", "FinanceJournals"],
@@ -155,6 +168,8 @@ export const {
   useGetAccountActivityQuery,
   useUpdateAccountMutation,
   useGetPeriodsQuery,
+  useGetFiscalYearPeriodsQuery,
+  useStartFiscalYearMutation,
   useGetPostingWindowQuery,
   useGetPeriodChecklistQuery,
   useClosePeriodMutation,

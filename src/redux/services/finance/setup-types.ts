@@ -73,6 +73,17 @@ export interface FiscalPeriod {
   closed_at: string | null;
 }
 
+export interface StartedFiscalYear {
+  fiscal_year: {
+    id: number;
+    year: number;
+    start_date: string;
+    end_date: string;
+    status: string;
+  };
+  periods: FiscalPeriod[];
+}
+
 /** A period reduced to what a date picker needs: when it is, and why it's blocked. */
 export interface PeriodBrief {
   id: number;

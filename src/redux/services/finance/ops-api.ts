@@ -346,6 +346,7 @@ export const opsApi = baseApi.injectEndpoints({
     }),
     getFiscalYears: b.query<ApiEnvelope<FiscalYear[]>, { entity: string; status?: string }>({
       query: (p) => ({ url: `/finance/fiscal-years/${qs(p)}`, method: "GET" }),
+      providesTags: ["FinancePeriods"],
     }),
     createBudget: b.mutation<ApiEnvelope<Budget>, { entity: string; name: string; fiscal_year: number; lines?: BudgetLineInput[] }>({
       query: ({ entity, ...body }) => ({ url: `/finance/budgets/${qs({ entity })}`, method: "POST", body }),
