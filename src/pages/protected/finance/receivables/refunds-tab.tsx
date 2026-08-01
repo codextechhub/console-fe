@@ -36,6 +36,7 @@ import {
   useSubmitWriteOffRequestMutation, useGetInvoicesQuery, useGetRefundAvailabilityQuery,
 } from "@/redux/services/finance/ar-api";
 import type { ArAdjustment, RefundAvailabilityCustomer } from "@/redux/services/finance/ar-types";
+import { DocumentVoidAction } from "./document-void-action";
 
 type Mode = "REFUND" | "WRITEOFF";
 
@@ -55,7 +56,8 @@ function StatusPill({ status }: { status: string }) {
     <span className={cn("inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium",
       normalized === "POSTED" ? "bg-green-01/10 text-green-01"
         : normalized === "PENDING_APPROVAL" ? "bg-blue-50 text-blue-700"
-          : "bg-amber-50 text-amber-700")}>
+          : normalized === "REVERSED" ? "bg-gray-03/60 text-gray-05"
+            : "bg-amber-50 text-amber-700")}>
       {label}
     </span>
   );
@@ -180,7 +182,7 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
 
   const wo = row.kind === "WRITEOFF";
   const posted = row.status === "POSTED";
-  const isDraft = !posted && row.status !== "PENDING_APPROVAL";
+  const isDraft = row.status === "DRAFT";
   const recap = wo
     ? { dr: [{ code: "5300", name: "Bad debt expense", amount: row.amount }], cr: [{ code: "AR", name: "Accounts Receivable (control)", amount: row.amount }] }
     : { dr: [{ code: "2140", name: "Customer credit", amount: row.amount }], cr: [{ code: "Bank", name: "cash out", amount: row.amount }] };
@@ -222,6 +224,15 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
       footer={
         <>
           <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>
+          {!wo && posted && row.refund_id ? (
+            <DocumentVoidAction
+              documentType="REFUND"
+              documentId={row.refund_id}
+              documentNumber={row.reference || `Refund #${row.refund_id}`}
+              entity={entity}
+              onVoided={onClose}
+            />
+          ) : null}
           {isDraft && can(wo ? P.FIN_SUBMIT_WRITE_OFF : P.FIN_SUBMIT_REFUND) ? (
             <Button variant="outline" onClick={doSubmit} disabled={submittingRefund || submittingWriteOff} className="gap-1.5">
               <Send className="size-4" />{submittingRefund || submittingWriteOff ? "Submitting…" : "Submit"}

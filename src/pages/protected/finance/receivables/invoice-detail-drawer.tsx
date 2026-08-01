@@ -17,6 +17,7 @@ import { useGetInvoiceDetailQuery, useRemindInvoiceMutation } from "@/redux/serv
 import { openInvoiceDocument } from "@/utils/finance-documents";
 import { RecordPaymentModal } from "./record-payment-modal";
 import { RequestPaymentModal } from "./request-payment-modal";
+import { DocumentVoidAction } from "./document-void-action";
 import { todayISO } from "@/utils/posting-window";
 
 const TABS = [
@@ -96,8 +97,8 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
       description={inv ? `${inv.customer_name} · ${inv.customer_code}` : undefined}
       widthClass="sm:max-w-3xl"
       footer={
-        <div className="flex w-full items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={openPdf} disabled={!inv} className="gap-1.5"><Printer className="size-4" /> Print PDF</Button>
             <TooltipProvider delayDuration={100}>
               <Tooltip>
@@ -107,9 +108,18 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
                 <TooltipContent className="font-mont text-xs">Needs an email-sending endpoint — coming soon.</TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            {inv?.status === "POSTED" ? (
+              <DocumentVoidAction
+                documentType="INVOICE"
+                documentId={inv.id}
+                documentNumber={inv.document_number}
+                entity={entity}
+                onVoided={onClose}
+              />
+            ) : null}
           </div>
           {canAct && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Send reminder lives with the Reminders tab; Record payment with Payments. */}
               {tab === "reminders" && (
                 <Can permission={P.FIN_SEND_DUNNING}>

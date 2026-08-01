@@ -52,6 +52,10 @@ export interface JournalDetail extends JournalListItem {
   total_debit: number;
   total_credit: number;
   reverses_id: number | null;
+  reversal_action:
+    | { kind: "REVERSE_JOURNAL" }
+    | { kind: "VOID_DOCUMENT"; document_type: "INVOICE" | "PAYMENT" | "CREDIT_NOTE" | "REFUND" | "CONCESSION"; document_id: number; document_number: string }
+    | { kind: "SOURCE_DOCUMENT_ACTION"; document_type: string; document_number: string };
 }
 
 export interface JournalListParams {

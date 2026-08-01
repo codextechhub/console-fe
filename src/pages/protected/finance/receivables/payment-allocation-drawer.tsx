@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { CheckCircle2 } from "lucide-react";
-import { DetailDrawer, Money } from "@/components/finance-ui";
+import { DetailDrawer, Money, StatusPill } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { LoadingState, ErrorState, EmptyState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { formatMoney, toKobo } from "@/utils/money";
 import { P } from "@/permissions";
 import { useGetPaymentDetailQuery, useAllocatePaymentMutation } from "@/redux/services/finance/ar-api";
+import { DocumentVoidAction } from "./document-void-action";
 
 const STATUS_PILL: Record<string, string> = {
   ALLOCATED: "bg-green-01/10 text-green-01", PARTIAL: "bg-blue-50 text-blue-700",
@@ -99,9 +100,18 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
       description={p ? `${p.customer_name} · ${formatMoney(p.amount, currency)} received` : undefined}
       widthClass="sm:max-w-3xl"
       footer={p ? (
-        <div className="flex w-full items-center justify-between gap-2">
+        <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <span className="font-mont text-xs text-gray-05">Unallocated remainder: <span className={cn("font-semibold", remainder === 0 ? "text-green-01" : "text-black-01")}>{formatMoney(Math.max(remainder, 0), currency)}</span></span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {p.status === "POSTED" ? (
+              <DocumentVoidAction
+                documentType="PAYMENT"
+                documentId={p.id}
+                documentNumber={p.document_number}
+                entity={entity}
+                onVoided={onClose}
+              />
+            ) : null}
             <Button variant="outline" onClick={onClose}>Close</Button>
             <Can permission={P.FIN_ALLOCATE_PAYMENT}>
               <Button onClick={apply} disabled={!canApply || saving}>{saving ? "Applying…" : "Apply allocation"}</Button>
@@ -112,7 +122,10 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
     >
       {isLoading ? <LoadingState rows={6} /> : isError || !d || !p ? <ErrorState onRetry={refetch} /> : (
         <div className="space-y-4">
-          <div><span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[p.allocation_status])}>{STATUS_LABEL[p.allocation_status]}</span></div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <StatusPill status={p.status} />
+            <span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[p.allocation_status])}>{STATUS_LABEL[p.allocation_status]}</span>
+          </div>
 
           {unallocated <= 0 ? (
             <div className="flex items-center gap-2 rounded-md bg-green-01/10 px-3 py-2.5 font-mont text-xs text-green-01">

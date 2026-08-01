@@ -37,6 +37,8 @@ type EntityList = { entity: string; page?: number; status?: string; customer?: s
 type FeeLineInput = { code?: string; description: string; revenue_account: string; amount: number; tax_code?: string; is_optional?: boolean };
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
 
+export type VoidableArResource = "invoices" | "payments" | "credit-notes" | "refunds" | "concessions";
+
 export const arApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Invoices
@@ -79,6 +81,21 @@ export const arApi = baseApi.injectEndpoints({
     remindInvoice: builder.mutation<ApiEnvelope<DunningNotice>, { id: number; entity: string; message?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/invoices/${id}/remind/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceInvoices", "FinanceDunning"],
+    }),
+    voidArDocument: builder.mutation<
+      ApiEnvelope<Invoice | Payment | CreditNote | Refund | Concession>,
+      { resource: VoidableArResource; id: number; entity: string; reversal_date?: string }
+    >({
+      query: ({ resource, id, entity, ...body }) => ({
+        url: `/finance/${resource}/${id}/void/${qs({ entity })}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [
+        "FinanceInvoices", "FinancePayments", "FinanceCreditNotes", "FinanceRefunds",
+        "FinanceConcessions", "FinanceCustomers", "FinancePaymentPlans",
+        "FinanceReports", "FinanceJournals",
+      ],
     }),
 
     // Credit notes
@@ -347,6 +364,7 @@ export const {
   useWriteOffInvoiceMutation,
   useRecordPaymentMutation,
   useRemindInvoiceMutation,
+  useVoidArDocumentMutation,
   useGetCreditNotesQuery,
   useCreateCreditNoteMutation,
   usePostCreditNoteMutation,

@@ -1,7 +1,7 @@
 // Journal detail drawer — design topology: header (no · date · period · source),
 // four stat cards (Status / Total Dr / Total Cr / Difference), the Dr/Cr lines
 // table with cost centres + totals, a teaching note, and a footer with the author
-// + Reverse (gated finance.journal.reverse) + Print.
+// + the safe reversal/void action for this journal's source + Print.
 
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { useGetJournalQuery, useReverseJournalMutation, useSubmitJournalMutation } from "@/redux/services/finance/gl-api";
+import { DocumentVoidAction } from "../receivables/document-void-action";
 
 const cap = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
@@ -38,6 +39,7 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
   const [confirmReverse, setConfirmReverse] = useState(false);
   const j = data?.data;
   const diff = j ? j.total_debit - j.total_credit : 0;
+  const reversalAction = j?.reversal_action;
 
   const doReverse = async () => {
     try {
@@ -66,20 +68,29 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
         description={j ? `${j.date}${j.period ? ` · ${j.period}` : ""} · ${cap(j.source)} journal` : undefined}
         widthClass="sm:max-w-3xl"
         footer={
-          <div className="flex w-full items-center justify-between gap-3">
+          <div className="flex w-full flex-wrap items-center justify-between gap-3">
             <span className="font-mont text-xs text-gray-05">
               Created by {j?.created_by ?? "—"}{j?.posted_at ? ` · Posted ${new Date(j.posted_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {j?.status === "DRAFT" && (
                 <Can permission={P.FIN_SUBMIT_JOURNAL}>
                   <Button onClick={() => setConfirmSubmit(true)} className="gap-1.5"><Send className="size-4" /> Submit</Button>
                 </Can>
               )}
-              {j?.status === "POSTED" && (
+              {j?.status === "POSTED" && reversalAction?.kind === "REVERSE_JOURNAL" && (
                 <Can permission={P.FIN_REVERSE_JOURNAL}>
                   <Button variant="outline" onClick={() => setConfirmReverse(true)} className="border-destructive/40 text-destructive hover:bg-destructive/5">Reverse</Button>
                 </Can>
+              )}
+              {j?.status === "POSTED" && reversalAction?.kind === "VOID_DOCUMENT" && (
+                <DocumentVoidAction
+                  documentType={reversalAction.document_type}
+                  documentId={reversalAction.document_id}
+                  documentNumber={reversalAction.document_number}
+                  entity={entity}
+                  onVoided={onClose}
+                />
               )}
               <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>
             </div>
@@ -106,7 +117,7 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
             <div>
               <div className="mb-2 flex items-center gap-1.5">
                 <p className="font-mont text-sm font-semibold text-gray-01">Lines</p>
-                <InfoHint>Each line targets one GL account; the cost centre tags the spending department. Posting permanently updates those accounts’ balances; reversing creates a mirror journal that nets back to zero, leaving the original in history for audit.</InfoHint>
+                <InfoHint>Each line targets one GL account; the cost centre tags the spending department. Manual journals can be reversed with a mirror entry. Journals created by invoices, receipts and other documents must be voided with their source document so the sub-ledger and GL stay together.</InfoHint>
               </div>
               <div className="overflow-x-auto rounded-md border border-gray-03">
                 <table className="w-full border-collapse">

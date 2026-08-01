@@ -32,6 +32,7 @@ import {
   useAllocateCreditNoteMutation, useGetInvoicesQuery,
 } from "@/redux/services/finance/ar-api";
 import type { CreditNote } from "@/redux/services/finance/ar-types";
+import { DocumentVoidAction } from "./document-void-action";
 
 const kindLabel = (k: string) => (k === "DEBIT" ? "Debit note" : "Credit note");
 const DRAWER_W = "sm:max-w-3xl";
@@ -45,7 +46,8 @@ function shortenReason(s: string): string {
 
 // Posted credit note fully applied → "Applied"; otherwise "Issued". Debit notes
 // can't be allocated, so a posted debit note is always "Issued". Unposted → "Draft".
-function noteStatus(n: CreditNote): "DRAFT" | "ISSUED" | "APPLIED" {
+function noteStatus(n: CreditNote): "DRAFT" | "ISSUED" | "APPLIED" | "REVERSED" {
+  if (n.status === "REVERSED") return "REVERSED";
   if (n.status !== "POSTED") return "DRAFT";
   if (n.kind === "CREDIT" && n.allocated_amount > 0 && n.unallocated_amount <= 0) return "APPLIED";
   return "ISSUED";
@@ -54,8 +56,9 @@ const STATUS_PILL: Record<string, string> = {
   DRAFT: "bg-gray-03/60 text-gray-05",
   ISSUED: "bg-blue-50 text-blue-700",
   APPLIED: "bg-green-01/10 text-green-01",
+  REVERSED: "bg-gray-03/60 text-gray-05",
 };
-const STATUS_LABEL: Record<string, string> = { DRAFT: "Draft", ISSUED: "Issued", APPLIED: "Applied" };
+const STATUS_LABEL: Record<string, string> = { DRAFT: "Draft", ISSUED: "Issued", APPLIED: "Applied", REVERSED: "Voided" };
 
 function TypeChip({ kind }: { kind: string }) {
   const debit = kind === "DEBIT";
@@ -216,6 +219,15 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
         footer={
           <>
             <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>
+            {note.status === "POSTED" ? (
+              <DocumentVoidAction
+                documentType="CREDIT_NOTE"
+                documentId={note.id}
+                documentNumber={note.document_number}
+                entity={entity}
+                onVoided={onClose}
+              />
+            ) : null}
             {canApply ? (
               <Button onClick={() => setConfirmApply(true)} className="gap-1.5"><Check className="size-4" /> Apply to balance</Button>
             ) : null}

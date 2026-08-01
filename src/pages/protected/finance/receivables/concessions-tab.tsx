@@ -27,6 +27,7 @@ import {
   usePostConcessionMutation, useGetInvoicesQuery,
 } from "@/redux/services/finance/ar-api";
 import type { Concession } from "@/redux/services/finance/ar-types";
+import { DocumentVoidAction } from "./document-void-action";
 
 const KINDS: [string, string][] = [["WAIVER", "Waiver"], ["DISCOUNT", "Discount"], ["SCHOLARSHIP", "Scholarship"]];
 const kindLabel = (k: string) => KINDS.find(([v]) => v === k)?.[1] ?? k;
@@ -40,7 +41,8 @@ function TypeChip({ kind }: { kind: string }) {
 }
 function StatusPill({ status }: { status: string }) {
   const posted = status === "POSTED";
-  return <span className={cn(PILL, posted ? "bg-green-01/10 text-green-01" : "bg-amber-50 text-amber-700")}>{posted ? "Posted" : "Draft"}</span>;
+  const reversed = status === "REVERSED";
+  return <span className={cn(PILL, posted ? "bg-green-01/10 text-green-01" : reversed ? "bg-gray-03/60 text-gray-05" : "bg-amber-50 text-amber-700")}>{posted ? "Posted" : reversed ? "Voided" : "Draft"}</span>;
 }
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
@@ -123,6 +125,7 @@ export function ConcessionsTab({ entity, currency }: { entity: string; currency?
             <option value="">All statuses</option>
             <option value="DRAFT">Draft</option>
             <option value="POSTED">Posted</option>
+            <option value="REVERSED">Voided</option>
           </select>
         </div>
         <Can permission={P.FIN_CREATE_CONCESSION}>
@@ -171,6 +174,15 @@ function ConcessionDetailDrawer({ concession, entity, currency, onClose }: {
         footer={
           <>
             <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>
+            {concession.status === "POSTED" ? (
+              <DocumentVoidAction
+                documentType="CONCESSION"
+                documentId={concession.id}
+                documentNumber={concession.document_number}
+                entity={entity}
+                onVoided={onClose}
+              />
+            ) : null}
             {isDraft && can(P.FIN_POST_CONCESSION) ? <Button onClick={() => setConfirmPost(true)} className="gap-1.5"><Check className="size-4" /> Post concession</Button> : null}
           </>
         }
