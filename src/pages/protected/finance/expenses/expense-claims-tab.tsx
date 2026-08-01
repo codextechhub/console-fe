@@ -340,7 +340,11 @@ function PayDrawer({ claim, entity, currency, onClose }: { claim: ExpenseClaim; 
           Pays the staff member {formatMoney(claim.balance_due, currency)} — Dr Accrued Reimbursement, Cr bank — clearing the liability raised on approval.
         </p>
         <FormField label="Bank account"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
-        <PostingDateField label="Payment date" entity={entity} value={payDate} onChange={setPayDate} />
+        <PostingDateField
+          label="Payment date" entity={entity} value={payDate} onChange={setPayDate}
+          notBefore={claim.claim_date}
+          notBeforeLabel={`expense claim ${claim.document_number}`}
+        />
       </div>
     </DetailDrawer>
   );

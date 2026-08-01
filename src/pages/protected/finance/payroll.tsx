@@ -299,7 +299,11 @@ function PayDrawer({ run, entity, currency, onClose }: { run: PayrollRun; entity
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
           Disburses net pay ({formatMoney(run.net_total, currency)}) — Dr net-wages payable, Cr bank — clearing the liability raised when the run was posted.
         </p>
-        <PostingDateField label="Payment date" entity={entity} value={payDate} onChange={setPayDate} />
+        <PostingDateField
+          label="Payment date" entity={entity} value={payDate} onChange={setPayDate}
+          notBefore={run.pay_date}
+          notBeforeLabel={`payroll run ${run.document_number}`}
+        />
       </div>
     </DetailDrawer>
   );

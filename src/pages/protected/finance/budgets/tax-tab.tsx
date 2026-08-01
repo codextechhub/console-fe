@@ -95,7 +95,7 @@ export function TaxTab({ entity, currency }: { entity: string; currency?: string
           <option value="">All status</option>
           {Object.entries(STATUS).map(([v, s]) => <option key={v} value={v}>{s.label}</option>)}
         </Select>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={() => printFilingPack(rows, currency)} disabled={!rows.length} className="gap-1.5"><Printer className="size-4" /> Filing pack</Button>
           <Can permission={P.FIN_MANAGE_TAX}>
             <Button variant="outline" onClick={() => setNewObligation(true)} className="gap-1.5"><Plus className="size-4" /> New obligation</Button>
@@ -269,7 +269,11 @@ function PayDrawer({ filing, entity, currency, onClose }: { filing: TaxFiling; e
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">Remits the liability — Dr {filing.liability_account || filing.obligation_code + " payable"}, Cr bank. Partial payments are allowed; the filing closes once the balance is cleared.</p>
         <FormField label="Pay from (bank account)" required><BankAccountPicker entity={entity} value={bank} onChange={setBank} /></FormField>
         <div className="grid grid-cols-2 gap-3">
-          <PostingDateField label="Payment date" entity={entity} value={payDate} onChange={setPayDate} />
+          <PostingDateField
+            label="Payment date" entity={entity} value={payDate} onChange={setPayDate}
+            notBefore={filing.filed_at}
+            notBeforeLabel={`tax filing ${filing.document_number}`}
+          />
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} className="[&_input]:h-9" /></FormField>
         </div>
       </div>
