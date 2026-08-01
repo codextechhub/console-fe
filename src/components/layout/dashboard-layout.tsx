@@ -50,12 +50,7 @@ import { financeNav } from "@/pages/protected/finance/finance-nav";
 import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { WorkspaceToaster } from "@/components/ui/sonner";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
-import { buildWorkspaceSearchRows } from "./workspace-search-model";
-
-// The workspace-search text survives a remount of the header (and, before the
-// shell became a layout route, every navigation), so Cmd/Ctrl+E resumes where
-// the user left off. Cleared only by a full page refresh.
-let rememberedWorkspaceSearch = "";
+import { buildWorkspaceSearchRows, getWorkspaceSearchIdentityKey } from "./workspace-search-model";
 
 function DashboardHeader({ back, title }: ResolvedHeader) {
   const navigate = useNavigate();
@@ -64,7 +59,12 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
   const user = auth.user;
   const impersonation = auth.impersonation ?? null;
   const { state, toggleSidebar } = useSidebar();
-  const [search, setSearch] = useState(rememberedWorkspaceSearch);
+  // The protected layout stays mounted across ordinary route changes, so local
+  // state naturally preserves an unfinished query. Identity changes are a
+  // harder boundary: a direct session and each proxy session start clean.
+  const [search, setSearch] = useState("");
+  const searchIdentityKey = getWorkspaceSearchIdentityKey(user?.id, impersonation?.id);
+  const previousSearchIdentityRef = useRef(searchIdentityKey);
   const [activeResult, setActiveResult] = useState(0);
   // Whether the results dropdown is showing — follows focus, independent of the
   // (persisted) text: click-away closes it, refocusing reopens it.
@@ -99,6 +99,16 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
       "platform.impersonation.start_school",
     ].includes(permission),
   );
+
+  useEffect(() => {
+    if (previousSearchIdentityRef.current === searchIdentityKey) return;
+    previousSearchIdentityRef.current = searchIdentityKey;
+    setSearch("");
+    setActiveResult(0);
+    setResultsOpen(false);
+    setResultsExpanded(false);
+    setMobileSearchOpen(false);
+  }, [searchIdentityKey]);
 
   useEffect(() => {
     const focusWorkspaceSearch = (event: KeyboardEvent) => {
@@ -226,7 +236,6 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
   const launchAction = (action: ActionDef) => {
     onLaunch(action, search);
     setSearch("");
-    rememberedWorkspaceSearch = "";
     setActiveResult(0);
     setResultsOpen(false);
     setResultsExpanded(false);
@@ -242,7 +251,6 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
 
   const launchPerson = (person: StaffProfileListItem) => {
     setSearch("");
-    rememberedWorkspaceSearch = "";
     setActiveResult(0);
     setResultsOpen(false);
     setResultsExpanded(false);
@@ -253,7 +261,6 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
 
   const updateSearch = (value: string) => {
     setSearch(value);
-    rememberedWorkspaceSearch = value;
     setActiveResult(0);
     setResultsExpanded(false); // a new query collapses back to the top matches
     setResultsOpen(true);

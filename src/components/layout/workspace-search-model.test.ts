@@ -4,6 +4,7 @@ import type { ScoredAction } from "@/lib/action-palette";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
 import {
   buildWorkspaceSearchRows,
+  getWorkspaceSearchIdentityKey,
   getWorkspaceSearchSections,
 } from "./workspace-search-model";
 
@@ -77,5 +78,27 @@ describe("workspace search grouping", () => {
     const rows = buildWorkspaceSearchRows([], false, []);
     expect(rows).toEqual([]);
     expect(getWorkspaceSearchSections(rows)).toEqual([]);
+  });
+});
+
+describe("workspace search identity boundary", () => {
+  it("keeps a stable key for ordinary navigation as the same user", () => {
+    expect(getWorkspaceSearchIdentityKey("42", null)).toBe(
+      getWorkspaceSearchIdentityKey("42", null),
+    );
+  });
+
+  it("changes the key when proxy mode starts or ends", () => {
+    const direct = getWorkspaceSearchIdentityKey("42", null);
+    const proxied = getWorkspaceSearchIdentityKey("87", 123);
+
+    expect(proxied).not.toBe(direct);
+    expect(getWorkspaceSearchIdentityKey("42", null)).toBe(direct);
+  });
+
+  it("changes the key when one proxy session is replaced by another", () => {
+    expect(getWorkspaceSearchIdentityKey("87", 123)).not.toBe(
+      getWorkspaceSearchIdentityKey("87", 124),
+    );
   });
 });

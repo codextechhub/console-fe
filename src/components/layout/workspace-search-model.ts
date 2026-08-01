@@ -8,6 +8,18 @@ export type WorkspaceSearchRow =
 
 export type WorkspaceSearchSection = "Actions" | "People";
 
+/**
+ * Search text belongs to the effective identity, not to the route. Keeping the
+ * proxy session in the key makes entering, switching, or leaving proxy mode an
+ * explicit boundary even while the protected layout remains mounted.
+ */
+export function getWorkspaceSearchIdentityKey(
+  userId: string | number | null | undefined,
+  impersonationId: string | number | null | undefined,
+): string {
+  return `${userId ?? "anonymous"}:${impersonationId ?? "direct"}`;
+}
+
 /** The single visual/keyboard order for the grouped workspace results. */
 export function buildWorkspaceSearchRows(
   actions: ScoredAction[],
