@@ -436,10 +436,11 @@ never overwrites it; quality/accuracy/responsiveness/grade come only from a reco
 
 | Element | Type | Permission Constant |
 |---|---|---|
-| Whole page (visibility via sidebar) | sidebar gate | `P.VIEW_ORGANOGRAM` |
+| Whole page (visibility via sidebar) | authenticated platform staff | â |
+| Summary/KPI strip | `hasPermission()` | `P.VIEW_ORGANOGRAM` |
 | Detail drawer â person "Edit" link | `hasPermission()` | `P.MODIFY_STAFF_PROFILE` |
 
-> Reads (tree, positions, departments, assignments, matrix, staff list) require `platform.organogram.view` / `platform.staff_profile.view` server-side. Payroll fields in the drawer are FLS-gated: the backend omits them unless the caller holds `platform.staff_payroll.view` or is the record owner â the UI shows a "restricted" notice on absence, never a masked value.
+> Active platform staff can read the chart tree, seats, org units, matrix lines, slim staff-card fields, and the minimal current-assignment feed. `platform.organogram.view` controls the summary/KPI strip and vacancy summary endpoint; it does not gate the chart. Full HR profiles and assignment history require `platform.staff_profile.view`. Without full-profile access, the drawer uses only chart-safe identity, seat, org-unit, reporting-chain, and work-email data. Payroll remains FLS-gated on the full profile.
 
 ---
 

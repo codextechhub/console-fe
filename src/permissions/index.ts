@@ -492,7 +492,7 @@ export const P = {
   VIEW_DASHBOARD:       "100701",  // view admin dashboard metrics and statistics
 
   // ── Organogram ─────────────────────────────────────────────────────────────
-  VIEW_ORGANOGRAM:      "100901",  // view the org chart: departments, positions, assignments
+  VIEW_ORGANOGRAM:      "100901",  // view the organogram summary/KPI strip
   MANAGE_ORGANOGRAM:    "100908",  // create/edit departments, positions, assignments, matrix lines
 
   // ── Staff profiles ─────────────────────────────────────────────────────────

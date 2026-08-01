@@ -109,7 +109,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: Network,
       isActive: false,
       childActive: location.startsWith(R.ORGANOGRAM.INDEX),
-      permission: P.VIEW_ORGANOGRAM,
+      permission: null,
       permissionMode: "any" as const,
       items: [
         {

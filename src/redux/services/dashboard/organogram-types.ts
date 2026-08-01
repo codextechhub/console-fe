@@ -90,6 +90,14 @@ export interface PositionAssignment {
   updated_at: string;
 }
 
+// Deliberately small shape returned by the employee-facing organogram. Full
+// assignment history remains on the RBAC-gated assignments endpoint.
+export interface CurrentOrganogramAssignment {
+  user: UserInline;
+  position: PositionInline;
+  is_acting: boolean;
+}
+
 export interface MatrixReport {
   id: number;
   position: PositionInline;
@@ -122,6 +130,7 @@ export interface StaffProfileListItem {
   // org_node = the exact seat's node; department = its DEPARTMENT-tier ancestor.
   org_node: OrgNodeInline | null;
   department: OrgNodeInline | null;
+  division: OrgNodeInline | null;
   employment_type: EmploymentType | "";
   employment_status: EmploymentStatus;
   is_active_employee: boolean;

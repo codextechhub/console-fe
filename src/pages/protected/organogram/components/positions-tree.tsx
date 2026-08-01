@@ -10,10 +10,13 @@ import type {
   UserInline,
 } from "@/redux/services/dashboard/organogram-types";
 import { cn } from "@/lib/utils";
+import { nextFocusedNode } from "../lib/org-helpers";
 import { ActingBadge, HeadcountMeter, HolderStack, VacantBadge } from "./org-primitives";
 
 export interface PositionsCtx {
   expanded: Set<number>;
+  fullyExpanded: Set<number>;
+  focusedPath: readonly number[];
   toggle: (id: number) => void;
   openPosition: (id: number) => void;
   openUser: (u: UserInline) => void;
@@ -32,6 +35,9 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
   const kids = node.direct_reports;
   const hasChildren = kids.length > 0;
   const open = ctx.expanded.has(node.id);
+  const focusedChild = nextFocusedNode(ctx.focusedPath, node.id);
+  const focusedOnly = open && focusedChild !== null && !ctx.fullyExpanded.has(node.id);
+  const visibleKids = focusedOnly ? kids.filter((child) => child.id === focusedChild) : kids;
   const out = ctx.matrixOut.get(node.id) ?? [];
   const inc = ctx.matrixIn.get(node.id) ?? [];
   const mxCount = out.length + inc.length;
@@ -114,7 +120,7 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
 
       {hasChildren && open && (
         <ul>
-          {kids.map((k) => (
+          {visibleKids.map((k) => (
             <SeatNode key={k.id} node={k} ctx={ctx} />
           ))}
         </ul>

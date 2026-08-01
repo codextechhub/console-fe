@@ -33,7 +33,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "invite-cx-user", label: "Invite CX user", aliases: ["create user", "add team member", "invite staff", "new user"], console: "Main", group: "Users", kind: "do", gate: { perm: P.INVITE_TEAM_MEMBER }, run: { to: R.TEAM_MGT.CREATE } },
 
   // ── Main · Organogram ────────────────────────────────────────────────────
-  { id: "view-org-chart", label: "View org chart", aliases: ["organogram", "org structure"], console: "Main", group: "Organogram", kind: "view", gate: { perm: P.VIEW_ORGANOGRAM }, run: { to: R.ORGANOGRAM.INDEX } },
+  { id: "view-org-chart", label: "View org chart", aliases: ["organogram", "org structure"], console: "Main", group: "Organogram", kind: "view", gate: null, run: { to: R.ORGANOGRAM.INDEX } },
   { id: "manage-organogram", label: "Manage organogram", aliases: ["edit org chart", "departments", "positions"], console: "Main", group: "Organogram", kind: "do", gate: { perm: P.MANAGE_ORGANOGRAM }, run: { to: R.ORGANOGRAM.MANAGE } },
   { id: "create-staff-profile", label: "Create staff profile", aliases: ["new staff", "add staff profile"], console: "Main", group: "Organogram", kind: "do", gate: { perm: P.CREATE_STAFF_PROFILE }, run: { to: R.ORGANOGRAM.STAFF_CREATE } },
 

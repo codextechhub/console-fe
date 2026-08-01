@@ -6,10 +6,10 @@
 import type {
   EmploymentStatus,
   EmploymentType,
+  CurrentOrganogramAssignment,
   OrganogramNode,
   OrgNodeKind,
   Position,
-  PositionAssignment,
   StaffProfileListItem,
   UserInline,
 } from "@/redux/services/dashboard/organogram-types";
@@ -93,10 +93,10 @@ export function buildProfileMap(profiles: StaffProfileListItem[]): ProfileMap {
 }
 
 // Acting holders: set of `${userId}@${positionId}` that are acting (from current assignments).
-export function buildActingSet(assignments: PositionAssignment[]): Set<string> {
+export function buildActingSet(assignments: CurrentOrganogramAssignment[]): Set<string> {
   const s = new Set<string>();
   for (const a of assignments) {
-    if (a.end_date === null && a.is_acting) s.add(`${a.user.id}@${a.position.id}`);
+    if (a.is_acting) s.add(`${a.user.id}@${a.position.id}`);
   }
   return s;
 }
@@ -239,6 +239,17 @@ export function findPositionPathToUser(
   return null;
 }
 
+// On the initial chart view, an expanded ancestor reveals only the next node
+// on the viewer's reporting path. Once that ancestor is explicitly expanded,
+// callers ignore this result and render all of its children.
+export function nextFocusedNode<T extends string | number>(
+  path: readonly T[],
+  current: T,
+): T | null {
+  const index = path.indexOf(current);
+  return index >= 0 && index + 1 < path.length ? path[index + 1] : null;
+}
+
 // Collect all position ids in the server tree (for expand-all on positions tab).
 export function collectPositionIds(tree: OrganogramNode[], acc: number[] = []): number[] {
   for (const n of tree) {
@@ -343,7 +354,7 @@ export interface OrgKpis {
 export function computeKpis(args: {
   positions: Position[];
   profiles: StaffProfileListItem[];
-  assignments: PositionAssignment[];
+  assignments: CurrentOrganogramAssignment[];
   departmentsTotal: number;
   // Distinct activated staff (from tree holders) — excludes pending-invite hires.
   activeStaffCount: number;
@@ -362,7 +373,7 @@ export function computeKpis(args: {
     totalSeats,
     filledSeats: totalSeats - vacant,
     vacantSeats: vacant,
-    acting: assignments.filter((a) => a.end_date === null && a.is_acting).length,
+    acting: assignments.filter((a) => a.is_acting).length,
     onLeave: profiles.filter((p) => p.employment_status === "ON_LEAVE").length,
     suspended: profiles.filter((p) => p.employment_status === "SUSPENDED").length,
   };

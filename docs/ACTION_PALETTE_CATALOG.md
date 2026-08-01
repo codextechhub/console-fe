@@ -92,7 +92,7 @@ phrases/aliases first, then we implement.
 ### Organogram
 | Action | Aliases | Kind | Gate | Destination |
 |---|---|---|---|---|
-| View org chart | organogram, org structure | view | `VIEW_ORGANOGRAM` | `/organogram` |
+| View org chart | organogram, org structure | view | — | `/organogram` |
 | Manage organogram | edit org chart, departments, positions | do | `MANAGE_ORGANOGRAM` | `/organogram/manage` |
 | Create staff profile | new staff, add staff profile | do | `CREATE_STAFF_PROFILE` | `/organogram/staff/create` |
 

@@ -13,6 +13,7 @@ import type {
   PositionsResponse,
   OrganogramNode,
   PositionAssignment,
+  CurrentOrganogramAssignment,
   AssignmentCreatePayload,
   AssignmentsResponse,
   MatrixReport,
@@ -89,6 +90,10 @@ export const organogramApi = baseApi.injectEndpoints({
     }),
     getMyAssignments: builder.query<AssignmentsResponse, void>({
       query: () => ({ url: `/user/organogram/assignments/mine/?page_size=50`, method: "GET" }),
+      providesTags: ["OrgAssignments"],
+    }),
+    getCurrentOrganogramAssignments: builder.query<DataEnvelope<CurrentOrganogramAssignment[]>, void>({
+      query: () => ({ url: `/user/organogram/assignments/current/`, method: "GET" }),
       providesTags: ["OrgAssignments"],
     }),
     // Routes through OrganogramService server-side (primary-seat handling + sync).
@@ -173,6 +178,7 @@ export const {
   useDeletePositionMutation,
   useGetAssignmentsQuery,
   useGetMyAssignmentsQuery,
+  useGetCurrentOrganogramAssignmentsQuery,
   useCreateAssignmentMutation,
   useCloseAssignmentMutation,
   useGetMatrixReportsQuery,

@@ -13,11 +13,11 @@ import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routes-path";
 import type {
-  MatrixReport, OrgNode, OrganogramNode, Position, PositionAssignment,
+  CurrentOrganogramAssignment, MatrixReport, OrgNode, OrganogramNode, Position,
   StaffProfileListItem, UserInline,
 } from "@/redux/services/dashboard/organogram-types";
 import {
-  useGetAssignmentsQuery, useGetOrgNodesQuery, useGetMatrixReportsQuery,
+  useGetCurrentOrganogramAssignmentsQuery, useGetOrgNodesQuery, useGetMatrixReportsQuery,
   useGetPositionsQuery, useGetPositionTreeQuery, useGetStaffProfilesQuery,
 } from "@/redux/services/dashboard/organogram-api";
 import {
@@ -56,7 +56,7 @@ export default function OrganogramPage() {
   const { data: positionsRes } = useGetPositionsQuery(LARGE);
   const { data: orgNodesRes } = useGetOrgNodesQuery(LARGE);
   const { data: profilesRes } = useGetStaffProfilesQuery(LARGE);
-  const { data: assignmentsRes } = useGetAssignmentsQuery({ current: "true", ...LARGE });
+  const { data: assignmentsRes } = useGetCurrentOrganogramAssignmentsQuery();
   const { data: matrixRes } = useGetMatrixReportsQuery(LARGE);
 
   // NOTE: the backend's success_response does `data or {}`, so an EMPTY list
@@ -65,7 +65,7 @@ export default function OrganogramPage() {
   const positions = useMemo(() => asArray<Position>(positionsRes?.data), [positionsRes]);
   const orgNodes = useMemo(() => asArray<OrgNode>(orgNodesRes?.data), [orgNodesRes]);
   const profilesList = useMemo(() => asArray<StaffProfileListItem>(profilesRes?.data), [profilesRes]);
-  const assignments = useMemo(() => asArray<PositionAssignment>(assignmentsRes?.data), [assignmentsRes]);
+  const assignments = useMemo(() => asArray<CurrentOrganogramAssignment>(assignmentsRes?.data), [assignmentsRes]);
   const matrix = useMemo(() => asArray<MatrixReport>(matrixRes?.data), [matrixRes]);
 
   const posMap = useMemo(() => new Map(positions.map((p) => [p.id, p])), [positions]);
@@ -111,6 +111,10 @@ export default function OrganogramPage() {
   const [highlightPid, setHighlightPid] = useState<number | null>(null);
   const [expandedPeople, setExpandedPeople] = useState<Set<string>>(new Set());
   const [expandedPos, setExpandedPos] = useState<Set<number>>(new Set());
+  const [fullyExpandedPeople, setFullyExpandedPeople] = useState<Set<string>>(new Set());
+  const [fullyExpandedPos, setFullyExpandedPos] = useState<Set<number>>(new Set());
+  const [focusedPeoplePath, setFocusedPeoplePath] = useState<string[]>([]);
+  const [focusedPosPath, setFocusedPosPath] = useState<number[]>([]);
   const [initialised, setInitialised] = useState(false);
   const [pendingScrollUid, setPendingScrollUid] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -221,16 +225,20 @@ export default function OrganogramPage() {
   const peopleRoots = useMemo(() => buildPeopleTree(viewTree, actingSet), [viewTree, actingSet]);
 
   // Seed expansion once data arrives. Focus the chart on the logged-in viewer:
-  // expand only their reporting chain (so they and their reports are visible,
-  // everything else stays collapsed), highlight + scroll to them. If the viewer
+  // show only their straight reporting path, hiding sibling branches beneath
+  // each manager until that manager is clicked. The viewer's own reports also
+  // start collapsed. If the viewer
   // has no seat in the tree, fall back to roots + first level.
   if (!initialised && tree.length) {
     const matchMe = (u: UserInline) =>
       !!me && (u.email === me.email || String(u.id) === String(me.id));
     const myPeoplePath = me ? findPeoplePathToUser(peopleRoots, matchMe) : null;
     if (myPeoplePath?.length) {
-      setExpandedPeople(new Set(myPeoplePath));
-      setExpandedPos(new Set(findPositionPathToUser(tree, matchMe) ?? []));
+      const myPositionPath = findPositionPathToUser(tree, matchMe) ?? [];
+      setFocusedPeoplePath(myPeoplePath);
+      setFocusedPosPath(myPositionPath);
+      setExpandedPeople(new Set(myPeoplePath.slice(0, -1)));
+      setExpandedPos(new Set(myPositionPath.slice(0, -1)));
       const myUid = myPeoplePath[myPeoplePath.length - 1];
       setHighlightUid(myUid);
       setPendingScrollUid(myUid);
@@ -258,21 +266,45 @@ export default function OrganogramPage() {
   // so the zoom state is untouched. The rAF inside scrollToNode runs after
   // React commits the expanded children.
   const togglePos = (id: number) => {
+    if (expandedPos.has(id) && focusedPosPath.includes(id) && !fullyExpandedPos.has(id)) {
+      setFullyExpandedPos((current) => new Set(current).add(id));
+      scrollToNode(`[data-pid="${id}"]`);
+      return;
+    }
     setExpandedPos((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
     scrollToNode(`[data-pid="${id}"]`);
   };
   const togglePeople = (id: string) => {
+    if (expandedPeople.has(id) && focusedPeoplePath.includes(id) && !fullyExpandedPeople.has(id)) {
+      setFullyExpandedPeople((current) => new Set(current).add(id));
+      scrollToNode(`[data-uid="${id}"]`);
+      return;
+    }
     setExpandedPeople((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
     scrollToNode(`[data-uid="${id}"]`);
   };
 
   const expandAll = () => {
-    if (tab === "positions") setExpandedPos(new Set(collectPositionIds(viewTree)));
-    else setExpandedPeople(new Set(collectPeopleIds(peopleRoots)));
+    if (tab === "positions") {
+      const ids = collectPositionIds(viewTree);
+      setExpandedPos(new Set(ids));
+      setFullyExpandedPos(new Set(ids));
+    } else {
+      const ids = collectPeopleIds(peopleRoots);
+      setExpandedPeople(new Set(ids));
+      setFullyExpandedPeople(new Set(ids));
+    }
   };
   const collapseAll = () => {
-    if (tab === "positions") setExpandedPos(new Set(viewTree.map((n) => n.id)));
-    else setExpandedPeople(new Set(peopleRoots.filter((n) => n.kind === "person").map((n) => (n.kind === "person" ? n.user.id : ""))));
+    if (tab === "positions") {
+      setFocusedPosPath([]);
+      setFullyExpandedPos(new Set());
+      setExpandedPos(new Set(viewTree.map((n) => n.id)));
+    } else {
+      setFocusedPeoplePath([]);
+      setFullyExpandedPeople(new Set());
+      setExpandedPeople(new Set(peopleRoots.filter((n) => n.kind === "person").map((n) => (n.kind === "person" ? n.user.id : ""))));
+    }
   };
 
   const scrollToNode = (selector: string) => {
@@ -311,7 +343,10 @@ export default function OrganogramPage() {
     setDeptFilter("ALL");
     setTab("people");
     // Expand all so the node is reachable, then highlight + scroll.
-    setExpandedPeople(new Set(collectPeopleIds(buildPeopleTree(tree, actingSet))));
+    const ids = collectPeopleIds(buildPeopleTree(tree, actingSet));
+    setFocusedPeoplePath([]);
+    setExpandedPeople(new Set(ids));
+    setFullyExpandedPeople(new Set(ids));
     setHighlightUid(u.id);
     setTimeout(() => setHighlightUid((h) => (h === u.id ? null : h)), 1600);
     setTimeout(() => scrollToNode(`[data-uid="${u.id}"]`), 90);
@@ -319,7 +354,10 @@ export default function OrganogramPage() {
   const jumpToPosition = (id: number) => {
     setDeptFilter("ALL");
     setTab("positions");
-    setExpandedPos(new Set(collectPositionIds(tree)));
+    const ids = collectPositionIds(tree);
+    setFocusedPosPath([]);
+    setExpandedPos(new Set(ids));
+    setFullyExpandedPos(new Set(ids));
     setHighlightPid(id);
     setTimeout(() => setHighlightPid((h) => (h === id ? null : h)), 1600);
     setTimeout(() => scrollToNode(`[data-pid="${id}"]`), 90);
@@ -333,10 +371,12 @@ export default function OrganogramPage() {
     openUser,
     openPosition,
     onEditProfile: hasPermission(P.MODIFY_STAFF_PROFILE) ? (pid: number) => navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_EDIT(pid)) : undefined,
+    canViewFullProfile: hasPermission(P.VIEW_STAFF_PROFILE),
     actingSet,
   };
-  const positionsCtx: PositionsCtx = { expanded: expandedPos, toggle: togglePos, openPosition, openUser, highlightId: highlightPid, showMatrix, posMap, matrixOut, matrixIn, actingSet };
-  const peopleCtx: PeopleCtx = { expanded: expandedPeople, toggle: togglePeople, openUser, highlightId: highlightUid, profiles: profileMap };
+  const positionsCtx: PositionsCtx = { expanded: expandedPos, fullyExpanded: fullyExpandedPos, focusedPath: focusedPosPath, toggle: togglePos, openPosition, openUser, highlightId: highlightPid, showMatrix, posMap, matrixOut, matrixIn, actingSet };
+  const peopleCtx: PeopleCtx = { expanded: expandedPeople, fullyExpanded: fullyExpandedPeople, focusedPath: focusedPeoplePath, toggle: togglePeople, openUser, highlightId: highlightUid, profiles: profileMap };
+  const canViewSummary = hasPermission(P.VIEW_ORGANOGRAM);
 
   return (
     <>
@@ -350,7 +390,7 @@ export default function OrganogramPage() {
             </div>
             <OrgSearch posMap={posMap} profiles={profilesList} onJumpUser={jumpToUser} onJumpPosition={jumpToPosition} />
           </div>
-          <div className="flex flex-wrap items-center gap-y-2 divide-x divide-slate-100">
+          {canViewSummary && <div className="flex flex-wrap items-center gap-y-2 divide-x divide-slate-100">
             <Stat icon={Users} label="Active staff" value={kpis.headcountActive} accent="bg-indigo-50 text-indigo-500" />
             <Stat icon={Building2} label="Departments" value={kpis.departments} accent="bg-slate-100 text-slate-500" />
             <Stat icon={Briefcase} label="Seats filled" value={kpis.filledSeats} sub={`/ ${kpis.totalSeats}`} accent="bg-emerald-50 text-emerald-500" />
@@ -358,7 +398,7 @@ export default function OrganogramPage() {
             <Stat icon={Sparkles} label="Acting" value={kpis.acting} accent="bg-amber-50 text-amber-500" />
             <Stat icon={PlaneTakeoff} label="On leave" value={kpis.onLeave} accent="bg-amber-50 text-amber-500" />
             <Stat icon={Ban} label="Suspended" value={kpis.suspended} accent="bg-rose-50 text-rose-500" />
-          </div>
+          </div>}
         </div>
 
         {/* tabs */}

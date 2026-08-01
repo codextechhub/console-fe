@@ -33,6 +33,7 @@ export interface DrawerCtx {
   openUser: (u: UserInline) => void;
   openPosition: (id: number) => void;
   onEditProfile?: (profileId: number) => void;
+  canViewFullProfile: boolean;
   actingSet: Set<string>;
 }
 
@@ -115,10 +116,15 @@ function PersonDetail({ user, ctx }: { user: UserInline; ctx: DrawerCtx }) {
   const listItem = ctx.profiles.get(user.id);
   const profileId = listItem?.id;
 
-  const { data: profileRes, isLoading } = useGetStaffProfileQuery(profileId as number, { skip: profileId === undefined });
-  const { data: assignmentsRes } = useGetAssignmentsQuery({ user: user.id, page_size: 50 });
+  const { data: profileRes, isLoading } = useGetStaffProfileQuery(profileId as number, {
+    skip: profileId === undefined || !ctx.canViewFullProfile,
+  });
+  const { data: assignmentsRes } = useGetAssignmentsQuery(
+    { user: user.id, page_size: 50 },
+    { skip: !ctx.canViewFullProfile },
+  );
   const profile = profileRes?.data;
-  const history = assignmentsRes?.data ?? [];
+  const history = Array.isArray(assignmentsRes?.data) ? assignmentsRes.data : [];
 
   const seatId = profile?.position?.id ?? listItem?.position?.id ?? null;
   const isActing = seatId !== null && ctx.actingSet.has(`${user.id}@${seatId}`);
@@ -165,7 +171,44 @@ function PersonDetail({ user, ctx }: { user: UserInline; ctx: DrawerCtx }) {
         </div>
       </div>
 
-      {profileId === undefined ? (
+      {!ctx.canViewFullProfile ? (
+        <>
+          <div className="mt-5 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3.5">
+            <Field icon={IdCard} label="Employee ID" mono>{listItem?.employee_id || "—"}</Field>
+            <Field icon={Briefcase} label="Seat" mono>{listItem?.position?.code || "—"}</Field>
+            <Field icon={Building2} label="Department">{listItem?.department?.name || "—"}</Field>
+            {listItem?.division && <Field icon={Building2} label="Division">{listItem.division.name}</Field>}
+            {listItem?.org_node?.kind === "TEAM" && <Field icon={Building2} label="Team">{listItem.org_node.name}</Field>}
+          </div>
+
+          <SectionHead icon={GitBranch}>Management chain</SectionHead>
+          {chain.length ? (
+            <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5 text-[12.5px]">
+              {chain.map((p, i) => {
+                const holder = p.current_holders[0];
+                const last = i === chain.length - 1;
+                return (
+                  <span key={p.id} className="flex items-center gap-1">
+                    {holder ? (
+                      <button onClick={() => ctx.openUser(holder)} className="rounded px-1 py-0.5 text-indigo-600 hover:bg-indigo-50">
+                        {holder.full_name.split(" ")[0]} <span className="text-slate-400">· {p.code}</span>
+                      </button>
+                    ) : (
+                      <span className="text-slate-400">Vacant · {p.code}</span>
+                    )}
+                    {!last && <CornerLeftUp className="size-3 rotate-90 text-slate-300" />}
+                  </span>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-[13px] text-slate-400">Top of the reporting line.</p>
+          )}
+
+          <SectionHead icon={Contact}>Contact</SectionHead>
+          <Field icon={Mail} label="Work email">{user.email}</Field>
+        </>
+      ) : profileId === undefined ? (
         <div className="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-[13px] text-slate-500">
           No staff profile on record for this user yet.
         </div>

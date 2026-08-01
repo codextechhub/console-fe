@@ -5,11 +5,13 @@
 import { ChevronDown, UserPlus } from "lucide-react";
 import type { UserInline } from "@/redux/services/dashboard/organogram-types";
 import { cn } from "@/lib/utils";
-import { countAllReports, type PeopleNode, type ProfileMap } from "../lib/org-helpers";
+import { countAllReports, nextFocusedNode, type PeopleNode, type ProfileMap } from "../lib/org-helpers";
 import { ActingBadge, OrgAvatar, VacantBadge } from "./org-primitives";
 
 export interface PeopleCtx {
   expanded: Set<string>;
+  fullyExpanded: Set<string>;
+  focusedPath: readonly string[];
   toggle: (id: string) => void;
   openUser: (u: UserInline) => void;
   highlightId: string | null;
@@ -45,6 +47,11 @@ function PersonNode({ node, ctx }: { node: Extract<PeopleNode, { kind: "person" 
   const totalReports = countAllReports(node.children);
   const hasChildren = node.children.length > 0;
   const open = ctx.expanded.has(node.user.id);
+  const focusedChild = nextFocusedNode(ctx.focusedPath, node.user.id);
+  const focusedOnly = open && focusedChild !== null && !ctx.fullyExpanded.has(node.user.id);
+  const visibleChildren = focusedOnly
+    ? node.children.filter((child) => child.kind === "person" && child.user.id === focusedChild)
+    : node.children;
   const highlighted = ctx.highlightId === node.user.id;
 
   return (
@@ -98,7 +105,7 @@ function PersonNode({ node, ctx }: { node: Extract<PeopleNode, { kind: "person" 
 
       {hasChildren && open && (
         <ul>
-          {node.children.map((c) =>
+          {visibleChildren.map((c) =>
             c.kind === "person" ? (
               // Key per seat (user + position): one person can hold several
               // positions among siblings, so user.id alone collides.
