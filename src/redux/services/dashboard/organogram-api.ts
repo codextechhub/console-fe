@@ -20,6 +20,7 @@ import type {
   MatrixReportWritePayload,
   MatrixReportsResponse,
   StaffProfile,
+  StaffProfileDetail,
   StaffProfileWritePayload,
   StaffProfilesResponse,
 } from "./organogram-types";
@@ -126,7 +127,7 @@ export const organogramApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/user/platform-staff-profiles/${generateQueryString(params ?? {})}`, method: "GET" }),
       providesTags: ["StaffProfiles"],
     }),
-    getStaffProfile: builder.query<DataEnvelope<StaffProfile>, number | string>({
+    getStaffProfile: builder.query<DataEnvelope<StaffProfileDetail>, number | string>({
       query: (id) => ({ url: `/user/platform-staff-profiles/${id}/`, method: "GET" }),
       providesTags: ["StaffProfiles"],
     }),

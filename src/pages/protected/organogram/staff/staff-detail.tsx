@@ -1,4 +1,5 @@
-// Staff profile — full read view (admin). Reached two ways:
+// Staff profile — brief for ordinary colleagues, full for authorised HR/admin
+// viewers. Reached two ways:
 //   /organogram/staff/:id/view            — by profile id (org chart drawer)
 //   /organogram/staff/by-user/:userId/view — by USER id (Team Management's
 //                                            "View Details" knows users only)
@@ -26,7 +27,7 @@ import {
   useGetStaffProfilesQuery,
 } from "@/redux/services/dashboard/organogram-api";
 import { useChangeUserEmailMutation } from "@/redux/services/dashboard/team-mgt-api";
-import type { StaffProfile } from "@/redux/services/dashboard/organogram-types";
+import type { StaffProfile, StaffProfileBrief } from "@/redux/services/dashboard/organogram-types";
 import { OrgAvatar, StatusPill, EmpBadge } from "../components/org-primitives";
 import { fmtDate } from "../lib/org-helpers";
 
@@ -73,6 +74,30 @@ function Payroll({ profile }: { profile: StaffProfile }) {
   );
 }
 
+function BriefProfile({ profile }: { profile: StaffProfileBrief }) {
+  return (
+    <>
+      <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 px-4 py-3 text-sm text-slate-600">
+        This is the work information available to colleagues in your workspace.
+      </div>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Card title="Work profile">
+          <Row label="Employee ID" value={<span className="font-mono">{profile.employee_id}</span>} />
+          <Row label="Seat" value={profile.position ? `${profile.position.title} · ${profile.position.code}` : "—"} />
+          <Row label="Department" value={profile.department?.name} />
+          <Row label="Division" value={profile.division?.name} />
+          {profile.org_node?.kind === "TEAM" && <Row label="Team" value={profile.org_node.name} />}
+          <Row label="Line manager" value={profile.current_line_manager?.full_name} />
+          <Row label="Employment type" value={<EmpBadge type={profile.employment_type} />} />
+        </Card>
+        <Card title="Contact">
+          <Row label="Work email" value={profile.user.email} />
+        </Card>
+      </div>
+    </>
+  );
+}
+
 export default function StaffDetail() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
@@ -92,9 +117,10 @@ export default function StaffDetail() {
 
   const { data, isLoading, refetch } = useGetStaffProfileQuery(resolvedId as string, { skip: !resolvedId });
   const profile = data?.data;
+  const fullProfile = profile?.profile_view === "full" ? profile : null;
   const { data: assignmentsRes } = useGetAssignmentsQuery(
-    { user: profile?.user.id ?? "", page_size: 50 },
-    { skip: !profile?.user.id },
+    { user: fullProfile?.user.id ?? "", page_size: 50 },
+    { skip: !fullProfile?.user.id },
   );
   const history = Array.isArray(assignmentsRes?.data) ? assignmentsRes!.data : [];
 
@@ -102,7 +128,7 @@ export default function StaffDetail() {
   const [emailModal, setEmailModal] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [changeEmail, { isLoading: changingEmail }] = useChangeUserEmailMutation();
-  const canChangeEmail = hasPermission(P.MODIFY_TEAM_MEMBER);
+  const canChangeEmail = Boolean(fullProfile) && hasPermission(P.MODIFY_TEAM_MEMBER);
 
   const loading = lookingUp || isLoading || (!profile && !lookupMiss);
 
@@ -132,13 +158,19 @@ export default function StaffDetail() {
                   <EmpBadge type={profile.employment_type} />
                 </div>
               </div>
-              <PermissionGate permission={P.MODIFY_STAFF_PROFILE}>
-                <Button variant="outline" onClick={() => navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_EDIT(profile.id))}>
-                  <Pencil className="size-4" /> Edit
-                </Button>
-              </PermissionGate>
+              {profile.profile_view === "full" && (
+                <PermissionGate permission={P.MODIFY_STAFF_PROFILE}>
+                  <Button variant="outline" onClick={() => navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_EDIT(profile.id))}>
+                    <Pencil className="size-4" /> Edit
+                  </Button>
+                </PermissionGate>
+              )}
             </div>
 
+            {profile.profile_view === "brief" ? (
+              <BriefProfile profile={profile} />
+            ) : (
+              <>
             <div className="grid gap-5 lg:grid-cols-2">
               <Card title="Employment">
                 <Row label="Employee ID" value={<span className="font-mono">{profile.employee_id}</span>} />
@@ -271,6 +303,8 @@ export default function StaffDetail() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+              </>
+            )}
           </>
         )}
       </main>

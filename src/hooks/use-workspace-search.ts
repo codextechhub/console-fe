@@ -1,11 +1,10 @@
 import { useMemo } from "react";
 
 import { useDebounce } from "@/hooks/use-debounce";
-import { usePermissions } from "@/hooks/use-permissions";
-import { P } from "@/permissions";
 import { useGetStaffProfilesQuery } from "@/redux/services/dashboard/organogram-api";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
 import { useActionSearch, type UseActionSearch } from "@/hooks/use-action-search";
+import { useAppSelector } from "@/redux/store";
 
 const PEOPLE_QUERY_MIN_LENGTH = 2;
 const PEOPLE_QUERY_MAX_LENGTH = 64;
@@ -28,8 +27,9 @@ export interface UseWorkspaceSearch extends UseActionSearch {
  */
 export function useWorkspaceSearch(query: string): UseWorkspaceSearch {
   const actions = useActionSearch(query);
-  const { hasPermission } = usePermissions();
-  const canSearchPeople = hasPermission(P.VIEW_STAFF_PROFILE);
+  // Discovery is open to every signed-in user. The backend applies the current
+  // tenant boundary and decides whether a selected profile is brief or full.
+  const canSearchPeople = useAppSelector((state) => Boolean(state.auth.user));
   const normalizedQuery = query.trim();
   const debouncedQuery = useDebounce(normalizedQuery, 300);
   const peopleQueryTooShort = normalizedQuery.length > 0 && normalizedQuery.length < PEOPLE_QUERY_MIN_LENGTH;

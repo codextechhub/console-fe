@@ -34,7 +34,9 @@ export default function StaffForm() {
   const [updateProfile, { isLoading: updating }] = useUpdateStaffProfileMutation();
   const [assignPosition, { isLoading: assigning }] = useCreateAssignmentMutation();
 
-  const profile = profileRes?.data ?? null;
+  // The edit endpoint is RBAC-protected; narrow defensively so a pasted edit
+  // URL can never feed the brief colleague projection into the HR form.
+  const profile = profileRes?.data?.profile_view === "full" ? profileRes.data : null;
   const currentPositionId = profile?.position?.id ? String(profile.position.id) : "";
 
   // Route a seat change through the assignments service so the effective-dated

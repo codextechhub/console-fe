@@ -2,15 +2,18 @@ import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/custom/user-avatar";
 import { useWorkspaceSearch } from "@/hooks/use-workspace-search";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
+import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
 import { SUPPORT_MAIL } from "@/utils/static";
 import { isPrimaryShortcut } from "@/utils/keyboard-shortcuts";
+import { isWorkspaceSearchSelf } from "@/components/layout/workspace-search-model";
 import { ArrowLeft, ChevronRight, Home, Loader2, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 export default function NotFound() {
   const navigate = useNavigate();
+  const currentUserId = useAppSelector((state) => state.auth.user?.id);
   const [search, setSearch] = useState("");
   const [resultsOpen, setResultsOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -54,7 +57,11 @@ export default function NotFound() {
   const launchPerson = (person: StaffProfileListItem) => {
     setSearch("");
     setResultsOpen(false);
-    navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_BY_USER(person.user.id));
+    navigate(
+      isWorkspaceSearchSelf(person.user.id, currentUserId)
+        ? routesPath.PROTECTED.ME_PROFILE.INDEX
+        : routesPath.PROTECTED.ORGANOGRAM.STAFF_BY_USER(person.user.id),
+    );
   };
 
   return (

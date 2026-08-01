@@ -50,7 +50,7 @@ import { financeNav } from "@/pages/protected/finance/finance-nav";
 import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { WorkspaceToaster } from "@/components/ui/sonner";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
-import { buildWorkspaceSearchRows, getWorkspaceSearchIdentityKey } from "./workspace-search-model";
+import { buildWorkspaceSearchRows, getWorkspaceSearchIdentityKey, isWorkspaceSearchSelf } from "./workspace-search-model";
 
 function DashboardHeader({ back, title }: ResolvedHeader) {
   const navigate = useNavigate();
@@ -256,7 +256,11 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
     setResultsExpanded(false);
     setMobileSearchOpen(false);
     startNavigationProgress();
-    navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_BY_USER(person.user.id));
+    navigate(
+      isWorkspaceSearchSelf(person.user.id, user?.id)
+        ? routesPath.PROTECTED.ME_PROFILE.INDEX
+        : routesPath.PROTECTED.ORGANOGRAM.STAFF_BY_USER(person.user.id),
+    );
   };
 
   const updateSearch = (value: string) => {

@@ -6,6 +6,7 @@ import {
   buildWorkspaceSearchRows,
   getWorkspaceSearchIdentityKey,
   getWorkspaceSearchSections,
+  isWorkspaceSearchSelf,
 } from "./workspace-search-model";
 
 const action = (id: string): ScoredAction => ({
@@ -100,5 +101,16 @@ describe("workspace search identity boundary", () => {
     expect(getWorkspaceSearchIdentityKey("87", 123)).not.toBe(
       getWorkspaceSearchIdentityKey("87", 124),
     );
+  });
+});
+
+describe("workspace person destination", () => {
+  it("recognises the current user across numeric and string ids", () => {
+    expect(isWorkspaceSearchSelf("42", 42)).toBe(true);
+  });
+
+  it("does not treat another person or an anonymous viewer as self", () => {
+    expect(isWorkspaceSearchSelf("87", 42)).toBe(false);
+    expect(isWorkspaceSearchSelf("87", undefined)).toBe(false);
   });
 });

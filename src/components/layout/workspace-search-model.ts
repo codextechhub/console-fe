@@ -20,6 +20,14 @@ export function getWorkspaceSearchIdentityKey(
   return `${userId ?? "anonymous"}:${impersonationId ?? "direct"}`;
 }
 
+/** Self results use the existing owner-only My Profile experience. */
+export function isWorkspaceSearchSelf(
+  personUserId: string | number,
+  currentUserId: string | number | null | undefined,
+): boolean {
+  return currentUserId != null && String(personUserId) === String(currentUserId);
+}
+
 /** The single visual/keyboard order for the grouped workspace results. */
 export function buildWorkspaceSearchRows(
   actions: ScoredAction[],

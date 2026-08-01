@@ -123,7 +123,7 @@ function PersonDetail({ user, ctx }: { user: UserInline; ctx: DrawerCtx }) {
     { user: user.id, page_size: 50 },
     { skip: !ctx.canViewFullProfile },
   );
-  const profile = profileRes?.data;
+  const profile = profileRes?.data?.profile_view === "full" ? profileRes.data : undefined;
   const history = Array.isArray(assignmentsRes?.data) ? assignmentsRes.data : [];
 
   const seatId = profile?.position?.id ?? listItem?.position?.id ?? null;

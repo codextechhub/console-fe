@@ -138,12 +138,31 @@ export interface StaffProfileListItem {
   updated_at: string;
 }
 
+/** Work-only profile returned to an ordinary colleague in the same tenant. */
+export interface StaffProfileBrief {
+  profile_view: "brief";
+  id: number;
+  user: UserInline;
+  profile_photo: string | null;
+  employee_id: string | null;
+  job_title: string;
+  position: PositionInline | null;
+  org_node: OrgNodeInline | null;
+  department: OrgNodeInline | null;
+  division: OrgNodeInline | null;
+  current_line_manager: UserInline | null;
+  employment_type: EmploymentType | "";
+  employment_status: EmploymentStatus;
+  is_active_employee: boolean;
+}
+
 // Full profile. Payroll fields (bank_name / account_name / account_number) are
 // FLS-gated: when the caller lacks platform.staff_payroll.view (and is not the
 // owner), the backend OMITS those keys entirely and lists them in
 // `_stripped_fields` — they are absent, not masked. Treat their absence as
 // "restricted", and use `_stripped_fields` to render the restricted notice.
 export interface StaffProfile {
+  profile_view: "full";
   id: number;
   user: UserInline;
   date_of_birth: string | null;
@@ -182,6 +201,8 @@ export interface StaffProfile {
   created_at: string;
   updated_at: string;
 }
+
+export type StaffProfileDetail = StaffProfile | StaffProfileBrief;
 
 // ── Write payloads ───────────────────────────────────────────────────────────
 
