@@ -18,6 +18,7 @@ import { NavMain } from "@/components/nav-main";
 import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routes-path";
 import type { ConsoleNavGroup, ConsoleNavItem } from "./console-nav";
+import { revealActiveSidebarItem } from "@/components/sidebar-navigation";
 
 // Each console page mounts its own shell, so the sidebar remounts on every
 // in-console navigation — which would reset its scroll to the top. Remember the
@@ -34,25 +35,10 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
     const el = scrollRef.current;
     if (!el) return;
     const remembered = scrollByConsole.get(title);
-    if (remembered != null) {
-      // In-console navigation (the shell remounts): start where the user left it.
-      el.scrollTop = remembered;
-    }
     // Always reveal the newly active item. A sidebar link that was already in
     // view keeps its position; programmatic navigation from a dashboard card
     // scrolls only enough to bring the destination row into view.
-    const active = el.querySelector<HTMLElement>('[data-active="true"]');
-    if (active) {
-      const c = el.getBoundingClientRect();
-      const a = active.getBoundingClientRect();
-      if (remembered == null) {
-        el.scrollTop += (a.top - c.top) - (el.clientHeight - a.height) / 2;
-      } else if (a.top < c.top) {
-        el.scrollTop -= c.top - a.top + 8;
-      } else if (a.bottom > c.bottom) {
-        el.scrollTop += a.bottom - c.bottom + 8;
-      }
-    }
+    revealActiveSidebarItem(el, remembered);
   }, [title, location]);
 
   const childVisible = (prefixes?: string[]) => !prefixes?.length || hasModuleAccess(...prefixes);
@@ -139,12 +125,12 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
         // is long, so force vertical scroll when collapsed (x stays clipped).
         className="bg-white pt-3 pb-6 group-data-[collapsible=icon]:overflow-y-auto!"
       >
-        <NavMain items={[backItem]} />
+        <NavMain items={[backItem]} navigationKey={location} />
         <p className={groupLabelCls}>{title}</p>
         {groups.map((g, i) => (
           <div key={g.label ?? `g${i}`}>
             {g.label && <p className={groupLabelCls}>{g.label}</p>}
-            <NavMain items={g.items} />
+            <NavMain items={g.items} navigationKey={location} />
           </div>
         ))}
       </SidebarContent>

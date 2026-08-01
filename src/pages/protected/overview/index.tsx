@@ -27,6 +27,7 @@ import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
 import { useGetConsoleOverviewQuery } from "@/redux/services/dashboard/overview-api";
 import { SnapRail } from "@/components/custom/snap-rail";
+import { resolveAttentionDestination } from "./overview-navigation";
 
 const R = routesPath.PROTECTED;
 
@@ -266,7 +267,7 @@ export default function Overview() {
       icon: Bell,
       label: attentionCount ? "items may need your attention" : "you are all clear",
       value: attentionCount,
-      to: attentionCount ? R.WORKFLOW.APPROVALS : R.TODO.INDEX,
+      to: resolveAttentionDestination(attentionItems, R.TODO.INDEX),
       show: true,
     },
     {

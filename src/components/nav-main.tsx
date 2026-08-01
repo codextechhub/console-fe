@@ -23,34 +23,72 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Link } from "react-router";
+import { useState } from "react";
+
+type NavItem = {
+  title: string;
+  url: string;
+  icon?: React.ElementType;
+  isActive: boolean;
+  childActive: boolean;
+  // Leaf items that open a separate console show a trailing chevron affordance.
+  affordance?: boolean;
+  items?: {
+    title: string;
+    url: string;
+    isActive: boolean;
+    disabled?: boolean;
+  }[];
+};
 
 export function NavMain({
   items,
+  navigationKey,
 }: {
-  items: {
-    title: string;
-    url: string;
-    icon?: React.ElementType;
-    isActive: boolean;
-    childActive: boolean;
-    // Leaf items that open a separate console show a trailing chevron affordance.
-    affordance?: boolean;
-    items?: {
-      title: string;
-      url: string;
-      isActive: boolean;
-      disabled?: boolean;
-    }[];
-  }[];
+  items: NavItem[];
+  /** Route key used when several NavMain instances share one sidebar. */
+  navigationKey?: string;
 }) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+  // Remount the accordion state whenever navigation selects a different leaf
+  // or parent. That makes the selected parent the sole open group immediately,
+  // while still allowing normal manual open/close interaction between routes.
+  const activeNavigationKey = navigationKey ?? (
+    items.find((item) => item.childActive)?.title ??
+    items.find((item) => item.isActive)?.title ??
+    "none"
+  );
 
   return (
     <SidebarGroup>
-      <SidebarMenu className="space-y-1">
+      <NavMainItems
+        key={activeNavigationKey}
+        items={items}
+        isCollapsed={isCollapsed}
+      />
+    </SidebarGroup>
+  );
+}
+
+function NavMainItems({
+  items,
+  isCollapsed,
+}: {
+  items: NavItem[];
+  isCollapsed: boolean;
+}) {
+  const [openTitle, setOpenTitle] = useState<string | null>(
+    items.find((item) => item.childActive)?.title ?? null,
+  );
+
+  return (
+    <SidebarMenu className="space-y-1">
         {items.map((item) => {
           const hasChildren = (item?.items?.length ?? 0) > 0;
+          // A child route represents the parent section too. Keep both levels
+          // highlighted so the current section remains visible at a glance.
+          const menuItemActive = item.isActive || item.childActive;
 
           if (!hasChildren) {
             return (
@@ -82,7 +120,7 @@ export function NavMain({
                     <SidebarMenuButton
                       className="h-9 mx-auto"
                       tooltip={item.title}
-                      isActive={item.childActive}
+                      isActive={menuItemActive}
                     >
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
@@ -120,7 +158,8 @@ export function NavMain({
             <Collapsible
               key={item.title}
               asChild
-              defaultOpen={item.childActive}
+              open={openTitle === item.title}
+              onOpenChange={(open) => setOpenTitle(open ? item.title : null)}
               className="group/collapsible"
             >
               <SidebarMenuItem>
@@ -128,7 +167,7 @@ export function NavMain({
                   <SidebarMenuButton
                     className="mx-auto h-9"
                     tooltip={item.title}
-                    isActive={item.isActive}
+                    isActive={menuItemActive}
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -164,6 +203,5 @@ export function NavMain({
           );
         })}
       </SidebarMenu>
-    </SidebarGroup>
   );
 }

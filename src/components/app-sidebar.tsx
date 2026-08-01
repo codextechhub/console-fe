@@ -21,6 +21,7 @@ import { routesPath } from "@/routes/routes-path";
 import { Link, useLocation } from "react-router";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P, type PermissionCode } from "@/permissions";
+import { revealActiveSidebarItem } from "./sidebar-navigation";
 
 type NavPermission = PermissionCode | PermissionCode[] | null;
 
@@ -525,18 +526,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   React.useLayoutEffect(() => {
     const element = scrollRef.current;
     if (!element) return;
-    if (rememberedMainSidebarScroll !== null) {
-      element.scrollTop = rememberedMainSidebarScroll;
-      return;
-    }
-    const active = element.querySelector<HTMLElement>('[data-active="true"]');
-    if (active) {
-      const containerRect = element.getBoundingClientRect();
-      const activeRect = active.getBoundingClientRect();
-      element.scrollTop +=
-        activeRect.top - containerRect.top -
-        (element.clientHeight - activeRect.height) / 2;
-    }
+    revealActiveSidebarItem(element, rememberedMainSidebarScroll);
   }, [location]);
 
   return (
