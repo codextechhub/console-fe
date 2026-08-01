@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { useActionSearch } from "@/hooks/use-action-search";
+import { UserAvatar } from "@/components/custom/user-avatar";
+import { useWorkspaceSearch } from "@/hooks/use-workspace-search";
+import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
 import { routesPath } from "@/routes/routes-path";
 import { SUPPORT_MAIL } from "@/utils/static";
 import { isPrimaryShortcut } from "@/utils/keyboard-shortcuts";
-import { ArrowLeft, Home, Search } from "lucide-react";
+import { ArrowLeft, ChevronRight, Home, Loader2, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
@@ -16,7 +18,16 @@ export default function NotFound() {
     () => (/Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "⌘ E" : "Ctrl E"),
     [],
   );
-  const { results, onLaunch } = useActionSearch(search);
+  const {
+    results,
+    onLaunch,
+    people,
+    peopleLoading,
+    peopleError,
+    canSearchPeople,
+    peopleQueryTooShort,
+    peopleQueryTooLong,
+  } = useWorkspaceSearch(search);
   const navigableResults = results
     .filter((result) => "to" in result.action.run)
     .slice(0, 4);
@@ -38,6 +49,12 @@ export default function NotFound() {
     setSearch("");
     setResultsOpen(false);
     if ("to" in result.action.run) navigate(result.action.run.to);
+  };
+
+  const launchPerson = (person: StaffProfileListItem) => {
+    setSearch("");
+    setResultsOpen(false);
+    navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_BY_USER(person.user.id));
   };
 
   return (
@@ -64,9 +81,10 @@ export default function NotFound() {
             onBlur={() => setResultsOpen(false)}
             onKeyDown={(event) => {
               if (event.key === "Escape") setResultsOpen(false);
-              if (event.key === "Enter" && navigableResults[0]) {
+              if (event.key === "Enter" && (navigableResults[0] || people[0])) {
                 event.preventDefault();
-                launchResult(navigableResults[0]);
+                if (navigableResults[0]) launchResult(navigableResults[0]);
+                else launchPerson(people[0]);
               }
             }}
             role="combobox"
@@ -87,34 +105,90 @@ export default function NotFound() {
               aria-label="Workspace search results"
               className="absolute left-0 top-11 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl"
             >
-              {navigableResults.length === 0 ? (
-                <p className="px-3 py-4 text-center text-xs text-gray-400">
-                  No accessible pages found.
-                </p>
-              ) : (
-                navigableResults.map((result) => (
-                  <button
-                    key={result.action.id}
-                    type="button"
-                    role="option"
-                    aria-selected="false"
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => launchResult(result)}
-                    className="flex w-full items-center rounded-lg px-3 py-2 text-left hover:bg-gray-50"
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-black-01">
-                        {result.action.label}
-                      </span>
-                      <span className="block truncate text-[11px] text-gray-400">
-                        {result.action.console === "Main"
-                          ? result.action.group
-                          : `${result.action.console} · ${result.action.group}`}
-                      </span>
-                    </span>
-                  </button>
-                ))
-              )}
+              <div className="max-h-[min(60vh,30rem)] overflow-y-auto">
+                {navigableResults.length > 0 && (
+                  <section aria-labelledby="not-found-search-actions">
+                    <p id="not-found-search-actions" className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                      Actions
+                    </p>
+                    {navigableResults.map((result) => (
+                      <button
+                        key={result.action.id}
+                        type="button"
+                        role="option"
+                        aria-selected="false"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => launchResult(result)}
+                        className="flex w-full items-center rounded-lg px-3 py-2 text-left hover:bg-gray-50"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-black-01">
+                            {result.action.label}
+                          </span>
+                          <span className="block truncate text-[11px] text-gray-400">
+                            {result.action.console === "Main"
+                              ? result.action.group
+                              : `${result.action.console} · ${result.action.group}`}
+                          </span>
+                        </span>
+                      </button>
+                    ))}
+                  </section>
+                )}
+
+                {people.length > 0 && (
+                  <section aria-labelledby="not-found-search-people">
+                    <p id="not-found-search-people" className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                      People
+                    </p>
+                    {people.map((person) => (
+                      <button
+                        key={person.id}
+                        type="button"
+                        role="option"
+                        aria-selected="false"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => launchPerson(person)}
+                        className="flex w-full min-w-0 items-center gap-2.5 rounded-lg px-3 py-2 text-left hover:bg-gray-50"
+                      >
+                        <UserAvatar
+                          userId={person.user.id}
+                          name={person.user.full_name}
+                          className="size-8 shrink-0"
+                          fallbackClassName="text-[10px]"
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-medium text-black-01">{person.user.full_name}</span>
+                          <span className="block truncate text-[11px] text-gray-400">
+                            {[person.job_title || person.position?.title || "Staff member", person.department?.name].filter(Boolean).join(" · ")}
+                          </span>
+                        </span>
+                        <ChevronRight className="size-4 shrink-0 text-gray-300" />
+                      </button>
+                    ))}
+                  </section>
+                )}
+
+                {peopleLoading && (
+                  <p className="flex items-center justify-center gap-1.5 px-3 py-3 text-xs text-gray-400">
+                    <Loader2 className="size-3.5 animate-spin" /> Searching people…
+                  </p>
+                )}
+
+                {navigableResults.length === 0 && people.length === 0 && !peopleLoading && (
+                  <p className="px-3 py-4 text-center text-xs text-gray-400">
+                    {peopleError
+                      ? "People search is temporarily unavailable."
+                      : peopleQueryTooLong
+                        ? "Use 64 characters or fewer to search people."
+                        : peopleQueryTooShort
+                          ? "Keep typing to search people."
+                          : canSearchPeople
+                            ? "No accessible actions or people found."
+                            : "No accessible actions found."}
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -23,7 +23,7 @@ import { useLogout } from "@/hooks/use-logout";
 import useToggleModal from "@/hooks/use-toggle";
 import PromptModal from "@/components/modal/prompt-modal";
 import { routesPath } from "@/routes/routes-path";
-import { useActionSearch } from "@/hooks/use-action-search";
+import { useWorkspaceSearch } from "@/hooks/use-workspace-search";
 import { groupByConsole } from "@/lib/action-palette";
 import type { ActionDef } from "@/lib/action-palette";
 import { SupportTicketComposer } from "@/components/support-ticket-composer";
@@ -49,6 +49,8 @@ import { ConsoleSidebar } from "@/components/finance-ui/console-sidebar";
 import { financeNav } from "@/pages/protected/finance/finance-nav";
 import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { WorkspaceToaster } from "@/components/ui/sonner";
+import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
+import { buildWorkspaceSearchRows } from "./workspace-search-model";
 
 // The workspace-search text survives a remount of the header (and, before the
 // shell became a layout route, every navigation), so Cmd/Ctrl+E resumes where
@@ -167,8 +169,20 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
       if (endedOnServer) toast.success("Proxy session ended");
     }
   };
-  // The action palette: rank the permission-gated action catalog by the query.
-  const { results, total, onLaunch } = useActionSearch(search);
+  // Workspace search keeps action ranking local and adds a small, debounced,
+  // permission-scoped people lookup from the chart-safe staff list endpoint.
+  const {
+    results,
+    total,
+    onLaunch,
+    people,
+    peopleTotal,
+    peopleLoading,
+    peopleError,
+    canSearchPeople,
+    peopleQueryTooShort,
+    peopleQueryTooLong,
+  } = useWorkspaceSearch(search);
 
   // Collapsed shows the top few; a broad query ("v") can match dozens, so the
   // rest hide behind a keyboard-reachable "show all" row.
@@ -182,15 +196,28 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
     () => (resultsExpanded ? groupByConsole(results).flatMap((g) => g.items) : results.slice(0, COLLAPSED_COUNT)),
     [resultsExpanded, results],
   );
-  // Index of each action within visualActions, for O(1) aria/active lookup while
-  // rendering the grouped (reordered) expanded view.
-  const indexById = useMemo(() => {
+  // Actions, then the optional expansion row, then People: this is both the
+  // visual order and the order traversed by ArrowUp/ArrowDown.
+  const searchRows = useMemo(
+    () => buildWorkspaceSearchRows(visualActions, hasMore, people),
+    [hasMore, people, visualActions],
+  );
+  const indexByActionId = useMemo(() => {
     const m = new Map<string, number>();
-    visualActions.forEach((r, i) => m.set(r.action.id, i));
+    searchRows.forEach((row, index) => {
+      if (row.kind === "action") m.set(row.action.action.id, index);
+    });
     return m;
-  }, [visualActions]);
-  // Total number of keyboard-navigable rows (the "show all" row is the last).
-  const navCount = visualActions.length + (hasMore ? 1 : 0);
+  }, [searchRows]);
+  const indexByPersonId = useMemo(() => {
+    const m = new Map<number, number>();
+    searchRows.forEach((row, index) => {
+      if (row.kind === "person") m.set(row.person.id, index);
+    });
+    return m;
+  }, [searchRows]);
+  const showAllIndex = searchRows.findIndex((row) => row.kind === "show-all-actions");
+  const navCount = searchRows.length;
 
   // Run an action: remember the pick (adaptive + frecency) FIRST — while `search`
   // still holds the query — then clear the bar (acting on a result finishes the
@@ -211,6 +238,17 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
     }
     startNavigationProgress();
     navigate(action.run.to);
+  };
+
+  const launchPerson = (person: StaffProfileListItem) => {
+    setSearch("");
+    rememberedWorkspaceSearch = "";
+    setActiveResult(0);
+    setResultsOpen(false);
+    setResultsExpanded(false);
+    setMobileSearchOpen(false);
+    startNavigationProgress();
+    navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_BY_USER(person.user.id));
   };
 
   const updateSearch = (value: string) => {
@@ -237,13 +275,10 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
       return;
     }
     if (event.key === "Enter" && resultsOpen) {
-      if (hasMore && activeResult === visualActions.length) {
-        setResultsExpanded(true);
-        setActiveResult(0);
-        return;
-      }
-      const target = visualActions[activeResult] ?? visualActions[0];
-      if (target) launchAction(target.action);
+      const target = searchRows[activeResult] ?? searchRows[0];
+      if (target?.kind === "show-all-actions") expandResults();
+      else if (target?.kind === "action") launchAction(target.action.action);
+      else if (target?.kind === "person") launchPerson(target.person);
     }
   };
 
@@ -279,6 +314,37 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
     </button>
   );
 
+  const renderPersonOption = (person: StaffProfileListItem, index: number, variant: "desktop" | "mobile") => {
+    const role = person.job_title || person.position?.title || "Staff member";
+    const context = [role, person.department?.name].filter(Boolean).join(" · ");
+    return (
+      <button
+        key={person.id}
+        id={`workspace-search-option-${variant}-${index}`}
+        ref={index === activeResult ? (el) => el?.scrollIntoView({ block: "nearest" }) : undefined}
+        type="button"
+        role="option"
+        aria-selected={index === activeResult}
+        onMouseDown={(event) => event.preventDefault()}
+        onMouseEnter={() => setActiveResult(index)}
+        onClick={() => launchPerson(person)}
+        className={`flex w-full min-w-0 items-center gap-2.5 rounded-lg px-3 py-2 text-left ${index === activeResult ? "bg-gray-50" : ""}`}
+      >
+        <UserAvatar
+          userId={person.user.id}
+          name={person.user.full_name}
+          className="size-8 shrink-0"
+          fallbackClassName="text-[10px]"
+        />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium text-black-01">{person.user.full_name}</span>
+          <span className="block truncate text-[11px] text-gray-400">{context}</span>
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-gray-300" />
+      </button>
+    );
+  };
+
   const renderSearchResults = (variant: "desktop" | "mobile") => (
     <div
       id={`workspace-search-listbox-${variant}`}
@@ -286,39 +352,77 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
       aria-label="Workspace search results"
       className={`absolute left-0 z-50 w-full overflow-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl ${variant === "desktop" ? "top-11" : "top-12"}`}
     >
-      {total === 0 ? (
-        <p className="px-3 py-4 text-center text-xs text-gray-400">No accessible actions found.</p>
-      ) : resultsExpanded ? (
-        <div className="max-h-[60vh] overflow-y-auto">
-          {groupByConsole(results).map((group) => (
-            <div key={group.console}>
-              <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                {group.console === "Main" ? "Main console" : group.console}
-              </p>
-              {group.items.map((r) => renderOption(r.action, indexById.get(r.action.id) ?? -1, variant))}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <>
-          {visualActions.map((r, index) => renderOption(r.action, index, variant))}
-          {hasMore && (
-            <button
-              id={`workspace-search-option-${variant}-${visualActions.length}`}
-              type="button"
-              role="option"
-              aria-selected={activeResult === visualActions.length}
-              onMouseDown={(event) => event.preventDefault()}
-              onMouseEnter={() => setActiveResult(visualActions.length)}
-              onClick={expandResults}
-              className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-medium text-primary ${activeResult === visualActions.length ? "bg-gray-50" : ""}`}
+      <div className="max-h-[min(60vh,30rem)] overflow-y-auto">
+        {visualActions.length > 0 && (
+          <section aria-labelledby={`workspace-search-actions-${variant}`}>
+            <p
+              id={`workspace-search-actions-${variant}`}
+              className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400"
             >
-              <span>Showing top {COLLAPSED_COUNT} of {total}</span>
-              <span className="inline-flex items-center gap-0.5">Show all <ChevronRight className="size-3.5" /></span>
-            </button>
-          )}
-        </>
-      )}
+              Actions
+            </p>
+            {resultsExpanded ? groupByConsole(results).map((group) => (
+              <div key={group.console}>
+                <p className="px-3 pb-0.5 pt-1.5 text-[10px] font-medium text-gray-300">
+                  {group.console === "Main" ? "Main console" : group.console}
+                </p>
+                {group.items.map((r) => renderOption(r.action, indexByActionId.get(r.action.id) ?? -1, variant))}
+              </div>
+            )) : visualActions.map((r) => renderOption(r.action, indexByActionId.get(r.action.id) ?? -1, variant))}
+            {hasMore && (
+              <button
+                id={`workspace-search-option-${variant}-${showAllIndex}`}
+                type="button"
+                role="option"
+                aria-selected={activeResult === showAllIndex}
+                onMouseDown={(event) => event.preventDefault()}
+                onMouseEnter={() => setActiveResult(showAllIndex)}
+                onClick={expandResults}
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-medium text-primary ${activeResult === showAllIndex ? "bg-gray-50" : ""}`}
+              >
+                <span>Showing top {COLLAPSED_COUNT} of {total}</span>
+                <span className="inline-flex items-center gap-0.5">Show all <ChevronRight className="size-3.5" /></span>
+              </button>
+            )}
+          </section>
+        )}
+
+        {people.length > 0 && (
+          <section aria-labelledby={`workspace-search-people-${variant}`}>
+            <p
+              id={`workspace-search-people-${variant}`}
+              className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400"
+            >
+              People
+            </p>
+            {people.map((person) => renderPersonOption(person, indexByPersonId.get(person.id) ?? -1, variant))}
+            {peopleTotal > people.length && (
+              <p className="px-3 py-1.5 text-[10px] text-gray-400">
+                Showing {people.length} of {peopleTotal} people. Type more to narrow the results.
+              </p>
+            )}
+          </section>
+        )}
+
+        {peopleLoading && (
+          <p className="flex items-center justify-center gap-1.5 px-3 py-3 text-xs text-gray-400">
+            <Loader2 className="size-3.5 animate-spin" /> Searching people…
+          </p>
+        )}
+        {searchRows.length === 0 && !peopleLoading && (
+          <p className="px-3 py-4 text-center text-xs text-gray-400">
+            {peopleError
+              ? "People search is temporarily unavailable."
+              : peopleQueryTooLong
+                ? "Use 64 characters or fewer to search people."
+                : peopleQueryTooShort
+                  ? "Keep typing to search people."
+                  : canSearchPeople
+                    ? "No accessible actions or people found."
+                    : "No accessible actions found."}
+          </p>
+        )}
+      </div>
     </div>
   );
 
@@ -328,7 +432,7 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
     role: "combobox" as const,
     "aria-expanded": showResults,
     "aria-controls": `workspace-search-listbox-${variant}`,
-    "aria-activedescendant": showResults && activeResult < visualActions.length
+    "aria-activedescendant": showResults && activeResult < searchRows.length
       ? `workspace-search-option-${variant}-${activeResult}`
       : undefined,
     onFocus: () => setResultsOpen(true),
