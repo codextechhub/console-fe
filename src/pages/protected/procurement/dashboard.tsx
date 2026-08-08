@@ -190,7 +190,7 @@ export default function ProcurementDashboard() {
               </Card>
 
               <Card title="Purchase Order Status" subtitle="Documents by approval and receipt stage"
-                action={<div className="flex items-center gap-1"><InfoHint ariaLabel="About the purchase order status chart">This chart counts purchase orders only. Requisitions are tracked separately in the Requisitions console.</InfoHint><CardLink label="Open purchase orders" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS)} /></div>}>
+                action={<CardLink label="Open purchase orders" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS)} />}>
                 {!hasPoData ? <EmptyBlock>No purchase orders yet.</EmptyBlock> : (
                   <BarChart
                     height={190}
