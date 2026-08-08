@@ -45,12 +45,12 @@ function Kpi({ label, value, hint }: { label: string; value: string; hint?: stri
 
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
+  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "-"}</span>;
 }
 
 function masked(va: VirtualAccount, field: "account_number" | "account_name"): React.ReactNode {
-  if (isStripped(va, field)) return <span className="text-gray-05" title="Hidden — needs the view-sensitive grant">••••</span>;
-  return va[field] || "—";
+  if (isStripped(va, field)) return <span className="text-gray-05" title="Hidden - needs the view-sensitive grant">••••</span>;
+  return va[field] || "-";
 }
 
 export function VirtualAccountsTab({ entity, currency }: { entity: string; currency?: string | null }) {
@@ -75,11 +75,11 @@ export function VirtualAccountsTab({ entity, currency }: { entity: string; curre
   const columns: Column<VirtualAccount>[] = [
     { header: "Customer", cell: (v) => (
       <span className="inline-flex items-center gap-2">
-        <Initials name={v.customer_name || v.customer_code || "—"} />
-        <span className="font-medium text-gray-01">{v.customer_name || v.customer_code || "—"}</span>
+        <Initials name={v.customer_name || v.customer_code || "-"} />
+        <span className="font-medium text-gray-01">{v.customer_name || v.customer_code || "-"}</span>
       </span>
     ) },
-    { header: "Bank", cell: (v) => v.bank_name || "—" },
+    { header: "Bank", cell: (v) => v.bank_name || "-" },
     { header: "Account number", cell: (v) => <span className="tabular-nums">{masked(v, "account_number")}</span> },
     { header: "Provider", cell: (v) => providerLabel(v.provider) },
     { header: "Status", cell: (v) => <StatusPill status={v.status} /> },
@@ -165,7 +165,7 @@ function VirtualAccountDetailDrawer({ va, entity, currency, onClose, onUpdated }
     <DetailDrawer
       open={!!va} onOpenChange={(o) => (o ? undefined : onClose())}
       title={va.customer_name || va.customer_code || "Virtual account"}
-      description={`${providerLabel(va.provider)} · ${va.bank_name || "—"}`}
+      description={`${providerLabel(va.provider)} · ${va.bank_name || "-"}`}
       widthClass="sm:max-w-2xl"
       footer={
         <>
@@ -182,14 +182,14 @@ function VirtualAccountDetailDrawer({ va, entity, currency, onClose, onUpdated }
     >
       <div className="space-y-5">
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Customer">{va.customer_name || va.customer_code || "—"}</Field>
+          <Field label="Customer">{va.customer_name || va.customer_code || "-"}</Field>
           <Field label="Provider">{providerLabel(va.provider)}</Field>
-          <Field label="Bank">{va.bank_name || "—"}</Field>
-          <Field label="Currency">{va.currency_code || "—"}</Field>
+          <Field label="Bank">{va.bank_name || "-"}</Field>
+          <Field label="Currency">{va.currency_code || "-"}</Field>
           <Field label="Account number">{masked(va, "account_number")}</Field>
           <Field label="Account name">{masked(va, "account_name")}</Field>
-          <Field label="Provider reference">{va.provider_reference || "—"}</Field>
-          <Field label="Deposit (GL) account">{va.deposit_account_code ? `${va.deposit_account_code} · ${va.deposit_account_name}` : "—"}</Field>
+          <Field label="Provider reference">{va.provider_reference || "-"}</Field>
+          <Field label="Deposit (GL) account">{va.deposit_account_code ? `${va.deposit_account_code} · ${va.deposit_account_name}` : "-"}</Field>
           <Field label="Created">{new Date(va.created_at).toLocaleDateString()}</Field>
         </div>
 
@@ -270,10 +270,10 @@ function ProvisionDrawer({ open, onClose, entity }: { open: boolean; onClose: ()
             {PROVIDERS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
         </FormField>
-        <FormField label="Deposit (GL) account — optional">
+        <FormField label="Deposit (GL) account - optional">
           <AccountPicker entity={entity} value={depositAccount} onChange={setDepositAccount} accountType="ASSET" postableOnly placeholder="Bank / cash account where funds land" />
         </FormField>
-        <FormField label="Bank code — optional">
+        <FormField label="Bank code - optional">
           <Input value={bankCode} onChange={(e) => setBankCode(e.target.value)} placeholder="Provider-specific preferred bank" className="bg-white font-mont" />
         </FormField>
       </div>

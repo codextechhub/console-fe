@@ -6,7 +6,7 @@
 import type { ActionDef } from "./types";
 
 // Verb synonym groups. When an action label (or alias) begins with any word in
-// a group, we also match the other words in that group — so the leading verb is
+// a group, we also match the other words in that group - so the leading verb is
 // interchangeable without listing every spelling per action.
 const VERB_GROUPS: readonly string[][] = [
   ["view", "open", "show", "see", "list", "browse", "go"], // "go to" → first token "go"
@@ -37,7 +37,7 @@ interface Candidate {
   isLabel: boolean;
 }
 
-// Cache the derived candidates per action — the registry is static, so this is
+// Cache the derived candidates per action - the registry is static, so this is
 // computed once regardless of how many keystrokes arrive.
 const candidateCache = new WeakMap<ActionDef, Candidate[]>();
 

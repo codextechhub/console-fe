@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// vs_workflow — TypeScript contract.
+// vs_workflow - TypeScript contract.
 //
 // Mirrors apps/vs_workflow serializers + constants exactly.
 //
@@ -212,7 +212,7 @@ export interface WorkflowInstance {
   requested_by: string;
   submitted_at: string | null;
   completed_at: string | null;
-  /** Last activity — bumps on every state change. */
+  /** Last activity - bumps on every state change. */
   updated_at: string;
 }
 
@@ -243,10 +243,10 @@ export interface WorkflowInstanceDetail extends WorkflowInstance {
   audit_logs: WorkflowAuditLog[];
 }
 
-/** One row from GET /dashboard/pending/ — list shape + queue metadata. */
+/** One row from GET /dashboard/pending/ - list shape + queue metadata. */
 export interface PendingApproval extends WorkflowInstance {
   awaiting_on_stage: string;
-  /** When the stage activated — i.e. when it reached this approver's queue. */
+  /** When the stage activated - i.e. when it reached this approver's queue. */
   awaiting_since: string | null;
   on_behalf_of: string | null;
 }

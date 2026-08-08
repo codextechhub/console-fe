@@ -1,13 +1,13 @@
 // Drive the running app as the seeded admin and screenshot each route.
-// App-agnostic: works for ANY screen in this app. Read-only — navigates +
+// App-agnostic: works for ANY screen in this app. Read-only - navigates +
 // screenshots only, never submits a form.
 //
-//   BASE_URL  frontend origin (e.g. http://localhost:5173) — required
+//   BASE_URL  frontend origin (e.g. http://localhost:5173) - required
 //   EMAIL / PASSWORD   seeded super-admin (defaults below)
-//   ROUTES    space/comma-separated paths to drive — required (the SKILL.md
+//   ROUTES    space/comma-separated paths to drive - required (the SKILL.md
 //             determines these from what you changed, or you pass them)
 //
-// Uses system Chrome via Playwright's `channel: 'chrome'` — no browser download.
+// Uses system Chrome via Playwright's `channel: 'chrome'` - no browser download.
 
 import { chromium } from "playwright";
 import fs from "node:fs";
@@ -57,6 +57,6 @@ try {
 } finally {
   console.log(`\n=== console/page errors (${errors.length}) ===`);
   errors.slice(0, 30).forEach((e) => console.log(" •", e.slice(0, 240)));
-  console.log(`\nscreenshots in ${SHOTS}/ — Read each to judge the design.`);
+  console.log(`\nscreenshots in ${SHOTS}/ - Read each to judge the design.`);
   await browser.close();
 }

@@ -1,7 +1,7 @@
 // Right-side slide-over for People & Positions. Payroll uses REAL field-level
 // security: the backend omits bank/account fields (and lists them in
 // _stripped_fields) when the caller lacks platform.staff_payroll.view and is not
-// the owner. So "restricted" keys off field absence — there is no masked value.
+// the owner. So "restricted" keys off field absence - there is no masked value.
 
 import { useMemo } from "react";
 import {
@@ -78,12 +78,12 @@ function PayrollSection({ profile }: { profile: StaffProfile }) {
         <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-3.5">
           <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-teal-700">
             <LockOpen className="size-3" />
-            Visible — payroll access granted
+            Visible - payroll access granted
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Field icon={Landmark} label="Bank">{profile.bank_name || "—"}</Field>
-            <Field icon={Users} label="Account name">{profile.account_name || "—"}</Field>
-            <Field icon={Hash} label="Account number" mono>{profile.account_number || "—"}</Field>
+            <Field icon={Landmark} label="Bank">{profile.bank_name || "-"}</Field>
+            <Field icon={Users} label="Account name">{profile.account_name || "-"}</Field>
+            <Field icon={Hash} label="Account number" mono>{profile.account_number || "-"}</Field>
           </div>
         </div>
       ) : (
@@ -154,7 +154,7 @@ function PersonDetail({ user, ctx }: { user: UserInline; ctx: DrawerCtx }) {
             <h3 className="text-lg font-bold text-slate-800">{user.full_name}</h3>
             {isActing && <ActingBadge />}
           </div>
-          <p className="text-[13.5px] text-slate-500">{profile?.job_title || listItem?.job_title || profile?.position?.title || "—"}</p>
+          <p className="text-[13.5px] text-slate-500">{profile?.job_title || listItem?.job_title || profile?.position?.title || "-"}</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {(profile?.employment_status ?? listItem?.employment_status) && <StatusPill status={(profile?.employment_status ?? listItem?.employment_status)!} />}
             <EmpBadge type={profile?.employment_type ?? listItem?.employment_type ?? ""} />
@@ -174,9 +174,9 @@ function PersonDetail({ user, ctx }: { user: UserInline; ctx: DrawerCtx }) {
       {!ctx.canViewFullProfile ? (
         <>
           <div className="mt-5 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3.5">
-            <Field icon={IdCard} label="Employee ID" mono>{listItem?.employee_id || "—"}</Field>
-            <Field icon={Briefcase} label="Seat" mono>{listItem?.position?.code || "—"}</Field>
-            <Field icon={Building2} label="Department">{listItem?.department?.name || "—"}</Field>
+            <Field icon={IdCard} label="Employee ID" mono>{listItem?.employee_id || "-"}</Field>
+            <Field icon={Briefcase} label="Seat" mono>{listItem?.position?.code || "-"}</Field>
+            <Field icon={Building2} label="Department">{listItem?.department?.name || "-"}</Field>
             {listItem?.division && <Field icon={Building2} label="Division">{listItem.division.name}</Field>}
             {listItem?.org_node?.kind === "TEAM" && <Field icon={Building2} label="Team">{listItem.org_node.name}</Field>}
           </div>
@@ -219,12 +219,12 @@ function PersonDetail({ user, ctx }: { user: UserInline; ctx: DrawerCtx }) {
       ) : (
         <>
           <div className="mt-5 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3.5">
-            <Field icon={IdCard} label="Employee ID" mono>{profile.employee_id || "—"}</Field>
+            <Field icon={IdCard} label="Employee ID" mono>{profile.employee_id || "-"}</Field>
             <Field icon={CalendarDays} label="Joined">
               {fmtDate(profile.date_joined)} {profile.date_joined && <span className="text-slate-400">· {yearsSince(profile.date_joined)}</span>}
             </Field>
-            <Field icon={Briefcase} label="Seat" mono>{profile.position?.code || "—"}</Field>
-            <Field icon={Building2} label="Department">{profile.department?.name || "—"}</Field>
+            <Field icon={Briefcase} label="Seat" mono>{profile.position?.code || "-"}</Field>
+            <Field icon={Building2} label="Department">{profile.department?.name || "-"}</Field>
             {profile.division && <Field icon={Building2} label="Division">{profile.division.name}</Field>}
             {profile.org_node && profile.org_node.kind === "TEAM" && <Field icon={Building2} label="Team">{profile.org_node.name}</Field>}
           </div>
@@ -294,9 +294,9 @@ function PersonDetail({ user, ctx }: { user: UserInline; ctx: DrawerCtx }) {
             <>
               <SectionHead icon={HeartHandshake}>Next of kin</SectionHead>
               <div className="grid grid-cols-2 gap-3">
-                <Field icon={Users} label="Name">{profile.nok_name || "—"}</Field>
-                <Field icon={Users} label="Relationship">{profile.nok_relationship || "—"}</Field>
-                <Field icon={Phone} label="Phone">{profile.nok_phone || "—"}</Field>
+                <Field icon={Users} label="Name">{profile.nok_name || "-"}</Field>
+                <Field icon={Users} label="Relationship">{profile.nok_relationship || "-"}</Field>
+                <Field icon={Phone} label="Phone">{profile.nok_phone || "-"}</Field>
               </div>
             </>
           )}
@@ -345,9 +345,9 @@ function PositionDetail({ id, ctx }: { id: number; ctx: DrawerCtx }) {
         </Field>
         <Field icon={ShieldCheck} label="Status">{pos.is_active ? "Active" : "Inactive"}</Field>
         <Field icon={CornerLeftUp} label="Reports to (solid)">
-          {parent ? <button onClick={() => ctx.openPosition(parent.id)} className="text-indigo-600 hover:underline">{parent.title}</button> : <span className="text-slate-400">— top of org</span>}
+          {parent ? <button onClick={() => ctx.openPosition(parent.id)} className="text-indigo-600 hover:underline">{parent.title}</button> : <span className="text-slate-400">- top of org</span>}
         </Field>
-        <Field icon={Building2} label="Org unit">{pos.org_node ? `${pos.org_node.name} · ${pos.org_node.kind}` : "—"}</Field>
+        <Field icon={Building2} label="Org unit">{pos.org_node ? `${pos.org_node.name} · ${pos.org_node.kind}` : "-"}</Field>
       </div>
 
       <SectionHead icon={UserCheck}>Current holders</SectionHead>
@@ -371,7 +371,7 @@ function PositionDetail({ id, ctx }: { id: number; ctx: DrawerCtx }) {
           ))}
         </div>
       ) : (
-        <p className="text-[13px] text-slate-400">No current holder — seat is vacant.</p>
+        <p className="text-[13px] text-slate-400">No current holder - seat is vacant.</p>
       )}
 
       {(out.length > 0 || inc.length > 0) && (
@@ -381,7 +381,7 @@ function PositionDetail({ id, ctx }: { id: number; ctx: DrawerCtx }) {
             {out.map((m) => (
               <div key={m.id} className="flex items-center gap-2 rounded-lg bg-teal-50/60 px-2.5 py-2 text-[12.5px] text-teal-800 ring-1 ring-teal-100">
                 <span className="inline-block h-0 w-5 border-t-2 border-dotted border-teal-500" />
-                <span>dotted-reports to <button onClick={() => ctx.openPosition(m.reports_to.id)} className="font-semibold hover:underline">{m.reports_to.title}</button>{m.relationship_label && <span className="text-teal-600"> — {m.relationship_label}</span>}</span>
+                <span>dotted-reports to <button onClick={() => ctx.openPosition(m.reports_to.id)} className="font-semibold hover:underline">{m.reports_to.title}</button>{m.relationship_label && <span className="text-teal-600"> - {m.relationship_label}</span>}</span>
               </div>
             ))}
             {inc.map((m) => (

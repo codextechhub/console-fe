@@ -193,7 +193,7 @@ export default function CreateDependency() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-5 items-start">
-          {/* Left — picker form */}
+          {/* Left - picker form */}
           <div className="bg-white rounded-md p-6 space-y-5">
             <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
               Select Permissions
@@ -230,7 +230,7 @@ export default function CreateDependency() {
             )}
           </div>
 
-          {/* Right — preview + info */}
+          {/* Right - preview + info */}
           <div className="space-y-5">
             <div className="bg-white rounded-md p-6 space-y-3">
               <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Preview</p>

@@ -57,7 +57,7 @@ export default function AllInstances() {
         document: <DocumentRef documentType={r.document_type} objectId={r.document_object_id} />,
         template: <span className="text-sm">{r.template_code}</span>,
         status: <InstanceStatusBadge status={r.status} />,
-        stage: <span className="text-xs text-gray-01">{r.current_stage_label ?? "—"}</span>,
+        stage: <span className="text-xs text-gray-01">{r.current_stage_label ?? "-"}</span>,
         requestedBy: (
           <UserChip
             id={r.requested_by}
@@ -69,7 +69,7 @@ export default function AllInstances() {
         ),
         updated: (
           <span className="text-xs text-gray-01">
-            {r.updated_at ? formatRelativeDate(r.updated_at) : "—"}
+            {r.updated_at ? formatRelativeDate(r.updated_at) : "-"}
           </span>
         ),
         _raw: r,

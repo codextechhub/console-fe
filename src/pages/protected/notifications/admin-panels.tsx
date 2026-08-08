@@ -1,6 +1,6 @@
 // Admin panels for the Notification administration page (./admin.tsx):
 // delivery history, the effective settings matrix, template editing, and the
-// event-type catalogue. Each panel maps to one communication.* key — the page
+// event-type catalogue. Each panel maps to one communication.* key - the page
 // decides which tabs to show.
 
 import { useMemo, useState } from "react";
@@ -287,7 +287,7 @@ function TemplateEditor({ value, close }: { value: NotificationTemplate; close: 
 
 export function EventsPanel() {
   const q = useGetNotificationEventTypesQuery();
-  // Inactive event types are registered-but-not-yet-emitting — hide them so
+  // Inactive event types are registered-but-not-yet-emitting - hide them so
   // the catalogue only documents notifications that can actually fire.
   const grouped = groupBy<NotificationEventType>(
     (q.data?.data ?? []).filter((x) => x.is_active),

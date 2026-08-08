@@ -1,4 +1,4 @@
-// Positions tab — top-down org CHART of the server-built position tree (solid
+// Positions tab - top-down org CHART of the server-built position tree (solid
 // reporting lines via the `.org-chart` CSS in index.css), enriched with
 // headcount + matrix lines from the supporting lists.
 
@@ -59,7 +59,7 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
         )}
         style={highlighted ? { animation: "pulseHL 1.4s ease-out" } : undefined}
       >
-        {/* Title + meta — click opens detail. Centered so the code + headcount
+        {/* Title + meta - click opens detail. Centered so the code + headcount
             sit directly beneath the position name. */}
         <button onClick={() => ctx.openPosition(node.id)} className="w-full flex flex-col items-center text-center">
           <div className="flex items-center justify-center gap-1 mb-0.5">

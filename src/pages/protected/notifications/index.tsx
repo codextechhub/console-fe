@@ -1,4 +1,4 @@
-// Notifications page — the user's personal in-app feed over /notify/, with a
+// Notifications page - the user's personal in-app feed over /notify/, with a
 // actionable links. Platform administration (history, settings, templates, event
 // catalogue) lives on its own gated page at /notifications/admin.
 
@@ -49,7 +49,7 @@ export default function Notifications() {
   const [markAll, { isLoading: markingAll }] = useMarkAllNotificationsReadMutation();
 
   // Client-side filter over the loaded page only (the feed has no server-side
-  // text search) — the placeholder says so honestly.
+  // text search) - the placeholder says so honestly.
   const rows = (data?.data ?? []).filter(
     (n) => !search || `${n.subject} ${n.body} ${n.event_type_label}`.toLowerCase().includes(search.toLowerCase()),
   );

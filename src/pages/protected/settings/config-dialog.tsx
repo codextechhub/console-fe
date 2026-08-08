@@ -178,7 +178,7 @@ export function ConfigDialog({
           {mode === "value" && (
             <>
               {initial?.key ? (
-                // Opened from a settings row — the setting is already chosen.
+                // Opened from a settings row - the setting is already chosen.
                 <div>
                   <p className="text-sm font-medium">{pickedDef?.label ?? initial.key}</p>
                   {pickedDef?.description && (

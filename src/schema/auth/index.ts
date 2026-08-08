@@ -2,7 +2,7 @@ import * as Yup from "yup";
 import { PASSWORD_POLICY_MESSAGE, passwordMeetsPolicy } from "@/lib/password-policy";
 
 // Single reusable field enforcing the canonical policy (12 chars + upper +
-// lower + digit + special) — the same rules the backend enforces and the
+// lower + digit + special) - the same rules the backend enforces and the
 // PasswordRequirements checklist displays.
 const passwordField = Yup.string()
   .required("Password is required")

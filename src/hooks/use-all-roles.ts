@@ -6,7 +6,7 @@ import type { Role } from "@/redux/services/dashboard/dashboard-types";
 const PAGE_SIZE = 100;
 
 // Fetches every page of platform roles once per mount. The page walk happens
-// inside one async effect (setState only from async callbacks — never
+// inside one async effect (setState only from async callbacks - never
 // synchronously in the effect body), instead of the previous
 // setState→re-render→effect ping-pong that re-rendered consumers once per page.
 export function useAllRoles() {

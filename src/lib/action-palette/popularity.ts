@@ -1,6 +1,6 @@
 // Learned, local ranking. Two signals, both per-user in localStorage, no
-// backend: (1) adaptive picks — which action a user chose for a given query, so
-// the palette adapts to "when I type v I mean View Home"; (2) frecency — a
+// backend: (1) adaptive picks - which action a user chose for a given query, so
+// the palette adapts to "when I type v I mean View Home"; (2) frecency - a
 // per-action counter with recency decay so frequent recent actions float up.
 // A weak match can't be promoted across match tiers (the caller enforces that);
 // popularity only reorders within a tier.
@@ -21,7 +21,7 @@ function write(key: string, value: unknown): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    // Private mode / quota — popularity is best-effort, so silently skip.
+    // Private mode / quota - popularity is best-effort, so silently skip.
   }
 }
 

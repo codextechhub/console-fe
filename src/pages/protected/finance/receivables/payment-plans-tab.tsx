@@ -1,11 +1,11 @@
 // Receivables → Payment Plans. Rebuilt to the Vision prototype in the house theme:
 // a list with progress / next-due / health, an Installment-schedule detail drawer,
 // and a curated New-plan drawer (the prototype's create modal doesn't open) with a
-// live schedule preview. Concessions are a separate screen — not bundled here.
+// live schedule preview. Concessions are a separate screen - not bundled here.
 //
 // A plan is a scheduling overlay on an invoice: installment "paid" status is derived
 // from the invoice's settlement, so the invoice is required, and "Record installment"
-// posts a real receipt against it — the backend auto-advances the plan on settlement.
+// posts a real receipt against it - the backend auto-advances the plan on settlement.
 import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
@@ -109,12 +109,12 @@ export function PaymentPlansTab({ entity, currency }: { entity: string; currency
   const columns: Column<PaymentPlan>[] = [
     { header: "Plan no.", cell: (p) => <span className="font-semibold tabular-nums">{p.document_number}</span> },
     { header: "Customer", cell: (p) => <span className="text-gray-01">{p.customer_name}</span> },
-    { header: "Invoice", cell: (p) => <span className="tabular-nums text-gray-05">{p.invoice_number ?? "—"}</span> },
+    { header: "Invoice", cell: (p) => <span className="tabular-nums text-gray-05">{p.invoice_number ?? "-"}</span> },
     { header: "Total", align: "right", cell: (p) => <Money kobo={p.total_amount} currency={currency} align="right" /> },
     { header: "Progress", cell: (p) => <ProgressBar paid={paidCount(p)} total={p.installment_count} /> },
     { header: "Next due", cell: (p) => {
       const n = nextUnpaid(p);
-      return n ? <span className="font-mont text-sm text-gray-01">{n.due_date} · <span className="tabular-nums">{formatMoney(n.balance, currency)}</span></span> : <span className="text-gray-05">—</span>;
+      return n ? <span className="font-mont text-sm text-gray-01">{n.due_date} · <span className="tabular-nums">{formatMoney(n.balance, currency)}</span></span> : <span className="text-gray-05">-</span>;
     } },
     { header: "Status", cell: (p) => { const h = planHealth(p); return <span className={cn(PILL, h.cls)}>{h.label}</span>; } },
   ];
@@ -197,7 +197,7 @@ function PlanDetailDrawer({ plan, entity, currency, onClose }: {
         <div className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <Field label="Status"><span className={cn(PILL, health.cls)}>{health.label}</span></Field>
-            <Field label="Against invoice">{plan.invoice_number ?? "—"}</Field>
+            <Field label="Against invoice">{plan.invoice_number ?? "-"}</Field>
             <Field label="Total"><Money kobo={plan.total_amount} currency={currency} /></Field>
             <Field label="Outstanding"><Money kobo={plan.outstanding_total} currency={currency} /></Field>
             <Field label="Settled">

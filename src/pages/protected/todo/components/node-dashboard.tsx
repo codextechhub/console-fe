@@ -1,5 +1,5 @@
 // The "My Team" dashboard for one focused node and the personal "My Tasks" view.
-// Both render straight off the API payloads (NodeDashboard / MineDashboard) — the
+// Both render straight off the API payloads (NodeDashboard / MineDashboard) - the
 // roll-up stats, reports and breadcrumb are all computed server-side. Structured
 // like the console's other pages: KPI grid, font-mont section headings, flat
 // white rounded-md cards.
@@ -276,7 +276,7 @@ export function NodeDashboardView({
             onDelete={onDelete}
             canModify={canModify}
             togglingId={togglingId}
-            emptyMsg={isViewerNode ? "No tasks yet — add your first commitment." : "No tasks yet."}
+            emptyMsg={isViewerNode ? "No tasks yet - add your first commitment." : "No tasks yet."}
           />
         </>
       )}
@@ -312,7 +312,7 @@ export function MyTasksView({
         onDelete={onDelete}
         canModify={canModify}
         togglingId={togglingId}
-        emptyMsg="No tasks yet — add your first commitment."
+        emptyMsg="No tasks yet - add your first commitment."
       />
     </div>
   );

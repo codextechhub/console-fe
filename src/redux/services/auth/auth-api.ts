@@ -20,18 +20,18 @@ export const authApi = baseApi.injectEndpoints({
         try {
           const result = await queryFulfilled;
           const {data} = result;
-          // A fresh, valid session — re-enable token refresh in case a prior
+          // A fresh, valid session - re-enable token refresh in case a prior
           // session in this JS context invalidated it.
           resetSessionInvalidation();
           setAuthCookies(data?.data?.access || "", data?.data?.refresh || "");
           recordActivity();
           dispatch(setAuthUser(data?.data));
           // The context we just stored is authoritative, so Authenticated can
-          // skip its mount-time /me sync for this one mount — see
+          // skip its mount-time /me sync for this one mount - see
           // auth-context-freshness.
           markAuthContextFromLogin();
         } catch {
-          // Login failed — the mutation hook surfaces the error to the page;
+          // Login failed - the mutation hook surfaces the error to the page;
           // nothing to clean up because nothing was written yet.
         }
       },
@@ -47,7 +47,7 @@ export const authApi = baseApi.injectEndpoints({
         try {
           await queryFulfilled;
         } catch {
-          // Server-side revocation failed — proceed with client-side cleanup anyway.
+          // Server-side revocation failed - proceed with client-side cleanup anyway.
         } finally {
           endSession();
           dispatch(resetAuth());
@@ -106,7 +106,7 @@ export const authApi = baseApi.injectEndpoints({
             tenant: data.data.tenant ?? null,
           }));
         } catch {
-          // /me failed (e.g. transient 5xx) — keep the persisted permissions;
+          // /me failed (e.g. transient 5xx) - keep the persisted permissions;
           // the 401 interceptor handles a genuinely dead session.
         }
       },

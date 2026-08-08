@@ -1,4 +1,4 @@
-// Command Center — the single-pane overview: posture banner, golden-signal
+// Command Center - the single-pane overview: posture banner, golden-signal
 // KPIs, request activity, active incidents, and per-service drill-ins.
 // Polls gently so "live" is actually live (paused when the tab is hidden).
 

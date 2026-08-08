@@ -280,7 +280,7 @@ function FiscalYearOverview({
             <StatusPill status={fiscalYear.status} />
           </div>
           <p className="mt-1 font-mont text-xs text-gray-05">
-            {formatDate(fiscalYear.start_date)} — {formatDate(fiscalYear.end_date)} · {periods.length === 4 ? "Quarterly" : periods.length === 12 ? "Monthly" : "Custom"}
+            {formatDate(fiscalYear.start_date)} - {formatDate(fiscalYear.end_date)} · {periods.length === 4 ? "Quarterly" : periods.length === 12 ? "Monthly" : "Custom"}
           </p>
         </div>
         <div className="w-full sm:w-52">
@@ -395,7 +395,7 @@ function PeriodCard({ period, selected, onClick }: { period: FiscalPeriod; selec
         <StatusPill status={period.status} />
       </div>
       <p className="mt-4 pl-1 font-mont text-xs text-gray-05 tabular-nums">
-        {formatDate(period.start_date)} — {formatDate(period.end_date)}
+        {formatDate(period.start_date)} - {formatDate(period.end_date)}
       </p>
       <div className="mt-4 flex items-center justify-between gap-2 border-t border-gray-03 pt-3 pl-1">
         <span className="font-mont text-xs font-semibold text-primary">{periodActionLabel(period.status)}</span>
@@ -470,7 +470,7 @@ function StartFiscalYearModal({
         <div className="flex items-start gap-2">
           <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" />
           <p className="font-mont text-xs leading-5 text-gray-05">
-            FY {year || "—"} will begin on {MONTHS[month - 1] ?? "—"} {day || "—"} and create {frequency === "MONTHLY" ? "12 monthly" : "4 quarterly"} open posting periods. Short months use their final calendar day.
+            FY {year || "-"} will begin on {MONTHS[month - 1] ?? "-"} {day || "-"} and create {frequency === "MONTHLY" ? "12 monthly" : "4 quarterly"} open posting periods. Short months use their final calendar day.
           </p>
         </div>
       </div>
@@ -571,7 +571,7 @@ function PeriodCloseDrawer({
         open={id != null}
         onOpenChange={(open) => !open && closeDrawer()}
         title={period ? `Manage ${period.name}` : "Period close"}
-        description={period ? `Period ${period.period_no} · ${formatDate(period.start_date)} — ${formatDate(period.end_date)}` : undefined}
+        description={period ? `Period ${period.period_no} · ${formatDate(period.start_date)} - ${formatDate(period.end_date)}` : undefined}
         widthClass="w-full sm:max-w-2xl"
         footer={(canClose || canReopen || canLock) ? (
           <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">

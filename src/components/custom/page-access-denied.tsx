@@ -5,7 +5,7 @@ interface Props {
   message?: string;
   /**
    * Optional in-content "Go Back" button. The header's own back affordance
-   * comes from the route handle — this is only the extra button some denial
+   * comes from the route handle - this is only the extra button some denial
    * screens render inside the panel.
    */
   onBack?: () => void;

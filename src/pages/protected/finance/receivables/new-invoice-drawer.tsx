@@ -1,4 +1,4 @@
-// New invoice — a right-side drawer matching the detail-drawer structure (header ·
+// New invoice - a right-side drawer matching the detail-drawer structure (header ·
 // sectioned body · pinned footer). Customer/account/tax use the app's SearchSelect
 // (type the name → the list populates). Unit price is entered in naira and sent as
 // integer kobo; "Issue now" posts the AR journal, else it saves a priced draft.
@@ -29,10 +29,10 @@ export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
     () => Object.fromEntries(toArray<TaxCode>(taxData?.data).map((t) => [t.code, t.rate_bps])),
     [taxData],
   );
-  // Fee structures — an optional shortcut: pick one to prefill the lines below.
+  // Fee structures - an optional shortcut: pick one to prefill the lines below.
   const { data: fsData } = useGetFeeStructuresQuery({ entity, is_active: "true" }, { skip: !open });
   const structures = toArray<FeeStructure>(fsData?.data);
-  const fsOptions = structures.map((f) => ({ value: String(f.id), label: `${f.code} — ${f.name} (${f.total_naira})` }));
+  const fsOptions = structures.map((f) => ({ value: String(f.id), label: `${f.code} - ${f.name} (${f.total_naira})` }));
 
   const [structure, setStructure] = useState("");
   const [customer, setCustomer] = useState("");
@@ -105,7 +105,7 @@ export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
       open={open}
       onOpenChange={(o) => (o ? onOpenChange(true) : close())}
       title="New invoice"
-      description="Raise a customer invoice — each line credits a revenue account."
+      description="Raise a customer invoice - each line credits a revenue account."
       widthClass="sm:max-w-2xl"
       footer={
         <>
@@ -133,7 +133,7 @@ export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
           </label>
         </div>
 
-        {/* fee structure shortcut — prefills the lines below */}
+        {/* fee structure shortcut - prefills the lines below */}
         {fsOptions.length > 0 && (
           <div className="rounded-md bg-pry-01/40 p-3">
             <SearchSelect
@@ -143,7 +143,7 @@ export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
               onChange={(e) => applyStructure(e.target.value)}
               placeholder="Pick a fee structure to prefill lines…"
             />
-            <p className="mt-1.5 font-mont text-[11px] text-gray-05">Loads the structure’s items into the lines below — you can still edit, add or remove them.</p>
+            <p className="mt-1.5 font-mont text-[11px] text-gray-05">Loads the structure’s items into the lines below - you can still edit, add or remove them.</p>
           </div>
         )}
 

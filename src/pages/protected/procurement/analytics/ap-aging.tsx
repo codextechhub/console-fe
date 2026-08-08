@@ -1,4 +1,4 @@
-// AP Aging (§6) — outstanding payables bucketed by age, as of a chosen date.
+// AP Aging (§6) - outstanding payables bucketed by age, as of a chosen date.
 import { useMemo, useState } from "react";
 import { AlertTriangle, Banknote, Clock } from "lucide-react";
 
@@ -20,7 +20,7 @@ import {
   BUCKET_LABEL, TD, TDR, TFOOT, TFOOTR, TH, THR, ageColor, kobo, todayISO, type SectionProps,
 } from "./helpers";
 
-// Status from the vendor's real buckets — any position 31+ days late reads Overdue.
+// Status from the vendor's real buckets - any position 31+ days late reads Overdue.
 function apStatus(buckets: Record<string, ReportMoney>): { label: string; tone: PillTone } {
   const k = (name: string) => kobo(buckets[name]);
   if (k("31-60") > 0 || k("61-90") > 0 || k("90+") > 0) return { label: "Overdue", tone: "red" };
@@ -231,8 +231,8 @@ function ApVendorBody({ d, currency }: { d: ApVendorDetail; currency?: string | 
                   <tr key={inv.invoice_id}>
                     <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold tabular-nums text-primary">{inv.document_number}</td>
                     <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(inv.invoice_date)}</td>
-                    <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{inv.due_date ? shortDate(inv.due_date) : "—"}</td>
-                    <td className={cn("border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums", inv.days_overdue > 0 ? "text-destructive" : "text-gray-05")}>{inv.days_overdue > 0 ? `${inv.days_overdue}d` : "—"}</td>
+                    <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{inv.due_date ? shortDate(inv.due_date) : "-"}</td>
+                    <td className={cn("border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums", inv.days_overdue > 0 ? "text-destructive" : "text-gray-05")}>{inv.days_overdue > 0 ? `${inv.days_overdue}d` : "-"}</td>
                     <td className="border-t border-gray-03 px-3 py-2"><Pill tone={bucketTone(inv.bucket)}>{BUCKET_LABEL[inv.bucket] ?? inv.bucket}</Pill></td>
                     <td className="border-t border-gray-03 px-3 py-2 text-right"><Money kobo={kobo(inv.balance_due)} currency={currency} align="right" /></td>
                   </tr>

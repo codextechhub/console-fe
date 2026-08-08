@@ -1,4 +1,4 @@
-// <TeachingNote> — a dismissible explainer callout (ported from the design's
+// <TeachingNote> - a dismissible explainer callout (ported from the design's
 // teaching-note pattern, in our theme). Use sparingly at the top of a screen to
 // explain what it does; the dismissal persists per id.
 

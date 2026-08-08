@@ -120,10 +120,10 @@ export default function PermissionResources() {
   const tableData = resources.map((r: PermissionResource) => ({
     keySegment: <span className="font-mono text-xs font-semibold text-black-01">{r.module}.{r.name}</span>,
     module: <Badge variant="default">{r.module}</Badge>,
-    description: <span className="text-xs text-gray-01 max-w-64 truncate block">{r.description || "—"}</span>,
+    description: <span className="text-xs text-gray-01 max-w-64 truncate block">{r.description || "-"}</span>,
     permissions: r.permissions_count > 0
       ? <Badge variant="default">{r.permissions_count}</Badge>
-      : <span className="text-xs text-gray-01">—</span>,
+      : <span className="text-xs text-gray-01">-</span>,
     status: <Badge variant={r.is_active ? "active" : "inactive"}>{r.is_active ? "Active" : "Inactive"}</Badge>,
     _raw: r,
   }));
@@ -135,7 +135,7 @@ export default function PermissionResources() {
           <div>
             <p className="font-semibold font-mont text-gray-01">Permission Resources</p>
             <p className="text-xs text-gray-01 mt-0.5">
-              The middle segment of a permission key. Each resource is scoped to a module — finance.invoice is distinct from settings.invoice.
+              The middle segment of a permission key. Each resource is scoped to a module - finance.invoice is distinct from settings.invoice.
             </p>
           </div>
           <PermissionGate permission={P.CREATE_PERMISSION}>

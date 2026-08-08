@@ -118,9 +118,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: routesPath.PROTECTED.ORGANOGRAM.INDEX,
           isActive: location === routesPath.PROTECTED.ORGANOGRAM.INDEX,
         },
-        // Staff Directory retired — profiles are reached from Team Management
+        // Staff Directory retired - profiles are reached from Team Management
         // (View Details) or by clicking a person in the org chart.
-        // Manage — structural CRUD, gated by its own manage permission.
+        // Manage - structural CRUD, gated by its own manage permission.
         ...(hasPermission(P.MANAGE_ORGANOGRAM)
           ? [{
               title: "Manage",
@@ -131,7 +131,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ],
     },
     {
-      // Tasks — Org Accountability. Gated to CX staff (every console user) at the
+      // Tasks - Org Accountability. Gated to CX staff (every console user) at the
       // API layer; what each person sees is bounded by the organogram server-side,
       // so the nav item itself carries no extra RBAC gate.
       title: "Tasks",
@@ -167,7 +167,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: routesPath.PROTECTED.ROLES.USER_ASSIGNMENTS,
           isActive: location.startsWith(routesPath.PROTECTED.ROLES.USER_ASSIGNMENTS),
         },
-        // Change Requests — only shown to users who can act on role
+        // Change Requests - only shown to users who can act on role
         // change proposals (the backend list endpoint enforces the same).
         ...(hasPermission(P.MODIFY_ROLE)
           ? [{
@@ -176,7 +176,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               isActive: location.startsWith(routesPath.PROTECTED.ROLES.CHANGE_REQUESTS),
             }]
           : []),
-        // Transfer Super Admin — only shown to users who hold the
+        // Transfer Super Admin - only shown to users who hold the
         // platform.roles.transfer permission. The backend further restricts
         // execution to the active super admin.
         ...(hasPermission(P.TRANSFER_SUPER_ADMIN)
@@ -348,7 +348,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: routesPath.PROTECTED.WORKFLOW.DELEGATIONS,
           isActive: location.startsWith(routesPath.PROTECTED.WORKFLOW.DELEGATIONS),
         },
-        // All Instances + Team Load — admin monitoring, gated by view permission.
+        // All Instances + Team Load - admin monitoring, gated by view permission.
         ...(hasPermission(P.VIEW_WORKFLOW_INSTANCES)
           ? [
               {
@@ -364,7 +364,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               },
             ]
           : []),
-        // Templates — gated by template view permission.
+        // Templates - gated by template view permission.
         ...(hasPermission(P.VIEW_WORKFLOW_TEMPLATES)
           ? [{
               title: "Templates",
@@ -423,7 +423,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: routesPath.PROTECTED.AUDIT.IMPERSONATIONS,
           isActive: location.startsWith(routesPath.PROTECTED.AUDIT.IMPERSONATIONS),
         },
-        // Audit Exports — backend requires platform.audit.export to list jobs
+        // Audit Exports - backend requires platform.audit.export to list jobs
         ...(hasPermission(P.EXPORT_AUDIT)
           ? [{
               title: "Audit Exports",
@@ -431,7 +431,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               isActive: location.startsWith(routesPath.PROTECTED.AUDIT.EXPORTS),
             }]
           : []),
-        // Compliance Rules — backend requires platform.audit.manage to list
+        // Compliance Rules - backend requires platform.audit.manage to list
         ...(hasPermission(P.MANAGE_AUDIT)
           ? [{
               title: "Compliance Rules",

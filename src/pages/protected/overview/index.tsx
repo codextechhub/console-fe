@@ -187,7 +187,7 @@ export default function Overview() {
     .sort((a, b) => a.urgency - b.urgency || b.count - a.count);
 
   // Every row is answerable from the response, so every row can actually be
-  // ticked. Two of them used to be hardcoded `done: null` — the endpoint
+  // ticked. Two of them used to be hardcoded `done: null` - the endpoint
   // returned nothing to check them against, so they sat grey forever and the
   // percentage was measured over a different set of items than the one on
   // screen. `setup` now carries both flags, gated on the same keys as the rows.
@@ -210,7 +210,7 @@ export default function Overview() {
       visible: canViewTeam,
     },
     {
-      // Was "Review roles and access" — a review is not a thing the data can
+      // Was "Review roles and access" - a review is not a thing the data can
       // ever report as done. Assigning a role is, and it is the step that
       // actually matters.
       label: "Assign roles to your team",
@@ -234,7 +234,7 @@ export default function Overview() {
   const setupDone = setupItems.filter((item) => item.done).length;
   const setupPercent = setupItems.length ? Math.round((setupDone / setupItems.length) * 100) : 100;
   // The checklist has an end. Once every row the reader can see is ticked it
-  // stops being guidance and becomes furniture, so it leaves the screen — but
+  // stops being guidance and becomes furniture, so it leaves the screen - but
   // only after the data has landed, or it would flash away and back on load.
   const showSetup = !revealed || setupDone < setupItems.length;
 
@@ -258,7 +258,7 @@ export default function Overview() {
   ].filter(Boolean) as React.ReactElement[];
 
   // Hero spotlight. These are the same signals the sections below carry, shown
-  // large and one at a time — the hero is the glance, the sections are the
+  // large and one at a time - the hero is the glance, the sections are the
   // detail. Nothing is invented: a slide only exists when its section came back
   // in the response, so a caller without health or tickets simply gets fewer.
   const spotlightSlides = [
@@ -377,8 +377,8 @@ export default function Overview() {
             </div>
           </div>
           {/* One set of cards, two presentations. Stacked on a phone these six
-              ran ~620px — most of the first screen spent scrolling past boxes
-              to reach anything actionable — so below `sm` they become a
+              ran ~620px - most of the first screen spent scrolling past boxes
+              to reach anything actionable - so below `sm` they become a
               swipeable rail and the grid takes over from `sm` up. */}
           <div className={cn("sm:hidden", revealed && "reveal-in")}>
             {/* No auto-advance here, unlike the hero spotlight: these are
@@ -495,7 +495,7 @@ export default function Overview() {
           )}
 
           {/* With the checklist retired, this would sit alone in a half-width
-              cell next to a hole — so it takes the whole row and widens its
+              cell next to a hole - so it takes the whole row and widens its
               own grid instead. */}
           <section className={cn("flex flex-col rounded-xl border border-white-02 bg-white p-4", !showSetup && "xl:col-span-2")}>
             <div><h2 className="text-base font-semibold">Your workspace</h2><p className="mt-0.5 text-xs text-gray-400">Shortcuts matched to your access.</p></div>

@@ -119,7 +119,7 @@ export const paymentsApi = baseApi.injectEndpoints({
       providesTags: ["PaymentsPayoutBatches"],
     }),
     // POST the batch detail submits its pending instructions to the PSP directly.
-    // Refused (400) once the batch is approval-gated — use submitPayoutBatchForApproval.
+    // Refused (400) once the batch is approval-gated - use submitPayoutBatchForApproval.
     submitPayoutBatch: builder.mutation<ApiEnvelope<PayoutBatch>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({ url: `/payments/payout-batches/${id}/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["PaymentsPayoutBatches", "PaymentsPayouts"],

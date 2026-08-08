@@ -1,10 +1,10 @@
 // Receivables → Refunds & Write-offs. Rebuilt to the Vision prototype in the house
 // theme: 3 KPIs, a type filter, and a UNIFIED table of refunds + write-offs, plus
 // a single "New action" drawer that toggles between refunding a credit balance to
-// the bank and writing off bad debt to expense — each with a live posting preview.
+// the bank and writing off bad debt to expense - each with a live posting preview.
 //
 // Honest adaptations vs the mockup:
-//   • a refund's real journal is Dr customer credit (2140) · Cr Bank — it pays out
+//   • a refund's real journal is Dr customer credit (2140) · Cr Bank - it pays out
 //     the customer's stored credit balance (not an open receivable), capped at the
 //     available credit;
 //   • a write-off is per-invoice in our ledger, so the write-off form picks one of
@@ -113,11 +113,11 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
   const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01";
 
   const columns: Column<ArAdjustment>[] = [
-    { header: "Ref", cell: (r) => <span className="font-semibold tabular-nums">{r.reference || "—"}</span> },
+    { header: "Ref", cell: (r) => <span className="font-semibold tabular-nums">{r.reference || "-"}</span> },
     { header: "Type", cell: (r) => <TypeChip kind={r.kind} /> },
     { header: "Date", cell: (r) => <span className="tabular-nums">{r.date}</span> },
     { header: "Customer", cell: (r) => <span className="text-gray-01">{r.customer_name}</span> },
-    { header: "Reason", cell: (r) => <span className="block max-w-[260px] truncate text-gray-01" title={r.reason}>{r.reason || "—"}</span> },
+    { header: "Reason", cell: (r) => <span className="block max-w-[260px] truncate text-gray-01" title={r.reason}>{r.reason || "-"}</span> },
     { header: "Amount", align: "right", cell: (r) => <Money kobo={r.amount} currency={currency} align="right" /> },
     { header: "Status", cell: (r) => <StatusPill status={r.status || "DRAFT"} /> },
   ];
@@ -187,10 +187,10 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
     ? { dr: [{ code: "5300", name: "Bad debt expense", amount: row.amount }], cr: [{ code: "AR", name: "Accounts Receivable (control)", amount: row.amount }] }
     : { dr: [{ code: "2140", name: "Customer credit", amount: row.amount }], cr: [{ code: "Bank", name: "cash out", amount: row.amount }] };
   const helper = wo
-    ? "Recaps the bad-debt journal — expense recognised, the receivable cleared."
+    ? "Recaps the bad-debt journal - expense recognised, the receivable cleared."
     : posted
-      ? "Recaps the refund journal — the customer's credit is paid out and cash leaves the bank."
-      : "The journal that will post when this draft refund is posted — draws down the customer's credit, cash out.";
+      ? "Recaps the refund journal - the customer's credit is paid out and cash leaves the bank."
+      : "The journal that will post when this draft refund is posted - draws down the customer's credit, cash out.";
 
   const doPost = async () => {
     if (wo && !row.write_off_id) return;
@@ -248,10 +248,10 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Amount"><Money kobo={row.amount} currency={currency} /></Field>
           <Field label="Status"><StatusPill status={row.status || "DRAFT"} /></Field>
-          <Field label={wo ? "Against invoice" : "Reference"}>{row.reference || "—"}</Field>
+          <Field label={wo ? "Against invoice" : "Reference"}>{row.reference || "-"}</Field>
           <Field label="Date">{row.date}</Field>
         </div>
-        <Field label="Reason"><span className="font-normal">{row.reason || "—"}</span></Field>
+        <Field label="Reason"><span className="font-normal">{row.reason || "-"}</span></Field>
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">GL posting</p>
           <PostingRecap title={wo ? "Write-off posting" : "Refund posting"} dr={recap.dr} cr={recap.cr} currency={currency} helper={helper} stackOnMobile />
@@ -288,7 +288,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
   const refundSearch = useDebounce(refundCustomerSearch.trim(), 250);
   // Availability is asked for **as at the chosen refund date**, not today. A refund
   // draws on credit that must already exist on its own accounting date, so a customer
-  // whose receipt lands next week has nothing to refund on a date before it — and the
+  // whose receipt lands next week has nothing to refund on a date before it - and the
   // list must not offer them, or the post fails with a 409 after the form is filled.
   const refundAvailabilityQ = useGetRefundAvailabilityQuery(
     {
@@ -310,11 +310,11 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
       : refundCustomers;
     return rows.map((item) => ({
       value: item.customer_code,
-      label: `${item.customer_code} — ${item.customer_name} · ${formatMoney(item.refundable_credit, currency)} available`,
+      label: `${item.customer_code} - ${item.customer_name} · ${formatMoney(item.refundable_credit, currency)} available`,
     }));
   }, [refundCustomers, selectedRefundCustomer, currency]);
   // Changing the date changes the answer, so the figure on screen is always read off
-  // the freshest list rather than the snapshot taken when the customer was picked —
+  // the freshest list rather than the snapshot taken when the customer was picked -
   // a stored number would quietly disagree with the date shown beside it.
   //
   // The snapshot is only a fallback for when the picked customer is legitimately
@@ -334,7 +334,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
   const noCreditOnDate = !wo && !!customer && !!date && refundableAmount <= 0
     && !refundAvailabilityQ.isFetching;
 
-  // Open invoices (with a balance due) for the chosen customer — write-off targets.
+  // Open invoices (with a balance due) for the chosen customer - write-off targets.
   const invQ = useGetInvoicesQuery({ entity, search: customer, status: "POSTED" }, { skip: !customer || !wo });
   const openInvoices = useMemo(
     () => toArray(invQ.data?.data).filter((i) => i.customer_code === customer && i.balance_due > 0),
@@ -476,7 +476,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
           && refundAvailabilityQ.data && refundCustomers.length === 0 && !refundSearch ? (
             <p className="font-mont text-xs text-gray-05">
               No customer had credit available to refund as at {date}. Credit received
-              later cannot fund a refund dated before it — try a later date.
+              later cannot fund a refund dated before it - try a later date.
             </p>
           ) : null}
         {noCreditOnDate && refundCustomers.length > 0 ? (
@@ -534,7 +534,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
           stackOnMobile
           helper={wo
             ? "A write-off recognises the loss as expense and clears the receivable."
-            : "A refund pays out a credit balance — cash leaves the bank."}
+            : "A refund pays out a credit balance - cash leaves the bank."}
         />
 
         <FormField label="Next action">

@@ -1,5 +1,5 @@
 // Procurement → Contracts. Vendor agreements with milestones, a renewal radar and
-// the activate → renew / terminate lifecycle. Master data — no GL effect.
+// the activate → renew / terminate lifecycle. Master data - no GL effect.
 import { useEffect, useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import {
@@ -45,7 +45,7 @@ const DETAIL_TABS = [
 const PAYMENT_TERMS = ["IMMEDIATE", "NET_7", "NET_14", "NET_30", "NET_60", "NET_90"];
 const termLabel = (t: string) => (t === "IMMEDIATE" ? "Immediate" : t.replace("NET_", "Net "));
 
-// The amber "Expired" overlay pill — an ACTIVE contract past its end_date; shown
+// The amber "Expired" overlay pill - an ACTIVE contract past its end_date; shown
 // alongside, never replacing, the persisted status.
 function ExpiredOverlay() {
   return <span className="rounded bg-amber-100 px-2 py-0.5 font-mont text-[11px] font-medium text-amber-700">Expired</span>;
@@ -178,7 +178,7 @@ function ContractDrawer({ id, entity, currency, onClose }: { id: number | null; 
             <Field label="Payment terms" value={termLabel(c.payment_terms)} />
             <Field label="Renewal notice" value={`${c.renewal_notice_days} days`} />
             <Field label="Auto-renew" value={c.auto_renew ? "Yes" : "No"} />
-            <div className="sm:col-span-2"><dt className="font-mont text-[11px] text-gray-05">Notes</dt><dd className="mt-1 font-mont text-sm text-black-01">{c.notes || "—"}</dd></div>
+            <div className="sm:col-span-2"><dt className="font-mont text-[11px] text-gray-05">Notes</dt><dd className="mt-1 font-mont text-sm text-black-01">{c.notes || "-"}</dd></div>
           </dl>
         )}
 
@@ -204,7 +204,7 @@ function MilestonesTab({ contract, entity, currency }: { contract: VendorContrac
         <tr key={m.id}>
           <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{m.name}</td>
           <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(m.due_date)}</td>
-          <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{m.amount ? <Money kobo={m.amount} currency={currency} /> : "—"}</td>
+          <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{m.amount ? <Money kobo={m.amount} currency={currency} /> : "-"}</td>
           <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={m.status} /></td>
           <td className="border-t border-gray-03 px-3 py-2 text-right" onClick={(e) => e.stopPropagation()}>
             {editable && m.status !== "COMPLETED" && (
@@ -219,7 +219,7 @@ function MilestonesTab({ contract, entity, currency }: { contract: VendorContrac
 
 function LinkedPosTab({ contract, entity, currency }: { contract: VendorContract; entity: string; currency?: string | null }) {
   const { data, isLoading, isError, error } = useGetContractLinkedPosQuery({ id: contract.id, entity });
-  // An empty list serialises as {} — toArray normalises it back to [].
+  // An empty list serialises as {} - toArray normalises it back to [].
   const rows = toArray(data?.data);
   if (isLoading) return <LoadingState rows={4} />;
   if (isError) return <EmptyPanel>{isForbidden(error) ? "You do not have permission to view purchase orders." : "Could not load linked purchase orders."}</EmptyPanel>;
@@ -271,7 +271,7 @@ function ContractForm({ entity, currency, initial, onClose }: { entity: string; 
   const saving = creating || updating || activating;
 
   // Soft duplicate-type guardrail (create only): a vendor holding several concurrent
-  // contracts is valid, so this only WARNS — it never blocks — when this vendor already
+  // contracts is valid, so this only WARNS - it never blocks - when this vendor already
   // has an active contract of the same type (case-insensitive title match).
   const { data: vendorActive } = useGetContractsQuery(
     { entity, vendor, status: "ACTIVE" },
@@ -348,7 +348,7 @@ function ContractForm({ entity, currency, initial, onClose }: { entity: string; 
       {dupeContract && (
         <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 font-mont text-xs text-amber-800">
           <ScrollText className="mt-0.5 size-3.5 shrink-0" />
-          <span>{dupeContract.vendor_name || vendor} already has an active contract of this type ({dupeContract.reference}). You can still proceed — multiple contracts per vendor are allowed.</span>
+          <span>{dupeContract.vendor_name || vendor} already has an active contract of this type ({dupeContract.reference}). You can still proceed - multiple contracts per vendor are allowed.</span>
         </div>
       )}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

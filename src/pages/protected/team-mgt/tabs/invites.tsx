@@ -95,7 +95,7 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
 
   const activeFilterCount = Object.values(appliedFilters).filter(Boolean).length;
 
-  // Reset to page 1 when the (debounced) search changes — done in the same
+  // Reset to page 1 when the (debounced) search changes - done in the same
   // render pass, so no intermediate request with the old page is fired.
   const [prevSearch, setPrevSearch] = useState(debouncedValue);
   if (debouncedValue !== prevSearch) {

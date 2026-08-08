@@ -59,7 +59,7 @@ const TENANT_EXEMPT_ENDPOINTS = new Set([
 ]);
 
 // Impersonation management endpoints act as the platform admin, never as the
-// impersonated target — so they never receive the impersonation session header.
+// impersonated target - so they never receive the impersonation session header.
 const IMPERSONATION_ENDPOINTS = new Set([
   "getImpersonations",
   "getProxyTargets",
@@ -79,7 +79,7 @@ const IMPERSONATION_HEADER_EXEMPT_ENDPOINTS = new Set([
 // While a proxy start/exit is hydrating the new identity, screens mounted for
 // the OLD identity can refire their queries faster than React unmounts them
 // (router.navigate resolves before the commit). Those requests would be
-// discarded by the post-swap cache reset anyway — short-circuit them here so
+// discarded by the post-swap cache reset anyway - short-circuit them here so
 // they never reach the network: no misleading permission toasts, and no false
 // PROXY_ACTION_FAILED rows in the backend audit trail. The caller resets the
 // api state AFTER the gate lifts so nothing is left in a dropped-error state.
@@ -132,7 +132,7 @@ export const baseQuery = fetchBaseQuery({
 
 // True when the request already carries an explicit `tenant` assertion (e.g.
 // impersonation start targeting another tenant, or the config API targeting a
-// school) — those must never be re-stamped with the caller's own tenant.
+// school) - those must never be re-stamped with the caller's own tenant.
 const hasTenantParam = (args: string | FetchArgs): boolean => {
   if (typeof args === "string") return /[?&]tenant=/.test(args);
   if (typeof args.url === "string" && /[?&]tenant=/.test(args.url)) return true;
@@ -253,7 +253,7 @@ export const baseQueryInterceptor: BaseQueryFn<
 
   // Background requests (e.g. the notifications bell poll, which resumes the
   // instant the tab regains focus) pass `{ silent: true }` so a transient 5xx
-  // never interrupts the user with a global error toast — they just retry on the
+  // never interrupts the user with a global error toast - they just retry on the
   // next cycle. The refresh/retry and force-logout machinery still runs.
   const silent = !!(extraOptions as { silent?: boolean } | undefined)?.silent;
   const notify = (message: string) => {
@@ -292,7 +292,7 @@ export const baseQueryInterceptor: BaseQueryFn<
   if (res?.status === 400 || res?.status === 422) {
     // Auth routes (login, reset, activate, special-login…) own their own
     // inline/panel error UX and route the message through humanizeAuthError, so
-    // never fire a global toast here — doing so leaks the raw backend detail (and
+    // never fire a global toast here - doing so leaks the raw backend detail (and
     // even machine codes like INVITATION_NOT_FOUND) into the UI beside the
     // friendly panel.
     if (!isAuthRoute(args)) {
@@ -303,8 +303,8 @@ export const baseQueryInterceptor: BaseQueryFn<
 
   if (res?.status === 401) {
     // A 401 on an auth route (login, reset, activate…) means bad credentials or
-    // an expired link — not a recoverable session. Never run the refresh/retry
-    // machinery here — doing otherwise would attempt a token refresh and retry
+    // an expired link - not a recoverable session. Never run the refresh/retry
+    // machinery here - doing otherwise would attempt a token refresh and retry
     // the login itself. No toast either: the page owns the error UI (it routes
     // the caught error through humanizeAuthError), so a global toast here would
     // duplicate the inline message.
@@ -319,7 +319,7 @@ export const baseQueryInterceptor: BaseQueryFn<
       // selector reading state.auth.access stays consistent.
       api.dispatch(setToken(refreshed.access));
 
-      // Role may have changed since last login — keep permissions and the
+      // Role may have changed since last login - keep permissions and the
       // cached tenant context fresh.
       const activeImpersonation = readAuth(api.getState).impersonation;
       const fresh = await fetchFreshMe(refreshed.access, activeImpersonation);
@@ -355,7 +355,7 @@ export const baseQueryInterceptor: BaseQueryFn<
       return result;
     }
 
-    // network_error, server_error, no_token — transient. Keep the user signed
+    // network_error, server_error, no_token - transient. Keep the user signed
     // in; the failing query surfaces its own error. Do not show the misleading
     // "session could not be restored" toast.
     return result;

@@ -40,11 +40,11 @@ export default function MySubmissions() {
         template: <span className="text-sm">{r.template_code}</span>,
         status: <InstanceStatusBadge status={r.status} />,
         stage: (
-          <span className="text-xs text-gray-01">{r.current_stage_label ?? "—"}</span>
+          <span className="text-xs text-gray-01">{r.current_stage_label ?? "-"}</span>
         ),
         updated: (
           <span className="text-xs text-gray-01">
-            {r.updated_at ? formatRelativeDate(r.updated_at) : "—"}
+            {r.updated_at ? formatRelativeDate(r.updated_at) : "-"}
           </span>
         ),
         _raw: r,

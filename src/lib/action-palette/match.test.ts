@@ -22,7 +22,7 @@ function matchesInclude(query: string, id: string): boolean {
   return ACTIONS.some((a) => a.id === id && scoreAction(a, query));
 }
 
-describe("scoreAction — tiers", () => {
+describe("scoreAction - tiers", () => {
   it("exact label is the top tier", () => {
     expect(scoreAction(byId("view-home"), "view home")?.tier).toBe(TIER.EXACT);
   });
@@ -38,7 +38,7 @@ describe("scoreAction — tiers", () => {
   });
 });
 
-describe("scoreAction — token / initials matching", () => {
+describe("scoreAction - token / initials matching", () => {
   it("'vi ho' matches View Home", () => {
     expect(matchesInclude("vi ho", "view-home")).toBe(true);
   });
@@ -58,7 +58,7 @@ describe("scoreAction — token / initials matching", () => {
   });
 });
 
-describe("scoreAction — verb synonyms", () => {
+describe("scoreAction - verb synonyms", () => {
   it("'open home' matches View Home", () => {
     expect(matchesInclude("open home", "view-home")).toBe(true);
   });
@@ -72,7 +72,7 @@ describe("scoreAction — verb synonyms", () => {
   });
 });
 
-describe("scoreAction — ranking", () => {
+describe("scoreAction - ranking", () => {
   it("a full label ranks its own action first", () => {
     expect(topMatch("view schools")).toBe("view-schools");
   });

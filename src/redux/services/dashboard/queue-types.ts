@@ -1,5 +1,5 @@
 // Types for the background-job queue (core.BackgroundJob, vs_user/views/jobs.py).
-// Every async operation — imports, exports, emails, system/scheduled runs — is
+// Every async operation - imports, exports, emails, system/scheduled runs - is
 // one row here; the View Queues page renders them. Mounted at /v1/user/me/tasks/.
 
 export type JobStatus = "QUEUED" | "RUNNING" | "SUCCEEDED" | "FAILED" | "CANCELLED";

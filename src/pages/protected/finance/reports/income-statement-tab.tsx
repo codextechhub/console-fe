@@ -1,4 +1,4 @@
-// Income Statement (P&L) — rebuilt to the Vision prototype in the house theme. The
+// Income Statement (P&L) - rebuilt to the Vision prototype in the house theme. The
 // P&L is revenue less expenses → net income (which closes to Retained Earnings at
 // year-end). Fiscal-year scoped, with optional Budget + Variance and Prior-year
 // comparison columns (toggled on when the backend has that data). Money + the
@@ -38,7 +38,7 @@ function CompareToggle({ label, checked, onChange }: { label: string; checked: b
 const thBase = "px-3 py-2 font-mont text-xs font-semibold text-gray-01";
 // Favourable variance reads positive (revenue over / expense under budget) → green.
 function Variance({ kobo, currency }: { kobo: number; currency?: string | null }) {
-  if (!kobo) return <span className="text-gray-04">—</span>;
+  if (!kobo) return <span className="text-gray-04">-</span>;
   return <span className={cn("font-semibold tabular-nums", kobo > 0 ? "text-green-01" : "text-destructive")}>
     {kobo < 0 ? "−" : ""}{formatMoney(Math.abs(kobo), currency)}
   </span>;
@@ -71,9 +71,9 @@ export function IncomeStatementReport({ entity, currency }: { entity: string; cu
     <tr key={r.account_id} className="border-t border-gray-03 font-mont text-sm">
       <td className="px-3 py-2"><span className="tabular-nums text-gray-05">{r.code}</span> <span className="text-gray-01">{r.name}</span></td>
       <td className={cn(numCell, "font-medium text-black-01")}><Money kobo={r.amount.kobo} currency={currency} align="right" /></td>
-      {showBudget ? <td className={cn(numCell, muted)}>{r.budget ? <Money kobo={r.budget.kobo} currency={currency} align="right" /> : "—"}</td> : null}
+      {showBudget ? <td className={cn(numCell, muted)}>{r.budget ? <Money kobo={r.budget.kobo} currency={currency} align="right" /> : "-"}</td> : null}
       {showBudget ? <td className={numCell}><Variance kobo={r.variance?.kobo ?? 0} currency={currency} /></td> : null}
-      {showPrior ? <td className={cn(numCell, muted)}>{r.prior_year ? <Money kobo={r.prior_year.kobo} currency={currency} align="right" /> : "—"}</td> : null}
+      {showPrior ? <td className={cn(numCell, muted)}>{r.prior_year ? <Money kobo={r.prior_year.kobo} currency={currency} align="right" /> : "-"}</td> : null}
     </tr>
   );
 
@@ -90,9 +90,9 @@ export function IncomeStatementReport({ entity, currency }: { entity: string; cu
       : "bg-gray-03/30 text-sm font-semibold text-gray-01")}>
       <td className="px-3 py-2.5">{label}</td>
       <td className={cn(numCell, "tabular-nums")}><Money kobo={t.amount.kobo} currency={currency} align="right" /></td>
-      {showBudget ? <td className={cn(numCell, muted)}>{t.budget ? <Money kobo={t.budget.kobo} currency={currency} align="right" /> : "—"}</td> : null}
+      {showBudget ? <td className={cn(numCell, muted)}>{t.budget ? <Money kobo={t.budget.kobo} currency={currency} align="right" /> : "-"}</td> : null}
       {showBudget ? <td className={numCell}><Variance kobo={t.variance?.kobo ?? 0} currency={currency} /></td> : null}
-      {showPrior ? <td className={cn(numCell, muted)}>{t.prior_year ? <Money kobo={t.prior_year.kobo} currency={currency} align="right" /> : "—"}</td> : null}
+      {showPrior ? <td className={cn(numCell, muted)}>{t.prior_year ? <Money kobo={t.prior_year.kobo} currency={currency} align="right" /> : "-"}</td> : null}
     </tr>
   );
 

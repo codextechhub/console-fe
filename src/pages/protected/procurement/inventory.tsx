@@ -41,7 +41,7 @@ const fmtQty = (value?: string | null) => {
   const n = num(value);
   return n.toLocaleString(undefined, { maximumFractionDigits: 4 });
 };
-// Signed quantity/value cell — green for a gain, red for a relief.
+// Signed quantity/value cell - green for a gain, red for a relief.
 function signClass(n: number) {
   return n > 0 ? "text-emerald-700" : n < 0 ? "text-destructive" : "text-gray-05";
 }
@@ -107,7 +107,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
 
   const columns: Column<StockItem>[] = [
     { header: "Item", cell: (i) => <div className="min-w-40"><p className="font-semibold">{i.name}</p><p className="mt-0.5 font-mont text-xs text-gray-05">{i.code}</p></div> },
-    { header: "Catalog item", cell: (i) => i.catalog_item_code || "—" },
+    { header: "Catalog item", cell: (i) => i.catalog_item_code || "-" },
     { header: "On hand", align: "right", cell: (i) => <span className="tabular-nums">{fmtQty(i.on_hand_qty)}</span> },
     { header: "Reorder", align: "right", cell: (i) => <span className="tabular-nums text-gray-05">{fmtQty(i.reorder_level)}</span> },
     { header: "Unit cost", align: "right", cell: (i) => <Money kobo={i.unit_cost} currency={currency} align="right" /> },
@@ -186,15 +186,15 @@ function StockItemDrawer({ id, entity, currency, onClose }: { id: number | null;
           <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
             <Field label="Code" value={item.code} />
             <Field label="Name" value={item.name} />
-            <Field label="Catalog item" value={item.catalog_item_code || "—"} />
+            <Field label="Catalog item" value={item.catalog_item_code || "-"} />
             <Field label="Unit of measure" value={item.unit_of_measure} />
             <Field label="On hand" value={fmtQty(item.on_hand_qty)} />
             <Field label="Reorder point" value={fmtQty(item.reorder_level)} />
             <Field label="Reorder qty" value={fmtQty(item.reorder_qty)} />
             <Field label="Unit cost" value={<Money kobo={item.unit_cost} currency={currency} />} />
             <Field label="Total value" value={<Money kobo={item.stock_value} currency={currency} />} />
-            <Field label="Inventory account" value={item.inventory_code || "—"} />
-            <Field label="Expense account" value={item.expense_code || "—"} />
+            <Field label="Inventory account" value={item.inventory_code || "-"} />
+            <Field label="Expense account" value={item.expense_code || "-"} />
             <Field label="Valuation" value="Weighted average" />
             <Field label="Active" value={item.is_active ? "Yes" : "No"} />
           </dl>
@@ -284,12 +284,12 @@ function StockItemForm({ entity, initial, onClose }: { entity: string; initial?:
       widthClass="sm:max-w-lg" onSubmit={save} submitText={initial ? "Save changes" : "Create"} loading={saving} canSubmit={canSubmit}
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <FormField label="SKU / external code"><Input value={code} onChange={(e) => setCode(e.target.value)} maxLength={40} disabled={!!initial} className="bg-white font-mont uppercase" placeholder="Optional — generated if blank" /></FormField>
+        <FormField label="SKU / external code"><Input value={code} onChange={(e) => setCode(e.target.value)} maxLength={40} disabled={!!initial} className="bg-white font-mont uppercase" placeholder="Optional - generated if blank" /></FormField>
         <FormField label="Unit of measure"><Input value={uom} onChange={(e) => setUom(e.target.value)} className="bg-white" placeholder="each" /></FormField>
       </div>
       <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} maxLength={200} className="bg-white" /></FormField>
       <FormField label="Inventory account" required><AccountPicker entity={entity} value={inventory} onChange={setInventory} accountType="ASSET" postableOnly activeOnly /></FormField>
-      <FormField label="Default expense account"><AccountPicker entity={entity} value={expense} onChange={setExpense} accountType="EXPENSE" postableOnly activeOnly placeholder="Optional — debited when stock is issued" /></FormField>
+      <FormField label="Default expense account"><AccountPicker entity={entity} value={expense} onChange={setExpense} accountType="EXPENSE" postableOnly activeOnly placeholder="Optional - debited when stock is issued" /></FormField>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField label="Reorder level"><Input type="number" min="0" value={reorderLevel} onChange={(e) => setReorderLevel(e.target.value)} className="bg-white tabular-nums" /></FormField>
         <FormField label="Reorder qty"><Input type="number" min="0" value={reorderQty} onChange={(e) => setReorderQty(e.target.value)} className="bg-white tabular-nums" /></FormField>
@@ -310,13 +310,13 @@ function IssueDrawer({ entity, currency, item, onClose }: { entity: string; curr
 
   const q = Number(qty);
   const qtyValid = Number.isFinite(q) && q > 0 && q <= onHand;
-  // Preview value at moving-average cost (server rounds with banker's rounding — a
+  // Preview value at moving-average cost (server rounds with banker's rounding - a
   // ≤1-kobo preview drift is fine).
   const value = onHand > 0 && qtyValid ? Math.round((item.stock_value * q) / onHand) : 0;
   const canSubmit = qtyValid && value > 0 && !!expense;
 
-  const dr: RecapRow[] = [{ code: expense || "—", name: "", amount: value }];
-  const cr: RecapRow[] = [{ code: item.inventory_code || "—", name: "", amount: value }];
+  const dr: RecapRow[] = [{ code: expense || "-", name: "", amount: value }];
+  const cr: RecapRow[] = [{ code: item.inventory_code || "-", name: "", amount: value }];
 
   const save = async () => {
     if (!canSubmit) return;
@@ -381,11 +381,11 @@ function AdjustDrawer({ entity, currency, item, onClose }: { entity: string; cur
       ? (unitCostKobo > 0 ? unitCostKobo * q : (onHand > 0 ? Math.round((item.stock_value * q) / onHand) : 0))
       : (onHand > 0 ? Math.round((item.stock_value * q) / onHand) : 0);
 
-  // A write-up from zero has no average to fall back on — a unit cost is required.
+  // A write-up from zero has no average to fall back on - a unit cost is required.
   const unitCostOk = !isIncrease || !fromEmpty || unitCostKobo > 0;
   const canSubmit = magnitudeValid && decreaseValid && value > 0 && unitCostOk;
 
-  const inv: RecapRow = { code: item.inventory_code || "—", name: "", amount: value };
+  const inv: RecapRow = { code: item.inventory_code || "-", name: "", amount: value };
   const adj: RecapRow = { code: adjustment || "5150", name: "", amount: value };
   const dr = isIncrease ? [inv] : [adj];
   const cr = isIncrease ? [adj] : [inv];
@@ -421,7 +421,7 @@ function AdjustDrawer({ entity, currency, item, onClose }: { entity: string; cur
         <PostingDateField label="Movement date" entity={entity} value={movementDate} onChange={setMovementDate} />
       </div>
       {isIncrease && (
-        <FormField label={`Unit cost${fromEmpty ? "" : " (optional — defaults to average)"}`} required={fromEmpty}>
+        <FormField label={`Unit cost${fromEmpty ? "" : " (optional - defaults to average)"}`} required={fromEmpty}>
           <MoneyInput valueKobo={unitCostKobo} onChangeKobo={setUnitCostKobo} currency={currency} />
         </FormField>
       )}
@@ -447,12 +447,12 @@ function MovementsSection({ entity, currency }: { entity: string; currency?: str
     { header: "Date", cell: (m) => shortDate(m.movement_date) },
     { header: "Move #", cell: (m) => <span className="font-mont font-semibold text-primary">#{m.id}</span> },
     { header: "Type", cell: (m) => <StatusPill status={m.movement_type} /> },
-    { header: "Item", cell: (m) => m.stock_item_code || "—" },
+    { header: "Item", cell: (m) => m.stock_item_code || "-" },
     { header: "Qty", align: "right", cell: (m) => { const q = num(m.quantity); return <span className={cn("tabular-nums", signClass(q))}>{q > 0 ? "+" : ""}{fmtQty(m.quantity)}</span>; } },
     { header: "Value", align: "right", cell: (m) => <Money kobo={m.value_amount} currency={currency} align="right" /> },
     { header: "Bal. qty", align: "right", cell: (m) => <span className="tabular-nums">{fmtQty(m.balance_qty)}</span> },
-    { header: "By", cell: (m) => m.created_by_name || "—" },
-    { header: "Reference", cell: (m) => m.reference || "—" },
+    { header: "By", cell: (m) => m.created_by_name || "-" },
+    { header: "Reference", cell: (m) => m.reference || "-" },
   ];
 
   return (

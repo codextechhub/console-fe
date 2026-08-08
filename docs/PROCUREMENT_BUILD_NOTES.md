@@ -1,48 +1,48 @@
-# Procurement Console — Build Notes & Handoff
+# Procurement Console - Build Notes & Handoff
 
 How we rebuild the Procurement console screens to their design pack, what's done,
-and what's next. Sibling to `docs/FINANCE_BUILD_NOTES.md` — the **conventions,
+and what's next. Sibling to `docs/FINANCE_BUILD_NOTES.md` - the **conventions,
 theme, typography and honesty rules there apply here unchanged**; this file only
 records what is *procurement-specific* plus the screen roadmap.
 
 Companion to `CLAUDE.md` (ship-check / verify-design) and `PERMISSIONS_AUDIT.md`.
 
-## Design source — `Procurement_Console.html` (repo root, gitignored)
+## Design source - `Procurement_Console.html` (repo root, gitignored)
 The prototype is a **rendered app**: a raw `grep`/`rg` of the HTML returns **0
-hits** for screen labels. **To study a screen you must render it** — open
+hits** for screen labels. **To study a screen you must render it** - open
 `file://…/Procurement_Console.html` in a headless browser (Playwright / system
 Chrome; the `verify-design` skill's Playwright works), click the nav item,
 screenshot, and look. Do not conclude "no design exists" from a text search.
 Build to the prototype's **structure**, in our **house theme** (never its palette).
 
-Render recipe (SPA — `networkidle` fires before it mounts):
+Render recipe (SPA - `networkidle` fires before it mounts):
 `page.goto(file, { waitUntil: "load" }); await page.waitForTimeout(4000);`
 
 ## Per-screen workflow (identical to finance)
 1. **Render** the prototype → screenshot the screen *and* every state: list +
    filters/tabs/KPIs/empty state, the detail drawer + each tab, every create/edit
    drawer/modal, row/footer actions, and any multi-step flow.
-2. **Plan first** — present the structure and get sign-off. Flag honest
+2. **Plan first** - present the structure and get sign-off. Flag honest
    adaptations where our generic model lacks a prototype field.
 3. **Build** to the prototype, house theme, reusing the finance-ui primitives.
 4. **Verify** with `/verify-design` (drive the running app with real data, read
-   the screenshots — build-green ≠ works), then **scrub** the test-login rows.
+   the screenshots - build-green ≠ works), then **scrub** the test-login rows.
 5. **Commit in batches, directly to `main`** (FE + backend separately; end commit
    bodies with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`).
 
-## What already exists (scaffolding — do NOT rebuild)
+## What already exists (scaffolding - do NOT rebuild)
 - **Nav + shell**: `procurement-nav.ts` already groups the sidebar exactly like
   the prototype (Dashboard · Procure to Pay · Vendors & Catalog · Sourcing ·
   Inventory · Analytics), and `procurement-shell.tsx` wraps pages in the shared
   `ConsoleShell` (house theme, `.console-geist`, global entity picker). The IA is
   correct; the rebuild is **per-screen content**, not layout.
-- **Backend**: `vs_procurement` is **fully built** — every prototype screen has
+- **Backend**: `vs_procurement` is **fully built** - every prototype screen has
   endpoints (see the map below). This effort is a **FE redesign**, not a backend
   build. The one likely exception is the Dashboard aggregate (see roadmap).
 - The current procurement pages are **pre-prototype**; rebuild each in place.
 
 ## Conventions (reuse the finance-ui kit)
-- **Same table everywhere**: `DataTable` (`@/components/finance-ui`) — column-
+- **Same table everywhere**: `DataTable` (`@/components/finance-ui`) - column-
   driven over the shared shadcn `Table`, server pagination, the four explicit
   states (loading / empty / error / forbidden), row-click → drawer. Same header
   (`bg-[#F1F1F1]`), same cell typography as the finance AR screens.
@@ -56,7 +56,7 @@ Render recipe (SPA — `networkidle` fires before it mounts):
   modals. Detail drawers use **tabs with icons** for rich records.
 - **Money** = integer **kobo** on the wire; render with `<Money kobo>` /
   `formatMoney`.
-- Guard every list with `toArray()` — an empty list serialises as `{}`.
+- Guard every list with `toArray()` - an empty list serialises as `{}`.
 - Gate controls with `Can` / `P.PROC_*`; register any new key and update
   `PERMISSIONS_AUDIT.md`.
 - **Typography / theme**: follow `FINANCE_BUILD_NOTES.md` §Typography and §Font
@@ -65,7 +65,7 @@ Render recipe (SPA — `networkidle` fires before it mounts):
   sentence-case; drawer sub-table `th`/`td` as specified). Consoles render in
   Geist via `.console-geist`.
 - **Responsive (phone/tablet)**: pages must never overflow horizontally.
-  `DashboardLayout` wraps pages in `grid grid-cols-1 min-w-0` (don't remove — it
+  `DashboardLayout` wraps pages in `grid grid-cols-1 min-w-0` (don't remove - it
   stops nowrap tables stretching `<main>`). `DataTable` renders rows as stacked
   label/value cards below `md` (opt out per table with `mobile="scroll"` for
   dense reports; custom card via `mobileCard`). Toolbars `flex-wrap`; tab strips
@@ -74,16 +74,16 @@ Render recipe (SPA — `networkidle` fires before it mounts):
   on phones; drawers `w-full sm:max-w-[…]`. Verify with
   `.claude/skills/verify-design/_mobile_audit.mjs` (drive.mjs at 390/820px + a
   page-overflow probe): run from the skill dir with `BASE_URL`+`ROUTES`.
-  Depth policy: phones are **view + simple actions** — browsing, details,
+  Depth policy: phones are **view + simple actions** - browsing, details,
   approvals and simple forms must be great; complex multi-line editors stay
   desktop-first (usable on phone, not optimized, desktop never degraded).
 
-## Drawer styles (reuse the finance-ui primitives — do not hand-roll)
+## Drawer styles (reuse the finance-ui primitives - do not hand-roll)
 Everything opens in a **right-side drawer**, never a centered modal (unless the
 prototype explicitly shows one). All portal to `<body>` and carry `.console-geist`
 themselves. Full typography rules: `FINANCE_BUILD_NOTES.md` §Typography.
 
-**Detail drawer — `DetailDrawer` (`@/components/finance-ui`)**
+**Detail drawer - `DetailDrawer` (`@/components/finance-ui`)**
 - Props: `open`, `onOpenChange`, `title`, `description?`, `children`, `footer?`,
   `widthClass` (default `sm:max-w-xl`; use `sm:max-w-3xl` for wide records like the
   3-way match or a Dr/Cr posting recap).
@@ -92,7 +92,7 @@ themselves. Full typography rules: `FINANCE_BUILD_NOTES.md` §Typography.
   actions row.
 - Rich records → **tabs with icons** (e.g. Lines · Match · GL · Activity).
 - **Field row** (the `Stat`/`Field` helper): label `font-mont text-[11px]
-  text-gray-05` (sentence case — no uppercase/tracking); value `mt-1 font-mont
+  text-gray-05` (sentence case - no uppercase/tracking); value `mt-1 font-mont
   text-sm font-semibold tabular-nums text-black-01`; long prose → `font-normal`.
 - **Sub-table** inside a drawer: `th = bg-[#F1F1F1] px-3 py-2 font-mont text-[11px]
   font-semibold text-gray-01`; `td = border-t border-gray-03 px-3 py-2 font-mont
@@ -102,21 +102,21 @@ themselves. Full typography rules: `FINANCE_BUILD_NOTES.md` §Typography.
 - Footer actions: Post / Submit / Match etc.; Print = `window.print()`;
   email/comms = **disabled-with-tooltip**.
 
-**Form (create/edit) drawer — `FormDrawer` (`@/components/finance-ui`)**
+**Form (create/edit) drawer - `FormDrawer` (`@/components/finance-ui`)**
 - Built on `DetailDrawer`; owns the Cancel/Submit footer. Props: `open`,
   `onOpenChange`, `title`, `description?`, `onSubmit`, `submitText`, `loading`,
   `canSubmit` (gates the submit button), `widthClass` (default `sm:max-w-lg`).
-- Wrap each field in **`FormField`** (`label`, `required`) — label renders
+- Wrap each field in **`FormField`** (`label`, `required`) - label renders
   `font-mont text-xs text-gray-05`.
 - Inputs: **pickers over `SearchSelect`** for references (`VendorPicker`,
   `AccountPicker`, `CategoryPicker`/catalog, `BankAccountPicker`…); **`MoneyInput`**
   for kobo money; **`Segmented`** for enum toggles (options are **tuples not
-  objects** — see [[finance_ui_gotchas]]); **`LineEditor`** (+ `emptyLine`,
+  objects** - see [[finance_ui_gotchas]]); **`LineEditor`** (+ `emptyLine`,
   `toApiLines`, `DocLine`) for document line grids.
 - Gate `canSubmit` on validity (and dirty, for edit). Keep input heights even with
   the `h-9` / `[&_input]:h-9` pattern. `FormField` has **no** `hint` prop.
 - A create drawer that will **post** shows a **live `PostingRecap` preview** of the
-  journal that will be written (mirrors the real posting — no second journal).
+  journal that will be written (mirrors the real posting - no second journal).
 - `FormModal` is the centered-dialog sibling; use it only where the prototype
   shows a centered modal.
 
@@ -133,7 +133,7 @@ Procure-to-Pay spine and its GL:
 - **GL**: GRN posts `Dr Inventory/Expense · Cr GR/IR clearing`; vendor invoice
   posts `Dr GR/IR · Cr Accounts Payable`; payment posts `Dr AP · Cr Bank`.
   **GR/IR** (goods-received / invoice-received) is the clearing account the
-  GR/IR & Control screen reconciles — a real balance, recap it truthfully.
+  GR/IR & Control screen reconciles - a real balance, recap it truthfully.
 - **Approvals** ride the shared **vs_workflow** engine (same queue the other
   consoles use); the prototype's "Approvals" nav item points at the workflow
   queue filtered to procurement, not a bespoke procurement table.
@@ -177,7 +177,7 @@ Prototype: 5 KPI tiles (Total Spend MTD · Open Purchase Orders · Pending
 Approvals · Overdue Invoices · Active Vendors) · **Spend by Category** donut ·
 **Purchase Order Status** bars · **Monthly Spend Trend** line · **Recent Activity**
 feed · **Approvals Awaiting You** list. Charts reuse the finance-ui `charts`.
-**Data-source decision — resolved:** the screen uses the entity-scoped
+**Data-source decision - resolved:** the screen uses the entity-scoped
 `GET reports/dashboard/?entity=<code>` aggregate, gated by
 `procurement.report.view`. One server response supplies KPIs, category spend, PO
 statuses, the eight-month trend, safe procurement audit activity, and the
@@ -189,15 +189,15 @@ record to the resolved entity. Honest adaptations: “On hold” is not presente
 category; and only real workflow document types are included.
 
 ### 2. Procure to Pay
-- **Requisitions ☑** — list (KPIs/status tabs) · detail drawer (lines, approval
+- **Requisitions ☑** - list (KPIs/status tabs) · detail drawer (lines, approval
   trail) · new-requisition drawer (line editor + catalog/category pickers) ·
   Submit action. Endpoints: `requisitions/` (+submit).
-- **Purchase Orders ☑** — list · detail drawer (lines, linked requisition/quote,
+- **Purchase Orders ☑** - list · detail drawer (lines, linked requisition/quote,
   receipts) · new-PO drawer with delivery address and vendor-defaulted payment terms ·
   Save Draft / Create & Submit · draft order-term editing. Pending Approval is
   locked until the workflow returns the PO to Draft; copied requisition lines remain
   immutable. Email-to-vendor **deferred**. `purchase-orders/`.
-- **Goods Receipts ☑** — list · detail drawer (Overview · Received Items · Quality
+- **Goods Receipts ☑** - list · detail drawer (Overview · Received Items · Quality
   Notes) · new-GRN drawer with PO lines, accepted/rejected quantities and inspection
   notes · **Post** with a real journal recap (`Dr Inventory/Expense · Cr GR/IR`).
   The authenticated user is stored as Received By without a redundant form field;
@@ -217,7 +217,7 @@ category; and only real workflow document types are included.
   posted receipts are immutable because their journal and PO quantities are authoritative,
   and expose **Receive Remaining** to create the next GRN against the outstanding PO quantity.
   `goods-receipts/` (+post).
-- **Vendor Invoices ☑** — prototype-aligned KPI/list tabs plus a right-side create/edit
+- **Vendor Invoices ☑** - prototype-aligned KPI/list tabs plus a right-side create/edit
   drawer and detail tabs (Overview · Line Items · 3-Way Match · Payment History ·
   Activity). Ledger status, workflow approval, match outcome, payment coverage and
   overdue state remain separate fields; the list may show an actionable display
@@ -241,7 +241,7 @@ category; and only real workflow document types are included.
   was not visually proven because the seeded entity did not contain those lifecycle
   examples. The verifier was kept read-only and did not manufacture transactional
   invoice states merely to improve screenshot coverage.
-- **Vendor Payments ☑** — implemented and verified against the real CODEX backend.
+- **Vendor Payments ☑** - implemented and verified against the real CODEX backend.
   Prototype-aligned list (Payment Ref · Vendor · Invoices · Date · Method · Net Paid ·
   separate ledger/approval/allocation pills), responsive detail drawer tabs
   (Overview · Invoices · Posting · Activity), and a create/edit drawer that selects
@@ -266,9 +266,9 @@ category; and only real workflow document types are included.
   rendered without console/page errors. The 390px phone and 820px tablet audit reported
   zero page-level horizontal overflow. Phone screenshots prove the complete card list,
   usable approval drawer and stacked create form. The drawer now resets to Overview when
-  switching records—a screenshot-discovered regression fixed before completion. The
+  switching records-a screenshot-discovered regression fixed before completion. The
   verifier login/session/auth/audit rows were scrubbed after the run.
-- **Approvals ☑** — **decision resolved:** a Procurement-framed queue at
+- **Approvals ☑** - **decision resolved:** a Procurement-framed queue at
   `/procurement/approvals`, not a link to the global Workflow console. The backend
   adapters resolve the selected ledger entity against the real generic workflow
   target, restrict document types to Requisition / Purchase Order / Vendor Invoice /
@@ -297,7 +297,7 @@ category; and only real workflow document types are included.
   rows were scrubbed afterward.
 
 ### 3. Vendors & Catalog
-- **Vendors ☑** — prototype-aligned responsive avatar list, authoritative status/KYC
+- **Vendors ☑** - prototype-aligned responsive avatar list, authoritative status/KYC
   filters, report-backed KPI strip, five-tab detail drawer (Profile · Contacts · Bank &
   Compliance · Contracts & History · Performance), and new/edit form drawers. **Add Vendor**
   follows the console convention beside the page title; dismissing an edit drawer clears
@@ -331,7 +331,7 @@ category; and only real workflow document types are included.
   all five detail tabs and create/edit drawers render with zero console/page errors; 390px
   phone and 820px tablet screenshots were inspected with zero page overflow; verification
   login rows were scrubbed. `vendors/`.
-- **Categories ☑** — prototype-aligned three-level taxonomy tree with All / Active /
+- **Categories ☑** - prototype-aligned three-level taxonomy tree with All / Active /
   Inactive filters, debounced search, linked-vendor counts, report-gated realised spend,
   three-tab detail drawer (Overview · Usage · Spend), and create/edit form drawers.
   **Hierarchy contract:** `VendorCategory.parent` is an optional same-entity self-FK.
@@ -361,19 +361,19 @@ category; and only real workflow document types are included.
   states rendered without console/page errors; inspected 390px phone and 820px tablet
   states show complete cards and drawers with zero page overflow; verifier login rows were
   scrubbed. `categories/`.
-- **Catalog ☐** — catalog-item list (category, unit, price) · detail · create/edit
+- **Catalog ☐** - catalog-item list (category, unit, price) · detail · create/edit
   drawer with category + vendor pickers. `catalog-items/`.
 
 ### 4. Sourcing
-- **RFQs ☑ / Quotations ☑** — rebuilt and verified **together as one section** (one
+- **RFQs ☑ / Quotations ☑** - rebuilt and verified **together as one section** (one
   competitive-sourcing flow: issue → quote → submit → award; the RFQ drawer lists
   quotations, Compare awards them, award flips both documents). Contracts ships
   separately afterwards. **Resolved decisions (2026-07-20, approved):**
   - *Honest adaptations*: the prototype's invited-vendor list/count, category,
     budget estimate, warranty, spec compliance, vendor grade and free-text
     Evaluation/Recommendation have **no model backing and are not invented**.
-    Real replacements: response count, requisition link, line specs, and — in
-    Compare — only real criteria (total, `lead_time_days`, valid-until,
+    Real replacements: response count, requisition link, line specs, and - in
+    Compare - only real criteria (total, `lead_time_days`, valid-until,
     submitted date, reference, status, per-`rfq_line` unit-price matrix, honest
     lowest-total highlight).
   - *Contracts*: split list vs detail serializers. RFQ list adds
@@ -400,7 +400,7 @@ category; and only real workflow document types are included.
   - *Preservation*: submitted/awarded/rejected documents immutable; award still
     snapshots quoted prices/accounts onto the DRAFT PO; nothing rewrites
     requisitions/POs/journals.
-  - *Seed*: `seed_procurement_demo` gains idempotent real-service fixtures — a
+  - *Seed*: `seed_procurement_demo` gains idempotent real-service fixtures - a
     draft RFQ, an issued RFQ with 3 competing submitted quotes, an awarded RFQ
     with its real draft PO + rejected siblings, and a cancelled RFQ.
   - *FE*: `sourcing.tsx` replaced by `sourcing/rfqs.tsx` +
@@ -414,16 +414,16 @@ category; and only real workflow document types are included.
     build wrongly dropped the prototype's **Invite Vendors** section and **Budget
     Estimate (₦)** field; both are now built end-to-end. New `RfqInvitation`
     model (`rfq` CASCADE FK, `vendor` PROTECT FK, `unique_together(rfq, vendor)`,
-    index on `rfq`) — a pure addressee record with **no status field**:
+    index on `rfq`) - a pure addressee record with **no status field**:
     "responded" is *derived* (a quotation exists from that vendor on that RFQ).
     New `budget_estimate` MoneyField (nullable) on `RequestForQuotation`.
     Migration `0012_requestforquotation_budget_estimate_rfqinvitation`.
-    **Product rules (approved):** (1) **Invited-only** — a vendor may submit a
+    **Product rules (approved):** (1) **Invited-only** - a vendor may submit a
     quotation against an RFQ *only if it holds an invitation on that RFQ*;
     enforced at quotation-create (400) and defensively in `submit_quotation`
     (422). (2) **Issue requires ≥1 invitation** as well as ≥1 line ("an RFQ must
     invite at least one vendor before it can be issued"). Invitations are set via
-    `sourcing.set_rfq_invitations(rfq, vendors)` — draft-only, same-entity +
+    `sourcing.set_rfq_invitations(rfq, vendors)` - draft-only, same-entity +
     purchase-eligible, de-duplicated, and it **refuses to drop a vendor that has
     already responded** (removing it would strand that bid's history). RFQ
     create/PATCH accept `invited_vendors` (codes or ids) + `budget_estimate`
@@ -431,7 +431,7 @@ category; and only real workflow document types are included.
     `invited_count` (annotation) + `budget_estimate`; RfqDetail adds
     `budget_estimate` + `invitations[]` (`{vendor_id, vendor_code, vendor_name,
     responded, quotation_id, quotation_status, quotation_total}`, joined in Python
-    over prefetched invitations+quotations — no N+1). No new permission keys
+    over prefetched invitations+quotations - no N+1). No new permission keys
     (invitations ride `rfq.create`/`rfq.update`, quoting rides
     `quotation.create`). **FE:** the New/Edit RFQ drawer gained a **Budget
     estimate** `MoneyInput` and an **Invite vendors** chip editor (purchase-
@@ -446,12 +446,12 @@ category; and only real workflow document types are included.
     the three quoting vendors **plus** a fourth (`SIDMACH`) that never responds (a
     real "Awaited" row) and carries a budget; awarded/draft/cancelled RFQs invite
     1–2 vendors; every RFQ is invited before it is issued.
-- **Contracts ☑** — rebuilt and verified. List (KPI strip Active/Expiring ≤30d/Expired/Total
+- **Contracts ☑** - rebuilt and verified. List (KPI strip Active/Expiring ≤30d/Expired/Total
   active value · All/Active/Expiring/Expired tabs · debounced search · `is_expired` amber
   overlay) · detail drawer (Overview · Terms · Milestones · **Linked POs** · Activity) ·
   create/edit `DetailDrawer` form (Save draft / Create & activate, optional milestones editor,
   vendor + type/title + dates + value + terms + notice + auto-renew) · Renew form · per-milestone
-  Complete · Activate / Terminate. **Owner-approved decisions:** (1) *Linked POs* — **revised
+  Complete · Activate / Terminate. **Owner-approved decisions:** (1) *Linked POs* - **revised
   to explicit link + term fallback** after the owner noted that a vendor with two overlapping
   contracts made a pure vendor+term match ambiguous (the same PO showed under both). A nullable
   `contract` FK (`SET_NULL`) was added to `PurchaseOrder` (migration `0013`) with an optional
@@ -460,14 +460,14 @@ category; and only real workflow document types are included.
   clears a now-invalid link, FE and BE). `contracts/<id>/linked-pos/` (gated
   `procurement.purchase_order.view`) now returns explicit call-offs tagged `link_type:"linked"`
   **first**, then same-vendor **unlinked** (`contract IS NULL`) POs inside `[start,end]` tagged
-  `"association"` — so an explicitly-linked PO never leaks into another overlapping contract's
+  `"association"` - so an explicitly-linked PO never leaks into another overlapping contract's
   fallback. The tab renders **Linked** vs **In-term** badges. Also a **soft duplicate-type
   guardrail** (create only, FE): a non-blocking amber warning when the chosen vendor already has
-  an ACTIVE contract of the same (case-insensitive) title — multiple contracts per vendor stay
+  an ACTIVE contract of the same (case-insensitive) title - multiple contracts per vendor stay
   valid, so it never blocks. (2) *Terms* shows only real fields (payment terms, renewal notice,
-  auto-renew, notes) — no invented SLA-uptime/penalty-clause; (3) the contract *reference* is
+  auto-renew, notes) - no invented SLA-uptime/penalty-clause; (3) the contract *reference* is
   auto-generated server-side (`<ENTITY>-CT-#######`) via the shared finance document-number
-  allocator with a `CT` token (no migration — `DocumentSequence.doc_type` choices aren't
+  allocator with a `CT` token (no migration - `DocumentSequence.doc_type` choices aren't
   DB-enforced), still overridable and unique per entity. New endpoints: `contracts/summary/`
   (honest date-derived KPIs, no fabricated trend), `contracts/<id>/linked-pos/`. List gains
   `milestone_count`/`vendor_name`/`is_expired` + `?q=`/`?expiring=1`; detail gains an audit
@@ -480,7 +480,7 @@ category; and only real workflow document types are included.
   update, completeMilestone; renew carries a real body.)*
 
 ### 5. Inventory
-- **Stock Items ☑ / Movements ☑** — rebuilt and verified **together as one section**
+- **Stock Items ☑ / Movements ☑** - rebuilt and verified **together as one section**
   (2026-07-21). Stock Items: report-backed KPI strip (Items tracked / Low / Out /
   Total value), debounced search + "Needs reorder" filter, `DataTable` (Item · Catalog
   item · On-hand · Reorder · Unit cost · Value · derived status pill) with phone cards,
@@ -492,33 +492,33 @@ category; and only real workflow document types are included.
   `stock-movements/`.
 
 ### 6. Analytics (all read-only reports, `procurement.report.view`) ☑
-- **AP Aging ☑** — aging buckets by vendor. `reports/ap-aging/` (+ `ap-cash-requirements/`).
-- **GR/IR & Control ☑** — GR/IR clearing balance + aging (goods received not
+- **AP Aging ☑** - aging buckets by vendor. `reports/ap-aging/` (+ `ap-cash-requirements/`).
+- **GR/IR & Control ☑** - GR/IR clearing balance + aging (goods received not
   invoiced / invoiced not received). `reports/grir-aging/`.
-- **Spend ☑** — spend analysis (by category / vendor / month). `reports/spend-analysis/`.
-- **Vendor Performance ☑** — on-time delivery + payment behaviour (no quality/variance
-  grades — not tracked). `reports/vendor-performance/`.
+- **Spend ☑** - spend analysis (by category / vendor / month). `reports/spend-analysis/`.
+- **Vendor Performance ☑** - on-time delivery + payment behaviour (no quality/variance
+  grades - not tracked). `reports/vendor-performance/`.
 - *(Also available if the prototype surfaces them: `ap-reconciliation/`,
   `cycle-time/`, `stock-reorder/`, `stock-valuation/`.)*
-- **Rebuilt and verified together as one section (2026-07-22)** — see the
-  "Analytics (§6) — rebuilt and verified" note below. **This completes the
+- **Rebuilt and verified together as one section (2026-07-22)** - see the
+  "Analytics (§6) - rebuilt and verified" note below. **This completes the
   Procurement console rebuild.**
 
 ## Running / verifying locally
 - Backend: `cd backend/apps && ../cx/bin/python manage.py runserver --settings=apps.settings.local`
 - `/verify-design /procurement/<route>` drives the real app, screenshots each
-  route, and scrubs its test-login rows. **Read the screenshots** — a blank frame
+  route, and scrubs its test-login rows. **Read the screenshots** - a blank frame
   or the error boundary is a failure even if the run "succeeded". Entity-scoped
   screens need a ledger entity (CODEX / CREST in dev).
 
-## Seeding data for checks & cleanup — READ before verifying a screen
+## Seeding data for checks & cleanup - READ before verifying a screen
 Use entity **`CODEX`** for all checks (CREST also exists; stick to CODEX so data
-is consistent — same convention finance uses). Procurement is entity-scoped over
+is consistent - same convention finance uses). Procurement is entity-scoped over
 the **same `vs_finance.LedgerEntity`**, and its postings write **real finance
 journals**, so before any populated check the entity must have:
 - **RBAC keys**: `python manage.py seed_procurement_permissions` (idempotent).
 - **Finance chart of accounts + at least one OPEN fiscal period** for the posting
-  date — `python manage.py seed_finance_ar_demo --all` gives CODEX its chart + 12
+  date - `python manage.py seed_finance_ar_demo --all` gives CODEX its chart + 12
   open periods. Without them GRN/invoice/payment posting 409s `PERIOD_CLOSED`
   (or fails on a missing GL account: GR/IR clearing, AP, Inventory/Expense, Bank).
 
@@ -541,18 +541,18 @@ services, never raw status writes:
   `StockItem`.
 - Amounts are **kobo** (₦80,000 = `8000000`). The **canonical example of how to
   build valid records + open period + vendor + tax codes** is the fixture in
-  `vs_procurement/tests.py` (`setUp` / the `_FixtureMixin` — it does
+  `vs_procurement/tests.py` (`setUp` / the `_FixtureMixin` - it does
   `seed_chart_of_accounts(entity)` + an open `FiscalPeriod` + a `Vendor`). Copy it.
 
 **Cleanup after a test:** `/verify-design` drives are **read-only**, and its
 `scrub.sh` deletes **only** the test-login trail (loginsession / authattempt /
-LOGIN_SUCCESS audit since the baseline + resets `last_login`) — it **never** touches
+LOGIN_SUCCESS audit since the baseline + resets `last_login`) - it **never** touches
 procurement business rows. So anything you seed **stays in the dev DB for reuse**;
 delete ad-hoc rows by hand if you want a clean slate (harmless either way). Record
 the standing demo rows you create here (as finance's notes do) so later checks know
 what exists.
 
-## Tests (mirror finance — security first)
+## Tests (mirror finance - security first)
 Procurement tests live in `vs_procurement/tests.py`. For any backend change, add:
 the **permission-denied (403)** case and **cross-entity isolation** first, then the
 happy path + each action/filter. Run with `--keepdb` (avoids the `test_cx_db`
@@ -580,7 +580,7 @@ the old inline stub in `vendors/index.tsx`: All/Active/Inactive tabs, debounced 
 category + preferred-vendor filters, prototype-aligned `DataTable` columns (Item/SKU,
 Category, Unit, Standard price, Preferred vendor, Lead time, Stock*, Status) with phone
 cards, a `DetailDrawer` with Overview / Vendor Pricing / Purchase History tabs (real
-insights via `/catalog-items/{id}/insights/`, honest empty states — no fabricated pricing
+insights via `/catalog-items/{id}/insights/`, honest empty states - no fabricated pricing
 or history), and a `FormDrawer` create/edit with immutable code, hierarchy-aware category,
 `MoneyInput`, eligible-vendor/`AccountPicker`/`TaxCodePicker` defaults, and changed-fields-
 only PATCH. Pickers now filter to purchasing-eligible vendors / active-postable accounts /
@@ -592,10 +592,10 @@ gated on dirty), categories no longer 500, zero console errors, no phone/tablet 
 `StatusPill` gained IN_STOCK/LOW_STOCK/OUT_OF_STOCK/NOT_TRACKED variants.
 
 Backend follow-ups (separate repo, still uncommitted): (1) `makemigrations --check` reports
-drift — migration `0011`'s catalog index name doesn't match the model Meta's auto-name
+drift - migration `0011`'s catalog index name doesn't match the model Meta's auto-name
 (wants a `0012` rename); align the name before the backend commit. (2) A pre-existing FE
 build-breaker in `src/hooks/use-action-search.ts` (userId typed `number` passed to string
-popularity helpers) was fixed here — unrelated to Catalog.
+popularity helpers) was fixed here - unrelated to Catalog.
 
 Sourcing (RFQs + Quotations) is now rebuilt and verified as one section. FE: `sourcing.tsx`
 replaced by `sourcing/rfqs.tsx` + `sourcing/quotations.tsx` + `sourcing/shared.tsx`
@@ -609,7 +609,7 @@ Quotations · Activity), Issue/Close/Cancel footer actions, and a draft-only cre
 beside the heading, status tabs + RFQ/vendor filters + search, list with honest amber
 `Expired` overlay pill (never replacing the persisted status), `DetailDrawer` (Overview ·
 Line comparison with real sibling-lowest per RFQ line · Activity), Submit/Award footer,
-awarded "Locked — awarded to <PO>" hint, and a draft-only create/edit drawer with an
+awarded "Locked - awarded to <PO>" hint, and a draft-only create/edit drawer with an
 ISSUED-only RfqPicker, purchase-eligible VendorPicker, MoneyInput priced rows and RFQ-line
 prefill. The **Compare modal** is the deliberate improvement over the prototype: it drops
 the prototype's invented warranty/spec-compliance/vendor-grade/recommendation and shows only
@@ -637,7 +637,7 @@ auto-generated references (shared allocator, `CT` token, no migration), a `contr
 KPI endpoint, a permission-split `contracts/<id>/linked-pos/` (real vendor+term PO association),
 list `is_expired`/`milestone_count`/`?q=`/`?expiring=1`, a detail audit-activity feed + renewal
 chain, terminal-safe hardened PATCH, and idempotent draft/active/expiring/expired/renewed seed
-fixtures. 143 Procurement tests pass (was 134 — adds a `ContractConsoleAPITests` class covering
+fixtures. 143 Procurement tests pass (was 134 - adds a `ContractConsoleAPITests` class covering
 permission denial across every verb, cross-entity isolation, reference auto-gen uniqueness,
 create/PATCH validation + terminal-edit rejection, summary counts, linked-pos vendor+term
 scoping + its purchase-order permission gate, the `?expiring=1` filter, empty-list shape, and
@@ -648,21 +648,21 @@ backend with zero console errors and zero mutations on dismissal; 390px phone + 
 audit reported zero page overflow with genuine card layouts. Verifier login/audit rows scrubbed.
 
 Follow-up increment (2026-07-21, owner-requested after review): the Linked POs decision was
-revised from a pure vendor+term match to **explicit link + term fallback** — a nullable
+revised from a pure vendor+term match to **explicit link + term fallback** - a nullable
 `PurchaseOrder.contract` FK (migration `0013`), an "Against contract" call-off picker in the PO
 create/edit drawer (that vendor's ACTIVE contracts only; cross-vendor/non-ACTIVE rejected; vendor
 change clears the link), a `link_type` (`linked`/`association`) on `linked-pos` so overlapping
 contracts no longer share the same POs (Linked vs In-term badges), and a **soft, non-blocking**
 duplicate-type guardrail warning on New Contract when a vendor already holds an active contract of
 the same title. A `LinkedPosTab` `{}`→`toArray` empty-list crash (found in review by clicking a
-contract with no linked POs — the missing empty-state case) was fixed. 145 Procurement tests pass
+contract with no linked POs - the missing empty-state case) was fixed. 145 Procurement tests pass
 (adds explicit-link/fallback + cross-vendor/non-ACTIVE + clear-on-vendor-change coverage); Django
 check + `makemigrations --check` clean; production build + changed-file lint clean. Drove real
 CODEX data: the Linked POs tab shows one **Linked** call-off + two **In-term** rows, the PO drawer
 carries the disabled-until-vendor contract picker, and the guardrail banner fires on the
-MainOne/"Cloud hosting and support" duplicate — zero console errors; verifier rows scrubbed.
+MainOne/"Cloud hosting and support" duplicate - zero console errors; verifier rows scrubbed.
 
-Verified 2026-07-21 against the real CODEX backend: 126 Procurement tests pass (was 108 — adds
+Verified 2026-07-21 against the real CODEX backend: 126 Procurement tests pass (was 108 - adds
 sourcing security/lifecycle/eligibility/award-idempotency coverage **and** the previously
 deferred Catalog insights-permission/entity-scoping/code-immutability/validation coverage);
 Django check + `makemigrations --check` clean; frontend production build + changed-file lint
@@ -673,19 +673,19 @@ mutations (request-monitored); 390px phone + 820px tablet audit reported zero pa
 with genuine card layouts. Verifier login/audit rows scrubbed. The unrelated `vs_audit`
 rename remains untouched and is not part of these commits.
 
-**Sourcing correction (2026-07-21) — invited vendors + budget estimate.** The section
+**Sourcing correction (2026-07-21) - invited vendors + budget estimate.** The section
 above shipped without the prototype's invited-vendor list and budget-estimate field; both
 are now added end-to-end (see the §4 "Invited vendors + budget estimate" note for the full
 contract). New `RfqInvitation` model + `budget_estimate` MoneyField (migration `0012`),
 invited-only quotation enforcement, and the issue-requires-invitation rule. Backend: 134
-`vs_procurement` tests pass (was 126 — adds invite validation/dedupe, issue-requires-
+`vs_procurement` tests pass (was 126 - adds invite validation/dedupe, issue-requires-
 invitation, invited-only create + defensive submit, PATCH replace + responded-removal
 protection, budget-estimate bounds, and RfqDetail responded-derivation + invited_count
 entity-scoping); `manage.py check` and `makemigrations --check` clean. Frontend: production
 build + changed-file ESLint clean. Not yet re-verified with `/verify-design` or the mobile
 audit (orchestrator runs those). No new permission keys; `PERMISSIONS_AUDIT.md` unchanged.
 
-## Inventory (§5) — rebuilt and verified (2026-07-21)
+## Inventory (§5) - rebuilt and verified (2026-07-21)
 Stock Items + Movements shipped **together as one FE section**; `inventory.tsx` rebuilt in
 place (the `:section` route + `useActionParam("new")` preserved), Movements stays its own
 leaf page (not a tab), matching the two nav items.
@@ -693,26 +693,26 @@ leaf page (not a tab), matching the two nav items.
 **Resolved decisions (owner-approved):**
 - *GRN→stock wiring stays out of scope.* The `GoodsReceivedNoteLine.stock_item` FK is real
   and `post_grn` raises the ledger for it, but the (shipped ☑) Goods-Receipts create UI never
-  sets it — reopening §2 is a separate increment. Receipts are surfaced (seeded via a real
+  sets it - reopening §2 is a separate increment. Receipts are surfaced (seeded via a real
   stock-tracked GRN through `post_grn`); **Adjust** (a real journal) is the in-app stock-in /
-  opening-balance path. Movements is an immutable read-only ledger — no hand-created movement.
+  opening-balance path. Movements is an immutable read-only ledger - no hand-created movement.
 - *Honest adaptations (fabricated → dropped):* the prototype's **Location** / **From-To**
   column and **Transfer** movement type have no model backing (no location, enum is only
   RECEIPT/ISSUE/ADJUSTMENT) → dropped. The prototype's **"New Movement"** on the ledger is
   replaced by the real **Issue**/**Adjust** posting actions on a stock item. **Category** is a
   real concept only via the optional `catalog_item` link, so the column/field is labelled
-  **"Catalog item"** (not "Category" — a catalog item is not a category; stock items have no
+  **"Catalog item"** (not "Category" - a catalog item is not a category; stock items have no
   category relation). **By** column = real `created_by`. The prototype's thin **Reorder** tab
   is replaced by a real **Activity** audit feed; reorder point/qty live in Overview. Export
   dropped everywhere.
 - *Deliberate improvements over the prototype:* **Issue** and **Adjust** drawers (absent from
   the view-only prototype) each show a **live `PostingRecap`** of the exact single journal
   (Dr expense · Cr inventory at moving-average for issue; write-up Dr inventory·Cr 5150 /
-  shrinkage Dr 5150·Cr inventory for adjust), success recaps the **real** posted value — never
+  shrinkage Dr 5150·Cr inventory for adjust), success recaps the **real** posted value - never
   a second journal; immutable normalised code; dirty-gated edit; eligibility-filtered
   ASSET/EXPENSE pickers; honest empty/forbidden states.
 
-**Backend (no migration — code only):** split lean `StockItemListSerializer` vs rich
+**Backend (no migration - code only):** split lean `StockItemListSerializer` vs rich
 `StockItemDetailSerializer` (movements + activity, plus `*_id` prefills); `StockMovementSerializer`
 gains `created_by_name`; new `StockItemSummaryView` (`GET stock-items/summary/`, one conditional
 aggregate, gated `stock.view`, registered before `<pk>`); create/PATCH harden code
@@ -727,7 +727,7 @@ and populated valuation; opening balances booked as real positive adjustments (n
 period covering today).
 
 **Verification (orchestrator-run, real CODEX backend):** 162 `vs_procurement` tests pass (was 145
-— adds `StockConsoleAPITests` ×17: permission-denied per verb, cross-entity isolation, immutable
+- adds `StockConsoleAPITests` ×17: permission-denied per verb, cross-entity isolation, immutable
 code, active-postable ASSET/EXPENSE rejection, non-negative reorder, over-issue rejection +
 moving-average + exact Dr/Cr + never-negative, adjust signed/value/negative-guard/journal,
 integer-kobo/qty/date, summary+reorder+valuation aggregates + entity scope, empty-`{}` shape,
@@ -736,13 +736,13 @@ clean; FE production build (`tsc -b`) + changed-file ESLint clean. Drove the rea
 data: populated Stock Items list (KPIs 4/1/1/₦3.6m, correct status pills), detail Overview/Movements/
 Activity tabs, the Issue recap (₦64,000×3 = ₦192,000, Dr 5100·Cr 1400, balanced) and both Adjust
 recaps (write-up Dr 1400·Cr 5150 / shrinkage Dr 5150·Cr 1400), and the Movements ledger (real
-Receipt+20→Issue−6→Adjust−1 chain, signed colouring, By/Reference) — **zero** console/page errors;
+Receipt+20→Issue−6→Adjust−1 chain, signed colouring, By/Reference) - **zero** console/page errors;
 outside-click/Escape dismissal fired **zero** create/update mutations (request-monitored). 390px
 phone + 820px tablet audit reported **zero** page overflow with genuine card layouts (Movements
 uses `mobile="scroll"`). Verifier login/audit rows scrubbed. No new permission keys;
 `PERMISSIONS_AUDIT.md` gains an Inventory section. Both repos contain only the intended §5 changes.
 
-## Analytics (§6) — rebuilt and verified (2026-07-22) — **Procurement rebuild COMPLETE**
+## Analytics (§6) - rebuilt and verified (2026-07-22) - **Procurement rebuild COMPLETE**
 The four Analytics screens (AP Aging · GR/IR & Control · Spend · Vendor Performance)
 shipped **together as one section**. `analytics.tsx` is now a thin `<ProcurementShell>`
 router that gates on `P.PROC_VIEW_PROC_REPORTS` and dispatches the `:section` route to
@@ -750,49 +750,49 @@ one of four per-screen components under `src/pages/protected/procurement/analyti
 (`ap-aging.tsx`, `grir.tsx`, `spend.tsx`, `performance.tsx` + pure `helpers.ts`,
 component-only `shared.tsx`, and `assessment-form.tsx`). Routes unchanged. The reports are
 read-only (**no Export**), but each screen has a **read-only drill-down drawer** on its
-rows, and Vendor Performance carries the one real mutation in the group — recording a
+rows, and Vendor Performance carries the one real mutation in the group - recording a
 vendor assessment (see below). Every list is `toArray()`-guarded; dense tables use
 contained horizontal scroll; money-KPI strips are 1-col on phone.
 
 > **Scope correction (owner feedback, 2026-07-22).** The first Analytics build shipped
 > flat tables with **no drill-down drawers** and **dropped the prototype's "New
 > Assessment"** as a fabricated concept. Both were wrong: "no drawers that mutate" is not
-> "no drawers" — read-only detail drawers are the expected *improvement*; and the
+> "no drawers" - read-only detail drawers are the expected *improvement*; and the
 > honest-adaptation rule is for fabricated **data**, not for dropping a prototype-core
 > **concept** the model merely lacks (see [[feedback_prototype_intent]]). Per the RFQ
 > invited-vendor / PO→contract-call-off precedent, the assessment concept was **backed by
 > a new model**, not invented in the UI. The notes below describe the corrected build.
 
 **Resolved decisions (owner-approved):**
-- *Ship shape* — one combined FE section + one backend commit (new model + drawer
+- *Ship shape* - one combined FE section + one backend commit (new model + drawer
   endpoints + the report fixes).
-- *AP Aging* — 3 KPIs (Total payable = `total_net`; Overdue = past-due buckets; **Due
+- *AP Aging* - 3 KPIs (Total payable = `total_net`; Overdue = past-due buckets; **Due
   this week** = `ap-cash-requirements` `0-7` bucket, a real backed figure), a bucket
   BarChart (green→red), a per-vendor table with a derived Current/Due-soon/Overdue pill,
   an **as-of date** control, and a **row drawer**: per-vendor aging breakdown stack +
   the vendor's open POSTED bills (invoice #, dates, days overdue, bucket, balance) via
   `reports/ap-aging/vendor/`.
-- *GR/IR & Control* — 4 KPIs (Clearing balance = `control_balance`; Received-not-invoiced
+- *GR/IR & Control* - 4 KPIs (Clearing balance = `control_balance`; Received-not-invoiced
   = Σ`open>0`; Invoiced-not-received = Σ`open<0`; **Difference** = reconciliation variance,
   the honest replacement for the prototype's fabricated "Lines Cleared 2 of 4"), an
-  **AgingStack** of open GR/IR by age (an improvement — the prototype had no aging visual),
+  **AgingStack** of open GR/IR by age (an improvement - the prototype had no aging visual),
   a per-GRN **value-level** table, and a **row drawer**: per-GRN reconciliation
   (received/invoiced/open/age), linked source PO + GRN + vendor, and the matched vendor
   invoices (honest empty state when none) via `reports/grir-aging/grn/`.
-- *Spend* — KPIs (gross/net/tax/invoice count), a category **Donut**, top-vendor
+- *Spend* - KPIs (gross/net/tax/invoice count), a category **Donut**, top-vendor
   horizontal bars, a **monthly trend** (`by_period`, a real backend addition), a real
   by-category detail table, a **start/end date-range** filter, and a **row drawer**:
   per-category vendors + that category's monthly trend (`spend-analysis?category=`).
-- *Vendor Performance* — **the assessment feature is built, not dropped.** The screen
+- *Vendor Performance* - **the assessment feature is built, not dropped.** The screen
   blends what `vendor_performance` **computes** (on-time delivery rate = receipt date vs
-  PO expected date, ordering/receipt counts, billed/paid, avg days-to-pay — correct
-  fraction→% and `null`→"—", fixing the stub's `{rate}%` bug) with the **latest recorded
+  PO expected date, ordering/receipt counts, billed/paid, avg days-to-pay - correct
+  fraction→% and `null`→"-", fixing the stub's `{rate}%` bug) with the **latest recorded
   assessment** (Quality / Invoice accuracy / Responsiveness / overall Grade). Vendors with
   no assessment show an honest **"Not assessed"**. A **row drawer** shows computed metrics
   + latest scorecard + full assessment history. The gated **New assessment** button opens
   a right-side `FormDrawer` (house convention over the prototype's centered modal) that
   records a scorecard; a footnote states exactly what is computed vs recorded.
-  - **Vendor Assessment model (the real backing).** New `VendorAssessment` — an
+  - **Vendor Assessment model (the real backing).** New `VendorAssessment` - an
     **immutable** point-in-time scorecard: four 0–100 criteria (`on_time_delivery`,
     `quality_acceptance`, `invoice_accuracy`, `responsiveness`) with 0–100 validators, an
     `assessor` FK (set to `request.user`), and `assessment_date`. `overall_score` and the
@@ -800,7 +800,7 @@ contained horizontal scroll; money-KPI strips are 1-col on phone.
     (35/30/20/15), never stored, so banding can evolve without a data migration. Migration
     `0014_vendorassessment`. The FE form's live weighted-score/grade preview mirrors the
     backend exactly; On-Time Delivery is prefilled from the vendor's computed on-time rate
-    (editable). Create-only — an assessment is never edited or deleted; a newer one
+    (editable). Create-only - an assessment is never edited or deleted; a newer one
     supersedes it.
 
 **Deliberate improvements over the prototype:** real KPI strips, real finance-ui charts
@@ -820,7 +820,7 @@ drawer rides `procurement.report.view`. Registered by `seed_procurement_permissi
 **Backend:** all report/drawer reads gated `procurement.report.view`; assessment create
 gated `procurement.vendor_assessment.create` (GET list rides `report.view`). Both the
 assessment view and the two drawer views resolve the vendor/GRN **inside the request
-entity** (a foreign id 404s, never leaks). Also fixed a **latent 500** —
+entity** (a foreign id 404s, never leaks). Also fixed a **latent 500** -
 `APAgingView`/`APReconciliationView` passed `as_of` as a raw query string into
 `ap_aging`/`reconcile_ap`, which computes `as_of − due_date` → `TypeError` (str − date);
 both now parse via `_date(...)`. **Spend `by_period`** accumulates a monthly series in the
@@ -832,7 +832,7 @@ hooks `getApAgingVendor`, `getGrirGrnDetail`, `getVendorAssessments`,
 `createVendorAssessment`, `getGrirAging`, `getApCashRequirements`, `category` param on spend.
 
 **Verification (orchestrator-run, real CODEX backend):** FE production build (`tsc -b`)
-+ changed-file ESLint clean. Backend: **184 `vs_procurement` tests pass** (was 162 — adds
++ changed-file ESLint clean. Backend: **184 `vs_procurement` tests pass** (was 162 - adds
 `ProcurementAnalyticsReportAPITests` ×7, `VendorAssessmentTests` ×9 [weighted-score/grade
 bands + boundaries, create-gating vs list-on-report.view, assessor set, 0–100 validation,
 cross-entity reject, entity-scoped list, latest-per-vendor feeds the report, serialization
@@ -853,7 +853,7 @@ money-KPI 1-col fix). Verifier login/audit rows scrubbed. Both repos contain onl
 intended §6 changes (the `0014` migration + model/views/urls/tests on the backend; the
 analytics dir + api/types/permissions/base-api/PERMISSIONS_AUDIT on the FE).
 
-**The full Procurement console rebuild is finished** — every navigation group (Dashboard ·
+**The full Procurement console rebuild is finished** - every navigation group (Dashboard ·
 Procure to Pay · Vendors & Catalog · Sourcing · Inventory · Analytics) is rebuilt to the
 `Procurement_Console.html` prototype in the house theme and verified against the real
 CODEX backend.
@@ -865,24 +865,24 @@ built to the prototype's arrangement**. Root cause: three divergent KPI cards (t
 approved Dashboard had a proper icon card, but RFQ had its own icon-less one and all four
 Analytics screens used the icon-less house `KpiCard`), and the tables were built to
 finance-ui defaults rather than studied against the prototype. Fixed as a class-fix:
-- **One shared `StatCard`** (`src/components/finance-ui/stat-card.tsx`) — the prototype's
+- **One shared `StatCard`** (`src/components/finance-ui/stat-card.tsx`) - the prototype's
   card anatomy: **left tone accent bar + tinted rounded-square icon (top-right) + big
   tabular number + sub-line**, optional focusable `<button>` when `onClick` is set (money
-  sizing via `kpiValueClass`). Adopted on **Dashboard** (approved — same data/layout/icons,
+  sizing via `kpiValueClass`). Adopted on **Dashboard** (approved - same data/layout/icons,
   only gains the accent bar), **RFQ**, and **all four Analytics** screens, each with a
   prototype-matching icon; the three old cards are deleted. (Owner decision: accent bar
   everywhere, including Dashboard.)
-- **Tables restyled to the prototype** — shared `StatusDotPill` (leading tone dot), `Meter`
+- **Tables restyled to the prototype** - shared `StatusDotPill` (leading tone dot), `Meter`
   (bar + %), and a **circular `GradeBadge`** (A green · B indigo · C amber) in
   `analytics/shared.tsx`; muted ₦0 reuses the existing `Money` dimming. AP Aging: vendor +
   **payment-terms subtitle** ("Net 30") · buckets · Total · dot-status. Vendor Performance:
-  the prototype's 6 columns — Vendor (+ category subtitle) · On-Time/Quality/Inv.Accuracy/
-  Response as **meters** · Overall as the **circular grade badge** (honest "—"/"Not assessed"
+  the prototype's 6 columns - Vendor (+ category subtitle) · On-Time/Quality/Inv.Accuracy/
+  Response as **meters** · Overall as the **circular grade badge** (honest "-"/"Not assessed"
   when unrated; blend, footnote, drawer and gated New-assessment flow unchanged). Spend:
   by-category **Share meter**. GR/IR: see below.
 - **GR/IR PO-line parity** (owner decision: extend the backend). New **`grir_po_lines`** +
   **`grir_po_line_detail`** report (`reports.py`, code-only, no migration) and two
-  `report.view`-gated, entity-scoped endpoints — `GET reports/grir-lines/` and
+  `report.view`-gated, entity-scoped endpoints - `GET reports/grir-lines/` and
   `reports/grir-lines/detail/?po_line=<id>`. The GR/IR table is now **PO-line grain**
   (PO Line · Item · Ordered · Received · Invoiced · GR/IR Bal · dot-status), with a
   per-PO-line reconciliation drawer (the line's linked POSTED GRNs + invoices); the KPIs +
@@ -890,7 +890,7 @@ finance-ui defaults rather than studied against the prototype. Fixed as a class-
   invoice lines via the real `po_line` FK; balance = received value − invoiced value; status
   compares quantities first (price variance never reads "Cleared"); two bulk aggregates, no
   N+1; inline-commented. Also minimally surfaced the real backed `payment_terms` (AP-aging
-  row) and vendor `category` (vendor-performance row) — the prototype subtitles — rather
+  row) and vendor `category` (vendor-performance row) - the prototype subtitles - rather
   than fabricate or drop them.
 
 **Verification (orchestrator-run, real CODEX backend):** FE production build (`tsc -b`) +
@@ -898,29 +898,29 @@ changed-file ESLint clean. Backend **190 `vs_procurement` tests pass** (was 184;
 `GRIRPoLinesTests`: report.view 403 on list+detail, aggregation + all three statuses +
 `po_line_ref`, excludes inactive lines/cancelled POs, empty-entity shape, detail links
 documents, entity-scoped 404). `manage.py check` + `makemigrations --check` clean (**no new
-migration** — the GR/IR report is code-only; `0014_vendorassessment` unchanged). Drove real
+migration** - the GR/IR report is code-only; `0014_vendorassessment` unchanged). Drove real
 CODEX data on Dashboard + RFQ + all four Analytics screens (+ GR/IR PO-line drawer): every
 card shows its icon + accent bar, Vendor Performance renders four meters + circular A/B
-grades, GR/IR shows PO-line rows with a per-line reconciliation drawer — **zero** console/
+grades, GR/IR shows PO-line rows with a per-line reconciliation drawer - **zero** console/
 page errors. 390px phone + 820px tablet audit across all six routes: **zero** page overflow.
 Verifier login rows scrubbed. No new permission keys.
 
 ### Console-wide consistency pass (owner feedback, 2026-07-22)
 Two follow-up corrections after the owner reviewed the whole console:
 - **Every procurement KPI card is now the one shared `StatCard`.** Beyond Dashboard/RFQ/
-  Analytics, the remaining local KPI cards were replaced too — Requisitions, Purchase
+  Analytics, the remaining local KPI cards were replaced too - Requisitions, Purchase
   Orders, Vendor Invoices, Vendors, Stock Items and Contracts each dropped their private
   `Kpi` and adopted `StatCard` with a prototype-matching icon (a `gray` tone was added to
   `StatCard` for neutral counts). Result: a single card component with icon + accent bar
-  across the entire Procurement console — no more per-screen card drift.
+  across the entire Procurement console - no more per-screen card drift.
 - **Analytics tables now match the house table, not the prototype.** Per the owner's rule
-  ("tables follow what the other menus look like — styles and sizes"), the Analytics report
+  ("tables follow what the other menus look like - styles and sizes"), the Analytics report
   tables were re-aligned to the shared `DataTable` chrome: `headCls`/`cellCls` are now
   exported from `finance-ui/data-table.tsx` and reused by the Analytics `TH`/`TD` constants
   (`helpers.ts`), so header (`text-xs lg:text-sm`), cell weight (`font-medium`) and row
   height match the rest of the app. Because the Analytics tables are raw `<th>`/`<td>` (not
   shadcn `TableHead`/`TableCell`), they explicitly add the `h-10`/`py-2` that those
-  components otherwise supply — without which the rows collapsed to text height (fixed). The
+  components otherwise supply - without which the rows collapsed to text height (fixed). The
   owner-approved cell treatments (score **meters**, circular **grade badge**, **status dot
   pills**) were kept; only the header/cell chrome changed. Drawer sub-tables were left as-is
   per the owner.
@@ -929,4 +929,4 @@ Two follow-up corrections after the owner reviewed the whole console:
   demonstrable). Verified idempotent (re-running reports the same 3). Full `vs_procurement`
   suite stays green at **190**; Django check + `makemigrations --check` clean; FE build +
   changed-file lint clean. Drove all procurement KPI strips + the four Analytics tables on
-  real CODEX data — consistent icon+accent cards and house-height rows, zero console errors.
+  real CODEX data - consistent icon+accent cards and house-height rows, zero console errors.

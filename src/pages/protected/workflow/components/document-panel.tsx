@@ -70,7 +70,7 @@ export function DocumentPanel({
           <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
             {(summary?.fields ?? []).map((f, i) => (
               <Field key={`${f.label}-${i}`} label={f.label}>
-                <span className="break-words text-black-01">{f.value || "—"}</span>
+                <span className="break-words text-black-01">{f.value || "-"}</span>
               </Field>
             ))}
             <Field label="Requested by">
@@ -84,7 +84,7 @@ export function DocumentPanel({
             </Field>
             <Field label="Submitted">
               <span className="text-black-01">
-                {instance.submitted_at ? formatDate(new Date(instance.submitted_at)) : "—"}
+                {instance.submitted_at ? formatDate(new Date(instance.submitted_at)) : "-"}
               </span>
             </Field>
             {instance.completed_at && (
@@ -105,7 +105,7 @@ export function DocumentPanel({
 
           {!summary?.fields?.length && !summary?.title && (
             <p className="mt-4 rounded-md border border-white-02 bg-gray-50 px-3 py-2 text-[11px] text-gray-01">
-              Document content lives in the originating module — this view tracks the approval workflow only.
+              Document content lives in the originating module - this view tracks the approval workflow only.
             </p>
           )}
         </div>

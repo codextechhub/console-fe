@@ -5,7 +5,7 @@
 //
 // Honest adaptations: the prototype's school "Branch" column/filter is dropped
 // (claims are by staff, classified by cost center, which we keep). The 3-step
-// stepper maps to our real states — Submitted (draft) → Approved & accrued
+// stepper maps to our real states - Submitted (draft) → Approved & accrued
 // (post: Dr expense / Cr accrued reimbursement) → Reimbursed (settle: Cr bank).
 
 import { useMemo, useRef, useState } from "react";
@@ -54,7 +54,7 @@ function StatusPill({ claim }: { claim: ExpenseClaim }) {
 }
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
+  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "-"}</span>;
 }
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -101,9 +101,9 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
 
   const columns: Column<ExpenseClaim>[] = [
     { header: "Claim no.", cell: (c) => <span className="font-semibold tabular-nums">{c.document_number}</span> },
-    { header: "Claimant", cell: (c) => <span className="inline-flex items-center gap-2"><Initials name={c.claimant_name || "—"} /><span className="font-medium text-gray-01">{c.claimant_name || "—"}</span></span> },
+    { header: "Claimant", cell: (c) => <span className="inline-flex items-center gap-2"><Initials name={c.claimant_name || "-"} /><span className="font-medium text-gray-01">{c.claimant_name || "-"}</span></span> },
     { header: "Date", cell: (c) => <span className="tabular-nums text-gray-05">{fmtDate(c.claim_date)}</span> },
-    { header: "Purpose", cell: (c) => <span className="text-gray-01">{c.title || "—"}</span> },
+    { header: "Purpose", cell: (c) => <span className="text-gray-01">{c.title || "-"}</span> },
     { header: "Total", align: "right", cell: (c) => <Money kobo={c.total} currency={currency} align="right" /> },
     { header: "Status", cell: (c) => <StatusPill claim={c} /> },
   ];
@@ -178,7 +178,7 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
   const isDraft = full.status === "DRAFT";
   const isApprovedUnpaid = full.status === "POSTED" && full.payment_status !== "PAID";
   // Void needs a posted claim with NO reimbursement yet (the backend refuses once
-  // amount_paid > 0 — including partial); reject is the DRAFT path.
+  // amount_paid > 0 - including partial); reject is the DRAFT path.
   const canVoid = full.status === "POSTED" && full.payment_status === "UNPAID";
   const attachable = full.status !== "CANCELLED" && full.payment_status !== "PAID";
 
@@ -191,7 +191,7 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
       <DetailDrawer
         open={!!claim} onOpenChange={(o) => (o ? undefined : onClose())}
         title={full.document_number}
-        description={`${full.claimant_name || "—"} · ${fmtDate(full.claim_date)}${full.title ? ` · ${full.title}` : ""}`}
+        description={`${full.claimant_name || "-"} · ${fmtDate(full.claim_date)}${full.title ? ` · ${full.title}` : ""}`}
         widthClass="sm:max-w-3xl"
         footer={
           <>
@@ -250,8 +250,8 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
                   {full.lines.map((l) => (
                     <tr key={l.id}>
                       <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.expense_account}</td>
-                      <td className={tdCls}>{l.description || "—"}</td>
-                      <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.cost_center || "—"}</td>
+                      <td className={tdCls}>{l.description || "-"}</td>
+                      <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.cost_center || "-"}</td>
                       <td className={tdCls}>{l.tax_code ?? <span className="text-gray-05">Exempt</span>}</td>
                       <td className={cn(tdCls, "text-right tabular-nums")}><Money kobo={l.line_total} currency={currency} align="right" /></td>
                       <td className={tdCls}><ReceiptCell line={l} claimId={full.id} entity={entity} attachable={attachable && can(P.FIN_CREATE_EXPENSE_CLAIM)} /></td>
@@ -269,7 +269,7 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
         open={voidOpen}
         onOpenChange={setVoidOpen}
         title={`Void ${full.document_number}?`}
-        description="Reverses the claim's posting journal (a mirror entry backing out the expense and accrued reimbursement) and cancels the claim. Use this to undo a claim posted in error — it can't be voided once any reimbursement has been paid."
+        description="Reverses the claim's posting journal (a mirror entry backing out the expense and accrued reimbursement) and cancels the claim. Use this to undo a claim posted in error - it can't be voided once any reimbursement has been paid."
         confirmText="Void claim"
         destructive
         loading={voiding}
@@ -328,7 +328,7 @@ function PayDrawer({ claim, entity, currency, onClose }: { claim: ExpenseClaim; 
   return (
     <DetailDrawer
       open onOpenChange={(o) => (o ? undefined : onClose())}
-      title="Reimburse claim" description={`${claim.document_number} · ${claim.claimant_name || "—"}`}
+      title="Reimburse claim" description={`${claim.document_number} · ${claim.claimant_name || "-"}`}
       widthClass="sm:max-w-lg"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={onClose}>Cancel</Button>
@@ -337,7 +337,7 @@ function PayDrawer({ claim, entity, currency, onClose }: { claim: ExpenseClaim; 
     >
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
-          Pays the staff member {formatMoney(claim.balance_due, currency)} — Dr Accrued Reimbursement, Cr bank — clearing the liability raised on approval.
+          Pays the staff member {formatMoney(claim.balance_due, currency)} - Dr Accrued Reimbursement, Cr bank - clearing the liability raised on approval.
         </p>
         <FormField label="Bank account"><BankAccountPicker entity={entity} value={bank} onChange={setBank} placeholder="Default cash/bank" /></FormField>
         <PostingDateField
@@ -477,19 +477,19 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
 
 function printClaim(c: ExpenseClaim, currency?: string | null) {
   const money = (k: number) => formatMoney(k, currency);
-  const row = (l: ExpenseClaimLine) => `<tr><td>${l.expense_account}</td><td>${l.description || "—"}</td><td>${l.cost_center || "—"}</td><td style="text-align:right">${money(l.line_total)}</td></tr>`;
+  const row = (l: ExpenseClaimLine) => `<tr><td>${l.expense_account}</td><td>${l.description || "-"}</td><td>${l.cost_center || "-"}</td><td style="text-align:right">${money(l.line_total)}</td></tr>`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>Expense claim ${c.document_number}</title>
   <style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;padding:32px;max-width:720px;margin:auto}
   h1{font-size:18px;margin:0 0 4px}.sub{color:#666;font-size:12px;margin-bottom:20px}
   table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px solid #eee;padding:6px 8px;text-align:left}
   tfoot td{font-weight:600;border-top:2px solid #ddd}</style></head><body>
   <h1>Expense claim ${c.document_number}</h1>
-  <div class="sub">${c.claimant_name || "—"} · ${fmtDate(c.claim_date)} · ${c.title || ""} · ${disp(c).label}</div>
+  <div class="sub">${c.claimant_name || "-"} · ${fmtDate(c.claim_date)} · ${c.title || ""} · ${disp(c).label}</div>
   <table><thead><tr><th>Category</th><th>Description</th><th>Cost center</th><th style="text-align:right">Amount</th></tr></thead>
   <tbody>${c.lines.map(row).join("")}</tbody>
   <tfoot><tr><td colspan="3">Total</td><td style="text-align:right">${money(c.total)}</td></tr></tfoot></table>
   </body></html>`;
   const w = window.open("", "_blank", "width=780,height=900");
-  if (!w) { toast.error("Pop-up blocked — allow pop-ups to print."); return; }
+  if (!w) { toast.error("Pop-up blocked - allow pop-ups to print."); return; }
   w.document.write(html); w.document.close(); w.focus(); w.print();
 }

@@ -4,7 +4,7 @@ import CustomTable from "./custom-table";
 
 // The loading state is a *shape* promise: while a list loads the user should
 // see the table that is about to arrive (ghost rows under the real header),
-// not a spinner. These lock the geometry — ghost row count and, critically,
+// not a spinner. These lock the geometry - ghost row count and, critically,
 // ghost column count derived from the real column definitions, so the ghosts
 // line up under the headers instead of drifting.
 
@@ -56,7 +56,7 @@ describe("CustomTable loading skeleton", () => {
   it("announces loading once for the whole surface, not per ghost row", () => {
     const doc = renderLoading();
     const live = doc.querySelectorAll('[role="status"]');
-    // one for the table, one for the phone card stack — each surface announces
+    // one for the table, one for the phone card stack - each surface announces
     // itself once, and only one of the two is visible at any viewport.
     expect(live.length).toBeLessThanOrEqual(2);
     expect(live.length).toBeGreaterThan(0);

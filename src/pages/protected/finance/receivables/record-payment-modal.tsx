@@ -1,4 +1,4 @@
-// Record payment — post a customer receipt against an invoice (Dr bank/cash, Cr AR)
+// Record payment - post a customer receipt against an invoice (Dr bank/cash, Cr AR)
 // and allocate it. Amount is entered in naira → sent as integer kobo. Prefilled with
 // the outstanding balance; the deposit account is the bank/cash GL account debited.
 import { useState } from "react";
@@ -68,7 +68,7 @@ export function RecordPaymentModal({ open, onOpenChange, entity, invoiceId, docN
         <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="e.g. txn ref / cheque no" className="bg-white" />
       </FormField>
       {kobo > balanceKobo && balanceKobo > 0 && (
-        <p className="font-mont text-[11px] text-amber-700">Amount exceeds the balance — the excess is kept as unallocated credit on the customer.</p>
+        <p className="font-mont text-[11px] text-amber-700">Amount exceeds the balance - the excess is kept as unallocated credit on the customer.</p>
       )}
     </FormModal>
   );

@@ -1,4 +1,4 @@
-// Cash Flow Statement — rebuilt to the Vision prototype in the house theme. The
+// Cash Flow Statement - rebuilt to the Vision prototype in the house theme. The
 // direct method: every posted journal that touches cash, classified into operating /
 // investing / financing, with each activity broken into its counter-account line items
 // (cash in +, cash out −). Ends on net change reconciling cash at start → cash at end.
@@ -120,7 +120,7 @@ export function CashFlowReport({ entity, currency }: { entity: string; currency?
         {d.is_reconciled ? <CheckCircle2 className="size-4" /> : <AlertTriangle className="size-4" />}
         {d.is_reconciled
           ? <span>Reconciles · {formatMoney(d.opening_cash.kobo, currency)} + {signed(d.net_change.kobo, currency)} = {formatMoney(d.closing_cash.kobo, currency)}</span>
-          : <span>Does not reconcile — opening plus net change doesn't equal closing cash.</span>}
+          : <span>Does not reconcile - opening plus net change doesn't equal closing cash.</span>}
       </div>
     </div>
   );

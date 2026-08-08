@@ -1,4 +1,4 @@
-// Balance Sheet — rebuilt to the Vision prototype in the house theme. A two-column
+// Balance Sheet - rebuilt to the Vision prototype in the house theme. A two-column
 // Statement of Financial Position: Assets on the left; Liabilities & Equity on the
 // right, each grouped into IFRS sections (current / non-current) with subtotals, and
 // a balances banner (Assets = Liabilities + Equity). Rows are IFRS presentation lines
@@ -130,7 +130,7 @@ export function BalanceSheetReport({ entity, currency }: { entity: string; curre
         {d.is_balanced ? <CheckCircle2 className="size-4" /> : <AlertTriangle className="size-4" />}
         {d.is_balanced
           ? <span>Balance sheet balances · {formatMoney(d.total_assets.kobo, currency)} = {formatMoney(d.total_liabilities.kobo, currency)} + {formatMoney(d.total_equity.kobo, currency)}</span>
-          : <span>Out of balance by {formatMoney(Math.abs(d.difference.kobo), currency)} — investigate before filing.</span>}
+          : <span>Out of balance by {formatMoney(Math.abs(d.difference.kobo), currency)} - investigate before filing.</span>}
       </div>
     </div>
   );

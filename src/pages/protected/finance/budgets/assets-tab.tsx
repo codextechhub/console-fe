@@ -30,7 +30,7 @@ const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium"
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const monthEndISO = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10); };
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 
 const CATEGORIES: [string, string][] = [
   ["VEHICLES", "Vehicles"], ["BUILDINGS", "Buildings"], ["PLANT_MACHINERY", "Plant & machinery"],
@@ -91,7 +91,7 @@ export function AssetsTab({ entity, currency }: { entity: string; currency?: str
   const kpis = summaryQ.data?.data ?? { cost: 0, accum: 0, nbv: 0, monthly: 0 };
 
   const columns: Column<FixedAsset>[] = [
-    { header: "Tag", cell: (a) => <span className="font-semibold tabular-nums text-gray-01">{a.document_number || "—"}</span> },
+    { header: "Tag", cell: (a) => <span className="font-semibold tabular-nums text-gray-01">{a.document_number || "-"}</span> },
     { header: "Asset", cell: (a) => <span><span className="font-medium text-gray-01">{a.name}</span>{a.asset_code ? <span className="ml-1 text-gray-05">· {a.asset_code}</span> : null}</span> },
     { header: "Category", cell: (a) => <span className={cn(PILL, "bg-gray-03/60 text-gray-05")}>{a.category_display}</span> },
     { header: "Cost", align: "right", cell: (a) => <Money kobo={a.cost} currency={currency} align="right" /> },
@@ -191,7 +191,7 @@ function AssetDrawer({ assetId, assets, entity, currency, onClose }: { assetId: 
               Depreciation schedule · {asset.method_display} · {asset.useful_life_months}-month life
             </p>
             {years.length === 0 ? (
-              <p className="rounded-md border border-dashed border-gray-03 px-3 py-4 text-center font-mont text-[11px] text-gray-05">No schedule yet — acquire the asset to build it.</p>
+              <p className="rounded-md border border-dashed border-gray-03 px-3 py-4 text-center font-mont text-[11px] text-gray-05">No schedule yet - acquire the asset to build it.</p>
             ) : (
               <div className="overflow-hidden rounded-md border border-gray-03">
                 <table className="w-full border-collapse">
@@ -240,7 +240,7 @@ function AcquireDrawer({ asset, entity, currency, onClose }: { asset: FixedAsset
       </>}>
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03/40 px-3 py-2 font-mont text-[11px] text-gray-05">
-          Capitalises the cost — Dr PP&E, Cr the funding account — and lays down the straight-line depreciation schedule.
+          Capitalises the cost - Dr PP&E, Cr the funding account - and lays down the straight-line depreciation schedule.
         </p>
         <FormField label="Funded from (bank account)" required><BankAccountPicker entity={entity} value={bank} onChange={setBank} /></FormField>
       </div>
@@ -381,9 +381,9 @@ function RunDepreciationDrawer({ open, onClose, entity, currency }: { open: bool
           ) : (
             <>
               <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 font-mont text-[11px] text-amber-700">
-                This posts depreciation for {preview.asset_count} in-use asset(s) — one compound journal per fiscal period in range. A closed period in the range will block the run; re-open it first.
+                This posts depreciation for {preview.asset_count} in-use asset(s) - one compound journal per fiscal period in range. A closed period in the range will block the run; re-open it first.
               </p>
-              <PostingRecap title={`Depreciation posting — to ${fmtDate(upTo)}`} dr={dr} cr={cr} currency={currency} />
+              <PostingRecap title={`Depreciation posting - to ${fmtDate(upTo)}`} dr={dr} cr={cr} currency={currency} />
             </>
           )
         ) : null}

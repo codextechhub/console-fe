@@ -1,4 +1,4 @@
-// vs_payments gateway types — collections (cash-in), virtual accounts, payouts
+// vs_payments gateway types - collections (cash-in), virtual accounts, payouts
 // (cash-out) and batches. Bank/beneficiary fields are FLS-stripped unless the
 // caller holds the matching *.view_sensitive grant (use @/utils/fls).
 
@@ -34,7 +34,7 @@ export interface VirtualAccount {
   provider: string;
   customer_code: string | null;
   customer_name: string | null;
-  account_number?: string; // FLS — stripped without view_sensitive
+  account_number?: string; // FLS - stripped without view_sensitive
   bank_name: string;
   account_name?: string; // FLS
   provider_reference: string | null;
@@ -147,7 +147,7 @@ export interface InitiateCollectionPayload {
   narration?: string;
 }
 
-// Settlement reconciliation — gateway records (confirmed collections / paid payouts)
+// Settlement reconciliation - gateway records (confirmed collections / paid payouts)
 // matched against imported bank statement lines. Read-only; recomputed each GET.
 export interface SettlementRow {
   kind: "COLLECTION" | "PAYOUT";
@@ -155,14 +155,14 @@ export interface SettlementRow {
   reference: string;
   provider: string;
   provider_reference: string;
-  amount: number; // signed kobo (+ in, − out) — the gateway gross
+  amount: number; // signed kobo (+ in, − out) - the gateway gross
   amount_naira: string;
   confirmed_at: string | null;
   settled: boolean;
   match_basis: "reference" | "amount" | "";
   matched_bank_line_id: number | null;
   settled_amount: number | null; // the matched bank line's signed amount (net of fees)
-  fee_amount: number; // |gross| − |net| — the PSP fee
+  fee_amount: number; // |gross| − |net| - the PSP fee
   settlement_reference: string; // the matched bank line's reference
   settlement_date: string | null; // the matched bank line's txn date
   settlement_description: string; // the matched bank line's description
@@ -197,7 +197,7 @@ export interface SettlementReconciliation {
   unmatched_bank_lines: UnmatchedBankLine[];
 }
 
-// Append-only gateway action log (PaymentEvent) — the transactions log.
+// Append-only gateway action log (PaymentEvent) - the transactions log.
 export interface TransactionLogEntry {
   id: number;
   entity_code: string | null;

@@ -40,7 +40,7 @@ const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont 
 
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
-  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
+  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "-"}</span>;
 }
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -112,10 +112,10 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
       <span className="block text-right tabular-nums text-gray-05" title={`${formatMoney(p.refunded_amount, currency)} refunded to the customer`}>
         {formatMoney(0, currency)}
       </span>
-    ) : <span className="block text-right text-gray-05">—</span>) },
+    ) : <span className="block text-right text-gray-05">-</span>) },
     { header: "Refunded", align: "right", cell: (p) => (p.refunded_amount
       ? <span className="block text-right tabular-nums text-gray-01">{formatMoney(p.refunded_amount, currency)}</span>
-      : <span className="block text-right text-gray-05">—</span>) },
+      : <span className="block text-right text-gray-05">-</span>) },
     { header: "Status", cell: (p) => <span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[p.allocation_status])}>{STATUS_LABEL[p.allocation_status]}</span> },
     { header: "", align: "right", cell: (p) => (
       <button

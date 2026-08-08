@@ -1,9 +1,9 @@
 // Export Centre → one run.
 //
 // The screen answers, in this order: what happened, what you can do about it,
-// and what produced it. Each outcome gets its own body — a progress bar while
+// and what produced it. Each outcome gets its own body - a progress bar while
 // it runs, the file when there is one, the omissions when something was left
-// out, the cause and the fix when it failed — because "an export finished" and
+// out, the cause and the fix when it failed - because "an export finished" and
 // "an export finished, minus two columns you are no longer allowed to see" are
 // different events and must not share a screen.
 //
@@ -73,7 +73,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-/** A persistent, resolvable state — never a transient confirmation. */
+/** A persistent, resolvable state - never a transient confirmation. */
 function Banner({
   tone,
   title,
@@ -196,7 +196,7 @@ export default function ExportRunDetailPage() {
               {/* One action, and only the one that can change the outcome. The
                   API decides retryability from the failure CODE, so a filter or
                   permission failure never offers a button that would fail
-                  identically — it offers the edit that actually fixes it. */}
+                  identically - it offers the edit that actually fixes it. */}
               {run.failure && remedy.kind === "retry" && run.failure.retryable && canRun && (
                 <Button onClick={onRetry} loading={retrying} loadingText="Queueing…" className="gap-1.5">
                   <RotateCcw className="size-4" /> {remedy.label}
@@ -229,14 +229,14 @@ export default function ExportRunDetailPage() {
               <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
                 <Field label="Run" value={run.reference} mono />
                 <Field label="Trigger" value={TRIGGER_LABEL[run.trigger] ?? run.trigger} />
-                <Field label="Requested by" value={run.requested_by_name || "—"} />
+                <Field label="Requested by" value={run.requested_by_name || "-"} />
                 <Field label="Queued" value={formatStamp(run.queued_at)} mono />
                 <Field label="Started" value={formatStamp(run.started_at)} mono />
                 <Field label="Ended" value={formatStamp(run.ended_at)} mono />
                 <Field label="Duration" value={formatDuration(run.started_at, run.ended_at)} mono />
                 <Field
                   label="Rows"
-                  value={run.row_count == null ? "—" : run.row_count.toLocaleString("en-GB")}
+                  value={run.row_count == null ? "-" : run.row_count.toLocaleString("en-GB")}
                   mono
                 />
                 {run.file && <Field label="File size" value={formatBytes(run.file.size_bytes)} mono />}
@@ -247,8 +247,8 @@ export default function ExportRunDetailPage() {
 
             <Section title="Configuration used at run time">
               <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-                <Field label="Dataset" value={run.configuration.dataset || "—"} />
-                <Field label="Scope" value={run.configuration.scope || "—"} />
+                <Field label="Dataset" value={run.configuration.dataset || "-"} />
+                <Field label="Scope" value={run.configuration.scope || "-"} />
                 <Field
                   label="Columns"
                   value={
@@ -279,7 +279,7 @@ export default function ExportRunDetailPage() {
                   <p className="font-mont text-xs leading-relaxed text-gray-01">
                     This differs from the export's current setup in {run.drift.count}{" "}
                     {run.drift.count === 1 ? "place" : "places"}. Editing an export changes future
-                    files only — this one is exactly what ran.
+                    files only - this one is exactly what ran.
                   </p>
                   <dl className="mt-2.5 space-y-2">
                     {run.drift.changes.map((c) => (
@@ -388,7 +388,7 @@ function RunBody({
         {/* Silence is what makes people run an export twice. */}
         {queue_position != null && queue_position > 0 && (
           <p className="mt-2 font-mont text-xs text-gray-01">
-            Waiting for a worker — position {queue_position} in the queue.
+            Waiting for a worker - position {queue_position} in the queue.
           </p>
         )}
         <p className="mt-4 border-t border-gray-03 pt-3.5 font-mont text-xs leading-relaxed text-gray-01">
@@ -421,7 +421,7 @@ function RunBody({
         )}
         {remedy.kind === "none" && (
           <p className="text-gray-05">
-            There is nothing to change on the export itself — this needs an administrator.
+            There is nothing to change on the export itself - this needs an administrator.
           </p>
         )}
         {/* An orphaned run still has to explain itself: the recipe it came from
@@ -457,7 +457,7 @@ function RunBody({
   return (
     <div className="space-y-4">
       {/* The omission is always named. This is the state that stops VS Export
-          truncating silently, so it leads — before the file itself. */}
+          truncating silently, so it leads - before the file itself. */}
       {partial && (
         <Banner tone="caution" title="The file was produced, but something was left out">
           {run.omissions.length ? (
@@ -492,7 +492,7 @@ function RunBody({
             <p>Part of this export could not be included. The run record has the detail.</p>
           )}
           <p className="border-t border-yellow-01/25 pt-2">
-            Nothing was silently truncated — what you have is complete for the columns and rows
+            Nothing was silently truncated - what you have is complete for the columns and rows
             listed.
           </p>
         </Banner>
@@ -536,9 +536,9 @@ function DownloadLog({ fileId }: { fileId: number }) {
   const rows = useMemo(() => data?.data ?? [], [data]);
 
   const columns: Column<ExportDownloadEntry>[] = [
-    { header: "Who", cell: (d) => d.user_name || "—" },
+    { header: "Who", cell: (d) => d.user_name || "-" },
     { header: "When", cell: (d) => <span className={NUM}>{formatStamp(d.at)}</span> },
-    { header: "IP", cell: (d) => <span className={NUM}>{d.ip_address || "—"}</span> },
+    { header: "IP", cell: (d) => <span className={NUM}>{d.ip_address || "-"}</span> },
     {
       header: "Outcome",
       cell: (d) => (

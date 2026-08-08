@@ -26,7 +26,7 @@ export function Field({ label, value }: { label: string; value: React.ReactNode 
   return (
     <div>
       <dt className="font-mont text-[11px] text-gray-05">{label}</dt>
-      <dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "—"}</dd>
+      <dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "-"}</dd>
     </div>
   );
 }
@@ -149,7 +149,7 @@ function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; 
   const rfqLines = rfq?.lines ?? [];
 
   // price for (rfq_line, quote) from the fetched detail; null when the quote did
-  // not price that line (unlinked lines legitimately show "—").
+  // not price that line (unlinked lines legitimately show "-").
   const priceFor = (rfqLineId: number, quoteId: number): number | null => {
     const line = details[quoteId]?.lines.find((l) => l.rfq_line_id === rfqLineId);
     return line ? line.unit_price : null;
@@ -186,7 +186,7 @@ function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; 
               {quotes.map((q) => <td key={q.id} className={cn(dataCell, "font-semibold")}>{money(q.total)}</td>)}
             </MatrixRow>
             <MatrixRow label="Lead time" labelCell={labelCell}>
-              {quotes.map((q) => <td key={q.id} className={dataCell}>{q.lead_time_days == null ? "—" : `${q.lead_time_days} days`}</td>)}
+              {quotes.map((q) => <td key={q.id} className={dataCell}>{q.lead_time_days == null ? "-" : `${q.lead_time_days} days`}</td>)}
             </MatrixRow>
             <MatrixRow label="Valid until" labelCell={labelCell}>
               {quotes.map((q) => (
@@ -199,7 +199,7 @@ function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; 
               {quotes.map((q) => <td key={q.id} className={dataCell}>{shortDate(q.quote_date)}</td>)}
             </MatrixRow>
             <MatrixRow label="Reference" labelCell={labelCell}>
-              {quotes.map((q) => <td key={q.id} className={dataCell}>{q.reference || "—"}</td>)}
+              {quotes.map((q) => <td key={q.id} className={dataCell}>{q.reference || "-"}</td>)}
             </MatrixRow>
             <MatrixRow label="Status" labelCell={labelCell}>
               {quotes.map((q) => <td key={q.id} className={cn(dataCell, "whitespace-nowrap")}><StatusPill status={q.quotation_status} /></td>)}
@@ -220,7 +220,7 @@ function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; 
                     const price = priceFor(line.id, q.id);
                     return (
                       <td key={q.id} className={cn(dataCell, price != null && low != null && price === low && "font-semibold text-emerald-700")}>
-                        {price == null ? "—" : money(price)}
+                        {price == null ? "-" : money(price)}
                       </td>
                     );
                   })}
@@ -246,7 +246,7 @@ function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; 
                   ) : q.awarded_po_id ? (
                     <span className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-emerald-700"><Award className="size-3" /> Awarded</span>
                   ) : (
-                    <span className="font-mont text-[11px] text-gray-04">—</span>
+                    <span className="font-mont text-[11px] text-gray-04">-</span>
                   )}
                 </td>
               ))}
@@ -255,7 +255,7 @@ function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; 
         </table>
       </div>
       <p className="font-mont text-[11px] text-gray-05">
-        Only real, recorded criteria are compared — there is no spec-compliance, warranty or vendor grade in the data.
+        Only real, recorded criteria are compared - there is no spec-compliance, warranty or vendor grade in the data.
       </p>
     </>
   );

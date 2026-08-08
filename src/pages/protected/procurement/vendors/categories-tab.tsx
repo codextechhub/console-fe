@@ -44,7 +44,7 @@ function isForbidden(error: unknown) {
 }
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return <div className="min-w-0"><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className="mt-1 break-words font-mont text-sm font-semibold tabular-nums text-black-01">{value ?? "—"}</dd></div>;
+  return <div className="min-w-0"><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className="mt-1 break-words font-mont text-sm font-semibold tabular-nums text-black-01">{value ?? "-"}</dd></div>;
 }
 
 function RestrictedPanel({ children }: { children: React.ReactNode }) {
@@ -123,7 +123,7 @@ export function CategoriesTab({ entity, currency }: { entity: string; currency?:
     { header: "Code", cell: (category) => <span className="font-semibold text-primary">{category.code}</span> },
     { header: "Level", cell: (category) => <span className="whitespace-nowrap">Level {category.level}</span> },
     { header: "Parent", cell: (category) => category.parent_name || "Root" },
-    { header: "Default expense", cell: (category) => category.default_expense_code || "—" },
+    { header: "Default expense", cell: (category) => category.default_expense_code || "-" },
     { header: "Vendors", align: "right", cell: (category) => <span className="tabular-nums">{category.vendor_count ?? 0}</span> },
     { header: "Spend MTD", align: "right", cell: (category) => <span className="tabular-nums">{spend(category)}</span> },
     { header: "Status", cell: (category) => <StatusPill status={category.is_active ? "ACTIVE" : "INACTIVE"} /> },
@@ -166,7 +166,7 @@ function CategoryIdentity({ category }: { category: VendorCategory }) {
 }
 
 function CategoryMobileCard({ category, spend }: { category: VendorCategory; spend: string }) {
-  return <div className="space-y-3"><CategoryIdentity category={category} /><div className="flex flex-wrap gap-1"><StatusPill status={category.is_active ? "ACTIVE" : "INACTIVE"} /></div><div className="grid grid-cols-2 gap-3 text-xs"><div><p className="text-[11px] text-gray-05">Code</p><p className="mt-1 font-semibold text-primary">{category.code}</p></div><div><p className="text-[11px] text-gray-05">Parent</p><p className="mt-1 font-medium">{category.parent_name || "Root"}</p></div><div><p className="text-[11px] text-gray-05">Default expense</p><p className="mt-1 font-medium">{category.default_expense_code || "—"}</p></div><div><p className="text-[11px] text-gray-05">Spend MTD</p><p className="mt-1 font-medium tabular-nums">{spend}</p></div></div></div>;
+  return <div className="space-y-3"><CategoryIdentity category={category} /><div className="flex flex-wrap gap-1"><StatusPill status={category.is_active ? "ACTIVE" : "INACTIVE"} /></div><div className="grid grid-cols-2 gap-3 text-xs"><div><p className="text-[11px] text-gray-05">Code</p><p className="mt-1 font-semibold text-primary">{category.code}</p></div><div><p className="text-[11px] text-gray-05">Parent</p><p className="mt-1 font-medium">{category.parent_name || "Root"}</p></div><div><p className="text-[11px] text-gray-05">Default expense</p><p className="mt-1 font-medium">{category.default_expense_code || "-"}</p></div><div><p className="text-[11px] text-gray-05">Spend MTD</p><p className="mt-1 font-medium tabular-nums">{spend}</p></div></div></div>;
 }
 
 function CategoryDrawer({ id, entity, currency, canReports, insight, onClose }: { id: number | null; entity: string; currency?: string | null; canReports: boolean; insight?: VendorCategoryInsight; onClose: () => void }) {
@@ -216,7 +216,7 @@ function CategoryForm({ entity, initial, onClose }: { entity: string; initial?: 
     return true;
   }).map((candidate) => ({
     value: String(candidate.id),
-    label: `${"— ".repeat(candidate.level - 1)}${candidate.code} · ${candidate.name} (Level ${candidate.level})`,
+    label: `${"- ".repeat(candidate.level - 1)}${candidate.code} · ${candidate.name} (Level ${candidate.level})`,
   })), [active, allCategories, initial?.id, parent]);
   const selectedParent = allCategories.find((category) => String(category.id) === parent);
   const derivedLevel = selectedParent ? selectedParent.level + 1 : 1;

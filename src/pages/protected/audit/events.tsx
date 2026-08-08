@@ -53,7 +53,7 @@ export default function AuditEventsExplorer() {
   const [selectedEvent, setSelectedEvent] = useState<AuditEventListItem | null>(null);
   const { data: filterOptions } = useGetAuditEventFilterOptionsQuery();
 
-  // Quantised clock (30 s ticks) — keeps date_from stable between renders so
+  // Quantised clock (30 s ticks) - keeps date_from stable between renders so
   // the query arg doesn't churn, while staying compiler-pure.
   const now = useNow();
 
@@ -122,7 +122,7 @@ export default function AuditEventsExplorer() {
     ),
     entity: (
       <div className="flex flex-col leading-snug">
-        <span className="text-xs text-black-01">{e.entity_label || "—"}</span>
+        <span className="text-xs text-black-01">{e.entity_label || "-"}</span>
         <span className="text-[10px] text-gray-01">{e.entity_type}</span>
       </div>
     ),

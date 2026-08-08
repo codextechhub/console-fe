@@ -149,7 +149,7 @@ export const ticketsApi = baseApi.injectEndpoints({
       },
       invalidatesTags: ["Tickets"],
     }),
-    // Resolves to an object URL (caller must revokeObjectURL when done) —
+    // Resolves to an object URL (caller must revokeObjectURL when done) -
     // storing the raw Blob in redux state trips the serializability check.
     downloadTicketAttachment: builder.mutation<
       string,

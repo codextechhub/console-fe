@@ -173,7 +173,7 @@ export default function EntityTrailDetail() {
                 </div>
               </div>
 
-              {/* Stat strip — 4 tiles */}
+              {/* Stat strip - 4 tiles */}
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 sm:grid-cols-4">
                 <div>
                   <p className="text-[10px] uppercase text-gray-01 tracking-wide mb-0.5">Events</p>
@@ -181,11 +181,11 @@ export default function EntityTrailDetail() {
                 </div>
                 <div>
                   <p className="text-[10px] uppercase text-gray-01 tracking-wide mb-0.5">First seen</p>
-                  <p className="text-sm">{trail.first_event_at ? formatRelativeDate(trail.first_event_at) : "—"}</p>
+                  <p className="text-sm">{trail.first_event_at ? formatRelativeDate(trail.first_event_at) : "-"}</p>
                 </div>
                 <div>
                   <p className="text-[10px] uppercase text-gray-01 tracking-wide mb-0.5">Last seen</p>
-                  <p className="text-sm">{trail.last_event_at ? formatRelativeDate(trail.last_event_at) : "—"}</p>
+                  <p className="text-sm">{trail.last_event_at ? formatRelativeDate(trail.last_event_at) : "-"}</p>
                 </div>
                 <div>
                   <p className="text-[10px] uppercase text-gray-01 tracking-wide mb-0.5">Distinct actors</p>
@@ -194,7 +194,7 @@ export default function EntityTrailDetail() {
               </div>
             </div>
 
-            {/* Snapshot comparison panel — appears when 2 events are selected */}
+            {/* Snapshot comparison panel - appears when 2 events are selected */}
             {selectedSnap.length >= 2 && (
               <div className="bg-white rounded-md p-4 space-y-3">
                 <div className="flex items-center justify-between">
@@ -297,7 +297,7 @@ export default function EntityTrailDetail() {
                               {formatRelativeDate(e.event_at)}
                             </span>
                           </div>
-                          <p className="text-xs text-gray-01 truncate mb-1.5">{e.summary || "—"}</p>
+                          <p className="text-xs text-gray-01 truncate mb-1.5">{e.summary || "-"}</p>
                           <div className="flex items-center gap-2">
                             <span
                               className={cn(

@@ -29,14 +29,14 @@ Nowhere else in the codebase should reference a raw `"platform.x.y"` string. Eve
 ```ts
 import { P } from "@/permissions";
 
-// Names describe UI capabilities — never use raw strings or codes directly
+// Names describe UI capabilities - never use raw strings or codes directly
 P.BROWSE_SCHOOLS    // "100101"  →  "platform.schools.view" internally
 P.ONBOARD_SCHOOL    // "100102"  →  "platform.schools.create"
 P.ACCESS_TEAM_PANEL // "100201"  →  "platform.team.view"
-// P.APPROVE_INVOICE  // "200105" — uncomment when finance module ships
+// P.APPROVE_INVOICE  // "200105" - uncomment when finance module ships
 ```
 
-The `P` object is a flat map of UI-intent names to opaque numeric codes. Names describe what the user is doing in the UI — not the backend key structure. A reader of any file outside `src/permissions/index.ts` cannot infer the backend key format from the constant name alone.
+The `P` object is a flat map of UI-intent names to opaque numeric codes. Names describe what the user is doing in the UI - not the backend key structure. A reader of any file outside `src/permissions/index.ts` cannot infer the backend key format from the constant name alone.
 
 To add a new permission: pick the next code in the correct range, add it to `REGISTRY` and `P` with a UI-intent name, then use `P.YOUR_CONSTANT` everywhere.
 
@@ -73,7 +73,7 @@ Login response
 
 ## The Three Enforcement Points
 
-### 1. Sidebar — hide menu items the user cannot access
+### 1. Sidebar - hide menu items the user cannot access
 
 Each nav item in `app-sidebar.tsx` has a `permission` field. Items are filtered before render.
 
@@ -86,7 +86,7 @@ Each nav item in `app-sidebar.tsx` has a `permission` field. Items are filtered 
   permissionMode: "any",
 }
 
-// Multiple permissions — any one grants visibility
+// Multiple permissions - any one grants visibility
 {
   title: "Reports",
   url: routesPath.PROTECTED.REPORTS.INDEX,
@@ -95,7 +95,7 @@ Each nav item in `app-sidebar.tsx` has a `permission` field. Items are filtered 
   permissionMode: "any",   // visible if either key is present
 }
 
-// Multiple permissions — must have all
+// Multiple permissions - must have all
 {
   title: "Admin Panel",
   permission: [P.VIEW_ROLES, P.MODIFY_ROLE],
@@ -113,7 +113,7 @@ Each nav item in `app-sidebar.tsx` has a `permission` field. Items are filtered 
 
 ---
 
-### 2. `RequirePermission` — block the route entirely
+### 2. `RequirePermission` - block the route entirely
 
 Use this as a layout route wrapping a group of paths. If the user lacks the permission, a toast is shown and they are navigated back to their previous page. If there is no previous page (e.g. they typed the URL directly), they land on the dashboard instead.
 
@@ -133,7 +133,7 @@ export const yourFeatureRoutes: RouteObject[] = [
     ],
   },
 
-  // ── Create page — requires view AND create ────────────────
+  // ── Create page - requires view AND create ────────────────
   {
     element: (
       <RequirePermission
@@ -146,7 +146,7 @@ export const yourFeatureRoutes: RouteObject[] = [
     ],
   },
 
-  // ── Edit page — requires view AND edit ───────────────────
+  // ── Edit page - requires view AND edit ───────────────────
   {
     element: (
       <RequirePermission
@@ -172,7 +172,7 @@ export const yourFeatureRoutes: RouteObject[] = [
 
 ---
 
-### 3. `PermissionGate` — hide or replace UI elements inside a page
+### 3. `PermissionGate` - hide or replace UI elements inside a page
 
 Use this for buttons, sections, or any element inside a page the user can already visit.
 
@@ -200,12 +200,12 @@ import PermissionGate from "@/components/custom/permission-gate";
   <Button>Delete</Button>
 </PermissionGate>
 
-// Multiple permissions — any one
+// Multiple permissions - any one
 <PermissionGate permission={[P.ONBOARD_SCHOOL, P.MODIFY_SCHOOL]}>
   <Button>Add</Button>
 </PermissionGate>
 
-// Multiple permissions — all required
+// Multiple permissions - all required
 <PermissionGate
   permission={[P.BROWSE_SCHOOLS, P.MODIFY_SCHOOL]}
   mode="all"
@@ -244,14 +244,14 @@ dropDownList={(row) => [
 
 When adding a new section to the app, work through this checklist:
 
-- [ ] **Verify the permission keys exist** in the backend registry (`vs_rbac` app). Don't invent keys — a typo silently denies access to everyone.
+- [ ] **Verify the permission keys exist** in the backend registry (`vs_rbac` app). Don't invent keys - a typo silently denies access to everyone.
 - [ ] **Add a sidebar item** in `app-sidebar.tsx` with the correct `permission` and `permissionMode`.
 - [ ] **Create a route file** (e.g. `your-feature-routes.tsx`) and wrap each group of paths in `<RequirePermission />`.
-- [ ] **Edit/create routes must include `view`** using `mode="all"` — never guard them with only the edit/create key.
+- [ ] **Edit/create routes must include `view`** using `mode="all"` - never guard them with only the edit/create key.
 - [ ] **Add `PermissionGate`** around action buttons inside the page (Add, Edit, Delete).
 - [ ] **Use `hasPermission()` directly** to filter dropdown action items.
 - [ ] **Register the routes** in `src/routes/protected/index.tsx`.
-- [ ] **Test both paths**: (a) a user with the permission, (b) a user without — manually type the URL for the restricted page and confirm the access-denied toast appears and the user is taken back.
+- [ ] **Test both paths**: (a) a user with the permission, (b) a user without - manually type the URL for the restricted page and confirm the access-denied toast appears and the user is taken back.
 
 ---
 
@@ -275,12 +275,12 @@ hasAllPermissions(P.BROWSE_SCHOOLS, P.MODIFY_SCHOOL)             // all required
 
 Permissions are loaded at login. Two mechanisms keep them in sync after that:
 
-- **On app mount** — `authenticated.tsx` calls `GET /user/auth/me/` via `useGetMeQuery`. The `onQueryStarted` handler dispatches `updatePermissions` with the fresh list. This catches any role changes that happened while the token was still valid.
-- **On token refresh** — `baseApi.ts` calls `fetchFreshPermissions()` immediately after a successful token refresh and dispatches `updatePermissions`. This covers the silent re-authentication path.
+- **On app mount** - `authenticated.tsx` calls `GET /user/auth/me/` via `useGetMeQuery`. The `onQueryStarted` handler dispatches `updatePermissions` with the fresh list. This catches any role changes that happened while the token was still valid.
+- **On token refresh** - `baseApi.ts` calls `fetchFreshPermissions()` immediately after a successful token refresh and dispatches `updatePermissions`. This covers the silent re-authentication path.
 
 **Remaining gap:** If a user's permissions are revoked and their token has not yet expired, there is a window (up to the token's lifespan) before the next app mount triggers a sync. The backend will still return 403 on any API call that requires the revoked permission, so the user cannot actually perform the action even if the UI briefly shows the button.
 
-### 2. Token refresh syncs permissions — resolved
+### 2. Token refresh syncs permissions - resolved
 
 Previously only `setToken()` was dispatched on token refresh. `fetchFreshPermissions()` is now called immediately after and dispatches `updatePermissions` with the server's current list. See `baseApi.ts`.
 
@@ -294,7 +294,7 @@ A code that doesn't exist in `REGISTRY` (e.g. a typo or a code that was never ad
 
 ### 5. Routes with `permission: null` (always-visible) are unguarded
 
-The Home/Overview route is intentionally accessible to all authenticated users (`permission: null` in the sidebar, no `RequirePermission` on the route). If sensitive data is ever added to the Overview page, a permission guard must be added at that time — both on the route and on the sidebar item.
+The Home/Overview route is intentionally accessible to all authenticated users (`permission: null` in the sidebar, no `RequirePermission` on the route). If sensitive data is ever added to the Overview page, a permission guard must be added at that time - both on the route and on the sidebar item.
 
 ### 6. No permission bypass for superusers on the frontend
 
@@ -302,7 +302,7 @@ The frontend checks the flat `permissions[]` array. If a superuser's login respo
 
 ---
 
-## Field-Level Security (FLS) — Hiding Stripped Response Fields
+## Field-Level Security (FLS) - Hiding Stripped Response Fields
 
 The backend serializer mixin (`FieldSecurityMixin` in `vs_rbac/fls.py`) can strip individual fields from an API response when the requesting user lacks the required read permission. Instead of sending the field at all, the backend appends a `_stripped_fields` array to the response listing every field it removed.
 
@@ -319,7 +319,7 @@ This lets the frontend distinguish two different states:
 | State | What it means | What to show |
 |-------|--------------|-------------|
 | Field in `_stripped_fields` | User has no permission to see it | Hide the element entirely |
-| Field absent / null / empty, not stripped | Field exists, no data yet | Render `"—"` |
+| Field absent / null / empty, not stripped | Field exists, no data yet | Render `"-"` |
 
 ### Usage
 
@@ -330,15 +330,15 @@ import { isStripped, strippedFields } from "@/utils/fls";
 
 // Single field check
 {!isStripped(student, "medical_notes") && (
-  <Row label="Medical Notes" value={student.medical_notes ?? "—"} />
+  <Row label="Medical Notes" value={student.medical_notes ?? "-"} />
 )}
 
-// Multiple fields — build a Set once to avoid repeated .includes() calls
+// Multiple fields - build a Set once to avoid repeated .includes() calls
 const stripped = strippedFields(student);
 
-<Row label="Medical Notes"        hidden={stripped.has("medical_notes")}        value={student.medical_notes ?? "—"} />
-<Row label="Guardian Contacts"    hidden={stripped.has("guardian_contacts")}    value={student.guardian_contacts ?? "—"} />
-<Row label="Disciplinary Notes"   hidden={stripped.has("disciplinary_notes")}   value={student.disciplinary_notes ?? "—"} />
+<Row label="Medical Notes"        hidden={stripped.has("medical_notes")}        value={student.medical_notes ?? "-"} />
+<Row label="Guardian Contacts"    hidden={stripped.has("guardian_contacts")}    value={student.guardian_contacts ?? "-"} />
+<Row label="Disciplinary Notes"   hidden={stripped.has("disciplinary_notes")}   value={student.disciplinary_notes ?? "-"} />
 ```
 
 ### Typing API responses
@@ -358,13 +358,13 @@ type StudentDetail = WithFls<{
 
 ### When to apply
 
-Only relevant for serializers that use `FieldSecurityMixin`. If a serializer does not declare `read_permissions`, its responses will never contain `_stripped_fields` and you can use the normal `?? "—"` pattern for missing values.
+Only relevant for serializers that use `FieldSecurityMixin`. If a serializer does not declare `read_permissions`, its responses will never contain `_stripped_fields` and you can use the normal `?? "-"` pattern for missing values.
 
 ### Rule: backend and frontend must be updated in the same PR
 
 Whenever a serializer gains a `read_permissions` entry, the corresponding frontend page **must** be updated in the same PR to guard those fields with `isStripped` / `strippedFields`.
 
-The two are always coupled. If the backend strips a field but the frontend does not guard it, the field silently disappears — the user sees no label, no dash, no explanation. `_stripped_fields` is the contract between them; one side without the other is a bug.
+The two are always coupled. If the backend strips a field but the frontend does not guard it, the field silently disappears - the user sees no label, no dash, no explanation. `_stripped_fields` is the contract between them; one side without the other is a bug.
 
 When writing the PR description, list which fields were added to `read_permissions` so the reviewer can verify the frontend side was updated too.
 
@@ -400,5 +400,5 @@ User navigates to URL
 | Feature | View route guard | Create route guard | Edit route guard | Sidebar key |
 |---------|-----------------|-------------------|-----------------|-------------|
 | School Management | `platform.schools.view` | `view` + `create` (all) | `view` + `edit` (all) | `platform.schools.view` |
-| Team Management | `platform.team.view` | — | — | `platform.team.view` |
-| Overview / Home | none (open to all authenticated users) | — | — | `null` |
+| Team Management | `platform.team.view` | - | - | `platform.team.view` |
+| Overview / Home | none (open to all authenticated users) | - | - | `null` |

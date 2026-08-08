@@ -39,9 +39,9 @@ describe("formatEnum", () => {
   });
 
   it("returns an em dash for empty values", () => {
-    expect(formatEnum(null)).toBe("—");
-    expect(formatEnum(undefined)).toBe("—");
-    expect(formatEnum("")).toBe("—");
+    expect(formatEnum(null)).toBe("-");
+    expect(formatEnum(undefined)).toBe("-");
+    expect(formatEnum("")).toBe("-");
   });
 });
 
@@ -68,7 +68,7 @@ describe("formatDate", () => {
   });
 
   it("returns an em dash for invalid dates", () => {
-    expect(formatDate(new Date("nope"))).toBe("—");
+    expect(formatDate(new Date("nope"))).toBe("-");
   });
 });
 
@@ -88,12 +88,12 @@ describe("formatRelativeDate", () => {
   });
 
   it("returns an em dash for invalid input", () => {
-    expect(formatRelativeDate("not a date")).toBe("—");
+    expect(formatRelativeDate("not a date")).toBe("-");
   });
 });
 
 describe("formatStartedTime", () => {
   it("returns an em dash for invalid input", () => {
-    expect(formatStartedTime("garbage")).toBe("—");
+    expect(formatStartedTime("garbage")).toBe("-");
   });
 });

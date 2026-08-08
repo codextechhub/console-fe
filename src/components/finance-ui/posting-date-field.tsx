@@ -1,6 +1,6 @@
 // The date field for anything that posts to the general ledger.
 //
-// Use this for a *document* date — invoice date, receipt date, GRN received date,
+// Use this for a *document* date - invoice date, receipt date, GRN received date,
 // vendor payment date. Those all reach `ensure_period_open` on the backend, which
 // rejects a date outside an OPEN fiscal period with a 409, so the calendar here
 // simply stops offering them.
@@ -8,12 +8,12 @@
 // Do NOT use it for dates that never post: due dates, "needed by", "valid until",
 // expected delivery. Those are deliberately in the future, past the end of every
 // open period, and constraining them would break them. Plain <Input type="date"/>
-// stays right for those, and for report filters — you must be able to run a report
+// stays right for those, and for report filters - you must be able to run a report
 // over a closed period.
 //
 // `notBefore` is the second, separate constraint. An open period answers "may we
 // book on this date at all?"; `notBefore` answers "could this have happened by
-// then?" — a write-off cannot predate its invoice, a refund cannot predate the
+// then?" - a write-off cannot predate its invoice, a refund cannot predate the
 // credit it pays out. The backend enforces it either way (a 409
 // POSTING_BACKDATED), so this exists to stop the user picking the date, not to be
 // the guard.
@@ -52,7 +52,7 @@ export function PostingDateField({
    * from the calendar rather than left to fail on submit.
    */
   notBefore?: string | null;
-  /** What sits at `notBefore`, e.g. "invoice INV-104" — used in the message. */
+  /** What sits at `notBefore`, e.g. "invoice INV-104" - used in the message. */
   notBeforeLabel?: string;
 }) {
   const { ranges: openRanges, defaultDate: windowDefault, constrained, noOpenPeriod, label: windowLabel, reasonFor, isLoading } =
@@ -73,7 +73,7 @@ export function PostingDateField({
   // and visibly flicking to another date a moment later.
   //
   // Only ever fills an EMPTY field. An existing document's date is left exactly
-  // as saved even when it sits outside the window — silently rewriting a stored
+  // as saved even when it sits outside the window - silently rewriting a stored
   // date would be a data change disguised as a default. It shows an error instead.
   //
   // A required field refills whenever it goes empty, so a drawer that resets and
@@ -93,7 +93,7 @@ export function PostingDateField({
   const tooEarly = Boolean(value) && Boolean(notBefore) && value < notBefore!;
   const reason = reasonFor(value);
   const invalid = tooEarly || (Boolean(value) && Boolean(reason));
-  // No open period survives the floor — the two constraints have no overlap, so
+  // No open period survives the floor - the two constraints have no overlap, so
   // there is no date the user could pick.
   const noEligibleDate = Boolean(notBefore) && constrained && ranges.length === 0;
 
@@ -115,7 +115,7 @@ export function PostingDateField({
       />
       {noOpenPeriod ? (
         <p className="font-mont text-[11px] text-error">
-          No fiscal period is open for this entity — nothing can be posted until finance opens one.
+          No fiscal period is open for this entity - nothing can be posted until finance opens one.
         </p>
       ) : noEligibleDate ? (
         <p className="font-mont text-[11px] text-error">
@@ -136,7 +136,7 @@ export function PostingDateField({
       ) : notBefore ? (
         <p className="font-mont text-[11px] text-gray-05">
           On or after {notBefore}
-          {notBeforeLabel ? ` — ${notBeforeLabel}` : ""}
+          {notBeforeLabel ? ` - ${notBeforeLabel}` : ""}
         </p>
       ) : constrained && windowLabel ? (
         <p className="font-mont text-[11px] text-gray-05">Open period: {windowLabel}</p>

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # List the page/route-ish files changed in the working tree (staged, unstaged,
-# untracked) — the screens a "just-finished design" most likely touched. The
+# untracked) - the screens a "just-finished design" most likely touched. The
 # agent maps these to their routes (cross-ref routes-path.ts) and drives them.
 #
 # Optional arg: a git ref to diff against instead of the working tree

@@ -107,11 +107,11 @@
   --color-yellow-01: #F59E0B;
   --color-green-01: #16A34A;
 
-  /* Darkened siblings, for STATUS AND VALIDATION TEXT ONLY — never for fills,
+  /* Darkened siblings, for STATUS AND VALIDATION TEXT ONLY - never for fills,
      borders or glyphs, which keep the raw hue above.
      The raw hues are correct as backgrounds but fail WCAG AA as small text on
      their own 10% tint over white: green 2.96:1, amber 1.99:1, error 4.01:1,
-     gray-05 2.89:1 — all under 4.5:1, and none large enough for the 3:1
+     gray-05 2.89:1 - all under 4.5:1, and none large enough for the 3:1
      large-text exception at text-sm. These four measure 5.5–6.3:1 on the same
      composited tint, so the hue still reads but the label is legible.
      --primary needs no sibling: it measures 5.05:1 on primary/10 unmodified. */
@@ -206,7 +206,7 @@
   50% { opacity: 1; }
 }
 
-/* Global notifications — centered over the active work area, not the viewport.
+/* Global notifications - centered over the active work area, not the viewport.
    Dashboard toasts sit one layer below the sticky header so their entrance
    reads as a drop from the shell rather than a floating viewport alert. */
 .workspace-toaster[data-sonner-toaster][data-x-position="center"] {
@@ -328,7 +328,7 @@
   }
 }
 
-/* Button loading — three sequential opacity-fading dots (no layout shift) */
+/* Button loading - three sequential opacity-fading dots (no layout shift) */
 @keyframes dot-fade {
   0%, 80%, 100% { opacity: 0.25; }
   40% { opacity: 1; }
@@ -337,7 +337,7 @@
   animation: dot-fade 1.4s ease-in-out infinite both;
 }
 
-/* ── Auth submit — in-place progress ────────────────────────────────────────
+/* ── Auth submit - in-place progress ────────────────────────────────────────
    The submit button keeps its exact footprint while a request is in flight: the
    label leaves upward as the spinner rises from below (both layers are absolute,
    so nothing reflows), a light bar sweeps the bottom edge to show the request is
@@ -376,7 +376,7 @@
   animation: auth-line-in 240ms ease-out both;
 }
 
-/* Rejected credentials get a physical nudge — the inline message alone is easy
+/* Rejected credentials get a physical nudge - the inline message alone is easy
    to miss when the eye is still on the button. */
 @keyframes auth-shake {
   0%, 100% { transform: translateX(0); }
@@ -391,7 +391,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   /* Unlayered, so these win over the Tailwind utility layer. Spinners keep
-     spinning — that one is load-bearing information, not decoration. */
+     spinning - that one is load-bearing information, not decoration. */
   .auth-sweep,
   .auth-shake {
     animation: none;
@@ -411,7 +411,7 @@
 
 /* Coordinated data reveal: a section whose numbers were held back settles in as
    one gesture, instead of each value popping when its own request happens to
-   land. Deliberately short — this is a settle, not an entrance. */
+   land. Deliberately short - this is a settle, not an entrance. */
 @keyframes reveal-in {
   from { opacity: 0.35; transform: translateY(3px); }
   to { opacity: 1; transform: translateY(0); }
@@ -425,14 +425,14 @@
   }
 }
 
-/* Organogram — highlight pulse for jump-to-node */
+/* Organogram - highlight pulse for jump-to-node */
 @keyframes pulseHL {
   0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.45); }
   70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
   100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
 }
 
-/* ── Organogram chart — top-down tree connectors ──────────────────────────────
+/* ── Organogram chart - top-down tree connectors ──────────────────────────────
    Classic CSS org chart: each <li> draws half-width top rails (::before/::after)
    plus a vertical drop on ::after; child <ul>s draw the drop from their parent.
    Cards are the <li>'s first child; branches collapse by not rendering the ul. */
@@ -496,7 +496,7 @@
 .org-chart ul ul > li:only-child {
   padding-top: 0;
 }
-/* top-level roots have no parent — no rails, no drop */
+/* top-level roots have no parent - no rails, no drop */
 .org-chart > ul > li::before,
 .org-chart > ul > li::after {
   display: none;

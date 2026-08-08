@@ -4,7 +4,7 @@
 import type { DatasetFilter, FilterSpec, PreviewResult } from "@/redux/services/dashboard/exports-types";
 
 /** Has this filter actually been given a value? Drives the blocking check.
- *  The value keys are the backend's, not ours — see filter-editor.tsx. */
+ *  The value keys are the backend's, not ours - see filter-editor.tsx. */
 export function filterIsSet(def: DatasetFilter, spec: FilterSpec | undefined): boolean {
   if (!spec) return false;
   switch (def.type) {
@@ -23,7 +23,7 @@ export function filterIsSet(def: DatasetFilter, spec: FilterSpec | undefined): b
 
 /** Rows, as an exact figure or the honest bucketed fallback. */
 export function rowsLabel(preview: PreviewResult | null): string {
-  if (!preview) return "—";
+  if (!preview) return "-";
   if (preview.matching_rows != null) return preview.matching_rows.toLocaleString("en-GB");
-  return preview.rows_bucket ?? "—";
+  return preview.rows_bucket ?? "-";
 }

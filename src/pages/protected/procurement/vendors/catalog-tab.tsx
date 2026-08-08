@@ -57,7 +57,7 @@ function stockLabel(status: CatalogItem["stock_status"]) {
 }
 
 function Field({ label, value, prose }: { label: string; value: React.ReactNode; prose?: boolean }) {
-  return <div className="min-w-0"><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className={cn("mt-1 break-words font-mont text-sm text-black-01", prose ? "font-normal leading-5" : "font-semibold tabular-nums")}>{value ?? "—"}</dd></div>;
+  return <div className="min-w-0"><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className={cn("mt-1 break-words font-mont text-sm text-black-01", prose ? "font-normal leading-5" : "font-semibold tabular-nums")}>{value ?? "-"}</dd></div>;
 }
 
 function EmptyPanel({ children }: { children: React.ReactNode }) {
@@ -98,20 +98,20 @@ export function CatalogTab({ entity, currency }: { entity: string; currency?: st
     { value: "", label: "All categories" },
     ...categoryTree(toArray(categoriesResponse?.data)).map((item) => ({
       value: item.code,
-      label: `${"— ".repeat(item.level - 1)}${item.code} — ${item.name}`,
+      label: `${"- ".repeat(item.level - 1)}${item.code} - ${item.name}`,
     })),
   ];
   const vendorOptions = [
     { value: "", label: "All vendors" },
-    ...toArray(vendorsResponse?.data).map((item) => ({ value: item.code, label: `${item.code} — ${item.name}` })),
+    ...toArray(vendorsResponse?.data).map((item) => ({ value: item.code, label: `${item.code} - ${item.name}` })),
   ];
   const columns: Column<CatalogItem>[] = [
     { header: "Item", cell: (item) => <ItemIdentity item={item} /> },
     { header: "Category", cell: (item) => item.category_name || "Uncategorised" },
     { header: "Unit", cell: (item) => item.unit_of_measure },
     { header: "Standard price", align: "right", cell: (item) => <Money kobo={item.standard_unit_price} currency={currency} align="right" /> },
-    { header: "Preferred vendor", cell: (item) => item.preferred_vendor_name || "—" },
-    { header: "Lead time", cell: (item) => item.lead_time_days == null ? "—" : `${item.lead_time_days} day${item.lead_time_days === 1 ? "" : "s"}` },
+    { header: "Preferred vendor", cell: (item) => item.preferred_vendor_name || "-" },
+    { header: "Lead time", cell: (item) => item.lead_time_days == null ? "-" : `${item.lead_time_days} day${item.lead_time_days === 1 ? "" : "s"}` },
     ...(canStock ? [{ header: "Stock", cell: (item: CatalogItem) => <StatusPill status={stockLabel(item.stock_status)} /> } satisfies Column<CatalogItem>] : []),
     { header: "Status", cell: (item) => <StatusPill status={item.is_active ? "ACTIVE" : "INACTIVE"} /> },
     { header: "", align: "right", cell: () => <ChevronRight className="ml-auto size-4 text-gray-04" /> },
@@ -157,7 +157,7 @@ function ItemIdentity({ item }: { item: CatalogItem }) {
 }
 
 function CatalogMobileCard({ item, currency, showStock }: { item: CatalogItem; currency?: string | null; showStock: boolean }) {
-  return <div className="space-y-3"><ItemIdentity item={item} /><div className="flex flex-wrap gap-1"><StatusPill status={item.is_active ? "ACTIVE" : "INACTIVE"} />{showStock && <StatusPill status={stockLabel(item.stock_status)} />}</div><div className="grid grid-cols-2 gap-3 text-xs"><div><p className="text-[11px] text-gray-05">Category</p><p className="mt-1 font-medium">{item.category_name || "Uncategorised"}</p></div><div><p className="text-[11px] text-gray-05">Unit</p><p className="mt-1 font-medium">{item.unit_of_measure}</p></div><div><p className="text-[11px] text-gray-05">Standard price</p><p className="mt-1 font-semibold tabular-nums">{formatMoney(item.standard_unit_price, currency)}</p></div><div><p className="text-[11px] text-gray-05">Preferred vendor</p><p className="mt-1 font-medium">{item.preferred_vendor_name || "—"}</p></div></div></div>;
+  return <div className="space-y-3"><ItemIdentity item={item} /><div className="flex flex-wrap gap-1"><StatusPill status={item.is_active ? "ACTIVE" : "INACTIVE"} />{showStock && <StatusPill status={stockLabel(item.stock_status)} />}</div><div className="grid grid-cols-2 gap-3 text-xs"><div><p className="text-[11px] text-gray-05">Category</p><p className="mt-1 font-medium">{item.category_name || "Uncategorised"}</p></div><div><p className="text-[11px] text-gray-05">Unit</p><p className="mt-1 font-medium">{item.unit_of_measure}</p></div><div><p className="text-[11px] text-gray-05">Standard price</p><p className="mt-1 font-semibold tabular-nums">{formatMoney(item.standard_unit_price, currency)}</p></div><div><p className="text-[11px] text-gray-05">Preferred vendor</p><p className="mt-1 font-medium">{item.preferred_vendor_name || "-"}</p></div></div></div>;
 }
 
 function CatalogDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {
@@ -247,7 +247,7 @@ function CatalogForm({ entity, currency, initial, onClose }: { entity: string; c
   };
 
   return <FormDrawer open onOpenChange={(open) => !open && onClose()} title={initial ? `Edit ${initial.name}` : "New Catalog Item"} description={initial ? "Update future purchasing defaults without rewriting historical documents." : "Add an orderable item to the purchasing master list."} onSubmit={save} submitText={initial ? "Save Changes" : "Create Item"} loading={creating || updating} canSubmit={canSubmit} widthClass="sm:max-w-[620px]">
-    <section className="space-y-3"><div className="flex items-center gap-2"><Package className="size-4 text-primary" /><p className="font-mont text-xs font-semibold text-black-01">Item</p></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="SKU / external code"><Input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} disabled={!!initial} maxLength={40} placeholder="Optional — generated if blank" className="bg-white font-mont uppercase" /></FormField><FormField label="Item name" required><Input value={name} onChange={(event) => setName(event.target.value)} maxLength={200} className="bg-white" /></FormField></div><FormField label="Description"><Textarea value={description} onChange={(event) => setDescription(event.target.value)} maxLength={255} className="min-h-20 bg-white" /></FormField><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Category"><CategoryPicker entity={entity} value={category} onChange={setCategory} placeholder="Uncategorised" /></FormField><FormField label="Unit of measure" required><Input value={unit} onChange={(event) => setUnit(event.target.value)} maxLength={24} placeholder="e.g. Unit, Box, Hour" className="bg-white" /></FormField></div></section>
+    <section className="space-y-3"><div className="flex items-center gap-2"><Package className="size-4 text-primary" /><p className="font-mont text-xs font-semibold text-black-01">Item</p></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="SKU / external code"><Input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} disabled={!!initial} maxLength={40} placeholder="Optional - generated if blank" className="bg-white font-mont uppercase" /></FormField><FormField label="Item name" required><Input value={name} onChange={(event) => setName(event.target.value)} maxLength={200} className="bg-white" /></FormField></div><FormField label="Description"><Textarea value={description} onChange={(event) => setDescription(event.target.value)} maxLength={255} className="min-h-20 bg-white" /></FormField><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Category"><CategoryPicker entity={entity} value={category} onChange={setCategory} placeholder="Uncategorised" /></FormField><FormField label="Unit of measure" required><Input value={unit} onChange={(event) => setUnit(event.target.value)} maxLength={24} placeholder="e.g. Unit, Box, Hour" className="bg-white" /></FormField></div></section>
     <section className="space-y-3"><div className="flex items-center gap-2"><Store className="size-4 text-primary" /><p className="font-mont text-xs font-semibold text-black-01">Sourcing defaults</p></div><FormField label="Preferred vendor"><VendorPicker entity={entity} value={vendor} onChange={setVendor} purchaseEligible placeholder="No preferred vendor" /></FormField><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Standard unit price"><MoneyInput valueKobo={price} onChangeKobo={setPrice} currency={currency} /></FormField><FormField label="Lead time (days)"><Input type="number" min={0} max={32767} step={1} value={leadTime} onChange={(event) => setLeadTime(event.target.value)} className="bg-white" /></FormField></div><p className="font-mont text-xs leading-5 text-gray-05">The price and vendor are reference defaults only and remain overridable on each purchasing line.</p></section>
     <section className="space-y-3"><div className="flex items-center gap-2"><Tags className="size-4 text-primary" /><p className="font-mont text-xs font-semibold text-black-01">Accounting defaults</p></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Default expense account"><AccountPicker entity={entity} value={expense} onChange={setExpense} accountType="EXPENSE" postableOnly activeOnly placeholder="Use category default" /></FormField><FormField label="Default purchase tax"><TaxCodePicker entity={entity} value={tax} onChange={setTax} usage="purchase" placeholder="No tax default" /></FormField></div><p className="font-mont text-xs leading-5 text-gray-05">An item account overrides its active category’s expense default. Only active purchase-tax codes can seed new lines.</p></section>
     <section className="space-y-3"><div className="flex items-center gap-2"><Clock3 className="size-4 text-primary" /><p className="font-mont text-xs font-semibold text-black-01">Governance</p></div><label className="flex items-center gap-2 font-mont text-sm"><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} /> Active</label><p className="font-mont text-xs leading-5 text-gray-05">Inactive items remain readable on historical requisitions and stock records but cannot be assigned to new relationships.</p></section>

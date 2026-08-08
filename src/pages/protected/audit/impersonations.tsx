@@ -133,12 +133,12 @@ function ImpersonationDetailDrawer({
                       ? null
                       : session.ended_at
                         ? formatRelativeDate(session.ended_at)
-                        : "—",
+                        : "-",
                     countdown: session.status === "ACTIVE" ? session.ends_at : null,
                   },
                   { label: "Actions captured", value: eventsLoading ? "…" : String(events.length) },
                   // The backend ImpersonationSessionSerializer has no
-                  // end_reason field — status is the closest real signal.
+                  // end_reason field - status is the closest real signal.
                   {
                     label: "Status",
                     value: session.status === "ACTIVE" ? "Active"
@@ -157,7 +157,7 @@ function ImpersonationDetailDrawer({
                 ))}
               </div>
 
-              {/* Read trail — what the proxier viewed, deduped by endpoint */}
+              {/* Read trail - what the proxier viewed, deduped by endpoint */}
               <div>
                 <p className="text-xs font-semibold font-mont mb-2">Data accessed during session</p>
                 {(session.access_log ?? []).length === 0 ? (
@@ -484,7 +484,7 @@ export default function Impersonations() {
                           </div>
                         ) : (
                           <span className="text-xs whitespace-nowrap">
-                            {i.ended_at ? formatRelativeDate(i.ended_at) : "—"}
+                            {i.ended_at ? formatRelativeDate(i.ended_at) : "-"}
                           </span>
                         )}
                       </td>

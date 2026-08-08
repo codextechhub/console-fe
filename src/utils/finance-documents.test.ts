@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Cookies from "js-cookie";
 import { openInvoiceDocument, openPaymentReceipt } from "./finance-documents";
 
-// A stand-in for the tab returned by window.open — records the load handler so a
+// A stand-in for the tab returned by window.open - records the load handler so a
 // test can fire it, and tracks navigation / print / close.
 const makeWin = () => {
   const handlers: Record<string, () => void> = {};

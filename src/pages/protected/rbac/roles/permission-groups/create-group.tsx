@@ -69,7 +69,7 @@ export default function CreatePermissionGroup() {
                       id="name"
                       name="name"
                       label="Group Name"
-                      placeholder="e.g. Finance — Operations"
+                      placeholder="e.g. Finance - Operations"
                       value={values.name}
                       onChange={handleChange}
                       onBlur={handleBlur}

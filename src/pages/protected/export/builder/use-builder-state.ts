@@ -1,12 +1,12 @@
 // Builder state, and the debounced preview that watches it.
 //
 // Modelled on custom/import-wizard: flat state in one parent, steps as
-// presentational children. The wizard is deliberately NOT a reducer — every
+// presentational children. The wizard is deliberately NOT a reducer - every
 // field is independent, nothing derives from anything else, and a reducer would
 // add ceremony without removing a single bug.
 //
 // Preview behaviour is the part worth reading. The estimate is called on every
-// column and filter change, so it is debounced 400 ms and — crucially — the
+// column and filter change, so it is debounced 400 ms and - crucially - the
 // PREVIOUS result is kept while the next one is in flight, which is what lets
 // the rail stay populated at 60% opacity instead of blanking. Responses are
 // sequence-checked so a slow early request can never overwrite a fast later one.
@@ -109,7 +109,7 @@ export function usePreview({
 
   useEffect(() => {
     if (!enabled || !body) {
-      // No columns means no estimate to show — and nothing stale worth keeping.
+      // No columns means no estimate to show - and nothing stale worth keeping.
       if (!body) {
         setPreview(null);
         setError(null);

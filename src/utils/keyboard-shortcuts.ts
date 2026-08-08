@@ -4,7 +4,7 @@ export type PrimaryShortcutEvent = Pick<
 >;
 
 // Keys with a numpad twin produce a different physical code for the same
-// logical key ("Enter" vs "NumpadEnter") — a shortcut on such a key must
+// logical key ("Enter" vs "NumpadEnter") - a shortcut on such a key must
 // accept both or numpad users are silently excluded.
 const CODE_ALIASES: Record<string, readonly string[]> = {
   Enter: ["Enter", "NumpadEnter"],

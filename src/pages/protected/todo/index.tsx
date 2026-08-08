@@ -1,8 +1,8 @@
-// Tasks — Org Accountability. The CX-staff accountability tool: every person owns
+// Tasks - Org Accountability. The CX-staff accountability tool: every person owns
 // KPI "tasks"; managers see their whole area roll up, drill into reports, add
 // their own tasks and assign tasks down their reporting line. Hierarchy, roll-up
 // and assignment bounds are all enforced server-side (vs_todo, derived from the
-// organogram) — this page just orchestrates the dashboards and the task modal.
+// organogram) - this page just orchestrates the dashboards and the task modal.
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -138,7 +138,7 @@ export default function TodoPage() {
             onClick: () => {
               toggleTask({ id: task.id, done: false })
                 .unwrap()
-                .then(() => toast.info("Completion undone — no review request sent."))
+                .then(() => toast.info("Completion undone - no review request sent."))
                 .catch(() => {});
             },
           },
@@ -205,7 +205,7 @@ export default function TodoPage() {
             </p>
             <p className="text-xs text-gray-01 mt-0.5">
               {showTeam
-                ? "Completion rolls up through your reporting line — open a report to drill in."
+                ? "Completion rolls up through your reporting line - open a report to drill in."
                 : "Your personal KPI commitments and their deadlines."}
             </p>
           </div>

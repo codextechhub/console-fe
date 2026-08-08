@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Dump the app's concrete (non-parameterised) protected route paths from
-# routes-path.ts — a reference menu for choosing what to drive. Routes with
+# routes-path.ts - a reference menu for choosing what to drive. Routes with
 # params (":id" etc.) are listed too but need a real id to visit.
 set -euo pipefail
 

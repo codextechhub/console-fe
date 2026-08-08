@@ -62,8 +62,8 @@ export function SummaryRail({
         </h2>
         <div className="divide-y divide-gray-03">
           <Line label="Name" value={<span className="font-mont">{name || "Untitled export"}</span>} />
-          <Line label="Dataset" value={<span className="font-mont">{datasetName || "—"}</span>} />
-          <Line label="Scope" value={<span className="font-mont">{scopeLabel || "—"}</span>} />
+          <Line label="Dataset" value={<span className="font-mont">{datasetName || "-"}</span>} />
+          <Line label="Scope" value={<span className="font-mont">{scopeLabel || "-"}</span>} />
           <Line label="Format" value={format.toUpperCase()} />
         </div>
       </section>
@@ -88,12 +88,12 @@ export function SummaryRail({
               <Line label="Columns" value={columns} />
               <Line
                 label="Estimated size"
-                value={preview ? formatBytes(preview.estimated_bytes) : "—"}
+                value={preview ? formatBytes(preview.estimated_bytes) : "-"}
               />
             </div>
 
             {/* Counting stops being exact above the backend's limit. Saying so is
-                the honest fallback — never a spinner where a number should be. */}
+                the honest fallback - never a spinner where a number should be. */}
             {preview?.estimate_confidence === "bucketed" && (
               <p className="mt-2 font-mont text-[11px] leading-relaxed text-gray-05">
                 Too many rows to count exactly. The precise figure is recorded on the run.
@@ -130,7 +130,7 @@ export function SummaryRail({
           <SamplePreview sample={preview.sample} maxColumns={3} maxRows={4} />
           <p className="mt-2 font-mont text-[11px] text-gray-05">
             First {Math.min(4, preview.sample.rows.length)} rows, first{" "}
-            {Math.min(3, preview.sample.headers.length)} columns — values exactly as they will appear
+            {Math.min(3, preview.sample.headers.length)} columns - values exactly as they will appear
             in the file.
           </p>
         </section>
@@ -224,7 +224,7 @@ export function SummaryBar({
       <span className={cn(NUM, "text-xs text-gray-06-text")}>{columns} columns</span>
       <span className={cn(NUM, "text-xs text-gray-06-text")}>{rowsLabel(preview)} rows</span>
       <span className={cn(NUM, "text-xs text-gray-06-text")}>
-        {preview ? formatBytes(preview.estimated_bytes) : "—"}
+        {preview ? formatBytes(preview.estimated_bytes) : "-"}
       </span>
       {recalculating && <span className="font-mont text-[11px] text-gray-05">Recalculating…</span>}
     </div>

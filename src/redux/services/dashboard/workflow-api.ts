@@ -21,7 +21,7 @@ type QueryParams = Record<string, string | number>;
 
 // A workflow vote/withdraw/cancel/reverse changes the state of the *business
 // document* underneath (a requisition, PO or vendor invoice), so those consoles'
-// list / summary / detail caches must drop alongside the workflow caches —
+// list / summary / detail caches must drop alongside the workflow caches -
 // otherwise a status only refreshes after a manual refetch. RTK only refetches
 // mounted queries, so the cross-domain tags are effectively free off-screen.
 const PROC_DOC_TAGS = [
@@ -57,7 +57,7 @@ export const workflowApi = baseApi.injectEndpoints({
       providesTags: ["WorkflowInstances"],
     }),
 
-    // Approver vote — APPROVED / REJECTED / RETURNED.
+    // Approver vote - APPROVED / REJECTED / RETURNED.
     recordWorkflowAction: builder.mutation<
       WorkflowInstanceDetail,
       { id: string; action: VoteAction; comment?: string }

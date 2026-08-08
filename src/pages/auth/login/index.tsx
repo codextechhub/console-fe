@@ -107,7 +107,7 @@ export default function Login() {
           busy={isLoading}
           disabled={!formik.isValid || !formik.dirty}
           status="Connecting to your account"
-          slowStatus="Still connecting — the server is slow"
+          slowStatus="Still connecting - the server is slow"
         />
       </form>
     </div>

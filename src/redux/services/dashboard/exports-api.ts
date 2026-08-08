@@ -1,5 +1,5 @@
 // RTK Query endpoints for the Export Centre. Backend: apps/vs_exports, mounted
-// at /v1/exports/. Slice 1 covers the read-and-download half — runs, run detail,
+// at /v1/exports/. Slice 1 covers the read-and-download half - runs, run detail,
 // files, the download itself and its log. The builder's catalogue/preview/
 // definitions endpoints land with slice 2.
 //
@@ -29,7 +29,7 @@ import type {
   ValuesMode,
 } from "./exports-types";
 
-/** A configuration the preview endpoint can evaluate — not a saved export. */
+/** A configuration the preview endpoint can evaluate - not a saved export. */
 export interface PreviewBody {
   dataset_key: string;
   columns: string[];
@@ -42,7 +42,7 @@ export interface PreviewBody {
 
 export const exportsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // What this user may do — so a screen can disable with a reason rather than
+    // What this user may do - so a screen can disable with a reason rather than
     // fail at submit.
     getExportCapabilities: builder.query<ExportItemResponse<ExportCapabilities>, void>({
       query: () => ({ url: "/exports/capabilities/", method: "GET" }),
@@ -52,7 +52,7 @@ export const exportsApi = baseApi.injectEndpoints({
     // ── Catalogue ────────────────────────────────────────────────────────────
     // Filtered server-side by what the caller may actually export, so the
     // builder never offers a dataset that would fail at run time. Modules with
-    // nothing published still come back, empty — "Procurement: no datasets yet"
+    // nothing published still come back, empty - "Procurement: no datasets yet"
     // is information the step 1 chips must state rather than hide.
     getExportCatalogue: builder.query<ExportItemResponse<{ modules: CatalogueModule[] }>, void>({
       query: () => ({ url: "/exports/catalogue/", method: "GET" }),
@@ -75,7 +75,7 @@ export const exportsApi = baseApi.injectEndpoints({
         body,
       }),
       // No global toast. A half-built configuration is the NORMAL state of this
-      // endpoint — it fires on every column and filter change, so a required
+      // endpoint - it fires on every column and filter change, so a required
       // filter that is not set yet would toast on every keystroke. The summary
       // rail renders the same sentence inline, next to the number it is about,
       // which is where the fix belongs.
@@ -135,7 +135,7 @@ export const exportsApi = baseApi.injectEndpoints({
     }),
 
     // 201 = a new run; 200 = an identical run is already in flight and this IS
-    // that run. The caller must not treat 200 as an error — it is the
+    // that run. The caller must not treat 200 as an error - it is the
     // concurrency notice, and the point of the client key.
     runExportDefinition: builder.mutation<
       ExportItemResponse<ExportRunDetail>,
@@ -184,8 +184,8 @@ export const exportsApi = baseApi.injectEndpoints({
         url: `/exports/files/${fileId}/download/`,
         method: "GET",
         // Bytes on success, parsed envelope on failure. A blanket .blob() would
-        // hand the error path a Blob and lose the refusal sentence — and that
-        // sentence ("this file passed its availability date on 25 Aug — run the
+        // hand the error path a Blob and lose the refusal sentence - and that
+        // sentence ("this file passed its availability date on 25 Aug - run the
         // export again") is the most useful text in the whole feature.
         responseHandler: (response) => (response.ok ? response.blob() : response.json()),
       }),
@@ -201,7 +201,7 @@ export const exportsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    // Who took the file, and who was refused. Refusals are logged too — "who
+    // Who took the file, and who was refused. Refusals are logged too - "who
     // tried and was told no" is the question a compliance review actually asks.
     getExportDownloadLog: builder.query<
       ExportListResponse<ExportDownloadEntry>,

@@ -1,6 +1,6 @@
-// Statement of Changes in Equity — rebuilt to the Vision prototype in the house
+// Statement of Changes in Equity - rebuilt to the Vision prototype in the house
 // theme. A matrix: one column per equity component (+ a Total equity column), with the
-// movement walk down the rows — Opening balance → Profit for the period → Contributions
+// movement walk down the rows - Opening balance → Profit for the period → Contributions
 // → Distributions → Closing balance. Our backend gives each component's net
 // contributions; we split it by sign into the Contributions (in) and Distributions
 // (out) rows. Money + reconciliation come straight from the endpoint; export is real.
@@ -49,9 +49,9 @@ export function EquityReport({ entity, currency }: { entity: string; currency?: 
 
   const th = "px-4 py-2 font-mont text-xs font-semibold text-gray-01";
   const cell = "px-4 py-2 text-right tabular-nums";
-  // A movement cell: "—" for zero, otherwise the money (optionally tinted).
+  // A movement cell: "-" for zero, otherwise the money (optionally tinted).
   const amt = (kobo: number, tint?: "profit") => kobo === 0
-    ? <span className="text-gray-04">—</span>
+    ? <span className="text-gray-04">-</span>
     : <span className={cn("tabular-nums", tint === "profit" && kobo > 0 ? "text-green-01" : "text-black-01")}><Money kobo={kobo} currency={currency} align="right" /></span>;
 
   // One movement row across all component columns + the Total column.

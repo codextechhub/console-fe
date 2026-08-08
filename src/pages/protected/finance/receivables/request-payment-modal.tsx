@@ -1,7 +1,7 @@
-// Request online payment — kick off an invoice-linked gateway collection.
+// Request online payment - kick off an invoice-linked gateway collection.
 // Calls POST /payments/collections/ (vs_payments) which creates a CollectionIntent
 // and returns a checkout link. When the customer pays, the webhook books the
-// receipt (Dr bank, Cr AR) and allocates it to THIS invoice automatically — no
+// receipt (Dr bank, Cr AR) and allocates it to THIS invoice automatically - no
 // manual recording. This screen just generates and surfaces the link/reference.
 import { useState } from "react";
 import { toast } from "sonner";
@@ -77,7 +77,7 @@ export function RequestPaymentModal({ open, onOpenChange, entity, invoiceId, doc
             <label className="block space-y-1">
               <span className="font-mont text-xs text-gray-05">Checkout link</span>
               <div className="flex items-center gap-2">
-                <Input readOnly value={result.checkout_url ?? "—"} className="bg-gray-50 font-mont text-xs" onFocus={(e) => e.currentTarget.select()} />
+                <Input readOnly value={result.checkout_url ?? "-"} className="bg-gray-50 font-mont text-xs" onFocus={(e) => e.currentTarget.select()} />
                 <Button variant="outline" size="sm" onClick={copy} className="h-9 shrink-0 gap-1 px-2" disabled={!result.checkout_url}>
                   {copied ? <Check className="size-3.5 text-green-01" /> : <Copy className="size-3.5" />}{copied ? "Copied" : "Copy"}
                 </Button>
@@ -87,7 +87,7 @@ export function RequestPaymentModal({ open, onOpenChange, entity, invoiceId, doc
               </div>
             </label>
             <p className="font-mont text-[11px] text-gray-05">
-              Share this link with the customer. On payment, the receipt posts (Dr bank, Cr AR) and allocates to {docNumber} automatically — it’ll appear in the Payments tab.
+              Share this link with the customer. On payment, the receipt posts (Dr bank, Cr AR) and allocates to {docNumber} automatically - it’ll appear in the Payments tab.
             </p>
             <div className="flex items-center justify-end pt-1">
               <Button onClick={close}>Done</Button>

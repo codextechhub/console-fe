@@ -23,18 +23,18 @@ import { toast } from "sonner";
 type DeviceType = "desktop" | "mobile" | "tablet";
 
 function parseUA(ua: string | null | undefined): { browser: string; os: string; type: DeviceType } {
-  if (!ua) return { browser: "—", os: "—", type: "desktop" };
+  if (!ua) return { browser: "-", os: "-", type: "desktop" };
   const browser =
     /Edg\//.test(ua) ? "Edge" :
     /Chrome\//.test(ua) ? "Chrome" :
     /Firefox\//.test(ua) ? "Firefox" :
-    /Safari\//.test(ua) ? "Safari" : "—";
+    /Safari\//.test(ua) ? "Safari" : "-";
   const os =
     /iPhone|iPad/.test(ua) ? "iOS" :
     /Android/.test(ua) ? "Android" :
     /Mac OS X/.test(ua) ? "macOS" :
     /Windows/.test(ua) ? "Windows" :
-    /Linux/.test(ua) ? "Linux" : "—";
+    /Linux/.test(ua) ? "Linux" : "-";
   const type: DeviceType =
     /iPhone|Android.*Mobile/.test(ua) ? "mobile" :
     /iPad/.test(ua) ? "tablet" : "desktop";
@@ -42,7 +42,7 @@ function parseUA(ua: string | null | undefined): { browser: string; os: string; 
 }
 
 function maskIp(ip: string | null | undefined): string {
-  if (!ip) return "—";
+  if (!ip) return "-";
   const parts = ip.split(".");
   if (parts.length !== 4) return ip;
   return `${parts[0]}.•••.•••.${parts[3]}`;
@@ -137,13 +137,13 @@ export default function MyActiveSessions() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <p className="font-semibold font-mont text-gray-01">Active sessions</p>
-            {/* Gap 9 — dynamic count */}
+            {/* Gap 9 - dynamic count */}
             <p className="text-xs text-gray-01 mt-0.5">
               {activeSessionCount} device{activeSessionCount !== 1 ? "s" : ""} currently signed in
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Gap 7 — sign out all other sessions. Hidden when the current
+            {/* Gap 7 - sign out all other sessions. Hidden when the current
                 session can't be identified (no persisted session_id), because
                 "others" would then include this device. */}
             {!!sessionId && otherSessionCount > 0 && (
@@ -159,7 +159,7 @@ export default function MyActiveSessions() {
           </div>
         </div>
 
-        {/* Gap 1 — card grid (replaces table) */}
+        {/* Gap 1 - card grid (replaces table) */}
         {isError ? (
           <div className="flex h-56 flex-col items-center justify-center gap-3 bg-white rounded-md">
             <p className="text-sm font-medium text-destructive">Failed to load sessions.</p>
@@ -191,7 +191,7 @@ export default function MyActiveSessions() {
                       : "border-gray-100"
                   }`}
                 >
-                  {/* Gap 2 — device icon + Gap 3 — "This device" badge + Gap 4 — browser/OS */}
+                  {/* Gap 2 - device icon + Gap 3 - "This device" badge + Gap 4 - browser/OS */}
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
                       <DevIcon
@@ -216,12 +216,12 @@ export default function MyActiveSessions() {
                     </div>
                   </div>
 
-                  {/* Gap 5 — two timestamps + Gap 6 — IP masking */}
+                  {/* Gap 5 - two timestamps + Gap 6 - IP masking */}
                   <div className="flex flex-col gap-1.5 text-xs text-gray-01">
                     <div className="flex items-center gap-2">
                       <Globe size={11} className="shrink-0" />
                       <span className="font-mono">
-                        {ipRevealed ? (s.ip_address ?? "—") : maskIp(s.ip_address)}
+                        {ipRevealed ? (s.ip_address ?? "-") : maskIp(s.ip_address)}
                       </span>
                       <button
                         onClick={() => toggleRevealIp(s.id)}
@@ -241,7 +241,7 @@ export default function MyActiveSessions() {
                     </div>
                   </div>
 
-                  {/* Gap 11 — full-width sign-out button */}
+                  {/* Gap 11 - full-width sign-out button */}
                   {current ? (
                     <button
                       disabled
@@ -296,7 +296,7 @@ export default function MyActiveSessions() {
                           {endReasonLabel(s.end_reason)}
                         </Badge>
                         <span className="text-gray-01 shrink-0 ml-1">
-                          {s.ended_at ? formatRelativeDate(s.ended_at) : "—"}
+                          {s.ended_at ? formatRelativeDate(s.ended_at) : "-"}
                         </span>
                       </div>
                     );

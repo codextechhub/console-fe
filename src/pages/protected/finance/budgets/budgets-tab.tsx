@@ -1,4 +1,4 @@
-// Budgets & Forecasts — built on the real backend model (account × cost-centre ×
+// Budgets & Forecasts - built on the real backend model (account × cost-centre ×
 // period lines), in the house theme. A budget list (Code · Name · FY · Budgeted ·
 // Actual YTD · Consumed · Status), a per-account × per-month variance heatmap, and a
 // drawer that lets you build/edit a DRAFT's lines (auto-coded like an invoice) and,
@@ -59,7 +59,7 @@ function ConsumedBar({ pct }: { pct: number | null }) {
       <div className="h-1.5 w-20 overflow-hidden rounded-full bg-gray-03">
         <div className={cn("h-full rounded-full", over ? "bg-destructive" : "bg-green-01")} style={{ width: `${v}%` }} />
       </div>
-      <span className="w-10 text-right font-mont text-xs tabular-nums text-gray-05">{pct == null ? "—" : `${Math.round(pct)}%`}</span>
+      <span className="w-10 text-right font-mont text-xs tabular-nums text-gray-05">{pct == null ? "-" : `${Math.round(pct)}%`}</span>
     </div>
   );
 }
@@ -85,7 +85,7 @@ export function BudgetsTab({ entity, currency }: { entity: string; currency?: st
   const activeHeatmapId = heatmapId ?? rows[0]?.id ?? null;
 
   const columns: Column<Budget>[] = [
-    { header: "Code", cell: (b) => <span className="font-semibold tabular-nums text-gray-01">{b.code || "—"}</span> },
+    { header: "Code", cell: (b) => <span className="font-semibold tabular-nums text-gray-01">{b.code || "-"}</span> },
     { header: "Name", cell: (b) => b.name },
     { header: "Fiscal year", cell: (b) => <span className="tabular-nums text-gray-05">{b.fiscal_year}</span> },
     { header: "Budgeted", align: "right", cell: (b) => <Money kobo={b.budgeted_total ?? 0} currency={currency} align="right" /> },
@@ -98,7 +98,7 @@ export function BudgetsTab({ entity, currency }: { entity: string; currency?: st
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="max-w-2xl font-mont text-xs text-gray-05">
-          A budget is a plan in the same shape as your chart of accounts — one line per income/expense GL × cost centre × period. The system compares it to live postings; red cells in the heatmap are overruns.
+          A budget is a plan in the same shape as your chart of accounts - one line per income/expense GL × cost centre × period. The system compares it to live postings; red cells in the heatmap are overruns.
         </p>
         <Can permission={P.FIN_CREATE_BUDGET}>
           <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New budget</Button>
@@ -115,7 +115,7 @@ export function BudgetsTab({ entity, currency }: { entity: string; currency?: st
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1.5">
               <h2 className="font-mont text-sm font-semibold text-gray-01">Variance heatmap</h2>
-              <InfoHint ariaLabel="About the budget variance heatmap">Each cell is a GL account's actual spend in that period, coloured by how much of the budgeted amount it consumed. Variance is per account — actuals aren't tracked per cost centre.</InfoHint>
+              <InfoHint ariaLabel="About the budget variance heatmap">Each cell is a GL account's actual spend in that period, coloured by how much of the budgeted amount it consumed. Variance is per account - actuals aren't tracked per cost centre.</InfoHint>
             </div>
             <Select value={String(activeHeatmapId)} onChange={(v) => setHeatmapId(Number(v))} className="w-64">
               {rows.map((b) => <option key={b.id} value={b.id}>{b.code ? `${b.code} · ${b.name}` : b.name}</option>)}
@@ -150,7 +150,7 @@ function Heatmap({ budgetId, entity }: { budgetId: number; entity: string }) {
   const hm = data?.data;
   if (isError) return <p className="py-6 text-center font-mont text-xs text-destructive">Couldn't load the heatmap.</p>;
   if (isFetching && !hm) return <p className="py-6 text-center font-mont text-xs text-gray-05">Loading…</p>;
-  if (!hm || hm.rows.length === 0) return <p className="py-6 text-center font-mont text-xs text-gray-05">No budget lines yet — add lines to see the variance heatmap.</p>;
+  if (!hm || hm.rows.length === 0) return <p className="py-6 text-center font-mont text-xs text-gray-05">No budget lines yet - add lines to see the variance heatmap.</p>;
 
   return (
     <div className="overflow-x-auto">
@@ -176,12 +176,12 @@ function Heatmap({ budgetId, entity }: { budgetId: number; entity: string }) {
                   const hasActual = !!cell && cell.actual !== 0;
                   return (
                     <td key={p.period_no} className={cn("border-t border-gray-03 px-2 py-1.5 text-right font-mont text-[11px] tabular-nums", heatClass(ratio))}>
-                      {hasActual ? compactNaira(cell!.actual) : <span className="text-gray-05">—</span>}
+                      {hasActual ? compactNaira(cell!.actual) : <span className="text-gray-05">-</span>}
                     </td>
                   );
                 })}
                 <td className={cn(tdCls, "text-right")}>
-                  <span className={cn("font-medium tabular-nums", ytd != null && ytd > 1 ? "text-destructive" : "text-gray-05")}>{ytd == null ? "—" : `${Math.round(ytd * 100)}%`}</span>
+                  <span className={cn("font-medium tabular-nums", ytd != null && ytd > 1 ? "text-destructive" : "text-gray-05")}>{ytd == null ? "-" : `${Math.round(ytd * 100)}%`}</span>
                 </td>
               </tr>
             );
@@ -219,7 +219,7 @@ function LinesEditor({ entity, currency, rows, setRows }: { entity: string; curr
             <button type="button" onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))} className="mb-0.5 shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive"><Trash2 className="size-4" /></button>
           </div>
         ))}
-        {rows.length === 0 ? <p className="rounded-md border border-dashed border-gray-03 px-3 py-4 text-center font-mont text-[11px] text-gray-05">No lines yet — add one below.</p> : null}
+        {rows.length === 0 ? <p className="rounded-md border border-dashed border-gray-03 px-3 py-4 text-center font-mont text-[11px] text-gray-05">No lines yet - add one below.</p> : null}
       </div>
       <Button variant="outline" size="sm" onClick={() => setRows((rs) => [...rs, newLine()])} className="mt-2 gap-1.5"><Plus className="size-3.5" /> Add line</Button>
     </div>
@@ -271,7 +271,7 @@ function NewBudgetDrawer({ open, onClose, entity, currency }: { open: boolean; o
           </div>
         </div>
         <LinesEditor entity={entity} currency={currency} rows={rows} setRows={setRows} />
-        <p className="rounded-md border border-gray-03 bg-gray-03/40 px-3 py-2 font-mont text-[11px] text-gray-05">A reference code is allocated on save. The budget is a draft you can keep editing until you approve it — approval locks the lines.</p>
+        <p className="rounded-md border border-gray-03 bg-gray-03/40 px-3 py-2 font-mont text-[11px] text-gray-05">A reference code is allocated on save. The budget is a draft you can keep editing until you approve it - approval locks the lines.</p>
       </div>
     </DetailDrawer>
   );
@@ -293,7 +293,7 @@ function DraftEditor({ budget, entity, currency, onClose }: { budget: Budget; en
   const { can } = useCan();
   // The parent keys this component by budget id, so local edit state is
   // seeded once from props here and reset by remount when a different budget
-  // is opened — no effect needed to re-sync.
+  // is opened - no effect needed to re-sync.
   const [name, setName] = useState(budget.name);
   const [rows, setRows] = useState<EditLine[]>(() =>
     budget.lines.map((l) => ({ key: crypto.randomUUID(), account: l.account, cost_center: l.cost_center ?? "", period_no: l.period_no, amount: l.amount })));
@@ -329,7 +329,7 @@ function DraftEditor({ budget, entity, currency, onClose }: { budget: Budget; en
   return (
     <>
     <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
-      title={`Edit ${budget.code}`} description="Draft — editable until approved." widthClass="sm:max-w-4xl"
+      title={`Edit ${budget.code}`} description="Draft - editable until approved." widthClass="sm:max-w-4xl"
       footer={<>
         <StatusPill status={budget.status} />
         {can(P.FIN_DELETE_BUDGET) ? <Button variant="outline" disabled={deleting} onClick={() => setConfirmDelete(true)} className="gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/5"><Trash2 className="size-4" /> Delete</Button> : null}
@@ -374,7 +374,7 @@ function VarianceView({ budget, entity, currency, onClose }: { budget: Budget; e
       footer={<>
         <StatusPill status={budget.status} />
         <div className="flex-1" />
-        <span className="inline-flex items-center gap-1.5 font-mont text-[11px] text-gray-05"><Lock className="size-3.5" /> Locked — figures frozen against the actuals</span>
+        <span className="inline-flex items-center gap-1.5 font-mont text-[11px] text-gray-05"><Lock className="size-3.5" /> Locked - figures frozen against the actuals</span>
       </>}>
       <div className="space-y-5">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -383,7 +383,7 @@ function VarianceView({ budget, entity, currency, onClose }: { budget: Budget; e
           <Metric label="Variance (remaining)" kobo={remaining} currency={currency} tone={remaining < 0 ? "bad" : "good"} />
           <div className="rounded-md border border-gray-03 bg-white p-3">
             <p className="font-mont text-[11px] text-gray-05">% Consumed</p>
-            <p className={cn("mt-1 font-mont text-sm font-semibold tabular-nums", consumed != null && consumed > 100 ? "text-destructive" : "text-black-01")}>{consumed == null ? "—" : `${consumed}%`}</p>
+            <p className={cn("mt-1 font-mont text-sm font-semibold tabular-nums", consumed != null && consumed > 100 ? "text-destructive" : "text-black-01")}>{consumed == null ? "-" : `${consumed}%`}</p>
           </div>
         </div>
 

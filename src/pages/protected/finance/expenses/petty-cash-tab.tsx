@@ -33,7 +33,7 @@ const fmtDate = (s: string) => new Date(s).toLocaleDateString();
 
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-  return <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-xs font-semibold text-primary">{init || "—"}</span>;
+  return <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-xs font-semibold text-primary">{init || "-"}</span>;
 }
 function Kpi({ label, value, hint, danger }: { label: string; value: string; hint?: string; danger?: boolean }) {
   return (
@@ -63,7 +63,7 @@ export function PettyCashTab({ entity, currency }: { entity: string; currency?: 
   if (funds.length === 0) {
     return (
       <>
-        <EmptyState title="No petty-cash floats" message="Establish a float — set it up and fund it in one step." />
+        <EmptyState title="No petty-cash floats" message="Establish a float - set it up and fund it in one step." />
         <div className="mt-3 flex justify-center">
           <Can permission={P.FIN_ESTABLISH_PETTY_CASH}><Button onClick={() => setEstablishing(true)} className="gap-1.5"><ArrowDownToLine className="size-4" /> Establish float</Button></Can>
         </div>
@@ -101,8 +101,8 @@ function FundWorkbench({ fund, entity, currency, onEstablish }: { fund: PettyCas
     { header: "Date", cell: (m) => <span className="tabular-nums text-gray-05">{fmtDate(m.date)}</span> },
     { header: "Description", cell: (m) => m.description },
     { header: "Category", cell: (m) => <span className={cn(PILL, m.in ? "bg-green-01/10 text-green-01" : "bg-gray-03/60 text-gray-05")}>{m.category}</span> },
-    { header: "In", align: "right", cell: (m) => m.in ? <span className="tabular-nums text-green-01">{formatMoney(m.in, currency)}</span> : <span className="text-gray-05">—</span> },
-    { header: "Out", align: "right", cell: (m) => m.out ? <span className="tabular-nums text-destructive">{formatMoney(m.out, currency)}</span> : <span className="text-gray-05">—</span> },
+    { header: "In", align: "right", cell: (m) => m.in ? <span className="tabular-nums text-green-01">{formatMoney(m.in, currency)}</span> : <span className="text-gray-05">-</span> },
+    { header: "Out", align: "right", cell: (m) => m.out ? <span className="tabular-nums text-destructive">{formatMoney(m.out, currency)}</span> : <span className="text-gray-05">-</span> },
     { header: "Balance", align: "right", cell: (m) => <span className="font-medium tabular-nums">{formatMoney(m.balance, currency)}</span> },
   ];
 
@@ -181,8 +181,8 @@ function VouchersList({ vouchers, entity, currency, loading }: { vouchers: Petty
   };
   const cols: Column<PettyCashVoucher>[] = [
     { header: "Voucher no.", cell: (v) => <span className="font-semibold tabular-nums">{v.document_number}</span> },
-    { header: "Expense account", cell: (v) => <span className="tabular-nums text-gray-05">{v.expense_account || "—"}</span> },
-    { header: "Note", cell: (v) => v.narration || "—" },
+    { header: "Expense account", cell: (v) => <span className="tabular-nums text-gray-05">{v.expense_account || "-"}</span> },
+    { header: "Note", cell: (v) => v.narration || "-" },
     { header: "Date", cell: (v) => <span className="tabular-nums text-gray-05">{fmtDate(v.voucher_date)}</span> },
     { header: "Amount", align: "right", cell: (v) => <Money kobo={v.total} currency={currency} align="right" /> },
     { header: "Status", cell: (v) => <StatusPill status={v.status} /> },
@@ -283,7 +283,7 @@ function NewVoucherDrawer({ fund, entity, currency, onClose }: { fund: PettyCash
     >
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
-          Posting a voucher spends the tin — Dr expense (+ recoverable VAT), Cr petty cash — lowering the balance by the gross total.
+          Posting a voucher spends the tin - Dr expense (+ recoverable VAT), Cr petty cash - lowering the balance by the gross total.
         </p>
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Expense account" required><AccountPicker entity={entity} value={account} onChange={setAccount} accountType="EXPENSE" postableOnly placeholder="5xxx" /></FormField>
@@ -338,7 +338,7 @@ function ReplenishDrawer({ fund, entity, currency, onClose }: { fund: PettyCashF
 }
 
 // Establish = set up the float (its GL account, custodian, ceiling) AND move the
-// initial cash from the bank into the tin — both in one step, like the prototype.
+// initial cash from the bank into the tin - both in one step, like the prototype.
 function EstablishFloatDrawer({ open, onClose, entity, currency, onCreated }: {
   open: boolean; onClose: () => void; entity: string; currency?: string | null; onCreated: (id: number) => void;
 }) {
@@ -386,7 +386,7 @@ function EstablishFloatDrawer({ open, onClose, entity, currency, onCreated }: {
     >
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
-          Creates the float (mapped 1:1 to its petty-cash GL account) at its <span className="font-medium">ceiling</span> — the imprest level Replenish restores it to — and moves the opening cash from the bank into the tin (Dr petty cash, Cr bank).
+          Creates the float (mapped 1:1 to its petty-cash GL account) at its <span className="font-medium">ceiling</span> - the imprest level Replenish restores it to - and moves the opening cash from the bank into the tin (Dr petty cash, Cr bank).
         </p>
         <FormField label="Float name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Front-desk float" className="h-9 bg-white" /></FormField>
         <div className="grid grid-cols-2 gap-3">

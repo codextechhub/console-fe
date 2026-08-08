@@ -62,7 +62,7 @@ export default function CreateAdmin() {
     [orgNodesRes],
   );
 
-  // CX-staff creation goes through the PLATFORM_USER_CREATION approval workflow —
+  // CX-staff creation goes through the PLATFORM_USER_CREATION approval workflow -
   // the backend returns a workflow_instance and sends NO invite until approved.
   // Key the success messaging off the response so it stays correct if an
   // immediate-invite path is ever reached here.
@@ -113,7 +113,7 @@ export default function CreateAdmin() {
         return;
       }
       // Send the core fields plus only the optional seat/HR fields that were set
-      // — the backend rejects an empty date and treats blanks as "not provided".
+      // - the backend rejects an empty date and treats blanks as "not provided".
       const payload: Record<string, string> = {
         first_name: values.first_name,
         last_name: values.last_name,
@@ -196,7 +196,7 @@ export default function CreateAdmin() {
   };
 
   // Division / Department / Team are derived from the selected position's org
-  // node (walking up the tier hierarchy) — read-only, shown for context.
+  // node (walking up the tier hierarchy) - read-only, shown for context.
   const tiers = useMemo(() => {
     const pos = positions.find((p) => String(p.id) === formik.values.position);
     return resolveTiers(orgNodeMap, pos?.org_node?.id ?? null);
@@ -213,8 +213,8 @@ export default function CreateAdmin() {
               </h4>
               <p className="text-gray-01 font-mont text-xs max-w-140">
                 {isResume
-                  ? "Finish this draft — set the role and any missing details, then submit for approval. Save as draft keeps it parked."
-                  : "Add a user to the system and select their role and module access. New members are submitted for approval — an invitation is sent automatically once the request is approved. Use Save as draft to park an incomplete hire and finish it later."}
+                  ? "Finish this draft - set the role and any missing details, then submit for approval. Save as draft keeps it parked."
+                  : "Add a user to the system and select their role and module access. New members are submitted for approval - an invitation is sent automatically once the request is approved. Use Save as draft to park an incomplete hire and finish it later."}
               </p>
             </div>
 
@@ -287,12 +287,12 @@ export default function CreateAdmin() {
               />
             </div>
 
-            {/* Seat & HR details. The seat is required — its title becomes the
+            {/* Seat & HR details. The seat is required - its title becomes the
                 job title. The seat is held but not counted as occupied until the
                 hire activates, and is vacated if the creation is rejected. */}
             <div className="mt-9 mb-4 space-y-1">
               <p className="inline-flex items-center text-gray-05 text-sm">Seat &amp; HR details</p>
-              <p className="text-xs text-gray-01">Slot the new hire into a position — its title fills the job title automatically. Other HR fields are optional.</p>
+              <p className="text-xs text-gray-01">Slot the new hire into a position - its title fills the job title automatically. Other HR fields are optional.</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
@@ -306,7 +306,7 @@ export default function CreateAdmin() {
                 onChange={(e) => {
                   const id = e.target.value;
                   formik.setFieldValue("position", id);
-                  // The position's title IS the job title — keep them in sync.
+                  // The position's title IS the job title - keep them in sync.
                   const pos = positions.find((p) => String(p.id) === id);
                   formik.setFieldValue("job_title", pos?.title ?? "");
                 }}
@@ -320,7 +320,7 @@ export default function CreateAdmin() {
                 className="bg-gray-06/40 cursor-not-allowed"
                 {...formik.getFieldProps("job_title")}
               />
-              {/* Derived from the position's org node — read-only, for context. */}
+              {/* Derived from the position's org node - read-only, for context. */}
               <CustomInput
                 id="division"
                 label="Division"
@@ -348,7 +348,7 @@ export default function CreateAdmin() {
               <CustomInput
                 id="employee_id"
                 label="Employee ID"
-                placeholder="Optional — next CX number is generated"
+                placeholder="Optional - next CX number is generated"
                 {...formik.getFieldProps("employee_id")}
                 error={formik.touched.employee_id ? formik.errors.employee_id : undefined}
               />

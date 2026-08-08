@@ -17,7 +17,7 @@ export interface UseActionSearch {
 /**
  * Rank the permission-gated action catalog against `query`. Gating is recomputed
  * only when the user's permission set changes; ranking only when the query
- * changes — so keystrokes stay cheap. Popularity (localStorage) reorders within
+ * changes - so keystrokes stay cheap. Popularity (localStorage) reorders within
  * each match tier, so a weak match can never outrank a strong one.
  */
 export function useActionSearch(query: string): UseActionSearch {

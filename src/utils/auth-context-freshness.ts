@@ -5,7 +5,7 @@
  * `Authenticated` re-fetches `/me` on mount to catch role changes that landed
  * while a persisted token sat valid. One moment after a login that is a
  * guaranteed no-op: the login response carries the same `user`, `school`,
- * `tenant` and permission set `/me` returns (checked against the live endpoint —
+ * `tenant` and permission set `/me` returns (checked against the live endpoint -
  * identical keys, identical 282-key permission list), so the request buys
  * nothing and costs a round trip plus a `setAuthContext` dispatch that
  * re-renders the whole protected tree on the login hot path.
@@ -23,7 +23,7 @@ export function markAuthContextFromLogin(): void {
 
 /**
  * Read the marker. Pure and repeatable, so it is safe to call from a `useState`
- * initialiser — StrictMode double-invokes those, and a consume-on-read would
+ * initialiser - StrictMode double-invokes those, and a consume-on-read would
  * hand the two calls different answers.
  */
 export function isAuthContextFromLogin(): boolean {

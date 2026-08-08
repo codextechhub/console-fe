@@ -2,7 +2,7 @@
 //
 // NON-NEGOTIABLE RULE (mirrors the backend's vs_finance/money.py):
 // every monetary value crossing the API is an INTEGER number of minor units
-// (kobo) — ₦1 = 100 kobo. We convert once, here, at the UI boundary and never
+// (kobo) - ₦1 = 100 kobo. We convert once, here, at the UI boundary and never
 // do float arithmetic on money beyond these helpers.
 //
 //   toNaira(kobo)        → major-unit number for display maths only

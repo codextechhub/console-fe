@@ -59,7 +59,7 @@ export const importApi = baseApi.injectEndpoints({
       invalidatesTags: (_res, _err, { id }) => [{ type: "ImportTemplates", id }, "ImportTemplates"],
     }),
 
-    // Resolves to an object URL (caller must revokeObjectURL when done) —
+    // Resolves to an object URL (caller must revokeObjectURL when done) -
     // storing the raw Blob in redux state trips the serializability check.
     downloadImportTemplate: builder.mutation<string, { id: number; format: "csv" | "xlsx" }>({
       query: ({ id, format }) => ({
@@ -184,13 +184,13 @@ export const importApi = baseApi.injectEndpoints({
         "ImportBatches",
         "ImportJobs",
       ],
-      // Queuing is the only moment the user is told the work has *started* —
+      // Queuing is the only moment the user is told the work has *started* -
       // BackgroundJob notifications are terminal-state only, and the Queues
       // page's completion toasts need that page open to fire. Announcing it
       // here covers every caller (wizard + batch detail), so neither has to
       // toast for itself.
       async onQueryStarted({ body }, { queryFulfilled }) {
-        // Synchronous runs return once the import is done — "started" is wrong.
+        // Synchronous runs return once the import is done - "started" is wrong.
         if (body?.run_async === false) return;
         try {
           await queryFulfilled;
@@ -200,7 +200,7 @@ export const importApi = baseApi.injectEndpoints({
         }
         toast.success("Import started.", {
           description:
-            "Runs in the background — you can leave this page. You'll get a notification when it finishes.",
+            "Runs in the background - you can leave this page. You'll get a notification when it finishes.",
           action: {
             label: "View queues",
             onClick: () => {

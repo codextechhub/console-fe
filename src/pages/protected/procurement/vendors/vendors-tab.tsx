@@ -46,10 +46,10 @@ function isForbidden(error: unknown) {
   return !!error && typeof error === "object" && "status" in error && error.status === 403;
 }
 function titleCase(value?: string | null) {
-  return value ? value.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : "—";
+  return value ? value.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : "-";
 }
 function shortDate(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(`${value}T00:00:00`));
 }
 function initials(name: string) {
@@ -60,7 +60,7 @@ function vendorState(vendor: Vendor) {
   return vendor.is_active ? "ACTIVE" : "INACTIVE";
 }
 function Field({ label, value, prose }: { label: string; value: React.ReactNode; prose?: boolean }) {
-  return <div className="min-w-0"><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className={cn("mt-1 break-words font-mont text-sm text-black-01", prose ? "font-normal leading-5" : "font-semibold tabular-nums")}>{value || "—"}</dd></div>;
+  return <div className="min-w-0"><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className={cn("mt-1 break-words font-mont text-sm text-black-01", prose ? "font-normal leading-5" : "font-semibold tabular-nums")}>{value || "-"}</dd></div>;
 }
 function EmptyPanel({ children }: { children: React.ReactNode }) {
   return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">{children}</div>;
@@ -117,7 +117,7 @@ export function VendorsTab({ entity, currency }: { entity: string; currency?: st
       {summaryLoading ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : summary ? <>
         <StatCard label="Active Vendors" value={String(summary.active)} icon={BadgeCheck} tone="green" sub={`${summary.inactive} inactive`} />
         <StatCard label="Total Spend YTD" value={formatMoney(summary.total_spend_ytd, currency)} icon={CircleDollarSign} tone="indigo" sub="Posted vendor invoices" />
-        <StatCard label="Average Terms" value={summary.average_payment_days == null ? "—" : `Net ${summary.average_payment_days}`} icon={FileText} tone="gray" sub={`${summary.kyc_pending} KYC pending`} />
+        <StatCard label="Average Terms" value={summary.average_payment_days == null ? "-" : `Net ${summary.average_payment_days}`} icon={FileText} tone="gray" sub={`${summary.kyc_pending} KYC pending`} />
         <StatCard label="On Hold" value={String(summary.on_hold)} icon={Ban} tone="red" sub="New commitments blocked" />
       </> : <div className="col-span-full rounded-md border border-dashed border-gray-03 bg-white p-4 text-xs text-gray-05">{isForbidden(summaryError) ? "Vendor financial KPIs require Procurement report access." : "Vendor KPIs could not be loaded."}</div>}
     </div>
@@ -197,7 +197,7 @@ function ContactsTab({ vendor }: { vendor: Vendor }) {
 function BankTab({ vendor }: { vendor: Vendor }) {
   const restricted = isStripped(vendor, "bank_account_number") || isStripped(vendor, "tax_id");
   if (restricted) return <EmptyPanel>Bank, tax, and contact data are redacted by backend field-level security.</EmptyPanel>;
-  const account = vendor.bank_account_number ? `•••• ${vendor.bank_account_number.slice(-4)}` : "—";
+  const account = vendor.bank_account_number ? `•••• ${vendor.bank_account_number.slice(-4)}` : "-";
   return <div className="space-y-5"><section><div className="mb-3 flex items-center gap-2"><Landmark className="size-4 text-primary" /><h3 className="font-mont text-sm font-semibold">Payment information</h3></div><dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2"><Field label="Bank" value={vendor.bank_name} /><Field label="Account number" value={account} /><Field label="Account name" value={vendor.bank_account_name} /></dl></section><section><div className="mb-3 flex items-center gap-2"><ShieldCheck className="size-4 text-primary" /><h3 className="font-mont text-sm font-semibold">Compliance status</h3></div><dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2"><Field label="Tax identifier" value={vendor.tax_id} /><Field label="KYC status" value={<StatusPill status={vendor.kyc_status} />} /><Field label="Risk level" value={<StatusPill status={vendor.risk} />} /><Field label="Purchasing status" value={<StatusPill status={vendorState(vendor)} />} /></dl><p className="mt-3 text-xs text-gray-05">Verification documents and KYC results are not stored by the current Procurement service, so none are implied here.</p></section></div>;
 }
 function HistoryTab({ contracts, pos, invoices, loading, contractAllowed, poAllowed, invoiceAllowed, currency }: { contracts: VendorContract[]; pos: PurchaseOrder[]; invoices: VendorInvoice[]; loading: boolean; contractAllowed: boolean; poAllowed: boolean; invoiceAllowed: boolean; currency?: string | null }) {

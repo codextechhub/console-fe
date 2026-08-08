@@ -1,4 +1,4 @@
-// vs_procurement types — mirror the serializers. Money is integer kobo. Vendor
+// vs_procurement types - mirror the serializers. Money is integer kobo. Vendor
 // bank fields are FLS-stripped unless procurement.vendor.view_sensitive.
 
 export interface VendorCategory {
@@ -651,7 +651,7 @@ export interface StockSummary {
   total_value_naira: string;
 }
 
-// Reorder report row — active items at/below their reorder level.
+// Reorder report row - active items at/below their reorder level.
 export interface StockReorderRow {
   stock_item_id: number;
   code: string;
@@ -667,7 +667,7 @@ export interface StockReorderReport {
   rows: StockReorderRow[];
 }
 
-// Valuation report row — on-hand value at moving-average cost.
+// Valuation report row - on-hand value at moving-average cost.
 export interface StockValuationRow {
   stock_item_id: number;
   code: string;

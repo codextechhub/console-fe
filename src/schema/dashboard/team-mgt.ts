@@ -14,7 +14,7 @@ export const createTeamMemberSchema = Yup.object({
       /^(?:\+[1-9]\d{7,14}|0\d{9,10})$/,
       "Enter an international or Nigerian local number (e.g. +2347033327493 or 08012345678)"
     ),
-  // Seat is required — its title becomes the job title. Other HR fields optional.
+  // Seat is required - its title becomes the job title. Other HR fields optional.
   position: Yup.string().required("Position is required"),
   job_title: Yup.string().max(150, "Job title is too long"),
   employee_id: Yup.string().max(32, "Employee ID is too long"),

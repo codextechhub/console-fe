@@ -52,14 +52,14 @@ const DETAIL_TABS = [
 ] as const;
 
 function shortDate(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(`${value}T00:00:00`));
 }
 function isForbidden(error: unknown) {
   return !!error && typeof error === "object" && "status" in error && error.status === 403;
 }
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return <div><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "—"}</dd></div>;
+  return <div><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "-"}</dd></div>;
 }
 function OpenStat({ label, value, highlight }: { label: string; value: React.ReactNode; highlight?: boolean }) {
   return <div className="min-w-0"><p className="font-mont text-[11px] text-gray-05">{label}</p><p className={cn("mt-0.5 font-mont text-sm font-semibold tabular-nums", highlight ? "text-primary" : "text-black-01")}>{value}</p></div>;
@@ -191,7 +191,7 @@ function InvoicePostingRecap({ invoice, currency }: { invoice: VendorInvoice; cu
 
 function MatchPanel({ invoice, currency }: { invoice: VendorInvoice; currency?: string | null }) {
   if (!invoice.purchase_order_id) return <EmptyPanel>This is a direct invoice, so there is no PO or goods receipt to match.</EmptyPanel>;
-  return <div className="space-y-4"><div className={cn("rounded-md border p-4", ["UNDER_RECEIVED", "OVER_BILLED"].includes(invoice.match_status) ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50")}><p className="font-mont text-sm font-semibold">{invoice.match_status === "AUTO_MATCHED" ? "3-way match passed" : invoice.match_status.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 font-mont text-xs text-gray-05">Exact quantity and unit-price comparison; no tolerance policy is configured.</p></div>{invoice.match_comparisons?.map((row) => <div key={row.invoice_line_id} className="rounded-md border border-gray-03 p-4"><p className="font-mont text-sm font-semibold">{row.description}</p><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4"><Field label="Ordered" value={formatQuantity(row.po_quantity)} /><Field label="Received" value={formatQuantity(row.received_quantity)} /><Field label="Previously invoiced" value={formatQuantity(row.previously_invoiced_quantity)} /><Field label="This invoice" value={formatQuantity(row.invoice_quantity)} /><Field label="PO price" value={row.po_unit_price == null ? "—" : formatMoney(row.po_unit_price, currency)} /><Field label="Invoice price" value={formatMoney(row.invoice_unit_price, currency)} /><Field label="Goods receipt" value={row.grn_number || "All posted receipts"} /><Field label="GR accepted" value={formatQuantity(row.grn_accepted_quantity)} /></div></div>)}</div>;
+  return <div className="space-y-4"><div className={cn("rounded-md border p-4", ["UNDER_RECEIVED", "OVER_BILLED"].includes(invoice.match_status) ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50")}><p className="font-mont text-sm font-semibold">{invoice.match_status === "AUTO_MATCHED" ? "3-way match passed" : invoice.match_status.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 font-mont text-xs text-gray-05">Exact quantity and unit-price comparison; no tolerance policy is configured.</p></div>{invoice.match_comparisons?.map((row) => <div key={row.invoice_line_id} className="rounded-md border border-gray-03 p-4"><p className="font-mont text-sm font-semibold">{row.description}</p><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4"><Field label="Ordered" value={formatQuantity(row.po_quantity)} /><Field label="Received" value={formatQuantity(row.received_quantity)} /><Field label="Previously invoiced" value={formatQuantity(row.previously_invoiced_quantity)} /><Field label="This invoice" value={formatQuantity(row.invoice_quantity)} /><Field label="PO price" value={row.po_unit_price == null ? "-" : formatMoney(row.po_unit_price, currency)} /><Field label="Invoice price" value={formatMoney(row.invoice_unit_price, currency)} /><Field label="Goods receipt" value={row.grn_number || "All posted receipts"} /><Field label="GR accepted" value={formatQuantity(row.grn_accepted_quantity)} /></div></div>)}</div>;
 }
 
 function ActivityPanel({ invoice, workflow, name }: { invoice: VendorInvoice; workflow: ReturnType<typeof useGetWorkflowInstanceQuery>["data"]; name: (id: string | number | null | undefined) => string }) {
@@ -214,7 +214,7 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
   const { data: poData } = useGetPurchaseOrderQuery({ id: Number(po), entity }, { skip: !po });
   const source = poData?.data;
   // Prefill vendor + PO lines once when a PO different from the initial one is
-  // chosen and its data has loaded — adjusted during render so a background
+  // chosen and its data has loaded - adjusted during render so a background
   // refetch never clobbers edits made after picking.
   const [filledFrom, setFilledFrom] = useState<number | null>(null);
   if (source && initial?.purchase_order_id !== source.id && filledFrom !== source.id) {
@@ -230,7 +230,7 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
   const saving = creating || updating || submitting;
   const canSave = !!vendor && !!invoiceDate && !!reference.trim() && lines.length > 0 && (mode === "direct" || !!po) && total > 0;
   // Open-to-invoice position, straight off the PO's running received/invoiced
-  // totals — so AP bills against one figure instead of hunting through receipts.
+  // totals - so AP bills against one figure instead of hunting through receipts.
   const poLineById = source ? new Map(source.lines.map((l) => [l.id, l])) : null;
   const poPosition = source ? {
     received: source.lines.reduce((s, l) => s + Math.round(Number(l.received_qty) * l.unit_price), 0),

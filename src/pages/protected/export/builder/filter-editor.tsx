@@ -3,7 +3,7 @@
 // The control for each filter comes from its `type`, and the value keys are the
 // backend's, not ours: date_range → {start, end}, choice → {values},
 // text/boolean → {value}, number_range → {min, max}. Getting a key wrong does
-// not fail loudly — the filter is simply ignored when the queryset is compiled,
+// not fail loudly - the filter is simply ignored when the queryset is compiled,
 // and the export quietly returns the wrong rows. So the mapping lives in one
 // place, here.
 //
@@ -116,7 +116,7 @@ export function FilterEditor({
                 estimate warns before it does. The row cap is the real ceiling. */}
             {def.is_primary_date && maxDateSpanDays ? (
               <p className="mt-2 font-mont text-[11px] text-gray-05">
-                Tuned for about {maxDateSpanDays} days at a time. A wider range still runs — it just
+                Tuned for about {maxDateSpanDays} days at a time. A wider range still runs - it just
                 takes longer and produces a larger file.
               </p>
             ) : null}
@@ -162,7 +162,7 @@ function FilterControl({
       <div className="grid gap-2.5 sm:grid-cols-2">
         {/* Explicit aria-labels: type="date" renders the house DatePickerInput,
             whose trigger is a button that takes its accessible name from
-            aria-label — a wrapping <label> alone leaves it unnamed. */}
+            aria-label - a wrapping <label> alone leaves it unnamed. */}
         <div>
           <span className="mb-1 block font-mont text-[11px] text-gray-05">From</span>
           <Input

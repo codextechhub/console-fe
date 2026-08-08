@@ -1,10 +1,10 @@
-// Settlement — gateway settlement reconciliation (Vision "Settlement Recon"), house theme.
+// Settlement - gateway settlement reconciliation (Vision "Settlement Recon"), house theme.
 // A READ-ONLY PSP lens: confirmed collections (in) + paid payouts (out) matched against the
 // entity's imported bank statement lines, by reference then exact amount. Three tabs
 // (Matched / Unsettled / Unmatched bank lines) + KPIs, all on the shared DataTable so the
 // typography matches every other screen. Clicking a row opens a read-only drawer with both
 // sides of the match. "Re-run match" just refetches (recomputed server-side; nothing
-// posted). The Fees column surfaces the PSP fee (gross − net settled) as an OBSERVATION —
+// posted). The Fees column surfaces the PSP fee (gross − net settled) as an OBSERVATION -
 // the authoritative book-vs-bank close lives in Finance → Bank Reconciliation, which is
 // where such a fee gets an adjusting entry.
 
@@ -19,7 +19,7 @@ import type { SettlementRow, UnmatchedBankLine } from "@/redux/services/payments
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 const signed = (kobo: number, currency?: string | null) => `${kobo < 0 ? "−" : ""}${formatMoney(Math.abs(kobo), currency)}`;
 
 const PROVIDERS: Record<string, { label: string; dot: string }> = {
@@ -27,7 +27,7 @@ const PROVIDERS: Record<string, { label: string; dot: string }> = {
   FAKE: { label: "Fake (test)", dot: "bg-gray-400" },
 };
 function ProviderTag({ provider }: { provider: string }) {
-  const p = PROVIDERS[provider] ?? { label: provider || "—", dot: "bg-gray-400" };
+  const p = PROVIDERS[provider] ?? { label: provider || "-", dot: "bg-gray-400" };
   return <span className="inline-flex items-center gap-1.5 font-mont text-sm text-black-01"><span className={cn("size-2 rounded-sm", p.dot)} /> {p.label}</span>;
 }
 function TypeTag({ kind }: { kind: string }) {
@@ -39,7 +39,7 @@ function TypeTag({ kind }: { kind: string }) {
   );
 }
 function BasisPill({ basis }: { basis: string }) {
-  if (!basis) return <span className="text-gray-05">—</span>;
+  if (!basis) return <span className="text-gray-05">-</span>;
   return <span className={cn(PILL, "bg-blue-50 text-blue-700")}>By {basis}</span>;
 }
 
@@ -86,9 +86,9 @@ export function SettlementTab({ entity, currency }: { entity: string; currency?:
   ];
   const matchedCols: Column<SettlementRow>[] = [
     ...gwBase,
-    { header: "Fees", align: "right", cell: (r) => <span className="tabular-nums text-destructive">{r.fee_amount ? formatMoney(r.fee_amount, currency) : "—"}</span> },
+    { header: "Fees", align: "right", cell: (r) => <span className="tabular-nums text-destructive">{r.fee_amount ? formatMoney(r.fee_amount, currency) : "-"}</span> },
     { header: "Net settled", align: "right", cell: (r) => <span className="tabular-nums">{formatMoney(Math.abs(r.settled_amount ?? r.amount), currency)}</span> },
-    { header: "Settlement ref", cell: (r) => <span className="tabular-nums text-gray-05">{r.settlement_reference || "—"}</span> },
+    { header: "Settlement ref", cell: (r) => <span className="tabular-nums text-gray-05">{r.settlement_reference || "-"}</span> },
     { header: "Match basis", cell: (r) => <BasisPill basis={r.match_basis} /> },
   ];
   const unsettledCols: Column<SettlementRow>[] = [
@@ -97,8 +97,8 @@ export function SettlementTab({ entity, currency }: { entity: string; currency?:
   ];
   const unmatchedCols: Column<UnmatchedBankLine>[] = [
     { header: "Date", cell: (b) => <span className="tabular-nums text-gray-05">{fmtDate(b.txn_date)}</span> },
-    { header: "Description", cell: (b) => b.description || "—" },
-    { header: "Reference", cell: (b) => <span className="tabular-nums text-gray-05">{b.reference || "—"}</span> },
+    { header: "Description", cell: (b) => b.description || "-" },
+    { header: "Reference", cell: (b) => <span className="tabular-nums text-gray-05">{b.reference || "-"}</span> },
     { header: "Amount", align: "right", cell: (b) => <span className={cn("tabular-nums font-medium", b.amount < 0 ? "text-destructive" : "text-black-01")}>{signed(b.amount, currency)}</span> },
   ];
 
@@ -179,12 +179,12 @@ function SettlementDrawer({ picked, currency, onClose }: { picked: Picked | null
         <div className="space-y-4">
           <Section title="Bank statement line">
             <Field label="Date" mono>{fmtDate(b.txn_date)}</Field>
-            <Field label="Description">{b.description || "—"}</Field>
-            <Field label="Reference" mono>{b.reference || "—"}</Field>
+            <Field label="Description">{b.description || "-"}</Field>
+            <Field label="Reference" mono>{b.reference || "-"}</Field>
             <Field label="Amount" mono><span className={b.amount < 0 ? "text-destructive" : ""}>{signed(b.amount, currency)}</span></Field>
           </Section>
           <p className="font-mont text-[11px] leading-relaxed text-gray-05">
-            No confirmed collection or paid payout matches this line by reference or amount. It may be a PSP fee, a manual transfer, or a movement that belongs in <span className="font-medium text-gray-01">Bank Reconciliation</span> — settle it there, not here.
+            No confirmed collection or paid payout matches this line by reference or amount. It may be a PSP fee, a manual transfer, or a movement that belongs in <span className="font-medium text-gray-01">Bank Reconciliation</span> - settle it there, not here.
           </p>
         </div>
       </DetailDrawer>
@@ -211,16 +211,16 @@ function SettlementDrawer({ picked, currency, onClose }: { picked: Picked | null
 
         {r.settled ? (
           <Section title="Bank settlement">
-            <Field label="Settlement ref" mono>{r.settlement_reference || "—"}</Field>
+            <Field label="Settlement ref" mono>{r.settlement_reference || "-"}</Field>
             <Field label="Bank date" mono>{fmtDate(r.settlement_date)}</Field>
             {r.settlement_description ? <Field label="Description">{r.settlement_description}</Field> : null}
             <Field label="Net settled" mono>{formatMoney(Math.abs(r.settled_amount ?? r.amount), currency)}</Field>
-            <Field label="PSP fee" mono><span className={r.fee_amount ? "text-destructive" : ""}>{r.fee_amount ? formatMoney(r.fee_amount, currency) : "—"}</span></Field>
-            <Field label="Matched by">{r.match_basis || "—"}</Field>
+            <Field label="PSP fee" mono><span className={r.fee_amount ? "text-destructive" : ""}>{r.fee_amount ? formatMoney(r.fee_amount, currency) : "-"}</span></Field>
+            <Field label="Matched by">{r.match_basis || "-"}</Field>
           </Section>
         ) : (
           <p className="font-mont text-[11px] leading-relaxed text-gray-05">
-            This {inbound ? "collection" : "payout"} confirmed on the gateway but no bank statement line matches it yet. It settles automatically once the line imports (matched by reference or exact amount) — import the statement on <span className="font-medium text-gray-01">Bank Reconciliation</span> and re-run the match.
+            This {inbound ? "collection" : "payout"} confirmed on the gateway but no bank statement line matches it yet. It settles automatically once the line imports (matched by reference or exact amount) - import the statement on <span className="font-medium text-gray-01">Bank Reconciliation</span> and re-run the match.
           </p>
         )}
 
@@ -235,7 +235,7 @@ function SettlementDrawer({ picked, currency, onClose }: { picked: Picked | null
 }
 
 function ProvidersLabel(p: string) {
-  return PROVIDERS[p]?.label ?? p ?? "—";
+  return PROVIDERS[p]?.label ?? p ?? "-";
 }
 
 function exportCsv(tab: Tab, matched: SettlementRow[], unsettled: SettlementRow[], unmatched: UnmatchedBankLine[], currency?: string | null) {

@@ -120,7 +120,7 @@ export interface OrganogramNode {
 
 // ── Platform staff profile ───────────────────────────────────────────────────
 
-// Slim list representation — never carries payroll fields.
+// Slim list representation - never carries payroll fields.
 export interface StaffProfileListItem {
   id: number;
   user: UserInline;
@@ -159,7 +159,7 @@ export interface StaffProfileBrief {
 // Full profile. Payroll fields (bank_name / account_name / account_number) are
 // FLS-gated: when the caller lacks platform.staff_payroll.view (and is not the
 // owner), the backend OMITS those keys entirely and lists them in
-// `_stripped_fields` — they are absent, not masked. Treat their absence as
+// `_stripped_fields` - they are absent, not masked. Treat their absence as
 // "restricted", and use `_stripped_fields` to render the restricted notice.
 export interface StaffProfile {
   profile_view: "full";
@@ -193,7 +193,7 @@ export interface StaffProfile {
   date_joined: string | null;
   date_exited: string | null;
   is_active_employee: boolean;
-  // FLS-gated payroll — present only when authorised.
+  // FLS-gated payroll - present only when authorised.
   bank_name?: string;
   account_name?: string;
   account_number?: string;

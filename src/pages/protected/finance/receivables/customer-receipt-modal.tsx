@@ -1,4 +1,4 @@
-// Record receipt (customer-level) — post a receipt for a customer and auto-allocate
+// Record receipt (customer-level) - post a receipt for a customer and auto-allocate
 // it across their open invoices, oldest first (any excess becomes unallocated
 // credit). Amount entered in naira → integer kobo. Prefilled with the amount owed.
 import { useState } from "react";
@@ -43,7 +43,7 @@ export function CustomerReceiptModal({ open, onOpenChange, entity, customerId, c
       open={open}
       onOpenChange={onOpenChange}
       title="Record payment"
-      description={`Apply a payment from ${customerName} — allocated to open invoices oldest-first.`}
+      description={`Apply a payment from ${customerName} - allocated to open invoices oldest-first.`}
       submitText="Record payment"
       loading={isLoading}
       canSubmit={canSubmit}

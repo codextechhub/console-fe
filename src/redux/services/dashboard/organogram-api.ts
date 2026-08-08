@@ -25,7 +25,7 @@ import type {
   StaffProfilesResponse,
 } from "./organogram-types";
 
-// Boolean filters (is_active, current, roots) are passed as "true"/"1" strings —
+// Boolean filters (is_active, current, roots) are passed as "true"/"1" strings -
 // generateQueryString only serialises string | number, matching the backend parser.
 type QueryParams = Record<string, string | number>;
 

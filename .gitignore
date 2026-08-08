@@ -12,7 +12,7 @@ dist
 dist-ssr
 *.local
 
-# Claude Code — ignore local state, but track shared skills (not their deps,
+# Claude Code - ignore local state, but track shared skills (not their deps,
 # which the skill reinstalls on first run).
 .claude/*
 !.claude/skills

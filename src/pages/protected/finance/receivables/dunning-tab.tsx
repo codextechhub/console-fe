@@ -2,8 +2,8 @@
 // theme: aging-bucket KPIs, a Reminder-queue tab (notices + the active cadence) and
 // a Policies tab with a full cadence editor (create/edit policies + stages).
 //
-// Honest adaptations: vs_finance only records reminder *intent* — there is no
-// email/SMS service — so "Run reminders now" / "Generate notices" raise the queue of
+// Honest adaptations: vs_finance only records reminder *intent* - there is no
+// email/SMS service - so "Run reminders now" / "Generate notices" raise the queue of
 // notices (no GL effect) but the per-notice **Send is deferred** (disabled with a
 // tooltip); Cancel is real. Channels are a single value per stage (Email/SMS/Letter/
 // In-app); the prototype's combined channels aren't supported.
@@ -29,7 +29,7 @@ import type { DunningNotice, DunningPolicy, DunningStage } from "@/redux/service
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const CHANNELS: [string, string][] = [["EMAIL", "Email"], ["IN_APP", "In-app"]];
 // A stage's channel is one or more values, comma-separated (e.g. "EMAIL,IN_APP").
-const channelLabel = (c: string) => c.split(",").filter(Boolean).map((p) => CHANNELS.find(([v]) => v === p)?.[1] ?? p).join(" + ") || "—";
+const channelLabel = (c: string) => c.split(",").filter(Boolean).map((p) => CHANNELS.find(([v]) => v === p)?.[1] ?? p).join(" + ") || "-";
 const whenLabel = (d: number) => (d <= 0 ? "On due date" : `+${d} days`);
 // Overdue severity colour (aligned with the aging buckets).
 const overdueCls = (d: number) => d >= 60 ? "text-destructive font-semibold" : d >= 31 ? "text-amber-700 font-medium" : d >= 1 ? "text-amber-600" : "text-gray-05";
@@ -46,7 +46,7 @@ function StatusPill({ status }: { status: string }) {
 }
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
-  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
+  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "-"}</span>;
 }
 function AgingKpi({ label, amount, count, currency }: { label: string; amount: number; count: number; currency?: string | null }) {
   return (
@@ -137,7 +137,7 @@ function ReminderQueue({ entity, policies, canCancel }: {
       <span className="flex items-center justify-end gap-1.5">
         <TooltipProvider><Tooltip><TooltipTrigger asChild>
           <span className="inline-flex cursor-not-allowed items-center gap-1 rounded px-2 py-1 font-mont text-xs font-medium text-gray-05 opacity-60"><Send className="size-3.5" /> Send</span>
-        </TooltipTrigger><TooltipContent className="font-mont text-xs">Email / in-app dispatch isn't wired yet — coming soon.</TooltipContent></Tooltip></TooltipProvider>
+        </TooltipTrigger><TooltipContent className="font-mont text-xs">Email / in-app dispatch isn't wired yet - coming soon.</TooltipContent></Tooltip></TooltipProvider>
         {canCancel ? <button onClick={(e) => { e.stopPropagation(); doCancel(n); }} className="inline-flex items-center gap-1 rounded px-2 py-1 font-mont text-xs font-medium text-destructive hover:bg-destructive/5"><Ban className="size-3.5" /> Cancel</button> : null}
       </span>
     ) : null },
@@ -227,7 +227,7 @@ function PoliciesPanel({ entity, policies }: { entity: string; policies: Dunning
                     <td className={tdCls}>{st.name}</td>
                   </tr>
                 ))}
-                {p.stages.length === 0 ? <tr><td className={cn(tdCls, "text-gray-05")} colSpan={3}>No stages — edit to add the cadence.</td></tr> : null}
+                {p.stages.length === 0 ? <tr><td className={cn(tdCls, "text-gray-05")} colSpan={3}>No stages - edit to add the cadence.</td></tr> : null}
               </tbody>
             </table>
           </div>

@@ -1,7 +1,7 @@
 // Format options, read from the dataset's own schema rather than hardcoded.
 //
-// The catalogue publishes `format_options` as an object keyed BY FORMAT — a
-// discriminated shape, not a flat bag of nullable fields — so switching from
+// The catalogue publishes `format_options` as an object keyed BY FORMAT - a
+// discriminated shape, not a flat bag of nullable fields - so switching from
 // Excel to CSV genuinely swaps the option set instead of greying half of it
 // out. Anything the backend adds later appears here without a frontend change.
 

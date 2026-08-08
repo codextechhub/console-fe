@@ -52,7 +52,7 @@ function displayStatus(row: Requisition) {
 }
 
 function shortDate(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime())
     ? value
@@ -60,9 +60,9 @@ function shortDate(value?: string | null) {
 }
 
 function age(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : `${formatDistanceToNowStrict(date)} ago`;
+  return Number.isNaN(date.getTime()) ? "-" : `${formatDistanceToNowStrict(date)} ago`;
 }
 
 export default function RequisitionsPage() {
@@ -82,7 +82,7 @@ export default function RequisitionsPage() {
     return () => window.clearTimeout(timer);
   }, [search]);
   // Clearing the field must immediately restore the unfiltered query instead of
-  // waiting on the typing delay — adjust during render.
+  // waiting on the typing delay - adjust during render.
   if (!search.trim() && debouncedSearch !== "") setDebouncedSearch("");
 
   const params = useMemo(() => ({
@@ -134,7 +134,7 @@ export default function RequisitionsPage() {
     </span>
   );
 
-  // Count KPI: an absolute integer delta — a percentage on a small count reads as
+  // Count KPI: an absolute integer delta - a percentage on a small count reads as
   // noise, and a zero prior month is a real comparison, not a missing one.
   const countChange = (value: number) => value === 0 ? (
     <span className="text-gray-05">No change vs prior month</span>
@@ -362,8 +362,8 @@ function RequisitionForm({ open, onClose, entity, currency, initial, onSaved }: 
   const saving = creating || updating || submitting;
 
   const catalog = toArray(catalogData?.data);
-  const costCenters = toArray(costCenterData?.data).map((center) => ({ value: center.code, label: `${center.code} — ${center.name}` }));
-  const catalogOptions = catalog.map((item) => ({ value: String(item.id), label: `${item.code} — ${item.name}` }));
+  const costCenters = toArray(costCenterData?.data).map((center) => ({ value: center.code, label: `${center.code} - ${center.name}` }));
+  const catalogOptions = catalog.map((item) => ({ value: String(item.id), label: `${item.code} - ${item.name}` }));
   const apiLines = lines.filter((line) => line.description.trim() && line.quantity > 0).map((line, index) => ({
     line_no: index + 1, ...(line.catalogItem ? { catalog_item: line.catalogItem } : {}),
     description: line.description.trim(), quantity: line.quantity, unit: line.unit.trim() || "Unit",

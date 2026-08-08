@@ -71,7 +71,7 @@ function DashboardHeader({
   const searchIdentityKey = getWorkspaceSearchIdentityKey(user?.id, impersonation?.id);
   const previousSearchIdentityRef = useRef(searchIdentityKey);
   const [activeResult, setActiveResult] = useState(0);
-  // Whether the results dropdown is showing — follows focus, independent of the
+  // Whether the results dropdown is showing - follows focus, independent of the
   // (persisted) text: click-away closes it, refocusing reopens it.
   const [resultsOpen, setResultsOpen] = useState(false);
   // Collapsed shows the top few matches + a "show all" row; expanded shows every
@@ -234,8 +234,8 @@ function DashboardHeader({
   const showAllIndex = searchRows.findIndex((row) => row.kind === "show-all-actions");
   const navCount = searchRows.length;
 
-  // Run an action: remember the pick (adaptive + frecency) FIRST — while `search`
-  // still holds the query — then clear the bar (acting on a result finishes the
+  // Run an action: remember the pick (adaptive + frecency) FIRST - while `search`
+  // still holds the query - then clear the bar (acting on a result finishes the
   // search; click-away, which keeps the text, is the "resume later" path) and
   // navigate or fire the header command (proxy/logout).
   const launchAction = (action: ActionDef) => {
@@ -456,12 +456,12 @@ function DashboardHeader({
   });
 
   // `sticky` is itself a positioned context for the absolute children
-  // (collapse toggle, progress bar, entity switcher) — adding `relative` would
+  // (collapse toggle, progress bar, entity switcher) - adding `relative` would
   // conflict. The entity switcher must remain a true overlay: reserving margin
   // here would move every Finance and Procurement screen when it appears.
   return (
     <header className="grid min-h-15 shrink-0 sticky top-0 z-50 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 border border-l-0 border-white-02 bg-white px-3 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-12 lg:px-10">
-      {/* Sidebar collapse toggle — on the left border, vertically centered in the header */}
+      {/* Sidebar collapse toggle - on the left border, vertically centered in the header */}
       <button
         type="button"
         onClick={toggleSidebar}
@@ -684,7 +684,7 @@ function DashboardToaster() {
  * shared chunk that every lazy page had to wait on.
  *
  * Per-screen header config arrives via route `handle` metadata, with
- * `useDashboardTitle`/`useDashboardBack` as the runtime escape hatch — see
+ * `useDashboardTitle`/`useDashboardBack` as the runtime escape hatch - see
  * dashboard-header.ts.
  */
 export default function DashboardLayout() {
@@ -748,7 +748,7 @@ export default function DashboardLayout() {
           <DashboardToaster />
           {/* grid-cols-1 (minmax(0,1fr)) zeroes the track's min-content floor so a
               page's <main> can never be stretched past the viewport by wide
-              nowrap content (tables) — each page's own overflow-x-auto then
+              nowrap content (tables) - each page's own overflow-x-auto then
               clips it. Without this every page needed its own min-w-0. */}
           <div className="grid grid-cols-1 min-w-0 pt-0">
             <Outlet />

@@ -106,7 +106,7 @@ function computePatterns(attempts: AuthAttempt[]): Patterns {
     .forEach((a) => { if (a.ip_address) failsByIp[a.ip_address] = (failsByIp[a.ip_address] || 0) + 1; });
   const repeatFailsByIp = Object.entries(failsByIp).filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]);
 
-  // Unknown emails — possible enumeration (last 24h in data)
+  // Unknown emails - possible enumeration (last 24h in data)
   const unknownEmails = [
     ...new Set(
       attempts
@@ -413,17 +413,17 @@ export default function LoginAttempts() {
                                 {a.user ? (
                                   <ActorCell label={a.user.full_name || a.user.email} email={a.user.email} userId={a.user.id} />
                                 ) : (
-                                  <span className="text-xs text-gray-01">—</span>
+                                  <span className="text-xs text-gray-01">-</span>
                                 )}
                               </td>
-                              <td className="px-3 py-3"><span className="text-xs">{a.school?.name ?? <span className="text-gray-01">—</span>}</span></td>
-                              <td className="px-3 py-3"><span className="font-mono text-xs">{a.ip_address ?? "—"}</span></td>
+                              <td className="px-3 py-3"><span className="text-xs">{a.school?.name ?? <span className="text-gray-01">-</span>}</span></td>
+                              <td className="px-3 py-3"><span className="font-mono text-xs">{a.ip_address ?? "-"}</span></td>
                               <td className="px-3 py-3"><ResultBadge result={a.result} /></td>
                               <td className="px-3 py-3">
                                 {a.failure_code ? (
                                   <Badge variant="outline" className="font-mono text-[10px]">{a.failure_code}</Badge>
                                 ) : (
-                                  <span className="text-xs text-gray-01">—</span>
+                                  <span className="text-xs text-gray-01">-</span>
                                 )}
                               </td>
                               <td className="px-3 py-3">
@@ -489,7 +489,7 @@ export default function LoginAttempts() {
                     <div className="grid grid-cols-2 gap-3">
                       {[
                         { label: "Email", value: drawer.email_entered, mono: true },
-                        { label: "IP", value: drawer.ip_address ?? "—", mono: true },
+                        { label: "IP", value: drawer.ip_address ?? "-", mono: true },
                         { label: "Browser", value: ua.browser },
                         { label: "OS", value: ua.os },
                       ].map(({ label, value, mono }) => (
@@ -516,7 +516,7 @@ export default function LoginAttempts() {
                         <div className="flex items-center gap-2">
                           <ActorCell label={drawer.user.full_name || drawer.user.email} email={drawer.user.email} userId={drawer.user.id} />
                           <div>
-                            <p className="text-sm font-medium">{drawer.user.full_name || "—"}</p>
+                            <p className="text-sm font-medium">{drawer.user.full_name || "-"}</p>
                             <p className="text-xs text-gray-01">{drawer.user.email}</p>
                           </div>
                         </div>

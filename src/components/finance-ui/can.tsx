@@ -1,4 +1,4 @@
-// <Can> / useCan() — the Finance & Procurement consoles' permission gate.
+// <Can> / useCan() - the Finance & Procurement consoles' permission gate.
 //
 // These are thin aliases over the app's EXISTING mechanism (PermissionGate +
 // usePermissions); they add no parallel permissions system. They exist only so

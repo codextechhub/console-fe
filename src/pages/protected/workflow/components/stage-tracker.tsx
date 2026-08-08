@@ -87,7 +87,7 @@ export function StageTracker({
                 <p className="mt-1 text-xs text-gray-01 italic">{s.skip_reason}</p>
               )}
 
-              {/* Recorded votes only — deliberately does NOT list other
+              {/* Recorded votes only - deliberately does NOT list other
                   eligible approvers who still have this in their queue. */}
               {liveActions.length > 0 && (
                 <ul className="mt-2 space-y-2">

@@ -1,4 +1,4 @@
-// Payments at scale (§7.6) — single payouts, payout batches (submit), and
+// Payments at scale (§7.6) - single payouts, payout batches (submit), and
 // settlement reconciliation (gateway vs bank). Beneficiary details are
 // FLS-masked unless payments.payout.view_sensitive.
 import { useState } from "react";
@@ -22,8 +22,8 @@ function PayoutsTab({ entity, currency }: { entity: string; currency?: string | 
   const pg = data?.pagination;
   const columns: Column<PayoutInstruction>[] = [
     { header: "Reference", cell: (p) => <span className="font-semibold">{p.reference}</span> },
-    { header: "Beneficiary", cell: (p) => isStripped(p, "beneficiary_name") ? <span className="text-gray-05">••••</span> : p.beneficiary_name || "—" },
-    { header: "Account", cell: (p) => isStripped(p, "beneficiary_account_number") ? <span className="text-gray-05">••••</span> : p.beneficiary_account_number || "—" },
+    { header: "Beneficiary", cell: (p) => isStripped(p, "beneficiary_name") ? <span className="text-gray-05">••••</span> : p.beneficiary_name || "-" },
+    { header: "Account", cell: (p) => isStripped(p, "beneficiary_account_number") ? <span className="text-gray-05">••••</span> : p.beneficiary_account_number || "-" },
     { header: "Amount", align: "right", cell: (p) => <Money kobo={p.amount} currency={currency} align="right" /> },
     { header: "Status", cell: (p) => <StatusPill status={p.status} /> },
   ];
@@ -90,10 +90,10 @@ function TransactionsTab({ entity }: { entity: string }) {
   const columns: Column<TransactionLogEntry>[] = [
     { header: "When", cell: (t) => <span className="text-gray-05">{new Date(t.created_at).toLocaleString()}</span> },
     { header: "Action", cell: (t) => <span className="font-semibold">{t.action_display || t.action}</span> },
-    { header: "Provider", cell: (t) => t.provider || "—" },
-    { header: "Reference", cell: (t) => <span className="font-mono text-xs">{t.reference || "—"}</span> },
+    { header: "Provider", cell: (t) => t.provider || "-" },
+    { header: "Reference", cell: (t) => <span className="font-mono text-xs">{t.reference || "-"}</span> },
     { header: "Result", cell: (t) => <StatusPill status={t.succeeded ? "SUCCESS" : "FAILED"} /> },
-    { header: "Message", cell: (t) => <span className="text-gray-05">{t.message || "—"}</span> },
+    { header: "Message", cell: (t) => <span className="text-gray-05">{t.message || "-"}</span> },
     { header: "Actor", cell: (t) => t.actor_email || "System" },
   ];
   return (

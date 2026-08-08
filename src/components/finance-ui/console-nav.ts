@@ -1,5 +1,5 @@
 // Types for a console's hierarchical sidebar menu. Parents with `children` are
-// expand-only (they don't navigate — you click a child); leaf items navigate.
+// expand-only (they don't navigate - you click a child); leaf items navigate.
 // `prefixes` gate visibility by backend key prefix (hasModuleAccess); a parent
 // is shown when it has its own prefixes OR any visible child.
 
@@ -28,7 +28,7 @@ export interface ConsoleNavGroup {
 }
 
 /**
- * Title of the nav item (leaf or child) whose URL best matches `pathname` —
+ * Title of the nav item (leaf or child) whose URL best matches `pathname` -
  * used to drive the console header so it reflects the current screen, not the
  * console name. Most-specific (longest URL) wins, so the console root only
  * matches on its exact path. Returns null when nothing matches.

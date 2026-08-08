@@ -1,4 +1,4 @@
-// Tenant Health — per-school demand, latency, and error signals derived from
+// Tenant Health - per-school demand, latency, and error signals derived from
 // the tenant-attributed request metrics, with a per-tenant drill-in drawer.
 
 import { useMemo, useState } from "react";

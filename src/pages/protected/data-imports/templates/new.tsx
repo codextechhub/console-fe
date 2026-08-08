@@ -214,7 +214,7 @@ export default function NewTemplate() {
 
             <CustomInput
               id="name" name="name" label="Template Name"
-              placeholder="Schools — Platform Onboarding"
+              placeholder="Schools - Platform Onboarding"
               value={form.name}
               onChange={(e) => set("name", e.target.value)}
               error={errors.name}

@@ -1,5 +1,5 @@
 /**
- * auth-errors — turn a backend/RTK-Query error into a clear, user-facing
+ * auth-errors - turn a backend/RTK-Query error into a clear, user-facing
  * sentence for the console (Codex staff intranet) auth pages.
  *
  * The backend (apps/core/response.error_response) returns:
@@ -15,8 +15,8 @@
  *
  * The code map below mirrors what the staff auth flows actually emit
  * (vs_user: services/auth.py, services/password.py, services/invitation.py,
- * views/auth.py). Codes that only fire on protected (post-login) routes — e.g.
- * TOKEN_* on the refresh endpoint — are intentionally kept too, since a stale
+ * views/auth.py). Codes that only fire on protected (post-login) routes - e.g.
+ * TOKEN_* on the refresh endpoint - are intentionally kept too, since a stale
  * link can still surface them on an auth page.
  */
 
@@ -32,7 +32,7 @@ const CODE_MESSAGES: Record<string, string> = {
     "This account has been deactivated. Please contact your administrator.",
   ACCOUNT_NOT_ACTIVATED:
     "Your account is not yet activated. Please check your invitation email or contact your administrator.",
-  // Emitted when a school slug is required but missing/invalid — never leak the
+  // Emitted when a school slug is required but missing/invalid - never leak the
   // internals; treat as a plain bad-credentials outcome for staff login.
   SCHOOL_CONTEXT_REQUIRED: "Invalid credentials. Please try again.",
 
@@ -50,7 +50,7 @@ const CODE_MESSAGES: Record<string, string> = {
   PASSWORD_POLICY_VIOLATION:
     "That password doesn't meet the requirements. Please choose a stronger one.",
 
-  // Session / token (vs_user/views/auth.py — refresh flow)
+  // Session / token (vs_user/views/auth.py - refresh flow)
   TOKEN_EXPIRED: "Your session has expired. Please log in again.",
   TOKEN_REVOKED: "This session has been revoked. Please log in again.",
   TOKEN_INVALID: "Invalid session. Please log in again.",
@@ -143,7 +143,7 @@ const transportMessage = (err: unknown): string | undefined => {
  * @param fallback  Copy returned when the error is unrecognized. NEVER a code.
  */
 export function humanizeAuthError(err: unknown, fallback: string): string {
-  // 1. Network / timeout / parsing — before touching the (absent) body.
+  // 1. Network / timeout / parsing - before touching the (absent) body.
   const transport = transportMessage(err);
   if (transport) return transport;
 

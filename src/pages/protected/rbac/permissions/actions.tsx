@@ -107,10 +107,10 @@ export default function PermissionActions() {
 
   const tableData = actions.map((a: PermissionAction) => ({
     name: <span className="font-mono text-xs font-semibold text-black-01">{a.name}</span>,
-    description: <span className="text-xs text-gray-01 max-w-64 truncate block">{a.description || "—"}</span>,
+    description: <span className="text-xs text-gray-01 max-w-64 truncate block">{a.description || "-"}</span>,
     permissions: a.permissions_count > 0
       ? <Badge variant="default">{a.permissions_count}</Badge>
-      : <span className="text-xs text-gray-01">—</span>,
+      : <span className="text-xs text-gray-01">-</span>,
     status: <Badge variant={a.is_active ? "active" : "inactive"}>{a.is_active ? "Active" : "Inactive"}</Badge>,
     created: <span className="text-xs text-gray-01">{formatRelativeDate(a.created_at)}</span>,
     _raw: a,
@@ -123,7 +123,7 @@ export default function PermissionActions() {
           <div>
             <p className="font-semibold font-mont text-gray-01">Permission Actions</p>
             <p className="text-xs text-gray-01 mt-0.5">
-              The final segment of a permission key. Verbs that an actor performs on a resource — view, create, approve, refund.
+              The final segment of a permission key. Verbs that an actor performs on a resource - view, create, approve, refund.
             </p>
           </div>
           <PermissionGate permission={P.CREATE_PERMISSION}>

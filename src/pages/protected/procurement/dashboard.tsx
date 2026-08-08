@@ -32,9 +32,9 @@ function fmtDate(iso?: string) {
 }
 
 function age(iso?: string | null) {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? "—" : formatDistanceToNowStrict(date);
+  return Number.isNaN(date.getTime()) ? "-" : formatDistanceToNowStrict(date);
 }
 
 function actionStatus(action: string) {

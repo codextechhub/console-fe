@@ -1,4 +1,4 @@
-// <MoneyInput /> — edits an amount in naira (major units) but reports kobo
+// <MoneyInput /> - edits an amount in naira (major units) but reports kobo
 // (integer minor units) to the parent, so forms only ever submit kobo. The
 // component keeps the raw text locally so a half-typed "12." doesn't get
 // clobbered, and converts on change via toKobo().

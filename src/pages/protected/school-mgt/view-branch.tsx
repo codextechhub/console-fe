@@ -28,7 +28,7 @@ function DetailField({ label, value, children }: { label: string; value?: ReactN
   return (
     <div className="min-w-0 space-y-1.5">
       <p className="font-mont text-xs font-medium text-gray-01">{label}</p>
-      <div className="break-words text-sm font-semibold text-black-01">{children ?? value ?? "—"}</div>
+      <div className="break-words text-sm font-semibold text-black-01">{children ?? value ?? "-"}</div>
     </div>
   );
 }
@@ -128,7 +128,7 @@ export default function ViewBranch() {
                     <DetailField label="State" value={branch.state} />
                     <DetailField label="Address" value={branch.address} />
                     <DetailField label="Email">
-                      {branch.email ? <a href={`mailto:${branch.email}`} className="inline-flex max-w-full items-center gap-1.5 text-primary hover:underline"><Mail className="size-3.5 shrink-0" /><span className="truncate">{branch.email}</span></a> : "—"}
+                      {branch.email ? <a href={`mailto:${branch.email}`} className="inline-flex max-w-full items-center gap-1.5 text-primary hover:underline"><Mail className="size-3.5 shrink-0" /><span className="truncate">{branch.email}</span></a> : "-"}
                     </DetailField>
                     <DetailField label="Opened" value={branch.opened_at ? formatStartedTime(branch.opened_at) : "Not recorded"} />
                     <DetailField label="Activated" value={branch.activated_at ? formatStartedTime(branch.activated_at) : "Not activated"} />

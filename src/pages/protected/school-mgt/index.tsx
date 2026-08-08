@@ -80,13 +80,13 @@ export default function SchoolManagement() {
         onClick={(event) => event.stopPropagation()}
         className="font-medium capitalize text-black-01 underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
       >
-        {item.name || "—"}
+        {item.name || "-"}
       </Link>
     ),
     location: item.main_branch
-      ? [item.main_branch.state, item.main_branch.country].filter(Boolean).join(", ") || "—"
-      : "—",
-    totalStudents: item.total_students ?? "—",
+      ? [item.main_branch.state, item.main_branch.country].filter(Boolean).join(", ") || "-"
+      : "-",
+    totalStudents: item.total_students ?? "-",
     type: formatEnum(item.ownership_type),
     status: (
       <Badge variant={item.status?.toLowerCase() as "active" | "pending" | "inactive" | "default"}>

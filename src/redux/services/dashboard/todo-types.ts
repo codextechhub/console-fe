@@ -1,13 +1,13 @@
-// Types for the vs_todo module — "Tasks — Org Accountability".
+// Types for the vs_todo module - "Tasks - Org Accountability".
 // Backend mounted at .../v1/todo/*. The reporting hierarchy that powers roll-up
 // and assignment is derived live from the CX organogram on the server, so the
-// frontend just renders the dashboards it returns — it never re-derives the tree.
+// frontend just renders the dashboards it returns - it never re-derives the tree.
 
 // Enums are UPPERCASE on the wire (Django TextChoices); map to labels in the UI.
 export type TaskPriority = "HIGH" | "MEDIUM" | "LOW";
 export type TaskStatusKey = "COMPLETED" | "IN_PROGRESS" | "OVERDUE";
 
-// Compact person card the dashboards draw (no department — tasks carry that).
+// Compact person card the dashboards draw (no department - tasks carry that).
 export interface Person {
   id: number;
   name: string;

@@ -1,10 +1,10 @@
 // Export → View Queues. One page over core.BackgroundJob: every async task the
-// user started (imports, exports, emails) — plus system/scheduled runs for
+// user started (imports, exports, emails) - plus system/scheduled runs for
 // admins via the All Queues scope. Polls list + summary every 10 s while the
 // tab is visible; a row opens the task's detail in a drawer.
 //
 // This page answers "did the worker finish?". The Export Centre's Files view
-// answers "what came out?" — they are different questions over the same work
+// answers "what came out?" - they are different questions over the same work
 // (ExportRun.background_job points here), NOT two job monitors. They must
 // therefore agree on words: status rendering is delegated to RunStatusPill,
 // which displays this API's SUCCEEDED as "Completed", the word the export run
@@ -12,7 +12,7 @@
 //
 // The one place the job row is not the whole truth is an export. A job that
 // SUCCEEDED may have produced a file with columns or rows left out, and the
-// export task reports that back in `result` — so for kind=export this page
+// export task reports that back in `result` - so for kind=export this page
 // reads the RUN's status, not the job's. Otherwise a partly-complete export
 // would read here as a clean success, which is the exact confusion the Export
 // Centre exists to remove.
@@ -36,8 +36,8 @@ import { displayStatus, exportOutcome } from "./job-outcome";
 
 const POLL_MS = 10_000;
 
-// Numbers a person compares down a column — durations, percentages, row counts,
-// run references, timestamps — are monospace with tabular figures so the digits
+// Numbers a person compares down a column - durations, percentages, row counts,
+// run references, timestamps - are monospace with tabular figures so the digits
 // line up. Everything read as language stays font-mont.
 const NUM = "font-geist-mono tabular-nums";
 
@@ -45,7 +45,7 @@ const NUM = "font-geist-mono tabular-nums";
 // Labels come from runStatusWord so the filter, the cards and the rows cannot
 // drift apart; the values stay the API's own tokens.
 // CustomNativeSelect renders its own value="" option first, so the "all" state
-// is the placeholder — listing it again here would give the select two of them.
+// is the placeholder - listing it again here would give the select two of them.
 const STATUS_OPTIONS = (["QUEUED", "RUNNING", "SUCCEEDED", "FAILED"] as const).map((value) => ({
   value,
   label: runStatusWord(value),
@@ -76,9 +76,9 @@ function KindChip({ kind }: { kind: string }) {
 
 // ── Formatting ────────────────────────────────────────────────────────────────
 function timeAgo(iso: string | null, now: number): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "—";
+  if (Number.isNaN(then)) return "-";
   const s = Math.max(0, Math.round((now - then) / 1000));
   if (s < 60) return "just now";
   if (s < 3600) return `${Math.floor(s / 60)} min ago`;
@@ -88,7 +88,7 @@ function timeAgo(iso: string | null, now: number): string {
 }
 
 function fmtDuration(seconds: number | null): string {
-  if (seconds == null) return "—";
+  if (seconds == null) return "-";
   if (seconds < 60) return `${seconds.toFixed(1)} s`;
   const m = Math.floor(seconds / 60);
   const s = Math.round(seconds % 60);
@@ -96,19 +96,19 @@ function fmtDuration(seconds: number | null): string {
 }
 
 function fmtTimestamp(iso: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleString("en-GB");
+  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString("en-GB");
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function QueuesPage() {
-  // Scope, filters and page live in the URL so a view is linkable — a failure
+  // Scope, filters and page live in the URL so a view is linkable - a failure
   // notification can point straight at the filtered queue that explains it.
   const [searchParams, setSearchParams] = useSearchParams();
   // Defensive: a 403 on scope=all drops the page back to "mine" and hides the
   // toggle, even if can_view_all lied. Derived rather than written back to the
-  // URL — a navigation during render is not safe, and the query below only ever
+  // URL - a navigation during render is not safe, and the query below only ever
   // reads this value.
   const [forceHideAll, setForceHideAll] = useState(false);
   const scope = !forceHideAll && searchParams.get("scope") === "all" ? "all" : "mine";
@@ -173,7 +173,7 @@ export default function QueuesPage() {
 
   // Completion toasts: a row that was QUEUED/RUNNING on the previous poll and
   // is now terminal gets announced. First load seeds the map without toasting.
-  // The word is the row's — a partly-complete export must not toast "finished
+  // The word is the row's - a partly-complete export must not toast "finished
   // successfully".
   const prevStatusRef = useRef<Map<number, JobStatus>>(new Map());
   useEffect(() => {
@@ -219,7 +219,7 @@ export default function QueuesPage() {
         header: "Duration",
         align: "right",
         cell: (job) => (
-          <span className={NUM}>{job.status === "RUNNING" ? "—" : fmtDuration(job.runtime_seconds)}</span>
+          <span className={NUM}>{job.status === "RUNNING" ? "-" : fmtDuration(job.runtime_seconds)}</span>
         ),
       },
     ];
@@ -234,7 +234,7 @@ export default function QueuesPage() {
         <div>
           <p className="font-semibold font-mont text-gray-01">Queues</p>
           <p className="text-xs text-gray-01 mt-0.5">
-            Background tasks — imports, exports and emails you started, live as they run.
+            Background tasks - imports, exports and emails you started, live as they run.
           </p>
         </div>
         {canViewAll && (
@@ -357,7 +357,7 @@ function resultFields(result: unknown): { label: string; value: string }[] {
   if (!result || typeof result !== "object" || Array.isArray(result)) return [];
   return Object.entries(result as Record<string, unknown>).map(([key, value]) => {
     const label = key.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
-    if (value == null) return { label, value: "—" };
+    if (value == null) return { label, value: "-" };
     if (Array.isArray(value)) return { label, value: `${value.length} items` };
     if (typeof value === "object") return { label, value: `${Object.keys(value).length} entries` };
     return { label, value: String(value) };
@@ -388,7 +388,7 @@ function JobDrawer({ job, onClose }: { job: BackgroundJob | null; onClose: () =>
           </div>
 
           {/* An export that left something out says so here, in words, before
-              anything else — it is the reason this drawer is worth opening. */}
+              anything else - it is the reason this drawer is worth opening. */}
           {!!outcome?.omissions && (
             <div className="rounded-md border-l-[3px] border-yellow-01 bg-yellow-01/10 px-4 py-3">
               <p className="font-mont text-sm font-semibold text-yellow-01-text">

@@ -3,7 +3,7 @@
 //
 // The hierarchy renders as a collapsible tree: clicking a Division row
 // collapses/expands its departments; clicking a Department row does the same
-// for its teams. No arrow indicator — just click the row.
+// for its teams. No arrow indicator - just click the row.
 
 import { useMemo, useState } from "react";
 import { ChevronRight, Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";
@@ -425,7 +425,7 @@ export default function OrgNodeManager() {
               onChange={(e) => setKind(e.target.value as OrgNodeKind)}
             />
             {form.kind === "DIVISION" && (
-              <div className="flex items-end pb-2 text-xs text-gray-05">Top level — divisions have no parent.</div>
+              <div className="flex items-end pb-2 text-xs text-gray-05">Top level - divisions have no parent.</div>
             )}
             {form.kind === "DEPARTMENT" && (
               <SearchSelect
@@ -452,8 +452,8 @@ export default function OrgNodeManager() {
                 />
               </>
             )}
-            {noDivisions && <Hint>No divisions exist yet — create a Division first, then come back to this {KIND_LABEL[form.kind].toLowerCase()}.</Hint>}
-            {noDeptsInDiv && <Hint>No departments under {nameOf(form.division_id)} yet — create one first, then add this team.</Hint>}
+            {noDivisions && <Hint>No divisions exist yet - create a Division first, then come back to this {KIND_LABEL[form.kind].toLowerCase()}.</Hint>}
+            {noDeptsInDiv && <Hint>No departments under {nameOf(form.division_id)} yet - create one first, then add this team.</Hint>}
             {previewChain.length > 0 && (
               <div className="sm:col-span-2 flex flex-wrap items-center gap-1 rounded-md bg-gray-03 px-3 py-2 text-xs text-gray-06">
                 <span className="font-semibold">Will sit under:</span>
@@ -496,7 +496,7 @@ export default function OrgNodeManager() {
         description={
           toDelete?.children_count
             ? `"${toDelete.name}" has ${toDelete.children_count} child unit${toDelete.children_count === 1 ? "" : "s"}. ` +
-              "Delete or re-parent them first — the server will refuse this delete."
+              "Delete or re-parent them first - the server will refuse this delete."
             : `This permanently removes "${toDelete?.name}". Seats (positions) still attached to it block deletion.`
         }
         onConfirmText="Delete" canCancel loading={deleting}

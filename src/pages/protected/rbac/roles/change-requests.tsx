@@ -429,7 +429,7 @@ export default function ChangeRequests() {
     submitted: <span className="text-xs text-gray-01">{formatRelativeDate(r.submitted_at)}</span>,
     decided: (
       <span className="text-xs text-gray-01">
-        {r.decided_at ? formatRelativeDate(r.decided_at) : "—"}
+        {r.decided_at ? formatRelativeDate(r.decided_at) : "-"}
       </span>
     ),
     _raw: r,

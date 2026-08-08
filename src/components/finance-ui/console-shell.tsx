@@ -1,4 +1,4 @@
-// <ConsoleShell> — the in-page typography and title frame for the Finance and
+// <ConsoleShell> - the in-page typography and title frame for the Finance and
 // Procurement consoles. You're "in" a separate console with a Back-to-main
 // link in its sidebar (spec §3). The shared DashboardHeader owns the floating
 // entity switcher so it can sit beneath search without reserving a content row.

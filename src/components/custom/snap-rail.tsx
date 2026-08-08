@@ -6,13 +6,13 @@ import { cn } from "@/lib/utils";
  *
  * Built on CSS scroll-snap rather than a carousel library: native touch
  * momentum and native keyboard scrolling come for free, there is no dependency
- * to ship, and — the part that matters here — advancing a slide is a scroll,
+ * to ship, and - the part that matters here - advancing a slide is a scroll,
  * not a re-render. The only React state is the active dot index, and it lives
  * inside this component so a rail on a dashboard never re-renders the screen
  * around it.
  *
  * Auto-advance is opt-in via `autoAdvanceMs` and is deliberately timid:
- *   * it stops **permanently** the moment the reader touches the rail — the
+ *   * it stops **permanently** the moment the reader touches the rail - the
  *     point of the timer is to animate a rail nobody has engaged with, and once
  *     someone has chosen a slide, moving it out from under them is hostile;
  *   * it only runs while the rail is actually on screen (IntersectionObserver)

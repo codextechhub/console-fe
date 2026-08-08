@@ -1,4 +1,4 @@
-// Batches — bulk vendor disbursements (Vision "Bulk Disbursement"), rebuilt in the
+// Batches - bulk vendor disbursements (Vision "Bulk Disbursement"), rebuilt in the
 // house theme: KPIs (batches / queued value / completed 7d / drafts), a batches table,
 // a Build-batch drawer (a multi-line vendor editor with per-line WHT + a settlement
 // recap), and a detail drawer with per-item results, Submit and a Bank-file CSV export.
@@ -27,7 +27,7 @@ import type { Vendor } from "@/redux/services/procurement/procurement-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const MASK = "••••";
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 
 const BATCH_STATUS: Record<string, { label: string; cls: string }> = {
   DRAFT: { label: "Draft", cls: "bg-gray-02/70 text-gray-01" },
@@ -85,7 +85,7 @@ export function BatchesTab({ entity, currency }: { entity: string; currency?: st
   const columns: Column<PayoutBatchSummary>[] = [
     { header: "Batch", cell: (b) => <span className="font-semibold tabular-nums text-gray-01">{b.reference}</span> },
     { header: "Run date", cell: (b) => <span className="tabular-nums text-gray-05">{fmtDate(b.created_at)}</span> },
-    { header: "Purpose", cell: (b) => b.title || <span className="text-gray-05">—</span> },
+    { header: "Purpose", cell: (b) => b.title || <span className="text-gray-05">-</span> },
     { header: "Items", align: "right", cell: (b) => <span className="tabular-nums">{b.item_count}</span> },
     { header: "Total", align: "right", cell: (b) => <Money kobo={b.total_amount} currency={currency} align="right" /> },
     { header: "Provider", cell: (b) => <ProviderTag provider={b.provider} /> },
@@ -170,10 +170,10 @@ function BuildBatchDrawer({ open, onClose, entity, currency }: { open: boolean; 
     if (!validItems.length) return;
     try {
       const r = await create({ entity, title: title.trim() || undefined, provider, source_account: sourceAccount || undefined, narration: narration.trim() || undefined, submit: dispatch, items: validItems }).unwrap();
-      // When the batch is approval-gated the backend ignores submit and leaves it DRAFT —
+      // When the batch is approval-gated the backend ignores submit and leaves it DRAFT -
       // don't claim it dispatched; surface the backend's "submit it for approval" message.
       const dispatched = dispatch && r.data?.status && r.data.status !== "DRAFT";
-      toast.success(dispatched ? "Batch submitted to the provider." : (r.message || (dispatch ? "Batch created — submit it for approval." : "Draft batch saved.")));
+      toast.success(dispatched ? "Batch submitted to the provider." : (r.message || (dispatch ? "Batch created - submit it for approval." : "Draft batch saved.")));
       close();
     } catch { /* central */ }
   };
@@ -268,7 +268,7 @@ function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: nu
   const hasPending = items.some((p) => p.status === "PENDING");
   // Maker-checker: a batch already routed shows as awaiting approval (no re-submit).
   // `approval_required` (when the serializer exposes it) picks the right action; while it's
-  // undefined we offer both — direct submit 400s if gated, approval errors if no template.
+  // undefined we offer both - direct submit 400s if gated, approval errors if no template.
   const awaitingApproval = batch?.approval_status === "PENDING";
   const gated = batch?.approval_required;
   const canSubmit = batch ? ((batch.status === "DRAFT" || hasPending) && !awaitingApproval) : false;
@@ -287,13 +287,13 @@ function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: nu
   const itemCols: Column<PayoutInstruction>[] = [
     {
       header: "Beneficiary", cell: (p) => {
-        const name = isStripped(p, "beneficiary_name") ? MASK : p.beneficiary_name || "—";
+        const name = isStripped(p, "beneficiary_name") ? MASK : p.beneficiary_name || "-";
         const acct = isStripped(p, "beneficiary_account_number") ? MASK : p.beneficiary_account_number || "";
         return <span><span className="font-medium text-gray-01">{name}</span>{acct ? <span className="block font-mont text-[11px] tabular-nums text-gray-05">{p.beneficiary_bank_code ? `${p.beneficiary_bank_code} · ` : ""}{acct}</span> : null}</span>;
       },
     },
     { header: "Amount", align: "right", cell: (p) => <Money kobo={p.amount} currency={currency} align="right" /> },
-    { header: "WHT", align: "right", cell: (p) => <span className="tabular-nums text-gray-05">{p.wht_amount ? formatMoney(p.wht_amount, currency) : "—"}</span> },
+    { header: "WHT", align: "right", cell: (p) => <span className="tabular-nums text-gray-05">{p.wht_amount ? formatMoney(p.wht_amount, currency) : "-"}</span> },
     { header: "Net", align: "right", cell: (p) => <span className="tabular-nums">{formatMoney(p.amount - (p.wht_amount || 0), currency)}</span> },
     { header: "Result", cell: (p) => <ItemStatusPill status={p.status} /> },
   ];

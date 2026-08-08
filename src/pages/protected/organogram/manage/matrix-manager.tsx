@@ -62,7 +62,7 @@ export default function MatrixManager() {
     () => items.map((m) => ({
       position: <span className="text-sm font-medium text-black-01">{m.position.title}</span>,
       reports_to: <span className="text-sm">{m.reports_to.title}</span>,
-      relationship: <span className="text-sm text-gray-01">{m.relationship_label || "—"}</span>,
+      relationship: <span className="text-sm text-gray-01">{m.relationship_label || "-"}</span>,
       actions: (
         <button className="rounded p-1.5 text-gray-01 hover:bg-destructive/10 hover:text-destructive" onClick={(e) => { e.stopPropagation(); setToDelete(m); }} title="Remove"><Trash2 className="size-4" /></button>
       ),

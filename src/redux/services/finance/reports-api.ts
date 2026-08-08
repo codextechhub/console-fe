@@ -50,7 +50,7 @@ export const reportsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/reports/analytics-slice/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceReports"],
     }),
-    // Aggregated Finance-overview dashboard — every block in one call.
+    // Aggregated Finance-overview dashboard - every block in one call.
     getFinanceDashboard: builder.query<ApiEnvelope<FinanceDashboard>, ReportParams>({
       query: (p) => ({ url: `/finance/reports/dashboard/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceReports"],

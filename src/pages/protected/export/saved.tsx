@@ -2,7 +2,7 @@
 //
 // The distinction the page has to carry: editing an export changes FUTURE files
 // only. Files it already produced are never altered and never disappear, which
-// is also why "delete" archives rather than destroys — runs point at the
+// is also why "delete" archives rather than destroys - runs point at the
 // definition, and a hard delete would orphan the history that explains them.
 
 import { useMemo, useState } from "react";
@@ -175,7 +175,7 @@ export default function SavedExportsPage() {
         </div>
       ),
     },
-    { header: "Owner", cell: (row) => (row.is_owner ? "You" : row.owner_name || "—") },
+    { header: "Owner", cell: (row) => (row.is_owner ? "You" : row.owner_name || "-") },
     {
       header: "Last run",
       cell: (row) =>
@@ -239,7 +239,7 @@ export default function SavedExportsPage() {
         <div>
           <p className="font-semibold font-mont text-gray-01">Exports</p>
           <p className="mt-0.5 text-xs text-gray-01">
-            Reusable recipes. Editing one changes future files only — files already produced are never
+            Reusable recipes. Editing one changes future files only - files already produced are never
             altered.
           </p>
         </div>

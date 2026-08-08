@@ -110,7 +110,7 @@ export default function PackageSetup({ defaultValues, onSubmit, isSubmitting }: 
                   toast.info(
                     `Also added ${added
                       .map((k) => moduleByKey.get(k)?.label ?? k)
-                      .join(", ")} — required by your selection`,
+                      .join(", ")} - required by your selection`,
                   );
                 }
                 formik.setFieldValue("enabled_modules", expanded);

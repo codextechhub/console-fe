@@ -1,18 +1,18 @@
-// Capture a route's LOADING and ERROR render states — the two states a normal
+// Capture a route's LOADING and ERROR render states - the two states a normal
 // drive can never screenshot (the request resolves too fast, or never fails).
 // For each route it holds the matching API call(s) open and screenshots
 // mid-load, then aborts them and screenshots the error UI. Born from the
 // "dashboard looks blank" bug: invisible skeletons only show up in exactly
 // this state.
 //
-//   BASE_URL  frontend origin (e.g. http://localhost:5173) — required
+//   BASE_URL  frontend origin (e.g. http://localhost:5173) - required
 //   ROUTES    space/comma-separated paths to drive (default: the two dashboards)
 //   PATTERN   regex of API URLs to delay/abort (default: the dashboard reports)
 //   EMAIL / PASSWORD   seeded super-admin (defaults below)
 //
 // Shots land in /tmp/verify-design/shots-probe/<route>-{loading,error}.png.
 // NOTE: the error phase intentionally aborts requests, so the run always
-// reports net::ERR_FAILED console errors — those are the probe, not a bug.
+// reports net::ERR_FAILED console errors - those are the probe, not a bug.
 
 import { chromium } from "playwright";
 import fs from "node:fs";
@@ -69,7 +69,7 @@ for (const path of routes) {
 }
 
 console.log(`\n=== console/page errors (${errors.length}) ===`);
-console.log("(net::ERR_FAILED entries are expected — the error phase aborts the calls)");
+console.log("(net::ERR_FAILED entries are expected - the error phase aborts the calls)");
 errors.slice(0, 20).forEach((e) => console.log(" •", e.slice(0, 200)));
-console.log(`\nscreenshots in ${SHOTS}/ — Read each to judge the states.`);
+console.log(`\nscreenshots in ${SHOTS}/ - Read each to judge the states.`);
 await browser.close();

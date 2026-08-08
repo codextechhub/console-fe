@@ -137,7 +137,7 @@ export function CriticalHeatmap({ data }: { data: number[][] }) {
                 return (
                   <td
                     key={hIdx}
-                    title={`${DAY_LABELS[rIdx]} ${hIdx}:00 — ${v} critical event${v === 1 ? "" : "s"}`}
+                    title={`${DAY_LABELS[rIdx]} ${hIdx}:00 - ${v} critical event${v === 1 ? "" : "s"}`}
                     style={{
                       backgroundColor: alpha === 0 ? "#f1f5f9" : `rgba(220, 38, 38, ${0.15 + alpha * 0.75})`,
                     }}

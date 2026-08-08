@@ -1,4 +1,4 @@
-// <EntitySelect /> — the floating ledger-entity picker shared by the Finance
+// <EntitySelect /> - the floating ledger-entity picker shared by the Finance
 // and Procurement console header. A tenant with zero or one active entity has
 // no choice to make, so the control only appears once a second entity exists.
 // The selected code is persisted and threaded into every entity-scoped request.

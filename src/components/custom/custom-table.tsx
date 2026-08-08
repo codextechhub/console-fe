@@ -22,7 +22,7 @@ import {
   SkeletonRow,
 } from "@/components/custom/skeletons";
 
-/** Ghost rows shown while a list loads — enough to fill the fold, not so many
+/** Ghost rows shown while a list loads - enough to fill the fold, not so many
  *  that the page grows past the real result. */
 const GHOST_ROWS = 6;
 
@@ -108,7 +108,7 @@ const CustomTable = ({
     }
   };
 
-  // The action button / kebab menu for one row — shared between the table's
+  // The action button / kebab menu for one row - shared between the table's
   // action cell and the phone card's top-right corner.
   const RowActions = ({ item }: { item: any }) => {
     const resolvedDropDownList =
@@ -196,7 +196,7 @@ const CustomTable = ({
   // Ghost geometry is derived from the real column definitions, so the loading
   // state previews the exact table that is about to render.
   const ghostColumns = Math.max(1, tableHeaderList?.length ?? 1);
-  // Cards own the phone viewport whenever the table would be card-shaped —
+  // Cards own the phone viewport whenever the table would be card-shaped -
   // including while loading, so the phone never flips table -> cards on arrival.
   const showCards =
     mobile === "cards" && (loading || tableBodyList?.length > 0);
@@ -303,7 +303,7 @@ const CustomTable = ({
             <>
               {/* One announcement for the whole surface; the ghost rows
                   themselves are aria-hidden decoration. `loadingText` keeps
-                  working — it is now what the screen reader hears. */}
+                  working - it is now what the screen reader hears. */}
               <TableRow aria-hidden={false} className="hover:bg-transparent">
                 <TableCell colSpan={ghostColumns} className="h-0 border-0 p-0">
                   <SkeletonLoadingLabel text={loadingText || "Loading…"} />

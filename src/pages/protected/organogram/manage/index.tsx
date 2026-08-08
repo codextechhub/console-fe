@@ -25,7 +25,7 @@ export default function OrganogramManage() {
       <main className="px-4.5 py-6 space-y-5 text-black-01">
         <div>
           <p className="font-semibold font-mont text-gray-01">Manage Organogram</p>
-          <p className="text-xs text-gray-01 mt-0.5">Create and maintain the org structure — units (division/department/team), seats and dotted lines.</p>
+          <p className="text-xs text-gray-01 mt-0.5">Create and maintain the org structure - units (division/department/team), seats and dotted lines.</p>
         </div>
 
         <div className="flex items-center gap-1 border-b border-white-02">

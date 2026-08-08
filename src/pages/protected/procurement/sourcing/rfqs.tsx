@@ -170,13 +170,13 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
             <Field label="RFQ number" value={rfq.document_number} />
             <Field label="Status" value={<RfqStatusPill status={rfq.rfq_status} />} />
             <Field label="Title" value={rfq.title} />
-            <Field label="Requisition" value={rfq.requisition_number || "—"} />
+            <Field label="Requisition" value={rfq.requisition_number || "-"} />
             <Field label="Issued" value={shortDate(rfq.issue_date)} />
             <Field label="Response deadline" value={shortDate(rfq.response_due_date)} />
-            <Field label="Budget estimate" value={rfq.budget_estimate != null ? <Money kobo={rfq.budget_estimate} currency={currency} /> : "—"} />
+            <Field label="Budget estimate" value={rfq.budget_estimate != null ? <Money kobo={rfq.budget_estimate} currency={currency} /> : "-"} />
             <Field label="Vendors invited" value={rfq.invited_count} />
             <Field label="Responses received" value={rfq.response_count} />
-            <div className="sm:col-span-2"><dt className="font-mont text-[11px] text-gray-05">Notes</dt><dd className="mt-1 font-mont text-sm text-black-01">{rfq.notes || "—"}</dd></div>
+            <div className="sm:col-span-2"><dt className="font-mont text-[11px] text-gray-05">Notes</dt><dd className="mt-1 font-mont text-sm text-black-01">{rfq.notes || "-"}</dd></div>
           </dl>
         )}
 
@@ -188,8 +188,8 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
                 <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums text-gray-05">{line.line_no}</td>
                 <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{line.description}</td>
                 <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{formatQuantity(line.quantity)}</td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{line.expense_code || "—"}</td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{line.tax_code_id ? "Taxed" : "—"}</td>
+                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{line.expense_code || "-"}</td>
+                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{line.tax_code_id ? "Taxed" : "-"}</td>
               </tr>
             ))}</tbody>
           </table></div>
@@ -202,8 +202,8 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
               <tr key={inv.vendor_id}>
                 <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs"><p className="font-semibold">{inv.vendor_name}</p><p className="mt-0.5 text-gray-05">{inv.vendor_code}</p></td>
                 <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={inv.responded ? "RESPONDED" : "AWAITED"} /></td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{inv.quotation_id ? <span className="flex flex-wrap items-center gap-1.5"><StatusPill status={inv.quotation_status || ""} /></span> : "—"}</td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{inv.quotation_total != null ? <Money kobo={inv.quotation_total} currency={currency} /> : "—"}</td>
+                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{inv.quotation_id ? <span className="flex flex-wrap items-center gap-1.5"><StatusPill status={inv.quotation_status || ""} /></span> : "-"}</td>
+                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{inv.quotation_total != null ? <Money kobo={inv.quotation_total} currency={currency} /> : "-"}</td>
               </tr>
             ))}</tbody>
           </table></div>
@@ -217,7 +217,7 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
                 <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{q.document_number}</td>
                 <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{q.vendor_name || q.vendor_code}</td>
                 <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums"><Money kobo={q.total} currency={currency} /></td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{q.lead_time_days == null ? "—" : `${q.lead_time_days} days`}</td>
+                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{q.lead_time_days == null ? "-" : `${q.lead_time_days} days`}</td>
                 <td className="border-t border-gray-03 px-3 py-2"><div className="flex flex-wrap items-center gap-1.5"><StatusPill status={q.quotation_status} />{q.is_expired && <ExpiredPill />}</div></td>
               </tr>
             ))}</tbody>
@@ -232,20 +232,20 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
 }
 
 // requisition_line linkage is carried only when the prefilled line is unchanged
-// (same description + quantity at the same index) — never mis-linked after edits.
+// (same description + quantity at the same index) - never mis-linked after edits.
 type ReqSnapshot = { requisition_line: number; description: string; quantity: number }[];
 
 // An RFQ is a request sent to invited vendors. This editor adds purchase-eligible
 // vendors (active, not on-hold, KYC ≠ REJECTED) as removable chips. A vendor that has
 // already responded cannot be removed (removing it would strand its quotation), so its
-// ✕ is disabled — matching the backend's responded-vendor protection.
+// ✕ is disabled - matching the backend's responded-vendor protection.
 function InviteVendorsEditor({ entity, invited, onChange }: { entity: string; invited: InviteRow[]; onChange: (rows: InviteRow[]) => void }) {
   const { data, isLoading } = useGetVendorsQuery({ entity, page_size: 100 });
   const vendors = toArray(data?.data);
   const invitedCodes = new Set(invited.map((v) => v.code));
   const options = vendors
     .filter((v) => v.is_active && !v.on_hold && v.kyc_status !== "REJECTED" && !invitedCodes.has(v.code))
-    .map((v) => ({ value: v.code, label: `${v.code} — ${v.name}` }));
+    .map((v) => ({ value: v.code, label: `${v.code} - ${v.name}` }));
   const add = (code: string) => {
     if (!code || invitedCodes.has(code)) return;
     const vendor = vendors.find((v) => v.code === code);
@@ -260,10 +260,10 @@ function InviteVendorsEditor({ entity, invited, onChange }: { entity: string; in
         <div className="flex flex-wrap gap-2">
           {invited.map((v) => (
             <span key={v.code} className="inline-flex max-w-full items-center gap-1.5 rounded border border-gray-03 bg-gray-50 px-2 py-1 font-mont text-xs">
-              <span className="min-w-0 truncate">{v.code} — {v.name}</span>
+              <span className="min-w-0 truncate">{v.code} - {v.name}</span>
               <button
                 type="button" onClick={() => onChange(invited.filter((row) => row.code !== v.code))}
-                disabled={v.responded} title={v.responded ? "Already responded — cannot be removed" : "Remove"}
+                disabled={v.responded} title={v.responded ? "Already responded - cannot be removed" : "Remove"}
                 className="text-gray-05 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30"
                 aria-label={`Remove ${v.code}`}
               >✕</button>
@@ -378,7 +378,7 @@ function RfqForm({ entity, currency, initial, onClose }: { entity: string; curre
     >
       <div className="space-y-4">
         <FormField label="Title" required><Input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-white" /></FormField>
-        {!initial && <FormField label="From requisition"><RequisitionPicker entity={entity} value={requisition} onChange={setRequisition} status="APPROVED" placeholder="Optional — prefill from an approved requisition" /></FormField>}
+        {!initial && <FormField label="From requisition"><RequisitionPicker entity={entity} value={requisition} onChange={setRequisition} status="APPROVED" placeholder="Optional - prefill from an approved requisition" /></FormField>}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label="Issue date" required><Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} className="bg-white" /></FormField>
           <FormField label="Response due"><Input type="date" min={issueDate} value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="bg-white" /></FormField>
@@ -390,7 +390,7 @@ function RfqForm({ entity, currency, initial, onClose }: { entity: string; curre
         </div>
         <FormField label="Notes"><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="bg-white" /></FormField>
         <div className="pt-1">
-          <p className="mb-2 font-mont text-xs font-semibold text-gray-05">Lines (specification only — no price)</p>
+          <p className="mb-2 font-mont text-xs font-semibold text-gray-05">Lines (specification only - no price)</p>
           <LineEditor entity={entity} lines={lines} onChange={setLines} accountLabel="Expense account (optional)" accountType="EXPENSE" showTax showCostCenter={false} taxUsage="purchase" />
         </div>
       </div>

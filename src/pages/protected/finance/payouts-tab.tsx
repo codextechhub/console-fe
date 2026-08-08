@@ -1,13 +1,13 @@
-// Payouts — money out via the payment gateway, rebuilt to the Vision prototype in the
+// Payouts - money out via the payment gateway, rebuilt to the Vision prototype in the
 // house theme: KPIs (settled 7d / pending / failed / count), status + provider filters,
 // a payouts table, a detail drawer with a status timeline and the settlement posting,
 // a New-payout drawer (vendor OR free-form), and a CSV export.
 //
 // Backed by the real model: initiate asks the provider to transfer out (PROCESSING); the
 // ledger entry books on confirmation (webhook / PSP), never here. A payout settles a
-// vendor's payable, so it books a VendorPayment (Dr AP / Cr bank) — the recap mirrors that
+// vendor's payable, so it books a VendorPayment (Dr AP / Cr bank) - the recap mirrors that
 // real journal. Beneficiary name/account are FLS-masked to •••• without
-// payments.payout.view_sensitive. Settlement is webhook-driven — no fake "re-verify".
+// payments.payout.view_sensitive. Settlement is webhook-driven - no fake "re-verify".
 
 import { useMemo, useState, type ReactNode } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
@@ -29,8 +29,8 @@ import { useGetAccountsQuery } from "@/redux/services/finance/setup-api";
 import type { PayoutInstruction } from "@/redux/services/payments/payments-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
-const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 const MASK = "••••";
 
 // payout status → prototype group (Pending / Settled / Failed)
@@ -65,7 +65,7 @@ function Select({ value, onChange, children, className }: { value: string; onCha
   );
 }
 
-const beneficiary = (p: PayoutInstruction) => (isStripped(p, "beneficiary_name") ? MASK : p.beneficiary_name || "—");
+const beneficiary = (p: PayoutInstruction) => (isStripped(p, "beneficiary_name") ? MASK : p.beneficiary_name || "-");
 const account = (p: PayoutInstruction) => (isStripped(p, "beneficiary_account_number") ? MASK : p.beneficiary_account_number || "");
 
 export function PayoutsTab({ entity, currency }: { entity: string; currency?: string | null }) {
@@ -186,7 +186,7 @@ function PayoutDrawer({ payoutId, payouts, currency, onClose }: { payoutId: numb
             <TimelineStep done={dispatched && !failed} current={!dispatched && !failed} title={failed && !p.provider_reference ? "Provider rejected" : "Sent to provider"}
               sub={failed && !p.provider_reference ? (p.failure_reason || "The provider declined the transfer") : `${PROVIDERS[p.provider]?.label ?? p.provider}${p.provider_reference ? ` · ${p.provider_reference}` : ""}`} />
             <TimelineStep done={paid} current={dispatched && !paid && !failed} title={failed ? "Settlement failed" : "Settled"}
-              sub={paid ? `Confirmed — journal booked (Dr payable / Cr bank)${p.confirmed_at ? ` · ${fmtDateTime(p.confirmed_at)}` : ""}` : failed ? (p.failure_reason || "The provider reported a failed/reversed transfer") : "Awaiting the provider's settlement"} />
+              sub={paid ? `Confirmed - journal booked (Dr payable / Cr bank)${p.confirmed_at ? ` · ${fmtDateTime(p.confirmed_at)}` : ""}` : failed ? (p.failure_reason || "The provider reported a failed/reversed transfer") : "Awaiting the provider's settlement"} />
           </div>
         </div>
 
@@ -194,7 +194,7 @@ function PayoutDrawer({ payoutId, payouts, currency, onClose }: { payoutId: numb
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">{paid ? "Settlement posting" : "On settlement (via webhook)"}</p>
             <PostingRecap title={paid ? "Disbursement booked" : "Will post on confirmation"} dr={dr} cr={cr} currency={currency}
-              helper={paid ? "Booked automatically when the provider confirmed the transfer." : "The journal posts automatically when the provider confirms settlement — no manual entry."} />
+              helper={paid ? "Booked automatically when the provider confirmed the transfer." : "The journal posts automatically when the provider confirms settlement - no manual entry."} />
           </div>
         ) : null}
 
@@ -221,7 +221,7 @@ function NewPayoutDrawer({ open, onClose, entity, currency }: { open: boolean; o
   const { data: acctData } = useGetAccountsQuery({ entity });
   const acctName = (code: string) => toArray(acctData?.data).find((a) => a.code === code)?.name;
   // Prefill beneficiary fields once per selected vendor, as soon as its row is
-  // available — adjusted during render so a background vendor refetch never
+  // available - adjusted during render so a background vendor refetch never
   // clobbers edits the user made after picking.
   const vendorRow = vendor ? toArray(vendorsData?.data).find((x) => x.code === vendor) : undefined;
   const [prefilledFor, setPrefilledFor] = useState<string | null>(null);
@@ -256,7 +256,7 @@ function NewPayoutDrawer({ open, onClose, entity, currency }: { open: boolean; o
 
   return (
     <DetailDrawer open={open} onOpenChange={(o) => (o ? undefined : close())}
-      title="New payout" description="Pay a vendor — money out to a recipient account." widthClass="sm:max-w-2xl"
+      title="New payout" description="Pay a vendor - money out to a recipient account." widthClass="sm:max-w-2xl"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
         <Button disabled={isLoading || !valid} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Sending…" : "Send payout"}</Button>
@@ -282,7 +282,7 @@ function NewPayoutDrawer({ open, onClose, entity, currency }: { open: boolean; o
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">On settlement (via webhook)</p>
           <PostingRecap title="Will post on confirmation" dr={dr} cr={cr} currency={currency}
-            helper="Settles the vendor's payable when the provider confirms — no manual entry." />
+            helper="Settles the vendor's payable when the provider confirms - no manual entry." />
         </div>
       </div>
     </DetailDrawer>

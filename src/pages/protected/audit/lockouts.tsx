@@ -44,11 +44,11 @@ export default function AccountLockouts() {
         userId={l.user.id}
       />
     ),
-    locked_until: <span className="text-xs">{l.locked_until ? formatRelativeDate(l.locked_until) : "—"}</span>,
-    reason: <span className="font-mono text-xs">{l.locked_reason || "—"}</span>,
+    locked_until: <span className="text-xs">{l.locked_until ? formatRelativeDate(l.locked_until) : "-"}</span>,
+    reason: <span className="font-mono text-xs">{l.locked_reason || "-"}</span>,
     failure_count: <span className="font-semibold text-xs">{l.failure_count}</span>,
-    last_ip: <span className="font-mono text-xs">{l.last_failure_ip ?? "—"}</span>,
-    last_at: <span className="text-xs">{l.last_failure_at ? formatRelativeDate(l.last_failure_at) : "—"}</span>,
+    last_ip: <span className="font-mono text-xs">{l.last_failure_ip ?? "-"}</span>,
+    last_at: <span className="text-xs">{l.last_failure_at ? formatRelativeDate(l.last_failure_at) : "-"}</span>,
     status: l.is_locked ? (
       <Badge variant="suspended" className="text-[10px] uppercase">Locked</Badge>
     ) : (

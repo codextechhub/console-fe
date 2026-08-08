@@ -75,7 +75,7 @@ export default function ViewBatch() {
   const batch = unwrap<ImportBatch>(data);
 
   // Reset tab to first visible if current tab is no longer accessible
-  // (guarded render-phase adjustment — no effect needed).
+  // (guarded render-phase adjustment - no effect needed).
   if (visibleTabKeys.length > 0 && !visibleTabKeys.includes(tab)) {
     setTab(visibleTabKeys[0]);
   }
@@ -149,7 +149,7 @@ export default function ViewBatch() {
   const handleStart = async () => {
     try {
       await startImport({ id: batchId, body: { run_async: true } }).unwrap();
-      // The mutation's onQueryStarted announces the queued job — toasting here
+      // The mutation's onQueryStarted announces the queued job - toasting here
       // too would double it.
       refetch();
     } catch { /* interceptor shows the toast */ }
@@ -279,7 +279,7 @@ export default function ViewBatch() {
                 {batch.status === "import_failed" ? "Import failed" : "Import partially completed"}
               </p>
               <p className="text-[11px] text-destructive/80 mt-0.5">
-                Validation passed with no issues. The failure occurred during the import execution — check the <strong>Jobs</strong> tab for the error details.
+                Validation passed with no issues. The failure occurred during the import execution - check the <strong>Jobs</strong> tab for the error details.
               </p>
             </div>
           </div>
@@ -350,7 +350,7 @@ export default function ViewBatch() {
                   <p className="font-mono text-xs font-medium">{batch.template.code}</p>
                   <p className="text-[10px] text-gray-01">{batch.template.name}</p>
                 </div>
-              ) : <span className="text-xs text-gray-01">—</span>}
+              ) : <span className="text-xs text-gray-01">-</span>}
             </MetaRow>
             <MetaRow label="Uploaded by">
               <div>

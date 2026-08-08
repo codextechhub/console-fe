@@ -1,4 +1,4 @@
-// Payments (§6.Payments) — single payouts, payout batches, settlement
+// Payments (§6.Payments) - single payouts, payout batches, settlement
 // reconciliation (gateway vs bank), and the gateway transactions log.
 // Beneficiary details are FLS-masked unless payments.payout.view_sensitive.
 import { useParams } from "react-router";
@@ -19,7 +19,7 @@ export default function PaymentsPage() {
     ? { label: "Settlement", subtitle: "Reconcile gateway settlements against the bank." }
     : section === "transactions"
     ? { label: "Transactions Log", subtitle: "Unified ledger of all collections, payouts and settlements." }
-    : { label: "Payouts", subtitle: "Money out — single disbursements to recipients." };
+    : { label: "Payouts", subtitle: "Money out - single disbursements to recipients." };
 
   return (
     <FinanceShell>

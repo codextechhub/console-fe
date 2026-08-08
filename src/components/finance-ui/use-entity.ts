@@ -39,7 +39,7 @@ export function useActiveEntity(): ActiveEntity {
   };
 }
 
-/** Bare selected code — for components that only need to scope a request. */
+/** Bare selected code - for components that only need to scope a request. */
 export function useEntityCode(): string | null {
   return useAppSelector(selectEntityCode);
 }

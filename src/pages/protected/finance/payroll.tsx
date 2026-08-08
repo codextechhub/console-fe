@@ -1,4 +1,4 @@
-// Payroll (§6.7), rebuilt to the Vision prototype in the house theme: five tabs —
+// Payroll (§6.7), rebuilt to the Vision prototype in the house theme: five tabs -
 // Payroll runs, Employee salaries (the roster), Salary structures, Payslips and
 // Statutory returns. Salaries can be split into tranches via a reusable structure
 // (earning/deduction components as % of gross or basic); PAYE/pension/net are then
@@ -7,7 +7,7 @@
 // paid, and each payslip / statutory schedule printed.
 //
 // Honest adaptations: deductions route only to PAYE/pension (the two payables the GL
-// has) — other deduction types (loans/union) are a noted backend expansion. Statutory
+// has) - other deduction types (loans/union) are a noted backend expansion. Statutory
 // schedules need per-employee figures, so they're disabled (with a tooltip) without the
 // sensitive grant. PAYE/pension are remitted via Tax Remittance.
 
@@ -118,7 +118,7 @@ export default function PayrollPage() {
         <div>
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">Payroll</h1>
-            <InfoHint ariaLabel="About payroll runs">A payroll run computes gross, PAYE, pension and net for every employee, then posts one journal — Dr salary expense; Cr PAYE payable, Cr pension payable, Cr net-wages payable. Paying it clears net-wages payable against the bank. Per-employee figures need the sensitive grant.</InfoHint>
+            <InfoHint ariaLabel="About payroll runs">A payroll run computes gross, PAYE, pension and net for every employee, then posts one journal - Dr salary expense; Cr PAYE payable, Cr pension payable, Cr net-wages payable. Paying it clears net-wages payable against the bank. Per-employee figures need the sensitive grant.</InfoHint>
           </div>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Monthly salary runs and payslips, generated from the employee roster.</p>
         </div>
@@ -158,7 +158,7 @@ function RunsTab({ entity, currency }: { entity: string; currency?: string | nul
 
   const columns: Column<PayrollRun>[] = [
     { header: "Run no.", cell: (r) => <span className="font-semibold tabular-nums">{r.document_number}</span> },
-    { header: "Period", cell: (r) => r.period_label || "—" },
+    { header: "Period", cell: (r) => r.period_label || "-" },
     { header: "Payment date", cell: (r) => <span className="tabular-nums text-gray-05">{fmtDate(r.pay_date)}</span> },
     { header: "Employees", align: "right", cell: (r) => <span className="tabular-nums text-gray-05">{r.lines.length}</span> },
     { header: "Total gross", align: "right", cell: (r) => <Money kobo={r.gross_total} currency={currency} align="right" /> },
@@ -204,7 +204,7 @@ function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null;
 
   const doPost = async () => { try { const res = await post({ id: r.id, entity }).unwrap(); toast.success(res.message || "Run posted."); } catch { /* central */ } };
   // Undo a run raised in error. Only offered before it's paid (DRAFT/POSTED); the
-  // backend refuses a paid run — reverse the disbursement first.
+  // backend refuses a paid run - reverse the disbursement first.
   const canCancel = r.run_status === "DRAFT" || r.run_status === "POSTED";
   const isPosted = r.run_status === "POSTED";
   const doCancel = async () => { try { const res = await cancelRun({ id: r.id, entity }).unwrap(); toast.success(res.message || "Run cancelled."); setCancelOpen(false); } catch { /* central */ } };
@@ -212,7 +212,7 @@ function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null;
   return (
     <>
       <DetailDrawer open={runId != null} onOpenChange={(o) => (o ? undefined : onClose())}
-        title={r.document_number} description={`${r.period_label || "—"} · ${r.lines.length} employees`} widthClass="sm:max-w-3xl"
+        title={r.document_number} description={`${r.period_label || "-"} · ${r.lines.length} employees`} widthClass="sm:max-w-3xl"
         footer={
           <>
             <RunPill status={r.run_status} />
@@ -243,7 +243,7 @@ function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null;
                 <tbody>
                   {r.lines.map((l) => (
                     <tr key={l.id}>
-                      <td className={tdCls}>{isStripped(l, "employee_name") ? <span className="text-gray-05">••••</span> : l.employee_name || "—"}</td>
+                      <td className={tdCls}>{isStripped(l, "employee_name") ? <span className="text-gray-05">••••</span> : l.employee_name || "-"}</td>
                       <td className={cn(tdCls, "text-right tabular-nums")}>{maskedMoney(l, "gross_amount", l.gross_amount, currency)}</td>
                       <td className={cn(tdCls, "text-right tabular-nums")}>{maskedMoney(l, "paye_amount", l.paye_amount, currency)}</td>
                       <td className={cn(tdCls, "text-right tabular-nums")}>{maskedMoney(l, "pension_amount", l.pension_amount, currency)}</td>
@@ -266,7 +266,7 @@ function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null;
         onOpenChange={setCancelOpen}
         title={`${isPosted ? "Void" : "Cancel"} ${r.document_number}?`}
         description={isPosted
-          ? "Reverses this run's accrual journal (a mirror entry backing out the salary expense and the PAYE, pension and net-wages payables) and cancels the run. Use this to undo a run posted in error — it can't be voided once net pay has been paid."
+          ? "Reverses this run's accrual journal (a mirror entry backing out the salary expense and the PAYE, pension and net-wages payables) and cancels the run. Use this to undo a run posted in error - it can't be voided once net pay has been paid."
           : "Discards this draft run. Nothing was posted, so no journal is affected."}
         confirmText={isPosted ? "Void run" : "Cancel run"}
         destructive
@@ -290,14 +290,14 @@ function PayDrawer({ run, entity, currency, onClose }: { run: PayrollRun; entity
   };
   return (
     <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
-      title="Pay net wages" description={`${run.document_number} · ${run.period_label || "—"}`} widthClass="sm:max-w-lg"
+      title="Pay net wages" description={`${run.document_number} · ${run.period_label || "-"}`} widthClass="sm:max-w-lg"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={onClose}>Cancel</Button>
         <Button disabled={isLoading || !payDate} onClick={submit} className="gap-1.5"><Banknote className="size-4" />{isLoading ? "Paying…" : `Pay ${formatMoney(run.net_total, currency)}`}</Button>
       </>}>
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
-          Disburses net pay ({formatMoney(run.net_total, currency)}) — Dr net-wages payable, Cr bank — clearing the liability raised when the run was posted.
+          Disburses net pay ({formatMoney(run.net_total, currency)}) - Dr net-wages payable, Cr bank - clearing the liability raised when the run was posted.
         </p>
         <PostingDateField
           label="Payment date" entity={entity} value={payDate} onChange={setPayDate}
@@ -412,7 +412,7 @@ function EmployeesTab({ entity, currency }: { entity: string; currency?: string 
   const cols: Column<EmployeeSalary>[] = [
     { header: "Employee", cell: (e) => <span className="font-medium text-gray-01">{e.name}</span> },
     { header: "Structure", cell: (e) => e.structure_name ? <span className={cn(PILL, "bg-blue-50 text-blue-700")}>{e.structure_name}</span> : <span className="font-mont text-[11px] text-gray-05">Flat</span> },
-    { header: "Cost center", cell: (e) => <span className="tabular-nums text-gray-05">{e.cost_center || "—"}</span> },
+    { header: "Cost center", cell: (e) => <span className="tabular-nums text-gray-05">{e.cost_center || "-"}</span> },
     { header: "Gross", align: "right", cell: (e) => maskedMoney(e, "gross_amount", e.gross_amount, currency) },
     { header: "PAYE", align: "right", cell: (e) => maskedMoney(e, "paye_amount", e.paye_amount, currency) },
     { header: "Pension", align: "right", cell: (e) => maskedMoney(e, "pension_amount", e.pension_amount, currency) },
@@ -509,7 +509,7 @@ function EmployeeDrawer({ open, salary, entity, currency, onClose }: { open: boo
               {structures.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </Select>
           </FormField>
-          <p className="mt-1 font-mont text-[11px] text-gray-05">{structure ? "PAYE, pension and net are derived from the structure applied to gross." : "Flat — enter PAYE and pension manually below."}</p>
+          <p className="mt-1 font-mont text-[11px] text-gray-05">{structure ? "PAYE, pension and net are derived from the structure applied to gross." : "Flat - enter PAYE and pension manually below."}</p>
         </div>
 
         {structure && derived ? (
@@ -577,7 +577,7 @@ function StructuresTab({ entity, currency }: { entity: string; currency?: string
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-xl font-mont text-xs text-gray-05">Reusable pay templates — split gross into tranches (Basic, Housing…) and set PAYE & pension as a % of gross or basic. Assign one to an employee and their figures are derived.</p>
+        <p className="max-w-xl font-mont text-xs text-gray-05">Reusable pay templates - split gross into tranches (Basic, Housing…) and set PAYE & pension as a % of gross or basic. Assign one to an employee and their figures are derived.</p>
         <Can permission={P.FIN_CREATE_SALARY}><Button onClick={() => setEditing("new")} className="gap-1.5"><Plus className="size-4" /> New structure</Button></Can>
       </div>
       <DataTable columns={cols} rows={rows} rowKey={(s) => s.id} loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(s) => setEditing(s)}
@@ -727,8 +727,8 @@ function PayslipsTab({ entity, currency }: { entity: string; currency?: string |
   }, [runs, searchInput]);
 
   const cols: Column<PayslipRow>[] = [
-    { header: "Employee", cell: ({ line }) => isStripped(line, "employee_name") ? <span className="text-gray-05">••••</span> : <span className="font-medium text-gray-01">{line.employee_name || "—"}</span> },
-    { header: "Period", cell: ({ run }) => run.period_label || "—" },
+    { header: "Employee", cell: ({ line }) => isStripped(line, "employee_name") ? <span className="text-gray-05">••••</span> : <span className="font-medium text-gray-01">{line.employee_name || "-"}</span> },
+    { header: "Period", cell: ({ run }) => run.period_label || "-" },
     { header: "Run no.", cell: ({ run }) => <span className="tabular-nums text-gray-05">{run.document_number}</span> },
     { header: "Pay date", cell: ({ run }) => <span className="tabular-nums text-gray-05">{fmtDate(run.pay_date)}</span> },
     { header: "Gross", align: "right", cell: ({ line }) => maskedMoney(line, "gross_amount", line.gross_amount, currency) },
@@ -746,7 +746,7 @@ function PayslipsTab({ entity, currency }: { entity: string; currency?: string |
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
           <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search employee" className="h-9 w-64 bg-white pl-8 font-mont" />
         </div>
-        <p className="font-mont text-[11px] text-gray-05">Every payslip across all runs — click a row for the breakdown. Figures need the sensitive payroll grant.</p>
+        <p className="font-mont text-[11px] text-gray-05">Every payslip across all runs - click a row for the breakdown. Figures need the sensitive payroll grant.</p>
       </div>
       <DataTable columns={cols} rows={rows} rowKey={({ run, line }) => `${run.id}-${line.id}`}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(r) => !isStripped(r.line, "net_amount") && setSelected(r)}
@@ -757,7 +757,7 @@ function PayslipsTab({ entity, currency }: { entity: string; currency?: string |
   );
 }
 
-// Shared earnings/deductions/net breakdown — itemised when a structure populated the
+// Shared earnings/deductions/net breakdown - itemised when a structure populated the
 // line's components, else the flat gross / PAYE / pension / net summary.
 function PayslipBreakdown({ line, currency }: { line: PayrollLine; currency?: string | null }) {
   const comps = line.components ?? [];
@@ -801,7 +801,7 @@ function PayslipDrawer({ row, currency, onClose }: { row: PayslipRow | null; cur
   const { run, line } = row;
   return (
     <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
-      title={line.employee_name || "Payslip"} description={`${run.period_label || "—"} · ${run.document_number} · paid ${fmtDate(run.pay_date)}`}
+      title={line.employee_name || "Payslip"} description={`${run.period_label || "-"} · ${run.document_number} · paid ${fmtDate(run.pay_date)}`}
       widthClass="sm:max-w-lg"
       footer={<>
         <Button variant="outline" onClick={onClose}>Close</Button>
@@ -836,7 +836,7 @@ function SchedButton({ run, kind, currency, label }: { run: PayrollRun; kind: "P
 
 function StatutoryTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [selected, setSelected] = useState<PayrollRun | null>(null);
-  // Roll-up of statutory liabilities across all posted runs — pull a wide page.
+  // Roll-up of statutory liabilities across all posted runs - pull a wide page.
   const { data, isLoading, isFetching, isError, refetch } = useGetPayrollRunsQuery({ entity, page_size: 100 });
   const runs = useMemo(() => toArray(data?.data).filter((r) => r.run_status === "POSTED" || r.run_status === "PAID"), [data]);
   const kpis = useMemo(() => ({
@@ -845,7 +845,7 @@ function StatutoryTab({ entity, currency }: { entity: string; currency?: string 
   }), [runs]);
 
   const cols: Column<PayrollRun>[] = [
-    { header: "Period", cell: (r) => r.period_label || "—" },
+    { header: "Period", cell: (r) => r.period_label || "-" },
     { header: "Run no.", cell: (r) => <span className="tabular-nums text-gray-05">{r.document_number}</span> },
     { header: "Pay date", cell: (r) => <span className="tabular-nums text-gray-05">{fmtDate(r.pay_date)}</span> },
     { header: "PAYE payable", align: "right", cell: (r) => <Money kobo={r.paye_total} currency={currency} align="right" /> },
@@ -861,7 +861,7 @@ function StatutoryTab({ entity, currency }: { entity: string; currency?: string 
         <Kpi label="Pension payable (all posted runs)" value={formatMoney(kpis.pension, currency)} hint="Remit to the PFA" />
         <Kpi label="Posted runs" value={String(runs.length)} />
       </div>
-      <p className="font-mont text-xs text-gray-05">Filing-ready PAYE & pension schedules per posted run — click a row for the per-employee breakdown and remittance status. The liabilities are settled under Tax Remittance.</p>
+      <p className="font-mont text-xs text-gray-05">Filing-ready PAYE & pension schedules per posted run - click a row for the per-employee breakdown and remittance status. The liabilities are settled under Tax Remittance.</p>
       <DataTable columns={cols} rows={runs} rowKey={(r) => r.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(r) => setSelected(r)}
         emptyTitle="No statutory returns yet" emptyMessage="Post a payroll run to raise PAYE and pension liabilities to file." />
@@ -873,10 +873,10 @@ function StatutoryTab({ entity, currency }: { entity: string; currency?: string 
 function StatutoryDrawer({ run, entity, currency, onClose }: { run: PayrollRun | null; entity: string; currency?: string | null; onClose: () => void }) {
   // Real outstanding balance of the run's PAYE / pension payable accounts (from the
   // trial balance). Honest: this is the entity-wide unremitted liability for that
-  // account — remittance isn't tracked per run, so we never fake a per-run "remitted".
+  // account - remittance isn't tracked per run, so we never fake a per-run "remitted".
   const { data: tb, isSuccess: tbReady } = useGetTrialBalanceQuery(run ? { entity } : skipToken);
   const outstanding = (accountId: number | null) => {
-    // Unknown (null) until the trial balance actually loads — otherwise a forbidden or
+    // Unknown (null) until the trial balance actually loads - otherwise a forbidden or
     // pending query would read as a misleading "Settled". An absent row in a loaded TB
     // means the liability netted to zero (genuinely settled).
     if (accountId == null || !tbReady) return null;
@@ -912,7 +912,7 @@ function StatutoryDrawer({ run, entity, currency, onClose }: { run: PayrollRun |
             <RemitRow label="PAYE payable" code={run.paye_payable_account} outstanding={payeOut} currency={currency} />
             <RemitRow label="Pension payable" code={run.pension_payable_account} outstanding={pensionOut} currency={currency} />
           </div>
-          <p className="border-t border-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">Outstanding is the current balance on the liability account (all runs, this entity) — remittance is tracked against the account, not per run. Settle it under Tax Remittance.</p>
+          <p className="border-t border-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">Outstanding is the current balance on the liability account (all runs, this entity) - remittance is tracked against the account, not per run. Settle it under Tax Remittance.</p>
         </div>
 
         <div>
@@ -925,7 +925,7 @@ function StatutoryDrawer({ run, entity, currency, onClose }: { run: PayrollRun |
               <tbody>
                 {run.lines.map((l) => (
                   <tr key={l.id}>
-                    <td className={tdCls}>{isStripped(l, "employee_name") ? <span className="text-gray-05">••••</span> : l.employee_name || "—"}</td>
+                    <td className={tdCls}>{isStripped(l, "employee_name") ? <span className="text-gray-05">••••</span> : l.employee_name || "-"}</td>
                     <td className={cn(tdCls, "text-right tabular-nums")}>{maskedMoney(l, "paye_amount", l.paye_amount, currency)}</td>
                     <td className={cn(tdCls, "text-right tabular-nums")}>{maskedMoney(l, "pension_amount", l.pension_amount, currency)}</td>
                   </tr>
@@ -950,7 +950,7 @@ function RemitRow({ label, code, outstanding, currency }: { label: string; code:
     <div className="flex items-center justify-between px-3 py-2.5 font-mont text-xs">
       <span className="text-black-01">{label}{code ? <span className="ml-1 text-[11px] text-gray-05">· {code}</span> : null}</span>
       {outstanding == null
-        ? <span className="text-gray-05">—</span>
+        ? <span className="text-gray-05">-</span>
         : settled
           ? <span className={cn(PILL, "bg-green-01/10 text-green-01")}>Settled</span>
           : <span className="inline-flex items-center gap-2"><span className="tabular-nums text-destructive">{formatMoney(outstanding, currency)}</span><span className={cn(PILL, "bg-amber-50 text-amber-700")}>Outstanding</span></span>}
@@ -963,8 +963,8 @@ function printSchedule(run: PayrollRun, kind: "PAYE" | "PENSION", currency?: str
   const field = kind === "PAYE" ? "paye_amount" : "pension_amount";
   const title = kind === "PAYE" ? "PAYE remittance schedule" : "Pension remittance schedule";
   const total = kind === "PAYE" ? run.paye_total : run.pension_total;
-  const rows = run.lines.map((l) => `<tr><td>${l.employee_name || "—"}</td><td class="r">${money(money2(l, field))}</td></tr>`).join("");
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${title} — ${run.document_number}</title>
+  const rows = run.lines.map((l) => `<tr><td>${l.employee_name || "-"}</td><td class="r">${money(money2(l, field))}</td></tr>`).join("");
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${title} - ${run.document_number}</title>
   <style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;padding:32px;max-width:560px;margin:auto}
   h1{font-size:18px;margin:0 0 2px}.sub{color:#666;font-size:12px;margin-bottom:20px}
   table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px 0;border-bottom:1px solid #eee;text-align:left}
@@ -976,7 +976,7 @@ function printSchedule(run: PayrollRun, kind: "PAYE" | "PENSION", currency?: str
     <tr class="tot"><td>Total ${kind} payable</td><td class="r">${money(total)}</td></tr>
   </tbody></table></body></html>`;
   const w = window.open("", "_blank", "width=600,height=760");
-  if (!w) { toast.error("Pop-up blocked — allow pop-ups to print."); return; }
+  if (!w) { toast.error("Pop-up blocked - allow pop-ups to print."); return; }
   w.document.write(html); w.document.close(); w.focus(); w.print();
 }
 // reads the (possibly FLS-stripped) numeric field off a line; schedules are only offered
@@ -1003,7 +1003,7 @@ function printPayslip(run: PayrollRun, line: PayrollLine, currency?: string | nu
        <tr><td>PAYE (income tax)</td><td class="r">− ${money(line.paye_amount)}</td></tr>
        <tr><td>Pension</td><td class="r">− ${money(line.pension_amount)}</td></tr>
        <tr class="net"><td>Net pay</td><td class="r">${money(line.net_amount)}</td></tr>`;
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Payslip — ${line.employee_name}</title>
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Payslip - ${line.employee_name}</title>
   <style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;padding:32px;max-width:520px;margin:auto}
   h1{font-size:18px;margin:0 0 2px}.sub{color:#666;font-size:12px;margin-bottom:20px}
   table{width:100%;border-collapse:collapse;font-size:13px}td{padding:7px 0;border-bottom:1px solid #eee}
@@ -1015,6 +1015,6 @@ function printPayslip(run: PayrollRun, line: PayrollLine, currency?: string | nu
   <div class="sub">${line.employee_name} · ${run.period_label || ""} · ${run.document_number} · paid ${fmtDate(run.pay_date)}</div>
   <table>${body}</table></body></html>`;
   const w = window.open("", "_blank", "width=560,height=720");
-  if (!w) { toast.error("Pop-up blocked — allow pop-ups to print."); return; }
+  if (!w) { toast.error("Pop-up blocked - allow pop-ups to print."); return; }
   w.document.write(html); w.document.close(); w.focus(); w.print();
 }

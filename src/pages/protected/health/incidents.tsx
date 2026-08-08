@@ -1,4 +1,4 @@
-// Incidents & Alerts — reliability stats, then Incidents / Alerts / Rules on
+// Incidents & Alerts - reliability stats, then Incidents / Alerts / Rules on
 // the house URL-driven tab pill, each list paginated server-side.
 
 import { useState } from "react";
@@ -56,8 +56,8 @@ export default function IncidentsPage() {
           status={(reliability.data?.data.active ?? 0) > 0 ? "warning" : "healthy"}
         />
         <HealthKpi label="Incidents · 30d" value={reliability.data?.data.incidents ?? 0} />
-        <HealthKpi label="Mean acknowledge" value={reliability.data?.data.mtta_min ?? "—"} unit="min" />
-        <HealthKpi label="Mean resolve" value={reliability.data?.data.mttr_min ?? "—"} unit="min" />
+        <HealthKpi label="Mean acknowledge" value={reliability.data?.data.mtta_min ?? "-"} unit="min" />
+        <HealthKpi label="Mean resolve" value={reliability.data?.data.mttr_min ?? "-"} unit="min" />
       </div>
 
       <Tabs
@@ -85,7 +85,7 @@ export default function IncidentsPage() {
             i.affected_tenant_count,
             new Date(i.started_at).toLocaleString(),
           ])}
-          emptyText="No incidents recorded — that's the good outcome."
+          emptyText="No incidents recorded - that's the good outcome."
           totalPage={incidents.data?.pagination?.totalPages}
           currentPage={incidents.data?.pagination?.currentPage}
           onPageChange={(p) => setIncidentPage(p as number)}

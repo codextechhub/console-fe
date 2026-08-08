@@ -1,4 +1,4 @@
-// <Money kobo={…} /> — renders an integer-kobo amount as currency. Tabular
+// <Money kobo={…} /> - renders an integer-kobo amount as currency. Tabular
 // numerals keep columns aligned; pass `align="right"` in tables (the house
 // convention for money columns).
 
@@ -9,7 +9,7 @@ interface MoneyProps {
   kobo: number | null | undefined;
   currency?: string | null;
   className?: string;
-  /** Right-align as a block — used inside table cells. */
+  /** Right-align as a block - used inside table cells. */
   align?: "left" | "right";
   /** Dim zero/empty amounts. */
   muted?: boolean;

@@ -37,20 +37,20 @@ const DOCUMENT_TYPES = [
 ] as const;
 
 function dateTime(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime())
-    ? "—"
+    ? "-"
     : new Intl.DateTimeFormat("en-GB", {
         day: "2-digit", month: "short", year: "numeric",
       }).format(parsed);
 }
 
 function age(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime())
-    ? "—"
+    ? "-"
     : formatDistanceToNowStrict(parsed, { addSuffix: false });
 }
 
@@ -186,7 +186,7 @@ function ApprovalDrawer({ id, entity, currency, onClose }: {
       if (action === "RETURNED") toast.success(`Revision requested for ${approval?.reference ?? "document"}.`);
       else if (action === "REJECTED") toast.success(`Rejected ${approval?.reference ?? "document"}.`);
       else if (response.data.status === "APPROVED") toast.success(`${approval?.reference ?? "Document"} fully approved.`);
-      else if (response.data.current_stage_label) toast.success(`Approved — moved to ${response.data.current_stage_label}.`);
+      else if (response.data.current_stage_label) toast.success(`Approved - moved to ${response.data.current_stage_label}.`);
       else toast.success("Approval recorded; this stage is still awaiting votes.");
       setConfirmReject(false);
       onClose();
@@ -278,7 +278,7 @@ function ApprovalOverview({ approval, activeStage, currency, comment, setComment
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return <div className="border-b border-gray-03 px-4 py-3 last:border-b-0 sm:border-r sm:[&:nth-child(even)]:border-r-0">
     <dt className="font-mont text-[11px] text-gray-05">{label}</dt>
-    <dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "—"}</dd>
+    <dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "-"}</dd>
   </div>;
 }
 

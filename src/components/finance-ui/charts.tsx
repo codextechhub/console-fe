@@ -1,7 +1,7 @@
 // Lightweight SVG charts in the app's theme (no chart lib). Ported in spirit
 // from the Crestfield design's BarChart/Donut/StatStrip, restyled to our
 // palette/typography. Used on dashboards for real data (aging buckets, income
-// vs expense, spend) — not fabricated trend series.
+// vs expense, spend) - not fabricated trend series.
 
 import { useState } from "react";
 
@@ -132,7 +132,7 @@ export function Donut({
   );
 }
 
-/** A compact label/value/sub strip — for summary rows above a table. */
+/** A compact label/value/sub strip - for summary rows above a table. */
 export function StatStrip({ items }: { items: { label: string; value: React.ReactNode; sub?: string }[] }) {
   return (
     <div className="flex flex-wrap divide-x divide-gray-03 rounded-md border border-gray-03 bg-white">
@@ -201,7 +201,7 @@ export function BudgetBar({
     <div>
       <div className="flex items-baseline justify-between font-mont">
         <span className="text-sm font-medium text-gray-01">{label}</span>
-        <span className="text-xs text-gray-05">{pct == null ? "—" : `${pct}% of plan`}</span>
+        <span className="text-xs text-gray-05">{pct == null ? "-" : `${pct}% of plan`}</span>
       </div>
       <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-gray-03/50">
         <div className="h-full rounded-full" style={{ width: `${filled}%`, background: color }} />
@@ -216,7 +216,7 @@ export function BudgetBar({
 
 export interface AgingDatum { key: string; label: string; pct: number; amount: React.ReactNode; color: string; }
 
-/** Segmented stacked bar + legend rows — AR/AP aging. */
+/** Segmented stacked bar + legend rows - AR/AP aging. */
 export function AgingStack({ buckets }: { buckets: AgingDatum[] }) {
   const total = buckets.reduce((s, b) => s + b.pct, 0) || 100;
   return (

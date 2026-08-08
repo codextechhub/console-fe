@@ -1,11 +1,11 @@
-// Staff profile — brief for ordinary colleagues, full for authorised HR/admin
+// Staff profile - brief for ordinary colleagues, full for authorised HR/admin
 // viewers. Reached two ways:
-//   /organogram/staff/:id/view            — by profile id (org chart drawer)
-//   /organogram/staff/by-user/:userId/view — by USER id (Team Management's
+//   /organogram/staff/:id/view            - by profile id (org chart drawer)
+//   /organogram/staff/by-user/:userId/view - by USER id (Team Management's
 //                                            "View Details" knows users only)
 // Payroll uses real FLS: bank fields are absent unless the caller holds
 // platform.staff_payroll.view (or is owner). The only account action here is
-// Change Email (beside the email address) — everything else lives in Team
+// Change Email (beside the email address) - everything else lives in Team
 // Management's row actions.
 
 import { useState } from "react";
@@ -35,7 +35,7 @@ function Row({ label, value }: { label: string; value?: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</span>
-      <span className="text-sm text-black-01">{value || "—"}</span>
+      <span className="text-sm text-black-01">{value || "-"}</span>
     </div>
   );
 }
@@ -67,7 +67,7 @@ function Payroll({ profile }: { profile: StaffProfile }) {
       ) : (
         <div className="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-xs text-gray-01 ring-1 ring-slate-200">
           <Lock className="mt-0.5 size-3.5 shrink-0 text-slate-400" />
-          <span className="flex items-center gap-1.5"><ShieldAlert className="size-3.5 text-amber-500" /> Restricted — requires <span className="font-mono font-semibold">platform.staff_payroll.view</span>.</span>
+          <span className="flex items-center gap-1.5"><ShieldAlert className="size-3.5 text-amber-500" /> Restricted - requires <span className="font-mono font-semibold">platform.staff_payroll.view</span>.</span>
         </div>
       )}
     </section>
@@ -83,7 +83,7 @@ function BriefProfile({ profile }: { profile: StaffProfileBrief }) {
       <div className="grid gap-5 lg:grid-cols-2">
         <Card title="Work profile">
           <Row label="Employee ID" value={<span className="font-mono">{profile.employee_id}</span>} />
-          <Row label="Seat" value={profile.position ? `${profile.position.title} · ${profile.position.code}` : "—"} />
+          <Row label="Seat" value={profile.position ? `${profile.position.title} · ${profile.position.code}` : "-"} />
           <Row label="Department" value={profile.department?.name} />
           <Row label="Division" value={profile.division?.name} />
           {profile.org_node?.kind === "TEAM" && <Row label="Team" value={profile.org_node.name} />}
@@ -124,7 +124,7 @@ export default function StaffDetail() {
   );
   const history = Array.isArray(assignmentsRes?.data) ? assignmentsRes!.data : [];
 
-  // Change email — the one account action kept on this page.
+  // Change email - the one account action kept on this page.
   const [emailModal, setEmailModal] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [changeEmail, { isLoading: changingEmail }] = useChangeUserEmailMutation();
@@ -152,7 +152,7 @@ export default function StaffDetail() {
               <OrgAvatar user={profile.user} size={60} status={profile.employment_status} />
               <div className="min-w-0 flex-1">
                 <div className="text-lg font-bold text-black-01">{profile.user.full_name}</div>
-                <div className="text-sm text-gray-01">{profile.job_title || profile.position?.title || "—"}{profile.department?.name ? ` · ${profile.department.name}` : ""}</div>
+                <div className="text-sm text-gray-01">{profile.job_title || profile.position?.title || "-"}{profile.department?.name ? ` · ${profile.department.name}` : ""}</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <StatusPill status={profile.employment_status} />
                   <EmpBadge type={profile.employment_type} />
@@ -174,7 +174,7 @@ export default function StaffDetail() {
             <div className="grid gap-5 lg:grid-cols-2">
               <Card title="Employment">
                 <Row label="Employee ID" value={<span className="font-mono">{profile.employee_id}</span>} />
-                <Row label="Seat" value={profile.position ? `${profile.position.title} · ${profile.position.code}` : "—"} />
+                <Row label="Seat" value={profile.position ? `${profile.position.title} · ${profile.position.code}` : "-"} />
                 <Row label="Department" value={profile.department?.name} />
                 <Row label="Line manager" value={profile.current_line_manager?.full_name} />
                 <Row label="Date joined" value={fmtDate(profile.date_joined)} />

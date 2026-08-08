@@ -1,6 +1,6 @@
 // The left sidebar for a dedicated console (Finance / Procurement). Mirrors the
 // global AppSidebar's chrome but renders the console's own menu via the shared
-// collapsible NavMain — expand-only parents + leaf links — with a "Back to main
+// collapsible NavMain - expand-only parents + leaf links - with a "Back to main
 // app" entry on top. Replaces the global nav while you're inside the console.
 
 import { useLayoutEffect, useRef } from "react";
@@ -21,7 +21,7 @@ import type { ConsoleNavGroup, ConsoleNavItem } from "./console-nav";
 import { revealActiveSidebarItem } from "@/components/sidebar-navigation";
 
 // Each console page mounts its own shell, so the sidebar remounts on every
-// in-console navigation — which would reset its scroll to the top. Remember the
+// in-console navigation - which would reset its scroll to the top. Remember the
 // scroll offset per console (module scope survives the remount) and restore it
 // before paint so a click on a item far down the menu keeps the menu in place.
 const scrollByConsole = new Map<string, number>();
@@ -45,7 +45,7 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
 
   // Find the single best-matching leaf URL (longest URL whose path is a prefix
   // of the current location). This prevents a shorter sibling URL from also
-  // lighting up when a more-specific sibling is the real active item —
+  // lighting up when a more-specific sibling is the real active item -
   // e.g. /finance/collections must not be active when at /finance/collections/virtual-accounts.
   const matches = (url: string) => location === url || location.startsWith(url + "/");
   const activeUrl = (() => {

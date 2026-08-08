@@ -1,4 +1,4 @@
-// Spend Analytics (§6) — spend by category, vendor and over time, for a window.
+// Spend Analytics (§6) - spend by category, vendor and over time, for a window.
 import { useMemo, useState } from "react";
 
 import { Banknote, FileText, Receipt, Wallet } from "lucide-react";

@@ -35,7 +35,7 @@ function dateRangeToMs(range: DateRange): number {
 }
 
 function formatCountdown(iso: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const ms = new Date(iso).getTime() - Date.now();
   if (ms <= 0) return "Expired";
   const m = Math.floor(ms / 60_000);
@@ -70,7 +70,7 @@ function CountdownCell({ iso }: { iso: string | null }) {
 
 function FilterSummary({ payload }: { payload: Record<string, unknown> | null }) {
   if (!payload || Object.keys(payload).length === 0) {
-    return <p className="text-xs text-gray-01 italic">No filters applied — full export.</p>;
+    return <p className="text-xs text-gray-01 italic">No filters applied - full export.</p>;
   }
   return (
     <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5">
@@ -187,7 +187,7 @@ function ExportDetailDrawer({
                 <div>
                   <p className="text-[10px] text-gray-01">Rows exported</p>
                   <p className="text-xs font-medium mt-0.5">
-                    {job.row_count && job.row_count > 0 ? job.row_count.toLocaleString() : "—"}
+                    {job.row_count && job.row_count > 0 ? job.row_count.toLocaleString() : "-"}
                   </p>
                 </div>
                 {job.file_name && (
@@ -535,7 +535,7 @@ function ExportRow({
       {/* Requested */}
       <td className="px-3 py-3 text-xs whitespace-nowrap">{formatRelativeDate(j.requested_at)}</td>
 
-      {/* Requested by — avatar + name */}
+      {/* Requested by - avatar + name */}
       <td className="px-3 py-3">
         <div className="flex items-center gap-2">
           <ActorCell
@@ -565,26 +565,26 @@ function ExportRow({
       {/* Rows */}
       <td className="px-3 py-3">
         <span className="text-xs font-medium">
-          {isPendingOrRunning || !j.row_count ? "—" : j.row_count.toLocaleString()}
+          {isPendingOrRunning || !j.row_count ? "-" : j.row_count.toLocaleString()}
         </span>
       </td>
 
       {/* File */}
       <td className="px-3 py-3">
-        <span className="font-mono text-xs">{j.file_name || "—"}</span>
+        <span className="font-mono text-xs">{j.file_name || "-"}</span>
       </td>
 
       {/* Completed */}
       <td className="px-3 py-3 text-xs whitespace-nowrap">
-        {j.completed_at ? formatRelativeDate(j.completed_at) : "—"}
+        {j.completed_at ? formatRelativeDate(j.completed_at) : "-"}
       </td>
 
-      {/* Expires — countdown only for COMPLETED */}
+      {/* Expires - countdown only for COMPLETED */}
       <td className="px-3 py-3">
         {isCompleted && j.expires_at ? (
           <CountdownCell iso={j.expires_at} />
         ) : (
-          <span className="text-xs text-gray-01">—</span>
+          <span className="text-xs text-gray-01">-</span>
         )}
       </td>
 

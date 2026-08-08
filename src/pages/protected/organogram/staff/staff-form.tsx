@@ -27,7 +27,7 @@ export default function StaffForm() {
 
   const { data: profileRes, isLoading: loadingProfile } = useGetStaffProfileQuery(id as string, { skip: !isEdit });
   const { data: positionsRes } = useGetPositionsQuery({ page_size: 100 });
-  // CX staff users — only needed when creating a new profile.
+  // CX staff users - only needed when creating a new profile.
   const { data: usersRes } = useGetTeamMembersQuery({ page_size: 100, user_type: "CX_STAFF" }, { skip: isEdit });
 
   const [createProfile, { isLoading: creating }] = useCreateStaffProfileMutation();
@@ -60,7 +60,7 @@ export default function StaffForm() {
     [usersRes],
   );
 
-  // Directory page retired — return to wherever the admin came from
+  // Directory page retired - return to wherever the admin came from
   // (staff profile, team management, …).
   const back = () => navigate(-1);
 

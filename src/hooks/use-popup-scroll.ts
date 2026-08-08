@@ -7,7 +7,7 @@ import * as React from "react";
  * `preventDefault()`s every wheel and touchmove whose target sits outside the
  * dialog content (the lock's only "shard"). Radix's own popups (Select,
  * Popover, DropdownMenu) each mount their own RemoveScroll around their popup,
- * so they keep scrolling. base-ui's Combobox does not — its list portals to
+ * so they keep scrolling. base-ui's Combobox does not - its list portals to
  * <body>, lands outside every lock, and silently stops scrolling by mouse wheel
  * or finger the moment it is opened from inside a modal. Only the arrow keys
  * still move through the options.

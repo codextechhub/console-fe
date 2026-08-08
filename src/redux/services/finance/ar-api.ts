@@ -136,7 +136,7 @@ export const arApi = baseApi.injectEndpoints({
       PaginatedEnvelope<RefundAvailabilityCustomer>,
       // `as_of` is the refund's accounting date. Credit that only arrives later
       // cannot fund a refund dated before it, so the picker must be asked for the
-      // position on that date — otherwise it offers credit the post will refuse.
+      // position on that date - otherwise it offers credit the post will refuse.
       { entity: string; page?: number; page_size?: number; search?: string; as_of?: string }
     >({
       query: (params) => ({ url: `/finance/refunds/availability/${qs(params)}`, method: "GET" }),
@@ -317,7 +317,7 @@ export const arApi = baseApi.injectEndpoints({
       query: ({ entity, id }) => ({ url: `/finance/payments/${id}/${qs({ entity })}`, method: "GET" }),
       providesTags: ["FinancePayments"],
     }),
-    // An allocation targets an invoice ({invoice}) or a posted DEBIT note ({debit_note}) —
+    // An allocation targets an invoice ({invoice}) or a posted DEBIT note ({debit_note}) -
     // both debit AR and are settled by a receipt.
     allocatePayment: builder.mutation<ApiEnvelope<Payment>, { entity: string; id: number; allocations?: ({ invoice: number; amount: number } | { debit_note: number; amount: number })[]; auto_allocate?: boolean; allocation_strategy?: string }>({
       query: ({ entity, id, ...body }) => ({ url: `/finance/payments/${id}/allocate/${qs({ entity })}`, method: "POST", body }),

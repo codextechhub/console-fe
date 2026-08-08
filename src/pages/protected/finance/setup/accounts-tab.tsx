@@ -70,12 +70,12 @@ function AccountRow({ node, depth, expanded, toggle, currency, onSelect }: {
             {node.account_type.toLowerCase()}
           </span>
         </td>
-        <td className={cn(cell, "text-gray-05")}>{node.subtype || "—"}</td>
+        <td className={cn(cell, "text-gray-05")}>{node.subtype || "-"}</td>
         <td className={cn(cell, "text-gray-05")}>{node.normal_balance === "DEBIT" ? "Dr" : "Cr"}</td>
         <td className={cn(cell, "text-gray-05")}>{currency ?? "NGN"}</td>
         <td className={cn(cell, "text-right")}><Money kobo={node.rolled} currency={currency} align="right" /></td>
         <td className={cn(cell, "text-center")}>
-          {node.is_active ? <Check className="mx-auto size-4 text-green-01" /> : <span className="text-gray-05">—</span>}
+          {node.is_active ? <Check className="mx-auto size-4 text-green-01" /> : <span className="text-gray-05">-</span>}
         </td>
       </tr>
       {hasChildren && open && node.children.map((c) => (
@@ -200,7 +200,7 @@ function CreateAccountDrawer({ open, onClose, entity, parents }: {
   const fieldsEnabled = isValidAccountCode(code, existingCodes);
   const canSubmit = fieldsEnabled && name.trim() !== "" && inferredType !== null;
   const parentOptions = accountsInCodeLine(parents, code)
-    .map((account) => ({ value: String(account.id), label: `${account.code} — ${account.name}` }));
+    .map((account) => ({ value: String(account.id), label: `${account.code} - ${account.name}` }));
 
   const reset = () => { setCode(""); setName(""); setSubtype(""); setParent(""); setPostable(true); setContra(false); };
   const close = () => { reset(); onClose(); };
@@ -425,10 +425,10 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
                       <tr key={`${a.journal_no}-${i}`}>
                         <td className={cn(cell, "text-gray-05")}>{a.date}</td>
                         <td className={cn(cell, "font-semibold")}>{a.journal_no}</td>
-                        <td className={cn(cell, "max-w-xs truncate")}>{a.description || "—"}</td>
-                        <td className={cn(cell, "text-gray-05")}>{a.cost_center || "—"}</td>
-                        <td className={cn(cell, "text-right tabular-nums")}>{a.debit.kobo ? <Money kobo={a.debit.kobo} currency={currency} align="right" /> : "—"}</td>
-                        <td className={cn(cell, "text-right tabular-nums")}>{a.credit.kobo ? <Money kobo={a.credit.kobo} currency={currency} align="right" /> : "—"}</td>
+                        <td className={cn(cell, "max-w-xs truncate")}>{a.description || "-"}</td>
+                        <td className={cn(cell, "text-gray-05")}>{a.cost_center || "-"}</td>
+                        <td className={cn(cell, "text-right tabular-nums")}>{a.debit.kobo ? <Money kobo={a.debit.kobo} currency={currency} align="right" /> : "-"}</td>
+                        <td className={cn(cell, "text-right tabular-nums")}>{a.credit.kobo ? <Money kobo={a.credit.kobo} currency={currency} align="right" /> : "-"}</td>
                         <td className={cn(cell, "text-right font-medium tabular-nums")}><Money kobo={a.running_balance.kobo} currency={currency} align="right" /></td>
                       </tr>
                     ))}
@@ -586,8 +586,8 @@ function GroupLedger({ initialView, entity, account, accounts, summary, currency
         </span>
       ),
     },
-    { header: "Debit", align: "right", cell: (line) => line.debit.kobo ? <Money kobo={line.debit.kobo} currency={currency} align="right" /> : "—" },
-    { header: "Credit", align: "right", cell: (line) => line.credit.kobo ? <Money kobo={line.credit.kobo} currency={currency} align="right" /> : "—" },
+    { header: "Debit", align: "right", cell: (line) => line.debit.kobo ? <Money kobo={line.debit.kobo} currency={currency} align="right" /> : "-" },
+    { header: "Credit", align: "right", cell: (line) => line.credit.kobo ? <Money kobo={line.credit.kobo} currency={currency} align="right" /> : "-" },
   ];
 
   const resetActivityFilters = () => {
@@ -650,7 +650,7 @@ function GroupLedger({ initialView, entity, account, accounts, summary, currency
             <FormField label="Posting account">
               <select value={accountFilter} onChange={(event) => { setAccountFilter(event.target.value); setActivityPage(1); }} className={cn(selectCls, "w-full")}>
                 <option value="">All posting accounts</option>
-                {postingAccounts.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.code} — {candidate.name}</option>)}
+                {postingAccounts.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.code} - {candidate.name}</option>)}
               </select>
             </FormField>
             <FormField label="From">
@@ -693,8 +693,8 @@ function GroupLedger({ initialView, entity, account, accounts, summary, currency
                   <p className="text-xs text-gray-05">{line.description || "No description"}{line.cost_center ? ` · ${line.cost_center}` : ""}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3 border-t border-gray-03 pt-2">
-                  <div><p className="text-[10px] uppercase tracking-wide text-gray-05">Debit</p><p className="text-sm font-semibold">{line.debit.kobo ? <Money kobo={line.debit.kobo} currency={currency} /> : "—"}</p></div>
-                  <div className="text-right"><p className="text-[10px] uppercase tracking-wide text-gray-05">Credit</p><p className="text-sm font-semibold">{line.credit.kobo ? <Money kobo={line.credit.kobo} currency={currency} /> : "—"}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-wide text-gray-05">Debit</p><p className="text-sm font-semibold">{line.debit.kobo ? <Money kobo={line.debit.kobo} currency={currency} /> : "-"}</p></div>
+                  <div className="text-right"><p className="text-[10px] uppercase tracking-wide text-gray-05">Credit</p><p className="text-sm font-semibold">{line.credit.kobo ? <Money kobo={line.credit.kobo} currency={currency} /> : "-"}</p></div>
                 </div>
               </div>
             )}

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
  * Live password-policy checklist shown on every set/change-password screen.
  * Each rule ticks green as the typed password satisfies it. The rules come from
  * the shared policy (src/lib/password-policy.ts), which mirrors what the backend
- * enforces — so this is guidance, not a second, divergent policy.
+ * enforces - so this is guidance, not a second, divergent policy.
  */
 export function PasswordRequirements({
   password,

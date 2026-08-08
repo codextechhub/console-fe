@@ -140,7 +140,7 @@ export default function ImportBatchesList() {
     if (datasetFilter !== "all") {
       list = list.filter((b) => {
         // dataset_type isn't in list serializer; fall back via template_code prefix or skip.
-        // Backend list serializer doesn't include dataset_type — so this client filter is a no-op
+        // Backend list serializer doesn't include dataset_type - so this client filter is a no-op
         // unless template_code carries the dataset hint. Keep filter for future-proofing.
         return b.template_code?.toLowerCase().includes(datasetFilter) ?? true;
       });
@@ -188,7 +188,7 @@ export default function ImportBatchesList() {
     file: (
       <div className="min-w-0">
         <p className="font-medium text-sm text-black-01 truncate max-w-56" title={batch.original_filename}>
-          {batch.original_filename || "—"}
+          {batch.original_filename || "-"}
         </p>
         <p className="text-[10px] text-gray-01 mt-0.5 font-mono uppercase">
           {batch.file_format} · {formatBytes(batch.file_size_bytes)}
@@ -197,13 +197,13 @@ export default function ImportBatchesList() {
     ),
     dataset: (
       <Badge variant="inactive" className="text-[10px] capitalize">
-        {batch.template_code ?? "—"}
+        {batch.template_code ?? "-"}
       </Badge>
     ),
     template: (
       <div className="min-w-0 max-w-44">
         <p className="text-xs text-black-01 truncate" title={batch.template_name ?? ""}>
-          {batch.template_name ?? "—"}
+          {batch.template_name ?? "-"}
         </p>
       </div>
     ),
@@ -235,7 +235,7 @@ export default function ImportBatchesList() {
           <Badge variant="suspended" className="text-[10px]">Critical</Badge>
         )}
         {batch.error_count === 0 && batch.warning_count === 0 && !batch.has_critical_errors && (
-          <span className="text-xs text-gray-400">—</span>
+          <span className="text-xs text-gray-400">-</span>
         )}
       </div>
     ),

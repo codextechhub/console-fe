@@ -1,7 +1,7 @@
-// <StatusPill status="POSTED" /> — maps the backend's status vocabularies
+// <StatusPill status="POSTED" /> - maps the backend's status vocabularies
 // (DocumentStatus, InvoicePaymentStatus, PeriodStatus, payment/collection
 // states, etc.) onto the app's existing Badge variants. Unknown statuses still
-// render, humanised, with a neutral variant — never a crash.
+// render, humanised, with a neutral variant - never a crash.
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -80,7 +80,7 @@ function humanise(status: string): string {
 
 // The Badge variant one status token renders as. Exported so a surface that
 // needs extra treatment (a glyph, a pinging dot) can add it WITHOUT forking the
-// map — there is one status→colour truth in this app and this is it.
+// map - there is one status→colour truth in this app and this is it.
 export function statusVariant(status: string): BadgeVariant {
   return VARIANT_BY_STATUS[status.toUpperCase()] ?? "inactive";
 }
@@ -92,7 +92,7 @@ export function statusLabel(status: string): string {
 }
 
 export function StatusPill({ status, className }: { status?: string | null; className?: string }) {
-  if (!status) return <span className="text-gray-05">—</span>;
+  if (!status) return <span className="text-gray-05">-</span>;
   const variant = statusVariant(status);
   return (
     <Badge variant={variant} className={cn("font-mont", className)}>

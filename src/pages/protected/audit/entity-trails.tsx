@@ -42,8 +42,8 @@ export default function EntityTrailsList() {
     entity: <EntityCell label={t.entity_label} type={t.entity_type} />,
     id: <span className="font-mono text-xs break-all text-gray-01">{t.entity_id}</span>,
     events: <span className="font-semibold">{t.event_count}</span>,
-    first: t.first_event_at ? formatRelativeDate(t.first_event_at) : "—",
-    last: t.last_event_at ? formatRelativeDate(t.last_event_at) : "—",
+    first: t.first_event_at ? formatRelativeDate(t.first_event_at) : "-",
+    last: t.last_event_at ? formatRelativeDate(t.last_event_at) : "-",
     _type: t.entity_type,
     _id: t.entity_id,
   }));

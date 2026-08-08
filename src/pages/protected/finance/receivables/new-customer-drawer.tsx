@@ -1,4 +1,4 @@
-// New customer / payer — a right-side drawer (prototype style). The receivable
+// New customer / payer - a right-side drawer (prototype style). The receivable
 // control account uses the app's type-to-search AccountPicker; opening balance is
 // entered in naira and sent as integer kobo. Defaults the AR control to 1200.
 import { useState } from "react";

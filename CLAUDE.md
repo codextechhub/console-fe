@@ -1,16 +1,16 @@
-# CLAUDE.md — console-fe
+# CLAUDE.md - console-fe
 
 ## Pre-ship review (`ship-check`)
 
 When I say **`ship-check`** (or "run the ship-check") on a change, answer these
-four questions about the code you just wrote — honestly and specifically, not as
+four questions about the code you just wrote - honestly and specifically, not as
 a rubber stamp. Point at real files/lines, name concrete risks, and if the answer
 to 1 or 2 is "no", say so and propose the fix. Don't claim "secure/efficient"
 without naming *what* makes it so.
 
 1. **Did you build this in the most secure way?**
    - Authz on every new endpoint/screen (RBAC key gates the *backend* view, not
-     just the FE nav). Entity/tenant scoping — can a user read/write another
+     just the FE nav). Entity/tenant scoping - can a user read/write another
      tenant's rows by changing an id or `?entity=`?
    - What does the serializer/response expose? Flag raw `JSONField`/metadata,
      PII, secrets, internal ids that didn't need to leave the server.
@@ -29,11 +29,11 @@ without naming *what* makes it so.
    - List the blast radius explicitly; "none" needs justifying.
 
 4. **What tests do we need before we ship it?**
-   - Backend: the security-critical cases first — permission-denied (403),
+   - Backend: the security-critical cases first - permission-denied (403),
      cross-tenant isolation, then the happy path + each filter/edge.
    - Frontend: empty `{}` / populated / error / forbidden render states; any new
      mutation flow. State whether the screen was actually driven with **real
-     data** (`/verify-design`) or only type-checked — empty-state screenshots do
+     data** (`/verify-design`) or only type-checked - empty-state screenshots do
      NOT prove populated rendering.
 
 Finish with a one-line **verdict**: ship / fix-first, and the single most
@@ -41,28 +41,28 @@ important thing to do before shipping.
 
 ## Wrapping up: report in plain words
 
-When you finish a task — a build, an investigation, a document, a round of
-decisions — close with a plain-language breakdown rather than a wall of prose.
+When you finish a task - a build, an investigation, a document, a round of
+decisions - close with a plain-language breakdown rather than a wall of prose.
 Short numbered lines, one point each, ordinary words. Assume I am reading it tired.
 
-Use **only** the sections that actually apply, and **skip the ones that don't** —
+Use **only** the sections that actually apply, and **skip the ones that don't** -
 an empty heading is worse than no heading, and never pad a section to fill it out.
 
-- **What you now have** — the finished things, one line each. Only if something was
+- **What you now have** - the finished things, one line each. Only if something was
   produced.
-- **What you decided** — decisions taken and locked, one line each. Only if
+- **What you decided** - decisions taken and locked, one line each. Only if
   decisions were actually made.
-- **What we found wrong in the code** — real defects and gaps, grouped under short
-  themes once there are more than about four. **Only if there are findings** — if
+- **What we found wrong in the code** - real defects and gaps, grouped under short
+  themes once there are more than about four. **Only if there are findings** - if
   nothing is wrong, leave this out entirely rather than writing "nothing found".
-- **Where to go next** — the order of the next steps, and which of them are
+- **Where to go next** - the order of the next steps, and which of them are
   unblocked right now.
 
 How to write it:
 
 - Plain words beat precise jargon. "The page breaks on a phone" lands; "flex
   container overflows at the `md` breakpoint" does not.
-- Size things honestly in both directions — say when something feared turns out to
+- Size things honestly in both directions - say when something feared turns out to
   be a one-line fix, and say when something small turns out to be load-bearing.
 - Put the worst finding where it cannot be missed, even if that breaks the order.
 - Keep file/line references out of the breakdown; they belong in `todo.md` and in
@@ -71,19 +71,19 @@ How to write it:
 
 ## Verifying screens
 After building or changing any screen, run `/verify-design` (project skill) to
-drive it in the real running app and **look at the screenshots** — build-green ≠
+drive it in the real running app and **look at the screenshots** - build-green ≠
 works. It scrubs its own test-login rows afterward.
 
-## Responsive views — every screen must work on phone AND desktop
+## Responsive views - every screen must work on phone AND desktop
 
 Every screen you build or change must render well at desktop **and** small
-widths — a user switching from PC to phone must never get a broken view.
+widths - a user switching from PC to phone must never get a broken view.
 Horizontal page overflow is a bug, full stop.
 
 Build to the house conventions (full list: `docs/FINANCE_BUILD_NOTES.md`
-§Responsive — they apply app-wide, not just finance):
+§Responsive - they apply app-wide, not just finance):
 - Never remove `grid grid-cols-1 min-w-0` from DashboardLayout's children
-  wrapper — it stops nowrap tables stretching pages past the viewport.
+  wrapper - it stops nowrap tables stretching pages past the viewport.
 - Lists: `DataTable`/`CustomTable` already render phone cards below `md`;
   dense report tables opt out per-table with `mobile="scroll"`.
 - Toolbars/action rows get `flex-wrap`; tab strips `max-w-full
@@ -100,12 +100,12 @@ the overflow probe:
 It drives each route logged-in at 390px (phone) and 820px (tablet), screenshots
 both, and reports page-level horizontal overflow with the offending elements
 (`_net_probe.mjs` does the same for failing network calls). **Look at the phone
-screenshots** in `/tmp/verify-design/shots-responsive/` — zero overflow with a
+screenshots** in `/tmp/verify-design/shots-responsive/` - zero overflow with a
 crushed side-by-side layout is still a fail. Desktop remains the design source
-of truth; phone adapts (stack, wrap, cards) — never hide or truncate data away.
+of truth; phone adapts (stack, wrap, cards) - never hide or truncate data away.
 
-**Depth policy — phones are view + simple actions, not full parity.** Phone
-users browse, read details, approve, and fill simple forms — those flows must
+**Depth policy - phones are view + simple actions, not full parity.** Phone
+users browse, read details, approve, and fill simple forms - those flows must
 be genuinely good. Complex multi-line creation/editing (journal entry, invoice
 lines, receipt allocation, bulk editors) stays desktop-first: on a phone it
 must be *usable* (no overflow, nothing broken or unreachable), but don't spend
@@ -115,10 +115,10 @@ desktop experience to make it fit.
 ## Fixing problems: root cause, not symptom
 
 When I ask you to fix a problem, treat the reported issue as one *instance* of
-a potentially wider defect — fix it holistically:
+a potentially wider defect - fix it holistically:
 
-1. **Trace it to its source.** Ask why the bug exists — a wrong assumption, a
-   missing invariant, a fragile pattern — not just where it surfaced.
+1. **Trace it to its source.** Ask why the bug exists - a wrong assumption, a
+   missing invariant, a fragile pattern - not just where it surfaced.
 2. **Fix the class, not the case.** If the same root cause can bite elsewhere
    (other screens, endpoints, callers of the same helper), fix it at the choke
    point they all share, or sweep the other occurrences in the same change.
@@ -126,6 +126,12 @@ a potentially wider defect — fix it holistically:
    where else it applied, so the fix is reviewable as a class-fix, not a patch.
 
 A fix that only silences the reported symptom while the source remains is not
-done — that includes suppressing errors, special-casing one caller, or adding
+done - that includes suppressing errors, special-casing one caller, or adding
 a guard where the real problem is upstream. The goal is that future problems
 from the same source never happen.
+
+## Writing punctuation
+
+Do not use em dashes (Unicode U+2014) anywhere in source code, comments,
+documentation, tests, or user-facing copy. Use a comma, colon, parentheses, or
+an ordinary hyphen (`-`), whichever reads most naturally.

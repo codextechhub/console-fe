@@ -9,7 +9,7 @@
 //     submits one line under the hood;
 //   • a debit note increases the receivable and cannot be allocated, so
 //     "Apply to balance" and the auto-allocate toggle show only for credit notes;
-//   • "Issue note" creates then posts — the auto-allocate toggle chooses whether
+//   • "Issue note" creates then posts - the auto-allocate toggle chooses whether
 //     it lands "Issued" (auto_allocate:false) or is applied oldest-first ("Applied").
 import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
@@ -72,7 +72,7 @@ function TypeChip({ kind }: { kind: string }) {
 
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
-  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
+  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "-"}</span>;
 }
 
 
@@ -83,11 +83,11 @@ function noteRecap(n: CreditNote): { dr: RecapRow[]; cr: RecapRow[] } {
   const debit = n.kind === "DEBIT";
   const lines = n.lines.length
     ? n.lines
-    : [{ revenue_account: "—", net_amount: n.total, tax_amount: 0, cost_center: null } as CreditNote["lines"][number]];
+    : [{ revenue_account: "-", net_amount: n.total, tax_amount: 0, cost_center: null } as CreditNote["lines"][number]];
   const rev: RecapRow[] = [];
   for (const l of lines) {
     const base = debit ? "Revenue" : "Revenue / returns";
-    rev.push({ code: l.revenue_account || "—", name: l.cost_center ? `${base} · ${l.cost_center}` : base, amount: l.net_amount });
+    rev.push({ code: l.revenue_account || "-", name: l.cost_center ? `${base} · ${l.cost_center}` : base, amount: l.net_amount });
     if (l.tax_amount) rev.push({ code: "TAX", name: debit ? "Output tax" : "Output tax reversal", amount: l.tax_amount });
   }
   if (debit) {
@@ -131,10 +131,10 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
     { header: "Customer", cell: (r) => (
       <span className="inline-flex items-center gap-2"><Initials name={r.customer_name} /><span className="font-medium text-gray-01">{r.customer_name}</span></span>
     ) },
-    { header: "Against invoice", cell: (r) => <span className="tabular-nums text-gray-05">{r.invoice_number ?? "—"}</span> },
-    { header: "Reason", cell: (r) => <span className="block max-w-[240px] truncate text-gray-01" title={r.reason}>{r.reason ? shortenReason(r.reason) : "—"}</span> },
+    { header: "Against invoice", cell: (r) => <span className="tabular-nums text-gray-05">{r.invoice_number ?? "-"}</span> },
+    { header: "Reason", cell: (r) => <span className="block max-w-[240px] truncate text-gray-01" title={r.reason}>{r.reason ? shortenReason(r.reason) : "-"}</span> },
     { header: "Amount", align: "right", cell: (r) => (
-      // Credit notes reduce the balance (green); debit notes increase it (red) —
+      // Credit notes reduce the balance (green); debit notes increase it (red) -
       // the same colour convention as the DR/CR posting recap.
       <Money kobo={r.total} currency={currency} align="right"
         className={r.kind === "DEBIT" ? "text-destructive" : "text-green-01"} />
@@ -175,7 +175,7 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
         loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={setSelected}
         page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
         emptyTitle="No credit / debit notes"
-        emptyMessage="Issue a credit note to reduce — or a debit note to increase — a customer's balance."
+        emptyMessage="Issue a credit note to reduce - or a debit note to increase - a customer's balance."
       />
 
       <NoteDetailDrawer note={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
@@ -238,10 +238,10 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
           <div className="grid grid-cols-2 gap-4">
             <Field label="Amount"><Money kobo={note.total} currency={currency} /></Field>
             <Field label="Status"><span className={cn("inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[status])}>{STATUS_LABEL[status]}</span></Field>
-            <Field label="Against invoice">{note.invoice_number ?? "—"}</Field>
+            <Field label="Against invoice">{note.invoice_number ?? "-"}</Field>
             <Field label="Date">{note.note_date}</Field>
           </div>
-          <Field label="Reason"><span className="font-normal">{note.reason || "—"}</span></Field>
+          <Field label="Reason"><span className="font-normal">{note.reason || "-"}</span></Field>
 
           {note.kind === "CREDIT" && note.allocated_amount > 0 ? (
             <div className="grid grid-cols-2 gap-4">
@@ -255,7 +255,7 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
               <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">GL posting</p>
               <PostingRecap
                 title={`${kindLabel(note.kind)} posting`} dr={recap.dr} cr={recap.cr} currency={currency}
-                helper="This recaps the journal booked when the note was posted. Applying the credit to invoices reclassifies it from customer credit (2140) back to AR — a new journal posts."
+                helper="This recaps the journal booked when the note was posted. Applying the credit to invoices reclassifies it from customer credit (2140) back to AR - a new journal posts."
               />
             </div>
           ) : null}
@@ -301,7 +301,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
   const saving = creating || posting;
   const debit = kind === "DEBIT";
 
-  // Posted invoices that still owe money, for the chosen customer — a searchable
+  // Posted invoices that still owe money, for the chosen customer - a searchable
   // list. A credit note applies against an outstanding balance, so fully-paid /
   // fully-credited invoices (balance_due = 0) are excluded.
   const invQ = useGetInvoicesQuery({ entity, search: customer, status: "POSTED" }, { skip: !customer });
@@ -313,7 +313,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
 
   const recap = useMemo(() => {
     const revName = (debit ? "Income" : "Revenue (reversed)") + (costCenter ? ` · ${costCenter}` : "");
-    const rev: RecapRow = { code: account || "—", name: revName, amount };
+    const rev: RecapRow = { code: account || "-", name: revName, amount };
     const ar: RecapRow = { code: "AR", name: "Accounts Receivable (control)", amount };
     if (debit) return { dr: [ar], cr: [rev] };
     // A credit applied on issue settles invoices (Cr AR); otherwise it sits as
@@ -341,7 +341,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
       await post({ id: res.data.id, entity, auto_allocate: auto }).unwrap();
       toast.success(auto ? `${kindLabel(kind)} issued and applied.` : `${kindLabel(kind)} issued.`);
       close();
-    } catch { /* central — a create that posts-failed leaves a draft, surfaced as the error */ }
+    } catch { /* central - a create that posts-failed leaves a draft, surfaced as the error */ }
   };
 
   return (
@@ -375,7 +375,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
         <FormField label="Against invoice">
           <SearchSelect options={invoiceOptions} value={invoice} onChange={(e) => setInvoice(e.target.value)}
             loading={invQ.isFetching} disabled={!customer}
-            placeholder={customer ? "Optional — search this customer's invoices" : "Select a customer first"} />
+            placeholder={customer ? "Optional - search this customer's invoices" : "Select a customer first"} />
         </FormField>
 
         <div className="grid grid-cols-2 gap-3">

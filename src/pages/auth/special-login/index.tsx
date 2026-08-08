@@ -92,7 +92,7 @@ export default function SpecialLogin() {
       </div>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        {/* Display-only name — email is kept behind the scenes */}
+        {/* Display-only name - email is kept behind the scenes */}
         <div className="grid gap-1.5">
           <label className="text-sm text-black-01">Name</label>
           <div className="h-11 bg-gray-03 rounded-md flex items-center px-3 text-sm text-black-01 font-medium capitalize select-none cursor-default">

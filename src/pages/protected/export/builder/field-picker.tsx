@@ -5,12 +5,12 @@
 // fully operable without a pointer: Space or Enter toggles a field, Alt+↑/↓
 // reorders the selection, and every move is announced through a live region
 // ("Customer moved to position 2 of 6"). There is deliberately no drag-only
-// affordance — the arrow buttons ARE the interface, and a mouse user gets the
+// affordance - the arrow buttons ARE the interface, and a mouse user gets the
 // same one.
 //
 // Two field flags come from the catalogue and are never inferred:
-//   locked    — always exported, cannot be deselected (the row's identity)
-//   sensitive — needs exports.sensitive_field.export; called out again at review
+//   locked    - always exported, cannot be deselected (the row's identity)
+//   sensitive - needs exports.sensitive_field.export; called out again at review
 
 import { useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronUp, Search, X } from "lucide-react";
@@ -140,7 +140,7 @@ export function FieldPicker({
                     >
                       {/* A presentational box, not the real Checkbox: the row
                           itself is the button, and Radix's Checkbox renders a
-                          <button> too — nesting them is invalid HTML and breaks
+                          <button> too - nesting them is invalid HTML and breaks
                           the accessibility tree. The row carries aria-pressed. */}
                       <span
                         aria-hidden
@@ -178,7 +178,7 @@ export function FieldPicker({
         <div className="max-h-[420px] min-h-[220px] space-y-2 overflow-y-auto p-3">
           {selected.length === 0 ? (
             <p className="px-2 py-10 text-center font-mont text-xs text-gray-05">
-              No columns chosen yet. Pick fields on the left — the order here is the column order in
+              No columns chosen yet. Pick fields on the left - the order here is the column order in
               the file.
             </p>
           ) : (
@@ -238,7 +238,7 @@ export function FieldPicker({
         </div>
 
         {/* A field the dataset has withdrawn is struck through and explained,
-            never quietly dropped — the saved export genuinely names it. */}
+            never quietly dropped - the saved export genuinely names it. */}
         {withdrawn.length > 0 && (
           <p className="border-t border-gray-03 px-3.5 py-2.5 font-mont text-[11px] leading-relaxed text-error-text">
             {withdrawn.length === 1 ? "One column is" : `${withdrawn.length} columns are`} no longer

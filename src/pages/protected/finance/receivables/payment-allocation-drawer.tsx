@@ -1,8 +1,8 @@
-// Receipt allocation drawer — apply a receipt to the customer's open invoices.
+// Receipt allocation drawer - apply a receipt to the customer's open invoices.
 // "Auto-allocate oldest first" fills the open invoices in age order; uncheck to
 // type an explicit split. The allocation summary tracks Receipt / Allocated /
 // Remainder, and an Allocation-posting recap shows the receipt's GL effect
-// (Dr bank — already debited on the receipt · Cr AR), which balances.
+// (Dr bank - already debited on the receipt · Cr AR), which balances.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { skipToken } from "@reduxjs/toolkit/query";
@@ -26,7 +26,7 @@ const STATUS_LABEL: Record<string, string> = { ALLOCATED: "Allocated", PARTIAL: 
 const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 
-// A settleable open AR item — an invoice or a posted DEBIT note.
+// A settleable open AR item - an invoice or a posted DEBIT note.
 type AllocTarget = { key: string; kind: "invoice" | "debit_note"; id: number; document_number: string; date: string | null; balanceKobo: number };
 
 export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
@@ -48,7 +48,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
   const unallocated = p?.unallocated_amount ?? 0;
 
   // Suggested fill of the remaining cash across open items, in the chosen order
-  // (oldest-first as returned, or largest-balance first) — mirrors the server strategy.
+  // (oldest-first as returned, or largest-balance first) - mirrors the server strategy.
   const suggestion = useMemo(() => {
     const m: Record<string, number> = {};
     let remaining = unallocated;
@@ -151,7 +151,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
                     )}
                   </div>
                 </div>
-                {open.length === 0 ? <EmptyState title="No open items" message="Nothing to allocate to — the cash stays as customer credit." /> : (
+                {open.length === 0 ? <EmptyState title="No open items" message="Nothing to allocate to - the cash stays as customer credit." /> : (
                   <div className="overflow-hidden rounded-md border border-gray-03">
                     {open.map((t) => (
                       <div key={t.key} className="flex items-center gap-3 border-t border-gray-03 px-3 py-2 first:border-t-0">
@@ -160,7 +160,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
                             {t.document_number}
                             {t.kind === "debit_note" ? <span className="rounded bg-indigo-50 px-1.5 py-0.5 font-mont text-[10px] font-medium text-indigo-700">Debit note</span> : null}
                           </p>
-                          <p className="font-mont text-[11px] text-gray-05">{t.kind === "debit_note" ? "Dated" : "Due"} {t.date ?? "—"} · bal <Money kobo={t.balanceKobo} currency={currency} /></p>
+                          <p className="font-mont text-[11px] text-gray-05">{t.kind === "debit_note" ? "Dated" : "Due"} {t.date ?? "-"} · bal <Money kobo={t.balanceKobo} currency={currency} /></p>
                         </div>
                         <Input type="number" min="0" step="0.01" aria-label={`Allocate to ${t.document_number}`}
                           value={auto ? (suggestion[t.key] ? (suggestion[t.key] / 100).toFixed(2) : "") : (amounts[t.key] ?? "")}
@@ -180,7 +180,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
                 <div className="flex justify-between"><span className="text-gray-05">Allocated</span><span className="font-semibold tabular-nums">{formatMoney(allocatedNow, currency)}</span></div>
                 <div className="flex justify-between border-t border-gray-03 pt-2"><span className="text-gray-05">Remainder</span><span className={cn("font-semibold tabular-nums", remainder === 0 ? "text-green-01" : remainder < 0 ? "text-destructive" : "text-black-01")}>{formatMoney(remainder, currency)}</span></div>
                 {remainder === 0 && <p className="flex items-center gap-1 text-green-01"><CheckCircle2 className="size-3.5" /> Fully allocated.</p>}
-                {remainder < 0 && <p className="text-destructive">Over-allocated — reduce the amounts.</p>}
+                {remainder < 0 && <p className="text-destructive">Over-allocated - reduce the amounts.</p>}
               </div>
             </div>
           )}
@@ -197,16 +197,16 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
                       <tr key={i}>
                         <td className={td}>
                           <span className="font-semibold tabular-nums">{g.account_code}</span> {g.account_name}
-                          {g.debit.kobo > 0 && <span className="ml-1 text-[11px] text-gray-05">— already debited on the receipt</span>}
+                          {g.debit.kobo > 0 && <span className="ml-1 text-[11px] text-gray-05">- already debited on the receipt</span>}
                         </td>
-                        <td className={cn(td, "text-right tabular-nums")}>{g.debit.kobo ? <Money kobo={g.debit.kobo} currency={currency} align="right" /> : "—"}</td>
-                        <td className={cn(td, "text-right tabular-nums")}>{g.credit.kobo ? <Money kobo={g.credit.kobo} currency={currency} align="right" /> : "—"}</td>
+                        <td className={cn(td, "text-right tabular-nums")}>{g.debit.kobo ? <Money kobo={g.debit.kobo} currency={currency} align="right" /> : "-"}</td>
+                        <td className={cn(td, "text-right tabular-nums")}>{g.credit.kobo ? <Money kobo={g.credit.kobo} currency={currency} align="right" /> : "-"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <p className="mt-1 font-mont text-[11px] text-gray-05">Above is the receipt's own journal (posted when recorded). Applying the remaining credit to invoices reclassifies it from customer credit (2140) back to AR — a new journal posts on apply.</p>
+              <p className="mt-1 font-mont text-[11px] text-gray-05">Above is the receipt's own journal (posted when recorded). Applying the remaining credit to invoices reclassifies it from customer credit (2140) back to AR - a new journal posts on apply.</p>
             </div>
           )}
         </div>

@@ -1,6 +1,6 @@
 // Setup → Entities. The ledger entities ("sets of books") you switch between in
 // the top-bar picker. New entity provisions a chart of accounts + twelve open
-// periods in one call. (No design reference — entities are a platform concept;
+// periods in one call. (No design reference - entities are a platform concept;
 // styled to match the other Setup screens.)
 import { useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";

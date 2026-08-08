@@ -5,7 +5,7 @@ export type { ActionDef, ActionConsole, ScoredAction, ActionRun, ActionGate } fr
 
 import type { ActionConsole, ScoredAction } from "./types";
 
-// Fixed console order for the grouped, expanded results list — stable ordering
+// Fixed console order for the grouped, expanded results list - stable ordering
 // reads more scannably than relevance-ordered group headers.
 export const CONSOLE_ORDER: ActionConsole[] = ["Main", "Finance", "Procurement"];
 

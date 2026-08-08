@@ -67,7 +67,7 @@ export interface PackagePlan {
 }
 
 // /i/modules/ serves the vs_config capability catalogue (MODULE kind) since
-// the legacy XVSModule table was retired — hence `label`, not `name`.
+// the legacy XVSModule table was retired - hence `label`, not `name`.
 export interface XVSModule {
   id: string
   key: string

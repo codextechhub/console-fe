@@ -85,7 +85,7 @@ export function ProxyUserDialog({
       startedSessionId = result.data.id;
 
       // The gate drops every non-exempt request fired while screens mounted
-      // for the OLD identity are still tearing down — they would otherwise
+      // for the OLD identity are still tearing down - they would otherwise
       // reach the backend under the target's proxy header and 403 (misleading
       // toast + false PROXY_ACTION_FAILED audit rows).
       await runWithIdentitySwap(async () => {

@@ -3,7 +3,7 @@
 // Fast Refresh requires component-only modules).
 
 // ── Status tab definitions (server value, tab label) ──────────────────────────
-// ISSUED is surfaced as "Open" — the buyer-facing name for a live invitation.
+// ISSUED is surfaced as "Open" - the buyer-facing name for a live invitation.
 export const RFQ_TABS = [
   ["All", ""], ["Draft", "DRAFT"], ["Open", "ISSUED"], ["Awarded", "AWARDED"],
   ["Closed", "CLOSED"], ["Cancelled", "CANCELLED"],
@@ -15,7 +15,7 @@ export const QUOTATION_TABS = [
 ] as const;
 
 export function shortDate(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" })
     .format(new Date(`${value}T00:00:00`));
 }

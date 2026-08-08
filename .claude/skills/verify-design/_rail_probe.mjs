@@ -24,7 +24,7 @@ await page.waitForTimeout(2000);
 const ok = [];
 const bad = [];
 const check = (name, pass, detail = "") =>
-  (pass ? ok : bad).push(`${name}${detail ? ` — ${detail}` : ""}`);
+  (pass ? ok : bad).push(`${name}${detail ? ` - ${detail}` : ""}`);
 
 const track = (label) => page.locator(`[aria-label="${label}"][aria-roledescription="carousel"]`);
 const metrics = track("Platform overview metrics");

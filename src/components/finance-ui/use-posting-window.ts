@@ -1,4 +1,4 @@
-// The active entity's posting window — which dates a document may carry.
+// The active entity's posting window - which dates a document may carry.
 //
 // Every document date in Finance and Procurement ends up at the same backend
 // guard: `ensure_period_open` rejects a date outside an OPEN fiscal period with a
@@ -8,7 +8,7 @@
 //
 // Degrades open on purpose: if the window can't be read (no entity yet, a 403, the
 // network), `constrained` is false and every date stays selectable. A permission
-// gap must never lock someone out of a form — the backend guard is still there.
+// gap must never lock someone out of a form - the backend guard is still there.
 
 import { useMemo } from "react";
 import { useGetPostingWindowQuery } from "@/redux/services/finance/setup-api";
@@ -24,7 +24,7 @@ import {
 import { useEntityCode } from "./use-entity";
 
 export interface PostingWindowState {
-  /** Selectable spans, oldest first. Empty means unconstrained — see `constrained`. */
+  /** Selectable spans, oldest first. Empty means unconstrained - see `constrained`. */
   ranges: OpenRange[];
   /** The date a new document should open on. Never empty. */
   defaultDate: string;
@@ -34,7 +34,7 @@ export interface PostingWindowState {
   noOpenPeriod: boolean;
   /** e.g. "Jan 2026" or "Jan 2026 – Mar 2026"; null when unconstrained. */
   label: string | null;
-  /** Periods that exist but reject postings — used to explain a blocked day. */
+  /** Periods that exist but reject postings - used to explain a blocked day. */
   blocked: PeriodBrief[];
   /** Is this date postable? Always true while unconstrained. */
   isOpen: (date: string) => boolean;
@@ -47,7 +47,7 @@ export interface PostingWindowState {
  * The posting window for the globally-selected entity (or an explicit `entity`).
  *
  * Pass `entity` only when the component is scoped to a different entity than the
- * global picker — most callers should let it default.
+ * global picker - most callers should let it default.
  */
 export function usePostingWindow(entity?: string | null): PostingWindowState {
   const activeCode = useEntityCode();
@@ -83,7 +83,7 @@ export function usePostingWindow(entity?: string | null): PostingWindowState {
     return {
       ranges,
       // `default_date` is null only when nothing is open at all. Today is then as
-      // good a placeholder as any — the field surfaces `noOpenPeriod` instead of
+      // good a placeholder as any - the field surfaces `noOpenPeriod` instead of
       // pretending some date would work.
       defaultDate: window.default_date ?? todayISO(),
       constrained: ranges.length > 0,

@@ -1,4 +1,4 @@
-// Accounts-Receivable types — mirror the vs_finance AR serializers. Money kobo.
+// Accounts-Receivable types - mirror the vs_finance AR serializers. Money kobo.
 
 export type InvoiceStatus = "DRAFT" | "POSTED" | "REVERSED" | "CANCELLED";
 export type PaymentStatus = "UNPAID" | "PARTIAL" | "PAID";
@@ -250,7 +250,7 @@ export interface InvoiceListParams {
 
 type ArMoney = { kobo: number; naira: string };
 
-// How an invoice was settled down — cash, credit notes, concessions or write-offs.
+// How an invoice was settled down - cash, credit notes, concessions or write-offs.
 export type SettlementType = "PAYMENT" | "CREDIT_NOTE" | "CONCESSION" | "WRITE_OFF";
 
 export interface InvoiceSettlement {
@@ -275,10 +275,10 @@ export interface InvoiceDetail {
   invoice: Invoice;
   summary: { subtotal: ArMoney; tax: ArMoney; total: ArMoney; paid: ArMoney; credited: ArMoney; settled: ArMoney; balance: ArMoney; due_date: string | null };
   lines: { description: string; account_code: string; account_name: string; quantity: string; unit_price: ArMoney; tax_code: string | null; tax_amount: ArMoney; line_total: ArMoney }[];
-  // Cash receipts only — kept for back-compat; use `settlements` for the full picture.
+  // Cash receipts only - kept for back-compat; use `settlements` for the full picture.
   payments: { date: string; reference: string; method: string; amount: ArMoney }[];
   settlements: InvoiceSettlement[];
-  // The invoice's own AR journal only — kept for back-compat; use `gl_journals`.
+  // The invoice's own AR journal only - kept for back-compat; use `gl_journals`.
   gl_postings: { account_code: string; account_name: string; debit: ArMoney; credit: ArMoney }[];
   gl_journals: InvoiceGlJournal[];
   reminders: { date: string; level: number | null; channel: string; status: string }[];
@@ -297,7 +297,7 @@ export interface InvoiceSummary {
   monthly: { label: string; invoiced: number; collected: number }[];
 }
 
-// Customers / payers — the AR sub-ledger party (mirrors CustomerSerializer).
+// Customers / payers - the AR sub-ledger party (mirrors CustomerSerializer).
 export type CustomerAccountStatus = "ACTIVE" | "OVERDUE" | "CREDIT";
 
 export interface Customer {
@@ -340,7 +340,7 @@ export interface PaymentSummary {
   count: number;
   today: { kobo: number; naira: string };
   week: { kobo: number; naira: string };
-  /** Credit still sitting in 2140 — net of anything already refunded back out. */
+  /** Credit still sitting in 2140 - net of anything already refunded back out. */
   unallocated: { kobo: number; naira: string };
   /** Receipt cash that has been paid back out as a customer refund. */
   refunded: { kobo: number; naira: string };
@@ -358,7 +358,7 @@ export interface Payment {
   amount: number;
   amount_naira: string;
   allocated_amount: number;
-  /** Cash that never settled an invoice. A sub-ledger fact — blind to refunds. */
+  /** Cash that never settled an invoice. A sub-ledger fact - blind to refunds. */
   unallocated_amount: number;
   /** Of that, how much has been paid back out as a customer refund. */
   refunded_amount: number;
@@ -410,7 +410,7 @@ export interface CustomerDetail {
   statement: { date: string | null; description: string; debit: ArMoney; credit: ArMoney; balance: ArMoney }[];
 }
 
-// Fee structures — billing catalogue rolled up into invoices.
+// Fee structures - billing catalogue rolled up into invoices.
 export interface FeeItem {
   id: number;
   line_no: number;

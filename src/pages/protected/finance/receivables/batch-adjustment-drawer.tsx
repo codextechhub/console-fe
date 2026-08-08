@@ -33,7 +33,7 @@ import { formatMoney } from "@/utils/money";
 import { batchAdjustmentLinesAreValid } from "./batch-adjustment-validation";
 
 // `available` is deliberately NOT held in state. Every line's headroom depends on the
-// batch's posting date — refundable credit is measured as at that date — so a stored
+// batch's posting date - refundable credit is measured as at that date - so a stored
 // snapshot goes stale the moment the date changes, and the user submits against a
 // number the backend no longer agrees with. It is derived on every render instead.
 type Line = { id: number; target: string; amount: number };
@@ -77,7 +77,7 @@ export function BatchAdjustmentDrawer({
 
   // Every line in the batch shares one posting date, so eligibility is asked for as at
   // that date. A customer whose credit arrives after it has nothing to refund, and an
-  // invoice raised after it cannot be written off — neither may be offered.
+  // invoice raised after it cannot be written off - neither may be offered.
   const refundAvailability = useGetRefundAvailabilityQuery(
     { entity, page_size: 100, ...(date ? { as_of: date } : {}) },
     { skip: !open || writeOff || !date },
@@ -100,11 +100,11 @@ export function BatchAdjustmentDrawer({
     () => writeOff
       ? invoiceTargets.map((invoice) => ({
           value: String(invoice.id),
-          label: `${invoice.document_number} — ${invoice.customer_name} · ${formatMoney(invoice.balance_due, currency)} due`,
+          label: `${invoice.document_number} - ${invoice.customer_name} · ${formatMoney(invoice.balance_due, currency)} due`,
         }))
       : refundTargets.map((customer) => ({
           value: customer.customer_code,
-          label: `${customer.customer_code} — ${customer.customer_name} · ${formatMoney(customer.refundable_credit, currency)} available`,
+          label: `${customer.customer_code} - ${customer.customer_name} · ${formatMoney(customer.refundable_credit, currency)} available`,
         })),
     [writeOff, invoiceTargets, refundTargets, currency],
   );
@@ -361,8 +361,8 @@ export function BatchAdjustmentDrawer({
                         ? "This target already appears in the batch."
                         : ineligible
                           ? writeOff
-                            ? `This invoice is not open as at ${date} — it cannot be written off on that date.`
-                            : `No credit available as at ${date} — pick a later posting date or another customer.`
+                            ? `This invoice is not open as at ${date} - it cannot be written off on that date.`
+                            : `No credit available as at ${date} - pick a later posting date or another customer.`
                           : overLimit
                             ? `Amount cannot exceed ${formatMoney(line.available, currency)} available as at ${date}.`
                             : `${formatMoney(line.available, currency)} available as at ${date}.`}

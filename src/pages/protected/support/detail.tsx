@@ -1,4 +1,4 @@
-// Ticket detail — conversation thread, attachments, and the staff-side
+// Ticket detail - conversation thread, attachments, and the staff-side
 // actions (edit, assignment, status transitions, audit history), each gated
 // by its tickets.* key. House kit: Dialog, Sheet, NativeSelect, Badge.
 
@@ -88,7 +88,7 @@ function TicketAttachmentCard({ ticketId, attachment }: { ticketId: string; atta
 
   const save = async () => {
     try {
-      // Images were already fetched for the preview — reuse that object URL
+      // Images were already fetched for the preview - reuse that object URL
       // instead of downloading the file a second time.
       const url = previewUrl || (await download({ id: ticketId, attachmentId: attachment.id }).unwrap());
       const anchor = document.createElement("a");
@@ -416,7 +416,7 @@ export default function TicketDetail() {
                     )}
                     {pendingFile && internal && !body.trim() && (
                       <p className="mt-1.5 text-[11px] text-gray-01">
-                        Write the note text to send this file with an internal note — a file sent
+                        Write the note text to send this file with an internal note - a file sent
                         alone is visible to everyone on the ticket.
                       </p>
                     )}
@@ -441,7 +441,7 @@ export default function TicketDetail() {
                   {[
                     ["Requester", ticket.requester.name],
                     ["Assignee", ticket.assignee?.name ?? "Unassigned"],
-                    ["Tenant", ticket.tenant?.toUpperCase() ?? "—"],
+                    ["Tenant", ticket.tenant?.toUpperCase() ?? "-"],
                     ...(ticket.school && ticket.school_name?.trim()
                       ? [["School", ticket.school_name]]
                       : []),

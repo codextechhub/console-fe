@@ -32,7 +32,7 @@ const DETAIL_TABS = [
 type DetailTab = typeof DETAIL_TABS[number]["value"];
 
 function shortDate(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   const parsed = new Date(`${value}T00:00:00`);
   return Number.isNaN(parsed.getTime())
     ? value
@@ -53,7 +53,7 @@ export default function GoodsReceiptsPage() {
 
   const columns: Column<GoodsReceipt>[] = [
     { header: "GR Number", cell: (receipt) => <span className="font-mont text-sm font-semibold text-primary">{receipt.document_number}</span> },
-    { header: "PO Ref", cell: (receipt) => receipt.purchase_order_number || "—" },
+    { header: "PO Ref", cell: (receipt) => receipt.purchase_order_number || "-" },
     { header: "Vendor", cell: (receipt) => <span className="font-mont text-sm font-semibold">{receipt.vendor_name || receipt.vendor_code}</span> },
     { header: "Received", cell: (receipt) => shortDate(receipt.received_date) },
     { header: "Items", cell: (receipt) => `${formatQuantity(receipt.received_item_count)} of ${formatQuantity(receipt.ordered_item_count)}` },

@@ -1,4 +1,4 @@
-// Budgets, fixed assets & tax (§6.8) — one page per sub-section (route-driven).
+// Budgets, fixed assets & tax (§6.8) - one page per sub-section (route-driven).
 
 import { useParams } from "react-router";
 import { FinanceShell } from "../finance-shell";
@@ -9,9 +9,9 @@ import { AssetsTab } from "./assets-tab";
 import { TaxTab } from "./tax-tab";
 
 const META: Record<string, { title: string; sub: string }> = {
-  budgets: { title: "Budgets & Forecasts", sub: "Compare planned vs actual spending — find your overruns before close does." },
+  budgets: { title: "Budgets & Forecasts", sub: "Compare planned vs actual spending - find your overruns before close does." },
   assets: { title: "Fixed Assets", sub: "The fixed-asset register: acquisition, depreciation and net book value." },
-  tax: { title: "Tax Remittance", sub: "Tax obligations and filings — amounts due, paid and outstanding." },
+  tax: { title: "Tax Remittance", sub: "Tax obligations and filings - amounts due, paid and outstanding." },
 };
 
 export default function BudgetsAssetsTaxPage() {

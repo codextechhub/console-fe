@@ -110,7 +110,7 @@ export default function EditTemplate() {
   const [columnsEdited, setColumnsEdited] = useState(false);
   const [initialized, setInitialized] = useState(false);
   // State (not a ref): it participates in the render output via isDirty, so a
-  // ref would be read during render — unsafe under the React Compiler.
+  // ref would be read during render - unsafe under the React Compiler.
   const [initialForm, setInitialForm] = useState<typeof form | null>(null);
 
   const back = () => {
@@ -125,7 +125,7 @@ export default function EditTemplate() {
   useDashboardBack(back);
 
   // Pre-fill form when the fetched template arrives (guarded render-phase
-  // adjustment — runs once, no setState-in-effect cascade).
+  // adjustment - runs once, no setState-in-effect cascade).
   if (template && !initialized) {
     const snapshot = {
       name: template.name,

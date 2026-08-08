@@ -1,4 +1,4 @@
-// Customer / payer detail drawer — three stat cards (Current balance / Lifetime
+// Customer / payer detail drawer - three stat cards (Current balance / Lifetime
 // paid / Open invoices) and tabs: Transactions · Statement · Contact. The Customer
 // Statement is a printable statement-of-account document (entity letterhead,
 // customer + period, a debit/credit ledger with opening + closing balance) with
@@ -188,7 +188,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
   );
 }
 
-/** Outstanding AR items — open invoices and open DEBIT notes (both settleable). */
+/** Outstanding AR items - open invoices and open DEBIT notes (both settleable). */
 function OpenItemsTab({ d, currency }: { d: CustomerDetail; currency?: string | null }) {
   const rows = [
     ...d.open_invoices.map((i) => ({ kind: "INVOICE" as const, reference: i.document_number, date: i.due_date, total: i.total.kobo, balance: i.balance.kobo, status: i.status })),
@@ -207,7 +207,7 @@ function OpenItemsTab({ d, currency }: { d: CustomerDetail; currency?: string | 
             <tr key={`${r.reference}-${i}`}>
               <td className={td}><span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", TXN_META[r.kind]?.cls)}>{TXN_META[r.kind]?.label}</span></td>
               <td className={cn(td, "font-semibold")}>{r.reference}</td>
-              <td className={cn(td, "tabular-nums text-gray-05")}>{r.date ?? "—"}</td>
+              <td className={cn(td, "tabular-nums text-gray-05")}>{r.date ?? "-"}</td>
               <td className={cn(td, "text-right tabular-nums")}><Money kobo={r.total} currency={currency} align="right" /></td>
               <td className={cn(td, "text-right font-medium tabular-nums")}><Money kobo={r.balance} currency={currency} align="right" /></td>
             </tr>
@@ -236,7 +236,7 @@ function StatementTab({ d, entityName, currency }: { d: CustomerDetail; entityNa
     return { opening: open, rows: rng, closing: rng.length ? rng[rng.length - 1].balance.kobo : open };
   }, [d.statement, from, to]);
 
-  const period = from ? `${from} — ${to}` : `Up to ${to}`;
+  const period = from ? `${from} - ${to}` : `Up to ${to}`;
 
   return (
     <div className="space-y-3">
@@ -255,7 +255,7 @@ function StatementTab({ d, entityName, currency }: { d: CustomerDetail; entityNa
               <TooltipTrigger asChild>
                 <span tabIndex={0}><Button disabled className="gap-1.5 opacity-60"><Send className="size-4" /> Send to customer</Button></span>
               </TooltipTrigger>
-              <TooltipContent className="font-mont text-xs">Emailing the statement needs an email-sending service — coming soon.</TooltipContent>
+              <TooltipContent className="font-mont text-xs">Emailing the statement needs an email-sending service - coming soon.</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
@@ -283,18 +283,18 @@ function StatementTab({ d, entityName, currency }: { d: CustomerDetail; entityNa
             </tr></thead>
             <tbody>
               <tr>
-                <td className={cn(td, "tabular-nums text-gray-05")}>{from || "—"}</td>
+                <td className={cn(td, "tabular-nums text-gray-05")}>{from || "-"}</td>
                 <td className={td}>Opening balance</td>
-                <td className={cn(td, "text-right text-gray-05")}>—</td>
-                <td className={cn(td, "text-right text-gray-05")}>—</td>
+                <td className={cn(td, "text-right text-gray-05")}>-</td>
+                <td className={cn(td, "text-right text-gray-05")}>-</td>
                 <td className={cn(td, "text-right tabular-nums")}>{signed(opening, currency)}</td>
               </tr>
               {rows.map((r, i) => (
                 <tr key={i}>
                   <td className={cn(td, "tabular-nums text-gray-05")}>{r.date}</td>
                   <td className={td}>{r.description}</td>
-                  <td className={cn(td, "text-right tabular-nums")}>{r.debit.kobo ? <Money kobo={r.debit.kobo} currency={currency} align="right" /> : "—"}</td>
-                  <td className={cn(td, "text-right tabular-nums")}>{r.credit.kobo ? <Money kobo={r.credit.kobo} currency={currency} align="right" /> : "—"}</td>
+                  <td className={cn(td, "text-right tabular-nums")}>{r.debit.kobo ? <Money kobo={r.debit.kobo} currency={currency} align="right" /> : "-"}</td>
+                  <td className={cn(td, "text-right tabular-nums")}>{r.credit.kobo ? <Money kobo={r.credit.kobo} currency={currency} align="right" /> : "-"}</td>
                   <td className={cn(td, "text-right font-medium tabular-nums")}>{signed(r.balance.kobo, currency)}</td>
                 </tr>
               ))}
@@ -333,10 +333,10 @@ function ContactPanel({ entity, customer, currency }: { entity: string; customer
   return (
     <Can permission={P.FIN_UPDATE_CUSTOMER} fallback={
       <div className="space-y-2 font-mont text-sm">
-        <p><span className="text-gray-05">Email:</span> {customer.billing_email || "—"}</p>
-        <p><span className="text-gray-05">Phone:</span> {customer.billing_phone || "—"}</p>
-        <p><span className="text-gray-05">Address:</span> {customer.billing_address || "—"}</p>
-        <p><span className="text-gray-05">Receivable a/c:</span> {customer.receivable_account_code ?? "—"} {customer.receivable_account_name}</p>
+        <p><span className="text-gray-05">Email:</span> {customer.billing_email || "-"}</p>
+        <p><span className="text-gray-05">Phone:</span> {customer.billing_phone || "-"}</p>
+        <p><span className="text-gray-05">Address:</span> {customer.billing_address || "-"}</p>
+        <p><span className="text-gray-05">Receivable a/c:</span> {customer.receivable_account_code ?? "-"} {customer.receivable_account_name}</p>
       </div>
     }>
       <div className="space-y-3">
@@ -346,7 +346,7 @@ function ContactPanel({ entity, customer, currency }: { entity: string; customer
           <FormField label="Billing phone"><Input value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-white" /></FormField>
         </div>
         <FormField label="Billing address"><Input value={address} onChange={(e) => setAddress(e.target.value)} className="bg-white" /></FormField>
-        <p className="font-mont text-xs text-gray-05">Receivable a/c: <span className="font-medium text-gray-01">{customer.receivable_account_code ?? "—"} {customer.receivable_account_name}</span> · Opening balance {formatMoney(customer.opening_balance, currency)}</p>
+        <p className="font-mont text-xs text-gray-05">Receivable a/c: <span className="font-medium text-gray-01">{customer.receivable_account_code ?? "-"} {customer.receivable_account_name}</span> · Opening balance {formatMoney(customer.opening_balance, currency)}</p>
         <label className="flex items-center gap-2 font-mont text-sm text-gray-01"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-primary" /> Active</label>
         <Button onClick={save} disabled={!dirty || isLoading} className="font-mont text-xs font-semibold">{isLoading ? "Saving…" : "Save changes"}</Button>
       </div>

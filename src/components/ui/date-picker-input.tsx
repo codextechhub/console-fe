@@ -25,7 +25,7 @@ type DatePickerInputProps = Omit<React.ComponentProps<"input">, "type"> & {
    * Empty or omitted leaves the calendar unconstrained.
    */
   allowedRanges?: { from: string; to: string }[];
-  /** Short name for the allowed window, e.g. "Jan 2026" — shown in the popover. */
+  /** Short name for the allowed window, e.g. "Jan 2026" - shown in the popover. */
   windowLabel?: string | null;
 };
 
@@ -115,7 +115,7 @@ function DatePickerInput({
   const openingMonth = selected ?? rangeStart ?? fromDate ?? new Date();
 
   // "Today" is only useful when today is selectable. When it is not, offer the
-  // nearest allowed day instead — that is the date the user actually wants, and
+  // nearest allowed day instead - that is the date the user actually wants, and
   // otherwise they must page through months hunting for one that is not grey.
   const todayIso = toIsoDate(new Date());
   const todayAllowed =

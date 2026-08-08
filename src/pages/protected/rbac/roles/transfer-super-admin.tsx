@@ -94,7 +94,7 @@ export default function TransferSuperAdmin() {
         setConfirmOpen(false);
         setSelectedUserId("");
         setTypedEmail("");
-        // The current user's role just changed — bounce them back to the roles
+        // The current user's role just changed - bounce them back to the roles
         // index so a stale super-admin-only menu doesn't linger.
         navigate(routesPath.PROTECTED.ROLES.INDEX);
       })
@@ -158,7 +158,7 @@ export default function TransferSuperAdmin() {
             </div>
           ) : (
             <p className="text-sm text-destructive">
-              No active super admin found. Contact engineering — the platform should always
+              No active super admin found. Contact engineering - the platform should always
               have exactly one.
             </p>
           )}
@@ -198,7 +198,7 @@ export default function TransferSuperAdmin() {
                 {candidates.map((m) => (
                   <ComboboxItem key={m.id} value={m.id}>
                     <span className="font-medium">{m.full_name}</span>
-                    <span className="text-gray-01 text-xs ml-1">— {m.email}</span>
+                    <span className="text-gray-01 text-xs ml-1">- {m.email}</span>
                   </ComboboxItem>
                 ))}
                 <ComboboxEmpty>No matching staff found</ComboboxEmpty>

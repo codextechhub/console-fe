@@ -22,12 +22,12 @@ interface ActorCellProps {
   label: string;
   /** Used to derive initials when label is email-shaped; omit if label is a full name */
   email?: string | null;
-  /** Actor's user id — resolves their profile photo when present. */
+  /** Actor's user id - resolves their profile photo when present. */
   userId?: string | number | null;
 }
 
 /**
- * Circular avatar — the actor's photo when there is one, otherwise initials.
+ * Circular avatar - the actor's photo when there is one, otherwise initials.
  * Tooltip shows the full label. Used for actor / user / requested-by columns
  * across audit tables.
  */
@@ -68,7 +68,7 @@ interface EntityCellProps {
 export function EntityCell({ label, type }: EntityCellProps) {
   return (
     <div className="flex flex-col leading-snug">
-      <span className="text-xs text-black-01">{label || "—"}</span>
+      <span className="text-xs text-black-01">{label || "-"}</span>
       <span className="text-[10px] text-gray-01">{type}</span>
     </div>
   );

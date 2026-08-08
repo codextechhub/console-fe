@@ -6,7 +6,7 @@
 // what it did or did not produce.
 //
 // Not the same page as Export → View Queues, which answers "did the worker
-// finish?" over every background task. This answers "what came out?" — rows,
+// finish?" over every background task. This answers "what came out?" - rows,
 // size, omissions, expiry, downloads. They read the same work (a run wraps a
 // job) and share one status vocabulary; see docs/EXPORT_BUILD_NOTES.md.
 
@@ -56,7 +56,7 @@ const TRIGGER_LABEL: Record<string, string> = {
 function fmtStarted(run: ExportRun): string {
   const iso = run.started_at ?? run.queued_at;
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
@@ -73,7 +73,7 @@ function subtitle(run: ExportRun): string {
   } else if (run.status === "FAILED") {
     parts.push("no file produced");
   } else if (run.status === "CANCELLED") {
-    parts.push("cancelled — no partial file kept");
+    parts.push("cancelled - no partial file kept");
   } else {
     parts.push(run.export_name);
   }
@@ -86,7 +86,7 @@ export default function ExportFilesPage() {
   const canView = hasPermission(P.VIEW_EXPORT_RUNS);
   const canDownload = hasPermission(P.DOWNLOAD_EXPORT_FILE);
 
-  // Filters in the URL so a view is linkable — a failure notification points
+  // Filters in the URL so a view is linkable - a failure notification points
   // straight at the run that explains itself.
   const [searchParams, setSearchParams] = useSearchParams();
   const status = (searchParams.get("status") ?? "") as ExportRunStatus | "";
@@ -129,7 +129,7 @@ export default function ExportFilesPage() {
   const retention = capsRes?.data.retention_days ?? 30;
   const hasFilters = !!(status || trigger);
 
-  // Counted from the page in view, and labelled as such — the runs endpoint has
+  // Counted from the page in view, and labelled as such - the runs endpoint has
   // no summary, and a figure that silently means "this page only" is worse than
   // one that says so.
   const readyNow = runs.filter((r) => r.file?.is_downloadable).length;
@@ -154,14 +154,14 @@ export default function ExportFilesPage() {
         </div>
       ),
     },
-    { header: "Requested by", cell: (run) => run.requested_by_name || "—" },
+    { header: "Requested by", cell: (run) => run.requested_by_name || "-" },
     { header: "Trigger", cell: (run) => TRIGGER_LABEL[run.trigger] ?? run.trigger },
     { header: "Started", cell: (run) => <span className={NUM}>{fmtStarted(run)}</span> },
     {
       header: "Rows",
       align: "right",
       cell: (run) => (
-        <span className={NUM}>{run.row_count == null ? "—" : run.row_count.toLocaleString("en-GB")}</span>
+        <span className={NUM}>{run.row_count == null ? "-" : run.row_count.toLocaleString("en-GB")}</span>
       ),
     },
     { header: "Status", cell: (run) => <RunStatusPill status={run.status} /> },
@@ -169,7 +169,7 @@ export default function ExportFilesPage() {
       header: "",
       align: "right",
       // One action per row, and only when it is genuinely available. A row whose
-      // file has expired offers nothing here — the run detail explains why.
+      // file has expired offers nothing here - the run detail explains why.
       cell: (run) =>
         run.file?.is_downloadable && canDownload ? (
           <Button
@@ -195,7 +195,7 @@ export default function ExportFilesPage() {
           <p className="font-semibold font-mont text-gray-01">Files</p>
           <p className="mt-0.5 text-xs text-gray-01">
             Every export run and what it produced. Files are kept for {retention} days after the run, then
-            expire automatically — the run and its history stay.
+            expire automatically - the run and its history stay.
           </p>
         </div>
       </div>

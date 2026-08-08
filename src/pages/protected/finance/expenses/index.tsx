@@ -1,4 +1,4 @@
-// Expenses & petty cash (§6.6) — one page per sub-section (route-driven).
+// Expenses & petty cash (§6.6) - one page per sub-section (route-driven).
 
 import { useParams } from "react-router";
 import { FinanceShell } from "../finance-shell";

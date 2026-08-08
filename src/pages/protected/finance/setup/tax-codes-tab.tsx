@@ -33,8 +33,8 @@ export function TaxCodesTab({ entity }: { entity: string }) {
     { header: "Type", cell: (t) => <span className="rounded bg-pry-01 px-1.5 py-0.5 font-mont text-[10px] font-semibold uppercase text-primary">{taxType(t.code)}</span> },
     { header: "Rate", align: "right", cell: (t) => <span className="tabular-nums">{(t.rate_bps / 100).toFixed(2)}%</span> },
     { header: "Recoverable", cell: (t) => (t.is_recoverable ? "Yes" : "No") },
-    { header: "Collected a/c", cell: (t) => t.collected_account ?? "—" },
-    { header: "Paid a/c", cell: (t) => t.paid_account ?? "—" },
+    { header: "Collected a/c", cell: (t) => t.collected_account ?? "-" },
+    { header: "Paid a/c", cell: (t) => t.paid_account ?? "-" },
     { header: "Status", cell: (t) => <StatusPill status={t.is_active ? "ACTIVE" : "INACTIVE"} /> },
   ];
 

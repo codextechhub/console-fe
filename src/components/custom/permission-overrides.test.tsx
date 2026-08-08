@@ -127,7 +127,7 @@ describe("PermissionOverrides visibility gate", () => {
 
     expect(container.innerHTML).toBe("");
     expect(container.textContent).not.toContain("Permission exceptions");
-    // The crux: not merely hidden — never requested. A user looking at their
+    // The crux: not merely hidden - never requested. A user looking at their
     // own profile must not be able to learn that exceptions exist from the
     // network tab either.
     expect(fetchSpy).not.toHaveBeenCalled();
@@ -201,7 +201,7 @@ describe("PermissionOverrides render states", () => {
   it("shows the roles-only empty state for an empty list", async () => {
     await mount([VIEW_KEY], []);
     expect(container.textContent).toContain(
-      "No exceptions — access comes entirely from roles.",
+      "No exceptions - access comes entirely from roles.",
     );
   });
 
@@ -212,7 +212,7 @@ describe("PermissionOverrides render states", () => {
     expect(text).toContain("Denied");
     expect(text).toContain("Under investigation by audit");
     expect(text).toContain("Ada Admin");
-    expect(text).toContain("A role grants this — it is denied for this user.");
+    expect(text).toContain("A role grants this - it is denied for this user.");
     expect(text).toContain("No expiry");
   });
 
@@ -249,7 +249,7 @@ describe("Add exception drawer", () => {
 
     expect(document.body.textContent).toContain("A reason is required.");
     expect(document.body.textContent).toContain("Choose a permission.");
-    // Nothing was sent — validation is client-side before the mutation.
+    // Nothing was sent - validation is client-side before the mutation.
     expect(fetchSpy.mock.calls.length).toBe(callsBefore);
   });
 

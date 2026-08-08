@@ -9,18 +9,18 @@ import { formatRelativeDate } from "@/utils/helpers";
 import type { AuditSeverity } from "@/redux/services/dashboard/audit-types";
 
 function parseUA(ua: string | null | undefined): { browser: string; os: string } {
-  if (!ua) return { browser: "—", os: "—" };
+  if (!ua) return { browser: "-", os: "-" };
   const browser =
     /Edg\//.test(ua) ? "Edge" :
     /Chrome\//.test(ua) ? "Chrome" :
     /Firefox\//.test(ua) ? "Firefox" :
-    /Safari\//.test(ua) ? "Safari" : "—";
+    /Safari\//.test(ua) ? "Safari" : "-";
   const os =
     /iPhone|iPad/.test(ua) ? "iOS" :
     /Android/.test(ua) ? "Android" :
     /Mac OS X/.test(ua) ? "Mac OS" :
     /Windows/.test(ua) ? "Windows" :
-    /Linux/.test(ua) ? "Linux" : "—";
+    /Linux/.test(ua) ? "Linux" : "-";
   return { browser, os };
 }
 
@@ -77,7 +77,7 @@ export default function MeSecurityOverview() {
           </div>
         </div>
 
-        {/* Gap 1 — Security health card */}
+        {/* Gap 1 - Security health card */}
         <div
           className={`rounded-md p-5 flex items-center gap-4 border ${
             needsAttention
@@ -111,7 +111,7 @@ export default function MeSecurityOverview() {
           </Button>
         </div>
 
-        {/* Gap 2 — 4-column KPI grid */}
+        {/* Gap 2 - 4-column KPI grid */}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {/* KPI 1: Active sessions */}
           <div className="bg-white rounded-md px-5.5 py-5 min-h-26 flex flex-col gap-1.5">
@@ -129,7 +129,7 @@ export default function MeSecurityOverview() {
           <div className="bg-white rounded-md px-5.5 py-5 min-h-26 flex flex-col gap-1.5">
             <p className="font-mont text-sm font-medium text-gray-01">Last sign-in</p>
             <p className="font-semibold text-xl text-[#221122] leading-tight">
-              {lastLoginAt ? formatRelativeDate(lastLoginAt) : "—"}
+              {lastLoginAt ? formatRelativeDate(lastLoginAt) : "-"}
             </p>
             <p className="text-xs text-gray-01">
               {lastSessionUA ? `${lastUA.browser} on ${lastUA.os}` : ""}
@@ -148,7 +148,7 @@ export default function MeSecurityOverview() {
             <p
               className={`font-semibold text-2xl ${needsAttention ? "text-amber-700" : "text-[#221122]"}`}
             >
-              {failed7d ?? "—"}
+              {failed7d ?? "-"}
             </p>
             <button
               className="text-xs text-blue-600 hover:underline text-left w-fit"
@@ -201,7 +201,7 @@ export default function MeSecurityOverview() {
           </button>
         </div>
 
-        {/* Gaps 3–7 — Recent activity card */}
+        {/* Gaps 3–7 - Recent activity card */}
         <div className="bg-white rounded-md p-5">
           <div className="flex items-center justify-between mb-1">
             <p className="font-semibold text-sm">Recent activity</p>
@@ -214,7 +214,7 @@ export default function MeSecurityOverview() {
               See all →
             </Button>
           </div>
-          {/* Gap 7 — card subtitle */}
+          {/* Gap 7 - card subtitle */}
           <p className="text-xs text-gray-01 mb-3">Last 10 events on your account</p>
 
           {recentEvents.length === 0 ? (
@@ -223,12 +223,12 @@ export default function MeSecurityOverview() {
             <ul className="divide-y">
               {recentEvents.map((e) => (
                 <li key={e.id} className="py-2.5 flex items-start gap-3 text-xs">
-                  {/* Gap 4 — severity dot */}
+                  {/* Gap 4 - severity dot */}
                   <SevDot level={e.severity} />
                   <div className="flex-1 min-w-0">
-                    {/* Gap 3 — use summary over raw action_type */}
+                    {/* Gap 3 - use summary over raw action_type */}
                     <p className="font-medium leading-snug">{e.summary ?? e.action_type}</p>
-                    {/* Gap 5 — ip_address as secondary line */}
+                    {/* Gap 5 - ip_address as secondary line */}
                     {e.ip_address && (
                       <p className="text-gray-01 mt-0.5">{e.ip_address}</p>
                     )}

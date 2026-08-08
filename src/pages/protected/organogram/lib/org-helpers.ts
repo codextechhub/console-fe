@@ -1,5 +1,5 @@
 // Pure helpers for the organogram views. Operate on the API shapes
-// (organogramTypes) — no network, no React. The server already builds the
+// (organogramTypes) - no network, no React. The server already builds the
 // position tree; here we derive the people view from it and enrich with
 // staff-profile status, plus KPI math from the supporting lists.
 
@@ -74,10 +74,10 @@ export const EMP_TYPE_META: Record<EmploymentType, { label: string; cls: string 
 export const fmtDate = (s: string | null): string =>
   s
     ? new Date(s + "T00:00:00").toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
-    : "—";
+    : "-";
 
 export const yearsSince = (s: string | null): string => {
-  if (!s) return "—";
+  if (!s) return "-";
   const d = (Date.now() - new Date(s).getTime()) / (365.25 * 864e5);
   return d < 1 ? `${Math.round(d * 12)} mo` : `${d.toFixed(1)} yr`;
 };
@@ -188,7 +188,7 @@ export function buildPeopleTree(tree: OrganogramNode[], actingSet: Set<string>):
 }
 
 // Count everyone reporting under these children, directly or indirectly
-// (i.e. the full team size below a person — vacant ghosts excluded).
+// (i.e. the full team size below a person - vacant ghosts excluded).
 export function countAllReports(children: PeopleNode[]): number {
   let n = 0;
   for (const c of children) {
@@ -209,8 +209,8 @@ export function collectPeopleIds(nodes: PeopleNode[], acc: string[] = []): strin
 }
 
 // Person-node user ids from a root down to the matched user (inclusive).
-// Expanding exactly these ids reveals the user's chain — and their own direct
-// reports — while every other branch stays collapsed. Used to auto-focus the
+// Expanding exactly these ids reveals the user's chain - and their own direct
+// reports - while every other branch stays collapsed. Used to auto-focus the
 // chart on the logged-in viewer.
 export function findPeoplePathToUser(
   nodes: PeopleNode[],
@@ -356,7 +356,7 @@ export function computeKpis(args: {
   profiles: StaffProfileListItem[];
   assignments: CurrentOrganogramAssignment[];
   departmentsTotal: number;
-  // Distinct activated staff (from tree holders) — excludes pending-invite hires.
+  // Distinct activated staff (from tree holders) - excludes pending-invite hires.
   activeStaffCount: number;
 }): OrgKpis {
   const { positions, profiles, assignments, departmentsTotal, activeStaffCount } = args;

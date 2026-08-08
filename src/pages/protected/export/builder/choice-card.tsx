@@ -1,5 +1,5 @@
 // A selectable card wrapping the real Checkbox (or its single-select
-// equivalent) — used for datasets, formats and values mode.
+// equivalent) - used for datasets, formats and values mode.
 //
 // Selected reads as a primary border plus a --color-pry-01 fill. A choice that
 // is unavailable is DISABLED WITH THE REASON BESIDE IT, never hidden: "why can
@@ -20,7 +20,7 @@ export function ChoiceCard({
 }: {
   title: string;
   description?: string;
-  /** Short metadata, e.g. "47 fields". Monospace — it is a count. */
+  /** Short metadata, e.g. "47 fields". Monospace - it is a count. */
   tag?: string;
   selected: boolean;
   disabled?: boolean;

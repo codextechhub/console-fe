@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Record the auth-table state BEFORE driving, so scrub.sh can delete exactly the
-# rows the test login creates (precise, midnight-safe — keyed on ids/timestamp,
+# rows the test login creates (precise, midnight-safe - keyed on ids/timestamp,
 # not "today").
 set -euo pipefail
 

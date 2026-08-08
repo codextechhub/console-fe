@@ -1,4 +1,4 @@
-// General Ledger types — mirror vs_finance JournalEntry/JournalLine serializers
+// General Ledger types - mirror vs_finance JournalEntry/JournalLine serializers
 // + the Direct Entry write serializer. All money is integer kobo.
 
 import type { JournalLineView } from "@/components/finance-ui/journal-table";

@@ -1,5 +1,5 @@
 // RTK Query endpoints for the View Queues page (background jobs).
-// Backend: GET /v1/user/me/tasks/ and /v1/user/me/tasks/summary/ — both take
+// Backend: GET /v1/user/me/tasks/ and /v1/user/me/tasks/summary/ - both take
 // the same scope/status/kind/since params so the summary cards always match
 // the visible table scope. The page polls both every 10 s while visible.
 

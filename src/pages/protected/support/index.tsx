@@ -1,4 +1,4 @@
-// Support centre — ticket dashboard KPIs, filterable list and create modal
+// Support centre - ticket dashboard KPIs, filterable list and create modal
 // over /support/. Anyone authenticated may file a ticket; staff-side actions
 // live on the detail page. Built on the house kit: KpiCard, CustomTable
 // (phone cards + pagination), Dialog, Badge.
@@ -41,7 +41,7 @@ export default function Support() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
-  // /support/tickets/new is this same page with the composer open on arrival —
+  // /support/tickets/new is this same page with the composer open on arrival -
   // a deep-linkable "new ticket" URL (also reachable via the page button).
   const isNewRoute = useLocation().pathname === routesPath.PROTECTED.SUPPORT.NEW;
   const [creating, setCreating] = useState(isNewRoute);
@@ -98,16 +98,16 @@ export default function Support() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-6">
-          <KpiCard label="Total tickets" value={d?.total ?? "—"} />
-          <KpiCard label="Open" value={d?.by_status.OPEN ?? "—"} />
-          <KpiCard label="In progress" value={d?.by_status.IN_PROGRESS ?? "—"} />
+          <KpiCard label="Total tickets" value={d?.total ?? "-"} />
+          <KpiCard label="Open" value={d?.by_status.OPEN ?? "-"} />
+          <KpiCard label="In progress" value={d?.by_status.IN_PROGRESS ?? "-"} />
           <KpiCard
             label="Urgent"
-            value={d?.by_priority.URGENT ?? "—"}
+            value={d?.by_priority.URGENT ?? "-"}
             tone={d?.by_priority.URGENT ? "alert" : "default"}
           />
-          <KpiCard label="Assigned to me" value={d?.assigned_to_me ?? "—"} />
-          <KpiCard label="Resolved" value={d?.by_status.RESOLVED ?? "—"} />
+          <KpiCard label="Assigned to me" value={d?.assigned_to_me ?? "-"} />
+          <KpiCard label="Resolved" value={d?.by_status.RESOLVED ?? "-"} />
         </div>
 
         {/* Filters float on the page background, house-style. */}

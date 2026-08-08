@@ -75,7 +75,7 @@ export default function ApprovalDetail() {
 
   const rejectNote =
     onRejection === "TERMINAL"
-      ? "This stage is terminal on rejection — the workflow ends and the requester cannot resubmit this instance."
+      ? "This stage is terminal on rejection - the workflow ends and the requester cannot resubmit this instance."
       : onRejection === "RETURN_TO_REQUESTER"
         ? "On rejection this returns to the requester, who can correct the document and resubmit at this stage."
         : VOTE_COPY.REJECTED.note;
@@ -120,8 +120,8 @@ export default function ApprovalDetail() {
       activeStage.advance_rule === "ANY"
         ? "A single approval clears this step."
         : activeStage.advance_rule === "QUORUM"
-          ? `${approvedCount} of ${needed} approvals so far — ${needed} clear this step.`
-          : `${approvedCount} of ${needed} approvals so far — everyone must approve to clear this step.`;
+          ? `${approvedCount} of ${needed} approvals so far - ${needed} clear this step.`
+          : `${approvedCount} of ${needed} approvals so far - everyone must approve to clear this step.`;
 
     const finalizes = approvedCount + 1 >= needed;
     const remaining = Math.max(needed - (approvedCount + 1), 0);
@@ -129,7 +129,7 @@ export default function ApprovalDetail() {
 
     const approveNote = finalizes
       ? next?.is_final
-        ? "This is the final approval — the request will be fully approved."
+        ? "This is the final approval - the request will be fully approved."
         : next?.label
           ? `This completes “${activeStage.stage_label}” and sends the request to ${next.label}.`
           : `This completes “${activeStage.stage_label}” and moves the request forward.`
@@ -142,7 +142,7 @@ export default function ApprovalDetail() {
 
   // Progress line for the workflow panel header (e.g. "Stage 2 of 4 · …").
   // Skipped stages are hidden in the tracker, so they're excluded from the
-  // count and index here too — otherwise the numbers wouldn't match.
+  // count and index here too - otherwise the numbers wouldn't match.
   const stages = (instance?.stage_instances ?? []).filter((s) => s.status !== "SKIPPED");
   const activeIndex = stages.findIndex((s) => s.status === "ACTIVE");
   const progressText = !instance
@@ -364,19 +364,19 @@ function outcomeMessage(
   votedStageId?: string,
 ): string {
   if (action === "APPROVED") {
-    if (inst.status === "APPROVED") return "Approved — request fully approved.";
+    if (inst.status === "APPROVED") return "Approved - request fully approved.";
     const voted = inst.stage_instances.find((s) => s.id === votedStageId);
     if (voted && voted.status === "APPROVED") {
       return inst.current_stage_label
-        ? `Approved — moved to ${inst.current_stage_label}.`
-        : "Approved — workflow advanced.";
+        ? `Approved - moved to ${inst.current_stage_label}.`
+        : "Approved - workflow advanced.";
     }
     return "Approval recorded.";
   }
   if (action === "REJECTED") {
     return inst.status === "RETURNED"
-      ? "Rejected — returned to the requester."
-      : "Rejected — workflow ended.";
+      ? "Rejected - returned to the requester."
+      : "Rejected - workflow ended.";
   }
   return "Returned to the requester for corrections.";
 }

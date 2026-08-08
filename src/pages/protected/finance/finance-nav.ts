@@ -1,4 +1,4 @@
-// Finance console sidebar (§6) — grouped into labelled sections like the design
+// Finance console sidebar (§6) - grouped into labelled sections like the design
 // (Ledger & Setup / Receivables / Operations / Reports & Close). Items are flat
 // leaves (each a real route); each is gated by the backend key prefixes its
 // screen calls. Dashboard is pinned above the first group.

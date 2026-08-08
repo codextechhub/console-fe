@@ -160,7 +160,7 @@ export const routesPath = {
     TODO: {
       INDEX: "/tasks",
     },
-    // Export menu — more entries will be appended as export features ship.
+    // Export menu - more entries will be appended as export features ship.
     // Overview and Exports arrive with the builder (slice 2).
     EXPORT: {
       QUEUES: "/export/queues",
@@ -178,7 +178,7 @@ export const routesPath = {
       STAFF_CREATE: "/organogram/staff/create",
       STAFF_VIEW_PATH: "/organogram/staff/:id/view",
       STAFF_VIEW: (id: string | number) => `/organogram/staff/${id}/view`,
-      // Profile looked up by the OWNING USER's id — Team Management's View
+      // Profile looked up by the OWNING USER's id - Team Management's View
       // Details lands here (it knows user ids, not profile ids).
       STAFF_BY_USER_PATH: "/organogram/staff/by-user/:userId/view",
       STAFF_BY_USER: (userId: string | number) => `/organogram/staff/by-user/${userId}/view`,

@@ -45,14 +45,14 @@ const DETAIL_TABS = [
 ] as const;
 
 function shortDate(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(`${value}T00:00:00`));
 }
 function isForbidden(error: unknown) {
   return !!error && typeof error === "object" && "status" in error && error.status === 403;
 }
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return <div><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "—"}</dd></div>;
+  return <div><dt className="font-mont text-[11px] text-gray-05">{label}</dt><dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "-"}</dd></div>;
 }
 function EmptyPanel({ children }: { children: React.ReactNode }) {
   return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">{children}</div>;
@@ -74,7 +74,7 @@ export default function VendorPaymentsPage() {
   const columns: Column<VendorPayment>[] = [
     { header: "Payment Ref", cell: (payment) => <div className="min-w-40"><p className="font-mont text-sm font-semibold text-primary">{payment.document_number}</p><p className="mt-1 max-w-44 truncate text-[11px] text-gray-05">{payment.reference || "No bank reference"}</p></div> },
     { header: "Vendor", cell: (payment) => <div className="min-w-36"><p className="font-semibold">{payment.vendor_name || payment.vendor_code}</p><p className="mt-0.5 text-[11px] text-gray-05">{payment.vendor_code}</p></div> },
-    { header: "Invoice(s)", cell: (payment) => <span className="block max-w-44 truncate">{payment.allocations.map((row) => row.invoice_number).join(", ") || "—"}</span> },
+    { header: "Invoice(s)", cell: (payment) => <span className="block max-w-44 truncate">{payment.allocations.map((row) => row.invoice_number).join(", ") || "-"}</span> },
     { header: "Date", cell: (payment) => shortDate(payment.payment_date) },
     { header: "Method", cell: (payment) => payment.method.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) },
     { header: "Net Paid", align: "right", cell: (payment) => <span className="font-semibold tabular-nums">{formatMoney(payment.net_amount, currency)}</span> },

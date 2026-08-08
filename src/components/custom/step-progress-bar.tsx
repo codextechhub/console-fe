@@ -1,7 +1,7 @@
 // Wizard step bar: dashed connectors, uppercase micro-labels, one dot per step.
 //
 // Steps are clickable when `onStepClick` is given, because blocking validation
-// belongs on the review step rather than on the gates between steps — someone
+// belongs on the review step rather than on the gates between steps - someone
 // who wants to jump back to step 2 and change a column should not have to click
 // "Back" three times. A step carrying validation errors shows a count instead of
 // its dot, so the step bar itself says where the problem is.

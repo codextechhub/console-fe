@@ -36,7 +36,7 @@ export interface AllRolesRes extends PaginatedResponse {
 }
 export interface Role {
   id: string
-  /** Per-tenant role key — the value user-create sends as `role`. */
+  /** Per-tenant role key - the value user-create sends as `role`. */
   key: string
   name: string
   status: string

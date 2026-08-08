@@ -1,5 +1,5 @@
 // Procurement analytics report shapes (§7.5). Money fields are the backend's
-// `{kobo, naira}` pair (same as the vs_finance reports) — read `.kobo`.
+// `{kobo, naira}` pair (same as the vs_finance reports) - read `.kobo`.
 
 import type { ReportMoney } from "../finance/reports-types";
 
@@ -139,7 +139,7 @@ export interface GrirBalance {
   is_clear: boolean;
 }
 
-// GR/IR aging — per-GRN open positions (received-not-invoiced when open_value>0,
+// GR/IR aging - per-GRN open positions (received-not-invoiced when open_value>0,
 // invoiced-not-received when <0). Rows with open_value==0 are excluded server-side.
 export interface GrirAgingRow {
   grn_id: number;
@@ -164,7 +164,7 @@ export interface GrirAging {
   difference: ReportMoney;
 }
 
-// AP cash-requirements forecast — open bills bucketed by days-until-due.
+// AP cash-requirements forecast - open bills bucketed by days-until-due.
 export interface ApCashRequirementsRow {
   vendor_id: number;
   code: string;
@@ -181,7 +181,7 @@ export interface ApCashRequirements {
   total_due: ReportMoney;
 }
 
-// Spend group row — the backend always emits key/label/net/tax/gross/invoice_count.
+// Spend group row - the backend always emits key/label/net/tax/gross/invoice_count.
 export interface SpendRow {
   key: string;
   label: string;
@@ -296,7 +296,7 @@ export interface ApVendorDetail {
   invoices: ApVendorOpenBill[];
 }
 
-// GR/IR at the PO-line grain — ordered vs received vs invoiced per PO line, with a
+// GR/IR at the PO-line grain - ordered vs received vs invoiced per PO line, with a
 // derived status. Quantities are decimal strings (exact); values are `{kobo, naira}`.
 export interface GrirPoLineRow {
   po_line_id: number;

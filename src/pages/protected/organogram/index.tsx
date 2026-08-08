@@ -1,4 +1,4 @@
-// Organogram — Org Chart page. Tabs: People (derived) & Positions (server tree),
+// Organogram - Org Chart page. Tabs: People (derived) & Positions (server tree),
 // with KPI strip, global search, dept filter, expand/collapse, matrix toggle and
 // a detail drawer. Wired to the vs_user organogram API.
 
@@ -94,7 +94,7 @@ export default function OrganogramPage() {
     [positions, profilesList, assignments, orgNodes, tree],
   );
 
-  // Org-unit filter options — grouped by tier, plain names.
+  // Org-unit filter options - grouped by tier, plain names.
   const nodeOptions = useMemo(() => {
     const rank = { DIVISION: 0, DEPARTMENT: 1, TEAM: 2 } as const;
     return [...orgNodes]
@@ -124,7 +124,7 @@ export default function OrganogramPage() {
   // Zoom is applied IMPERATIVELY to the DOM on every wheel event (the way
   // canvas tools like Figma/Miro do it): the live value lives in zoomRef and is
   // written straight to the wrapper's style + a cursor-anchored scroll
-  // correction in the same event — no per-event React render, no quantising.
+  // correction in the same event - no per-event React render, no quantising.
   // React state mirrors it once per animation frame purely for the % readout.
   const [zoom, setZoom] = useState(1);
   const zoomRef = useRef(1);
@@ -133,7 +133,7 @@ export default function OrganogramPage() {
   const [panning, setPanning] = useState(false);
   const panRef = useRef<{ x: number; y: number; sl: number; st: number } | null>(null);
 
-  // Continuous clamp — no rounding. Rounding ate trackpad pinch deltas (~0.3%
+  // Continuous clamp - no rounding. Rounding ate trackpad pinch deltas (~0.3%
   // per event → rounded to nothing → sudden 1% jumps); the readout rounds, the
   // value itself stays smooth.
   const clampZoom = (z: number) => Math.min(1.5, Math.max(0.4, z));
@@ -163,8 +163,8 @@ export default function OrganogramPage() {
     }
   };
 
-  // Ctrl/Cmd + wheel (and trackpad pinch — browsers report pinch as ctrl+wheel)
-  // zooms, anchored at the cursor. Native non-passive listener — React's
+  // Ctrl/Cmd + wheel (and trackpad pinch - browsers report pinch as ctrl+wheel)
+  // zooms, anchored at the cursor. Native non-passive listener - React's
   // onWheel is passive, so preventDefault (needed to suppress the browser's
   // page zoom) would be ignored there.
   useEffect(() => {
@@ -174,7 +174,7 @@ export default function OrganogramPage() {
       if (!(e.ctrlKey || e.metaKey)) return;
       e.preventDefault();
       // Normalise line-mode deltas (Firefox) to pixels; multiplicative and
-      // proportional to the gesture — gentle pinch glides, a hard wheel flick
+      // proportional to the gesture - gentle pinch glides, a hard wheel flick
       // moves ~25% per tick.
       const deltaPx = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
       const factor = Math.exp(-deltaPx * 0.0022);
@@ -193,7 +193,7 @@ export default function OrganogramPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Drag-to-pan from the chart background only — cards stay clickable.
+  // Drag-to-pan from the chart background only - cards stay clickable.
   const onPanStart = (e: React.PointerEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("[data-card], button, a")) return;
     const cont = scrollRef.current;
@@ -262,7 +262,7 @@ export default function OrganogramPage() {
   const closeDetail = () => setTarget(null);
 
   // Toggling a branch re-centres the viewport on that node (and the branches it
-  // just revealed) at the CURRENT zoom level — scrollIntoView is layout-based,
+  // just revealed) at the CURRENT zoom level - scrollIntoView is layout-based,
   // so the zoom state is untouched. The rAF inside scrollToNode runs after
   // React commits the expanded children.
   const togglePos = (id: number) => {
@@ -313,7 +313,7 @@ export default function OrganogramPage() {
       if (!cont) return;
       const el = cont.querySelector(selector) as HTMLElement | null;
       if (!el) return;
-      // Chart layout scrolls on both axes — center the card in the viewport.
+      // Chart layout scrolls on both axes - center the card in the viewport.
       el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
     });
   };
@@ -326,7 +326,7 @@ export default function OrganogramPage() {
     const raf = requestAnimationFrame(() => {
       const cont = scrollRef.current;
       const el = cont?.querySelector(`[data-uid="${pendingScrollUid}"]`) as HTMLElement | null;
-      // Chart layout scrolls on both axes — center the card in the viewport.
+      // Chart layout scrolls on both axes - center the card in the viewport.
       if (cont && el) el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
     });
     const timer = setTimeout(() => {
@@ -386,7 +386,7 @@ export default function OrganogramPage() {
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-semibold font-mont text-gray-01">Organisation Chart</p>
-              <p className="text-xs text-gray-01 mt-0.5">CX staff reporting structure — seats, holders, and vacancies.</p>
+              <p className="text-xs text-gray-01 mt-0.5">CX staff reporting structure - seats, holders, and vacancies.</p>
             </div>
             <OrgSearch posMap={posMap} profiles={profilesList} onJumpUser={jumpToUser} onJumpPosition={jumpToPosition} />
           </div>
@@ -452,7 +452,7 @@ export default function OrganogramPage() {
           </div>
         </div>
 
-        {/* chart — scrolls on both axes; zoomable (Ctrl+wheel / controls) and
+        {/* chart - scrolls on both axes; zoomable (Ctrl+wheel / controls) and
             pannable by dragging the background. Cards remain clickable. */}
         <div className="relative">
           <div
@@ -464,7 +464,7 @@ export default function OrganogramPage() {
             className={cn(
               // Fixed-height stage: the chart always owns this whole area, so
               // zoom/pan gestures work anywhere in it even when the diagram is
-              // tiny — Ctrl+wheel below a shrunken chart can never leak into the
+              // tiny - Ctrl+wheel below a shrunken chart can never leak into the
               // browser's page zoom. flex + m-auto centres small content.
               "flex h-[calc(100vh-19rem)] touch-pan-x touch-pan-y select-none overflow-auto overscroll-contain",
               panning ? "cursor-grabbing" : "cursor-grab",
@@ -550,7 +550,7 @@ function OrgSearch({
     if (!term) return [] as Array<{ kind: "person"; user: UserInline; sub: string } | { kind: "position"; id: number; title: string; sub: string }>;
     const out: Array<{ kind: "person"; user: UserInline; sub: string } | { kind: "position"; id: number; title: string; sub: string }> = [];
     for (const p of profiles) {
-      // Match on email too; the result row still leads with the person's name —
+      // Match on email too; the result row still leads with the person's name -
       // the email shows in the sub line so it's clear why it matched.
       const emailHit = p.user.email.toLowerCase().includes(term);
       const textHit = (p.user.full_name + " " + (p.job_title ?? "") + " " + (p.department?.name ?? ""))

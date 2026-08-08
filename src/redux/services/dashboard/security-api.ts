@@ -96,7 +96,7 @@ export const securityApi = baseApi.injectEndpoints({
       providesTags: ["ImpersonationSessions"],
     }),
 
-    // Start asserts the TARGET tenant's slug (?tenant=<slug>) — the one place a
+    // Start asserts the TARGET tenant's slug (?tenant=<slug>) - the one place a
     // platform admin addresses another tenant directly. Because the request
     // carries its own tenant param, the central injection leaves it untouched.
     startImpersonation: builder.mutation<{ data: ImpersonationSession }, { tenant_slug: string; target_user: number }>({

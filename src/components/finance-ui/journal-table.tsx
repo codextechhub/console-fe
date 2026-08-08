@@ -1,4 +1,4 @@
-// <JournalTable lines={…} /> — the Dr/Cr table shown on every "view journal"
+// <JournalTable lines={…} /> - the Dr/Cr table shown on every "view journal"
 // drawer. Mirrors vs_finance JournalLineSerializer (debit/credit are integer
 // kobo) and shows column totals with a "Balanced ✓" indicator (Σdebit must
 // equal Σcredit for a valid double-entry posting).
@@ -67,13 +67,13 @@ export function JournalTable({
                 ) : null}
               </TableCell>
               <TableCell className={cn(cellCls, "text-gray-01")}>
-                {line.description || "—"}
+                {line.description || "-"}
               </TableCell>
               <TableCell className={cellCls}>
-                {line.debit ? <Money kobo={line.debit} currency={currency} align="right" /> : <span className="block text-right text-gray-05">—</span>}
+                {line.debit ? <Money kobo={line.debit} currency={currency} align="right" /> : <span className="block text-right text-gray-05">-</span>}
               </TableCell>
               <TableCell className={cellCls}>
-                {line.credit ? <Money kobo={line.credit} currency={currency} align="right" /> : <span className="block text-right text-gray-05">—</span>}
+                {line.credit ? <Money kobo={line.credit} currency={currency} align="right" /> : <span className="block text-right text-gray-05">-</span>}
               </TableCell>
             </TableRow>
           ))}

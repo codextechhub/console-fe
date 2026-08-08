@@ -1,4 +1,4 @@
-// Health module entry — one lazy chunk for all seven screens, dispatched by
+// Health module entry - one lazy chunk for all seven screens, dispatched by
 // pathname (the sidebar children link straight to each sub-route).
 
 import { useLocation } from "react-router";

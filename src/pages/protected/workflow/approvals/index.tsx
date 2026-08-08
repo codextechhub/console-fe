@@ -250,7 +250,7 @@ function ApprovalRow({
             ? formatRelativeDate(item.awaiting_since)
             : item.submitted_at
               ? formatRelativeDate(item.submitted_at)
-              : "—"}
+              : "-"}
         </div>
         <span className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white">
           Review <ChevronRight className="size-4" />

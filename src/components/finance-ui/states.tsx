@@ -21,7 +21,7 @@ function Centered({ children, className }: { children: React.ReactNode; classNam
 }
 
 /**
- * Block loading state for panels, drawers and detail sections — anywhere the
+ * Block loading state for panels, drawers and detail sections - anywhere the
  * incoming content is NOT a <table>. Pass `columns` when the block previews a
  * tabular/record layout and each ghost row splits into that many ragged cells;
  * omit it (the default) for the stacked field lists drawers show.

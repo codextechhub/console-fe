@@ -19,7 +19,7 @@ export function OrgAvatar({
   status?: EmploymentStatus | null;
 }) {
   const blobUrl = useUserPhoto(user?.id);
-  const initials = user ? initialsOf(user.full_name) || "—" : "—";
+  const initials = user ? initialsOf(user.full_name) || "-" : "-";
   const color = user ? avatarColor(user.id) : "bg-slate-100 text-slate-400";
   const st = status ? STATUS_META[status] : null;
   return (

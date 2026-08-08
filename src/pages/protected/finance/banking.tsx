@@ -55,16 +55,16 @@ import { todayISO } from "@/utils/posting-window";
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
-const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 const partialMask = (n: string) => {
   const s = n.replace(/\s+/g, "");
   return s.length <= 4 ? s : `${s.slice(0, 4)} **** ${s.slice(-4)}`;
 };
 // Detail-drawer subtitle keeps the full (sensitive) number; the list uses partial.
 const maskedNumber = (a: { account_number?: string; _stripped_fields?: string[] }) =>
-  isStripped(a, "account_number") ? "••••" : (a.account_number || "—");
+  isStripped(a, "account_number") ? "••••" : (a.account_number || "-");
 const listAcctNo = (a: { account_number?: string; _stripped_fields?: string[] }) =>
-  isStripped(a, "account_number") ? "••••" : (a.account_number ? partialMask(a.account_number) : "—");
+  isStripped(a, "account_number") ? "••••" : (a.account_number ? partialMask(a.account_number) : "-");
 
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -112,7 +112,7 @@ export default function BankingPage() {
       </div>
     ) },
     { header: "GL", cell: (a) => <span className="tabular-nums text-gray-05">{a.gl_account}</span> },
-    { header: "Currency", cell: (a) => a.currency ?? "—" },
+    { header: "Currency", cell: (a) => a.currency ?? "-" },
     { header: "Book balance", align: "right", cell: (a) => <Money kobo={a.book_balance} currency={currency} align="right" /> },
     { header: "Last reconciled", cell: (a) => <span className="tabular-nums text-gray-05">{fmtDate(a.last_reconciled_at)}</span> },
     { header: "Status", cell: (a) => <StatusPill status={a.is_active ? "ACTIVE" : "INACTIVE"} /> },
@@ -129,7 +129,7 @@ export default function BankingPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Bank Accounts</h1>
-              <InfoHint ariaLabel="About bank accounts">Each bank account maps 1:1 to a GL cash account — the ledger's book balance. Import the bank's statement and reconcile to explain every difference (in-flight items, charges); auto-reconcile pairs lines by amount and date.</InfoHint>
+              <InfoHint ariaLabel="About bank accounts">Each bank account maps 1:1 to a GL cash account - the ledger's book balance. Import the bank's statement and reconcile to explain every difference (in-flight items, charges); auto-reconcile pairs lines by amount and date.</InfoHint>
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Bank accounts, statement import and reconciliation.</p>
           </div>
@@ -205,7 +205,7 @@ function BankAccountDrawer({ account, entity, currency, onClose }: { account: Ba
       <DetailDrawer
         open={!!account} onOpenChange={(o) => (o ? undefined : onClose())}
         title={account.name}
-        description={`${account.bank_name || "—"} · ${account.gl_account} · ${maskedNumber(account)}`}
+        description={`${account.bank_name || "-"} · ${account.gl_account} · ${maskedNumber(account)}`}
         widthClass="sm:max-w-3xl"
         footer={
           <>
@@ -309,9 +309,9 @@ function TransactionsTab({ detail, currency }: { detail?: { transactions: import
             <tr key={t.id}>
               <td className={cn(tdCls, "tabular-nums text-gray-05")}>{fmtDate(t.date)}</td>
               <td className={tdCls}>{t.description}</td>
-              <td className={cn(tdCls, "tabular-nums text-gray-05")}>{t.reference || "—"}</td>
-              <td className={cn(tdCls, "text-right tabular-nums")}>{t.debit ? <span className="text-black-01">{formatMoney(t.debit, currency)}</span> : <span className="text-gray-05">—</span>}</td>
-              <td className={cn(tdCls, "text-right tabular-nums text-green-01")}>{t.credit ? formatMoney(t.credit, currency) : <span className="text-gray-05">—</span>}</td>
+              <td className={cn(tdCls, "tabular-nums text-gray-05")}>{t.reference || "-"}</td>
+              <td className={cn(tdCls, "text-right tabular-nums")}>{t.debit ? <span className="text-black-01">{formatMoney(t.debit, currency)}</span> : <span className="text-gray-05">-</span>}</td>
+              <td className={cn(tdCls, "text-right tabular-nums text-green-01")}>{t.credit ? formatMoney(t.credit, currency) : <span className="text-gray-05">-</span>}</td>
               <td className={cn(tdCls, "text-right tabular-nums font-medium")}>{formatMoney(t.running_balance, currency)}</td>
               <td className={cn(tdCls, "text-center")}>{t.matched ? <span title="Reconciled" className="text-green-01">✓</span> : null}</td>
             </tr>
@@ -352,8 +352,8 @@ function StatementLinesTab({ id, entity, currency }: { id: number; entity: strin
             {lines.map((l) => (
               <tr key={l.id}>
                 <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.txn_date}</td>
-                <td className={tdCls}>{l.description || "—"}</td>
-                <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.reference || "—"}</td>
+                <td className={tdCls}>{l.description || "-"}</td>
+                <td className={cn(tdCls, "tabular-nums text-gray-05")}>{l.reference || "-"}</td>
                 <td className={cn(tdCls, "text-right tabular-nums", l.amount < 0 ? "text-destructive" : "text-black-01")}>{formatMoney(l.amount, currency)}</td>
                 <td className={tdCls}><StatusPill status={l.status} /></td>
                 {canDelete ? (
@@ -415,7 +415,7 @@ function StatementsTab({
           {sts.map((s) => (
             <tr key={s.id}>
               <td className={cn(tdCls, "tabular-nums")}>{fmtDate(s.statement_date)}</td>
-              <td className={tdCls}>{s.period_label || "—"}</td>
+              <td className={tdCls}>{s.period_label || "-"}</td>
               <td className={cn(tdCls, "text-right tabular-nums")}>{formatMoney(s.opening_balance, currency)}</td>
               <td className={cn(tdCls, "text-right tabular-nums font-medium")}>{formatMoney(s.closing_balance, currency)}</td>
               <td className={cn(tdCls, "text-right tabular-nums text-gray-05")}>{s.line_count}</td>
@@ -462,7 +462,7 @@ function ReconciliationsTab({ detail, currency }: { detail?: { reconciliations: 
               <td className={cn(tdCls, "text-right tabular-nums", r.difference !== 0 ? "text-destructive" : "")}>{formatMoney(r.difference, currency)}</td>
               <td className={cn(tdCls, "text-right tabular-nums text-gray-05")}>{r.matched_count}</td>
               <td className={tdCls}><span className={cn(PILL, r.status === "BALANCED" ? "bg-green-01/10 text-green-01" : "bg-amber-50 text-amber-700")}>{r.status_display}</span></td>
-              <td className={cn(tdCls, "text-gray-05")}>{r.performed_by_name || "—"}</td>
+              <td className={cn(tdCls, "text-gray-05")}>{r.performed_by_name || "-"}</td>
             </tr>
           ))}
         </tbody>
@@ -742,7 +742,7 @@ function ImportStatementDrawer({ id, entity, onClose }: { id: number; entity: st
         })),
       }).unwrap();
       const held = res.data?.suspected_duplicates?.length ?? 0;
-      // Some rows look like duplicates of existing lines — keep the drawer open and
+      // Some rows look like duplicates of existing lines - keep the drawer open and
       // let the user decide to import them anyway (force), rather than double a charge.
       if (held > 0 && !force) {
         setDupWarning(held);
@@ -1037,7 +1037,7 @@ function CreateBankAccountModal({ open, onClose, entity }: { open: boolean; onCl
     >
       <div className="space-y-4">
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
-          The GL cash account is the ledger's book balance for this bank account (1:1). Money still only moves through journals — this adds the banking metadata and anchors reconciliation.
+          The GL cash account is the ledger's book balance for this bank account (1:1). Money still only moves through journals - this adds the banking metadata and anchors reconciliation.
         </p>
         <FormField label="Account name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. GTBank Operations" className="bg-white" /></FormField>
         <div className="grid grid-cols-2 gap-3">

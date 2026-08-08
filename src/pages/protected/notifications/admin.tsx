@@ -1,4 +1,4 @@
-// Notification administration — the platform-side surfaces split out of the
+// Notification administration - the platform-side surfaces split out of the
 // personal inbox: delivery history, the effective settings matrix, template
 // editing and the event-type catalogue. Gated on any communication.* key;
 // each tab additionally requires its own key.

@@ -34,8 +34,8 @@ interface SliceShapeProps {
 }
 
 /**
- * Slice renderer (recharts `shape`). The hovered slice — matched by name
- * against the controlled `activeName` — is pushed outward along its mid-angle
+ * Slice renderer (recharts `shape`). The hovered slice - matched by name
+ * against the controlled `activeName` - is pushed outward along its mid-angle
  * via a CSS transform (so the pull-out animates smoothly), given an outer
  * accent ring and an extra "% of downtime" line. The transform is applied to
  * the whole group so the sector + its label move together.

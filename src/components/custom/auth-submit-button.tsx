@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  * underneath. Nothing changes size, so a failure can drop straight back to the
  * form without the layout lurching.
  *
- * Progress copy is deliberately not staged on a timer — there is a single
+ * Progress copy is deliberately not staged on a timer - there is a single
  * request in flight and inventing "verifying…" steps would be fiction. The one
  * escalation is `slowStatus`, shown only once the request outlives
  * SLOW_AFTER_MS, which is real information: it is taking longer than normal.
@@ -34,7 +34,7 @@ export function AuthSubmitButton({
   className,
 }: {
   label: string;
-  /** Request in flight — drives the whole progress treatment. */
+  /** Request in flight - drives the whole progress treatment. */
   busy: boolean;
   /** Form-level gating (invalid, untouched); `busy` disables on its own. */
   disabled?: boolean;

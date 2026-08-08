@@ -130,7 +130,7 @@ export function QueryState({ loading, error, retry }: { loading: boolean; error:
 }
 
 /** KPI tile on the house KpiCard. Deltas go in the foot as plain text because
- *  "up" is bad for latency/errors — KpiCard's coloured delta assumes up=good. */
+ *  "up" is bad for latency/errors - KpiCard's coloured delta assumes up=good. */
 export function HealthKpi({
   label,
   value,

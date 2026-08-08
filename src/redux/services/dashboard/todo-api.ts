@@ -1,4 +1,4 @@
-// RTK Query endpoints for the Tasks tool — "ToDo — Org Accountability" (vs_todo).
+// RTK Query endpoints for the Tasks tool - "ToDo - Org Accountability" (vs_todo).
 // Mounted backend-side at .../v1/todo/*. Access is gated to CX staff; what a
 // person sees and who they may assign to is enforced structurally by the
 // organogram on the server, so these endpoints just return ready-to-render data.
@@ -34,7 +34,7 @@ export const todoApi = baseApi.injectEndpoints({
       providesTags: ["TodoDashboard"],
     }),
 
-    // Who the viewer may assign a task to — everyone in their area below them.
+    // Who the viewer may assign a task to - everyone in their area below them.
     getTodoAssignable: builder.query<DataEnvelope<Person[]>, void>({
       query: () => ({ url: `/todo/assignable/`, method: "GET" }),
       providesTags: ["TodoAssignable"],

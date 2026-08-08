@@ -1,4 +1,4 @@
-// Journal detail drawer — design topology: header (no · date · period · source),
+// Journal detail drawer - design topology: header (no · date · period · source),
 // four stat cards (Status / Total Dr / Total Cr / Difference), the Dr/Cr lines
 // table with cost centres + totals, a teaching note, and a footer with the author
 // + the safe reversal/void action for this journal's source + Print.
@@ -70,7 +70,7 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
         footer={
           <div className="flex w-full flex-wrap items-center justify-between gap-3">
             <span className="font-mont text-xs text-gray-05">
-              Created by {j?.created_by ?? "—"}{j?.posted_at ? ` · Posted ${new Date(j.posted_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+              Created by {j?.created_by ?? "-"}{j?.posted_at ? ` · Posted ${new Date(j.posted_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}
             </span>
             <div className="flex flex-wrap items-center gap-2">
               {j?.status === "DRAFT" && (
@@ -131,11 +131,11 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
                       return (
                       <tr key={l.id}>
                         <td className={td}><span className="font-semibold tabular-nums">{l.account_code}</span><span className="ml-2 text-gray-01">{l.account_name}</span></td>
-                        <td className={cn(td, "max-w-xs truncate text-gray-05")}>{l.description || "—"}</td>
-                        <td className={cn(td, "text-gray-05")}>{l.cost_center || "—"}</td>
-                        <td className={td}>{dims.length ? <span className="flex flex-wrap gap-1">{dims.map(([k, v]) => <span key={k} className="rounded bg-gray-02/70 px-1.5 py-0.5 font-mont text-[10px] text-gray-01">{k}: {v}</span>)}</span> : <span className="text-gray-05">—</span>}</td>
-                        <td className={cn(td, "text-right tabular-nums")}>{l.debit ? <Money kobo={l.debit} currency={currency} align="right" /> : "—"}</td>
-                        <td className={cn(td, "text-right tabular-nums")}>{l.credit ? <Money kobo={l.credit} currency={currency} align="right" /> : "—"}</td>
+                        <td className={cn(td, "max-w-xs truncate text-gray-05")}>{l.description || "-"}</td>
+                        <td className={cn(td, "text-gray-05")}>{l.cost_center || "-"}</td>
+                        <td className={td}>{dims.length ? <span className="flex flex-wrap gap-1">{dims.map(([k, v]) => <span key={k} className="rounded bg-gray-02/70 px-1.5 py-0.5 font-mont text-[10px] text-gray-01">{k}: {v}</span>)}</span> : <span className="text-gray-05">-</span>}</td>
+                        <td className={cn(td, "text-right tabular-nums")}>{l.debit ? <Money kobo={l.debit} currency={currency} align="right" /> : "-"}</td>
+                        <td className={cn(td, "text-right tabular-nums")}>{l.credit ? <Money kobo={l.credit} currency={currency} align="right" /> : "-"}</td>
                       </tr>
                       );
                     })}

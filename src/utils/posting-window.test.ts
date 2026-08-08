@@ -41,7 +41,7 @@ describe("isWithinRanges", () => {
   });
 
   it("treats an empty range list as unconstrained", () => {
-    // No window means we could not read one (403, offline) — the field must stay
+    // No window means we could not read one (403, offline) - the field must stay
     // usable and let the backend guard have the final say, never lock the user out.
     expect(isWithinRanges("1999-01-01", [])).toBe(true);
   });
@@ -95,7 +95,7 @@ describe("bookingDateFor", () => {
 
   it("moves forward to the earliest open day after a closed date", () => {
     // A March charge belongs in May (the next open month), not in whatever month
-    // happens to be current — this is what distinguishes it from nearestOpenDate.
+    // happens to be current - this is what distinguishes it from nearestOpenDate.
     expect(bookingDateFor("2026-03-15", GAPPED)).toBe("2026-05-01");
   });
 
@@ -131,7 +131,7 @@ describe("blockedReason", () => {
   });
 
   it("distinguishes a date no period covers at all", () => {
-    // Not the same problem as a closed month — nobody has opened that year yet.
+    // Not the same problem as a closed month - nobody has opened that year yet.
     expect(blockedReason("2029-01-01", GAPPED, blocked)).toBe(
       "No fiscal period covers this date.",
     );

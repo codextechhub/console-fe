@@ -78,7 +78,7 @@ export function ApproverPreview({ stage, requester }: { stage: StageForm; reques
       {data && (
         empty ? (
           <div className="mt-2 inline-flex items-center gap-1.5 text-[11.5px] font-medium text-yellow-01">
-            <TriangleAlert className="size-3.5" /> No eligible approvers{stage.skip_if_no_approvers ? " — stage auto-skips" : " — stage would stall"}.
+            <TriangleAlert className="size-3.5" /> No eligible approvers{stage.skip_if_no_approvers ? " - stage auto-skips" : " - stage would stall"}.
           </div>
         ) : (
           <div className="mt-2 flex flex-wrap gap-1.5">

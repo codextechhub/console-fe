@@ -103,7 +103,7 @@ export default function MyPrivacy() {
             iconName={Download}
             accentIcon
             title="Download a copy of your data"
-            description="Includes sign-in history, audit events on your account, and your profile data — packaged as a ZIP. Ready in about 5 minutes."
+            description="Includes sign-in history, audit events on your account, and your profile data - packaged as a ZIP. Ready in about 5 minutes."
             actionLabel="Request export"
             onAction={handleExportMyActivity}
             actionLoading={isLoading}
@@ -122,7 +122,7 @@ export default function MyPrivacy() {
           <InfoCard
             iconName={Clock}
             title="Retention policy"
-            description="Driven by your school's active retention rules — see what's kept and for how long."
+            description="Driven by your school's active retention rules - see what's kept and for how long."
             actionLabel="View policy"
           >
             <div className="rounded-md bg-gray-50 px-4 py-3 space-y-2">

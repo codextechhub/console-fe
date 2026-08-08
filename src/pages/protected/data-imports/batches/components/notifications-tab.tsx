@@ -40,7 +40,7 @@ export function NotificationsTab({ batchId }: { batchId: number }) {
             <p className="text-sm text-black-01 mt-1 font-medium">{n.title}</p>
             <p className="text-xs text-gray-01 mt-0.5">{n.body}</p>
             <p className="text-[10px] text-gray-400 mt-1">
-              {n.recipient?.full_name || n.recipient?.email || "—"}
+              {n.recipient?.full_name || n.recipient?.email || "-"}
               {n.sent_at && <span className="ml-2">{formatRelativeDate(n.sent_at)}</span>}
             </p>
             {n.error_message && (

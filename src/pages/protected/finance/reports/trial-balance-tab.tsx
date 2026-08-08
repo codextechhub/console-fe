@@ -1,4 +1,4 @@
-// Trial Balance — rebuilt to the Vision prototype in the house theme. The TB is the
+// Trial Balance - rebuilt to the Vision prototype in the house theme. The TB is the
 // balanced list of every account's net position; it's the input to the Income Statement
 // (income/expense) and Balance Sheet (asset/liability/equity), so an imbalance is
 // investigated before any other statement. KPIs + a period filter + account-type filter +
@@ -83,7 +83,7 @@ export function TrialBalanceReport({ entity, currency }: { entity: string; curre
       <div className="flex items-center gap-1.5">
         <span className="font-mont text-sm font-semibold text-gray-01">Trial balance</span>
         <InfoHint ariaLabel="About the trial balance">
-          The trial balance always totals equal — every debit has a matching credit. It's the input to the <span className="font-semibold">Income Statement</span> (income &amp; expense) and the <span className="font-semibold">Balance Sheet</span> (asset, liability &amp; equity); investigate any imbalance here before producing those.
+          The trial balance always totals equal - every debit has a matching credit. It's the input to the <span className="font-semibold">Income Statement</span> (income &amp; expense) and the <span className="font-semibold">Balance Sheet</span> (asset, liability &amp; equity); investigate any imbalance here before producing those.
         </InfoHint>
       </div>
 
@@ -145,12 +145,12 @@ export function TrialBalanceReport({ entity, currency }: { entity: string; curre
                   <td className="px-3 py-2 tabular-nums text-gray-05">{r.code}</td>
                   <td className="px-3 py-2 font-medium text-gray-01">{r.name}</td>
                   <td className="px-3 py-2"><TypePill t={r.account_type} /></td>
-                  <td className="px-3 py-2 text-right tabular-nums">{r.debit.kobo ? <Money kobo={r.debit.kobo} currency={currency} align="right" /> : "—"}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{r.credit.kobo ? <Money kobo={r.credit.kobo} currency={currency} align="right" /> : "—"}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{r.debit.kobo ? <Money kobo={r.debit.kobo} currency={currency} align="right" /> : "-"}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{r.credit.kobo ? <Money kobo={r.credit.kobo} currency={currency} align="right" /> : "-"}</td>
                   {comparing ? (
                     <>
-                      <td className="px-3 py-2 text-right tabular-nums text-gray-05">{pri ? formatMoney(Math.abs(pri), currency) : "—"}</td>
-                      <td className={cn("px-3 py-2 text-right tabular-nums", change > 0 ? "text-green-01" : change < 0 ? "text-destructive" : "text-gray-04")}>{change ? signed(change, currency) : "—"}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-gray-05">{pri ? formatMoney(Math.abs(pri), currency) : "-"}</td>
+                      <td className={cn("px-3 py-2 text-right tabular-nums", change > 0 ? "text-green-01" : change < 0 ? "text-destructive" : "text-gray-04")}>{change ? signed(change, currency) : "-"}</td>
                     </>
                   ) : null}
                 </tr>

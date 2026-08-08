@@ -79,7 +79,7 @@ export const setupApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/fiscal-years/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePeriods"],
     }),
-    // Which dates accept a posting today — feeds every document-date picker in both
+    // Which dates accept a posting today - feeds every document-date picker in both
     // consoles. Gated on finance-or-procurement module access (not finance.period.view)
     // so a procurement officer raising a GRN can read it, and un-paginated because
     // /finance/periods/ pages at 25 oldest-first: the current periods fall off page one.
@@ -100,7 +100,7 @@ export const setupApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/finance/periods/${id}/reopen/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinancePeriods", "FinanceReports"],
     }),
-    // Permanently seal a CLOSED period — irreversible.
+    // Permanently seal a CLOSED period - irreversible.
     lockPeriod: b.mutation<ApiEnvelope<FiscalPeriod>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({ url: `/finance/periods/${id}/lock/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinancePeriods", "FinanceReports"],

@@ -5,7 +5,7 @@
 // turn into a button, and which are genuinely out-of-band.
 //
 // The distinction that matters is retry. Only a transient infrastructure fault
-// is worth retrying — a filter, permission, row-cap or date-span failure fails
+// is worth retrying - a filter, permission, row-cap or date-span failure fails
 // again identically, so offering Retry there wastes a wait and teaches people
 // the button does not work. The API enforces this too (`failure.retryable`);
 // this map is what decides which button appears in its place.
@@ -14,7 +14,7 @@ import type { OmissionCode } from "@/redux/services/dashboard/exports-types";
 
 /** The one thing to offer beside the recommended action, if anything. */
 export type FailureRemedy =
-  /** The fix is a configuration change — open the export in the builder. */
+  /** The fix is a configuration change - open the export in the builder. */
   | { kind: "edit"; label: string }
   /** The fix is a fresh attempt; the API decides whether it is allowed. */
   | { kind: "retry"; label: string }
@@ -37,7 +37,7 @@ const REMEDY_BY_CODE: Record<string, FailureRemedy> = {
   UNKNOWN: { kind: "retry", label: "Retry now" },
 
   // Access and ownership. Nothing in this app grants them, so a button here
-  // would be a dead end — the recommended action names who to ask instead.
+  // would be a dead end - the recommended action names who to ask instead.
   DATASET_FORBIDDEN: { kind: "none" },
   ENTITY_FORBIDDEN: { kind: "none" },
   OWNER_INACTIVE: { kind: "none" },
@@ -49,9 +49,9 @@ export function remedyFor(code: string | undefined | null): FailureRemedy {
 
 /** A short heading for one omission, so the list reads as reasons not prose. */
 export const OMISSION_HEADING: Record<OmissionCode | string, string> = {
-  FIELD_FORBIDDEN: "Columns left out — you cannot read those fields",
-  FIELD_WITHDRAWN: "Columns left out — those fields no longer exist",
-  ROW_CAP_HIT: "Rows left out — the row cap was reached",
+  FIELD_FORBIDDEN: "Columns left out - you cannot read those fields",
+  FIELD_WITHDRAWN: "Columns left out - those fields no longer exist",
+  ROW_CAP_HIT: "Rows left out - the row cap was reached",
 };
 
 /** Whether editing the export is a sensible response to this omission. */

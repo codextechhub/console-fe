@@ -1,4 +1,4 @@
-// Vendor Performance (§6) — computed delivery/payment behaviour blended with
+// Vendor Performance (§6) - computed delivery/payment behaviour blended with
 // recorded assessment scorecards. On-Time is the computed rate; Quality / Inv.
 // Accuracy / Responsiveness / Grade come from the latest recorded assessment
 // (honest "Not assessed" when none). Row → read-only drawer; gated New Assessment.
@@ -89,13 +89,13 @@ function PerformanceBody({ rows, onSelect }: {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label="Avg on-time delivery"
-          value={avgOnTime == null ? "—" : `${Math.round(avgOnTime * 100)}%`}
+          value={avgOnTime == null ? "-" : `${Math.round(avgOnTime * 100)}%`}
           icon={Clock}
           tone="green"
           sub={`across ${ratedCount} rated vendor${ratedCount === 1 ? "" : "s"}`}
         />
         <StatCard label="Late deliveries" value={String(lateTotal)} icon={AlertTriangle} tone="amber" sub="goods-receipts past PO date" />
-        <StatCard label="Avg days to pay" value={avgPay == null ? "—" : `${avgPay.toFixed(1)} days`} icon={CalendarClock} tone="primary" sub="invoice date → settlement" />
+        <StatCard label="Avg days to pay" value={avgPay == null ? "-" : `${avgPay.toFixed(1)} days`} icon={CalendarClock} tone="primary" sub="invoice date → settlement" />
         <StatCard label="Assessed vendors" value={`${assessed}/${rows.length}`} icon={ClipboardCheck} tone="primary" sub="with a recorded scorecard" />
       </div>
 
@@ -125,24 +125,24 @@ function PerformanceBody({ rows, onSelect }: {
                           <span className="font-semibold text-gray-01">{r.name}</span>
                           <span className="mt-0.5 block font-mont text-[11px] text-gray-05">{r.category || r.code}</span>
                         </td>
-                        {/* On-Time is the COMPUTED on-time rate — "—" when the vendor has no rated receipt. */}
+                        {/* On-Time is the COMPUTED on-time rate - "-" when the vendor has no rated receipt. */}
                         <td className={TD}>
                           {r.on_time_rate == null
-                            ? <span className="font-mont text-sm text-gray-05">—</span>
+                            ? <span className="font-mont text-sm text-gray-05">-</span>
                             : <Meter ratio={r.on_time_rate} color={meterScoreColor(r.on_time_rate)} />}
                         </td>
                         {/* Quality / Inv. Accuracy / Response come from the latest recorded assessment. */}
                         <td className={TD}>
                           {a ? <Meter ratio={a.quality_acceptance / 100} color={meterScoreColor(a.quality_acceptance / 100)} />
-                            : <span className="font-mont text-sm text-gray-05">—</span>}
+                            : <span className="font-mont text-sm text-gray-05">-</span>}
                         </td>
                         <td className={TD}>
                           {a ? <Meter ratio={a.invoice_accuracy / 100} color={meterScoreColor(a.invoice_accuracy / 100)} />
-                            : <span className="font-mont text-sm text-gray-05">—</span>}
+                            : <span className="font-mont text-sm text-gray-05">-</span>}
                         </td>
                         <td className={TD}>
                           {a ? <Meter ratio={a.responsiveness / 100} color={meterScoreColor(a.responsiveness / 100)} />
-                            : <span className="font-mont text-sm text-gray-05">—</span>}
+                            : <span className="font-mont text-sm text-gray-05">-</span>}
                         </td>
                         <td className={TD}>
                           {a ? <GradeBadge grade={a.grade} />
@@ -158,7 +158,7 @@ function PerformanceBody({ rows, onSelect }: {
               On-time delivery is computed from each goods-receipt date vs its PO&rsquo;s expected date (receipts on a PO
               with no expected date are not rated); days-to-pay is measured from a bill&rsquo;s invoice date to the settling
               payment. Quality, invoice accuracy, responsiveness and the overall grade come from the most recent recorded
-              assessment — vendors without one show &ldquo;Not assessed&rdquo;.
+              assessment - vendors without one show &ldquo;Not assessed&rdquo;.
             </p>
           </>
         )}
@@ -195,12 +195,12 @@ function VendorPerformanceDrawer({ row, entity, currency, onClose }: {
               <Field label="Purchase orders" value={row.po_count} />
               <Field label="Ordered" value={money(row.total_ordered)} />
               <Field label="Receipts" value={`${row.receipt_count} (${row.on_time_receipts} on-time · ${row.late_receipts} late)`} />
-              <Field label="On-time rate" value={otPct(row.on_time_rate) == null ? "—" : `${otPct(row.on_time_rate)}%`} />
+              <Field label="On-time rate" value={otPct(row.on_time_rate) == null ? "-" : `${otPct(row.on_time_rate)}%`} />
               <Field label="Invoices" value={row.invoice_count} />
               <Field label="Billed" value={money(row.total_billed)} />
               <Field label="Payments" value={row.payment_count} />
               <Field label="Paid" value={money(row.total_paid)} />
-              <Field label="Avg days to pay" value={row.avg_payment_days == null ? "—" : row.avg_payment_days} />
+              <Field label="Avg days to pay" value={row.avg_payment_days == null ? "-" : row.avg_payment_days} />
             </dl>
           </div>
 
@@ -212,7 +212,7 @@ function VendorPerformanceDrawer({ row, entity, currency, onClose }: {
             {a ? (
               <dl className="grid grid-cols-2 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-3">
                 <Field label="Overall score" value={`${a.overall_score} / 100`} />
-                <Field label="On-time (computed)" value={otPct(row.on_time_rate) == null ? "—" : `${otPct(row.on_time_rate)}%`} />
+                <Field label="On-time (computed)" value={otPct(row.on_time_rate) == null ? "-" : `${otPct(row.on_time_rate)}%`} />
                 <Field label="Assessed" value={shortDate(a.assessment_date)} />
                 <Field label="Quality acceptance" value={a.quality_acceptance} />
                 <Field label="Invoice accuracy" value={a.invoice_accuracy} />
@@ -249,7 +249,7 @@ function VendorPerformanceDrawer({ row, entity, currency, onClose }: {
                         <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{h.responsiveness}</td>
                         <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold tabular-nums">{h.overall_score}</td>
                         <td className="border-t border-gray-03 px-3 py-2"><Pill tone={h.grade === "A" ? "green" : h.grade === "B" ? "amber" : "red"}>{h.grade}</Pill></td>
-                        <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs text-gray-05">{h.assessor || "—"}</td>
+                        <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs text-gray-05">{h.assessor || "-"}</td>
                       </tr>
                     ))}
                   </tbody>

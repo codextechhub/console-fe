@@ -1,4 +1,4 @@
-// Detail drawers for the Health screens — one per drill-in target (service,
+// Detail drawers for the Health screens - one per drill-in target (service,
 // monitor, endpoint, incident, tenant, queue, SLO). All read-only.
 
 import { Server } from "lucide-react";
@@ -47,10 +47,10 @@ export function ServiceDrawer({ serviceKey, onClose }: { serviceKey: string | nu
           </div>
           <DetailMetrics
             items={[
-              { label: "30-day uptime", value: d.uptime ? `${d.uptime.uptime_30d}%` : "—" },
+              { label: "30-day uptime", value: d.uptime ? `${d.uptime.uptime_30d}%` : "-" },
               {
                 label: "Average response",
-                value: d.uptime?.avg_response_ms != null ? `${d.uptime.avg_response_ms} ms` : "—",
+                value: d.uptime?.avg_response_ms != null ? `${d.uptime.avg_response_ms} ms` : "-",
               },
               { label: "Service kind", value: <span className="capitalize">{d.kind}</span> },
               { label: "Recent alerts", value: d.recent_alerts.length },
@@ -104,7 +104,7 @@ export function MonitorDrawer({ monitorKey, onClose }: { monitorKey: string | nu
               { label: "90-day uptime", value: `${d.uptime_90d}%` },
               {
                 label: "Average response",
-                value: d.avg_response_ms != null ? `${d.avg_response_ms} ms` : "—",
+                value: d.avg_response_ms != null ? `${d.avg_response_ms} ms` : "-",
               },
             ]}
           />
@@ -130,7 +130,7 @@ export function MonitorDrawer({ monitorKey, onClose }: { monitorKey: string | nu
             <section className="rounded-md border p-4">
               <p className="text-xs text-gray-01">TLS certificate</p>
               <p className="mt-2 font-medium">{d.ssl.domain || "Configured domain"}</p>
-              <p className="mt-1 text-sm text-gray-01">{d.ssl.days_left ?? "—"} days remaining</p>
+              <p className="mt-1 text-sm text-gray-01">{d.ssl.days_left ?? "-"} days remaining</p>
             </section>
           )}
         </>

@@ -340,7 +340,7 @@ export default function MyActivity() {
               </SheetHeader>
 
               <div className="px-5 py-4 space-y-4">
-                {/* "Was this you?" banner — only on done-to-me tab */}
+                {/* "Was this you?" banner - only on done-to-me tab */}
                 {activeTab === "on-me" && (
                   <div className="flex items-start gap-2.5 rounded-md bg-amber-50 border border-amber-200 px-3 py-3">
                     <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />

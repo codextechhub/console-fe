@@ -1,4 +1,4 @@
-// "Permission exceptions" — per-user overrides layered on top of role grants.
+// "Permission exceptions" - per-user overrides layered on top of role grants.
 //
 // One implementation, two mounts: the CX staff profile
 // (pages/protected/organogram/staff/staff-detail.tsx) and the school-user
@@ -8,15 +8,15 @@
 // The whole section renders ONLY when the VIEWER holds
 // P.VIEW_PERMISSION_EXCEPTIONS or P.MANAGE_PERMISSION_EXCEPTIONS. A user
 // browsing their own profile without those keys must see no trace: no section,
-// no heading, no count, no empty state, no skeleton — and no request. That is
+// no heading, no count, no empty state, no skeleton - and no request. That is
 // why the gate lives in the exported wrapper and the RTK Query hook lives in a
 // separate inner component: an ungated viewer never mounts the component that
-// owns the hook, so nothing can be fired even for a moment. Fail closed —
+// owns the hook, so nothing can be fired even for a moment. Fail closed -
 // missing tenant/user also renders nothing.
 //
 // Gating uses the ACTOR's namespace (platform.team_overrides.*) on BOTH mounts;
 // the target's namespace is never unioned in. The backend enforces the same
-// key — this is UI gating on top of, not instead of, server authz.
+// key - this is UI gating on top of, not instead of, server authz.
 
 import { useState } from "react";
 import { toast } from "sonner";
@@ -95,25 +95,25 @@ export function expiryLabel(expiresAt: string | null, now: number): string | nul
 }
 
 /**
- * The context line under a row — what the override is actually doing given the
+ * The context line under a row - what the override is actually doing given the
  * user's roles. `granted_by_role` is the backend's computed flag.
  */
 export function contextLine(row: Pick<PermissionOverride, "mode" | "granted_by_role">): string {
   if (row.mode === "DENY") {
     return row.granted_by_role
-      ? "A role grants this — it is denied for this user."
-      : "No role grants this anyway — the denial is pre-emptive.";
+      ? "A role grants this - it is denied for this user."
+      : "No role grants this anyway - the denial is pre-emptive.";
   }
   return row.granted_by_role
-    ? "A role already grants this — the extra grant is redundant."
-    : "No role grants this — access comes only from this exception.";
+    ? "A role already grants this - the extra grant is redundant."
+    : "No role grants this - access comes only from this exception.";
 }
 
 /**
  * The single source of truth for "may this viewer see permission exceptions?".
  * Mounts that must resolve extra context for the section (e.g. looking up a
  * school's tenant slug) gate that work on this too, so an ungated viewer causes
- * no requests at all — the gate lives in one place, not one per call site.
+ * no requests at all - the gate lives in one place, not one per call site.
  */
 export function useCanViewPermissionExceptions(): boolean {
   const { hasAnyPermission } = usePermissions();
@@ -124,7 +124,7 @@ export function useCanViewPermissionExceptions(): boolean {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Public entry point — the permission gate. Renders nothing (and mounts no
+// Public entry point - the permission gate. Renders nothing (and mounts no
 // query) unless the viewer may see exceptions.
 // ─────────────────────────────────────────────────────────────────────────────
 export default function PermissionOverrides({
@@ -149,7 +149,7 @@ export default function PermissionOverrides({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The section itself — only ever mounted behind the gate above.
+// The section itself - only ever mounted behind the gate above.
 // ─────────────────────────────────────────────────────────────────────────────
 function OverridesSection({
   userId,
@@ -184,8 +184,8 @@ function OverridesSection({
       .then(() => {
         toast.success(
           pendingLift.mode === "DENY"
-            ? "Exception lifted — role access restored on their next request."
-            : "Extra grant removed — effective on their next request.",
+            ? "Exception lifted - role access restored on their next request."
+            : "Extra grant removed - effective on their next request.",
         );
         setPendingLift(null);
       })
@@ -235,7 +235,7 @@ function OverridesSection({
           </p>
         ) : rows.length === 0 ? (
           <p className="rounded-md bg-gray-03 px-3 py-6 text-center text-sm text-gray-01">
-            No exceptions — access comes entirely from roles.
+            No exceptions - access comes entirely from roles.
           </p>
         ) : (
           <ul className="grid grid-cols-1 gap-3">
@@ -283,7 +283,7 @@ function OverridesSection({
             <p>
               {pendingLift?.mode === "DENY"
                 ? "Lifting this restores whatever access their roles give them for this permission."
-                : "Lifting this removes the extra grant — they keep only what their roles give them."}
+                : "Lifting this removes the extra grant - they keep only what their roles give them."}
             </p>
             <p className="text-xs">Effective on their next request.</p>
           </div>
@@ -376,7 +376,7 @@ function OverrideRow({
 
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-01">
         <span className="break-words">
-          Set by {row.created_by_name || "—"} · {formatRelativeDate(row.created_at)}
+          Set by {row.created_by_name || "-"} · {formatRelativeDate(row.created_at)}
         </span>
         {expiry && (
           <span
@@ -423,7 +423,7 @@ function AddExceptionDrawer({
 
   // The permission catalogue is its own restricted surface. Ask for it only
   // when the viewer may read it, so an override manager without
-  // platform.permissions.view gets a working screen instead of a 403 toast —
+  // platform.permissions.view gets a working screen instead of a 403 toast -
   // they fall back to the keys this console already knows.
   const canReadCatalogue = hasPermission(P.VIEW_PERMISSIONS);
   const { data: catalogue, isFetching: loadingCatalogue } = useGetPermissionsQuery(
@@ -440,7 +440,7 @@ function AddExceptionDrawer({
     .filter((p) => !module || (p.module_key || permissionModule(p.key)) === module)
     .map((p) => ({
       value: p.key,
-      label: `${permissionLabel(p.key)} — ${p.key}`,
+      label: `${permissionLabel(p.key)} - ${p.key}`,
     }))
     .sort((a, b) => a.value.localeCompare(b.value));
 
@@ -480,8 +480,8 @@ function AddExceptionDrawer({
       .then(() => {
         toast.success(
           mode === "DENY"
-            ? "Permission denied for this user — effective on their next request."
-            : "Extra grant applied — effective on their next request.",
+            ? "Permission denied for this user - effective on their next request."
+            : "Extra grant applied - effective on their next request.",
         );
         reset();
         onOpenChange(false);
@@ -549,7 +549,7 @@ function AddExceptionDrawer({
               <span className="font-semibold">
                 {MODE_LABEL[alreadyOverridden.mode]}
               </span>{" "}
-              exception on this permission. Saving REPLACES it — the old one is
+              exception on this permission. Saving REPLACES it - the old one is
               removed and recorded in the audit trail.
             </p>
           )}

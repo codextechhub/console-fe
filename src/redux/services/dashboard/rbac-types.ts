@@ -1,6 +1,6 @@
 export interface PlatformRole {
   id: string;
-  /** Per-tenant slug key — how roles are addressed on the unified RBAC surface. */
+  /** Per-tenant slug key - how roles are addressed on the unified RBAC surface. */
   key: string;
   /** Owning tenant slug (read-only). */
   tenant?: string;

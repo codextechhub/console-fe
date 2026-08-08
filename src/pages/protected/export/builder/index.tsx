@@ -1,10 +1,10 @@
-// The export builder — new export, and edit an existing one.
+// The export builder - new export, and edit an existing one.
 //
 // FOUR steps, not the spec's five. Step 4 of the original design asked "when
 // should this run, and where should the file go?"; schedules are out of the MVP,
 // so the "when" half no longer exists and the "where" half is delivery, which
 // arrives with slice 4. Rather than ship a step that only says "Export Centre",
-// timing folds into the review step's two actions — save, or save and run. The
+// timing folds into the review step's two actions - save, or save and run. The
 // delivery step comes back when there is something to put in it.
 //
 // Step navigation is free: any step is clickable at any time, and blocking
@@ -50,7 +50,7 @@ const TOTAL_STEPS = 4;
 
 // Loader. Its whole job is to have the saved export IN HAND before the form
 // mounts, so the form can seed its state from props rather than copy it in
-// through an effect afterwards — no cascading render, and no window in which
+// through an effect afterwards - no cascading render, and no window in which
 // the builder is showing an empty form for an export that does exist.
 export default function ExportBuilderPage() {
   const { id } = useParams();
@@ -196,7 +196,7 @@ function BuilderForm({
       for (const f of dataset.filters.filter((f) => f.required)) {
         const spec = state.filters.find((s) => s.id === f.id);
         if (!filterIsSet(f, spec))
-          out.push({ step: 2, message: `${f.label} must be set — this dataset requires it.` });
+          out.push({ step: 2, message: `${f.label} must be set - this dataset requires it.` });
       }
     }
     if (!state.name.trim()) out.push({ step: 4, message: "Give this export a name." });
@@ -210,7 +210,7 @@ function BuilderForm({
 
   // Moving ON from a step needs that step's own prerequisite. Picking a module
   // is not picking a dataset, and everything after step 1 is meaningless without
-  // one — so Next stays disabled rather than leading somewhere empty. Step
+  // one - so Next stays disabled rather than leading somewhere empty. Step
   // navigation via the step bar is still free; this only gates the forward walk.
   const nextBlockedReason =
     step === 1 && !state.datasetKey
@@ -542,7 +542,7 @@ function StepData({
             aria-label="Entity"
             placeholder="Choose an entity…"
             containerClass="w-full sm:w-72"
-            options={entities.map((e) => ({ value: e.code, label: `${e.code} — ${e.name}` }))}
+            options={entities.map((e) => ({ value: e.code, label: `${e.code} - ${e.name}` }))}
             value={entity}
             onChange={(e) => onEntity(e.target.value)}
           />
@@ -790,7 +790,7 @@ function StepReview({
   const label = (id: string) => dataset?.fields.find((f) => f.id === id)?.label ?? id;
 
   const rows: { k: string; v: React.ReactNode; step: number }[] = [
-    { k: "Dataset", v: dataset?.name ?? "—", step: 1 },
+    { k: "Dataset", v: dataset?.name ?? "-", step: 1 },
     { k: "Scope", v: state.entity || "Whole organisation", step: 1 },
     { k: "Columns", v: state.columns.map(label).join(", ") || "None", step: 2 },
     {
@@ -799,7 +799,7 @@ function StepReview({
         ? state.filters
             .map((s) => dataset.filters.find((f) => f.id === s.id)?.label ?? s.id)
             .join("; ") || "None"
-        : "—",
+        : "-",
       step: 2,
     },
     {
@@ -828,7 +828,7 @@ function StepReview({
           <Input
             value={state.name}
             onChange={(e) => onName(e.target.value)}
-            placeholder="e.g. Customer invoices — monthly"
+            placeholder="e.g. Customer invoices - monthly"
             aria-invalid={!state.name.trim()}
             className="h-9 bg-white"
           />

@@ -193,7 +193,7 @@ export function UploadStep({
   const validateFile = useCallback((f: File): string | null => {
     const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
     if (!["csv", "xlsx", "xls"].includes(ext)) return `Unsupported file type ".${ext}". Use CSV, XLSX, or XLS.`;
-    if (f.size > 50 * 1024 * 1024) return `File is ${formatBytes(f.size)} — maximum allowed size is 50 MB.`;
+    if (f.size > 50 * 1024 * 1024) return `File is ${formatBytes(f.size)} - maximum allowed size is 50 MB.`;
     return null;
   }, []);
 
@@ -341,7 +341,7 @@ export function UploadStep({
         <div className="mt-3 rounded-md border border-gray-200 overflow-x-auto">
           <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 border-b border-gray-200">
             <FileSpreadsheet className="size-3.5 text-gray-400" />
-            <p className="text-[11px] text-gray-500 font-medium">Preview — first {csvPreview.rows.length} {csvPreview.rows.length === 1 ? "row" : "rows"}</p>
+            <p className="text-[11px] text-gray-500 font-medium">Preview - first {csvPreview.rows.length} {csvPreview.rows.length === 1 ? "row" : "rows"}</p>
           </div>
           <table className="text-[11px] w-full">
             <thead>
@@ -372,7 +372,7 @@ export function UploadStep({
         <Textarea
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
-          placeholder="Anything reviewers should know about this batch — source, contact, follow-ups…"
+          placeholder="Anything reviewers should know about this batch - source, contact, follow-ups…"
           className="min-h-[70px]"
         />
       </div>
@@ -618,7 +618,7 @@ export function HeaderReviewStep({
           )}
           <div className="flex-1">
             <p className={cn("text-xs font-semibold", isFullMatch ? "text-green-700" : "text-amber-700")}>
-              {isFullMatch ? "Full match — all headers aligned" : `Partial match — ${totalIssues} header issue${totalIssues > 1 ? "s" : ""} detected`}
+              {isFullMatch ? "Full match - all headers aligned" : `Partial match - ${totalIssues} header issue${totalIssues > 1 ? "s" : ""} detected`}
             </p>
             <p className="text-[11px] text-gray-500 mt-0.5">
               {isFullMatch
@@ -864,12 +864,12 @@ export function ReviewIssuesStep({
         );
       })()}
 
-      {/* All rows invalid — hard block */}
+      {/* All rows invalid - hard block */}
       {isAllBad && (
         <div className="flex items-start gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3">
           <AlertTriangle className="size-4 text-destructive shrink-0 mt-0.5" />
           <div className="text-xs text-black-01 leading-relaxed">
-            <strong>All {errorRows} {errorRows === 1 ? "row has" : "rows have"} errors — there is nothing to import.</strong>{" "}
+            <strong>All {errorRows} {errorRows === 1 ? "row has" : "rows have"} errors - there is nothing to import.</strong>{" "}
             Fix the affected rows in your file and re-upload to continue.
           </div>
         </div>
@@ -962,7 +962,7 @@ export function ConfirmStep({
       ) : null}
 
       <div className="grid grid-cols-2 rounded-md border border-gray-200 overflow-hidden">
-        <SummaryCell label="Template" value={batch.template?.name ?? "—"} />
+        <SummaryCell label="Template" value={batch.template?.name ?? "-"} />
         <SummaryCell label="Dataset type" value={batch.dataset_type} className="capitalize" />
         <SummaryCell label="Source file" value={batch.original_filename} />
         <SummaryCell label="File format" value={batch.file_format.toUpperCase()} />
@@ -1255,7 +1255,7 @@ export function CompleteStep({
             ))}
             {skippedRows.length > PREVIEW_LIMIT && (
               <div className="px-4 py-2.5 text-xs text-gray-400 italic">
-                +{skippedRows.length - PREVIEW_LIMIT} more — view import details for the full list.
+                +{skippedRows.length - PREVIEW_LIMIT} more - view import details for the full list.
               </div>
             )}
           </div>
@@ -1282,7 +1282,7 @@ export function CompleteStep({
             ))}
             {failedRows.length > PREVIEW_LIMIT && (
               <div className="px-4 py-2.5 text-xs text-gray-400 italic">
-                +{failedRows.length - PREVIEW_LIMIT} more — view import details for the full list.
+                +{failedRows.length - PREVIEW_LIMIT} more - view import details for the full list.
               </div>
             )}
           </div>
@@ -1297,11 +1297,11 @@ export function CompleteStep({
           </div>
           <div className="px-4 py-3 border-r border-gray-200">
             <p className="text-[10px] uppercase tracking-wide text-gray-500 font-semibold mb-1">Started</p>
-            <p className="text-xs text-black-01">{job.started_at ? new Date(job.started_at).toLocaleTimeString() : "—"}</p>
+            <p className="text-xs text-black-01">{job.started_at ? new Date(job.started_at).toLocaleTimeString() : "-"}</p>
           </div>
           <div className="px-4 py-3">
             <p className="text-[10px] uppercase tracking-wide text-gray-500 font-semibold mb-1">Completed</p>
-            <p className="text-xs text-black-01">{job.completed_at ? new Date(job.completed_at).toLocaleTimeString() : "—"}</p>
+            <p className="text-xs text-black-01">{job.completed_at ? new Date(job.completed_at).toLocaleTimeString() : "-"}</p>
           </div>
         </div>
       )}

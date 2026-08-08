@@ -3,7 +3,7 @@ import { type RouteObject } from "react-router";
 // EAGER on purpose. The shell (sidebar, header, session hooks) is a LAYOUT
 // ROUTE above every protected page, so it ships in the entry bundle and paints
 // the moment the app boots. Previously each page imported it, which made it a
-// shared dependency of the lazy page chunks only — rollup hoisted it into its
+// shared dependency of the lazy page chunks only - rollup hoisted it into its
 // own ~128 kB chunk that had to be fetched before the frame could be drawn.
 import DashboardLayout from "@/components/layout/dashboard-layout";
 import type { DashboardHandle } from "@/components/layout/dashboard-header";
@@ -43,7 +43,7 @@ export const protectedRoutes = [
       // Deep-linkable "new ticket": the Support page with the composer already open.
       { path: routesPath.PROTECTED.SUPPORT.NEW, element: <Support />, handle: { title: "Support" } satisfies DashboardHandle },
       // Starts at "Support"; the page swaps in the ticket number once the
-      // ticket loads (useDashboardTitle) — exactly the old behaviour.
+      // ticket loads (useDashboardTitle) - exactly the old behaviour.
       { path: routesPath.PROTECTED.SUPPORT.DETAIL_PATH, element: <TicketDetail />, handle: { title: "Support" } satisfies DashboardHandle },
       ...overviewRoutes,
       ...schoolRoutes,

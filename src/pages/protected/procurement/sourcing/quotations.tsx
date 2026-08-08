@@ -65,15 +65,15 @@ export default function QuotationsPage() {
   const { data: vendorOptData } = useGetVendorsQuery({ entity: entity!, page_size: 100 }, { skip: !entity });
   const rows = toArray(data?.data);
 
-  const rfqOptions = [{ value: "", label: "All RFQs" }, ...toArray(rfqOptData?.data).map((r) => ({ value: String(r.id), label: `${r.document_number} — ${r.title || "Untitled"}` }))];
-  const vendorOptions = [{ value: "", label: "All vendors" }, ...toArray(vendorOptData?.data).map((v) => ({ value: v.code, label: `${v.code} — ${v.name}` }))];
+  const rfqOptions = [{ value: "", label: "All RFQs" }, ...toArray(rfqOptData?.data).map((r) => ({ value: String(r.id), label: `${r.document_number} - ${r.title || "Untitled"}` }))];
+  const vendorOptions = [{ value: "", label: "All vendors" }, ...toArray(vendorOptData?.data).map((v) => ({ value: v.code, label: `${v.code} - ${v.name}` }))];
 
   const columns: Column<Quotation>[] = [
     { header: "Quote #", cell: (q) => <span className="font-mont text-sm font-semibold text-primary">{q.document_number}</span> },
     { header: "Vendor", cell: (q) => <div className="min-w-32"><p className="font-semibold">{q.vendor_name || q.vendor_code}</p><p className="mt-0.5 text-xs text-gray-05">{q.vendor_code}</p></div> },
-    { header: "RFQ Ref", cell: (q) => q.rfq_number || "—" },
+    { header: "RFQ Ref", cell: (q) => q.rfq_number || "-" },
     { header: "Submitted", cell: (q) => shortDate(q.quote_date) },
-    { header: "Lead time", align: "right", cell: (q) => q.lead_time_days == null ? "—" : `${q.lead_time_days}d` },
+    { header: "Lead time", align: "right", cell: (q) => q.lead_time_days == null ? "-" : `${q.lead_time_days}d` },
     { header: "Total", align: "right", cell: (q) => <span className="tabular-nums">{formatMoney(q.total, currency)}</span> },
     { header: "Status", cell: (q) => <div className="flex flex-wrap items-center gap-1.5"><StatusPill status={q.quotation_status} />{q.is_expired && <ExpiredPill />}</div> },
     { header: "", align: "right", cell: () => <ChevronRight className="ml-auto size-4 text-gray-04" /> },
@@ -135,7 +135,7 @@ function QuotationDrawer({ id, entity, currency, onClose }: { id: number | null;
         {isDraft && <Can permission={P.PROC_UPDATE_QUOTATION}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
         {isDraft && <ActionButton label="Submit" permission={P.PROC_SUBMIT_QUOTATION} title="Submit this quotation?" description={`Records ${q.document_number} as a firm offer in contention for the RFQ.`} onConfirm={async () => { const r = await submit({ id: q.id, entity }).unwrap(); toast.success(r.message || "Quotation submitted."); }} />}
         {canAward && <ActionButton label="Award" permission={P.PROC_AWARD_QUOTATION} title="Award this quotation?" description={`Awards ${q.document_number} and raises a draft purchase order from its lines. The other quotations on this RFQ will be rejected.`} onConfirm={async () => { const r = await award({ id: q.id, entity }).unwrap(); toast.success(r.message || "Quotation awarded."); onClose(); }} />}
-        {q.awarded_po_id && <span className="inline-flex items-center gap-1.5 font-mont text-xs font-medium text-gray-05"><Lock className="size-3.5" /> Locked — awarded to {q.awarded_po_number}</span>}
+        {q.awarded_po_id && <span className="inline-flex items-center gap-1.5 font-mont text-xs font-medium text-gray-05"><Lock className="size-3.5" /> Locked - awarded to {q.awarded_po_number}</span>}
       </>}
     >
       {isLoading ? <LoadingState rows={8} /> : isError || !q ? <ErrorState onRetry={refetch} /> : <div className="space-y-5">
@@ -152,10 +152,10 @@ function QuotationDrawer({ id, entity, currency, onClose }: { id: number | null;
             <Field label="Quotation number" value={q.document_number} />
             <Field label="Status" value={<div className="flex items-center gap-1.5"><StatusPill status={q.quotation_status} />{q.is_expired && <ExpiredPill />}</div>} />
             <Field label="Vendor" value={q.vendor_name || q.vendor_code} />
-            <Field label="RFQ reference" value={q.rfq_number || "—"} />
+            <Field label="RFQ reference" value={q.rfq_number || "-"} />
             <Field label="Quote date" value={shortDate(q.quote_date)} />
             <Field label="Valid until" value={shortDate(q.valid_until)} />
-            <Field label="Lead time" value={q.lead_time_days == null ? "—" : `${q.lead_time_days} days`} />
+            <Field label="Lead time" value={q.lead_time_days == null ? "-" : `${q.lead_time_days} days`} />
             <Field label="Reference" value={q.reference} />
             <Field label="Subtotal" value={formatMoney(q.subtotal, currency)} />
             <Field label="Tax" value={formatMoney(q.tax_total, currency)} />
@@ -217,7 +217,7 @@ function LineComparison({ quotation, entity, currency }: { quotation: QuotationD
             <td className={cn("border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums", isLowest && "font-semibold text-emerald-700")}>{money(line.unit_price)}</td>
             <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{money(line.net_amount)}</td>
             <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{money(line.tax_amount)}</td>
-            <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums text-gray-05">{line.rfq_line_id == null ? "—" : money(lowest)}</td>
+            <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums text-gray-05">{line.rfq_line_id == null ? "-" : money(lowest)}</td>
           </tr>
         );
       })}</tbody>
@@ -311,7 +311,7 @@ function QuotationForm({ entity, currency, initial, onClose }: { entity: string;
             <p className="rounded border border-gray-03 bg-gray-50 px-3 py-2 font-mont text-xs text-gray-05">Select an RFQ first to choose from its invited vendors.</p>
           ) : invitedAvailable.length ? (
             <SearchSelect
-              options={invitedAvailable.map((i) => ({ value: i.vendor_code, label: `${i.vendor_code} — ${i.vendor_name}` }))}
+              options={invitedAvailable.map((i) => ({ value: i.vendor_code, label: `${i.vendor_code} - ${i.vendor_name}` }))}
               value={vendor} onChange={(e) => setVendor(e.target.value)}
               placeholder="Select an invited vendor" isRequired revealOnSearch
             />

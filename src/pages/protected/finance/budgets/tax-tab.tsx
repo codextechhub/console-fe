@@ -23,7 +23,7 @@ import {
 import type { TaxFiling } from "@/redux/services/finance/ops-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 
 const OB_TYPES: [string, string][] = [["VAT", "VAT"], ["WHT", "WHT"], ["PAYE", "PAYE"], ["PENSION", "Pension"], ["OTHER", "Other levy"]];
 const FREQ: [string, string][] = [["MONTHLY", "Monthly"], ["QUARTERLY", "Quarterly"], ["ANNUAL", "Annual"]];
@@ -73,11 +73,11 @@ export function TaxTab({ entity, currency }: { entity: string; currency?: string
   const columns: Column<TaxFiling>[] = [
     { header: "Tax", cell: (f) => <span className="font-semibold text-gray-01">{f.obligation_code}</span> },
     { header: "Period", cell: (f) => <span className="tabular-nums text-gray-05">{periodLabel(f.period_start, f.period_end)}</span> },
-    { header: "Authority", cell: (f) => <span className="font-mont text-[11px] text-gray-05">{f.authority_name || "—"}</span> },
+    { header: "Authority", cell: (f) => <span className="font-mont text-[11px] text-gray-05">{f.authority_name || "-"}</span> },
     { header: "Accrued", align: "right", cell: (f) => <Money kobo={f.gross_liability} currency={currency} align="right" /> },
-    { header: "Outstanding", align: "right", cell: (f) => f.balance_due > 0 ? <span className="font-mont text-xs tabular-nums text-destructive">{formatMoney(f.balance_due, currency)}</span> : <span className="text-gray-05">—</span> },
+    { header: "Outstanding", align: "right", cell: (f) => f.balance_due > 0 ? <span className="font-mont text-xs tabular-nums text-destructive">{formatMoney(f.balance_due, currency)}</span> : <span className="text-gray-05">-</span> },
     { header: "Due date", cell: (f) => <span className="tabular-nums text-gray-05">{fmtDate(f.due_date)}</span> },
-    { header: "Filing ref", cell: (f) => <span className="font-mont text-[11px] tabular-nums text-gray-05">{f.filing_reference || "—"}</span> },
+    { header: "Filing ref", cell: (f) => <span className="font-mont text-[11px] tabular-nums text-gray-05">{f.filing_reference || "-"}</span> },
     { header: "Status", cell: (f) => <StatusPill status={f.filing_status} /> },
   ];
 
@@ -158,14 +158,14 @@ function FilingDrawer({ filingId, filings, entity, currency, onClose }: { filing
   // A filed-but-unpaid return can be reverted to draft; once any cash is remitted the
   // backend refuses, so only offer it while nothing has been paid.
   const canUnfile = f.filing_status === "FILED" && f.amount_paid === 0;
-  const dr: RecapRow[] = [{ code: f.liability_account || "—", name: f.liability_account_name || `${f.obligation_code} payable`, amount: f.balance_due || f.amount_due }];
+  const dr: RecapRow[] = [{ code: f.liability_account || "-", name: f.liability_account_name || `${f.obligation_code} payable`, amount: f.balance_due || f.amount_due }];
   const cr: RecapRow[] = [{ code: "Bank", name: paid ? "remitted" : "chosen on payment", amount: f.balance_due || f.amount_due }];
 
   return (
     <>
       <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
-        title={`${f.obligation_code} — ${periodLabel(f.period_start, f.period_end)}`}
-        description={`${f.authority_name || "—"} · due ${fmtDate(f.due_date)}`} widthClass="sm:max-w-2xl"
+        title={`${f.obligation_code} - ${periodLabel(f.period_start, f.period_end)}`}
+        description={`${f.authority_name || "-"} · due ${fmtDate(f.due_date)}`} widthClass="sm:max-w-2xl"
         footer={<>
           <StatusPill status={f.filing_status} />
           <div className="flex-1" />
@@ -204,7 +204,7 @@ function FilingDrawer({ filingId, filings, entity, currency, onClose }: { filing
       <ConfirmActionModal
         open={unfiling}
         onOpenChange={setUnfiling}
-        title={`Un-file ${f.obligation_code} — ${periodLabel(f.period_start, f.period_end)}?`}
+        title={`Un-file ${f.obligation_code} - ${periodLabel(f.period_start, f.period_end)}?`}
         description="Reverts this return to draft and reverses its netting/penalty journal. Use it to correct a return filed in error. Only possible while nothing has been remitted."
         confirmText="Un-file return"
         destructive
@@ -235,7 +235,7 @@ function FileDrawer({ filing, entity, currency, onClose }: { filing: TaxFiling; 
         <Button disabled={isLoading || !filedDate || (!!adjust && !adjustAccount)} onClick={submit} className="gap-1.5"><FileCheck2 className="size-4" />{isLoading ? "Filing…" : "Mark as filed"}</Button>
       </>}>
       <div className="space-y-4">
-        <p className="rounded-md border border-gray-03 bg-gray-03/40 px-3 py-2 font-mont text-[11px] text-gray-05">Records the return with the authority. Filing nets recoverable input tax and books any penalty/adjustment; it doesn't move cash — that's the payment.</p>
+        <p className="rounded-md border border-gray-03 bg-gray-03/40 px-3 py-2 font-mont text-[11px] text-gray-05">Records the return with the authority. Filing nets recoverable input tax and books any penalty/adjustment; it doesn't move cash - that's the payment.</p>
         <div className="grid grid-cols-2 gap-3">
           <PostingDateField label="Filed date" entity={entity} value={filedDate} onChange={setFiledDate} />
           <FormField label="Filing reference"><Input value={ref} onChange={(e) => setRef(e.target.value)} placeholder="e.g. FIRS-2026-4481" className="h-9 bg-white" /></FormField>
@@ -266,7 +266,7 @@ function PayDrawer({ filing, entity, currency, onClose }: { filing: TaxFiling; e
         <Button disabled={isLoading || !bank || amount <= 0} onClick={submit} className="gap-1.5"><Banknote className="size-4" />{isLoading ? "Paying…" : `Pay ${formatMoney(amount, currency)}`}</Button>
       </>}>
       <div className="space-y-4">
-        <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">Remits the liability — Dr {filing.liability_account || filing.obligation_code + " payable"}, Cr bank. Partial payments are allowed; the filing closes once the balance is cleared.</p>
+        <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">Remits the liability - Dr {filing.liability_account || filing.obligation_code + " payable"}, Cr bank. Partial payments are allowed; the filing closes once the balance is cleared.</p>
         <FormField label="Pay from (bank account)" required><BankAccountPicker entity={entity} value={bank} onChange={setBank} /></FormField>
         <div className="grid grid-cols-2 gap-3">
           <PostingDateField
@@ -300,7 +300,7 @@ function NewFilingDrawer({ open, onClose, entity }: { open: boolean; onClose: ()
   };
   return (
     <DetailDrawer open={open} onOpenChange={(o) => (o ? undefined : close())}
-      title="New filing" description="Prepare a return — accrues the period's liability from the GL." widthClass="sm:max-w-md"
+      title="New filing" description="Prepare a return - accrues the period's liability from the GL." widthClass="sm:max-w-md"
       footer={<>
         <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
         <Button disabled={isLoading || !obId || !start || !end} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Preparing…" : "Prepare filing"}</Button>
@@ -361,9 +361,9 @@ function NewObligationDrawer({ open, onClose, entity }: { open: boolean; onClose
 function printFilingPack(filings: TaxFiling[], currency?: string | null) {
   const money = (k: number) => formatMoney(k, currency);
   const rows = filings.map((f) => `<tr>
-    <td>${f.obligation_code}</td><td>${periodLabel(f.period_start, f.period_end)}</td><td>${f.authority_name || "—"}</td>
+    <td>${f.obligation_code}</td><td>${periodLabel(f.period_start, f.period_end)}</td><td>${f.authority_name || "-"}</td>
     <td class="r">${money(f.gross_liability)}</td><td class="r">${money(f.balance_due)}</td>
-    <td>${f.due_date ? new Date(f.due_date).toLocaleDateString() : "—"}</td><td>${f.filing_reference || "—"}</td>
+    <td>${f.due_date ? new Date(f.due_date).toLocaleDateString() : "-"}</td><td>${f.filing_reference || "-"}</td>
     <td>${(STATUS[f.filing_status] ?? STATUS.DRAFT).label}</td></tr>`).join("");
   const totalAccrued = filings.reduce((s, f) => s + f.gross_liability, 0);
   const totalOutstanding = filings.reduce((s, f) => s + f.balance_due, 0);
@@ -379,6 +379,6 @@ function printFilingPack(filings: TaxFiling[], currency?: string | null) {
   <tbody>${rows}<tr class="tot"><td colspan="3">Total</td><td class="r">${money(totalAccrued)}</td><td class="r">${money(totalOutstanding)}</td><td colspan="3"></td></tr></tbody></table>
   </body></html>`;
   const w = window.open("", "_blank", "width=960,height=720");
-  if (!w) { toast.error("Pop-up blocked — allow pop-ups to print."); return; }
+  if (!w) { toast.error("Pop-up blocked - allow pop-ups to print."); return; }
   w.document.write(html); w.document.close(); w.focus(); w.print();
 }

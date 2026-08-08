@@ -1,4 +1,4 @@
-// Finance audit trail (§6.9) — rebuilt to the Vision prototype in the house
+// Finance audit trail (§6.9) - rebuilt to the Vision prototype in the house
 // theme. The immutable log of every finance mutation for the selected entity:
 // who did what, to which document. Filterable by actor / entity type / action /
 // status / date. Clicking a row opens a detail drawer with the full record and
@@ -40,7 +40,7 @@ function diffRows(before: Record<string, unknown>, after: Record<string, unknown
     .map((k) => ({ key: k, before: b[k], after: a[k] }));
 }
 function fmt(v: unknown): string {
-  if (v === null || v === undefined) return "—";
+  if (v === null || v === undefined) return "-";
   if (typeof v === "string") {
     // Render ISO timestamps the human way (matches the "When" column) rather
     // than the raw "2026-06-30T09:51:10.585498+00:00" the ledger stores.
@@ -103,8 +103,8 @@ function AuditDetail({ log }: { log: FinanceAuditLog }) {
           </span>
         </Stat>
         <Stat label="Status"><StatusPill status={log.status} /></Stat>
-        <Stat label="Entity">{log.target_type || "—"}</Stat>
-        <Stat label="Reference"><span className="font-mono">{log.document_number || (log.target_id ? `#${log.target_id}` : "—")}</span></Stat>
+        <Stat label="Entity">{log.target_type || "-"}</Stat>
+        <Stat label="Reference"><span className="font-mono">{log.document_number || (log.target_id ? `#${log.target_id}` : "-")}</span></Stat>
         {log.message ? <div className="col-span-2"><Stat label="Message">{log.message}</Stat></div> : null}
       </div>
 
@@ -167,8 +167,8 @@ export default function FinanceAuditPage() {
   const pg = data?.pagination;
 
   // Lead each list with an explicit "All …" option so the default (value "")
-  // renders as a real, dark-text selection — matching the plain dropdowns beside
-  // it — instead of a faint placeholder.
+  // renders as a real, dark-text selection - matching the plain dropdowns beside
+  // it - instead of a faint placeholder.
   const actionOptions = useMemo(() => [{ value: "", label: "All actions" }, ...(facets?.actions ?? []).map((a) => ({ value: a.value, label: a.label }))], [facets]);
   const entityOptions = useMemo(() => [{ value: "", label: "All entities" }, ...(facets?.target_types ?? []).map((t) => ({ value: t, label: t }))], [facets]);
   const actorOptions = useMemo(() => [{ value: "", label: "All actors" }, ...(facets?.actors ?? []).map((a) => ({ value: String(a.id), label: a.email }))], [facets]);
@@ -187,9 +187,9 @@ export default function FinanceAuditPage() {
         {l.action_display || l.action}
       </span>
     ) },
-    { header: "Entity", cell: (l) => l.target_type || "—" },
+    { header: "Entity", cell: (l) => l.target_type || "-" },
     { header: "Reference", cell: (l) => (
-      <span className="font-mono text-xs text-gray-01">{l.document_number || (l.target_id ? `#${l.target_id}` : "—")}</span>
+      <span className="font-mono text-xs text-gray-01">{l.document_number || (l.target_id ? `#${l.target_id}` : "-")}</span>
     ) },
     { header: "Status", cell: (l) => <StatusPill status={l.status} /> },
   ];
@@ -204,8 +204,8 @@ export default function FinanceAuditPage() {
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Audit Trail</h1>
               <InfoHint ariaLabel="About the finance audit trail">
-                The audit trail is your accountability layer. Every finance action — posts, reversals,
-                approvals, rejections, period closes and system postings — is captured with a field-level
+                The audit trail is your accountability layer. Every finance action - posts, reversals,
+                approvals, rejections, period closes and system postings - is captured with a field-level
                 before/after snapshot, and rows can never be edited or deleted. Click a row to see exactly
                 what moved.
               </InfoHint>

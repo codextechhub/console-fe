@@ -2,7 +2,7 @@
 // PERMISSION REGISTRY
 //
 // Single source of truth. The backend permission keys ("module.resource.action")
-// exist ONLY inside REGISTRY below — nowhere else in the codebase.
+// exist ONLY inside REGISTRY below - nowhere else in the codebase.
 //
 // P.* names describe what the user is doing in the UI, not how the backend
 // models the permission. A reader of any other file cannot infer the backend
@@ -30,7 +30,7 @@
 //   1. Pick the next free code in the right MM RR range.
 //   2. Add  "MMRRAA": "module.resource.action"  to REGISTRY.
 //   3. Add a named constant to P that describes the UI capability.
-//   4. Use P.YOUR_CONSTANT everywhere — never the raw key or the code directly.
+//   4. Use P.YOUR_CONSTANT everywhere - never the raw key or the code directly.
 //
 // ── Adding a new module ───────────────────────────────────────────────────────
 //   1. Pick the next free MM (30, 40, …).
@@ -106,7 +106,7 @@ const REGISTRY: Record<string, string> = {
 
   // ── platform / per-user permission exceptions  (MM=10, RR=13) ──────────────
   // CRITICAL + restricted. Seeing that a user HAS exceptions is itself
-  // sensitive — without `.view` the affected user must not learn they exist.
+  // sensitive - without `.view` the affected user must not learn they exist.
   "101301": "platform.team_overrides.view",
   "101308": "platform.team_overrides.manage",
 
@@ -142,7 +142,7 @@ const REGISTRY: Record<string, string> = {
   "910501": "tickets.audit.view",
   "910601": "tickets.report.view",
 
-  // ── Export Centre  (MM=92) — vs_exports.constants.ExportPermission ────────
+  // ── Export Centre  (MM=92) - vs_exports.constants.ExportPermission ────────
   "920101": "exports.catalogue.view",
   "920201": "exports.definition.view",
   "920202": "exports.definition.create",
@@ -282,11 +282,11 @@ const REGISTRY: Record<string, string> = {
   "202001": "finance.pettycash.view",
   "202002": "finance.pettycash.create",
   "202003": "finance.pettycash.update",
-  "202008": "finance.pettycash.manage",       // orphan — superseded by the split below
-  "202013": "finance.pettycash.post",         // orphan — now finance.pettycashvoucher.post
+  "202008": "finance.pettycash.manage",       // orphan - superseded by the split below
+  "202013": "finance.pettycash.post",         // orphan - now finance.pettycashvoucher.post
   "202036": "finance.pettycash.replenish",
   "202040": "finance.pettycash.establish",
-  // petty cash *voucher* — split out as its own resource (RR=29)
+  // petty cash *voucher* - split out as its own resource (RR=29)
   "202901": "finance.pettycashvoucher.view",
   "202902": "finance.pettycashvoucher.create",
   "202913": "finance.pettycashvoucher.post",
@@ -317,7 +317,7 @@ const REGISTRY: Record<string, string> = {
   "202702": "finance.feestructure.create",
   "202703": "finance.feestructure.edit",
   "202725": "finance.feestructure.generate",
-  // salary roster / structures — own resource so editing them isn't conflated with
+  // salary roster / structures - own resource so editing them isn't conflated with
   // running payroll (pay-figure FLS visibility stays on finance.payrollrun.view_sensitive)
   "203001": "finance.salary.view",
   "203002": "finance.salary.create",
@@ -413,7 +413,7 @@ const REGISTRY: Record<string, string> = {
   "800505": "payments.payout_batch.approve",
   "800544": "payments.payout_batch.approve_high_value",
 
-  // ── academics / subjects  (MM=30, RR=01) — uncomment when module ships ────
+  // ── academics / subjects  (MM=30, RR=01) - uncomment when module ships ────
   // "300101": "academics.subjects.view",
   // "300102": "academics.subjects.create",
 
@@ -421,7 +421,7 @@ const REGISTRY: Record<string, string> = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public constants
-// Names describe UI capabilities — not backend keys or permission structure.
+// Names describe UI capabilities - not backend keys or permission structure.
 // ─────────────────────────────────────────────────────────────────────────────
 export const P = {
 
@@ -644,8 +644,8 @@ export const P = {
   FIN_VIEW_PETTY_CASH:      "202001",
   FIN_CREATE_PETTY_CASH:    "202002",
   FIN_UPDATE_PETTY_CASH:    "202003",
-  FIN_MANAGE_PETTY_CASH:    "202008",   // deprecated — see the split keys below
-  FIN_POST_PETTY_CASH:      "202013",   // deprecated — use FIN_POST_PETTY_CASH_VOUCHER
+  FIN_MANAGE_PETTY_CASH:    "202008",   // deprecated - see the split keys below
+  FIN_POST_PETTY_CASH:      "202013",   // deprecated - use FIN_POST_PETTY_CASH_VOUCHER
   FIN_REPLENISH_PETTY_CASH: "202036",
   FIN_ESTABLISH_PETTY_CASH: "202040",
   FIN_VIEW_PETTY_CASH_VOUCHER:   "202901",
@@ -762,7 +762,7 @@ export const P = {
 
 export type PermissionCode = (typeof P)[keyof typeof P];
 
-// Internal resolver — used only by usePermissions and PermissionGate.
+// Internal resolver - used only by usePermissions and PermissionGate.
 export function resolvePermissionKey(code: PermissionCode): string {
   return REGISTRY[code] ?? "";
 }
@@ -773,9 +773,9 @@ export function resolvePermissionKey(code: PermissionCode): string {
 // The permission-exceptions screens are the one place that renders keys the
 // user did not pick from a P.* constant (they come back from the API, and for
 // school users they are `school.*` keys this console never gates on). They need
-// a readable label, so derive one from the P.* name where we have it — the
+// a readable label, so derive one from the P.* name where we have it - the
 // constant names are already written as UI capabilities ("MODIFY_SCHOOL" →
-// "Modify school") — and fall back to a title-cased reading of the dotted key.
+// "Modify school") - and fall back to a title-cased reading of the dotted key.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const LABEL_BY_KEY: Record<string, string> = Object.entries(P).reduce(
@@ -784,7 +784,7 @@ const LABEL_BY_KEY: Record<string, string> = Object.entries(P).reduce(
     // First constant wins: deprecated aliases are listed after the live name.
     if (key && !acc[key]) {
       // FIN_/PROC_/PAY_ are namespacing on the constant, not part of the
-      // capability's name — "FIN_CREATE_INVOICE" reads as "Create invoice".
+      // capability's name - "FIN_CREATE_INVOICE" reads as "Create invoice".
       const words = name
         .replace(/^(FIN|PROC|PAY)_/, "")
         .toLowerCase()

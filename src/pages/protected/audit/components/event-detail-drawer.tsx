@@ -75,7 +75,7 @@ export default function EventDetailDrawer({ eventId, onClose, onFilterEntity }: 
               )}
               <div className="bg-gray-50 rounded p-3 space-y-1.5">
                 <p className="text-[10px] font-semibold uppercase text-gray-01">Entity</p>
-                <p className="text-sm font-medium">{event.entity_label || "—"}</p>
+                <p className="text-sm font-medium">{event.entity_label || "-"}</p>
                 <p className="text-[10px] text-gray-01 uppercase">{event.entity_type}</p>
                 <Button
                   size="sm"

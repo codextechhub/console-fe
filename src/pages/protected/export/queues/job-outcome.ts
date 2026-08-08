@@ -4,7 +4,7 @@
 // the whole truth: a job can SUCCEED while the file it produced left columns or
 // rows out. vs_exports.tasks.run_export_task reports that back in
 // `BackgroundJob.result` as {run, status, rows, omissions}, so the queue row can
-// show the RUN's status instead of the job's — otherwise a partly-complete
+// show the RUN's status instead of the job's - otherwise a partly-complete
 // export reads here as a clean success, which is exactly the confusion the
 // Export Centre exists to remove. See docs/EXPORT_BUILD_NOTES.md.
 //
@@ -15,7 +15,7 @@ import type { BackgroundJob } from "@/redux/services/dashboard/queue-types";
 export interface ExportOutcome {
   /** Human-quotable run reference, e.g. RUN-7F31C2. Empty when absent. */
   reference: string;
-  /** A vs_exports RunStatus — COMPLETED, COMPLETED_WITH_OMISSIONS, … */
+  /** A vs_exports RunStatus - COMPLETED, COMPLETED_WITH_OMISSIONS, … */
   status: string;
   /** Rows actually written, or null when the task did not report it. */
   rows: number | null;

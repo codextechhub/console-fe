@@ -29,8 +29,8 @@ export function CostCentersTab({ entity }: { entity: string }) {
   const columns: Column<CostCenter>[] = [
     { header: "Code", cell: (c) => <span className="font-semibold">{c.code}</span> },
     { header: "Name", cell: (c) => c.name },
-    { header: "Branch", cell: (c) => branchOf(c.code) ? <span className="rounded bg-pry-01 px-1.5 py-0.5 font-mont text-[10px] font-semibold uppercase text-primary">{branchOf(c.code)}</span> : "—" },
-    { header: "Parent", cell: (c) => c.parent_code ?? "—" },
+    { header: "Branch", cell: (c) => branchOf(c.code) ? <span className="rounded bg-pry-01 px-1.5 py-0.5 font-mont text-[10px] font-semibold uppercase text-primary">{branchOf(c.code)}</span> : "-" },
+    { header: "Parent", cell: (c) => c.parent_code ?? "-" },
     { header: "Status", cell: (c) => <StatusPill status={c.is_active ? "ACTIVE" : "INACTIVE"} /> },
   ];
   return (
@@ -79,11 +79,11 @@ function NewCostCentreModal({ open, onClose, entity, parents }: { open: boolean;
         <FormField label="Parent">
           <select value={parent} onChange={(e) => setParent(e.target.value)} className={`${selectCls} w-full`}>
             <option value="">None</option>
-            {parents.map((c) => <option key={c.id} value={c.code}>{c.code} — {c.name}</option>)}
+            {parents.map((c) => <option key={c.id} value={c.code}>{c.code} - {c.name}</option>)}
           </select>
         </FormField>
       </div>
-      <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Lekki — Facilities" className="bg-white" /></FormField>
+      <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Lekki - Facilities" className="bg-white" /></FormField>
     </FormDrawer>
   );
 }

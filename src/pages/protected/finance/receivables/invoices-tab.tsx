@@ -50,7 +50,7 @@ const pctChange = (arr: number[]) => {
 
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
-  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
+  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "-"}</span>;
 }
 
 function Kpi({ label, value, delta, deltaIsPoints }: {
@@ -63,7 +63,7 @@ function Kpi({ label, value, delta, deltaIsPoints }: {
       <p className="font-mont text-xs text-gray-05">{label}</p>
       <p className={cn("mt-2 font-mont font-semibold tabular-nums text-black-01", kpiValueClass(value))}>{value}</p>
       <div className="mt-2 flex items-center gap-1.5">
-        {delta == null ? <span className="font-mont text-[11px] text-gray-05">—</span> : (
+        {delta == null ? <span className="font-mont text-[11px] text-gray-05">-</span> : (
           <span className={cn("inline-flex items-center gap-0.5 font-mont text-[11px] font-semibold", up ? "text-green-01" : "text-destructive")}>
             <Icon className="size-3" />{up ? "+" : ""}{delta.toFixed(1)}{deltaIsPoints ? "pp" : "%"}
           </span>
@@ -118,9 +118,9 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
       </span>
     ) },
     { header: "Invoice date", cell: (r) => <span className="tabular-nums">{r.invoice_date}</span> },
-    { header: "Due date", cell: (r) => <span className="tabular-nums">{r.due_date ?? "—"}</span> },
+    { header: "Due date", cell: (r) => <span className="tabular-nums">{r.due_date ?? "-"}</span> },
     { header: "Total", align: "right", cell: (r) => <Money kobo={r.total} currency={currency} align="right" /> },
-    { header: "Paid", align: "right", cell: (r) => r.amount_paid ? <Money kobo={r.amount_paid} currency={currency} align="right" /> : <span className="text-gray-05">—</span> },
+    { header: "Paid", align: "right", cell: (r) => r.amount_paid ? <Money kobo={r.amount_paid} currency={currency} align="right" /> : <span className="text-gray-05">-</span> },
     { header: "Balance", align: "right", cell: (r) => <Money kobo={r.balance_due} currency={currency} align="right" /> },
     { header: "Status", cell: (r) => { const s = derivedStatus(r); return <span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[s] ?? "bg-gray-03/60 text-gray-05")}>{STATUS_LABEL[s] ?? s}</span>; } },
   ];
@@ -131,7 +131,7 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
         <div>
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">Customer Invoices</h1>
-            <InfoHint ariaLabel="About customer invoices">Customer invoices debit Accounts Receivable and credit revenue on posting. A payment is recorded against the invoice; the AR control account must equal the sum of open invoice balances — a tie reconciled at period close.</InfoHint>
+            <InfoHint ariaLabel="About customer invoices">Customer invoices debit Accounts Receivable and credit revenue on posting. A payment is recorded against the invoice; the AR control account must equal the sum of open invoice balances - a tie reconciled at period close.</InfoHint>
           </div>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Accounts receivable for the selected entity.</p>
         </div>

@@ -1,5 +1,5 @@
 // Finance operations types (banking, expenses, petty cash, payroll, budgets,
-// fixed assets, tax) — mirror the vs_finance serializers. Money is kobo. FLS
+// fixed assets, tax) - mirror the vs_finance serializers. Money is kobo. FLS
 // fields are optional + carry _stripped_fields when stripped.
 
 // ── Banking ──────────────────────────────────────────────────────────────────
@@ -7,7 +7,7 @@ export interface BankAccount {
   id: number;
   name: string;
   bank_name: string;
-  account_number?: string; // FLS — finance.bankaccount.view_sensitive
+  account_number?: string; // FLS - finance.bankaccount.view_sensitive
   gl_account: string;
   gl_account_name?: string;
   gl_account_id: number;

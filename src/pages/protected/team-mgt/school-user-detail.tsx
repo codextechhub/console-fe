@@ -30,7 +30,7 @@ function DetailField({
         <Icon className="size-3.5" />
         <span>{label}</span>
       </div>
-      <p className="break-words text-sm font-medium text-black-01">{value || "—"}</p>
+      <p className="break-words text-sm font-medium text-black-01">{value || "-"}</p>
     </div>
   );
 }
@@ -50,7 +50,7 @@ export function SchoolUserDetail({
   // Permission overrides are addressed by the TARGET's tenant slug, and a
   // school user's rows carry only school_id/school_name. The schools list is
   // where the console reads a school's slug for `?tenant=` everywhere else
-  // (see settings/index.tsx ScopePicker) — reusing the identical query arg the
+  // (see settings/index.tsx ScopePicker) - reusing the identical query arg the
   // members tab already issues means this hits the existing RTK cache entry
   // rather than adding a request.
   const canSeeExceptions = useCanViewPermissionExceptions();
@@ -86,7 +86,7 @@ export function SchoolUserDetail({
                 <p className="mt-1 truncate text-xs text-gray-01">{detail?.email || user?.email}</p>
               </div>
               <Badge variant={(detail?.status || user?.status || "inactive").toLowerCase() as "active"}>
-                {detail?.status || user?.status || "—"}
+                {detail?.status || user?.status || "-"}
               </Badge>
             </section>
 
@@ -113,10 +113,10 @@ export function SchoolUserDetail({
             <section>
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-01">Account activity</h3>
               <div className="grid gap-3 sm:grid-cols-2">
-                <DetailField icon={CalendarDays} label="Created" value={(detail?.created_at || user?.created_at) ? formatRelativeDate(detail?.created_at || user!.created_at) : "—"} />
+                <DetailField icon={CalendarDays} label="Created" value={(detail?.created_at || user?.created_at) ? formatRelativeDate(detail?.created_at || user!.created_at) : "-"} />
                 <DetailField icon={CalendarDays} label="Last login" value={detail?.last_login_at ? formatRelativeDate(detail.last_login_at) : "Never"} />
                 <DetailField icon={UserRound} label="Invited by" value={detail?.invited_by_name || user?.invited_by_name} />
-                <DetailField icon={CalendarDays} label="Last updated" value={detail?.updated_at ? formatRelativeDate(detail.updated_at) : "—"} />
+                <DetailField icon={CalendarDays} label="Last updated" value={detail?.updated_at ? formatRelativeDate(detail.updated_at) : "-"} />
               </div>
             </section>
 

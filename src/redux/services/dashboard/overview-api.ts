@@ -7,13 +7,13 @@ export const overviewApi = baseApi.injectEndpoints({
      * Everything the landing screen renders, in one request.
      *
      * Replaces eight parallel dashboard calls. Two of those pulled a whole
-     * dashboard to read a single field — `/health/overview/` serialised the
+     * dashboard to read a single field - `/health/overview/` serialised the
      * service grid, request series, deployments and incidents for one posture
      * label, and `/todo/dashboard/mine/` serialised every task to list three.
      *
      * Sections the caller has no permission for are ABSENT from `data`, not
      * zeroed, so the screen must treat a missing section as "no access" and keep
-     * its card hidden — never render it as 0.
+     * its card hidden - never render it as 0.
      */
     getConsoleOverview: builder.query<ConsoleOverviewRes, void>({
       query: () => ({ url: `/admin/dashboard/overview/`, method: "GET" }),

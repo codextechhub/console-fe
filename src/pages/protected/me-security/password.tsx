@@ -23,7 +23,7 @@ function maskEmail(email: string): string {
 }
 
 function maskIp(ip: string | null | undefined): string {
-  if (!ip) return "—";
+  if (!ip) return "-";
   const parts = ip.split(".");
   if (parts.length !== 4) return ip;
   return `${parts[0]}.•••.•••.${parts[3]}`;
@@ -32,7 +32,7 @@ function maskIp(ip: string | null | undefined): string {
 const STRENGTH_LABELS = ["Weak", "Weak", "Okay", "Good", "Strong", "Very strong"];
 
 function passwordStrength(p: string): { score: number; label: string } {
-  if (!p) return { score: 0, label: "—" };
+  if (!p) return { score: 0, label: "-" };
   let s = 0;
   if (p.length >= 8) s++;
   if (p.length >= 12) s++;
@@ -104,7 +104,7 @@ export default function MyPassword() {
             )}
           </div>
 
-          {/* Current password — full width */}
+          {/* Current password - full width */}
           <CustomInput
             id="old_password"
             label="Current password"
@@ -113,7 +113,7 @@ export default function MyPassword() {
             onChange={(e) => setOldPassword(e.target.value)}
           />
 
-          {/* New + confirm — 2-column */}
+          {/* New + confirm - 2-column */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <CustomInput
@@ -194,7 +194,7 @@ export default function MyPassword() {
           <div>
             <p className="text-sm font-semibold">Email address</p>
             <p className="text-xs font-mont text-gray-01 mt-0.5 tracking-wide">
-              {user?.email ? maskEmail(user.email) : "—"}
+              {user?.email ? maskEmail(user.email) : "-"}
             </p>
           </div>
           <p className="text-xs text-gray-01 text-right shrink-0">

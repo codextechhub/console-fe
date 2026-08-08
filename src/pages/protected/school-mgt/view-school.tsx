@@ -51,7 +51,7 @@ function DetailField({ label, value, children }: { label: string; value?: ReactN
   return (
     <div className="min-w-0 space-y-1.5">
       <p className="font-mont text-xs font-medium text-gray-01">{label}</p>
-      <div className="break-words text-sm font-semibold text-black-01">{children ?? value ?? "—"}</div>
+      <div className="break-words text-sm font-semibold text-black-01">{children ?? value ?? "-"}</div>
     </div>
   );
 }
@@ -166,9 +166,9 @@ export default function ViewSchool() {
       </div>
     ),
     type: formatEnum(branch._type),
-    location: [branch.state, branch.country].filter(Boolean).join(", ") || "—",
+    location: [branch.state, branch.country].filter(Boolean).join(", ") || "-",
     admin: branch.primary_admin?.contact.full_name ?? "Unassigned",
-    opened: branch.opened_at ? formatStartedTime(branch.opened_at) : "—",
+    opened: branch.opened_at ? formatStartedTime(branch.opened_at) : "-",
     status: (
       <Badge variant={branch.status?.toLowerCase() as ComponentProps<typeof Badge>["variant"]}>
         {formatEnum(branch.status)}
@@ -214,7 +214,7 @@ export default function ViewSchool() {
                     </Badge>
                   </div>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 font-mont text-xs text-gray-01">
-                    <span>Code: {school.code || "—"}</span>
+                    <span>Code: {school.code || "-"}</span>
                     <span>{formatEnum(school.ownership_type)}</span>
                     <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" /> {[school.main_branch?.state, school.main_branch?.country].filter(Boolean).join(", ") || "Location not set"}</span>
                   </div>
@@ -276,7 +276,7 @@ export default function ViewSchool() {
                             <a href={school.website} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1 text-primary hover:underline">
                               <span className="truncate">{school.website}</span><ExternalLink className="size-3.5 shrink-0" />
                             </a>
-                          ) : "—"}
+                          ) : "-"}
                         </DetailField>
                         <DetailField label="School code" value={school.code} />
                       </div>

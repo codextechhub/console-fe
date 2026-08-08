@@ -1,4 +1,4 @@
-// <ActionButton> — a permission-gated control that opens a confirm modal and
+// <ActionButton> - a permission-gated control that opens a confirm modal and
 // runs an async action (a state-changing mutation). Encapsulates the gate +
 // confirm + loading pattern repeated across every "post / settle / pay /
 // approve" row action, so pages stay declarative.

@@ -258,7 +258,7 @@ export default function PasswordActivity() {
             {/* ── Sidebar column ── */}
             <div className="space-y-4">
 
-            {/* Quick admin actions panel — requires platform.team.update */}
+            {/* Quick admin actions panel - requires platform.team.update */}
             <PermissionGate permission={P.MODIFY_TEAM_MEMBER}>
             <div className="rounded-md border bg-white">
               <div className="px-4 py-3 border-b">
@@ -496,7 +496,7 @@ function ActivityRow({ event: e }: { event: AuditEventListItem }) {
             userId={e.entity_user?.id}
           />
         ) : (
-          <span className="text-xs text-gray-01">—</span>
+          <span className="text-xs text-gray-01">-</span>
         )}
       </td>
 
@@ -514,14 +514,14 @@ function ActivityRow({ event: e }: { event: AuditEventListItem }) {
         </div>
       </td>
 
-      {/* School — not available in list serializer, show — */}
+      {/* School - not available in list serializer, show - */}
       <td className="px-3 py-3">
-        <span className="text-xs text-gray-01">—</span>
+        <span className="text-xs text-gray-01">-</span>
       </td>
 
       {/* IP */}
       <td className="px-3 py-3">
-        <span className="font-mono text-xs">{e.ip_address ?? "—"}</span>
+        <span className="font-mono text-xs">{e.ip_address ?? "-"}</span>
       </td>
 
       {/* Status */}

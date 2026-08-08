@@ -1,4 +1,4 @@
-// Uptime — probe monitors with 24h/7d/30d availability, the 90-day segment
+// Uptime - probe monitors with 24h/7d/30d availability, the 90-day segment
 // strip, and certificate tracking. All figures come from real probe results;
 // "No history yet" is the honest state until the beat schedule has run.
 
@@ -38,12 +38,12 @@ export default function UptimePage() {
     );
   }
 
-  // A monitor with no probe results yet must not claim an uptime figure —
+  // A monitor with no probe results yet must not claim an uptime figure -
   // the backend defaults to 100 when the rollup set is empty.
   const withHistory = monitors.filter((m) => m.segments.length > 0);
   const averageUptime = withHistory.length
     ? (withHistory.reduce((sum, m) => sum + m.uptime_30d, 0) / withHistory.length).toFixed(3)
-    : "—";
+    : "-";
 
   return (
     <HealthFrame>
@@ -54,7 +54,7 @@ export default function UptimePage() {
         <HealthKpi
           label="Average uptime"
           value={averageUptime}
-          unit={averageUptime === "—" ? undefined : "%"}
+          unit={averageUptime === "-" ? undefined : "%"}
         />
         <HealthKpi label="Certificates tracked" value={monitors.filter((m) => m.ssl).length} />
       </div>
@@ -80,7 +80,7 @@ export default function UptimePage() {
                   </div>
                   <p className="mt-1 text-xs text-gray-01">
                     Average response {monitor.avg_response_ms ?? 0} ms
-                    {monitor.ssl?.domain ? ` · SSL ${monitor.ssl.days_left ?? "—"} days` : ""}
+                    {monitor.ssl?.domain ? ` · SSL ${monitor.ssl.days_left ?? "-"} days` : ""}
                   </p>
                 </div>
                 <div className="flex gap-5 text-right text-xs">
@@ -95,7 +95,7 @@ export default function UptimePage() {
                       <p className="text-gray-01">{label}</p>
                       {/* No probe history → no uptime claim. */}
                       <p className="mt-1 font-semibold">
-                        {monitor.segments.length ? `${value}%` : "—"}
+                        {monitor.segments.length ? `${value}%` : "-"}
                       </p>
                     </div>
                   ))}
@@ -112,7 +112,7 @@ export default function UptimePage() {
                   ))
                 ) : (
                   <div className="flex w-full items-center justify-center rounded bg-gray-50 text-xs text-gray-01">
-                    No history yet — probes fill this in as they run
+                    No history yet - probes fill this in as they run
                   </div>
                 )}
               </div>

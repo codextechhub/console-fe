@@ -29,7 +29,7 @@ export function Pill({ tone, children }: { tone: PillTone; children: React.React
   );
 }
 
-/** Status pill with a leading tone dot — the prototype's table status chips. */
+/** Status pill with a leading tone dot - the prototype's table status chips. */
 export function StatusDotPill({ tone, children }: { tone: PillTone; children: React.ReactNode }) {
   return (
     <span className={cn("inline-flex items-center gap-1.5 rounded px-2 py-0.5 font-mont text-[11px] font-medium whitespace-nowrap", PILL_TONES[tone])}>
@@ -39,7 +39,7 @@ export function StatusDotPill({ tone, children }: { tone: PillTone; children: Re
   );
 }
 
-/** A labelled proportion meter — a small rounded bar plus its percentage. */
+/** A labelled proportion meter - a small rounded bar plus its percentage. */
 export function Meter({ ratio, color = "var(--color-primary, #2563eb)" }: {
   ratio: number;
   color?: string;
@@ -136,7 +136,7 @@ export function ChartEmpty({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Horizontal labelled money bars — used for spend-by-vendor. */
+/** Horizontal labelled money bars - used for spend-by-vendor. */
 export function HBars({ items, currency }: {
   items: { label: string; value: number }[];
   currency?: string | null;

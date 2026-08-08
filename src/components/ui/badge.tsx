@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 // 2.0–4.4:1 on their own tints and fail WCAG AA for text. The background,
 // fills and glyphs keep the raw hue, so the colour still reads the same.
 // `suspended` keeps its orange-500 tint but borrows the amber text token
-// (5.35:1 on that tint) — orange has no token of its own in index.css, and
+// (5.35:1 on that tint) - orange has no token of its own in index.css, and
 // adding a colour to fix one label is worse than reusing its nearest neighbour.
 const badgeVariants = cva(
   "inline-flex items-center justify-center rounded-md border border-transparent px-2 py-0.5 text-sm font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",

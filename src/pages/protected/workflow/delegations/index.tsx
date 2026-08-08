@@ -346,7 +346,7 @@ function NewDelegationSheet({
           <CustomInput
             id="del-doc-type"
             label="Applies to"
-            placeholder="e.g. leave.request — leave blank for all types"
+            placeholder="e.g. leave.request - leave blank for all types"
             value={docType}
             onChange={(e) => setDocType(e.target.value)}
           />
@@ -357,7 +357,7 @@ function NewDelegationSheet({
               <p className="text-xs text-gray-01">
                 {exclusive
                   ? "Only your delegate will appear in approver queues during this period."
-                  : "Both you and your delegate can act — either vote counts."}
+                  : "Both you and your delegate can act - either vote counts."}
               </p>
             </div>
             <Switch checked={exclusive} onCheckedChange={setExclusive} />

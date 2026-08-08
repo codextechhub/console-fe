@@ -1,4 +1,4 @@
-// My Profile — self-service CX staff profile (platform-staff-profiles/me).
+// My Profile - self-service CX staff profile (platform-staff-profiles/me).
 // Opens as a READ view: grouped cards (organisation, personal, contact, next of
 // kin, position history, payroll). Editing is an explicit mode behind the
 // "Edit Profile" button; Save stays disabled until something actually changes
@@ -24,7 +24,7 @@ function Row({ label, value }: { label: string; value?: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</span>
-      <span className="text-sm text-black-01">{value || "—"}</span>
+      <span className="text-sm text-black-01">{value || "-"}</span>
     </div>
   );
 }
@@ -130,7 +130,7 @@ export default function MyProfile() {
             <p className="text-xs text-gray-01 mt-0.5">
               {editing
                 ? "Update your personal, contact, next-of-kin and payroll details."
-                : "Your employment record — where you sit in the organisation and your personal details."}
+                : "Your employment record - where you sit in the organisation and your personal details."}
             </p>
           </div>
           {!editing && profile && (
@@ -158,7 +158,7 @@ export default function MyProfile() {
               <div className="min-w-0 flex-1">
                 <div className="text-lg font-bold text-black-01">{profile.user.full_name}</div>
                 <div className="text-sm text-gray-01">
-                  {profile.job_title || profile.position?.title || "—"}
+                  {profile.job_title || profile.position?.title || "-"}
                   {profile.department?.name ? ` · ${profile.department.name}` : ""}
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -196,7 +196,7 @@ export default function MyProfile() {
               />
             ) : (
               <>
-                {/* Organisation — where this person sits in the structure */}
+                {/* Organisation - where this person sits in the structure */}
                 <section className="rounded-2xl border border-slate-200 bg-white p-5">
                   <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold font-mont text-black-01">
                     <Building2 className="size-4 text-indigo-500" /> Organisation

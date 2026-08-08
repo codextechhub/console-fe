@@ -1,4 +1,4 @@
-// <DetailDrawer> — a right-side drawer over the app's Sheet primitive, used for
+// <DetailDrawer> - a right-side drawer over the app's Sheet primitive, used for
 // record details (view a journal, an invoice, a PO…) and read-only inspection
 // without leaving the list. Actions for the record live in `footer`.
 
@@ -22,7 +22,7 @@ interface DetailDrawerProps {
   widthClass?: string;
   /**
    * Which typeface the drawer adopts. The Sheet portals to <body>, outside the
-   * page it belongs to, so it cannot inherit — it has to be told.
+   * page it belongs to, so it cannot inherit - it has to be told.
    * "geist" (default) matches the Finance and Procurement consoles; "app" is
    * for the rest of the app, which is Montserrat. Getting this wrong is
    * invisible until you notice the drawer's font disagrees with the page.

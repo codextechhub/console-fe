@@ -17,7 +17,7 @@ page.on("response", async (r) => {
   }
 });
 page.on("requestfailed", (r) => {
-  console.log(`FAILED ${r.method()} ${r.url()} — ${r.failure()?.errorText}`);
+  console.log(`FAILED ${r.method()} ${r.url()} - ${r.failure()?.errorText}`);
 });
 
 await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });

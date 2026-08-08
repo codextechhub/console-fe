@@ -31,7 +31,7 @@ export default function TeamLoad() {
           <div>
             <p className="font-semibold font-mont text-gray-01">Active Approvals by Stage</p>
             <p className="text-xs text-gray-01 mt-0.5">
-              Where the approval backlog is sitting right now —{" "}
+              Where the approval backlog is sitting right now -{" "}
               <span className="font-medium text-black-01">{total}</span> active stage
               {total === 1 ? "" : "s"} across the platform.
             </p>

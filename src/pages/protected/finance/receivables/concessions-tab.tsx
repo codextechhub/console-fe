@@ -46,7 +46,7 @@ function StatusPill({ status }: { status: string }) {
 }
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
-  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "—"}</span>;
+  return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[10px] font-semibold text-primary">{init || "-"}</span>;
 }
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
@@ -63,7 +63,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <div><p className="font-mont text-[11px] text-gray-05">{label}</p><div className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</div></div>;
 }
 
-// Dr allowance (recognised revenue reduced) · Cr AR — the real journal a concession posts.
+// Dr allowance (recognised revenue reduced) · Cr AR - the real journal a concession posts.
 function concessionRecap(allowance: string | null, amount: number): { dr: RecapRow[]; cr: RecapRow[] } {
   return {
     dr: [{ code: allowance || "4910", name: "Discounts & allowances", amount }],
@@ -98,7 +98,7 @@ export function ConcessionsTab({ entity, currency }: { entity: string; currency?
   const columns: Column<Concession>[] = [
     { header: "Ref", cell: (c) => <span className="font-semibold tabular-nums">{c.document_number}</span> },
     { header: "Customer", cell: (c) => <span className="inline-flex items-center gap-2"><Initials name={c.customer_name} /><span className="font-medium text-gray-01">{c.customer_name}</span></span> },
-    { header: "Invoice", cell: (c) => <span className="tabular-nums text-gray-05">{c.invoice_number ?? "—"}</span> },
+    { header: "Invoice", cell: (c) => <span className="tabular-nums text-gray-05">{c.invoice_number ?? "-"}</span> },
     { header: "Type", cell: (c) => <TypeChip kind={c.kind} /> },
     { header: "Amount", align: "right", cell: (c) => <Money kobo={c.amount} currency={currency} align="right" /> },
     { header: "Date", cell: (c) => <span className="tabular-nums">{c.concession_date}</span> },
@@ -194,17 +194,17 @@ function ConcessionDetailDrawer({ concession, entity, currency, onClose }: {
           <div className="grid grid-cols-2 gap-4">
             <Field label="Amount"><Money kobo={concession.amount} currency={currency} /></Field>
             <Field label="Status"><StatusPill status={concession.status} /></Field>
-            <Field label="Against invoice">{concession.invoice_number ?? "—"}</Field>
+            <Field label="Against invoice">{concession.invoice_number ?? "-"}</Field>
             <Field label="Date">{concession.concession_date}</Field>
           </div>
-          <Field label="Basis"><span className="font-normal">{concession.reason || "—"}</span></Field>
+          <Field label="Basis"><span className="font-normal">{concession.reason || "-"}</span></Field>
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">GL posting</p>
             <PostingRecap
               title={`${kindLabel(concession.kind)} posting`} dr={recap.dr} cr={recap.cr} currency={currency}
               helper={isDraft
-                ? "The journal that will post when this concession is posted — recognised revenue reduced, the customer's balance cleared."
-                : "Recaps the journal booked when the concession was posted — recognised revenue reduced, the customer's balance cleared."}
+                ? "The journal that will post when this concession is posted - recognised revenue reduced, the customer's balance cleared."
+                : "Recaps the journal booked when the concession was posted - recognised revenue reduced, the customer's balance cleared."}
             />
           </div>
         </div>
@@ -213,7 +213,7 @@ function ConcessionDetailDrawer({ concession, entity, currency, onClose }: {
       <ConfirmActionModal
         open={confirmPost} onOpenChange={(o) => !o && setConfirmPost(false)}
         title="Post this concession?"
-        description={`Posts ${concession.document_number} — reduces ${concession.invoice_number}'s balance (Dr allowance · Cr AR).`}
+        description={`Posts ${concession.document_number} - reduces ${concession.invoice_number}'s balance (Dr allowance · Cr AR).`}
         confirmText="Post" loading={posting} onConfirm={doPost}
       />
     </>
@@ -243,7 +243,7 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
     [invQ.data, customer],
   );
   const invoiceOptions = openInvoices.map((i) => ({ value: String(i.id), label: `${i.document_number} · ${formatMoney(i.balance_due, currency)} due` }));
-  // A discount cannot predate the charge it discounts — conceding before the invoice
+  // A discount cannot predate the charge it discounts - conceding before the invoice
   // date would credit AR before the invoice ever debited it.
   const selectedInvoice = openInvoices.find((i) => String(i.id) === invoice) ?? null;
 

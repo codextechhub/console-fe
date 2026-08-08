@@ -49,7 +49,7 @@ const DETAIL_TABS = [
 type DetailTab = typeof DETAIL_TABS[number]["value"];
 
 function shortDate(value?: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime())
     ? value
@@ -78,7 +78,7 @@ export default function PurchaseOrdersPage() {
     return () => window.clearTimeout(timer);
   }, [search]);
   // Clearing search must drop the previous server filter immediately instead of
-  // retaining stale rows — adjust during render, not on a delay.
+  // retaining stale rows - adjust during render, not on a delay.
   if (!search.trim() && debouncedSearch !== "") setDebouncedSearch("");
 
   const params = useMemo(() => ({
@@ -169,7 +169,7 @@ function PurchaseOrderDrawer({ id, entity, currency, onClose }: { id: number | n
       await submit({ id: po.id, entity }).unwrap();
       toast.success("Purchase order submitted for approval.");
       // The mutation invalidates ProcPurchaseOrders, so this drawer, the list and
-      // the summary all refetch automatically — no manual refetch needed.
+      // the summary all refetch automatically - no manual refetch needed.
     } catch { /* Central API handling presents the server validation message. */ }
   };
   const openRoute = (route: string) => { onClose(); navigate(route); };
@@ -237,7 +237,7 @@ function EditPurchaseOrderDrawer({ po, entity, currency, onClose }: { po: Purcha
   const [contract, setContract] = useState(po.contract_id ? String(po.contract_id) : "");
   const [update, { isLoading }] = useUpdatePurchaseOrderMutation();
   const canSave = !!vendor && !!orderDate;
-  // A contract belongs to one vendor — changing vendor drops a now-invalid link.
+  // A contract belongs to one vendor - changing vendor drops a now-invalid link.
   const changeVendor = (v: string) => { setVendor(v); if (v !== po.vendor_code) setContract(""); };
 
   const save = async () => {
@@ -265,7 +265,7 @@ function CreatePurchaseOrderDrawer({ open, entity, currency, onClose }: { open: 
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [paymentTerms, setPaymentTerms] = useState("");
   const [contract, setContract] = useState("");
-  // A contract belongs to one vendor — changing vendor drops a now-invalid link.
+  // A contract belongs to one vendor - changing vendor drops a now-invalid link.
   const changeVendor = (v: string) => { setVendor(v); setContract(""); };
   const { data: requisitionData, isLoading: requisitionLoading } = useGetRequisitionQuery({ id: Number(requisition), entity }, { skip: !requisition });
   const [create, { isLoading: creating }] = useCreatePurchaseOrderMutation();

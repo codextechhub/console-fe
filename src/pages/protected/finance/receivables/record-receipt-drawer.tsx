@@ -1,4 +1,4 @@
-// Record receipt (Step 1 of 2) — capture the payment, then hand off to the
+// Record receipt (Step 1 of 2) - capture the payment, then hand off to the
 // allocation drawer. A right-side drawer matching the prototype: customer / date /
 // method / amount / bank account / reference, with a live "Posting on receipt"
 // preview (Dr bank · Cr AR) before you continue to allocation. Naira → integer kobo.
@@ -48,7 +48,7 @@ export function RecordReceiptDrawer({ open, onOpenChange, entity, currency, onCr
       const res = await record({
         entity, id: customer, amount: kobo, payment_date: date,
         method, deposit_account: account, reference: reference || undefined,
-        auto_allocate: false,   // capture only — allocate in the next step
+        auto_allocate: false,   // capture only - allocate in the next step
       }).unwrap();
       toast.success(res.message || "Receipt captured.");
       reset();
@@ -62,7 +62,7 @@ export function RecordReceiptDrawer({ open, onOpenChange, entity, currency, onCr
       open={open}
       onOpenChange={(o) => (o ? undefined : close())}
       title="Record receipt"
-      description="Step 1 — capture the payment, then allocate."
+      description="Step 1 - capture the payment, then allocate."
       widthClass="sm:max-w-xl"
       footer={
         <>
@@ -108,11 +108,11 @@ export function RecordReceiptDrawer({ open, onOpenChange, entity, currency, onCr
                   <tr>
                     <td className={td}><span className="font-semibold tabular-nums">{account}</span> {depositAcc?.name ?? "Bank / cash"}</td>
                     <td className={cn(td, "text-right tabular-nums")}><Money kobo={kobo} currency={currency} align="right" /></td>
-                    <td className={cn(td, "text-right text-gray-05")}>—</td>
+                    <td className={cn(td, "text-right text-gray-05")}>-</td>
                   </tr>
                   <tr>
                     <td className={td}><span className="font-semibold tabular-nums">{arAcc?.code ?? "1200"}</span> {arAcc?.name ?? "Accounts Receivable"}</td>
-                    <td className={cn(td, "text-right text-gray-05")}>—</td>
+                    <td className={cn(td, "text-right text-gray-05")}>-</td>
                     <td className={cn(td, "text-right tabular-nums")}><Money kobo={kobo} currency={currency} align="right" /></td>
                   </tr>
                   <tr className="font-semibold">

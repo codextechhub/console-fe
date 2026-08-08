@@ -92,9 +92,9 @@ function AssignRoleSheet({
   const userOptions = isChange && assignmentToChange
     ? [{
         value: assignmentToChange.user_id,
-        label: `${assignmentToChange.user_name} — ${assignmentToChange.user_email}`,
+        label: `${assignmentToChange.user_name} - ${assignmentToChange.user_email}`,
       }]
-    : members.map((m) => ({ value: m.id, label: `${m.full_name} — ${m.email}` }));
+    : members.map((m) => ({ value: m.id, label: `${m.full_name} - ${m.email}` }));
   const roleOptions = roles
     .filter((r) => r.id !== formerAssignment?.role_id)
     .map((r) => ({ value: r.id, label: r.name }));
@@ -263,7 +263,7 @@ function AssignedBy({
   name: string | null;
 }) {
   if (!userId && !name) {
-    return <span className="text-xs text-gray-01">—</span>;
+    return <span className="text-xs text-gray-01">-</span>;
   }
 
   return (
@@ -310,10 +310,10 @@ function AssignmentDetailSheet({
         />
       ),
     },
-    { label: "Assigned at", value: assignment.assigned_at ? formatRelativeDate(assignment.assigned_at) : "—" },
-    { label: "Revoked by", value: assignment.revoked_by_name || "—" },
-    { label: "Revoked at", value: assignment.revoked_at ? formatRelativeDate(assignment.revoked_at) : "—" },
-    { label: "Reason", value: assignment.reason_note || "—" },
+    { label: "Assigned at", value: assignment.assigned_at ? formatRelativeDate(assignment.assigned_at) : "-" },
+    { label: "Revoked by", value: assignment.revoked_by_name || "-" },
+    { label: "Revoked at", value: assignment.revoked_at ? formatRelativeDate(assignment.revoked_at) : "-" },
+    { label: "Reason", value: assignment.reason_note || "-" },
   ];
 
   return (
@@ -526,7 +526,7 @@ export default function PlatformUserAssignments() {
     assignedAt: <span className="text-xs text-gray-01">{formatRelativeDate(a.assigned_at)}</span>,
     revokedAt: (
       <span className="text-xs text-gray-01">
-        {a.revoked_at ? formatRelativeDate(a.revoked_at) : "—"}
+        {a.revoked_at ? formatRelativeDate(a.revoked_at) : "-"}
       </span>
     ),
     _id: a.id,

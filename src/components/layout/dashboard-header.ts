@@ -4,11 +4,11 @@
 // renders once above the lazy page chunks and so can no longer receive props
 // from the page it wraps. Two channels replace those props:
 //
-//  1. `handle` — react-router's slot for static, route-owned metadata. Carries
+//  1. `handle` - react-router's slot for static, route-owned metadata. Carries
 //     the screen's default title, its back affordance, and which sidebar the
 //     console uses. Deepest matched route wins, so a nested screen overrides
 //     its parent without the parent knowing.
-//  2. `useDashboardTitle` / `useDashboardBack` — the runtime escape hatch, for
+//  2. `useDashboardTitle` / `useDashboardBack` - the runtime escape hatch, for
 //     the handful of screens whose title only exists once server data lands
 //     (a ticket number) or whose back destination is a closure over state.
 //
@@ -51,7 +51,7 @@ export type ResolvedHeader = {
 };
 
 /**
- * Fold the matched route chain into one handle — deepest match wins per field,
+ * Fold the matched route chain into one handle - deepest match wins per field,
  * so a detail route can set its own title while inheriting the parent's sidebar.
  */
 export function mergeHandles(matches: readonly { handle?: unknown }[]): DashboardHandle {
@@ -67,7 +67,7 @@ export function mergeHandles(matches: readonly { handle?: unknown }[]): Dashboar
 }
 
 /**
- * Runtime override beats the route handle — but only while the user is still on
+ * Runtime override beats the route handle - but only while the user is still on
  * the location that set it. Once `locationKey` moves on, the override is dead
  * and the new route's handle takes over immediately (no stale-title flash).
  */
@@ -111,7 +111,7 @@ export function useDashboardTitle(title?: string): void {
 }
 
 /**
- * Override the back destination with a closure — for the sites whose target
+ * Override the back destination with a closure - for the sites whose target
  * depends on state the route can't express. Static destinations belong in
  * `handle.back`.
  *

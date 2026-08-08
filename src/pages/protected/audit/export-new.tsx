@@ -41,7 +41,7 @@ export default function NewAuditExport() {
     createExport({ filter_payload: filter, export_format: "CSV" })
       .unwrap()
       .then((res) => {
-        toast.success(`Export ready — ${res.data.row_count.toLocaleString()} rows.`);
+        toast.success(`Export ready - ${res.data.row_count.toLocaleString()} rows.`);
         navigate(routesPath.PROTECTED.AUDIT.EXPORTS);
       })
       .catch(() => {});

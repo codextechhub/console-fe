@@ -127,7 +127,7 @@ export function StaffProfileForm({
   const isCreate = mode === "admin-create";
 
   // Profile photo is STAGED (picked but not uploaded) and committed only when
-  // the user clicks Save changes — so a mis-pick can be replaced or abandoned.
+  // the user clicks Save changes - so a mis-pick can be replaced or abandoned.
   // Create mode has no profile row yet, so photo editing is unavailable there.
   const [stagedPhoto, setStagedPhoto] = useState<File | null>(null);
   const [uploadPhoto, { isLoading: uploadingPhoto }] = useUploadStaffProfilePhotoMutation();
@@ -167,7 +167,7 @@ export function StaffProfileForm({
           nok_address: values.nok_address,
         };
         if (isAdmin) {
-          // NB: position is NOT sent on the profile payload — the parent routes
+          // NB: position is NOT sent on the profile payload - the parent routes
           // seat changes through the assignments endpoint so history is kept.
           payload.employee_id = values.employee_id || null;
           payload.job_title = values.job_title;
@@ -188,7 +188,7 @@ export function StaffProfileForm({
     >
       {({ values, errors, touched, handleChange, handleBlur, setFieldValue, dirty }) => (
         <Form className="space-y-8">
-          {/* Photo picker — stages the file; committed on Save changes. */}
+          {/* Photo picker - stages the file; committed on Save changes. */}
           {!isCreate && (
             <PhotoPicker
               currentPhoto={initial?.profile_photo ?? null}
@@ -274,7 +274,7 @@ export function StaffProfileForm({
           {/* Payroll */}
           <Section
             title="Payroll"
-            subtitle={payrollEditable ? "Sensitive — bank details." : undefined}
+            subtitle={payrollEditable ? "Sensitive - bank details." : undefined}
           >
             {payrollEditable ? (
               <>
@@ -322,7 +322,7 @@ function PhotoPicker({
   uploading: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  // Local object URL for the staged (not-yet-saved) file — a blob: URL, no auth
+  // Local object URL for the staged (not-yet-saved) file - a blob: URL, no auth
   // needed. Revoked when the staged file changes or the picker unmounts.
   const stagedPreview = useMemo(
     () => (stagedFile ? URL.createObjectURL(stagedFile) : null),
@@ -333,7 +333,7 @@ function PhotoPicker({
     [stagedPreview],
   );
   // The persisted /media/ photo is auth-gated, so fetch it through RTK Query
-  // (which attaches the JWT) and render the returned blob URL — never the raw URL.
+  // (which attaches the JWT) and render the returned blob URL - never the raw URL.
   const { data: serverBlob } = useFetchAuthMediaQuery(currentPhoto ?? skipToken);
 
   const shown = stagedPreview ?? serverBlob ?? null;
@@ -357,7 +357,7 @@ function PhotoPicker({
           <img src={shown} alt={userName} className="w-16 h-16 rounded-full object-cover ring-2 ring-pry-01" />
         ) : (
           <span className={cn("inline-flex items-center justify-center rounded-full font-semibold text-xl w-16 h-16", userId ? avatarColor(userId) : "bg-slate-100 text-slate-400")}>
-            {initialsOf(userName) || "—"}
+            {initialsOf(userName) || "-"}
           </span>
         )}
         <div className={cn("absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition-opacity", uploading ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
@@ -366,12 +366,12 @@ function PhotoPicker({
       </button>
       <input ref={inputRef} type="file" accept="image/*" className="sr-only" onChange={handleFile} />
       <div>
-        <p className="text-sm font-semibold text-black-01">{userName || "—"}</p>
+        <p className="text-sm font-semibold text-black-01">{userName || "-"}</p>
         <button type="button" onClick={() => inputRef.current?.click()} className="text-xs text-indigo-600 hover:underline mt-0.5">
           {shown ? "Change photo" : "Upload photo"}
         </button>
         {stagedFile && (
-          <p className="text-[11px] text-amber-600 mt-0.5">Pending — applied when you save changes.</p>
+          <p className="text-[11px] text-amber-600 mt-0.5">Pending - applied when you save changes.</p>
         )}
       </div>
     </div>

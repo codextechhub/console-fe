@@ -1,8 +1,8 @@
-// <PostingRecap> — the Vision prototype's DR/CR posting card, in the house theme.
+// <PostingRecap> - the Vision prototype's DR/CR posting card, in the house theme.
 // A "Debits = Credits" header, two side-by-side Debit (DR) / Credit (CR) columns
 // (account left, amount right; debit amounts red, credit green), and a Total Dr /
 // Total Cr footer. Used to recap a real journal (detail drawers) or preview the
-// journal a form will post (create drawers) — never implies a second posting.
+// journal a form will post (create drawers) - never implies a second posting.
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
@@ -13,7 +13,7 @@ function RecapColumn({ label, totalLabel, rows, currency, side }: {
   label: string; totalLabel: string; rows: RecapRow[]; currency?: string | null; side: "DR" | "CR";
 }) {
   const total = rows.reduce((s, r) => s + r.amount, 0);
-  // Debit amounts read red, credit amounts green — by the column they sit in.
+  // Debit amounts read red, credit amounts green - by the column they sit in.
   const amtColor = side === "DR" ? "text-destructive" : "text-green-01";
   return (
     <div className="flex flex-col">

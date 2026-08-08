@@ -1,4 +1,4 @@
-// Pure helpers for the posting window — which dates a document may carry.
+// Pure helpers for the posting window - which dates a document may carry.
 //
 // The backend's `ensure_period_open` guard rejects a posting whose date falls
 // outside an OPEN fiscal period (HTTP 409). GET /finance/posting-window/ exposes
@@ -6,7 +6,7 @@
 // place, instead of letting someone fill a whole drawer and fail on submit.
 //
 // Dates are ISO `YYYY-MM-DD` strings throughout. That format sorts
-// lexicographically, so ranges compare with plain string operators — no Date
+// lexicographically, so ranges compare with plain string operators - no Date
 // parsing, no timezone drift from `toISOString()` on a local-midnight Date.
 
 import type { PeriodBrief } from "@/redux/services/finance/setup-types";
@@ -20,7 +20,7 @@ export interface OpenRange {
 /**
  * Today in the browser's own timezone as `YYYY-MM-DD`.
  *
- * Call this — never hoist it to a module constant. The codebase used to do
+ * Call this - never hoist it to a module constant. The codebase used to do
  * `const todayISO = new Date().toISOString().slice(0, 10)` at module scope, which
  * freezes at page load (a tab left open overnight defaults to yesterday) and, being
  * UTC, is already the wrong day for anyone west of Greenwich after 00:00 UTC.
@@ -45,13 +45,13 @@ export function toOpenRanges(periods: PeriodBrief[]): OpenRange[] {
  * The open ranges clipped to start no earlier than `notBefore`.
  *
  * The second, separate date constraint. An open period answers "may we book on
- * this date at all?"; this answers "could this have happened by then?" — a
+ * this date at all?"; this answers "could this have happened by then?" - a
  * write-off cannot predate its invoice, a refund cannot predate the credit it
  * pays out, a receipt cannot settle a bill not yet raised. Both must hold, so the
  * selectable days are the intersection: ranges ending before the floor drop out
  * entirely, and a range straddling it starts at the floor.
  *
- * An empty result is meaningful, not an error — it means the two constraints do
+ * An empty result is meaningful, not an error - it means the two constraints do
  * not overlap and there is no date the user could legitimately pick. Callers must
  * say so rather than silently offering an unconstrained calendar.
  *
@@ -108,7 +108,7 @@ export function nearestOpenDate(date: string, ranges: OpenRange[]): string | nul
  * `date` itself when it is open; otherwise the earliest open day *after* it, so a
  * charge lands as close to its real date as the calendar allows rather than in
  * whatever month happens to be current. Falls back to the latest open day before
- * it only when every later period is shut — pre-dating beats not booking at all.
+ * it only when every later period is shut - pre-dating beats not booking at all.
  *
  * Mirrors `resolve_adjustment_date` in vs_finance/banking.py; the two are covered
  * by the same cases on both sides, so a change to one should change the other.
@@ -127,7 +127,7 @@ export function bookingDateFor(date: string, ranges: OpenRange[]): string | null
 }
 
 /**
- * Why `date` can't be used, as a sentence — or null if it's selectable.
+ * Why `date` can't be used, as a sentence - or null if it's selectable.
  *
  * A greyed-out calendar day with no explanation reads as a bug. When the date
  * lands in a period we know about we name it and its status; when it falls
@@ -169,7 +169,7 @@ export function statusWord(status: PeriodBrief["status"]): string {
  *
  * Collapses only *adjacent* periods into a span. A single first-to-last span
  * would claim everything between is open, which is exactly wrong when a month
- * in the middle has been closed — the label has to show the gap the calendar
+ * in the middle has been closed - the label has to show the gap the calendar
  * is already enforcing, or it contradicts the greyed-out days.
  */
 export function openWindowLabel(periods: PeriodBrief[]): string | null {

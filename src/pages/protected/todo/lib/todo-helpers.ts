@@ -1,6 +1,6 @@
 // Shared helpers for the Tasks module: enum→label maps, deterministic avatar
 // tints, deadline formatting. Colour comes from the console design tokens
-// (primary #4A659D, green-01, gray-0x) — NOT the prototype's navy/amber.
+// (primary #4A659D, green-01, gray-0x) - NOT the prototype's navy/amber.
 
 import type { VariantProps } from "class-variance-authority";
 import type { badgeVariants } from "@/components/ui/badge";
@@ -21,7 +21,7 @@ export const STATUS_LABEL: Record<TaskStatusKey, string> = {
   OVERDUE: "Overdue",
 };
 
-// ── Badge variants (console design system — see components/ui/badge.tsx) ───────
+// ── Badge variants (console design system - see components/ui/badge.tsx) ───────
 export const STATUS_BADGE: Record<TaskStatusKey, BadgeVariant> = {
   COMPLETED: "success", // green-01 tint
   IN_PROGRESS: "pending", // yellow-01 tint (work still open)

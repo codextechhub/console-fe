@@ -129,7 +129,7 @@ function ComboboxContent({
 
 function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
   // The list portals to <body>, i.e. outside the scroll lock a Dialog/Sheet
-  // installs — without this it cannot be wheel- or finger-scrolled while a
+  // installs - without this it cannot be wheel- or finger-scrolled while a
   // modal is open. See usePopupScroll.
   const scrollProps = usePopupScroll<HTMLDivElement>();
   return (

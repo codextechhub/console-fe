@@ -1,4 +1,4 @@
-// Batch generate — raise a posted invoice per customer from a fee structure.
+// Batch generate - raise a posted invoice per customer from a fee structure.
 // Backed by POST /finance/fee-structures/<id>/generate/ (gated on
 // finance.feestructure.generate). Pick a structure, choose all active customers
 // (the common case) and set the dates.
@@ -57,7 +57,7 @@ export function BatchGenerateModal({ open, onOpenChange, entity }: {
         <select value={structure} onChange={(e) => { setStructure(e.target.value); setFailure(""); }} className={selectCls} aria-label="Fee structure">
           <option value="">Select a fee structure…</option>
           {structures.map((f) => (
-            <option key={f.id} value={f.id}>{f.code} — {f.name} ({f.total_naira})</option>
+            <option key={f.id} value={f.id}>{f.code} - {f.name} ({f.total_naira})</option>
           ))}
         </select>
       </FormField>

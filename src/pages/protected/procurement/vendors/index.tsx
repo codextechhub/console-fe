@@ -1,4 +1,4 @@
-// Vendors & catalog — route-selected master-data screens in the Procurement shell.
+// Vendors & catalog - route-selected master-data screens in the Procurement shell.
 
 import { useParams } from "react-router";
 import { ProcurementShell } from "../procurement-shell";

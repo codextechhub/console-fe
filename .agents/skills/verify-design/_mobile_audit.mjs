@@ -1,9 +1,9 @@
-// Responsive audit driver — visits routes at phone/tablet widths, detects
+// Responsive audit driver - visits routes at phone/tablet widths, detects
 // page-level horizontal overflow, and screenshots each route+viewport.
 // Read-only: navigates + screenshots only, never submits a form.
 //
-//   BASE_URL  frontend origin — required
-//   ROUTES    space/comma-separated paths — required
+//   BASE_URL  frontend origin - required
+//   ROUTES    space/comma-separated paths - required
 //   EMAIL / PASSWORD  seeded super-admin (defaults as drive.mjs)
 
 import { chromium } from "playwright";

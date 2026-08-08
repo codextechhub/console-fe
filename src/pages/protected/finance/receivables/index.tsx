@@ -1,5 +1,5 @@
 // Receivables (§6.3). One page per sub-section, driven by the :section route
-// param (the sidebar navigates between them — no in-page tabs).
+// param (the sidebar navigates between them - no in-page tabs).
 
 import { useParams } from "react-router";
 import { FinanceShell } from "../finance-shell";
@@ -26,11 +26,11 @@ const SUBTITLES: Record<string, string> = {
   refunds: "Return credit balances to the bank, or write off bad debt to expense.",
   "payment-plans": "Spread invoice balances into scheduled installments.",
   concessions: "Waivers, discounts and scholarships that reduce customer balances.",
-  dunning: "Overdue follow-up — aging buckets, reminder queue and policies.",
+  dunning: "Overdue follow-up - aging buckets, reminder queue and policies.",
   "fee-structures": "Billing templates that drive invoice generation.",
 };
 const HINTS: Record<string, string> = {
-  "fee-structures": "A fee structure is a billing template. When you generate invoices, each line builds an invoice line from its GL account, amount and tax — so revenue posts to the right place automatically. Only customer structures generate AR invoices.",
+  "fee-structures": "A fee structure is a billing template. When you generate invoices, each line builds an invoice line from its GL account, amount and tax - so revenue posts to the right place automatically. Only customer structures generate AR invoices.",
 };
 
 export default function ReceivablesPage() {

@@ -54,7 +54,7 @@ export default function EditAction() {
         <div className="flex items-start gap-3 mb-5 rounded-md border border-blue-100 bg-blue-50 px-4 py-3">
           <Lock size={15} className="text-blue-500 mt-0.5 shrink-0" />
           <p className="text-xs text-blue-700">
-            The action name is its key and cannot be changed — every permission that uses it ends with this slug.
+            The action name is its key and cannot be changed - every permission that uses it ends with this slug.
           </p>
         </div>
 

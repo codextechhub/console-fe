@@ -1,4 +1,4 @@
-// <FormModal> — a dialog wrapper for create/edit forms. Owns the chrome (title,
+// <FormModal> - a dialog wrapper for create/edit forms. Owns the chrome (title,
 // description, cancel/submit, loading + disabled state); the caller supplies the
 // fields as children and the submit handler. Keeps every create form terse and
 // consistent with the app's Dialog style.
@@ -55,7 +55,7 @@ export function FormModal({
   );
 }
 
-/** <FormDrawer> — the slide-out (right-side) equivalent of FormModal, for create/edit
+/** <FormDrawer> - the slide-out (right-side) equivalent of FormModal, for create/edit
  *  forms that should match the record drawers used across the consoles. Same API as
  *  FormModal so callers can swap one for the other. */
 export function FormDrawer({

@@ -15,17 +15,17 @@ export function formatBytes(bytes: number): string {
 }
 
 export function formatDay(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
   return Number.isNaN(d.getTime())
-    ? "—"
+    ? "-"
     : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export function formatStamp(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleString("en-GB");
+  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString("en-GB");
 }
 
 /** Whole days from now until `iso`, floored at 0. */
@@ -35,9 +35,9 @@ export function daysUntil(iso: string): number {
 }
 
 export function formatDuration(startedAt: string | null, endedAt: string | null): string {
-  if (!startedAt || !endedAt) return "—";
+  if (!startedAt || !endedAt) return "-";
   const s = (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000;
-  if (Number.isNaN(s)) return "—";
+  if (Number.isNaN(s)) return "-";
   if (s < 60) return `${s.toFixed(1)} s`;
   return `${Math.floor(s / 60)}m ${Math.round(s % 60)}s`;
 }

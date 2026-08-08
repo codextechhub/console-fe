@@ -1,5 +1,5 @@
 // Shared formatting helpers. Anything no longer referenced anywhere in src/
-// gets deleted rather than kept "just in case" — git history has the old
+// gets deleted rather than kept "just in case" - git history has the old
 // implementations (currency formatting, duration, Vimeo IDs, …).
 
 export function returnInitial(name: string) {
@@ -14,7 +14,7 @@ export function returnInitial(name: string) {
 
 export const formatRelativeDate = (dateStr: string): string => {
   const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return "—";
+  if (isNaN(date.getTime())) return "-";
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
@@ -43,7 +43,7 @@ export const formatRelativeDate = (dateStr: string): string => {
 
 export const formatDate = (timestamp: string | number | Date): string => {
   const date = new Date(timestamp);
-  if (isNaN(date.getTime())) return "—";
+  if (isNaN(date.getTime())) return "-";
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -52,7 +52,7 @@ export const formatDate = (timestamp: string | number | Date): string => {
 
 export function formatStartedTime(isoString: string) {
   const date = new Date(isoString);
-  if (isNaN(date.getTime())) return "—";
+  if (isNaN(date.getTime())) return "-";
   const day = date.getDate();
   const month = date.toLocaleString("en-US", { month: "short" });
   const year = date.getFullYear();
@@ -73,7 +73,7 @@ export function formatStartedTime(isoString: string) {
  * parameter value is an array, it generates one key-value pair per element
  * (repeated-key params, e.g. `?status=A&status=B`).
  *
- * Note: `0` and `false` are intentionally kept — numeric/boolean filters of
+ * Note: `0` and `false` are intentionally kept - numeric/boolean filters of
  * those values are meaningful query params; only `undefined`/`null`/`""` are
  * treated as "unset".
  *
@@ -110,7 +110,7 @@ const ENUM_LABEL_MAP: Record<string, string> = {
 };
 
 export function formatEnum(value: string | null | undefined): string {
-  if (!value) return "—";
+  if (!value) return "-";
   if (ENUM_LABEL_MAP[value]) return ENUM_LABEL_MAP[value];
   return value
     .replace(/_/g, " ")

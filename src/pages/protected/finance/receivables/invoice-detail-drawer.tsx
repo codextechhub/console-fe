@@ -1,4 +1,4 @@
-// Invoice detail drawer — design topology: header (no · customer · status), four
+// Invoice detail drawer - design topology: header (no · customer · status), four
 // stat cards (Total / Paid / Balance / Aging), tabbed body (Lines · Payments · GL
 // postings · Reminders · Activity, each with an icon) and a footer (Print PDF · Email
 // receipt (deferred) · Send reminder · Record payment · Write off).
@@ -105,7 +105,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
                 <TooltipTrigger asChild>
                   <span tabIndex={0}><Button variant="outline" disabled className="gap-1.5 opacity-60"><Mail className="size-4" /> Email receipt</Button></span>
                 </TooltipTrigger>
-                <TooltipContent className="font-mont text-xs">Needs an email-sending endpoint — coming soon.</TooltipContent>
+                <TooltipContent className="font-mont text-xs">Needs an email-sending endpoint - coming soon.</TooltipContent>
               </Tooltip>
             </TooltipProvider>
             {inv?.status === "POSTED" ? (
@@ -148,7 +148,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
         <div className="space-y-4">
           <div><StatusPill status={inv.status} /> <span className="ml-1"><StatusPill status={inv.payment_status} /></span></div>
 
-          {/* stat cards — Paid (cash) and Credited (notes/concessions/write-offs) are
+          {/* stat cards - Paid (cash) and Credited (notes/concessions/write-offs) are
               distinct legs of Settled; Balance is the real outstanding. */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Stat label="Total"><Money kobo={s.total.kobo} currency={currency} /></Stat>
@@ -157,7 +157,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
             <Stat label="Settled"><Money kobo={s.settled.kobo} currency={currency} /></Stat>
             <Stat label="Balance due"><Money kobo={s.balance.kobo} currency={currency} /></Stat>
             <Stat label="Aging">
-              {s.due_date ? <span className={cn(overdue && "text-destructive")}>{overdue ? "Overdue · " : "Due "}{s.due_date}</span> : "—"}
+              {s.due_date ? <span className={cn(overdue && "text-destructive")}>{overdue ? "Overdue · " : "Due "}{s.due_date}</span> : "-"}
             </Stat>
           </div>
 
@@ -188,7 +188,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
                         <td className={cn(td, "text-gray-05")}><span className="font-semibold tabular-nums text-gray-01">{l.account_code}</span> {l.account_name}</td>
                         <td className={cn(td, "text-right tabular-nums")}>{Number(l.quantity)}</td>
                         <td className={cn(td, "text-right tabular-nums")}><Money kobo={l.unit_price.kobo} currency={currency} align="right" /></td>
-                        <td className={cn(td, "text-right tabular-nums")}>{l.tax_amount.kobo ? <Money kobo={l.tax_amount.kobo} currency={currency} align="right" /> : "—"}</td>
+                        <td className={cn(td, "text-right tabular-nums")}>{l.tax_amount.kobo ? <Money kobo={l.tax_amount.kobo} currency={currency} align="right" /> : "-"}</td>
                         <td className={cn(td, "text-right font-medium tabular-nums")}><Money kobo={l.line_total.kobo} currency={currency} align="right" /></td>
                       </tr>
                     ))}
@@ -209,7 +209,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
                 st.date,
                 <TypeBadge key="t" type={st.type} />,
                 st.reference,
-                st.method || "—",
+                st.method || "-",
                 <Money key="a" kobo={st.amount.kobo} currency={currency} align="right" />,
               ])} rightCols={[4]} />
             )
@@ -232,8 +232,8 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
                         {j.lines.map((g, k) => (
                           <tr key={k}>
                             <td className={td}><span className="font-semibold tabular-nums">{g.account_code}</span> {g.account_name}</td>
-                            <td className={cn(td, "text-right tabular-nums")}>{g.debit.kobo ? <Money kobo={g.debit.kobo} currency={currency} align="right" /> : "—"}</td>
-                            <td className={cn(td, "text-right tabular-nums")}>{g.credit.kobo ? <Money kobo={g.credit.kobo} currency={currency} align="right" /> : "—"}</td>
+                            <td className={cn(td, "text-right tabular-nums")}>{g.debit.kobo ? <Money kobo={g.debit.kobo} currency={currency} align="right" /> : "-"}</td>
+                            <td className={cn(td, "text-right tabular-nums")}>{g.credit.kobo ? <Money kobo={g.credit.kobo} currency={currency} align="right" /> : "-"}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -247,7 +247,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
           {tab === "reminders" && (
             d.reminders.length === 0 ? <EmptyState title="No reminders" message="Dunning reminders for this invoice will appear here." /> : (
               <SimpleTable head={["Date", "Level", "Channel", "Status"]} rows={d.reminders.map((r) => [
-                r.date, r.level ?? "—", r.channel || "—", <StatusPill key="s" status={r.status} />,
+                r.date, r.level ?? "-", r.channel || "-", <StatusPill key="s" status={r.status} />,
               ])} />
             )
           )}
@@ -257,7 +257,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
               {d.activity.map((a, i) => (
                 <li key={i} className="flex items-start gap-2 font-mont text-xs">
                   <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-green-01 text-white"><Check className="size-3" /></span>
-                  <span><span className="tabular-nums text-gray-05">{a.date}</span> — <span className="text-gray-01">{a.label}</span></span>
+                  <span><span className="tabular-nums text-gray-05">{a.date}</span> - <span className="text-gray-01">{a.label}</span></span>
                 </li>
               ))}
             </ol>

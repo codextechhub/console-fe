@@ -1,16 +1,16 @@
-# VS Export / Export Centre — Build Notes & Handoff
+# VS Export / Export Centre - Build Notes & Handoff
 
-How we build the Export Centre in `console-fe`, against **"VS Export — Spec and
-Handoff v3"** (normative) and **"VS Export — Prototype v2"** (structure, copy,
+How we build the Export Centre in `console-fe`, against **"VS Export - Spec and
+Handoff v3"** (normative) and **"VS Export - Prototype v2"** (structure, copy,
 state coverage). Where the two disagree on anything visual, the repo wins.
 
 Sibling to `docs/FINANCE_BUILD_NOTES.md` and `docs/PROCUREMENT_BUILD_NOTES.md`
-— the **conventions, typography, responsive rules and honesty rules there apply
+- the **conventions, typography, responsive rules and honesty rules there apply
 here unchanged**. Companion to `CLAUDE.md` and `PERMISSIONS_AUDIT.md`.
 
 ---
 
-## Slice 0 — the reconciliation (DONE)
+## Slice 0 - the reconciliation (DONE)
 
 The spec's Slice 0 is one job: *"Reconcile with BackgroundJob and the Queues
 page. Agree one status vocabulary and whether a run wraps a job."* Done means
@@ -20,15 +20,15 @@ that writing-down.
 ### The finding that changes the plan: the backend already exists
 
 `apps/vs_exports` shipped in backend commit `2203906` ("feat(exports): add the
-Export Centre") — ~6,000 lines: models, catalogue, engine, services, writers,
+Export Centre") - ~6,000 lines: models, catalogue, engine, services, writers,
 serializers, views, tasks, audit, analytics, tests, RBAC seeds. It was built
 from the same handoff document.
 
 **So this is a frontend build against a real contract, not a design exercise.**
 Nothing below is invented; every shape is read from the backend source. Do not
-design an API for this feature — read `apps/vs_exports/serializers.py`.
+design an API for this feature - read `apps/vs_exports/serializers.py`.
 
-### Answer 1 — a run **wraps** a job
+### Answer 1 - a run **wraps** a job
 
 `ExportRun.background_job` is a nullable FK to `core.BackgroundJob`
 (`vs_exports/models.py`). `services.enqueue()` queues the Celery task through
@@ -41,7 +41,7 @@ job monitors:
 
 | Surface | Reads | Answers |
 | --- | --- | --- |
-| Export → View Queues (`pages/protected/export/queues`) | `core.BackgroundJob` via `/v1/user/me/tasks/` | *Did the worker finish?* Every async task — imports, exports, emails, system runs. |
+| Export → View Queues (`pages/protected/export/queues`) | `core.BackgroundJob` via `/v1/user/me/tasks/` | *Did the worker finish?* Every async task - imports, exports, emails, system runs. |
 | Export Centre → Files (Slice 1) | `vs_exports.ExportRun` + `ExportFile` via `/v1/exports/runs/` and `/v1/exports/files/` | *What came out?* Rows, columns, size, omissions, expiry, who downloaded it. |
 
 **Rule: do not build a second job monitor, and do not widen Queues into a
@@ -53,7 +53,7 @@ never back-filled. The run detail describes *that* file, not what the definition
 has since become; `drift` on the detail serializer is how "why does last month
 differ?" gets answered.
 
-### Answer 2 — the one word is **Completed**
+### Answer 2 - the one word is **Completed**
 
 Three vocabularies exist in the codebase today:
 
@@ -68,14 +68,14 @@ the three vocabularies already say it, and `SUCCEEDED`/`COMPLETED` for one
 outcome is exactly the confusion this product exists to remove.
 
 **We change the display word, never the wire token.** `SUCCEEDED` stays
-`SUCCEEDED` in `/v1/user/me/tasks/` params, filters and API payloads — renaming
+`SUCCEEDED` in `/v1/user/me/tasks/` params, filters and API payloads - renaming
 the job status would ripple through imports, emails and system runs for a
 cosmetic reason, and `SUCCEEDED` is not wrong *for a job*. The translation lives
 in exactly one place: `runStatusWord()` in
 `src/components/custom/run-status-pill.tsx`.
 
 `SUCCEEDED` is **not** relabelled inside the shared `StatusPill`, because it
-means something else in Payments (`CollectionStatus.SUCCEEDED` — a payment that
+means something else in Payments (`CollectionStatus.SUCCEEDED` - a payment that
 went through, rendered as "Paid"). The one-word rule is scoped to asynchronous
 *work*, which is what `RunStatusPill` covers.
 
@@ -90,22 +90,22 @@ Only one status was genuinely new.
 | `RUNNING` | run + job | *raw `--primary`/10* | Running | pinging dot |
 | `COMPLETED` | run | `success` | Completed | `✓` |
 | `SUCCEEDED` | job only | `success` | **Completed** | `✓` |
-| `COMPLETED_WITH_OMISSIONS` | run — **NEW** | `pending` | **Partly complete** | `!` |
+| `COMPLETED_WITH_OMISSIONS` | run - **NEW** | `pending` | **Partly complete** | `!` |
 | `FAILED` | run + job | `rejected` | Failed | `✕` |
 | `CANCELLED` | run + job | `inactive` | Cancelled | `⊗` |
 | `EXPIRED` | **file**, derived | `inactive` | Expired | `⊘` |
 
 - `COMPLETED_WITH_OMISSIONS` is amber, not green: a file exists, but the
-  omission is the point. It is always rendered with its reason beside it —
+  omission is the point. It is always rendered with its reason beside it -
   `ExportRun.omissions` is a structured `[{code, scope, detail, items[]}]` list
   (`OmissionCode`: `FIELD_FORBIDDEN`, `FIELD_WITHDRAWN`, `ROW_CAP_HIT`), so the
   UI renders it and never infers it.
-- `EXPIRED` is **not a run status** — the backend is explicit about this. It is
+- `EXPIRED` is **not a run status** - the backend is explicit about this. It is
   derived from `ExportFile.available_until` at read time
   (`is_expired`/`is_purged`/`is_downloadable` on the serializer). The run stays
   `COMPLETED` forever. Never overwrite history to represent expiry.
 - `CANCELLED` was previously orange (`suspended`) on the Queues page and grey
-  (`inactive`) in `StatusPill`. It is now grey on both — neutral-terminal, the
+  (`inactive`) in `StatusPill`. It is now grey on both - neutral-terminal, the
   same treatment as `EXPIRED`.
 - Schedule states (`Active` / `Paused`) are deliberately **absent** from
   `RunStatusPill`. **Schedules are out of the MVP** (decided 2026-07-29), so the
@@ -114,7 +114,7 @@ Only one status was genuinely new.
 
 ### What Slice 0 changed in the repo
 
-1. **`src/index.css`** — four darkened `-text` tokens, for status and validation
+1. **`src/index.css`** - four darkened `-text` tokens, for status and validation
    text only. Measured on the composited tint over white:
 
    | Token | Hex | On its own 10% tint | Raw sibling was |
@@ -127,34 +127,34 @@ Only one status was genuinely new.
    `--primary` needs no sibling: 5.05:1 on `primary/10` unmodified. No other
    colours were added.
 
-2. **`src/components/ui/badge.tsx`** — the tint variants now pair the 10%
+2. **`src/components/ui/badge.tsx`** - the tint variants now pair the 10%
    background with the darkened label hue. This is the choke point every status
    label in the app flows through, so it is a class-fix rather than a per-screen
    patch: **every** badge in Finance, Procurement, RBAC, Audit and Health gets a
    legible label, same hue, no geometry change.
 
-3. **`finance-ui/status-pill.tsx`** — added `COMPLETED_WITH_OMISSIONS`, plus
+3. **`finance-ui/status-pill.tsx`** - added `COMPLETED_WITH_OMISSIONS`, plus
    `statusVariant()` and `statusLabel()` exports so a surface that needs a glyph
    can add one without forking the map.
 
-4. **`src/components/custom/run-status-pill.tsx`** (new) — the shared renderer.
+4. **`src/components/custom/run-status-pill.tsx`** (new) - the shared renderer.
    Colour from `statusVariant`, a leading glyph on every status, the pinging dot
    on Running, and `runStatusWord()` doing the one-word translation.
 
-5. **`pages/protected/export/queues`** — deleted its local `StatusChip` and
+5. **`pages/protected/export/queues`** - deleted its local `StatusChip` and
    adopted `RunStatusPill`. Filter labels and the KPI card now read through
    `runStatusWord()`, so the filter, the cards and the rows cannot drift apart.
 
 ### The fifth variant, fixed without a fifth colour
 
-`Badge` variant `suspended` was `text-orange-500` on `bg-orange-500/10` —
+`Badge` variant `suspended` was `text-orange-500` on `bg-orange-500/10` -
 2.53:1, the same class of failure, and once everything around it was darkened it
 was the only pale label left on screen. It is not in the export status
 vocabulary, but it is used widely (RBAC sensitivity `CRITICAL`, pending change
 requests, failed invites, `TERMINATED`, `OVER_TOLERANCE`), so leaving it was
 shipping half a fix.
 
-It keeps its orange tint and borrows `--color-yellow-01-text` for the label —
+It keeps its orange tint and borrows `--color-yellow-01-text` for the label -
 **5.35:1**, its nearest neighbour in the token set. Orange has no token of its
 own in `index.css`, and adding a colour to fix one label is worse than reusing
 the amber. The spec's "four is the whole set" is about the nine export statuses;
@@ -178,7 +178,7 @@ throughout: `{success, message, data}` envelope, `XVSPagination` at 25/page,
 | Exports list / builder save | `GET·POST /definitions/`, `GET·PATCH·DELETE /definitions/<pk>/` | `ExportDefinitionList/Detail/WriteSerializer` |
 | Duplicate at step 5 | `POST /definitions/<pk>/duplicate/` | returns the copy, named `"<name> (copy)"`, always private |
 | Share | `POST /definitions/<pk>/share/` | replaces the share list (`{user_ids: []}`) |
-| Run now | `POST /definitions/<pk>/run/` | `{client_key}`; **201 created / 200 = the in-flight run** — this is the concurrency notice, not an error |
+| Run now | `POST /definitions/<pk>/run/` | `{client_key}`; **201 created / 200 = the in-flight run** - this is the concurrency notice, not an error |
 | Quick export | `POST /quick/?entity=` | preview payload + `name`, `format_options`, `client_key` |
 | Files list / run detail | `GET /runs/`, `GET /runs/<pk>/` | detail adds `omissions`, `failure{code,message,recommended_action,reference,retryable}`, `configuration` (frozen, as labels), `drift{count,fields}`, `deliveries[]` |
 | Cancel · retry | `POST /runs/<pk>/cancel/`, `POST /runs/<pk>/retry/` | cooperative cancel, no partial file |
@@ -190,7 +190,7 @@ throughout: `{success, message, data}` envelope, `XVSPagination` at 25/page,
 
 **Progress** on a non-terminal run: `{phase, phase_label, rows_done, rows_total,
 queue_position}`; `null` once terminal. A null `rows_total` means indeterminate
-— expected, not an error. `queue_position` is what lets a >30s wait explain
+- expected, not an error. `queue_position` is what lets a >30s wait explain
 itself instead of going quiet.
 
 **Failures** carry a `FailureCode` plus a user-safe message and
@@ -209,7 +209,7 @@ sensitive-field export is a separate decision from being allowed to export, and
 activity-view is an administrator's power whose *read* is audited.
 
 These need codes in `src/permissions/index.ts` + a `PERMISSIONS_AUDIT.md` entry
-— **Slice 1**, when they first gate something. `MM` for exports is unassigned;
+- **Slice 1**, when they first gate something. `MM` for exports is unassigned;
 pick the next free module group.
 
 ### Platform limits worth putting in the UI
@@ -217,19 +217,19 @@ pick the next free module group.
 30-day file retention · 500,000-row hard cap · 250,000-row *warning* threshold ·
 3 concurrent runs per tenant · 60s idempotency window · 10 preview rows ·
 exact counts stop at 100,000 rows and become bucketed (the honest fallback the
-spec asks for — never a spinner where a number should be).
+spec asks for - never a spinner where a number should be).
 
 ---
 
-## Scope decision — sharing is OUT of the MVP (2026-07-29)
+## Scope decision - sharing is OUT of the MVP (2026-07-29)
 
 An export belongs to the person who made it. There is no sharing an export with
 other people, no "Shared · N" badge, no share drawer or user picker, and no
 "shared with me" filter.
 
 The backend keeps `ExportDefinitionShare`, `ExportDefinition.sharing`,
-`POST /definitions/<pk>/share/` and `exports.definition.share` — nothing was
-deleted server-side — but **no UI calls any of it**. `sharing`, `shared_with`
+`POST /definitions/<pk>/share/` and `exports.definition.share` - nothing was
+deleted server-side - but **no UI calls any of it**. `sharing`, `shared_with`
 and `can_share` still arrive on the wire and stay on the TypeScript types,
 because a type that lies about the API is worse than an unused field; they are
 simply never rendered.
@@ -247,7 +247,7 @@ Two consequences worth keeping straight:
 `P.SHARE_EXPORT` stays registered and is recorded as cut in
 `PERMISSIONS_AUDIT.md`, so nobody wires it by accident.
 
-## Scope decision — schedules are OUT of the MVP (2026-07-29)
+## Scope decision - schedules are OUT of the MVP (2026-07-29)
 
 The backend has no `ExportSchedule` model and no `/schedules/` route, and the
 product decision is **not to build one for v1**. Everything scheduling implies is
@@ -256,11 +256,11 @@ therefore out, not deferred-with-a-placeholder:
 - No Schedules tab, no schedules list, no schedule editor, no recurrence
   sentence, no timezone/DST handling, no auto-pause-after-3-failures, no paused
   banner, no owner reassignment queue.
-- No `Active` / `Paused` status pills — the closed set is the seven above.
+- No `Active` / `Paused` status pills - the closed set is the seven above.
 - Builder step 4 loses its timing cards. It asks **where the file goes**, not
   when: run now, or save the recipe without running it. "Run once later" is a
   schedule with one occurrence and goes with the rest.
-- Nav is **Overview · Exports · Files · View queues** — four items, not
+- Nav is **Overview · Exports · Files · View queues** - four items, not
   five.
 
 What survives from the spec's Slice 4 is *delivery*, which is backed today
@@ -271,7 +271,7 @@ state separate from run state.
 Prototype v2 shows a Schedules tab and a paused-schedule banner. **Ignore both.**
 This is a scope cut, not a visual disagreement.
 
-## Slice 1 — Files, run detail, download, expiry (DONE)
+## Slice 1 - Files, run detail, download, expiry (DONE)
 
 Screens: `pages/protected/export/files.tsx`, `run-detail.tsx`, `file-card.tsx`.
 API: `redux/services/dashboard/exports-api.ts` + `exports-types.ts`.
@@ -286,7 +286,7 @@ frozen entity and dataset plus the file's expiry, and logs the attempt either
 way. An anchor would arrive unauthenticated and be refused. Two consequences
 worth keeping:
 
-- The response handler returns **bytes on success, parsed JSON on failure** — a
+- The response handler returns **bytes on success, parsed JSON on failure** - a
   blanket `.blob()` hands the error path a Blob and loses the refusal sentence,
   which is the most useful text in the feature.
 - `transformResponse` converts to an object URL so the file never lands in the
@@ -300,7 +300,7 @@ them. The run stays `COMPLETED` forever.
 Permission keys are registered under **MM=92** in `src/permissions/index.ts`
 (the action vocabulary gained `45=share` and `46=download`), and the gating is
 recorded in `PERMISSIONS_AUDIT.md`. Run `seed_exports_permissions` on any
-database that has not had it — a fresh dev DB has zero `exports.*` keys.
+database that has not had it - a fresh dev DB has zero `exports.*` keys.
 
 ### Backend gap found and fixed during this slice
 
@@ -308,15 +308,15 @@ database that has not had it — a fresh dev DB has zero `exports.*` keys.
 `export.run_failed`, but neither was registered in
 `vs_notifications.constants.EVENT_TYPES` and neither had a template. Every
 export notification raised `UnknownEventTypeError`, which `_notify` caught and
-logged — so **no export notification had ever been delivered**, silently, while
+logged - so **no export notification had ever been delivered**, silently, while
 the spec requires in-product notification on completion, failure and omissions.
 Both event types are now registered and active with in-app templates (plus email
-on failure only — a manual success does not earn an email, the user is looking
+on failure only - a manual success does not earn an email, the user is looking
 at the screen). `_notify` now passes `export_run_id` in the metadata and
 `notification_action_url` deep-links to `/export/runs/<id>`, because a failure
 notice is only useful next to the thing that failed.
 
-## Slice 2 — the builder (DONE)
+## Slice 2 - the builder (DONE)
 
 Screens: `pages/protected/export/saved.tsx` and `pages/protected/export/builder/`
 (`index.tsx`, `field-picker.tsx`, `summary-rail.tsx`, `filter-editor.tsx`,
@@ -326,7 +326,7 @@ Screens: `pages/protected/export/saved.tsx` and `pages/protected/export/builder/
 run, and where should the file go?"*. Schedules are cut, so the "when" half no
 longer exists, and the "where" half is delivery, which arrives with slice 4.
 Rather than ship a step that only says "Export Centre", timing folds into the
-review step's two actions — *Save without running* and *Save and run*. The
+review step's two actions - *Save without running* and *Save and run*. The
 delivery step comes back when there is something to put in it.
 
 **Everything in steps 1–3 is catalogue-driven.** Fields, groups, locked and
@@ -338,7 +338,7 @@ Details worth keeping:
 
 - **Filter value keys are the backend's**: `date_range → {start, end}`,
   `choice → {values}`, `text`/`boolean` → `{value}`, `number_range → {min, max}`.
-  Getting one wrong does not fail loudly — the filter is dropped when the
+  Getting one wrong does not fail loudly - the filter is dropped when the
   queryset is compiled and the export quietly returns the wrong rows. The
   mapping lives in one place, `filter-editor.tsx`.
 - **The estimate never toasts.** A half-built configuration is the *normal*
@@ -351,7 +351,7 @@ Details worth keeping:
 - **Error markers stay off until the user tries to save.** A form nobody has
   filled in is not "wrong", and a step bar that is red on arrival teaches people
   to ignore it.
-- **The builder is loaded, then mounted** — the saved export is in hand before
+- **The builder is loaded, then mounted** - the saved export is in hand before
   the form renders, so state seeds from props rather than being copied in by an
   effect. `key={definitionId}` means state can never leak between definitions.
 - `StepProgressBar` gained `labels`, `onStepClick` and `errorsByStep` (all
@@ -362,12 +362,12 @@ Details worth keeping:
 The spec says the builder is **not offered on phones** ("exports are built on a
 larger screen"). We offer it. `CLAUDE.md`'s depth policy is explicit that phone
 must be *usable* and that we "never hide or truncate data away", and the built
-screen genuinely is usable — the two picker panes stack, the rail becomes the
+screen genuinely is usable - the two picker panes stack, the rail becomes the
 summary bar, no overflow at 390px. Hiding a working screen behind a "use a
 bigger screen" panel would be worse than what is there. Desktop remains the
 design source of truth and no phone-first optimisation was spent on it.
 
-## Slice 3 — failure and omission handling (DONE)
+## Slice 3 - failure and omission handling (DONE)
 
 The run detail already had a body per outcome from slice 1. Slice 3 made the
 unhappy ones *actionable*, and fixed the two places where the backend's stated
@@ -376,12 +376,12 @@ rules were not the rules it actually applied.
 ### The retry rule was prose, not code
 
 `retry_run`'s docstring has always said "only genuinely retryable failures are
-offered a retry — re-running a permission or filter failure would fail again in
+offered a retry - re-running a permission or filter failure would fail again in
 exactly the same way". `RETRYABLE_FAILURE_CODES` was declared for it. **Neither
 was used anywhere.** `retry_run` checked only "is it FAILED and does it have a
 definition", and the serializer reported `retryable` from `definition_id is not
 None`, so the UI offered a Retry button on a filter failure that would queue a
-run and fail identically — a second wait and a second notification for nothing.
+run and fail identically - a second wait and a second notification for nothing.
 
 Now enforced in both places, and the refusal quotes the code's own guidance
 rather than a generic "cannot retry".
@@ -392,9 +392,9 @@ rather than a generic "cannot retry".
 
 | Codes | Offer |
 | --- | --- |
-| `FILTER_INVALID` · `REQUIRED_FILTER_MISSING` · `NO_COLUMNS` · `ROW_CAP_EXCEEDED` · `DATE_SPAN_EXCEEDED` · `DATASET_WITHDRAWN` | **Edit the export** — the fix is a configuration change |
-| `INFRASTRUCTURE` · `UNKNOWN` | **Retry now** — the only case where running it again can change anything |
-| `DATASET_FORBIDDEN` · `ENTITY_FORBIDDEN` · `OWNER_INACTIVE` | **Nothing** — says so plainly; the fix is a person or a permission elsewhere |
+| `FILTER_INVALID` · `REQUIRED_FILTER_MISSING` · `NO_COLUMNS` · `ROW_CAP_EXCEEDED` · `DATE_SPAN_EXCEEDED` · `DATASET_WITHDRAWN` | **Edit the export** - the fix is a configuration change |
+| `INFRASTRUCTURE` · `UNKNOWN` | **Retry now** - the only case where running it again can change anything |
+| `DATASET_FORBIDDEN` · `ENTITY_FORBIDDEN` · `OWNER_INACTIVE` | **Nothing** - says so plainly; the fix is a person or a permission elsewhere |
 
 A run whose definition has been deleted says that too, rather than showing a
 button that goes nowhere.
@@ -403,28 +403,28 @@ button that goes nowhere.
 
 `ExportRun.omissions` is `[{code, scope, detail, items[]}]`. The banner now
 renders a heading per code, the detail sentence, and the affected field ids in
-mono — so the omission is *rendered*, never parsed out of prose by the reader.
+mono - so the omission is *rendered*, never parsed out of prose by the reader.
 `FIELD_WITHDRAWN` and `ROW_CAP_HIT` offer an edit link; `FIELD_FORBIDDEN` does
 not, because editing the export is not how you get access back.
 
 ### Drift became a real diff
 
 `config_drift` always returned `{field, then, now}`, but the serializer
-published only `{count, fields}` — so the UI could say "2 places" and nothing
+published only `{count, fields}` - so the UI could say "2 places" and nothing
 more. It now publishes `changes[]` rendered **as sentences**: column ids become
 labels, filter specs become the review step's own wording, an options object
 becomes a count. That keeps the module's rule that no raw JSONField reaches the
 wire, while letting the run detail actually answer "why does last month differ?".
 
-`definition_id` is now on the run serializer — the UI needs it to offer "Edit
+`definition_id` is now on the run serializer - the UI needs it to offer "Edit
 the export", and the definition is already visible to that caller.
 
 ## The date span is advice, not a ceiling (2026-07-29)
 
 `Dataset.max_date_span_days` used to **fail the run**: asking for six months of
 GL postings produced `DATE_SPAN_EXCEEDED` and no file. That refused an ordinary
-request — a finance user wanting a quarter or a year of postings is not doing
-anything unreasonable — and it contradicted the spec's own posture, which warns
+request - a finance user wanting a quarter or a year of postings is not doing
+anything unreasonable - and it contradicted the spec's own posture, which warns
 above 250k rows rather than blocking.
 
 It is now advisory:
@@ -436,7 +436,7 @@ It is now advisory:
   guessed at from the calendar, which is why it is the right place for the real
   ceiling.
 - **A required date filter still needs both ends.** That is a different
-  question — "is the filter set" rather than "how wide is it" — and it now fails
+  question - "is the filter set" rather than "how wide is it" - and it now fails
   as `REQUIRED_FILTER_MISSING`, which is what it always meant. The old message
   conflated the two, which is how a filter with the wrong keys came back as
   "needs both a start and an end date, no more than 31 days apart".
@@ -444,7 +444,7 @@ It is now advisory:
   before this change still carry it and their detail screens must keep working.
 
 Only two datasets set a span at all: `finance.gl_postings` (31) and
-`audit.events` (92) — the two highest-cardinality tables. The number is now read
+`audit.events` (92) - the two highest-cardinality tables. The number is now read
 as "tuned for", and the builder's filter copy says so.
 
 ## Gaps to close before the slices that need them
@@ -452,7 +452,7 @@ as "tuned for", and the builder's filter copy says so.
 1. **Dataset catalogue depth.** Five datasets are published today
    (`finance.customer_invoices`, `finance.invoice_lines`, `finance.gl_postings`,
    `payments.collections`, `audit.events`). Procurement and Audit-beyond-events
-   have none, which is *information* the Module chips must state, not hide —
+   have none, which is *information* the Module chips must state, not hide -
    Prototype v2 already writes this copy.
 
 ---
@@ -468,11 +468,11 @@ as "tuned for", and the builder's filter copy says so.
 | **3** | Failure and omission handling end to end, frozen-config diff | ✅ done |
 | 4 | Delivery only: recipients, secure links, test delivery, revocation | ✅ ready |
 | 5 | ~~Sharing~~ (cut) · Quick export from module screens · admin activity + download log | ✅ ready |
-| ~~Schedules~~ | Cut from the MVP — see the scope decision above | — |
+| ~~Schedules~~ | Cut from the MVP - see the scope decision above | - |
 
-Genuinely new UI in this feature is only three things — the 340px summary rail,
+Genuinely new UI in this feature is only three things - the 340px summary rail,
 the two-pane field picker, and the file card. Everything else is assembly over
 `CustomTable`, `StatusPill`, `Tabs`, `StepProgressBar`, `states.tsx`, `Sheet`,
 `ConfirmActionModal`, `PermissionGate`, `TableToolbar`, `KpiCard` and `sonner`.
-Read `custom/import-wizard` before designing the builder's state — it is the
+Read `custom/import-wizard` before designing the builder's state - it is the
 closest existing precedent.

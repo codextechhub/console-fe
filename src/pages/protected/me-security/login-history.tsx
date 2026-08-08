@@ -25,18 +25,18 @@ import { toast } from "sonner";
 type DeviceType = "desktop" | "mobile" | "tablet";
 
 function parseUA(ua: string | null | undefined): { browser: string; os: string; type: DeviceType } {
-  if (!ua) return { browser: "—", os: "—", type: "desktop" };
+  if (!ua) return { browser: "-", os: "-", type: "desktop" };
   const browser =
     /Edg\//.test(ua) ? "Edge" :
     /Chrome\//.test(ua) ? "Chrome" :
     /Firefox\//.test(ua) ? "Firefox" :
-    /Safari\//.test(ua) ? "Safari" : "—";
+    /Safari\//.test(ua) ? "Safari" : "-";
   const os =
     /iPhone|iPad/.test(ua) ? "iOS" :
     /Android/.test(ua) ? "Android" :
     /Mac OS X/.test(ua) ? "macOS" :
     /Windows/.test(ua) ? "Windows" :
-    /Linux/.test(ua) ? "Linux" : "—";
+    /Linux/.test(ua) ? "Linux" : "-";
   const type: DeviceType =
     /iPhone|Android.*Mobile/.test(ua) ? "mobile" :
     /iPad/.test(ua) ? "tablet" : "desktop";
@@ -44,7 +44,7 @@ function parseUA(ua: string | null | undefined): { browser: string; os: string; 
 }
 
 function maskIp(ip: string | null | undefined): string {
-  if (!ip) return "—";
+  if (!ip) return "-";
   const parts = ip.split(".");
   if (parts.length !== 4) return ip;
   return `${parts[0]}.•••.•••.${parts[3]}`;
@@ -58,7 +58,7 @@ const friendlyFailure = (code: string | null | undefined): string =>
     ACCOUNT_SUSPENDED: "Account suspended",
     ACCOUNT_NOT_FOUND: "Account not found",
     MFA_REQUIRED: "MFA required",
-  } as Record<string, string>)[code ?? ""] ?? (code || "—");
+  } as Record<string, string>)[code ?? ""] ?? (code || "-");
 
 const DEVICE_ICON: Record<DeviceType, typeof Monitor> = {
   desktop: Monitor,
@@ -338,7 +338,7 @@ export default function MyLoginHistory() {
                             <td className="px-3 py-2.5">
                               <span className="flex items-center gap-1.5">
                                 <span className="font-mono">
-                                  {ipRevealed ? (item.ip ?? "—") : maskIp(item.ip)}
+                                  {ipRevealed ? (item.ip ?? "-") : maskIp(item.ip)}
                                 </span>
                                 <button
                                   onClick={() => toggleRevealIp(item.id)}

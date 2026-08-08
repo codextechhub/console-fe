@@ -24,7 +24,7 @@ describe("auth context freshness", () => {
     expect(isAuthContextFromLogin()).toBe(true);
   });
 
-  it("reads the same answer twice — StrictMode double-invokes initialisers", () => {
+  it("reads the same answer twice - StrictMode double-invokes initialisers", () => {
     markAuthContextFromLogin();
     expect(isAuthContextFromLogin()).toBe(true);
     expect(isAuthContextFromLogin()).toBe(true);

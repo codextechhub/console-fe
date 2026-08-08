@@ -195,7 +195,7 @@ export default function ViewTemplate() {
             <MetaRow label="Sample row"><span className="text-sm">{template.allow_sample_row ? "Enabled" : "Disabled"}</span></MetaRow>
             <MetaRow label="Download"><span className="text-sm">{template.is_download_enabled ? "Enabled" : "Disabled"}</span></MetaRow>
             <MetaRow label="Published">
-              <span className="text-sm">{template.published_at ? new Date(template.published_at).toLocaleDateString() : "—"}</span>
+              <span className="text-sm">{template.published_at ? new Date(template.published_at).toLocaleDateString() : "-"}</span>
             </MetaRow>
             {template.retired_at && (
               <MetaRow label="Retired">

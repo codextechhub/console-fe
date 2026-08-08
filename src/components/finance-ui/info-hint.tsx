@@ -1,4 +1,4 @@
-// <InfoHint> — a small ⓘ icon that reveals an explanatory note on activation.
+// <InfoHint> - a small ⓘ icon that reveals an explanatory note on activation.
 // It intentionally uses a popover rather than a tooltip: product guidance stays
 // closed on hover/focus and works consistently with click, keyboard and touch.
 import { Info } from "lucide-react";

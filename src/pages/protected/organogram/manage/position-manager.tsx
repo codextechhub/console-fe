@@ -1,7 +1,7 @@
 // Positions (seats) CRUD (admin). Gated by P.MANAGE_ORGANOGRAM at the page level.
 //
 // Renders as a collapsible tree ordered by the solid "reports to" line.
-// Clicking a row that has direct reports collapses/expands them — no arrow
+// Clicking a row that has direct reports collapses/expands them - no arrow
 // indicator, just the click. Vertical guide lines connect siblings at each depth.
 
 import { useMemo, useState } from "react";
@@ -93,7 +93,7 @@ function PosRow({
       {/* Base left padding */}
       <div className="w-2 shrink-0" />
 
-      {/* Ancestor guide lines — border-l draws the vertical continuation */}
+      {/* Ancestor guide lines - border-l draws the vertical continuation */}
       {guides.map((showLine, i) => (
         <div key={i} className={cn("w-5 shrink-0", showLine && "border-l border-gray-200")} />
       ))}
@@ -373,12 +373,12 @@ export default function PositionManager() {
               disabled={!form.department_id || noTeamsInDept}
             />
 
-            {noDivisions && <Hint>No divisions exist yet — create the org structure (Division → Department → Team) before adding positions.</Hint>}
-            {noDeptsInDiv && <Hint>No departments under {nameOf(form.division_id)} yet — create one (and a team) first.</Hint>}
-            {noTeamsInDept && <Hint>No teams under {nameOf(form.department_id)} yet — create one first; positions attach to teams.</Hint>}
+            {noDivisions && <Hint>No divisions exist yet - create the org structure (Division → Department → Team) before adding positions.</Hint>}
+            {noDeptsInDiv && <Hint>No departments under {nameOf(form.division_id)} yet - create one (and a team) first.</Hint>}
+            {noTeamsInDept && <Hint>No teams under {nameOf(form.department_id)} yet - create one first; positions attach to teams.</Hint>}
             {legacyNode && !noDeptsInDiv && !noTeamsInDept && (
               <Hint>
-                This position is attached to {editing?.org_node?.name} ({editingNodeKind?.toLowerCase()}), not a team — pick its team to save.
+                This position is attached to {editing?.org_node?.name} ({editingNodeKind?.toLowerCase()}), not a team - pick its team to save.
               </Hint>
             )}
 

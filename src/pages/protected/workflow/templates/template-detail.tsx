@@ -81,7 +81,7 @@ export default function TemplateDetail() {
                       </div>
                       {s.kind === "APPROVAL" && (
                         <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-gray-01 sm:grid-cols-3">
-                          <Detail label="Approver permission" value={s.approver_permission_key || "—"} mono />
+                          <Detail label="Approver permission" value={s.approver_permission_key || "-"} mono />
                           <Detail label="Scope" value={s.approver_scope} />
                           <Detail label="Advance rule" value={advanceRuleLabel(s.advance_rule, s.quorum_count)} />
                           <Detail label="On rejection" value={s.on_rejection === "TERMINAL" ? "Ends workflow" : "Returns to requester"} />
@@ -103,7 +103,7 @@ export default function TemplateDetail() {
               <h3 className="mb-3 text-sm font-semibold">Routing</h3>
               {template.routes.length === 0 ? (
                 <p className="text-sm text-gray-01">
-                  No explicit routes — stages run linearly in order.
+                  No explicit routes - stages run linearly in order.
                 </p>
               ) : (
                 <div className="space-y-2">

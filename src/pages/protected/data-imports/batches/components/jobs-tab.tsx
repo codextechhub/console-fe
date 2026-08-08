@@ -166,7 +166,7 @@ function JobRow({ job, onRollback }: { job: ImportJobListItem; onRollback: () =>
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px]">
         <span className="text-green-600">✓ {job.succeeded_rows.toLocaleString()} succeeded</span>
         {job.failed_rows > 0 && <span className="text-red-500">✗ {job.failed_rows.toLocaleString()} failed</span>}
-        {job.skipped_rows > 0 && <span className="text-gray-01">— {job.skipped_rows.toLocaleString()} skipped</span>}
+        {job.skipped_rows > 0 && <span className="text-gray-01">- {job.skipped_rows.toLocaleString()} skipped</span>}
       </div>
 
       {/* Timestamps */}

@@ -14,7 +14,7 @@ const toKey = (id: UserId): string => (id == null ? "" : String(id));
  * The workflow API only returns bare user IDs; this hook fetches the staff
  * directory once (RTK-cached + deduped across every consumer) and exposes
  * cheap lookups. For an internal console with a bounded staff set this is the
- * pragmatic resolver — see project_workflow_module memory.
+ * pragmatic resolver - see project_workflow_module memory.
  */
 export function useUserDirectory() {
   const { data, isLoading } = useGetTeamMembersQuery({ page: 1, page_size: 500 });
@@ -33,14 +33,14 @@ export function useUserDirectory() {
   /** Display name, falling back to a shortened ID when the user isn't found. */
   const name = (id: UserId): string => {
     const key = toKey(id);
-    if (!key) return "—";
+    if (!key) return "-";
     const u = byId.get(key);
     return u?.full_name || u?.email || `User ${key.slice(0, 8)}`;
   };
 
   const initials = (id: UserId): string => {
     const key = toKey(id);
-    if (!key) return "—";
+    if (!key) return "-";
     const u = byId.get(key);
     return returnInitial(u?.full_name || u?.email || "U");
   };

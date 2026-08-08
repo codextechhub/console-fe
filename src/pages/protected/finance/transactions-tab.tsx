@@ -1,4 +1,4 @@
-// Transactions Log — a unified money-movement feed (Vision "Transactions Log"), house theme.
+// Transactions Log - a unified money-movement feed (Vision "Transactions Log"), house theme.
 // Money IN (collections) + money OUT (payouts) in one paginated read-only ledger, served by
 // the backend /payments/movements/ union (no client-side merge or caps). KPIs from the
 // movements summary; direction / status / provider filters are server-side; a row drawer
@@ -15,15 +15,15 @@ import { useGetMovementsQuery, useGetMovementsSummaryQuery } from "@/redux/servi
 import type { Movement } from "@/redux/services/payments/payments-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
-const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 
 const PROVIDERS: Record<string, { label: string; dot: string }> = {
   PAYSTACK: { label: "Paystack", dot: "bg-blue-500" },
   FAKE: { label: "Fake (test)", dot: "bg-gray-400" },
 };
 function ProviderTag({ provider }: { provider: string }) {
-  const p = PROVIDERS[provider] ?? { label: provider || "—", dot: "bg-gray-400" };
+  const p = PROVIDERS[provider] ?? { label: provider || "-", dot: "bg-gray-400" };
   return <span className="inline-flex items-center gap-1.5 font-mont text-sm text-black-01"><span className={cn("size-2 rounded-sm", p.dot)} /> {p.label}</span>;
 }
 
@@ -91,7 +91,7 @@ export function TransactionsTab({ entity, currency }: { entity: string; currency
     { header: "Reference", cell: (m) => <span className="font-semibold tabular-nums text-gray-01">{m.reference}</span> },
     { header: "Date", cell: (m) => <span className="tabular-nums text-gray-05">{fmtDateTime(m.created_at)}</span> },
     { header: "Direction", cell: (m) => <DirectionTag dir={m.direction} /> },
-    { header: "Party", cell: (m) => m.party || "—" },
+    { header: "Party", cell: (m) => m.party || "-" },
     { header: "Provider", cell: (m) => <ProviderTag provider={m.provider} /> },
     { header: "Amount", align: "right", cell: (m) => <span className={cn(m.direction === "out" && "text-destructive")}><Money kobo={m.amount} currency={currency} align="right" /></span> },
     { header: "Status", cell: (m) => <StatusPill status={m.status} /> },
@@ -164,7 +164,7 @@ function MovementDrawer({ move, currency, onClose }: { move: Movement | null; cu
         </Section>
 
         <Section title={inbound ? "Counterparty" : "Beneficiary"}>
-          <Field label={inbound ? "Customer" : "Name"}>{move.party || "—"}</Field>
+          <Field label={inbound ? "Customer" : "Name"}>{move.party || "-"}</Field>
           {inbound && move.email ? <Field label="Payer email">{move.email}</Field> : null}
           {!inbound && move.beneficiary_account ? <Field label="Account" mono>{move.beneficiary_account}</Field> : null}
           {move.narration ? <Field label="Narration">{move.narration}</Field> : null}
@@ -174,7 +174,7 @@ function MovementDrawer({ move, currency, onClose }: { move: Movement | null; cu
           <Field label="Confirmed" mono>{fmtDateTime(move.confirmed_at)}</Field>
           <Field label={inbound ? "Deposit account" : "Source account"} mono>{move.account_code ? `${move.account_code}${move.account_name ? ` · ${move.account_name}` : ""}` : (inbound ? "Bank / collections" : "Cash & bank")}</Field>
           <Field label={inbound ? "Booked receipt" : "Booked payment"}>
-            {move.linked_id ? <span className="inline-flex items-center gap-1">{inbound ? <Receipt className="size-3.5" /> : <Banknote className="size-3.5" />} #{move.linked_id}</span> : "—"}
+            {move.linked_id ? <span className="inline-flex items-center gap-1">{inbound ? <Receipt className="size-3.5" /> : <Banknote className="size-3.5" />} #{move.linked_id}</span> : "-"}
           </Field>
         </Section>
       </div>

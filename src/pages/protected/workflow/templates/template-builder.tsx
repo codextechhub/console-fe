@@ -48,8 +48,8 @@ const SCOPE_OPTIONS = [
   { value: "PLATFORM", label: "Platform" },
 ];
 const RULE_OPTIONS = [
-  { value: "UNANIMOUS", label: "Unanimous — all must approve" },
-  { value: "QUORUM", label: "Quorum — N of M" },
+  { value: "UNANIMOUS", label: "Unanimous - all must approve" },
+  { value: "QUORUM", label: "Quorum - N of M" },
   { value: "ANY", label: "Any one approver" },
 ];
 const REJECT_OPTIONS = [
@@ -60,10 +60,10 @@ const REJECT_OPTIONS = [
 // An untouched template notifies for all of these; toggling any switch makes
 // the dict exact intent (unchecked = off).
 const NOTIF_EVENTS = [
-  { key: "workflow.stage_activated", label: "Stage activated — notify that stage's approvers" },
-  { key: "workflow.returned", label: "Returned for revision — notify the requester" },
-  { key: "workflow.rejected", label: "Rejected — notify the requester" },
-  { key: "workflow.final_approved", label: "Fully approved — notify the requester" },
+  { key: "workflow.stage_activated", label: "Stage activated - notify that stage's approvers" },
+  { key: "workflow.returned", label: "Returned for revision - notify the requester" },
+  { key: "workflow.rejected", label: "Rejected - notify the requester" },
+  { key: "workflow.final_approved", label: "Fully approved - notify the requester" },
 ];
 
 export default function TemplateBuilder() {
@@ -500,7 +500,7 @@ export default function TemplateBuilder() {
                 <div className="mt-3 space-y-1.5">
                   <label className="text-xs font-medium">
                     Inclusion condition{" "}
-                    <span className="text-gray-01">(JSON, optional — stage skipped if false)</span>
+                    <span className="text-gray-01">(JSON, optional - stage skipped if false)</span>
                   </label>
                   <Textarea
                     rows={2}

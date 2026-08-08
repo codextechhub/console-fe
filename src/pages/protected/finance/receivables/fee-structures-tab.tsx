@@ -2,14 +2,14 @@
 // items with fee code + optional/required + a Subtotal→Tax→Total breakdown, a
 // usage/activity panel, Generate, Duplicate, Edit) and a create/edit drawer.
 //
-// This is a generic platform, so a fee structure is NOT tied to a school term —
+// This is a generic platform, so a fee structure is NOT tied to a school term -
 // it is classified by who it bills (`applies_to`: Customer / Vendor / Staff /
 // General). Only Customer structures can generate AR invoices today.
 //
 // Honest adaptation: the prototype is school-specific (branch · session · class
 // scope, "Per Term/Session" frequency, students/classes assigned). We keep the
-// generic-valuable richness — per-line fee code, optional-vs-required, the tax
-// breakdown, usage/activity, Duplicate — and drop the school-only bits. Frequency
+// generic-valuable richness - per-line fee code, optional-vs-required, the tax
+// breakdown, usage/activity, Duplicate - and drop the school-only bits. Frequency
 // is intentionally omitted (generation raises a single invoice, not a schedule).
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -170,7 +170,7 @@ function FeeStructureDetailDrawer({ structure, entity, currency, onClose, onEdit
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <AppliesToPill value={full.applies_to} label={full.applies_to_display} />
-            {!isCustomer ? <span className="font-mont text-[11px] text-gray-05">Classification only — invoice generation is for customer structures.</span> : null}
+            {!isCustomer ? <span className="font-mont text-[11px] text-gray-05">Classification only - invoice generation is for customer structures.</span> : null}
           </div>
           {full.description ? <p className="font-mont text-sm text-gray-01">{full.description}</p> : null}
 
@@ -188,7 +188,7 @@ function FeeStructureDetailDrawer({ structure, entity, currency, onClose, onEdit
                     <tr key={it.id}>
                       <td className={tdCls}>
                         {it.code ? <span className="font-semibold tabular-nums text-gray-05">{it.code} · </span> : null}
-                        {it.description || "—"}
+                        {it.description || "-"}
                       </td>
                       <td className={cn(tdCls, "tabular-nums text-gray-05")}>{it.revenue_account_code}</td>
                       <td className={cn(tdCls, "text-right tabular-nums")}><Money kobo={it.amount} currency={currency} align="right" /></td>

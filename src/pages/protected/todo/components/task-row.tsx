@@ -34,7 +34,7 @@ function Meta({
           danger ? "text-destructive" : muted ? "text-gray-02" : "text-gray-01",
         )}
       >
-        {value || "—"}
+        {value || "-"}
       </div>
     </div>
   );

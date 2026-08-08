@@ -6,12 +6,12 @@
 //
 //   • A run wraps a job (ExportRun.background_job), so the same export exists on
 //     both surfaces. Two words for one outcome is the confusion this feature
-//     exists to remove — so the job vocabulary's SUCCEEDED is displayed with the
+//     exists to remove - so the job vocabulary's SUCCEEDED is displayed with the
 //     run vocabulary's word, "Completed". The wire tokens are untouched.
 //   • Every status carries a leading glyph as well as a colour, without
 //     exception, so it survives greyscale, colour-blindness and a photocopier.
 //   • Colour comes from StatusPill's VARIANT_BY_STATUS. This is not a parallel
-//     status system — it is that map plus a glyph.
+//     status system - it is that map plus a glyph.
 //
 // Deliberately NOT here: schedule states (Active / Paused). They arrive with
 // schedules themselves, and an unused branch is a claim the product cannot yet
@@ -57,7 +57,7 @@ export function runStatusWord(status: string): string {
 }
 
 export function RunStatusPill({ status, className }: { status?: string | null; className?: string }) {
-  if (!status) return <span className="text-gray-05">—</span>;
+  if (!status) return <span className="text-gray-05">-</span>;
   const token = status.toUpperCase();
 
   // Running keeps --primary and the pinging dot: the one status the Queues page

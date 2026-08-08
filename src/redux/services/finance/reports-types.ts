@@ -1,4 +1,4 @@
-// Financial-statement report types — mirror the JSON the vs_finance report
+// Financial-statement report types - mirror the JSON the vs_finance report
 // views emit. Money is the `{kobo, naira}` pair these endpoints return (not a
 // bare integer), so the UI can show either without re-deriving.
 
@@ -16,7 +16,7 @@ export interface TrialBalanceRow {
   credit: ReportMoney;
 }
 
-// Analytics slice — net activity per account, bucketed by one axis (a cost centre
+// Analytics slice - net activity per account, bucketed by one axis (a cost centre
 // or a dimension). Reads posted journal lines, so it can answer "per bucket".
 export interface AnalyticsSliceRow {
   bucket: string;

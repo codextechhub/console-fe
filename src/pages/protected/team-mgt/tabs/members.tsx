@@ -121,7 +121,7 @@ export default function MembersTab({
 
   const activeFilterCount = Object.values(appliedFilters).filter(Boolean).length;
 
-  // Reset to page 1 when the (debounced) search changes — done in the same
+  // Reset to page 1 when the (debounced) search changes - done in the same
   // render pass, so no intermediate request with the old page is fired.
   const [prevSearch, setPrevSearch] = useState(debouncedValue);
   if (debouncedValue !== prevSearch) {
@@ -322,7 +322,7 @@ export default function MembersTab({
 
             const action = statusAction();
 
-            // A draft isn't a real member yet — its only action is Resume, which
+            // A draft isn't a real member yet - its only action is Resume, which
             // reopens it in the add-user form to finish and submit.
             if (row._status === "DRAFT") {
               if (!hasPermission(P.INVITE_TEAM_MEMBER)) return [];

@@ -1,4 +1,4 @@
-// New journal (Direct Entry, §6.2) — the ONLY screen that submits raw debit/credit
+// New journal (Direct Entry, §6.2) - the ONLY screen that submits raw debit/credit
 // lines (capital, opening balances, loans, adjustments). A right-side drawer in the
 // prototype style: sectioned header fields, a posting editor with type-to-search
 // account pickers, and a live balance check (Σdebit = Σcredit) before POST. Amounts
@@ -117,7 +117,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
                 </div>
                 <MoneyInput valueKobo={r.amountKobo} onChangeKobo={(k) => setRow(i, { amountKobo: k })} currency={currency} className="flex-1" />
               </div>
-              <CostCenterPicker entity={entity} value={r.costCenter} onChange={(v) => setRow(i, { costCenter: v })} placeholder="Cost centre — optional" />
+              <CostCenterPicker entity={entity} value={r.costCenter} onChange={(v) => setRow(i, { costCenter: v })} placeholder="Cost centre - optional" />
               {dims.length > 0 && (
                 <div className="grid grid-cols-2 gap-2">
                   {dims.map((dim) => (
@@ -125,7 +125,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
                       value={r.dimensions[dim.code] ?? ""}
                       onChange={(e) => setRow(i, { dimensions: { ...r.dimensions, [dim.code]: e.target.value } })}
                       className="h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-xs text-black-01 focus:border-primary focus:outline-none">
-                      <option value="">{dim.name} — none</option>
+                      <option value="">{dim.name} - none</option>
                       {dim.allowed_values.map((v) => <option key={v} value={v}>{v}</option>)}
                     </select>
                   ))}

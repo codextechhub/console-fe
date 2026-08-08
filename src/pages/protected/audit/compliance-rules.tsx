@@ -336,7 +336,7 @@ function RuleRow({
       {/* Retention */}
       <td className="px-3 py-3 tabular-nums">
         <span className="text-xs">
-          {r.retention_days ? `${r.retention_days}d` : <span className="text-gray-01">—</span>}
+          {r.retention_days ? `${r.retention_days}d` : <span className="text-gray-01">-</span>}
         </span>
       </td>
 
@@ -352,7 +352,7 @@ function RuleRow({
 
       {/* Updated */}
       <td className="px-3 py-3 text-xs whitespace-nowrap text-gray-01">
-        {r.updated_at ? formatRelativeDate(r.updated_at) : "—"}
+        {r.updated_at ? formatRelativeDate(r.updated_at) : "-"}
       </td>
 
       {/* DotMenu */}

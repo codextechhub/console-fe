@@ -1,4 +1,4 @@
-// Procurement Analytics (§6) — thin router/shell over the four read-only report
+// Procurement Analytics (§6) - thin router/shell over the four read-only report
 // screens (AP Aging, GR/IR & Control, Spend, Vendor Performance). Each section
 // lives in its own file under ./analytics/; this picks one off the :section route.
 // Every screen gates on procurement.report.view (the backend view enforces it too).

@@ -1,4 +1,4 @@
-// Collections (§6.4) — gateway cash-in and virtual accounts, one page per
+// Collections (§6.4) - gateway cash-in and virtual accounts, one page per
 // sub-section (route-driven).
 
 import { useParams } from "react-router";
@@ -18,7 +18,7 @@ export default function CollectionsPage() {
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">{isVA ? "Virtual Accounts" : "Collections"}</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">{isVA ? "Dedicated funding accounts that auto-reconcile inbound transfers." : "Money in — gateway checkouts and their settlement."}</p>
+          <p className="mt-0.5 font-mont text-xs text-gray-05">{isVA ? "Dedicated funding accounts that auto-reconcile inbound transfers." : "Money in - gateway checkouts and their settlement."}</p>
         </div>
         {!entity ? (
           <EmptyState title="Select an entity" message="Choose a ledger entity to view collections." />

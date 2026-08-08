@@ -1,7 +1,7 @@
-// Ledger-entity types — mirror vs_finance LedgerEntitySerializer /
+// Ledger-entity types - mirror vs_finance LedgerEntitySerializer /
 // LedgerEntityCreateSerializer exactly (read, then write shapes).
 
-/** GET /finance/entities/ — read shape (LedgerEntitySerializer). */
+/** GET /finance/entities/ - read shape (LedgerEntitySerializer). */
 export interface LedgerEntity {
   id: number;
   code: string;
@@ -20,7 +20,7 @@ export interface EntityListParams {
 }
 
 /**
- * POST /finance/entities/ — provisioning a new set of books. One call seeds the
+ * POST /finance/entities/ - provisioning a new set of books. One call seeds the
  * chart of accounts + twelve open periods. fiscal_year / fiscal_start_month are
  * optional (a school can open e.g. a Sept–Aug year).
  */

@@ -4,7 +4,7 @@ import { useLocation } from "react-router";
 
 // Background notification feeds (the header bell polls these every 60 s).
 // They have their own in-page loading states, so their fetches must not flash
-// the top bar. These are the *Bell endpoints from workflowApi — the page-level
+// the top bar. These are the *Bell endpoints from workflowApi - the page-level
 // getPendingApprovals / getMySubmissions queries are foreground requests and
 // SHOULD show the bar.
 const SILENT_ENDPOINTS = new Set([
@@ -22,7 +22,7 @@ export function startNavigationProgress(): void {
   window.dispatchEvent(new Event(NAVIGATION_START_EVENT));
 }
 
-// Minimal slice of RTK Query's internal cache state — enough to detect
+// Minimal slice of RTK Query's internal cache state - enough to detect
 // in-flight requests without reaching for `any`.
 interface CacheEntry {
   status?: string;
@@ -48,12 +48,12 @@ const selectAnyPending = (state: BaseApiState): boolean => {
 
 // Activity must persist this long before the bar appears. Fast responses (warm
 // cache, local dev, quick API hits) come and go without ever flashing the bar;
-// only genuinely slow work — the case the bar exists for — surfaces it.
+// only genuinely slow work - the case the bar exists for - surfaces it.
 const SHOW_DELAY_MS = 300;
 
 // In production the bar is a NAVIGATION signal only. Data fetches there have
 // their own in-page loading states, and real network latency would otherwise
-// keep the bar crawling on every screen — reading as background trouble rather
+// keep the bar crawling on every screen - reading as background trouble rather
 // than feedback. Local dev keeps the API signal: latency is near zero, so it
 // only ever appears when something is genuinely stuck, which is exactly when a
 // developer wants to see it.
@@ -114,7 +114,7 @@ export function TopProgressBar() {
   }
 
   // Phase alone decides visibility: while the show-delay window is open the
-  // phase is still "idle" even though activity is pending — render nothing.
+  // phase is still "idle" even though activity is pending - render nothing.
   if (phase === "idle") return null;
 
   return (

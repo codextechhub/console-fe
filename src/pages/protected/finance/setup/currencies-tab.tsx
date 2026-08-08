@@ -1,8 +1,8 @@
 // Setup → Currencies & FX. Design topology: FX Rates / Currencies tabs; the FX
 // tab has per-pair rate cards (latest + delta + sparkline, computed from the rate
 // history), base/source filters, the rate table, and New FX rate. Currencies tab
-// lists the platform currencies. (No "Sync" — there's no live feed integration;
-// no "captured by" — FxRate has no user field.)
+// lists the platform currencies. (No "Sync" - there's no live feed integration;
+// no "captured by" - FxRate has no user field.)
 import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
@@ -20,7 +20,7 @@ const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont 
 const fmtRate = (r: string | number) => Number(r).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 
 function Delta({ pct }: { pct: number | null }) {
-  if (pct == null) return <span className="font-mont text-xs text-gray-05">—</span>;
+  if (pct == null) return <span className="font-mont text-xs text-gray-05">-</span>;
   const up = pct >= 0;
   const Icon = up ? TrendingUp : TrendingDown;
   return <span className={cn("inline-flex items-center gap-0.5 font-mont text-xs font-semibold", up ? "text-green-01" : "text-destructive")}><Icon className="size-3.5" />{up ? "+" : ""}{pct.toFixed(1)}%</span>;
@@ -67,12 +67,12 @@ export function CurrenciesTab() {
     { header: "Date", cell: (r) => <span className="tabular-nums">{r.as_of}</span> },
     { header: "Pair", cell: (r) => <span className="font-semibold">{r.base} → {r.quote}</span> },
     { header: "Rate", align: "right", cell: (r) => <span className="tabular-nums">{fmtRate(r.rate)}</span> },
-    { header: "Source", cell: (r) => r.source ? <span className="rounded bg-pry-01 px-1.5 py-0.5 font-mont text-[10px] font-semibold uppercase text-primary">{r.source}</span> : "—" },
+    { header: "Source", cell: (r) => r.source ? <span className="rounded bg-pry-01 px-1.5 py-0.5 font-mont text-[10px] font-semibold uppercase text-primary">{r.source}</span> : "-" },
   ];
   const currencyCols: Column<Currency>[] = [
     { header: "Code", cell: (c) => <span className="font-semibold">{c.code}</span> },
     { header: "Name", cell: (c) => c.name },
-    { header: "Symbol", cell: (c) => c.symbol || "—" },
+    { header: "Symbol", cell: (c) => c.symbol || "-" },
     { header: "Minor unit", align: "right", cell: (c) => c.minor_unit },
     { header: "Status", cell: (c) => <StatusPill status={c.is_active ? "ACTIVE" : "INACTIVE"} /> },
   ];

@@ -29,7 +29,7 @@ export function VendorPicker({ entity, value, onChange, label, placeholder = "Se
     .filter((v) => !purchaseEligible || v.code === value || (v.is_active && !v.on_hold && v.kyc_status !== "REJECTED"))
     .map((v) => ({
       value: v.code,
-      label: `${v.code} — ${v.name}${v.is_active && !v.on_hold && v.kyc_status !== "REJECTED" ? "" : " (Unavailable for new commitments)"}`,
+      label: `${v.code} - ${v.name}${v.is_active && !v.on_hold && v.kyc_status !== "REJECTED" ? "" : " (Unavailable for new commitments)"}`,
     }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} revealOnSearch />;
 }
@@ -42,7 +42,7 @@ export function CategoryPicker({ entity, value, onChange, label, placeholder = "
     .filter((category) => category.is_active || category.code === value)
     .map((category) => ({
       value: category.code,
-      label: `${"— ".repeat(category.level - 1)}${category.code} — ${category.name} · L${category.level}${category.is_active ? "" : " (Inactive)"}`,
+      label: `${"- ".repeat(category.level - 1)}${category.code} - ${category.name} · L${category.level}${category.is_active ? "" : " (Inactive)"}`,
     }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} />;
 }
@@ -56,21 +56,21 @@ export function RequisitionPicker({ entity, value, onChange, label, placeholder 
 export function RfqPicker({ entity, value, onChange, label, placeholder = "Select RFQ", isRequired, status }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string; isRequired?: boolean; status?: string }) {
   // Quotation capture only makes sense against ISSUED RFQs; pass status to scope the list.
   const { data, isLoading } = useGetRfqsQuery({ entity, ...(status ? { status } : {}) });
-  const options = toArray(data?.data).map((r) => ({ value: String(r.id), label: `${r.document_number} — ${r.title || "Untitled"}` }));
+  const options = toArray(data?.data).map((r) => ({ value: String(r.id), label: `${r.document_number} - ${r.title || "Untitled"}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} revealOnSearch />;
 }
 
 export function PurchaseOrderPicker({ entity, value, onChange, label, placeholder = "No PO" }: { entity: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string }) {
   const { data, isLoading } = useGetPurchaseOrdersQuery({ entity, page_size: 100 });
-  const options = toArray(data?.data).map((o) => ({ value: String(o.id), label: `${o.document_number} — ${o.vendor_code}` }));
+  const options = toArray(data?.data).map((o) => ({ value: String(o.id), label: `${o.document_number} - ${o.vendor_code}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} revealOnSearch />;
 }
 
-// A PO's optional call-off link — only the selected vendor's ACTIVE contracts are
+// A PO's optional call-off link - only the selected vendor's ACTIVE contracts are
 // eligible (matching the backend rule). Empty option lets the buyer raise an
 // unlinked PO. Disabled until a vendor is chosen.
 export function ContractPicker({ entity, vendor, value, onChange, label, placeholder = "No contract (unlinked)" }: { entity: string; vendor: string; value: string; onChange: (v: string) => void; label?: string; placeholder?: string }) {
   const { data, isLoading } = useGetContractsQuery({ entity, vendor, status: "ACTIVE" }, { skip: !vendor });
-  const options = toArray(data?.data).map((c) => ({ value: String(c.id), label: `${c.reference} — ${c.title}` }));
+  const options = toArray(data?.data).map((c) => ({ value: String(c.id), label: `${c.reference} - ${c.title}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={vendor ? placeholder : "Select a vendor first"} disabled={!vendor} revealOnSearch />;
 }

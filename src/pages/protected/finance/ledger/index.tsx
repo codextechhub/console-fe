@@ -1,4 +1,4 @@
-// General Ledger / Journal Entries (§6.2) — design topology in the house theme:
+// General Ledger / Journal Entries (§6.2) - design topology in the house theme:
 // status tabs with counts, source + period filters, search, a Total-Debit /
 // Created-By table, and a posted-total footer. Read-only list + detail drawer +
 // the Reverse action; Direct Entry is the only raw-lines post ("New journal").
@@ -76,9 +76,9 @@ export default function GeneralLedgerPage() {
   const columns: Column<JournalListItem>[] = [
     { header: "Journal No.", cell: (j) => <span className="font-semibold">{j.document_number}</span> },
     { header: "Date", cell: (j) => j.date },
-    { header: "Period", cell: (j) => j.period ?? "—" },
+    { header: "Period", cell: (j) => j.period ?? "-" },
     { header: "Source", cell: (j) => cap(j.source) },
-    { header: "Reference", cell: (j) => <span className="block max-w-xs truncate text-gray-01">{j.narration || j.reference || "—"}</span> },
+    { header: "Reference", cell: (j) => <span className="block max-w-xs truncate text-gray-01">{j.narration || j.reference || "-"}</span> },
     { header: "Total Debit", align: "right", cell: (j) => <Money kobo={j.total_debit} currency={currency} align="right" /> },
     { header: "Status", cell: (j) => <StatusPill status={j.status} /> },
     { header: "Created By", cell: (j) => (
@@ -113,7 +113,7 @@ export default function GeneralLedgerPage() {
                 Every journal must balance: total debits = total credits. Most come from subsystems automatically (invoices, payroll, bank); the Manual source is for adjustments, accruals and corrections. Posted journals are read-only.
               </InfoHint>
             </div>
-            <p className="mt-0.5 font-mont text-xs text-gray-05">The general ledger — every financial mutation lands here as a balanced Dr/Cr posting.</p>
+            <p className="mt-0.5 font-mont text-xs text-gray-05">The general ledger - every financial mutation lands here as a balanced Dr/Cr posting.</p>
           </div>
           <Can permission={P.FIN_POST_DIRECT_ENTRY}>
             <Button onClick={() => setDirectOpen(true)} className="gap-1.5"><Plus className="size-4" /> New journal</Button>

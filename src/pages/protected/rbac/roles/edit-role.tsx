@@ -85,8 +85,8 @@ export default function EditRole() {
         {isNameLocked && (
           <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
             {role.is_system_role
-              ? "This is a system role — the name cannot be changed. You can still update the description and permissions."
-              : "This role is locked — the name cannot be changed. You can still update the description and permissions."}
+              ? "This is a system role - the name cannot be changed. You can still update the description and permissions."
+              : "This role is locked - the name cannot be changed. You can still update the description and permissions."}
           </div>
         )}
 
@@ -129,7 +129,7 @@ export default function EditRole() {
             return (
               <Form className="space-y-5">
                 <div className="grid grid-cols-1 lg:grid-cols-[5fr_6fr] gap-5 items-start">
-                  {/* Left — Basic Info */}
+                  {/* Left - Basic Info */}
                   <div className="bg-white rounded-md p-6 space-y-5">
                     <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
                       Basic Information
@@ -179,7 +179,7 @@ export default function EditRole() {
                     />
                   </div>
 
-                  {/* Right — Permission Groups */}
+                  {/* Right - Permission Groups */}
                   <div className="bg-white rounded-md p-6 flex flex-col gap-4">
                     <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                       <h2 className="text-sm font-semibold font-mont text-black-01">Permission Groups</h2>
@@ -237,7 +237,7 @@ export default function EditRole() {
                   </div>
                 </div>
 
-                {/* Individual Permissions — full width */}
+                {/* Individual Permissions - full width */}
                 <div className="bg-white rounded-md p-6 flex flex-col gap-4">
                   <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                     <div>

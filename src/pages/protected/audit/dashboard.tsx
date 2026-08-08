@@ -139,35 +139,35 @@ export default function AuditDashboard() {
         <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-6">
           <KpiCard
             label="Active sessions"
-            value={kpis?.active_sessions ?? "—"}
+            value={kpis?.active_sessions ?? "-"}
             foot="Updated every minute"
             tone="live"
           />
           <KpiCard
             label="Events / 24h"
-            value={kpis?.events_24h?.toLocaleString() ?? "—"}
+            value={kpis?.events_24h?.toLocaleString() ?? "-"}
             foot="Last 24 hours"
           />
           <KpiCard
             label="Critical / 24h"
-            value={kpis?.critical_24h ?? "—"}
+            value={kpis?.critical_24h ?? "-"}
             foot={kpis?.critical_24h ? "Requires review" : "No critical events"}
             tone={kpis && kpis.critical_24h > 0 ? "alert" : "default"}
           />
           <KpiCard
             label="Failed / Denied"
-            value={kpis?.failed_denied_24h ?? "—"}
+            value={kpis?.failed_denied_24h ?? "-"}
             foot="Last 24 hours"
           />
           <KpiCard
             label="Locked accounts"
-            value={kpis?.locked_accounts ?? "—"}
+            value={kpis?.locked_accounts ?? "-"}
             foot={kpis?.locked_accounts ? "Now locked" : "None"}
             tone={kpis && kpis.locked_accounts > 0 ? "warn" : "default"}
           />
           <KpiCard
             label="Active impersonations"
-            value={kpis?.active_impersonations ?? "—"}
+            value={kpis?.active_impersonations ?? "-"}
             foot={kpis?.active_impersonations ? "In progress" : "None"}
             tone={kpis && kpis.active_impersonations > 0 ? "warn" : "default"}
           />
@@ -182,7 +182,7 @@ export default function AuditDashboard() {
           </div>
         ) : (
           <div className="grid gap-5 xl:grid-cols-[1fr_360px] items-start">
-            {/* Left — charts column */}
+            {/* Left - charts column */}
             <div className="space-y-5">
               {isLoading && (
                 <div className="text-center text-xs text-gray-01 py-6">Loading dashboard metrics…</div>
@@ -223,7 +223,7 @@ export default function AuditDashboard() {
                 <div className="bg-white rounded-md p-5">
                   <div className="mb-2">
                     <p className="font-semibold text-sm">Sign-in attempts</p>
-                    <p className="text-xs text-gray-01">Success vs failure — last 30 days</p>
+                    <p className="text-xs text-gray-01">Success vs failure - last 30 days</p>
                   </div>
                   <SigninDualLine data={summary?.signin_series ?? []} height={200} />
                 </div>
@@ -232,13 +232,13 @@ export default function AuditDashboard() {
               <div className="bg-white rounded-md p-5">
                 <div className="mb-3">
                   <p className="font-semibold text-sm">Critical events heatmap</p>
-                  <p className="text-xs text-gray-01">Hour of day × day of week — last 30 days</p>
+                  <p className="text-xs text-gray-01">Hour of day × day of week - last 30 days</p>
                 </div>
                 <CriticalHeatmap data={summary?.critical_heatmap ?? Array.from({ length: 7 }, () => Array(24).fill(0))} />
               </div>
             </div>
 
-            {/* Right — live event feed */}
+            {/* Right - live event feed */}
             <div className="bg-white rounded-md border border-gray-100 xl:sticky xl:top-4 overflow-hidden">
               <div className="px-4 pt-4 pb-3 border-b border-gray-100">
                 <div className="flex items-center gap-1.5 mb-0.5">

@@ -8,7 +8,7 @@
 
 const KEY = "_auth_return_to";
 
-// Auth/entry routes we must never bounce back to — that would loop the user
+// Auth/entry routes we must never bounce back to - that would loop the user
 // through login again. Mirrors routesPath.AUTH.
 const AUTH_PREFIXES = ["/login", "/signup", "/forgot-password", "/reset-password", "/activate"];
 
@@ -21,7 +21,7 @@ function isSafeInternalPath(path: string): boolean {
 
   const pathname = path.split(/[?#]/)[0];
   if (AUTH_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) return false;
-  // Special login is `/:email/login` — any path ending in /login is an auth page.
+  // Special login is `/:email/login` - any path ending in /login is an auth page.
   if (pathname.endsWith("/login")) return false;
   return true;
 }

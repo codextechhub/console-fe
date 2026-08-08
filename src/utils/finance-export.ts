@@ -1,5 +1,5 @@
 // Authenticated file download for the finance report ?export= endpoints. The
-// API is bearer-authenticated, so a plain <a href> can't carry the token — we
+// API is bearer-authenticated, so a plain <a href> can't carry the token - we
 // fetch the attachment with the Authorization header and save the blob.
 
 import Cookies from "js-cookie";

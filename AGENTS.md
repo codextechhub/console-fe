@@ -1,4 +1,4 @@
-# AGENTS.md — console-fe
+# AGENTS.md - console-fe
 
 ## Holistic problem solving
 
@@ -14,8 +14,8 @@ at the lowest shared boundary so future instances are prevented.
 Verification is triggered by work performed in the **current request**, not by
 pre-existing changes in the worktree or work completed in an earlier request.
 
-- Git-only and read-only requests — for example inspect, explain, diagnose,
-  stage, commit, branch, push, or report status — do not authorize rerunning
+- Git-only and read-only requests - for example inspect, explain, diagnose,
+  stage, commit, branch, push, or report status - do not authorize rerunning
   tests, builds, `/verify-design`, or responsive audits unless the user
   explicitly asks for them.
 - If the current request changes no code, do not run tests or builds merely for
@@ -30,14 +30,14 @@ pre-existing changes in the worktree or work completed in an earlier request.
 ## Pre-ship review (`ship-check`)
 
 When I say **`ship-check`** (or "run the ship-check") on a change, answer these
-four questions about the code you just wrote — honestly and specifically, not as
+four questions about the code you just wrote - honestly and specifically, not as
 a rubber stamp. Point at real files/lines, name concrete risks, and if the answer
 to 1 or 2 is "no", say so and propose the fix. Don't claim "secure/efficient"
 without naming *what* makes it so.
 
 1. **Did you build this in the most secure way?**
    - Authz on every new endpoint/screen (RBAC key gates the *backend* view, not
-     just the FE nav). Entity/tenant scoping — can a user read/write another
+     just the FE nav). Entity/tenant scoping - can a user read/write another
      tenant's rows by changing an id or `?entity=`?
    - What does the serializer/response expose? Flag raw `JSONField`/metadata,
      PII, secrets, internal ids that didn't need to leave the server.
@@ -56,11 +56,11 @@ without naming *what* makes it so.
    - List the blast radius explicitly; "none" needs justifying.
 
 4. **What tests do we need before we ship it?**
-   - Backend: the security-critical cases first — permission-denied (403),
+   - Backend: the security-critical cases first - permission-denied (403),
      cross-tenant isolation, then the happy path + each filter/edge.
    - Frontend: empty `{}` / populated / error / forbidden render states; any new
      mutation flow. State whether the screen was actually driven with **real
-     data** (`/verify-design`) or only type-checked — empty-state screenshots do
+     data** (`/verify-design`) or only type-checked - empty-state screenshots do
      NOT prove populated rendering.
 
 Finish with a one-line **verdict**: ship / fix-first, and the single most
@@ -68,29 +68,29 @@ important thing to do before shipping.
 
 ## Wrapping up: report in plain words
 
-When you finish a task — a build, an investigation, a document, a round of
-decisions — close with a plain-language breakdown rather than a wall of prose.
+When you finish a task - a build, an investigation, a document, a round of
+decisions - close with a plain-language breakdown rather than a wall of prose.
 Short numbered lines, one point each, ordinary words. Assume I am reading it tired.
 
-Use **only** the sections that actually apply, and **skip the ones that don't** —
+Use **only** the sections that actually apply, and **skip the ones that don't** -
 an empty heading is worse than no heading, and never pad a section to fill it out.
 
-- **What you now have** — the finished things, one line each. Only if something was
+- **What you now have** - the finished things, one line each. Only if something was
   produced.
-- **What you decided** — decisions taken and locked, one line each. Only if
+- **What you decided** - decisions taken and locked, one line each. Only if
   decisions were actually made.
-- **What was fixed** — resolved defects, written in the past tense. Include only
+- **What was fixed** - resolved defects, written in the past tense. Include only
   when knowing the original cause is useful and it has not already been explained.
-- **What still needs attention** — only defects, risks, or incomplete work that
+- **What still needs attention** - only defects, risks, or incomplete work that
   remain after the task. Omit this section entirely when nothing remains.
-- **Where to go next** — the order of the next steps, and which of them are
+- **Where to go next** - the order of the next steps, and which of them are
   unblocked right now.
 
 How to write it:
 
 - Plain words beat precise jargon. "Purchases can approve themselves" lands;
   "`skip_if_no_approvers` permits terminal auto-approval" does not.
-- Size things honestly in both directions — say when something feared turns out to
+- Size things honestly in both directions - say when something feared turns out to
   be a one-line fix, and say when something small turns out to be load-bearing.
 - Put the worst finding where it cannot be missed, even if that breaks the order.
 - Never place resolved problems under a heading that suggests they remain broken.
@@ -103,20 +103,20 @@ How to write it:
 ## Verifying screens
 After building or changing a screen **in the current request**, run
 `/verify-design` (project skill) to drive it in the real running app and **look
-at the screenshots** — build-green ≠ works. Do not invoke it for a later
+at the screenshots** - build-green ≠ works. Do not invoke it for a later
 Git-only, read-only, or commit request that merely encounters those existing
 screen changes in the worktree. It scrubs its own test-login rows afterward.
 
-## Responsive views — every screen must work on phone AND desktop
+## Responsive views - every screen must work on phone AND desktop
 
 Every screen you build or change must render well at desktop **and** small
-widths — a user switching from PC to phone must never get a broken view.
+widths - a user switching from PC to phone must never get a broken view.
 Horizontal page overflow is a bug, full stop.
 
 Build to the house conventions (full list: `docs/FINANCE_BUILD_NOTES.md`
-§Responsive — they apply app-wide, not just finance):
+§Responsive - they apply app-wide, not just finance):
 - Never remove `grid grid-cols-1 min-w-0` from DashboardLayout's children
-  wrapper — it stops nowrap tables stretching pages past the viewport.
+  wrapper - it stops nowrap tables stretching pages past the viewport.
 - Lists: `DataTable`/`CustomTable` already render phone cards below `md`;
   dense report tables opt out per-table with `mobile="scroll"`.
 - Toolbars/action rows get `flex-wrap`; tab strips `max-w-full
@@ -133,14 +133,20 @@ alongside `/verify-design` run the overflow probe:
 It drives each route logged-in at 390px (phone) and 820px (tablet), screenshots
 both, and reports page-level horizontal overflow with the offending elements
 (`_net_probe.mjs` does the same for failing network calls). **Look at the phone
-screenshots** in `/tmp/verify-design/shots-responsive/` — zero overflow with a
+screenshots** in `/tmp/verify-design/shots-responsive/` - zero overflow with a
 crushed side-by-side layout is still a fail. Desktop remains the design source
-of truth; phone adapts (stack, wrap, cards) — never hide or truncate data away.
+of truth; phone adapts (stack, wrap, cards) - never hide or truncate data away.
 
-**Depth policy — phones are view + simple actions, not full parity.** Phone
-users browse, read details, approve, and fill simple forms — those flows must
+**Depth policy - phones are view + simple actions, not full parity.** Phone
+users browse, read details, approve, and fill simple forms - those flows must
 be genuinely good. Complex multi-line creation/editing (journal entry, invoice
 lines, receipt allocation, bulk editors) stays desktop-first: on a phone it
 must be *usable* (no overflow, nothing broken or unreachable), but don't spend
 effort optimizing it or redesigning it phone-first, and never degrade the
 desktop experience to make it fit.
+
+## Writing punctuation
+
+Do not use em dashes (Unicode U+2014) anywhere in source code, comments,
+documentation, tests, or user-facing copy. Use a comma, colon, parentheses, or
+an ordinary hyphen (`-`), whichever reads most naturally.

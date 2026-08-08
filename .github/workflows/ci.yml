@@ -22,7 +22,7 @@ jobs:
       - name: Typecheck
         run: npx tsc -b
 
-      # The codebase is at zero ESLint problems — keep it there.
+      # The codebase is at zero ESLint problems - keep it there.
       - name: Lint
         run: npx eslint . --max-warnings 0
 

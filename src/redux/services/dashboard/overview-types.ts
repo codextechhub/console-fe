@@ -7,7 +7,7 @@ import type { Task, TaskStats } from "./todo-types";
  * Every section is optional on purpose: the backend omits the ones the caller
  * has no permission for (`platform.schools.view`, `platform.team.view`,
  * `tickets.ticket.view`, `platform.health.view`, and CX-staff-only tasks). An
- * absent section means "no access" — render nothing, never a zero.
+ * absent section means "no access" - render nothing, never a zero.
  */
 export interface ConsoleOverview {
   schools?: { active: number };
@@ -24,7 +24,7 @@ export interface ConsoleOverview {
   health?: { label: string; overall: string; active_incidents: number };
   /**
    * Backing for the "Getting started" checklist. Each flag follows the same
-   * omit-don't-zero rule as the sections above — absent means the caller can't
+   * omit-don't-zero rule as the sections above - absent means the caller can't
    * see that screen, so its checklist row is hidden rather than shown unticked.
    */
   setup?: {

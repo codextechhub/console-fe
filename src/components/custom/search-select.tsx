@@ -31,7 +31,7 @@ interface SearchSelectProps {
   /** Show a clear (✕) button once a value is chosen. Default true. */
   clearable?: boolean;
   /**
-   * Withhold the option list until the user types — useful for long lists
+   * Withhold the option list until the user types - useful for long lists
    * (e.g. org units). The dropdown shows a "type to search" hint while empty.
    */
   revealOnSearch?: boolean;
@@ -42,7 +42,7 @@ interface SearchSelectProps {
 }
 
 /**
- * Searchable single-select (base-ui Combobox) — a drop-in for CustomNativeSelect.
+ * Searchable single-select (base-ui Combobox) - a drop-in for CustomNativeSelect.
  * Keeps the same event-based API (value / name / onChange(event) / error /
  * isRequired / disabled / loading) so Formik `getFieldProps(...)` spreads and
  * `onChange={(e)=>setX(e.target.value)}` handlers work unchanged.
@@ -74,7 +74,7 @@ export function SearchSelect({
 
   // When revealOnSearch is on, withhold the list until something is typed. The
   // selected item's label fills the input, so treat a query equal to the
-  // current selection's label as "empty" — otherwise reopening would list it.
+  // current selection's label as "empty" - otherwise reopening would list it.
   const hasQuery = query.trim().length > 0 && query.trim() !== (selected?.label ?? "").trim();
   const visibleItems = revealOnSearch && !hasQuery ? [] : options;
 
@@ -117,7 +117,7 @@ export function SearchSelect({
         <ComboboxInput
           id={id}
           placeholder={placeholder}
-          // Darken the selected value + placeholder — the base Input renders
+          // Darken the selected value + placeholder - the base Input renders
           // them faint (gray-01 / gray-02), which reads washed-out next to plain
           // dropdowns. Target the inner <input> (className lands on the wrapper).
           className="[&_input]:text-black-01 [&_input]:placeholder:text-gray-05"

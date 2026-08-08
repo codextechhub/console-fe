@@ -1,15 +1,15 @@
 ---
 name: verify-design
-description: Launch the app, log in as the seeded admin, drive screens in a headless browser, screenshot each, report console/page errors, and scrub the test-login rows from the dev DB. Use after implementing or changing ANY screen/design (any area of the app — finance, school management, organogram, roles, workflow, etc.) to verify it actually renders against the real backend, not just that it type-checks.
+description: Launch the app, log in as the seeded admin, drive screens in a headless browser, screenshot each, report console/page errors, and scrub the test-login rows from the dev DB. Use after implementing or changing ANY screen/design (any area of the app - finance, school management, organogram, roles, workflow, etc.) to verify it actually renders against the real backend, not just that it type-checks.
 ---
 
-# verify-design — drive any screen in the real running app
+# verify-design - drive any screen in the real running app
 
 Build-green ≠ works. This app's screens sit behind auth + a live backend, and
 classes of bug only surface against real responses (empty-list `{}`, money
 object shapes, missing fields, render-time crashes). This skill launches the
 app, logs in, drives the screens you point it at, screenshots them, and reports
-runtime errors — then leaves the dev DB exactly as it found it.
+runtime errors - then leaves the dev DB exactly as it found it.
 
 It is **not** tied to any one feature. Drive whatever you just built.
 
@@ -27,7 +27,7 @@ the skill targets the screens you just changed (from the git diff). Examples:
 Env overrides (rarely needed): `BACKEND` (default `http://localhost:8000/v1`),
 `EMAIL`/`PASSWORD` (default seeded super-admin), `DB` (default `cx_db`).
 
-## Steps — follow in order
+## Steps - follow in order
 
 ### 1. Preflight: backend must be running
 The dev server can't be started for you (long-running + needs env). Check it:
@@ -69,7 +69,7 @@ bash .claude/skills/verify-design/capture-baseline.sh
 bash .claude/skills/verify-design/preflight.sh
 ```
 Logs in and (for finance-scoped screens) prints the ledger entities. Fails
-loudly if creds are missing — then the user needs to seed the DB
+loudly if creds are missing - then the user needs to seed the DB
 (`backend/./reseed-dev.sh`).
 
 ### 5. Ensure the frontend dev server is running
@@ -92,7 +92,7 @@ ROUTES="<the paths from step 2>" \
 node .claude/skills/verify-design/drive.mjs
 ```
 It logs in, screenshots each route to `/tmp/verify-design/shots/`, and lists
-console/page errors. **Then Read each screenshot and judge it** — confirm the
+console/page errors. **Then Read each screenshot and judge it** - confirm the
 screen rendered, not the error boundary.
 
 ### 7. Scrub the test-login rows from the dev DB
@@ -106,19 +106,19 @@ The drive is read-only, so business tables are never written.
 
 ### 8. Report
 Which screens rendered cleanly, any console errors (quote them), any screen
-showing the error boundary — with the screenshot as evidence. If a fix is
+showing the error boundary - with the screenshot as evidence. If a fix is
 needed, the console-error text + the offending endpoint's real shape
 (`curl …?entity=CODEX` with the bearer token) is the fastest way in.
 
 ## Notes
 - **Read-only**: navigates + screenshots only; never submits a form, so no
-  business rows are created — only the auth-login trail, which step 7 removes.
+  business rows are created - only the auth-login trail, which step 7 removes.
 - Works for every area: pass any route, or let step 2 target your changes.
 - Some screens are entity-scoped (finance/procurement) and need a ledger entity
   to show data; `preflight.sh` reports whether any exist.
 - **Loading/error states**: `drive.mjs` can only capture the loaded screen. To
   screenshot a route's LOADING and ERROR render states (invisible-skeleton and
-  broken-error-UI bugs only surface there), run `probe-loading.mjs` — it delays
+  broken-error-UI bugs only surface there), run `probe-loading.mjs` - it delays
   then aborts the matching API calls:
   `BASE_URL=<vite-url> ROUTES="/finance" PATTERN="/finance/reports/" node .claude/skills/verify-design/probe-loading.mjs`
   (`net::ERR_FAILED` console errors in its output are the probe's own aborts.)

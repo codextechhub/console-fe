@@ -93,7 +93,7 @@ export default function InstanceDetail() {
     reverseAction({ action_id: reverseTarget.id, reason: reverseReason.trim() })
       .unwrap()
       .then(() => {
-        toast.success("Vote reversed — stage re-opened.");
+        toast.success("Vote reversed - stage re-opened.");
         setReverseTarget(null);
         setReverseReason("");
       })
@@ -141,7 +141,7 @@ export default function InstanceDetail() {
               </Section>
             </div>
 
-            {/* Recorded votes — admin reversal */}
+            {/* Recorded votes - admin reversal */}
             <Section title="Recorded votes">
               {actions.length === 0 ? (
                 <p className="text-sm text-gray-01">No votes recorded yet.</p>

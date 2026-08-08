@@ -1,16 +1,16 @@
 // Platform settings console over /config/, in plain language:
 //
-//   System Settings — GitHub-style rows: every typed setting grouped by
+//   System Settings - GitHub-style rows: every typed setting grouped by
 //                     module, with its description and an inline control
 //                     (toggle / number / text; JSON behind an Edit dialog).
 //                     Shows the EFFECTIVE platform value (default overlaid
 //                     by any explicit platform row).
-//   Features        — per-scope switchboard over capabilities. Pick Platform
+//   Features        - per-scope switchboard over capabilities. Pick Platform
 //                     or a school; each feature shows its live On/Off plus
 //                     the two levers in plain words: "In plan" (entitlement)
 //                     and "Status: Follow plan / Force on / Force off"
 //                     (override). A row click opens the record drawer.
-//   Audit Trail     — the immutable change log.
+//   Audit Trail     - the immutable change log.
 //
 // Reads/writes are gated by the config.* keys and enforced again server-side
 // (definition/capability creation is platform-only).
@@ -399,7 +399,7 @@ function Features() {
   const overrideByKey = new Map((overrides.data?.data ?? []).map((o) => [o.capability_key, o]));
   const labelByKey = new Map((catalogue.data?.data ?? []).map((c) => [c.key, c.label]));
   // A feature with any dependency off at this scope resolves Off no matter
-  // what its own levers say — the rows must explain that.
+  // what its own levers say - the rows must explain that.
   const depsStatus = (c: Capability) =>
     (c.dependencies ?? []).map((key) => ({
       label: labelByKey.get(key) ?? pretty(key),
@@ -418,7 +418,7 @@ function Features() {
         <div>
           <h2 className="font-mont text-sm font-semibold">Features</h2>
           <p className="text-xs text-gray-01 mt-0.5">
-            What's switched on — platform-wide or for one school. “In plan” is the commercial grant;
+            What's switched on - platform-wide or for one school. “In plan” is the commercial grant;
             “Status” can force a feature on or off regardless.
           </p>
         </div>
@@ -604,7 +604,7 @@ function FeatureDetail({
             <p className="font-mont text-xs font-semibold text-gray-01">HOW THIS RESOLVES</p>
             <ul className="mt-2 space-y-1.5 text-xs leading-5 text-gray-600">
               {deps.length > 0 && (
-                <li>0. Needs {deps.map((d) => d.label).join(" and ")} switched on first — without that it stays off no matter what.</li>
+                <li>0. Needs {deps.map((d) => d.label).join(" and ")} switched on first - without that it stays off no matter what.</li>
               )}
               {cap.requires_entitlement ? (
                 <>
@@ -613,7 +613,7 @@ function FeatureDetail({
                 </>
               ) : (
                 <>
-                  <li>1. No plan needed — ships {cap.default_enabled ? "ON" : "OFF"} by default.</li>
+                  <li>1. No plan needed - ships {cap.default_enabled ? "ON" : "OFF"} by default.</li>
                   <li>2. A forced status (on/off) wins over the default.</li>
                 </>
               )}
@@ -623,7 +623,7 @@ function FeatureDetail({
           {deps.length > 0 && (
             <div className="rounded-lg border border-white-02 p-4">
               <p className="font-mont text-xs font-semibold text-gray-01">
-                REQUIRES — {school ? "AT THIS SCHOOL" : "AT PLATFORM"}
+                REQUIRES - {school ? "AT THIS SCHOOL" : "AT PLATFORM"}
               </p>
               <ul className="mt-2 space-y-2">
                 {deps.map((d) => (
@@ -632,7 +632,7 @@ function FeatureDetail({
                     {d.on ? (
                       <Badge variant="success" className="font-mont text-xs">On</Badge>
                     ) : (
-                      <Badge variant="rejected" className="font-mont text-xs">Off — blocking</Badge>
+                      <Badge variant="rejected" className="font-mont text-xs">Off - blocking</Badge>
                     )}
                   </li>
                 ))}
@@ -642,7 +642,7 @@ function FeatureDetail({
 
           <div className="rounded-lg border border-white-02 p-4">
             <p className="font-mont text-xs font-semibold text-gray-01">
-              CURRENT RECORDS — {school ? "THIS SCHOOL" : "PLATFORM"}
+              CURRENT RECORDS - {school ? "THIS SCHOOL" : "PLATFORM"}
             </p>
             <dl className="mt-2 space-y-3 text-xs">
               <div>
@@ -657,8 +657,8 @@ function FeatureDetail({
                 <dt className="text-gray-01">Forced status (override)</dt>
                 <dd className="mt-0.5 font-medium">
                   {override && override.state !== "INHERIT"
-                    ? `${override.state === "ENABLED" ? "Forced on" : "Forced off"}${override.reason ? ` — “${override.reason}”` : ""} · updated ${new Date(override.updated_at).toLocaleDateString()}`
-                    : "None — follows the plan"}
+                    ? `${override.state === "ENABLED" ? "Forced on" : "Forced off"}${override.reason ? ` - “${override.reason}”` : ""} · updated ${new Date(override.updated_at).toLocaleDateString()}`
+                    : "None - follows the plan"}
                 </dd>
               </div>
             </dl>
@@ -702,7 +702,7 @@ function Audit() {
   const [school, setSchool] = useState("");
   const [createdAfter] = useState(() => new Date(Date.now() - 30 * 864e5).toISOString());
   // The backend list is scope-resolved: platform rows by default, one
-  // school's rows with ?school= — same picker as the Features tab.
+  // school's rows with ?school= - same picker as the Features tab.
   const q = useGetConfigAuditQuery({
     page: String(page),
     created_after: createdAfter,
@@ -718,7 +718,7 @@ function Audit() {
       action: (
         <Badge className={`font-mont text-xs ${action.className}`}>{action.label}</Badge>
       ),
-      target: <span className="text-sm font-medium">{x.target_label || "—"}</span>,
+      target: <span className="text-sm font-medium">{x.target_label || "-"}</span>,
       actor: x.actor ? (
         <div className="flex items-center gap-2.5">
           <UserAvatar
@@ -734,7 +734,7 @@ function Audit() {
       ),
       reason: (
         <span className="block max-w-[220px] truncate text-sm text-gray-01" title={x.reason}>
-          {x.reason || "—"}
+          {x.reason || "-"}
         </span>
       ),
       date: <span className="text-xs text-gray-01">{new Date(x.created_at).toLocaleString()}</span>,
@@ -747,7 +747,7 @@ function Audit() {
         <div>
           <h2 className="font-mont text-sm font-semibold">Configuration audit trail</h2>
           <p className="text-xs text-gray-01 mt-0.5">
-            Immutable record of every settings and feature change — last 30 days.
+            Immutable record of every settings and feature change - last 30 days.
           </p>
         </div>
         <ScopePicker

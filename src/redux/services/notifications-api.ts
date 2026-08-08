@@ -110,7 +110,7 @@ export const notificationsApi = baseApi.injectEndpoints({
       invalidatesTags: ["Notifications"],
     }),
     // Fires on every route change (DashboardLayout), so only refetch the feed
-    // when something was actually acknowledged — most navigations update 0 rows.
+    // when something was actually acknowledged - most navigations update 0 rows.
     acknowledgeNotificationRoute: builder.mutation<
       { data: { updated_count: number } },
       { path: string }
@@ -121,7 +121,7 @@ export const notificationsApi = baseApi.injectEndpoints({
         !error && result?.data.updated_count ? ["Notifications"] : [],
     }),
 
-    // ── History (admin — communication.message_activity.audit) ─────────────
+    // ── History (admin - communication.message_activity.audit) ─────────────
     // The backend requires at least one filter so the whole log can't be dumped.
     getNotificationHistory: builder.query<Page<NotificationHistory>, Record<string, string | number>>({
       query: (params) => ({ url: `/notify/history/${generateQueryString(params)}` }),

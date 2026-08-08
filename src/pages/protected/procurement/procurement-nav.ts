@@ -1,4 +1,4 @@
-// Procurement console sidebar (§7) — grouped into labelled sections like the
+// Procurement console sidebar (§7) - grouped into labelled sections like the
 // design (Procure to Pay / Vendors & Catalog / Sourcing / Inventory / Analytics /
 // Payments). Flat leaves, each a real route; gated by backend key prefixes.
 

@@ -1,4 +1,4 @@
-// Finance overview (§6.0) — the executive landing screen. Topology ported from
+// Finance overview (§6.0) - the executive landing screen. Topology ported from
 // the Crestfield Vision design (KPI strip → revenue-vs-budget + aging → trend →
 // overdue/vendor-due → approvals + close → quick actions → recent journals),
 // rendered entirely in the house theme. Every figure is real: one aggregated
@@ -59,7 +59,7 @@ function Card({ title, subtitle, action, className, children }: {
 }
 
 function Delta({ pct }: { pct: number | null }) {
-  if (pct == null) return <span className="font-mont text-[11px] text-gray-05">—</span>;
+  if (pct == null) return <span className="font-mont text-[11px] text-gray-05">-</span>;
   const up = pct >= 0;
   const Icon = up ? ArrowUp : ArrowDown;
   return (
@@ -102,7 +102,7 @@ function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
   return (
     <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-pry-01 font-mont text-[11px] font-semibold text-primary">
-      {init || "—"}
+      {init || "-"}
     </span>
   );
 }
@@ -132,7 +132,7 @@ export default function FinanceDashboard() {
   const canReports = can(P.FIN_VIEW_REPORTS);
   const [granularity, setGranularity] = useState<"monthly" | "quarterly">("monthly");
   // Period numbers are per-entity, so a selection only applies to the entity it was
-  // made on — we tag it with that entity and derive "" (current) for any other, so
+  // made on - we tag it with that entity and derive "" (current) for any other, so
   // switching entities never sends a stale period (which would 404). No effect needed.
   const [picked, setPicked] = useState<{ entity: string; period: string }>({ entity: "", period: "" });
 
@@ -165,11 +165,11 @@ export default function FinanceDashboard() {
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Finance overview</h1>
               <InfoHint ariaLabel="About Finance overview">
-                The executive view of this entity’s finances — every number is computed live from the general ledger and drills into its area from the sidebar. Figures reflect the selected period.
+                The executive view of this entity’s finances - every number is computed live from the general ledger and drills into its area from the sidebar. Figures reflect the selected period.
               </InfoHint>
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">
-              {d?.fiscal_year ?? "—"}
+              {d?.fiscal_year ?? "-"}
               {d?.period ? ` · Period: ${d.period}` : ""}
               {d?.as_of ? ` · As of ${fmtDate(d.as_of)}` : ""}
             </p>
@@ -379,7 +379,7 @@ export default function FinanceDashboard() {
                           <TableCell className={cn(cellCls, "font-semibold")}>{j.document_number}</TableCell>
                           <TableCell className={cellCls}>{j.date}</TableCell>
                           <TableCell className={cellCls}>{j.source}</TableCell>
-                          <TableCell className={cn(cellCls, "max-w-xs truncate text-gray-01")}>{j.narration || "—"}</TableCell>
+                          <TableCell className={cn(cellCls, "max-w-xs truncate text-gray-01")}>{j.narration || "-"}</TableCell>
                           <TableCell className={cn(cellCls, "text-right")}><Money kobo={j.amount.kobo} currency={currency} align="right" /></TableCell>
                           <TableCell className={cellCls}><StatusPill status={j.status} /></TableCell>
                           <TableCell className={cellCls}>{j.created_by}</TableCell>

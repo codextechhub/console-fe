@@ -51,7 +51,7 @@ const TYPE_HELP: Record<RuleType, string> = {
   RETENTION: "Archive or purge events older than a configured age.",
   MASKING:   "Mask sensitive field values in event payloads before display.",
   ACCESS:    "Restrict who can view or export matching events.",
-  EXPORT:    "Constrain export jobs — row caps, allowed formats, watermarking.",
+  EXPORT:    "Constrain export jobs - row caps, allowed formats, watermarking.",
 };
 
 type Tab = "general" | "scope" | "policy" | "preview";
@@ -239,7 +239,7 @@ export default function ComplianceRuleForm() {
                   data-size="sm"
                 />
                 <span className="text-xs font-medium">Active</span>
-                <span className="text-[10px] text-gray-01">— rule is enforced when on.</span>
+                <span className="text-[10px] text-gray-01">- rule is enforced when on.</span>
               </label>
             </>
           )}
@@ -332,7 +332,7 @@ export default function ComplianceRuleForm() {
                   <p className="text-xs font-medium text-gray-01">
                     {form.rule_type === "ACCESS"
                       ? "Access rules restrict which roles can view or export matching events. Advanced config is managed server-side."
-                      : "Export rules constrain export jobs — row caps, allowed formats, and watermarking. Advanced config is managed server-side."}
+                      : "Export rules constrain export jobs - row caps, allowed formats, and watermarking. Advanced config is managed server-side."}
                   </p>
                 </div>
               )}

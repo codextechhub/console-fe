@@ -167,7 +167,7 @@ export const configApi = baseApi.injectEndpoints({
       query: (params) => `/config/entitlements/${generateQueryString(params)}`,
       providesTags: ["Config"],
     }),
-    // Scope (tenant/branch) rides as query params — the backend derives it from
+    // Scope (tenant/branch) rides as query params - the backend derives it from
     // the asserted tenant, not a body field.
     setEntitlement: builder.mutation<{ data: Entitlement }, Record<string, unknown>>({
       query: ({ tenant, branch, ...body }) => ({

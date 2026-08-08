@@ -62,7 +62,7 @@ export default function PermissionModulesList() {
 
   const tableData = modules.map((mod: PermissionModule) => ({
     name: <span className="font-mono font-medium text-sm text-black-01">{mod.name}</span>,
-    description: <span className="text-xs text-gray-01">{mod.description || "—"}</span>,
+    description: <span className="text-xs text-gray-01">{mod.description || "-"}</span>,
     status: (
       <Badge variant={mod.is_active ? "active" : "inactive"}>
         {mod.is_active ? "Active" : "Inactive"}

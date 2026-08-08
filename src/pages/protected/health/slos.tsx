@@ -1,4 +1,4 @@
-// SLOs — objective attainment computed from real uptime/request data against
+// SLOs - objective attainment computed from real uptime/request data against
 // the configured targets, with error-budget context per service.
 
 import { useState } from "react";

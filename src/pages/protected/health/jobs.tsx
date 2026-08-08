@@ -1,4 +1,4 @@
-// Jobs & Queues — queue pressure from the snapshot collector plus the real
+// Jobs & Queues - queue pressure from the snapshot collector plus the real
 // background-job execution history (core.BackgroundJob), paginated.
 
 import { useState } from "react";
@@ -135,7 +135,7 @@ export default function JobsPage() {
           >
             {t.status}
           </Badge>,
-          t.duration_sec != null ? `${t.duration_sec}s` : "—",
+          t.duration_sec != null ? `${t.duration_sec}s` : "-",
           new Date(t.created_at).toLocaleString(),
         ])}
         emptyText="No background jobs recorded yet."

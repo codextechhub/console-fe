@@ -1,11 +1,11 @@
-// <FileCard> — the produced file, and whether you can still have it.
+// <FileCard> - the produced file, and whether you can still have it.
 //
 // One of the three genuinely new pieces of UI in the Export Centre. A format
 // tile, the file name, a metadata line (rows · columns · size · availability)
 // and exactly one primary action, which changes with what is actually possible:
 // download it, download it anyway, or run the export again because the bytes
 // are gone. Availability is derived server-side at read time (is_expired /
-// is_purged / is_downloadable) — never inferred here from a date.
+// is_purged / is_downloadable) - never inferred here from a date.
 
 import { Download, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ const NUM = "font-geist-mono tabular-nums";
 
 // What the metadata line says about how long this file is around for. Expiry is
 // a fact about the file, so it is stated plainly rather than hidden once it has
-// passed — the run still succeeded, and the history is intact.
+// passed - the run still succeeded, and the history is intact.
 function availability(file: ExportFile): string {
   if (file.is_purged) return "deleted from storage";
   if (file.is_expired) return `expired ${formatDay(file.available_until)}`;
@@ -66,7 +66,7 @@ export function FileCard({
         className,
       )}
     >
-      {/* Format tile — reads as a file at a glance, in greyscale, at any size. */}
+      {/* Format tile - reads as a file at a glance, in greyscale, at any size. */}
       <div
         aria-hidden
         className="flex h-11 w-9 shrink-0 items-end justify-center rounded border border-gray-02 bg-gray-04 pb-1 font-geist-mono text-[9px] font-semibold uppercase text-gray-06-text"

@@ -1,6 +1,6 @@
 // Types for the Export Centre (backend app `vs_exports`, mounted at /v1/exports/).
 //
-// Every shape here is read from apps/vs_exports/serializers.py — this feature's
+// Every shape here is read from apps/vs_exports/serializers.py - this feature's
 // API already exists, so nothing below is invented. See
 // docs/EXPORT_BUILD_NOTES.md for the endpoint→screen map.
 
@@ -45,7 +45,7 @@ export interface ExportFile {
 }
 
 /** Present only while a run is NOT terminal; null once it has finished.
- *  A null `rows_total` means indeterminate progress — expected, not an error. */
+ *  A null `rows_total` means indeterminate progress - expected, not an error. */
 export interface ExportProgress {
   phase: string;
   phase_label: string;
@@ -123,7 +123,7 @@ export interface ExportRunDetail extends ExportRun {
   deliveries: ExportDelivery[];
 }
 
-/** One download attempt — allowed and refused alike. */
+/** One download attempt - allowed and refused alike. */
 export interface ExportDownloadEntry {
   id: number;
   user_name: string;
@@ -137,7 +137,7 @@ export interface ExportDownloadEntry {
 export interface ExportCapabilities {
   can_create: boolean;
   can_run: boolean;
-  /** On the wire, but the UI does not surface sharing — it is out of the MVP. */
+  /** On the wire, but the UI does not surface sharing - it is out of the MVP. */
   can_share: boolean;
   can_export_sensitive: boolean;
   can_view_activity: boolean;
@@ -150,7 +150,7 @@ export interface ExportCapabilities {
 
 // ── Catalogue (vs_exports/catalogue.py) ──────────────────────────────────────
 // Steps 1 and 2 are entirely catalogue-driven. The UI never hardcodes fields,
-// formats or option sets — everything below comes off the wire.
+// formats or option sets - everything below comes off the wire.
 
 export type FieldKind = "text" | "date" | "datetime" | "money" | "number" | "choice";
 
@@ -159,7 +159,7 @@ export interface DatasetField {
   label: string;
   group: string;
   type: FieldKind;
-  /** Always exported, cannot be deselected — the row's identity. */
+  /** Always exported, cannot be deselected - the row's identity. */
   locked: boolean;
   /** Needs exports.sensitive_field.export as well; called out at review. */
   sensitive: boolean;
@@ -178,7 +178,7 @@ export interface DatasetFilter {
   is_primary_date: boolean;
 }
 
-/** One option's schema, discriminated by format — never a flat bag. */
+/** One option's schema, discriminated by format - never a flat bag. */
 export interface FormatOptionSchema {
   type: "choice" | "boolean" | "text";
   values?: string[];
@@ -207,7 +207,7 @@ export interface Dataset {
 export interface CatalogueModule {
   name: string;
   datasets: Dataset[];
-  /** False when a module has nothing published — that is information, not a gap. */
+  /** False when a module has nothing published - that is information, not a gap. */
   available: boolean;
 }
 

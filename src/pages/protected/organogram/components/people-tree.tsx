@@ -1,4 +1,4 @@
-// People tab — top-down org CHART: each person is a card; connector lines drop
+// People tab - top-down org CHART: each person is a card; connector lines drop
 // from a card to its reports' row (the `.org-chart` CSS in index.css). Derived
 // from the server position tree + holders, enriched with staff-profile status.
 

@@ -1,4 +1,4 @@
-// Collections — money in via the payment gateway, rebuilt to the Vision prototype in
+// Collections - money in via the payment gateway, rebuilt to the Vision prototype in
 // the house theme: KPIs (collected / pending / failed / success rate), status + provider
 // filters, a checkouts table, a detail drawer with a status timeline and the settlement
 // posting (Dr bank/collections, Cr AR), a New-checkout drawer, and a CSV export.
@@ -6,7 +6,7 @@
 // Backed by the real model: initiate returns a hosted checkout_url; verify polls the PSP
 // and books a vs_finance receipt when settled. Honest: providers are Paystack (+
 // Fake for testing); no email is sent (Copy link copies the real URL); the receipt
-// journal posts automatically on confirmation — the recap mirrors it, never a 2nd post.
+// journal posts automatically on confirmation - the recap mirrors it, never a 2nd post.
 
 import { useMemo, useState, type ReactNode } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
@@ -25,8 +25,8 @@ import { useGetInvoicesQuery } from "@/redux/services/finance/ar-api";
 import type { Collection } from "@/redux/services/payments/payments-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
-const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 
 // filing-style status → prototype group (Pending / Paid / Failed / Refunded)
 const STATUS_GROUP: Record<string, "PENDING" | "PAID" | "FAILED" | "REFUNDED"> = {
@@ -61,7 +61,7 @@ function Select({ value, onChange, children, className }: { value: string; onCha
   );
 }
 
-const customerLabel = (c: Collection) => c.customer_name || c.payer_name || c.customer_code || "—";
+const customerLabel = (c: Collection) => c.customer_name || c.payer_name || c.customer_code || "-";
 
 export function CollectionsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -92,7 +92,7 @@ export function CollectionsTab({ entity, currency }: { entity: string; currency?
         <KpiCard label="Collected (settled)" value={formatMoney(s?.collected.kobo ?? 0, currency)} foot="Confirmed receipts" />
         <KpiCard label="Pending" value={formatMoney(s?.pending.kobo ?? 0, currency)} foot="Awaiting payment" />
         <KpiCard label="Failed" value={formatMoney(s?.failed.kobo ?? 0, currency)} tone={(s?.failed.kobo ?? 0) > 0 ? "warn" : "default"} />
-        <KpiCard label="Success rate" value={s?.success_rate == null ? "—" : `${s.success_rate}%`} foot="Settled ÷ completed" />
+        <KpiCard label="Success rate" value={s?.success_rate == null ? "-" : `${s.success_rate}%`} foot="Settled ÷ completed" />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -190,7 +190,7 @@ function CollectionDrawer({ collectionId, collections, entity, currency, onClose
             <TimelineStep done title="Checkout created" sub={fmtDateTime(c.created_at)} />
             <TimelineStep done={paid || failed} current={!paid && !failed} title="Checkout link ready" sub={c.checkout_url ? (c.payer_email ? `Hand off to ${c.payer_email}` : "Link ready to share") : "No hosted link"} />
             <TimelineStep done={paid} current={!paid && !failed} title={failed ? "Payment failed" : "Payment confirmed"}
-              sub={paid ? `Webhook received — receipt booked (Dr bank / Cr ${linked ? "AR" : "customer credit"})${c.confirmed_at ? ` · ${fmtDateTime(c.confirmed_at)}` : ""}` : failed ? "The provider reported a failed/abandoned payment" : "Awaiting the provider's confirmation"} />
+              sub={paid ? `Webhook received - receipt booked (Dr bank / Cr ${linked ? "AR" : "customer credit"})${c.confirmed_at ? ` · ${fmtDateTime(c.confirmed_at)}` : ""}` : failed ? "The provider reported a failed/abandoned payment" : "Awaiting the provider's confirmation"} />
           </div>
         </div>
 
@@ -198,7 +198,7 @@ function CollectionDrawer({ collectionId, collections, entity, currency, onClose
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">{paid ? "Settlement posting" : "On settlement (via webhook)"}</p>
             <PostingRecap title={paid ? "Receipt booked" : "Will post on confirmation"} dr={dr} cr={cr} currency={currency}
-              helper={paid ? "Booked automatically when the provider confirmed payment." : "The journal posts automatically when the provider confirms payment — no manual receipt."} />
+              helper={paid ? "Booked automatically when the provider confirmed payment." : "The journal posts automatically when the provider confirms payment - no manual receipt."} />
           </div>
         ) : null}
 
@@ -265,7 +265,7 @@ function NewCheckoutDrawer({ open, onClose, entity, currency }: { open: boolean;
             options={invoiceOptions}
             value={invoice}
             onChange={(e) => pickInvoice(e.target.value)}
-            placeholder={customer ? (invoicesQ.isFetching ? "Loading invoices…" : "No invoice — customer credit") : "Select a customer first"}
+            placeholder={customer ? (invoicesQ.isFetching ? "Loading invoices…" : "No invoice - customer credit") : "Select a customer first"}
             disabled={!customer || invoicesQ.isFetching}
           />
         </FormField>
@@ -275,12 +275,12 @@ function NewCheckoutDrawer({ open, onClose, entity, currency }: { open: boolean;
           <div><p className="mb-1 font-mont text-xs text-gray-05">Provider</p><Select value={provider} onChange={setProvider} className="w-full">{Object.entries(PROVIDERS).map(([v, p]) => <option key={v} value={v}>{p.label}</option>)}</Select></div>
         </div>
         <FormField label="Customer email"><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className="h-9 bg-white" /></FormField>
-        <FormField label="Narration"><Input value={narration} onChange={(e) => setNarration(e.target.value)} placeholder="e.g. Term 3 tuition — A. Williams" className="h-9 bg-white" /></FormField>
+        <FormField label="Narration"><Input value={narration} onChange={(e) => setNarration(e.target.value)} placeholder="e.g. Term 3 tuition - A. Williams" className="h-9 bg-white" /></FormField>
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">On settlement (via webhook)</p>
           <PostingRecap title="Will post on confirmation" dr={dr} cr={cr} currency={currency} helper={invoice
-            ? `Invoice ${selectedInvoice?.document_number ?? "selected"} — the confirmed payment settles Accounts Receivable automatically.`
-            : "No invoice selected — the confirmed cash is held as customer credit (2140) until it is allocated later."} />
+            ? `Invoice ${selectedInvoice?.document_number ?? "selected"} - the confirmed payment settles Accounts Receivable automatically.`
+            : "No invoice selected - the confirmed cash is held as customer credit (2140) until it is allocated later."} />
         </div>
       </div>
     </DetailDrawer>

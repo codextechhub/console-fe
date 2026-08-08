@@ -35,7 +35,7 @@ export default function CreateResource() {
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission Resource</h1>
           <p className="text-sm text-gray-01 mt-1">
-            Resources are the middle segment of a permission key —{" "}
+            Resources are the middle segment of a permission key -{" "}
             <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">module.resource.action</code>.
             Each resource is scoped to one module.
           </p>

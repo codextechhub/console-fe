@@ -27,7 +27,7 @@ export default function CreateAction() {
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission Action</h1>
           <p className="text-sm text-gray-01 mt-1">
-            Actions are the final segment of a permission key —{" "}
+            Actions are the final segment of a permission key -{" "}
             <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">module.resource.action</code>.
             They describe the verb an actor performs: view, create, approve, refund.
           </p>

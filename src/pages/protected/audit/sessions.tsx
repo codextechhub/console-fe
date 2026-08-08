@@ -381,13 +381,13 @@ export default function LiveSessions() {
                         <td className="px-3 py-3">
                           <div className="flex items-center gap-2">
                             <ActorCell
-                              label={s.user?.full_name || s.user?.email || "—"}
+                              label={s.user?.full_name || s.user?.email || "-"}
                               email={s.user?.email}
                               userId={s.user?.id}
                             />
                             <div>
                               <div className="text-xs font-medium leading-snug">
-                                {s.user?.full_name || s.user?.email || "—"}
+                                {s.user?.full_name || s.user?.email || "-"}
                               </div>
                               {s.user?.full_name && (
                                 <div className="text-[10px] text-gray-01">{s.user.email}</div>
@@ -416,7 +416,7 @@ export default function LiveSessions() {
 
                         {/* IP */}
                         <td className="px-3 py-3">
-                          <span className="font-mono text-xs">{s.ip_address ?? "—"}</span>
+                          <span className="font-mono text-xs">{s.ip_address ?? "-"}</span>
                         </td>
 
                         {/* Last seen */}
@@ -567,13 +567,13 @@ export default function LiveSessions() {
                       </p>
                       <div className="flex items-center gap-3">
                         <ActorCell
-                          label={detailSession.user?.full_name || detailSession.user?.email || "—"}
+                          label={detailSession.user?.full_name || detailSession.user?.email || "-"}
                           email={detailSession.user?.email}
                           userId={detailSession.user?.id}
                         />
                         <div>
                           <div className="text-sm font-medium">
-                            {detailSession.user?.full_name || "—"}
+                            {detailSession.user?.full_name || "-"}
                           </div>
                           <div className="text-xs text-gray-01">{detailSession.user?.email}</div>
                           {detailSession.user?.role && (
@@ -607,7 +607,7 @@ export default function LiveSessions() {
                       <div className="space-y-1.5 text-xs">
                         <div className="flex items-center gap-1.5">
                           <span className="text-gray-01">IP </span>
-                          <span className="font-mono">{detailSession.ip_address ?? "—"}</span>
+                          <span className="font-mono">{detailSession.ip_address ?? "-"}</span>
                         </div>
                         <details>
                           <summary className="text-gray-01 cursor-pointer list-none flex items-center gap-1 select-none">

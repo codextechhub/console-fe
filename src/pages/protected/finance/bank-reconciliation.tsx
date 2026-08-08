@@ -1,7 +1,7 @@
-// Bank Reconciliation (§6.5) — an account-scoped reconciliation workbench, built
+// Bank Reconciliation (§6.5) - an account-scoped reconciliation workbench, built
 // to the Vision prototype in the house theme: KPIs (statement / book / difference
 // / match progress), a two-column matcher (unmatched bank statement lines vs
-// unmatched book/GL lines — click one of each and Match), in-line adjusting
+// unmatched book/GL lines - click one of each and Match), in-line adjusting
 // entries, a matched-lines table, Auto-match, Complete reconciliation and a
 // printable reconciliation report.
 //
@@ -30,7 +30,7 @@ import {
 } from "@/redux/services/finance/ops-api";
 import type { BankAccount, BankStatementLine } from "@/redux/services/finance/ops-types";
 
-const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString() : "—");
+const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 const signedCls = (kobo: number) => (kobo < 0 ? "text-destructive" : "text-green-01");
 
 function Kpi({ label, value, danger, children }: { label: string; value: string; danger?: boolean; children?: React.ReactNode }) {
@@ -64,7 +64,7 @@ export default function BankReconciliationPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Bank Reconciliation</h1>
-              <InfoHint ariaLabel="About bank reconciliation">Reconciliation proves the GL matches reality. Auto-match pairs lines by amount and date; the rest need your eye — bank charges not yet booked, payments in transit. Click an unmatched bank line and a book line, then Match; raise an adjusting entry for charges/interest the books are missing.</InfoHint>
+              <InfoHint ariaLabel="About bank reconciliation">Reconciliation proves the GL matches reality. Auto-match pairs lines by amount and date; the rest need your eye - bank charges not yet booked, payments in transit. Click an unmatched bank line and a book line, then Match; raise an adjusting entry for charges/interest the books are missing.</InfoHint>
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Match the bank statement to the ledger, account by account.</p>
           </div>
@@ -143,7 +143,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   const selBookLines = bookLines.filter((b) => selBooks.includes(b.id));
   const bankSum = selBankLines.reduce((s, l) => s + l.amount, 0);
   const bookSum = selBookLines.reduce((s, b) => s + b.amount, 0);
-  // A single selected bank line — the target for adjusting-entry / ignore actions.
+  // A single selected bank line - the target for adjusting-entry / ignore actions.
   const soleBank = selBanks.length === 1 ? selBankLines[0] ?? null : null;
   const toggleBank = (id: number) => setSelBanks((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const toggleBook = (id: number) => setSelBooks((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -155,7 +155,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
       : selBanks.length === 1 && selBooks.length === 1 ? "match"
         : selBanks.length === 1 && selBooks.length >= 2 ? "group"
           : selBanks.length >= 2 && selBooks.length === 1 ? "split"
-            : null;              // N-banks × N-books is ambiguous — not supported
+            : null;              // N-banks × N-books is ambiguous - not supported
   const canMatch = kind !== null;
   const matchBusy = matching || groupMatching || splitMatching;
   const mismatch = selBankLines.length >= 1 && selBookLines.length >= 1 && !canMatch;
@@ -186,7 +186,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="font-mont text-xs text-gray-05">{account.bank_name || "—"} · {account.gl_account}{detail?.statements?.[0]?.period_label ? ` · ${detail.statements[0].period_label}` : ""}</p>
+        <p className="font-mont text-xs text-gray-05">{account.bank_name || "-"} · {account.gl_account}{detail?.statements?.[0]?.period_label ? ` · ${detail.statements[0].period_label}` : ""}</p>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => printReport({ account, currency, book, statement, difference, matched, unmatched })} className="gap-1.5"><Printer className="size-4" /> Reconciliation report</Button>
           <Can permission={P.FIN_RECONCILE_BANK}>
@@ -221,7 +221,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
             return (
               <LineCard key={l.id} selected={selBanks.includes(l.id)} candidate={candidate}
                 onClick={() => toggleBank(l.id)}
-                title={l.description || "—"} sub={`${l.txn_date}${l.reference ? ` · ${l.reference}` : ""}`}
+                title={l.description || "-"} sub={`${l.txn_date}${l.reference ? ` · ${l.reference}` : ""}`}
                 amount={l.amount} currency={currency} />
             );
           })}
@@ -249,9 +249,9 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
           <Button variant="outline" onClick={() => soleBank && doIgnore(soleBank.id, true)} disabled={soleBank == null || ignoringBusy} className="gap-1.5"><EyeOff className="size-4" /> Ignore line</Button>
           <Button variant="outline" onClick={doAuto} disabled={autoing} className="gap-1.5"><RefreshCw className="size-4" />{autoing ? "Matching…" : "Auto-match"}</Button>
           {mismatch ? (
-            <span className="font-mont text-[11px] text-destructive">Bank total {formatMoney(bankSum, currency)} vs book total {formatMoney(bookSum, currency)} — match one-to-one, one bank line to several books, or several bank lines to one book, with equal totals.</span>
+            <span className="font-mont text-[11px] text-destructive">Bank total {formatMoney(bankSum, currency)} vs book total {formatMoney(bookSum, currency)} - match one-to-one, one bank line to several books, or several bank lines to one book, with equal totals.</span>
           ) : selBankLines.length || selBookLines.length ? (
-            <span className="font-mont text-[11px] text-gray-05">Selected: {selBanks.length} bank · {selBooks.length} book — totals must be equal to match. Adjusting entry / ignore act on a single selected bank line.</span>
+            <span className="font-mont text-[11px] text-gray-05">Selected: {selBanks.length} bank · {selBooks.length} book - totals must be equal to match. Adjusting entry / ignore act on a single selected bank line.</span>
           ) : (
             <span className="font-mont text-[11px] text-gray-05">Select bank + book lines that sum to the same total, then Match. One line each side, or many-to-one either way.</span>
           )}
@@ -272,9 +272,9 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
                 {matched.map((l) => (
                   <tr key={l.id} onClick={() => setViewing(l)} className="cursor-pointer hover:bg-gray-03/40">
                     <td className={cn(td, "tabular-nums text-gray-05")}>{l.txn_date}</td>
-                    <td className={td}>{l.description || "—"}</td>
+                    <td className={td}>{l.description || "-"}</td>
                     <td className={cn(td, "text-right tabular-nums", signedCls(l.amount))}>{formatMoney(l.amount, currency)}</td>
-                    <td className={cn(td, "tabular-nums text-gray-05")}>{l.matched_reference || (l.adjusting_journal_id ? "Adjusting entry" : "—")}</td>
+                    <td className={cn(td, "tabular-nums text-gray-05")}>{l.matched_reference || (l.adjusting_journal_id ? "Adjusting entry" : "-")}</td>
                     <td className={td}><SourcePill line={l} /></td>
                     <td className={cn(td, "text-right")}>
                       <Can permission={P.FIN_RECONCILE_BANK}>
@@ -305,7 +305,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
                 {ignored.map((l) => (
                   <tr key={l.id}>
                     <td className={cn(td, "tabular-nums text-gray-05")}>{l.txn_date}</td>
-                    <td className={td}>{l.description || "—"}</td>
+                    <td className={td}>{l.description || "-"}</td>
                     <td className={cn(td, "text-right tabular-nums", signedCls(l.amount))}>{formatMoney(l.amount, currency)}</td>
                     <td className={cn(td, "text-right")}>
                       <Can permission={P.FIN_RECONCILE_BANK}>
@@ -362,15 +362,15 @@ function MatchedLineDrawer({ line, currency, onClose, onUnmatch, canUnmatch, unm
         <div className="grid grid-cols-2 gap-4">
           <ReconField label="Statement date">{line.txn_date}</ReconField>
           <ReconField label="Amount"><span className={signedCls(line.amount)}>{formatMoney(line.amount, currency)}</span></ReconField>
-          <ReconField label="Description">{line.description || "—"}</ReconField>
-          <ReconField label="Reference">{line.reference || "—"}</ReconField>
-          <ReconField label="Book entry / JE">{line.matched_reference || (isAdjustment ? "Adjusting entry" : "—")}</ReconField>
+          <ReconField label="Description">{line.description || "-"}</ReconField>
+          <ReconField label="Reference">{line.reference || "-"}</ReconField>
+          <ReconField label="Book entry / JE">{line.matched_reference || (isAdjustment ? "Adjusting entry" : "-")}</ReconField>
           <ReconField label="Matched">{line.match_source_display || "Manual"}{line.reconciled_at ? ` · ${fmtDate(line.reconciled_at)}` : ""}</ReconField>
         </div>
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
           {isAdjustment
             ? "This line was booked via an adjusting journal. Unmatching reverses that journal (a mirror entry that nets to zero) and returns the line to unmatched."
-            : "Unmatching drops the pairing and returns the line to the unmatched column — no ledger effect."}
+            : "Unmatching drops the pairing and returns the line to the unmatched column - no ledger effect."}
         </p>
       </div>
     </DetailDrawer>
@@ -443,14 +443,14 @@ function AdjustDrawer({ line, entity, currency, onClose, onDone }: {
 }) {
   const [counter, setCounter] = useState("");
   const [narration, setNarration] = useState(line.description || "");
-  // Unlike the import, an adjustment posts — so it needs a date in an open period:
+  // Unlike the import, an adjustment posts - so it needs a date in an open period:
   // the line's own date when that month is still open, else the earliest open day
   // after it, which is the same date the server would choose. Defaulting to the
   // line's date unconditionally would show a date the field then rejects,
   // contradicting the notice that says it will be moved.
   //
   // `chosen` is null until the user picks a date, so the field simply DERIVES the
-  // suggestion rather than seeding it from an effect — no cascading render, and
+  // suggestion rather than seeding it from an effect - no cascading render, and
   // nothing to go stale. It stays empty while the posting window is still loading,
   // because the suggestion is not knowable yet. An explicit clear is respected:
   // "" is a choice, and only null falls back.
@@ -496,7 +496,7 @@ function AdjustDrawer({ line, entity, currency, onClose, onDone }: {
         {lineDateClosed && (
           <p className="rounded-md bg-amber-50 px-3 py-2 font-mont text-[11px] text-amber-900 ring-1 ring-amber-200">
             This line is dated {line.txn_date}. {reasonFor(line.txn_date) ?? "That period is closed."} A closed period
-            can’t be rewritten, so the entry books on the first open day after it — {line.txn_date} stays on the journal
+            can’t be rewritten, so the entry books on the first open day after it - {line.txn_date} stays on the journal
             as the bank’s value date.
           </p>
         )}
@@ -521,8 +521,8 @@ function printReport({ account, currency, book, statement, difference, matched, 
   matched: BankStatementLine[]; unmatched: BankStatementLine[];
 }) {
   const money = (k: number) => formatMoney(k, currency);
-  const row = (l: BankStatementLine) => `<tr><td>${l.txn_date}</td><td>${(l.description || "—")}</td><td style="text-align:right">${money(l.amount)}</td></tr>`;
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Bank reconciliation — ${account.name}</title>
+  const row = (l: BankStatementLine) => `<tr><td>${l.txn_date}</td><td>${(l.description || "-")}</td><td style="text-align:right">${money(l.amount)}</td></tr>`;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Bank reconciliation - ${account.name}</title>
   <style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;padding:32px;max-width:760px;margin:auto}
   h1{font-size:18px;margin:0 0 4px} .sub{color:#666;font-size:12px;margin-bottom:20px}
   table{width:100%;border-collapse:collapse;margin:8px 0 20px;font-size:12px} th,td{border-bottom:1px solid #eee;padding:6px 8px;text-align:left}
@@ -542,6 +542,6 @@ function printReport({ account, currency, book, statement, difference, matched, 
   <table><thead><tr><th>Date</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead><tbody>${unmatched.map(row).join("") || '<tr><td colspan="3">None</td></tr>'}</tbody></table>
   </body></html>`;
   const w = window.open("", "_blank", "width=820,height=900");
-  if (!w) { toast.error("Pop-up blocked — allow pop-ups to print the report."); return; }
+  if (!w) { toast.error("Pop-up blocked - allow pop-ups to print the report."); return; }
   w.document.write(html); w.document.close(); w.focus(); w.print();
 }

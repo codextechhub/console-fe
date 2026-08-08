@@ -1,4 +1,4 @@
-// <DataTable> — the one list primitive every finance/procurement list screen
+// <DataTable> - the one list primitive every finance/procurement list screen
 // uses. Column-driven over the app's existing <Table>, with server pagination
 // and all four explicit states (loading / empty / error / forbidden). Filters
 // and toolbars live above it on the page; this owns the table + its footer.
@@ -28,13 +28,13 @@ export interface Column<T> {
   className?: string;
 }
 
-/** One row as a stacked label/value card — the phone rendering of a list row. */
+/** One row as a stacked label/value card - the phone rendering of a list row. */
 function RowCard<T>({ columns, row, onClick }: { columns: Column<T>[]; row: T; onClick?: () => void }) {
   const [first, ...rest] = columns;
   // A column that renders nothing for this row contributes no card line. In a
   // table an empty cell is just whitespace under a header; on a card it is a
   // label with nothing beside it, repeated down the whole list. Cells that mean
-  // "no value" should render an em dash — this only drops the truly absent.
+  // "no value" should render an em dash - this only drops the truly absent.
   const lines = rest
     .map((col) => ({ header: col.header, value: col.cell(row) }))
     .filter(({ value }) => value !== null && value !== undefined && value !== false && value !== "");
@@ -74,7 +74,7 @@ interface DataTableProps<T> {
   totalPages?: number;
   onPageChange?: (page: number) => void;
   /** Phone rendering (<md). "cards" (default) stacks each row as a label/value
-   *  card; "scroll" keeps the table with horizontal scroll — for dense
+   *  card; "scroll" keeps the table with horizontal scroll - for dense
    *  ledger/report-style tables where column alignment carries meaning. */
   mobile?: "cards" | "scroll";
   /** Custom phone card for one row; overrides the generic label/value card. */
@@ -112,7 +112,7 @@ export function DataTable<T>({
   const safeRows: T[] = Array.isArray(rows) ? rows : [];
   // Cards replace the table on phones only when there are rows to show; the
   // loading/empty/error/forbidden states render inside the table at any width.
-  // Cards own the phone viewport whenever the list would be card-shaped —
+  // Cards own the phone viewport whenever the list would be card-shaped -
   // including while loading, so the phone never flips table -> cards on arrival.
   const cardsOnPhone =
     mobile === "cards" && !forbidden && (loading || safeRows.length > 0);

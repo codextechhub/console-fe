@@ -16,7 +16,7 @@ except Exception:
     pass")
 
 if [ -z "${TOKEN:-}" ]; then
-  echo "✗ Login failed for $EMAIL — is the DB seeded? (run backend's ./reseed-dev.sh)" >&2
+  echo "✗ Login failed for $EMAIL - is the DB seeded? (run backend's ./reseed-dev.sh)" >&2
   exit 1
 fi
 echo "✓ Login OK as $EMAIL"
@@ -28,4 +28,4 @@ d=json.load(sys.stdin); rows=d.get('data',[])
 rows=rows if isinstance(rows,list) else []
 print(f'  entities: {len(rows)}')
 for r in rows[:10]: print('   -', r.get('code'),'·',r.get('name'),'·',r.get('base_currency'))
-if not rows: print('  ⚠ no entities — create one via Finance → Setup & Entity, or data screens will be empty')"
+if not rows: print('  ⚠ no entities - create one via Finance → Setup & Entity, or data screens will be empty')"

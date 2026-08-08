@@ -4,7 +4,7 @@
 set -euo pipefail
 
 BASE=/tmp/verify-design
-[ -f "$BASE/baseline.env" ] || { echo "✗ no baseline.env — run capture-baseline.sh first" >&2; exit 1; }
+[ -f "$BASE/baseline.env" ] || { echo "✗ no baseline.env - run capture-baseline.sh first" >&2; exit 1; }
 # shellcheck disable=SC1091
 source "$BASE/baseline.env"
 EMAIL="${EMAIL:-admin@codexng.com}"

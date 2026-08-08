@@ -40,8 +40,8 @@ export const STAGE_STATUS_META: Record<
 
 export function advanceRuleLabel(rule: StageAdvanceRule, quorum?: number): string {
   if (rule === "ANY") return "Any one approver";
-  if (rule === "QUORUM") return `Quorum — ${quorum ?? 0} required`;
-  return "Unanimous — all must approve";
+  if (rule === "QUORUM") return `Quorum - ${quorum ?? 0} required`;
+  return "Unanimous - all must approve";
 }
 
 /** Turn a dotted document_type (e.g. "leave.request") into "Leave Request". */
@@ -64,8 +64,8 @@ export const AUDIT_EVENT_LABEL: Record<AuditEventType, string> = {
   STAGE_ACTIVATED: "Stage activated",
   STAGE_APPROVED: "Stage approved",
   STAGE_REJECTED: "Stage rejected",
-  STAGE_SKIPPED_NO_APPROVER: "Stage skipped — no eligible approvers",
-  STAGE_SKIPPED_CONDITION: "Stage skipped — condition not met",
+  STAGE_SKIPPED_NO_APPROVER: "Stage skipped - no eligible approvers",
+  STAGE_SKIPPED_CONDITION: "Stage skipped - condition not met",
   APPROVER_ACTED: "Approver recorded a vote",
   ACTION_REVERSED: "Admin reversed a vote",
   ROUTE_EVALUATED: "Route recomputed",

@@ -1,4 +1,4 @@
-// Setup / master-data + close types — mirror the vs_finance serializers.
+// Setup / master-data + close types - mirror the vs_finance serializers.
 
 export interface Account {
   id: number;
@@ -95,7 +95,7 @@ export interface PeriodBrief {
 }
 
 /**
- * Which dates the entity will accept a posting on right now — GET
+ * Which dates the entity will accept a posting on right now - GET
  * /finance/posting-window/. The read-side mirror of the backend's
  * `ensure_period_open` guard, so a date a picker offers is one the guard accepts.
  *

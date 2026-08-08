@@ -1,4 +1,4 @@
-// GR/IR & Control (§6) — goods-received vs invoice-received reconciliation.
+// GR/IR & Control (§6) - goods-received vs invoice-received reconciliation.
 // KPIs + open-GR/IR aging stack come from the GRN-level `grir-aging` report; the
 // table drills to the **PO-line** grain (`grir-lines`) the prototype lists, and each
 // row opens a per-PO-line reconciliation drawer (its linked POSTED GRNs + invoices).
@@ -60,7 +60,7 @@ function GrirBody({ d, currency, entity }: { d: GrirAging; currency?: string | n
   const totalOpen = kobo(d.total_open);
   const diff = kobo(d.difference);
 
-  // Aging stack over the received-not-invoiced composition (positive buckets only —
+  // Aging stack over the received-not-invoiced composition (positive buckets only -
   // a negative bucket has no meaningful width, its real amount still shows in the row).
   const stack = d.buckets
     .map((b) => ({ key: b, label: BUCKET_LABEL[b] ?? b, amount: kobo(d.bucket_totals[b]), color: ageColor(b) }))
@@ -94,7 +94,7 @@ function GrirBody({ d, currency, entity }: { d: GrirAging; currency?: string | n
   );
 }
 
-// PO-line grain table (`grir-lines`) — the prototype's Ordered/Received/Invoiced view.
+// PO-line grain table (`grir-lines`) - the prototype's Ordered/Received/Invoiced view.
 function GrirLinesTable({ entity, currency, onSelect }: {
   entity: string;
   currency?: string | null;
@@ -112,7 +112,7 @@ function GrirLinesTable({ entity, currency, onSelect }: {
       ) : isError ? (
         <ErrorState onRetry={refetch} />
       ) : rows.length === 0 ? (
-        <EmptyState title="GR/IR is clear" message="Every received good is invoiced — nothing is open on any PO line." />
+        <EmptyState title="GR/IR is clear" message="Every received good is invoiced - nothing is open on any PO line." />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[860px] border-collapse">

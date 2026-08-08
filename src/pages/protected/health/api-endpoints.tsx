@@ -1,4 +1,4 @@
-// API & Endpoints — per-route latency/volume/error signals from the request
+// API & Endpoints - per-route latency/volume/error signals from the request
 // middleware, with slowest/most-erroring rankings and a per-route drawer.
 
 import { useMemo, useState } from "react";

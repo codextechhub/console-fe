@@ -45,7 +45,7 @@ type Act = { id: number; entity: string };
 
 export const procurementExtApi = baseApi.injectEndpoints({
   endpoints: (b) => ({
-    // Approvals — entity-safe adapters over the shared vs_workflow engine.
+    // Approvals - entity-safe adapters over the shared vs_workflow engine.
     getProcurementApprovals: b.query<PaginatedEnvelope<ProcurementApprovalRow>, { entity: string; page?: number; search?: string; document_type?: string }>({
       query: (p) => ({ url: `/procurement/approvals/${qs(p)}`, method: "GET" }),
       providesTags: ["WorkflowPending"],
@@ -187,12 +187,12 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/stock-items/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcStock"],
     }),
-    // Issue posts a real journal (Dr expense · Cr inventory) — refresh finance journals too.
+    // Issue posts a real journal (Dr expense · Cr inventory) - refresh finance journals too.
     issueStock: b.mutation<ApiEnvelope<{ movement: StockMovement; stock_item: StockItemDetail }>, { id: number; entity: string; quantity: number; movement_date?: string; expense_account?: string; reference?: string; narration?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/stock-items/${id}/issue/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcStock", "FinanceJournals"],
     }),
-    // Adjust posts a real journal (write-up or shrinkage) — refresh finance journals too.
+    // Adjust posts a real journal (write-up or shrinkage) - refresh finance journals too.
     adjustStock: b.mutation<ApiEnvelope<{ movement: StockMovement; stock_item: StockItemDetail }>, { id: number; entity: string; quantity_delta: number; movement_date?: string; unit_cost?: number; adjustment_account?: string; reference?: string; narration?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/stock-items/${id}/adjust/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcStock", "FinanceJournals"],
@@ -250,7 +250,7 @@ export const procurementExtApi = baseApi.injectEndpoints({
       // Refetch when a new assessment lands so the scorecard columns stay live.
       providesTags: ["ProcVendorAssessments"],
     }),
-    // Report-drawer detail endpoints — all report.view-gated.
+    // Report-drawer detail endpoints - all report.view-gated.
     getApAgingVendor: b.query<ApiEnvelope<ApVendorDetail>, { entity: string; vendor: string; as_of?: string }>({
       query: (p) => ({ url: `/procurement/reports/ap-aging/vendor/${qs(p)}`, method: "GET" }),
     }),
@@ -258,7 +258,7 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/procurement/reports/grir-aging/grn/${qs(p)}`, method: "GET" }),
     }),
 
-    // Vendor assessments — list rides report.view; create needs vendor_assessment.create.
+    // Vendor assessments - list rides report.view; create needs vendor_assessment.create.
     getVendorAssessments: b.query<ApiEnvelope<VendorAssessment[]>, { entity: string; vendor?: string }>({
       query: (p) => ({ url: `/procurement/vendor-assessments/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcVendorAssessments"],

@@ -1,4 +1,4 @@
-// Entity-scoped reference pickers for create forms — thin wrappers over the
+// Entity-scoped reference pickers for create forms - thin wrappers over the
 // app's SearchSelect that load their options from the matching list endpoint and
 // report the selected CODE (the value the backend resolves by). Reused across
 // every finance create form so account/currency/tax selection is consistent.
@@ -33,7 +33,7 @@ export function AccountPicker({ entity, value, onChange, label, placeholder = "S
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} revealOnSearch />;
 }
 
-/** Receivable control account picker — postable ASSET accounts tagged CONTROL
+/** Receivable control account picker - postable ASSET accounts tagged CONTROL
  *  (the AR control accounts a customer posts to), shown as a populated, searchable
  *  list. Sourced from the chart endpoint, which is what computes the CONTROL tag. */
 export function ReceivableAccountPicker({ entity, value, onChange, label, placeholder = "Select receivable account", isRequired, disabled }: PickerProps) {
@@ -47,23 +47,23 @@ export function ReceivableAccountPicker({ entity, value, onChange, label, placeh
 /** Customer / payer picker. List-backed (grows per entity) → reveal-on-search. */
 export function CustomerPicker({ entity, value, onChange, label, placeholder = "Select customer", isRequired, disabled }: PickerProps) {
   const { data, isLoading } = useGetCustomersQuery({ entity, is_active: "true", page_size: 100 });
-  const options = toArray(data?.data).map((c) => ({ value: c.code, label: `${c.code} — ${c.name}` }));
+  const options = toArray(data?.data).map((c) => ({ value: c.code, label: `${c.code} - ${c.name}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} revealOnSearch />;
 }
 
-/** Vendor picker — entity's active vendors; reports the vendor code. Used by
+/** Vendor picker - entity's active vendors; reports the vendor code. Used by
  *  payouts (a payout settles a vendor's payable). List-backed → reveal-on-search. */
 export function VendorPicker({ entity, value, onChange, label, placeholder = "Select vendor", isRequired, disabled }: PickerProps) {
   const { data, isLoading } = useGetVendorsQuery({ entity, page_size: 100 });
   const options = toArray(data?.data)
     .filter((v) => v.is_active)
-    .map((v) => ({ value: v.code, label: `${v.code} — ${v.name}` }));
+    .map((v) => ({ value: v.code, label: `${v.code} - ${v.name}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} revealOnSearch />;
 }
 
 export function CurrencyPicker({ value, onChange, label, placeholder = "Default", isRequired, disabled }: Omit<PickerProps, "entity">) {
   const { data, isLoading } = useGetCurrenciesQuery();
-  const options = toArray(data?.data).map((c) => ({ value: c.code, label: `${c.code} — ${c.name}` }));
+  const options = toArray(data?.data).map((c) => ({ value: c.code, label: `${c.code} - ${c.name}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }
 
@@ -71,19 +71,19 @@ export function TaxCodePicker({ entity, value, onChange, label, placeholder = "N
   const { data, isLoading } = useGetTaxCodesQuery({ entity });
   const options = toArray(data?.data)
     .filter((t) => t.code === value || taxCodeSupportsUsage(t, usage))
-    .map((t) => ({ value: t.code, label: `${t.code} — ${t.name}${t.is_active ? "" : " (Inactive)"}` }));
+    .map((t) => ({ value: t.code, label: `${t.code} - ${t.name}${t.is_active ? "" : " (Inactive)"}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }
 
 export function CostCenterPicker({ entity, value, onChange, label, placeholder = "None", isRequired, disabled }: PickerProps) {
   const { data, isLoading } = useGetCostCentersQuery({ entity });
-  const options = toArray(data?.data).map((c) => ({ value: c.code, label: `${c.code} — ${c.name}` }));
+  const options = toArray(data?.data).map((c) => ({ value: c.code, label: `${c.code} - ${c.name}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }
 
 export function TaxObligationPicker({ entity, value, onChange, label, placeholder = "Select obligation", isRequired, disabled }: PickerProps) {
   const { data, isLoading } = useGetTaxObligationsQuery({ entity });
-  const options = toArray(data?.data).map((o) => ({ value: String(o.id), label: `${o.code} — ${o.name}` }));
+  const options = toArray(data?.data).map((o) => ({ value: String(o.id), label: `${o.code} - ${o.name}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }
 
@@ -93,7 +93,7 @@ export function PettyCashFundPicker({ entity, value, onChange, label, placeholde
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }
 
-/** Bank account picker — entity's named bank accounts; reports the account id. */
+/** Bank account picker - entity's named bank accounts; reports the account id. */
 export function BankAccountPicker({ entity, value, onChange, label, placeholder = "Select bank account", isRequired, disabled }: PickerProps) {
   const { data, isLoading } = useGetBankAccountsQuery({ entity, page: 1 });
   const options = toArray(data?.data)
