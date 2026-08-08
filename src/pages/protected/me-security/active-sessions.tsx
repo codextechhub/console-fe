@@ -10,6 +10,7 @@ import PromptModal from "@/components/modal/prompt-modal";
 import {
   useGetMyLoginSessionsQuery,
   useEndMySessionMutation,
+  useEndMyOtherSessionsMutation,
 } from "@/redux/services/dashboard/security-api";
 import { useAppSelector } from "@/redux/store";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -71,7 +72,6 @@ export default function MyActiveSessions() {
   const [revealedIps, setRevealedIps] = useState<Set<string>>(new Set());
   const [confirmEnd, setConfirmEnd] = useState<LoginSession | null>(null);
   const [confirmEndAll, setConfirmEndAll] = useState(false);
-  const [isEndingAll, setIsEndingAll] = useState(false);
   const [showEnded, setShowEnded] = useState(false);
 
   const {
@@ -89,10 +89,12 @@ export default function MyActiveSessions() {
     { refetchOnMountOrArgChange: true },
   );
   const [endMySession, { isLoading: ending }] = useEndMySessionMutation();
+  const [endMyOtherSessions, { isLoading: isEndingAll }] = useEndMyOtherSessionsMutation();
 
   const activeSessions = activeData?.data ?? [];
   const endedSessions = endedData?.data ?? [];
-  const otherSessions = activeSessions.filter((s) => !isCurrent(s));
+  const activeSessionCount = activeData?.pagination.totalItems ?? activeSessions.length;
+  const otherSessionCount = Math.max(activeSessionCount - 1, 0);
 
   const toggleRevealIp = (id: string) =>
     setRevealedIps((prev) => {
@@ -114,19 +116,16 @@ export default function MyActiveSessions() {
   };
 
   const handleEndAllOthers = async () => {
-    setIsEndingAll(true);
+    if (!sessionId) return;
     try {
-      await Promise.allSettled(
-        otherSessions.map((s) =>
-          endMySession({ session_id: s.id }).unwrap(),
-        ),
-      );
+      const response = await endMyOtherSessions({ current_session_id: sessionId }).unwrap();
+      const endedCount = response.data.ended_sessions;
       toast.success(
-        `Signed out of ${otherSessions.length} other session${otherSessions.length !== 1 ? "s" : ""}.`,
+        `Signed out of ${endedCount} other session${endedCount !== 1 ? "s" : ""}.`,
       );
       setConfirmEndAll(false);
-    } finally {
-      setIsEndingAll(false);
+    } catch {
+      return;
     }
   };
 
@@ -140,14 +139,14 @@ export default function MyActiveSessions() {
             <p className="font-semibold font-mont text-gray-01">Active sessions</p>
             {/* Gap 9 — dynamic count */}
             <p className="text-xs text-gray-01 mt-0.5">
-              {activeSessions.length} device{activeSessions.length !== 1 ? "s" : ""} currently signed in
+              {activeSessionCount} device{activeSessionCount !== 1 ? "s" : ""} currently signed in
             </p>
           </div>
           <div className="flex items-center gap-2">
             {/* Gap 7 — sign out all other sessions. Hidden when the current
                 session can't be identified (no persisted session_id), because
                 "others" would then include this device. */}
-            {!!sessionId && otherSessions.length > 0 && (
+            {!!sessionId && otherSessionCount > 0 && (
               <Button variant="white" size="sm" onClick={() => setConfirmEndAll(true)}>
                 <LogOut className="size-3.5" />
                 Sign out of all other sessions
@@ -333,7 +332,7 @@ export default function MyActiveSessions() {
           onClose={() => setConfirmEndAll(false)}
           onConfirm={handleEndAllOthers}
           title="Sign out of all other sessions"
-          description={`This will sign you out of ${otherSessions.length} other session${otherSessions.length !== 1 ? "s" : ""}. Your current session on this device stays signed in.`}
+          description={`This will sign you out of ${otherSessionCount} other session${otherSessionCount !== 1 ? "s" : ""}. Your current session on this device stays signed in.`}
           onConfirmText="Sign out everywhere else"
           onConfirmClass="bg-error-01 text-white hover:bg-error-01/90"
           canCancel

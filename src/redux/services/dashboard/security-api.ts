@@ -29,6 +29,11 @@ export const securityApi = baseApi.injectEndpoints({
       invalidatesTags: ["LoginSessions"],
     }),
 
+    endMyOtherSessions: builder.mutation<{ data: { ended_sessions: number } }, { current_session_id: number }>({
+      query: (body) => ({ url: `/user/sessions/end-other-mine/`, method: "POST", body }),
+      invalidatesTags: ["LoginSessions"],
+    }),
+
     endAllMySessions: builder.mutation<{ data: { ended_sessions: number } }, void>({
       query: () => ({ url: `/user/sessions/end-all-mine/`, method: "POST" }),
       invalidatesTags: ["LoginSessions"],
@@ -146,6 +151,7 @@ export const {
   useGetLoginSessionsQuery,
   useGetMyLoginSessionsQuery,
   useEndMySessionMutation,
+  useEndMyOtherSessionsMutation,
   useEndAllMySessionsMutation,
   useForceLogoutMutation,
   useGetAuthAttemptsQuery,
