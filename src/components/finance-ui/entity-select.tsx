@@ -186,10 +186,6 @@ function MultiEntitySelect({
         >
           <SelectValue placeholder="Select entity">
             <span className="relative z-10 flex min-w-0 items-center">
-              <span
-                aria-hidden="true"
-                className="mr-2 size-1.5 shrink-0 rounded-full bg-primary/75 shadow-[0_0_0_3px_rgba(74,107,180,0.10)]"
-              />
               <span className="shrink-0 tracking-[0.04em]">{selected.code}</span>
               <span
                 aria-hidden={!expanded}

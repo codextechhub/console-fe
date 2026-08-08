@@ -457,10 +457,10 @@ function DashboardHeader({
 
   // `sticky` is itself a positioned context for the absolute children
   // (collapse toggle, progress bar, entity switcher) — adding `relative` would
-  // conflict. The :has() margin exists only when 2+ entities render a switcher;
-  // it gives the floating pill a content-coloured landing zone below search.
+  // conflict. The entity switcher must remain a true overlay: reserving margin
+  // here would move every Finance and Procurement screen when it appears.
   return (
-    <header className="grid min-h-15 shrink-0 sticky top-0 z-50 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 border border-l-0 border-white-02 bg-white px-3 transition-[width,height,margin] ease-linear has-[[data-entity-switcher]]:mb-6 group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-12 lg:px-10">
+    <header className="grid min-h-15 shrink-0 sticky top-0 z-50 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 border border-l-0 border-white-02 bg-white px-3 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-12 lg:px-10">
       {/* Sidebar collapse toggle — on the left border, vertically centered in the header */}
       <button
         type="button"
