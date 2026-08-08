@@ -86,6 +86,11 @@ export default function LiveSessions() {
   const [endReasonFilter, setEndReasonFilter] = useState("");
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 600);
+  const [querySearch, setQuerySearch] = useState("");
+
+  useEffect(() => {
+    setQuerySearch(debouncedSearch.trim());
+  }, [debouncedSearch]);
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -106,13 +111,13 @@ export default function LiveSessions() {
 
   const params = useMemo(() => {
     const p: Record<string, string | number> = { page };
-    if (debouncedSearch) p.search = debouncedSearch;
+    if (querySearch) p.search = querySearch;
     if (scope === "active") p.is_active = "true";
     if (scope === "ended_today") { p.is_active = "false"; p.ended_today = "true"; }
     if (schoolFilter) p.school = schoolFilter;
     if (endReasonFilter) p.end_reason = endReasonFilter;
     return p;
-  }, [page, debouncedSearch, scope, schoolFilter, endReasonFilter]);
+  }, [page, querySearch, scope, schoolFilter, endReasonFilter]);
 
   const { data, isLoading, isError, refetch, isFetching } = useGetLoginSessionsQuery(params, {
     refetchOnMountOrArgChange: true,
@@ -123,6 +128,7 @@ export default function LiveSessions() {
     { skip: !detailSession },
   );
   const [forceLogout, { isLoading: ending }] = useForceLogoutMutation();
+  const searchPending = search.trim() !== querySearch || isFetching;
 
   const sessions = data?.data ?? [];
   const schools = schoolsData?.data ?? [];
@@ -224,12 +230,20 @@ export default function LiveSessions() {
 
           <CustomInput
             id="search-sessions"
-            canSearch
+            canSearch={!searchPending}
+            loading={searchPending}
             placeholder="Search user, IP, device..."
             className="h-10"
             containerClass="w-full sm:max-w-[260px]"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onSearch={() => { setQuerySearch(search.trim()); setPage(1); }}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter") return;
+              e.preventDefault();
+              setQuerySearch(search.trim());
+              setPage(1);
+            }}
           />
 
           <Combobox
