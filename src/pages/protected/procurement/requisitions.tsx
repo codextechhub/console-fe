@@ -109,7 +109,7 @@ export default function RequisitionsPage() {
           <p className="mt-1 max-w-64 truncate font-mont text-sm font-semibold text-black-01">
             {r.title || "Untitled requisition"}
           </p>
-          <p className="mt-0.5 font-mont text-[11px] text-gray-05">{r.cost_center_name || "No department"}</p>
+          <p className="mt-0.5 font-mont text-[11px] text-gray-05">{r.cost_center_name || "No cost centre"}</p>
         </div>
       ),
     },
@@ -154,7 +154,7 @@ export default function RequisitionsPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Purchase Requisitions</h1>
-              <InfoHint>A requisition is an internal request to buy to goods and services. It becomes a purchase order only after approval.</InfoHint>
+              <InfoHint ariaLabel="About requisitions">A requisition is an internal request to buy to goods and services. It becomes a purchase order only after approval.</InfoHint>
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Create, track, and approve internal purchase requests.</p>
           </div>
@@ -257,7 +257,7 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
     <>
       <DetailDrawer open={id != null} onOpenChange={(open) => !open && onClose()} widthClass="sm:max-w-[638px]"
         title={req?.title || req?.document_number || "Requisition"}
-        description={req ? `${req.document_number} · ${req.requested_by_name} · ${req.cost_center_name || "No department"}` : "Loading requisition"}
+        description={req ? `${req.document_number} · ${req.requested_by_name} · ${req.cost_center_name || "No cost centre"}` : "Loading requisition"}
         footer={req && <>
           {req.status === "DRAFT" && <Can permission={P.PROC_UPDATE_REQUISITION}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
           {req.status === "DRAFT" && <Can permission={P.PROC_SUBMIT_REQUISITION}><Button loading={submitting} onClick={submit}><Send className="size-4" /> Submit for Approval</Button></Can>}
@@ -294,7 +294,7 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
               )}
               <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
                 <Info label="Requested by" value={req.requested_by_name} />
-                <Info label="Department" value={req.cost_center_name || "Not assigned"} />
+                <Info label="Cost Centre" value={req.cost_center_name || "Not assigned"} />
                 <Info label="Request date" value={shortDate(req.request_date)} />
                 <Info label="Needed by" value={shortDate(req.needed_by)} />
               </dl>
@@ -354,7 +354,7 @@ function RequisitionForm({ open, onClose, entity, currency, initial, onSaved }: 
   const [create, { isLoading: creating }] = useCreateRequisitionMutation();
   const [update, { isLoading: updating }] = useUpdateRequisitionMutation();
   const [submitReq, { isLoading: submitting }] = useSubmitRequisitionMutation();
-  const { data: costCenterData } = useGetCostCentersQuery({ entity });
+  const { data: costCenterData } = useGetCostCentersQuery({ entity, is_active: true });
   const { data: catalogData, isLoading: catalogLoading } = useGetCatalogItemsQuery({ entity, page_size: 100 });
   const { data: budgetData, isFetching: budgetLoading } = useGetRequisitionBudgetAvailabilityQuery(
     { entity, cost_center: costCenter, date: requestDate }, { skip: !costCenter },
@@ -414,10 +414,10 @@ function RequisitionForm({ open, onClose, entity, currency, initial, onSaved }: 
     >
       <div className="space-y-5">
         <section className="rounded-md border border-gray-03 bg-gray-50 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-mont text-sm font-semibold">Budget Availability</p><span className="font-mont text-xs text-gray-05">{budget?.period || "Select a department"}</span></div>
-          {!costCenter ? <p className="mt-2 font-mont text-xs text-gray-05">Choose a department to check its approved budget and current commitments.</p>
+          <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-mont text-sm font-semibold">Budget Availability</p><span className="font-mont text-xs text-gray-05">{budget?.period || "Select a cost centre"}</span></div>
+          {!costCenter ? <p className="mt-2 font-mont text-xs text-gray-05">Choose a cost centre to check its approved budget and current commitments.</p>
             : budgetLoading ? <p className="mt-2 font-mont text-xs text-gray-05">Checking budget…</p>
-            : !budget?.has_budget ? <p className="mt-2 font-mont text-xs text-gray-05">No approved budget is configured for this department and period.</p>
+            : !budget?.has_budget ? <p className="mt-2 font-mont text-xs text-gray-05">No approved budget is configured for this cost centre and period.</p>
             : <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <BudgetStat label="Approved budget" value={formatMoney(budget.budget, currency)} />
               <BudgetStat label="PO commitments" value={formatMoney(budget.committed, currency)} />
@@ -429,7 +429,7 @@ function RequisitionForm({ open, onClose, entity, currency, initial, onSaved }: 
           <p className="font-mont text-sm font-semibold">Request Details</p>
           <FormField label="Title" required><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What is being requested?" /></FormField>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <FormField label="Department"><SearchSelect options={costCenters} value={costCenter} onChange={(e) => setCostCenter(e.target.value)} placeholder="Select department" /></FormField>
+            <FormField label="Cost Centre"><SearchSelect options={costCenters} value={costCenter} onChange={(e) => setCostCenter(e.target.value)} placeholder="Select cost centre" /></FormField>
             <FormField label="Request date" required><Input type="date" value={requestDate} onChange={(e) => setRequestDate(e.target.value)} /></FormField>
             <FormField label="Needed by"><Input type="date" min={requestDate} value={neededBy} onChange={(e) => setNeededBy(e.target.value)} /></FormField>
           </div>

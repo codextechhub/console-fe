@@ -44,7 +44,7 @@ export default function ReceivablesPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Receivables"}</h1>
-              {HINTS[section] && <InfoHint>{HINTS[section]}</InfoHint>}
+              {HINTS[section] && <InfoHint ariaLabel={`About ${LABELS[section] ?? "Receivables"}`}>{HINTS[section]}</InfoHint>}
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">{SUBTITLES[section] ?? "Accounts receivable for the selected entity."}</p>
           </div>

@@ -117,7 +117,7 @@ export default function ProcurementApprovalsPage() {
       <header>
         <div className="flex items-center gap-1.5">
           <h1 className="font-mont text-lg font-semibold text-gray-01">Approvals</h1>
-          <InfoHint>This queue contains only Procurement documents in the selected entity for which your frozen workflow snapshot can act.</InfoHint>
+          <InfoHint ariaLabel="About procurement approvals">This queue contains only Procurement documents in the selected entity for which your frozen workflow snapshot can act.</InfoHint>
         </div>
         <p className="mt-0.5 font-mont text-xs text-gray-05">Documents awaiting your decision, routed through the shared approval workflow.</p>
       </header>

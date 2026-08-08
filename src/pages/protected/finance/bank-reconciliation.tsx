@@ -64,7 +64,7 @@ export default function BankReconciliationPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Bank Reconciliation</h1>
-              <InfoHint>Reconciliation proves the GL matches reality. Auto-match pairs lines by amount and date; the rest need your eye — bank charges not yet booked, payments in transit. Click an unmatched bank line and a book line, then Match; raise an adjusting entry for charges/interest the books are missing.</InfoHint>
+              <InfoHint ariaLabel="About bank reconciliation">Reconciliation proves the GL matches reality. Auto-match pairs lines by amount and date; the rest need your eye — bank charges not yet booked, payments in transit. Click an unmatched bank line and a book line, then Match; raise an adjusting entry for charges/interest the books are missing.</InfoHint>
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Match the bank statement to the ledger, account by account.</p>
           </div>

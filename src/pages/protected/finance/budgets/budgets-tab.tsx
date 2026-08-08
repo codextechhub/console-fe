@@ -115,7 +115,7 @@ export function BudgetsTab({ entity, currency }: { entity: string; currency?: st
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1.5">
               <h2 className="font-mont text-sm font-semibold text-gray-01">Variance heatmap</h2>
-              <InfoHint>Each cell is a GL account's actual spend in that period, coloured by how much of the budgeted amount it consumed. Variance is per account — actuals aren't tracked per cost centre.</InfoHint>
+              <InfoHint ariaLabel="About the budget variance heatmap">Each cell is a GL account's actual spend in that period, coloured by how much of the budgeted amount it consumed. Variance is per account — actuals aren't tracked per cost centre.</InfoHint>
             </div>
             <Select value={String(activeHeatmapId)} onChange={(v) => setHeatmapId(Number(v))} className="w-64">
               {rows.map((b) => <option key={b.id} value={b.id}>{b.code ? `${b.code} · ${b.name}` : b.name}</option>)}

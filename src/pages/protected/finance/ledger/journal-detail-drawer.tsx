@@ -117,7 +117,7 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
             <div>
               <div className="mb-2 flex items-center gap-1.5">
                 <p className="font-mont text-sm font-semibold text-gray-01">Lines</p>
-                <InfoHint>Each line targets one GL account; the cost centre tags the spending department. Manual journals can be reversed with a mirror entry. Journals created by invoices, receipts and other documents must be voided with their source document so the sub-ledger and GL stay together.</InfoHint>
+                <InfoHint ariaLabel="About journal lines">Each line targets one GL account; the cost centre tags the spending department. Manual journals can be reversed with a mirror entry. Journals created by invoices, receipts and other documents must be voided with their source document so the sub-ledger and GL stay together.</InfoHint>
               </div>
               <div className="overflow-x-auto rounded-md border border-gray-03">
                 <table className="w-full border-collapse">

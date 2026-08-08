@@ -630,7 +630,7 @@ function PeriodCloseDrawer({
             <div>
               <div className="mb-3 flex items-center gap-1.5">
                 <h4 className="font-mont text-sm font-semibold text-gray-01">Close checklist</h4>
-                <InfoHint>Closing runs month-end controls and due depreciation. Soft close is reversible; permanent locks are not.</InfoHint>
+                <InfoHint ariaLabel="About the close checklist">Closing runs month-end controls and due depreciation. Soft close is reversible; permanent locks are not.</InfoHint>
               </div>
               <div className="space-y-2">
                 {items.map((item, index) => (

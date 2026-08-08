@@ -7,17 +7,16 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  ArrowUpRight, Check, Plus, FileText, Receipt, ShoppingCart, BarChart3, Info,
+  ArrowUpRight, Check, Plus, FileText, Receipt, ShoppingCart, BarChart3,
   ArrowUp, ArrowDown, Wallet, HandCoins, TrendingUp,
 } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
 import {
   Money, StatusPill, BudgetBar, AgingStack, TrendArea, kpiValueClass,
-  CHART_COLORS, useActiveEntity, type AgingDatum,
+  CHART_COLORS, InfoHint, useActiveEntity, type AgingDatum,
 } from "@/components/finance-ui";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { useCan } from "@/components/finance-ui/can";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -165,18 +164,9 @@ export default function FinanceDashboard() {
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Finance overview</h1>
-              <TooltipProvider delayDuration={100}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" aria-label="About this screen" className="flex size-4 items-center justify-center text-gray-05 hover:text-gray-01">
-                      <Info className="size-4" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs font-mont text-xs leading-relaxed">
-                    The executive view of this entity’s finances — every number is computed live from the general ledger and drills into its area from the sidebar. Figures reflect the selected period.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <InfoHint ariaLabel="About Finance overview">
+                The executive view of this entity’s finances — every number is computed live from the general ledger and drills into its area from the sidebar. Figures reflect the selected period.
+              </InfoHint>
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">
               {d?.fiscal_year ?? "—"}

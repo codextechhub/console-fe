@@ -10,6 +10,8 @@ import type {
   EntityTrail,
   EntityTrailDetail,
   AuditDashboardSummary,
+  AuditEventFilterOptions,
+  AuditEventQueryParams,
   PaginatedResponse,
 } from "./audit-types";
 
@@ -22,8 +24,13 @@ export const auditApi = baseApi.injectEndpoints({
     }),
 
     // ── Audit Events ────────────────────────────────────────────────────────
-    getAuditEvents: builder.query<PaginatedResponse<AuditEventListItem>, Record<string, string | number>>({
+    getAuditEvents: builder.query<PaginatedResponse<AuditEventListItem>, AuditEventQueryParams>({
       query: (params) => ({ url: `/audit/events/${generateQueryString(params)}`, method: "GET" }),
+      providesTags: ["AuditEvents"],
+    }),
+
+    getAuditEventFilterOptions: builder.query<{ data: AuditEventFilterOptions }, void>({
+      query: () => ({ url: "/audit/events/filter-options/", method: "GET" }),
       providesTags: ["AuditEvents"],
     }),
 
@@ -104,6 +111,7 @@ export const auditApi = baseApi.injectEndpoints({
 export const {
   useGetAuditDashboardSummaryQuery,
   useGetAuditEventsQuery,
+  useGetAuditEventFilterOptionsQuery,
   useGetAuditEventDetailQuery,
   useGetEntityTrailsQuery,
   useGetEntityTrailDetailQuery,

@@ -203,7 +203,7 @@ export default function FinanceAuditPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Audit Trail</h1>
-              <InfoHint>
+              <InfoHint ariaLabel="About the finance audit trail">
                 The audit trail is your accountability layer. Every finance action — posts, reversals,
                 approvals, rejections, period closes and system postings — is captured with a field-level
                 before/after snapshot, and rows can never be edited or deleted. Click a row to see exactly

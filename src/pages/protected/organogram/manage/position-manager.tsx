@@ -5,14 +5,14 @@
 // indicator, just the click. Vertical guide lines connect siblings at each depth.
 
 import { useMemo, useState } from "react";
-import { ChevronRight, Info, Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";
+import { ChevronRight, Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { InfoHint } from "@/components/finance-ui";
 import PromptModal from "@/components/modal/prompt-modal";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -313,16 +313,9 @@ export default function PositionManager() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="size-4 text-gray-01 cursor-default" />
-            </TooltipTrigger>
-            <TooltipContent side="right" className="max-w-64 text-xs leading-relaxed">
-              Seats in the org chart ordered by the solid reporting line. Click a row to expand or collapse its direct reports.
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <InfoHint ariaLabel="About organisation positions" className="text-gray-01">
+          Seats in the org chart ordered by the solid reporting line. Click a row to expand or collapse its direct reports.
+        </InfoHint>
         <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Position</Button>
       </div>
 

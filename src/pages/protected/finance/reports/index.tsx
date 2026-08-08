@@ -50,7 +50,7 @@ export default function ReportsPage() {
         <div>
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Reports & Month-End"}</h1>
-            {TITLE_HINT[section] ? <InfoHint>{TITLE_HINT[section]}</InfoHint> : null}
+            {TITLE_HINT[section] ? <InfoHint ariaLabel={`About ${LABELS[section] ?? "financial reports"}`}>{TITLE_HINT[section]}</InfoHint> : null}
           </div>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Financial statements (exportable) and the period-close checklist.</p>
         </div>

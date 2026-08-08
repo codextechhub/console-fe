@@ -29,6 +29,8 @@ import type {
 import { isStripped } from "@/utils/fls";
 import { formatMoney } from "@/utils/money";
 import { CategoryPicker } from "../pickers";
+import { buildVendorUpdatePayload, type VendorFormValues } from "./vendor-update-payload";
+import { VendorGovernanceFields } from "./vendor-governance-fields";
 
 const STATUS_TABS = [
   ["All", "all"], ["Active", "active"], ["On Hold", "hold"], ["Inactive", "inactive"],
@@ -134,7 +136,7 @@ export function VendorsTab({ entity, currency }: { entity: string; currency?: st
     </section>
 
     <VendorDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
-    {creating && <VendorForm entity={entity} canSensitive={can(P.PROC_VIEW_VENDOR_SENSITIVE)} onClose={() => setCreating(false)} />}
+    {creating && <VendorForm entity={entity} canSensitive={can(P.PROC_VIEW_VENDOR_SENSITIVE)} canManage={can(P.PROC_MANAGE_VENDOR)} onClose={() => setCreating(false)} />}
   </>;
 }
 
@@ -180,7 +182,7 @@ function VendorDrawer({ id, entity, currency, onClose }: { id: number | null; en
         {tab === "performance" && <PerformanceTab insights={insights} loading={insightLoading} error={insightError} restricted={!reportAllowed} currency={currency} />}
       </div>}
     </DetailDrawer>
-    {editing && vendor && <VendorForm key={vendor.id} entity={entity} initial={vendor} canSensitive={can(P.PROC_VIEW_VENDOR_SENSITIVE)} onClose={() => setEditing(false)} />}
+    {editing && vendor && <VendorForm key={vendor.id} entity={entity} initial={vendor} canSensitive={can(P.PROC_VIEW_VENDOR_SENSITIVE)} canManage={can(P.PROC_MANAGE_VENDOR)} onClose={() => setEditing(false)} />}
   </>;
 }
 
@@ -220,7 +222,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   return <div className="rounded-md border border-gray-03 p-3"><p className="font-mont text-[11px] text-gray-05">{label}</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums">{value}</p></div>;
 }
 
-function VendorForm({ entity, initial, canSensitive, onClose }: { entity: string; initial?: Vendor; canSensitive: boolean; onClose: () => void }) {
+function VendorForm({ entity, initial, canSensitive, canManage, onClose }: { entity: string; initial?: Vendor; canSensitive: boolean; canManage: boolean; onClose: () => void }) {
   const [name, setName] = useState(initial?.name || "");
   const [category, setCategory] = useState(initial?.category_code || "");
   const [email, setEmail] = useState(initial?.email || "");
@@ -240,15 +242,15 @@ function VendorForm({ entity, initial, canSensitive, onClose }: { entity: string
   const [active, setActive] = useState(initial?.is_active ?? true);
   const [create, { isLoading: creating }] = useCreateVendorMutation();
   const [update, { isLoading: updating }] = useUpdateVendorMutation();
-  const current = JSON.stringify({ name, category, email, phone, address, taxId, bankName, bankNumber, bankAccountName, payable, expense, wht, terms, kyc, risk, onHold, active });
-  const baseline = JSON.stringify({ name: initial?.name || "", category: initial?.category_code || "", email: initial?.email || "", phone: initial?.phone || "", address: initial?.address || "", taxId: initial?.tax_id || "", bankName: initial?.bank_name || "", bankNumber: initial?.bank_account_number || "", bankAccountName: initial?.bank_account_name || "", payable: initial?.payable_code || "", expense: initial?.default_expense_code || "", wht: initial?.default_wht_tax_code_value || "", terms: initial?.payment_terms || "NET_30", kyc: initial?.kyc_status || "PENDING", risk: initial?.risk || "LOW", onHold: initial?.on_hold || false, active: initial?.is_active ?? true });
-  const canSubmit = !!name.trim() && (!initial || current !== baseline);
+  const values: VendorFormValues = { name, category, email, phone, address, taxId, bankName, bankNumber, bankAccountName, payable, expense, wht, terms, kyc, risk, onHold, active };
+  const updatePayload = initial ? buildVendorUpdatePayload(initial, values, { canSensitive, canManage }) : null;
+  const canSubmit = !!name.trim() && (!initial || Object.keys(updatePayload || {}).length > 0);
   const saving = creating || updating;
   const save = async () => {
     const common = { name: name.trim(), category, payable_account: payable, default_expense_account: expense, default_wht_tax_code: wht, payment_terms: terms, ...(canSensitive ? { email, phone, address, tax_id: taxId, bank_name: bankName, bank_account_number: bankNumber, bank_account_name: bankAccountName } : {}) };
     try {
       const result = initial
-        ? await update({ id: initial.id, entity, ...common, kyc_status: kyc, risk, on_hold: onHold, is_active: active }).unwrap()
+        ? await update({ id: initial.id, entity, ...updatePayload }).unwrap()
         : await create({ entity, ...common }).unwrap();
       toast.success(result.message || (initial ? "Vendor updated." : "Vendor created."));
       onClose();
@@ -259,6 +261,6 @@ function VendorForm({ entity, initial, canSensitive, onClose }: { entity: string
     {canSensitive ? <section className="space-y-3"><div className="flex items-center gap-2"><Users className="size-4 text-primary" /><p className="font-mont text-xs font-semibold text-black-01">Contact & tax</p></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Email"><Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} className="bg-white" /></FormField><FormField label="Phone"><Input value={phone} onChange={(event) => setPhone(event.target.value)} className="bg-white" /></FormField><FormField label="Tax identifier"><Input value={taxId} onChange={(event) => setTaxId(event.target.value)} className="bg-white uppercase" /></FormField><div className="sm:col-span-2"><FormField label="Registered address"><Textarea value={address} onChange={(event) => setAddress(event.target.value)} className="min-h-20 bg-white" /></FormField></div></div></section> : <div className="rounded-md border border-dashed border-gray-03 p-3 text-xs text-gray-05">Contact, tax, and bank fields require sensitive vendor access.</div>}
     <section className="space-y-3"><div className="flex items-center gap-2"><CircleDollarSign className="size-4 text-primary" /><p className="font-mont text-xs font-semibold text-black-01">Accounting defaults</p></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Payable account"><AccountPicker entity={entity} value={payable} onChange={setPayable} accountType="LIABILITY" postableOnly /></FormField><FormField label="Default expense account"><AccountPicker entity={entity} value={expense} onChange={setExpense} accountType="EXPENSE" postableOnly /></FormField><FormField label="Default WHT code"><TaxCodePicker entity={entity} value={wht} onChange={setWht} placeholder="No default WHT" /></FormField></div></section>
     {canSensitive && <section className="space-y-3"><div className="flex items-center gap-2"><Landmark className="size-4 text-primary" /><p className="font-mont text-xs font-semibold text-black-01">Bank details</p></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Bank"><Input value={bankName} onChange={(event) => setBankName(event.target.value)} className="bg-white" /></FormField><FormField label="Account number"><Input value={bankNumber} onChange={(event) => setBankNumber(event.target.value)} inputMode="numeric" className="bg-white" /></FormField><div className="sm:col-span-2"><FormField label="Account name"><Input value={bankAccountName} onChange={(event) => setBankAccountName(event.target.value)} className="bg-white" /></FormField></div></div></section>}
-    {initial && <section className="space-y-3"><div className="flex items-center gap-2"><ShieldCheck className="size-4 text-primary" /><p className="font-mont text-xs font-semibold text-black-01">Governance</p></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="KYC status"><select value={kyc} onChange={(event) => setKyc(event.target.value)} className="h-9 w-full rounded-md border bg-white px-3 font-mont text-sm"><option value="PENDING">Pending</option><option value="VERIFIED">Verified</option><option value="REJECTED">Rejected</option></select></FormField><FormField label="Risk"><select value={risk} onChange={(event) => setRisk(event.target.value)} className="h-9 w-full rounded-md border bg-white px-3 font-mont text-sm"><option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option></select></FormField></div><div className="flex flex-wrap gap-4"><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} /> Active</label><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={onHold} onChange={(event) => setOnHold(event.target.checked)} /> On hold</label></div><p className="text-xs text-gray-05">Inactive, on-hold, and KYC-rejected vendors cannot receive new purchasing commitments. Payments additionally require KYC verified.</p></section>}
+    {initial && <section className="space-y-3"><div className="flex items-center gap-2"><ShieldCheck className="size-4 text-primary" /><p className="font-mont text-xs font-semibold text-black-01">Status & Governance</p></div><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)} /> Active</label><VendorGovernanceFields canManage={canManage} kyc={kyc} risk={risk} onHold={onHold} onKycChange={setKyc} onRiskChange={setRisk} onHoldChange={setOnHold} /></section>}
   </FormDrawer>;
 }

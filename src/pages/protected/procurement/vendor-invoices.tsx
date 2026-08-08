@@ -36,6 +36,8 @@ import {
 import type { VoteAction } from "@/redux/services/dashboard/workflow-types";
 import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
+import { InvoiceVarianceOverrideAction } from "./procurement-action-gates";
+import { isBlockingInvoiceVariance } from "./invoice-action-model";
 
 const TABS = [
   ["All", ""], ["Draft", "DRAFT"], ["Under Review", "PENDING_APPROVAL"],
@@ -98,7 +100,7 @@ export default function VendorInvoicesPage() {
   if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view its vendor invoices." /></main></ProcurementShell>;
   return <ProcurementShell>
     <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-      <header className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Invoices</h1><InfoHint>Supplier bills remain drafts until matched, approved, and posted to Accounts Payable.</InfoHint></div><p className="mt-0.5 font-mont text-xs text-gray-05">Review three-way matches, approval, settlement, and overdue exposure.</p></div><Can permission={P.PROC_CREATE_VENDOR_INVOICE}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> Record Invoice</Button></Can></header>
+      <header className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Invoices</h1><InfoHint ariaLabel="About vendor invoices">Supplier bills remain drafts until matched, approved, and posted to Accounts Payable.</InfoHint></div><p className="mt-0.5 font-mont text-xs text-gray-05">Review three-way matches, approval, settlement, and overdue exposure.</p></div><Can permission={P.PROC_CREATE_VENDOR_INVOICE}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> Record Invoice</Button></Can></header>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
           <StatCard label="Under Review" value={summary.under_review.count} icon={Clock3} tone="amber" />
@@ -141,22 +143,26 @@ function InvoiceDrawer({ id, entity, currency, onClose }: { id: number | null; e
     if (!workflowId || ((action === "REJECTED" || action === "RETURNED") && !comment.trim())) return;
     try { await recordAction({ id: workflowId, action, comment: comment.trim() }).unwrap(); toast.success(action === "APPROVED" ? "Approval recorded." : action === "RETURNED" ? "Revision requested." : "Invoice rejected."); setComment(""); } catch { /* central */ }
   };
-  const action = async (kind: "match" | "submit" | "post") => {
+  const action = async (kind: "match" | "submit" | "post" | "override") => {
     if (!invoice) return;
     try {
       if (kind === "match") { await runMatch({ id: invoice.id, entity }).unwrap(); toast.success("Three-way match refreshed."); }
       if (kind === "submit") { await submit({ id: invoice.id, entity }).unwrap(); toast.success("Invoice submitted for approval."); }
       if (kind === "post") { await post({ id: invoice.id, entity }).unwrap(); toast.success("Vendor invoice posted to Accounts Payable."); }
+      if (kind === "override") { await post({ id: invoice.id, entity, allow_variance: true }).unwrap(); toast.success("Vendor invoice posted with an audited variance override."); }
     } catch { /* central */ }
   };
   const editable = invoice?.status === "DRAFT" && ["NOT_SUBMITTED", "REJECTED"].includes(invoice.approval_state);
+  const postEligible = invoice?.status === "DRAFT" && invoice.approval_state === "APPROVED";
+  const blockingVariance = !!invoice && isBlockingInvoiceVariance(invoice.match_status);
   return <>
     <DetailDrawer open={id != null} onOpenChange={(open) => !open && onClose()} title={invoice?.document_number || "Vendor invoice"} description={invoice ? `${invoice.vendor_name || invoice.vendor_code} · ${invoice.purchase_order_number || "Direct invoice"} · due ${shortDate(invoice.due_date)}` : "Loading vendor invoice"} widthClass="sm:max-w-[720px]" footer={invoice && <>
       <Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
       {editable && <Can permission={P.PROC_UPDATE_VENDOR_INVOICE}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
       {editable && <Can permission={P.PROC_MATCH_VENDOR_INVOICE}><Button variant="outline" loading={matching} onClick={() => action("match")}><Check className="size-4" /> Run Match</Button></Can>}
       {editable && <Can permission={P.PROC_SUBMIT_VENDOR_INVOICE}><Button loading={submitting} onClick={() => action("submit")}><Send className="size-4" /> Submit for Approval</Button></Can>}
-      {invoice.status === "DRAFT" && invoice.approval_state === "APPROVED" && <Can permission={P.PROC_POST_VENDOR_INVOICE}><Button loading={posting} onClick={() => action("post")}><Send className="size-4" /> Post Invoice</Button></Can>}
+      {postEligible && !blockingVariance && <Can permission={P.PROC_POST_VENDOR_INVOICE}><Button loading={posting} onClick={() => action("post")}><Send className="size-4" /> Post Invoice</Button></Can>}
+      {postEligible && blockingVariance && <InvoiceVarianceOverrideAction reference={invoice.document_number} onConfirm={() => action("override")} />}
     </>}>
       {isLoading ? <LoadingState rows={8} /> : isError || !invoice ? <ErrorState onRetry={refetch} /> : <div className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex flex-wrap gap-1.5"><StatusPill status={invoice.status} /><StatusPill status={invoice.approval_state} /><StatusPill status={invoice.match_status} /><StatusPill status={invoice.payment_status} />{invoice.is_overdue && <StatusPill status="OVERDUE" />}</div><p className="font-mont text-lg font-semibold tabular-nums">{formatMoney(invoice.total, currency)}</p></div>

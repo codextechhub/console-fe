@@ -129,7 +129,7 @@ export default function ProcurementDashboard() {
         <header>
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">Dashboard</h1>
-            <InfoHint>Live procurement activity for the selected ledger entity. Spend is based on posted vendor invoices and approvals are personalized to you.</InfoHint>
+            <InfoHint ariaLabel="About the procurement dashboard">Live procurement activity for the selected ledger entity. Spend is based on posted vendor invoices and approvals are personalized to you.</InfoHint>
           </div>
           <p className="mt-0.5 font-mont text-xs text-gray-05">
             {entity ? `Procurement overview for ${entity} · MTD${d?.as_of ? ` · As of ${fmtDate(d.as_of)}` : ""}` : "Procurement overview"}
@@ -190,7 +190,7 @@ export default function ProcurementDashboard() {
               </Card>
 
               <Card title="Purchase Order Status" subtitle="Documents by approval and receipt stage"
-                action={<div className="flex items-center gap-1"><InfoHint>This chart counts purchase orders only. Requisitions are tracked separately in the Requisitions console.</InfoHint><CardLink label="Open purchase orders" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS)} /></div>}>
+                action={<div className="flex items-center gap-1"><InfoHint ariaLabel="About the purchase order status chart">This chart counts purchase orders only. Requisitions are tracked separately in the Requisitions console.</InfoHint><CardLink label="Open purchase orders" onClick={() => navigate(routesPath.PROTECTED.PROCUREMENT.PURCHASE_ORDERS)} /></div>}>
                 {!hasPoData ? <EmptyBlock>No purchase orders yet.</EmptyBlock> : (
                   <BarChart
                     height={190}

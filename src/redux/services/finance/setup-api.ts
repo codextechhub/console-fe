@@ -124,7 +124,7 @@ export const setupApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/tax-codes/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceSetup"],
     }),
-    getCostCenters: b.query<PaginatedEnvelope<CostCenter>, { entity: string }>({
+    getCostCenters: b.query<PaginatedEnvelope<CostCenter>, { entity: string; is_active?: boolean }>({
       query: (p) => ({ url: `/finance/cost-centers/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceSetup"],
     }),

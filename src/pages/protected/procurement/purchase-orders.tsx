@@ -117,7 +117,7 @@ export default function PurchaseOrdersPage() {
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Purchase Orders</h1><InfoHint>Approved orders issued to vendors. Receipt and invoice progress are calculated from the real linked documents.</InfoHint></div>
+            <div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Purchase Orders</h1><InfoHint ariaLabel="About purchase orders">Approved orders issued to vendors. Receipt and invoice progress are calculated from the real linked documents.</InfoHint></div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Track supplier commitments, delivery progress, and approval status.</p>
           </div>
           <Can permission={P.PROC_CREATE_PURCHASE_ORDER}><Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New Purchase Order</Button></Can>

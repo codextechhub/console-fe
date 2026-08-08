@@ -82,7 +82,7 @@ export function TrialBalanceReport({ entity, currency }: { entity: string; curre
     <div className="space-y-5">
       <div className="flex items-center gap-1.5">
         <span className="font-mont text-sm font-semibold text-gray-01">Trial balance</span>
-        <InfoHint>
+        <InfoHint ariaLabel="About the trial balance">
           The trial balance always totals equal — every debit has a matching credit. It's the input to the <span className="font-semibold">Income Statement</span> (income &amp; expense) and the <span className="font-semibold">Balance Sheet</span> (asset, liability &amp; equity); investigate any imbalance here before producing those.
         </InfoHint>
       </div>

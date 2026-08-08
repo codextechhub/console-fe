@@ -22,6 +22,7 @@ import {
 import type { GoodsReceipt } from "@/redux/services/procurement/procurement-types";
 import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
+import { canReceiveRemaining, completeReceiptSave } from "./goods-receipt-fulfilment";
 
 const DETAIL_TABS = [
   { value: "overview", label: "Overview", icon: FileText },
@@ -70,7 +71,7 @@ export default function GoodsReceiptsPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Goods Receipts</h1>
-              <InfoHint>Record deliveries against open purchase orders, including accepted quantities, rejections, and inspection findings.</InfoHint>
+              <InfoHint ariaLabel="About goods receipts">Record deliveries against open purchase orders, including accepted quantities, rejections, and inspection findings.</InfoHint>
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Record deliveries against open purchase orders.</p>
           </div>
@@ -89,14 +90,17 @@ export default function GoodsReceiptsPage() {
         </section>
       </main>
 
-      <ReceiptDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
-      {creating && <ReceiptForm entity={entity} currency={currency} onClose={() => setCreating(false)} />}
+      <ReceiptDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency}
+        onClose={() => setSelectedId(null)} onSelectReceipt={setSelectedId} />
+      {creating && <ReceiptForm entity={entity} currency={currency} onClose={() => setCreating(false)}
+        onSaved={(receipt) => { setCreating(false); setSelectedId(receipt.id); }} />}
     </ProcurementShell>
   );
 }
 
-function ReceiptDrawer({ id, entity, currency, onClose }: {
+function ReceiptDrawer({ id, entity, currency, onClose, onSelectReceipt }: {
   id: number | null; entity: string; currency?: string | null; onClose: () => void;
+  onSelectReceipt: (id: number) => void;
 }) {
   const [tab, setTab] = useState<DetailTab>("overview");
   const [editing, setEditing] = useState(false);
@@ -126,15 +130,26 @@ function ReceiptDrawer({ id, entity, currency, onClose }: {
       footer={receipt && <>
         <Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
         {receipt.status === "DRAFT" && <Can permission={P.PROC_UPDATE_GOODS_RECEIPT}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
-        {receipt.status !== "DRAFT" && receipt.receipt_status === "PARTIAL" && receipt.purchase_order_id && <Can permission={P.PROC_CREATE_GOODS_RECEIPT}><Button variant="outline" onClick={() => setReceivingRemaining(true)}><PackageCheck className="size-4" /> Receive Remaining</Button></Can>}
+        {canReceiveRemaining(receipt) && <Can permission={P.PROC_CREATE_GOODS_RECEIPT}><Button variant="outline" onClick={() => setReceivingRemaining(true)}><PackageCheck className="size-4" /> Receive Remaining</Button></Can>}
         {receipt.status === "DRAFT" && <Can permission={P.PROC_POST_GOODS_RECEIPT}><Button loading={posting} onClick={postReceipt}><Send className="size-4" /> Post Receipt</Button></Can>}
       </>}
     >
       {loadingReceipt ? <LoadingState rows={7} /> : isError || !receipt ? <ErrorState onRetry={refetch} /> : <div className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5"><StatusPill status={receipt.status} /><StatusPill status={receipt.receipt_status} /></div>
+          <div className="flex flex-wrap items-center gap-1.5"><StatusPill status={receipt.status} /><span className="font-mont text-xs text-gray-05">This delivery</span><StatusPill status={receipt.receipt_status} /></div>
           <p className="font-mont text-sm font-semibold text-gray-05">{formatQuantity(receipt.received_item_count)} of {formatQuantity(receipt.ordered_item_count)} items</p>
         </div>
+
+        {receipt.purchase_order_id && <section className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gray-03 bg-gray-02/30 p-3">
+          <div>
+            <p className="font-mont text-xs font-semibold text-gray-05">Purchase order fulfilment</p>
+            <p className="mt-1 font-mont text-xs text-gray-05">
+              {formatQuantity(receipt.purchase_order_received_item_count)} of {formatQuantity(receipt.purchase_order_ordered_item_count)} accepted
+              {` · ${formatQuantity(receipt.purchase_order_remaining_item_count)} remaining`}
+            </p>
+          </div>
+          <StatusPill status={receipt.purchase_order_fulfilment_status} />
+        </section>}
 
         <div className="max-w-full overflow-x-auto border-b border-gray-03">
           <div className="flex min-w-max gap-5">
@@ -185,7 +200,10 @@ function ReceiptDrawer({ id, entity, currency, onClose }: {
         </section>}
       </div>}
       {receipt && editing && <ReceiptForm entity={entity} currency={currency} initial={receipt} onClose={() => setEditing(false)} />}
-      {receipt && receivingRemaining && <ReceiptForm entity={entity} currency={currency} sourcePurchaseOrderId={receipt.purchase_order_id || undefined} sourceVendorCode={receipt.vendor_code} onClose={() => setReceivingRemaining(false)} />}
+      {receipt && receivingRemaining && <ReceiptForm entity={entity} currency={currency}
+        sourcePurchaseOrderId={receipt.purchase_order_id || undefined} sourceVendorCode={receipt.vendor_code}
+        onClose={() => setReceivingRemaining(false)}
+        onSaved={(saved) => { setReceivingRemaining(false); onSelectReceipt(saved.id); }} />}
     </DetailDrawer>
   );
 }
@@ -203,8 +221,9 @@ type ReceiptLine = {
   remaining: number; accepted_qty: number; rejected_qty: number; unit_price: number;
 };
 
-function ReceiptForm({ entity, currency, onClose, initial, sourcePurchaseOrderId, sourceVendorCode }: {
+function ReceiptForm({ entity, currency, onClose, onSaved, initial, sourcePurchaseOrderId, sourceVendorCode }: {
   entity: string; currency?: string | null; onClose: () => void; initial?: GoodsReceipt;
+  onSaved?: (receipt: GoodsReceipt) => void;
   sourcePurchaseOrderId?: number; sourceVendorCode?: string;
 }) {
   const [purchaseOrder, setPurchaseOrder] = useState(initial?.purchase_order_id ? String(initial.purchase_order_id) : sourcePurchaseOrderId ? String(sourcePurchaseOrderId) : "");
@@ -270,12 +289,15 @@ function ReceiptForm({ entity, currency, onClose, initial, sourcePurchaseOrderId
           accepted_qty: line.accepted_qty, rejected_qty: line.rejected_qty, unit_price: line.unit_price,
         })),
       };
-      const response = initial
-        ? await update({ id: initial.id, entity, ...payload }).unwrap()
-        : await create({ entity, vendor, purchase_order: Number(purchaseOrder), ...payload }).unwrap();
-      if (postAfter) await post({ id: response.data.id, entity }).unwrap();
+      const saved = await completeReceiptSave(
+        () => initial
+          ? update({ id: initial.id, entity, ...payload }).unwrap()
+          : create({ entity, vendor, purchase_order: Number(purchaseOrder), ...payload }).unwrap(),
+        postAfter ? (id) => post({ id, entity }).unwrap() : undefined,
+      );
       toast.success(postAfter ? "Goods receipt saved and posted." : initial ? "Goods receipt draft updated." : "Goods receipt draft saved.");
       onClose();
+      onSaved?.(saved);
     } catch { /* Central API handling shows validation or posting failures. */ }
   };
 

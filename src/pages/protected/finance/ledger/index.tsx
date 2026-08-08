@@ -4,14 +4,13 @@
 // the Reverse action; Direct Entry is the only raw-lines post ("New journal").
 
 import { useMemo, useState } from "react";
-import { Plus, Info, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { FinanceShell } from "../finance-shell";
-import { DataTable, Money, StatusPill, useActiveEntity, type Column } from "@/components/finance-ui";
+import { DataTable, InfoHint, Money, StatusPill, useActiveEntity, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { UserAvatar } from "@/components/custom/user-avatar";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
@@ -110,16 +109,9 @@ export default function GeneralLedgerPage() {
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Journal Entries</h1>
-              <TooltipProvider delayDuration={100}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" aria-label="About journal entries" className="flex size-4 items-center justify-center text-gray-05 hover:text-gray-01"><Info className="size-4" /></button>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs font-mont text-xs leading-relaxed">
-                    Every journal must balance: total debits = total credits. Most come from subsystems automatically (invoices, payroll, bank); the Manual source is for adjustments, accruals and corrections. Posted journals are read-only.
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <InfoHint ariaLabel="About journal entries">
+                Every journal must balance: total debits = total credits. Most come from subsystems automatically (invoices, payroll, bank); the Manual source is for adjustments, accruals and corrections. Posted journals are read-only.
+              </InfoHint>
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">The general ledger — every financial mutation lands here as a balanced Dr/Cr posting.</p>
           </div>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNow } from "@/hooks/use-now";
 import { useNavigate, useSearchParams } from "react-router";
 import { Download, RefreshCw, Filter } from "lucide-react";
@@ -12,29 +12,28 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
-import { useGetAuditEventsQuery } from "@/redux/services/dashboard/audit-api";
+import {
+  useGetAuditEventFilterOptionsQuery,
+  useGetAuditEventsQuery,
+} from "@/redux/services/dashboard/audit-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types";
 import EventDetailDrawer from "./components/event-detail-drawer";
+import {
+  AUDIT_DATE_RANGES,
+  buildAuditEventQuery,
+  defaultAuditEventFilters,
+  parseAuditEventFilters,
+  parseAuditEventPage,
+  serializeAuditEventFilters,
+  type AuditEventFilters,
+} from "./event-filter-contract";
 
 const TABLE_HEADERS = ["Sev", "Status", "When", "Module", "Action Type", "Actor", "Entity", "Action"];
 
-const MODULES = [
-  "ONBOARDING", "IDENTITY", "USER", "RBAC", "IMPORT", "CONFIG",
-  "FINANCE", "PROCUREMENT", "SCHOOL", "BRANCH", "SYSTEM",
-];
-
 const SEVERITIES = ["INFO", "WARNING", "CRITICAL"] as const;
 const STATUSES = ["SUCCESS", "FAILED", "DENIED", "PARTIAL"] as const;
-const DATE_RANGES = [
-  { v: "15m", l: "Last 15m", ms: 15 * 60_000 },
-  { v: "1h", l: "Last hour", ms: 3_600_000 },
-  { v: "24h", l: "Last 24h", ms: 86_400_000 },
-  { v: "7d", l: "Last 7 days", ms: 7 * 86_400_000 },
-  { v: "30d", l: "Last 30 days", ms: 30 * 86_400_000 },
-  { v: "all", l: "All time", ms: 0 },
-];
 
 const STATUS_TONE: Record<string, "active" | "suspended" | "locked" | "inactive"> = {
   SUCCESS: "active",
@@ -45,42 +44,41 @@ const STATUS_TONE: Record<string, "active" | "suspended" | "locked" | "inactive"
 
 export default function AuditEventsExplorer() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const initialSeverity = searchParams.get("severity") || "";
-  const initialEntityType = searchParams.get("entity_type") || "";
-  const initialEntityId = searchParams.get("entity_id") || "";
-
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 600);
-  const [page, setPage] = useState(1);
-  const [dateRange, setDateRange] = useState(initialEntityType || initialEntityId ? "all" : "24h");
-  const [modules, setModules] = useState<string[]>([]);
-  const [severities, setSeverities] = useState<string[]>(initialSeverity ? [initialSeverity] : []);
-  const [statuses, setStatuses] = useState<string[]>([]);
-  const [actorType, setActorType] = useState<"" | "USER" | "SYSTEM">("");
-  const [entityType, setEntityType] = useState(initialEntityType);
-  const [entityId, setEntityId] = useState(initialEntityId);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [filters, setFilters] = useState<AuditEventFilters>(() => parseAuditEventFilters(searchParams));
+  const [page, setPage] = useState(() => parseAuditEventPage(searchParams));
+  const debouncedSearch = useDebounce(filters.search, 600);
+  const debouncedEntityType = useDebounce(filters.entityType, 600);
+  const debouncedEntityId = useDebounce(filters.entityId, 600);
   const [selectedEvent, setSelectedEvent] = useState<AuditEventListItem | null>(null);
+  const { data: filterOptions } = useGetAuditEventFilterOptionsQuery();
 
   // Quantised clock (30 s ticks) — keeps date_from stable between renders so
   // the query arg doesn't churn, while staying compiler-pure.
   const now = useNow();
 
-  const params = useMemo(() => {
-    const p: Record<string, string | number> = { page };
-    if (debouncedSearch) p.search = debouncedSearch;
-    if (severities.length === 1) p.severity = severities[0];
-    if (statuses.length === 1) p.status = statuses[0];
-    if (modules.length === 1) p.module_key = modules[0];
-    if (actorType) p.actor_type = actorType;
-    if (entityType) p.entity_type = entityType;
-    if (entityId) p.entity_id = entityId;
-    const range = DATE_RANGES.find((r) => r.v === dateRange);
-    if (range && range.ms > 0) {
-      p.date_from = new Date(now - range.ms).toISOString();
+  const activeFilters = useMemo(
+    () => ({
+      ...filters,
+      search: debouncedSearch,
+      entityType: debouncedEntityType,
+      entityId: debouncedEntityId,
+    }),
+    [filters, debouncedSearch, debouncedEntityType, debouncedEntityId],
+  );
+  const params = useMemo(
+    () => buildAuditEventQuery(activeFilters, page, now),
+    [activeFilters, page, now],
+  );
+
+  // Keep every input shareable/restorable. The API query itself uses the
+  // debounced copy above so free-text typing does not create request-per-key.
+  useEffect(() => {
+    const next = serializeAuditEventFilters(filters, page);
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
     }
-    return p;
-  }, [page, debouncedSearch, severities, statuses, modules, actorType, entityType, entityId, dateRange, now]);
+  }, [filters, page, searchParams, setSearchParams]);
 
   const { data, isLoading, isError, refetch, isFetching } = useGetAuditEventsQuery(params, {
     refetchOnMountOrArgChange: true,
@@ -131,17 +129,23 @@ export default function AuditEventsExplorer() {
     _event: e,
   }));
 
-  const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
+  const toggle = <T extends string>(list: T[], value: T) =>
+    list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+
+  const updateFilters = (patch: Partial<AuditEventFilters>) => {
+    setFilters((current) => ({ ...current, ...patch }));
+    setPage(1);
+  };
 
   const resetFilters = () => {
-    setDateRange("24h");
-    setModules([]);
-    setSeverities([]);
-    setStatuses([]);
-    setActorType("");
-    setEntityType("");
-    setEntityId("");
+    setFilters(defaultAuditEventFilters());
     setPage(1);
+  };
+
+  const exportFiltered = () => {
+    const exportParams = serializeAuditEventFilters(filters);
+    exportParams.set("from", "events");
+    navigate(`${routesPath.PROTECTED.AUDIT.EXPORT_NEW}?${exportParams.toString()}`);
   };
 
   return (
@@ -159,7 +163,7 @@ export default function AuditEventsExplorer() {
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
             </Button>
             <PermissionGate permission={P.EXPORT_AUDIT}>
-              <Button size="lg" onClick={() => navigate(`${routesPath.PROTECTED.AUDIT.EXPORT_NEW}?from=events`)}>
+              <Button size="lg" onClick={exportFiltered}>
                 <Download /> Export filtered
               </Button>
             </PermissionGate>
@@ -182,15 +186,15 @@ export default function AuditEventsExplorer() {
             <div>
               <h3 className="text-xs font-semibold uppercase text-gray-01 mb-2">Date range</h3>
               <div className="space-y-1">
-                {DATE_RANGES.map((r) => (
-                  <label key={r.v} className="flex items-center gap-2 text-xs cursor-pointer">
+                {AUDIT_DATE_RANGES.map((r) => (
+                  <label key={r.value} className="flex items-center gap-2 text-xs cursor-pointer">
                     <input
                       type="radio"
                       name="date_range"
-                      checked={dateRange === r.v}
-                      onChange={() => { setDateRange(r.v); setPage(1); }}
+                      checked={filters.dateRange === r.value}
+                      onChange={() => updateFilters({ dateRange: r.value })}
                     />
-                    {r.l}
+                    {r.label}
                   </label>
                 ))}
               </div>
@@ -203,8 +207,8 @@ export default function AuditEventsExplorer() {
                   <label key={s} className="flex items-center gap-2 text-xs cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={severities.includes(s)}
-                      onChange={() => { setSeverities(toggle(severities, s)); setPage(1); }}
+                      checked={filters.severities.includes(s)}
+                      onChange={() => updateFilters({ severities: toggle(filters.severities, s) })}
                     />
                     {s}
                   </label>
@@ -219,8 +223,8 @@ export default function AuditEventsExplorer() {
                   <label key={s} className="flex items-center gap-2 text-xs cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={statuses.includes(s)}
-                      onChange={() => { setStatuses(toggle(statuses, s)); setPage(1); }}
+                      checked={filters.statuses.includes(s)}
+                      onChange={() => updateFilters({ statuses: toggle(filters.statuses, s) })}
                     />
                     {s}
                   </label>
@@ -231,29 +235,64 @@ export default function AuditEventsExplorer() {
             <div>
               <h3 className="text-xs font-semibold uppercase text-gray-01 mb-2">Module</h3>
               <div className="flex flex-wrap gap-1.5">
-                {MODULES.map((m) => (
+                {(filterOptions?.data.modules ?? []).map((module) => (
                   <button
-                    key={m}
+                    key={module.value}
                     type="button"
-                    onClick={() => { setModules(toggle(modules, m)); setPage(1); }}
+                    title={module.label}
+                    onClick={() => updateFilters({ modules: toggle(filters.modules, module.value) })}
                     className={`text-[10px] px-2 py-0.5 rounded-full border ${
-                      modules.includes(m)
+                      filters.modules.includes(module.value)
                         ? "bg-blue-600 text-white border-blue-600"
                         : "bg-white text-gray-01 border-gray-300 hover:bg-gray-50"
                     }`}
                   >
-                    {m}
+                    {module.value}
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
+              <h3 className="text-xs font-semibold uppercase text-gray-01 mb-2">Action</h3>
+              <select
+                aria-label="Add action filter"
+                className="w-full text-xs border border-gray-300 rounded px-2 py-1.5"
+                value=""
+                onChange={(event) => {
+                  if (event.target.value && !filters.actionTypes.includes(event.target.value)) {
+                    updateFilters({ actionTypes: [...filters.actionTypes, event.target.value] });
+                  }
+                }}
+              >
+                <option value="">All actions</option>
+                {(filterOptions?.data.actions ?? []).map((action) => (
+                  <option key={action.value} value={action.value}>{action.label}</option>
+                ))}
+              </select>
+              {filters.actionTypes.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {filters.actionTypes.map((action) => (
+                    <button
+                      key={action}
+                      type="button"
+                      onClick={() => updateFilters({ actionTypes: filters.actionTypes.filter((item) => item !== action) })}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-blue-600 text-white"
+                      aria-label={`Remove ${action} filter`}
+                    >
+                      {friendlyAction(action)} ×
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
               <h3 className="text-xs font-semibold uppercase text-gray-01 mb-2">Actor</h3>
               <select
                 className="w-full text-xs border border-gray-300 rounded px-2 py-1.5"
-                value={actorType}
-                onChange={(e) => { setActorType(e.target.value as "" | "USER" | "SYSTEM"); setPage(1); }}
+                value={filters.actorType}
+                onChange={(e) => updateFilters({ actorType: e.target.value as "" | "USER" | "SYSTEM" })}
               >
                 <option value="">All</option>
                 <option value="USER">USER</option>
@@ -266,14 +305,14 @@ export default function AuditEventsExplorer() {
               <input
                 placeholder="Entity type (e.g. User)"
                 className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 mb-1.5"
-                value={entityType}
-                onChange={(e) => { setEntityType(e.target.value); setPage(1); }}
+                value={filters.entityType}
+                onChange={(e) => updateFilters({ entityType: e.target.value })}
               />
               <input
                 placeholder="Entity ID"
                 className="w-full text-xs border border-gray-300 rounded px-2 py-1.5 font-mono"
-                value={entityId}
-                onChange={(e) => { setEntityId(e.target.value); setPage(1); }}
+                value={filters.entityId}
+                onChange={(e) => updateFilters({ entityId: e.target.value })}
               />
             </div>
           </aside>
@@ -285,8 +324,8 @@ export default function AuditEventsExplorer() {
               canSearch
               placeholder="Search summary, entity label, actor, action..."
               className="h-10"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              value={filters.search}
+              onChange={(e) => updateFilters({ search: e.target.value })}
             />
             {isError ? (
               <div className="flex h-56 flex-col items-center justify-center gap-3 bg-white rounded-md">
@@ -317,10 +356,8 @@ export default function AuditEventsExplorer() {
           eventId={selectedEvent?.id ?? null}
           onClose={() => setSelectedEvent(null)}
           onFilterEntity={(t, i) => {
-            setEntityType(t);
-            setEntityId(i);
+            updateFilters({ entityType: t, entityId: i, dateRange: "all" });
             setSelectedEvent(null);
-            setPage(1);
           }}
         />
       </main>

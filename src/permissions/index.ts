@@ -24,7 +24,7 @@
 //                       32=award  33=issue  34=renew  35=terminate  36=replenish
 //                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
 //                       41=dispose  42=reopen  43=lock  44=approve_high_value
-//                       45=share  46=download
+//                       45=share  46=download  47=override_variance
 //
 // ── Adding a permission ───────────────────────────────────────────────────────
 //   1. Pick the next free code in the right MM RR range.
@@ -340,6 +340,7 @@ const REGISTRY: Record<string, string> = {
   "700201": "procurement.vendor.view",
   "700202": "procurement.vendor.create",
   "700203": "procurement.vendor.update",
+  "700208": "procurement.vendor.manage",
   "700239": "procurement.vendor.view_sensitive",
   "700301": "procurement.catalog_item.view",
   "700302": "procurement.catalog_item.create",
@@ -365,6 +366,7 @@ const REGISTRY: Record<string, string> = {
   "700732": "procurement.quotation.award",
   "700801": "procurement.purchase_order.view",
   "700802": "procurement.purchase_order.create",
+  "700803": "procurement.purchase_order.update",
   "700830": "procurement.purchase_order.submit",
   "700901": "procurement.goods_receipt.view",
   "700902": "procurement.goods_receipt.create",
@@ -376,6 +378,7 @@ const REGISTRY: Record<string, string> = {
   "701013": "procurement.vendor_invoice.post",
   "701030": "procurement.vendor_invoice.submit",
   "701031": "procurement.vendor_invoice.match",
+  "701047": "procurement.vendor_invoice.override_variance",
   "701101": "procurement.vendor_payment.view",
   "701102": "procurement.vendor_payment.create",
   "701103": "procurement.vendor_payment.update",
@@ -680,6 +683,7 @@ export const P = {
   PROC_VIEW_VENDORS:        "700201",
   PROC_CREATE_VENDOR:       "700202",
   PROC_UPDATE_VENDOR:       "700203",
+  PROC_MANAGE_VENDOR:       "700208",
   PROC_VIEW_VENDOR_SENSITIVE:"700239",
   PROC_VIEW_CATALOG:        "700301",
   PROC_CREATE_CATALOG_ITEM: "700302",
@@ -717,6 +721,7 @@ export const P = {
   PROC_POST_VENDOR_INVOICE: "701013",
   PROC_SUBMIT_VENDOR_INVOICE:"701030",
   PROC_MATCH_VENDOR_INVOICE:"701031",
+  PROC_OVERRIDE_VENDOR_INVOICE_VARIANCE:"701047",
   PROC_VIEW_VENDOR_PAYMENTS:"701101",
   PROC_CREATE_VENDOR_PAYMENT:"701102",
   PROC_UPDATE_VENDOR_PAYMENT:"701103",

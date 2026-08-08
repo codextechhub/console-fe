@@ -272,6 +272,10 @@ export interface GoodsReceipt {
   journal_id: number | null;
   received_item_count: string;
   ordered_item_count: string;
+  purchase_order_fulfilment_status: "AWAITING" | "PARTIAL" | "RECEIVED" | null;
+  purchase_order_received_item_count: string | null;
+  purchase_order_ordered_item_count: string | null;
+  purchase_order_remaining_item_count: string | null;
   lines: GRNLine[];
 }
 

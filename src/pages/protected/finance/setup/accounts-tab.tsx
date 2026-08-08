@@ -5,14 +5,13 @@ import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
-import { ArrowLeft, ChevronDown, ChevronRight, Check, Info, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
-import { Money, FormField, DetailDrawer, StatusPill, DataTable, toArray, useActiveEntity, type Column } from "@/components/finance-ui";
+import { ArrowLeft, ChevronDown, ChevronRight, Check, Plus, Printer, Activity, Columns2, Network, Settings2 } from "lucide-react";
+import { Money, FormField, DetailDrawer, InfoHint, StatusPill, DataTable, toArray, useActiveEntity, type Column } from "@/components/finance-ui";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Can } from "@/components/finance-ui/can";
 import { EmptyState, ErrorState, LoadingState } from "@/components/finance-ui/states";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import {
@@ -301,27 +300,19 @@ function AccountCodeHint() {
   ];
 
   return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button type="button" aria-label="View account code rules"
-            className="inline-flex size-4 shrink-0 items-center justify-center text-gray-05 hover:text-gray-01">
-            <Info className="size-3.5" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent className="w-52 font-mont text-xs">
-          <p className="mb-1.5 font-semibold">Use exactly four digits.</p>
-          <div className="grid grid-cols-[1rem_1fr] gap-x-2 gap-y-1">
-            {lines.map(([prefix, label]) => (
-              <div key={prefix} className="contents">
-                <span className="font-semibold">{prefix}</span>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <InfoHint ariaLabel="View account code rules">
+      <div className="w-52">
+        <p className="mb-1.5 font-semibold">Use exactly four digits.</p>
+        <div className="grid grid-cols-[1rem_1fr] gap-x-2 gap-y-1">
+          {lines.map(([prefix, label]) => (
+            <div key={prefix} className="contents">
+              <span className="font-semibold">{prefix}</span>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </InfoHint>
   );
 }
 

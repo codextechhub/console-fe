@@ -6,7 +6,7 @@
 // for its teams. No arrow indicator — just click the row.
 
 import { useMemo, useState } from "react";
-import { ChevronRight, Info, Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";
+import { ChevronRight, Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { InfoHint } from "@/components/finance-ui";
 import PromptModal from "@/components/modal/prompt-modal";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -331,16 +331,9 @@ export default function OrgNodeManager() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="size-4 text-gray-01 cursor-default" />
-            </TooltipTrigger>
-            <TooltipContent side="right" className="max-w-64 text-xs leading-relaxed">
-              Tiered org units: Division → Department → Team. Click a row to expand or collapse its children. Set a head position whose current holder leads the unit.
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <InfoHint ariaLabel="About organisation units" className="text-gray-01">
+          Tiered org units: Division → Department → Team. Click a row to expand or collapse its children. Set a head position whose current holder leads the unit.
+        </InfoHint>
         <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Org Node</Button>
       </div>
 

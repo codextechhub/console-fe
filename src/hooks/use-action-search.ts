@@ -1,22 +1,11 @@
 import { useCallback, useMemo } from "react";
 import { useAppSelector } from "@/redux/store";
 import { selectPermissions } from "@/redux/features/auth/auth-slice";
-import { usePermissions } from "@/hooks/use-permissions";
 import { ACTIONS } from "@/lib/action-palette/registry";
+import { filterActionsForPermissions } from "@/lib/action-palette/gate";
 import { scoreAction } from "@/lib/action-palette/match";
 import { loadPopularity, recordPick } from "@/lib/action-palette/popularity";
-import type { ActionDef, ActionGate, ScoredAction } from "@/lib/action-palette/types";
-
-type PermHelpers = ReturnType<typeof usePermissions>;
-
-function passesGate(gate: ActionGate, p: PermHelpers): boolean {
-  if (gate === null) return true;
-  if ("perm" in gate) return p.hasPermission(gate.perm);
-  if ("any" in gate) return p.hasAnyPermission(...gate.any);
-  if ("all" in gate) return p.hasAllPermissions(...gate.all);
-  if ("module" in gate) return p.hasModuleAccess(...gate.module);
-  return false;
-}
+import type { ActionDef, ScoredAction } from "@/lib/action-palette/types";
 
 export interface UseActionSearch {
   results: ScoredAction[];
@@ -32,16 +21,13 @@ export interface UseActionSearch {
  * each match tier, so a weak match can never outrank a strong one.
  */
 export function useActionSearch(query: string): UseActionSearch {
-  const perms = usePermissions();
   const permissions = useAppSelector(selectPermissions);
   const userId = useAppSelector((s) => (s.auth.user?.id == null ? undefined : String(s.auth.user.id)));
 
   // Gate once per permission set. `permissions` (the raw array) is the stable
-  // memo key — the helper closures from usePermissions() are recreated each
-  // render and would defeat memoization.
+  // memo key, and the pure filter is shared with registry regression tests.
   const gated = useMemo(
-    () => ACTIONS.filter((a) => passesGate(a.gate, perms)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    () => filterActionsForPermissions(ACTIONS, permissions),
     [permissions],
   );
 

@@ -4,6 +4,7 @@
 // (honest "Not assessed" when none). Row → read-only drawer; gated New Assessment.
 import { useMemo, useState } from "react";
 import { AlertTriangle, CalendarClock, ClipboardCheck, Clock, Plus } from "lucide-react";
+import { useActionParam } from "@/hooks/use-action-param";
 
 import {
   Can, DetailDrawer, EmptyState, ErrorState, ForbiddenState, StatCard,
@@ -31,6 +32,7 @@ export default function PerformanceScreen({ entity, currency }: SectionProps) {
   const [end, setEnd] = useState("");
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<VendorPerformanceRow | null>(null);
+  useActionParam("new", () => setCreating(true));
   const params = useMemo(
     () => ({ entity, ...(start ? { start_date: start } : {}), ...(end ? { end_date: end } : {}) }),
     [entity, start, end],

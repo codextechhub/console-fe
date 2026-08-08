@@ -279,38 +279,42 @@ phrases/aliases first, then we implement.
 | Action | Aliases | Kind | Gate | Destination |
 |---|---|---|---|---|
 | View procurement dashboard | procurement | view | any `procurement.*` | `/procurement` |
-| View requisitions | PRs | view | `PROC_VIEW_REQUISITIONS` | `/procurement/requisitions` |
-| Create requisition | new requisition, raise PR | do | `PROC_CREATE_REQUISITION` | `…/requisitions?action=new` |
-| View purchase orders | POs | view | `PROC_VIEW_PURCHASE_ORDERS` | `/procurement/purchase-orders` |
+| View procurement approvals | purchase approvals, spend approvals | view | entity queue eligibility | `/procurement/approvals` |
+| View requisitions | PR, PRs, purchase requisitions | view | `PROC_VIEW_REQUISITIONS` | `/procurement/requisitions` |
+| Create requisition | new requisition, raise PR, new PR | do | `PROC_CREATE_REQUISITION` | `…/requisitions?action=new` |
+| View purchase orders | PO, POs, purchase order | view | `PROC_VIEW_PURCHASE_ORDERS` | `/procurement/purchase-orders` |
 | Create purchase order | new PO | do | `PROC_CREATE_PURCHASE_ORDER` | `…/purchase-orders?action=new` |
-| View goods receipts | GRNs | view | `PROC_VIEW_GOODS_RECEIPTS` | `/procurement/goods-receipts` |
+| View goods receipts | GRN, GRNs, goods receipt notes | view | `PROC_VIEW_GOODS_RECEIPTS` | `/procurement/goods-receipts` |
 | Post goods receipt | new GRN, receive goods | do | `PROC_CREATE_GOODS_RECEIPT` | `…/goods-receipts?action=new` |
-| View vendor invoices | AP invoices | view | `PROC_VIEW_VENDOR_INVOICES` | `/procurement/vendor-invoices` |
-| Create vendor invoice | new vendor invoice | do | `PROC_CREATE_VENDOR_INVOICE` | `…/vendor-invoices?action=new` |
-| View vendor payments | AP payments | view | `PROC_VIEW_VENDOR_PAYMENTS` | `/procurement/vendor-payments` |
+| View vendor invoices | AP invoice(s), supplier invoice(s) | view | `PROC_VIEW_VENDOR_INVOICES` | `/procurement/vendor-invoices` |
+| Create vendor invoice | new vendor invoice, new AP invoice | do | `PROC_CREATE_VENDOR_INVOICE` | `…/vendor-invoices?action=new` |
+| View vendor payments | AP payment(s), supplier payment(s) | view | `PROC_VIEW_VENDOR_PAYMENTS` | `/procurement/vendor-payments` |
 | New vendor payment | pay vendor, **new payment** | do | `PROC_CREATE_VENDOR_PAYMENT` | `…/vendor-payments?action=new` |
 
 ### Vendors & Catalog / Sourcing / Inventory / Analytics
 | Action | Aliases | Kind | Gate | Destination |
 |---|---|---|---|---|
-| View vendors | suppliers | view | `PROC_VIEW_VENDORS` | `/procurement/vendors/vendors` |
-| Create vendor | new vendor, register supplier | do | `PROC_CREATE_VENDOR` | `…/vendors?action=new` |
+| View vendors | vendor, supplier(s), supplier master | view | `PROC_VIEW_VENDORS` | `/procurement/vendors/vendors` |
+| Create vendor | new vendor, new/register supplier | do | `PROC_CREATE_VENDOR` | `…/vendors?action=new` |
 | View categories | — | view | `PROC_VIEW_CATEGORIES` | `/procurement/vendors/categories` |
 | Create category | new category | do | `PROC_CREATE_CATEGORY` | `…/categories?action=new` |
 | View catalog | catalog items | view | `PROC_VIEW_CATALOG` | `/procurement/vendors/catalog` |
 | Add catalog item | new item | do | `PROC_CREATE_CATALOG_ITEM` | `…/catalog?action=new` |
-| View RFQs | — | view | `PROC_VIEW_RFQS` | `/procurement/sourcing/rfqs` |
+| View RFQs | RFQ, request(s) for quotation | view | `PROC_VIEW_RFQS` | `/procurement/sourcing/rfqs` |
 | Create RFQ | new RFQ | do | `PROC_CREATE_RFQ` | `…/rfqs?action=new` |
-| View quotations | quotes | view | `PROC_VIEW_QUOTATIONS` | `/procurement/sourcing/quotations` |
+| View quotations | quote(s), vendor quotes, supplier quotations | view | `PROC_VIEW_QUOTATIONS` | `/procurement/sourcing/quotations` |
 | Create quotation | new quote | do | `PROC_CREATE_QUOTATION` | `…/quotations?action=new` |
 | View contracts | — | view | `PROC_VIEW_CONTRACTS` | `/procurement/contracts` |
 | Create contract | new contract | do | `PROC_CREATE_CONTRACT` | `/procurement/contracts?action=new` |
-| View stock items | inventory | view | `PROC_VIEW_STOCK` | `/procurement/inventory/items` |
-| View stock movements | movements | view | `PROC_VIEW_STOCK` | `/procurement/inventory/movements` |
+| View stock items | inventory, inventory items, stock | view | `PROC_VIEW_STOCK` | `/procurement/inventory/items` |
+| Create stock item | new stock item, new inventory item | do | `PROC_MANAGE_STOCK` | `/procurement/inventory/items?action=new` |
+| View stock movements | movements, inventory movements, stock ledger | view | `PROC_VIEW_STOCK` | `/procurement/inventory/movements` |
+| View procurement analytics | procurement reports, purchasing analytics | view | `PROC_VIEW_PROC_REPORTS` | `/procurement/analytics` |
 | View AP aging | — | view | `PROC_VIEW_PROC_REPORTS` | `/procurement/analytics/ap-aging` |
 | View GR/IR control | — | view | `PROC_VIEW_PROC_REPORTS` | `/procurement/analytics/grir` |
 | View spend analytics | spend | view | `PROC_VIEW_PROC_REPORTS` | `/procurement/analytics/spend` |
-| View vendor performance | — | view | `PROC_VIEW_PROC_REPORTS` | `/procurement/analytics/performance` |
+| View vendor performance | supplier performance, vendor analytics | view | `PROC_VIEW_PROC_REPORTS` | `/procurement/analytics/performance` |
+| Create vendor assessment | new vendor/supplier assessment | do | `PROC_CREATE_VENDOR_ASSESSMENT` | `/procurement/analytics/performance?action=new` |
 
 ---
 

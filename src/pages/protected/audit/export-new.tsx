@@ -1,43 +1,42 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { Button } from "@/components/ui/button";
-import { useCreateAuditExportMutation } from "@/redux/services/dashboard/audit-api";
+import {
+  useCreateAuditExportMutation,
+  useGetAuditEventFilterOptionsQuery,
+} from "@/redux/services/dashboard/audit-api";
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
+import { friendlyAction } from "./audit-constants";
+import {
+  AUDIT_DATE_RANGES,
+  buildAuditExportFilterPayload,
+  defaultAuditEventFilters,
+  parseAuditEventFilters,
+  type AuditEventFilters,
+} from "./event-filter-contract";
 
-const SEVERITIES = ["INFO", "WARNING", "CRITICAL"];
-const STATUSES = ["SUCCESS", "FAILED", "DENIED", "PARTIAL"];
-const DATE_PRESETS = [
-  { v: "24h", l: "Last 24 hours", ms: 86_400_000 },
-  { v: "7d", l: "Last 7 days", ms: 7 * 86_400_000 },
-  { v: "30d", l: "Last 30 days", ms: 30 * 86_400_000 },
-  { v: "all", l: "All time", ms: 0 },
-];
+const SEVERITIES: AuditEventFilters["severities"] = ["INFO", "WARNING", "CRITICAL"];
+const STATUSES: AuditEventFilters["statuses"] = ["SUCCESS", "FAILED", "DENIED", "PARTIAL"];
 
 export default function NewAuditExport() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [createExport, { isLoading }] = useCreateAuditExportMutation();
-  const [datePreset, setDatePreset] = useState("7d");
-  const [severities, setSeverities] = useState<string[]>([]);
-  const [statuses, setStatuses] = useState<string[]>([]);
-  const [moduleKey, setModuleKey] = useState("");
-  const [actionType, setActionType] = useState("");
-  const [entityType, setEntityType] = useState("");
+  const { data: filterOptions } = useGetAuditEventFilterOptionsQuery();
+  const [filters, setFilters] = useState<AuditEventFilters>(() => {
+    if (searchParams.get("from") === "events") return parseAuditEventFilters(searchParams);
+    return defaultAuditEventFilters("7d");
+  });
 
-  const toggle = (list: string[], v: string) =>
+  const toggle = <T extends string>(list: T[], v: T) =>
     list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
+  const updateFilters = (patch: Partial<AuditEventFilters>) => {
+    setFilters((current) => ({ ...current, ...patch }));
+  };
 
   const handleCreate = () => {
-    const filter: Record<string, unknown> = {};
-    const preset = DATE_PRESETS.find((p) => p.v === datePreset);
-    if (preset && preset.ms > 0) {
-      filter.date_from = new Date(Date.now() - preset.ms).toISOString();
-    }
-    if (severities.length) filter.severity = severities;
-    if (statuses.length) filter.status = statuses;
-    if (moduleKey) filter.module_key = moduleKey;
-    if (actionType) filter.action_type = actionType;
-    if (entityType) filter.entity_type = entityType;
+    const filter = buildAuditExportFilterPayload(filters, Date.now());
 
     createExport({ filter_payload: filter, export_format: "CSV" })
       .unwrap()
@@ -60,15 +59,15 @@ export default function NewAuditExport() {
           <div>
             <h3 className="text-xs font-semibold uppercase text-gray-01 mb-2">Date range</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {DATE_PRESETS.map((d) => (
-                <label key={d.v} className="flex items-center gap-2 text-xs cursor-pointer">
+              {AUDIT_DATE_RANGES.map((d) => (
+                <label key={d.value} className="flex items-center gap-2 text-xs cursor-pointer">
                   <input
                     type="radio"
                     name="date_preset"
-                    checked={datePreset === d.v}
-                    onChange={() => setDatePreset(d.v)}
+                    checked={filters.dateRange === d.value}
+                    onChange={() => updateFilters({ dateRange: d.value })}
                   />
-                  {d.l}
+                  {d.label}
                 </label>
               ))}
             </div>
@@ -81,8 +80,8 @@ export default function NewAuditExport() {
                 <label key={s} className="flex items-center gap-1.5 text-xs cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={severities.includes(s)}
-                    onChange={() => setSeverities(toggle(severities, s))}
+                    checked={filters.severities.includes(s)}
+                    onChange={() => updateFilters({ severities: toggle(filters.severities, s) })}
                   />
                   {s}
                 </label>
@@ -97,8 +96,8 @@ export default function NewAuditExport() {
                 <label key={s} className="flex items-center gap-1.5 text-xs cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={statuses.includes(s)}
-                    onChange={() => setStatuses(toggle(statuses, s))}
+                    checked={filters.statuses.includes(s)}
+                    onChange={() => updateFilters({ statuses: toggle(filters.statuses, s) })}
                   />
                   {s}
                 </label>
@@ -106,32 +105,108 @@ export default function NewAuditExport() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold uppercase text-gray-01 mb-1 block">Module</label>
-              <input
-                placeholder="e.g. IDENTITY"
+              <select
+                aria-label="Add module filter"
                 className="w-full text-xs border border-gray-300 rounded px-2 py-2"
-                value={moduleKey}
-                onChange={(e) => setModuleKey(e.target.value.toUpperCase())}
-              />
+                value=""
+                onChange={(event) => {
+                  if (event.target.value && !filters.modules.includes(event.target.value)) {
+                    updateFilters({ modules: [...filters.modules, event.target.value] });
+                  }
+                }}
+              >
+                <option value="">All modules</option>
+                {(filterOptions?.data.modules ?? []).map((module) => (
+                  <option key={module.value} value={module.value}>{module.label}</option>
+                ))}
+              </select>
+              {filters.modules.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {filters.modules.map((module) => (
+                    <button
+                      key={module}
+                      type="button"
+                      onClick={() => updateFilters({ modules: filters.modules.filter((item) => item !== module) })}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-blue-600 text-white"
+                    >
+                      {module} ×
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <label className="text-xs font-semibold uppercase text-gray-01 mb-1 block">Action type</label>
-              <input
-                placeholder="e.g. LOGIN_FAILED"
+              <select
+                aria-label="Add action filter"
                 className="w-full text-xs border border-gray-300 rounded px-2 py-2 font-mono"
-                value={actionType}
-                onChange={(e) => setActionType(e.target.value.toUpperCase())}
-              />
+                value=""
+                onChange={(event) => {
+                  if (event.target.value && !filters.actionTypes.includes(event.target.value)) {
+                    updateFilters({ actionTypes: [...filters.actionTypes, event.target.value] });
+                  }
+                }}
+              >
+                <option value="">All actions</option>
+                {(filterOptions?.data.actions ?? []).map((action) => (
+                  <option key={action.value} value={action.value}>{action.label}</option>
+                ))}
+              </select>
+              {filters.actionTypes.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {filters.actionTypes.map((action) => (
+                    <button
+                      key={action}
+                      type="button"
+                      onClick={() => updateFilters({ actionTypes: filters.actionTypes.filter((item) => item !== action) })}
+                      className="text-[10px] px-2 py-0.5 rounded-full bg-blue-600 text-white"
+                    >
+                      {friendlyAction(action)} ×
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <label className="text-xs font-semibold uppercase text-gray-01 mb-1 block">Entity type</label>
               <input
                 placeholder="e.g. User"
                 className="w-full text-xs border border-gray-300 rounded px-2 py-2"
-                value={entityType}
-                onChange={(e) => setEntityType(e.target.value)}
+                value={filters.entityType}
+                onChange={(e) => updateFilters({ entityType: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase text-gray-01 mb-1 block">Entity ID</label>
+              <input
+                placeholder="Exact entity identifier"
+                className="w-full text-xs border border-gray-300 rounded px-2 py-2 font-mono"
+                value={filters.entityId}
+                onChange={(e) => updateFilters({ entityId: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase text-gray-01 mb-1 block">Actor</label>
+              <select
+                className="w-full text-xs border border-gray-300 rounded px-2 py-2"
+                value={filters.actorType}
+                onChange={(e) => updateFilters({ actorType: e.target.value as AuditEventFilters["actorType"] })}
+              >
+                <option value="">All actors</option>
+                <option value="USER">User</option>
+                <option value="SYSTEM">System</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase text-gray-01 mb-1 block">Search</label>
+              <input
+                placeholder="Summary, actor, action…"
+                className="w-full text-xs border border-gray-300 rounded px-2 py-2"
+                value={filters.search}
+                onChange={(e) => updateFilters({ search: e.target.value })}
               />
             </div>
           </div>

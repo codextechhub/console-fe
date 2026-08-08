@@ -8,6 +8,11 @@ export interface PaginatedResponse<T> {
   };
 }
 
+export type AuditEventQueryParams = Record<
+  string,
+  string | number | boolean | (string | number)[]
+>;
+
 export type AuditSeverity = "INFO" | "WARNING" | "CRITICAL";
 export type AuditStatus = "SUCCESS" | "FAILED" | "DENIED" | "PARTIAL";
 export type AuditActorType = "USER" | "SYSTEM";
@@ -22,7 +27,22 @@ export type AuditModuleKey =
   | "PROCUREMENT"
   | "SCHOOL"
   | "BRANCH"
+  | "EXPORTS"
+  | "PLATFORM"
   | "SYSTEM";
+
+export interface AuditFilterOption {
+  value: string;
+  label: string;
+}
+
+export interface AuditEventFilterOptions {
+  modules: AuditFilterOption[];
+  actions: AuditFilterOption[];
+  severities: AuditFilterOption[];
+  statuses: AuditFilterOption[];
+  actor_types: AuditFilterOption[];
+}
 
 export interface ActorSlim {
   id: string;

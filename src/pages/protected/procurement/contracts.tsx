@@ -30,6 +30,7 @@ import type { ContractMilestone, VendorContract } from "@/redux/services/procure
 import { formatMoney } from "@/utils/money";
 import { ActivityFeed, EmptyPanel, Field } from "./sourcing/shared";
 import { isForbidden, shortDate } from "./sourcing/helpers";
+import { ContractRenewButton } from "./procurement-action-gates";
 
 const STATUS_TABS = [
   ["All", ""], ["Active", "ACTIVE"], ["Expiring", "EXPIRING"], ["Expired", "EXPIRED"],
@@ -101,7 +102,9 @@ export default function ContractsPage() {
           <StatCard label="Active" value={String(summary.active)} icon={FileCheck2} tone="green" />
           <StatCard label="Expiring ≤ 30 days" value={String(summary.expiring_soon)} icon={CalendarClock} tone="amber" />
           <StatCard label="Expired" value={String(summary.expired)} icon={CalendarX2} tone="gray" />
-          <StatCard label="Total active value" value={formatMoney(summary.total_active_value, currency)} icon={Banknote} tone="primary" />
+          <div className="col-span-2 min-w-0 lg:col-span-1">
+            <StatCard label="Total active value" value={formatMoney(summary.total_active_value, currency)} icon={Banknote} tone="primary" />
+          </div>
         </>}
       </div>
 
@@ -142,7 +145,7 @@ function ContractDrawer({ id, entity, currency, onClose }: { id: number | null; 
       footer={c && <>
         {(isDraft || canRenewTerminate) && <Can permission={P.PROC_UPDATE_CONTRACT}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
         {isDraft && <ActionButton label="Activate" permission={P.PROC_ACTIVATE_CONTRACT} title="Activate this contract?" description={`Brings ${c.reference} into force. Requires a start and end date and an eligible vendor.`} onConfirm={async () => { const r = await activate({ id: c.id, entity }).unwrap(); toast.success(r.message || "Contract activated."); }} />}
-        {canRenewTerminate && <Button variant="outline" onClick={() => setRenewing(true)}>Renew</Button>}
+        {canRenewTerminate && <ContractRenewButton onClick={() => setRenewing(true)} />}
         {canRenewTerminate && <ActionButton label="Terminate" permission={P.PROC_TERMINATE_CONTRACT} destructive title="Terminate this contract?" description={`Ends ${c.reference} early. This cannot be undone.`} confirmText="Terminate" onConfirm={async () => { const r = await terminate({ id: c.id, entity, reason: reason.trim() || undefined }).unwrap(); toast.success(r.message || "Contract terminated."); setReason(""); }}><Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (optional)" className="bg-white" /></ActionButton>}
       </>}
     >
