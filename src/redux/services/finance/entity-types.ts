@@ -5,7 +5,7 @@
 export interface LedgerEntity {
   id: number;
   code: string;
-  number_code: string; // 2–3 char code embedded in document numbers (e.g. COD)
+  number_code: string; // 2-3 char reporting code, not the live document-number prefix
   name: string;
   kind: string;
   base_currency: string; // 3-letter ISO code (its PK on the backend)
@@ -21,16 +21,16 @@ export interface EntityListParams {
 
 /**
  * POST /finance/entities/ - provisioning a new set of books. One call seeds the
- * chart of accounts + twelve open periods. fiscal_year / fiscal_start_month are
- * optional (a school can open e.g. a Sept–Aug year).
+ * chart of accounts plus an open fiscal calendar. The fiscal anchors are optional.
  */
 export interface CreateEntityPayload {
   code: string;
-  number_code?: string; // optional; backend auto-derives a unique code when blank
+  number_code?: string; // optional reporting code; backend derives one when blank
   name: string;
   kind?: string;
   base_currency?: string;
-  source_school?: number | null;
   fiscal_year?: number;
   fiscal_start_month?: number;
+  fiscal_start_day?: number;
+  fiscal_period_frequency?: "MONTHLY" | "QUARTERLY";
 }

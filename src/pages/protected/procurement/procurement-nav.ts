@@ -5,7 +5,7 @@
 import {
   LayoutDashboard, FileText, ShoppingCart, PackageCheck, ReceiptText, Banknote,
   ClipboardCheck, Store, Tags, Package, Send, FileSignature, Boxes, ArrowLeftRight,
-  BarChart3, Scale, TrendingUp,
+  BarChart3, Scale, TrendingUp, Settings,
 } from "lucide-react";
 import type { ConsoleNavGroup } from "@/components/finance-ui/console-nav";
 import { routesPath } from "@/routes/routes-path";
@@ -63,6 +63,13 @@ export const procurementNav: ConsoleNavGroup[] = [
       { title: "GR/IR & Control", url: `${P.ANALYTICS}/grir`, icon: Scale, prefixes: ["procurement.report."] },
       { title: "Spend", url: `${P.ANALYTICS}/spend`, icon: BarChart3, prefixes: ["procurement.report."] },
       { title: "Vendor Performance", url: `${P.ANALYTICS}/performance`, icon: TrendingUp, prefixes: ["procurement.report."] },
+    ],
+  },
+
+  {
+    label: "Administration",
+    items: [
+      { title: "Settings", url: P.SETTINGS, icon: Settings, prefixes: ["procurement.settings."] },
     ],
   },
 

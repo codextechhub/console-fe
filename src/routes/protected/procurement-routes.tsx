@@ -16,6 +16,7 @@ const SourcingQuotations = lazy(() => import("@/pages/protected/procurement/sour
 const Contracts = lazy(() => import("@/pages/protected/procurement/contracts"));
 const Inventory = lazy(() => import("@/pages/protected/procurement/inventory"));
 const Analytics = lazy(() => import("@/pages/protected/procurement/analytics"));
+const ProcurementSettings = lazy(() => import("@/pages/protected/procurement/settings"));
 
 const P = routesPath.PROTECTED.PROCUREMENT;
 
@@ -43,6 +44,8 @@ export const procurementRoutes: RouteObject[] = [
       { path: `${P.INVENTORY}/:section`, element: <Inventory /> },
       { path: P.ANALYTICS, element: <Analytics /> },
       { path: `${P.ANALYTICS}/:section`, element: <Analytics /> },
+      { path: P.SETTINGS, element: <ProcurementSettings /> },
+      { path: `${P.SETTINGS}/:section`, element: <ProcurementSettings /> },
     ],
   },
 ];

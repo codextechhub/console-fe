@@ -83,6 +83,7 @@ describe("Procurement search vocabulary", () => {
     P.PROC_MANAGE_STOCK,
     P.PROC_VIEW_PROC_REPORTS,
     P.PROC_CREATE_VENDOR_ASSESSMENT,
+    P.PROC_VIEW_SETTINGS,
   ].map(resolvePermissionKey);
 
   it.each([
@@ -109,6 +110,7 @@ describe("Procurement search vocabulary", () => {
     ["supplier performance", "view-vendor-performance"],
     ["new supplier assessment", "create-vendor-assessment"],
     ["purchase approvals", "view-procurement-approvals"],
+    ["procurement defaults", "view-procurement-settings"],
   ])("finds %s as %s", (query, expectedId) => {
     expect(matchedIds(query, allProcurementPermissions)).toContain(expectedId);
   });

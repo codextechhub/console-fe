@@ -189,6 +189,45 @@ export interface FinanceAuditLog {
   created_at: string;
 }
 
+export interface FinanceAccountMapping {
+  key: string;
+  label: string;
+  expected_account_type: string;
+  default_code: string;
+  source: "DEFAULT" | "OVERRIDE";
+  account: Pick<Account, "id" | "code" | "name" | "account_type" | "is_active" | "is_postable"> | null;
+  is_valid: boolean;
+}
+
+export interface FinanceAccountSettings {
+  mappings: FinanceAccountMapping[];
+  account_options: Pick<Account, "id" | "code" | "name" | "account_type">[];
+  history: FinanceAuditLog[];
+}
+
+export interface FinanceDocumentBankOption {
+  id: number;
+  name: string;
+  bank_name: string;
+  currency: string;
+}
+
+export interface FinanceDocumentSettingsValues {
+  default_invoice_due_days: number;
+  default_invoice_narration: string;
+  auto_post_manual_invoices: boolean;
+  allow_customer_opening_balances: boolean;
+  primary_collection_bank_account: FinanceDocumentBankOption | null;
+  bank_account_options: FinanceDocumentBankOption[];
+  updated_at: string | null;
+  updated_by: string | null;
+}
+
+export interface FinanceDocumentSettingsPayload {
+  settings: FinanceDocumentSettingsValues;
+  history: FinanceAuditLog[];
+}
+
 // Distinct filter options for the entity's audit trail (drives the dropdowns).
 export interface FinanceAuditFacets {
   actors: { id: number; email: string }[];

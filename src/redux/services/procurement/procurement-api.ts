@@ -24,6 +24,7 @@ import type {
   VendorPayment,
   VendorPaymentEligibleInvoice,
   VendorSummary,
+  ProcurementSettingsPayload,
 } from "./procurement-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
@@ -32,6 +33,14 @@ type Act = { id: number; entity: string };
 
 export const procurementApi = baseApi.injectEndpoints({
   endpoints: (b) => ({
+    getProcurementSettings: b.query<ApiEnvelope<ProcurementSettingsPayload>, { entity: string }>({
+      query: ({ entity }) => ({ url: `/procurement/settings/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["ProcSettings"],
+    }),
+    updateProcurementSettings: b.mutation<ApiEnvelope<ProcurementSettingsPayload>, { entity: string; default_payment_terms?: string; default_delivery_address?: string; quantity_tolerance_bps?: number; price_tolerance_bps?: number; allow_non_po_invoices?: boolean; vendor_purchase_kyc_requirement?: "PENDING_OR_VERIFIED" | "VERIFIED_ONLY"; require_purchase_order_for_receipts?: boolean; default_requisition_lead_days?: number; contract_renewal_notice_days?: number }>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/settings/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["ProcSettings", "FinanceAuditLog"],
+    }),
     // Master data
     getVendors: b.query<PaginatedEnvelope<Vendor>, E & { q?: string; is_active?: boolean; on_hold?: boolean; kyc_status?: string; purchase_eligible?: boolean }>({
       query: (p) => ({ url: `/procurement/vendors/${qs(p)}`, method: "GET" }),
@@ -251,6 +260,8 @@ export const procurementApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useGetProcurementSettingsQuery,
+  useUpdateProcurementSettingsMutation,
   useGetVendorsQuery,
   useGetVendorQuery,
   useGetVendorSummaryQuery,

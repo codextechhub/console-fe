@@ -207,7 +207,7 @@ const REGISTRY: Record<string, string> = {
   // 15 taxcode · 16 costcenter · 17 dimension · 18 bankaccount · 19 expenseclaim ·
   // 20 pettycash · 21 tax · 22 payrollrun · 23 budget · 24 fixedasset · 25 audit ·
   // 26 customer · 27 feestructure · 28 payment · 29 pettycashvoucher · 30 salary ·
-  // 31 writeoff.
+  // 31 writeoff · 32 settings.
   // Every key matches an rbac_permission on a vs_finance view (verified against source).
   "200101": "finance.entity.view",
   "200102": "finance.entity.create",
@@ -329,11 +329,14 @@ const REGISTRY: Record<string, string> = {
   "203130": "finance.writeoff.submit",
   "203105": "finance.writeoff.approve",
   "203138": "finance.writeoff.approve_high_value",
+  "203201": "finance.settings.view",
+  "203203": "finance.settings.update",
 
   // ── PROCUREMENT  (MM=70) ─────────────────────────────────────────────────────
   // RR: 01 category · 02 vendor · 03 catalog_item · 04 contract · 05 requisition ·
   // 06 rfq · 07 quotation · 08 purchase_order · 09 goods_receipt · 10 vendor_invoice ·
-  // 11 vendor_payment · 12 approval · 13 stock · 14 report.
+  // 11 vendor_payment · 12 approval · 13 stock · 14 report · 15 assessment ·
+  // 16 settings.
   "700101": "procurement.category.view",
   "700102": "procurement.category.create",
   "700103": "procurement.category.update",
@@ -395,6 +398,8 @@ const REGISTRY: Record<string, string> = {
   "701337": "procurement.stock.adjust",
   "701401": "procurement.report.view",
   "701502": "procurement.vendor_assessment.create",
+  "701601": "procurement.settings.view",
+  "701603": "procurement.settings.update",
 
   // ── PAYMENTS  (MM=80) ────────────────────────────────────────────────────────
   // RR: 01 collection · 02 virtual_account · 03 payout · 04 report · 05 payout_batch.
@@ -675,6 +680,8 @@ export const P = {
   FIN_DEPRECIATE_FIXED_ASSET:"202423",
   FIN_DISPOSE_FIXED_ASSET:  "202441",
   FIN_VIEW_FINANCE_AUDIT:   "202501",
+  FIN_VIEW_SETTINGS:        "203201",
+  FIN_UPDATE_SETTINGS:      "203203",
 
   // ── Procurement ─────────────────────────────────────────────────────────────
   PROC_VIEW_CATEGORIES:     "700101",
@@ -738,6 +745,8 @@ export const P = {
   PROC_ADJUST_STOCK:        "701337",
   PROC_VIEW_PROC_REPORTS:   "701401",
   PROC_CREATE_VENDOR_ASSESSMENT: "701502",
+  PROC_VIEW_SETTINGS:       "701601",
+  PROC_UPDATE_SETTINGS:     "701603",
 
   // ── Payments ────────────────────────────────────────────────────────────────
   PAY_VIEW_COLLECTIONS:     "800101",

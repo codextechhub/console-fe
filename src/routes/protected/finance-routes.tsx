@@ -17,6 +17,7 @@ const Setup = lazy(() => import("@/pages/protected/finance/setup"));
 const Payments = lazy(() => import("@/pages/protected/finance/payments"));
 const Reports = lazy(() => import("@/pages/protected/finance/reports"));
 const FinanceAudit = lazy(() => import("@/pages/protected/finance/audit"));
+const FinanceSettings = lazy(() => import("@/pages/protected/finance/settings"));
 
 const F = routesPath.PROTECTED.FINANCE;
 
@@ -49,6 +50,8 @@ export const financeRoutes: RouteObject[] = [
       { path: F.REPORTS, element: <Reports /> },
       { path: `${F.REPORTS}/:section`, element: <Reports /> },
       { path: F.AUDIT, element: <FinanceAudit /> },
+      { path: F.SETTINGS, element: <FinanceSettings /> },
+      { path: `${F.SETTINGS}/:section`, element: <FinanceSettings /> },
     ],
   },
 ];

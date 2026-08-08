@@ -14,6 +14,7 @@ import { P } from "@/permissions";
 import { useGetEntitiesQuery, useCreateEntityMutation } from "@/redux/services/finance/entity-api";
 import { useGetCurrenciesQuery } from "@/redux/services/finance/setup-api";
 import type { LedgerEntity } from "@/redux/services/finance/entity-types";
+import { buildEntityCreatePayload } from "./entity-create-payload";
 
 const selectCls = "h-9 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 
@@ -25,7 +26,7 @@ export function EntitiesTab() {
 
   const columns: Column<LedgerEntity>[] = [
     { header: "Code", cell: (e) => <span className="font-semibold">{e.code}</span> },
-    { header: "Doc code", cell: (e) => <span className="font-mont text-gray-05">{e.number_code}</span> },
+    { header: "Reporting code", cell: (e) => <span className="font-mont text-gray-05">{e.number_code}</span> },
     { header: "Name", cell: (e) => e.name },
     { header: "Kind", cell: (e) => <span className="capitalize">{e.kind.toLowerCase()}</span> },
     { header: "Base currency", cell: (e) => e.base_currency },
@@ -56,45 +57,53 @@ function CreateEntityModal({ open, onClose }: { open: boolean; onClose: () => vo
   const [baseCurrency, setBaseCurrency] = useState("");
   const [fiscalYear, setFiscalYear] = useState("");
   const [startMonth, setStartMonth] = useState("");
+  const [startDay, setStartDay] = useState("1");
+  const [periodFrequency, setPeriodFrequency] = useState<"MONTHLY" | "QUARTERLY">("MONTHLY");
   const { data: currencies } = useGetCurrenciesQuery(undefined, { skip: !open });
   const [create, { isLoading }] = useCreateEntityMutation();
   const canSubmit = code.trim() !== "" && name.trim() !== "";
 
   const submit = async () => {
     try {
-      const res = await create({
-        code: code.trim().toUpperCase(),
-        number_code: numberCode.trim().toUpperCase() || undefined,
-        name: name.trim(),
-        base_currency: baseCurrency || undefined,
-        fiscal_year: fiscalYear ? Number(fiscalYear) : undefined,
-        fiscal_start_month: startMonth ? Number(startMonth) : undefined,
-      }).unwrap();
+      const res = await create(buildEntityCreatePayload({
+        code, numberCode, name, baseCurrency, fiscalYear, startMonth, startDay, periodFrequency,
+      })).unwrap();
       toast.success(res.message || "Entity created.");
-      setCode(""); setNumberCode(""); setName(""); setBaseCurrency(""); setFiscalYear(""); setStartMonth("");
+      setCode(""); setNumberCode(""); setName(""); setBaseCurrency(""); setFiscalYear("");
+      setStartMonth(""); setStartDay("1"); setPeriodFrequency("MONTHLY");
       onClose();
     } catch { /* central */ }
   };
 
   return (
     <FormModal open={open} onOpenChange={(o) => !o && onClose()} title="New ledger entity"
-      description="Provisions the chart of accounts and twelve open periods in one step." onSubmit={submit}
-      loading={isLoading} canSubmit={canSubmit} widthClass="sm:max-w-lg">
-      <div className="grid grid-cols-2 gap-3">
+      description="Creates a complete set of books with its chart of accounts and first fiscal calendar." onSubmit={submit}
+      loading={isLoading} canSubmit={canSubmit} widthClass="sm:max-w-xl">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="CREST" className="bg-white font-mont" /></FormField>
-        <FormField label="Doc code"><Input value={numberCode} onChange={(e) => setNumberCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3))} placeholder="Auto (e.g. CRE)" maxLength={3} className="bg-white font-mont" /></FormField>
+        <FormField label="Reporting code"><Input value={numberCode} onChange={(e) => setNumberCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3))} placeholder="Auto (for example CRE)" maxLength={3} className="bg-white font-mont" /></FormField>
       </div>
       <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Crestfield Academy" className="bg-white" /></FormField>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField label="Base currency">
           <select value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)} className={selectCls}>
-            <option value="">Default</option>
+            <option value="">Default (NGN)</option>
             {(currencies?.data ?? []).map((c) => <option key={c.code} value={c.code}>{c.code}</option>)}
           </select>
         </FormField>
         <FormField label="Fiscal year"><Input type="number" value={fiscalYear} onChange={(e) => setFiscalYear(e.target.value)} placeholder="2026" className="bg-white" /></FormField>
-        <FormField label="Start month (1–12)"><Input type="number" min={1} max={12} value={startMonth} onChange={(e) => setStartMonth(e.target.value)} placeholder="1" className="bg-white" /></FormField>
+        <FormField label="Period frequency">
+          <select value={periodFrequency} onChange={(e) => setPeriodFrequency(e.target.value as "MONTHLY" | "QUARTERLY")} className={selectCls}>
+            <option value="MONTHLY">Monthly</option>
+            <option value="QUARTERLY">Quarterly</option>
+          </select>
+        </FormField>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="Start month"><Input type="number" min={1} max={12} value={startMonth} onChange={(e) => setStartMonth(e.target.value)} placeholder="1" className="bg-white" /></FormField>
+          <FormField label="Start day"><Input type="number" min={1} max={31} value={startDay} onChange={(e) => setStartDay(e.target.value)} placeholder="1" className="bg-white" /></FormField>
+        </div>
       </div>
+      <p className="rounded-md bg-gray-02 px-3 py-2 font-mont text-[11px] leading-5 text-gray-05">The reporting code identifies the entity in reports. Live document numbers use the protected tenant sequence.</p>
     </FormModal>
   );
 }

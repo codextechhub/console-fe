@@ -16,5 +16,7 @@ describe("Procurement permission registry", () => {
     expect(resolvePermissionKey(P.PROC_OVERRIDE_VENDOR_INVOICE_VARIANCE)).toBe(
       "procurement.vendor_invoice.override_variance",
     );
+    expect(resolvePermissionKey(P.PROC_VIEW_SETTINGS)).toBe("procurement.settings.view");
+    expect(resolvePermissionKey(P.PROC_UPDATE_SETTINGS)).toBe("procurement.settings.update");
   });
 });

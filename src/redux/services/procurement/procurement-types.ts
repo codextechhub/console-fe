@@ -682,3 +682,25 @@ export interface StockValuationReport {
   rows: StockValuationRow[];
   total_value: number;
 }
+import type { FinanceAuditLog } from "../finance/setup-types";
+
+export interface ProcurementSettingsValues {
+  default_payment_terms: string;
+  default_payment_terms_label: string;
+  default_delivery_address: string;
+  quantity_tolerance_bps: number;
+  price_tolerance_bps: number;
+  allow_non_po_invoices: boolean;
+  vendor_purchase_kyc_requirement: "PENDING_OR_VERIFIED" | "VERIFIED_ONLY";
+  vendor_purchase_kyc_requirement_label: string;
+  require_purchase_order_for_receipts: boolean;
+  default_requisition_lead_days: number;
+  contract_renewal_notice_days: number;
+  updated_at: string | null;
+  updated_by: string | null;
+}
+
+export interface ProcurementSettingsPayload {
+  settings: ProcurementSettingsValues;
+  history: FinanceAuditLog[];
+}

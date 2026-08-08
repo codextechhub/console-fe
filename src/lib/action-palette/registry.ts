@@ -176,6 +176,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-changes-in-equity", label: "View changes in equity", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/changes-in-equity` } },
   { id: "view-cost-dimension-analysis", label: "View cost & dimension analysis", aliases: ["analytics"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/analytics` } },
   { id: "view-finance-audit-trail", label: "View finance audit trail", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_FINANCE_AUDIT }, run: { to: F.AUDIT } },
+  { id: "view-finance-settings", label: "View finance settings", aliases: ["finance configuration", "accounting defaults"], console: "Finance", group: "Administration", kind: "view", gate: { any: [P.FIN_VIEW_SETTINGS] }, run: { to: F.SETTINGS } },
 
   // ── Procurement · Procure to Pay ─────────────────────────────────────────
   { id: "view-procurement-dashboard", label: "View procurement dashboard", aliases: ["procurement"], console: "Procurement", group: "Procure to Pay", kind: "view", gate: { module: ["procurement."] }, run: { to: PR.INDEX } },
@@ -214,4 +215,5 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-spend-analytics", label: "View spend analytics", aliases: ["spend", "procurement spend", "spend analysis"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_PROC_REPORTS }, run: { to: `${PR.ANALYTICS}/spend` } },
   { id: "view-vendor-performance", label: "View vendor performance", aliases: ["supplier performance", "vendor analytics", "supplier analytics"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_PROC_REPORTS }, run: { to: `${PR.ANALYTICS}/performance` } },
   { id: "create-vendor-assessment", label: "Create vendor assessment", aliases: ["new vendor assessment", "new supplier assessment", "assess vendor"], console: "Procurement", group: "Analytics", kind: "do", gate: { perm: P.PROC_CREATE_VENDOR_ASSESSMENT }, run: { to: withAction(`${PR.ANALYTICS}/performance`) } },
+  { id: "view-procurement-settings", label: "View procurement settings", aliases: ["purchasing configuration", "procurement defaults"], console: "Procurement", group: "Administration", kind: "view", gate: { any: [P.PROC_VIEW_SETTINGS] }, run: { to: PR.SETTINGS } },
 ];

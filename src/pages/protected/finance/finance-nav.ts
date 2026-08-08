@@ -8,7 +8,7 @@ import {
   Coins, Percent, Layers, ReceiptText, Users, CreditCard, FileMinus, Undo2,
   CalendarClock, BadgePercent, BellRing, ListChecks, Landmark, Wallet,
   PiggyBank, Boxes, Scale, TrendingUp, ArrowLeftRight, GitBranch, ScrollText,
-  CircleDollarSign, Send,
+  CircleDollarSign, Send, Settings,
 } from "lucide-react";
 import type { ConsoleNavGroup } from "@/components/finance-ui/console-nav";
 import { routesPath } from "@/routes/routes-path";
@@ -83,6 +83,12 @@ export const financeNav: ConsoleNavGroup[] = [
       { title: "Changes in Equity", url: `${F.REPORTS}/changes-in-equity`, icon: GitBranch, prefixes: ["finance.report."] },
       { title: "Cost & Dimension Analysis", url: `${F.REPORTS}/analytics`, icon: Layers, prefixes: ["finance.report."] },
       { title: "Audit Trail", url: F.AUDIT, icon: ScrollText, prefixes: ["finance.audit."] },
+    ],
+  },
+  {
+    label: "Administration",
+    items: [
+      { title: "Settings", url: F.SETTINGS, icon: Settings, prefixes: ["finance.settings."] },
     ],
   },
 ];

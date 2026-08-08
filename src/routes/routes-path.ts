@@ -204,6 +204,7 @@ export const routesPath = {
       BUDGETS: "/finance/budgets",
       REPORTS: "/finance/reports",
       AUDIT: "/finance/audit",
+      SETTINGS: "/finance/settings",
     },
     PROCUREMENT: {
       INDEX: "/procurement",
@@ -218,6 +219,7 @@ export const routesPath = {
       CONTRACTS: "/procurement/contracts",
       INVENTORY: "/procurement/inventory",
       ANALYTICS: "/procurement/analytics",
+      SETTINGS: "/procurement/settings",
     },
   },
 };
