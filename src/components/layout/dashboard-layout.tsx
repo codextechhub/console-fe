@@ -51,8 +51,13 @@ import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { WorkspaceToaster } from "@/components/ui/sonner";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
 import { buildWorkspaceSearchRows, getWorkspaceSearchIdentityKey, isWorkspaceSearchSelf } from "./workspace-search-model";
+import { EntitySelect } from "@/components/finance-ui/entity-select";
 
-function DashboardHeader({ back, title }: ResolvedHeader) {
+function DashboardHeader({
+  back,
+  title,
+  showEntitySwitcher = false,
+}: ResolvedHeader & { showEntitySwitcher?: boolean }) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth);
@@ -451,9 +456,11 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
   });
 
   // `sticky` is itself a positioned context for the absolute children
-  // (collapse toggle, progress bar) — adding `relative` would conflict.
+  // (collapse toggle, progress bar, entity switcher) — adding `relative` would
+  // conflict. The :has() margin exists only when 2+ entities render a switcher;
+  // it gives the floating pill a content-coloured landing zone below search.
   return (
-    <header className="grid min-h-15 shrink-0 sticky top-0 z-50 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 border border-l-0 border-white-02 bg-white px-3 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-12 lg:px-10">
+    <header className="grid min-h-15 shrink-0 sticky top-0 z-50 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 border border-l-0 border-white-02 bg-white px-3 transition-[width,height,margin] ease-linear has-[[data-entity-switcher]]:mb-6 group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-12 lg:px-10">
       {/* Sidebar collapse toggle — on the left border, vertically centered in the header */}
       <button
         type="button"
@@ -522,6 +529,11 @@ function DashboardHeader({ back, title }: ResolvedHeader) {
         {showResults && renderSearchResults("desktop")}
       </div>
       <TopProgressBar />
+      {showEntitySwitcher && (
+        <div className="pointer-events-none absolute left-1/2 top-full z-40 mt-2 -translate-x-1/2">
+          <EntitySelect suspended={showResults || mobileSearchOpen} />
+        </div>
+      )}
       <div className="inline-flex items-center gap-x-1 sm:gap-x-3">
         <button
           type="button"
@@ -728,7 +740,11 @@ export default function DashboardLayout() {
       <SidebarProvider defaultOpen={getSidebarDefaultOpen()}>
         <SidebarFor kind={handle.sidebar} />
         <SidebarInset className="bg-white-05 min-w-0 w-auto">
-          <DashboardHeader back={header.back} title={header.title} />
+          <DashboardHeader
+            back={header.back}
+            title={header.title}
+            showEntitySwitcher={handle.sidebar === "finance" || handle.sidebar === "procurement"}
+          />
           <DashboardToaster />
           {/* grid-cols-1 (minmax(0,1fr)) zeroes the track's min-content floor so a
               page's <main> can never be stretched past the viewport by wide

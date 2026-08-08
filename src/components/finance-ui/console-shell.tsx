@@ -1,7 +1,7 @@
-// <ConsoleShell> — the in-page frame for the Finance and Procurement consoles:
-// the global entity picker in a slim toolbar above the screen's content, plus
-// the console's typography scope. You're "in" a separate console with a
-// Back-to-main link in its sidebar (spec §3).
+// <ConsoleShell> — the in-page typography and title frame for the Finance and
+// Procurement consoles. You're "in" a separate console with a Back-to-main
+// link in its sidebar (spec §3). The shared DashboardHeader owns the floating
+// entity switcher so it can sit beneath search without reserving a content row.
 //
 // The surrounding chrome (sidebar, header, session machinery) now comes from
 // the DashboardLayout *route* above this. Two things still belong here, because
@@ -14,7 +14,6 @@
 
 import { useLocation } from "react-router";
 import { useDashboardTitle } from "@/components/layout/dashboard-header";
-import { EntitySelect } from "./entity-select";
 import { activeNavTitle, type ConsoleNavGroup } from "./console-nav";
 
 interface ConsoleShellProps {
@@ -32,9 +31,6 @@ export function ConsoleShell({ title, nav, children }: ConsoleShellProps) {
   useDashboardTitle(activeNavTitle(nav, pathname) ?? title);
   return (
     <div className="console-geist min-w-0">
-      <div className="flex items-center justify-end border-b border-white-02 bg-white px-4.5 py-2.5">
-        <EntitySelect />
-      </div>
       <div className="min-w-0">{children}</div>
     </div>
   );
