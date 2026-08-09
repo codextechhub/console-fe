@@ -696,6 +696,8 @@ export interface ProcurementSettingsValues {
   require_purchase_order_for_receipts: boolean;
   default_requisition_lead_days: number;
   contract_renewal_notice_days: number;
+  default_rfq_response_days: number;
+  rfq_closing_soon_days: number;
   updated_at: string | null;
   updated_by: string | null;
 }

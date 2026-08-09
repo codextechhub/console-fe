@@ -3,6 +3,7 @@ import {
   BookOpenCheck,
   Boxes,
   Building2,
+  Clock3,
   ClipboardCheck,
   FileCheck2,
   FileSignature,
@@ -52,6 +53,7 @@ const SECTIONS: ConsoleSettingsSection[] = [
   { key: "overview", title: "Overview", description: "Configuration health", icon: Settings2 },
   { key: "general", title: "General defaults", description: "Entity and document defaults", icon: Building2 },
   { key: "purchasing", title: "Purchasing policy", description: "Requisitions and vendors", icon: ShoppingCart },
+  { key: "sourcing-lifecycle", title: "Sourcing and lifecycle", description: "RFQs and renewals", icon: Clock3 },
   { key: "matching", title: "Invoice matching", description: "PO, receipt and invoice", icon: Scale },
   { key: "accounting", title: "Accounting integration", description: "Control account map", icon: BookOpenCheck },
   { key: "approvals", title: "Approvals", description: "Purchasing workflows", icon: Workflow },
@@ -90,6 +92,7 @@ export default function ProcurementSettings() {
         {activeSection === "overview" ? <Overview entity={active.entity} /> : null}
         {activeSection === "general" ? <General entity={active.entity} entityCode={active.code} /> : null}
         {activeSection === "purchasing" ? <PurchasingPolicy entityCode={active.code} /> : null}
+        {activeSection === "sourcing-lifecycle" ? <SourcingLifecycle entityCode={active.code} /> : null}
         {activeSection === "matching" ? <MatchingPolicy entityCode={active.code} /> : null}
         {activeSection === "accounting" ? <AccountingIntegration entityCode={active.code} /> : null}
         {activeSection === "approvals" ? <Approvals /> : null}
@@ -108,7 +111,8 @@ function Overview({ entity }: { entity: ReturnType<typeof useActiveEntity>["enti
       </SettingsPanel>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <SettingsOverviewCard icon={Building2} title="General defaults" description="Review entity inheritance, currency, payment terms and delivery behavior." to={`${PR.SETTINGS}/general`} status="Inherited" />
-        <SettingsOverviewCard icon={ShoppingCart} title="Purchasing policy" description="Set vendor eligibility, requisition timing, receipt evidence and contract defaults." to={`${PR.SETTINGS}/purchasing`} status="Configurable" tone="ready" />
+        <SettingsOverviewCard icon={ShoppingCart} title="Purchasing policy" description="Set vendor eligibility, requisition timing and receipt evidence." to={`${PR.SETTINGS}/purchasing`} status="Configurable" tone="ready" />
+        <SettingsOverviewCard icon={Clock3} title="Sourcing and lifecycle" description="Set RFQ response windows, closing alerts and contract renewal defaults." to={`${PR.SETTINGS}/sourcing-lifecycle`} status="Configurable" tone="ready" />
         <SettingsOverviewCard icon={Scale} title="Invoice matching" description="Understand quantity, price and receipt checks before vendor bills post." to={`${PR.SETTINGS}/matching`} status="Review" tone="attention" />
         <SettingsOverviewCard icon={BookOpenCheck} title="Accounting integration" description="Review the Finance accounts Procurement expects for P2P posting." to={`${PR.SETTINGS}/accounting`} status="Finance-owned" />
         <SettingsOverviewCard icon={Workflow} title="Approvals" description="Manage routing for requisitions, orders, invoices and payments." to={`${PR.SETTINGS}/approvals`} status="Shared workflow" />
@@ -168,7 +172,7 @@ function PurchasingPolicy({ entityCode }: { entityCode: string | null }) {
   const payload = query.data?.data;
   return (
     <div className="space-y-5">
-      <SettingsSectionHeader title="Purchasing policy" description="Set entity-wide vendor, requisition, receipt and contract defaults. The backend applies each saved rule to new purchasing activity." />
+      <SettingsSectionHeader title="Purchasing policy" description="Set entity-wide vendor, requisition and receipt defaults. The backend applies each saved rule to new purchasing activity." />
       {!canView ? <ProtectedSettings /> : query.isLoading || !payload ? <SettingsPanel><SettingsRow label="Loading purchasing policy" description="Reading the selected entity's procurement controls." /></SettingsPanel> : <PurchasingForm key={`${entityCode}-${payload.settings.updated_at}`} entityCode={entityCode!} values={payload.settings} history={payload.history} canUpdate={canUpdate} />}
       <SettingsPanel title="Always-enforced controls">
         <SettingsRow icon={ClipboardCheck} label="Approved requisition required" description="A purchase order can only be created from an approved requisition in the same entity." badge={<PolicyBadge kind="enforced" />} />
@@ -182,18 +186,14 @@ function PurchasingPolicy({ entityCode }: { entityCode: string | null }) {
 function PurchasingForm({ entityCode, values, history, canUpdate }: { entityCode: string; values: ProcurementSettingsValues; history: FinanceAuditLog[]; canUpdate: boolean }) {
   const [kycRequirement, setKycRequirement] = useState(values.vendor_purchase_kyc_requirement);
   const [leadDays, setLeadDays] = useState(String(values.default_requisition_lead_days));
-  const [renewalDays, setRenewalDays] = useState(String(values.contract_renewal_notice_days));
   const [requirePo, setRequirePo] = useState(values.require_purchase_order_for_receipts);
   const [update, state] = useUpdateProcurementSettingsMutation();
   const leadDaysValue = Number(leadDays);
-  const renewalDaysValue = Number(renewalDays);
-  const valid = leadDays.trim() !== "" && renewalDays.trim() !== ""
-    && Number.isInteger(leadDaysValue) && leadDaysValue >= 0 && leadDaysValue <= 365
-    && Number.isInteger(renewalDaysValue) && renewalDaysValue >= 0 && renewalDaysValue <= 365;
+  const valid = leadDays.trim() !== ""
+    && Number.isInteger(leadDaysValue) && leadDaysValue >= 0 && leadDaysValue <= 365;
   const dirty = valid && (
     kycRequirement !== values.vendor_purchase_kyc_requirement
     || leadDaysValue !== values.default_requisition_lead_days
-    || renewalDaysValue !== values.contract_renewal_notice_days
     || requirePo !== values.require_purchase_order_for_receipts
   );
   const save = async () => {
@@ -202,7 +202,6 @@ function PurchasingForm({ entityCode, values, history, canUpdate }: { entityCode
         entity: entityCode,
         vendor_purchase_kyc_requirement: kycRequirement,
         default_requisition_lead_days: leadDaysValue,
-        contract_renewal_notice_days: renewalDaysValue,
         require_purchase_order_for_receipts: requirePo,
       }).unwrap();
       toast.success(response.message || "Purchasing policy saved.");
@@ -210,13 +209,74 @@ function PurchasingForm({ entityCode, values, history, canUpdate }: { entityCode
   };
   return <>
     <SettingsPanel title="Configurable controls" description="These defaults affect new purchasing records immediately after a successful save.">
-      <div className="grid grid-cols-1 gap-4 px-4 py-4 sm:px-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 px-4 py-4 sm:grid-cols-2 sm:px-5">
         <label className="min-w-0 font-mont text-xs font-semibold text-gray-01">Vendor KYC requirement<select className="mt-2 h-10 w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm disabled:bg-gray-02" value={kycRequirement} onChange={(event) => setKycRequirement(event.target.value as ProcurementSettingsValues["vendor_purchase_kyc_requirement"])} disabled={!canUpdate}><option value="PENDING_OR_VERIFIED">Pending or verified</option><option value="VERIFIED_ONLY">Verified only</option></select><span className="mt-1 block font-normal leading-5 text-gray-05">Controls which active vendors buyers can use for new sourcing, orders, contracts and catalog links.</span></label>
         <label className="font-mont text-xs font-semibold text-gray-01">Default requisition lead days<Input type="number" min="0" max="365" step="1" className="mt-2 bg-white" value={leadDays} onChange={(event) => setLeadDays(event.target.value)} disabled={!canUpdate} /><span className="mt-1 block font-normal leading-5 text-gray-05">Sets needed-by from the request date when the requester leaves it blank.</span></label>
-        <label className="font-mont text-xs font-semibold text-gray-01">Contract renewal notice days<Input type="number" min="0" max="365" step="1" className="mt-2 bg-white" value={renewalDays} onChange={(event) => setRenewalDays(event.target.value)} disabled={!canUpdate} /><span className="mt-1 block font-normal leading-5 text-gray-05">Applied to new vendor contracts when no notice window is supplied.</span></label>
       </div>
       <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5"><div><p className="font-mont text-sm font-medium text-gray-01">Require a purchase order for goods receipts</p><p className="mt-0.5 font-mont text-xs leading-5 text-gray-05">When on, receiving cannot record a vendor delivery without purchase-order evidence.</p></div><Switch checked={requirePo} onCheckedChange={setRequirePo} disabled={!canUpdate} aria-label="Require a purchase order for goods receipts" /></div>
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5"><p className="font-mont text-xs text-gray-05">{!valid ? "Use whole numbers from 0 to 365 days." : canUpdate ? "Only changed values are recorded in audit history." : "You have read-only access."}</p><Button onClick={save} disabled={!canUpdate || !dirty || !valid || state.isLoading}><Save className="mr-2 size-4" />{state.isLoading ? "Saving" : "Save purchasing policy"}</Button></div>
+    </SettingsPanel>
+    <div className="mt-5"><SettingsAuditHistory rows={history} /></div>
+  </>;
+}
+
+function SourcingLifecycle({ entityCode }: { entityCode: string | null }) {
+  const { hasPermission } = usePermissions();
+  const canView = hasPermission(P.PROC_VIEW_SETTINGS);
+  const canUpdate = hasPermission(P.PROC_UPDATE_SETTINGS);
+  const query = useGetProcurementSettingsQuery(
+    { entity: entityCode! }, { skip: !entityCode || !canView },
+  );
+  const payload = query.data?.data;
+  return (
+    <div className="space-y-5">
+      <SettingsSectionHeader title="Sourcing and lifecycle" description="Set the default time buyers give vendors to respond, the RFQ alert horizon, and the renewal notice copied to new contracts." />
+      {!canView ? <ProtectedSettings /> : query.isLoading || !payload ? <SettingsPanel><SettingsRow label="Loading sourcing policy" description="Reading the selected entity's RFQ and contract defaults." /></SettingsPanel> : <SourcingLifecycleForm key={`${entityCode}-${payload.settings.updated_at}`} entityCode={entityCode!} values={payload.settings} history={payload.history} canUpdate={canUpdate} />}
+      <SettingsPanel title="How lifecycle defaults behave">
+        <SettingsRow icon={Clock3} label="Explicit dates win" description="A response due date entered on an RFQ overrides the default response period for that RFQ." badge={<PolicyBadge kind="enforced">Override allowed</PolicyBadge>} />
+        <SettingsRow icon={FileSignature} label="Existing records keep their terms" description="Changing these values does not rewrite existing RFQ due dates or contract renewal windows." badge={<PolicyBadge kind="enforced" />} />
+        <SettingsRow icon={ShieldCheck} label="Contract alerts use each stored notice" description="The expiring list and summary use the renewal notice saved on each contract, not a hidden fixed 30-day window." badge={<PolicyBadge kind="configured">Aligned</PolicyBadge>} />
+      </SettingsPanel>
+    </div>
+  );
+}
+
+function SourcingLifecycleForm({ entityCode, values, history, canUpdate }: { entityCode: string; values: ProcurementSettingsValues; history: FinanceAuditLog[]; canUpdate: boolean }) {
+  const [responseDays, setResponseDays] = useState(String(values.default_rfq_response_days));
+  const [closingSoonDays, setClosingSoonDays] = useState(String(values.rfq_closing_soon_days));
+  const [renewalDays, setRenewalDays] = useState(String(values.contract_renewal_notice_days));
+  const [update, state] = useUpdateProcurementSettingsMutation();
+  const responseDaysValue = Number(responseDays);
+  const closingSoonDaysValue = Number(closingSoonDays);
+  const renewalDaysValue = Number(renewalDays);
+  const valid = responseDays.trim() !== "" && closingSoonDays.trim() !== "" && renewalDays.trim() !== ""
+    && Number.isInteger(responseDaysValue) && responseDaysValue >= 0 && responseDaysValue <= 365
+    && Number.isInteger(closingSoonDaysValue) && closingSoonDaysValue >= 0 && closingSoonDaysValue <= 365
+    && Number.isInteger(renewalDaysValue) && renewalDaysValue >= 0 && renewalDaysValue <= 365;
+  const dirty = valid && (
+    responseDaysValue !== values.default_rfq_response_days
+    || closingSoonDaysValue !== values.rfq_closing_soon_days
+    || renewalDaysValue !== values.contract_renewal_notice_days
+  );
+  const save = async () => {
+    try {
+      const response = await update({
+        entity: entityCode,
+        default_rfq_response_days: responseDaysValue,
+        rfq_closing_soon_days: closingSoonDaysValue,
+        contract_renewal_notice_days: renewalDaysValue,
+      }).unwrap();
+      toast.success(response.message || "Sourcing and lifecycle policy saved.");
+    } catch { /* Central API handling shows the actionable error. */ }
+  };
+  return <>
+    <SettingsPanel title="RFQ and contract defaults" description="Values are measured in calendar days and apply after a successful save.">
+      <div className="grid grid-cols-1 gap-4 px-4 py-4 sm:px-5 lg:grid-cols-3">
+        <label className="font-mont text-xs font-semibold text-gray-01">Default RFQ response days<Input type="number" min="0" max="365" step="1" className="mt-2 bg-white" value={responseDays} onChange={(event) => setResponseDays(event.target.value)} disabled={!canUpdate} /><span className="mt-1 block font-normal leading-5 text-gray-05">Sets the response due date for a new RFQ when the buyer leaves it blank.</span></label>
+        <label className="font-mont text-xs font-semibold text-gray-01">RFQ closing-soon horizon<Input type="number" min="0" max="365" step="1" className="mt-2 bg-white" value={closingSoonDays} onChange={(event) => setClosingSoonDays(event.target.value)} disabled={!canUpdate} /><span className="mt-1 block font-normal leading-5 text-gray-05">Counts issued RFQs due within this many days in the sourcing summary.</span></label>
+        <label className="font-mont text-xs font-semibold text-gray-01">Contract renewal notice days<Input type="number" min="0" max="365" step="1" className="mt-2 bg-white" value={renewalDays} onChange={(event) => setRenewalDays(event.target.value)} disabled={!canUpdate} /><span className="mt-1 block font-normal leading-5 text-gray-05">Copied to new contracts when no notice window is supplied.</span></label>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5"><p className="font-mont text-xs text-gray-05">{!valid ? "Use whole numbers from 0 to 365 days." : canUpdate ? "Only effective changes are written to audit history." : "You have read-only access."}</p><Button onClick={save} disabled={!canUpdate || !dirty || !valid || state.isLoading}><Save className="mr-2 size-4" />{state.isLoading ? "Saving" : "Save lifecycle policy"}</Button></div>
     </SettingsPanel>
     <div className="mt-5"><SettingsAuditHistory rows={history} /></div>
   </>;

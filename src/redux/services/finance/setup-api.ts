@@ -20,6 +20,7 @@ import type {
   FinanceAuditLog,
   FinanceAuditFacets,
   FinanceAccountSettings,
+  FinanceBankingSettingsPayload,
   FinanceDocumentSettingsPayload,
   FiscalPeriod,
   StartedFiscalYear,
@@ -179,6 +180,14 @@ export const setupApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/settings/documents/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinanceSettings", "FinanceAuditLog", "FinanceBankAccounts"],
     }),
+    getFinanceBankingSettings: b.query<ApiEnvelope<FinanceBankingSettingsPayload>, { entity: string }>({
+      query: ({ entity }) => ({ url: `/finance/settings/banking/${qs({ entity })}`, method: "GET" }),
+      providesTags: ["FinanceSettings"],
+    }),
+    updateFinanceBankingSettings: b.mutation<ApiEnvelope<FinanceBankingSettingsPayload>, { entity: string; default_bank_reconciliation_tolerance_days?: number; default_group_reconciliation_matches?: boolean; default_receipt_allocation_strategy?: "oldest" | "largest" }>({
+      query: ({ entity, ...body }) => ({ url: `/finance/settings/banking/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["FinanceSettings", "FinanceAuditLog"],
+    }),
   }),
 });
 
@@ -213,4 +222,6 @@ export const {
   useUpdateFinanceAccountSettingsMutation,
   useGetFinanceDocumentSettingsQuery,
   useUpdateFinanceDocumentSettingsMutation,
+  useGetFinanceBankingSettingsQuery,
+  useUpdateFinanceBankingSettingsMutation,
 } = setupApi;

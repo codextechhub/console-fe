@@ -228,6 +228,20 @@ export interface FinanceDocumentSettingsPayload {
   history: FinanceAuditLog[];
 }
 
+export interface FinanceBankingSettingsValues {
+  default_bank_reconciliation_tolerance_days: number;
+  default_group_reconciliation_matches: boolean;
+  default_receipt_allocation_strategy: "oldest" | "largest";
+  default_receipt_allocation_strategy_label: string;
+  updated_at: string | null;
+  updated_by: string | null;
+}
+
+export interface FinanceBankingSettingsPayload {
+  settings: FinanceBankingSettingsValues;
+  history: FinanceAuditLog[];
+}
+
 // Distinct filter options for the entity's audit trail (drives the dropdowns).
 export interface FinanceAuditFacets {
   actors: { id: number; email: string }[];
