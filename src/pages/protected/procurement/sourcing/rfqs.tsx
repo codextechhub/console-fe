@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
+import { usePermissions } from "@/hooks/use-permissions";
 import {
   useGetRfqsQuery, useGetRfqQuery, useGetRfqSummaryQuery,
   useCreateRfqMutation, useUpdateRfqMutation,
@@ -129,6 +130,9 @@ export default function RfqsPage() {
 function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {
   const [tab, setTab] = useState("overview");
   const [editing, setEditing] = useState(false);
+  const [competitionExceptionReason, setCompetitionExceptionReason] = useState("");
+  const { hasPermission } = usePermissions();
+  const canOverrideCompetition = hasPermission(P.PROC_OVERRIDE_COMPETITION);
   const { data, isLoading, isError, refetch } = useGetRfqQuery({ id: id!, entity }, { skip: id == null });
   const rfq = data?.data;
   const [issue] = useIssueRfqMutation();
@@ -151,7 +155,7 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
       widthClass="sm:max-w-2xl"
       footer={rfq && <>
         {isDraft && <Can permission={P.PROC_UPDATE_RFQ}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
-        {isDraft && <ActionButton label="Issue" permission={P.PROC_ISSUE_RFQ} title="Issue this RFQ?" description={`Sends ${rfq.document_number} to vendors so they can submit quotations.`} onConfirm={run(() => issue({ id: rfq.id, entity }).unwrap(), "RFQ issued.")} />}
+        {isDraft && <ActionButton label="Issue" permission={P.PROC_ISSUE_RFQ} title="Issue this RFQ?" description={`Sends ${rfq.document_number} to vendors so they can submit quotations. Competitive minimums are checked when you confirm.`} onConfirm={async () => { const response = await issue({ id: rfq.id, entity, competition_exception_reason: competitionExceptionReason.trim() || undefined }).unwrap(); toast.success(response.message || "RFQ issued."); setCompetitionExceptionReason(""); }}>{canOverrideCompetition ? <label className="block font-mont text-xs font-semibold text-gray-01">Exception reason (only if below the vendor minimum)<Textarea className="mt-2 min-h-20 bg-white font-mont text-sm" value={competitionExceptionReason} onChange={(event) => setCompetitionExceptionReason(event.target.value)} maxLength={1000} placeholder="Explain the sole-source or limited-market exception" /><span className="mt-1 block font-normal leading-5 text-gray-05">The reason and actual vendor count become part of the audit record.</span></label> : null}</ActionButton>}
         {isIssued && <ActionButton label="Close" permission={P.PROC_ISSUE_RFQ} title="Close this RFQ without awarding?" description="Finishes sourcing without an award; the remaining quotations will be rejected." onConfirm={run(() => close({ id: rfq.id, entity }).unwrap(), "RFQ closed.")} />}
         {(isDraft || isIssued) && <ActionButton label="Cancel RFQ" permission={P.PROC_ISSUE_RFQ} destructive title="Cancel this RFQ?" description="Abandons the RFQ; any live quotations on it will be rejected. This cannot be undone." confirmText="Cancel RFQ" onConfirm={run(() => cancel({ id: rfq.id, entity }).unwrap(), "RFQ cancelled.")} />}
       </>}

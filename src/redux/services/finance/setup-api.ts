@@ -184,7 +184,7 @@ export const setupApi = baseApi.injectEndpoints({
       query: ({ entity }) => ({ url: `/finance/settings/banking/${qs({ entity })}`, method: "GET" }),
       providesTags: ["FinanceSettings"],
     }),
-    updateFinanceBankingSettings: b.mutation<ApiEnvelope<FinanceBankingSettingsPayload>, { entity: string; default_bank_reconciliation_tolerance_days?: number; default_group_reconciliation_matches?: boolean; default_receipt_allocation_strategy?: "oldest" | "largest" }>({
+    updateFinanceBankingSettings: b.mutation<ApiEnvelope<FinanceBankingSettingsPayload>, { entity: string; default_bank_reconciliation_tolerance_days?: number; default_group_reconciliation_matches?: boolean; default_receipt_allocation_strategy?: "oldest" | "largest"; petty_cash_low_balance_threshold_bps?: number }>({
       query: ({ entity, ...body }) => ({ url: `/finance/settings/banking/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinanceSettings", "FinanceAuditLog"],
     }),

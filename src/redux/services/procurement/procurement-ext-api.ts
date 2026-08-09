@@ -125,8 +125,8 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/rfqs/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcRfqs"],
     }),
-    issueRfq: b.mutation<ApiEnvelope<RfqDetail>, Act>({
-      query: ({ id, entity }) => ({ url: `/procurement/rfqs/${id}/issue/${qs({ entity })}`, method: "POST" }),
+    issueRfq: b.mutation<ApiEnvelope<RfqDetail>, Act & { competition_exception_reason?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/rfqs/${id}/issue/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcRfqs"],
     }),
     closeRfq: b.mutation<ApiEnvelope<RfqDetail>, Act & { reason?: string }>({
@@ -161,8 +161,8 @@ export const procurementExtApi = baseApi.injectEndpoints({
       // A submitted quote becomes a "response" the RFQ list counts, so refresh RFQs too.
       invalidatesTags: ["ProcQuotations", "ProcRfqs"],
     }),
-    awardQuotation: b.mutation<ApiEnvelope<Quotation>, Act>({
-      query: ({ id, entity }) => ({ url: `/procurement/quotations/${id}/award/${qs({ entity })}`, method: "POST" }),
+    awardQuotation: b.mutation<ApiEnvelope<Quotation>, Act & { competition_exception_reason?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/quotations/${id}/award/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcQuotations", "ProcRfqs", "ProcPurchaseOrders"],
     }),
 

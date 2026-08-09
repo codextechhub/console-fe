@@ -336,7 +336,7 @@ const REGISTRY: Record<string, string> = {
   // RR: 01 category · 02 vendor · 03 catalog_item · 04 contract · 05 requisition ·
   // 06 rfq · 07 quotation · 08 purchase_order · 09 goods_receipt · 10 vendor_invoice ·
   // 11 vendor_payment · 12 approval · 13 stock · 14 report · 15 assessment ·
-  // 16 settings.
+  // 16 settings · 17 competitive-policy exceptions.
   "700101": "procurement.category.view",
   "700102": "procurement.category.create",
   "700103": "procurement.category.update",
@@ -400,6 +400,7 @@ const REGISTRY: Record<string, string> = {
   "701502": "procurement.vendor_assessment.create",
   "701601": "procurement.settings.view",
   "701603": "procurement.settings.update",
+  "701747": "procurement.competition.override",
 
   // ── PAYMENTS  (MM=80) ────────────────────────────────────────────────────────
   // RR: 01 collection · 02 virtual_account · 03 payout · 04 report · 05 payout_batch.
@@ -747,6 +748,7 @@ export const P = {
   PROC_CREATE_VENDOR_ASSESSMENT: "701502",
   PROC_VIEW_SETTINGS:       "701601",
   PROC_UPDATE_SETTINGS:     "701603",
+  PROC_OVERRIDE_COMPETITION:"701747",
 
   // ── Payments ────────────────────────────────────────────────────────────────
   PAY_VIEW_COLLECTIONS:     "800101",

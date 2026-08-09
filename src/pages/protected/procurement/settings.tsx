@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   FileCheck2,
   FileSignature,
+  Gavel,
   ListChecks,
   PackageCheck,
   ReceiptText,
@@ -54,6 +55,7 @@ const SECTIONS: ConsoleSettingsSection[] = [
   { key: "general", title: "General defaults", description: "Entity and document defaults", icon: Building2 },
   { key: "purchasing", title: "Purchasing policy", description: "Requisitions and vendors", icon: ShoppingCart },
   { key: "sourcing-lifecycle", title: "Sourcing and lifecycle", description: "RFQs and renewals", icon: Clock3 },
+  { key: "competitive-governance", title: "Competitive governance", description: "Bid minimums and exceptions", icon: Gavel },
   { key: "matching", title: "Invoice matching", description: "PO, receipt and invoice", icon: Scale },
   { key: "accounting", title: "Accounting integration", description: "Control account map", icon: BookOpenCheck },
   { key: "approvals", title: "Approvals", description: "Purchasing workflows", icon: Workflow },
@@ -93,6 +95,7 @@ export default function ProcurementSettings() {
         {activeSection === "general" ? <General entity={active.entity} entityCode={active.code} /> : null}
         {activeSection === "purchasing" ? <PurchasingPolicy entityCode={active.code} /> : null}
         {activeSection === "sourcing-lifecycle" ? <SourcingLifecycle entityCode={active.code} /> : null}
+        {activeSection === "competitive-governance" ? <CompetitiveGovernance entityCode={active.code} /> : null}
         {activeSection === "matching" ? <MatchingPolicy entityCode={active.code} /> : null}
         {activeSection === "accounting" ? <AccountingIntegration entityCode={active.code} /> : null}
         {activeSection === "approvals" ? <Approvals /> : null}
@@ -113,6 +116,7 @@ function Overview({ entity }: { entity: ReturnType<typeof useActiveEntity>["enti
         <SettingsOverviewCard icon={Building2} title="General defaults" description="Review entity inheritance, currency, payment terms and delivery behavior." to={`${PR.SETTINGS}/general`} status="Inherited" />
         <SettingsOverviewCard icon={ShoppingCart} title="Purchasing policy" description="Set vendor eligibility, requisition timing and receipt evidence." to={`${PR.SETTINGS}/purchasing`} status="Configurable" tone="ready" />
         <SettingsOverviewCard icon={Clock3} title="Sourcing and lifecycle" description="Set RFQ response windows, closing alerts and contract renewal defaults." to={`${PR.SETTINGS}/sourcing-lifecycle`} status="Configurable" tone="ready" />
+        <SettingsOverviewCard icon={Gavel} title="Competitive governance" description="Require enough invited vendors and submitted bids before commitment." to={`${PR.SETTINGS}/competitive-governance`} status="Protected" tone="attention" />
         <SettingsOverviewCard icon={Scale} title="Invoice matching" description="Understand quantity, price and receipt checks before vendor bills post." to={`${PR.SETTINGS}/matching`} status="Review" tone="attention" />
         <SettingsOverviewCard icon={BookOpenCheck} title="Accounting integration" description="Review the Finance accounts Procurement expects for P2P posting." to={`${PR.SETTINGS}/accounting`} status="Finance-owned" />
         <SettingsOverviewCard icon={Workflow} title="Approvals" description="Manage routing for requisitions, orders, invoices and payments." to={`${PR.SETTINGS}/approvals`} status="Shared workflow" />
@@ -277,6 +281,62 @@ function SourcingLifecycleForm({ entityCode, values, history, canUpdate }: { ent
         <label className="font-mont text-xs font-semibold text-gray-01">Contract renewal notice days<Input type="number" min="0" max="365" step="1" className="mt-2 bg-white" value={renewalDays} onChange={(event) => setRenewalDays(event.target.value)} disabled={!canUpdate} /><span className="mt-1 block font-normal leading-5 text-gray-05">Copied to new contracts when no notice window is supplied.</span></label>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5"><p className="font-mont text-xs text-gray-05">{!valid ? "Use whole numbers from 0 to 365 days." : canUpdate ? "Only effective changes are written to audit history." : "You have read-only access."}</p><Button onClick={save} disabled={!canUpdate || !dirty || !valid || state.isLoading}><Save className="mr-2 size-4" />{state.isLoading ? "Saving" : "Save lifecycle policy"}</Button></div>
+    </SettingsPanel>
+    <div className="mt-5"><SettingsAuditHistory rows={history} /></div>
+  </>;
+}
+
+function CompetitiveGovernance({ entityCode }: { entityCode: string | null }) {
+  const { hasPermission } = usePermissions();
+  const canView = hasPermission(P.PROC_VIEW_SETTINGS);
+  const canUpdate = hasPermission(P.PROC_UPDATE_SETTINGS);
+  const query = useGetProcurementSettingsQuery(
+    { entity: entityCode! }, { skip: !entityCode || !canView },
+  );
+  const payload = query.data?.data;
+  return (
+    <div className="space-y-5">
+      <SettingsSectionHeader title="Competitive bidding governance" description="Set the minimum market evidence required before an RFQ can be issued or a supplier can be selected." />
+      {!canView ? <ProtectedSettings /> : query.isLoading || !payload ? <SettingsPanel><SettingsRow label="Loading competitive policy" description="Reading the selected entity's bidding controls." /></SettingsPanel> : <CompetitiveGovernanceForm key={`${entityCode}-${payload.settings.updated_at}`} entityCode={entityCode!} values={payload.settings} history={payload.history} canUpdate={canUpdate} />}
+      <SettingsPanel title="Exception controls">
+        <SettingsRow icon={ShieldCheck} label="Separate override permission" description="Changing settings does not grant exception authority. A user also needs the critical competitive-policy override permission." badge={<PolicyBadge kind="enforced">Critical permission</PolicyBadge>} />
+        <SettingsRow icon={FileCheck2} label="Written reason required" description="An RFQ below either minimum cannot proceed until an authorized user supplies a reason for the exception." badge={<PolicyBadge kind="enforced" />} />
+        <SettingsRow icon={ClipboardCheck} label="Evidence stays in audit history" description="The audit entry records the actual count, required minimum, exception decision and written reason." badge={<PolicyBadge kind="enforced">Immutable evidence</PolicyBadge>} />
+      </SettingsPanel>
+    </div>
+  );
+}
+
+function CompetitiveGovernanceForm({ entityCode, values, history, canUpdate }: { entityCode: string; values: ProcurementSettingsValues; history: FinanceAuditLog[]; canUpdate: boolean }) {
+  const [invitedVendors, setInvitedVendors] = useState(String(values.minimum_rfq_invited_vendors));
+  const [submittedBids, setSubmittedBids] = useState(String(values.minimum_submitted_quotations_before_award));
+  const [update, state] = useUpdateProcurementSettingsMutation();
+  const invitedValue = Number(invitedVendors);
+  const submittedValue = Number(submittedBids);
+  const valid = invitedVendors.trim() !== "" && submittedBids.trim() !== ""
+    && Number.isInteger(invitedValue) && invitedValue >= 1 && invitedValue <= 50
+    && Number.isInteger(submittedValue) && submittedValue >= 1 && submittedValue <= 50;
+  const dirty = valid && (
+    invitedValue !== values.minimum_rfq_invited_vendors
+    || submittedValue !== values.minimum_submitted_quotations_before_award
+  );
+  const save = async () => {
+    try {
+      const response = await update({
+        entity: entityCode,
+        minimum_rfq_invited_vendors: invitedValue,
+        minimum_submitted_quotations_before_award: submittedValue,
+      }).unwrap();
+      toast.success(response.message || "Competitive bidding policy saved.");
+    } catch { /* Central API handling shows the actionable error. */ }
+  };
+  return <>
+    <SettingsPanel title="Competitive minimums" description="Defaults of one preserve the existing sourcing process. Raise them when this entity requires broader competition.">
+      <div className="grid grid-cols-1 gap-4 px-4 py-4 sm:grid-cols-2 sm:px-5">
+        <label className="font-mont text-xs font-semibold text-gray-01">Minimum vendors invited<Input type="number" min="1" max="50" step="1" className="mt-2 bg-white" value={invitedVendors} onChange={(event) => setInvitedVendors(event.target.value)} disabled={!canUpdate} /><span className="mt-1 block font-normal leading-5 text-gray-05">Checked when a draft RFQ is issued. Duplicate invitations do not increase the count.</span></label>
+        <label className="font-mont text-xs font-semibold text-gray-01">Minimum submitted quotations<Input type="number" min="1" max="50" step="1" className="mt-2 bg-white" value={submittedBids} onChange={(event) => setSubmittedBids(event.target.value)} disabled={!canUpdate} /><span className="mt-1 block font-normal leading-5 text-gray-05">Checked when a submitted quotation is awarded and converted into a draft purchase order.</span></label>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5"><p className="font-mont text-xs text-gray-05">{!valid ? "Use whole numbers from 1 to 50 vendors." : canUpdate ? "Saved minimums apply to the next issue or award decision." : "You have read-only access."}</p><Button onClick={save} disabled={!canUpdate || !dirty || !valid || state.isLoading}><Save className="mr-2 size-4" />{state.isLoading ? "Saving" : "Save competitive policy"}</Button></div>
     </SettingsPanel>
     <div className="mt-5"><SettingsAuditHistory rows={history} /></div>
   </>;

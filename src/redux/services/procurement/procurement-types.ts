@@ -698,6 +698,8 @@ export interface ProcurementSettingsValues {
   contract_renewal_notice_days: number;
   default_rfq_response_days: number;
   rfq_closing_soon_days: number;
+  minimum_rfq_invited_vendors: number;
+  minimum_submitted_quotations_before_award: number;
   updated_at: string | null;
   updated_by: string | null;
 }

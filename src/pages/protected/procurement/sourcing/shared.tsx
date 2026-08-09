@@ -7,9 +7,11 @@ import { Award, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { ActionButton, StatusPill } from "@/components/finance-ui";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
+import { usePermissions } from "@/hooks/use-permissions";
 import {
   useGetRfqsQuery, useGetRfqQuery, useGetQuotationsQuery, useGetQuotationQuery,
   useAwardQuotationMutation,
@@ -131,6 +133,9 @@ export function CompareModal({ entity, currency, open, onClose }: { entity: stri
 }
 
 function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; entity: string; currency?: string | null; onAwarded: () => void }) {
+  const [competitionExceptionReason, setCompetitionExceptionReason] = useState("");
+  const { hasPermission } = usePermissions();
+  const canOverrideCompetition = hasPermission(P.PROC_OVERRIDE_COMPETITION);
   const { data: rfqDetailData } = useGetRfqQuery({ id: rfqId, entity });
   const rfq: RfqDetail | undefined = rfqDetailData?.data;
   // Columns come from the quotation list (all summary criteria, no per-line prices).
@@ -238,11 +243,12 @@ function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; 
                       title="Award this quotation?"
                       description={`Awards ${q.document_number} from ${q.vendor_name || q.vendor_code} and raises a draft purchase order. The other quotations on this RFQ will be rejected.`}
                       onConfirm={async () => {
-                        const res = await award({ id: q.id, entity }).unwrap();
+                        const res = await award({ id: q.id, entity, competition_exception_reason: competitionExceptionReason.trim() || undefined }).unwrap();
                         toast.success(res.message || "Quotation awarded.");
+                        setCompetitionExceptionReason("");
                         onAwarded();
                       }}
-                    />
+                    >{canOverrideCompetition ? <label className="block font-mont text-xs font-semibold text-gray-01">Exception reason (only if below the bid minimum)<Textarea className="mt-2 min-h-20 bg-white font-mont text-sm" value={competitionExceptionReason} onChange={(event) => setCompetitionExceptionReason(event.target.value)} maxLength={1000} placeholder="Explain why award should proceed with limited competition" /></label> : null}</ActionButton>
                   ) : q.awarded_po_id ? (
                     <span className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-emerald-700"><Award className="size-3" /> Awarded</span>
                   ) : (

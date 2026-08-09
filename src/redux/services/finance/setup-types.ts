@@ -233,6 +233,7 @@ export interface FinanceBankingSettingsValues {
   default_group_reconciliation_matches: boolean;
   default_receipt_allocation_strategy: "oldest" | "largest";
   default_receipt_allocation_strategy_label: string;
+  petty_cash_low_balance_threshold_bps: number;
   updated_at: string | null;
   updated_by: string | null;
 }

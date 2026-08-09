@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
+import { usePermissions } from "@/hooks/use-permissions";
 import {
   useGetQuotationsQuery, useGetQuotationQuery, useGetRfqsQuery, useGetRfqQuery,
   useCreateQuotationMutation, useUpdateQuotationMutation,
@@ -117,6 +118,9 @@ export default function QuotationsPage() {
 function QuotationDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {
   const [tab, setTab] = useState("overview");
   const [editing, setEditing] = useState(false);
+  const [competitionExceptionReason, setCompetitionExceptionReason] = useState("");
+  const { hasPermission } = usePermissions();
+  const canOverrideCompetition = hasPermission(P.PROC_OVERRIDE_COMPETITION);
   const { data, isLoading, isError, refetch } = useGetQuotationQuery({ id: id!, entity }, { skip: id == null });
   const q = data?.data;
   const [submit] = useSubmitQuotationMutation();
@@ -134,7 +138,7 @@ function QuotationDrawer({ id, entity, currency, onClose }: { id: number | null;
       footer={q && <>
         {isDraft && <Can permission={P.PROC_UPDATE_QUOTATION}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
         {isDraft && <ActionButton label="Submit" permission={P.PROC_SUBMIT_QUOTATION} title="Submit this quotation?" description={`Records ${q.document_number} as a firm offer in contention for the RFQ.`} onConfirm={async () => { const r = await submit({ id: q.id, entity }).unwrap(); toast.success(r.message || "Quotation submitted."); }} />}
-        {canAward && <ActionButton label="Award" permission={P.PROC_AWARD_QUOTATION} title="Award this quotation?" description={`Awards ${q.document_number} and raises a draft purchase order from its lines. The other quotations on this RFQ will be rejected.`} onConfirm={async () => { const r = await award({ id: q.id, entity }).unwrap(); toast.success(r.message || "Quotation awarded."); onClose(); }} />}
+        {canAward && <ActionButton label="Award" permission={P.PROC_AWARD_QUOTATION} title="Award this quotation?" description={`Awards ${q.document_number} and raises a draft purchase order from its lines. Competitive minimums are checked before the other quotations are rejected.`} onConfirm={async () => { const r = await award({ id: q.id, entity, competition_exception_reason: competitionExceptionReason.trim() || undefined }).unwrap(); toast.success(r.message || "Quotation awarded."); setCompetitionExceptionReason(""); onClose(); }}>{canOverrideCompetition ? <label className="block font-mont text-xs font-semibold text-gray-01">Exception reason (only if below the bid minimum)<Textarea className="mt-2 min-h-20 bg-white font-mont text-sm" value={competitionExceptionReason} onChange={(event) => setCompetitionExceptionReason(event.target.value)} maxLength={1000} placeholder="Explain why award should proceed with limited competition" /><span className="mt-1 block font-normal leading-5 text-gray-05">The reason and submitted-bid count become part of the audit record.</span></label> : null}</ActionButton>}
         {q.awarded_po_id && <span className="inline-flex items-center gap-1.5 font-mont text-xs font-medium text-gray-05"><Lock className="size-3.5" /> Locked - awarded to {q.awarded_po_number}</span>}
       </>}
     >

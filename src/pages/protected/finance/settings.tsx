@@ -294,11 +294,12 @@ function BankingCashPolicy({ entityCode }: { entityCode: string | null }) {
   const payload = query.data?.data;
   return (
     <div className="space-y-5">
-      <SettingsSectionHeader title="Banking and cash policy" description="Set the defaults used when Finance automatically reconciles bank activity or allocates a receipt without an explicit strategy." />
+      <SettingsSectionHeader title="Banking and cash policy" description="Set reconciliation, receipt allocation and petty-cash alert defaults for the selected entity." />
       {!canView ? <SettingsPanel><SettingsRow icon={ShieldCheck} label="Finance settings are protected" description="You need Finance settings view permission to read banking policy." badge={<PolicyBadge kind="enforced">Permission required</PolicyBadge>} /></SettingsPanel> : query.isLoading || !payload ? <SettingsPanel><SettingsRow label="Loading banking policy" description="Reading the selected entity's reconciliation and allocation defaults." /></SettingsPanel> : <BankingCashForm key={`${entityCode}-${payload.settings.updated_at}`} entityCode={entityCode!} values={payload.settings} history={payload.history} canUpdate={canUpdate} />}
       <SettingsPanel title="How defaults are applied">
         <SettingsRow icon={RotateCcw} label="Explicit workbench choices win" description="A user-supplied reconciliation window, grouping choice, or receipt strategy overrides these defaults for that operation." badge={<PolicyBadge kind="enforced">Override allowed</PolicyBadge>} />
         <SettingsRow icon={ShieldCheck} label="Matching does not post new money" description="Automatic reconciliation links existing statement and ledger evidence. It does not create an adjusting journal unless a separate authorized action does so." badge={<PolicyBadge kind="enforced" />} />
+        <SettingsRow icon={CircleDollarSign} label="Petty cash remains GL-backed" description="The replenishment alert compares the saved threshold with live cash on hand from the ledger, not a manually edited balance." badge={<PolicyBadge kind="enforced" />} />
       </SettingsPanel>
     </div>
   );
@@ -308,13 +309,18 @@ function BankingCashForm({ entityCode, values, history, canUpdate }: { entityCod
   const [toleranceDays, setToleranceDays] = useState(String(values.default_bank_reconciliation_tolerance_days));
   const [groupMatches, setGroupMatches] = useState(values.default_group_reconciliation_matches);
   const [allocationStrategy, setAllocationStrategy] = useState(values.default_receipt_allocation_strategy);
+  const [pettyCashThreshold, setPettyCashThreshold] = useState(String(values.petty_cash_low_balance_threshold_bps / 100));
   const [update, state] = useUpdateFinanceBankingSettingsMutation();
   const toleranceValue = Number(toleranceDays);
-  const valid = toleranceDays.trim() !== "" && Number.isInteger(toleranceValue) && toleranceValue >= 0 && toleranceValue <= 30;
+  const pettyCashThresholdBps = Math.round(Number(pettyCashThreshold) * 100);
+  const valid = toleranceDays.trim() !== "" && pettyCashThreshold.trim() !== ""
+    && Number.isInteger(toleranceValue) && toleranceValue >= 0 && toleranceValue <= 30
+    && Number.isFinite(pettyCashThresholdBps) && pettyCashThresholdBps >= 0 && pettyCashThresholdBps <= 10000;
   const dirty = valid && (
     toleranceValue !== values.default_bank_reconciliation_tolerance_days
     || groupMatches !== values.default_group_reconciliation_matches
     || allocationStrategy !== values.default_receipt_allocation_strategy
+    || pettyCashThresholdBps !== values.petty_cash_low_balance_threshold_bps
   );
   const save = async () => {
     try {
@@ -323,18 +329,20 @@ function BankingCashForm({ entityCode, values, history, canUpdate }: { entityCod
         default_bank_reconciliation_tolerance_days: toleranceValue,
         default_group_reconciliation_matches: groupMatches,
         default_receipt_allocation_strategy: allocationStrategy,
+        petty_cash_low_balance_threshold_bps: pettyCashThresholdBps,
       }).unwrap();
       toast.success(response.message || "Finance banking policy saved.");
     } catch { /* Central API handling shows the actionable error. */ }
   };
   return <>
-    <SettingsPanel title="Reconciliation and allocation defaults" description="These values are used only when an operation does not supply its own choice.">
-      <div className="grid grid-cols-1 gap-4 px-4 py-4 sm:grid-cols-2 sm:px-5">
+    <SettingsPanel title="Banking and cash defaults" description="These values are used only when an operation or report does not supply its own choice.">
+      <div className="grid grid-cols-1 gap-4 px-4 py-4 sm:px-5 lg:grid-cols-3">
         <label className="font-mont text-xs font-semibold text-gray-01">Reconciliation date tolerance (days)<Input className="mt-2 bg-white" type="number" min="0" max="30" step="1" value={toleranceDays} onChange={(event) => setToleranceDays(event.target.value)} disabled={!canUpdate} /><span className="mt-1 block font-normal leading-5 text-gray-05">Allows automatic matching when statement and journal dates are this many days apart.</span></label>
         <label className="min-w-0 font-mont text-xs font-semibold text-gray-01">Default receipt allocation<select className="mt-2 h-10 w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm disabled:bg-gray-02" value={allocationStrategy} onChange={(event) => setAllocationStrategy(event.target.value as FinanceBankingSettingsValues["default_receipt_allocation_strategy"])} disabled={!canUpdate}><option value="oldest">Oldest due first</option><option value="largest">Largest balance first</option></select><span className="mt-1 block font-normal leading-5 text-gray-05">Applied when a receipt is automatically allocated without a user-selected order.</span></label>
+        <label className="font-mont text-xs font-semibold text-gray-01">Petty cash low-balance threshold (%)<Input className="mt-2 bg-white" type="number" min="0" max="100" step="0.01" value={pettyCashThreshold} onChange={(event) => setPettyCashThreshold(event.target.value)} disabled={!canUpdate} /><span className="mt-1 block font-normal leading-5 text-gray-05">Flags a fund for replenishment when live cash on hand reaches or falls below this share of its imprest float.</span></label>
       </div>
       <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5"><div><p className="font-mont text-sm font-medium text-gray-01">Allow grouped automatic matches</p><p className="mt-0.5 font-mont text-xs leading-5 text-gray-05">Lets one bank statement line match a uniquely determined group of ledger lines with the same total.</p></div><Switch checked={groupMatches} onCheckedChange={setGroupMatches} disabled={!canUpdate} aria-label="Allow grouped automatic matches" /></div>
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5"><p className="font-mont text-xs text-gray-05">{!valid ? "Use a whole number from 0 to 30 days." : canUpdate ? "Only effective changes are written to audit history." : "You have read-only access."}</p><Button onClick={save} disabled={!canUpdate || !dirty || !valid || state.isLoading}><Save className="mr-2 size-4" />{state.isLoading ? "Saving" : "Save banking policy"}</Button></div>
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5"><p className="font-mont text-xs text-gray-05">{!valid ? "Use 0 to 30 days and a threshold from 0 to 100%." : canUpdate ? "Only effective changes are written to audit history." : "You have read-only access."}</p><Button onClick={save} disabled={!canUpdate || !dirty || !valid || state.isLoading}><Save className="mr-2 size-4" />{state.isLoading ? "Saving" : "Save banking policy"}</Button></div>
     </SettingsPanel>
     <div className="mt-5"><SettingsAuditHistory rows={history} /></div>
   </>;
