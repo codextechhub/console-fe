@@ -69,7 +69,7 @@ function WorkspaceToaster({ sidebarState }: { sidebarState: SidebarState }) {
         {
           "--width": "380px",
           "--workspace-toast-center": getWorkspaceToastCenter(sidebarState),
-          zIndex: 40,
+          zIndex: 60,
         } as React.CSSProperties
       }
     />

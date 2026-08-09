@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { shouldExpandEntitySwitcher, shouldShowEntitySwitcher } from "./entity-select";
+import {
+  shouldExpandEntitySwitcher,
+  shouldShowEntitySwitcher,
+  shouldSuspendEntitySwitcher,
+} from "./entity-select";
 
 describe("entity switcher visibility", () => {
   it.each([
@@ -33,5 +37,26 @@ describe("entity switcher expansion", () => {
       focused: true,
       collapsedAfterSelection: true,
     })).toBe(false);
+  });
+});
+
+describe("entity switcher suspension", () => {
+  const resting = {
+    searchResultsOpen: false,
+    mobileSearchOpen: false,
+    activeToastCount: 0,
+  };
+
+  it("stays visible when no competing header overlay is active", () => {
+    expect(shouldSuspendEntitySwitcher(resting)).toBe(false);
+  });
+
+  it("gets out of the way while a workspace toast is active", () => {
+    expect(shouldSuspendEntitySwitcher({ ...resting, activeToastCount: 1 })).toBe(true);
+  });
+
+  it("also suspends for desktop and mobile search overlays", () => {
+    expect(shouldSuspendEntitySwitcher({ ...resting, searchResultsOpen: true })).toBe(true);
+    expect(shouldSuspendEntitySwitcher({ ...resting, mobileSearchOpen: true })).toBe(true);
   });
 });

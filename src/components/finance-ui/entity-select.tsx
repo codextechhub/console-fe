@@ -26,6 +26,18 @@ export function shouldShowEntitySwitcher(entityCount: number) {
   return entityCount > 1;
 }
 
+export function shouldSuspendEntitySwitcher({
+  searchResultsOpen,
+  mobileSearchOpen,
+  activeToastCount,
+}: {
+  searchResultsOpen: boolean;
+  mobileSearchOpen: boolean;
+  activeToastCount: number;
+}) {
+  return searchResultsOpen || mobileSearchOpen || activeToastCount > 0;
+}
+
 export function shouldExpandEntitySwitcher({
   open,
   hovered,

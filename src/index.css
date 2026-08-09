@@ -207,8 +207,8 @@
 }
 
 /* Global notifications - centered over the active work area, not the viewport.
-   Dashboard toasts sit one layer below the sticky header so their entrance
-   reads as a drop from the shell rather than a floating viewport alert. */
+   Dashboard toasts sit above the sticky header and temporarily suspend any
+   competing entity switcher while the notification is visible. */
 .workspace-toaster[data-sonner-toaster][data-x-position="center"] {
   left: var(--workspace-toast-center) !important;
 }

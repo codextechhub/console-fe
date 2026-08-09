@@ -32,7 +32,7 @@ import { setAuthContext, setImpersonation } from "@/redux/features/auth/auth-sli
 import { useEndImpersonationMutation } from "@/redux/services/dashboard/security-api";
 import { baseApi, runWithIdentitySwap } from "@/redux/services/base-api";
 import { authApi } from "@/redux/services/auth/auth-api";
-import { toast } from "sonner";
+import { toast, useSonner } from "sonner";
 import { clearSelectedEntity } from "@/redux/features/finance/entity-slice";
 import { useAcknowledgeNotificationRouteMutation } from "@/redux/services/notifications-api";
 import { isPrimaryShortcut, isPrimaryShiftShortcut } from "@/utils/keyboard-shortcuts";
@@ -51,7 +51,10 @@ import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { WorkspaceToaster } from "@/components/ui/sonner";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
 import { buildWorkspaceSearchRows, getWorkspaceSearchIdentityKey, isWorkspaceSearchSelf } from "./workspace-search-model";
-import { EntitySelect } from "@/components/finance-ui/entity-select";
+import {
+  EntitySelect,
+  shouldSuspendEntitySwitcher,
+} from "@/components/finance-ui/entity-select";
 
 function DashboardHeader({
   back,
@@ -78,6 +81,7 @@ function DashboardHeader({
   // match, grouped by console, in a scrollable box. Resets on each query change.
   const [resultsExpanded, setResultsExpanded] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const { toasts: activeToasts } = useSonner();
   const desktopSearchRef = useRef<HTMLInputElement>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
   const searchShortcutLabel = useMemo(
@@ -443,6 +447,11 @@ function DashboardHeader({
   );
 
   const showResults = resultsOpen && Boolean(search.trim());
+  const entitySwitcherSuspended = shouldSuspendEntitySwitcher({
+    searchResultsOpen: showResults,
+    mobileSearchOpen,
+    activeToastCount: activeToasts.length,
+  });
 
   const searchComboboxProps = (variant: "desktop" | "mobile") => ({
     role: "combobox" as const,
@@ -531,7 +540,7 @@ function DashboardHeader({
       <TopProgressBar />
       {showEntitySwitcher && (
         <div className="pointer-events-none absolute left-1/2 top-full z-40 mt-2 -translate-x-1/2">
-          <EntitySelect suspended={showResults || mobileSearchOpen} />
+          <EntitySelect suspended={entitySwitcherSuspended} />
         </div>
       )}
       <div className="inline-flex items-center gap-x-1 sm:gap-x-3">
