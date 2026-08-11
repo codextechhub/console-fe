@@ -19,22 +19,30 @@ import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { useAppSelector } from "@/redux/store";
 import {
   useCreateVendorInvoiceMutation, useGetPurchaseOrderQuery, useGetVendorInvoiceQuery,
   useGetVendorInvoiceSummaryQuery, useGetVendorInvoicesQuery,
+  useLazyCheckVendorInvoiceReferenceQuery,
   useMatchVendorInvoiceMutation, usePostVendorInvoiceMutation,
   useSubmitVendorInvoiceMutation, useUpdateVendorInvoiceMutation,
 } from "@/redux/services/procurement/procurement-api";
-import type { VendorInvoice } from "@/redux/services/procurement/procurement-types";
+import type {
+  VendorInvoice, VendorInvoiceReferenceCheck,
+} from "@/redux/services/procurement/procurement-types";
 import {
   useGetWorkflowInstanceQuery, useRecordWorkflowActionMutation,
 } from "@/redux/services/dashboard/workflow-api";
 import type { VoteAction } from "@/redux/services/dashboard/workflow-types";
 import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
+import { apiErrorMessage, apiFieldError } from "@/utils/api-errors";
 import { InvoiceVarianceOverrideAction } from "./procurement-action-gates";
 import { isBlockingInvoiceVariance } from "./invoice-action-model";
 import { ActivityFeed } from "./activity-feed";
@@ -200,12 +208,17 @@ function ActivityPanel({ invoice, workflow, name }: { invoice: VendorInvoice; wo
 
 type POLineDraft = { po_line: number; description: string; expense_account: string; quantity: number; unit_price: number };
 function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; currency?: string | null; initial?: VendorInvoice; onClose: () => void }) {
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [mode, setMode] = useState<"po" | "direct">(initial ? (initial.purchase_order_id ? "po" : "direct") : "po");
   const [vendor, setVendor] = useState(initial?.vendor_code || "");
   const [po, setPo] = useState(initial?.purchase_order_id ? String(initial.purchase_order_id) : "");
   const [invoiceDate, setInvoiceDate] = useState(initial?.invoice_date || "");
   const [dueDate, setDueDate] = useState(initial?.due_date || "");
   const [reference, setReference] = useState(initial?.vendor_reference || "");
+  const [referenceError, setReferenceError] = useState("");
+  const [referenceCheck, setReferenceCheck] = useState<VendorInvoiceReferenceCheck | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingSubmitAfter, setPendingSubmitAfter] = useState(false);
   const [narration, setNarration] = useState(initial?.narration || "");
   const [poLines, setPoLines] = useState<POLineDraft[]>(initial?.purchase_order_id ? initial.lines.map((line) => ({ po_line: line.po_line_id!, description: line.description, expense_account: line.expense_code, quantity: Number(line.quantity), unit_price: line.unit_price })) : []);
   const [directLines, setDirectLines] = useState<DocLine[]>(initial && !initial.purchase_order_id ? initial.lines.map((line) => ({ id: crypto.randomUUID(), description: line.description, quantity: Number(line.quantity), unitPriceKobo: line.unit_price, account: line.expense_code, taxCode: line.tax_code_id ? String(line.tax_code_id) : "", costCenter: "" })) : [emptyLine()]);
@@ -223,10 +236,39 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
   const [create, { isLoading: creating }] = useCreateVendorInvoiceMutation();
   const [update, { isLoading: updating }] = useUpdateVendorInvoiceMutation();
   const [submit, { isLoading: submitting }] = useSubmitVendorInvoiceMutation();
+  const [checkReference, { isFetching: checkingReference }] = useLazyCheckVendorInvoiceReferenceQuery();
+  useEffect(() => {
+    const trimmed = reference.trim();
+    if (!vendor || !trimmed) return;
+    let current = true;
+    const timer = window.setTimeout(async () => {
+      try {
+        const result = await checkReference({
+          entity,
+          vendor,
+          reference: trimmed,
+          ...(initial ? { exclude: initial.id } : {}),
+        }).unwrap();
+        if (!current) return;
+        setReferenceCheck(result.data);
+        if (result.data.same_vendor_duplicate) {
+          setReferenceError("This vendor invoice number is already recorded for the selected vendor.");
+        }
+      } catch (error) {
+        if (!current) return;
+        const fieldError = apiFieldError(error, "reference");
+        if (fieldError) setReferenceError(fieldError);
+      }
+    }, 350);
+    return () => {
+      current = false;
+      window.clearTimeout(timer);
+    };
+  }, [checkReference, entity, initial, reference, vendor]);
   const lines = mode === "po" ? poLines.map((line, index) => ({ ...line, line_no: index + 1 })) : toApiLines(directLines, "expense_account");
   const total = mode === "po" ? poLines.reduce((sum, line) => sum + Math.round(line.quantity * line.unit_price), 0) : directLines.reduce((sum, line) => sum + Math.round(Number(line.quantity || 0) * Number(line.unitPriceKobo || 0)), 0);
   const saving = creating || updating || submitting;
-  const canSave = !!vendor && !!invoiceDate && !!reference.trim() && lines.length > 0 && (mode === "direct" || !!po) && total > 0;
+  const canSave = !!vendor && !!invoiceDate && !!reference.trim() && !referenceError && lines.length > 0 && (mode === "direct" || !!po) && total > 0;
   // Open-to-invoice position, straight off the PO's running received/invoiced
   // totals - so AP bills against one figure instead of hunting through receipts.
   const poLineById = source ? new Map(source.lines.map((l) => [l.id, l])) : null;
@@ -235,21 +277,92 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
     invoiced: source.lines.reduce((s, l) => s + Math.round(Number(l.invoiced_qty) * l.unit_price), 0),
     open: source.lines.reduce((s, l) => s + Math.round(Math.max(0, Number(l.received_qty) - Number(l.invoiced_qty)) * l.unit_price), 0),
   } : null;
-  const save = async (submitAfter: boolean) => {
+  const save = async (submitAfter: boolean, confirmed = false) => {
     if (!canSave) return;
-    const body = { vendor, purchase_order: mode === "po" ? Number(po) : null, invoice_date: invoiceDate, due_date: dueDate || undefined, vendor_reference: reference.trim(), narration: narration.trim(), lines };
     try {
-      const result = initial ? await update({ id: initial.id, entity, ...body }).unwrap() : await create({ entity, ...body, purchase_order: body.purchase_order || undefined }).unwrap();
+      const checked = await checkReference({
+        entity,
+        vendor,
+        reference: reference.trim(),
+        ...(initial ? { exclude: initial.id } : {}),
+      }).unwrap();
+      setReferenceCheck(checked.data);
+      if (checked.data.same_vendor_duplicate) {
+        setReferenceError("This vendor invoice number is already recorded for the selected vendor.");
+        return;
+      }
+      if (checked.data.other_vendor_match_count > 0 && !confirmed) {
+        setPendingSubmitAfter(submitAfter);
+        setConfirmOpen(true);
+        return;
+      }
+    } catch (error) {
+      const fieldError = apiFieldError(error, "reference");
+      if (fieldError) {
+        setReferenceError(fieldError);
+        return;
+      }
+      // The create or update endpoint repeats the authoritative check, so a
+      // transient advisory-check failure must not discard an otherwise valid form.
+    }
+    try {
+      const body = {
+        vendor,
+        purchase_order: mode === "po" ? Number(po) : null,
+        invoice_date: invoiceDate,
+        due_date: dueDate || undefined,
+        vendor_reference: reference.trim(),
+        narration: narration.trim(),
+        confirm_cross_vendor_reference: confirmed,
+        lines,
+      };
+      const result = initial
+        ? await update({ id: initial.id, entity, ...body }).unwrap()
+        : await create({
+            entity,
+            idempotency_key: idempotencyKey,
+            ...body,
+            purchase_order: body.purchase_order || undefined,
+          }).unwrap();
       if (submitAfter) await submit({ id: result.data.id, entity }).unwrap();
       toast.success(submitAfter ? "Vendor invoice created and submitted." : initial ? "Vendor invoice updated." : "Vendor invoice saved as draft.");
       onClose();
-    } catch { /* central */ }
+    } catch (error) {
+      const fieldError = apiFieldError(error, "vendor_reference");
+      if (fieldError) {
+        if (fieldError.includes("another vendor")) {
+          setReferenceError("");
+          try {
+            const checked = await checkReference({
+              entity,
+              vendor,
+              reference: reference.trim(),
+              ...(initial ? { exclude: initial.id } : {}),
+            }).unwrap();
+            setReferenceCheck(checked.data);
+            if (checked.data.other_vendor_match_count > 0) {
+              setPendingSubmitAfter(submitAfter);
+              setConfirmOpen(true);
+            }
+          } catch {
+            setReferenceError(fieldError);
+          }
+        } else {
+          setReferenceError(fieldError);
+        }
+        return;
+      }
+      toast.error(apiErrorMessage(error, "The vendor invoice could not be saved."));
+    }
   };
-  return <DetailDrawer open onOpenChange={(open) => !saving && !open && onClose()} title={initial ? "Edit Vendor Invoice" : "Record Invoice"} description={initial ? "Update this unsubmitted draft; its prior match will be cleared." : "Capture a supplier bill for matching and approval."} widthClass="sm:max-w-[720px]" footer={<><Button variant="outline" disabled={saving} onClick={onClose}>Cancel</Button><Button variant="outline" disabled={!canSave} loading={creating || updating} onClick={() => save(false)}>Save Draft</Button>{!initial && <Button disabled={!canSave} loading={saving} onClick={() => save(true)}>Create & Submit</Button>}</>}>
+  const otherMatches = referenceCheck?.other_vendor_matches || [];
+  return <>
+  <DetailDrawer open onOpenChange={(open) => !saving && !open && onClose()} title={initial ? "Edit Vendor Invoice" : "Record Invoice"} description={initial ? "Update this unsubmitted draft; its prior match will be cleared." : "Capture a supplier bill for matching and approval."} widthClass="sm:max-w-[720px]" footer={<><Button variant="outline" disabled={saving} onClick={onClose}>Cancel</Button><Button variant="outline" disabled={!canSave} loading={creating || updating} onClick={() => save(false)}>Save Draft</Button>{!initial && <Button disabled={!canSave} loading={saving} onClick={() => save(true)}>Create & Submit</Button>}</>}>
     <div className="space-y-5">
       <div className="grid grid-cols-2 rounded-md bg-gray-100 p-1">{(["po", "direct"] as const).map((value) => <button key={value} onClick={() => { setMode(value); if (value === "direct") setPo(""); }} className={cn("rounded px-3 py-2 font-mont text-xs font-medium", mode === value ? "bg-white text-primary shadow-sm" : "text-gray-05")}>{value === "po" ? "PO-backed invoice" : "Direct invoice"}</button>)}</div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={setVendor} disabled={mode === "po" && !!source} /></FormField>{mode === "po" && <FormField label="Purchase order" required><PurchaseOrderPicker entity={entity} value={po} onChange={setPo} placeholder="Select a received PO" /></FormField>}</div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><FormField label="Vendor invoice #" required><Input value={reference} onChange={(event) => setReference(event.target.value)} className="bg-white" /></FormField><PostingDateField label="Invoice date" entity={entity} value={invoiceDate} onChange={setInvoiceDate} /><FormField label="Due date"><Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="bg-white" /></FormField></div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={(value) => { setVendor(value); setReferenceError(""); setReferenceCheck(null); }} disabled={mode === "po" && !!source} /></FormField>{mode === "po" && <FormField label="Purchase order" required><PurchaseOrderPicker entity={entity} value={po} onChange={setPo} placeholder="Select a received PO" /></FormField>}</div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><FormField label="Vendor invoice #" required><div><Input value={reference} onChange={(event) => { setReference(event.target.value); setReferenceError(""); setReferenceCheck(null); }} aria-invalid={!!referenceError} className={cn("bg-white", referenceError && "border-red-500 focus-visible:ring-red-200")} />{checkingReference && <p className="mt-1 font-mont text-[11px] text-gray-05">Checking this number...</p>}{referenceError && <p role="alert" className="mt-1 font-mont text-[11px] font-medium text-red-600">{referenceError}</p>}</div></FormField><PostingDateField label="Invoice date" entity={entity} value={invoiceDate} onChange={setInvoiceDate} /><FormField label="Due date"><Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="bg-white" /></FormField></div>
+      {otherMatches.length > 0 && <section className="rounded-md border border-amber-300 bg-amber-50 p-3" aria-label="Invoice number warning"><div className="flex items-start gap-2"><AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-700" /><div className="min-w-0"><p className="font-mont text-xs font-semibold text-amber-900">This invoice number is used by another vendor</p><p className="mt-1 font-mont text-[11px] text-amber-800">Review the existing record. You will need to confirm before this invoice can be saved.</p></div></div><div className="mt-3 space-y-2">{otherMatches.map((match) => <div key={match.id} className="grid grid-cols-1 gap-1 rounded border border-amber-200 bg-white px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center sm:gap-3"><div className="min-w-0"><p className="truncate font-mont text-xs font-semibold text-gray-01">{match.vendor_name}</p><p className="font-mont text-[11px] text-gray-05">{match.vendor_code} · {match.document_number}</p></div><span className="font-mont text-[11px] text-gray-05">{shortDate(match.invoice_date)}</span><span className="font-mont text-xs font-semibold tabular-nums">{formatMoney(match.total, currency)}</span><StatusPill status={match.status} /></div>)}{(referenceCheck?.other_vendor_match_count || 0) > otherMatches.length && <p className="font-mont text-[11px] text-amber-800">Plus {(referenceCheck?.other_vendor_match_count || 0) - otherMatches.length} more matching invoice(s).</p>}</div></section>}
       <FormField label="Narration"><Textarea value={narration} onChange={(event) => setNarration(event.target.value)} className="bg-white" /></FormField>
       {mode === "po" ? <div className="space-y-3">
         {poPosition && <div className="grid grid-cols-3 gap-2 rounded-md border border-primary/15 bg-primary/5 p-3">
@@ -273,5 +386,18 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
       </div> : <LineEditor entity={entity} lines={directLines} onChange={setDirectLines} accountLabel="Expense account" accountType="EXPENSE" currency={currency} showCostCenter={false} taxUsage="purchase" />}
       <PostingRecap title="Live posting preview" currency={currency} dr={[{ code: mode === "po" ? "GR/IR" : "Expense", name: mode === "po" ? "Goods received / invoice received" : "Direct purchase expense", amount: total }]} cr={[{ code: "AP", name: "Accounts payable", amount: total }]} helper="Tax, when selected on a direct line, is priced by the server and shown on the saved draft." />
     </div>
-  </DetailDrawer>;
+  </DetailDrawer>
+  <AlertDialog open={confirmOpen} onOpenChange={(open) => !saving && setConfirmOpen(open)}>
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Use this invoice number again?</AlertDialogTitle>
+        <AlertDialogDescription>This number already belongs to {referenceCheck?.other_vendor_match_count || 0} invoice(s) from another vendor. Confirm that you checked the supplier and supporting document before continuing.</AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel disabled={saving}>Go back and review</AlertDialogCancel>
+        <AlertDialogAction disabled={saving} onClick={() => { setConfirmOpen(false); void save(pendingSubmitAfter, true); }}>Confirm and continue</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+  </>;
 }

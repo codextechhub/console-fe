@@ -21,6 +21,7 @@ import type {
   VendorCategoryInsight,
   VendorInsights,
   VendorInvoice,
+  VendorInvoiceReferenceCheck,
   VendorInvoiceSummary,
   VendorPayment,
   VendorPaymentEligibleInvoice,
@@ -210,12 +211,23 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ entity }) => ({ url: `/procurement/vendor-invoices/summary/${qs({ entity })}`, method: "GET" }),
       providesTags: ["ProcVendorInvoices"],
     }),
-    createVendorInvoice: b.mutation<ApiEnvelope<VendorInvoice>, { entity: string; vendor: string; purchase_order?: number; invoice_date: string; due_date?: string; vendor_reference?: string; lines: Record<string, unknown>[] }>({
-      query: ({ entity, ...body }) => ({ url: `/procurement/vendor-invoices/${qs({ entity })}`, method: "POST", body }),
+    checkVendorInvoiceReference: b.query<ApiEnvelope<VendorInvoiceReferenceCheck>, { entity: string; vendor: string; reference: string; exclude?: number }>({
+      query: (p) => ({ url: `/procurement/vendor-invoices/reference-check/${qs(p)}`, method: "GET" }),
+      extraOptions: { inlineValidation: true, silent: true },
+    }),
+    createVendorInvoice: b.mutation<ApiEnvelope<VendorInvoice>, { entity: string; idempotency_key: string; vendor: string; purchase_order?: number; invoice_date: string; due_date?: string; vendor_reference?: string; narration?: string; confirm_cross_vendor_reference?: boolean; lines: Record<string, unknown>[] }>({
+      query: ({ entity, idempotency_key, ...body }) => ({
+        url: `/procurement/vendor-invoices/${qs({ entity })}`,
+        method: "POST",
+        headers: { "Idempotency-Key": idempotency_key },
+        body,
+      }),
+      extraOptions: { inlineValidation: true },
       invalidatesTags: ["ProcVendorInvoices"],
     }),
-    updateVendorInvoice: b.mutation<ApiEnvelope<VendorInvoice>, { id: number; entity: string; vendor?: string; purchase_order?: number | null; invoice_date?: string; due_date?: string; vendor_reference?: string; narration?: string; lines?: Record<string, unknown>[] }>({
+    updateVendorInvoice: b.mutation<ApiEnvelope<VendorInvoice>, { id: number; entity: string; vendor?: string; purchase_order?: number | null; invoice_date?: string; due_date?: string; vendor_reference?: string; narration?: string; confirm_cross_vendor_reference?: boolean; lines?: Record<string, unknown>[] }>({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/vendor-invoices/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      extraOptions: { inlineValidation: true },
       invalidatesTags: ["ProcVendorInvoices"],
     }),
     matchVendorInvoice: b.mutation<ApiEnvelope<VendorInvoice>, Act>({
@@ -314,6 +326,7 @@ export const {
   useGetVendorInvoicesQuery,
   useGetVendorInvoiceQuery,
   useGetVendorInvoiceSummaryQuery,
+  useLazyCheckVendorInvoiceReferenceQuery,
   useCreateVendorInvoiceMutation,
   useUpdateVendorInvoiceMutation,
   useMatchVendorInvoiceMutation,

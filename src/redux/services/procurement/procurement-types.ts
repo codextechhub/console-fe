@@ -378,6 +378,22 @@ export interface VendorInvoiceSummary {
   disputed: { count: number };
 }
 
+export interface VendorInvoiceReferenceMatch {
+  id: number;
+  document_number: string;
+  vendor_code: string;
+  vendor_name: string;
+  invoice_date: string;
+  total: number;
+  status: string;
+}
+
+export interface VendorInvoiceReferenceCheck {
+  same_vendor_duplicate: VendorInvoiceReferenceMatch | null;
+  other_vendor_matches: VendorInvoiceReferenceMatch[];
+  other_vendor_match_count: number;
+}
+
 export interface VendorPaymentAllocation {
   id: number;
   vendor_invoice_id: number;
