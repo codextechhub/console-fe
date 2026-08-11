@@ -100,7 +100,10 @@ export default function FinanceSettings() {
         {activeSection === "overview" ? <Overview entity={active.entity} /> : null}
         {activeSection === "entities" ? <Entities /> : null}
         {activeSection === "fiscal-calendar" ? <FiscalCalendar entity={active.entity} /> : null}
-        {activeSection === "accounting" ? <AccountingDefaults entityCode={active.code} /> : null}
+        {/* Keyed on the entity: unsaved mapping edits are per-entity, so switching
+            the active entity must discard them rather than carry them across and
+            offer to save one entity's account map into another's books. */}
+        {activeSection === "accounting" ? <AccountingDefaults key={active.code ?? "no-entity"} entityCode={active.code} /> : null}
         {activeSection === "documents" ? <DocumentSettings entityCode={active.code} /> : null}
         {activeSection === "banking-cash" ? <BankingCashPolicy entityCode={active.code} /> : null}
         {activeSection === "reference-data" ? <ReferenceData /> : null}

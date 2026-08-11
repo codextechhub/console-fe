@@ -496,6 +496,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       childActive: false,
       // Visible with any config.* view key; the page itself shows only the
       // tabs the user can read and falls back to PageAccessDenied without any.
+      // Keep this list a superset of the page's own hasAnyPermission check in
+      // src/pages/protected/settings/index.tsx - a key the page admits but the
+      // nav omits leaves the holder able to reach Settings only by URL.
       permission: [
         P.VIEW_CONFIG_VALUES,
         P.VIEW_CONFIG_DEFINITIONS,
@@ -503,6 +506,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         P.VIEW_ENTITLEMENTS,
         P.VIEW_CONFIG_OVERRIDES,
         P.VIEW_CONFIG_AUDIT,
+        P.VIEW_SECURITY_SETTINGS,
+        P.VIEW_INTEGRATION_SETTINGS,
       ] as PermissionCode[],
       permissionMode: "any" as const,
     },
