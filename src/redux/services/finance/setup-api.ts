@@ -123,7 +123,7 @@ export const setupApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/tax-codes/${qs(p)}`, method: "GET" }),
       providesTags: ["FinanceSetup"],
     }),
-    createTaxCode: b.mutation<ApiEnvelope<TaxCode>, { entity: string; code: string; name: string; rate_bps: number; is_recoverable?: boolean; collected_account?: string; paid_account?: string }>({
+    upsertTaxCode: b.mutation<ApiEnvelope<TaxCode>, { entity: string; code: string; name: string; rate_bps: number; is_recoverable?: boolean; collected_account?: string; paid_account?: string; is_active?: boolean }>({
       query: ({ entity, ...body }) => ({ url: `/finance/tax-codes/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceSetup"],
     }),
@@ -210,7 +210,7 @@ export const {
   useGetCurrenciesQuery,
   useCreateFxRateMutation,
   useGetTaxCodesQuery,
-  useCreateTaxCodeMutation,
+  useUpsertTaxCodeMutation,
   useGetCostCentersQuery,
   useCreateCostCenterMutation,
   useGetDimensionsQuery,

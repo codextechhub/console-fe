@@ -7,12 +7,13 @@ import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { DataTable, StatusPill, FormDrawer, FormField, AccountPicker, toArray, type Column } from "@/components/finance-ui";
-import { Can } from "@/components/finance-ui/can";
+import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { P } from "@/permissions";
-import { useGetTaxCodesQuery, useCreateTaxCodeMutation } from "@/redux/services/finance/setup-api";
+import { useGetTaxCodesQuery, useUpsertTaxCodeMutation } from "@/redux/services/finance/setup-api";
 import type { TaxCode } from "@/redux/services/finance/setup-types";
+import { taxCodeFormValues, taxCodeUpsertPayload } from "./tax-code-form";
 
 const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 const taxType = (code: string) => (code.split(/[-_ ]/)[0] || code).toUpperCase();
@@ -20,9 +21,12 @@ const taxType = (code: string) => (code.split(/[-_ ]/)[0] || code).toUpperCase()
 export function TaxCodesTab({ entity }: { entity: string }) {
   const { data, isLoading, isFetching, isError, refetch } = useGetTaxCodesQuery({ entity });
   const codes = toArray<TaxCode>(data?.data);
+  const { can } = useCan();
+  const canEdit = can(P.FIN_CREATE_TAX_CODE);
   const [type, setType] = useState("");
   const [creating, setCreating] = useState(false);
-  useActionParam("new", () => setCreating(true));
+  const [editing, setEditing] = useState<TaxCode | null>(null);
+  useActionParam("new", () => { if (canEdit) setCreating(true); });
 
   const types = useMemo(() => [...new Set(codes.map((c) => taxType(c.code)))].sort(), [codes]);
   const rows = useMemo(() => codes.filter((c) => !type || taxType(c.code) === type), [codes, type]);
@@ -40,7 +44,7 @@ export function TaxCodesTab({ entity }: { entity: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <select value={type} onChange={(e) => setType(e.target.value)} className={selectCls} aria-label="Tax type">
           <option value="">All types</option>
           {types.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -52,52 +56,63 @@ export function TaxCodesTab({ entity }: { entity: string }) {
 
       <DataTable columns={columns} rows={rows} rowKey={(t) => t.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch}
+        onRowClick={canEdit ? setEditing : undefined}
+        cardBreakpoint="lg"
         emptyTitle="No tax codes" emptyMessage="VAT / WHT and other tax codes will appear here." />
 
-      <NewTaxCodeModal open={creating} onClose={() => setCreating(false)} entity={entity} />
+      {(creating || editing) && (
+        <TaxCodeModal key={editing?.id ?? "new"} existing={editing} entity={entity}
+          onClose={() => { setCreating(false); setEditing(null); }} />
+      )}
     </div>
   );
 }
 
-function NewTaxCodeModal({ open, onClose, entity }: { open: boolean; onClose: () => void; entity: string }) {
-  const [create, { isLoading }] = useCreateTaxCodeMutation();
-  const [code, setCode] = useState("");
-  const [name, setName] = useState("");
-  const [pct, setPct] = useState("");
-  const [recoverable, setRecoverable] = useState(true);
-  const [collected, setCollected] = useState("");
-  const [paid, setPaid] = useState("");
+function TaxCodeModal({ existing, onClose, entity }: { existing: TaxCode | null; onClose: () => void; entity: string }) {
+  const [upsert, { isLoading }] = useUpsertTaxCodeMutation();
+  const initial = taxCodeFormValues(existing);
+  const [code, setCode] = useState(initial.code);
+  const [name, setName] = useState(initial.name);
+  const [pct, setPct] = useState(initial.percentage);
+  const [recoverable, setRecoverable] = useState(initial.recoverable);
+  const [collected, setCollected] = useState(initial.collectedAccount);
+  const [paid, setPaid] = useState(initial.paidAccount);
+  const [active, setActive] = useState(initial.active);
+
   const canSubmit = code.trim() !== "" && name.trim() !== "" && pct !== "" && Number(pct) >= 0;
 
   const submit = async () => {
     try {
-      const r = await create({
-        entity, code: code.trim().toUpperCase(), name: name.trim(),
-        rate_bps: Math.round(Number(pct) * 100), is_recoverable: recoverable,
-        collected_account: collected || undefined, paid_account: paid || undefined,
-      }).unwrap();
+      const r = await upsert(taxCodeUpsertPayload(entity, {
+        code, name, percentage: pct, recoverable,
+        collectedAccount: collected, paidAccount: paid, active,
+      })).unwrap();
       toast.success(r.message || "Tax code saved.");
-      setCode(""); setName(""); setPct(""); setCollected(""); setPaid("");
       onClose();
     } catch { /* central */ }
   };
 
   return (
-    <FormDrawer open={open} onOpenChange={(o) => !o && onClose()} title="New tax code"
+    <FormDrawer open onOpenChange={(o) => !o && onClose()} title={existing ? `Edit ${existing.code}` : "New tax code"}
       description="Define a rate and the GL accounts it books to." onSubmit={submit}
       loading={isLoading} canSubmit={canSubmit} widthClass="sm:max-w-lg">
-      <div className="grid grid-cols-2 gap-3">
-        <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. VAT-7.5" className="bg-white font-mont" /></FormField>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <FormField label="Code" required><Input value={code} onChange={(e) => setCode(e.target.value)} disabled={!!existing} placeholder="e.g. VAT-7.5" className="bg-white font-mont" /></FormField>
         <FormField label="Rate (%)" required><Input value={pct} onChange={(e) => setPct(e.target.value)} type="number" step="0.01" placeholder="7.5" className="bg-white font-mont" /></FormField>
       </div>
       <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="VAT 7.5%" className="bg-white" /></FormField>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField label="Collected a/c (output)"><AccountPicker entity={entity} value={collected} onChange={setCollected} placeholder="None" /></FormField>
         <FormField label="Paid a/c (input)"><AccountPicker entity={entity} value={paid} onChange={setPaid} placeholder="None" /></FormField>
       </div>
-      <label className="flex items-center gap-2 font-mont text-sm text-gray-01">
-        <input type="checkbox" checked={recoverable} onChange={(e) => setRecoverable(e.target.checked)} /> Recoverable (input tax offsets output)
-      </label>
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 font-mont text-sm text-gray-01">
+          <input type="checkbox" checked={recoverable} onChange={(e) => setRecoverable(e.target.checked)} className="accent-primary" /> Recoverable (input tax offsets output)
+        </label>
+        <label className="flex items-center gap-2 font-mont text-sm text-gray-01">
+          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="accent-primary" /> Active
+        </label>
+      </div>
     </FormDrawer>
   );
 }
