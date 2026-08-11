@@ -2,7 +2,6 @@
 // Sourcing section (RFQs + Quotations). Kept here so both pages stay lean and the
 // competitive-comparison logic lives in one place.
 import { useEffect, useState } from "react";
-import { formatDistanceToNowStrict } from "date-fns";
 import { Award, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,7 +16,7 @@ import {
   useAwardQuotationMutation,
 } from "@/redux/services/procurement/procurement-ext-api";
 import type {
-  Quotation, QuotationDetail, RfqDetail, SourcingActivity,
+  Quotation, QuotationDetail, RfqDetail,
 } from "@/redux/services/procurement/procurement-types";
 import { toArray } from "@/components/finance-ui";
 import { formatMoney } from "@/utils/money";
@@ -50,21 +49,7 @@ export function ExpiredPill() {
   );
 }
 
-export function ActivityFeed({ activity }: { activity?: SourcingActivity[] }) {
-  if (!activity?.length) return <EmptyPanel>No activity has been recorded yet.</EmptyPanel>;
-  return (
-    <div className="divide-y divide-gray-03">
-      {activity.map((log) => (
-        <div key={log.id} className="py-3 first:pt-0">
-          <p className="font-mont text-sm font-medium">{log.message || log.action.replaceAll("_", " ").toLowerCase()}</p>
-          <p className="mt-1 font-mont text-xs text-gray-05">
-            {log.actor_name || "System"} · {formatDistanceToNowStrict(new Date(log.created_at), { addSuffix: true })}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
-}
+export { ActivityFeed } from "../activity-feed";
 
 // ── Compare modal ─────────────────────────────────────────────────────────────
 // Centered wide modal (the prototype shows one). Pick an RFQ that has ≥1 received

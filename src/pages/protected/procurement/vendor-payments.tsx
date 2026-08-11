@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
-import { formatDistanceToNowStrict } from "date-fns";
 import {
   Banknote, Check, ChevronRight, FilePenLine, FileText, History, ListChecks,
   Plus, Printer, ReceiptText, RotateCcw, Send, Undo2, X,
@@ -38,6 +37,7 @@ import {
 import type { VoteAction } from "@/redux/services/dashboard/workflow-types";
 import { useAppSelector } from "@/redux/store";
 import { formatMoney } from "@/utils/money";
+import { ActivityFeed } from "./activity-feed";
 
 const DETAIL_TABS = [
   ["overview", "Overview", FileText], ["invoices", "Invoices", ListChecks],
@@ -171,8 +171,7 @@ function PaymentPosting({ payment, currency }: { payment: VendorPayment; currenc
 }
 
 function PaymentActivity({ payment, workflow, name }: { payment: VendorPayment; workflow: ReturnType<typeof useGetWorkflowInstanceQuery>["data"]; name: (id: string | number | null | undefined) => string }) {
-  const workflowLogs = (workflow?.audit_logs || []) as Array<{ id: string; message: string; event_type: string; actor: string | number | null; occurred_at: string }>;
-  return <div className="divide-y divide-gray-03"><div className="py-3 first:pt-0"><p className="font-mont text-sm font-medium">Payment draft created</p><p className="mt-1 font-mont text-xs text-gray-05">{payment.created_by_name} · {formatDistanceToNowStrict(new Date(payment.created_at), { addSuffix: true })}</p></div>{workflowLogs.map((log) => <div key={log.id} className="py-3"><p className="font-mont text-sm font-medium">{log.message || log.event_type.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 font-mont text-xs text-gray-05">{log.actor ? name(log.actor) : "System"} · {formatDistanceToNowStrict(new Date(log.occurred_at), { addSuffix: true })}</p></div>)}{payment.activity?.map((log) => <div key={`finance-${log.id}`} className="py-3"><p className="font-mont text-sm font-medium">{log.message || log.action.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 font-mont text-xs text-gray-05">{log.actor_name || "System"} · {formatDistanceToNowStrict(new Date(log.created_at), { addSuffix: true })}</p></div>)}</div>;
+  return <ActivityFeed workflowLogs={workflow?.audit_logs} activity={payment.activity} resolveActorName={name} created={{ key: `payment-created-${payment.id}`, message: "Payment draft created", actorName: payment.created_by_name, occurredAt: payment.created_at }} />;
 }
 
 function PaymentForm({ entity, currency, initial, onClose }: { entity: string; currency?: string | null; initial?: VendorPayment; onClose: () => void }) {

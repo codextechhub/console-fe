@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
-import { formatDistanceToNowStrict } from "date-fns";
 import {
   AlertTriangle, Check, ChevronRight, CircleDollarSign, Clock3, FilePenLine,
   FileText, History, List, Plus, Printer, RotateCcw, Search, Send, X,
@@ -38,6 +37,7 @@ import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
 import { InvoiceVarianceOverrideAction } from "./procurement-action-gates";
 import { isBlockingInvoiceVariance } from "./invoice-action-model";
+import { ActivityFeed } from "./activity-feed";
 
 const TABS = [
   ["All", ""], ["Draft", "DRAFT"], ["Under Review", "PENDING_APPROVAL"],
@@ -195,9 +195,7 @@ function MatchPanel({ invoice, currency }: { invoice: VendorInvoice; currency?: 
 }
 
 function ActivityPanel({ invoice, workflow, name }: { invoice: VendorInvoice; workflow: ReturnType<typeof useGetWorkflowInstanceQuery>["data"]; name: (id: string | number | null | undefined) => string }) {
-  const workflowLogs = (workflow?.audit_logs || []) as Array<{ id: string; message: string; event_type: string; actor: string | number | null; occurred_at: string }>;
-  if (!workflowLogs.length && !invoice.activity?.length) return <EmptyPanel>No approval or posting activity has been recorded yet.</EmptyPanel>;
-  return <div className="divide-y divide-gray-03">{workflowLogs.map((log) => <div key={log.id} className="py-3 first:pt-0"><p className="font-mont text-sm font-medium">{log.message || log.event_type.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 font-mont text-xs text-gray-05">{log.actor ? name(log.actor) : "System"} · {formatDistanceToNowStrict(new Date(log.occurred_at), { addSuffix: true })}</p></div>)}{invoice.activity?.map((log) => <div key={`finance-${log.id}`} className="py-3"><p className="font-mont text-sm font-medium">{log.message || log.action.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 font-mont text-xs text-gray-05">{log.actor_name || "System"} · {formatDistanceToNowStrict(new Date(log.created_at), { addSuffix: true })}</p></div>)}</div>;
+  return <ActivityFeed workflowLogs={workflow?.audit_logs} activity={invoice.activity} resolveActorName={name} emptyMessage="No approval or posting activity has been recorded yet." />;
 }
 
 type POLineDraft = { po_line: number; description: string; expense_account: string; quantity: number; unit_price: number };
