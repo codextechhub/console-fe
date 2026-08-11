@@ -29,6 +29,7 @@ export interface SchoolPrimaryAdmin {
 }
 
 export interface Branch {
+  id: number
   code: number
   school_slug: string
   name: string

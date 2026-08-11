@@ -189,6 +189,12 @@ export interface FinanceAuditLog {
   created_at: string;
 }
 
+export interface SettingConsumer {
+  service: string;
+  consumer: string;
+  impact: string;
+}
+
 export interface FinanceAccountMapping {
   key: string;
   label: string;
@@ -201,6 +207,7 @@ export interface FinanceAccountMapping {
 
 export interface FinanceAccountSettings {
   mappings: FinanceAccountMapping[];
+  consumers: Record<string, SettingConsumer>;
   account_options: Pick<Account, "id" | "code" | "name" | "account_type">[];
   history: FinanceAuditLog[];
 }
@@ -225,6 +232,7 @@ export interface FinanceDocumentSettingsValues {
 
 export interface FinanceDocumentSettingsPayload {
   settings: FinanceDocumentSettingsValues;
+  consumers: Record<string, SettingConsumer>;
   history: FinanceAuditLog[];
 }
 
@@ -240,6 +248,7 @@ export interface FinanceBankingSettingsValues {
 
 export interface FinanceBankingSettingsPayload {
   settings: FinanceBankingSettingsValues;
+  consumers: Record<string, SettingConsumer>;
   history: FinanceAuditLog[];
 }
 

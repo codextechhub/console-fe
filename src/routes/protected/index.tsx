@@ -38,6 +38,7 @@ export const protectedRoutes = [
       { path: routesPath.PROTECTED.NOTIFICATIONS, element: <Notifications />, handle: { title: "Notifications" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.NOTIFICATIONS_ADMIN, element: <NotificationsAdmin />, handle: { title: "Notifications" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.SETTINGS.INDEX, element: <Settings />, handle: { title: "Settings" } satisfies DashboardHandle },
+      { path: `${routesPath.PROTECTED.SETTINGS.INDEX}/:section`, element: <Settings />, handle: { title: "Settings" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.SUPPORT.INDEX, element: <Support />, handle: { title: "Support" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.SUPPORT.TICKETS, element: <Support />, handle: { title: "Support" } satisfies DashboardHandle },
       // Deep-linkable "new ticket": the Support page with the composer already open.

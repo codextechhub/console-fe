@@ -129,7 +129,12 @@ const REGISTRY: Record<string, string> = {
   "900501": "config.override.view",
   "900508": "config.override.manage",
   "900601": "config.audit.view",
+  "900606": "config.audit.export",
   "900702": "config.export.create",
+  "900801": "config.security.view",
+  "900808": "config.security.manage",
+  "900901": "config.integration.view",
+  "900908": "config.integration.manage",
 
   // ── support tickets  (MM=91) ──────────────────────────────────────────────
   "910101": "tickets.ticket.view",
@@ -541,7 +546,9 @@ export const P = {
   VIEW_CAPABILITIES: "900301", MANAGE_CAPABILITIES: "900308",
   VIEW_ENTITLEMENTS: "900401", MANAGE_ENTITLEMENTS: "900408",
   VIEW_CONFIG_OVERRIDES: "900501", MANAGE_CONFIG_OVERRIDES: "900508",
-  VIEW_CONFIG_AUDIT: "900601", EXPORT_CONFIG: "900702",
+  VIEW_CONFIG_AUDIT: "900601", EXPORT_CONFIG_AUDIT: "900606", EXPORT_CONFIG: "900702",
+  VIEW_SECURITY_SETTINGS: "900801", MANAGE_SECURITY_SETTINGS: "900808",
+  VIEW_INTEGRATION_SETTINGS: "900901", MANAGE_INTEGRATION_SETTINGS: "900908",
 
   // ── Export Centre ──────────────────────────────────────────────────────────
   // Whole-console visibility uses VIEW_EXPORT_RUNS: seeing the Files list is the

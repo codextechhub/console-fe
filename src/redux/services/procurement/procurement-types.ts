@@ -682,7 +682,7 @@ export interface StockValuationReport {
   rows: StockValuationRow[];
   total_value: number;
 }
-import type { FinanceAuditLog } from "../finance/setup-types";
+import type { FinanceAuditLog, SettingConsumer } from "../finance/setup-types";
 
 export interface ProcurementSettingsValues {
   default_payment_terms: string;
@@ -706,5 +706,6 @@ export interface ProcurementSettingsValues {
 
 export interface ProcurementSettingsPayload {
   settings: ProcurementSettingsValues;
+  consumers: Record<string, SettingConsumer>;
   history: FinanceAuditLog[];
 }
