@@ -11,10 +11,11 @@ import { ProcurementShell } from "./procurement-shell";
 import { RequisitionPicker, VendorPicker, ContractPicker } from "./pickers";
 import { useUserDirectory } from "../workflow/components/use-user-directory";
 import {
-  Can, DataTable, DetailDrawer, EmptyState, ErrorState,
-  FormField, InfoHint, LoadingState, StatCard, StatusPill, toArray, useActiveEntity, type Column,
+  Can, ConfirmActionModal, DataTable, DetailDrawer, EmptyState, ErrorState,
+  FormField, InfoHint, LoadingState, StatCard, StatusPill, toArray, useActiveEntity, useCan, type Column,
 } from "@/components/finance-ui";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -22,10 +23,12 @@ import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import {
   useCreatePurchaseOrderMutation, useGetPurchaseOrderQuery,
+  useGetPurchaseOrderEmailPreviewQuery,
   useGetPurchaseOrderSummaryQuery, useGetRequisitionQuery,
-  useGetPurchaseOrdersQuery, useSubmitPurchaseOrderMutation, useUpdatePurchaseOrderMutation,
+  useGetPurchaseOrdersQuery, useRetryPurchaseOrderEmailMutation,
+  useSendPurchaseOrderEmailMutation, useSubmitPurchaseOrderMutation, useUpdatePurchaseOrderMutation,
 } from "@/redux/services/procurement/procurement-api";
-import type { PurchaseOrder } from "@/redux/services/procurement/procurement-types";
+import type { PurchaseOrder, PurchaseOrderEmailDelivery } from "@/redux/services/procurement/procurement-types";
 import { useGetWorkflowInstanceQuery } from "@/redux/services/dashboard/workflow-api";
 import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
@@ -44,6 +47,7 @@ const DETAIL_TABS = [
   { value: "receipts", label: "Goods Receipts", icon: PackageCheck },
   { value: "invoices", label: "Invoices", icon: ReceiptText },
   { value: "approval", label: "Approval Trail", icon: CheckCircle2 },
+  { value: "email", label: "Vendor Email", icon: Mail },
 ] as const;
 
 type DetailTab = typeof DETAIL_TABS[number]["value"];
@@ -54,6 +58,14 @@ function shortDate(value?: string | null) {
   return Number.isNaN(date.getTime())
     ? value
     : date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function shortDateTime(value?: string | null) {
+  if (!value) return "-";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function percent(value: string | number | null | undefined) {
@@ -144,7 +156,7 @@ export default function PurchaseOrdersPage() {
       </main>
 
       <PurchaseOrderDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
-      {creating && <CreatePurchaseOrderDrawer open entity={entity} currency={currency} onClose={() => setCreating(false)} />}
+      {creating && <CreatePurchaseOrderDrawer open entity={entity} currency={currency} onClose={() => setCreating(false)} onCreated={(id) => { setCreating(false); setSelectedId(id); }} />}
     </ProcurementShell>
   );
 }
@@ -152,13 +164,27 @@ export default function PurchaseOrdersPage() {
 function PurchaseOrderDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {
   const navigate = useNavigate();
   const { name } = useUserDirectory();
+  const { can } = useCan();
   const [tab, setTab] = useState<DetailTab>("overview");
   const [editing, setEditing] = useState(false);
+  const [confirmApproval, setConfirmApproval] = useState(false);
+  const [autoEmailVendor, setAutoEmailVendor] = useState(false);
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [retryDelivery, setRetryDelivery] = useState<PurchaseOrderEmailDelivery | null>(null);
   const { data, isLoading, isError, refetch } = useGetPurchaseOrderQuery({ id: id!, entity }, { skip: id == null });
   const po = data?.data;
   const workflowId = po?.workflow_instance_id ?? "";
   const { data: workflow } = useGetWorkflowInstanceQuery(workflowId, { skip: !workflowId });
   const [submit, { isLoading: submitting }] = useSubmitPurchaseOrderMutation();
+  const [sendEmail, { isLoading: sendingEmail }] = useSendPurchaseOrderEmailMutation();
+  const [retryEmail, { isLoading: retryingEmail }] = useRetryPurchaseOrderEmailMutation();
+  const canVendorEmail = can(P.PROC_EMAIL_PURCHASE_ORDER_VENDOR);
+  const { data: previewData, isLoading: previewLoading, isError: previewError } = useGetPurchaseOrderEmailPreviewQuery(
+    { id: id!, entity },
+    { skip: id == null || !canVendorEmail || (!confirmApproval && !emailOpen), refetchOnMountOrArgChange: true },
+  );
+  const emailPreview = previewData?.data;
   const money = (value: number) => formatMoney(value, currency);
   const approvalPending = po?.status === "PENDING_APPROVAL" || po?.approval_state === "PENDING";
   const draftEditable = po?.status === "DRAFT" && !approvalPending;
@@ -166,20 +192,48 @@ function PurchaseOrderDrawer({ id, entity, currency, onClose }: { id: number | n
   const submitForApproval = async () => {
     if (!po) return;
     try {
-      await submit({ id: po.id, entity }).unwrap();
+      await submit({
+        id: po.id,
+        entity,
+        auto_email_vendor: autoEmailVendor,
+        email_message: autoEmailVendor ? emailMessage.trim() : "",
+      }).unwrap();
       toast.success("Purchase order submitted for approval.");
+      setConfirmApproval(false);
+      setAutoEmailVendor(false);
+      setEmailMessage("");
       // The mutation invalidates ProcPurchaseOrders, so this drawer, the list and
       // the summary all refetch automatically - no manual refetch needed.
+    } catch { /* Central API handling presents the server validation message. */ }
+  };
+  const openEmail = (delivery: PurchaseOrderEmailDelivery | null = null) => {
+    setRetryDelivery(delivery);
+    setEmailMessage(delivery?.buyer_message || "");
+    setEmailOpen(true);
+  };
+  const deliverEmail = async () => {
+    if (!po) return;
+    try {
+      if (retryDelivery) {
+        await retryEmail({ id: po.id, deliveryId: retryDelivery.id, entity, email_message: emailMessage.trim() }).unwrap();
+        toast.success("Purchase order email retry queued.");
+      } else {
+        await sendEmail({ id: po.id, entity, email_message: emailMessage.trim() }).unwrap();
+        toast.success("Purchase order email queued.");
+      }
+      setEmailOpen(false);
+      setRetryDelivery(null);
+      setEmailMessage("");
     } catch { /* Central API handling presents the server validation message. */ }
   };
   const openRoute = (route: string) => { onClose(); navigate(route); };
 
   return <DetailDrawer open={id != null} onOpenChange={(open) => !open && onClose()} widthClass="sm:max-w-[720px]" title={po?.document_number || "Purchase order"} description={po ? `${po.vendor_name || po.vendor_code} · ${shortDate(po.order_date)}` : "Loading purchase order"} footer={po && <>
     <Button variant="outline" onClick={() => window.print()}><Printer className="size-4" /> Print</Button>
-    <span title="Email delivery is not connected yet."><Button variant="outline" disabled><Mail className="size-4" /> Email vendor</Button></span>
+    {po.can_email_vendor && <Can permission={P.PROC_EMAIL_PURCHASE_ORDER_VENDOR}><Button variant="outline" onClick={() => openEmail()}><Mail className="size-4" /> Email Vendor</Button></Can>}
     {draftEditable && <Can permission={P.PROC_UPDATE_PURCHASE_ORDER}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
     {approvalPending && <span className="font-mont text-xs text-gray-05">Locked while approval is pending</span>}
-    {draftEditable && <Can permission={P.PROC_SUBMIT_PURCHASE_ORDER}><Button loading={submitting} onClick={submitForApproval}><Send className="size-4" /> Submit for Approval</Button></Can>}
+    {draftEditable && <Can permission={P.PROC_SUBMIT_PURCHASE_ORDER}><Button loading={submitting} onClick={() => setConfirmApproval(true)}><Send className="size-4" /> Submit for Approval</Button></Can>}
   </>}>
     {isLoading ? <LoadingState rows={7} /> : isError || !po ? <ErrorState onRetry={refetch} /> : <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3"><StatusPill status={po.display_status} /><p className="font-mont text-lg font-semibold tabular-nums text-black-01">{money(po.total)}</p></div>
@@ -211,9 +265,30 @@ function PurchaseOrderDrawer({ id, entity, currency, onClose }: { id: number | n
       {tab === "receipts" && (po.receipt_documents.length ? <div className="overflow-hidden rounded-md border border-gray-03"><div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-3 bg-[#F1F1F1] px-3 py-2 font-mont text-[11px] font-semibold text-gray-01"><span>Receipt</span><span>Date</span><span>Status</span></div>{po.receipt_documents.map((receipt) => <button type="button" key={receipt.id} onClick={() => openRoute(routesPath.PROTECTED.PROCUREMENT.GOODS_RECEIPTS)} className="grid w-full grid-cols-[minmax(0,1fr)_auto_auto] gap-3 border-t border-gray-03 px-3 py-3 text-left font-mont text-xs hover:bg-gray-50"><span className="font-semibold text-primary">{receipt.document_number}<span className="ml-2 font-normal text-gray-05">{receipt.item_count} item{receipt.item_count === 1 ? "" : "s"}</span></span><span>{shortDate(receipt.received_date)}</span><StatusPill status={receipt.status} /></button>)}</div> : <EmptyBlock text="No goods receipts have been posted against this purchase order." />)}
       {tab === "invoices" && (po.invoice_documents.length ? <div className="overflow-hidden rounded-md border border-gray-03"><div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-3 bg-[#F1F1F1] px-3 py-2 font-mont text-[11px] font-semibold text-gray-01"><span>Invoice</span><span>Amount</span><span>Status</span></div>{po.invoice_documents.map((invoice) => <button type="button" key={invoice.id} onClick={() => openRoute(routesPath.PROTECTED.PROCUREMENT.VENDOR_INVOICES)} className="grid w-full grid-cols-[minmax(0,1fr)_auto_auto] gap-3 border-t border-gray-03 px-3 py-3 text-left font-mont text-xs hover:bg-gray-50"><span className="font-semibold text-primary">{invoice.document_number}<span className="ml-2 font-normal text-gray-05">{shortDate(invoice.invoice_date)}</span></span><span className="font-semibold tabular-nums">{money(invoice.total)}</span><StatusPill status={invoice.status} /></button>)}</div> : <EmptyBlock text="No vendor invoices are linked to this purchase order." />)}
       {tab === "approval" && (workflow?.stage_instances.length ? <div className="space-y-3">{workflow.stage_instances.map((stage) => <section key={stage.id} className="rounded-md border border-gray-03 p-3"><div className="flex items-center justify-between gap-3"><p className="font-mont text-sm font-semibold">{stage.stage_label}</p><StatusPill status={stage.status} /></div>{stage.actions.length ? <div className="mt-3 space-y-2">{stage.actions.filter((action) => !action.is_reversal_of).map((action) => <div key={action.id} className="border-t border-gray-03 pt-2 font-mont text-xs"><p><span className="font-semibold">{name(action.actor)}</span> · {action.action.toLowerCase()}</p><p className="mt-0.5 text-gray-05">{action.comment || "No comment"}</p></div>)}</div> : <p className="mt-2 font-mont text-xs text-gray-05">No decision recorded for this stage.</p>}</section>)}</div> : <EmptyBlock text={po.status === "DRAFT" ? "Submit this draft to begin its approval trail." : "No approval trail is available."} />)}
+      {tab === "email" && (po.email_deliveries?.length ? <div className="space-y-3">{po.email_deliveries.map((delivery) => <section key={delivery.id} className="rounded-md border border-gray-03 p-3"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-mont text-sm font-semibold">{delivery.source === "AUTOMATIC" ? "Automatic after approval" : delivery.source === "RETRY" ? "Retry" : "Manual send"}</p><p className="mt-1 font-mont text-[11px] text-gray-05">Requested by {delivery.requested_by_name} · {shortDateTime(delivery.created_at)}</p></div><StatusPill status={delivery.status} /></div><div className="mt-3 grid grid-cols-2 gap-2 rounded bg-gray-50 p-2 font-mont text-xs"><span className="text-gray-05">Recipients</span><span className="text-right font-semibold">{delivery.recipient_count}</span><span className="text-gray-05">CC recipients</span><span className="text-right font-semibold">{delivery.cc_count}</span></div>{delivery.buyer_message && <p className="mt-3 whitespace-pre-wrap font-mont text-xs leading-5 text-gray-05">{delivery.buyer_message}</p>}{delivery.failure_reason && <div className="mt-3 rounded border border-red-200 bg-red-50 p-2 font-mont text-xs text-red-700">{delivery.failure_reason}</div>}{delivery.status === "FAILED" && canVendorEmail && <div className="mt-3 flex justify-end"><Button size="sm" variant="outline" onClick={() => openEmail(delivery)}>Retry Email</Button></div>}</section>)}</div> : <EmptyBlock text={po.can_email_vendor ? "This approved purchase order has not been emailed yet." : "Email Vendor becomes available after the purchase order is fully approved."} />)}
     </div>}
     {po && editing && <EditPurchaseOrderDrawer po={po} entity={entity} currency={currency} onClose={() => setEditing(false)} />}
+    {po && <ConfirmActionModal open={confirmApproval} onOpenChange={setConfirmApproval} title="Raise this purchase order for approval?" description="Submitting locks the purchase order while approvers review it. You can email the vendor only after full approval." confirmText="Raise for Approval" onConfirm={submitForApproval} loading={submitting} confirmDisabled={autoEmailVendor && (previewLoading || previewError || !emailPreview?.recipients.length)}>
+      <div className="space-y-4">
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 font-mont text-xs leading-5 text-amber-900">The vendor will not receive this draft. Approval must finish first.</div>
+        {canVendorEmail && <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-gray-03 p-3"><Checkbox className="mt-0.5" checked={autoEmailVendor} onCheckedChange={(checked) => setAutoEmailVendor(checked === true)} /><span className="min-w-0"><span className="block font-mont text-sm font-semibold">Automatically email this PO to the vendor when fully approved</span><span className="mt-1 block font-mont text-xs leading-5 text-gray-05">A PDF copy will be attached, and the send remains pending until approval completes.</span></span></label>}
+        {autoEmailVendor && <EmailDetails preview={emailPreview} loading={previewLoading} error={previewError} message={emailMessage} onMessageChange={setEmailMessage} />}
+      </div>
+    </ConfirmActionModal>}
+    {po && <ConfirmActionModal open={emailOpen} onOpenChange={(open) => { setEmailOpen(open); if (!open) setRetryDelivery(null); }} title={retryDelivery ? "Retry vendor email?" : "Email this purchase order to the vendor?"} description="A new audited delivery will be queued with the current approved PO attached as a PDF." confirmText={retryDelivery ? "Retry Email" : "Send Email"} onConfirm={deliverEmail} loading={sendingEmail || retryingEmail} confirmDisabled={previewLoading || previewError || !emailPreview?.recipients.length}>
+      <EmailDetails preview={emailPreview} loading={previewLoading} error={previewError} message={emailMessage} onMessageChange={setEmailMessage} />
+    </ConfirmActionModal>}
   </DetailDrawer>;
+}
+
+function EmailDetails({ preview, loading, error, message, onMessageChange }: { preview?: { recipients: string[]; cc: string[]; subject: string }; loading: boolean; error: boolean; message: string; onMessageChange: (value: string) => void }) {
+  return <div className="space-y-3">
+    <div className="rounded-md border border-gray-03 bg-gray-50 p-3 font-mont text-xs">
+      {loading ? <p className="text-gray-05">Loading recipients…</p> : error || !preview ? <p className="text-red-600">Recipient details could not be loaded.</p> : <div className="space-y-2"><p><span className="text-gray-05">Subject:</span> <span className="font-semibold">{preview.subject}</span></p><p><span className="text-gray-05">To:</span> <span className="font-semibold break-all">{preview.recipients.join(", ") || "No recipient"}</span></p><p><span className="text-gray-05">CC:</span> <span className="font-semibold break-all">{preview.cc.join(", ") || "None"}</span></p></div>}
+    </div>
+    <FormField label="Optional note to vendor"><Textarea value={message} maxLength={1000} onChange={(event) => onMessageChange(event.target.value)} placeholder="Add delivery instructions or a short note." className="min-h-24" /></FormField>
+    <p className="text-right font-mont text-[11px] text-gray-05">{message.length}/1,000</p>
+  </div>;
 }
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -257,7 +332,7 @@ function EditPurchaseOrderDrawer({ po, entity, currency, onClose }: { po: Purcha
   </DetailDrawer>;
 }
 
-function CreatePurchaseOrderDrawer({ open, entity, currency, onClose }: { open: boolean; entity: string; currency?: string | null; onClose: () => void }) {
+function CreatePurchaseOrderDrawer({ open, entity, currency, onClose, onCreated }: { open: boolean; entity: string; currency?: string | null; onClose: () => void; onCreated: (id: number) => void }) {
   const [requisition, setRequisition] = useState("");
   const [vendor, setVendor] = useState("");
   const [orderDate, setOrderDate] = useState(new Date().toISOString().slice(0, 10));
@@ -269,23 +344,21 @@ function CreatePurchaseOrderDrawer({ open, entity, currency, onClose }: { open: 
   const changeVendor = (v: string) => { setVendor(v); setContract(""); };
   const { data: requisitionData, isLoading: requisitionLoading } = useGetRequisitionQuery({ id: Number(requisition), entity }, { skip: !requisition });
   const [create, { isLoading: creating }] = useCreatePurchaseOrderMutation();
-  const [submit, { isLoading: submitting }] = useSubmitPurchaseOrderMutation();
   const source = requisitionData?.data;
   const money = (value: number) => formatMoney(value, currency);
   const canSubmit = !!requisition && !!vendor && !!orderDate;
 
-  const saving = creating || submitting;
-  const save = async (submitAfter: boolean) => {
+  const saving = creating;
+  const save = async (reviewApproval: boolean) => {
     if (!canSubmit) return;
     try {
       const response = await create({ entity, requisition: Number(requisition), vendor, order_date: orderDate, expected_date: expectedDate || undefined, delivery_address: deliveryAddress.trim() || undefined, payment_terms: paymentTerms.trim() || undefined, contract: contract || undefined }).unwrap();
-      if (submitAfter) await submit({ id: response.data.id, entity }).unwrap();
-      toast.success(submitAfter ? "Purchase order created and submitted." : "Purchase order draft created.");
-      onClose();
+      toast.success("Purchase order draft created.");
+      if (reviewApproval) onCreated(response.data.id); else onClose();
     } catch { /* Central API handling presents the server validation message. */ }
   };
 
-  return <DetailDrawer open={open} onOpenChange={(value) => !saving && !value && onClose()} title="New Purchase Order" description="Create an order from an approved requisition" widthClass="sm:max-w-[720px]" footer={<><Button variant="outline" disabled={saving} onClick={onClose}>Cancel</Button><Button variant="outline" disabled={!canSubmit} loading={creating} onClick={() => save(false)}>Save Draft</Button><Can permission={P.PROC_SUBMIT_PURCHASE_ORDER}><Button disabled={!canSubmit} loading={saving} onClick={() => save(true)}>Create & Submit</Button></Can></>}>
+  return <DetailDrawer open={open} onOpenChange={(value) => !saving && !value && onClose()} title="New Purchase Order" description="Create an order from an approved requisition" widthClass="sm:max-w-[720px]" footer={<><Button variant="outline" disabled={saving} onClick={onClose}>Cancel</Button><Button variant="outline" disabled={!canSubmit} loading={creating} onClick={() => save(false)}>Save Draft</Button><Can permission={P.PROC_SUBMIT_PURCHASE_ORDER}><Button disabled={!canSubmit} loading={saving} onClick={() => save(true)}>Create & Review Approval</Button></Can></>}>
     <div className="space-y-5">
     <section className="space-y-3"><p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Order</p><div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Approved requisition" required><RequisitionPicker entity={entity} value={requisition} onChange={setRequisition} status="APPROVED" placeholder="Select approved requisition" /></FormField><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={changeVendor} purchaseEligible /></FormField><FormField label="Order date" required><Input type="date" value={orderDate} onChange={(event) => setOrderDate(event.target.value)} /></FormField><FormField label="Expected delivery"><Input type="date" min={orderDate} value={expectedDate} onChange={(event) => setExpectedDate(event.target.value)} /></FormField><FormField label="Payment terms"><Input value={paymentTerms} onChange={(event) => setPaymentTerms(event.target.value)} placeholder="Defaults from vendor" /></FormField><FormField label="Against contract"><ContractPicker entity={entity} vendor={vendor} value={contract} onChange={setContract} /></FormField><FormField label="Delivery address"><Textarea value={deliveryAddress} onChange={(event) => setDeliveryAddress(event.target.value)} placeholder="Where should the vendor deliver?" className="min-h-20" /></FormField></div></section>
     <section className="rounded-md border border-gray-03 bg-gray-50 p-4"><div className="flex flex-wrap items-center justify-between gap-2"><p className="font-mont text-sm font-semibold">Copied Line Items</p>{source && <p className="font-mont text-sm font-semibold tabular-nums">{money(source.estimated_total)}</p>}</div>{!requisition ? <p className="mt-2 font-mont text-xs text-gray-05">Choose an approved requisition to review the lines that will be copied.</p> : requisitionLoading ? <p className="mt-2 font-mont text-xs text-gray-05">Loading requisition lines…</p> : source?.lines.length ? <div className="mt-3 space-y-2">{source.lines.map((line) => <div key={line.id} className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 font-mont text-xs"><span className="min-w-0 truncate">{line.description}<span className="ml-2 text-gray-05">×{formatQuantity(line.quantity)}</span></span><span className="shrink-0 font-semibold tabular-nums">{money(line.estimated_line_total)}</span></div>)}</div> : <p className="mt-2 font-mont text-xs text-gray-05">This requisition has no available lines.</p>}</section>

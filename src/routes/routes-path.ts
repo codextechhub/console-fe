@@ -13,6 +13,8 @@ export const routesPath = {
     // (it previously matched /admin/login, /school/login, etc.).
     SPECIAL_LOGIN: "/sp-l/:email",
     SPECIAL_LOGIN_LINK: (email: string) => `/sp-l/${encodeURIComponent(email)}`,
+    VENDOR_RFQ: "/vendor/rfq/:token",
+    VENDOR_RFQ_LINK: (token: string) => `/vendor/rfq/${encodeURIComponent(token)}`,
   },
   PROTECTED: {
     OVERVIEW: { INDEX: "/overview" },

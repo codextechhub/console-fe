@@ -12,8 +12,10 @@ const ResetPassword = lazy(() => import("@/pages/auth/reset-password"));
 const ForgotPassword = lazy(() => import("@/pages/auth/forgot-password"));
 const ActivateAccount = lazy(() => import("@/pages/auth/activate"));
 const SpecialLogin = lazy(() => import("@/pages/auth/special-login"));
+const VendorRfq = lazy(() => import("@/pages/public/vendor-rfq"));
 
 export const authRoutes = [
+  { path: routesPath.AUTH.VENDOR_RFQ, Component: VendorRfq },
   {
     Component: AuthLayout,
     children: [

@@ -138,6 +138,18 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/rfqs/${id}/cancel/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcRfqs", "ProcQuotations"],
     }),
+    resendRfqInvitation: b.mutation<ApiEnvelope<null>, Act & { invitationId: number }>({
+      query: ({ id, entity, invitationId }) => ({ url: `/procurement/rfqs/${id}/invitations/${invitationId}/resend/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["ProcRfqs"],
+    }),
+    extendRfqInvitation: b.mutation<ApiEnvelope<{ deadline: string; deadline_display: string }>, Act & { invitationId: number; deadline: string }>({
+      query: ({ id, entity, invitationId, deadline }) => ({ url: `/procurement/rfqs/${id}/invitations/${invitationId}/extend/${qs({ entity })}`, method: "POST", body: { deadline } }),
+      invalidatesTags: ["ProcRfqs"],
+    }),
+    createRfqAmendment: b.mutation<ApiEnvelope<RfqDetail>, Act & { summary: string; response_required: boolean; deadline?: string; lines?: Record<string, unknown>[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/rfqs/${id}/amendments/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcRfqs", "ProcQuotations"],
+    }),
 
     // Quotations
     getQuotations: b.query<PaginatedEnvelope<Quotation>, E & { rfq?: string; vendor?: string; q?: string }>({
@@ -292,6 +304,9 @@ export const {
   useIssueRfqMutation,
   useCloseRfqMutation,
   useCancelRfqMutation,
+  useResendRfqInvitationMutation,
+  useExtendRfqInvitationMutation,
+  useCreateRfqAmendmentMutation,
   useGetQuotationsQuery,
   useGetQuotationQuery,
   useCreateQuotationMutation,

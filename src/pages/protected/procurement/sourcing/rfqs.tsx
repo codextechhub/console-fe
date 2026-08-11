@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import {
-  AlertTriangle, ChevronRight, ClipboardList, Clock, FilePenLine, FileText, History,
-  Inbox, List, Plus, Search, Users,
+  AlertTriangle, CalendarPlus, ChevronRight, ClipboardList, Clock, FilePenLine, FileText, History,
+  Inbox, List, MailPlus, Plus, Search, Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,9 +27,10 @@ import {
   useGetRfqsQuery, useGetRfqQuery, useGetRfqSummaryQuery,
   useCreateRfqMutation, useUpdateRfqMutation,
   useIssueRfqMutation, useCloseRfqMutation, useCancelRfqMutation,
+  useResendRfqInvitationMutation, useExtendRfqInvitationMutation, useCreateRfqAmendmentMutation,
 } from "@/redux/services/procurement/procurement-ext-api";
 import { useGetRequisitionQuery, useGetVendorsQuery } from "@/redux/services/procurement/procurement-api";
-import type { Rfq, RfqDetail } from "@/redux/services/procurement/procurement-types";
+import type { Rfq, RfqDetail, RfqInvitation } from "@/redux/services/procurement/procurement-types";
 import { formatQuantity } from "@/utils/quantity";
 import { ActivityFeed, EmptyPanel, Field, ExpiredPill } from "./shared";
 import { RFQ_TABS, isForbidden, shortDate } from "./helpers";
@@ -130,6 +131,8 @@ export default function RfqsPage() {
 function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {
   const [tab, setTab] = useState("overview");
   const [editing, setEditing] = useState(false);
+  const [amending, setAmending] = useState(false);
+  const [extending, setExtending] = useState<RfqInvitation | null>(null);
   const [competitionExceptionReason, setCompetitionExceptionReason] = useState("");
   const { hasPermission } = usePermissions();
   const canOverrideCompetition = hasPermission(P.PROC_OVERRIDE_COMPETITION);
@@ -138,6 +141,7 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
   const [issue] = useIssueRfqMutation();
   const [close] = useCloseRfqMutation();
   const [cancel] = useCancelRfqMutation();
+  const [resend] = useResendRfqInvitationMutation();
 
   const run = (fn: () => Promise<{ message?: string }>, ok: string) => async () => {
     const res = await fn();
@@ -155,6 +159,7 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
       widthClass="sm:max-w-2xl"
       footer={rfq && <>
         {isDraft && <Can permission={P.PROC_UPDATE_RFQ}><Button variant="outline" onClick={() => setEditing(true)}><FilePenLine className="size-4" /> Edit</Button></Can>}
+        {isIssued && <Can permission={P.PROC_ISSUE_RFQ}><Button variant="outline" onClick={() => setAmending(true)}><FilePenLine className="size-4" /> Amend</Button></Can>}
         {isDraft && <ActionButton label="Issue" permission={P.PROC_ISSUE_RFQ} title="Issue this RFQ?" description={`Sends ${rfq.document_number} to vendors so they can submit quotations. Competitive minimums are checked when you confirm.`} onConfirm={async () => { const response = await issue({ id: rfq.id, entity, competition_exception_reason: competitionExceptionReason.trim() || undefined }).unwrap(); toast.success(response.message || "RFQ issued."); setCompetitionExceptionReason(""); }}>{canOverrideCompetition ? <label className="block font-mont text-xs font-semibold text-gray-01">Exception reason (only if below the vendor minimum)<Textarea className="mt-2 min-h-20 bg-white font-mont text-sm" value={competitionExceptionReason} onChange={(event) => setCompetitionExceptionReason(event.target.value)} maxLength={1000} placeholder="Explain the sole-source or limited-market exception" /><span className="mt-1 block font-normal leading-5 text-gray-05">The reason and actual vendor count become part of the audit record.</span></label> : null}</ActionButton>}
         {isIssued && <ActionButton label="Close" permission={P.PROC_ISSUE_RFQ} title="Close this RFQ without awarding?" description="Finishes sourcing without an award; the remaining quotations will be rejected." onConfirm={run(() => close({ id: rfq.id, entity }).unwrap(), "RFQ closed.")} />}
         {(isDraft || isIssued) && <ActionButton label="Cancel RFQ" permission={P.PROC_ISSUE_RFQ} destructive title="Cancel this RFQ?" description="Abandons the RFQ; any live quotations on it will be rejected. This cannot be undone." confirmText="Cancel RFQ" onConfirm={run(() => cancel({ id: rfq.id, entity }).unwrap(), "RFQ cancelled.")} />}
@@ -177,10 +182,12 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
             <Field label="Requisition" value={rfq.requisition_number || "-"} />
             <Field label="Issued" value={shortDate(rfq.issue_date)} />
             <Field label="Response deadline" value={shortDate(rfq.response_due_date)} />
+            <Field label="Published version" value={`Version ${rfq.version}`} />
             <Field label="Budget estimate" value={rfq.budget_estimate != null ? <Money kobo={rfq.budget_estimate} currency={currency} /> : "-"} />
             <Field label="Vendors invited" value={rfq.invited_count} />
             <Field label="Responses received" value={rfq.response_count} />
             <div className="sm:col-span-2"><dt className="font-mont text-[11px] text-gray-05">Notes</dt><dd className="mt-1 font-mont text-sm text-black-01">{rfq.notes || "-"}</dd></div>
+            {rfq.amendments.length > 0 && <div className="sm:col-span-2"><dt className="font-mont text-[11px] text-gray-05">Amendments</dt><dd className="mt-2 space-y-2">{rfq.amendments.map((row) => <div key={row.id} className="rounded border border-gray-03 bg-gray-50 p-2.5 font-mont text-xs"><span className="font-semibold">Version {row.version}</span> · {row.summary}<span className="ml-1 text-gray-05">({row.response_required ? "new response required" : "information only"})</span></div>)}</dd></div>}
           </dl>
         )}
 
@@ -200,14 +207,16 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
         ) : <EmptyPanel>This RFQ has no specification lines.</EmptyPanel>)}
 
         {tab === "invited" && (rfq.invitations.length ? (
-          <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[520px]">
-            <thead><tr>{["Vendor", "Responded?", "Quotation", "Total"].map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
+          <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[820px]">
+            <thead><tr>{["Vendor", "Invitation", "Contacts", "Quotation", "Total", "Actions"].map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
             <tbody>{rfq.invitations.map((inv) => (
               <tr key={inv.vendor_id}>
                 <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs"><p className="font-semibold">{inv.vendor_name}</p><p className="mt-0.5 text-gray-05">{inv.vendor_code}</p></td>
-                <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={inv.responded ? "RESPONDED" : "AWAITED"} /></td>
+                <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={inv.status || (inv.responded ? "RESPONDED" : "AWAITED")} /><p className="mt-1 font-mont text-[10px] text-gray-05">{inv.deadline ? new Date(inv.deadline).toLocaleString() : "No deadline"}</p></td>
+                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs"><p>{inv.recipients.map((row) => row.name || row.email).join(", ") || "No RFQ contact"}</p><p className="mt-0.5 text-[10px] text-gray-05">{inv.recipients.map((row) => row.email).join(", ")}</p></td>
                 <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{inv.quotation_id ? <span className="flex flex-wrap items-center gap-1.5"><StatusPill status={inv.quotation_status || ""} /></span> : "-"}</td>
                 <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{inv.quotation_total != null ? <Money kobo={inv.quotation_total} currency={currency} /> : "-"}</td>
+                <td className="border-t border-gray-03 px-3 py-2"><div className="flex gap-1.5"><Button size="sm" variant="outline" onClick={async () => { try { await resend({ id: rfq.id, invitationId: inv.id, entity }).unwrap(); toast.success("Invitation resent."); } catch { /* central */ } }}><MailPlus className="size-3.5" /> Resend</Button><Button size="sm" variant="outline" onClick={() => setExtending(inv)}><CalendarPlus className="size-3.5" /> Extend</Button></div></td>
               </tr>
             ))}</tbody>
           </table></div>
@@ -232,7 +241,50 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
       </div>}
     </DetailDrawer>
     {rfq && editing && <RfqForm entity={entity} currency={currency} initial={rfq} onClose={() => setEditing(false)} />}
+    {rfq && amending && <RfqAmendmentForm rfq={rfq} entity={entity} onClose={() => setAmending(false)} />}
+    {rfq && extending && <RfqExtensionForm rfq={rfq} invitation={extending} entity={entity} onClose={() => setExtending(null)} />}
   </>;
+}
+
+function RfqAmendmentForm({ rfq, entity, onClose }: { rfq: RfqDetail; entity: string; onClose: () => void }) {
+  const [summary, setSummary] = useState("");
+  const [responseRequired, setResponseRequired] = useState(true);
+  const [deadline, setDeadline] = useState("");
+  const [changeLines, setChangeLines] = useState(false);
+  const [lines, setLines] = useState<DocLine[]>(rfq.lines.map((line) => ({ ...emptyLine(), description: line.description, quantity: Number(line.quantity), account: line.expense_code || "", taxCode: line.tax_code_id ? String(line.tax_code_id) : "" })));
+  const [create, { isLoading }] = useCreateRfqAmendmentMutation();
+  const apiLines = lines.filter((line) => line.description.trim()).map((line) => ({ description: line.description.trim(), quantity: line.quantity || 1, ...(line.account ? { expense_account: line.account } : {}), ...(line.taxCode ? { tax_code: line.taxCode } : {}) }));
+  const publish = async () => {
+    try {
+      await create({ id: rfq.id, entity, summary: summary.trim(), response_required: responseRequired, ...(deadline ? { deadline: new Date(deadline).toISOString() } : {}), ...(changeLines ? { lines: apiLines } : {}) }).unwrap();
+      toast.success(`RFQ version ${rfq.version + 1} published.`);
+      onClose();
+    } catch { /* central */ }
+  };
+  return <DetailDrawer open onOpenChange={(open) => !open && !isLoading && onClose()} title="Publish RFQ amendment" description="Preserves earlier submissions and emails every invited vendor." widthClass="sm:max-w-2xl" footer={<><Button variant="outline" onClick={onClose} disabled={isLoading}>Cancel</Button><Button onClick={publish} disabled={!summary.trim() || (changeLines && apiLines.length === 0)} loading={isLoading}>Publish amendment</Button></>}>
+    <div className="space-y-4">
+      <FormField label="Change summary" required><Textarea value={summary} onChange={(event) => setSummary(event.target.value)} maxLength={500} placeholder="Explain what changed and what vendors should review." /></FormField>
+      <FormField label="New deadline (optional)"><Input type="datetime-local" value={deadline} onChange={(event) => setDeadline(event.target.value)} /></FormField>
+      <label className="flex items-start gap-2 rounded-md border border-gray-03 p-3 font-mont text-xs"><input type="checkbox" className="mt-0.5" checked={responseRequired} onChange={(event) => setResponseRequired(event.target.checked)} /><span><strong className="block text-gray-01">Require a new response</strong><span className="mt-1 block leading-5 text-gray-05">Submitted quotations reopen as drafts. Their earlier receipts remain unchanged.</span></span></label>
+      <label className="flex items-start gap-2 rounded-md border border-gray-03 p-3 font-mont text-xs"><input type="checkbox" className="mt-0.5" checked={changeLines} onChange={(event) => setChangeLines(event.target.checked)} /><span><strong className="block text-gray-01">Change requested items or quantities</strong><span className="mt-1 block leading-5 text-gray-05">The current specification remains preserved in earlier quotation receipts.</span></span></label>
+      {changeLines && <div><p className="mb-2 font-mont text-xs font-semibold text-gray-05">Replacement specification</p><LineEditor entity={entity} lines={lines} onChange={setLines} accountLabel="Expense account (optional)" accountType="EXPENSE" showTax showCostCenter={false} taxUsage="purchase" /></div>}
+    </div>
+  </DetailDrawer>;
+}
+
+function RfqExtensionForm({ rfq, invitation, entity, onClose }: { rfq: RfqDetail; invitation: RfqInvitation; entity: string; onClose: () => void }) {
+  const [deadline, setDeadline] = useState("");
+  const [extend, { isLoading }] = useExtendRfqInvitationMutation();
+  const save = async () => {
+    try {
+      await extend({ id: rfq.id, invitationId: invitation.id, entity, deadline: new Date(deadline).toISOString() }).unwrap();
+      toast.success(`Deadline extended for ${invitation.vendor_name}.`);
+      onClose();
+    } catch { /* central */ }
+  };
+  return <DetailDrawer open onOpenChange={(open) => !open && !isLoading && onClose()} title="Extend vendor deadline" description={`Only ${invitation.vendor_name} receives this extension.`} widthClass="sm:max-w-md" footer={<><Button variant="outline" onClick={onClose} disabled={isLoading}>Cancel</Button><Button onClick={save} disabled={!deadline} loading={isLoading}>Extend and notify</Button></>}>
+    <FormField label="New deadline" required><Input type="datetime-local" value={deadline} onChange={(event) => setDeadline(event.target.value)} /></FormField>
+  </DetailDrawer>;
 }
 
 // requisition_line linkage is carried only when the prefilled line is unchanged

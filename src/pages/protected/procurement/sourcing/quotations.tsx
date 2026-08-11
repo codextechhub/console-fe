@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import {
   ChevronRight, FilePenLine, FileText, GitCompareArrows, History, Layers,
-  Lock, Plus, Search,
+  Lock, Paperclip, Plus, Search,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,9 +34,11 @@ import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
 import { ActivityFeed, CompareModal, EmptyPanel, Field, ExpiredPill } from "./shared";
 import { QUOTATION_TABS, isForbidden, shortDate } from "./helpers";
+import { useFetchAuthMediaQuery } from "@/redux/services/media-api";
 
 const DETAIL_TABS = [
   ["overview", "Overview", FileText], ["comparison", "Line comparison", Layers],
+  ["evidence", "Evidence", Paperclip],
   ["activity", "Activity", History],
 ] as const;
 
@@ -169,11 +171,24 @@ function QuotationDrawer({ id, entity, currency, onClose }: { id: number | null;
         )}
 
         {tab === "comparison" && <LineComparison quotation={q} entity={entity} currency={currency} />}
+        {tab === "evidence" && <QuotationEvidence quotation={q} />}
         {tab === "activity" && <ActivityFeed activity={q.activity} />}
       </div>}
     </DetailDrawer>
     {q && editing && <QuotationForm entity={entity} currency={currency} initial={q} onClose={() => setEditing(false)} />}
   </>;
+}
+
+function QuotationEvidence({ quotation }: { quotation: QuotationDetail }) {
+  return <div className="space-y-4">
+    <section><h3 className="font-mont text-xs font-semibold">Submission history</h3><div className="mt-2 space-y-2">{quotation.submissions.length ? quotation.submissions.map((row) => <div key={row.id} className="rounded-md border border-gray-03 p-3 font-mont text-xs"><span className="font-semibold">Revision {row.revision}</span><span className="text-gray-05"> · RFQ version {row.rfq_version} · {new Date(row.submitted_at).toLocaleString()}</span><p className="mt-1 text-gray-05">Submitted by {row.submitted_by_email}</p></div>) : <EmptyPanel>No vendor submission receipt has been recorded.</EmptyPanel>}</div></section>
+    <section><h3 className="font-mont text-xs font-semibold">Attachments</h3><div className="mt-2 space-y-2">{quotation.attachments.length ? quotation.attachments.map((row) => <AttachmentRow key={row.id} attachment={row} />) : <EmptyPanel>No PDF or image evidence was attached.</EmptyPanel>}</div></section>
+  </div>;
+}
+
+function AttachmentRow({ attachment }: { attachment: QuotationDetail["attachments"][number] }) {
+  const { data: blobUrl, isLoading } = useFetchAuthMediaQuery(attachment.url);
+  return <div className="flex flex-wrap items-center gap-3 rounded-md border border-gray-03 p-3"><Paperclip className="size-4 text-primary" /><div className="min-w-0 flex-1"><p className="truncate font-mont text-xs font-semibold">{attachment.name}</p><p className="mt-0.5 font-mont text-[11px] text-gray-05">{Math.ceil(attachment.size / 1024)}KB · Revision {attachment.revision}</p></div><Button asChild size="sm" variant="outline" disabled={isLoading || !blobUrl}><a href={blobUrl || "#"} target="_blank" rel="noreferrer">{attachment.content_type === "application/pdf" ? "Open PDF" : "View image"}</a></Button></div>;
 }
 
 // Loads a sibling quote's detail so the lowest unit price per RFQ line can be
@@ -210,13 +225,14 @@ function LineComparison({ quotation, entity, currency }: { quotation: QuotationD
   return <div className="space-y-2">
     {siblingIds.map((id) => <SiblingFetcher key={id} id={id} entity={entity} onLoaded={onLoaded} />)}
     <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[620px]">
-      <thead><tr>{["Description", "Qty", "Unit price", "Net", "Tax", "Lowest"].map((h) => <th key={h} className={cn("bg-[#F1F1F1] px-3 py-2 font-mont text-[11px] font-semibold text-gray-01", h === "Description" ? "text-left" : "text-right")}>{h}</th>)}</tr></thead>
+      <thead><tr>{["Description", "Response", "Qty", "Unit price", "Net", "Tax", "Lowest"].map((h) => <th key={h} className={cn("bg-[#F1F1F1] px-3 py-2 font-mont text-[11px] font-semibold text-gray-01", h === "Description" || h === "Response" ? "text-left" : "text-right")}>{h}</th>)}</tr></thead>
       <tbody>{quotation.lines.map((line) => {
         const lowest = lowestFor(line.rfq_line_id, line.unit_price);
         const isLowest = line.rfq_line_id != null && line.unit_price === lowest;
         return (
           <tr key={line.id}>
             <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{line.description}</td>
+            <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={line.response_type} /></td>
             <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{formatQuantity(line.quantity)}</td>
             <td className={cn("border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums", isLowest && "font-semibold text-emerald-700")}>{money(line.unit_price)}</td>
             <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{money(line.net_amount)}</td>

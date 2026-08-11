@@ -11,6 +11,7 @@ import type {
   CatalogItemInsights,
   GoodsReceipt,
   PurchaseOrder,
+  PurchaseOrderEmailPreview,
   PurchaseOrderSummary,
   Requisition,
   RequisitionBudgetAvailability,
@@ -58,11 +59,11 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/procurement/vendors/${id}/insights/${qs({ entity })}`, method: "GET" }),
       providesTags: ["ProcVendors"],
     }),
-    createVendor: b.mutation<ApiEnvelope<Vendor>, { entity: string; name: string; category?: string; email?: string; phone?: string; address?: string; tax_id?: string; bank_name?: string; bank_account_number?: string; bank_account_name?: string; payable_account?: string; default_expense_account?: string; default_wht_tax_code?: string; payment_terms?: string }>({
+    createVendor: b.mutation<ApiEnvelope<Vendor>, { entity: string; name: string; category?: string; email?: string; phone?: string; address?: string; tax_id?: string; bank_name?: string; bank_account_number?: string; bank_account_name?: string; payable_account?: string; default_expense_account?: string; default_wht_tax_code?: string; payment_terms?: string; contacts?: Array<Record<string, unknown>> }>({
       query: ({ entity, ...body }) => ({ url: `/procurement/vendors/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcVendors"],
     }),
-    updateVendor: b.mutation<ApiEnvelope<Vendor>, { id: number; entity: string; name?: string; category?: string; email?: string; phone?: string; address?: string; tax_id?: string; bank_name?: string; bank_account_number?: string; bank_account_name?: string; payable_account?: string; default_expense_account?: string; default_wht_tax_code?: string; payment_terms?: string; kyc_status?: string; risk?: string; on_hold?: boolean; is_active?: boolean }>({
+    updateVendor: b.mutation<ApiEnvelope<Vendor>, { id: number; entity: string; name?: string; category?: string; email?: string; phone?: string; address?: string; tax_id?: string; bank_name?: string; bank_account_number?: string; bank_account_name?: string; payable_account?: string; default_expense_account?: string; default_wht_tax_code?: string; payment_terms?: string; kyc_status?: string; risk?: string; on_hold?: boolean; is_active?: boolean; contacts?: Array<Record<string, unknown>> }>({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/vendors/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcVendors"],
     }),
@@ -158,9 +159,20 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/purchase-orders/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcPurchaseOrders", "ProcContracts"],
     }),
-    submitPurchaseOrder: b.mutation<ApiEnvelope<PurchaseOrder>, Act>({
-      query: ({ id, entity }) => ({ url: `/procurement/purchase-orders/${id}/submit/${qs({ entity })}`, method: "POST" }),
+    submitPurchaseOrder: b.mutation<ApiEnvelope<PurchaseOrder>, Act & { auto_email_vendor?: boolean; email_message?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/purchase-orders/${id}/submit/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcPurchaseOrders"],
+    }),
+    getPurchaseOrderEmailPreview: b.query<ApiEnvelope<PurchaseOrderEmailPreview>, Act>({
+      query: ({ id, entity }) => ({ url: `/procurement/purchase-orders/${id}/email-preview/${qs({ entity })}`, method: "GET" }),
+    }),
+    sendPurchaseOrderEmail: b.mutation<ApiEnvelope<PurchaseOrder>, Act & { email_message?: string }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/purchase-orders/${id}/email/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcPurchaseOrders", "FinanceAuditLog"],
+    }),
+    retryPurchaseOrderEmail: b.mutation<ApiEnvelope<PurchaseOrder>, Act & { deliveryId: number; email_message?: string }>({
+      query: ({ id, deliveryId, entity, ...body }) => ({ url: `/procurement/purchase-orders/${id}/email-deliveries/${deliveryId}/retry/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcPurchaseOrders", "FinanceAuditLog"],
     }),
 
     // Goods receipts
@@ -291,6 +303,9 @@ export const {
   useCreatePurchaseOrderMutation,
   useUpdatePurchaseOrderMutation,
   useSubmitPurchaseOrderMutation,
+  useGetPurchaseOrderEmailPreviewQuery,
+  useSendPurchaseOrderEmailMutation,
+  useRetryPurchaseOrderEmailMutation,
   useGetGoodsReceiptsQuery,
   useGetGoodsReceiptQuery,
   useCreateGoodsReceiptMutation,

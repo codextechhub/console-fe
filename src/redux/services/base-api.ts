@@ -43,6 +43,16 @@ const AUTH_ENDPOINTS = new Set([
   "activationPreview",
   "activateAccount",
   "specialLoginPreview",
+  "getPublicRfqPreview",
+  "requestPublicRfqCode",
+  "verifyPublicRfqCode",
+  "getPublicRfqForm",
+  "savePublicRfqDraft",
+  "submitPublicRfq",
+  "revisePublicRfq",
+  "acknowledgePublicRfqAmendment",
+  "declinePublicRfq",
+  "uploadPublicRfqAttachment",
 ]);
 
 // Endpoints that operate purely on the caller and therefore must NOT carry the
@@ -256,6 +266,9 @@ export const baseQueryInterceptor: BaseQueryFn<
   // never interrupts the user with a global error toast - they just retry on the
   // next cycle. The refresh/retry and force-logout machinery still runs.
   const silent = !!(extraOptions as { silent?: boolean } | undefined)?.silent;
+  const inlineValidation = !!(
+    extraOptions as { inlineValidation?: boolean } | undefined
+  )?.inlineValidation;
   const notify = (message: string) => {
     if (!silent) {
       dismissOpenDrawerForError();
@@ -295,7 +308,7 @@ export const baseQueryInterceptor: BaseQueryFn<
     // never fire a global toast here - doing so leaks the raw backend detail (and
     // even machine codes like INVITATION_NOT_FOUND) into the UI beside the
     // friendly panel.
-    if (!isAuthRoute(args)) {
+    if (!isAuthRoute(args) && !inlineValidation) {
       notify(apiErrorMessage(res?.data));
     }
     return result;

@@ -49,6 +49,7 @@ export interface Vendor {
   on_hold: boolean;
   is_active: boolean;
   active_po_count?: number;
+  contacts?: Array<{ id?: number; name: string; email: string; phone: string; is_primary: boolean; receives_rfqs: boolean; receives_purchase_orders: boolean; is_active: boolean }>;
   _stripped_fields?: string[];
 }
 
@@ -202,6 +203,28 @@ export interface POInvoiceDocument {
   status: string;
   match_status: string;
 }
+export interface PurchaseOrderEmailDelivery {
+  id: number;
+  source: "AUTOMATIC" | "MANUAL" | "RETRY";
+  status: "AWAITING_APPROVAL" | "PENDING" | "SENT" | "FAILED" | "CANCELLED";
+  requested_by_name: string;
+  recipient_count: number;
+  cc_count: number;
+  buyer_message: string;
+  queued_at: string | null;
+  sent_at: string | null;
+  cancelled_at: string | null;
+  failure_reason: string;
+  created_at: string;
+  parent_id: number | null;
+}
+export interface PurchaseOrderEmailPreview {
+  recipients: string[];
+  cc: string[];
+  subject: string;
+  can_schedule: boolean;
+  can_send: boolean;
+}
 export interface PurchaseOrder {
   id: number;
   document_number: string;
@@ -230,6 +253,8 @@ export interface PurchaseOrder {
   lines: POLine[];
   receipt_documents: POReceiptDocument[];
   invoice_documents: POInvoiceDocument[];
+  email_deliveries: PurchaseOrderEmailDelivery[];
+  can_email_vendor: boolean;
   workflow_instance_id?: string | null;
 }
 
@@ -508,6 +533,7 @@ export interface RfqQuotationSummary {
 // An invited vendor on an RFQ. `responded` is derived server-side (a quotation exists
 // from this vendor on this RFQ); the quotation_* fields are populated when it has.
 export interface RfqInvitation {
+  id: number;
   vendor_id: number;
   vendor_code: string;
   vendor_name: string;
@@ -515,6 +541,14 @@ export interface RfqInvitation {
   quotation_id: number | null;
   quotation_status: string | null;
   quotation_total: number | null;
+  status: string;
+  deadline: string | null;
+  opened_at: string | null;
+  draft_started_at: string | null;
+  submitted_at: string | null;
+  declined_at: string | null;
+  decline_reason: string;
+  recipients: Array<{ name: string; email: string }>;
 }
 
 // List row (lean; counts are backend annotations).
@@ -527,6 +561,8 @@ export interface Rfq {
   requisition_number: string | null;
   issue_date: string | null;
   response_due_date: string | null;
+  response_due_at: string | null;
+  version: number;
   budget_estimate: number | null;
   line_count: number;
   response_count: number;
@@ -539,6 +575,7 @@ export interface RfqDetail extends Rfq {
   lines: RfqLine[];
   invitations: RfqInvitation[];
   quotations: RfqQuotationSummary[];
+  amendments: Array<{ id: number; version: number; summary: string; response_required: boolean; published_at: string }>;
   activity: SourcingActivity[];
 }
 
@@ -561,6 +598,8 @@ export interface QuotationLine {
   tax_code_id: number | null;
   net_amount: number;
   tax_amount: number;
+  response_type: "QUOTED" | "ALTERNATIVE" | "NO_BID";
+  alternative_for_id: number | null;
 }
 
 // List row. `is_expired` is a display-only overlay (never a persisted status).
@@ -590,6 +629,8 @@ export interface QuotationDetail extends Quotation {
   tax_total: number;
   awarded_po_number: string | null;
   lines: QuotationLine[];
+  attachments: Array<{ id: number; name: string; content_type: string; size: number; revision: number; url: string }>;
+  submissions: Array<{ id: number; revision: number; rfq_version: number; submitted_at: string; submitted_by_email: string }>;
   activity: SourcingActivity[];
 }
 

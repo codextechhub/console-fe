@@ -24,6 +24,13 @@ export function apiErrorMessage(
   return detail || message || fallback;
 }
 
+export function apiFieldError(error: unknown, field: string): string | null {
+  const envelope = unwrapErrorEnvelope(error);
+  const errorObject = asRecord(envelope?.error);
+  const detail = asRecord(errorObject?.detail);
+  return extractFirstDetail(detail?.[field]);
+}
+
 function unwrapErrorEnvelope(error: unknown): Record<string, unknown> | null {
   const record = asRecord(error);
   const nested = asRecord(record?.data);

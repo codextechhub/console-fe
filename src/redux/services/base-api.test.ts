@@ -182,4 +182,45 @@ describe("baseQueryInterceptor", () => {
     expect(toastError).not.toHaveBeenCalled();
     expect(dismissOpenDrawerForError).not.toHaveBeenCalled();
   });
+
+  it("leaves inline validation failures for the form without closing its drawer", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({
+        success: false,
+        message: "Check the form.",
+        error: {
+          code: "REQUEST_ERROR",
+          detail: { vendor_reference: ["This number is already recorded."] },
+        },
+      }), {
+        status: 400,
+        headers: { "content-type": "application/json" },
+      }),
+    ));
+
+    const { baseQueryInterceptor } = await import("./base-api");
+    const api = {
+      endpoint: "createVendorInvoice",
+      getState: () => ({ auth: { tenant: { slug: "codex" } } }),
+      dispatch: vi.fn(),
+      signal: new AbortController().signal,
+      abort: vi.fn(),
+      extra: undefined,
+      type: "mutation" as const,
+    };
+
+    const result = await baseQueryInterceptor(
+      {
+        url: "/procurement/vendor-invoices/?entity=CREST",
+        method: "POST",
+        body: {},
+      },
+      api,
+      { inlineValidation: true },
+    );
+
+    expect(result.error?.status).toBe(400);
+    expect(toastError).not.toHaveBeenCalled();
+    expect(dismissOpenDrawerForError).not.toHaveBeenCalled();
+  });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { apiErrorMessage } from "./api-errors";
+import { apiErrorMessage, apiFieldError } from "./api-errors";
 
 describe("apiErrorMessage", () => {
   it("unwraps an RTK mutation error and prefers a typed domain message", () => {
@@ -27,5 +27,24 @@ describe("apiErrorMessage", () => {
       message: "",
       error: { code: "POSTING_ERROR", detail: {} },
     }, "Invoice generation failed.")).toBe("Invoice generation failed.");
+  });
+
+  it("extracts one requested field without leaking a different field", () => {
+    const error = {
+      status: 400,
+      data: {
+        error: {
+          code: "REQUEST_ERROR",
+          detail: {
+            vendor_reference: ["This vendor invoice number is already recorded."],
+            invoice_date: ["Enter a valid date."],
+          },
+        },
+      },
+    };
+    expect(apiFieldError(error, "vendor_reference")).toBe(
+      "This vendor invoice number is already recorded.",
+    );
+    expect(apiFieldError(error, "missing")).toBeNull();
   });
 });
