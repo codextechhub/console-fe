@@ -180,7 +180,11 @@ export default function Notifications() {
                       </span>
                     </span>
                     <span className="mt-1 line-clamp-2 block text-xs leading-5 text-gray-01">{n.body}</span>
-                    <span className="mt-1 block text-[11px] font-medium text-primary/80">{n.event_type_label}</span>
+                    {n.event_type_key !== "workflow.final_approved" && (
+                      <span className="mt-1 block text-[11px] font-medium text-primary/80">
+                        {n.event_type_label}
+                      </span>
+                    )}
                   </span>
                   {!n.is_read && <span className="mt-3 size-2 rounded-full bg-primary" />}
                 </button>
