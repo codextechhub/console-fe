@@ -21,8 +21,6 @@ export interface SignalCard {
   message: string;
   to: string;
   severity: "red" | "amber";
-  /** The verb on the card's call-to-action. */
-  cta: string;
 }
 
 /**
@@ -47,7 +45,6 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
         : `${entity_name}'s posting calendar runs out soon.`,
       to: R.FINANCE.SETUP,
       severity: expired ? "red" : "amber",
-      cta: "Extend the calendar",
     });
   }
   if (signals.webhook_failures_24h) {
@@ -59,7 +56,6 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Payment provider events failed in the last 24 hours.",
       to: R.HEALTH.PROVIDER_WEBHOOKS,
       severity: "red",
-      cta: "Review failures",
     });
   }
   if (signals.jobs_failed_24h) {
@@ -71,7 +67,6 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Jobs you started failed in the last 24 hours.",
       to: R.EXPORT.QUEUES,
       severity: "red",
-      cta: "Open queues",
     });
   }
   if (signals.draft_journals) {
@@ -83,7 +78,6 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Journal entries are still waiting to be posted.",
       to: R.FINANCE.LEDGER,
       severity: "amber",
-      cta: "Open the ledger",
     });
   }
   if (signals.pos_awaiting_receipt) {
@@ -95,7 +89,6 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Purchase orders are still awaiting goods receipt.",
       to: R.PROCUREMENT.PURCHASE_ORDERS,
       severity: "amber",
-      cta: "View purchase orders",
     });
   }
   // Red (broken now) before amber (needs attention soon), payload order within.

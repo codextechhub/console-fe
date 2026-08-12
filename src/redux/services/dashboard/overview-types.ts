@@ -62,17 +62,6 @@ export interface ConsoleOverview {
     /** The caller's own background jobs that failed in the last 24h. */
     jobs_failed_24h?: { count: number };
   };
-  /**
-   * Backing for the "Getting started" checklist. Each flag follows the same
-   * omit-don't-zero rule as the sections above - absent means the caller can't
-   * see that screen, so its checklist row is hidden rather than shown unticked.
-   */
-  setup?: {
-    /** Any active role assignment in the caller's tenant. */
-    roles_assigned?: boolean;
-    /** Any active node in the CX org tree. */
-    organogram_built?: boolean;
-  };
 }
 
 export interface ConsoleOverviewRes extends ResponseMessage {
