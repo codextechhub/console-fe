@@ -24,7 +24,7 @@
 //                       32=award  33=issue  34=renew  35=terminate  36=replenish
 //                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
 //                       41=dispose  42=reopen  43=lock  44=approve_high_value
-//                       45=share  46=download  47=override_variance
+//                       45=share  46=download  47=override_variance  48=replay
 //
 // ── Adding a permission ───────────────────────────────────────────────────────
 //   1. Pick the next free code in the right MM RR range.
@@ -409,7 +409,8 @@ const REGISTRY: Record<string, string> = {
   "701747": "procurement.competition.override",
 
   // ── PAYMENTS  (MM=80) ────────────────────────────────────────────────────────
-  // RR: 01 collection · 02 virtual_account · 03 payout · 04 report · 05 payout_batch.
+  // RR: 01 collection · 02 virtual_account · 03 payout · 04 report · 05 payout_batch
+  //     · 06 webhook.
   "800101": "payments.collection.view",
   "800102": "payments.collection.create",
   "800201": "payments.virtual_account.view",
@@ -424,6 +425,9 @@ const REGISTRY: Record<string, string> = {
   "800530": "payments.payout_batch.submit",
   "800505": "payments.payout_batch.approve",
   "800544": "payments.payout_batch.approve_high_value",
+  // inbound provider webhooks that could not be booked (money moved, we did not record it)
+  "800601": "payments.webhook.view",
+  "800648": "payments.webhook.replay",
 
   // ── academics / subjects  (MM=30, RR=01) - uncomment when module ships ────
   // "300101": "academics.subjects.view",
@@ -773,6 +777,8 @@ export const P = {
   PAY_SUBMIT_PAYOUT_BATCH:  "800530",  // route a batch through maker-checker approval
   PAY_APPROVE_PAYOUT_BATCH: "800505",  // approve a routed batch (done in the workflow inbox)
   PAY_APPROVE_PAYOUT_BATCH_HIGH_VALUE: "800544",
+  PAY_VIEW_WEBHOOKS:        "800601",  // provider events that failed to book
+  PAY_REPLAY_WEBHOOK:       "800648",  // re-run one; can book real money
 
   // ── Academics (uncomment when module ships) ────────────────────────────────
   // BROWSE_SUBJECTS:   "300101",

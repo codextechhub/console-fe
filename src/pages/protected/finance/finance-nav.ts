@@ -8,7 +8,7 @@ import {
   Coins, Percent, Layers, ReceiptText, Users, CreditCard, FileMinus, Undo2,
   CalendarClock, BadgePercent, BellRing, ListChecks, Landmark, Wallet,
   PiggyBank, Boxes, Scale, TrendingUp, ArrowLeftRight, GitBranch, ScrollText,
-  CircleDollarSign, Send, Settings,
+  CircleDollarSign, Send, Settings, AlertTriangle,
 } from "lucide-react";
 import type { ConsoleNavGroup } from "@/components/finance-ui/console-nav";
 import { routesPath } from "@/routes/routes-path";
@@ -70,6 +70,7 @@ export const financeNav: ConsoleNavGroup[] = [
       { title: "Batches", url: `${F.PAYMENTS}/batches`, icon: Layers, prefixes: ["payments.payout."] },
       { title: "Settlement", url: `${F.PAYMENTS}/settlement`, icon: ArrowLeftRight, prefixes: ["payments.report."] },
       { title: "Transactions Log", url: `${F.PAYMENTS}/transactions`, icon: ScrollText, prefixes: ["payments.report."] },
+      { title: "Needs Attention", url: `${F.PAYMENTS}/webhooks`, icon: AlertTriangle, prefixes: ["payments.webhook."] },
     ],
   },
 

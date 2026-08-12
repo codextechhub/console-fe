@@ -267,3 +267,40 @@ export interface MovementsSummary {
   pending: number;
   failed: number;
 }
+
+/** An inbound provider webhook, as the console sees it.
+ *
+ * The raw payload, headers and signature are deliberately not exposed by the API -
+ * they are the provider's own record and hold signature material.
+ */
+export interface WebhookEvent {
+  id: number;
+  provider: string;
+  event_type: string;
+  provider_reference: string;
+  /** RECEIVED | PROCESSED | IGNORED | FAILED. */
+  status: string;
+  verified: boolean;
+  /** Why it did not go through. Empty on a healthy event. */
+  error: string;
+  created_at: string;
+  processed_at: string | null;
+  collection_id: number | null;
+  payout_id: number | null;
+  /** COLLECTION | PAYOUT, or null when the event matched nothing local. */
+  target_kind: string | null;
+  target_reference: string | null;
+  amount: number | null;
+  amount_naira: string | null;
+  customer_name: string | null;
+}
+
+export interface WebhookSummary {
+  /** We tried to book it and could not. */
+  failed: number;
+  /** Valid signature, nothing local to match. */
+  ignored: number;
+  /** failed + ignored - the badge number. */
+  needs_attention: number;
+  status_counts: Record<string, number>;
+}

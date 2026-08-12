@@ -513,6 +513,7 @@ export const baseApi = createApi({
     "PaymentsPayouts",
     "PaymentsPayoutBatches",
     "PaymentsTransactions",
+    "PaymentsWebhooks",
     "ProcVendors",
     "ProcCategories",
     "ProcCatalog",

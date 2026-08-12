@@ -26,6 +26,8 @@ import type {
   TransactionLogEntry,
   VirtualAccount,
   VirtualAccountKpis,
+  WebhookEvent,
+  WebhookSummary,
 } from "./payments-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
@@ -147,6 +149,24 @@ export const paymentsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/payments/movements/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["PaymentsCollections", "PaymentsPayouts"],
     }),
+    // Inbound provider events that need an operator. Defaults to FAILED + IGNORED:
+    // money has usually moved at the provider by the time one of these appears.
+    getWebhookEvents: builder.query<PaginatedEnvelope<WebhookEvent>, { entity: string; page?: number; status?: string; provider?: string; search?: string }>({
+      query: (p) => ({ url: `/payments/webhooks/${qs(p)}`, method: "GET" }),
+      providesTags: ["PaymentsWebhooks"],
+    }),
+    getWebhookSummary: builder.query<ApiEnvelope<WebhookSummary>, { entity: string }>({
+      query: (p) => ({ url: `/payments/webhooks/summary/${qs(p)}`, method: "GET" }),
+      providesTags: ["PaymentsWebhooks"],
+    }),
+    // Re-runs the stored event. Booking a receipt touches collections and the
+    // finance ledger, so invalidate those too.
+    replayWebhookEvent: builder.mutation<ApiEnvelope<WebhookEvent>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({
+        url: `/payments/webhooks/${id}/replay/${qs({ entity })}`, method: "POST",
+      }),
+      invalidatesTags: ["PaymentsWebhooks", "PaymentsCollections", "PaymentsTransactions"],
+    }),
   }),
 });
 
@@ -171,4 +191,7 @@ export const {
   useGetMovementsSummaryQuery,
   useGetSettlementReconciliationQuery,
   useGetTransactionsLogQuery,
+  useGetWebhookEventsQuery,
+  useGetWebhookSummaryQuery,
+  useReplayWebhookEventMutation,
 } = paymentsApi;

@@ -7,6 +7,7 @@ import { PayoutsTab } from "./payouts-tab";
 import { BatchesTab } from "./batches-tab";
 import { SettlementTab } from "./settlement-tab";
 import { TransactionsTab } from "./transactions-tab";
+import { WebhooksTab } from "./webhooks-tab";
 import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 
@@ -19,6 +20,8 @@ export default function PaymentsPage() {
     ? { label: "Settlement", subtitle: "Reconcile gateway settlements against the bank." }
     : section === "transactions"
     ? { label: "Transactions Log", subtitle: "Unified ledger of all collections, payouts and settlements." }
+    : section === "webhooks"
+    ? { label: "Needs Attention", subtitle: "Provider events that did not make it into the books." }
     : { label: "Payouts", subtitle: "Money out - single disbursements to recipients." };
 
   return (
@@ -36,6 +39,8 @@ export default function PaymentsPage() {
           <SettlementTab entity={entity} currency={currency} />
         ) : section === "transactions" ? (
           <TransactionsTab entity={entity} currency={currency} />
+        ) : section === "webhooks" ? (
+          <WebhooksTab entity={entity} currency={currency} />
         ) : (
           <PayoutsTab entity={entity} currency={currency} />
         )}
