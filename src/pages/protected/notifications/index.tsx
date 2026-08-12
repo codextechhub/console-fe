@@ -11,6 +11,7 @@ import { NotificationEventIcon } from "@/components/custom/notification-event-ic
 import { formatRelativeDate } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routes-path";
+import { useFilterParam } from "@/hooks/use-filter-param";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import {
@@ -37,6 +38,8 @@ export default function Notifications() {
     P.CONFIGURE_NOTIFICATION_TEMPLATES,
   );
   const [filter, setFilter] = useState<Filter>("all");
+  // Dashboard deep-link: the unread card lands here as ?filter=unread.
+  useFilterParam("filter", ["unread", "read"] as const, setFilter);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 

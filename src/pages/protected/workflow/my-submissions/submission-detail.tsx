@@ -18,7 +18,9 @@ import {
   useResubmitWorkflowInstanceMutation,
 } from "@/redux/services/dashboard/workflow-api";
 import { useUserDirectory } from "../components/use-user-directory";
-import { sameId } from "../components/workflow-format";
+import { routesPath } from "@/routes/routes-path";
+import { useLogRecentOpen } from "@/hooks/use-log-recent-open";
+import { sameId, humanizeDocumentType } from "../components/workflow-format";
 import { DocumentPanel } from "../components/document-panel";
 import { StageTracker } from "../components/stage-tracker";
 import { AuditTimeline } from "../components/audit-timeline";
@@ -36,6 +38,16 @@ export default function SubmissionDetail() {
   const [resubmit, { isLoading: isResubmitting }] = useResubmitWorkflowInstanceMutation();
 
   const [confirmKind, setConfirmKind] = useState<"withdraw" | "resubmit" | null>(null);
+  useLogRecentOpen(
+    instance
+      ? {
+          kind: "submission",
+          id,
+          label: `${humanizeDocumentType(instance.document_type)} #${String(instance.document_object_id).slice(0, 8)}`,
+          to: routesPath.PROTECTED.WORKFLOW.SUBMISSION_DETAIL(id),
+        }
+      : null,
+  );
 
   const isOwner = !!instance && sameId(instance.requested_by, uid);
   const canWithdraw =

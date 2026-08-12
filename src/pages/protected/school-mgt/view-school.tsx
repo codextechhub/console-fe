@@ -16,6 +16,7 @@ import { P } from "@/permissions";
 import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/school-mgt-api";
 import type { BranchDetail } from "@/redux/services/dashboard/school-types";
 import { routesPath } from "@/routes/routes-path";
+import { useLogRecentOpen } from "@/hooks/use-log-recent-open";
 import { formatEnum, formatStartedTime, returnInitial } from "@/utils/helpers";
 import {
   ArrowRight,
@@ -122,6 +123,11 @@ export default function ViewSchool() {
   const { data, isLoading, isError, error, refetch } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
   const school = data?.data;
   const initials = returnInitial(school?.name ?? "");
+  useLogRecentOpen(
+    school && slug
+      ? { kind: "school", id: slug, label: school.name, to: routesPath.PROTECTED.SCHOOL_MGT.VIEW(slug) }
+      : null,
+  );
   const isForbidden = isError && typeof error === "object" && error !== null && "status" in error && error.status === 403;
 
   const setTab = (tab: "overview" | "branches") => {

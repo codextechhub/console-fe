@@ -7,11 +7,12 @@
    fiscal runway (worst entity), draft journals, POs awaiting receipt, webhook
    failures 24h, own failed jobs 24h; each gated + omitted when quiet, red
    before amber).
-   Remaining slices, in order:
-   d. Deep-link every card to pre-filtered views instead of index pages.
-   e. "Pick up where you left off": last 3-4 opened entities, logged locally like
-      palette frecency.
-   f. Demote/shrink the metric grid and "Your workspace" shortcuts now that a-c
+   Slices d (deep links seed filters via useFilterParam; tasks/tickets/
+   submissions/notifications) and e (recent-opens store + "Pick up where you
+   left off" strip; logged by school/ticket/approval/submission details) are
+   DONE.
+   Remaining:
+   f. Demote/shrink the metric grid and "Your workspace" shortcuts now that a-e
       exist.
 
 ## Done

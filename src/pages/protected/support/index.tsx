@@ -21,6 +21,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { routesPath } from "@/routes/routes-path";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useFilterParam } from "@/hooks/use-filter-param";
 import { TicketStatusBadge } from "./status-badge";
 import {
   CreateTicketForm,
@@ -41,6 +42,8 @@ export default function Support() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
+  // Dashboard deep-link: the tickets card lands here as ?status=OPEN.
+  useFilterParam("status", ["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"] as const, setStatus);
   // /support/tickets/new is this same page with the composer open on arrival -
   // a deep-linkable "new ticket" URL (also reachable via the page button).
   const isNewRoute = useLocation().pathname === routesPath.PROTECTED.SUPPORT.NEW;

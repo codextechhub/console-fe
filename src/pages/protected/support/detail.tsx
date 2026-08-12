@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { routesPath } from "@/routes/routes-path";
+import { useLogRecentOpen } from "@/hooks/use-log-recent-open";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
@@ -131,6 +133,11 @@ export default function TicketDetail() {
   const ticket = ticketQuery.data?.data;
   // Until the ticket lands the route handle's "Support" shows through.
   useDashboardTitle(ticket?.ticket_number);
+  useLogRecentOpen(
+    ticket
+      ? { kind: "ticket", id, label: ticket.title, to: routesPath.PROTECTED.SUPPORT.DETAIL(id) }
+      : null,
+  );
   const hasTicket = Boolean(ticket);
   const commentCount = ticket?.comments?.length ?? 0;
   const canManage = hasPermission(P.MANAGE_TICKETS);

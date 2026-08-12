@@ -31,6 +31,7 @@ import { resolveAttentionDestination } from "./overview-navigation";
 import { QuickActionsRow } from "./quick-actions";
 import { AttentionWorklist } from "./attention-worklist";
 import { SignalsRow } from "./signals-row";
+import { RecentOpensRow } from "./recent-opens-row";
 
 const R = routesPath.PROTECTED;
 
@@ -156,7 +157,7 @@ export default function Overview() {
       copy: `${taskStats?.overdue ?? 0} items need a follow-up`,
       count: taskStats?.overdue ?? 0,
       urgency: 0,
-      to: R.TODO.INDEX,
+      to: `${R.TODO.INDEX}?tab=mine`,
       icon: Clock3,
       tone: "bg-amber-50 text-amber-600",
       // Categories the worklist shows as real rows drop out of the summary
@@ -168,7 +169,7 @@ export default function Overview() {
       copy: `${returnedCount} sent back for changes`,
       count: returnedCount,
       urgency: 1,
-      to: R.WORKFLOW.MY_SUBMISSIONS,
+      to: `${R.WORKFLOW.MY_SUBMISSIONS}?status=RETURNED`,
       icon: CircleDot,
       tone: "bg-red-50 text-red-500",
       inWorklist: returnedItems.length > 0,
@@ -188,7 +189,7 @@ export default function Overview() {
       copy: `${unreadCount} updates you have not read`,
       count: unreadCount,
       urgency: 3,
-      to: R.NOTIFICATIONS,
+      to: `${R.NOTIFICATIONS}?filter=unread`,
       icon: Bell,
       tone: "bg-blue-50 text-blue-600",
       inWorklist: false,
@@ -262,10 +263,10 @@ export default function Overview() {
     canViewTeam && (
       <MetricCard key="team" icon={Users} label="CX team members" value={overview?.team?.total ?? 0} note="People in your admin workspace" to={R.TEAM_MGT.CX} tone="blue" loading={!revealed} />
     ),
-    <MetricCard key="tasks" icon={ClipboardCheck} label="Open tasks" value={taskStats?.in_progress ?? 0} note={`${taskStats?.overdue ?? 0} overdue`} to={R.TODO.INDEX} tone="amber" loading={!revealed} />,
+    <MetricCard key="tasks" icon={ClipboardCheck} label="Open tasks" value={taskStats?.in_progress ?? 0} note={`${taskStats?.overdue ?? 0} overdue`} to={`${R.TODO.INDEX}?tab=mine`} tone="amber" loading={!revealed} />,
     <MetricCard key="approvals" icon={Workflow} label="Pending approvals" value={approvalsCount} note={`${returnedCount} returned to you`} to={R.WORKFLOW.APPROVALS} tone="green" loading={!revealed} />,
     canViewTickets && (
-      <MetricCard key="tickets" icon={LifeBuoy} label="Open support tickets" value={overview?.tickets?.open ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={R.SUPPORT.INDEX} tone="amber" loading={!revealed} />
+      <MetricCard key="tickets" icon={LifeBuoy} label="Open support tickets" value={overview?.tickets?.open ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={`${R.SUPPORT.INDEX}?status=OPEN`} tone="amber" loading={!revealed} />
     ),
     canViewHealth && (
       <MetricCard key="health" icon={Activity} label="System posture" value={overview?.health?.label ?? "Unknown"} note={`${overview?.health?.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={!revealed} />
@@ -282,7 +283,7 @@ export default function Overview() {
       icon: Bell,
       label: attentionCount ? "items may need your attention" : "you are all clear",
       value: attentionCount,
-      to: resolveAttentionDestination(attentionItems, R.TODO.INDEX),
+      to: resolveAttentionDestination(attentionItems, `${R.TODO.INDEX}?tab=mine`),
       show: true,
     },
     {
@@ -298,7 +299,7 @@ export default function Overview() {
       icon: ClipboardCheck,
       label: taskStats?.overdue ? "tasks now overdue" : "tasks in progress",
       value: taskStats?.overdue || taskStats?.in_progress || 0,
-      to: R.TODO.INDEX,
+      to: `${R.TODO.INDEX}?tab=mine`,
       show: Boolean(overview?.tasks),
     },
     {
@@ -387,6 +388,8 @@ export default function Overview() {
         <QuickActionsRow />
 
         {revealed && <SignalsRow signals={overview?.signals} />}
+
+        <RecentOpensRow />
 
         <section>
           <div className="mb-3 flex items-end justify-between gap-4">
@@ -481,11 +484,11 @@ export default function Overview() {
           <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4">
             <div className="flex items-center justify-between">
               <div><h2 className="text-base font-semibold">My tasks</h2><p className="mt-0.5 text-xs text-gray-400">Keep your closest commitments in view.</p></div>
-              <Link to={R.TODO.INDEX} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">View all <ArrowRight className="size-3.5" /></Link>
+              <Link to={`${R.TODO.INDEX}?tab=mine`} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">View all <ArrowRight className="size-3.5" /></Link>
             </div>
             <div className={cn("mt-3 flex-1 space-y-2", revealed && "reveal-in")}>
               {revealed && activeTasks.length === 0 ? <EmptyLine>You are all caught up.</EmptyLine> : activeTasks.map((task) => (
-                <Link key={task.id} to={R.TODO.INDEX} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3.5 hover:border-primary/20">
+                <Link key={task.id} to={`${R.TODO.INDEX}?tab=mine`} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3.5 hover:border-primary/20">
                   <span className={cn("size-2 rounded-full", task.status === "OVERDUE" ? "bg-red-500" : task.priority === "HIGH" ? "bg-amber-500" : "bg-primary")} />
                   <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{task.title}</p><p className="mt-0.5 text-xs text-gray-400">{task.department || "Personal task"}</p></div>
                   <span className={cn("rounded-lg px-2 py-1 text-xs", task.status === "OVERDUE" ? "bg-red-50 text-red-600" : "bg-gray-50 text-gray-500")}>{formatDate(task.deadline)}</span>

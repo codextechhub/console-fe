@@ -8,6 +8,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { routesPath } from "@/routes/routes-path";
 import { useGetMySubmissionsQuery } from "@/redux/services/dashboard/workflow-api";
 import type { WorkflowInstance, WorkflowInstanceStatus } from "@/redux/services/dashboard/workflow-types";
+import { useFilterParam } from "@/hooks/use-filter-param";
 import { useUserDirectory } from "../components/use-user-directory";
 import { DocumentRef, InstanceStatusBadge } from "../components/workflow-ui";
 
@@ -25,6 +26,8 @@ export default function MySubmissions() {
   const navigate = useNavigate();
   useUserDirectory(); // warm the directory cache for detail pages
   const [status, setStatus] = useState<"all" | WorkflowInstanceStatus>("all");
+  // Dashboard deep-link: "Returned submissions" lands here as ?status=RETURNED.
+  useFilterParam("status", ["IN_PROGRESS", "RETURNED", "APPROVED", "REJECTED"] as const, setStatus);
 
   const { data, isLoading, isFetching, refetch } = useGetMySubmissionsQuery(
     status === "all" ? undefined : { status },

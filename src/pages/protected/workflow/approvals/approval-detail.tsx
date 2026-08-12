@@ -20,7 +20,9 @@ import {
 } from "@/redux/services/dashboard/workflow-api";
 import type { VoteAction, WorkflowInstanceDetail } from "@/redux/services/dashboard/workflow-types";
 import { useUserDirectory } from "../components/use-user-directory";
-import { sameId, INSTANCE_STATUS_META } from "../components/workflow-format";
+import { routesPath } from "@/routes/routes-path";
+import { useLogRecentOpen } from "@/hooks/use-log-recent-open";
+import { sameId, INSTANCE_STATUS_META, humanizeDocumentType } from "../components/workflow-format";
 import { DocumentPanel } from "../components/document-panel";
 import { StageTracker } from "../components/stage-tracker";
 import { AuditTimeline } from "../components/audit-timeline";
@@ -53,6 +55,16 @@ export default function ApprovalDetail() {
     refetchOnMountOrArgChange: true,
   });
   const [recordAction, { isLoading: isVoting }] = useRecordWorkflowActionMutation();
+  useLogRecentOpen(
+    instance
+      ? {
+          kind: "approval",
+          id,
+          label: `${humanizeDocumentType(instance.document_type)} #${String(instance.document_object_id).slice(0, 8)}`,
+          to: routesPath.PROTECTED.WORKFLOW.APPROVAL_DETAIL(id),
+        }
+      : null,
+  );
 
   const [mode, setMode] = useState<Exclude<VoteAction, "APPROVED"> | null>(null);
   const [reason, setReason] = useState("");

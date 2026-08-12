@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { useFilterParam } from "@/hooks/use-filter-param";
 import type { Person, Task, TaskCreatePayload, TaskUpdatePayload } from "@/redux/services/dashboard/todo-types";
 import {
   useCreateTodoTaskMutation,
@@ -72,6 +73,10 @@ function TabBar({ active, onChange, showTeam }: { active: Tab; onChange: (t: Tab
 
 export default function TodoPage() {
   const [tab, setTab] = useState<Tab>("team");
+  // Dashboard deep-link: task cards land here as ?tab=mine. Managers default
+  // to the team view, so "my overdue tasks" needs the explicit switch; for
+  // non-managers the forced-mine effect below makes this a no-op.
+  useFilterParam("tab", ["team", "mine"] as const, setTab);
   const [focus, setFocus] = useState<number | null>(null);
   const [modal, setModal] = useState<ModalState | null>(null);
   const [deleting, setDeleting] = useState<Task | null>(null);
