@@ -1,14 +1,10 @@
 import { Link } from "react-router";
 import {
   Activity,
-  ArrowRight,
   Bell,
   Building2,
-  CheckCircle2,
   ChevronRight,
-  CircleDot,
   ClipboardCheck,
-  Clock3,
   FileClock,
   HeartPulse,
   LifeBuoy,
@@ -28,19 +24,10 @@ import { useGetConsoleOverviewQuery } from "@/redux/services/dashboard/overview-
 import { SnapRail } from "@/components/custom/snap-rail";
 import { resolveAttentionDestination } from "./overview-navigation";
 import { QuickActionsRow } from "./quick-actions";
-import { AttentionWorklist } from "./attention-worklist";
-import { SignalsRow } from "./signals-row";
+import { ActionCenter } from "./action-center";
 import { RecentOpensRow } from "./recent-opens-row";
 
 const R = routesPath.PROTECTED;
-
-function formatDate(value?: string | null) {
-  if (!value) return "No deadline";
-  return new Intl.DateTimeFormat("en-NG", {
-    day: "numeric",
-    month: "short",
-  }).format(new Date(value));
-}
 
 function greetingCopy() {
   const hour = new Date().getHours();
@@ -106,17 +93,6 @@ function MetricCard({
   );
 }
 
-function EmptyLine({ children }: { children: React.ReactNode }) {
-  return (
-    // h-full so the box's leftover height centres the message rather than
-    // leaving it pinned to the top above a void.
-    <div className="flex h-full min-h-20 w-full flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/60 px-4 text-center">
-      <CheckCircle2 className="mb-2 size-5 text-emerald-500" />
-      <p className="text-sm font-medium text-gray-600">{children}</p>
-    </div>
-  );
-}
-
 export default function Overview() {
   const user = useAppSelector((state) => state.auth.user);
   const { hasPermission } = usePermissions();
@@ -136,66 +112,19 @@ export default function Overview() {
   // zeroed. The cards are gated on the same permission keys the backend checks,
   // so an absent section never renders as a real 0.
   const taskStats = overview?.tasks?.stats;
-  const activeTasks = overview?.tasks?.items ?? [];
   const returnedCount = overview?.submissions.returned ?? 0;
   const approvalsCount = overview?.approvals.pending ?? 0;
   const unreadCount = overview?.notifications.unread ?? 0;
   const attentionCount =
     approvalsCount + (taskStats?.overdue ?? 0) + returnedCount + unreadCount;
-  // The real work items, shown as rows a click away from the decision. The
-  // arrays are empty (never absent) for callers with nothing pending.
-  const approvalItems = overview?.approvals.items ?? [];
-  const returnedItems = overview?.submissions.items ?? [];
+  // Hero-destination list only: the section itself is the ActionCenter now,
+  // which derives its own cards from the same payload.
   const attentionItems = [
-    {
-      label: "Overdue tasks",
-      copy: `${taskStats?.overdue ?? 0} items need a follow-up`,
-      count: taskStats?.overdue ?? 0,
-      urgency: 0,
-      to: `${R.TODO.INDEX}?tab=mine`,
-      icon: Clock3,
-      tone: "bg-amber-50 text-amber-600",
-      // Categories the worklist shows as real rows drop out of the summary
-      // grid; they stay in this array for the total and the hero destination.
-      inWorklist: false,
-    },
-    {
-      label: "Returned submissions",
-      copy: `${returnedCount} sent back for changes`,
-      count: returnedCount,
-      urgency: 1,
-      to: `${R.WORKFLOW.MY_SUBMISSIONS}?status=RETURNED`,
-      icon: CircleDot,
-      tone: "bg-red-50 text-red-500",
-      inWorklist: returnedItems.length > 0,
-    },
-    {
-      label: "Approvals waiting",
-      copy: `${approvalsCount} decisions ready for review`,
-      count: approvalsCount,
-      urgency: 2,
-      to: R.WORKFLOW.APPROVALS,
-      icon: FileClock,
-      tone: "bg-emerald-50 text-emerald-600",
-      inWorklist: approvalItems.length > 0,
-    },
-    {
-      label: "Unread notifications",
-      copy: `${unreadCount} updates you have not read`,
-      count: unreadCount,
-      urgency: 3,
-      to: `${R.NOTIFICATIONS}?filter=unread`,
-      icon: Bell,
-      tone: "bg-blue-50 text-blue-600",
-      inWorklist: false,
-    },
-  ]
-    // Per-item loading copy is gone with the per-item queries: the section is
-    // skeletoned as a whole until the single request lands.
-    .filter((item) => item.count > 0)
-    .sort((a, b) => a.urgency - b.urgency || b.count - a.count);
-  const summaryItems = attentionItems.filter((item) => !item.inWorklist);
-  const hasWorklistRows = approvalItems.length > 0 || returnedItems.length > 0;
+    { count: taskStats?.overdue ?? 0, to: `${R.TODO.INDEX}?tab=mine` },
+    { count: returnedCount, to: `${R.WORKFLOW.MY_SUBMISSIONS}?status=RETURNED` },
+    { count: approvalsCount, to: R.WORKFLOW.APPROVALS },
+    { count: unreadCount, to: `${R.NOTIFICATIONS}?filter=unread` },
+  ];
 
   // Built once and rendered by both the phone rail and the desktop grid, so the
   // two presentations can never drift apart.
@@ -332,94 +261,17 @@ export default function Overview() {
 
         <QuickActionsRow />
 
-        {revealed && <SignalsRow signals={overview?.signals} />}
+        {revealed ? (
+          <ActionCenter overview={overview} />
+        ) : (
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-16 animate-pulse rounded-xl bg-gray-100/80" />
+            ))}
+          </div>
+        )}
 
         <RecentOpensRow />
-
-        {/* A real 2-col grid, not CSS multi-column. `columns-2` balances the two
-            columns by measured height, so the split moved with the data (0 vs 4
-            attention items) and the boxes jumped columns when the query landed.
-            A grid fixes each box to a cell, so row tops always line up. */}
-        <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
-          <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-base font-semibold">Needs your attention</h2>
-                <p className="mt-0.5 text-xs text-gray-400">The most useful next actions from across your workspace.</p>
-              </div>
-              <span className="shrink-0 whitespace-nowrap rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                {revealed ? `${attentionCount} total` : "counting…"}
-              </span>
-            </div>
-            {!revealed || attentionItems.length ? (
-              <div className={cn("mt-3 flex-1", revealed && "reveal-in")}>
-                {!revealed ? (
-                  // Two rows the size of a real one: the section keeps its height
-                  // instead of growing under the reader as items land.
-                  <div className="grid auto-rows-min gap-2 sm:grid-cols-2">
-                    {[0, 1].map((i) => (
-                      <div key={i} className="flex items-center gap-3 rounded-lg border border-gray-100 p-3">
-                        <Shimmer className="size-8 shrink-0 rounded-lg" />
-                        <div className="min-w-0 flex-1 space-y-1.5">
-                          <Shimmer className="h-3 w-24" />
-                          <Shimmer className="h-2.5 w-32" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <>
-                    {hasWorklistRows && (
-                      <AttentionWorklist
-                        approvals={approvalItems}
-                        returned={returnedItems}
-                        pendingTotal={approvalsCount}
-                      />
-                    )}
-                    {summaryItems.length > 0 && (
-                      <div className={cn("grid auto-rows-min gap-2 sm:grid-cols-2", hasWorklistRows && "mt-2 border-t border-gray-50 pt-3")}>
-                        {summaryItems.map((item) => {
-                          const Icon = item.icon;
-                          return (
-                            <Link key={item.label} to={item.to} className="group flex items-center gap-3 rounded-lg border border-gray-100 p-3 hover:border-primary/20 hover:bg-primary/[0.025]">
-                              <span className={cn("grid size-8 place-items-center rounded-lg", item.tone)}><Icon className="size-4" /></span>
-                              <div className="min-w-0 flex-1"><p className="text-sm font-medium">{item.label}</p><p className="mt-0.5 text-xs text-gray-400">{item.copy}</p></div>
-                              <ChevronRight className="size-4 text-gray-300 group-hover:text-primary" />
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            ) : (
-              // Outside the auto-rows grid so the empty state centres in the
-              // leftover height instead of leaving a void beneath it.
-              <div className={cn("mt-3 flex flex-1", revealed && "reveal-in")}>
-                <EmptyLine>Nothing needs your attention right now.</EmptyLine>
-              </div>
-            )}
-          </section>
-
-          <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4">
-            <div className="flex items-center justify-between">
-              <div><h2 className="text-base font-semibold">My tasks</h2><p className="mt-0.5 text-xs text-gray-400">Keep your closest commitments in view.</p></div>
-              <Link to={`${R.TODO.INDEX}?tab=mine`} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">View all <ArrowRight className="size-3.5" /></Link>
-            </div>
-            <div className={cn("mt-3 flex-1 space-y-2", revealed && "reveal-in")}>
-              {revealed && activeTasks.length === 0 ? <EmptyLine>You are all caught up.</EmptyLine> : activeTasks.map((task) => (
-                <Link key={task.id} to={`${R.TODO.INDEX}?tab=mine`} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3.5 hover:border-primary/20">
-                  <span className={cn("size-2 rounded-full", task.status === "OVERDUE" ? "bg-red-500" : task.priority === "HIGH" ? "bg-amber-500" : "bg-primary")} />
-                  <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{task.title}</p><p className="mt-0.5 text-xs text-gray-400">{task.department || "Personal task"}</p></div>
-                  <span className={cn("rounded-lg px-2 py-1 text-xs", task.status === "OVERDUE" ? "bg-red-50 text-red-600" : "bg-gray-50 text-gray-500")}>{formatDate(task.deadline)}</span>
-                </Link>
-              ))}
-              {!revealed && <div className="h-28 animate-pulse rounded-xl bg-gray-50" />}
-            </div>
-          </section>
-
-        </div>
 
         <section>
           <div className="mb-3">
