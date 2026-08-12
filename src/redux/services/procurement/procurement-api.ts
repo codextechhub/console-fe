@@ -276,6 +276,12 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/procurement/vendor-payments/${id}/cancel/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["ProcVendorPayments"],
     }),
+    // Draws a posted payment's vendor advance onto bills raised since. No cash moves:
+    // it reclassifies 1240 into AP, so the vendor invoices and the ledger both change.
+    allocateVendorAdvance: b.mutation<ApiEnvelope<VendorPayment>, Act & { auto_allocate?: boolean; allocations?: { vendor_invoice: number; amount: number }[] }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/vendor-payments/${id}/allocate/${qs({ entity })}`, method: "POST", body }),
+      invalidatesTags: ["ProcVendorPayments", "ProcVendorInvoices", "FinanceJournals"],
+    }),
     reverseVendorPayment: b.mutation<ApiEnvelope<VendorPayment>, Act & { date?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/vendor-payments/${id}/reverse/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcVendorPayments", "ProcVendorInvoices", "FinanceJournals"],
@@ -341,4 +347,5 @@ export const {
   usePostVendorPaymentMutation,
   useCancelVendorPaymentMutation,
   useReverseVendorPaymentMutation,
+  useAllocateVendorAdvanceMutation,
 } = procurementApi;

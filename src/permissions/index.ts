@@ -395,6 +395,7 @@ const REGISTRY: Record<string, string> = {
   "701114": "procurement.vendor_payment.reverse",
   "701128": "procurement.vendor_payment.cancel",
   "701130": "procurement.vendor_payment.submit",
+  "701120": "procurement.vendor_payment.allocate",
   "701205": "procurement.approval.approve",
   "701208": "procurement.approval.manage",
   "701238": "procurement.approval.approve_senior",
@@ -753,6 +754,7 @@ export const P = {
   PROC_UPDATE_VENDOR_PAYMENT:"701103",
   PROC_POST_VENDOR_PAYMENT: "701113",
   PROC_REVERSE_VENDOR_PAYMENT:"701114",
+  PROC_ALLOCATE_VENDOR_ADVANCE: "701120",  // apply a prepayment to a later bill
   PROC_CANCEL_VENDOR_PAYMENT:"701128",
   PROC_SUBMIT_VENDOR_PAYMENT:"701130",
   PROC_APPROVE_SPEND:       "701205",

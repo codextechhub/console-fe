@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import {
-  Banknote, Check, ChevronRight, FilePenLine, FileText, History, ListChecks,
+  Banknote, Check, ChevronRight, Coins, FilePenLine, FileText, History, ListChecks,
   Plus, Printer, ReceiptText, RotateCcw, Send, Undo2, X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +25,7 @@ import {
   useCancelVendorPaymentMutation, useCreateVendorPaymentMutation,
   useGetVendorPaymentEligibleInvoicesQuery, useGetVendorPaymentQuery,
   useGetVendorPaymentsQuery, usePostVendorPaymentMutation,
+  useAllocateVendorAdvanceMutation,
   useReverseVendorPaymentMutation, useSubmitVendorPaymentMutation,
   useUpdateVendorPaymentMutation,
 } from "@/redux/services/procurement/procurement-api";
@@ -108,6 +109,7 @@ function PaymentDrawer({ id, entity, currency, onClose }: { id: number | null; e
   const [post, { isLoading: posting }] = usePostVendorPaymentMutation();
   const [cancel, { isLoading: cancelling }] = useCancelVendorPaymentMutation();
   const [reverse, { isLoading: reversing }] = useReverseVendorPaymentMutation();
+  const [applyAdvance, { isLoading: applying }] = useAllocateVendorAdvanceMutation();
   // Reset the drawer's local UI when a different payment is opened (render-phase).
   const [uiFor, setUiFor] = useState(id);
   if (uiFor !== id) {
@@ -123,13 +125,16 @@ function PaymentDrawer({ id, entity, currency, onClose }: { id: number | null; e
     if (!workflowId || ((action === "REJECTED" || action === "RETURNED") && !comment.trim())) return;
     try { await recordAction({ id: workflowId, action, comment: comment.trim() }).unwrap(); toast.success(action === "APPROVED" ? "Approval recorded." : action === "RETURNED" ? "Revision requested." : "Payment rejected."); setComment(""); refetch(); } catch { /* central */ }
   };
-  const run = async (action: "submit" | "post" | "cancel" | "reverse") => {
+  const run = async (action: "submit" | "post" | "cancel" | "reverse" | "apply") => {
     if (!payment) return;
     try {
       if (action === "submit") await submit({ id: payment.id, entity }).unwrap();
       if (action === "post") await post({ id: payment.id, entity }).unwrap();
       if (action === "cancel") { if (!window.confirm("Cancel this unposted payment?")) return; await cancel({ id: payment.id, entity }).unwrap(); }
       if (action === "reverse") { if (!window.confirm("Reverse this posted payment and restore its invoice balances?")) return; await reverse({ id: payment.id, entity }).unwrap(); }
+      // The service reports what it actually applied, including finding nothing
+      // eligible, so its message is more honest than anything we could compose here.
+      if (action === "apply") { const res = await applyAdvance({ id: payment.id, entity, auto_allocate: true }).unwrap(); toast.success(res.message || "Advance applied."); return; }
       toast.success(action === "submit" ? "Payment submitted for approval." : action === "post" ? "Payment posted." : action === "cancel" ? "Payment cancelled." : "Payment reversed.");
     } catch { /* central */ }
   };
@@ -141,6 +146,7 @@ function PaymentDrawer({ id, entity, currency, onClose }: { id: number | null; e
       {editable && <Can permission={P.PROC_SUBMIT_VENDOR_PAYMENT}><Button loading={submitting} onClick={() => run("submit")}><Send className="size-4" /> Submit for Approval</Button></Can>}
       {payment.status === "DRAFT" && payment.approval_state === "APPROVED" && <Can permission={P.PROC_CANCEL_VENDOR_PAYMENT}><Button variant="outline-dest" loading={cancelling} onClick={() => run("cancel")}><X className="size-4" /> Cancel</Button></Can>}
       {payment.status === "DRAFT" && payment.approval_state === "APPROVED" && <Can permission={P.PROC_POST_VENDOR_PAYMENT}><Button loading={posting} onClick={() => run("post")}><Banknote className="size-4" /> Post Payment</Button></Can>}
+      {payment.status === "POSTED" && payment.advance_remaining > 0 && <Can permission={P.PROC_ALLOCATE_VENDOR_ADVANCE}><Button variant="outline" loading={applying} onClick={() => run("apply")}><Coins className="size-4" /> Apply Advance</Button></Can>}
       {payment.status === "POSTED" && <Can permission={P.PROC_REVERSE_VENDOR_PAYMENT}><Button variant="outline-dest" loading={reversing} onClick={() => run("reverse")}><Undo2 className="size-4" /> Reverse</Button></Can>}
     </>}>
       {isLoading ? <LoadingState rows={8} /> : isError || !payment ? <ErrorState onRetry={refetch} /> : <div className="space-y-5">
