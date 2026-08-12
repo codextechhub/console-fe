@@ -9,6 +9,27 @@ import type { Task, TaskStats } from "./todo-types";
  * `tickets.ticket.view`, `platform.health.view`, and CX-staff-only tasks). An
  * absent section means "no access" - render nothing, never a zero.
  */
+/**
+ * A decision waiting on the caller, shaped for the dashboard worklist row.
+ * `id` is the workflow-instance id: exactly what APPROVAL_DETAIL(id) opens.
+ */
+export interface ApprovalWorklistItem {
+  id: string;
+  document_type: string;
+  document_object_id: string;
+  stage_label: string;
+  awaiting_since: string | null;
+  requested_by_name: string;
+}
+
+/** The caller's own submission that came back for changes. */
+export interface ReturnedSubmissionItem {
+  id: string;
+  document_type: string;
+  document_object_id: string;
+  returned_at: string;
+}
+
 export interface ConsoleOverview {
   schools?: { active: number };
   team?: { total: number };
@@ -17,8 +38,8 @@ export interface ConsoleOverview {
     /** Only the few the panel lists, already ordered by the server. */
     items: Task[];
   };
-  approvals: { pending: number };
-  submissions: { returned: number };
+  approvals: { pending: number; items: ApprovalWorklistItem[] };
+  submissions: { returned: number; items: ReturnedSubmissionItem[] };
   notifications: { unread: number };
   tickets?: { open: number; assigned_to_me: number };
   health?: { label: string; overall: string; active_incidents: number };

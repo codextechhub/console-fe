@@ -2,13 +2,10 @@
 
 1. I want to work on loading options for different components on the screens. (skeleton/spinner/progress bar) Also, components load differently. One loading shouldn't affect another loading.
 
-2. Dashboard action-first rebuild (planned 2026-08-12; slice 1 quick-actions row is DONE).
+2. Dashboard action-first rebuild (planned 2026-08-12; slices 1 quick-actions row
+   and 2a/2b worklist + aging are DONE - approvals/returned render as real rows,
+   oldest first, stale ages red, one click from the decision screen).
    Remaining slices, in order:
-   a. Worklist: extend `/console/overview` payload with the top 3-5 pending approvals
-      and returned submissions as items (title, requester, amount, age); render them
-      as rows in "Needs your attention" with the decision drawer opening inline.
-   b. Aging: add oldest-waiting age to approvals/overdue counts; sort attention
-      items by real age instead of the hardcoded urgency order.
    c. Module-aware signal cards (gated, omit-don't-zero): fiscal period closing in
       N days (reuse runway computation), journals in draft, POs awaiting receipt,
       webhook failures last 24h, finished/failed exports.

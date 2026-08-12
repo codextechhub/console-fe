@@ -29,6 +29,7 @@ import { useGetConsoleOverviewQuery } from "@/redux/services/dashboard/overview-
 import { SnapRail } from "@/components/custom/snap-rail";
 import { resolveAttentionDestination } from "./overview-navigation";
 import { QuickActionsRow } from "./quick-actions";
+import { AttentionWorklist } from "./attention-worklist";
 
 const R = routesPath.PROTECTED;
 
@@ -144,6 +145,10 @@ export default function Overview() {
   const unreadCount = overview?.notifications.unread ?? 0;
   const attentionCount =
     approvalsCount + (taskStats?.overdue ?? 0) + returnedCount + unreadCount;
+  // The real work items, shown as rows a click away from the decision. The
+  // arrays are empty (never absent) for callers with nothing pending.
+  const approvalItems = overview?.approvals.items ?? [];
+  const returnedItems = overview?.submissions.items ?? [];
   const attentionItems = [
     {
       label: "Overdue tasks",
@@ -153,6 +158,9 @@ export default function Overview() {
       to: R.TODO.INDEX,
       icon: Clock3,
       tone: "bg-amber-50 text-amber-600",
+      // Categories the worklist shows as real rows drop out of the summary
+      // grid; they stay in this array for the total and the hero destination.
+      inWorklist: false,
     },
     {
       label: "Returned submissions",
@@ -162,6 +170,7 @@ export default function Overview() {
       to: R.WORKFLOW.MY_SUBMISSIONS,
       icon: CircleDot,
       tone: "bg-red-50 text-red-500",
+      inWorklist: returnedItems.length > 0,
     },
     {
       label: "Approvals waiting",
@@ -171,6 +180,7 @@ export default function Overview() {
       to: R.WORKFLOW.APPROVALS,
       icon: FileClock,
       tone: "bg-emerald-50 text-emerald-600",
+      inWorklist: approvalItems.length > 0,
     },
     {
       label: "Unread notifications",
@@ -180,12 +190,15 @@ export default function Overview() {
       to: R.NOTIFICATIONS,
       icon: Bell,
       tone: "bg-blue-50 text-blue-600",
+      inWorklist: false,
     },
   ]
     // Per-item loading copy is gone with the per-item queries: the section is
     // skeletoned as a whole until the single request lands.
     .filter((item) => item.count > 0)
     .sort((a, b) => a.urgency - b.urgency || b.count - a.count);
+  const summaryItems = attentionItems.filter((item) => !item.inWorklist);
+  const hasWorklistRows = approvalItems.length > 0 || returnedItems.length > 0;
 
   // Every row is answerable from the response, so every row can actually be
   // ticked. Two of them used to be hardcoded `done: null` - the endpoint
@@ -412,29 +425,46 @@ export default function Overview() {
               </span>
             </div>
             {!revealed || attentionItems.length ? (
-              <div className={cn("mt-3 grid flex-1 auto-rows-min gap-2 sm:grid-cols-2", revealed && "reveal-in")}>
+              <div className={cn("mt-3 flex-1", revealed && "reveal-in")}>
                 {!revealed ? (
                   // Two rows the size of a real one: the section keeps its height
                   // instead of growing under the reader as items land.
-                  [0, 1].map((i) => (
-                    <div key={i} className="flex items-center gap-3 rounded-lg border border-gray-100 p-3">
-                      <Shimmer className="size-8 shrink-0 rounded-lg" />
-                      <div className="min-w-0 flex-1 space-y-1.5">
-                        <Shimmer className="h-3 w-24" />
-                        <Shimmer className="h-2.5 w-32" />
+                  <div className="grid auto-rows-min gap-2 sm:grid-cols-2">
+                    {[0, 1].map((i) => (
+                      <div key={i} className="flex items-center gap-3 rounded-lg border border-gray-100 p-3">
+                        <Shimmer className="size-8 shrink-0 rounded-lg" />
+                        <div className="min-w-0 flex-1 space-y-1.5">
+                          <Shimmer className="h-3 w-24" />
+                          <Shimmer className="h-2.5 w-32" />
+                        </div>
                       </div>
-                    </div>
-                  ))
-                ) : attentionItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link key={item.label} to={item.to} className="group flex items-center gap-3 rounded-lg border border-gray-100 p-3 hover:border-primary/20 hover:bg-primary/[0.025]">
-                      <span className={cn("grid size-8 place-items-center rounded-lg", item.tone)}><Icon className="size-4" /></span>
-                      <div className="min-w-0 flex-1"><p className="text-sm font-medium">{item.label}</p><p className="mt-0.5 text-xs text-gray-400">{item.copy}</p></div>
-                      <ChevronRight className="size-4 text-gray-300 group-hover:text-primary" />
-                    </Link>
-                  );
-                })}
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    {hasWorklistRows && (
+                      <AttentionWorklist
+                        approvals={approvalItems}
+                        returned={returnedItems}
+                        pendingTotal={approvalsCount}
+                      />
+                    )}
+                    {summaryItems.length > 0 && (
+                      <div className={cn("grid auto-rows-min gap-2 sm:grid-cols-2", hasWorklistRows && "mt-2 border-t border-gray-50 pt-3")}>
+                        {summaryItems.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <Link key={item.label} to={item.to} className="group flex items-center gap-3 rounded-lg border border-gray-100 p-3 hover:border-primary/20 hover:bg-primary/[0.025]">
+                              <span className={cn("grid size-8 place-items-center rounded-lg", item.tone)}><Icon className="size-4" /></span>
+                              <div className="min-w-0 flex-1"><p className="text-sm font-medium">{item.label}</p><p className="mt-0.5 text-xs text-gray-400">{item.copy}</p></div>
+                              <ChevronRight className="size-4 text-gray-300 group-hover:text-primary" />
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             ) : (
               // Outside the auto-rows grid so the empty state centres in the
