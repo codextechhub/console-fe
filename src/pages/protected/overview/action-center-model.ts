@@ -2,7 +2,7 @@
 // react-refresh boundary. One attention system, three shapes: compact rows for
 // module conditions and low-urgency notices, queue boxes for the reader's own
 // work items (approvals, returned submissions, tasks).
-import { Bell, LifeBuoy, Siren } from "lucide-react";
+import { Bell, FileDown, LifeBuoy, Siren } from "lucide-react";
 import { routesPath } from "@/routes/routes-path";
 import type { ConsoleOverview } from "@/redux/services/dashboard/overview-types";
 import type { Task } from "@/redux/services/dashboard/todo-types";
@@ -70,6 +70,21 @@ export function buildActionRows(overview: ConsoleOverview | undefined): ActionRo
       message: "Support tickets are waiting on your reply.",
       to: R.SUPPORT.INDEX,
       severity: "amber",
+    });
+  }
+
+  // A notice, not a signal card: finished work is good news, so it rides blue
+  // alongside notifications rather than tinted like a problem.
+  const finished = overview?.signals?.jobs_succeeded_24h?.count ?? 0;
+  if (finished > 0) {
+    rows.push({
+      key: "exports_ready",
+      icon: FileDown,
+      title: "Exports ready to download",
+      stat: String(finished),
+      message: "Jobs you started finished in the last 24 hours.",
+      to: R.EXPORT.QUEUES,
+      severity: "blue",
     });
   }
 

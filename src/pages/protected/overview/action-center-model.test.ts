@@ -18,7 +18,7 @@ const task = (over: Partial<Task>): Task =>
   }) as Task;
 
 const overview = (over: Partial<ConsoleOverview>): ConsoleOverview => ({
-  approvals: { pending: 0, items: [] },
+  approvals: { pending: 0, delegated: 0, items: [] },
   submissions: { returned: 0, items: [] },
   notifications: { unread: 0 },
   ...over,
@@ -74,6 +74,19 @@ describe("buildActionRows", () => {
   it("omits tickets and notifications at zero", () => {
     const rows = buildActionRows(overview({ tickets: { open: 4, assigned_to_me: 0 } }));
     expect(rows).toEqual([]);
+  });
+
+  it("adds finished jobs and incidents from their own sections", () => {
+    const rows = buildActionRows(
+      overview({
+        signals: { jobs_succeeded_24h: { count: 2 } },
+        health: { label: "1 service down", overall: "critical", active_incidents: 1 },
+      }),
+    );
+    expect(rows.map((r) => [r.key, r.severity])).toEqual([
+      ["incidents", "red"],
+      ["exports_ready", "blue"],
+    ]);
   });
 
   it("keeps notices behind every warning severity", () => {

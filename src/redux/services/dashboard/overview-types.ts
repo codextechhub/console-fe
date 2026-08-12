@@ -20,6 +20,8 @@ export interface ApprovalWorklistItem {
   stage_label: string;
   awaiting_since: string | null;
   requested_by_name: string;
+  /** Set when the caller is a delegate covering this decision for someone else. */
+  on_behalf_of_name: string | null;
 }
 
 /** The caller's own submission that came back for changes. */
@@ -38,7 +40,7 @@ export interface ConsoleOverview {
     /** Only the few the panel lists, already ordered by the server. */
     items: Task[];
   };
-  approvals: { pending: number; items: ApprovalWorklistItem[] };
+  approvals: { pending: number; delegated: number; items: ApprovalWorklistItem[] };
   submissions: { returned: number; items: ReturnedSubmissionItem[] };
   notifications: { unread: number };
   tickets?: { open: number; assigned_to_me: number };
@@ -61,6 +63,8 @@ export interface ConsoleOverview {
     webhook_failures_24h?: { count: number };
     /** The caller's own background jobs that failed in the last 24h. */
     jobs_failed_24h?: { count: number };
+    /** The caller's own jobs that finished in the last 24h - ready to collect. */
+    jobs_succeeded_24h?: { count: number };
     /** Posted AR invoices past due and not fully settled. */
     overdue_invoices?: { count: number };
     /** Posted receipts with cash not yet applied to any invoice or refunded. */

@@ -5,6 +5,7 @@ import {
   CornerUpLeft,
   FileClock,
   FileText,
+  UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -142,12 +143,18 @@ function taskDeadline(value: string): string {
 export function ActionCenter({ overview }: { overview: ConsoleOverview | undefined }) {
   const rows = buildActionRows(overview);
 
-  const approvals = overview?.approvals.items ?? [];
-  const approvalsCount = overview?.approvals.pending ?? 0;
+  const allApprovalItems = overview?.approvals.items ?? [];
+  // Delegate cover is its own duty, so it gets its own box; the counts split
+  // the same way the items do (pending is the whole queue, delegated within).
+  const approvals = allApprovalItems.filter((item) => !item.on_behalf_of_name);
+  const covering = allApprovalItems.filter((item) => item.on_behalf_of_name);
+  const delegatedCount = overview?.approvals.delegated ?? 0;
+  const approvalsCount = (overview?.approvals.pending ?? 0) - delegatedCount;
   const returned = overview?.submissions.items ?? [];
   const tasks = actionableTasks(overview?.tasks?.items ?? []);
 
-  const hasQueues = approvals.length > 0 || returned.length > 0 || tasks.length > 0;
+  const hasQueues =
+    approvals.length > 0 || covering.length > 0 || returned.length > 0 || tasks.length > 0;
   if (rows.length === 0 && !hasQueues) return null;
 
   return (
@@ -212,6 +219,44 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
                     </div>
                     <p className="mt-0.5 truncate text-xs text-gray-400">
                       {item.requested_by_name ? `From ${item.requested_by_name}` : "Awaiting your decision"}
+                      <AgeStamp since={item.awaiting_since} variant="inline" />
+                    </p>
+                  </div>
+                  <AgeStamp since={item.awaiting_since} variant="row" />
+                  <ChevronRight className="size-4 shrink-0 text-gray-300 group-hover:text-primary" />
+                </Link>
+              ))}
+            </QueueBox>
+          )}
+
+          {covering.length > 0 && (
+            <QueueBox
+              icon={UserCheck}
+              title="Covering as delegate"
+              count={delegatedCount}
+              viewAllTo={`${R.WORKFLOW.APPROVALS}?acting=delegated`}
+              viewAllLabel={`View all ${delegatedCount} delegated approvals`}
+            >
+              {covering.slice(0, QUEUE_SHOWN).map((item) => (
+                <Link
+                  key={item.id}
+                  to={R.WORKFLOW.APPROVAL_DETAIL(item.id)}
+                  className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-primary/[0.025]"
+                >
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600">
+                    <UserCheck className="size-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm">
+                        <DocumentRef documentType={item.document_type} objectId={item.document_object_id} />
+                      </span>
+                      <Badge variant="pending" className="hidden shrink-0 sm:inline-flex">
+                        {item.stage_label}
+                      </Badge>
+                    </div>
+                    <p className="mt-0.5 truncate text-xs text-gray-400">
+                      For {item.on_behalf_of_name}
                       <AgeStamp since={item.awaiting_since} variant="inline" />
                     </p>
                   </div>

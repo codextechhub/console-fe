@@ -8,6 +8,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { routesPath } from "@/routes/routes-path";
 import { useGetPendingApprovalsQuery } from "@/redux/services/dashboard/workflow-api";
 import type { PendingApproval } from "@/redux/services/dashboard/workflow-types";
+import { useFilterParam } from "@/hooks/use-filter-param";
 import { useUserDirectory } from "../components/use-user-directory";
 import { DocumentRef, InitialsAvatar } from "../components/workflow-ui";
 import { humanizeDocumentType } from "../components/workflow-format";
@@ -21,6 +22,8 @@ export default function PendingApprovals() {
 
   const [selectedType, setSelectedType] = useState<string>("all");
   const [actingAs, setActingAs] = useState<"all" | "delegated">("all");
+  // Dashboard deep-link: the delegate box lands here as ?acting=delegated.
+  useFilterParam("acting", ["delegated"] as const, setActingAs);
   const [search, setSearch] = useState("");
 
   const items = useMemo(() => data?.results ?? [], [data]);
