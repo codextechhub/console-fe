@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Bell,
   Building2,
-  Check,
   CheckCircle2,
   ChevronRight,
   CircleDot,
@@ -197,58 +196,6 @@ export default function Overview() {
     .sort((a, b) => a.urgency - b.urgency || b.count - a.count);
   const summaryItems = attentionItems.filter((item) => !item.inWorklist);
   const hasWorklistRows = approvalItems.length > 0 || returnedItems.length > 0;
-
-  // Every row is answerable from the response, so every row can actually be
-  // ticked. Two of them used to be hardcoded `done: null` - the endpoint
-  // returned nothing to check them against, so they sat grey forever and the
-  // percentage was measured over a different set of items than the one on
-  // screen. `setup` now carries both flags, gated on the same keys as the rows.
-  const setupItems = [
-    {
-      label: "Complete your profile",
-      description: "Keep your contact and personal details up to date.",
-      to: R.ME_PROFILE.INDEX,
-      done: Boolean(user?.phone),
-      // `pending` marks a state that can only be known once a query answers.
-      pending: false,
-      visible: true,
-    },
-    {
-      label: "Invite your team",
-      description: "Bring the people you work with into the platform.",
-      to: R.TEAM_MGT.CX,
-      done: (overview?.team?.total ?? 0) > 1,
-      pending: true,
-      visible: canViewTeam,
-    },
-    {
-      // Was "Review roles and access" - a review is not a thing the data can
-      // ever report as done. Assigning a role is, and it is the step that
-      // actually matters.
-      label: "Assign roles to your team",
-      description: "Give people the access their responsibilities need.",
-      to: R.ROLES.INDEX,
-      done: Boolean(overview?.setup?.roles_assigned),
-      pending: true,
-      // Kept in place while loading so the list doesn't shuffle under the
-      // reader; dropped only if the answer comes back absent (no access).
-      visible: hasPermission(P.VIEW_ROLES) && (!revealed || overview?.setup?.roles_assigned !== undefined),
-    },
-    {
-      label: "Build your organogram",
-      description: "Connect reporting lines so ownership stays clear.",
-      to: R.ORGANOGRAM.INDEX,
-      done: Boolean(overview?.setup?.organogram_built),
-      pending: true,
-      visible: hasPermission(P.VIEW_ORGANOGRAM) && (!revealed || overview?.setup?.organogram_built !== undefined),
-    },
-  ].filter((item) => item.visible);
-  const setupDone = setupItems.filter((item) => item.done).length;
-  const setupPercent = setupItems.length ? Math.round((setupDone / setupItems.length) * 100) : 100;
-  // The checklist has an end. Once every row the reader can see is ticked it
-  // stops being guidance and becomes furniture, so it leaves the screen - but
-  // only after the data has landed, or it would flash away and back on load.
-  const showSetup = !revealed || setupDone < setupItems.length;
 
   // Built once and rendered by both the phone rail and the desktop grid, so the
   // two presentations can never drift apart.
@@ -472,52 +419,19 @@ export default function Overview() {
             </div>
           </section>
 
-          {/* Boxed so it sits shoulder-to-shoulder with Getting started; alone
-              (checklist finished) it takes the whole row. */}
-          <section className={cn("flex flex-col rounded-xl border border-white-02 bg-white p-4", !showSetup && "xl:col-span-2")}>
-            <div>
-              <h2 className="text-base font-semibold">Platform overview</h2>
-              <p className="mt-0.5 text-xs text-gray-400">A live view of the administration areas you can access.</p>
-            </div>
-            <div className={cn("mt-4 grid flex-1 auto-rows-min grid-cols-2 gap-2 sm:grid-cols-3", !showSetup ? "xl:grid-cols-6" : "xl:grid-cols-3", revealed && "reveal-in")}>
-              {metricCards}
-            </div>
-          </section>
-
-          {showSetup && (
-          <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-base font-semibold">Getting started</h2>
-                <p className="mt-0.5 text-xs text-gray-400">Set up the essentials for your admin workspace.</p>
-              </div>
-              <span className="text-sm font-semibold text-primary">
-                {revealed ? `${setupPercent}%` : <Shimmer className="my-0.5 h-3.5 w-9" />}
-              </span>
-            </div>
-            {/* Width stays 0 until the counts are in, so the bar grows into place
-                once instead of stepping as each answer lands. */}
-            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-gray-100"><div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: revealed ? `${setupPercent}%` : "0%" }} /></div>
-            <div className="mt-4 space-y-1">
-              {setupItems.map((item) => {
-                // A checkmark that depends on a query shows the neutral dot until
-                // the reveal, rather than a wrong "not done" that then flips.
-                const done = item.pending && !revealed ? null : item.done;
-                return (
-                <Link key={item.label} to={item.to} className="group flex items-start gap-3 rounded-xl px-2 py-3 hover:bg-gray-50">
-                  <span className={cn("mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border", done === true ? "border-primary bg-primary text-white" : done === false ? "border-gray-200 text-transparent" : "border-primary/25 bg-primary/5 text-primary")}>
-                    {done === null ? <CircleDot className="size-2.5" /> : <Check className="size-3" />}
-                  </span>
-                  <div className="min-w-0 flex-1"><p className={cn("text-sm font-medium", done && "text-gray-400 line-through")}>{item.label}</p><p className="mt-0.5 text-xs leading-5 text-gray-400">{item.description}</p></div>
-                  <ChevronRight className="mt-1 size-4 text-gray-300 group-hover:text-primary" />
-                </Link>
-                );
-              })}
-            </div>
-          </section>
-          )}
-
         </div>
+
+        <section>
+          <div className="mb-3">
+            <h2 className="text-base font-semibold">Platform overview</h2>
+            <p className="mt-0.5 text-xs text-gray-400">A live view of the administration areas you can access.</p>
+          </div>
+          {/* Compact tiles in a dense grid: on a phone two abreast, six across
+              on a wide screen - reference numbers, not the day's work. */}
+          <div className={cn("grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6", revealed && "reveal-in")}>
+            {metricCards}
+          </div>
+        </section>
 
         <section aria-label="Your workspace">
           <div className="mb-3">
