@@ -7,6 +7,11 @@
 // and books a vs_finance receipt when settled. Honest: providers are Paystack (+
 // Fake for testing); no email is sent (Copy link copies the real URL); the receipt
 // journal posts automatically on confirmation - the recap mirrors it, never a 2nd post.
+//
+// Not every row here is a checkout. A transfer into a customer's dedicated virtual
+// account arrives unsolicited and the gateway records it as a collection on the
+// VIRTUAL_ACCOUNT channel, with no link and no payer hand-off - so those rows are
+// tagged, and the drawer tells that story instead of the checkout one.
 
 import { useMemo, useState, type ReactNode } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
@@ -62,6 +67,8 @@ function Select({ value, onChange, children, className }: { value: string; onCha
 }
 
 const customerLabel = (c: Collection) => c.customer_name || c.payer_name || c.customer_code || "-";
+// A transfer the payer sent straight into their dedicated NUBAN: no checkout, no link.
+const isDeposit = (c: Collection) => c.channel === "VIRTUAL_ACCOUNT";
 
 export function CollectionsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -78,7 +85,12 @@ export function CollectionsTab({ entity, currency }: { entity: string; currency?
   const s = summaryRes?.data;
 
   const columns: Column<Collection>[] = [
-    { header: "Reference", cell: (c) => <span className="font-semibold tabular-nums text-gray-01">{c.reference}</span> },
+    { header: "Reference", cell: (c) => (
+      <span>
+        <span className="block font-semibold tabular-nums text-gray-01">{c.reference}</span>
+        {isDeposit(c) ? <span className={cn(PILL, "mt-0.5 bg-gray-03 text-gray-05")}>Virtual account transfer</span> : null}
+      </span>
+    ) },
     { header: "Created", cell: (c) => <span className="tabular-nums text-gray-05">{fmtDateTime(c.created_at)}</span> },
     { header: "Customer", cell: (c) => <span><span className="font-medium text-gray-01">{customerLabel(c)}</span>{c.narration ? <span className="block font-mont text-[11px] text-gray-05">{c.narration}</span> : null}</span> },
     { header: "Provider", cell: (c) => <ProviderTag provider={c.provider} /> },
@@ -153,6 +165,7 @@ function CollectionDrawer({ collectionId, collections, entity, currency, onClose
 
   const paid = c.status === "SUCCEEDED";
   const failed = c.status === "FAILED" || c.status === "ABANDONED";
+  const deposit = isDeposit(c);
   // An invoice-linked checkout settles AR against that invoice; a standalone one parks
   // the cash as the customer's credit (a 2140 liability) instead.
   const linked = c.invoice_id != null;
@@ -170,7 +183,7 @@ function CollectionDrawer({ collectionId, collections, entity, currency, onClose
 
   return (
     <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
-      title={c.reference} description={`${customerLabel(c)} · ${formatMoney(c.amount, currency)}`} widthClass="sm:max-w-2xl"
+      title={c.reference} description={`${customerLabel(c)} · ${formatMoney(c.amount, currency)}${deposit ? " · Virtual account transfer" : ""}`} widthClass="sm:max-w-2xl"
       footer={<>
         <StatusPill status={c.status} />
         <div className="flex-1" />
@@ -187,10 +200,18 @@ function CollectionDrawer({ collectionId, collections, entity, currency, onClose
         <div className="rounded-md border border-gray-03 bg-white p-4">
           <p className="mb-3 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Status timeline</p>
           <div className="space-y-3">
-            <TimelineStep done title="Checkout created" sub={fmtDateTime(c.created_at)} />
-            <TimelineStep done={paid || failed} current={!paid && !failed} title="Checkout link ready" sub={c.checkout_url ? (c.payer_email ? `Hand off to ${c.payer_email}` : "Link ready to share") : "No hosted link"} />
-            <TimelineStep done={paid} current={!paid && !failed} title={failed ? "Payment failed" : "Payment confirmed"}
-              sub={paid ? `Webhook received - receipt booked (Dr bank / Cr ${linked ? "AR" : "customer credit"})${c.confirmed_at ? ` · ${fmtDateTime(c.confirmed_at)}` : ""}` : failed ? "The provider reported a failed/abandoned payment" : "Awaiting the provider's confirmation"} />
+            {deposit ? (
+              // A deposit has no checkout and no link: the first we hear of it is the
+              // provider telling us the customer's dedicated account was credited.
+              <TimelineStep done title="Transfer received" sub={`${PROVIDERS[c.provider]?.label ?? c.provider} reported a transfer into this customer's account · ${fmtDateTime(c.created_at)}`} />
+            ) : (
+              <>
+                <TimelineStep done title="Checkout created" sub={fmtDateTime(c.created_at)} />
+                <TimelineStep done={paid || failed} current={!paid && !failed} title="Checkout link ready" sub={c.checkout_url ? (c.payer_email ? `Hand off to ${c.payer_email}` : "Link ready to share") : "No hosted link"} />
+              </>
+            )}
+            <TimelineStep done={paid} current={!paid && !failed} title={failed ? "Payment failed" : deposit ? "Deposit confirmed" : "Payment confirmed"}
+              sub={paid ? `Verified with the provider - receipt booked (Dr bank / Cr ${linked ? "AR" : "customer credit"})${c.confirmed_at ? ` · ${fmtDateTime(c.confirmed_at)}` : ""}` : failed ? "The provider reported a failed/abandoned payment" : "Awaiting the provider's confirmation"} />
           </div>
         </div>
 
