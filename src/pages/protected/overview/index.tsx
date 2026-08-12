@@ -101,7 +101,7 @@ function MetricCard({
         <p className="truncate text-base font-semibold leading-tight tracking-tight text-black-01">
           {loading ? <Shimmer className="my-1 h-4 w-10" /> : value}
         </p>
-        <p className="truncate text-[11px] text-gray-400">{label}</p>
+        <p className="line-clamp-2 text-[11px] leading-tight text-gray-400">{label}</p>
       </div>
     </Link>
   );
@@ -262,12 +262,12 @@ export default function Overview() {
     <MetricCard key="tasks" icon={ClipboardCheck} label="Open tasks" value={taskStats?.in_progress ?? 0} note={`${taskStats?.overdue ?? 0} overdue`} to={`${R.TODO.INDEX}?tab=mine`} tone="amber" loading={!revealed} />,
     <MetricCard key="approvals" icon={Workflow} label="Pending approvals" value={approvalsCount} note={`${returnedCount} returned to you`} to={R.WORKFLOW.APPROVALS} tone="green" loading={!revealed} />,
     canViewTickets && (
-      <MetricCard key="tickets" icon={LifeBuoy} label="Open support tickets" value={overview?.tickets?.open ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={`${R.SUPPORT.INDEX}?status=OPEN`} tone="amber" loading={!revealed} />
+      <MetricCard key="tickets" icon={LifeBuoy} label="Support tickets" value={overview?.tickets?.open ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={`${R.SUPPORT.INDEX}?status=OPEN`} tone="amber" loading={!revealed} />
     ),
     canViewHealth && (
       // The one-word posture fits the compact tile; the full sentence label
       // ("All systems operational") moves to the tooltip with the incident count.
-      <MetricCard key="health" icon={Activity} label="System posture" value={overview?.health ? overview.health.overall.charAt(0).toUpperCase() + overview.health.overall.slice(1) : "Unknown"} note={`${overview?.health?.label ?? "Unknown"} - ${overview?.health?.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={!revealed} />
+      <MetricCard key="health" icon={Activity} label="System posture" value={overview?.health ? ({ operational: "Normal", warning: "Warning", critical: "Critical" }[overview.health.overall] ?? overview.health.overall) : "Unknown"} note={`${overview?.health?.label ?? "Unknown"} - ${overview?.health?.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={!revealed} />
     ),
   ].filter(Boolean) as React.ReactElement[];
 
@@ -472,10 +472,20 @@ export default function Overview() {
             </div>
           </section>
 
-          {/* Full-row: its old row partner (the workspace shortcuts) now lives
-              as a chip row at the foot of the page. */}
+          {/* Boxed so it sits shoulder-to-shoulder with Getting started; alone
+              (checklist finished) it takes the whole row. */}
+          <section className={cn("flex flex-col rounded-xl border border-white-02 bg-white p-4", !showSetup && "xl:col-span-2")}>
+            <div>
+              <h2 className="text-base font-semibold">Platform overview</h2>
+              <p className="mt-0.5 text-xs text-gray-400">A live view of the administration areas you can access.</p>
+            </div>
+            <div className={cn("mt-4 grid flex-1 auto-rows-min grid-cols-2 gap-2 sm:grid-cols-3", !showSetup ? "xl:grid-cols-6" : "xl:grid-cols-3", revealed && "reveal-in")}>
+              {metricCards}
+            </div>
+          </section>
+
           {showSetup && (
-          <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4 xl:col-span-2">
+          <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-base font-semibold">Getting started</h2>
@@ -508,18 +518,6 @@ export default function Overview() {
           )}
 
         </div>
-
-        <section>
-          <div className="mb-3">
-            <h2 className="text-base font-semibold">Platform overview</h2>
-            <p className="mt-0.5 text-xs text-gray-400">A live view of the administration areas you can access.</p>
-          </div>
-          {/* Compact tiles in a dense grid: on a phone two abreast, six across
-              on a wide screen - reference numbers, not the day's work. */}
-          <div className={cn("grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6", revealed && "reveal-in")}>
-            {metricCards}
-          </div>
-        </section>
 
         <section aria-label="Your workspace">
           <div className="mb-3">
