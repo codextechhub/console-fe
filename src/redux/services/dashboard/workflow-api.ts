@@ -101,6 +101,12 @@ export const workflowApi = baseApi.injectEndpoints({
         method: "POST",
         body: reason ? { reason } : {},
       }),
+      // This endpoint owns every message it produces, including the refusal.
+      // A 409 NOT_PARKED means somebody became able to approve while the dialog
+      // was open, which the hook reports as good news; letting the central
+      // handler also fire would stack a red "not waiting on an unstaffed
+      // approval stage" under a green "it has gone for review instead".
+      extraOptions: { silent: true },
       // Releasing the stage may terminate the instance and fire the document's
       // own transition (a payout dispatches, a PO issues), so the business
       // caches drop alongside the workflow ones exactly as a vote does.
