@@ -30,6 +30,7 @@ import { SnapRail } from "@/components/custom/snap-rail";
 import { resolveAttentionDestination } from "./overview-navigation";
 import { QuickActionsRow } from "./quick-actions";
 import { AttentionWorklist } from "./attention-worklist";
+import { SignalsRow } from "./signals-row";
 
 const R = routesPath.PROTECTED;
 
@@ -384,6 +385,8 @@ export default function Overview() {
         </section>
 
         <QuickActionsRow />
+
+        {revealed && <SignalsRow signals={overview?.signals} />}
 
         <section>
           <div className="mb-3 flex items-end justify-between gap-4">

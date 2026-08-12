@@ -2,17 +2,17 @@
 
 1. I want to work on loading options for different components on the screens. (skeleton/spinner/progress bar) Also, components load differently. One loading shouldn't affect another loading.
 
-2. Dashboard action-first rebuild (planned 2026-08-12; slices 1 quick-actions row
-   and 2a/2b worklist + aging are DONE - approvals/returned render as real rows,
-   oldest first, stale ages red, one click from the decision screen).
+2. Dashboard action-first rebuild (planned 2026-08-12; slices 1 quick-actions row,
+   2a/2b worklist + aging, and c module signals are DONE - signals strip shows
+   fiscal runway (worst entity), draft journals, POs awaiting receipt, webhook
+   failures 24h, own failed jobs 24h; each gated + omitted when quiet, red
+   before amber).
    Remaining slices, in order:
-   c. Module-aware signal cards (gated, omit-don't-zero): fiscal period closing in
-      N days (reuse runway computation), journals in draft, POs awaiting receipt,
-      webhook failures last 24h, finished/failed exports.
    d. Deep-link every card to pre-filtered views instead of index pages.
    e. "Pick up where you left off": last 3-4 opened entities, logged locally like
       palette frecency.
-   f. Demote/shrink the metric grid and "Your workspace" shortcuts once a-c exist.
+   f. Demote/shrink the metric grid and "Your workspace" shortcuts now that a-c
+      exist.
 
 ## Done
 
