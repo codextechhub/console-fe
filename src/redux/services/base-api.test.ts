@@ -26,8 +26,9 @@ describe("baseQueryInterceptor", () => {
       new Response(JSON.stringify({
         success: false,
         message: (
-          "This date is outside your fiscal periods. "
-          + "Choose a date within an open fiscal period."
+          "No fiscal period covers this date. Either the date falls "
+          + "outside your fiscal calendar, or the next fiscal year has "
+          + "not been created yet."
         ),
         error: {
           code: "PERIOD_CLOSED",
@@ -62,8 +63,9 @@ describe("baseQueryInterceptor", () => {
 
     expect(result.error?.status).toBe(409);
     expect(toastError).toHaveBeenCalledWith(
-      "This date is outside your fiscal periods. "
-      + "Choose a date within an open fiscal period.",
+      "No fiscal period covers this date. Either the date falls "
+      + "outside your fiscal calendar, or the next fiscal year has "
+      + "not been created yet.",
     );
     expect(dismissOpenDrawerForError).toHaveBeenCalledOnce();
   });

@@ -192,11 +192,23 @@ export interface BudgetLineMetric {
   pct_of_plan: number | null;
 }
 
+// How much fiscal calendar the entity has left. Periods are created a year at a
+// time, and when the last one's end date passes with no new year created, every
+// posting in the entity fails at once - so the backend reads the runway ahead of
+// that date. Always read as of today, even on a dashboard pinned to a past period.
+export interface FiscalRunway {
+  status: "HEALTHY" | "EXPIRING" | "EXPIRED";
+  calendar_end: string | null;    // Last postable day; null when there are no periods at all.
+  days_remaining: number | null;  // Negative once it has lapsed; null when there are no periods.
+  threshold_days: number;         // The notice window the status was decided against.
+}
+
 export interface FinanceDashboard {
   entity: string;
   fiscal_year: string | null;
   period: string | null;
   as_of: string;
+  fiscal_runway: FiscalRunway;
   kpis: {
     cash_position: DashboardKpi;
     receivables: DashboardKpi;

@@ -8,9 +8,10 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   ArrowUpRight, Check, Plus, FileText, Receipt, ShoppingCart, BarChart3,
-  ArrowUp, ArrowDown, Wallet, HandCoins, TrendingUp,
+  ArrowUp, ArrowDown, Wallet, HandCoins, TrendingUp, AlertTriangle, CalendarClock,
 } from "lucide-react";
 import { FinanceShell } from "./finance-shell";
+import { fiscalRunwayNotice } from "./fiscal-runway-model";
 import {
   Money, StatusPill, BudgetBar, AgingStack, TrendArea, kpiValueClass,
   CHART_COLORS, InfoHint, useActiveEntity, type AgingDatum,
@@ -24,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { useGetFinanceDashboardQuery } from "@/redux/services/finance/reports-api";
 import { useGetPeriodsQuery } from "@/redux/services/finance/setup-api";
-import type { DashboardKpi, FinanceDashboard, ReportMoney } from "@/redux/services/finance/reports-types";
+import type { DashboardKpi, FinanceDashboard, FiscalRunway, ReportMoney } from "@/redux/services/finance/reports-types";
 
 /** "2026-06-16" → "16 Jun 2026" (the design's as-of format). */
 function fmtDate(iso?: string) {
@@ -115,6 +116,42 @@ function LinkAction({ label, onClick }: { label: string; onClick: () => void }) 
   );
 }
 
+// Fiscal-calendar expiry warning: silent while the runway is healthy, amber while
+// it is running out, destructive once the calendar has lapsed (see
+// fiscal-runway-model for why the difference matters and what each one says).
+// The layout gives the text a 16rem basis so a phone wraps the action onto its own
+// full-width line instead of crushing the message into a narrow column.
+function FiscalRunwayBanner({ runway, canManage, onManage }: {
+  runway: FiscalRunway; canManage: boolean; onManage: () => void;
+}) {
+  const notice = fiscalRunwayNotice(runway, fmtDate);
+  if (!notice) return null;
+  const critical = notice.tone === "critical";
+  const Icon = critical ? AlertTriangle : CalendarClock;
+
+  return (
+    <div role={critical ? "alert" : "status"}
+      className={cn("flex min-w-0 flex-wrap items-start gap-3 rounded-md px-4 py-3 ring-1",
+        critical ? "bg-destructive/5 ring-destructive/25" : "bg-amber-50 ring-amber-200")}>
+      <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-md",
+        critical ? "bg-destructive/10 text-destructive" : "bg-amber-100 text-amber-700")}>
+        <Icon className="size-4" />
+      </span>
+      <div className="min-w-0 flex-1 basis-64">
+        <p className={cn("font-mont text-sm font-semibold", critical ? "text-destructive" : "text-amber-900")}>{notice.title}</p>
+        <p className={cn("mt-0.5 font-mont text-xs", critical ? "text-destructive/85" : "text-amber-900/80")}>{notice.body}</p>
+      </div>
+      {canManage && (
+        <button onClick={onManage}
+          className={cn("inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 font-mont text-xs font-semibold text-white sm:w-auto",
+            critical ? "bg-destructive hover:bg-destructive/90" : "bg-amber-700 hover:bg-amber-800")}>
+          Manage fiscal periods <ArrowUpRight className="size-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 const AGING_META: Record<string, { label: string; color: string }> = {
   current: { label: "Current", color: CHART_COLORS.green },
   "1-30": { label: "1–30d", color: CHART_COLORS.primary },
@@ -130,6 +167,9 @@ export default function FinanceDashboard() {
   const { code: entity, currency } = useActiveEntity();
   const { can } = useCan();
   const canReports = can(P.FIN_VIEW_REPORTS);
+  // The runway banner's only fix lives on the Fiscal Periods screen, so offer the
+  // link only to someone who can actually open it; the warning itself still shows.
+  const canPeriods = can(P.FIN_VIEW_PERIODS);
   const [granularity, setGranularity] = useState<"monthly" | "quarterly">("monthly");
   // Period numbers are per-entity, so a selection only applies to the entity it was
   // made on - we tag it with that entity and derive "" (current) for any other, so
@@ -203,6 +243,13 @@ export default function FinanceDashboard() {
           <ErrorState onRetry={refetch} />
         ) : (
           <>
+            {/* Fiscal-calendar runway - silent unless the entity is about to (or already
+                did) run out of periods, in which case nothing in finance can post. */}
+            {d.fiscal_runway && (
+              <FiscalRunwayBanner runway={d.fiscal_runway} canManage={canPeriods}
+                onManage={() => navigate(`${F.SETUP}/periods`)} />
+            )}
+
             {/* KPI strip */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <StatCard label="Cash position" kpi={d.kpis.cash_position} currency={currency} icon={Wallet} tone="green" />
