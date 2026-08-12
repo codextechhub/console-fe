@@ -38,3 +38,27 @@ describe("buildSignalCards", () => {
     expect(expired.message).toContain("no longer post");
   });
 });
+
+describe("expanded signals", () => {
+  it("maps each new key to a card with its count as the stat", () => {
+    const cards = buildSignalCards({
+      overdue_invoices: { count: 4 },
+      unallocated_credit: { count: 2 },
+      vendor_invoices_unpaid: { count: 5 },
+      rfqs_open: { count: 1 },
+      contracts_expiring: { count: 3 },
+      users_without_roles: { count: 6 },
+      team_overdue_tasks: { count: 7 },
+    });
+    expect(cards.map((c) => [c.key, c.stat])).toEqual([
+      ["overdue_invoices", "4"],
+      ["unallocated_credit", "2"],
+      ["vendor_invoices", "5"],
+      ["rfqs", "1"],
+      ["contracts", "3"],
+      ["roleless_users", "6"],
+      ["team_overdue", "7"],
+    ]);
+    expect(cards.every((c) => c.severity === "amber")).toBe(true);
+  });
+});

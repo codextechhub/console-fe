@@ -61,6 +61,20 @@ export interface ConsoleOverview {
     webhook_failures_24h?: { count: number };
     /** The caller's own background jobs that failed in the last 24h. */
     jobs_failed_24h?: { count: number };
+    /** Posted AR invoices past due and not fully settled. */
+    overdue_invoices?: { count: number };
+    /** Posted receipts with cash not yet applied to any invoice or refunded. */
+    unallocated_credit?: { count: number };
+    /** Posted vendor bills not yet fully paid. */
+    vendor_invoices_unpaid?: { count: number };
+    /** RFQs issued to vendors and still awaiting award. */
+    rfqs_open?: { count: number };
+    /** ACTIVE vendor contracts ending within 30 days. */
+    contracts_expiring?: { count: number };
+    /** Active accounts in the caller's tenant holding no role. */
+    users_without_roles?: { count: number };
+    /** Overdue tasks across the caller's reporting subtree (managers only). */
+    team_overdue_tasks?: { count: number };
   };
 }
 

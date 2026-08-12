@@ -2,7 +2,7 @@
 // react-refresh boundary. One attention system, three shapes: compact rows for
 // module conditions and low-urgency notices, queue boxes for the reader's own
 // work items (approvals, returned submissions, tasks).
-import { Bell, LifeBuoy } from "lucide-react";
+import { Bell, LifeBuoy, Siren } from "lucide-react";
 import { routesPath } from "@/routes/routes-path";
 import type { ConsoleOverview } from "@/redux/services/dashboard/overview-types";
 import type { Task } from "@/redux/services/dashboard/todo-types";
@@ -44,6 +44,21 @@ export function actionableTasks(items: Task[], now = Date.now()): Task[] {
  */
 export function buildActionRows(overview: ConsoleOverview | undefined): ActionRow[] {
   const rows: ActionRow[] = [...buildSignalCards(overview?.signals)];
+
+  // Incidents ride the health section (already permission-gated by the
+  // backend's omit rule) rather than a signal key - same data, same contract.
+  const incidents = overview?.health?.active_incidents ?? 0;
+  if (incidents > 0) {
+    rows.push({
+      key: "incidents",
+      icon: Siren,
+      title: "Active incidents",
+      stat: String(incidents),
+      message: "Service incidents are open right now.",
+      to: R.HEALTH.INDEX,
+      severity: "red",
+    });
+  }
 
   const assigned = overview?.tickets?.assigned_to_me ?? 0;
   if (assigned > 0) {

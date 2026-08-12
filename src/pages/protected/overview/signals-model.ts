@@ -2,9 +2,16 @@
 // boundary (same split as workflow-format.ts).
 import {
   BookDashed,
+  CalendarClock,
   CalendarX,
+  Coins,
+  FileWarning,
   PackageOpen,
+  ReceiptText,
+  Send,
   ServerCrash,
+  UsersRound,
+  UserX,
   Webhook,
 } from "lucide-react";
 import { routesPath } from "@/routes/routes-path";
@@ -88,6 +95,83 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       stat: String(signals.pos_awaiting_receipt.count),
       message: "Purchase orders are still awaiting goods receipt.",
       to: R.PROCUREMENT.PURCHASE_ORDERS,
+      severity: "amber",
+    });
+  }
+  if (signals.overdue_invoices) {
+    cards.push({
+      key: "overdue_invoices",
+      icon: FileWarning,
+      title: "Invoices past due",
+      stat: String(signals.overdue_invoices.count),
+      message: "Customer invoices are overdue and not fully settled.",
+      to: R.FINANCE.RECEIVABLES,
+      severity: "amber",
+    });
+  }
+  if (signals.unallocated_credit) {
+    cards.push({
+      key: "unallocated_credit",
+      icon: Coins,
+      title: "Money not applied",
+      stat: String(signals.unallocated_credit.count),
+      message: "Receipts hold cash not yet applied to any invoice.",
+      to: R.FINANCE.RECEIPTS_ALLOCATION,
+      severity: "amber",
+    });
+  }
+  if (signals.vendor_invoices_unpaid) {
+    cards.push({
+      key: "vendor_invoices",
+      icon: ReceiptText,
+      title: "Vendor bills unpaid",
+      stat: String(signals.vendor_invoices_unpaid.count),
+      message: "Posted vendor invoices are awaiting payment.",
+      to: R.PROCUREMENT.VENDOR_INVOICES,
+      severity: "amber",
+    });
+  }
+  if (signals.rfqs_open) {
+    cards.push({
+      key: "rfqs",
+      icon: Send,
+      title: "RFQs awaiting award",
+      stat: String(signals.rfqs_open.count),
+      message: "Issued requests for quotation have not been awarded.",
+      to: R.PROCUREMENT.SOURCING,
+      severity: "amber",
+    });
+  }
+  if (signals.contracts_expiring) {
+    cards.push({
+      key: "contracts",
+      icon: CalendarClock,
+      title: "Contracts expiring",
+      stat: String(signals.contracts_expiring.count),
+      message: "Active vendor contracts end within 30 days.",
+      to: R.PROCUREMENT.CONTRACTS,
+      severity: "amber",
+    });
+  }
+  if (signals.users_without_roles) {
+    cards.push({
+      key: "roleless_users",
+      icon: UserX,
+      title: "People without roles",
+      stat: String(signals.users_without_roles.count),
+      message: "Active accounts hold no role, so they can do nothing.",
+      to: R.ROLES.INDEX,
+      severity: "amber",
+    });
+  }
+  if (signals.team_overdue_tasks) {
+    cards.push({
+      key: "team_overdue",
+      icon: UsersRound,
+      title: "Team tasks overdue",
+      stat: String(signals.team_overdue_tasks.count),
+      message: "Tasks across your team are past their deadlines.",
+      to: R.TODO.INDEX,
       severity: "amber",
     });
   }
