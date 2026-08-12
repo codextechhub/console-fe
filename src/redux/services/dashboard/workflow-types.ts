@@ -336,15 +336,24 @@ export interface ApproverPreviewResult {
  * screen uses this to warn at the moment it happens rather than letting the
  * document sit until somebody notices.
  *
- * `permission_key` is the key an administrator would grant to fix it properly,
- * so the warning can name it instead of saying "no approver" and leaving the
- * user to guess.
+ * `requirement` is a ready-made sentence naming what would give the stage an
+ * approver, so the warning can say how to fix it properly instead of just "no
+ * approver". Always populated. Render this.
+ *
+ * `permission_key` is only meaningful when `approver_source` is
+ * `RBAC_PERMISSION`, and the backend blanks it otherwise. How a stage resolves
+ * approvers is changing, so anything richer than `requirement` must check the
+ * source first: showing a permission key for a stage that no longer decides by
+ * permission would send someone to grant a key that changes nothing.
  */
 export interface ApprovalParkState {
   parked: boolean;
   instance_id: string;
   stage_code?: string;
   stage_label?: string;
+  /** e.g. "RBAC_PERMISSION", "ORGANOGRAM", or whatever replaces them. */
+  approver_source?: string;
   permission_key?: string;
+  requirement?: string;
   document_type?: string;
 }
