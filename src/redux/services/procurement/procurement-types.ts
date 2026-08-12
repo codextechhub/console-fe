@@ -434,6 +434,8 @@ export interface VendorPayment {
   net_naira: string;
   allocated_amount: number;
   unallocated_amount: number;
+  /** Same kobo as unallocated_amount, named for where they sit: the 1240 vendor-advance asset. */
+  advance_remaining: number;
   payment_account_id: number | null;
   payment_code: string | null;
   payment_account_name: string | null;

@@ -113,6 +113,7 @@ export interface ApAgingRow {
   payment_terms: string;   // vendor's net terms enum (e.g. "NET_30"); "" when unset
   buckets: Record<string, ReportMoney>;
   outstanding: ReportMoney;
+  /** Paid ahead of a bill: sits in the vendor-advance asset, not in AP. */
   unallocated_credit: ReportMoney;
   net: ReportMoney;
 }
@@ -122,6 +123,11 @@ export interface ApAging {
   buckets: string[];
   rows: ApAgingRow[];
   bucket_totals: Record<string, ReportMoney>;
+  /** What we owe: the figure the AP control account reconciles to. */
+  total_outstanding: ReportMoney;
+  /** Paid ahead of a bill: held in the vendor-advance asset, not netted off AP. */
+  total_unallocated_credit: ReportMoney;
+  /** outstanding - advances: the vendor's overall position, not a payable. */
   total_net: ReportMoney;
 }
 
@@ -291,6 +297,7 @@ export interface ApVendorDetail {
   vendor: { id: number; code: string; name: string };
   bucket_amounts: Record<string, ReportMoney>;
   outstanding: ReportMoney;
+  /** Paid ahead of a bill: sits in the vendor-advance asset, not in AP. */
   unallocated_credit: ReportMoney;
   net: ReportMoney;
   invoices: ApVendorOpenBill[];

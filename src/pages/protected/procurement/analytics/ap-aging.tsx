@@ -1,6 +1,6 @@
 // AP Aging (§6) - outstanding payables bucketed by age, as of a chosen date.
 import { useMemo, useState } from "react";
-import { AlertTriangle, Banknote, Clock } from "lucide-react";
+import { AlertTriangle, Banknote, Clock, HandCoins } from "lucide-react";
 
 import {
   AgingStack, BarChart, DetailDrawer, EmptyState, ErrorState, ForbiddenState, StatCard,
@@ -81,20 +81,26 @@ function ApAgingBody({ d, cash, currency, entity, asOf }: {
   const [sel, setSel] = useState<{ code: string; name: string } | null>(null);
   const rows = toArray(d.rows);
   const buckets = d.buckets;
+  // What we owe is the open bills. Money paid ahead of a bill is not a smaller
+  // payable, it is a separate asset (vendor advances), so it gets its own card
+  // instead of being quietly netted off the headline.
+  const outstanding = kobo(d.total_outstanding);
+  const advances = kobo(d.total_unallocated_credit);
   const totalNet = kobo(d.total_net);
-  // Overdue = everything past its due date = total net less the not-yet-due "current".
-  const overdue = totalNet - kobo(d.bucket_totals.current);
+  // Overdue = everything past its due date = outstanding less the not-yet-due "current".
+  const overdue = outstanding - kobo(d.bucket_totals.current);
   const dueThisWeek = cash ? kobo(cash.bucket_totals["0-7"]) : 0;
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard label="Total payable" value={formatMoney(totalNet, currency)} icon={Banknote} tone="primary" sub="net of unallocated credit" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total payable" value={formatMoney(outstanding, currency)} icon={Banknote} tone="primary" sub="open vendor bills" />
         <StatCard label="Overdue" value={formatMoney(overdue, currency)} icon={AlertTriangle} tone="red" sub="past due" />
         <StatCard label="Due this week" value={formatMoney(dueThisWeek, currency)} icon={Clock} tone="amber" sub="next 7 days" />
+        <StatCard label="Paid in advance" value={formatMoney(advances, currency)} icon={HandCoins} tone="primary" sub="held in vendor advances" />
       </div>
 
-      <Card title="Payables by age bucket" subtitle="Net outstanding across aging windows">
+      <Card title="Payables by age bucket" subtitle="Outstanding bills across aging windows">
         <BarChart
           height={200}
           showValues
@@ -113,7 +119,9 @@ function ApAgingBody({ d, cash, currency, entity, asOf }: {
                 <tr>
                   <th className={TH}>Vendor</th>
                   {buckets.map((b) => <th key={b} className={THR}>{BUCKET_LABEL[b] ?? b}</th>)}
-                  <th className={THR}>Total</th>
+                  {/* Net, not Total: this column is the buckets less anything paid in
+                      advance, so a vendor we are ahead with reads negative. */}
+                  <th className={THR}>Net</th>
                   <th className={TH}>Status</th>
                 </tr>
               </thead>
@@ -208,7 +216,7 @@ function ApVendorBody({ d, currency }: { d: ApVendorDetail; currency?: string | 
 
       <dl className="grid grid-cols-2 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-3">
         <Field label="Outstanding" value={formatMoney(outstanding, currency)} />
-        <Field label="Unallocated credit" value={formatMoney(kobo(d.unallocated_credit), currency)} />
+        <Field label="Paid in advance" value={formatMoney(kobo(d.unallocated_credit), currency)} />
         <Field label="Net payable" value={formatMoney(kobo(d.net), currency)} />
       </dl>
 
