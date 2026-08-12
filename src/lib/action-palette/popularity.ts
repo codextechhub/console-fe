@@ -73,6 +73,20 @@ export function loadPopularity(userId: string | undefined, now = Date.now()): Po
 }
 
 /**
+ * Decayed frecency score per action, independent of any query. This is what the
+ * dashboard quick-actions row ranks by: it wants "what does this user reach for
+ * most", not "what matches what they typed".
+ */
+export function loadFrecencyScores(userId: string | undefined, now = Date.now()): Record<string, number> {
+  const frecency = read<FrecencyStore>(`${keyBase(userId)}:frecency`, {});
+  const scores: Record<string, number> = {};
+  for (const [actionId, entry] of Object.entries(frecency)) {
+    scores[actionId] = entry.count * decay(entry.last, now);
+  }
+  return scores;
+}
+
+/**
  * Record that the user chose `actionId` after typing `query`. Updates both the
  * adaptive map (keyed by the exact query) and the action's frecency counter.
  */

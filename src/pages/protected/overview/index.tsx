@@ -28,6 +28,7 @@ import { routesPath } from "@/routes/routes-path";
 import { useGetConsoleOverviewQuery } from "@/redux/services/dashboard/overview-api";
 import { SnapRail } from "@/components/custom/snap-rail";
 import { resolveAttentionDestination } from "./overview-navigation";
+import { QuickActionsRow } from "./quick-actions";
 
 const R = routesPath.PROTECTED;
 
@@ -368,6 +369,8 @@ export default function Overview() {
             )}
           </div>
         </section>
+
+        <QuickActionsRow />
 
         <section>
           <div className="mb-3 flex items-end justify-between gap-4">

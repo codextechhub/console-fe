@@ -2,6 +2,21 @@
 
 1. I want to work on loading options for different components on the screens. (skeleton/spinner/progress bar) Also, components load differently. One loading shouldn't affect another loading.
 
+2. Dashboard action-first rebuild (planned 2026-08-12; slice 1 quick-actions row is DONE).
+   Remaining slices, in order:
+   a. Worklist: extend `/console/overview` payload with the top 3-5 pending approvals
+      and returned submissions as items (title, requester, amount, age); render them
+      as rows in "Needs your attention" with the decision drawer opening inline.
+   b. Aging: add oldest-waiting age to approvals/overdue counts; sort attention
+      items by real age instead of the hardcoded urgency order.
+   c. Module-aware signal cards (gated, omit-don't-zero): fiscal period closing in
+      N days (reuse runway computation), journals in draft, POs awaiting receipt,
+      webhook failures last 24h, finished/failed exports.
+   d. Deep-link every card to pre-filtered views instead of index pages.
+   e. "Pick up where you left off": last 3-4 opened entities, logged locally like
+      palette frecency.
+   f. Demote/shrink the metric grid and "Your workspace" shortcuts once a-c exist.
+
 ## Done
 
 # 24. Code splitting + tests + CI (2026-06-11) - closed the three structural gaps left open by the deep review. (a) Route-level code splitting: all 85 page imports across the 11 route files converted to `React.lazy()`, single Suspense boundary in `src/routes/lazy-root.tsx` (kept eager along with RouteError/Authenticated so the loading/error shell can never fail to load), plus a `vendor-react` manualChunks split in vite.config.ts. Main bundle: 2,491 kB (gzip 726) → 405 kB entry + 144 kB cacheable vendor (initial gzip ≈ 230 kB incl. layout chunk); each page is a 14–60 kB on-demand chunk; recharts (343 kB) loads only on chart pages; the >500 kB build warning is gone. (b) Tests: Vitest + happy-dom (`vitest.config.ts`, `npm test`); 35 unit tests covering `src/utils/jwt.ts` (base64url decode incl. the atob-crash case, expiry buffer), `tokenRefresh.ts` (single-flight, 401/5xx/network outcome mapping, invalidation discarding in-flight rotations, cookie persistence), `endSession.ts` (full teardown, banner-after-clear ordering, refresh blocking) and `helpers` formatting. (c) CI: `.github/workflows/ci.yml` runs tsc → eslint --max-warnings 0 → vitest → vite build on every push/PR to main. Full sequence verified locally.

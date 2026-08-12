@@ -50,7 +50,7 @@ import { financeNav } from "@/pages/protected/finance/finance-nav";
 import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { WorkspaceToaster } from "@/components/ui/sonner";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
-import { buildWorkspaceSearchRows, getWorkspaceSearchIdentityKey, isWorkspaceSearchSelf } from "./workspace-search-model";
+import { buildWorkspaceSearchRows, getWorkspaceSearchIdentityKey, isWorkspaceSearchSelf, WORKSPACE_SEARCH_OPEN_EVENT } from "./workspace-search-model";
 import {
   EntitySelect,
   shouldSuspendEntitySwitcher,
@@ -120,10 +120,9 @@ function DashboardHeader({
   }, [searchIdentityKey]);
 
   useEffect(() => {
-    const focusWorkspaceSearch = (event: KeyboardEvent) => {
-      if (!isPrimaryShortcut(event, "KeyE")) return;
-      event.preventDefault();
-
+    // Shared by the keyboard shortcut and the WORKSPACE_SEARCH_OPEN_EVENT that
+    // in-page affordances (the overview's "More actions" chip) dispatch.
+    const focusSearchInput = () => {
       // Select any persisted text so the user can either continue (arrows /
       // Enter reuse it) or just type to start a fresh query.
       if (window.matchMedia("(min-width: 1024px)").matches) {
@@ -139,8 +138,18 @@ function DashboardHeader({
       });
     };
 
+    const focusWorkspaceSearch = (event: KeyboardEvent) => {
+      if (!isPrimaryShortcut(event, "KeyE")) return;
+      event.preventDefault();
+      focusSearchInput();
+    };
+
     window.addEventListener("keydown", focusWorkspaceSearch);
-    return () => window.removeEventListener("keydown", focusWorkspaceSearch);
+    window.addEventListener(WORKSPACE_SEARCH_OPEN_EVENT, focusSearchInput);
+    return () => {
+      window.removeEventListener("keydown", focusWorkspaceSearch);
+      window.removeEventListener(WORKSPACE_SEARCH_OPEN_EVENT, focusSearchInput);
+    };
   }, []);
 
   useEffect(() => {

@@ -9,6 +9,18 @@ export type WorkspaceSearchRow =
 export type WorkspaceSearchSection = "Actions" | "People";
 
 /**
+ * Anywhere in the app can ask the header to open and focus the workspace
+ * search (the overview's "More actions" chip does). An event keeps the caller
+ * decoupled from the layout: the header owns the input refs and the
+ * desktop-vs-mobile split, so it stays the only place that focuses them.
+ */
+export const WORKSPACE_SEARCH_OPEN_EVENT = "workspace-search:open";
+
+export function requestWorkspaceSearchOpen(): void {
+  window.dispatchEvent(new Event(WORKSPACE_SEARCH_OPEN_EVENT));
+}
+
+/**
  * Search text belongs to the effective identity, not to the route. Keeping the
  * proxy session in the key makes entering, switching, or leaving proxy mode an
  * explicit boundary even while the protected layout remains mounted.
