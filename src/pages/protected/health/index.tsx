@@ -7,6 +7,7 @@ import ApiPage from "./api-endpoints";
 import CommandCenter from "./command-center";
 import IncidentsPage from "./incidents";
 import JobsPage from "./jobs";
+import ProviderWebhooksPage from "./provider-webhooks";
 import SlosPage from "./slos";
 import TenantsPage from "./tenants";
 import UptimePage from "./uptime";
@@ -21,5 +22,6 @@ export default function HealthPage() {
   if (pathname === H.INCIDENTS) return <IncidentsPage />;
   if (pathname === H.TENANTS) return <TenantsPage />;
   if (pathname === H.SLOS) return <SlosPage />;
+  if (pathname === H.PROVIDER_WEBHOOKS) return <ProviderWebhooksPage />;
   return <CommandCenter />;
 }

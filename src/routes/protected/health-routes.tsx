@@ -14,6 +14,7 @@ export const healthRoutes: RouteObject[] = [
   H.INCIDENTS,
   H.TENANTS,
   H.SLOS,
+  H.PROVIDER_WEBHOOKS,
 ].map((path) => ({
   path,
   element: <HealthPage />,

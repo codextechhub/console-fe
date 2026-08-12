@@ -167,6 +167,23 @@ export const paymentsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["PaymentsWebhooks", "PaymentsCollections", "PaymentsTransactions"],
     }),
+
+    // Platform scope (CX staff only), so deliberately NO `entity` parameter: these are
+    // the events that matched neither a collection nor a payout, which is exactly why
+    // they have no entity to be scoped by. The backend gates both on the caller's home
+    // tenant being the platform one plus a dedicated permission key.
+    getUnattributedWebhooks: builder.query<PaginatedEnvelope<WebhookEvent>, { page?: number; status?: string; provider?: string; search?: string }>({
+      query: (p) => ({ url: `/payments/webhooks/unattributed/${qs(p)}`, method: "GET" }),
+      providesTags: ["PaymentsWebhooks"],
+    }),
+    // A replay that succeeds books a receipt into some tenant's ledger, so the same
+    // collection/ledger caches are invalidated as for the entity-scoped replay.
+    replayUnattributedWebhook: builder.mutation<ApiEnvelope<WebhookEvent>, { id: number }>({
+      query: ({ id }) => ({
+        url: `/payments/webhooks/unattributed/${id}/replay/`, method: "POST",
+      }),
+      invalidatesTags: ["PaymentsWebhooks", "PaymentsCollections", "PaymentsTransactions"],
+    }),
   }),
 });
 
@@ -194,4 +211,6 @@ export const {
   useGetWebhookEventsQuery,
   useGetWebhookSummaryQuery,
   useReplayWebhookEventMutation,
+  useGetUnattributedWebhooksQuery,
+  useReplayUnattributedWebhookMutation,
 } = paymentsApi;

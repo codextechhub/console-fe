@@ -410,7 +410,7 @@ const REGISTRY: Record<string, string> = {
 
   // ── PAYMENTS  (MM=80) ────────────────────────────────────────────────────────
   // RR: 01 collection · 02 virtual_account · 03 payout · 04 report · 05 payout_batch
-  //     · 06 webhook.
+  //     · 06 webhook · 07 unattributed_webhook.
   "800101": "payments.collection.view",
   "800102": "payments.collection.create",
   "800201": "payments.virtual_account.view",
@@ -428,6 +428,11 @@ const REGISTRY: Record<string, string> = {
   // inbound provider webhooks that could not be booked (money moved, we did not record it)
   "800601": "payments.webhook.view",
   "800648": "payments.webhook.replay",
+  // the platform-scope half: events that matched neither a collection nor a payout and
+  // so belong to no entity. Separate resource because the reach is different - these
+  // span every tenant, and the backend additionally requires CX (platform) staff.
+  "800701": "payments.unattributed_webhook.view",
+  "800748": "payments.unattributed_webhook.replay",
 
   // ── academics / subjects  (MM=30, RR=01) - uncomment when module ships ────
   // "300101": "academics.subjects.view",
@@ -779,6 +784,8 @@ export const P = {
   PAY_APPROVE_PAYOUT_BATCH_HIGH_VALUE: "800544",
   PAY_VIEW_WEBHOOKS:        "800601",  // provider events that failed to book
   PAY_REPLAY_WEBHOOK:       "800648",  // re-run one; can book real money
+  PAY_VIEW_UNATTRIBUTED_WEBHOOKS: "800701",  // platform-scope: events that match no tenant
+  PAY_REPLAY_UNATTRIBUTED_WEBHOOK: "800748",
 
   // ── Academics (uncomment when module ships) ────────────────────────────────
   // BROWSE_SUBJECTS:   "300101",

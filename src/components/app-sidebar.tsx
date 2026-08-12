@@ -447,16 +447,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: HeartPulse,
       isActive: false,
       childActive: location.startsWith(R.HEALTH.INDEX),
-      permission: P.VIEW_HEALTH,
+      // Two independent keys now open this group: the vs_health telemetry screens
+      // (platform.health.view) and the payments operations screen (its own key). Either
+      // one alone must reveal the group, and only the children it actually covers -
+      // gating the group on one key would hide the other holder's only screen.
+      permission: [P.VIEW_HEALTH, P.PAY_VIEW_UNATTRIBUTED_WEBHOOKS] as PermissionCode[],
       permissionMode: "any" as const,
       items: [
-        { title: "Command Center", url: R.HEALTH.INDEX, isActive: location === R.HEALTH.INDEX },
-        { title: "Uptime", url: R.HEALTH.UPTIME, isActive: location.startsWith(R.HEALTH.UPTIME) },
-        { title: "API & Endpoints", url: R.HEALTH.API, isActive: location.startsWith(R.HEALTH.API) },
-        { title: "Jobs & Queues", url: R.HEALTH.JOBS, isActive: location.startsWith(R.HEALTH.JOBS) },
-        { title: "Incidents & Alerts", url: R.HEALTH.INCIDENTS, isActive: location.startsWith(R.HEALTH.INCIDENTS) },
-        { title: "Tenant Health", url: R.HEALTH.TENANTS, isActive: location.startsWith(R.HEALTH.TENANTS) },
-        { title: "SLOs", url: R.HEALTH.SLOS, isActive: location.startsWith(R.HEALTH.SLOS) },
+        ...(hasPermission(P.VIEW_HEALTH)
+          ? [
+              { title: "Command Center", url: R.HEALTH.INDEX, isActive: location === R.HEALTH.INDEX },
+              { title: "Uptime", url: R.HEALTH.UPTIME, isActive: location.startsWith(R.HEALTH.UPTIME) },
+              { title: "API & Endpoints", url: R.HEALTH.API, isActive: location.startsWith(R.HEALTH.API) },
+              { title: "Jobs & Queues", url: R.HEALTH.JOBS, isActive: location.startsWith(R.HEALTH.JOBS) },
+              { title: "Incidents & Alerts", url: R.HEALTH.INCIDENTS, isActive: location.startsWith(R.HEALTH.INCIDENTS) },
+              { title: "Tenant Health", url: R.HEALTH.TENANTS, isActive: location.startsWith(R.HEALTH.TENANTS) },
+              { title: "SLOs", url: R.HEALTH.SLOS, isActive: location.startsWith(R.HEALTH.SLOS) },
+            ]
+          : []),
+        // Platform-scope payments operations: inbound provider events that matched no
+        // collection and no payout, so no entity-scoped screen can ever show them.
+        ...(hasPermission(P.PAY_VIEW_UNATTRIBUTED_WEBHOOKS)
+          ? [{
+              title: "Provider Webhooks",
+              url: R.HEALTH.PROVIDER_WEBHOOKS,
+              isActive: location.startsWith(R.HEALTH.PROVIDER_WEBHOOKS),
+            }]
+          : []),
       ],
     },
     {
