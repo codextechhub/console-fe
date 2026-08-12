@@ -13,7 +13,7 @@ describe("buildSignalCards", () => {
       jobs_failed_24h: { count: 1 },
     });
     expect(cards.map((c) => c.key)).toEqual(["jobs", "journals"]);
-    expect(cards[1].message).toContain("4");
+    expect(cards[1].stat).toBe("4");
   });
 
   it("orders red (broken now) before amber (needs attention soon)", () => {
@@ -29,7 +29,7 @@ describe("buildSignalCards", () => {
       fiscal_runway: { entity_name: "CodeX", status: "EXPIRING", days_remaining: 12, calendar_end: "2026-08-24" },
     })[0];
     expect(expiring.severity).toBe("amber");
-    expect(expiring.message).toContain("12 days");
+    expect(expiring.stat).toBe("12 days left");
 
     const expired = buildSignalCards({
       fiscal_runway: { entity_name: "CodeX", status: "EXPIRED", days_remaining: -3, calendar_end: "2026-08-01" },

@@ -16,9 +16,13 @@ export interface SignalCard {
   key: string;
   icon: typeof CalendarX;
   title: string;
+  /** The headline figure, shown big (a count, or "12 days left"). */
+  stat: string;
   message: string;
   to: string;
   severity: "red" | "amber";
+  /** The verb on the card's call-to-action. */
+  cta: string;
 }
 
 /**
@@ -37,11 +41,13 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       key: "fiscal_runway",
       icon: CalendarX,
       title: expired ? "Fiscal calendar expired" : "Fiscal calendar ending",
+      stat: expired ? "Expired" : `${days_remaining} days left`,
       message: expired
-        ? `${entity_name} can no longer post - create the next fiscal year`
-        : `${entity_name} has ${days_remaining} days of calendar left`,
+        ? `${entity_name} can no longer post until the next fiscal year exists.`
+        : `${entity_name}'s posting calendar runs out soon.`,
       to: R.FINANCE.SETUP,
       severity: expired ? "red" : "amber",
+      cta: "Extend the calendar",
     });
   }
   if (signals.webhook_failures_24h) {
@@ -49,9 +55,11 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       key: "webhooks",
       icon: Webhook,
       title: "Webhook failures",
-      message: `${signals.webhook_failures_24h.count} provider events failed in the last 24h`,
+      stat: String(signals.webhook_failures_24h.count),
+      message: "Payment provider events failed in the last 24 hours.",
       to: R.HEALTH.PROVIDER_WEBHOOKS,
       severity: "red",
+      cta: "Review failures",
     });
   }
   if (signals.jobs_failed_24h) {
@@ -59,9 +67,11 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       key: "jobs",
       icon: ServerCrash,
       title: "Failed background jobs",
-      message: `${signals.jobs_failed_24h.count} of your jobs failed in the last 24h`,
+      stat: String(signals.jobs_failed_24h.count),
+      message: "Jobs you started failed in the last 24 hours.",
       to: R.EXPORT.QUEUES,
       severity: "red",
+      cta: "Open queues",
     });
   }
   if (signals.draft_journals) {
@@ -69,9 +79,11 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       key: "journals",
       icon: BookDashed,
       title: "Draft journals",
-      message: `${signals.draft_journals.count} journal entries waiting to be posted`,
+      stat: String(signals.draft_journals.count),
+      message: "Journal entries are still waiting to be posted.",
       to: R.FINANCE.LEDGER,
       severity: "amber",
+      cta: "Open the ledger",
     });
   }
   if (signals.pos_awaiting_receipt) {
@@ -79,9 +91,11 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       key: "pos",
       icon: PackageOpen,
       title: "Deliveries outstanding",
-      message: `${signals.pos_awaiting_receipt.count} purchase orders awaiting receipt`,
+      stat: String(signals.pos_awaiting_receipt.count),
+      message: "Purchase orders are still awaiting goods receipt.",
       to: R.PROCUREMENT.PURCHASE_ORDERS,
       severity: "amber",
+      cta: "View purchase orders",
     });
   }
   // Red (broken now) before amber (needs attention soon), payload order within.

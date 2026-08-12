@@ -85,28 +85,24 @@ function MetricCard({
     green: "bg-emerald-50 text-emerald-600",
   };
 
+  // Compact by design: the top of the page carries the actionable work, so
+  // these are reference numbers now - one glance, one line each. The note
+  // survives as a tooltip rather than a third line.
   return (
     <Link
       to={to}
-      // `block` explicitly: a grid cell blockifies its child for free, but in
-      // the phone rail this <a> is a plain inline box and its padding and
-      // background break across lines without it.
-      className="group block rounded-xl border border-white-02 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.02)] transition hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
+      title={note}
+      className="group flex items-center gap-3 rounded-xl border border-white-02 bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.02)] transition hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
     >
-      <div className="flex items-start justify-between gap-4">
-        <span className={cn("grid size-8 place-items-center rounded-lg", tones[tone])}>
-          <Icon className="size-4" />
-        </span>
-        <ArrowRight className="size-4 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-primary" />
+      <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg", tones[tone])}>
+        <Icon className="size-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-base font-semibold leading-tight tracking-tight text-black-01">
+          {loading ? <Shimmer className="my-1 h-4 w-10" /> : value}
+        </p>
+        <p className="truncate text-[11px] text-gray-400">{label}</p>
       </div>
-      <p className="mt-3 text-xs font-medium text-gray-500">{label}</p>
-      <p className="mt-0.5 text-xl font-semibold tracking-tight text-black-01">
-        {/* A dash reads as a real answer ("none"), so the swap to a number lands
-            as a content change. A block the size of the value reads as pending
-            and the swap is invisible. */}
-        {loading ? <Shimmer className="my-1 h-5 w-14" /> : value}
-      </p>
-      <p className="mt-1 text-xs text-gray-400">{loading ? <Shimmer className="my-0.5 h-3 w-28" /> : note}</p>
     </Link>
   );
 }
@@ -269,7 +265,9 @@ export default function Overview() {
       <MetricCard key="tickets" icon={LifeBuoy} label="Open support tickets" value={overview?.tickets?.open ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={`${R.SUPPORT.INDEX}?status=OPEN`} tone="amber" loading={!revealed} />
     ),
     canViewHealth && (
-      <MetricCard key="health" icon={Activity} label="System posture" value={overview?.health?.label ?? "Unknown"} note={`${overview?.health?.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={!revealed} />
+      // The one-word posture fits the compact tile; the full sentence label
+      // ("All systems operational") moves to the tooltip with the incident count.
+      <MetricCard key="health" icon={Activity} label="System posture" value={overview?.health ? overview.health.overall.charAt(0).toUpperCase() + overview.health.overall.slice(1) : "Unknown"} note={`${overview?.health?.label ?? "Unknown"} - ${overview?.health?.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={!revealed} />
     ),
   ].filter(Boolean) as React.ReactElement[];
 
@@ -313,14 +311,14 @@ export default function Overview() {
   ].filter((slide) => slide.show);
 
   const modules = [
-    { label: "School Management", copy: "Schools and branches", to: R.SCHOOL_MGT.INDEX, icon: School, show: canViewSchools },
-    { label: "Users", copy: "CX and school accounts", to: R.TEAM_MGT.CX, icon: Users, show: canViewTeam },
-    { label: "Organogram", copy: "Structure and reporting", to: R.ORGANOGRAM.INDEX, icon: Network, show: hasPermission(P.VIEW_ORGANOGRAM) },
-    { label: "Tasks", copy: "Goals and accountability", to: R.TODO.INDEX, icon: ClipboardCheck, show: true },
-    { label: "Workflow", copy: "Approvals and submissions", to: R.WORKFLOW.APPROVALS, icon: Workflow, show: true },
-    { label: "Audit & Security", copy: "Events and safeguards", to: R.AUDIT.DASHBOARD, icon: ShieldCheck, show: hasPermission(P.VIEW_AUDIT) },
-    { label: "System Health", copy: "Services and incidents", to: R.HEALTH.INDEX, icon: HeartPulse, show: canViewHealth },
-    { label: "Support", copy: "Tickets and assistance", to: R.SUPPORT.INDEX, icon: LifeBuoy, show: true },
+    { label: "School Management", to: R.SCHOOL_MGT.INDEX, icon: School, show: canViewSchools },
+    { label: "Users", to: R.TEAM_MGT.CX, icon: Users, show: canViewTeam },
+    { label: "Organogram", to: R.ORGANOGRAM.INDEX, icon: Network, show: hasPermission(P.VIEW_ORGANOGRAM) },
+    { label: "Tasks", to: R.TODO.INDEX, icon: ClipboardCheck, show: true },
+    { label: "Workflow", to: R.WORKFLOW.APPROVALS, icon: Workflow, show: true },
+    { label: "Audit & Security", to: R.AUDIT.DASHBOARD, icon: ShieldCheck, show: hasPermission(P.VIEW_AUDIT) },
+    { label: "System Health", to: R.HEALTH.INDEX, icon: HeartPulse, show: canViewHealth },
+    { label: "Support", to: R.SUPPORT.INDEX, icon: LifeBuoy, show: true },
   ].filter((item) => item.show);
 
   return (
@@ -390,30 +388,6 @@ export default function Overview() {
         {revealed && <SignalsRow signals={overview?.signals} />}
 
         <RecentOpensRow />
-
-        <section>
-          <div className="mb-3 flex items-end justify-between gap-4">
-            <div>
-              <h2 className="text-base font-semibold">Platform overview</h2>
-              <p className="mt-0.5 text-xs text-gray-400">A live view of the administration areas you can access.</p>
-            </div>
-          </div>
-          {/* One set of cards, two presentations. Stacked on a phone these six
-              ran ~620px - most of the first screen spent scrolling past boxes
-              to reach anything actionable - so below `sm` they become a
-              swipeable rail and the grid takes over from `sm` up. */}
-          <div className={cn("sm:hidden", revealed && "reveal-in")}>
-            {/* No auto-advance here, unlike the hero spotlight: these are
-                numbers someone is reading, and sliding one away mid-read costs
-                more than the motion is worth. Swipe and dots only. */}
-            <SnapRail ariaLabel="Platform overview metrics" slideClassName="px-0.5">
-              {metricCards}
-            </SnapRail>
-          </div>
-          <div className={cn("hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4", revealed && "reveal-in")}>
-            {metricCards}
-          </div>
-        </section>
 
         {/* A real 2-col grid, not CSS multi-column. `columns-2` balances the two
             columns by measured height, so the split moved with the data (0 vs 4
@@ -498,10 +472,10 @@ export default function Overview() {
             </div>
           </section>
 
-          {/* Row 2 pairs the two fixed-length lists. Pairing a short, data-driven
-              box with a long one is what left a tall empty half in each row. */}
+          {/* Full-row: its old row partner (the workspace shortcuts) now lives
+              as a chip row at the foot of the page. */}
           {showSetup && (
-          <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4">
+          <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4 xl:col-span-2">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-base font-semibold">Getting started</h2>
@@ -533,21 +507,38 @@ export default function Overview() {
           </section>
           )}
 
-          {/* With the checklist retired, this would sit alone in a half-width
-              cell next to a hole - so it takes the whole row and widens its
-              own grid instead. */}
-          <section className={cn("flex flex-col rounded-xl border border-white-02 bg-white p-4", !showSetup && "xl:col-span-2")}>
-            <div><h2 className="text-base font-semibold">Your workspace</h2><p className="mt-0.5 text-xs text-gray-400">Shortcuts matched to your access.</p></div>
-            <div className={cn("mt-5 grid flex-1 auto-rows-min gap-2 sm:grid-cols-2", !showSetup && "xl:grid-cols-4")}>
-              {modules.map(({ label, copy, to, icon: Icon }) => (
-                <Link key={label} to={to} className="group flex items-center gap-3 rounded-xl border border-gray-100 p-3 hover:border-primary/20 hover:bg-primary/[0.025]">
-                  <span className="grid size-9 place-items-center rounded-lg bg-gray-50 text-gray-500 group-hover:bg-primary/10 group-hover:text-primary"><Icon className="size-4.5" /></span>
-                  <div className="min-w-0"><p className="truncate text-sm font-medium">{label}</p><p className="truncate text-[11px] text-gray-400">{copy}</p></div>
-                </Link>
-              ))}
-            </div>
-          </section>
         </div>
+
+        <section>
+          <div className="mb-3">
+            <h2 className="text-base font-semibold">Platform overview</h2>
+            <p className="mt-0.5 text-xs text-gray-400">A live view of the administration areas you can access.</p>
+          </div>
+          {/* Compact tiles in a dense grid: on a phone two abreast, six across
+              on a wide screen - reference numbers, not the day's work. */}
+          <div className={cn("grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6", revealed && "reveal-in")}>
+            {metricCards}
+          </div>
+        </section>
+
+        <section aria-label="Your workspace">
+          <div className="mb-3">
+            <h2 className="text-base font-semibold">Your workspace</h2>
+            <p className="mt-0.5 text-xs text-gray-400">Shortcuts matched to your access.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {modules.map(({ label, to, icon: Icon }) => (
+              <Link
+                key={label}
+                to={to}
+                className="group inline-flex items-center gap-1.5 rounded-lg border border-white-02 bg-white px-3 py-2 text-xs font-medium text-black-01 shadow-[0_1px_2px_rgba(15,23,42,0.02)] transition hover:border-primary/25 hover:text-primary"
+              >
+                <Icon className="size-3.5 text-gray-400 transition group-hover:text-primary" />
+                {label}
+              </Link>
+            ))}
+          </div>
+        </section>
 
         <footer className="flex items-center justify-between gap-4 pb-2 text-xs text-gray-400">
           <span className="inline-flex items-center gap-1.5"><Building2 className="size-3.5" /> Platform administration overview</span>

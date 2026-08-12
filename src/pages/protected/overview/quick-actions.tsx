@@ -56,8 +56,11 @@ export function QuickActionsRow() {
 
   return (
     <section aria-label="Quick actions">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">Quick actions</p>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
+      <div className="mb-3">
+        <h2 className="text-base font-semibold">Quick actions</h2>
+        <p className="mt-0.5 text-xs text-gray-400">One-click starts for the things you do most.</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
         {actions.map((action) => {
           const Icon = chipIcon(action);
           return (

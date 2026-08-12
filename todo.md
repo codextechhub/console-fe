@@ -11,9 +11,10 @@
    submissions/notifications) and e (recent-opens store + "Pick up where you
    left off" strip; logged by school/ticket/approval/submission details) are
    DONE.
-   Remaining:
-   f. Demote/shrink the metric grid and "Your workspace" shortcuts now that a-e
-      exist.
+   Slice f DONE (2026-08-12): signals renamed "Action needed" with big stat
+   cards + CTA verbs; all strip headers use the house section-heading style;
+   metric grid compacted to one-line tiles and moved below the worklist;
+   "Your workspace" is a chip row at the page foot. Dashboard rebuild COMPLETE.
 
 ## Done
 

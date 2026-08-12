@@ -27,10 +27,11 @@ export function RecentOpensRow() {
 
   return (
     <section aria-label="Recently opened">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">
-        Pick up where you left off
-      </p>
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="mb-3">
+        <h2 className="text-base font-semibold">Pick up where you left off</h2>
+        <p className="mt-0.5 text-xs text-gray-400">The last few things you opened.</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
         {items.map(({ kind, id, label, to, last }) => {
           const Icon = KIND_ICONS[kind];
           return (
