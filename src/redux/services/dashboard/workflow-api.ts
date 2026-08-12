@@ -90,6 +90,26 @@ export const workflowApi = baseApi.injectEndpoints({
     }),
 
     // Admin reverses a recorded vote and re-activates the stage.
+    // Step past a stage nobody can approve. Offered only when a submit response
+    // came back parked; the backend refuses it if anyone can still decide the
+    // stage, so a stale dialog cannot bypass a real reviewer.
+    continueWithoutApproval: builder.mutation<
+      WorkflowInstanceDetail, { id: string; reason?: string }
+    >({
+      query: ({ id, reason }) => ({
+        url: `/workflow/instances/${id}/continue-without-approval/`,
+        method: "POST",
+        body: reason ? { reason } : {},
+      }),
+      // Releasing the stage may terminate the instance and fire the document's
+      // own transition (a payout dispatches, a PO issues), so the business
+      // caches drop alongside the workflow ones exactly as a vote does.
+      invalidatesTags: [
+        "WorkflowInstances", "WorkflowPending", "WorkflowSubmissions", "WorkflowTeamLoad",
+        ...PROC_DOC_TAGS,
+      ],
+    }),
+
     reverseWorkflowAction: builder.mutation<{ reversal_action_id: string }, { action_id: string; reason: string }>({
       query: ({ action_id, reason }) => ({
         url: `/workflow/actions/${action_id}/reverse/`,
@@ -177,6 +197,7 @@ export const {
   useWithdrawWorkflowInstanceMutation,
   useResubmitWorkflowInstanceMutation,
   useCancelWorkflowInstanceMutation,
+  useContinueWithoutApprovalMutation,
   useReverseWorkflowActionMutation,
   useGetPendingApprovalsQuery,
   useGetMySubmissionsQuery,

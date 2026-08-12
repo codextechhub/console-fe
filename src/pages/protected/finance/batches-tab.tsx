@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Plus, Upload, Download, Send, X } from "lucide-react";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, VendorPicker, AccountPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
+import { useNoApproverPrompt } from "@/components/finance-ui/no-approver-prompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -258,6 +259,7 @@ function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: nu
   const { data, isFetching } = useGetPayoutBatchQuery(batchId == null ? skipToken : { id: batchId, entity });
   const [submit, { isLoading: submitting }] = useSubmitPayoutBatchMutation();
   const [submitForApproval, { isLoading: routing }] = useSubmitPayoutBatchForApprovalMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "payout batch" });
   const batch = data?.data ?? null;
   if (batchId == null) return null;
 
@@ -280,7 +282,13 @@ function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: nu
   };
   const doSubmitForApproval = async () => {
     if (!batch) return;
-    try { const r = await submitForApproval({ id: batch.id, entity }).unwrap(); toast.success(r.message || "Batch submitted for approval."); }
+    try {
+      const r = await submitForApproval({ id: batch.id, entity }).unwrap();
+      toast.success(r.message || "Batch submitted for approval.");
+      // Nobody may hold the approving permission, in which case the batch is
+      // submitted but stuck. Warn now rather than let it sit unnoticed.
+      promptIfParked(r.data?.approval);
+    }
     catch { /* central */ }
   };
 
@@ -327,6 +335,7 @@ function BatchDetailDrawer({ batchId, entity, currency, onClose }: { batchId: nu
         <DataTable columns={itemCols} rows={items} rowKey={(p) => p.id} loading={isFetching && !items.length}
           emptyTitle="No items" emptyMessage="This batch has no payout lines." />
       </div>
+      {noApproverDialog}
     </DetailDrawer>
   );
 }

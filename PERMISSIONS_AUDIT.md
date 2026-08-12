@@ -446,6 +446,37 @@ Sectioned console at `/procurement/settings/:section`, sub-nav gated by prefix `
 
 ---
 
+### Workflow - Continue without approval (`POST /workflow/instances/<id>/continue-without-approval/`)
+
+**Deliberately has no RBAC key.** Every other state-changing workflow endpoint carries
+one; this is the exception, and the reason is recorded here rather than left to be
+rediscovered.
+
+When a document is submitted into a stage whose approving permission nobody holds, the
+stage activates with an empty approver snapshot and the document *parks*: submitted,
+waiting, and with no human able to move it. This endpoint lets the person who submitted
+it step past that stage. It is offered by `useNoApproverPrompt` as a confirmation dialog
+on the five submit screens (payout batches, requisitions, purchase orders, vendor
+invoices, vendor payments) and applies to all nine approvable document types.
+
+What guards it instead:
+
+* **Ownership, checked in the service** (`vs_workflow.services.release.may_release`):
+  the instance's own `requested_by`, or platform staff. Not "any authenticated user in
+  the tenant" - that would let an unrelated user release somebody else's parked spend.
+* **The parked precondition**, re-checked after a repair pass and again under a row
+  lock. If anybody at all can decide the stage the release is refused with 409
+  `NOT_PARKED`. This is what stops the dialog being a self-approval button on a document
+  that has a reviewer: it can only ever release a decision nobody could make.
+* **An append-only audit row** naming the actor, the stage, the permission nobody held,
+  and the reason, written before the workflow is allowed to move.
+
+The control this trades away is real and was accepted knowingly: a released payout batch
+or purchase order reaches its terminal state with no second pair of eyes, so on those
+paths the record is what stands in place of maker-checker.
+`procurement.approval.override` (CRITICAL, granted to no role) remains the stricter
+route to the same outcome for procurement documents, and is unchanged.
+
 ### Workflow â Templates list (`src/pages/protected/workflow/templates/index.tsx`)
 
 | Element | Type | Permission Constant |

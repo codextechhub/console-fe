@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useNoApproverPrompt } from "@/components/finance-ui/no-approver-prompt";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
@@ -177,6 +178,7 @@ function PurchaseOrderDrawer({ id, entity, currency, onClose }: { id: number | n
   const workflowId = po?.workflow_instance_id ?? "";
   const { data: workflow } = useGetWorkflowInstanceQuery(workflowId, { skip: !workflowId });
   const [submit, { isLoading: submitting }] = useSubmitPurchaseOrderMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "purchase order" });
   const [sendEmail, { isLoading: sendingEmail }] = useSendPurchaseOrderEmailMutation();
   const [retryEmail, { isLoading: retryingEmail }] = useRetryPurchaseOrderEmailMutation();
   const canVendorEmail = can(P.PROC_EMAIL_PURCHASE_ORDER_VENDOR);
@@ -192,13 +194,15 @@ function PurchaseOrderDrawer({ id, entity, currency, onClose }: { id: number | n
   const submitForApproval = async () => {
     if (!po) return;
     try {
-      await submit({
+      const r = await submit({
         id: po.id,
         entity,
         auto_email_vendor: autoEmailVendor,
         email_message: autoEmailVendor ? emailMessage.trim() : "",
       }).unwrap();
       toast.success("Purchase order submitted for approval.");
+      // Nobody may hold the approving permission, leaving it submitted but stuck.
+      promptIfParked(r.data?.approval);
       setConfirmApproval(false);
       setAutoEmailVendor(false);
       setEmailMessage("");
@@ -278,6 +282,7 @@ function PurchaseOrderDrawer({ id, entity, currency, onClose }: { id: number | n
     {po && <ConfirmActionModal open={emailOpen} onOpenChange={(open) => { setEmailOpen(open); if (!open) setRetryDelivery(null); }} title={retryDelivery ? "Retry vendor email?" : "Email this purchase order to the vendor?"} description="A new audited delivery will be queued with the current approved PO attached as a PDF." confirmText={retryDelivery ? "Retry Email" : "Send Email"} onConfirm={deliverEmail} loading={sendingEmail || retryingEmail} confirmDisabled={previewLoading || previewError || !emailPreview?.recipients.length}>
       <EmailDetails preview={emailPreview} loading={previewLoading} error={previewError} message={emailMessage} onMessageChange={setEmailMessage} />
     </ConfirmActionModal>}
+    {noApproverDialog}
   </DetailDrawer>;
 }
 

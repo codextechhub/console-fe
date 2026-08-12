@@ -19,6 +19,7 @@ import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useNoApproverPrompt } from "@/components/finance-ui/no-approver-prompt";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import {
@@ -106,6 +107,7 @@ function PaymentDrawer({ id, entity, currency, onClose }: { id: number | null; e
   const { data: workflow } = useGetWorkflowInstanceQuery(workflowId, { skip: !workflowId });
   const [recordAction, { isLoading: voting }] = useRecordWorkflowActionMutation();
   const [submit, { isLoading: submitting }] = useSubmitVendorPaymentMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "vendor payment" });
   const [post, { isLoading: posting }] = usePostVendorPaymentMutation();
   const [cancel, { isLoading: cancelling }] = useCancelVendorPaymentMutation();
   const [reverse, { isLoading: reversing }] = useReverseVendorPaymentMutation();
@@ -128,7 +130,10 @@ function PaymentDrawer({ id, entity, currency, onClose }: { id: number | null; e
   const run = async (action: "submit" | "post" | "cancel" | "reverse" | "apply") => {
     if (!payment) return;
     try {
-      if (action === "submit") await submit({ id: payment.id, entity }).unwrap();
+      if (action === "submit") {
+        const r = await submit({ id: payment.id, entity }).unwrap();
+        promptIfParked(r.data?.approval);  // Submitted, but possibly with no approver.
+      }
       if (action === "post") await post({ id: payment.id, entity }).unwrap();
       if (action === "cancel") { if (!window.confirm("Cancel this unposted payment?")) return; await cancel({ id: payment.id, entity }).unwrap(); }
       if (action === "reverse") { if (!window.confirm("Reverse this posted payment and restore its invoice balances?")) return; await reverse({ id: payment.id, entity }).unwrap(); }
@@ -161,6 +166,7 @@ function PaymentDrawer({ id, entity, currency, onClose }: { id: number | null; e
         {tab === "posting" && <PaymentPosting payment={payment} currency={currency} />}
         {tab === "activity" && <PaymentActivity payment={payment} workflow={workflow} name={name} />}
       </div>}
+      {noApproverDialog}
     </DetailDrawer>
     {payment && editing && <PaymentForm key={`edit-${payment.id}`} entity={entity} currency={currency} initial={payment} onClose={() => setEditing(false)} />}
   </>;

@@ -28,6 +28,9 @@ import type {
   VendorSummary,
   ProcurementSettingsPayload,
 } from "./procurement-types";
+// Every submit-for-approval response says whether anybody can actually approve
+// what was just submitted; see useNoApproverPrompt.
+import type { ApprovalParkState } from "../dashboard/workflow-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
 type E = { entity: string; page?: number; page_size?: number; status?: string; search?: string };
@@ -134,7 +137,7 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/requisitions/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcRequisitions"],
     }),
-    submitRequisition: b.mutation<ApiEnvelope<Requisition>, Act>({
+    submitRequisition: b.mutation<ApiEnvelope<Requisition & { approval?: ApprovalParkState }>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/requisitions/${id}/submit/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["ProcRequisitions"],
     }),
@@ -160,7 +163,7 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/purchase-orders/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcPurchaseOrders", "ProcContracts"],
     }),
-    submitPurchaseOrder: b.mutation<ApiEnvelope<PurchaseOrder>, Act & { auto_email_vendor?: boolean; email_message?: string }>({
+    submitPurchaseOrder: b.mutation<ApiEnvelope<PurchaseOrder & { approval?: ApprovalParkState }>, Act & { auto_email_vendor?: boolean; email_message?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/purchase-orders/${id}/submit/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcPurchaseOrders"],
     }),
@@ -234,7 +237,7 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/procurement/vendor-invoices/${id}/match/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["ProcVendorInvoices"],
     }),
-    submitVendorInvoice: b.mutation<ApiEnvelope<VendorInvoice>, Act>({
+    submitVendorInvoice: b.mutation<ApiEnvelope<VendorInvoice & { approval?: ApprovalParkState }>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/vendor-invoices/${id}/submit/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["ProcVendorInvoices"],
     }),
@@ -264,7 +267,7 @@ export const procurementApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/vendor-payments/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["ProcVendorPayments"],
     }),
-    submitVendorPayment: b.mutation<ApiEnvelope<unknown>, Act>({
+    submitVendorPayment: b.mutation<ApiEnvelope<{ approval?: ApprovalParkState }>, Act>({
       query: ({ id, entity }) => ({ url: `/procurement/vendor-payments/${id}/submit/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["ProcVendorPayments"],
     }),

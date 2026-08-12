@@ -19,6 +19,7 @@ import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useNoApproverPrompt } from "@/components/finance-ui/no-approver-prompt";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -144,6 +145,7 @@ function InvoiceDrawer({ id, entity, currency, onClose }: { id: number | null; e
   const [recordAction, { isLoading: voting }] = useRecordWorkflowActionMutation();
   const [runMatch, { isLoading: matching }] = useMatchVendorInvoiceMutation();
   const [submit, { isLoading: submitting }] = useSubmitVendorInvoiceMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "vendor invoice" });
   const [post, { isLoading: posting }] = usePostVendorInvoiceMutation();
   const activeStage = useMemo(() => (workflow?.stage_instances || []).filter((stage) => stage.status === "ACTIVE").at(-1), [workflow]);
   const canVote = !!activeStage && workflow?.status === "IN_PROGRESS" && activeStage.eligible_approvers.some((approver) => sameId(approver.user, uid) && approver.attempt === activeStage.attempt) && !activeStage.actions.some((action) => sameId(action.actor, uid) && !action.reversed_at && !action.is_reversal_of && action.attempt === activeStage.attempt);
@@ -155,7 +157,11 @@ function InvoiceDrawer({ id, entity, currency, onClose }: { id: number | null; e
     if (!invoice) return;
     try {
       if (kind === "match") { await runMatch({ id: invoice.id, entity }).unwrap(); toast.success("Three-way match refreshed."); }
-      if (kind === "submit") { await submit({ id: invoice.id, entity }).unwrap(); toast.success("Invoice submitted for approval."); }
+      if (kind === "submit") {
+        const r = await submit({ id: invoice.id, entity }).unwrap();
+        toast.success("Invoice submitted for approval.");
+        promptIfParked(r.data?.approval);  // Submitted, but possibly with no approver.
+      }
       if (kind === "post") { await post({ id: invoice.id, entity }).unwrap(); toast.success("Vendor invoice posted to Accounts Payable."); }
       if (kind === "override") { await post({ id: invoice.id, entity, allow_variance: true }).unwrap(); toast.success("Vendor invoice posted with an audited variance override."); }
     } catch { /* central */ }
@@ -185,6 +191,7 @@ function InvoiceDrawer({ id, entity, currency, onClose }: { id: number | null; e
         {tab === "payments" && (invoice.payments?.length ? <div className="space-y-2">{invoice.payments.map((payment) => <div key={payment.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-md border border-gray-03 p-3"><div><p className="font-mont text-sm font-semibold">{payment.document_number}</p><p className="mt-1 font-mont text-xs text-gray-05">{shortDate(payment.payment_date)} · {payment.status}</p></div><p className="font-mont text-sm font-semibold tabular-nums">{formatMoney(payment.amount, currency)}</p></div>)}</div> : <EmptyPanel>No payment has been allocated to this invoice.</EmptyPanel>)}
         {tab === "activity" && <ActivityPanel invoice={invoice} workflow={workflow} name={name} />}
       </div>}
+      {noApproverDialog}
     </DetailDrawer>
     {invoice && editing && <InvoiceForm entity={entity} currency={currency} initial={invoice} onClose={() => setEditing(false)} />}
   </>;

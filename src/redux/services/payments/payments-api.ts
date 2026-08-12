@@ -29,6 +29,7 @@ import type {
   WebhookEvent,
   WebhookSummary,
 } from "./payments-types";
+import type { ApprovalParkState } from "../dashboard/workflow-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
 
@@ -128,7 +129,12 @@ export const paymentsApi = baseApi.injectEndpoints({
     }),
     // Route an approval-gated batch through vs_workflow; the PSP submission fires only
     // on final approval (handled in the workflow approvals inbox).
-    submitPayoutBatchForApproval: builder.mutation<ApiEnvelope<PayoutBatch>, { id: number; entity: string }>({
+    // The response carries an `approval` block alongside the batch: it says whether
+    // anybody can actually approve what was just submitted, so the screen can warn
+    // when the batch has parked instead of letting it wait unnoticed.
+    submitPayoutBatchForApproval: builder.mutation<
+      ApiEnvelope<PayoutBatch & { approval?: ApprovalParkState }>, { id: number; entity: string }
+    >({
       query: ({ id, entity }) => ({ url: `/payments/payout-batches/${id}/submit-for-approval/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["PaymentsPayoutBatches", "PaymentsPayouts", "WorkflowPending", "WorkflowSubmissions"],
     }),

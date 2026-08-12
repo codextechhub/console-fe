@@ -325,3 +325,26 @@ export interface ApproverPreviewResult {
   count: number;
   approvers: { user: ApproverPreviewUser; on_behalf_of: ApproverPreviewUser | null }[];
 }
+
+/**
+ * Whether a just-submitted document can actually be approved by anyone.
+ *
+ * Returned by every "submit for approval" endpoint (procurement, payouts,
+ * finance) under `approval`. A workflow stage whose approving permission nobody
+ * holds activates with an empty approver snapshot and the document *parks*: it
+ * is submitted, it is waiting, and there is no one who can move it. The submit
+ * screen uses this to warn at the moment it happens rather than letting the
+ * document sit until somebody notices.
+ *
+ * `permission_key` is the key an administrator would grant to fix it properly,
+ * so the warning can name it instead of saying "no approver" and leaving the
+ * user to guess.
+ */
+export interface ApprovalParkState {
+  parked: boolean;
+  instance_id: string;
+  stage_code?: string;
+  stage_label?: string;
+  permission_key?: string;
+  document_type?: string;
+}

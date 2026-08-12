@@ -20,6 +20,7 @@ import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useNoApproverPrompt } from "@/components/finance-ui/no-approver-prompt";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { useAppSelector } from "@/redux/store";
@@ -223,6 +224,7 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
   const { data: workflow } = useGetWorkflowInstanceQuery(workflowId, { skip: !workflowId });
   const [recordAction, { isLoading: voting }] = useRecordWorkflowActionMutation();
   const [submitRequisition, { isLoading: submitting }] = useSubmitRequisitionMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "requisition" });
 
   const activeStage = useMemo(() => {
     const stages = (workflow?.stage_instances ?? []).filter((stage) => stage.status === "ACTIVE");
@@ -246,8 +248,10 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
   const submit = async () => {
     if (!req) return;
     try {
-      await submitRequisition({ id: req.id, entity }).unwrap();
+      const r = await submitRequisition({ id: req.id, entity }).unwrap();
       toast.success("Requisition submitted for approval.");
+      // Nobody may hold the approving permission, leaving it submitted but stuck.
+      promptIfParked(r.data?.approval);
       // submitRequisition invalidates ProcRequisitions; this drawer's detail query
       // (and the list/summary) refetch from that tag rather than a manual call.
     } catch { /* Central API handling shows the server message. */ }
@@ -320,6 +324,7 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
             </div> : <EmptyBlock text="No workflow activity has been recorded yet." />)}
           </div>
         )}
+        {noApproverDialog}
       </DetailDrawer>
       {req && editing && <RequisitionForm open onClose={() => setEditing(false)} entity={entity} currency={currency} initial={req} onSaved={refetch} />}
     </>
