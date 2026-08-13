@@ -9,11 +9,13 @@ import { SearchSelect } from "@/components/custom/search-select";
 import { toast } from "sonner";
 import { routesPath } from "@/routes/routes-path";
 import {
+  useGetApproverGroupsQuery,
   useGetWorkflowTemplateQuery,
   usePublishWorkflowTemplateMutation,
 } from "@/redux/services/dashboard/workflow-api";
 import { useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
 import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
+import { useGetAllRolesQuery } from "@/redux/services/dashboard/role-api";
 import type {
   ApproverScope,
   ApproverSource,
@@ -24,13 +26,37 @@ import type {
   StageOnRejection,
   WorkflowStagePayload,
 } from "@/redux/services/dashboard/workflow-types";
-import { type StageForm, emptyStage } from "./components/stage-form";
-import { Section, ApproverPreview } from "./components/template-builder-bits";
+import {
+  type StageForm,
+  conditionToRuleFields,
+  emptyRule,
+  emptyStage,
+  newRuleKey,
+  rulesPayload,
+} from "./components/stage-form";
+import {
+  Section,
+  ApproverPreview,
+  DynamicRulesEditor,
+} from "./components/template-builder-bits";
 
 const SOURCE_OPTIONS = [
-  { value: "RBAC_PERMISSION", label: "RBAC permission holders" },
+  { value: "ROLE", label: "Role holders" },
+  { value: "WORKFLOW_GROUP", label: "Approver group" },
+  { value: "DYNAMIC_ROLE", label: "Role chosen by the document" },
   { value: "ORGANOGRAM", label: "Organogram (relative to requester)" },
 ];
+// What each source resolves to, in the words an administrator uses. Shown under
+// the picker because the choice decides who can approve, and the difference
+// between a role and a group is not guessable from the name alone.
+const SOURCE_HINT: Record<string, string> = {
+  ROLE: "Whoever currently holds this role in the tenant that raised the request.",
+  WORKFLOW_GROUP:
+    "A named pool built on the Approver Groups screen - people, roles and org seats mixed.",
+  DYNAMIC_ROLE:
+    "The document picks the role: ordered rules, first match wins (e.g. amount thresholds).",
+  ORGANOGRAM: "Climbs the org chart relative to whoever raised the request.",
+};
 const TARGET_OPTIONS = [
   { value: "DIRECT_MANAGER", label: "Direct manager" },
   { value: "N_LEVELS_UP", label: "N levels up the chain" },
@@ -80,6 +106,25 @@ export default function TemplateBuilder() {
   // sample requester so the "who would approve?" preview can resolve live.
   const { data: positionsRes } = useGetPositionsQuery({ page_size: 100 });
   const { data: usersRes } = useGetTeamMembersQuery({ page_size: 100, user_type: "CX_STAFF" });
+  // Roles and approver groups are what stages now name; both are picked from a
+  // list rather than typed, so a stage cannot reference something that is not
+  // there (the publish endpoint refuses that anyway - this just gets there first).
+  const { data: rolesRes } = useGetAllRolesQuery({ page: 1, page_size: 200 });
+  const { data: groupsRes } = useGetApproverGroupsQuery({ page: 1, page_size: 100 });
+  const roleOptions = useMemo(
+    () =>
+      (rolesRes?.data ?? [])
+        .filter((r) => r.status === "ACTIVE")
+        .map((r) => ({ value: r.key, label: `${r.name} · ${r.assigned_users_count ?? 0} holder(s)` })),
+    [rolesRes],
+  );
+  const groupOptions = useMemo(
+    () =>
+      (groupsRes?.data ?? [])
+        .filter((g) => g.is_active)
+        .map((g) => ({ value: g.code, label: `${g.name} · ${g.member_count} member(s)` })),
+    [groupsRes],
+  );
   const positionOptions = useMemo(
     () => (Array.isArray(positionsRes?.data) ? positionsRes!.data : []).map((p) => ({ value: p.code, label: `${p.code} · ${p.title}` })),
     [positionsRes],
@@ -114,9 +159,21 @@ export default function TemplateBuilder() {
           code: s.code,
           label: s.label,
           kind: s.kind,
-          approver_source: s.approver_source ?? "RBAC_PERMISSION",
-          approver_permission_key: s.approver_permission_key,
+          approver_source: s.approver_source ?? "ROLE",
           approver_scope: s.approver_scope,
+          approver_role_key: s.approver_role_key ?? "",
+          approver_group_code: s.approver_group_code ?? "",
+          dynamic_rules: (s.dynamic_role_rules ?? []).length
+            ? [...(s.dynamic_role_rules ?? [])]
+                .sort((a, b) => a.order - b.order)
+                .map((r) => ({
+                  key: newRuleKey(),
+                  role_key: r.role_key,
+                  label: r.label ?? "",
+                  ...conditionToRuleFields(r.condition),
+                }))
+            : [emptyRule()],
+          sample_document_text: "",
           organogram_target: s.organogram_target ?? "",
           organogram_levels: String(s.organogram_levels ?? 1),
           organogram_position_code: s.organogram_position_code ?? "",
@@ -196,9 +253,43 @@ export default function TemplateBuilder() {
         toast.error(`Stage ${i + 1}: pick a specific position.`);
         return;
       }
-      if (s.kind === "APPROVAL" && s.approver_source === "RBAC_PERMISSION" && !s.approver_permission_key.trim()) {
-        toast.error(`Stage ${i + 1}: an approver permission key is required for the RBAC source.`);
+      const isApproval = s.kind === "APPROVAL";
+      if (isApproval && s.approver_source === "ROLE" && !s.approver_role_key) {
+        toast.error(`Stage ${i + 1}: pick the role that approves this stage.`);
         return;
+      }
+      if (isApproval && s.approver_source === "WORKFLOW_GROUP" && !s.approver_group_code) {
+        toast.error(`Stage ${i + 1}: pick the approver group this stage routes to.`);
+        return;
+      }
+      // Mirror the publish endpoint's rule checks so a bad ladder is caught in
+      // the form, where it can be fixed, rather than as a 400 after a save.
+      if (isApproval && s.approver_source === "DYNAMIC_ROLE") {
+        if (!s.dynamic_rules.length) {
+          toast.error(`Stage ${i + 1}: a document-driven stage needs at least one rule.`);
+          return;
+        }
+        for (let r = 0; r < s.dynamic_rules.length; r++) {
+          const rule = s.dynamic_rules[r];
+          if (!rule.role_key) {
+            toast.error(`Stage ${i + 1}, rule ${r + 1}: pick a role.`);
+            return;
+          }
+          if (!rule.is_fallback && rule.raw === null && !rule.field.trim()) {
+            toast.error(`Stage ${i + 1}, rule ${r + 1}: name the field to test.`);
+            return;
+          }
+          if (!rule.is_fallback && rule.raw === null && !rule.value.trim()) {
+            toast.error(`Stage ${i + 1}, rule ${r + 1}: give the value to compare against.`);
+            return;
+          }
+          if (rule.is_fallback && r !== s.dynamic_rules.length - 1) {
+            toast.error(
+              `Stage ${i + 1}: the "Otherwise" rule must be last - rules after it can never fire.`,
+            );
+            return;
+          }
+        }
       }
       stagePayloads.push({
         code: s.code.trim(),
@@ -206,13 +297,25 @@ export default function TemplateBuilder() {
         kind: s.kind,
         order: i + 1,
         approver_source: s.approver_source,
-        // RBAC fields (sent regardless; ignored server-side when source is ORGANOGRAM).
-        approver_permission_key: s.approver_permission_key.trim(),
+        // Each source's own field, blanked otherwise: sending a stale role key on
+        // a group stage would leave the wrong answer sitting in the row.
+        approver_role_key: s.approver_source === "ROLE" ? s.approver_role_key : "",
+        approver_group_code: s.approver_source === "WORKFLOW_GROUP" ? s.approver_group_code : "",
+        dynamic_role_rules:
+          s.approver_source === "DYNAMIC_ROLE" ? rulesPayload(s.dynamic_rules) : undefined,
         approver_scope: s.approver_scope,
-        // Organogram fields (meaningful only when source is ORGANOGRAM).
-        organogram_target: isOrg ? s.organogram_target : "",
-        organogram_levels: Number(s.organogram_levels) || 1,
-        organogram_position_code: isOrg && s.organogram_target === "SPECIFIC_POSITION" ? s.organogram_position_code : "",
+        // Organogram fields are OMITTED, not blanked, on any other source: the
+        // publish validator checks every key it is given against the enum, so an
+        // empty organogram_target is rejected as an invalid value rather than
+        // read as "not applicable".
+        ...(isOrg
+          ? {
+              organogram_target: s.organogram_target,
+              organogram_levels: Number(s.organogram_levels) || 1,
+              organogram_position_code:
+                s.organogram_target === "SPECIFIC_POSITION" ? s.organogram_position_code : "",
+            }
+          : {}),
         advance_rule: s.advance_rule,
         quorum_count: Number(s.quorum_count) || 0,
         on_rejection: s.on_rejection,
@@ -406,25 +509,46 @@ export default function TemplateBuilder() {
                         onChange={(e) => updateStage(i, { approver_source: e.target.value as ApproverSource })}
                       />
 
-                      {s.approver_source === "RBAC_PERMISSION" ? (
-                        <>
-                          <SearchSelect
-                            id={`stage-scope-${i}`}
-                            label="Approver scope"
-                            options={SCOPE_OPTIONS}
-                            value={s.approver_scope}
-                            onChange={(e) => updateStage(i, { approver_scope: e.target.value as ApproverScope })}
-                          />
-                          <CustomInput
-                            id={`stage-perm-${i}`}
-                            label="Approver permission key"
-                            placeholder="e.g. leave.approve.line_manager"
-                            containerClass="sm:col-span-2"
-                            value={s.approver_permission_key}
-                            onChange={(e) => updateStage(i, { approver_permission_key: e.target.value })}
-                          />
-                        </>
-                      ) : (
+                      <p className="text-xs text-gray-01 sm:col-span-2 -mt-2">
+                        {SOURCE_HINT[s.approver_source]}
+                      </p>
+
+                      {/* Scope narrows the role lookup, so it applies to a role
+                          stage, to a group's role members, and to each dynamic
+                          rule's role - but means nothing to an organogram climb. */}
+                      {s.approver_source !== "ORGANOGRAM" && (
+                        <SearchSelect
+                          id={`stage-scope-${i}`}
+                          label="Approver scope"
+                          options={SCOPE_OPTIONS}
+                          value={s.approver_scope}
+                          onChange={(e) => updateStage(i, { approver_scope: e.target.value as ApproverScope })}
+                        />
+                      )}
+
+                      {s.approver_source === "ROLE" && (
+                        <SearchSelect
+                          id={`stage-role-${i}`}
+                          label="Approver role"
+                          options={roleOptions}
+                          value={s.approver_role_key}
+                          onChange={(e) => updateStage(i, { approver_role_key: e.target.value })}
+                          placeholder="Pick a role"
+                        />
+                      )}
+
+                      {s.approver_source === "WORKFLOW_GROUP" && (
+                        <SearchSelect
+                          id={`stage-group-${i}`}
+                          label="Approver group"
+                          options={groupOptions}
+                          value={s.approver_group_code}
+                          onChange={(e) => updateStage(i, { approver_group_code: e.target.value })}
+                          placeholder="Pick a group"
+                        />
+                      )}
+
+                      {s.approver_source === "ORGANOGRAM" && (
                         <>
                           <SearchSelect
                             id={`stage-target-${i}`}
@@ -511,7 +635,24 @@ export default function TemplateBuilder() {
                   />
                 </div>
 
-                {s.kind === "APPROVAL" && <ApproverPreview stage={s} requester={sampleRequester} />}
+                {s.kind === "APPROVAL" && s.approver_source === "DYNAMIC_ROLE" && (
+                  <DynamicRulesEditor
+                    rules={s.dynamic_rules}
+                    roleOptions={roleOptions}
+                    stageIndex={i}
+                    onChange={(next) => updateStage(i, { dynamic_rules: next })}
+                  />
+                )}
+
+                {s.kind === "APPROVAL" && (
+                  <ApproverPreview
+                    stage={s}
+                    requester={sampleRequester}
+                    sampleText={s.sample_document_text}
+                    onSampleChange={(v) => updateStage(i, { sample_document_text: v })}
+                    sampleId={`stage-sample-${i}`}
+                  />
+                )}
               </div>
             ))}
           </div>

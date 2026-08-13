@@ -4,6 +4,7 @@ import type {
   AuditEventType,
   StageAdvanceRule,
   WorkflowInstanceStatus,
+  WorkflowStage,
   WorkflowStageStatus,
 } from "@/redux/services/dashboard/workflow-types";
 
@@ -42,6 +43,44 @@ export function advanceRuleLabel(rule: StageAdvanceRule, quorum?: number): strin
   if (rule === "ANY") return "Any one approver";
   if (rule === "QUORUM") return `Quorum - ${quorum ?? 0} required`;
   return "Unanimous - all must approve";
+}
+
+const ORGANOGRAM_LABEL: Record<string, string> = {
+  DIRECT_MANAGER: "the requester's direct manager",
+  N_LEVELS_UP: "up the reporting chain",
+  DEPARTMENT_HEAD: "the head of the requester's department",
+  SPECIFIC_POSITION: "the holder of a specific seat",
+};
+
+/**
+ * One line naming who approves a stage, whichever way it resolves.
+ *
+ * Every screen that shows a stage needs this sentence, and each source hides
+ * its answer in a different field - so it is computed once here rather than
+ * re-derived per screen, where one of them would inevitably keep showing the
+ * old strategy's field after the next change.
+ */
+export function approverSummary(stage: WorkflowStage): string {
+  switch (stage.approver_source) {
+    case "WORKFLOW_GROUP":
+      return `${stage.approver_group_name || stage.approver_group_code || "?"} (group)`;
+    case "DYNAMIC_ROLE": {
+      const n = stage.dynamic_role_rules?.length ?? 0;
+      return `Chosen by the document - ${n} ${n === 1 ? "rule" : "rules"}`;
+    }
+    case "ORGANOGRAM": {
+      if (stage.organogram_target === "N_LEVELS_UP") {
+        const levels = stage.organogram_levels ?? 1;
+        return `Organogram - ${levels} ${levels === 1 ? "level" : "levels"} up`;
+      }
+      if (stage.organogram_target === "SPECIFIC_POSITION") {
+        return `Organogram - ${stage.organogram_position_code || "a seat"}`;
+      }
+      return `Organogram - ${ORGANOGRAM_LABEL[stage.organogram_target] ?? "relative to the requester"}`;
+    }
+    default:
+      return stage.approver_role_name || stage.approver_role_key || "-";
+  }
 }
 
 /** Turn a dotted document_type (e.g. "leave.request") into "Leave Request". */

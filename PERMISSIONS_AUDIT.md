@@ -497,6 +497,16 @@ route to the same outcome for procurement documents, and is unchanged.
 
 > The used-by line reads the templates list to find stages whose `approver_group_code` matches. That endpoint is gated by `workflow.template.view`, so the query is **skipped** (not fired and 403'd) for a user who only holds group rights - they simply do not see the used-by line. Every write is re-checked by the backend viewset (`PERM_GROUP_MANAGE`) and the queryset is tenant-filtered, so FE gating is presentation only. Deleting a group a live stage still routes to returns `409 APPROVER_GROUP_IN_USE`; the dialog surfaces the backend's message and offers deactivate instead.
 
+### Workflow - Dynamic Role tab (`src/pages/protected/workflow/approver-groups/dynamic-role-tab.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| The whole tab (rule sets are read off workflow templates) | `hasPermission` gate with an explanatory empty state | `P.VIEW_WORKFLOW_TEMPLATES` |
+| "Try a request" evaluator (`POST /templates/preview-approvers/`) | inherits the tab gate | `P.VIEW_WORKFLOW_TEMPLATES` |
+| "Use a different approver here" / "Remove override" | `<PermissionGate>` | `P.MANAGE_WORKFLOW_TEMPLATES` |
+
+> Rule ladders are published with the template, so the tab is read-only apart from the override: editing rules happens in the builder, which already gates on `P.MANAGE_WORKFLOW_TEMPLATES`. The override endpoints (`/workflow/stage-approvers/`) are gated backend-side by `workflow.template.view` for reads and `workflow.template.manage` for writes - deliberately the template keys, not the lighter group keys, because repointing an approval step is a template-level decision. An override may only name a ROLE or one of the tenant's own approver groups; the backend refuses any other source and refuses a stage belonging to another tenant's template.
+
 ### Workflow â Template detail (`src/pages/protected/workflow/templates/template-detail.tsx`)
 
 | Element | Type | Permission Constant |

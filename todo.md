@@ -14,18 +14,9 @@
    metric grid compacted to one-line tiles and moved below the worklist;
    "Your workspace" is a chip row at the page foot. Dashboard rebuild COMPLETE.
 
-3. Workflow templates FE is stale against the new backend approver contract.
-   `vs_workflow` replaced `RBAC_PERMISSION` + `approver_permission_key` with
-   `ROLE` (`approver_role_key`), and added `WORKFLOW_GROUP`, `DYNAMIC_ROLE`.
-   Still on the old contract: `templates/template-builder.tsx` (source dropdown
-   + permission-key field, publishes `approver_permission_key` - publish will
-   400), `templates/components/stage-form.ts`, `template-builder-bits.tsx`,
-   `template-detail.tsx` ("Approver permission" row now always renders "-"),
-   and the `ApproverSource` union in `redux/services/dashboard/workflow-types.ts`.
-   Needs: role picker (tenant roles by key), approver-group picker (the groups
-   built in the Approver screen), and the dynamic-role rule editor.
-
 ## Done
+
+# 25. Workflow approver rebuild (2026-08-13) - the FE caught up with the engine's new approver model. `vs_workflow` had replaced `RBAC_PERMISSION`/`approver_permission_key` with `ROLE` (`approver_role_key`) and added `WORKFLOW_GROUP`, `DYNAMIC_ROLE`; the builder was still publishing the dead field, so every publish 400'd. Now: (a) **Approver Groups screen** (`workflow/approver-groups/groups-tab.tsx`) - rail, member rows resolved live via `GET /approver-groups/{id}/resolve/`, effective-approver panel, one add-member sheet across people/roles/positions, deactivate/delete with the 409 IN_USE path; keys `workflow.group.view/manage` (600401/600408). (b) **Template builder** on the new contract - role picker, approver-group picker, organogram unchanged, and a dynamic-rule ladder editor (ordered rules, "Otherwise" fallback with in-form checks mirroring the publish validator, JSON escape hatch for conditions the simple editor cannot express) plus a live tester through `POST /templates/preview-approvers/`. (c) **Dynamic Role tab** - every DYNAMIC_ROLE stage across templates with its ladder, holder counts, no-fallback warning, "Try a request" evaluator, and the central-template override (`/workflow/stage-approvers/`, create + remove). Backend fix: migration `0006` was non-appliable on Postgres (data pass + `RemoveField` in one transaction) - now `atomic = False`. All driven in the real app incl. a real publish/edit round-trip; phone + tablet clean.
 
 # 24. Code splitting + tests + CI (2026-06-11) - closed the three structural gaps left open by the deep review. (a) Route-level code splitting: all 85 page imports across the 11 route files converted to `React.lazy()`, single Suspense boundary in `src/routes/lazy-root.tsx` (kept eager along with RouteError/Authenticated so the loading/error shell can never fail to load), plus a `vendor-react` manualChunks split in vite.config.ts. Main bundle: 2,491 kB (gzip 726) → 405 kB entry + 144 kB cacheable vendor (initial gzip ≈ 230 kB incl. layout chunk); each page is a 14–60 kB on-demand chunk; recharts (343 kB) loads only on chart pages; the >500 kB build warning is gone. (b) Tests: Vitest + happy-dom (`vitest.config.ts`, `npm test`); 35 unit tests covering `src/utils/jwt.ts` (base64url decode incl. the atob-crash case, expiry buffer), `tokenRefresh.ts` (single-flight, 401/5xx/network outcome mapping, invalidation discarding in-flight rotations, cookie persistence), `endSession.ts` (full teardown, banner-after-clear ordering, refresh blocking) and `helpers` formatting. (c) CI: `.github/workflows/ci.yml` runs tsc → eslint --max-warnings 0 → vitest → vite build on every push/PR to main. Full sequence verified locally.
 

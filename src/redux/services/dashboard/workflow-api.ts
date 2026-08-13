@@ -9,6 +9,9 @@ import type {
   ApproverGroupsResponse,
   ApproverGroupWritePayload,
   ApproverPreviewPayload,
+  StageApproverOverride,
+  StageApproverOverridePayload,
+  StageApproverOverridesResponse,
   ApproverPreviewResult,
   DelegationWritePayload,
   PendingApprovalsResponse,
@@ -134,6 +137,35 @@ export const workflowApi = baseApi.injectEndpoints({
         { type: "WorkflowApproverGroups", id: "LIST" },
         { type: "WorkflowApproverGroups", id: arg.id },
       ],
+    }),
+
+    // ── Stage approver overrides ────────────────────────────────────────────
+    // A tenant's own approver for a stage of a template it did not author.
+    // Repointing a step is a template-level decision, so these need
+    // workflow.template.manage rather than the lighter group rights.
+    getStageApproverOverrides: builder.query<
+      StageApproverOverridesResponse, QueryParams | void
+    >({
+      query: (params) => ({
+        url: `/workflow/stage-approvers/${params ? generateQueryString(params) : ""}`,
+        method: "GET",
+      }),
+      providesTags: ["WorkflowStageOverrides"],
+    }),
+
+    createStageApproverOverride: builder.mutation<
+      StageApproverOverride, StageApproverOverridePayload
+    >({
+      query: (body) => ({ url: `/workflow/stage-approvers/`, method: "POST", body }),
+      // The stage's resolved approver changes, so the template read that
+      // reports it drops too.
+      invalidatesTags: ["WorkflowStageOverrides", "WorkflowTemplates"],
+    }),
+
+    // Removing the override restores the template's own approver.
+    deleteStageApproverOverride: builder.mutation<void, string>({
+      query: (id) => ({ url: `/workflow/stage-approvers/${id}/`, method: "DELETE" }),
+      invalidatesTags: ["WorkflowStageOverrides", "WorkflowTemplates"],
     }),
 
     // ── Instances ───────────────────────────────────────────────────────────
@@ -294,6 +326,9 @@ export const {
   useDeleteApproverGroupMutation,
   useAddApproverGroupMemberMutation,
   useRemoveApproverGroupMemberMutation,
+  useGetStageApproverOverridesQuery,
+  useCreateStageApproverOverrideMutation,
+  useDeleteStageApproverOverrideMutation,
   useGetWorkflowInstancesQuery,
   useGetWorkflowInstanceQuery,
   useRecordWorkflowActionMutation,

@@ -6,7 +6,7 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import { useGetWorkflowTemplateQuery } from "@/redux/services/dashboard/workflow-api";
-import { advanceRuleLabel, humanizeDocumentType } from "../components/workflow-format";
+import { advanceRuleLabel, approverSummary, humanizeDocumentType } from "../components/workflow-format";
 import { ConditionView } from "../components/condition-view";
 
 export default function TemplateDetail() {
@@ -80,13 +80,38 @@ export default function TemplateDetail() {
                         </Badge>
                       </div>
                       {s.kind === "APPROVAL" && (
-                        <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-gray-01 sm:grid-cols-3">
-                          <Detail label="Approver permission" value={s.approver_permission_key || "-"} mono />
-                          <Detail label="Scope" value={s.approver_scope} />
-                          <Detail label="Advance rule" value={advanceRuleLabel(s.advance_rule, s.quorum_count)} />
-                          <Detail label="On rejection" value={s.on_rejection === "TERMINAL" ? "Ends workflow" : "Returns to requester"} />
-                          <Detail label="Skip if no approvers" value={s.skip_if_no_approvers ? "Yes" : "No"} />
-                        </div>
+                        <>
+                          <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-gray-01 sm:grid-cols-3">
+                            <Detail label="Approved by" value={approverSummary(s)} />
+                            <Detail label="Scope" value={s.approver_scope} />
+                            <Detail label="Advance rule" value={advanceRuleLabel(s.advance_rule, s.quorum_count)} />
+                            <Detail label="On rejection" value={s.on_rejection === "TERMINAL" ? "Ends workflow" : "Returns to requester"} />
+                            <Detail label="Skip if no approvers" value={s.skip_if_no_approvers ? "Yes" : "No"} />
+                          </div>
+                          {/* A dynamic stage's answer IS its rule order, so the
+                              ladder is spelled out rather than summarised. */}
+                          {s.approver_source === "DYNAMIC_ROLE" && (
+                            <ol className="mt-2 space-y-1 border-l-2 border-white-02 pl-3">
+                              {[...(s.dynamic_role_rules ?? [])]
+                                .sort((a, b) => a.order - b.order)
+                                .map((r, ri) => (
+                                  <li key={r.id} className="flex flex-wrap items-center gap-2 text-xs">
+                                    <span className="text-gray-01 tabular-nums">{ri + 1}.</span>
+                                    {r.is_fallback ? (
+                                      <span className="text-gray-01 italic">Otherwise</span>
+                                    ) : (
+                                      <ConditionView condition={r.condition} />
+                                    )}
+                                    <span aria-hidden className="text-gray-01">→</span>
+                                    <span className="font-medium text-black-01">
+                                      {r.role_name || r.role_key}
+                                    </span>
+                                    {r.label && <span className="text-gray-01">{r.label}</span>}
+                                  </li>
+                                ))}
+                            </ol>
+                          )}
+                        </>
                       )}
                       {s.inclusion_condition != null && (
                         <p className="mt-2 text-xs text-gray-01">

@@ -71,6 +71,31 @@ export type WorkflowCondition =
 
 // ── Templates ────────────────────────────────────────────────────────────────
 
+/**
+ * One "when this, then that role" rule on a DYNAMIC_ROLE stage.
+ *
+ * Rules are evaluated in ascending `order` and the first match wins. A rule
+ * with a null condition always matches, so the backend requires it to be last -
+ * anything after it could never fire.
+ */
+export interface WorkflowStageDynamicRule {
+  id: string;
+  order: number;
+  condition: WorkflowCondition;
+  role_key: string;
+  role_name: string | null;
+  label: string;
+  is_fallback: boolean;
+}
+
+/** One rule as the publish endpoint accepts it (no ids; rules are replaced). */
+export interface DynamicRulePayload {
+  order: number;
+  condition: WorkflowCondition;
+  role_key: string;
+  label?: string;
+}
+
 export interface WorkflowStage {
   id: string;
   code: string;
@@ -78,14 +103,15 @@ export interface WorkflowStage {
   kind: StageKind;
   order: number;
   approver_source: ApproverSource;
-  approver_permission_key: string;
   approver_scope: ApproverScope;
-  /**
-   * Set when the stage resolves through a named approver group. Optional
-   * because templates published before groups existed carry neither field.
-   */
+  /** ROLE source: the role key whose active holders approve, + its display name. */
+  approver_role_key: string;
+  approver_role_name?: string | null;
+  /** WORKFLOW_GROUP source: the named pool this stage routes to. */
   approver_group_code?: string | null;
   approver_group_name?: string | null;
+  /** DYNAMIC_ROLE source: ordered rules, first match wins. Empty otherwise. */
+  dynamic_role_rules?: WorkflowStageDynamicRule[];
   organogram_target: OrganogramTarget | "";
   organogram_levels: number;
   organogram_position_code: string | null;
@@ -126,8 +152,10 @@ export interface WorkflowStagePayload {
   kind: StageKind;
   order: number;
   approver_source?: ApproverSource;
-  approver_permission_key?: string;
   approver_scope?: ApproverScope;
+  approver_role_key?: string;
+  approver_group_code?: string;
+  dynamic_role_rules?: DynamicRulePayload[];
   organogram_target?: OrganogramTarget | "";
   organogram_levels?: number;
   organogram_position_code?: string;
@@ -372,6 +400,38 @@ export interface ApproverGroupWritePayload {
 }
 
 /** Exactly one target field must match `kind`; the API re-checks it server-side. */
+/**
+ * One tenant's own approver for a stage of a template it did not author.
+ *
+ * Central templates are shared by every tenant, so repointing one step must not
+ * mean cloning the whole template. Only *who approves* changes: advance rule,
+ * rejection policy and routing stay with the template.
+ */
+export interface StageApproverOverride {
+  id: string;
+  stage: string;
+  stage_code: string;
+  stage_label: string;
+  template_code: string;
+  document_type: string;
+  is_central: boolean;
+  approver_source: "ROLE" | "WORKFLOW_GROUP";
+  approver_role_key: string;
+  approver_group: string | null;
+  approver_group_code: string | null;
+  note: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StageApproverOverridePayload {
+  stage: string;
+  approver_source: "ROLE" | "WORKFLOW_GROUP";
+  approver_role_key?: string;
+  approver_group?: string | null;
+  note?: string;
+}
+
 export interface ApproverGroupMemberPayload {
   kind: GroupMemberKind;
   user?: string;
@@ -383,12 +443,21 @@ export interface ApproverGroupMemberPayload {
 
 export type WorkflowTemplatesResponse = PaginatedResponse<WorkflowTemplate>;
 export type ApproverGroupsResponse = PaginatedResponse<ApproverGroup>;
+export type StageApproverOverridesResponse = PaginatedResponse<StageApproverOverride>;
 export type WorkflowInstancesResponse = PaginatedResponse<WorkflowInstance>;
 export type ApprovalDelegationsResponse = PaginatedResponse<ApprovalDelegation>;
 
-// ── Approver preview (organogram/RBAC resolver) ──────────────────────────────
+// ── Approver preview (the engine's own resolver, unsaved config) ─────────────
 
-export type ApproverSource = "RBAC_PERMISSION" | "ORGANOGRAM";
+/**
+ * How a stage resolves its approvers.
+ *
+ * `RBAC_PERMISSION` was removed from the engine: permission keys are a
+ * developer vocabulary a template builder cannot be expected to know, and every
+ * key resolved through roles anyway. `ROLE` names the same authority in the
+ * words an administrator already uses.
+ */
+export type ApproverSource = "ROLE" | "WORKFLOW_GROUP" | "DYNAMIC_ROLE" | "ORGANOGRAM";
 export type OrganogramTarget =
   | "DIRECT_MANAGER"
   | "N_LEVELS_UP"
@@ -401,9 +470,32 @@ export interface ApproverPreviewPayload {
   organogram_target?: OrganogramTarget | "";
   organogram_levels?: number;
   organogram_position_code?: string;
-  approver_permission_key?: string;
+  approver_role_key?: string;
+  approver_group_code?: string;
+  /** DYNAMIC_ROLE: the unsaved rules, tried against `sample_document`. */
+  dynamic_role_rules?: DynamicRulePayload[];
+  sample_document?: Record<string, unknown>;
   approver_scope?: ApproverScope;
   document_type?: string;
+}
+
+/** One rule's evaluation in a dynamic-role preview, in evaluation order. */
+export interface DynamicRuleEvaluation {
+  order: number;
+  role_key: string;
+  role_name: string;
+  is_fallback: boolean;
+  /** The evaluator's own trace tree; rendered as-is, never re-derived here. */
+  trace: { kind: string; result: boolean; [k: string]: unknown };
+  picked: boolean;
+}
+
+export interface DynamicRolePreview {
+  matched_role_key: string | null;
+  matched_role_name: string | null;
+  evaluations: DynamicRuleEvaluation[];
+  /** Present only when nothing matched and there is no fallback rule. */
+  note?: string;
 }
 
 export interface ApproverPreviewUser {
@@ -417,6 +509,8 @@ export interface ApproverPreviewResult {
   organogram_target: OrganogramTarget | null;
   count: number;
   approvers: { user: ApproverPreviewUser; on_behalf_of: ApproverPreviewUser | null }[];
+  /** Only on a DYNAMIC_ROLE preview: which rule won, and why. */
+  dynamic_role?: DynamicRolePreview;
 }
 
 /**
