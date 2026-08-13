@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
+import { selectIsPlatformTenant } from "@/redux/features/auth/auth-slice";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAppSelector } from "@/redux/store";
 import { useGetAllRolesQuery } from "@/redux/services/dashboard/role-api";
@@ -54,7 +55,7 @@ type RuleSet = {
   key: string;
   stage: WorkflowStage;
   template: WorkflowTemplate;
-  /** Central templates carry no tenant and are shared by everybody. */
+  /** The shared definition, carried by no tenant and started on by all of them. */
   isCentral: boolean;
 };
 
@@ -62,6 +63,7 @@ export default function DynamicRoleTab() {
   const { hasPermission } = usePermissions();
   const canSeeTemplates = hasPermission(P.VIEW_WORKFLOW_TEMPLATES);
   const self = useAppSelector((s) => s.auth.user);
+  const isPlatformTenant = useAppSelector(selectIsPlatformTenant);
 
   const [selectedKey, setSelectedKey] = useState("");
   const [sampleText, setSampleText] = useState("");
@@ -197,8 +199,8 @@ export default function DynamicRoleTab() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-gray-01">
           Steps whose approver is chosen by the document itself: ordered rules, first
-          match wins. Check what a ladder actually does here, and edit the ones this
-          tenant owns without leaving the screen.
+          match wins. Check what a ladder actually does here, and adjust one without
+          leaving the screen.
         </p>
         <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw className={cn(isFetching && "animate-spin")} /> Refresh
@@ -295,19 +297,22 @@ export default function DynamicRoleTab() {
                   <span className="rounded border border-white-02 bg-gray-50 px-1.5 py-0.5 font-mono text-xs text-gray-01">
                     {selected.stage.code}
                   </span>
-                  {selected.isCentral && <Badge variant="inactive">Central</Badge>}
-                  {!selected.isCentral && (
-                    <PermissionGate permission={P.MANAGE_WORKFLOW_TEMPLATES}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="ml-auto"
-                        onClick={() => setEditOpen(true)}
-                      >
-                        <SlidersHorizontal className="size-3.5" /> Edit rules
-                      </Button>
-                    </PermissionGate>
+                  {selected.isCentral && (
+                    <Badge variant="inactive">
+                      {isPlatformTenant ? "Shared with every school" : "Codex version"}
+                    </Badge>
                   )}
+                  <PermissionGate permission={P.MANAGE_WORKFLOW_TEMPLATES}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-auto"
+                      onClick={() => setEditOpen(true)}
+                    >
+                      <SlidersHorizontal className="size-3.5" />{" "}
+                      {selected.isCentral && !isPlatformTenant ? "Adjust rules" : "Edit rules"}
+                    </Button>
+                  </PermissionGate>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-01">
                   <span>{humanizeDocumentType(selected.template.document_type)}</span>
@@ -548,8 +553,8 @@ export default function DynamicRoleTab() {
               <p className="text-xs text-gray-01">
                 Evaluated top to bottom. The first rule that matches picks the role; its
                 current holders become that step's approvers.{" "}
-                {selected.isCentral
-                  ? "These rules belong to a shared template, so they are read-only here."
+                {selected.isCentral && !isPlatformTenant
+                  ? "These are Codex's rules. Adjusting them gives this school its own version of this path; Codex keeps theirs."
                   : "Editing them here republishes this template; the rest of it is resent exactly as it stands."}
               </p>
             </>
@@ -557,12 +562,14 @@ export default function DynamicRoleTab() {
         </div>
       </div>
 
-      {selected && !selected.isCentral && (
+      {selected && (
         <EditRulesSheet
           open={editOpen}
           onClose={() => setEditOpen(false)}
           templateId={selected.template.id}
           templateName={selected.template.name}
+          isPlatformTenant={isPlatformTenant}
+          isShared={selected.isCentral}
           stage={selected.stage}
           roleOptions={roleOptions}
         />
@@ -746,10 +753,11 @@ function OverrideSheet({
  * exactly as it stands. Re-reading is the point: a stale copy in this tab would
  * quietly revert whatever somebody changed elsewhere in the same template.
  *
- * Offered only for a template this tenant owns. Republishing a central template
- * would not edit it: publish upserts on the caller's tenant, so it would fork
- * the shared definition into a tenant copy that then wins the cascade. That is
- * what the override above is for.
+ * Offered on every ladder, including the shared one. What a save means depends
+ * on who is saving: the platform edits the shared definition in place (scope
+ * PLATFORM), while a school's save gives that school its own version of the
+ * template, which it runs from then on. That fork is the intended flexibility,
+ * so the sheet says it plainly rather than refusing.
  */
 function EditRulesSheet({
   open,
@@ -758,6 +766,8 @@ function EditRulesSheet({
   templateName,
   stage,
   roleOptions,
+  isPlatformTenant,
+  isShared,
 }: {
   open: boolean;
   onClose: () => void;
@@ -765,7 +775,12 @@ function EditRulesSheet({
   templateName: string;
   stage: WorkflowStage;
   roleOptions: { value: string; label: string }[];
+  isPlatformTenant: boolean;
+  isShared: boolean;
 }) {
+  // What the save will do, said before it happens. The authoritative check runs
+  // again at save time against a fresh read; this is the heading, not the guard.
+  const willFork = isShared && !isPlatformTenant;
   const [rules, setRules] = useState<RuleForm[]>(() => rulesToForm(stage));
   const [fetchTemplate, { isFetching }] = useLazyGetWorkflowTemplateQuery();
   const [publish, { isLoading: isPublishing }] = usePublishWorkflowTemplateMutation();
@@ -794,23 +809,30 @@ function EditRulesSheet({
       toast.error("Could not re-read the template, so nothing was published.");
       return;
     }
-    if (isCentralTemplate(fresh)) {
-      toast.error("This template is shared centrally - use the override instead.");
-      return;
-    }
+    // Re-read rather than trusted: the shared template may have been adjusted by
+    // this school since the list loaded, in which case the save is an ordinary
+    // edit of their own version rather than a first fork.
+    const shared = isCentralTemplate(fresh);
     if (!(fresh.stages ?? []).some((s) => s.code === stage.code)) {
       toast.error(`"${stage.label}" is no longer a step on this template.`);
       return;
     }
-    publish(
-      templateToPublishPayload(fresh, {
+    publish({
+      ...templateToPublishPayload(fresh, {
         stageCode: stage.code,
         rules: rulesPayload(rules),
       }),
-    )
+      // Codex editing the shared ladder must write the shared template, not a
+      // Codex-owned one that no school inherits.
+      scope: shared && isPlatformTenant ? "PLATFORM" : "TENANT",
+    })
       .unwrap()
       .then(() => {
-        toast.success("Rules updated.");
+        toast.success(
+          shared && !isPlatformTenant
+            ? "Saved. This school now runs its own version."
+            : "Rules updated.",
+        );
         onClose();
       })
       .catch(() => {});
@@ -824,8 +846,18 @@ function EditRulesSheet({
             Edit rules - {stage.label}
           </SheetTitle>
           <SheetDescription className="text-xs text-gray-01">
-            Saving republishes <span className="font-medium">{templateName}</span>. Only this
-            step's rules change; every other stage and route is resent as it stands.
+            {willFork ? (
+              <>
+                These are Codex's rules. Saving gives this school its own version of{" "}
+                <span className="font-medium">{templateName}</span>, which it runs from then
+                on - Codex keeps theirs, and you can go back to it from the template page.
+              </>
+            ) : (
+              <>
+                Saving republishes <span className="font-medium">{templateName}</span>. Only
+                this step's rules change; every other stage and route is resent as it stands.
+              </>
+            )}
           </SheetDescription>
         </SheetHeader>
 
@@ -843,7 +875,7 @@ function EditRulesSheet({
             Cancel
           </Button>
           <Button size="lg" onClick={save} disabled={busy}>
-            {busy ? "Publishing…" : "Save rules"}
+            {busy ? "Publishing…" : willFork ? "Save for this school" : "Save rules"}
           </Button>
         </SheetFooter>
       </SheetContent>

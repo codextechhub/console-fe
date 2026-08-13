@@ -8,6 +8,8 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useAppSelector } from "@/redux/store";
+import { selectIsPlatformTenant } from "@/redux/features/auth/auth-slice";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetApproverGroupsQuery,
@@ -98,9 +100,23 @@ export default function TemplateBuilder() {
   const isEdit = !!id;
   const navigate = useNavigate();
 
+  const isPlatformTenant = useAppSelector(selectIsPlatformTenant);
+
   const { data: existing, isLoading: isLoadingExisting } = useGetWorkflowTemplateQuery(id ?? "", {
     skip: !isEdit,
   });
+
+  // Codex edits the shared definition; a school edits its own. Neither is a mode
+  // the user picks, because the wrong pick is silent and expensive: a school
+  // cannot write the shared one at all (the API refuses it), and a Codex admin
+  // publishing tenant-scoped would quietly create a Codex-only template that no
+  // school inherits, which is the exact bug this contract was added to fix.
+  // Only when the row actually being edited is the shared one. Defaulting a
+  // platform actor to PLATFORM on *every* save would have written the shared
+  // template while they had a Codex-owned one open - editing one record and
+  // silently updating another.
+  const editingShared = isPlatformTenant && (!isEdit || existing?.is_platform === true);
+  const willFork = !isPlatformTenant && isEdit && existing?.is_platform === true;
   const [publish, { isLoading: isPublishing }] = usePublishWorkflowTemplateMutation();
 
   // Organogram approver-source support: positions for SPECIFIC_POSITION, and a
@@ -308,6 +324,7 @@ export default function TemplateBuilder() {
     }
 
     const payload: PublishTemplatePayload = {
+      scope: editingShared ? "PLATFORM" : "TENANT",
       name: name.trim(),
       document_type: documentType.trim(),
       code: code.trim(),
@@ -320,7 +337,13 @@ export default function TemplateBuilder() {
     publish(payload)
       .unwrap()
       .then((t) => {
-        toast.success(isEdit ? "Template updated." : "Template published.");
+        toast.success(
+          willFork
+            ? "Saved. This school now runs your version."
+            : isEdit
+              ? "Template updated."
+              : "Template published.",
+        );
         navigate(routesPath.PROTECTED.WORKFLOW.TEMPLATE_DETAIL(t.id));
       })
       .catch(() => {});
@@ -342,7 +365,7 @@ export default function TemplateBuilder() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="font-semibold font-mont text-gray-01">
-              {isEdit ? "Edit template" : "New template"}
+              {willFork ? "Adjust template" : isEdit ? "Edit template" : "New template"}
             </p>
             <p className="mt-0.5 text-xs text-gray-01">
               {name.trim() || "Untitled"} · {stages.length}{" "}
@@ -354,7 +377,13 @@ export default function TemplateBuilder() {
               Cancel
             </Button>
             <Button size="lg" onClick={handlePublish} disabled={isPublishing}>
-              {isPublishing ? "Publishing…" : isEdit ? "Update template" : "Publish template"}
+              {isPublishing
+                ? "Publishing…"
+                : willFork
+                  ? "Save for this school"
+                  : isEdit
+                    ? "Update template"
+                    : "Publish template"}
             </Button>
           </div>
         </div>
@@ -402,6 +431,20 @@ export default function TemplateBuilder() {
                 placeholder="What is this approval path for?"
               />
             </div>
+            {willFork && (
+              <p className="rounded-md border border-white-02 bg-pry-01/40 px-3 py-2 text-xs text-gray-01">
+                This is the Codex version. Saving keeps theirs as it is and gives this school
+                its own version of this path, which it runs from then on. You can go back to
+                Codex's version at any time from the template page.
+              </p>
+            )}
+            {editingShared && (
+              <p className="rounded-md border border-white-02 bg-pry-01/40 px-3 py-2 text-xs text-gray-01">
+                {isEdit
+                  ? "You are editing the shared version. Every school still running it picks this up; schools running their own are unaffected."
+                  : "This publishes a shared template every school starts on."}
+              </p>
+            )}
             {isEdit && (
               <p className="rounded-md bg-yellow-01/10 px-3 py-2 text-xs text-yellow-01">
                 Publishing with the same document type + code updates this template in place.

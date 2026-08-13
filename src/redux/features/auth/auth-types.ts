@@ -22,6 +22,8 @@ export interface AuthSchool {
 export interface AuthTenant {
   slug: string
   name: string
+  /** PLATFORM is Codex itself; SCHOOL / ORGANIZATION are customers. */
+  kind?: "PLATFORM" | "SCHOOL" | "ORGANIZATION"
 }
 
 /** Active impersonation session - the target tenant's slug is asserted in place of the caller's. */

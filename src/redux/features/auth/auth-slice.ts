@@ -89,5 +89,15 @@ export const authSliceReducer = authSlice.reducer;
 export const selectUser = (state: RootStateType) => state.auth.user;
 export const selectSchool = (state: RootStateType) => state.auth.school ?? null;
 export const selectTenant = (state: RootStateType) => state.auth.tenant ?? null;
+
+/**
+ * Whether the signed-in context is Codex itself rather than a customer.
+ *
+ * Read from the tenant's kind rather than its slug: the workflow console gives
+ * the platform operator a different job (edit the shared template everyone
+ * starts on) and matching on a name would break the day the slug changes.
+ */
+export const selectIsPlatformTenant = (state: RootStateType) =>
+  state.auth.tenant?.kind === "PLATFORM";
 export const selectImpersonation = (state: RootStateType) => state.auth.impersonation ?? null;
 export const selectPermissions = (state: RootStateType) => state.auth.permissions ?? [];

@@ -1,20 +1,74 @@
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ArrowRight, GitBranch, Loader2, Pencil, RefreshCw } from "lucide-react";
+import { ArrowRight, GitBranch, Loader2, Pencil, RefreshCw, Undo2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
-import { useGetWorkflowTemplateQuery } from "@/redux/services/dashboard/workflow-api";
+import { formatRelativeDate } from "@/utils/helpers";
+import { useAppSelector } from "@/redux/store";
+import { selectIsPlatformTenant } from "@/redux/features/auth/auth-slice";
+import {
+  useGetWorkflowTemplateQuery,
+  useGetWorkflowTemplatesQuery,
+  useUsePlatformTemplateVersionMutation,
+} from "@/redux/services/dashboard/workflow-api";
+import { pairTemplateVersions } from "./components/template-versions";
 import { advanceRuleLabel, approverSummary, humanizeDocumentType } from "../components/workflow-format";
 import { ConditionView } from "../components/condition-view";
 
 export default function TemplateDetail() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
+  const isPlatformTenant = useAppSelector(selectIsPlatformTenant);
+  const [resetOpen, setResetOpen] = useState(false);
+
   const { data: template, isLoading, isError, refetch } = useGetWorkflowTemplateQuery(id, {
     refetchOnMountOrArgChange: true,
   });
+  // The detail endpoint answers for one row; which version this school runs is a
+  // fact about the pair, so it comes from the list the templates page already
+  // holds - a cache hit in the normal case rather than a second round trip.
+  const { data: all } = useGetWorkflowTemplatesQuery({ page: 1, page_size: 100 });
+  const [switchToPlatformVersion, { isLoading: isResetting }] =
+    useUsePlatformTemplateVersionMutation();
+
+  const versions = useMemo(
+    () =>
+      template
+        ? pairTemplateVersions(all?.data ?? []).find(
+            (v) => v.document_type === template.document_type && v.code === template.code,
+          ) ?? null
+        : null,
+    [all, template],
+  );
+
+  const doReset = () => {
+    if (!template) return;
+    switchToPlatformVersion(template.id)
+      .unwrap()
+      .then((platform) => {
+        toast.success("Back on the Codex version.");
+        setResetOpen(false);
+        navigate(routesPath.PROTECTED.WORKFLOW.TEMPLATE_DETAIL(platform.id));
+      })
+      .catch((err) => {
+        const message =
+          (err as { data?: { message?: string } })?.data?.message ??
+          "Could not switch back to the Codex version.";
+        toast.error(message);
+      });
+  };
 
   return (
     <>
@@ -36,24 +90,79 @@ export default function TemplateDetail() {
             <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-white-02 bg-white p-5">
               <div>
                 <h1 className="text-lg font-semibold">{template.name}</h1>
-                <p className="mt-1 text-xs text-gray-01">
-                  {humanizeDocumentType(template.document_type)} ·{" "}
-                  <span className="font-mono">{template.code}</span> ·{" "}
-                  {template.branch ? "Branch" : template.tenant ? "School" : "Platform"} scope
+                <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-01">
+                  <span>{humanizeDocumentType(template.document_type)}</span>
+                  <span aria-hidden>·</span>
+                  <span className="font-mono">{template.code}</span>
+                  <span aria-hidden>·</span>
+                  <Badge variant={template.is_platform ? "outline" : "pending"}>
+                    {template.is_platform
+                      ? isPlatformTenant
+                        ? "Shared with every school"
+                        : "Codex version"
+                      : isPlatformTenant
+                        ? "Codex-only"
+                        : "This school's version"}
+                  </Badge>
                 </p>
                 {template.description && (
                   <p className="mt-2 max-w-2xl text-sm text-gray-01">{template.description}</p>
                 )}
               </div>
               <PermissionGate permission={P.MANAGE_WORKFLOW_TEMPLATES}>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(routesPath.PROTECTED.WORKFLOW.TEMPLATE_EDIT(template.id))}
-                >
-                  <Pencil className="size-4" /> Edit
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {!template.is_platform && !isPlatformTenant && (
+                    <Button variant="outline" onClick={() => setResetOpen(true)}>
+                      <Undo2 className="size-4" /> Use Codex's version
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(routesPath.PROTECTED.WORKFLOW.TEMPLATE_EDIT(template.id))}
+                  >
+                    <Pencil className="size-4" /> {template.is_platform && !isPlatformTenant ? "Adjust" : "Edit"}
+                  </Button>
+                </div>
               </PermissionGate>
             </div>
+
+            {!isPlatformTenant && template.is_platform && (
+              <p className="rounded-md border border-white-02 bg-pry-01/40 px-4 py-3 text-xs text-gray-01">
+                This is the Codex version, and this school runs it as published. Adjust it and
+                this school runs your version from then on, while Codex keeps theirs.
+              </p>
+            )}
+            {!isPlatformTenant && !template.is_platform && (
+              <p className="rounded-md border border-white-02 bg-pry-01/40 px-4 py-3 text-xs text-gray-01">
+                This school runs its own version of this approval path.{" "}
+                {versions?.platformMovedOn ? (
+                  <>
+                    Codex changed theirs{" "}
+                    {template.platform_updated_at
+                      ? formatRelativeDate(template.platform_updated_at)
+                      : "recently"}
+                    . Nothing changed here on its own - "Use Codex's version" switches to their
+                    current one.
+                  </>
+                ) : (
+                  <>"Use Codex's version" puts this school back on whatever Codex has at that
+                    moment.</>
+                )}
+              </p>
+            )}
+            {isPlatformTenant && !template.is_platform && (
+              <p className="rounded-md border border-white-02 bg-pry-01/40 px-4 py-3 text-xs text-gray-01">
+                This one belongs to Codex alone - no school inherits it. To give every school
+                this path, publish it with the same document type and code from a new
+                template, which writes the shared version.
+              </p>
+            )}
+            {isPlatformTenant && template.is_platform && (
+              <p className="rounded-md border border-white-02 bg-pry-01/40 px-4 py-3 text-xs text-gray-01">
+                Every school starts on this. Editing it reaches all of them except the ones
+                running their own version of this path.
+              </p>
+            )}
 
             {/* Stages */}
             <div className="rounded-lg border border-white-02 bg-white p-5">
@@ -164,6 +273,27 @@ export default function TemplateDetail() {
           </div>
         )}
       </main>
+
+      <Dialog open={resetOpen} onOpenChange={(v) => !v && setResetOpen(false)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Use Codex's version?</DialogTitle>
+            <DialogDescription>
+              This school goes back to the Codex version as it stands today, and your
+              adjustments stop being used. Approvals already running keep the path they
+              started on. You can adjust it again at any time.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setResetOpen(false)} disabled={isResetting}>
+              Keep ours
+            </Button>
+            <Button onClick={doReset} disabled={isResetting}>
+              {isResetting ? "Switching…" : "Use Codex's version"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

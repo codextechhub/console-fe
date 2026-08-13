@@ -145,6 +145,20 @@ export interface WorkflowTemplate {
   name: string;
   description: string;
   notification_events: Record<string, boolean>;
+  /**
+   * A tenant that went back to the platform's version has its own switched off
+   * rather than deleted: instances protect the template they ran under, so the
+   * version that has actually been used is the one that cannot be removed.
+   */
+  is_active: boolean;
+  /** This row is the shared definition every tenant starts on. */
+  is_platform: boolean;
+  /** Platform rows only: this tenant is running its own version instead. */
+  tenant_has_own: boolean | null;
+  /** Tenant rows only: when the shared version it came from last changed. */
+  platform_updated_at: string | null;
+  /** Tenant rows only: the shared version moved on after this tenant last saved. */
+  platform_changed_since: boolean;
   created_at: string;
   updated_at: string;
   stages: WorkflowStage[];
@@ -180,6 +194,12 @@ export interface WorkflowRoutePayload {
 }
 
 export interface PublishTemplatePayload {
+  /**
+   * PLATFORM writes the shared definition and is refused unless the caller's own
+   * tenant is the platform one. TENANT (the default) writes the caller's own
+   * version, which the engine prefers for that tenant from then on.
+   */
+  scope?: "TENANT" | "PLATFORM";
   document_type: string;
   code: string;
   name: string;

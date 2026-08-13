@@ -168,6 +168,21 @@ export const workflowApi = baseApi.injectEndpoints({
       invalidatesTags: ["WorkflowStageOverrides", "WorkflowTemplates"],
     }),
 
+    /**
+     * Stop running this tenant's own version of a template and follow the
+     * platform's current one again. Returns the platform template now in force.
+     *
+     * Owns its refusals (no platform version to fall back to), so the global
+     * error toast stays out of the way of the screen's own explanation.
+     */
+    usePlatformTemplateVersion: builder.mutation<WorkflowTemplate, string>({
+      query: (id) => ({
+        url: `/workflow/templates/${id}/use-platform-version/`, method: "POST",
+      }),
+      extraOptions: { silent: true },
+      invalidatesTags: ["WorkflowTemplates"],
+    }),
+
     // ── Instances ───────────────────────────────────────────────────────────
     getWorkflowInstances: builder.query<WorkflowInstancesResponse, QueryParams>({
       query: (params) => ({ url: `/workflow/instances/${generateQueryString(params)}`, method: "GET" }),
@@ -320,6 +335,7 @@ export const {
   useGetWorkflowTemplateQuery,
   useLazyGetWorkflowTemplateQuery,
   usePublishWorkflowTemplateMutation,
+  useUsePlatformTemplateVersionMutation,
   useGetApproverGroupsQuery,
   useResolveApproverGroupQuery,
   useCreateApproverGroupMutation,
