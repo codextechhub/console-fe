@@ -7,7 +7,7 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 
 | Category | Workflow | Guide ID | Risk | Article | Walkthrough | Owner | Last review | Known gap |
 |---|---|---|---|---|---|---|---|---|
-| Getting started | Console basics and navigation | `getting-started.console-basics` | Low | Draft | Planned | Console product team | 2026-08-13 | Content starts in C1 |
+| Getting started | Console basics and navigation | `getting-started.console-basics` | Low | Published | Planned | Console product team | 2026-08-13 | Walkthrough remains scheduled for F6 or C1 |
 | Getting started | Account activation and sign-in | Planned in C1 | Medium | Planned | Not required | Console product team | 2026-08-13 | Registry record and content not started |
 | Getting started | Workspace search and quick actions | Planned in C1 | Low | Planned | Not required | Console product team | 2026-08-13 | Registry record and content not started |
 | Schools and users | Create and configure a school | `schools.create-and-configure` | High | Draft | Planned | Console product team | 2026-08-13 | Content and targets start in C2 |
@@ -70,3 +70,15 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
   2026-08-13 with no page-level overflow or error boundary.
 - Published article navigation: deliberately remains disabled until the F3 renderer
   and first published article exist.
+
+## F3 completion record
+
+- Typed published-article metadata, contents sections, related-guide relationships,
+  primary product routes, and read-time estimates: built.
+- Responsive article renderer with sticky desktop contents, in-page anchors, product
+  deep links, related guides, feedback, and outdated-report handoff: built.
+- Reusable numbered steps, callouts, checklists, and explanatory figures: built.
+- `Get started with Console`: published as the first complete article.
+- Real-backend desktop, 390px phone, and 820px tablet article rendering: verified
+  on 2026-08-13 with no page overflow, error boundary, or console errors.
+- Interactive walkthrough launch remains disabled until the F6 engine is available.

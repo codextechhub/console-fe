@@ -62,6 +62,20 @@ export function validateGuideRegistry(
         issues.push({ code: "invalid-route", guideId: record.id, message: `Unknown product route: ${route}` });
       }
     }
+    if (record.primaryRoute && !record.routes.includes(record.primaryRoute)) {
+      issues.push({ code: "invalid-route", guideId: record.id, message: `Primary route is not included in guide routes: ${record.primaryRoute}` });
+    }
+    const sectionIds = (record.sections ?? []).map((section) => section.id);
+    for (const sectionId of sectionIds) {
+      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(sectionId) || duplicateValues(sectionIds).has(sectionId)) {
+        issues.push({ code: "invalid-section", guideId: record.id, message: `Invalid or duplicated article section: ${sectionId}` });
+      }
+    }
+    for (const relatedId of record.relatedGuideIds ?? []) {
+      if (relatedId === record.id || !ids.has(relatedId)) {
+        issues.push({ code: "missing-related-guide", guideId: record.id, message: `Related guide does not exist or refers to itself: ${relatedId}` });
+      }
+    }
     if (record.access.mode === "authenticated" && record.access.permissions.length > 0) {
       issues.push({ code: "invalid-permissions", guideId: record.id, message: "Authenticated guides cannot declare permission codes" });
     }
@@ -70,6 +84,9 @@ export function validateGuideRegistry(
     }
     if (record.status === "published" && !record.article) {
       issues.push({ code: "missing-article", guideId: record.id, message: "Published guides require an article loader" });
+    }
+    if (record.status === "published" && (!record.sections?.length || !record.primaryRoute)) {
+      issues.push({ code: "invalid-section", guideId: record.id, message: "Published guides require contents sections and a primary product route" });
     }
     if (record.status === "retired" && record.replacedBy && !ids.has(record.replacedBy)) {
       issues.push({ code: "missing-replacement", guideId: record.id, message: `Replacement guide does not exist: ${record.replacedBy}` });

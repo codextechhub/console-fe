@@ -31,6 +31,7 @@ const Settings = lazy(() => import("@/pages/protected/settings"));
 const Support = lazy(() => import("@/pages/protected/support"));
 const TicketDetail = lazy(() => import("@/pages/protected/support/detail"));
 const HowToGuides = lazy(() => import("@/pages/protected/support/guides"));
+const GuideArticle = lazy(() => import("@/pages/protected/support/guide-article"));
 
 export const protectedRoutes = [
   {
@@ -48,6 +49,7 @@ export const protectedRoutes = [
       // ticket loads (useDashboardTitle) - exactly the old behaviour.
       { path: routesPath.PROTECTED.SUPPORT.DETAIL_PATH, element: <TicketDetail />, handle: { title: "Support" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.SUPPORT.GUIDES, element: <HowToGuides />, handle: { title: "How-to Guide" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL_PATH, element: <GuideArticle />, handle: { title: "How-to Guide" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.SUPPORT.GUIDE_ALIAS, element: <Navigate replace to={routesPath.PROTECTED.SUPPORT.GUIDES} />, handle: { title: "How-to Guide" } satisfies DashboardHandle },
       ...overviewRoutes,
       ...schoolRoutes,

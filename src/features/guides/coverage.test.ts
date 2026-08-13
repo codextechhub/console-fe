@@ -13,8 +13,8 @@ describe("guide coverage reporting", () => {
     expect(buildGuideCoverageReport(GUIDE_REGISTRY, targets)).toMatchObject({
       targetCount: 2,
       coveredTargetCount: 1,
-      publishedGuideCount: 0,
-      draftGuideCount: GUIDE_REGISTRY.length,
+      publishedGuideCount: GUIDE_REGISTRY.filter((guide) => guide.status === "published").length,
+      draftGuideCount: GUIDE_REGISTRY.filter((guide) => guide.status === "draft").length,
       gaps: [{ targetId: "unknown-flow", kind: "missing-guide" }],
     });
   });

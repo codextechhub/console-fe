@@ -41,6 +41,11 @@ export type GuideArticleModule = {
   default: ComponentType;
 };
 
+export type GuideArticleSection = {
+  id: string;
+  title: string;
+};
+
 type GuideRecordBase = {
   id: string;
   slug: string;
@@ -59,6 +64,10 @@ type GuideRecordBase = {
   productVersion?: string;
   risk: GuideRisk;
   featured?: boolean;
+  primaryRoute?: string;
+  sections?: readonly GuideArticleSection[];
+  relatedGuideIds?: readonly string[];
+  estimatedMinutes?: number;
 };
 
 export type GuideRecord = GuideRecordBase & (
@@ -94,9 +103,11 @@ export type GuideValidationIssue = {
     | "invalid-date"
     | "invalid-permissions"
     | "invalid-route"
+    | "invalid-section"
     | "missing-article"
     | "missing-owner"
     | "missing-replacement"
+    | "missing-related-guide"
     | "missing-route";
   guideId: string;
   message: string;
