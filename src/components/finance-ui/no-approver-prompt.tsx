@@ -8,10 +8,11 @@
 // an `approval` block saying whether that happened; pass it here.
 //
 // Nothing in this file assumes *how* a stage picks its approvers. The backend
-// sends a ready-made `requirement` sentence describing what would staff it, so
-// when the approver model changes (permission keys giving way to groups or
-// organogram seats) the dialog keeps telling people the truth without an edit
-// here. Only the permission-key chip is source-specific, and it is guarded.
+// sends a ready-made `requirement` sentence describing what would staff it, and
+// that design has now been through one real migration: permission keys were
+// replaced by roles, groups, document-driven rules and organogram seats, and
+// the only thing here that needed touching was the optional key chip. The
+// sentence carried every other case unchanged.
 //
 // The dialog is deliberately blunt about the trade. Continuing takes the
 // document to its terminal state with no second pair of eyes, which on a payout
@@ -61,9 +62,9 @@ export function useNoApproverPrompt({ documentLabel = "document", onContinued }:
       setPark(null);
       onContinued?.();
     } catch (err) {
-      // The commonest failure is not a failure: somebody was granted the
-      // approving permission between the warning and the click, so the backend
-      // refused the bypass. That is the right outcome and reads as good news.
+      // The commonest failure is not a failure: somebody became able to approve
+      // between the warning and the click, so the backend refused the bypass.
+      // That is the right outcome and reads as good news.
       const code = (err as { data?: { error?: { code?: string } } })?.data?.error?.code;
       if (code === "NOT_PARKED") {
         toast.success("Someone can approve this now, so it has gone for review instead.");
@@ -81,10 +82,10 @@ export function useNoApproverPrompt({ documentLabel = "document", onContinued }:
       open={!!park}
       onOpenChange={(open) => { if (!open) setPark(null); }}
       title="Nobody can approve this"
-      // Deliberately says "able to approve", not "holds the permission": how a
-      // stage resolves its approvers is changing, and this sentence has to stay
-      // true for an organogram seat or a group as much as for a permission key.
-      // The specific fix belongs in `requirement` below, which the backend words.
+      // Deliberately says "able to approve" rather than naming a mechanism: this
+      // sentence has to stay true for a role, an approver group, a rule that
+      // picks the role off the document, and an organogram seat alike. The
+      // specific fix belongs in `requirement` below, which the backend words.
       description={`This ${documentLabel} was submitted, but no one is currently able to approve it, so it will wait indefinitely.`}
       confirmText="Continue anyway"
       cancelText="Leave it waiting"
@@ -102,17 +103,18 @@ export function useNoApproverPrompt({ documentLabel = "document", onContinued }:
             Waiting on: <span className="font-medium text-black-01">{park.stage_label}</span>
           </p>
         )}
-        {(park?.permission_key || park?.requirement) && (
+        {(park?.role_key || park?.requirement) && (
           <p className="text-xs text-gray-500">
             To fix this properly,{" "}
-            {park.permission_key ? (
-              // Only an RBAC-sourced stage sends a key, and the chip is worth the
-              // extra markup there because the key is a literal an admin copies.
+            {park.role_key ? (
+              // Only a role-sourced stage sends a key, and the chip is worth the
+              // extra markup there because the key is a literal an admin looks up.
               <>
-                grant someone{" "}
+                assign someone to the{" "}
                 <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[11px] text-black-01">
-                  {park.permission_key}
-                </code>
+                  {park.role_key}
+                </code>{" "}
+                role
               </>
             ) : (
               // Every other source, including ones added after this was written,
