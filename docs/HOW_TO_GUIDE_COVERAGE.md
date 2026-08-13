@@ -9,7 +9,7 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 |---|---|---|---|---|---|---|---|---|
 | Getting started | Console basics and navigation | `getting-started.console-basics` | Low | Published | Planned | Console product team | 2026-08-13 | Walkthrough remains scheduled for F6 or C1 |
 | Getting started | Account activation and sign-in | Planned in C1 | Medium | Planned | Not required | Console product team | 2026-08-13 | Registry record and content not started |
-| Getting started | Workspace search and quick actions | Planned in C1 | Low | Planned | Not required | Console product team | 2026-08-13 | Registry record and content not started |
+| Getting started | Workspace search and quick actions | `getting-started.console-basics` | Low | Published | Not required | Console product team | 2026-08-13 | Dedicated task article can be split out during C1 if feedback shows it is needed |
 | Schools and users | Create and configure a school | `schools.create-and-configure` | High | Draft | Planned | Console product team | 2026-08-13 | Content and targets start in C2 |
 | Schools and users | Manage schools and branches | Planned in C2 | Medium | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
 | Schools and users | Invite and manage CX or school users | Planned in C2 | Medium | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
@@ -82,3 +82,18 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - Real-backend desktop, 390px phone, and 820px tablet article rendering: verified
   on 2026-08-13 with no page overflow, error boundary, or console errors.
 - Interactive walkthrough launch remains disabled until the F6 engine is available.
+
+## F4 completion record
+
+- Shared local guide search covers titles, summaries, aliases, tags, categories,
+  article section headings, and safe error phrases: built.
+- Exact titles and aliases rank ahead of token-prefix and substring matches: built
+  and regression tested.
+- Permission filtering happens before guide matching, and search entry points only
+  open published articles: built.
+- Guide homepage arrow-key selection, Enter launch, clear filters, and useful
+  no-results guidance: built.
+- Workspace search includes Guides after Actions and before People in the same
+  visual and keyboard order: built.
+- Search-gap analytics remain scheduled for the analytics slice because the app has
+  no approved telemetry sink yet. No user-entered search text is sent elsewhere.

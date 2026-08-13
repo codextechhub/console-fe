@@ -5,12 +5,15 @@ import { useGetStaffProfilesQuery } from "@/redux/services/dashboard/organogram-
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
 import { useActionSearch, type UseActionSearch } from "@/hooks/use-action-search";
 import { useAppSelector } from "@/redux/store";
+import { GUIDE_REGISTRY, searchGuides, visibleGuides, type ScoredGuide } from "@/features/guides";
 
 const PEOPLE_QUERY_MIN_LENGTH = 2;
 const PEOPLE_QUERY_MAX_LENGTH = 64;
 const PEOPLE_RESULT_LIMIT = 6;
+const GUIDE_RESULT_LIMIT = 5;
 
 export interface UseWorkspaceSearch extends UseActionSearch {
+  guides: ScoredGuide[];
   people: StaffProfileListItem[];
   peopleTotal: number;
   peopleLoading: boolean;
@@ -27,6 +30,7 @@ export interface UseWorkspaceSearch extends UseActionSearch {
  */
 export function useWorkspaceSearch(query: string): UseWorkspaceSearch {
   const actions = useActionSearch(query);
+  const permissionKeys = useAppSelector((state) => state.auth.permissions ?? []);
   // Discovery is open to every signed-in user. The backend applies the current
   // tenant boundary and decides whether a selected profile is brief or full.
   const canSearchPeople = useAppSelector((state) => Boolean(state.auth.user));
@@ -53,9 +57,18 @@ export function useWorkspaceSearch(query: string): UseWorkspaceSearch {
     () => queryEligible && querySettled && Array.isArray(data?.data) ? data.data : [],
     [data, queryEligible, querySettled],
   );
+  const guides = useMemo(
+    () => searchGuides(
+      visibleGuides(GUIDE_REGISTRY, permissionKeys).filter((guide) => guide.status === "published"),
+      normalizedQuery,
+      GUIDE_RESULT_LIMIT,
+    ),
+    [normalizedQuery, permissionKeys],
+  );
 
   return {
     ...actions,
+    guides,
     people,
     peopleTotal: querySettled ? data?.pagination?.totalItems ?? people.length : 0,
     peopleLoading: queryEligible && (!querySettled || isFetching),

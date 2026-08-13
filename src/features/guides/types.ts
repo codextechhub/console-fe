@@ -112,3 +112,11 @@ export type GuideValidationIssue = {
   guideId: string;
   message: string;
 };
+
+export type GuideMatchKind = "title" | "alias" | "prefix" | "content";
+
+export type ScoredGuide = {
+  guide: GuideRecord;
+  matchKind: GuideMatchKind;
+  score: number;
+};

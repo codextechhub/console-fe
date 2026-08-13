@@ -1,12 +1,14 @@
 import type { ScoredAction } from "@/lib/action-palette";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
+import type { ScoredGuide } from "@/features/guides";
 
 export type WorkspaceSearchRow =
   | { kind: "action"; action: ScoredAction }
   | { kind: "show-all-actions" }
+  | { kind: "guide"; guide: ScoredGuide }
   | { kind: "person"; person: StaffProfileListItem };
 
-export type WorkspaceSearchSection = "Actions" | "People";
+export type WorkspaceSearchSection = "Actions" | "Guides" | "People";
 
 /**
  * Anywhere in the app can ask the header to open and focus the workspace
@@ -44,11 +46,13 @@ export function isWorkspaceSearchSelf(
 export function buildWorkspaceSearchRows(
   actions: ScoredAction[],
   hasMoreActions: boolean,
+  guides: ScoredGuide[],
   people: StaffProfileListItem[],
 ): WorkspaceSearchRow[] {
   return [
     ...actions.map((action) => ({ kind: "action" as const, action })),
     ...(hasMoreActions ? [{ kind: "show-all-actions" as const }] : []),
+    ...guides.map((guide) => ({ kind: "guide" as const, guide })),
     ...people.map((person) => ({ kind: "person" as const, person })),
   ];
 }
@@ -56,6 +60,7 @@ export function buildWorkspaceSearchRows(
 export function getWorkspaceSearchSections(rows: WorkspaceSearchRow[]): WorkspaceSearchSection[] {
   const sections: WorkspaceSearchSection[] = [];
   if (rows.some((row) => row.kind === "action" || row.kind === "show-all-actions")) sections.push("Actions");
+  if (rows.some((row) => row.kind === "guide")) sections.push("Guides");
   if (rows.some((row) => row.kind === "person")) sections.push("People");
   return sections;
 }

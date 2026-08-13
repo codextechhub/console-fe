@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AppSidebar } from "../app-sidebar";
-import { ChevronLeft, ChevronRight, Loader2, LogOut, Search, ShieldCheck, Undo2, UserRound, UsersRound } from "lucide-react";
+import { BookOpenText, ChevronLeft, ChevronRight, Loader2, LogOut, Search, ShieldCheck, Undo2, UserRound, UsersRound } from "lucide-react";
 import { Outlet, useLocation, useMatches, useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
@@ -50,6 +50,7 @@ import { financeNav } from "@/pages/protected/finance/finance-nav";
 import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { WorkspaceToaster } from "@/components/ui/sonner";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
+import type { GuideRecord } from "@/features/guides";
 import { buildWorkspaceSearchRows, getWorkspaceSearchIdentityKey, isWorkspaceSearchSelf, WORKSPACE_SEARCH_OPEN_EVENT } from "./workspace-search-model";
 import {
   EntitySelect,
@@ -203,6 +204,7 @@ function DashboardHeader({
     results,
     total,
     onLaunch,
+    guides,
     people,
     peopleTotal,
     peopleLoading,
@@ -224,11 +226,11 @@ function DashboardHeader({
     () => (resultsExpanded ? groupByConsole(results).flatMap((g) => g.items) : results.slice(0, COLLAPSED_COUNT)),
     [resultsExpanded, results],
   );
-  // Actions, then the optional expansion row, then People: this is both the
+  // Actions, then the optional expansion row, Guides, then People: this is both the
   // visual order and the order traversed by ArrowUp/ArrowDown.
   const searchRows = useMemo(
-    () => buildWorkspaceSearchRows(visualActions, hasMore, people),
-    [hasMore, people, visualActions],
+    () => buildWorkspaceSearchRows(visualActions, hasMore, guides, people),
+    [guides, hasMore, people, visualActions],
   );
   const indexByActionId = useMemo(() => {
     const m = new Map<string, number>();
@@ -241,6 +243,13 @@ function DashboardHeader({
     const m = new Map<number, number>();
     searchRows.forEach((row, index) => {
       if (row.kind === "person") m.set(row.person.id, index);
+    });
+    return m;
+  }, [searchRows]);
+  const indexByGuideId = useMemo(() => {
+    const m = new Map<string, number>();
+    searchRows.forEach((row, index) => {
+      if (row.kind === "guide") m.set(row.guide.guide.id, index);
     });
     return m;
   }, [searchRows]);
@@ -281,6 +290,16 @@ function DashboardHeader({
     );
   };
 
+  const launchGuide = (guide: GuideRecord) => {
+    setSearch("");
+    setActiveResult(0);
+    setResultsOpen(false);
+    setResultsExpanded(false);
+    setMobileSearchOpen(false);
+    startNavigationProgress();
+    navigate(routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug));
+  };
+
   const updateSearch = (value: string) => {
     setSearch(value);
     setActiveResult(0);
@@ -307,6 +326,7 @@ function DashboardHeader({
       const target = searchRows[activeResult] ?? searchRows[0];
       if (target?.kind === "show-all-actions") expandResults();
       else if (target?.kind === "action") launchAction(target.action.action);
+      else if (target?.kind === "guide") launchGuide(target.guide.guide);
       else if (target?.kind === "person") launchPerson(target.person);
     }
   };
@@ -374,6 +394,30 @@ function DashboardHeader({
     );
   };
 
+  const renderGuideOption = (guide: GuideRecord, index: number, variant: "desktop" | "mobile") => (
+    <button
+      key={guide.id}
+      id={`workspace-search-option-${variant}-${index}`}
+      ref={index === activeResult ? (el) => el?.scrollIntoView({ block: "nearest" }) : undefined}
+      type="button"
+      role="option"
+      aria-selected={index === activeResult}
+      onMouseDown={(event) => event.preventDefault()}
+      onMouseEnter={() => setActiveResult(index)}
+      onClick={() => launchGuide(guide)}
+      className={`flex w-full min-w-0 items-center gap-2.5 rounded-lg px-3 py-2 text-left ${index === activeResult ? "bg-gray-50" : ""}`}
+    >
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/8 text-primary">
+        <BookOpenText className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium text-black-01">{guide.title}</span>
+        <span className="block truncate text-[11px] text-gray-400">How-to guide</span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-gray-300" />
+    </button>
+  );
+
   const renderSearchResults = (variant: "desktop" | "mobile") => (
     <div
       id={`workspace-search-listbox-${variant}`}
@@ -416,6 +460,18 @@ function DashboardHeader({
           </section>
         )}
 
+        {guides.length > 0 && (
+          <section aria-labelledby={`workspace-search-guides-${variant}`}>
+            <p
+              id={`workspace-search-guides-${variant}`}
+              className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400"
+            >
+              Guides
+            </p>
+            {guides.map(({ guide }) => renderGuideOption(guide, indexByGuideId.get(guide.id) ?? -1, variant))}
+          </section>
+        )}
+
         {people.length > 0 && (
           <section aria-labelledby={`workspace-search-people-${variant}`}>
             <p
@@ -447,8 +503,8 @@ function DashboardHeader({
                 : peopleQueryTooShort
                   ? "Keep typing to search people."
                   : canSearchPeople
-                    ? "No accessible actions or people found."
-                    : "No accessible actions found."}
+                    ? "No accessible actions, guides, or people found."
+                    : "No accessible actions or guides found."}
           </p>
         )}
       </div>

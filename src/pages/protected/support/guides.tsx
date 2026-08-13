@@ -14,7 +14,7 @@ import {
   UserRound,
   Wrench,
 } from "lucide-react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import {
   GUIDE_ROLE_ENTRY_POINTS,
   guidesForAudience,
   recentlyReviewedGuides,
+  searchGuides,
   visibleGuides,
   type GuideAudience,
   type GuideCategoryId,
@@ -50,9 +51,11 @@ const CATEGORY_ICONS: Record<GuideCategoryId, React.ElementType> = {
 };
 
 export default function HowToGuides() {
+  const navigate = useNavigate();
   const permissions = useAppSelector(selectPermissions);
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState("");
+  const [activeResult, setActiveResult] = useState(0);
   const categoryParam = params.get("category");
   const audienceParam = params.get("audience");
   const category = GUIDE_CATEGORIES.some((candidate) => candidate.id === categoryParam)
@@ -63,17 +66,24 @@ export default function HowToGuides() {
     : null;
   const permitted = useMemo(() => visibleGuides(GUIDE_REGISTRY, permissions), [permissions]);
   const audienceGuides = useMemo(() => guidesForAudience(permitted, audience), [audience, permitted]);
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-  const filtered = useMemo(() => audienceGuides.filter((guide) => {
-    if (category && guide.category !== category) return false;
-    if (!normalizedQuery) return true;
-    return [guide.title, guide.summary, ...guide.tags, ...guide.aliases]
-      .some((value) => value.toLocaleLowerCase().includes(normalizedQuery));
-  }), [audienceGuides, category, normalizedQuery]);
+  const normalizedQuery = query.trim();
+  const categoryGuides = useMemo(
+    () => audienceGuides.filter((guide) => !category || guide.category === category),
+    [audienceGuides, category],
+  );
+  const filtered = useMemo(() => {
+    if (!normalizedQuery) return categoryGuides;
+    return searchGuides(
+      categoryGuides.filter((guide) => guide.status === "published"),
+      normalizedQuery,
+    ).map((result) => result.guide);
+  }, [categoryGuides, normalizedQuery]);
   const popular = featuredGuides(permitted);
   const recent = recentlyReviewedGuides(permitted);
+  const activeGuideIndex = filtered.length ? Math.min(activeResult, filtered.length - 1) : 0;
 
   const selectParam = (key: "category" | "audience", value: string | null) => {
+    setActiveResult(0);
     const next = new URLSearchParams(params);
     if (value) next.set(key, value);
     else next.delete(key);
@@ -81,6 +91,21 @@ export default function HowToGuides() {
   };
 
   const showBrowseResults = Boolean(category || audience || normalizedQuery);
+
+  const handleSearchNavigation = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!normalizedQuery || filtered.length === 0) return;
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      setActiveResult((index) => (index + step + filtered.length) % filtered.length);
+      return;
+    }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const guide = filtered[activeGuideIndex] ?? filtered[0];
+      navigate(routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug));
+    }
+  };
 
   return (
     <main className="grid min-w-0 grid-cols-1 gap-8 px-4.5 py-6 text-black-01 sm:px-6 lg:px-8">
@@ -100,8 +125,15 @@ export default function HowToGuides() {
             <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-gray-01" />
             <Input
               aria-label="Search how-to guides"
+              role="combobox"
+              aria-expanded={Boolean(normalizedQuery)}
+              aria-controls="guide-search-results"
+              aria-activedescendant={normalizedQuery && filtered.length
+                ? `guide-search-result-${activeGuideIndex}`
+                : undefined}
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => { setQuery(event.target.value); setActiveResult(0); }}
+              onKeyDown={handleSearchNavigation}
               placeholder="Try ‘create a school’ or ‘permission denied’"
               className="h-13 rounded-2xl border-white bg-white pl-12 pr-4 text-sm shadow-[0_12px_35px_rgba(15,23,42,.08)]"
             />
@@ -174,11 +206,24 @@ export default function HowToGuides() {
         <section aria-live="polite" aria-labelledby="results-heading">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <SectionHeading id="results-heading" title="Guide results" subtitle={`${filtered.length} guide${filtered.length === 1 ? "" : "s"} available for these filters.`} />
-            <Button variant="ghost" size="sm" onClick={() => { setQuery(""); setParams({}, { replace: true }); }}>Clear filters</Button>
+            <Button variant="ghost" size="sm" onClick={() => { setQuery(""); setActiveResult(0); setParams({}, { replace: true }); }}>Clear filters</Button>
           </div>
           {filtered.length ? (
-            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {filtered.map((guide) => <GuideCard key={guide.id} guide={guide} />)}
+            <div
+              id="guide-search-results"
+              role={normalizedQuery ? "listbox" : undefined}
+              aria-label={normalizedQuery ? "Guide search results" : undefined}
+              className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
+            >
+              {filtered.map((guide, index) => (
+                <GuideCard
+                  key={guide.id}
+                  guide={guide}
+                  resultIndex={normalizedQuery ? index : undefined}
+                  active={Boolean(normalizedQuery) && index === activeGuideIndex}
+                  onActivate={() => setActiveResult(index)}
+                />
+              ))}
             </div>
           ) : (
             <div className="mt-4 rounded-2xl border border-dashed border-gray-200 bg-white px-5 py-10 text-center">
@@ -214,7 +259,19 @@ function SectionHeading({ id, title, subtitle }: { id: string; title: string; su
   return <div><h2 id={id} className="font-mont text-lg font-semibold">{title}</h2><p className="mt-1 text-xs text-gray-01">{subtitle}</p></div>;
 }
 
-function GuideCard({ guide, compact = false }: { guide: GuideRecord; compact?: boolean }) {
+function GuideCard({
+  guide,
+  compact = false,
+  resultIndex,
+  active = false,
+  onActivate,
+}: {
+  guide: GuideRecord;
+  compact?: boolean;
+  resultIndex?: number;
+  active?: boolean;
+  onActivate?: () => void;
+}) {
   const category = GUIDE_CATEGORIES.find((candidate) => candidate.id === guide.category);
   const content = (
     <>
@@ -236,5 +293,16 @@ function GuideCard({ guide, compact = false }: { guide: GuideRecord; compact?: b
     return <article className="min-w-0 rounded-2xl border border-gray-200 bg-white p-4">{content}</article>;
   }
 
-  return <Link to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)} className="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-primary/30 hover:shadow-md">{content}</Link>;
+  return (
+    <Link
+      id={resultIndex == null ? undefined : `guide-search-result-${resultIndex}`}
+      role={resultIndex == null ? undefined : "option"}
+      aria-selected={resultIndex == null ? undefined : active}
+      onMouseEnter={onActivate}
+      to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)}
+      className={`min-w-0 rounded-2xl border bg-white p-4 transition hover:border-primary/30 hover:shadow-md ${active ? "border-primary ring-3 ring-primary/10" : "border-gray-200"}`}
+    >
+      {content}
+    </Link>
+  );
 }

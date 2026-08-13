@@ -1,27 +1,34 @@
-import { lazy, Suspense, useMemo, useState } from "react";
+import { createElement, lazy, Suspense, useState } from "react";
 import { ArrowLeft, ArrowRight, BookOpenText, Check, Clock3, ExternalLink, Flag, Loader2, PlayCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Link, useParams } from "react-router";
 
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { Button } from "@/components/ui/button";
-import { GUIDE_CATEGORIES, GUIDE_REGISTRY, canDiscoverGuide } from "@/features/guides";
+import { GUIDE_CATEGORIES, GUIDE_REGISTRY, canDiscoverGuide, type GuideRecord } from "@/features/guides";
 import { selectPermissions } from "@/redux/features/auth/auth-slice";
 import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
 
+const GUIDE_RECORDS: readonly GuideRecord[] = GUIDE_REGISTRY;
+const GUIDE_ARTICLES = new Map(
+  GUIDE_RECORDS
+    .filter((guide) => guide.status === "published")
+    .map((guide) => [guide.slug, lazy(guide.article)] as const),
+);
+
 export default function GuideArticlePage() {
   const { slug = "" } = useParams();
   const permissions = useAppSelector(selectPermissions);
-  const guide = GUIDE_REGISTRY.find((candidate) => candidate.slug === slug);
+  const guide = GUIDE_RECORDS.find((candidate) => candidate.slug === slug);
   const [feedback, setFeedback] = useState<"yes" | "no" | null>(null);
-  const Article = useMemo(() => guide?.status === "published" ? lazy(guide.article) : null, [guide]);
+  const Article = GUIDE_ARTICLES.get(slug);
 
   if (!guide || guide.status === "retired") return <GuideUnavailable title="Guide not found" message="This guide does not exist or has been retired." />;
   if (!canDiscoverGuide(guide, permissions)) return <PageAccessDenied />;
   if (guide.status !== "published" || !Article) return <GuideUnavailable title="Guide is being prepared" message="This guide has a planned record but its reviewed article is not published yet." />;
 
   const category = GUIDE_CATEGORIES.find((candidate) => candidate.id === guide.category);
-  const related = GUIDE_REGISTRY.filter((candidate) => guide.relatedGuideIds?.includes(candidate.id) && canDiscoverGuide(candidate, permissions));
+  const related = GUIDE_RECORDS.filter((candidate) => guide.relatedGuideIds?.includes(candidate.id) && canDiscoverGuide(candidate, permissions));
 
   return (
     <main className="grid min-w-0 grid-cols-1 gap-6 px-4.5 py-6 text-black-01 sm:px-6 lg:grid-cols-[minmax(0,1fr)_15rem] lg:px-8 xl:grid-cols-[minmax(0,1fr)_17rem]">
@@ -39,7 +46,7 @@ export default function GuideArticlePage() {
         </header>
 
         <div className="mt-6 rounded-3xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
-          <Suspense fallback={<div className="grid min-h-80 place-items-center"><Loader2 className="size-5 animate-spin text-primary" /></div>}><Article /></Suspense>
+          <Suspense fallback={<div className="grid min-h-80 place-items-center"><Loader2 className="size-5 animate-spin text-primary" /></div>}>{createElement(Article)}</Suspense>
         </div>
 
         {related.length > 0 && <section className="mt-6"><h2 className="font-mont text-lg font-semibold">Related guides</h2><div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">{related.map((item) => item.status === "published" ? <Link key={item.id} to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(item.slug)} className="rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-primary/30"><p className="text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{item.summary}</p></Link> : <div key={item.id} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs text-gray-01">Planned for a later category release.</p></div>)}</div></section>}

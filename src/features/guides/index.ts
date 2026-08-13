@@ -9,6 +9,7 @@ export {
   visibleGuides,
 } from "./discovery";
 export { GUIDE_REGISTRY } from "./registry";
+export { searchGuides } from "./search";
 export { GUIDE_ROUTE_PATTERNS, GUIDE_ROUTE_PATTERN_SET } from "./route-catalog";
 export { validateGuideRegistry } from "./validate";
 export type {
@@ -20,6 +21,8 @@ export type {
   GuidePermissionRule,
   GuideRecord,
   GuideRisk,
+  GuideMatchKind,
+  ScoredGuide,
   GuideValidationIssue,
 } from "./types";
 export type { GuideCoverageGap, GuideCoverageReport, GuideCoverageTarget } from "./coverage";

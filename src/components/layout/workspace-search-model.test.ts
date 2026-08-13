@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ScoredAction } from "@/lib/action-palette";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
+import { GUIDE_REGISTRY, type ScoredGuide } from "@/features/guides";
 import {
   buildWorkspaceSearchRows,
   getWorkspaceSearchIdentityKey,
@@ -47,36 +48,50 @@ const person = (id: number, name: string): StaffProfileListItem => ({
   updated_at: "2026-01-01T00:00:00Z",
 });
 
+const guide = (): ScoredGuide => ({
+  guide: GUIDE_REGISTRY[0],
+  matchKind: "title",
+  score: 400,
+});
+
 describe("workspace search grouping", () => {
   it("shows only Actions when only actions match", () => {
-    const rows = buildWorkspaceSearchRows([action("view-schools")], false, []);
+    const rows = buildWorkspaceSearchRows([action("view-schools")], false, [], []);
     expect(rows.map((row) => row.kind)).toEqual(["action"]);
     expect(getWorkspaceSearchSections(rows)).toEqual(["Actions"]);
   });
 
   it("shows only People when only people match", () => {
-    const rows = buildWorkspaceSearchRows([], false, [person(1, "Ada")]);
+    const rows = buildWorkspaceSearchRows([], false, [], [person(1, "Ada")]);
     expect(rows.map((row) => row.kind)).toEqual(["person"]);
     expect(getWorkspaceSearchSections(rows)).toEqual(["People"]);
   });
 
-  it("keeps Actions before People when both match", () => {
+  it("keeps Actions, Guides, and People in keyboard order", () => {
     const rows = buildWorkspaceSearchRows(
       [action("view-profile")],
       true,
+      [guide()],
       [person(1, "Ada"), person(2, "Grace")],
     );
     expect(rows.map((row) => row.kind)).toEqual([
       "action",
       "show-all-actions",
+      "guide",
       "person",
       "person",
     ]);
-    expect(getWorkspaceSearchSections(rows)).toEqual(["Actions", "People"]);
+    expect(getWorkspaceSearchSections(rows)).toEqual(["Actions", "Guides", "People"]);
+  });
+
+  it("shows only Guides when only guides match", () => {
+    const rows = buildWorkspaceSearchRows([], false, [guide()], []);
+    expect(rows.map((row) => row.kind)).toEqual(["guide"]);
+    expect(getWorkspaceSearchSections(rows)).toEqual(["Guides"]);
   });
 
   it("returns no sections when nothing matches", () => {
-    const rows = buildWorkspaceSearchRows([], false, []);
+    const rows = buildWorkspaceSearchRows([], false, [], []);
     expect(rows).toEqual([]);
     expect(getWorkspaceSearchSections(rows)).toEqual([]);
   });
