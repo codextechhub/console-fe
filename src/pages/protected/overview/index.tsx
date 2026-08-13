@@ -1,17 +1,16 @@
 import { Link } from "react-router";
+import { motion, useReducedMotion } from "motion/react";
 import {
   Activity,
-  Bell,
+  ArrowUpRight,
   Building2,
-  ChevronRight,
+  CalendarDays,
   ClipboardCheck,
-  FileClock,
   HeartPulse,
   LifeBuoy,
   Network,
   School,
   ShieldCheck,
-  Sparkles,
   Users,
   Workflow,
 } from "lucide-react";
@@ -21,8 +20,6 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
 import { useGetConsoleOverviewQuery } from "@/redux/services/dashboard/overview-api";
-import { SnapRail } from "@/components/custom/snap-rail";
-import { resolveAttentionDestination } from "./overview-navigation";
 import { QuickActionsRow } from "./quick-actions";
 import { ActionCenter } from "./action-center";
 import { RecentOpensRow } from "./recent-opens-row";
@@ -71,29 +68,28 @@ function MetricCard({
     green: "bg-emerald-50 text-emerald-600",
   };
 
-  // Compact by design: the top of the page carries the actionable work, so
-  // these are reference numbers now - one glance, one line each. The note
-  // survives as a tooltip rather than a third line.
   return (
     <Link
       to={to}
       title={note}
-      className="group flex items-center gap-3 rounded-xl border border-white-02 bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.02)] transition hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md"
+      className="group flex min-w-0 items-center gap-2.5 rounded-xl border border-slate-200/75 bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.025)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[0_8px_20px_rgba(15,23,42,0.055)]"
     >
-      <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg", tones[tone])}>
-        <Icon className="size-4" />
+      <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg transition duration-200 group-hover:scale-105", tones[tone])}>
+        <Icon className="size-3.5" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-base font-semibold leading-tight tracking-tight text-black-01">
-          {loading ? <Shimmer className="my-1 h-4 w-10" /> : value}
+        <p className="truncate text-lg font-semibold leading-none tracking-[-0.025em] text-black-01 tabular-nums">
+          {loading ? <Shimmer className="my-0.5 h-4 w-10" /> : value}
         </p>
-        <p className="line-clamp-2 text-[11px] leading-tight text-gray-400">{label}</p>
+        <p className="mt-1 truncate text-[11px] font-medium leading-4 text-slate-500">{label}</p>
       </div>
+      <ArrowUpRight className="size-3.5 shrink-0 text-slate-300 transition duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
     </Link>
   );
 }
 
 export default function Overview() {
+  const reduceMotion = useReducedMotion();
   const user = useAppSelector((state) => state.auth.user);
   const { hasPermission } = usePermissions();
   const canViewSchools = hasPermission(P.BROWSE_SCHOOLS);
@@ -114,17 +110,6 @@ export default function Overview() {
   const taskStats = overview?.tasks?.stats;
   const returnedCount = overview?.submissions.returned ?? 0;
   const approvalsCount = overview?.approvals.pending ?? 0;
-  const unreadCount = overview?.notifications.unread ?? 0;
-  const attentionCount =
-    approvalsCount + (taskStats?.overdue ?? 0) + returnedCount + unreadCount;
-  // Hero-destination list only: the section itself is the ActionCenter now,
-  // which derives its own cards from the same payload.
-  const attentionItems = [
-    { count: taskStats?.overdue ?? 0, to: `${R.TODO.INDEX}?tab=mine` },
-    { count: returnedCount, to: `${R.WORKFLOW.MY_SUBMISSIONS}?status=RETURNED` },
-    { count: approvalsCount, to: R.WORKFLOW.APPROVALS },
-    { count: unreadCount, to: `${R.NOTIFICATIONS}?filter=unread` },
-  ];
 
   // Built once and rendered by both the phone rail and the desktop grid, so the
   // two presentations can never drift apart.
@@ -147,45 +132,6 @@ export default function Overview() {
     ),
   ].filter(Boolean) as React.ReactElement[];
 
-  // Hero spotlight. These are the same signals the sections below carry, shown
-  // large and one at a time - the hero is the glance, the sections are the
-  // detail. Nothing is invented: a slide only exists when its section came back
-  // in the response, so a caller without health or tickets simply gets fewer.
-  const spotlightSlides = [
-    {
-      key: "attention",
-      icon: Bell,
-      label: attentionCount ? "items may need your attention" : "you are all clear",
-      value: attentionCount,
-      to: resolveAttentionDestination(attentionItems, `${R.TODO.INDEX}?tab=mine`),
-      show: true,
-    },
-    {
-      key: "approvals",
-      icon: FileClock,
-      label: returnedCount ? `awaiting you, ${returnedCount} returned` : "awaiting your decision",
-      value: approvalsCount,
-      to: R.WORKFLOW.APPROVALS,
-      show: true,
-    },
-    {
-      key: "task",
-      icon: ClipboardCheck,
-      label: taskStats?.overdue ? "tasks now overdue" : "tasks in progress",
-      value: taskStats?.overdue || taskStats?.in_progress || 0,
-      to: `${R.TODO.INDEX}?tab=mine`,
-      show: Boolean(overview?.tasks),
-    },
-    {
-      key: "health",
-      icon: HeartPulse,
-      label: `${overview?.health?.active_incidents ?? 0} active incidents`,
-      value: overview?.health?.label ?? "Unknown",
-      to: R.HEALTH.INDEX,
-      show: canViewHealth && Boolean(overview?.health),
-    },
-  ].filter((slide) => slide.show);
-
   const modules = [
     { label: "School Management", to: R.SCHOOL_MGT.INDEX, icon: School, show: canViewSchools },
     { label: "Users", to: R.TEAM_MGT.CX, icon: Users, show: canViewTeam },
@@ -197,112 +143,107 @@ export default function Overview() {
     { label: "Support", to: R.SUPPORT.INDEX, icon: LifeBuoy, show: true },
   ].filter((item) => item.show);
 
+  const enter = (delay: number) => reduceMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 12 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.42, delay, ease: [0.16, 1, 0.3, 1] as const },
+      };
+
+  const today = new Intl.DateTimeFormat("en-NG", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date());
+
   return (
     <>
-      <main className="min-w-0 space-y-5 bg-[#f8f9fb] px-4.5 py-5 text-black-01 lg:px-7 lg:py-5">
-        <section
-          className="relative overflow-hidden rounded-2xl bg-[#17281f] px-6 py-5 text-white shadow-sm lg:px-7 lg:py-5"
+      <main className="min-w-0 space-y-6 bg-[radial-gradient(circle_at_50%_0%,rgba(24,119,76,0.035),transparent_34%),#f8f9fb] px-4.5 py-5 text-black-01 lg:px-7 lg:py-6">
+        <motion.section
+          {...enter(0)}
+          className="relative overflow-hidden rounded-2xl bg-[#17281f] px-4.5 py-4 text-white shadow-[0_14px_34px_rgba(20,41,31,0.12)] sm:px-5 lg:px-6"
           style={{
             backgroundImage:
               "linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px), radial-gradient(circle at 12% 0%, rgba(126,221,171,.17), transparent 34%), radial-gradient(circle at 88% 100%, rgba(48,178,121,.2), transparent 38%), linear-gradient(118deg, #14291f 0%, #17382a 54%, #10251d 100%)",
             backgroundSize: "28px 28px, 28px 28px, auto, auto, auto",
           }}
         >
-          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-2xl">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,.12)] backdrop-blur-sm">
-                <Sparkles className="size-3 text-amber-300" />
-                Your admin workspace
-              </span>
-              <h1 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
+          <div className="overview-ambient pointer-events-none absolute -right-16 -top-24 size-72 rounded-full bg-emerald-300/10 blur-3xl" />
+          <div className="overview-ambient-delayed pointer-events-none absolute -bottom-28 left-[38%] size-64 rounded-full bg-amber-200/[0.07] blur-3xl" />
+          <div className="relative min-w-0">
+            <div className="min-w-0 max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-white/55">
+                  <CalendarDays className="size-3.5" />
+                  {today}
+                </span>
+              </div>
+              <h1 className="mt-2 text-xl font-semibold tracking-[-0.03em] sm:text-2xl">
                 Good {greetingPeriod()}{user?.first_name ? `, ${user.first_name}` : ""}.
               </h1>
-              <p className="mt-1 max-w-xl text-xs leading-5 text-white/60">{greetingCopy()}</p>
+              <p className="mt-1 max-w-xl truncate text-xs leading-5 text-white/55" title={greetingCopy()}>{greetingCopy()}</p>
             </div>
-            {/* The single static count this replaced only ever answered one
-                question; the rail cycles the handful that actually matter at a
-                glance, and each slide is a way in to the screen behind it. */}
-            {!revealed ? (
-              <div className="flex min-w-56 items-center gap-3 rounded-xl border border-white/10 bg-white/10 px-3.5 py-3 backdrop-blur-sm lg:w-72">
-                <Shimmer className="size-9 shrink-0 rounded-lg bg-white/20" />
-                <div className="min-w-0 flex-1 space-y-1.5">
-                  <Shimmer className="h-4 w-10 bg-white/25" />
-                  <Shimmer className="h-2.5 w-28 bg-white/15" />
-                </div>
-              </div>
-            ) : (
-              <SnapRail
-                ariaLabel="Workspace spotlight"
-                autoAdvanceMs={6000}
-                className="w-full lg:w-72"
-                dotClassName="bg-white/30 hover:bg-white/50"
-                activeDotClassName="bg-amber-300"
-              >
-                {spotlightSlides.map(({ key, icon: Icon, label, value, to }) => (
-                  <Link
-                    key={key}
-                    to={to}
-                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/10 px-3.5 py-3 backdrop-blur-sm transition hover:border-white/25 hover:bg-white/15"
-                  >
-                    <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/10">
-                      <Icon className="size-4 text-amber-300" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xl font-semibold leading-none">{value}</p>
-                      <p className="mt-1 truncate text-xs text-white/60">{label}</p>
-                    </div>
-                    <ChevronRight className="size-4 shrink-0 text-white/40" />
-                  </Link>
+          </div>
+        </motion.section>
+
+        <motion.div {...enter(0.08)}>
+          {revealed ? (
+            <ActionCenter overview={overview} />
+          ) : (
+            <section className="rounded-2xl border border-slate-200/75 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.035)] sm:p-5">
+              <Shimmer className="h-4 w-32" />
+              <Shimmer className="mt-2 h-3 w-56" />
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100/80 motion-reduce:animate-none" />
                 ))}
-              </SnapRail>
-            )}
+              </div>
+            </section>
+          )}
+        </motion.div>
+
+        <motion.div {...enter(0.14)}>
+          <QuickActionsRow />
+        </motion.div>
+
+        <motion.div {...enter(0.18)}>
+          <RecentOpensRow />
+        </motion.div>
+
+        <motion.section {...enter(0.22)}>
+          <div className="mb-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary/70">At a glance</p>
+            <h2 className="mt-1 text-lg font-semibold tracking-tight">Platform overview</h2>
+            <p className="mt-1 text-xs text-gray-400">A live view of the administration areas you can access.</p>
           </div>
-        </section>
-
-        <QuickActionsRow />
-
-        {revealed ? (
-          <ActionCenter overview={overview} />
-        ) : (
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="h-16 animate-pulse rounded-xl bg-gray-100/80" />
-            ))}
-          </div>
-        )}
-
-        <RecentOpensRow />
-
-        <section>
-          <div className="mb-3">
-            <h2 className="text-base font-semibold">Platform overview</h2>
-            <p className="mt-0.5 text-xs text-gray-400">A live view of the administration areas you can access.</p>
-          </div>
-          {/* Compact tiles in a dense grid: on a phone two abreast, six across
-              on a wide screen - reference numbers, not the day's work. */}
-          <div className={cn("grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6", revealed && "reveal-in")}>
+          <div className={cn("grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6", revealed && "reveal-in")}>
             {metricCards}
           </div>
-        </section>
+        </motion.section>
 
-        <section aria-label="Your workspace">
-          <div className="mb-3">
-            <h2 className="text-base font-semibold">Your workspace</h2>
-            <p className="mt-0.5 text-xs text-gray-400">Shortcuts matched to your access.</p>
+        <motion.section {...enter(0.26)} aria-label="Your workspace">
+          <div className="mb-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary/70">Explore</p>
+            <h2 className="mt-1 text-lg font-semibold tracking-tight">Your workspace</h2>
+            <p className="mt-1 text-xs text-gray-400">Modules and tools matched to your access.</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {modules.map(({ label, to, icon: Icon }) => (
               <Link
                 key={label}
                 to={to}
-                className="group inline-flex items-center gap-1.5 rounded-lg border border-white-02 bg-white px-3 py-2 text-xs font-medium text-black-01 shadow-[0_1px_2px_rgba(15,23,42,0.02)] transition hover:border-primary/25 hover:text-primary"
+                className="group flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200/75 bg-white p-3.5 text-sm font-medium text-black-01 shadow-[0_1px_2px_rgba(15,23,42,0.02)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[0_10px_24px_rgba(15,23,42,0.055)]"
               >
-                <Icon className="size-3.5 text-gray-400 transition group-hover:text-primary" />
-                {label}
+                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-slate-50 text-slate-500 transition duration-200 group-hover:bg-primary/10 group-hover:text-primary">
+                  <Icon className="size-4" />
+                </span>
+                <span className="min-w-0 flex-1 text-left text-xs leading-4 sm:text-sm">{label}</span>
+                <ArrowUpRight className="size-4 shrink-0 text-slate-300 transition duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
               </Link>
             ))}
           </div>
-        </section>
+        </motion.section>
 
         <footer className="flex items-center justify-between gap-4 pb-2 text-xs text-gray-400">
           <span className="inline-flex items-center gap-1.5"><Building2 className="size-3.5" /> Platform administration overview</span>

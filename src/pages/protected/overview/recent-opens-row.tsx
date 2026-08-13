@@ -26,21 +26,22 @@ export function RecentOpensRow() {
   if (items.length === 0) return null;
 
   return (
-    <section aria-label="Recently opened">
-      <div className="mb-3">
-        <h2 className="text-base font-semibold">Pick up where you left off</h2>
-        <p className="mt-0.5 text-xs text-gray-400">The last few things you opened.</p>
+    <section aria-label="Recently opened" className="rounded-2xl border border-primary/10 bg-primary/[0.025] p-4 sm:p-5">
+      <div className="mb-4">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary/70">Continue</p>
+        <h2 className="mt-1 text-lg font-semibold tracking-tight">Pick up where you left off</h2>
+        <p className="mt-1 text-xs text-gray-400">Return to the last few records you opened.</p>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {items.map(({ kind, id, label, to, last }) => {
           const Icon = KIND_ICONS[kind];
           return (
             <Link
               key={`${kind}:${id}`}
               to={to}
-              className="group flex min-w-0 items-center gap-2.5 rounded-lg border border-white-02 bg-white py-2 pl-2.5 pr-3.5 transition hover:border-primary/25 hover:bg-primary/[0.03]"
+              className="group flex min-w-0 items-center gap-2.5 rounded-xl border border-white bg-white p-3 shadow-[0_1px_2px_rgba(15,23,42,0.025)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-sm"
             >
-              <span className="grid size-7 shrink-0 place-items-center rounded-md bg-gray-50 text-gray-500 group-hover:bg-primary/10 group-hover:text-primary">
+              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gray-50 text-gray-500 transition group-hover:bg-primary/10 group-hover:text-primary">
                 <Icon className="size-3.5" />
               </span>
               <span className="min-w-0">

@@ -425,6 +425,23 @@
   }
 }
 
+@keyframes overview-ambient-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-18px, 14px, 0) scale(1.08); }
+}
+.overview-ambient {
+  animation: overview-ambient-drift 14s ease-in-out infinite;
+}
+.overview-ambient-delayed {
+  animation: overview-ambient-drift 18s ease-in-out -6s infinite reverse;
+}
+@media (prefers-reduced-motion: reduce) {
+  .overview-ambient,
+  .overview-ambient-delayed {
+    animation: none;
+  }
+}
+
 /* Organogram - highlight pulse for jump-to-node */
 @keyframes pulseHL {
   0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.45); }

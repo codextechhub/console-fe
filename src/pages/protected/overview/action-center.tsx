@@ -59,17 +59,17 @@ function AgeStamp({ since, variant }: { since: string | null; variant: "row" | "
 
 const ROW_TONES = {
   red: {
-    card: "border-red-100 bg-red-50/60 hover:border-red-200",
+    card: "border-red-100 bg-red-50/55 hover:-translate-y-0.5 hover:border-red-200 hover:shadow-sm",
     tile: "bg-red-100/80 text-red-600",
     stat: "text-red-700",
   },
   amber: {
-    card: "border-amber-100 bg-amber-50/60 hover:border-amber-200",
+    card: "border-amber-100 bg-amber-50/55 hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-sm",
     tile: "bg-amber-100/80 text-amber-600",
     stat: "text-amber-700",
   },
   blue: {
-    card: "border-blue-100 bg-blue-50/50 hover:border-blue-200",
+    card: "border-blue-100 bg-blue-50/45 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-sm",
     tile: "bg-blue-100/70 text-blue-600",
     stat: "text-blue-700",
   },
@@ -92,10 +92,10 @@ function QueueBox({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col rounded-xl border border-white-02 bg-white p-4">
+    <section className="flex flex-col rounded-2xl border border-slate-200/75 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.025)]">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-pry-01 text-primary">
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-pry-01 text-primary">
             <Icon className="size-4" />
           </span>
           <h3 className="truncate text-sm font-semibold">{title}</h3>
@@ -104,7 +104,7 @@ function QueueBox({
           {count}
         </span>
       </div>
-      <div className="mt-2 flex-1 divide-y divide-gray-50">{children}</div>
+      <div className="mt-3 flex-1 divide-y divide-gray-100/80">{children}</div>
       {count > QUEUE_SHOWN && (
         <Link
           to={viewAllTo}
@@ -158,10 +158,19 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
   if (rows.length === 0 && !hasQueues) return null;
 
   return (
-    <section aria-label="Action needed">
-      <div className="mb-3">
-        <h2 className="text-base font-semibold">Action needed</h2>
-        <p className="mt-0.5 text-xs text-gray-400">Everything waiting on you, most urgent first.</p>
+    <section
+      aria-label="Action needed"
+      className="rounded-2xl border border-slate-200/75 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.035)] sm:p-5"
+    >
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-600">Today&apos;s focus</p>
+          <h2 className="mt-1 text-lg font-semibold tracking-tight">Action needed</h2>
+          <p className="mt-1 text-xs text-gray-400">Everything waiting on you, most urgent first.</p>
+        </div>
+        <span className="inline-flex shrink-0 items-center rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+          Priority view
+        </span>
       </div>
 
       {rows.length > 0 && (
@@ -171,7 +180,7 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
               key={key}
               to={to}
               className={cn(
-                "group flex items-center gap-3 rounded-xl border p-3 transition",
+                "group flex items-center gap-3 rounded-xl border p-3.5 transition duration-200",
                 ROW_TONES[severity].card,
               )}
             >
