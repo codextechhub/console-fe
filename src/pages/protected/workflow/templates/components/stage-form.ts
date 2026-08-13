@@ -2,6 +2,7 @@
 // builder form and the live approver-preview component.
 import type {
   DynamicRulePayload,
+  WorkflowStage,
   StageKind,
   ApproverSource,
   ApproverScope,
@@ -166,4 +167,39 @@ export function rulesPayload(rules: RuleForm[]): DynamicRulePayload[] {
     role_key: r.role_key.trim(),
     label: r.label.trim(),
   }));
+}
+
+/** Stored rules as editable rows, in evaluation order (one blank row if none). */
+export function rulesToForm(stage: Pick<WorkflowStage, "dynamic_role_rules">): RuleForm[] {
+  const stored = [...(stage.dynamic_role_rules ?? [])].sort((a, b) => a.order - b.order);
+  if (!stored.length) return [emptyRule()];
+  return stored.map((r) => ({
+    key: newRuleKey(),
+    role_key: r.role_key,
+    label: r.label ?? "",
+    ...conditionToRuleFields(r.condition),
+  }));
+}
+
+/**
+ * The checks the publish endpoint makes, made in the form instead.
+ *
+ * Returns null when the ladder is publishable, otherwise the reason - phrased to
+ * read after a caller's own prefix ("Stage 2: ..."), because the same ladder can
+ * be edited from the builder (where the stage number matters) and from the
+ * Dynamic Role tab (where there is only one).
+ */
+export function validateRules(rules: RuleForm[]): string | null {
+  if (!rules.length) return "a document-driven stage needs at least one rule.";
+  for (let i = 0; i < rules.length; i++) {
+    const r = rules[i];
+    if (!r.role_key) return `rule ${i + 1}: pick a role.`;
+    if (!r.is_fallback && r.raw === null && !r.field.trim())
+      return `rule ${i + 1}: name the field to test.`;
+    if (!r.is_fallback && r.raw === null && !r.value.trim())
+      return `rule ${i + 1}: give the value to compare against.`;
+    if (r.is_fallback && i !== rules.length - 1)
+      return 'the "Otherwise" rule must be last - rules after it can never fire.';
+  }
+  return null;
 }

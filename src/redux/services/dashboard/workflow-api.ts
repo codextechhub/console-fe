@@ -318,6 +318,7 @@ export const workflowApi = baseApi.injectEndpoints({
 export const {
   useGetWorkflowTemplatesQuery,
   useGetWorkflowTemplateQuery,
+  useLazyGetWorkflowTemplateQuery,
   usePublishWorkflowTemplateMutation,
   useGetApproverGroupsQuery,
   useResolveApproverGroupQuery,

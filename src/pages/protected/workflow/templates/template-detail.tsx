@@ -39,7 +39,7 @@ export default function TemplateDetail() {
                 <p className="mt-1 text-xs text-gray-01">
                   {humanizeDocumentType(template.document_type)} ·{" "}
                   <span className="font-mono">{template.code}</span> ·{" "}
-                  {template.branch ? "Branch" : template.school ? "School" : "Platform"} scope
+                  {template.branch ? "Branch" : template.tenant ? "School" : "Platform"} scope
                 </p>
                 {template.description && (
                   <p className="mt-2 max-w-2xl text-sm text-gray-01">{template.description}</p>

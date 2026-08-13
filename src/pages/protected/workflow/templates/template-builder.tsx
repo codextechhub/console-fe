@@ -28,11 +28,10 @@ import type {
 } from "@/redux/services/dashboard/workflow-types";
 import {
   type StageForm,
-  conditionToRuleFields,
-  emptyRule,
   emptyStage,
-  newRuleKey,
   rulesPayload,
+  rulesToForm,
+  validateRules,
 } from "./components/stage-form";
 import {
   Section,
@@ -163,16 +162,7 @@ export default function TemplateBuilder() {
           approver_scope: s.approver_scope,
           approver_role_key: s.approver_role_key ?? "",
           approver_group_code: s.approver_group_code ?? "",
-          dynamic_rules: (s.dynamic_role_rules ?? []).length
-            ? [...(s.dynamic_role_rules ?? [])]
-                .sort((a, b) => a.order - b.order)
-                .map((r) => ({
-                  key: newRuleKey(),
-                  role_key: r.role_key,
-                  label: r.label ?? "",
-                  ...conditionToRuleFields(r.condition),
-                }))
-            : [emptyRule()],
+          dynamic_rules: rulesToForm(s),
           sample_document_text: "",
           organogram_target: s.organogram_target ?? "",
           organogram_levels: String(s.organogram_levels ?? 1),
@@ -265,30 +255,10 @@ export default function TemplateBuilder() {
       // Mirror the publish endpoint's rule checks so a bad ladder is caught in
       // the form, where it can be fixed, rather than as a 400 after a save.
       if (isApproval && s.approver_source === "DYNAMIC_ROLE") {
-        if (!s.dynamic_rules.length) {
-          toast.error(`Stage ${i + 1}: a document-driven stage needs at least one rule.`);
+        const problem = validateRules(s.dynamic_rules);
+        if (problem) {
+          toast.error(`Stage ${i + 1}: ${problem}`);
           return;
-        }
-        for (let r = 0; r < s.dynamic_rules.length; r++) {
-          const rule = s.dynamic_rules[r];
-          if (!rule.role_key) {
-            toast.error(`Stage ${i + 1}, rule ${r + 1}: pick a role.`);
-            return;
-          }
-          if (!rule.is_fallback && rule.raw === null && !rule.field.trim()) {
-            toast.error(`Stage ${i + 1}, rule ${r + 1}: name the field to test.`);
-            return;
-          }
-          if (!rule.is_fallback && rule.raw === null && !rule.value.trim()) {
-            toast.error(`Stage ${i + 1}, rule ${r + 1}: give the value to compare against.`);
-            return;
-          }
-          if (rule.is_fallback && r !== s.dynamic_rules.length - 1) {
-            toast.error(
-              `Stage ${i + 1}: the "Otherwise" rule must be last - rules after it can never fire.`,
-            );
-            return;
-          }
         }
       }
       stagePayloads.push({

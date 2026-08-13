@@ -35,7 +35,7 @@ export default function WorkflowTemplates() {
         stages: <Badge variant="inactive">{t.stages.length} stages</Badge>,
         scope: (
           <Badge variant="outline">
-            {t.branch ? "Branch" : t.school ? "School" : "Platform"}
+            {t.branch ? "Branch" : t.tenant ? "School" : "Platform"}
           </Badge>
         ),
         updated: <span className="text-xs text-gray-01">{formatRelativeDate(t.updated_at)}</span>,

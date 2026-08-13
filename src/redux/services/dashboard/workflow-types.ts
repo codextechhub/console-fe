@@ -132,8 +132,14 @@ export interface WorkflowRoutePath {
 
 export interface WorkflowTemplate {
   id: string;
-  school: string | null;
-  branch: string | null;
+  /**
+   * Owning tenant; null means the template is *central* - one definition shared
+   * by every tenant. Serialized as `tenant`, not `school`: reading the wrong
+   * name yields undefined, which reads as "central" and is wrong for every
+   * tenant-owned template.
+   */
+  tenant: string | number | null;
+  branch: string | number | null;
   document_type: string;
   code: string;
   name: string;

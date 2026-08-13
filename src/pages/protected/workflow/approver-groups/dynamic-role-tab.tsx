@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { FlaskConical, Info, RefreshCw, TriangleAlert } from "lucide-react";
+import { FlaskConical, Info, RefreshCw, SlidersHorizontal, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,9 @@ import {
   useGetApproverGroupsQuery,
   useGetStageApproverOverridesQuery,
   useGetWorkflowTemplatesQuery,
+  useLazyGetWorkflowTemplateQuery,
   usePreviewApproversMutation,
+  usePublishWorkflowTemplateMutation,
 } from "@/redux/services/dashboard/workflow-api";
 import type {
   StageApproverOverride,
@@ -35,6 +37,17 @@ import type {
 } from "@/redux/services/dashboard/workflow-types";
 import { ConditionView } from "../components/condition-view";
 import { humanizeDocumentType } from "../components/workflow-format";
+import { DynamicRulesEditor } from "../templates/components/template-builder-bits";
+import {
+  type RuleForm,
+  rulesPayload,
+  rulesToForm,
+  validateRules,
+} from "../templates/components/stage-form";
+import {
+  isCentralTemplate,
+  templateToPublishPayload,
+} from "../templates/components/template-payload";
 
 /** One DYNAMIC_ROLE stage, with the template it lives on. */
 type RuleSet = {
@@ -54,6 +67,7 @@ export default function DynamicRoleTab() {
   const [sampleText, setSampleText] = useState("");
   const [requester, setRequester] = useState(self?.id != null ? String(self.id) : "");
   const [overrideOpen, setOverrideOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const { data: templates, isLoading, isFetching, refetch } = useGetWorkflowTemplatesQuery(
     { page: 1, page_size: 100 },
@@ -76,6 +90,17 @@ export default function DynamicRoleTab() {
     return map;
   }, [roles]);
 
+  const roleOptions = useMemo(
+    () =>
+      (roles?.data ?? [])
+        .filter((r) => r.status === "ACTIVE")
+        .map((r) => ({
+          value: r.key,
+          label: `${r.name} · ${r.assigned_users_count ?? 0} holder(s)`,
+        })),
+    [roles],
+  );
+
   const ruleSets = useMemo<RuleSet[]>(() => {
     const out: RuleSet[] = [];
     for (const t of templates?.data ?? []) {
@@ -85,7 +110,7 @@ export default function DynamicRoleTab() {
           key: `${t.id}:${s.code}`,
           stage: s,
           template: t,
-          isCentral: t.school == null,
+          isCentral: t.tenant == null,
         });
       }
     }
@@ -172,8 +197,8 @@ export default function DynamicRoleTab() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-gray-01">
           Steps whose approver is chosen by the document itself: ordered rules, first
-          match wins. Rules are published with the template; this is where you check what
-          they actually do.
+          match wins. Check what a ladder actually does here, and edit the ones this
+          tenant owns without leaving the screen.
         </p>
         <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw className={cn(isFetching && "animate-spin")} /> Refresh
@@ -271,6 +296,18 @@ export default function DynamicRoleTab() {
                     {selected.stage.code}
                   </span>
                   {selected.isCentral && <Badge variant="inactive">Central</Badge>}
+                  {!selected.isCentral && (
+                    <PermissionGate permission={P.MANAGE_WORKFLOW_TEMPLATES}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="ml-auto"
+                        onClick={() => setEditOpen(true)}
+                      >
+                        <SlidersHorizontal className="size-3.5" /> Edit rules
+                      </Button>
+                    </PermissionGate>
+                  )}
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-01">
                   <span>{humanizeDocumentType(selected.template.document_type)}</span>
@@ -334,8 +371,7 @@ export default function DynamicRoleTab() {
                     <p className="text-sm font-medium">No fallback rule</p>
                     <p className="mt-0.5 text-xs">
                       A request matching none of these rules resolves to nobody. Add a
-                      final rule with no condition, in the template builder, to catch
-                      everything else.
+                      final rule with "Otherwise" ticked to catch everything else.
                     </p>
                   </div>
                 </div>
@@ -506,13 +542,26 @@ export default function DynamicRoleTab() {
 
               <p className="text-xs text-gray-01">
                 Evaluated top to bottom. The first rule that matches picks the role; its
-                current holders become that step's approvers. Editing the ladder happens in
-                the template builder, because the rules are published with the template.
+                current holders become that step's approvers.{" "}
+                {selected.isCentral
+                  ? "These rules belong to a shared template, so they are read-only here - repoint the step above to change who approves it for this tenant."
+                  : "Editing them here republishes this template; the rest of it is resent exactly as it stands."}
               </p>
             </>
           )}
         </div>
       </div>
+
+      {selected && !selected.isCentral && (
+        <EditRulesSheet
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          templateId={selected.template.id}
+          templateName={selected.template.name}
+          stage={selected.stage}
+          roleOptions={roleOptions}
+        />
+      )}
 
       {selected && (
         <OverrideSheet
@@ -674,6 +723,121 @@ function OverrideSheet({
           </Button>
           <Button size="lg" onClick={submit} disabled={isLoading || !isValid}>
             {isLoading ? "Saving…" : "Use this approver"}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// ── Editing a ladder in place ─────────────────────────────────────────────────
+
+/**
+ * Edit one stage's rules without going to the builder.
+ *
+ * There is no "patch these rules" endpoint - publishing replaces the whole
+ * template - so saving re-reads the template first and resends everything else
+ * exactly as it stands. Re-reading is the point: a stale copy in this tab would
+ * quietly revert whatever somebody changed elsewhere in the same template.
+ *
+ * Offered only for a template this tenant owns. Republishing a central template
+ * would not edit it: publish upserts on the caller's tenant, so it would fork
+ * the shared definition into a tenant copy that then wins the cascade. That is
+ * what the override above is for.
+ */
+function EditRulesSheet({
+  open,
+  onClose,
+  templateId,
+  templateName,
+  stage,
+  roleOptions,
+}: {
+  open: boolean;
+  onClose: () => void;
+  templateId: string;
+  templateName: string;
+  stage: WorkflowStage;
+  roleOptions: { value: string; label: string }[];
+}) {
+  const [rules, setRules] = useState<RuleForm[]>(() => rulesToForm(stage));
+  const [fetchTemplate, { isFetching }] = useLazyGetWorkflowTemplateQuery();
+  const [publish, { isLoading: isPublishing }] = usePublishWorkflowTemplateMutation();
+  const busy = isFetching || isPublishing;
+
+  // Reload the rows when the *published* rules change underneath, so reopening
+  // after a save never shows the pre-save draft. Adjusted during render rather
+  // than in an effect: an effect would paint the stale rows first, and the
+  // signature only moves when the server's copy actually differs, so an edit in
+  // progress is not disturbed by an unrelated refetch.
+  const published = JSON.stringify(stage.dynamic_role_rules ?? []);
+  const [loadedFrom, setLoadedFrom] = useState(published);
+  if (loadedFrom !== published) {
+    setLoadedFrom(published);
+    setRules(rulesToForm(stage));
+  }
+
+  const save = async () => {
+    const problem = validateRules(rules);
+    if (problem) {
+      toast.error(problem.charAt(0).toUpperCase() + problem.slice(1));
+      return;
+    }
+    const fresh = await fetchTemplate(templateId).unwrap().catch(() => null);
+    if (!fresh) {
+      toast.error("Could not re-read the template, so nothing was published.");
+      return;
+    }
+    if (isCentralTemplate(fresh)) {
+      toast.error("This template is shared centrally - use the override instead.");
+      return;
+    }
+    if (!(fresh.stages ?? []).some((s) => s.code === stage.code)) {
+      toast.error(`"${stage.label}" is no longer a step on this template.`);
+      return;
+    }
+    publish(
+      templateToPublishPayload(fresh, {
+        stageCode: stage.code,
+        rules: rulesPayload(rules),
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        toast.success("Rules updated.");
+        onClose();
+      })
+      .catch(() => {});
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent className="w-full sm:max-w-xl flex flex-col gap-0 p-0">
+        <SheetHeader className="border-b border-white-02 px-6 pb-4 pt-6">
+          <SheetTitle className="text-base font-semibold text-black-01">
+            Edit rules - {stage.label}
+          </SheetTitle>
+          <SheetDescription className="text-xs text-gray-01">
+            Saving republishes <span className="font-medium">{templateName}</span>. Only this
+            step's rules change; every other stage and route is resent as it stands.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <DynamicRulesEditor
+            rules={rules}
+            roleOptions={roleOptions}
+            stageIndex={0}
+            onChange={setRules}
+          />
+        </div>
+
+        <SheetFooter className="flex flex-row justify-end gap-3 border-t border-white-02 px-6 py-4">
+          <Button variant="outline" size="lg" onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
+          <Button size="lg" onClick={save} disabled={busy}>
+            {busy ? "Publishing…" : "Save rules"}
           </Button>
         </SheetFooter>
       </SheetContent>
