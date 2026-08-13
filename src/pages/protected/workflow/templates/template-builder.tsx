@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAppSelector } from "@/redux/store";
 import { selectIsPlatformTenant } from "@/redux/features/auth/auth-slice";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetApproverGroupsQuery,
@@ -101,6 +103,20 @@ export default function TemplateBuilder() {
   const navigate = useNavigate();
 
   const isPlatformTenant = useAppSelector(selectIsPlatformTenant);
+  const self = useAppSelector((s) => s.auth.user);
+  const { hasPermission } = usePermissions();
+
+  // Two of the builder's pickers read data this user may not be allowed to see,
+  // and asking anyway produced three red permission toasts and an empty select.
+  // Ask only when the answer can come back, and say what is missing otherwise.
+  //
+  // The staff directory carries emails, so it is not something template
+  // management should drag in; the preview works against yourself without it.
+  const canSeeDirectory = hasPermission(P.ACCESS_TEAM_PANEL);
+  // Organogram seats are Codex's own org chart, and that endpoint is CX-staff
+  // only by design - a school admin can never resolve one, so offering the
+  // source at all would be offering something that cannot work for them.
+  const canUseOrganogram = self?.user_type === "CX_STAFF";
 
   const { data: existing, isLoading: isLoadingExisting } = useGetWorkflowTemplateQuery(id ?? "", {
     skip: !isEdit,
@@ -121,8 +137,14 @@ export default function TemplateBuilder() {
 
   // Organogram approver-source support: positions for SPECIFIC_POSITION, and a
   // sample requester so the "who would approve?" preview can resolve live.
-  const { data: positionsRes } = useGetPositionsQuery({ page_size: 100 });
-  const { data: usersRes } = useGetTeamMembersQuery({ page_size: 100, user_type: "CX_STAFF" });
+  const { data: positionsRes } = useGetPositionsQuery(
+    { page_size: 100 },
+    { skip: !canUseOrganogram },
+  );
+  const { data: usersRes } = useGetTeamMembersQuery(
+    { page_size: 100, user_type: "CX_STAFF" },
+    { skip: !canSeeDirectory },
+  );
   // Roles and approver groups are what stages now name; both are picked from a
   // list rather than typed, so a stage cannot reference something that is not
   // there (the publish endpoint refuses that anyway - this just gets there first).
@@ -150,7 +172,9 @@ export default function TemplateBuilder() {
     () => (Array.isArray(usersRes?.data) ? usersRes!.data : []).map((u: { id: string; full_name: string; email: string }) => ({ value: u.id, label: `${u.full_name} · ${u.email}` })),
     [usersRes],
   );
-  const [sampleRequester, setSampleRequester] = useState("");
+  const [sampleRequester, setSampleRequester] = useState(
+    !canSeeDirectory && self?.id != null ? String(self.id) : "",
+  );
 
   const [name, setName] = useState("");
   const [documentType, setDocumentType] = useState("");
@@ -500,16 +524,26 @@ export default function TemplateBuilder() {
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2 rounded-md border border-white-02 bg-pry-01/30 px-3 py-2">
                 <span className="text-xs font-medium text-gray-01">Sample requester</span>
-                <div className="min-w-60 flex-1 sm:max-w-xs">
-                  <SearchSelect
-                    id="sample-requester"
-                    options={requesterOptions}
-                    value={sampleRequester}
-                    onChange={(e) => setSampleRequester(e.target.value)}
-                    placeholder="Pick a CX staff member to preview approvers"
-                  />
-                </div>
-                <span className="text-[11px] text-gray-01">Organogram stages resolve relative to this person ↓</span>
+                {canSeeDirectory ? (
+                  <>
+                    <div className="min-w-60 flex-1 sm:max-w-xs">
+                      <SearchSelect
+                        id="sample-requester"
+                        options={requesterOptions}
+                        value={sampleRequester}
+                        onChange={(e) => setSampleRequester(e.target.value)}
+                        placeholder="Pick a CX staff member to preview approvers"
+                      />
+                    </div>
+                    <span className="text-[11px] text-gray-01">
+                      Stages resolve relative to this person ↓
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[11px] text-gray-01">
+                    Previews run as you. Picking someone else needs staff directory access.
+                  </span>
+                )}
               </div>
               {stages.map((s, i) => (
                 <div key={i} className="space-y-3 rounded-md border border-white-02 p-4">
@@ -584,7 +618,11 @@ export default function TemplateBuilder() {
                           label="Approver source"
                           containerClass="sm:col-span-2 lg:col-span-1"
                           clearable={false}
-                          options={SOURCE_OPTIONS}
+                          options={
+                          canUseOrganogram
+                            ? SOURCE_OPTIONS
+                            : SOURCE_OPTIONS.filter((o) => o.value !== "ORGANOGRAM")
+                        }
                           value={s.approver_source}
                           onChange={(e) => updateStage(i, { approver_source: e.target.value as ApproverSource })}
                         />
