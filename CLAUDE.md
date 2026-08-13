@@ -1,5 +1,29 @@
 # CLAUDE.md - console-fe
 
+## How-to guide alignment
+
+`docs/HOW_TO_GUIDE_MASTER_PLAN.md` is the canonical plan and coverage contract for
+the Console how-to system. For every product change, inspect whether it changes a
+route, label, permission, prerequisite, field, action, status, validation rule,
+confirmation, result, error recovery, workflow order, screenshot, contextual-help
+mapping, search alias, support handoff, walkthrough target, or walkthrough branch.
+
+When guide impact exists, update the affected guide registry record, article,
+screenshots, contextual mappings, search metadata, walkthrough definition or stable
+`data-guide` targets, tests, review date, and coverage ledger in the same change as
+applicable. New user-visible workflows require a discoverable guide. Complex or
+high-risk workflows require an interactive walkthrough unless the coverage ledger
+records why one would be unsafe or unhelpful.
+
+Walkthroughs may explain and highlight consequential actions, but must never
+auto-submit financial postings, approvals, payments, imports, invitations,
+permission changes, proxy sessions, or destructive actions. They must not bypass
+authorization, validation, confirmation, or tenant scoping.
+
+If a completed product change has no guide impact, say `Guide impact: none` with a
+brief reason in the final summary. Documentation-only and Git-only requests do not
+require this statement.
+
 ## Pre-ship review (`ship-check`)
 
 When I say **`ship-check`** (or "run the ship-check") on a change, answer these
