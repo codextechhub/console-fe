@@ -7,9 +7,10 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 
 | Category | Workflow | Guide ID | Risk | Article | Walkthrough | Owner | Last review | Known gap |
 |---|---|---|---|---|---|---|---|---|
-| Getting started | Console basics and navigation | `getting-started.console-basics` | Low | Published | Planned | Console product team | 2026-08-13 | Walkthrough remains scheduled for F6 or C1 |
-| Getting started | Account activation and sign-in | Planned in C1 | Medium | Planned | Not required | Console product team | 2026-08-13 | Registry record and content not started |
-| Getting started | Workspace search and quick actions | `getting-started.console-basics` | Low | Published | Not required | Console product team | 2026-08-13 | Dedicated task article can be split out during C1 if feedback shows it is needed |
+| Getting started | Console basics, navigation, access context, notifications, and help | `getting-started.console-basics` | Low | Published | Published | Console product team | 2026-08-13 | No known gap |
+| Getting started | Account activation and sign-in | `getting-started.activate-and-sign-in` | Medium | Published | Not required | Console product team | 2026-08-13 | Activation uses a personal email link, so an in-product walkthrough would be unavailable before sign-in and would risk exposing the link |
+| Getting started | Reset a forgotten password | `getting-started.reset-password` | Medium | Published | Not required | Console product team | 2026-08-13 | Recovery uses a personal email link, so an in-product walkthrough would be unavailable before sign-in and would risk exposing the link |
+| Getting started | Workspace search and quick actions | `getting-started.console-basics` | Low | Published | Published | Console product team | 2026-08-13 | Covered by the Console basics article and walkthrough |
 | Schools and users | Create and configure a school | `schools.create-and-configure` | High | Draft | Planned | Console product team | 2026-08-13 | Content and targets start in C2 |
 | Schools and users | Manage schools and branches | Planned in C2 | Medium | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
 | Schools and users | Invite and manage CX or school users | Planned in C2 | Medium | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
@@ -128,3 +129,20 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - Desktop uses a target-aligned coach mark. Phones use a full-width bottom sheet.
 - Planned high-risk category walkthroughs remain draft until their matching
   articles and populated workflow verification ship in the category slices.
+
+## C1 completion record
+
+- Getting started now publishes three task guides: Console orientation, account
+  activation and sign-in, and forgotten-password recovery.
+- Console orientation explains entities, branches, roles, permission-based
+  visibility, notifications, recent work, guide discovery, walkthrough launch,
+  support handoff, and common recovery paths.
+- The Support sidebar group exposes Support Centre and How-to Guides as separate,
+  route-aware submenu destinations.
+- Guide search shows immediate keyboard-accessible suggestions and matches partial
+  words in any order across titles, aliases, tags, summaries, and section names.
+- Activation and password recovery use the exact current public-screen labels,
+  password policy, completion states, and expired-link recovery.
+- Auth walkthroughs are deliberately not provided. These tasks happen before
+  sign-in through personal email links, so a Console walkthrough cannot reach them
+  safely and must not read or retain their tokens.

@@ -1,4 +1,4 @@
-import { Bell, CheckCircle2, Clock3, Command, Headset, LayoutDashboard, Search, ShieldCheck } from "lucide-react";
+import { Bell, CheckCircle2, CircleAlert, Clock3, Command, Headset, LayoutDashboard, Search, ShieldCheck } from "lucide-react";
 
 import {
   GuideCallout,
@@ -22,7 +22,7 @@ export default function ConsoleBasicsArticle() {
       <GuideSection id="find-your-way-around" title="Find your way around">
         <GuideSteps>
           <GuideStep title="Start from Home">Use Home to see work that needs attention, quick actions, important signals, and recently opened records. Today&apos;s focus stays compact until you hover over it or select Maximize.</GuideStep>
-          <GuideStep title="Choose an area from the sidebar">The main sidebar groups platform work such as schools, users, workflow, audit, and support. Finance and Procurement open their own focused consoles.</GuideStep>
+          <GuideStep title="Choose an area from the sidebar">The main sidebar groups platform work such as schools, users, workflow, and audit. Expand Support to open Support Centre or How-to Guides. Finance and Procurement open their own focused consoles.</GuideStep>
           <GuideStep title="Use the page header">The header shows the current page, back navigation when available, workspace search, notifications, support, and your account menu.</GuideStep>
         </GuideSteps>
         <GuideFigure title="Console workspace map" caption="The exact areas depend on your permissions. The structure remains the same on every protected screen.">
@@ -49,6 +49,19 @@ export default function ConsoleBasicsArticle() {
         <GuideCallout tone="tip" title="Search learns locally">Frequently used actions can move higher for your browser. This preference stays on your device and does not change anyone else’s results.</GuideCallout>
       </GuideSection>
 
+      <GuideSection id="understand-your-access" title="Understand your access">
+        <p>Console combines several pieces of context before it shows work. These terms explain why two signed-in users may see different screens or records.</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {[
+            { title: "Entity", body: "The legal or operating organization whose records you are viewing. Finance work is especially sensitive to the selected entity." },
+            { title: "Branch", body: "A school location or operating unit. Some records and staff assignments belong to a particular branch." },
+            { title: "Role", body: "A named collection of responsibilities assigned to a user, such as administrator, finance officer, or approver." },
+            { title: "Permission", body: "A specific allowed action. Menus, search actions, page buttons, and backend requests are all permission-aware." },
+          ].map(({ title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}
+        </div>
+        <GuideCallout tone="warning" title="Check context before changing records">Before starting work, especially in Finance or Procurement, confirm that you are viewing the intended entity and branch. A permitted action can still be wrong when performed in the wrong context.</GuideCallout>
+      </GuideSection>
+
       <GuideSection id="attention-and-notifications" title="Attention and notifications">
         <GuideChecklist items={[
           "Hover over Today's focus for a quick look, or select Maximize to keep your assigned tasks and approvals open.",
@@ -62,12 +75,23 @@ export default function ConsoleBasicsArticle() {
       <GuideSection id="get-help" title="Get help">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
-            { icon: Search, title: "Search guides", body: "Find instructions using the words you would normally use for the task." },
-            { icon: Headset, title: "Create a ticket", body: "Explain what happened, what you expected, and attach useful screenshots." },
+            { icon: Search, title: "How-to Guides", body: "Under Support, find instructions using the words you would normally use for the task." },
+            { icon: Headset, title: "Support Centre", body: "Under Support, create a ticket explaining what happened, what you expected, and attach useful screenshots." },
             { icon: ShieldCheck, title: "Protect sensitive data", body: "Do not include passwords, access tokens, payment credentials, or unnecessary personal data." },
           ].map(({ icon: Icon, title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><Icon className="size-5 text-primary" /><p className="mt-3 text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}
         </div>
         <p className="flex items-center gap-2 text-xs text-gray-01"><Bell className="size-4" /> Support responses and ticket updates also appear in Console notifications.</p>
+      </GuideSection>
+
+      <GuideSection id="common-problems" title="Common problems">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {[
+            { title: "A menu or action is missing", body: "Clear any search filter, then confirm your role and permissions with an administrator. Console hides actions you cannot use." },
+            { title: "Search finds no allowed action", body: "Try task language or a shorter phrase. If another user can see the action, compare permissions rather than copying their URL." },
+            { title: "A notification opens nowhere", body: "Open Notification Centre and retry. The destination may have moved, been removed, or require access you no longer hold." },
+            { title: "The page does not match this guide", body: "Use Report an outdated guide and include the page name and changed label, without copying sensitive record contents." },
+          ].map(({ title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="flex items-start gap-2 text-sm font-semibold text-black-01"><CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" /> {title}</p><p className="mt-2 text-xs leading-5 text-gray-01">{body}</p></div>)}
+        </div>
       </GuideSection>
 
       <GuideSection id="completion-check" title="Completion check">

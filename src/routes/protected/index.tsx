@@ -48,9 +48,9 @@ export const protectedRoutes = [
       // Starts at "Support"; the page swaps in the ticket number once the
       // ticket loads (useDashboardTitle) - exactly the old behaviour.
       { path: routesPath.PROTECTED.SUPPORT.DETAIL_PATH, element: <TicketDetail />, handle: { title: "Support" } satisfies DashboardHandle },
-      { path: routesPath.PROTECTED.SUPPORT.GUIDES, element: <HowToGuides />, handle: { title: "How-to Guide" } satisfies DashboardHandle },
-      { path: routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL_PATH, element: <GuideArticle />, handle: { title: "How-to Guide" } satisfies DashboardHandle },
-      { path: routesPath.PROTECTED.SUPPORT.GUIDE_ALIAS, element: <Navigate replace to={routesPath.PROTECTED.SUPPORT.GUIDES} />, handle: { title: "How-to Guide" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.SUPPORT.GUIDES, element: <HowToGuides />, handle: { title: "How-to Guides" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL_PATH, element: <GuideArticle />, handle: { title: "How-to Guides" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.SUPPORT.GUIDE_ALIAS, element: <Navigate replace to={routesPath.PROTECTED.SUPPORT.GUIDES} />, handle: { title: "How-to Guides" } satisfies DashboardHandle },
       ...overviewRoutes,
       ...schoolRoutes,
       ...teamMgtRoutes,

@@ -61,5 +61,6 @@ describe("contextual guides", () => {
   it("uses backend-approved product-area labels for every catalogued route", () => {
     expect(contextualGuideContext(GUIDE_REGISTRY, "/roles", []).productArea).toBe("Roles");
     expect(contextualGuideContext(GUIDE_REGISTRY, "/how-to-guide", []).productArea).toBe("Support");
+    expect(contextualGuideContext(GUIDE_REGISTRY, "/forgot-password", []).productArea).toBe("Account access");
   });
 });

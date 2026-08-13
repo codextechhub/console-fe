@@ -57,6 +57,7 @@ export default function HowToGuides() {
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState("");
   const [activeResult, setActiveResult] = useState(0);
+  const [searchOpen, setSearchOpen] = useState(false);
   const categoryParam = params.get("category");
   const audienceParam = params.get("audience");
   const category = GUIDE_CATEGORIES.some((candidate) => candidate.id === categoryParam)
@@ -72,16 +73,21 @@ export default function HowToGuides() {
     () => audienceGuides.filter((guide) => !category || guide.category === category),
     [audienceGuides, category],
   );
-  const filtered = useMemo(() => {
-    if (!normalizedQuery) return categoryGuides;
+  const searchResults = useMemo(() => {
+    if (!normalizedQuery) return [];
     return searchGuides(
       categoryGuides.filter((guide) => guide.status === "published"),
       normalizedQuery,
-    ).map((result) => result.guide);
+    );
   }, [categoryGuides, normalizedQuery]);
+  const filtered = normalizedQuery
+    ? searchResults.map((result) => result.guide)
+    : categoryGuides;
+  const suggestions = searchResults.slice(0, 6);
   const popular = featuredGuides(permitted);
   const recent = recentlyReviewedGuides(permitted);
   const activeGuideIndex = filtered.length ? Math.min(activeResult, filtered.length - 1) : 0;
+  const activeSuggestionIndex = suggestions.length ? Math.min(activeResult, suggestions.length - 1) : 0;
 
   const selectParam = (key: "category" | "audience", value: string | null) => {
     setActiveResult(0);
@@ -94,24 +100,30 @@ export default function HowToGuides() {
   const showBrowseResults = Boolean(category || audience || normalizedQuery);
 
   const handleSearchNavigation = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!normalizedQuery || filtered.length === 0) return;
+    if (event.key === "Escape") {
+      setSearchOpen(false);
+      return;
+    }
+    if (!normalizedQuery || suggestions.length === 0) return;
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
       const step = event.key === "ArrowDown" ? 1 : -1;
-      setActiveResult((index) => (index + step + filtered.length) % filtered.length);
+      setSearchOpen(true);
+      setActiveResult((index) => (index + step + suggestions.length) % suggestions.length);
       return;
     }
     if (event.key === "Enter") {
       event.preventDefault();
-      const guide = filtered[activeGuideIndex] ?? filtered[0];
+      const guide = suggestions[activeSuggestionIndex]?.guide ?? suggestions[0].guide;
+      setSearchOpen(false);
       navigate(routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug));
     }
   };
 
   return (
     <main className="grid min-w-0 grid-cols-1 gap-8 px-4.5 py-6 text-black-01 sm:px-6 lg:px-8">
-      <section className="relative overflow-hidden rounded-3xl border border-primary/10 bg-gradient-to-br from-primary/[0.09] via-white to-emerald-50/70 px-5 py-8 shadow-[0_24px_70px_rgba(15,23,42,.06)] sm:px-8 sm:py-10 lg:px-12">
-        <div className="pointer-events-none absolute -right-16 -top-20 size-56 rounded-full bg-primary/10 blur-3xl" />
+      <section className="relative z-10 rounded-3xl border border-primary/10 bg-gradient-to-br from-primary/[0.09] via-white to-emerald-50/70 px-5 py-8 shadow-[0_24px_70px_rgba(15,23,42,.06)] sm:px-8 sm:py-10 lg:px-12">
+        <div className="pointer-events-none absolute right-0 top-0 size-40 rounded-full bg-primary/10 blur-3xl sm:size-56" />
         <div className="relative max-w-3xl">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/80 px-3 py-1.5 text-xs font-semibold text-primary shadow-sm">
             <Sparkles className="size-3.5" /> Console how-to guide
@@ -122,23 +134,68 @@ export default function HowToGuides() {
           <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-01 sm:text-base">
             Find clear steps for your role, understand what must be ready first, and launch guided help for complex work.
           </p>
-          <label className="relative mt-6 block max-w-2xl">
-            <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-gray-01" />
+          <div
+            className="relative mt-6 max-w-2xl"
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setSearchOpen(false);
+            }}
+          >
+            <Search className="pointer-events-none absolute left-4 top-6.5 z-10 size-5 -translate-y-1/2 text-gray-01" />
             <Input
               aria-label="Search how-to guides"
               role="combobox"
-              aria-expanded={Boolean(normalizedQuery)}
-              aria-controls="guide-search-results"
-              aria-activedescendant={normalizedQuery && filtered.length
-                ? `guide-search-result-${activeGuideIndex}`
+              aria-autocomplete="list"
+              aria-expanded={searchOpen && Boolean(normalizedQuery)}
+              aria-controls="guide-search-suggestions"
+              aria-activedescendant={searchOpen && suggestions.length
+                ? `guide-search-suggestion-${activeSuggestionIndex}`
                 : undefined}
               value={query}
-              onChange={(event) => { setQuery(event.target.value); setActiveResult(0); }}
+              onFocus={() => setSearchOpen(true)}
+              onChange={(event) => { setQuery(event.target.value); setActiveResult(0); setSearchOpen(true); }}
               onKeyDown={handleSearchNavigation}
               placeholder="Try ‘create a school’ or ‘permission denied’"
               className="h-13 rounded-2xl border-white bg-white pl-12 pr-4 text-sm shadow-[0_12px_35px_rgba(15,23,42,.08)]"
             />
-          </label>
+            {searchOpen && normalizedQuery && (
+              <div
+                id="guide-search-suggestions"
+                role="listbox"
+                aria-label="Guide suggestions"
+                className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-30 overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 shadow-[0_20px_50px_rgba(15,23,42,.16)]"
+              >
+                {suggestions.length ? suggestions.map((result, index) => {
+                  const category = GUIDE_CATEGORIES.find((candidate) => candidate.id === result.guide.category);
+                  const active = index === activeSuggestionIndex;
+                  return (
+                    <button
+                      id={`guide-search-suggestion-${index}`}
+                      key={result.guide.id}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onMouseEnter={() => setActiveResult(index)}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => navigate(routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(result.guide.slug))}
+                      className={`flex w-full min-w-0 items-start gap-3 rounded-xl px-3 py-3 text-left transition ${active ? "bg-primary/[0.07]" : "hover:bg-gray-50"}`}
+                    >
+                      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><BookOpenText className="size-4" /></span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-black-01">{result.guide.title}</span>
+                        <span className="mt-0.5 block truncate text-xs text-gray-01">{category?.title} · {result.guide.summary}</span>
+                      </span>
+                      <ArrowRight className="mt-2 size-4 shrink-0 text-gray-300" />
+                    </button>
+                  );
+                }) : (
+                  <div className="px-4 py-5 text-center">
+                    <p className="text-sm font-semibold">No guide matches yet</p>
+                    <p className="mt-1 text-xs text-gray-01">Try fewer words, a different order, or a task phrase.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
@@ -211,7 +268,7 @@ export default function HowToGuides() {
           </div>
           {filtered.length ? (
             <div
-              id="guide-search-results"
+              id="guide-browse-results"
               role={normalizedQuery ? "listbox" : undefined}
               aria-label={normalizedQuery ? "Guide search results" : undefined}
               className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"

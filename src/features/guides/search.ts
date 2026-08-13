@@ -8,9 +8,14 @@ const normalize = (value: string) => value
 
 const words = (value: string) => normalize(value).split(" ").filter(Boolean);
 
-function prefixMatches(query: string, value: string): boolean {
-  const valueWords = words(value);
-  return words(query).every((queryWord) => valueWords.some((word) => word.startsWith(queryWord)));
+function unorderedPrefixMatches(queryWords: readonly string[], valueWords: readonly string[]): boolean {
+  const remaining = [...valueWords];
+  return queryWords.every((queryWord) => {
+    const index = remaining.findIndex((word) => word.startsWith(queryWord));
+    if (index < 0) return false;
+    remaining.splice(index, 1);
+    return true;
+  });
 }
 
 function scoreGuide(guide: GuideRecord, query: string): Pick<ScoredGuide, "matchKind" | "score"> | null {
@@ -23,21 +28,35 @@ function scoreGuide(guide: GuideRecord, query: string): Pick<ScoredGuide, "match
   if (aliases.includes(normalizedQuery)) return { matchKind: "alias", score: 350 };
 
   const category = GUIDE_CATEGORIES.find((candidate) => candidate.id === guide.category);
-  const searchable = [
-    guide.title,
-    ...guide.aliases,
-    ...guide.tags,
-    guide.summary,
-    category?.title ?? "",
-    ...guide.routes,
-    ...guide.audiences.map((audience) => audience.replaceAll("-", " ")),
-    ...(guide.sections?.map((section) => section.title) ?? []),
+  const weightedFields = [
+    { values: [guide.title], score: 320 },
+    { values: [...guide.aliases], score: 310 },
+    { values: guide.sections?.map((section) => section.title) ?? [], score: 300 },
+    { values: [...guide.tags], score: 290 },
+    { values: [guide.summary], score: 280 },
+    { values: [category?.title ?? ""], score: 270 },
+    { values: [...guide.routes], score: 260 },
+    { values: guide.audiences.map((audience) => audience.replaceAll("-", " ")), score: 260 },
   ];
+  const searchable = weightedFields.flatMap((field) => field.values);
+  const queryWords = words(normalizedQuery);
+  const searchableWords = searchable.flatMap(words);
 
-  if (searchable.some((value) => prefixMatches(normalizedQuery, value))) {
+  for (const field of weightedFields) {
+    if (field.values.some((value) => unorderedPrefixMatches(queryWords, words(value)))) {
+      return { matchKind: "prefix", score: field.score };
+    }
+  }
+
+  // Treat the guide metadata as one searchable document. Query words may be
+  // entered in any order and may come from different fields, for example
+  // "password forgot" or "account invite". Each partial still consumes a
+  // distinct word, so repeated fragments cannot manufacture a match.
+  if (unorderedPrefixMatches(queryWords, searchableWords)) {
     return { matchKind: "prefix", score: 250 };
   }
-  if (searchable.some((value) => normalize(value).includes(normalizedQuery))) {
+  const compactQuery = normalizedQuery.replaceAll(" ", "");
+  if (searchable.some((value) => normalize(value).replaceAll(" ", "").includes(compactQuery))) {
     return { matchKind: "content", score: 150 };
   }
   return null;

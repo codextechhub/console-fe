@@ -39,9 +39,12 @@ function routeProductArea(pattern: string | undefined): string {
   const firstSegment = segments(pattern ?? "")[0];
   if (!firstSegment) return "Console";
   const labels: Record<string, string> = {
+    activate: "Account access",
     audit: "Audit and security",
     export: "Exports",
+    "forgot-password": "Account access",
     "how-to-guide": "Support",
+    login: "Account access",
     notifications: "Notifications",
     organogram: "Organogram",
     permissions: "Permissions",
@@ -55,6 +58,7 @@ function routeProductArea(pattern: string | undefined): string {
     me: "Account",
     overview: "Console",
     procurement: "Procurement",
+    "reset-password": "Account access",
     "school-management": "School management",
     support: "Support",
     workflow: "Workflow",

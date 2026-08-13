@@ -20,16 +20,32 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "permission denied")[0]?.guide.id).toBe(
       "troubleshooting.permission-denied",
     );
+    expect(searchGuides(GUIDE_REGISTRY, "invite expired")[0]?.guide.id).toBe(
+      "getting-started.activate-and-sign-in",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "forgot my password")[0]?.guide.id).toBe(
+      "getting-started.reset-password",
+    );
   });
 
   it("finds article section headings and token prefixes", () => {
-    expect(searchGuides(GUIDE_REGISTRY, "completion check")[0]?.guide.id).toBe(
-      "getting-started.console-basics",
-    );
+    expect(searchGuides(GUIDE_REGISTRY, "understand your access")[0]?.guide.id).toBe("getting-started.console-basics");
     expect(searchGuides(GUIDE_REGISTRY, "quick act")[0]).toMatchObject({
       guide: { id: "getting-started.console-basics" },
       matchKind: "prefix",
     });
+  });
+
+  it("matches partial words in any order and across metadata fields", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "pass for")[0]?.guide.id).toBe(
+      "getting-started.reset-password",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "expired invite")[0]?.guide.id).toBe(
+      "getting-started.activate-and-sign-in",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "access understand")[0]?.guide.id).toBe(
+      "getting-started.console-basics",
+    );
   });
 
   it("finds route and audience language", () => {

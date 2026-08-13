@@ -1,8 +1,13 @@
 import { routesPath } from "@/routes/routes-path";
 
+const A = routesPath.AUTH;
 const R = routesPath.PROTECTED;
 
 export const GUIDE_ROUTE_PATTERNS = [
+  A.LOGIN,
+  A.FORGOT_PASSWORD,
+  A.RESET_PASSWORD,
+  A.ACTIVATE,
   R.OVERVIEW.INDEX,
   R.SCHOOL_MGT.INDEX,
   R.SCHOOL_MGT.CREATE,

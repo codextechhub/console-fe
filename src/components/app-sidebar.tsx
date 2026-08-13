@@ -540,10 +540,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Support",
       url: R.SUPPORT.INDEX,
       icon: Headset,
-      isActive: location.startsWith(R.SUPPORT.INDEX),
-      childActive: false,
+      isActive: false,
+      childActive:
+        location.startsWith(R.SUPPORT.INDEX) ||
+        location === R.SUPPORT.GUIDE_ALIAS,
       permission: null,
       permissionMode: "any" as const,
+      items: [
+        {
+          title: "Support Centre",
+          url: R.SUPPORT.INDEX,
+          isActive:
+            location.startsWith(R.SUPPORT.INDEX) &&
+            !location.startsWith(R.SUPPORT.GUIDES),
+        },
+        {
+          title: "How-to Guides",
+          url: R.SUPPORT.GUIDES,
+          isActive:
+            location.startsWith(R.SUPPORT.GUIDES) ||
+            location === R.SUPPORT.GUIDE_ALIAS,
+        },
+      ],
     },
   ];
 

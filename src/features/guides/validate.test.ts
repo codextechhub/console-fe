@@ -37,9 +37,14 @@ describe("guide registry validation", () => {
   });
 
   it("requires an article loader before a guide can be published", () => {
-    const invalid = [{ ...GUIDE_REGISTRY[1], status: "published" }] as unknown as readonly GuideRecord[];
+    const invalid = [{ ...GUIDE_REGISTRY.find((guide) => guide.status === "draft")!, status: "published" }] as unknown as readonly GuideRecord[];
 
     expect(validateGuideRegistry(invalid)).toContainEqual(expect.objectContaining({ code: "missing-article" }));
+  });
+
+  it("allows a published guide without an open-screen action", () => {
+    const guide = { ...GUIDE_REGISTRY[0], primaryRoute: undefined, relatedGuideIds: undefined } as unknown as GuideRecord;
+    expect(validateGuideRegistry([guide])).toEqual([]);
   });
 
   it("rejects broken related guides and duplicated article sections", () => {

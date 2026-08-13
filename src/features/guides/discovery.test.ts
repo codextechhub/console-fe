@@ -36,6 +36,8 @@ describe("guide discovery", () => {
 
     expect(visible.map((guide) => guide.id)).toEqual([
       "getting-started.console-basics",
+      "getting-started.activate-and-sign-in",
+      "getting-started.reset-password",
       "account.secure-account",
       "troubleshooting.permission-denied",
     ]);
@@ -45,10 +47,14 @@ describe("guide discovery", () => {
   it("returns curated and recently reviewed records deterministically", () => {
     const visible = visibleGuides(GUIDE_REGISTRY, []);
 
-    expect(featuredGuides(visible).map((guide) => guide.id)).toEqual(["getting-started.console-basics"]);
+    expect(featuredGuides(visible).map((guide) => guide.id)).toEqual([
+      "getting-started.console-basics",
+      "getting-started.activate-and-sign-in",
+      "getting-started.reset-password",
+    ]);
     expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.title)).toEqual([
+      "Activate your account and sign in",
       "Get started with Console",
-      "Resolve permission denied or missing navigation",
     ]);
   });
 });

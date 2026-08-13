@@ -86,8 +86,8 @@ export function validateGuideRegistry(
     if (record.status === "published" && !record.article) {
       issues.push({ code: "missing-article", guideId: record.id, message: "Published guides require an article loader" });
     }
-    if (record.status === "published" && (!record.sections?.length || !record.primaryRoute)) {
-      issues.push({ code: "invalid-section", guideId: record.id, message: "Published guides require contents sections and a primary product route" });
+    if (record.status === "published" && !record.sections?.length) {
+      issues.push({ code: "invalid-section", guideId: record.id, message: "Published guides require contents sections" });
     }
     if (record.status === "retired" && record.replacedBy && !ids.has(record.replacedBy)) {
       issues.push({ code: "missing-replacement", guideId: record.id, message: `Replacement guide does not exist: ${record.replacedBy}` });
