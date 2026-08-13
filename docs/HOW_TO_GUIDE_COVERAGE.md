@@ -97,3 +97,17 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
   visual and keyboard order: built.
 - Search-gap analytics remain scheduled for the analytics slice because the app has
   no approved telemetry sink yet. No user-entered search text is sent elsewhere.
+
+## F5 completion record
+
+- Route-pattern matching resolves contextual guides without retaining live record
+  identifiers, query strings, or fragments: built and regression tested.
+- The protected header help control opens a responsive panel with page guides,
+  published related troubleshooting, walkthrough availability, all-guides access,
+  and support-ticket handoff: built.
+- Contextual discovery filters unpublished and unauthorized guide records before
+  rendering: built and regression tested.
+- Support tickets may receive only `guide_id`, normalized `route_pattern`,
+  `product_area`, and `app_version`: built with backend validation and storage.
+- Unknown metadata keys and record-bearing live URLs are rejected by the backend.
+- Ticket detail shows the safe product context to authorized ticket participants.

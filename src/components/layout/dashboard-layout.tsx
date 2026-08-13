@@ -51,6 +51,7 @@ import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { WorkspaceToaster } from "@/components/ui/sonner";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
 import type { GuideRecord } from "@/features/guides";
+import { buildSafeTicketContext, contextualGuideContext, GUIDE_REGISTRY } from "@/features/guides";
 import { buildWorkspaceSearchRows, getWorkspaceSearchIdentityKey, isWorkspaceSearchSelf, WORKSPACE_SEARCH_OPEN_EVENT } from "./workspace-search-model";
 import {
   EntitySelect,
@@ -61,12 +62,18 @@ function DashboardHeader({
   back,
   title,
   showEntitySwitcher = false,
-}: ResolvedHeader & { showEntitySwitcher?: boolean }) {
+  pathname,
+}: ResolvedHeader & { showEntitySwitcher?: boolean; pathname: string }) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const auth = useAppSelector((state) => state.auth);
   const user = auth.user;
   const impersonation = auth.impersonation ?? null;
+  const pageGuideContext = useMemo(
+    () => contextualGuideContext(GUIDE_REGISTRY, pathname, auth.permissions ?? []),
+    [auth.permissions, pathname],
+  );
+  const ticketContext = useMemo(() => buildSafeTicketContext(pageGuideContext), [pageGuideContext]);
   const { state, toggleSidebar } = useSidebar();
   // The protected layout stays mounted across ordinary route changes, so local
   // state naturally preserves an unfinished query. Identity changes are a
@@ -619,7 +626,7 @@ function DashboardHeader({
           <Search className="size-4.5" />
         </button>
         <NotificationsBell />
-        <SupportTicketComposer />
+        <SupportTicketComposer pageContext={pageGuideContext} ticketContext={ticketContext} />
 
         <Separator
           orientation="vertical"
@@ -818,6 +825,7 @@ export default function DashboardLayout() {
             back={header.back}
             title={header.title}
             showEntitySwitcher={handle.sidebar === "finance" || handle.sidebar === "procurement"}
+            pathname={pathname}
           />
           <DashboardToaster />
           {/* grid-cols-1 (minmax(0,1fr)) zeroes the track's min-content floor so a

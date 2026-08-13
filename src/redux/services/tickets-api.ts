@@ -4,6 +4,7 @@
 
 import { baseApi } from "./base-api";
 import { generateQueryString } from "@/utils/helpers";
+import type { SafeTicketContext } from "@/features/guides";
 
 export type TicketStatus = "OPEN" | "ASSIGNED" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -46,6 +47,7 @@ export interface Ticket {
   priority: TicketPriority;
   status: TicketStatus;
   source: string;
+  context: SafeTicketContext;
   requester: TicketUser;
   assignee: TicketUser | null;
   /** Slug of the tenant that owns the ticket (also the ticket-number prefix). */
@@ -107,7 +109,7 @@ export const ticketsApi = baseApi.injectEndpoints({
     }),
     createTicket: builder.mutation<
       { data: Ticket },
-      { title: string; description: string; category: string; priority: string }
+      { title: string; description: string; category: string; priority: string; context?: SafeTicketContext }
     >({
       query: (body) => ({ url: "/support/tickets/", method: "POST", body }),
       invalidatesTags: ["Tickets"],

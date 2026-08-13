@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import {
+  BookOpenText,
   CheckCircle2,
+  ChevronRight,
   FileText,
   Headset,
   Loader2,
@@ -21,6 +23,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { GUIDE_CATEGORIES, type GuidePageContext, type SafeTicketContext } from "@/features/guides";
 import { routesPath } from "@/routes/routes-path";
 import {
   useCreateTicketMutation,
@@ -52,6 +62,7 @@ interface TicketFormProps {
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
   onCancel: () => void;
   onCreated: (ticket: Ticket, failedFiles: string[]) => void;
+  context?: SafeTicketContext;
 }
 
 export function CreateTicketForm({
@@ -61,6 +72,7 @@ export function CreateTicketForm({
   setFiles,
   onCancel,
   onCreated,
+  context,
 }: TicketFormProps) {
   const [create, createState] = useCreateTicketMutation();
   const [upload, uploadState] = useUploadTicketAttachmentMutation();
@@ -85,7 +97,7 @@ export function CreateTicketForm({
     event.preventDefault();
     if (!canSubmit || busy) return;
     try {
-      const result = await create(draft).unwrap();
+      const result = await create({ ...draft, ...(context && Object.keys(context).length ? { context } : {}) }).unwrap();
       const failedFiles: string[] = [];
       for (const file of files) {
         try {
@@ -202,8 +214,15 @@ export function CreateTicketForm({
   );
 }
 
-export function SupportTicketComposer() {
-  const [open, setOpen] = useState(false);
+export function SupportTicketComposer({
+  pageContext,
+  ticketContext,
+}: {
+  pageContext?: GuidePageContext;
+  ticketContext?: SafeTicketContext;
+}) {
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [ticketOpen, setTicketOpen] = useState(false);
   const [draft, setDraft] = useState<TicketDraft>(EMPTY_TICKET_DRAFT);
   const [files, setFiles] = useState<File[]>([]);
   const [created, setCreated] = useState<Ticket | null>(null);
@@ -224,15 +243,88 @@ export function SupportTicketComposer() {
         </span>
         <button
           type="button"
-          aria-label="Create support ticket"
-          onClick={() => setOpen(true)}
+          aria-label="Help for this page"
+          onClick={() => setHelpOpen(true)}
           className="relative grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700 transition hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
         >
           <Headset className="size-4.5 stroke-[2.15]" />
         </button>
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Sheet open={helpOpen} onOpenChange={setHelpOpen}>
+        <SheetContent side="right" className="w-full gap-0 border-gray-200 bg-white p-0 sm:max-w-md">
+          <SheetHeader className="border-b border-gray-100 px-5 pb-5 pt-6 pr-12 text-left">
+            <div className="mb-2 grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
+              <Headset className="size-5" />
+            </div>
+            <SheetTitle className="font-mont text-lg">Help for this page</SheetTitle>
+            <SheetDescription className="text-xs leading-5">
+              Guidance matched to {pageContext?.productArea || "your current Console screen"}.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+            {pageContext?.guides.length ? (
+              <section aria-labelledby="page-guides-heading">
+                <h2 id="page-guides-heading" className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">Guides for this page</h2>
+                <div className="mt-3 space-y-2">
+                  {pageContext.guides.map((guide) => {
+                    const category = GUIDE_CATEGORIES.find((item) => item.id === guide.category);
+                    return (
+                      <Link
+                        key={guide.id}
+                        to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)}
+                        onClick={() => setHelpOpen(false)}
+                        className="flex min-w-0 items-start gap-3 rounded-xl border border-gray-200 p-3 transition hover:border-primary/30 hover:bg-primary/[0.025]"
+                      >
+                        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/8 text-primary"><BookOpenText className="size-4" /></span>
+                        <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{guide.title}</span><span className="mt-0.5 block text-xs leading-5 text-gray-01">{category?.title}</span></span>
+                        <ChevronRight className="mt-2 size-4 shrink-0 text-gray-300" />
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : (
+              <section className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/60 px-4 py-6 text-center">
+                <BookOpenText className="mx-auto size-7 text-gray-300" />
+                <h2 className="mt-3 text-sm font-semibold">No page-specific guide yet</h2>
+                <p className="mt-1 text-xs leading-5 text-gray-01">Browse the guide centre or tell support what you need from this screen.</p>
+              </section>
+            )}
+
+            <section className="mt-6" aria-labelledby="walkthrough-heading">
+              <h2 id="walkthrough-heading" className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">Available walkthroughs</h2>
+              {pageContext?.walkthroughs.length ? (
+                <p className="mt-2 text-xs leading-5 text-gray-01">Interactive walkthroughs for this page will appear here when the walkthrough engine is enabled.</p>
+              ) : (
+                <p className="mt-2 text-xs leading-5 text-gray-01">No published interactive walkthrough is mapped to this page yet.</p>
+              )}
+            </section>
+
+            <section className="mt-6" aria-labelledby="troubleshooting-heading">
+              <h2 id="troubleshooting-heading" className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">Related troubleshooting</h2>
+              {pageContext?.troubleshooting.length ? (
+                <div className="mt-2 space-y-2">
+                  {pageContext.troubleshooting.map((guide) => (
+                    <Link key={guide.id} to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)} onClick={() => setHelpOpen(false)} className="block rounded-xl border border-gray-200 p-3 text-sm font-medium hover:border-primary/30">{guide.title}</Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-xs leading-5 text-gray-01">No published troubleshooting article is related to this page yet.</p>
+              )}
+            </section>
+          </div>
+
+          <div className="grid gap-2 border-t border-gray-100 p-5">
+            <Button asChild variant="outline"><Link to={routesPath.PROTECTED.SUPPORT.GUIDES} onClick={() => setHelpOpen(false)}>Browse all guides</Link></Button>
+            <Button onClick={() => { setHelpOpen(false); setTicketOpen(true); }}><Headset className="size-4" /> Create support ticket</Button>
+            <p className="text-center text-[10px] leading-4 text-gray-400">Only the guide ID, route pattern, product area, and app version may be attached. Page values are never copied.</p>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <Dialog open={ticketOpen} onOpenChange={setTicketOpen}>
         <DialogContent
           className="left-3 right-3 top-auto bottom-3 max-h-[calc(100dvh-1.5rem)] w-auto max-w-none translate-x-0 translate-y-0 gap-0 overflow-y-auto overscroll-contain rounded-3xl border-white bg-white/95 p-0 shadow-[0_24px_80px_rgba(15,23,42,.24),inset_0_1px_0_rgba(255,255,255,.98)] [backdrop-filter:blur(22px)_saturate(150%)] sm:bottom-auto sm:left-auto sm:right-6 sm:top-[72px] sm:h-auto sm:max-h-[calc(100dvh-96px)] sm:w-[430px] sm:max-w-[calc(100vw-3rem)]"
         >
@@ -252,7 +344,8 @@ export function SupportTicketComposer() {
                   setDraft={setDraft}
                   files={files}
                   setFiles={setFiles}
-                  onCancel={() => setOpen(false)}
+                  onCancel={() => setTicketOpen(false)}
+                  context={ticketContext}
                   onCreated={(ticket, failed) => {
                     setCreated(ticket);
                     setFailedFiles(failed);
@@ -280,7 +373,7 @@ export function SupportTicketComposer() {
                 <Button variant="outline" size="sm" onClick={reset}>
                   <Plus className="size-4" /> Create another
                 </Button>
-                <Button asChild size="sm" onClick={() => setOpen(false)}>
+                <Button asChild size="sm" onClick={() => setTicketOpen(false)}>
                   <Link to={routesPath.PROTECTED.SUPPORT.DETAIL(created.id)}>View ticket</Link>
                 </Button>
               </div>

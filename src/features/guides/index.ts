@@ -1,4 +1,10 @@
 export { GUIDE_CATEGORIES } from "./categories";
+export {
+  buildSafeTicketContext,
+  contextualGuideContext,
+  resolveGuideRoutePattern,
+  routePatternMatches,
+} from "./context";
 export { buildGuideCoverageReport } from "./coverage";
 export {
   canDiscoverGuide,
@@ -26,3 +32,4 @@ export type {
   GuideValidationIssue,
 } from "./types";
 export type { GuideCoverageGap, GuideCoverageReport, GuideCoverageTarget } from "./coverage";
+export type { GuidePageContext, SafeTicketContext } from "./context";

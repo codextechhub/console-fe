@@ -464,6 +464,26 @@ export default function TicketDetail() {
                 </dl>
               </div>
 
+              {Object.keys(ticket.context ?? {}).length > 0 && (
+                <div className="rounded-md bg-white p-5">
+                  <h2 className="font-semibold">Console context</h2>
+                  <p className="mt-1 text-xs leading-5 text-gray-01">Safe product references captured when this ticket was created.</p>
+                  <dl className="mt-4 space-y-3 text-sm">
+                    {[
+                      ["Guide ID", ticket.context.guide_id],
+                      ["Route pattern", ticket.context.route_pattern],
+                      ["Product area", ticket.context.product_area],
+                      ["App version", ticket.context.app_version],
+                    ].filter((entry): entry is [string, string] => Boolean(entry[1])).map(([label, value]) => (
+                      <div key={label}>
+                        <dt className="text-xs text-gray-01">{label}</dt>
+                        <dd className="mt-0.5 break-all font-medium">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
+
               {canAssign && (
                 <div className="rounded-md bg-white p-5">
                   <h2 className="font-semibold">Assignment</h2>
