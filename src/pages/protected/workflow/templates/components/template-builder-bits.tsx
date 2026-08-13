@@ -24,6 +24,25 @@ import {
   rulesPayload,
 } from "./stage-form";
 
+/**
+ * A labelled slice of one stage's settings.
+ *
+ * A stage carries a dozen fields that answer four unrelated questions, and as
+ * one flat grid they read as a wall. Naming the questions is what makes the
+ * card scannable: you look for "who approves it" rather than for a field name
+ * you have to remember.
+ */
+export function Band({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-md bg-gray-06/30 p-3">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-01">
+        {title}
+      </p>
+      {children}
+    </div>
+  );
+}
+
 export function Section({
   title,
   action,

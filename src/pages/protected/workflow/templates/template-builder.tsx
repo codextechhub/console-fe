@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetApproverGroupsQuery,
@@ -34,6 +35,7 @@ import {
   validateRules,
 } from "./components/stage-form";
 import {
+  Band,
   Section,
   ApproverPreview,
   DynamicRulesEditor,
@@ -336,7 +338,32 @@ export default function TemplateBuilder() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01 max-w-3xl">
+      <main className="px-4.5 py-6 space-y-5 text-black-01">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold font-mont text-gray-01">
+              {isEdit ? "Edit template" : "New template"}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-01">
+              {name.trim() || "Untitled"} · {stages.length}{" "}
+              {stages.length === 1 ? "stage" : "stages"}
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-3.5">
+            <Button variant="white" size="lg" onClick={() => navigate(-1)} disabled={isPublishing}>
+              Cancel
+            </Button>
+            <Button size="lg" onClick={handlePublish} disabled={isPublishing}>
+              {isPublishing ? "Publishing…" : isEdit ? "Update template" : "Publish template"}
+            </Button>
+          </div>
+        </div>
+
+        {/* The stages are the work, so they take the width. Everything you set
+            once per template sits in a rail beside them on a wide screen, and
+            above them on a narrow one, which is the order you fill them in. */}
+        <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
+          <aside className="min-w-0 space-y-5 xl:sticky xl:top-4">
         {/* Meta */}
         <Section title="Template details">
           <div className="space-y-4">
@@ -384,250 +411,6 @@ export default function TemplateBuilder() {
           </div>
         </Section>
 
-        {/* Stages */}
-        <Section
-          title="Stages"
-          action={
-            <Button variant="outline" size="sm" onClick={addStage}>
-              <Plus className="size-3.5" /> Add stage
-            </Button>
-          }
-        >
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2 rounded-md border border-white-02 bg-pry-01/30 px-3 py-2">
-              <span className="text-xs font-medium text-gray-01">Sample requester</span>
-              <div className="min-w-60 flex-1 sm:max-w-xs">
-                <SearchSelect
-                  id="sample-requester"
-                  options={requesterOptions}
-                  value={sampleRequester}
-                  onChange={(e) => setSampleRequester(e.target.value)}
-                  placeholder="Pick a CX staff member to preview approvers"
-                />
-              </div>
-              <span className="text-[11px] text-gray-01">Organogram stages resolve relative to this person ↓</span>
-            </div>
-            {stages.map((s, i) => (
-              <div key={i} className="rounded-md border border-white-02 p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <GripVertical className="size-4 text-gray-05" />
-                  <span className="grid size-6 place-content-center rounded-full bg-pry-01 text-xs font-semibold text-primary">
-                    {i + 1}
-                  </span>
-                  <span className="flex-1 text-sm font-medium">
-                    {s.label.trim() || `Stage ${i + 1}`}
-                  </span>
-                  <button
-                    type="button"
-                    className="text-gray-01 hover:text-black-01 disabled:opacity-30"
-                    disabled={i === 0}
-                    onClick={() => moveStage(i, -1)}
-                  >
-                    <ChevronUp className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="text-gray-01 hover:text-black-01 disabled:opacity-30"
-                    disabled={i === stages.length - 1}
-                    onClick={() => moveStage(i, 1)}
-                  >
-                    <ChevronDown className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="text-gray-01 hover:text-destructive disabled:opacity-30"
-                    disabled={stages.length === 1}
-                    onClick={() => removeStage(i)}
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <CustomInput
-                    id={`stage-code-${i}`}
-                    label="Code"
-                    isRequired
-                    placeholder="e.g. line-manager"
-                    value={s.code}
-                    onChange={(e) => updateStage(i, { code: e.target.value })}
-                  />
-                  <CustomInput
-                    id={`stage-label-${i}`}
-                    label="Label"
-                    isRequired
-                    placeholder="e.g. Line Manager Approval"
-                    value={s.label}
-                    onChange={(e) => updateStage(i, { label: e.target.value })}
-                  />
-                  <SearchSelect
-                    id={`stage-kind-${i}`}
-                    label="Kind"
-                    options={KIND_OPTIONS}
-                    value={s.kind}
-                    onChange={(e) => updateStage(i, { kind: e.target.value as StageKind })}
-                  />
-                  {s.kind === "APPROVAL" && (
-                    <>
-                      <SearchSelect
-                        id={`stage-source-${i}`}
-                        label="Approver source"
-                        containerClass="sm:col-span-2"
-                        clearable={false}
-                        options={SOURCE_OPTIONS}
-                        value={s.approver_source}
-                        onChange={(e) => updateStage(i, { approver_source: e.target.value as ApproverSource })}
-                      />
-
-                      <p className="text-xs text-gray-01 sm:col-span-2 -mt-2">
-                        {SOURCE_HINT[s.approver_source]}
-                      </p>
-
-                      {/* Scope narrows the role lookup, so it applies to a role
-                          stage, to a group's role members, and to each dynamic
-                          rule's role - but means nothing to an organogram climb. */}
-                      {s.approver_source !== "ORGANOGRAM" && (
-                        <SearchSelect
-                          id={`stage-scope-${i}`}
-                          label="Approver scope"
-                          options={SCOPE_OPTIONS}
-                          value={s.approver_scope}
-                          onChange={(e) => updateStage(i, { approver_scope: e.target.value as ApproverScope })}
-                        />
-                      )}
-
-                      {s.approver_source === "ROLE" && (
-                        <SearchSelect
-                          id={`stage-role-${i}`}
-                          label="Approver role"
-                          options={roleOptions}
-                          value={s.approver_role_key}
-                          onChange={(e) => updateStage(i, { approver_role_key: e.target.value })}
-                          placeholder="Pick a role"
-                        />
-                      )}
-
-                      {s.approver_source === "WORKFLOW_GROUP" && (
-                        <SearchSelect
-                          id={`stage-group-${i}`}
-                          label="Approver group"
-                          options={groupOptions}
-                          value={s.approver_group_code}
-                          onChange={(e) => updateStage(i, { approver_group_code: e.target.value })}
-                          placeholder="Pick a group"
-                        />
-                      )}
-
-                      {s.approver_source === "ORGANOGRAM" && (
-                        <>
-                          <SearchSelect
-                            id={`stage-target-${i}`}
-                            label="Organogram target"
-                            options={TARGET_OPTIONS}
-                            value={s.organogram_target}
-                            onChange={(e) => updateStage(i, { organogram_target: e.target.value as OrganogramTarget })}
-                          />
-                          {s.organogram_target === "N_LEVELS_UP" && (
-                            <CustomInput
-                              id={`stage-levels-${i}`}
-                              label="Levels up"
-                              type="number"
-                              min={1}
-                              value={s.organogram_levels}
-                              onChange={(e) => updateStage(i, { organogram_levels: e.target.value })}
-                            />
-                          )}
-                          {s.organogram_target === "SPECIFIC_POSITION" && (
-                            <SearchSelect
-                              id={`stage-pos-${i}`}
-                              label="Position"
-                              containerClass="sm:col-span-2"
-                              options={positionOptions}
-                              value={s.organogram_position_code}
-                              onChange={(e) => updateStage(i, { organogram_position_code: e.target.value })}
-                              placeholder="Select a seat"
-                            />
-                          )}
-                        </>
-                      )}
-
-                      <SearchSelect
-                        id={`stage-rule-${i}`}
-                        label="Advance rule"
-                        options={RULE_OPTIONS}
-                        value={s.advance_rule}
-                        onChange={(e) => updateStage(i, { advance_rule: e.target.value as StageAdvanceRule })}
-                      />
-                      {s.advance_rule === "QUORUM" && (
-                        <CustomInput
-                          id={`stage-quorum-${i}`}
-                          label="Quorum count"
-                          type="number"
-                          min={1}
-                          value={s.quorum_count}
-                          onChange={(e) => updateStage(i, { quorum_count: e.target.value })}
-                        />
-                      )}
-                      <SearchSelect
-                        id={`stage-reject-${i}`}
-                        label="On rejection"
-                        options={REJECT_OPTIONS}
-                        value={s.on_rejection}
-                        onChange={(e) => updateStage(i, { on_rejection: e.target.value as StageOnRejection })}
-                      />
-                    </>
-                  )}
-                </div>
-
-                {s.kind === "APPROVAL" && (
-                  <div className="mt-3 flex items-center justify-between rounded-md border border-white-02 px-3 py-2">
-                    <span className="text-xs text-gray-01">
-                      Auto-skip this stage if no eligible approvers are found
-                    </span>
-                    <Switch
-                      checked={s.skip_if_no_approvers}
-                      onCheckedChange={(v) => updateStage(i, { skip_if_no_approvers: v })}
-                    />
-                  </div>
-                )}
-
-                <div className="mt-3 space-y-1.5">
-                  <label className="text-xs font-medium">
-                    Inclusion condition{" "}
-                    <span className="text-gray-01">(JSON, optional - stage skipped if false)</span>
-                  </label>
-                  <Textarea
-                    rows={2}
-                    className="font-mono text-xs"
-                    placeholder='{ "op": "gte", "field": "amount", "value": 500000 }'
-                    value={s.inclusion_condition_text}
-                    onChange={(e) => updateStage(i, { inclusion_condition_text: e.target.value })}
-                  />
-                </div>
-
-                {s.kind === "APPROVAL" && s.approver_source === "DYNAMIC_ROLE" && (
-                  <DynamicRulesEditor
-                    rules={s.dynamic_rules}
-                    roleOptions={roleOptions}
-                    stageIndex={i}
-                    onChange={(next) => updateStage(i, { dynamic_rules: next })}
-                  />
-                )}
-
-                {s.kind === "APPROVAL" && (
-                  <ApproverPreview
-                    stage={s}
-                    requester={sampleRequester}
-                    sampleText={s.sample_document_text}
-                    onSampleChange={(v) => updateStage(i, { sample_document_text: v })}
-                    sampleId={`stage-sample-${i}`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </Section>
-
         {/* Notifications */}
         <Section title="Notification events">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -659,13 +442,271 @@ export default function TemplateBuilder() {
           />
         </Section>
 
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" size="lg" onClick={() => navigate(-1)} disabled={isPublishing}>
-            Cancel
-          </Button>
-          <Button size="lg" onClick={handlePublish} disabled={isPublishing}>
-            {isPublishing ? "Publishing…" : isEdit ? "Update template" : "Publish template"}
-          </Button>
+          </aside>
+
+          <div className="min-w-0 space-y-5">
+          {/* Stages */}
+          <Section
+            title="Stages"
+            action={
+              <Button variant="outline" size="sm" onClick={addStage}>
+                <Plus className="size-3.5" /> Add stage
+              </Button>
+            }
+          >
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2 rounded-md border border-white-02 bg-pry-01/30 px-3 py-2">
+                <span className="text-xs font-medium text-gray-01">Sample requester</span>
+                <div className="min-w-60 flex-1 sm:max-w-xs">
+                  <SearchSelect
+                    id="sample-requester"
+                    options={requesterOptions}
+                    value={sampleRequester}
+                    onChange={(e) => setSampleRequester(e.target.value)}
+                    placeholder="Pick a CX staff member to preview approvers"
+                  />
+                </div>
+                <span className="text-[11px] text-gray-01">Organogram stages resolve relative to this person ↓</span>
+              </div>
+              {stages.map((s, i) => (
+                <div key={i} className="space-y-3 rounded-md border border-white-02 p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <GripVertical className="size-4 text-gray-05" />
+                    <span className="grid size-6 place-content-center rounded-full bg-pry-01 text-xs font-semibold text-primary">
+                      {i + 1}
+                    </span>
+                    <span className="flex-1 text-sm font-medium">
+                      {s.label.trim() || `Stage ${i + 1}`}
+                    </span>
+                    <button
+                      type="button"
+                      className="text-gray-01 hover:text-black-01 disabled:opacity-30"
+                      disabled={i === 0}
+                      onClick={() => moveStage(i, -1)}
+                    >
+                      <ChevronUp className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      className="text-gray-01 hover:text-black-01 disabled:opacity-30"
+                      disabled={i === stages.length - 1}
+                      onClick={() => moveStage(i, 1)}
+                    >
+                      <ChevronDown className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      className="text-gray-01 hover:text-destructive disabled:opacity-30"
+                      disabled={stages.length === 1}
+                      onClick={() => removeStage(i)}
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+
+                  <Band title="What this step is">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <CustomInput
+                      id={`stage-code-${i}`}
+                      label="Code"
+                      isRequired
+                      placeholder="e.g. line-manager"
+                      value={s.code}
+                      onChange={(e) => updateStage(i, { code: e.target.value })}
+                    />
+                    <CustomInput
+                      id={`stage-label-${i}`}
+                      label="Label"
+                      isRequired
+                      placeholder="e.g. Line Manager Approval"
+                      value={s.label}
+                      onChange={(e) => updateStage(i, { label: e.target.value })}
+                    />
+                    <SearchSelect
+                      id={`stage-kind-${i}`}
+                      label="Kind"
+                      options={KIND_OPTIONS}
+                      value={s.kind}
+                      onChange={(e) => updateStage(i, { kind: e.target.value as StageKind })}
+                    />
+                    </div>
+                  </Band>
+
+                  {s.kind === "APPROVAL" && (
+                    <>
+                      <Band title="Who approves it">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        <SearchSelect
+                          id={`stage-source-${i}`}
+                          label="Approver source"
+                          containerClass="sm:col-span-2 lg:col-span-1"
+                          clearable={false}
+                          options={SOURCE_OPTIONS}
+                          value={s.approver_source}
+                          onChange={(e) => updateStage(i, { approver_source: e.target.value as ApproverSource })}
+                        />
+
+                        {/* Scope narrows the role lookup, so it applies to a role
+                            stage, to a group's role members, and to each dynamic
+                            rule's role - but means nothing to an organogram climb. */}
+                        {s.approver_source !== "ORGANOGRAM" && (
+                          <SearchSelect
+                            id={`stage-scope-${i}`}
+                            label="Approver scope"
+                            options={SCOPE_OPTIONS}
+                            value={s.approver_scope}
+                            onChange={(e) => updateStage(i, { approver_scope: e.target.value as ApproverScope })}
+                          />
+                        )}
+
+                        {s.approver_source === "ROLE" && (
+                          <SearchSelect
+                            id={`stage-role-${i}`}
+                            label="Approver role"
+                            options={roleOptions}
+                            value={s.approver_role_key}
+                            onChange={(e) => updateStage(i, { approver_role_key: e.target.value })}
+                            placeholder="Pick a role"
+                          />
+                        )}
+
+                        {s.approver_source === "WORKFLOW_GROUP" && (
+                          <SearchSelect
+                            id={`stage-group-${i}`}
+                            label="Approver group"
+                            options={groupOptions}
+                            value={s.approver_group_code}
+                            onChange={(e) => updateStage(i, { approver_group_code: e.target.value })}
+                            placeholder="Pick a group"
+                          />
+                        )}
+
+                        {s.approver_source === "ORGANOGRAM" && (
+                          <>
+                            <SearchSelect
+                              id={`stage-target-${i}`}
+                              label="Organogram target"
+                              options={TARGET_OPTIONS}
+                              value={s.organogram_target}
+                              onChange={(e) => updateStage(i, { organogram_target: e.target.value as OrganogramTarget })}
+                            />
+                            {s.organogram_target === "N_LEVELS_UP" && (
+                              <CustomInput
+                                id={`stage-levels-${i}`}
+                                label="Levels up"
+                                type="number"
+                                min={1}
+                                value={s.organogram_levels}
+                                onChange={(e) => updateStage(i, { organogram_levels: e.target.value })}
+                              />
+                            )}
+                            {s.organogram_target === "SPECIFIC_POSITION" && (
+                              <SearchSelect
+                                id={`stage-pos-${i}`}
+                                label="Position"
+                                containerClass="sm:col-span-2 lg:col-span-1"
+                                options={positionOptions}
+                                value={s.organogram_position_code}
+                                onChange={(e) => updateStage(i, { organogram_position_code: e.target.value })}
+                                placeholder="Select a seat"
+                              />
+                            )}
+                          </>
+                        )}
+
+                        </div>
+                        <p className="mt-2 text-xs text-gray-01">
+                          {SOURCE_HINT[s.approver_source]}
+                        </p>
+                      </Band>
+
+                      <Band title="How it advances">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        <SearchSelect
+                          id={`stage-rule-${i}`}
+                          label="Advance rule"
+                          options={RULE_OPTIONS}
+                          value={s.advance_rule}
+                          onChange={(e) => updateStage(i, { advance_rule: e.target.value as StageAdvanceRule })}
+                        />
+                        {s.advance_rule === "QUORUM" && (
+                          <CustomInput
+                            id={`stage-quorum-${i}`}
+                            label="Quorum count"
+                            type="number"
+                            min={1}
+                            value={s.quorum_count}
+                            onChange={(e) => updateStage(i, { quorum_count: e.target.value })}
+                          />
+                        )}
+                        <SearchSelect
+                          id={`stage-reject-${i}`}
+                          label="On rejection"
+                          options={REJECT_OPTIONS}
+                          value={s.on_rejection}
+                          onChange={(e) => updateStage(i, { on_rejection: e.target.value as StageOnRejection })}
+                        />
+                        <div className="flex items-center justify-between gap-3 rounded-md border border-white-02 px-3 py-2 sm:col-span-2 lg:col-span-1">
+                          <span className="text-xs text-gray-01">
+                            Auto-skip if nobody can approve
+                          </span>
+                          <Switch
+                            checked={s.skip_if_no_approvers}
+                            onCheckedChange={(v) => updateStage(i, { skip_if_no_approvers: v })}
+                          />
+                        </div>
+                        </div>
+                      </Band>
+                    </>
+                  )}
+
+                  <Band title="When it applies">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium">
+                      Inclusion condition{" "}
+                      <span className="text-gray-01">(JSON, optional - stage skipped if false)</span>
+                    </label>
+                    <Textarea
+                      rows={2}
+                      className="font-mono text-xs"
+                      placeholder='{ "op": "gte", "field": "amount", "value": 500000 }'
+                      value={s.inclusion_condition_text}
+                      onChange={(e) => updateStage(i, { inclusion_condition_text: e.target.value })}
+                    />
+                  </div>
+
+                  </Band>
+
+                  <div
+                    className={cn(
+                      "grid grid-cols-1 items-start gap-3",
+                      s.approver_source === "DYNAMIC_ROLE" && "2xl:grid-cols-2",
+                    )}
+                  >
+                  {s.kind === "APPROVAL" && s.approver_source === "DYNAMIC_ROLE" && (
+                    <DynamicRulesEditor
+                      rules={s.dynamic_rules}
+                      roleOptions={roleOptions}
+                      stageIndex={i}
+                      onChange={(next) => updateStage(i, { dynamic_rules: next })}
+                    />
+                  )}
+
+                  {s.kind === "APPROVAL" && (
+                    <ApproverPreview
+                      stage={s}
+                      requester={sampleRequester}
+                      sampleText={s.sample_document_text}
+                      onSampleChange={(v) => updateStage(i, { sample_document_text: v })}
+                      sampleId={`stage-sample-${i}`}
+                    />
+                  )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
+          </div>
         </div>
       </main>
     </>
