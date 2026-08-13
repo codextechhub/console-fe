@@ -1,10 +1,10 @@
-import { createElement, lazy, Suspense, useState } from "react";
+import { createElement, lazy, Suspense, useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, BookOpenText, Check, Clock3, ExternalLink, Flag, Loader2, PlayCircle, ThumbsDown, ThumbsUp } from "lucide-react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { Button } from "@/components/ui/button";
-import { GUIDE_CATEGORIES, GUIDE_REGISTRY, canDiscoverGuide, type GuideRecord } from "@/features/guides";
+import { GUIDE_CATEGORIES, GUIDE_REGISTRY, canDiscoverGuide, findWalkthrough, useWalkthrough, type GuideRecord } from "@/features/guides";
 import { selectPermissions } from "@/redux/features/auth/auth-slice";
 import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
@@ -18,10 +18,20 @@ const GUIDE_ARTICLES = new Map(
 
 export default function GuideArticlePage() {
   const { slug = "" } = useParams();
+  const [searchParams] = useSearchParams();
   const permissions = useAppSelector(selectPermissions);
   const guide = GUIDE_RECORDS.find((candidate) => candidate.slug === slug);
   const [feedback, setFeedback] = useState<"yes" | "no" | null>(null);
   const Article = GUIDE_ARTICLES.get(slug);
+  const { start: startWalkthrough } = useWalkthrough();
+
+  useEffect(() => {
+    if (!guide?.walkthroughId || !findWalkthrough(guide.walkthroughId) || searchParams.get("walkthrough") !== "start") return;
+    const timeout = window.setTimeout(() => {
+      startWalkthrough(guide.walkthroughId!);
+    }, 0);
+    return () => window.clearTimeout(timeout);
+  }, [guide?.walkthroughId, searchParams, startWalkthrough]);
 
   if (!guide || guide.status === "retired") return <GuideUnavailable title="Guide not found" message="This guide does not exist or has been retired." />;
   if (!canDiscoverGuide(guide, permissions)) return <PageAccessDenied />;
@@ -40,7 +50,7 @@ export default function GuideArticlePage() {
           <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-01 sm:text-base">{guide.summary}</p>
           <div className="mt-5 flex flex-wrap gap-2">
             {guide.primaryRoute && <Button asChild><Link to={guide.primaryRoute}>Open Console screen <ExternalLink className="size-4" /></Link></Button>}
-            {guide.walkthroughId && <Button variant="outline" disabled><PlayCircle className="size-4" /> Walkthrough planned</Button>}
+            {guide.walkthroughId && findWalkthrough(guide.walkthroughId) && <Button variant="outline" onClick={() => startWalkthrough(guide.walkthroughId!)}><PlayCircle className="size-4" /> Start walkthrough</Button>}
           </div>
           <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-gray-100 pt-4 text-xs text-gray-01"><span>Owner: {guide.owner}</span><span className="inline-flex items-center gap-1"><Clock3 className="size-3.5" /> Reviewed {guide.reviewedAt}</span></div>
         </header>

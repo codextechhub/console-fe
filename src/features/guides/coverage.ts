@@ -25,6 +25,7 @@ export type GuideCoverageReport = {
 export function buildGuideCoverageReport(
   guides: readonly GuideRecord[],
   targets: readonly GuideCoverageTarget[],
+  availableWalkthroughIds?: ReadonlySet<string>,
 ): GuideCoverageReport {
   const activeGuides = guides.filter((guide) => guide.status !== "retired");
   const gaps: GuideCoverageGap[] = [];
@@ -45,7 +46,10 @@ export function buildGuideCoverageReport(
     const walkthroughExpected = target.walkthroughRequired ?? target.risk === "high";
     if (
       walkthroughExpected
-      && !coveringGuides.some((guide) => guide.walkthroughId)
+      && !coveringGuides.some((guide) => (
+        guide.walkthroughId
+        && (!availableWalkthroughIds || availableWalkthroughIds.has(guide.walkthroughId))
+      ))
       && !target.walkthroughException?.trim()
     ) {
       gaps.push({ targetId: target.id, kind: "missing-walkthrough-or-reason" });

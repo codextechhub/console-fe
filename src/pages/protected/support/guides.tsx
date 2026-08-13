@@ -23,6 +23,7 @@ import {
   GUIDE_CATEGORIES,
   GUIDE_REGISTRY,
   GUIDE_ROLE_ENTRY_POINTS,
+  findWalkthrough,
   guidesForAudience,
   recentlyReviewedGuides,
   searchGuides,
@@ -284,7 +285,7 @@ function GuideCard({
       {!compact && <p className="mt-1 text-xs leading-5 text-gray-01">{guide.summary}</p>}
       <div className="mt-3 flex items-center justify-between gap-3">
         <span className={guide.status === "published" ? "rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700" : "rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700"}>{guide.status === "published" ? "Published" : "Planned"}</span>
-        {guide.walkthroughId && <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary"><PlayCircle className="size-3.5" /> Walkthrough planned</span>}
+        {guide.walkthroughId && <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary"><PlayCircle className="size-3.5" /> {findWalkthrough(guide.walkthroughId) ? "Walkthrough available" : "Walkthrough planned"}</span>}
       </div>
     </>
   );

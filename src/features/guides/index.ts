@@ -33,3 +33,8 @@ export type {
 } from "./types";
 export type { GuideCoverageGap, GuideCoverageReport, GuideCoverageTarget } from "./coverage";
 export type { GuidePageContext, SafeTicketContext } from "./context";
+export { WALKTHROUGH_REGISTRY, findWalkthrough } from "./walkthroughs/registry";
+export { WalkthroughProvider } from "./walkthroughs/runtime";
+export { useWalkthrough } from "./walkthroughs/context";
+export { queueWalkthrough, requestWalkthroughStart, validateWalkthroughs } from "./walkthroughs/engine";
+export type { Walkthrough, WalkthroughProgress, WalkthroughStep } from "./walkthroughs/types";

@@ -51,7 +51,7 @@ import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { WorkspaceToaster } from "@/components/ui/sonner";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
 import type { GuideRecord } from "@/features/guides";
-import { buildSafeTicketContext, contextualGuideContext, GUIDE_REGISTRY } from "@/features/guides";
+import { buildSafeTicketContext, contextualGuideContext, GUIDE_REGISTRY, WalkthroughProvider } from "@/features/guides";
 import { buildWorkspaceSearchRows, getWorkspaceSearchIdentityKey, isWorkspaceSearchSelf, WORKSPACE_SEARCH_OPEN_EVENT } from "./workspace-search-model";
 import {
   EntitySelect,
@@ -591,6 +591,7 @@ function DashboardHeader({
       <div className="absolute left-1/2 top-1/2 hidden w-[min(38vw,430px)] -translate-x-1/2 -translate-y-1/2 lg:block">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
         <input
+          data-guide="header.workspace-search"
           ref={desktopSearchRef}
           value={search}
           onChange={(event) => updateSearch(event.target.value)}
@@ -618,6 +619,7 @@ function DashboardHeader({
       <div className="inline-flex items-center gap-x-1 sm:gap-x-3">
         <button
           type="button"
+          data-guide="header.workspace-search"
           aria-label={mobileSearchOpen ? "Close workspace search" : "Search the workspace"}
           aria-expanded={mobileSearchOpen}
           onClick={() => setMobileSearchOpen((open) => !open)}
@@ -809,6 +811,7 @@ export default function DashboardLayout() {
   const header = resolveHeader(handle, override, locationKey);
 
   return (
+    <WalkthroughProvider>
     <DashboardHeaderContext value={headerApi}>
       <SessionTimeoutModal
         open={open}
@@ -838,5 +841,6 @@ export default function DashboardLayout() {
         </SidebarInset>
       </SidebarProvider>
     </DashboardHeaderContext>
+    </WalkthroughProvider>
   );
 }

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ACTIONS } from "@/lib/action-palette/registry";
 
 import { GUIDE_REGISTRY } from "./registry";
+import { WALKTHROUGH_REGISTRY } from "./walkthroughs/registry";
 import type { GuideRecord } from "./types";
 import { validateGuideRegistry } from "./validate";
 
@@ -10,7 +11,10 @@ const actionIds = new Set(ACTIONS.map((action) => action.id));
 
 describe("guide registry validation", () => {
   it("accepts the canonical registry and its action mappings", () => {
-    expect(validateGuideRegistry(GUIDE_REGISTRY, { validActionIds: actionIds })).toEqual([]);
+    expect(validateGuideRegistry(GUIDE_REGISTRY, {
+      validActionIds: actionIds,
+      validWalkthroughIds: new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    })).toEqual([]);
   });
 
   it("reports duplicated identities, unknown routes, and missing owners", () => {
@@ -50,5 +54,12 @@ describe("guide registry validation", () => {
       "missing-related-guide",
       "invalid-section",
     ]));
+  });
+
+  it("rejects a published guide that references a missing walkthrough", () => {
+    const invalid = [{ ...GUIDE_REGISTRY[0], walkthroughId: "missing.walkthrough" }] as unknown as readonly GuideRecord[];
+    expect(validateGuideRegistry(invalid, { validWalkthroughIds: new Set() })).toContainEqual(
+      expect.objectContaining({ code: "missing-walkthrough" }),
+    );
   });
 });

@@ -30,6 +30,7 @@ export const GUIDE_REGISTRY = [
       { id: "completion-check", title: "Completion check" },
     ],
     relatedGuideIds: ["account.secure-account", "troubleshooting.permission-denied"],
+    walkthroughId: "walkthrough.getting-started.console-basics",
     estimatedMinutes: 6,
     owner: OWNER,
     reviewedAt: REVIEWED_AT,

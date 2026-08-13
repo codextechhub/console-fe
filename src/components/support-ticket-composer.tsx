@@ -30,7 +30,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { GUIDE_CATEGORIES, type GuidePageContext, type SafeTicketContext } from "@/features/guides";
+import { GUIDE_CATEGORIES, findWalkthrough, useWalkthrough, type GuidePageContext, type SafeTicketContext } from "@/features/guides";
 import { routesPath } from "@/routes/routes-path";
 import {
   useCreateTicketMutation,
@@ -227,6 +227,7 @@ export function SupportTicketComposer({
   const [files, setFiles] = useState<File[]>([]);
   const [created, setCreated] = useState<Ticket | null>(null);
   const [failedFiles, setFailedFiles] = useState<string[]>([]);
+  const { start: startWalkthrough } = useWalkthrough();
 
   const reset = () => {
     setDraft(EMPTY_TICKET_DRAFT);
@@ -243,6 +244,7 @@ export function SupportTicketComposer({
         </span>
         <button
           type="button"
+          data-guide="header.page-help"
           aria-label="Help for this page"
           onClick={() => setHelpOpen(true)}
           className="relative grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700 transition hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
@@ -295,8 +297,22 @@ export function SupportTicketComposer({
 
             <section className="mt-6" aria-labelledby="walkthrough-heading">
               <h2 id="walkthrough-heading" className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">Available walkthroughs</h2>
-              {pageContext?.walkthroughs.length ? (
-                <p className="mt-2 text-xs leading-5 text-gray-01">Interactive walkthroughs for this page will appear here when the walkthrough engine is enabled.</p>
+              {pageContext?.walkthroughs.some((guide) => guide.walkthroughId && findWalkthrough(guide.walkthroughId)) ? (
+                <div className="mt-2 space-y-2">
+                  {pageContext.walkthroughs.filter((guide) => guide.walkthroughId && findWalkthrough(guide.walkthroughId)).map((guide) => (
+                    <button
+                      key={guide.id}
+                      type="button"
+                      onClick={() => {
+                        setHelpOpen(false);
+                        if (guide.walkthroughId) window.setTimeout(() => startWalkthrough(guide.walkthroughId!), 350);
+                      }}
+                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 p-3 text-left text-sm font-medium transition hover:border-primary/30 hover:bg-primary/[0.025]"
+                    >
+                      <span>{guide.title}</span><ChevronRight className="size-4 shrink-0 text-gray-300" />
+                    </button>
+                  ))}
+                </div>
               ) : (
                 <p className="mt-2 text-xs leading-5 text-gray-01">No published interactive walkthrough is mapped to this page yet.</p>
               )}

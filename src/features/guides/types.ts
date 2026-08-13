@@ -108,6 +108,7 @@ export type GuideValidationIssue = {
     | "missing-owner"
     | "missing-replacement"
     | "missing-related-guide"
+    | "missing-walkthrough"
     | "missing-route";
   guideId: string;
   message: string;

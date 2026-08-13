@@ -9,6 +9,7 @@ import {
 type ValidationOptions = {
   validActionIds?: ReadonlySet<string>;
   validRoutes?: ReadonlySet<string>;
+  validWalkthroughIds?: ReadonlySet<string>;
 };
 
 function duplicateValues(values: readonly string[]): Set<string> {
@@ -90,6 +91,9 @@ export function validateGuideRegistry(
     }
     if (record.status === "retired" && record.replacedBy && !ids.has(record.replacedBy)) {
       issues.push({ code: "missing-replacement", guideId: record.id, message: `Replacement guide does not exist: ${record.replacedBy}` });
+    }
+    if (record.status === "published" && record.walkthroughId && options.validWalkthroughIds && !options.validWalkthroughIds.has(record.walkthroughId)) {
+      issues.push({ code: "missing-walkthrough", guideId: record.id, message: `Published guide walkthrough does not exist: ${record.walkthroughId}` });
     }
     if (options.validActionIds) {
       for (const actionId of record.actionIds ?? []) {

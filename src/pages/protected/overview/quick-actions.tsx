@@ -58,6 +58,7 @@ export function QuickActionsRow() {
   return (
     <section
       aria-label="Quick actions"
+      data-guide="overview.quick-actions"
       className="rounded-2xl border border-slate-200/75 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.035)] sm:p-5"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

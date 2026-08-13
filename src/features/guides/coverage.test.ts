@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildGuideCoverageReport, type GuideCoverageTarget } from "./coverage";
 import { GUIDE_REGISTRY } from "./registry";
+import { WALKTHROUGH_REGISTRY } from "./walkthroughs/registry";
 
 describe("guide coverage reporting", () => {
   it("distinguishes covered targets from missing guides", () => {
@@ -41,5 +42,16 @@ describe("guide coverage reporting", () => {
     ];
 
     expect(buildGuideCoverageReport(GUIDE_REGISTRY, targets).gaps).toEqual([]);
+  });
+
+  it("does not count a planned walkthrough ID as an implemented engine definition", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "school-setup", route: "/school-management/create", risk: "high" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([{ targetId: "school-setup", kind: "missing-walkthrough-or-reason" }]);
   });
 });

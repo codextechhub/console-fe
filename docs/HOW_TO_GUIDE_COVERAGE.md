@@ -111,3 +111,20 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
   `product_area`, and `app_version`: built with backend validation and storage.
 - Unknown metadata keys and record-bearing live URLs are rejected by the backend.
 - Ticket detail shows the safe product context to authorized ticket participants.
+
+## F6 implementation record
+
+- A typed walkthrough registry and validator now enforce guide relations, stable
+  step IDs, route shape, versions, and branch destinations.
+- The runtime supports route-aware launch, branching, back and next controls,
+  pause and resume, completion, version invalidation, keyboard control, and
+  missing-target recovery without reading page values.
+- Progress stores only walkthrough ID, guide ID, version, current and completed
+  step IDs, and completion time. Direct and proxy sessions use separate identity
+  keys.
+- The published Console basics guide now launches a safe reference walkthrough
+  across quick actions, workspace search, and contextual help. It never submits
+  an action or changes business data.
+- Desktop uses a target-aligned coach mark. Phones use a full-width bottom sheet.
+- Planned high-risk category walkthroughs remain draft until their matching
+  articles and populated workflow verification ship in the category slices.
