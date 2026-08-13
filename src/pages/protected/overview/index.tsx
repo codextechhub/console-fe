@@ -72,18 +72,17 @@ function MetricCard({
     <Link
       to={to}
       title={note}
-      className="group flex min-w-0 items-center gap-2.5 rounded-xl border border-slate-200/75 bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.025)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[0_8px_20px_rgba(15,23,42,0.055)]"
+      className="group min-w-0 rounded-xl border border-slate-200/75 bg-white px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.025)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[0_8px_20px_rgba(15,23,42,0.055)]"
     >
-      <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg transition duration-200 group-hover:scale-105", tones[tone])}>
-        <Icon className="size-3.5" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-lg font-semibold leading-none tracking-[-0.025em] text-black-01 tabular-nums">
-          {loading ? <Shimmer className="my-0.5 h-4 w-10" /> : value}
-        </p>
-        <p className="mt-1 truncate text-[11px] font-medium leading-4 text-slate-500">{label}</p>
+      <div className="flex min-w-0 items-center gap-2">
+        <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg transition duration-200 group-hover:scale-105", tones[tone])}>
+          <Icon className="size-3.5" />
+        </span>
+        <p className="min-w-0 flex-1 truncate text-[11px] font-medium leading-4 text-slate-500">{label}</p>
       </div>
-      <ArrowUpRight className="size-3.5 shrink-0 text-slate-300 transition duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
+      <p className="mt-1.5 min-w-0 truncate text-lg font-semibold leading-none tracking-[-0.025em] text-black-01 tabular-nums">
+        {loading ? <Shimmer className="my-0.5 h-4 w-10" /> : value}
+      </p>
     </Link>
   );
 }
@@ -104,21 +103,16 @@ export default function Overview() {
   const overview = overviewRes?.data;
   const revealed = !isLoading;
 
-  // Sections the caller may not see are absent from the response rather than
-  // zeroed. The cards are gated on the same permission keys the backend checks,
-  // so an absent section never renders as a real 0.
   const taskStats = overview?.tasks?.stats;
   const returnedCount = overview?.submissions.returned ?? 0;
   const approvalsCount = overview?.approvals.pending ?? 0;
 
-  // Built once and rendered by both the phone rail and the desktop grid, so the
-  // two presentations can never drift apart.
   const metricCards = [
     canViewSchools && (
       <MetricCard key="schools" icon={School} label="Active schools" value={overview?.schools?.active ?? 0} note="Currently active on the platform" to={R.SCHOOL_MGT.INDEX} loading={!revealed} />
     ),
     canViewTeam && (
-      <MetricCard key="team" icon={Users} label="CX team members" value={overview?.team?.total ?? 0} note="People in your admin workspace" to={R.TEAM_MGT.CX} tone="blue" loading={!revealed} />
+      <MetricCard key="team" icon={Users} label="CX team members" value={overview?.team?.total ?? 0} note="Active CX staff" to={R.TEAM_MGT.CX} tone="blue" loading={!revealed} />
     ),
     <MetricCard key="tasks" icon={ClipboardCheck} label="Open tasks" value={taskStats?.in_progress ?? 0} note={`${taskStats?.overdue ?? 0} overdue`} to={`${R.TODO.INDEX}?tab=mine`} tone="amber" loading={!revealed} />,
     <MetricCard key="approvals" icon={Workflow} label="Pending approvals" value={approvalsCount} note={`${returnedCount} returned to you`} to={R.WORKFLOW.APPROVALS} tone="green" loading={!revealed} />,
@@ -126,8 +120,6 @@ export default function Overview() {
       <MetricCard key="tickets" icon={LifeBuoy} label="Support tickets" value={overview?.tickets?.open ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={`${R.SUPPORT.INDEX}?status=OPEN`} tone="amber" loading={!revealed} />
     ),
     canViewHealth && (
-      // The one-word posture fits the compact tile; the full sentence label
-      // ("All systems operational") moves to the tooltip with the incident count.
       <MetricCard key="health" icon={Activity} label="System posture" value={overview?.health ? ({ operational: "Normal", warning: "Warning", critical: "Critical" }[overview.health.overall] ?? overview.health.overall) : "Unknown"} note={`${overview?.health?.label ?? "Unknown"} - ${overview?.health?.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={!revealed} />
     ),
   ].filter(Boolean) as React.ReactElement[];
@@ -215,7 +207,6 @@ export default function Overview() {
           <div className="mb-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary/70">At a glance</p>
             <h2 className="mt-1 text-lg font-semibold tracking-tight">Platform overview</h2>
-            <p className="mt-1 text-xs text-gray-400">A live view of the administration areas you can access.</p>
           </div>
           <div className={cn("grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6", revealed && "reveal-in")}>
             {metricCards}

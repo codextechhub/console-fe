@@ -21,7 +21,7 @@ export default function ConsoleBasicsArticle() {
 
       <GuideSection id="find-your-way-around" title="Find your way around">
         <GuideSteps>
-          <GuideStep title="Start from Home">Use Home to see work that needs attention, quick actions, important signals, metrics, and recently opened records.</GuideStep>
+          <GuideStep title="Start from Home">Use Home to see work that needs attention, quick actions, important signals, and recently opened records. Today&apos;s focus stays compact until you hover over it or select Maximize.</GuideStep>
           <GuideStep title="Choose an area from the sidebar">The main sidebar groups platform work such as schools, users, workflow, audit, and support. Finance and Procurement open their own focused consoles.</GuideStep>
           <GuideStep title="Use the page header">The header shows the current page, back navigation when available, workspace search, notifications, support, and your account menu.</GuideStep>
         </GuideSteps>
@@ -51,7 +51,7 @@ export default function ConsoleBasicsArticle() {
 
       <GuideSection id="attention-and-notifications" title="Attention and notifications">
         <GuideChecklist items={[
-          "Review the Home worklist for your assigned tasks and approvals.",
+          "Hover over Today's focus for a quick look, or select Maximize to keep your assigned tasks and approvals open.",
           "Use Action needed signals for operational or financial issues.",
           "Open the notification bell for recent updates.",
           "Use Pick up where you left off to return to recent records.",

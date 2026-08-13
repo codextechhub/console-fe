@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Link } from "react-router";
 import {
   ChevronRight,
+  Minimize2,
+  Maximize2,
   ClipboardCheck,
   CornerUpLeft,
   FileClock,
@@ -141,6 +144,8 @@ function taskDeadline(value: string): string {
  * absent; a fully clear day renders nothing at all - the hero already says so.
  */
 export function ActionCenter({ overview }: { overview: ConsoleOverview | undefined }) {
+  const [pinnedOpen, setPinnedOpen] = useState(false);
+  const [hoveredOpen, setHoveredOpen] = useState(false);
   const rows = buildActionRows(overview);
 
   const allApprovalItems = overview?.approvals.items ?? [];
@@ -157,24 +162,62 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
     approvals.length > 0 || covering.length > 0 || returned.length > 0 || tasks.length > 0;
   if (rows.length === 0 && !hasQueues) return null;
 
+  const queueCount = [approvals.length, covering.length, returned.length, tasks.length]
+    .filter((count) => count > 0).length;
+  const summary = [
+    rows.length > 0 ? `${rows.length} signal${rows.length === 1 ? "" : "s"}` : null,
+    queueCount > 0 ? `${queueCount} work queue${queueCount === 1 ? "" : "s"}` : null,
+  ].filter(Boolean).join(" · ");
+  const expanded = pinnedOpen || hoveredOpen;
+
   return (
     <section
       aria-label="Action needed"
+      onMouseEnter={() => setHoveredOpen(true)}
+      onMouseLeave={() => setHoveredOpen(false)}
       className="rounded-2xl border border-slate-200/75 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.035)] sm:p-5"
     >
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-600">Today&apos;s focus</p>
-          <h2 className="mt-1 text-lg font-semibold tracking-tight">Action needed</h2>
-          <p className="mt-1 text-xs text-gray-400">Everything waiting on you, most urgent first.</p>
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="min-w-0 flex-1 sm:flex sm:items-center sm:gap-3">
+          <div className="flex min-w-0 items-baseline gap-2">
+            <p className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-600">Today&apos;s focus</p>
+            <h2 className="truncate text-sm font-semibold tracking-tight sm:text-base">Action needed</h2>
+          </div>
+          <p className="hidden truncate text-[11px] text-gray-400 sm:block sm:border-l sm:border-slate-200 sm:pl-3">{summary}</p>
         </div>
-        <span className="inline-flex shrink-0 items-center rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
-          Priority view
-        </span>
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls="overview-action-details"
+          onClick={() => {
+            if (pinnedOpen) {
+              setPinnedOpen(false);
+              setHoveredOpen(false);
+              return;
+            }
+            setPinnedOpen(true);
+          }}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:border-primary/25 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+        >
+          {pinnedOpen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+          <span className="hidden sm:inline">{pinnedOpen ? "Minimize" : "Maximize"}</span>
+        </button>
       </div>
 
-      {rows.length > 0 && (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+      <div
+        id="overview-action-details"
+        aria-hidden={!expanded}
+        inert={!expanded}
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none",
+          expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <p className="mb-4 mt-3 text-xs text-gray-400">Everything waiting on you, most urgent first.</p>
+
+          {rows.length > 0 && (
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map(({ key, icon: Icon, title, stat, message, to, severity }) => (
             <Link
               key={key}
@@ -195,11 +238,11 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
               <ChevronRight className="size-4 shrink-0 text-gray-300 group-hover:text-gray-500" />
             </Link>
           ))}
-        </div>
-      )}
+            </div>
+          )}
 
-      {hasQueues && (
-        <div className={cn("grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3", rows.length > 0 && "mt-3")}>
+          {hasQueues && (
+            <div className={cn("grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3", rows.length > 0 && "mt-3")}>
           {approvals.length > 0 && (
             <QueueBox
               icon={FileClock}
@@ -340,8 +383,10 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
               ))}
             </QueueBox>
           )}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </section>
   );
 }
