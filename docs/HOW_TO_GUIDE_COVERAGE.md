@@ -58,3 +58,15 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - Coverage report helper and contract tests: built.
 - Visible guide pages, articles, search, contextual help, and walkthrough engine: not
   part of F1 and remain scheduled in F2 through F6.
+
+## F2 completion record
+
+- Responsive guide homepage and friendly `/how-to-guide` alias: built.
+- Permission-aware category, audience, popular-task, and recent-review discovery:
+  built.
+- URL-backed category and audience filters with safe empty states: built.
+- Support Centre self-service guide entry point: built.
+- Real-backend desktop, 390px phone, and 820px tablet rendering: verified on
+  2026-08-13 with no page-level overflow or error boundary.
+- Published article navigation: deliberately remains disabled until the F3 renderer
+  and first published article exist.

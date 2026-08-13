@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "guides:check": "vitest run src/features/guides/validate.test.ts src/features/guides/coverage.test.ts"
+    "guides:check": "vitest run src/features/guides"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

@@ -4,7 +4,7 @@
 // (phone cards + pagination), Dialog, Badge.
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { BookOpenText, Plus } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -95,9 +95,14 @@ export default function Support() {
               Track requests, collaborate with support and resolve issues faster.
             </p>
           </div>
-          <Button size="lg" onClick={() => setCreating(true)}>
-            <Plus /> Create Ticket
-          </Button>
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+            <Button asChild size="lg" variant="outline" className="flex-1 sm:flex-none">
+              <Link to={routesPath.PROTECTED.SUPPORT.GUIDES}><BookOpenText /> How-to guides</Link>
+            </Button>
+            <Button size="lg" onClick={() => setCreating(true)} className="flex-1 sm:flex-none">
+              <Plus /> Create Ticket
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-6">

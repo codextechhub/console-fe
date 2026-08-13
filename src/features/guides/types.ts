@@ -58,6 +58,7 @@ type GuideRecordBase = {
   reviewedAt: string;
   productVersion?: string;
   risk: GuideRisk;
+  featured?: boolean;
 };
 
 export type GuideRecord = GuideRecordBase & (

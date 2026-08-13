@@ -23,6 +23,7 @@ export const GUIDE_REGISTRY = [
     owner: OWNER,
     reviewedAt: REVIEWED_AT,
     risk: "low",
+    featured: true,
     status: "draft",
   },
   {
@@ -41,6 +42,7 @@ export const GUIDE_REGISTRY = [
     owner: OWNER,
     reviewedAt: REVIEWED_AT,
     risk: "high",
+    featured: true,
     status: "draft",
   },
   {
@@ -59,6 +61,7 @@ export const GUIDE_REGISTRY = [
     owner: OWNER,
     reviewedAt: REVIEWED_AT,
     risk: "high",
+    featured: true,
     status: "draft",
   },
   {
@@ -94,6 +97,7 @@ export const GUIDE_REGISTRY = [
     owner: OWNER,
     reviewedAt: REVIEWED_AT,
     risk: "high",
+    featured: true,
     status: "draft",
   },
   {
@@ -112,6 +116,7 @@ export const GUIDE_REGISTRY = [
     owner: OWNER,
     reviewedAt: REVIEWED_AT,
     risk: "high",
+    featured: true,
     status: "draft",
   },
   {
@@ -130,6 +135,7 @@ export const GUIDE_REGISTRY = [
     owner: OWNER,
     reviewedAt: REVIEWED_AT,
     risk: "high",
+    featured: true,
     status: "draft",
   },
   {
@@ -148,6 +154,7 @@ export const GUIDE_REGISTRY = [
     owner: OWNER,
     reviewedAt: REVIEWED_AT,
     risk: "high",
+    featured: true,
     status: "draft",
   },
   {

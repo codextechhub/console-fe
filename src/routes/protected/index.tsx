@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { type RouteObject } from "react-router";
+import { Navigate, type RouteObject } from "react-router";
 // EAGER on purpose. The shell (sidebar, header, session hooks) is a LAYOUT
 // ROUTE above every protected page, so it ships in the entry bundle and paints
 // the moment the app boots. Previously each page imported it, which made it a
@@ -30,6 +30,7 @@ const NotificationsAdmin = lazy(() => import("@/pages/protected/notifications/ad
 const Settings = lazy(() => import("@/pages/protected/settings"));
 const Support = lazy(() => import("@/pages/protected/support"));
 const TicketDetail = lazy(() => import("@/pages/protected/support/detail"));
+const HowToGuides = lazy(() => import("@/pages/protected/support/guides"));
 
 export const protectedRoutes = [
   {
@@ -46,6 +47,8 @@ export const protectedRoutes = [
       // Starts at "Support"; the page swaps in the ticket number once the
       // ticket loads (useDashboardTitle) - exactly the old behaviour.
       { path: routesPath.PROTECTED.SUPPORT.DETAIL_PATH, element: <TicketDetail />, handle: { title: "Support" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.SUPPORT.GUIDES, element: <HowToGuides />, handle: { title: "How-to Guide" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.SUPPORT.GUIDE_ALIAS, element: <Navigate replace to={routesPath.PROTECTED.SUPPORT.GUIDES} />, handle: { title: "How-to Guide" } satisfies DashboardHandle },
       ...overviewRoutes,
       ...schoolRoutes,
       ...teamMgtRoutes,

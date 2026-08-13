@@ -21,7 +21,17 @@ export const routesPath = {
     NOTIFICATIONS: "/notifications",
     NOTIFICATIONS_ADMIN: "/notifications/admin",
     SETTINGS: { INDEX: "/settings" },
-    SUPPORT: { INDEX: "/support", TICKETS: "/support/tickets", NEW: "/support/tickets/new", DETAIL_PATH: "/support/tickets/:id", DETAIL: (id:string)=>`/support/tickets/${id}` },
+    SUPPORT: {
+      INDEX: "/support",
+      TICKETS: "/support/tickets",
+      NEW: "/support/tickets/new",
+      DETAIL_PATH: "/support/tickets/:id",
+      DETAIL: (id:string)=>`/support/tickets/${id}`,
+      GUIDES: "/support/guides",
+      GUIDE_DETAIL_PATH: "/support/guides/:slug",
+      GUIDE_DETAIL: (slug: string) => `/support/guides/${encodeURIComponent(slug)}`,
+      GUIDE_ALIAS: "/how-to-guide",
+    },
     HEALTH: { INDEX:"/health", UPTIME:"/health/uptime", API:"/health/api-endpoints", JOBS:"/health/jobs", INCIDENTS:"/health/incidents", TENANTS:"/health/tenants", SLOS:"/health/slos", PROVIDER_WEBHOOKS:"/health/provider-webhooks" },
     SCHOOL_MGT: {
       INDEX: "/school-management",
