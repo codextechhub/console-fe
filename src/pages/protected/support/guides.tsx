@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import {
+  ArrowLeft,
   ArrowRight,
   BookOpenText,
   CheckCircle2,
@@ -66,6 +67,8 @@ export default function HowToGuides() {
   const audience = GUIDE_ROLE_ENTRY_POINTS.some((candidate) => candidate.id === audienceParam)
     ? audienceParam as GuideAudience
     : null;
+  const selectedCategory = GUIDE_CATEGORIES.find((candidate) => candidate.id === category) ?? null;
+  const selectedAudience = GUIDE_ROLE_ENTRY_POINTS.find((candidate) => candidate.id === audience) ?? null;
   const permitted = useMemo(() => visibleGuides(GUIDE_REGISTRY, permissions), [permissions]);
   const audienceGuides = useMemo(() => guidesForAudience(permitted, audience), [audience, permitted]);
   const normalizedQuery = query.trim();
@@ -97,7 +100,7 @@ export default function HowToGuides() {
     setParams(next, { replace: true });
   };
 
-  const showBrowseResults = Boolean(category || audience || normalizedQuery);
+  const showSeparateResults = Boolean((audience || normalizedQuery) && !category);
 
   const handleSearchNavigation = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Escape") {
@@ -224,7 +227,47 @@ export default function HowToGuides() {
         </div>
       </section>
 
-      {!showBrowseResults && popular.length > 0 && (
+      <section aria-labelledby="category-heading">
+        {selectedCategory ? (
+          <CategoryGuideResults
+            category={selectedCategory}
+            guides={filtered}
+            audienceLabel={selectedAudience?.label}
+            queryActive={Boolean(normalizedQuery)}
+            activeGuideIndex={activeGuideIndex}
+            onActivateGuide={setActiveResult}
+            onBack={() => selectParam("category", null)}
+          />
+        ) : (
+          <>
+            <SectionHeading id="category-heading" title="Browse by area" subtitle="Choose an area to see its guides here without losing your place." />
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {GUIDE_CATEGORIES.map((item) => {
+                const Icon = CATEGORY_ICONS[item.id];
+                const count = permitted.filter((guide) => guide.category === item.id).length;
+                return (
+                  <button
+                    type="button"
+                    key={item.id}
+                    onClick={() => selectParam("category", item.id)}
+                    className="group min-w-0 rounded-2xl border border-gray-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-gray-100 text-gray-700 transition group-hover:bg-primary/10 group-hover:text-primary"><Icon className="size-5" /></div>
+                      <ChevronRight className="size-4 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-primary" />
+                    </div>
+                    <p className="mt-3 text-sm font-semibold">{item.title}</p>
+                    <p className="mt-1 text-xs leading-5 text-gray-01">{item.description}</p>
+                    <p className="mt-3 text-[11px] font-medium text-gray-01">{count ? `${count} available` : "Coming in its category release"}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </section>
+
+      {!audience && !normalizedQuery && popular.length > 0 && (
         <section aria-labelledby="popular-heading">
           <SectionHeading id="popular-heading" title="Popular tasks" subtitle="Start with the work people need most often." />
           <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -233,34 +276,7 @@ export default function HowToGuides() {
         </section>
       )}
 
-      <section aria-labelledby="category-heading">
-        <SectionHeading id="category-heading" title="Browse by area" subtitle="The complete guide follows the same areas as Console." />
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {GUIDE_CATEGORIES.map((item) => {
-            const Icon = CATEGORY_ICONS[item.id];
-            const count = permitted.filter((guide) => guide.category === item.id).length;
-            const selected = category === item.id;
-            return (
-              <button
-                type="button"
-                key={item.id}
-                onClick={() => selectParam("category", selected ? null : item.id)}
-                className={`group min-w-0 rounded-2xl border p-4 text-left transition ${selected ? "border-primary bg-primary/[0.05] ring-3 ring-primary/10" : "border-gray-200 bg-white hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-gray-100 text-gray-700 transition group-hover:bg-primary/10 group-hover:text-primary"><Icon className="size-5" /></div>
-                  <ChevronRight className="size-4 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-primary" />
-                </div>
-                <p className="mt-3 text-sm font-semibold">{item.title}</p>
-                <p className="mt-1 text-xs leading-5 text-gray-01">{item.description}</p>
-                <p className="mt-3 text-[11px] font-medium text-gray-01">{count ? `${count} available` : "Coming in its category release"}</p>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {showBrowseResults && (
+      {showSeparateResults && (
         <section aria-live="polite" aria-labelledby="results-heading">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <SectionHeading id="results-heading" title="Guide results" subtitle={`${filtered.length} guide${filtered.length === 1 ? "" : "s"} available for these filters.`} />
@@ -293,7 +309,7 @@ export default function HowToGuides() {
         </section>
       )}
 
-      {!showBrowseResults && recent.length > 0 && (
+      {!category && !audience && !normalizedQuery && recent.length > 0 && (
         <section aria-labelledby="recent-heading">
           <SectionHeading id="recent-heading" title="Recently reviewed" subtitle="Guidance checked against the current Console behaviour." />
           <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -310,6 +326,66 @@ export default function HowToGuides() {
         <Button asChild className="w-full shrink-0 sm:w-auto"><Link to={routesPath.PROTECTED.SUPPORT.NEW}>Create support ticket</Link></Button>
       </section>
     </main>
+  );
+}
+
+function CategoryGuideResults({
+  category,
+  guides,
+  audienceLabel,
+  queryActive,
+  activeGuideIndex,
+  onActivateGuide,
+  onBack,
+}: {
+  category: (typeof GUIDE_CATEGORIES)[number];
+  guides: GuideRecord[];
+  audienceLabel?: string;
+  queryActive: boolean;
+  activeGuideIndex: number;
+  onActivateGuide: (index: number) => void;
+  onBack: () => void;
+}) {
+  const Icon = CATEGORY_ICONS[category.id];
+  const filterContext = [audienceLabel, queryActive ? "your search" : null].filter(Boolean).join(" and ");
+
+  return (
+    <div aria-live="polite" className="rounded-3xl border border-primary/15 bg-primary/[0.025] p-4 sm:p-6">
+      <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-01 hover:text-primary">
+        <ArrowLeft className="size-3.5" /> Back to all areas
+      </button>
+      <div className="mt-4 flex min-w-0 items-start gap-3">
+        <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Icon className="size-5" /></div>
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary">Selected area</p>
+          <h2 id="category-heading" className="mt-1 font-mont text-xl font-semibold sm:text-2xl">{category.title}</h2>
+          <p className="mt-1 text-sm leading-6 text-gray-01">{category.description}</p>
+          <p className="mt-2 text-xs font-medium text-gray-01">
+            {guides.length} guide{guides.length === 1 ? "" : "s"}{filterContext ? ` matching ${filterContext}` : " in this area"}
+          </p>
+        </div>
+      </div>
+
+      {guides.length ? (
+        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {guides.map((guide, index) => (
+            <GuideCard
+              key={guide.id}
+              guide={guide}
+              resultIndex={queryActive ? index : undefined}
+              active={queryActive && index === activeGuideIndex}
+              onActivate={() => onActivateGuide(index)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-5 rounded-2xl border border-dashed border-gray-200 bg-white px-5 py-8 text-center">
+          <BookOpenText className="mx-auto size-8 text-gray-300" />
+          <p className="mt-3 text-sm font-semibold">No available guide matches here</p>
+          <p className="mx-auto mt-1 max-w-lg text-xs leading-5 text-gray-01">Clear the search or role filter, or return to all areas to browse somewhere else.</p>
+        </div>
+      )}
+    </div>
   );
 }
 

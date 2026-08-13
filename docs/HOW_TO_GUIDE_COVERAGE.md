@@ -141,6 +141,10 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
   route-aware submenu destinations.
 - Guide search shows immediate keyboard-accessible suggestions and matches partial
   words in any order across titles, aliases, tags, summaries, and section names.
+- Category selection replaces the category grid in place with a named, focused
+  result panel and a clear return action, avoiding disorienting mobile page jumps.
+- Browse by area appears before Popular tasks so category discovery and its
+  focused result state stay near the top of the guide page on small screens.
 - Activation and password recovery use the exact current public-screen labels,
   password policy, completion states, and expired-link recovery.
 - Auth walkthroughs are deliberately not provided. These tasks happen before
