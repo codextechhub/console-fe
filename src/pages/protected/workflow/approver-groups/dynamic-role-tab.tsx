@@ -350,14 +350,19 @@ export default function DynamicRoleTab() {
                               override.approver_role_key
                             : override.approver_group_code}
                         </span>{" "}
-                        instead. The shared rules below still decide everything else, and
-                        removing the override restores them.
+                        instead, so the rules below no longer apply here. How many
+                        approvals are needed, what happens on rejection, and where the
+                        request goes next still come from the shared template. Remove the
+                        override and the rules take over again.
                       </>
                     ) : (
                       <>
-                        These rules were published centrally. Each tenant resolves the
-                        named roles against its own people, so repointing the approver
-                        here changes it for this tenant only.
+                        These rules were published centrally, and they stay read-only
+                        here. Saving a change would not update the shared version, it
+                        would create a copy for this tenant only, and later changes to the
+                        original would stop reaching you. Repointing the approver changes
+                        who approves this step for this tenant, and keeps the shared rules
+                        intact.
                       </>
                     )}
                   </p>
@@ -544,7 +549,7 @@ export default function DynamicRoleTab() {
                 Evaluated top to bottom. The first rule that matches picks the role; its
                 current holders become that step's approvers.{" "}
                 {selected.isCentral
-                  ? "These rules belong to a shared template, so they are read-only here - repoint the step above to change who approves it for this tenant."
+                  ? "These rules belong to a shared template, so they are read-only here."
                   : "Editing them here republishes this template; the rest of it is resent exactly as it stands."}
               </p>
             </>
@@ -666,8 +671,9 @@ function OverrideSheet({
             Repoint “{stageLabel}”
           </SheetTitle>
           <SheetDescription className="text-xs text-gray-01">
-            Only who approves changes. The advance rule, rejection policy and routing stay
-            with the shared template.
+            This replaces the whole ladder for this step, in this tenant only: every
+            request reaching it goes to whoever you pick here, whatever the amount. The
+            advance rule, rejection policy and routing stay with the shared template.
           </SheetDescription>
         </SheetHeader>
 
