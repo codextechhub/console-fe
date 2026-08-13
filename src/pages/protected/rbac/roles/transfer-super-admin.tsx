@@ -116,7 +116,7 @@ export default function TransferSuperAdmin() {
         </div>
 
         {/* ── Warning callout ─────────────────────────────────────────────── */}
-        <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3.5">
+        <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3.5" data-guide="super-admin-transfer.warning">
           <ShieldAlert className="size-5 text-destructive shrink-0 mt-0.5" />
           <div className="space-y-1 text-xs text-destructive">
             <p className="font-semibold">This is a one-way action.</p>
@@ -129,7 +129,7 @@ export default function TransferSuperAdmin() {
         </div>
 
         {/* ── Current super admin ─────────────────────────────────────────── */}
-        <section className="rounded-md bg-white border border-white-02 p-5">
+        <section className="rounded-md bg-white border border-white-02 p-5" data-guide="super-admin-transfer.current-owner">
           <p className="text-xs uppercase tracking-wide text-gray-01 font-mont mb-3">
             Current super admin
           </p>
@@ -165,7 +165,7 @@ export default function TransferSuperAdmin() {
         </section>
 
         {/* ── Transfer form ───────────────────────────────────────────────── */}
-        <section className="rounded-md bg-white border border-white-02 p-5 space-y-4">
+        <section className="rounded-md bg-white border border-white-02 p-5 space-y-4" data-guide="super-admin-transfer.successor">
           <div>
             <p className="text-xs uppercase tracking-wide text-gray-01 font-mont">
               Choose new super admin

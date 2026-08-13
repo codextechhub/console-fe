@@ -24,8 +24,10 @@ function scoreGuide(guide: GuideRecord, query: string): Pick<ScoredGuide, "match
 
   const title = normalize(guide.title);
   const aliases = guide.aliases.map(normalize);
+  const sections = guide.sections?.map((section) => normalize(section.title)) ?? [];
   if (title === normalizedQuery) return { matchKind: "title", score: 400 };
   if (aliases.includes(normalizedQuery)) return { matchKind: "alias", score: 350 };
+  if (sections.includes(normalizedQuery)) return { matchKind: "content", score: 330 };
 
   const category = GUIDE_CATEGORIES.find((candidate) => candidate.id === guide.category);
   const weightedFields = [
@@ -65,12 +67,13 @@ function scoreGuide(guide: GuideRecord, query: string): Pick<ScoredGuide, "match
 /** Rank guide metadata without exposing records that the caller has filtered out. */
 export function searchGuides(guides: readonly GuideRecord[], query: string, limit?: number): ScoredGuide[] {
   const ranked = guides
-    .map((guide) => {
+    .map((guide, registryOrder) => {
       const match = scoreGuide(guide, query);
-      return match ? { guide, ...match } : null;
+      return match ? { guide, ...match, registryOrder } : null;
     })
-    .filter((result): result is ScoredGuide => result !== null)
-    .sort((a, b) => b.score - a.score || a.guide.title.localeCompare(b.guide.title));
+    .filter((result): result is ScoredGuide & { registryOrder: number } => result !== null)
+    .sort((a, b) => b.score - a.score || a.registryOrder - b.registryOrder)
+    .map((result) => ({ guide: result.guide, matchKind: result.matchKind, score: result.score }));
 
   return limit == null ? ranked : ranked.slice(0, Math.max(0, limit));
 }

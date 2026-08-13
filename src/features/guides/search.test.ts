@@ -69,6 +69,18 @@ describe("guide search", () => {
     );
   });
 
+  it("finds roles and permission tasks using access language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "change role")[0]?.guide.id).toBe(
+      "roles.create-and-assign",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "transfer super admin")[0]?.guide.id).toBe(
+      "roles.review-changes-and-transfer-super-admin",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "add dependency")[0]?.guide.id).toBe(
+      "roles.maintain-permission-catalogue",
+    );
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

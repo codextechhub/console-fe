@@ -202,7 +202,7 @@ export default function CreatePermission() {
             return (
               <Form className="space-y-5">
                 <div className="bg-white rounded-md p-6 space-y-5">
-                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3" data-guide="permission-create.key">
                     Permission Key
                   </h2>
 
@@ -271,7 +271,7 @@ export default function CreatePermission() {
                 </div>
 
                 <div className="bg-white rounded-md p-6 space-y-5">
-                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3" data-guide="permission-create.classification">
                     Details & Classification
                   </h2>
 

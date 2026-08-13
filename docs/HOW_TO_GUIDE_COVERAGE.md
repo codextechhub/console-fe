@@ -14,8 +14,9 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Schools and users | Create and configure a school | `schools.create-and-configure` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains each decision boundary and never fills, advances, or submits the form |
 | Schools and users | Manage schools and branches | `schools.manage-schools-and-branches` | Medium | Published | Not required | Console product team | 2026-08-13 | List, detail, and single-record edit tasks are fully covered by the article and do not need cross-screen automation |
 | Schools and users | Invite and manage CX or school users | `schools.invite-and-manage-users` | Medium | Published | Not required | Console product team | 2026-08-13 | The article covers approval, invitation, profile, and access states; consequential status actions remain explicit user actions |
-| Roles and permissions | Create and assign a role | `roles.create-and-assign` | High | Draft | Planned | Console product team | 2026-08-13 | Content and targets start in C3 |
-| Roles and permissions | Maintain the permission catalogue and groups | Planned in C3 | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
+| Roles and permissions | Create and assign a role | `roles.create-and-assign` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains role composition and stops before role creation, assignment, change, or revocation |
+| Roles and permissions | Review permission changes and transfer Super Admin | `roles.review-changes-and-transfer-super-admin` | High | Published | Published | Console product team | 2026-08-13 | Ownership walkthrough verifies the current owner, successor, and immediate effect, then stops before transfer and confirmation |
+| Roles and permissions | Maintain the permission catalogue and groups | `roles.maintain-permission-catalogue` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains key composition and backend enforcement, then stops before permission creation or downstream catalogue changes |
 | Roles and permissions | Diagnose missing access | `troubleshooting.permission-denied` | Medium | Draft | Not required | Console product team | 2026-08-13 | Content starts in C12 |
 | Organogram and tasks | Build the organogram | `organogram.build-structure` | Medium | Draft | Planned | Console product team | 2026-08-13 | Walkthrough decision finalizes in C4 |
 | Organogram and tasks | Maintain staff profiles | Planned in C4 | Medium | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
@@ -170,3 +171,23 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - Lower-risk school-list, branch, and user-management tasks use exact articles and
   contextual help. Their state-changing actions remain deliberate user actions, so
   additional walkthroughs are not required for C2.
+
+## C3 completion record
+
+- Roles and permissions now publishes three task guides: create and assign roles,
+  review permission changes and transfer Super Admin, and maintain the permission
+  catalogue and groups.
+- Role guidance covers permission groups, individual permissions, active status,
+  multiple assignments, safe replacement, written revocation reasons, and the
+  separate ownership path for Super Admin.
+- Change-request guidance covers ADD and REMOVE deltas, justification, reviewer
+  decisions, applied and failed states, dependency checks, and audit notes.
+- Catalogue guidance covers modules, resources, actions, composed keys,
+  sensitivity, restricted status, dependencies, groups, and the requirement for
+  backend authorization and tenant or entity scoping.
+- Three high-risk walkthroughs explain role composition, Super Admin transfer, and
+  permission creation. They never select permissions, create or assign roles,
+  approve changes, transfer ownership, create catalogue records, or bypass a
+  confirmation or authorization check.
+- Missing-access diagnosis remains linked to the planned troubleshooting article
+  and is completed in C12, where cross-category recovery guidance is audited.

@@ -54,4 +54,17 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts implemented high-risk roles walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "role-setup", route: "/roles/create", actionId: "create-role", risk: "high" },
+      { id: "permission-setup", route: "/permissions/create", actionId: "create-permission", risk: "high" },
+      { id: "super-admin-transfer", route: "/roles/transfer-super-admin", actionId: "transfer-super-admin", risk: "high" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

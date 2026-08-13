@@ -26,6 +26,14 @@ describe("contextual guides", () => {
 
     const users = contextualGuideContext(GUIDE_REGISTRY, "/users/cx", ["platform.team.view"]);
     expect(users.guides.map((guide) => guide.id)).toEqual(["schools.invite-and-manage-users"]);
+
+    const roleCreate = contextualGuideContext(GUIDE_REGISTRY, "/roles/create", [
+      "platform.roles.view", "platform.roles.create", "platform.roles.assign",
+    ]);
+    expect(roleCreate.guides.map((guide) => guide.id)).toEqual(["roles.create-and-assign"]);
+
+    const permissionCreate = contextualGuideContext(GUIDE_REGISTRY, "/permissions/create", ["platform.permissions.create"]);
+    expect(permissionCreate.guides.map((guide) => guide.id)).toEqual(["roles.maintain-permission-catalogue"]);
   });
 
   it("resolves the current article by slug", () => {
