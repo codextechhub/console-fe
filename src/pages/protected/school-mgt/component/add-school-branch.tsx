@@ -69,7 +69,7 @@ export default function AddSchoolBranch({ defaultValues, onNext }: Props) {
   return (
     <div className="max-w-235 mt-5">
       <div className="mb-7 space-y-1.5">
-        <h4 className="font-medium text-xl text-black-01">Add Branch</h4>
+        <h4 className="font-medium text-xl text-black-01" data-guide="school-create.current-step">Add Branch</h4>
         <p className="text-gray-01 font-mont text-xs">
           Add at least one branch for the school. Exactly one must be set as the main branch.
         </p>

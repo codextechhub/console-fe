@@ -18,8 +18,14 @@ describe("contextual guides", () => {
     const overview = contextualGuideContext(GUIDE_REGISTRY, "/overview", []);
     expect(overview.guides.map((guide) => guide.id)).toEqual(["getting-started.console-basics"]);
 
-    const school = contextualGuideContext(GUIDE_REGISTRY, "/school-management/create", []);
-    expect(school.guides).toEqual([]);
+    const school = contextualGuideContext(GUIDE_REGISTRY, "/school-management/create", ["platform.schools.create"]);
+    expect(school.guides.map((guide) => guide.id)).toEqual(["schools.create-and-configure"]);
+
+    const schoolList = contextualGuideContext(GUIDE_REGISTRY, "/school-management", ["platform.schools.view"]);
+    expect(schoolList.guides.map((guide) => guide.id)).toEqual(["schools.manage-schools-and-branches"]);
+
+    const users = contextualGuideContext(GUIDE_REGISTRY, "/users/cx", ["platform.team.view"]);
+    expect(users.guides.map((guide) => guide.id)).toEqual(["schools.invite-and-manage-users"]);
   });
 
   it("resolves the current article by slug", () => {

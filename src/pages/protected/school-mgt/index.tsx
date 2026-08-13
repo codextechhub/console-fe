@@ -106,7 +106,7 @@ export default function SchoolManagement() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="lg">
-                  <Plus /> Add New School
+                  <span data-guide="school-management.add-school" className="inline-flex items-center gap-2"><Plus /> Add New School</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="border rounded-sm">

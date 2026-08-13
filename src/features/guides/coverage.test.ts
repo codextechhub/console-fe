@@ -44,7 +44,7 @@ describe("guide coverage reporting", () => {
     expect(buildGuideCoverageReport(GUIDE_REGISTRY, targets).gaps).toEqual([]);
   });
 
-  it("does not count a planned walkthrough ID as an implemented engine definition", () => {
+  it("counts the implemented school walkthrough definition", () => {
     const targets: GuideCoverageTarget[] = [
       { id: "school-setup", route: "/school-management/create", risk: "high" },
     ];
@@ -52,6 +52,6 @@ describe("guide coverage reporting", () => {
       GUIDE_REGISTRY,
       targets,
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
-    ).gaps).toEqual([{ targetId: "school-setup", kind: "missing-walkthrough-or-reason" }]);
+    ).gaps).toEqual([]);
   });
 });

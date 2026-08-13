@@ -23,7 +23,7 @@ export default function AddSchoolAdmin({ defaultValues, onNext }: Props) {
   return (
     <div className="max-w-235 mt-5">
       <div className="mb-7 space-y-1.5">
-        <h4 className="font-medium text-xl text-black-01">Create School Admin</h4>
+        <h4 className="font-medium text-xl text-black-01" data-guide="school-create.current-step">Create School Admin</h4>
         <p className="text-gray-01 font-mont text-xs">
           Add the primary administrator for this school.
         </p>

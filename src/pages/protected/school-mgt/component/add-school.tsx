@@ -39,7 +39,7 @@ export default function AddSchool({ defaultValues, onNext, onPrefill, generateTe
     <div className="max-w-235 mt-5">
       <div className="mb-7 space-y-1.5 flex items-start justify-between">
         <div className="space-y-1.5">
-          <h4 className="font-medium text-xl text-black-01">Add a New School</h4>
+          <h4 className="font-medium text-xl text-black-01" data-guide="school-create.current-step">Add a New School</h4>
           <p className="text-gray-01 font-mont text-xs">
             To add a new school fill all the compulsory questions below.
           </p>

@@ -57,6 +57,18 @@ describe("guide search", () => {
     );
   });
 
+  it("finds schools and users tasks using current interface language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "add new school")[0]?.guide.id).toBe(
+      "schools.create-and-configure",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "add branch")[0]?.guide.id).toBe(
+      "schools.manage-schools-and-branches",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "unlock user")[0]?.guide.id).toBe(
+      "schools.invite-and-manage-users",
+    );
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

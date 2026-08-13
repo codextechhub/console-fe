@@ -11,9 +11,9 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Getting started | Account activation and sign-in | `getting-started.activate-and-sign-in` | Medium | Published | Not required | Console product team | 2026-08-13 | Activation uses a personal email link, so an in-product walkthrough would be unavailable before sign-in and would risk exposing the link |
 | Getting started | Reset a forgotten password | `getting-started.reset-password` | Medium | Published | Not required | Console product team | 2026-08-13 | Recovery uses a personal email link, so an in-product walkthrough would be unavailable before sign-in and would risk exposing the link |
 | Getting started | Workspace search and quick actions | `getting-started.console-basics` | Low | Published | Published | Console product team | 2026-08-13 | Covered by the Console basics article and walkthrough |
-| Schools and users | Create and configure a school | `schools.create-and-configure` | High | Draft | Planned | Console product team | 2026-08-13 | Content and targets start in C2 |
-| Schools and users | Manage schools and branches | Planned in C2 | Medium | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
-| Schools and users | Invite and manage CX or school users | Planned in C2 | Medium | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
+| Schools and users | Create and configure a school | `schools.create-and-configure` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains each decision boundary and never fills, advances, or submits the form |
+| Schools and users | Manage schools and branches | `schools.manage-schools-and-branches` | Medium | Published | Not required | Console product team | 2026-08-13 | List, detail, and single-record edit tasks are fully covered by the article and do not need cross-screen automation |
+| Schools and users | Invite and manage CX or school users | `schools.invite-and-manage-users` | Medium | Published | Not required | Console product team | 2026-08-13 | The article covers approval, invitation, profile, and access states; consequential status actions remain explicit user actions |
 | Roles and permissions | Create and assign a role | `roles.create-and-assign` | High | Draft | Planned | Console product team | 2026-08-13 | Content and targets start in C3 |
 | Roles and permissions | Maintain the permission catalogue and groups | Planned in C3 | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
 | Roles and permissions | Diagnose missing access | `troubleshooting.permission-denied` | Medium | Draft | Not required | Console product team | 2026-08-13 | Content starts in C12 |
@@ -150,3 +150,23 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - Auth walkthroughs are deliberately not provided. These tasks happen before
   sign-in through personal email links, so a Console walkthrough cannot reach them
   safely and must not read or retain their tokens.
+
+## C2 completion record
+
+- Schools and users now publishes three task guides: create and configure a school,
+  manage schools and branches, and invite or manage CX and school users.
+- School onboarding covers the current four-step form, branch and administrator
+  invitations, module dependencies, capacity limits, completion state, and safe
+  recovery from validation or submission problems.
+- School and branch management covers status cards, debounced search, sort, detail
+  review, separate permission boundaries, branch creation, invite status, and
+  lifecycle checks.
+- User management covers CX and school scopes, Members, Invites, and Drafts, filters,
+  approval-before-invitation behaviour, organogram seats, staff-profile routing,
+  and controlled suspend, reactivate, and unlock actions.
+- The high-risk school-creation walkthrough uses one stable form target across its
+  steps. It never reads fields, advances the form, changes package access, submits
+  creation, or sends invitations.
+- Lower-risk school-list, branch, and user-management tasks use exact articles and
+  contextual help. Their state-changing actions remain deliberate user actions, so
+  additional walkthroughs are not required for C2.
