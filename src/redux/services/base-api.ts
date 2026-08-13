@@ -451,6 +451,7 @@ export const baseApi = createApi({
     "ImportValidationIssues",
     "ImportJobs",
     "WorkflowTemplates",
+    "WorkflowApproverGroups",
     "WorkflowInstances",
     "WorkflowDelegations",
     "WorkflowPending",

@@ -80,6 +80,12 @@ export interface WorkflowStage {
   approver_source: ApproverSource;
   approver_permission_key: string;
   approver_scope: ApproverScope;
+  /**
+   * Set when the stage resolves through a named approver group. Optional
+   * because templates published before groups existed carry neither field.
+   */
+  approver_group_code?: string | null;
+  approver_group_name?: string | null;
   organogram_target: OrganogramTarget | "";
   organogram_levels: number;
   organogram_position_code: string | null;
@@ -287,9 +293,96 @@ export interface DelegationWritePayload {
   reason?: string;
 }
 
+// ── Approver groups (the Workflow Approver screen) ───────────────────────────
+
+/** What one membership row points at. USER is static; ROLE/POSITION resolve live. */
+export type GroupMemberKind = "USER" | "ROLE" | "POSITION";
+
+/**
+ * One membership row as the group endpoints serialize it.
+ *
+ * The read serializer deliberately carries no live resolution: listing many
+ * groups would otherwise run a resolution query per row. "Resolves to N people"
+ * comes from the resolve endpoint, per group, on demand.
+ */
+export interface ApproverGroupMember {
+  id: string;
+  kind: GroupMemberKind;
+  user: string | number | null;
+  user_name: string | null;
+  user_email: string | null;
+  role: string | number | null;
+  role_key: string | null;
+  role_name: string | null;
+  position: string | number | null;
+  position_code: string | null;
+  position_title: string | null;
+  added_at: string;
+}
+
+export interface ApproverGroup {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  branch: string | number | null;
+  is_active: boolean;
+  members: ApproverGroupMember[];
+  member_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApproverGroupResolvedUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+/** One member row plus who it reaches right now, from the engine's own resolver. */
+export interface ApproverGroupResolvedMember {
+  id: string;
+  kind: GroupMemberKind;
+  label: string;
+  target_code: string | null;
+  resolved_count: number;
+  resolved_users: ApproverGroupResolvedUser[];
+}
+
+/**
+ * `GET /approver-groups/{id}/resolve/` - the live picture behind the screen.
+ *
+ * `resolved_count` is the de-duplicated union, so a person reachable through two
+ * members is counted once. Every number the detail pane shows comes from here
+ * rather than from client-side arithmetic over `members`.
+ */
+export interface ApproverGroupResolution {
+  group: { id: string; code: string; name: string; is_active: boolean };
+  members: ApproverGroupResolvedMember[];
+  resolved_count: number;
+  resolved_users: ApproverGroupResolvedUser[];
+}
+
+export interface ApproverGroupWritePayload {
+  code?: string;
+  name?: string;
+  description?: string;
+  branch?: string | number | null;
+  is_active?: boolean;
+}
+
+/** Exactly one target field must match `kind`; the API re-checks it server-side. */
+export interface ApproverGroupMemberPayload {
+  kind: GroupMemberKind;
+  user?: string;
+  role_key?: string;
+  position_code?: string;
+}
+
 // ── Convenience aliases for list responses ───────────────────────────────────
 
 export type WorkflowTemplatesResponse = PaginatedResponse<WorkflowTemplate>;
+export type ApproverGroupsResponse = PaginatedResponse<ApproverGroup>;
 export type WorkflowInstancesResponse = PaginatedResponse<WorkflowInstance>;
 export type ApprovalDelegationsResponse = PaginatedResponse<ApprovalDelegation>;
 
@@ -340,20 +433,25 @@ export interface ApproverPreviewResult {
  * approver, so the warning can say how to fix it properly instead of just "no
  * approver". Always populated. Render this.
  *
- * `permission_key` is only meaningful when `approver_source` is
- * `RBAC_PERMISSION`, and the backend blanks it otherwise. How a stage resolves
- * approvers is changing, so anything richer than `requirement` must check the
- * source first: showing a permission key for a stage that no longer decides by
- * permission would send someone to grant a key that changes nothing.
+ * `role_key` is only meaningful when `approver_source` is `ROLE`, and the
+ * backend blanks it otherwise. Anything richer than `requirement` must check the
+ * source first: showing a role key for a stage that resolves by group, by
+ * document rule, or off the organogram would send someone to fill a role that
+ * decides nothing here.
  */
 export interface ApprovalParkState {
   parked: boolean;
   instance_id: string;
   stage_code?: string;
   stage_label?: string;
-  /** e.g. "RBAC_PERMISSION", "ORGANOGRAM", or whatever replaces them. */
+  /**
+   * Deliberately a loose `string`, not the `ApproverSource` union above: this
+   * field is only ever compared and displayed, never used to build a request,
+   * and a source added on the server must not make this payload untypeable
+   * before the union catches up.
+   */
   approver_source?: string;
-  permission_key?: string;
+  role_key?: string;
   requirement?: string;
   document_type?: string;
 }

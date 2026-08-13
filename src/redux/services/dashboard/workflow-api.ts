@@ -3,6 +3,11 @@ import { baseApi } from "../base-api";
 import type {
   ApprovalDelegation,
   ApprovalDelegationsResponse,
+  ApproverGroup,
+  ApproverGroupMemberPayload,
+  ApproverGroupResolution,
+  ApproverGroupsResponse,
+  ApproverGroupWritePayload,
   ApproverPreviewPayload,
   ApproverPreviewResult,
   DelegationWritePayload,
@@ -44,6 +49,91 @@ export const workflowApi = baseApi.injectEndpoints({
     publishWorkflowTemplate: builder.mutation<WorkflowTemplate, PublishTemplatePayload>({
       query: (body) => ({ url: `/workflow/templates/publish/`, method: "POST", body }),
       invalidatesTags: ["WorkflowTemplates"],
+    }),
+
+    // ── Approver groups ─────────────────────────────────────────────────────
+    getApproverGroups: builder.query<ApproverGroupsResponse, QueryParams | void>({
+      query: (params) => ({
+        url: `/workflow/approver-groups/${params ? generateQueryString(params) : ""}`,
+        method: "GET",
+      }),
+      providesTags: [{ type: "WorkflowApproverGroups", id: "LIST" }],
+    }),
+
+    /**
+     * Who the selected group reaches right now, member by member.
+     *
+     * Runs the engine's own resolution server-side, so the screen cannot
+     * disagree with what a stage activation will do. Deliberately fetched for
+     * the selected group only: resolving every group to fill the list would be
+     * one query per member row per group.
+     */
+    resolveApproverGroup: builder.query<
+      ApproverGroupResolution, { id: string; branch?: string | number }
+    >({
+      query: ({ id, branch }) => ({
+        url: `/workflow/approver-groups/${id}/resolve/${branch ? generateQueryString({ branch }) : ""}`,
+        method: "GET",
+      }),
+      // Tagged per group, not with the list tag: a mutation on one group must
+      // not re-resolve another, and a delete must not re-resolve the group it
+      // just removed (that request 404s and the interceptor would toast it).
+      providesTags: (_r, _e, arg) => [{ type: "WorkflowApproverGroups", id: arg.id }],
+      // Belt and braces for the same race from another tab or another admin.
+      extraOptions: { silent: true },
+    }),
+
+    createApproverGroup: builder.mutation<ApproverGroup, ApproverGroupWritePayload>({
+      query: (body) => ({ url: `/workflow/approver-groups/`, method: "POST", body }),
+      invalidatesTags: [{ type: "WorkflowApproverGroups", id: "LIST" }],
+    }),
+
+    updateApproverGroup: builder.mutation<
+      ApproverGroup, { id: string; body: ApproverGroupWritePayload }
+    >({
+      query: ({ id, body }) => ({
+        url: `/workflow/approver-groups/${id}/`, method: "PATCH", body,
+      }),
+      invalidatesTags: (_r, _e, arg) => [
+        { type: "WorkflowApproverGroups", id: "LIST" },
+        { type: "WorkflowApproverGroups", id: arg.id },
+      ],
+    }),
+
+    // 409 APPROVER_GROUP_IN_USE while a live stage still routes here; the screen
+    // owns that message, so the global error toast stays out of the way.
+    deleteApproverGroup: builder.mutation<void, string>({
+      query: (id) => ({ url: `/workflow/approver-groups/${id}/`, method: "DELETE" }),
+      extraOptions: { silent: true },
+      // Only the list: the deleted group's own resolution is gone with it, and
+      // asking for it again is a guaranteed 404.
+      invalidatesTags: [{ type: "WorkflowApproverGroups", id: "LIST" }],
+    }),
+
+    // Re-adding an existing member returns 200 with the unchanged group rather
+    // than a duplicate, so the picker never has to guard against a double click.
+    addApproverGroupMember: builder.mutation<
+      ApproverGroup, { id: string; body: ApproverGroupMemberPayload }
+    >({
+      query: ({ id, body }) => ({
+        url: `/workflow/approver-groups/${id}/members/`, method: "POST", body,
+      }),
+      invalidatesTags: (_r, _e, arg) => [
+        { type: "WorkflowApproverGroups", id: "LIST" },
+        { type: "WorkflowApproverGroups", id: arg.id },
+      ],
+    }),
+
+    removeApproverGroupMember: builder.mutation<
+      ApproverGroup, { id: string; memberId: string }
+    >({
+      query: ({ id, memberId }) => ({
+        url: `/workflow/approver-groups/${id}/members/${memberId}/`, method: "DELETE",
+      }),
+      invalidatesTags: (_r, _e, arg) => [
+        { type: "WorkflowApproverGroups", id: "LIST" },
+        { type: "WorkflowApproverGroups", id: arg.id },
+      ],
     }),
 
     // ── Instances ───────────────────────────────────────────────────────────
@@ -197,6 +287,13 @@ export const {
   useGetWorkflowTemplatesQuery,
   useGetWorkflowTemplateQuery,
   usePublishWorkflowTemplateMutation,
+  useGetApproverGroupsQuery,
+  useResolveApproverGroupQuery,
+  useCreateApproverGroupMutation,
+  useUpdateApproverGroupMutation,
+  useDeleteApproverGroupMutation,
+  useAddApproverGroupMemberMutation,
+  useRemoveApproverGroupMemberMutation,
   useGetWorkflowInstancesQuery,
   useGetWorkflowInstanceQuery,
   useRecordWorkflowActionMutation,

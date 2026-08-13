@@ -13,6 +13,7 @@ const AllInstances = lazy(() => import("@/pages/protected/workflow/instances"));
 const InstanceDetail = lazy(() => import("@/pages/protected/workflow/instances/instance-detail"));
 const TeamLoad = lazy(() => import("@/pages/protected/workflow/instances/team-load"));
 const Delegations = lazy(() => import("@/pages/protected/workflow/delegations"));
+const ApproverGroups = lazy(() => import("@/pages/protected/workflow/approver-groups"));
 const WorkflowTemplates = lazy(() => import("@/pages/protected/workflow/templates"));
 const TemplateDetail = lazy(() => import("@/pages/protected/workflow/templates/template-detail"));
 const TemplateBuilder = lazy(() => import("@/pages/protected/workflow/templates/template-builder"));
@@ -28,6 +29,7 @@ export const workflowRoutes: RouteObject[] = [
   { path: W.INSTANCE_DETAIL_PATH, element: <InstanceDetail />, handle: { title: "Instance", back: true } satisfies DashboardHandle },
   { path: W.TEAM_LOAD, element: <TeamLoad />, handle: { title: "Team Load" } satisfies DashboardHandle },
   { path: W.DELEGATIONS, element: <Delegations />, handle: { title: "Delegations" } satisfies DashboardHandle },
+  { path: W.APPROVER_GROUPS, element: <ApproverGroups />, handle: { title: "Workflow Approver" } satisfies DashboardHandle },
   { path: W.TEMPLATES, element: <WorkflowTemplates />, handle: { title: "Templates" } satisfies DashboardHandle },
   { path: W.TEMPLATE_NEW, element: <TemplateBuilder />, handle: { title: "New Template", back: true } satisfies DashboardHandle },
   { path: W.TEMPLATE_DETAIL_PATH, element: <TemplateDetail />, handle: { title: "Template", back: true } satisfies DashboardHandle },

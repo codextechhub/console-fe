@@ -1,7 +1,5 @@
 ## Undone (Ask questions for clarity where needed)
 
-1. I want to work on loading options for different components on the screens. (skeleton/spinner/progress bar) Also, components load differently. One loading shouldn't affect another loading.
-
 2. Dashboard action-first rebuild (planned 2026-08-12; slices 1 quick-actions row,
    2a/2b worklist + aging, and c module signals are DONE - signals strip shows
    fiscal runway (worst entity), draft journals, POs awaiting receipt, webhook
@@ -15,6 +13,17 @@
    cards + CTA verbs; all strip headers use the house section-heading style;
    metric grid compacted to one-line tiles and moved below the worklist;
    "Your workspace" is a chip row at the page foot. Dashboard rebuild COMPLETE.
+
+3. Workflow templates FE is stale against the new backend approver contract.
+   `vs_workflow` replaced `RBAC_PERMISSION` + `approver_permission_key` with
+   `ROLE` (`approver_role_key`), and added `WORKFLOW_GROUP`, `DYNAMIC_ROLE`.
+   Still on the old contract: `templates/template-builder.tsx` (source dropdown
+   + permission-key field, publishes `approver_permission_key` - publish will
+   400), `templates/components/stage-form.ts`, `template-builder-bits.tsx`,
+   `template-detail.tsx` ("Approver permission" row now always renders "-"),
+   and the `ApproverSource` union in `redux/services/dashboard/workflow-types.ts`.
+   Needs: role picker (tenant roles by key), approver-group picker (the groups
+   built in the Approver screen), and the dynamic-role rule editor.
 
 ## Done
 

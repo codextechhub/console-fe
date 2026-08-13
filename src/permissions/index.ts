@@ -205,6 +205,10 @@ const REGISTRY: Record<string, string> = {
   // ── workflow / actions  (MM=60, RR=03) ───────────────────────────────────
   "600305": "workflow.action.reverse",    // admin reverses a recorded vote
 
+  // ── workflow / approver groups  (MM=60, RR=04) ───────────────────────────
+  "600401": "workflow.group.view",
+  "600408": "workflow.group.manage",      // create groups and edit membership
+
   // ── FINANCE  (MM=20) ───────────────────────────────────────────────────────
   // Resource map (RR): 01 entity · 02 account · 03 period · 04 journal ·
   // 05 invoice · 06 creditnote · 07 refund · 08 concession · 09 paymentplan ·
@@ -518,6 +522,8 @@ export const P = {
   SUBMIT_WORKFLOW:           "600202",  // submit a document for approval
   CANCEL_WORKFLOW:           "600204",  // admin-cancel a stuck instance
   REVERSE_WORKFLOW_ACTION:   "600305",  // admin-reverse a recorded approver vote
+  VIEW_APPROVER_GROUPS:      "600401",  // browse the named approver pools
+  MANAGE_APPROVER_GROUPS:    "600408",  // create groups, add/remove members
 
   // ── Dashboard ──────────────────────────────────────────────────────────────
   VIEW_DASHBOARD:       "100701",  // view admin dashboard metrics and statistics

@@ -139,6 +139,7 @@ export const routesPath = {
       INSTANCE_DETAIL: (id: string) => `/workflow/instances/${id}`,
       TEAM_LOAD: "/workflow/team-load",
       DELEGATIONS: "/workflow/delegations",
+      APPROVER_GROUPS: "/workflow/approver-groups",
       TEMPLATES: "/workflow/templates",
       TEMPLATE_NEW: "/workflow/templates/new",
       TEMPLATE_DETAIL_PATH: "/workflow/templates/:id",

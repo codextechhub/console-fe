@@ -40,6 +40,7 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Workflow | All Instances | `P.VIEW_WORKFLOW_INSTANCES` | own check via `hasPermission`; admin monitoring |
 | Workflow | Team Load | `P.VIEW_WORKFLOW_INSTANCES` | own check; same key as All Instances |
 | Workflow | Templates | `P.VIEW_WORKFLOW_TEMPLATES` | own check via `hasPermission` |
+| Workflow | Approver Groups | `P.VIEW_APPROVER_GROUPS` | own check via `hasPermission`; the named pools a stage routes to. Writes need `P.MANAGE_APPROVER_GROUPS` |
 | Finance | â | _(module access: any `finance.*` or `payments.*` key)_ | gated via `hasModuleAccess("finance.", "payments.")`, **not** a single `P.*` constant â a user with only `finance.report.view` should still reach the console. Opens its own sub-navigated console (`ConsoleShell` + `financeNav`); each area's sub-nav item is gated by the backend key prefixes its screens call |
 | Procurement | â | _(module access: any `procurement.*` key)_ | gated via `hasModuleAccess("procurement.")`. Opens its own console (`ConsoleShell` + `procurementNav`); area sub-nav gated by key prefixes |
 | Notifications | Inbox | _(none - always visible)_ | personal in-app feed (`/notify/`, recipient-scoped server-side) |
@@ -482,6 +483,19 @@ route to the same outcome for procurement documents, and is unchanged.
 | Element | Type | Permission Constant |
 |---|---|---|
 | "New Template" button | `<PermissionGate>` | `P.MANAGE_WORKFLOW_TEMPLATES` |
+
+### Workflow - Approver Groups (`src/pages/protected/workflow/approver-groups/index.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Page read (group list, member rows, `resolve/` preview) | backend `rbac_permission` on `WorkflowApproverGroupViewSet` | `P.VIEW_APPROVER_GROUPS` (`workflow.group.view`, `600401`) |
+| "New group" button (header + empty state) | `<PermissionGate>` | `P.MANAGE_APPROVER_GROUPS` (`workflow.group.manage`, `600408`) |
+| "Add member" button (card header + empty state) | `<PermissionGate>` / `canManage` | `P.MANAGE_APPROVER_GROUPS` |
+| Member row "Remove" | `canManage` check | `P.MANAGE_APPROVER_GROUPS` |
+| "Deactivate"/"Reactivate" and "Delete" | `<PermissionGate>` | `P.MANAGE_APPROVER_GROUPS` |
+| "Used by N workflow steps" line | `hasPermission` skip on the templates query | `P.VIEW_WORKFLOW_TEMPLATES` |
+
+> The used-by line reads the templates list to find stages whose `approver_group_code` matches. That endpoint is gated by `workflow.template.view`, so the query is **skipped** (not fired and 403'd) for a user who only holds group rights - they simply do not see the used-by line. Every write is re-checked by the backend viewset (`PERM_GROUP_MANAGE`) and the queryset is tenant-filtered, so FE gating is presentation only. Deleting a group a live stage still routes to returns `409 APPROVER_GROUP_IN_USE`; the dialog surfaces the backend's message and offers deactivate instead.
 
 ### Workflow â Template detail (`src/pages/protected/workflow/templates/template-detail.tsx`)
 

@@ -364,6 +364,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               },
             ]
           : []),
+        // Approver groups - the named pools stages route to.
+        ...(hasPermission(P.VIEW_APPROVER_GROUPS)
+          ? [{
+              title: "Approver Groups",
+              url: routesPath.PROTECTED.WORKFLOW.APPROVER_GROUPS,
+              isActive: location.startsWith(routesPath.PROTECTED.WORKFLOW.APPROVER_GROUPS),
+            }]
+          : []),
         // Templates - gated by template view permission.
         ...(hasPermission(P.VIEW_WORKFLOW_TEMPLATES)
           ? [{
