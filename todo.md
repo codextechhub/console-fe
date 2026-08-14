@@ -1,5 +1,33 @@
 ## Undone (Ask questions for clarity where needed)
 
+3. Backend brief 2026-08-14 (`backend/docs/frontend/2026-08-14-frontend-adjustments.md`),
+   remaining items. Reply raised with backend in
+   `backend/docs/frontend/2026-08-14-frontend-reply-approval-gate.md` (uncommitted).
+   - **Items 1, 2, 4 - finance approvals. BLOCKED on backend, now nearly unblocked.**
+     Concessions/credit notes need submit endpoints + `P` keys (`200830`, `200630`),
+     the `approval` block typed on all four AR submit mutations (today typed
+     `ApiEnvelope<Refund>`, so the parked warning is discarded), `useNoApproverPrompt`
+     wired into the AR adjustment flows, bulk refund **and** bulk write-off batch
+     refusals naming the offending rows, and an "Appoint your approvers" onboarding
+     over the five seeded role keys. Backend working tree already carries the
+     amount-aware gate (`ApprovalGate`, `resolution.py`) and `approval_required` on the
+     four adjustment serializers **and** the hand-built `ar-adjustments` rows. Start
+     once that lands on main.
+   - **Item 7 - platform template adoption/compare. BLOCKED.** The login response omits
+     `tenant.kind`, so `selectIsPlatformTenant` is false for a platform operator all
+     session; backend working tree has the shared `tenant_context_block` fix.
+     Note both endpoints return raw DRF `Response` (no `{success,message,data}`
+     envelope) and `compare` also returns `base`/`other`.
+   - **Item 5 - close checklist severity.** Unblocked, small: a *failed* non-blocking
+     row renders identically to a failed blocker in
+     `finance/reports/periods-tab.tsx`. Only the styling is missing.
+   - **Item 6 - stock reports filter.** The reorder and valuation report endpoints have
+     no UI at all, so there is nothing to add a `location` filter to. API layer +
+     response types are ready.
+   - **Item 8 - ticket context.** Built. One latent bug left: `routeProductArea` emits
+     `"Account access"`, which is not in the backend's 19-value allowlist ("Account"
+     is). Only reachable from public routes today, so nothing is breaking.
+
 2. Dashboard action-first rebuild (planned 2026-08-12; slices 1 quick-actions row,
    2a/2b worklist + aging, and c module signals are DONE - signals strip shows
    fiscal runway (worst entity), draft journals, POs awaiting receipt, webhook
@@ -15,6 +43,8 @@
    "Your workspace" is a chip row at the page foot. Dashboard rebuild COMPLETE.
 
 ## Done
+
+# 27. Non-PO match fix + stock held per location (2026-08-14) - first two unblocked pieces of the backend brief. **(a) `NON_PO_BLOCKED`**: `isBlockingInvoiceVariance` listed only `UNDER_RECEIVED`/`OVER_BILLED`, so with `allow_non_po_invoices` now defaulting off every non-PO bill rendered as a passed match with a plain Post button that 409s. Widened to the backend's `MATCH_BLOCKING` set, added `blockingMatchReason` copy per state, gave `PRICE_VARIANCE` its own amber non-blocking treatment (it does **not** need an override - GR/IR clears at the receipt basis and the difference lands in 5160), stopped `MatchPanel` short-circuiting non-PO bills before the blocked banner, and disabled the vendor-bill form's "Direct invoice" tab when the entity's setting is off (fails open when the caller cannot read procurement settings, since the server gates the post either way; an existing direct draft stays editable). The backend's own `seed_procurement_demo` is broken on main for the same reason - it posts a non-PO bill and dies on `NON_PO_BLOCKED`. **(b) Stock locations**: new `stock-locations` / `stock-balances` endpoints + types, `useStockLocations` as the single choke point for the platform rule that a school with **zero or one** active location sees none of this (no picker, no column, no chip, no empty state), a Locations admin screen (create/edit, make-default as an action not a checkbox, deactivate with the "still holds stock" refusal opening that store's balances, the migration prompt when only `MAIN` exists), a per-location breakdown under the item's headline roll-up totals, a required store picker on issue/adjust pre-filled with the default, and a store column + filter + "Bal. at store" relabel on the ledger. No Transfer button - there is no transfer document. **Bugs found and fixed while building**: `LocationBalancesDrawer` read `location!.id` in its query args, which RTK Query evaluates even when skipped, crashing the page on first paint (now `skipToken`); and `shortDate` appended `T00:00:00` unconditionally, so any full ISO timestamp became an Invalid Date and the `RangeError` took the whole procurement page to the error boundary - fixed at the helper (all 54 callers) to accept both shapes and return "-" rather than throw, with 5 tests. Driven in the real app against seeded data at one store and at two: roll-up 25 @ ₦19,100 = ANNEX 10 @ ₦20,000 + MAIN 15 @ ₦18,500, differing unit costs correct and explained; over-issue names where the stock actually is; phone clean, zero overflow. Guide registered (`procurement.stock-locations`, draft - the whole procurement guide category is unwritten); PERMISSIONS_AUDIT.md updated (no new keys).
 
 # 26. Editing a rule ladder from the Dynamic Role tab (2026-08-13) - "Edit rules" opens the builder's ladder editor in a sheet and republishes the template on save. There is no patch-one-stage endpoint, so the save re-reads the template first and resends the rest verbatim; `templates/components/template-payload.ts` owns that mapping (`stageToPayload` / `templateToPublishPayload` / `isCentralTemplate`) with 7 unit tests covering per-source fields, quorum + inclusion-condition round-trip, rule renumbering and the unknown-stage no-op. Central templates stay read-only in the tab: publish upserts on the caller's tenant, so republishing a shared template would fork a tenant copy that wins the cascade - the override is the sanctioned path, and the guard is re-checked against a fresh read at save time. Rule validation and read->form conversion moved into `stage-form.ts` (`validateRules`, `rulesToForm`), so builder and tab check the same things. **Bug found and fixed while building**: the FE `WorkflowTemplate` type called the owner field `school`, but the serializer returns `tenant` - every reader got `undefined`, so the templates list and detail labelled every tenant template "Platform" scope and the Dynamic Role tab treated *every* ladder as central. Verified in the real app: ladder edited (threshold changed, rule inserted, reordered), sibling stage kept QUORUM/3 + RETURN_TO_REQUESTER + skip=false + its inclusion condition, both routes intact, still exactly one template with that key (no fork); central ladder shows no edit affordance; phone clean.
 

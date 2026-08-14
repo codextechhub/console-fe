@@ -11,7 +11,9 @@ import {
   ContractRenewButton,
   InvoiceVarianceOverrideAction,
 } from "./procurement-action-gates";
-import { isBlockingInvoiceVariance } from "./invoice-action-model";
+import {
+  BLOCKING_MATCH_STATUSES, blockingMatchReason, isBlockingInvoiceVariance,
+} from "./invoice-action-model";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
@@ -120,7 +122,23 @@ describe("blocking invoice variance", () => {
   it("matches only the backend blocking states", () => {
     expect(isBlockingInvoiceVariance("UNDER_RECEIVED")).toBe(true);
     expect(isBlockingInvoiceVariance("OVER_BILLED")).toBe(true);
+    // Blocking since allow_non_po_invoices became off by default. Omitting it
+    // rendered every non-PO bill as a passed match with a Post button that 409s.
+    expect(isBlockingInvoiceVariance("NON_PO_BLOCKED")).toBe(true);
     expect(isBlockingInvoiceVariance("AUTO_MATCHED")).toBe(false);
     expect(isBlockingInvoiceVariance("NOT_MATCHED")).toBe(false);
+  });
+
+  it("does not block on a price variance", () => {
+    // The GR/IR account clears at the receipt basis and the difference posts to
+    // purchase price variance, so this needs no override.
+    expect(isBlockingInvoiceVariance("PRICE_VARIANCE")).toBe(false);
+    expect(blockingMatchReason("PRICE_VARIANCE")).toBeNull();
+  });
+
+  it("explains every blocking state it claims", () => {
+    for (const status of BLOCKING_MATCH_STATUSES) {
+      expect(blockingMatchReason(status)).toBeTruthy();
+    }
   });
 });

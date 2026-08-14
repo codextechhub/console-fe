@@ -530,5 +530,6 @@ export const baseApi = createApi({
     "ProcVendorPayments",
     "ProcVendorAssessments",
     "ProcStock",
+    "ProcStockLocations",
   ],
 });

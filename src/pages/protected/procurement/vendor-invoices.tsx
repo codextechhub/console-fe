@@ -15,7 +15,7 @@ import {
   LoadingState, PostingRecap, StatCard, StatusPill, emptyLine, toApiLines, toArray,
   useActiveEntity, type Column, type DocLine,
   PostingDateField,} from "@/components/finance-ui";
-import { Can } from "@/components/finance-ui/can";
+import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,7 +28,8 @@ import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { useAppSelector } from "@/redux/store";
 import {
-  useCreateVendorInvoiceMutation, useGetPurchaseOrderQuery, useGetVendorInvoiceQuery,
+  useCreateVendorInvoiceMutation, useGetProcurementSettingsQuery,
+  useGetPurchaseOrderQuery, useGetVendorInvoiceQuery,
   useGetVendorInvoiceSummaryQuery, useGetVendorInvoicesQuery,
   useLazyCheckVendorInvoiceReferenceQuery,
   useMatchVendorInvoiceMutation, usePostVendorInvoiceMutation,
@@ -45,7 +46,7 @@ import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
 import { apiErrorMessage, apiFieldError } from "@/utils/api-errors";
 import { InvoiceVarianceOverrideAction } from "./procurement-action-gates";
-import { isBlockingInvoiceVariance } from "./invoice-action-model";
+import { blockingMatchReason, isBlockingInvoiceVariance } from "./invoice-action-model";
 import { ActivityFeed } from "./activity-feed";
 
 const TABS = [
@@ -204,9 +205,41 @@ function InvoicePostingRecap({ invoice, currency }: { invoice: VendorInvoice; cu
   return <PostingRecap title="Posting preview" currency={currency} dr={dr} cr={[{ code: "AP", name: "Accounts payable", amount: invoice.total }]} helper="Posting revalidates approval and the three-way match under row locks." />;
 }
 
+const MATCH_STATUS_HEADLINE: Record<string, string> = {
+  AUTO_MATCHED: "3-way match passed",
+  NOT_MATCHED: "Not matched yet",
+  PRICE_VARIANCE: "Price variance - does not block posting",
+  UNDER_RECEIVED: "Under received - blocks posting",
+  OVER_BILLED: "Over billed - blocks posting",
+  NON_PO_BLOCKED: "No purchase order - blocks posting",
+};
+
 function MatchPanel({ invoice, currency }: { invoice: VendorInvoice; currency?: string | null }) {
-  if (!invoice.purchase_order_id) return <EmptyPanel>This is a direct invoice, so there is no PO or goods receipt to match.</EmptyPanel>;
-  return <div className="space-y-4"><div className={cn("rounded-md border p-4", ["UNDER_RECEIVED", "OVER_BILLED"].includes(invoice.match_status) ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50")}><p className="font-mont text-sm font-semibold">{invoice.match_status === "AUTO_MATCHED" ? "3-way match passed" : invoice.match_status.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 font-mont text-xs text-gray-05">Exact quantity and unit-price comparison; no tolerance policy is configured.</p></div>{invoice.match_comparisons?.map((row) => <div key={row.invoice_line_id} className="rounded-md border border-gray-03 p-4"><p className="font-mont text-sm font-semibold">{row.description}</p><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4"><Field label="Ordered" value={formatQuantity(row.po_quantity)} /><Field label="Received" value={formatQuantity(row.received_quantity)} /><Field label="Previously invoiced" value={formatQuantity(row.previously_invoiced_quantity)} /><Field label="This invoice" value={formatQuantity(row.invoice_quantity)} /><Field label="PO price" value={row.po_unit_price == null ? "-" : formatMoney(row.po_unit_price, currency)} /><Field label="Invoice price" value={formatMoney(row.invoice_unit_price, currency)} /><Field label="Goods receipt" value={row.grn_number || "All posted receipts"} /><Field label="GR accepted" value={formatQuantity(row.grn_accepted_quantity)} /></div></div>)}</div>;
+  const blocking = isBlockingInvoiceVariance(invoice.match_status);
+  const reason = blockingMatchReason(invoice.match_status);
+  // A non-PO bill has nothing to compare, but when the entity disallows one it is
+  // still the state the reader most needs explained - so the banner comes first and
+  // only a genuinely unremarkable direct bill falls through to the empty panel.
+  if (!invoice.purchase_order_id && !blocking) {
+    return <EmptyPanel>This is a direct invoice, so there is no PO or goods receipt to match.</EmptyPanel>;
+  }
+  return <div className="space-y-4">
+    <div className={cn(
+      "rounded-md border p-4",
+      blocking ? "border-red-200 bg-red-50"
+        : invoice.match_status === "PRICE_VARIANCE" ? "border-amber-200 bg-amber-50"
+          : "border-emerald-200 bg-emerald-50",
+    )}>
+      <p className="font-mont text-sm font-semibold">{MATCH_STATUS_HEADLINE[invoice.match_status] ?? invoice.match_status.replaceAll("_", " ").toLowerCase()}</p>
+      <p className="mt-1 font-mont text-xs leading-5 text-gray-05">
+        {reason
+          ?? (invoice.match_status === "PRICE_VARIANCE"
+            ? "The unit price differs from the order beyond the price tolerance. GR/IR clears at the receipt basis and the difference posts to purchase price variance, so this bill posts without an override."
+            : "Quantity and unit price are compared against the order and its posted receipts, within the tolerances set in procurement settings.")}
+      </p>
+    </div>
+    {invoice.match_comparisons?.map((row) => <div key={row.invoice_line_id} className="rounded-md border border-gray-03 p-4"><p className="font-mont text-sm font-semibold">{row.description}</p><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4"><Field label="Ordered" value={formatQuantity(row.po_quantity)} /><Field label="Received" value={formatQuantity(row.received_quantity)} /><Field label="Previously invoiced" value={formatQuantity(row.previously_invoiced_quantity)} /><Field label="This invoice" value={formatQuantity(row.invoice_quantity)} /><Field label="PO price" value={row.po_unit_price == null ? "-" : formatMoney(row.po_unit_price, currency)} /><Field label="Invoice price" value={formatMoney(row.invoice_unit_price, currency)} /><Field label="Goods receipt" value={row.grn_number || "All posted receipts"} /><Field label="GR accepted" value={formatQuantity(row.grn_accepted_quantity)} /></div></div>)}
+  </div>;
 }
 
 function ActivityPanel({ invoice, workflow, name }: { invoice: VendorInvoice; workflow: ReturnType<typeof useGetWorkflowInstanceQuery>["data"]; name: (id: string | number | null | undefined) => string }) {
@@ -217,6 +250,21 @@ type POLineDraft = { po_line: number; description: string; expense_account: stri
 function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; currency?: string | null; initial?: VendorInvoice; onClose: () => void }) {
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [mode, setMode] = useState<"po" | "direct">(initial ? (initial.purchase_order_id ? "po" : "direct") : "po");
+  const { can } = useCan();
+  // A bill with no PO has nothing to three-way match, so the entity has to opt in.
+  // Read the policy rather than assume it - but fall back to offering the choice
+  // when we cannot read it (the settings key is separate from the invoicing keys),
+  // because the server refuses the post either way and hiding the option from
+  // somebody whose entity genuinely allows it would be the worse failure.
+  const settingsQ = useGetProcurementSettingsQuery(
+    { entity }, { skip: !can(P.PROC_VIEW_SETTINGS) },
+  );
+  const nonPoPolicyKnown = !!settingsQ.data?.data?.settings;
+  const nonPoAllowed = !nonPoPolicyKnown || settingsQ.data!.data.settings.allow_non_po_invoices;
+  // An existing direct draft stays editable whatever the policy now says: it was
+  // recorded under the old one and blocking its edit strands it.
+  const editingExistingDirect = !!initial && !initial.purchase_order_id;
+  const directDisabled = !nonPoAllowed && !editingExistingDirect;
   const [vendor, setVendor] = useState(initial?.vendor_code || "");
   const [po, setPo] = useState(initial?.purchase_order_id ? String(initial.purchase_order_id) : "");
   const [invoiceDate, setInvoiceDate] = useState(initial?.invoice_date || "");
@@ -366,7 +414,9 @@ function InvoiceForm({ entity, currency, initial, onClose }: { entity: string; c
   return <>
   <DetailDrawer open onOpenChange={(open) => !saving && !open && onClose()} title={initial ? "Edit Vendor Invoice" : "Record Invoice"} description={initial ? "Update this unsubmitted draft; its prior match will be cleared." : "Capture a supplier bill for matching and approval."} widthClass="sm:max-w-[720px]" footer={<><Button variant="outline" disabled={saving} onClick={onClose}>Cancel</Button><Button variant="outline" disabled={!canSave} loading={creating || updating} onClick={() => save(false)}>Save Draft</Button>{!initial && <Button disabled={!canSave} loading={saving} onClick={() => save(true)}>Create & Submit</Button>}</>}>
     <div className="space-y-5">
-      <div className="grid grid-cols-2 rounded-md bg-gray-100 p-1">{(["po", "direct"] as const).map((value) => <button key={value} onClick={() => { setMode(value); if (value === "direct") setPo(""); }} className={cn("rounded px-3 py-2 font-mont text-xs font-medium", mode === value ? "bg-white text-primary shadow-sm" : "text-gray-05")}>{value === "po" ? "PO-backed invoice" : "Direct invoice"}</button>)}</div>
+      <div className="grid grid-cols-2 rounded-md bg-gray-100 p-1">{(["po", "direct"] as const).map((value) => { const off = value === "direct" && directDisabled; return <button key={value} disabled={off} title={off ? "This entity does not allow bills without a purchase order." : undefined} onClick={() => { setMode(value); if (value === "direct") setPo(""); }} className={cn("rounded px-3 py-2 font-mont text-xs font-medium", mode === value ? "bg-white text-primary shadow-sm" : "text-gray-05", off && "cursor-not-allowed opacity-50")}>{value === "po" ? "PO-backed invoice" : "Direct invoice"}</button>; })}</div>
+      {directDisabled && <p className="font-mont text-[11px] leading-5 text-gray-05">Bills without a purchase order are turned off for this entity. A non-PO bill has no ordered quantity, no receipt and no agreed price to check against, so approval is its only control. An administrator can turn it on under Procurement settings.</p>}
+      {mode === "direct" && editingExistingDirect && !nonPoAllowed && <p className="font-mont text-[11px] leading-5 text-amber-800">Bills without a purchase order are now turned off for this entity. You can still edit this draft, but posting it will need a variance override.</p>}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><FormField label="Vendor" required><VendorPicker entity={entity} value={vendor} onChange={(value) => { setVendor(value); setReferenceError(""); setReferenceCheck(null); }} disabled={mode === "po" && !!source} /></FormField>{mode === "po" && <FormField label="Purchase order" required><PurchaseOrderPicker entity={entity} value={po} onChange={setPo} placeholder="Select a received PO" /></FormField>}</div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><FormField label="Vendor invoice #" required><div><Input value={reference} onChange={(event) => { setReference(event.target.value); setReferenceError(""); setReferenceCheck(null); }} aria-invalid={!!referenceError} className={cn("bg-white", referenceError && "border-red-500 focus-visible:ring-red-200")} />{checkingReference && <p className="mt-1 font-mont text-[11px] text-gray-05">Checking this number...</p>}{referenceError && <p role="alert" className="mt-1 font-mont text-[11px] font-medium text-red-600">{referenceError}</p>}</div></FormField><PostingDateField label="Invoice date" entity={entity} value={invoiceDate} onChange={setInvoiceDate} /><FormField label="Due date"><Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="bg-white" /></FormField></div>
       {otherMatches.length > 0 && <section className="rounded-md border border-amber-300 bg-amber-50 p-3" aria-label="Invoice number warning"><div className="flex items-start gap-2"><AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-700" /><div className="min-w-0"><p className="font-mont text-xs font-semibold text-amber-900">This invoice number is used by another vendor</p><p className="mt-1 font-mont text-[11px] text-amber-800">Review the existing record. You will need to confirm before this invoice can be saved.</p></div></div><div className="mt-3 space-y-2">{otherMatches.map((match) => <div key={match.id} className="grid grid-cols-1 gap-1 rounded border border-amber-200 bg-white px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center sm:gap-3"><div className="min-w-0"><p className="truncate font-mont text-xs font-semibold text-gray-01">{match.vendor_name}</p><p className="font-mont text-[11px] text-gray-05">{match.vendor_code} · {match.document_number}</p></div><span className="font-mont text-[11px] text-gray-05">{shortDate(match.invoice_date)}</span><span className="font-mont text-xs font-semibold tabular-nums">{formatMoney(match.total, currency)}</span><StatusPill status={match.status} /></div>)}{(referenceCheck?.other_vendor_match_count || 0) > otherMatches.length && <p className="font-mont text-[11px] text-amber-800">Plus {(referenceCheck?.other_vendor_match_count || 0) - otherMatches.length} more matching invoice(s).</p>}</div></section>}

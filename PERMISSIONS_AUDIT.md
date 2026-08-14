@@ -159,14 +159,29 @@ resolved entity; every lifecycle transition re-validates entity scope and (for a
 vendor purchasing-eligibility on the backend. No Export control. No new permission keys were added
 for Contracts or for the PO contract link - all reuse existing contract / purchase-order keys.
 
-### Procurement → Inventory (Stock Items & Movements)
+### Procurement → Inventory (Stock Items, Movements & Locations)
 
 | Element | Type | Permission Constant |
 |---|---|---|
 | Stock Items list, detail, KPI summary; Movements ledger | backend view + route visibility | `P.PROC_VIEW_STOCK` (`procurement.stock.view`, `701301`) |
+| Locations list, location balances drawer, per-item location breakdown | backend view + sidebar visibility | `P.PROC_VIEW_STOCK` (`procurement.stock.view`, `701301`) |
 | New stock item · Edit stock item | create/edit drawer | `P.PROC_MANAGE_STOCK` (`procurement.stock.manage`, `701308`) |
+| New location · Edit location · Make default · Deactivate/Activate | create/edit drawer + row actions | `P.PROC_MANAGE_STOCK` (`procurement.stock.manage`, `701308`) |
 | Issue stock (Dr expense · Cr inventory) | detail-drawer posting action | `P.PROC_ISSUE_STOCK` (`procurement.stock.issue`, `701333`) |
 | Adjust stock (write-up / shrinkage) | detail-drawer posting action | `P.PROC_ADJUST_STOCK` (`procurement.stock.adjust`, `701337`) |
+
+Stock is held **per location**: `GET /procurement/stock-locations/` and
+`GET /procurement/stock-balances/` both read on `procurement.stock.view`; create and PATCH on
+`procurement.stock.manage`. **No new permission keys** - the location surfaces reuse the existing
+`procurement.stock.*` set, so anyone who could already see or manage stock sees exactly the
+locations for the entity they already had. The `Locations` sidebar leaf is gated by the same
+`procurement.stock.` prefix as Stock Items and Movements, and the two new action-palette entries
+(`view-stock-locations`, `create-stock-location`) reuse `PROC_VIEW_STOCK` / `PROC_MANAGE_STOCK`.
+Location controls are additionally hidden entirely when the entity has fewer than two active
+locations - that is a **product** rule, not an authorization one, and never widens what a key
+grants. The branch picker on the location form reads the school-management branches endpoint and
+is simply omitted when the caller cannot read it (the store is then entity-wide), so no
+procurement user is required to hold a school-management key.
 
 The new `GET /procurement/stock-items/summary/` KPI aggregate (items tracked / low / out /
 total value) is gated on the **existing** `procurement.stock.view` key - no new key. The item

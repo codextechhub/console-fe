@@ -12,8 +12,10 @@ import type {
   Rfq,
   RfqDetail,
   RfqSummary,
+  StockBalance,
   StockItem,
   StockItemDetail,
+  StockLocation,
   StockMovement,
   StockReorderReport,
   StockSummary,
@@ -178,6 +180,39 @@ export const procurementExtApi = baseApi.injectEndpoints({
       invalidatesTags: ["ProcQuotations", "ProcRfqs", "ProcPurchaseOrders"],
     }),
 
+    // Inventory - stock locations
+    // Ordered default-first then by code by the server, so the first active row is
+    // the entity's default without a second pass.
+    getStockLocations: b.query<PaginatedEnvelope<StockLocation>, { entity: string; page?: number; page_size?: number; is_active?: string }>({
+      query: (p) => ({ url: `/procurement/stock-locations/${qs(p)}`, method: "GET" }),
+      providesTags: ["ProcStockLocations"],
+    }),
+    createStockLocation: b.mutation<ApiEnvelope<StockLocation>, {
+      entity: string; code: string; name: string; description?: string;
+      // Branch id or branch code; omit entirely for an entity-wide store.
+      branch?: string | number; is_default?: boolean; is_active?: boolean;
+    }>({
+      query: ({ entity, ...body }) => ({ url: `/procurement/stock-locations/${qs({ entity })}`, method: "POST", body }),
+      // Creating a default moves the flag off the previous one, so the whole list
+      // is stale, not just the new row.
+      invalidatesTags: ["ProcStockLocations"],
+    }),
+    updateStockLocation: b.mutation<ApiEnvelope<StockLocation>, {
+      id: number; entity: string; name?: string; description?: string;
+      branch?: string | number | null; is_default?: boolean; is_active?: boolean;
+    }>({
+      query: ({ id, entity, ...body }) => ({ url: `/procurement/stock-locations/${id}/${qs({ entity })}`, method: "PATCH", body }),
+      invalidatesTags: ["ProcStockLocations"],
+    }),
+    // held_only=true hides rows that are zero quantity *and* zero value.
+    getStockBalances: b.query<PaginatedEnvelope<StockBalance>, {
+      entity: string; page?: number; page_size?: number;
+      stock_item?: string | number; location?: string | number; held_only?: string;
+    }>({
+      query: (p) => ({ url: `/procurement/stock-balances/${qs(p)}`, method: "GET" }),
+      providesTags: ["ProcStock", "ProcStockLocations"],
+    }),
+
     // Inventory
     getStockItems: b.query<PaginatedEnvelope<StockItem>, E & { q?: string; needs_reorder?: string }>({
       query: (p) => ({ url: `/procurement/stock-items/${qs(p)}`, method: "GET" }),
@@ -200,24 +235,28 @@ export const procurementExtApi = baseApi.injectEndpoints({
       invalidatesTags: ["ProcStock"],
     }),
     // Issue posts a real journal (Dr expense · Cr inventory) - refresh finance journals too.
-    issueStock: b.mutation<ApiEnvelope<{ movement: StockMovement; stock_item: StockItemDetail }>, { id: number; entity: string; quantity: number; movement_date?: string; expense_account?: string; reference?: string; narration?: string }>({
+    // `location` (id or code) is optional with one active location and REQUIRED with
+    // more than one: the server refuses a movement that names none rather than
+    // silently drawing from the default store.
+    issueStock: b.mutation<ApiEnvelope<{ movement: StockMovement; stock_item: StockItemDetail }>, { id: number; entity: string; quantity: number; location?: string | number; movement_date?: string; expense_account?: string; reference?: string; narration?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/stock-items/${id}/issue/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcStock", "FinanceJournals"],
     }),
     // Adjust posts a real journal (write-up or shrinkage) - refresh finance journals too.
-    adjustStock: b.mutation<ApiEnvelope<{ movement: StockMovement; stock_item: StockItemDetail }>, { id: number; entity: string; quantity_delta: number; movement_date?: string; unit_cost?: number; adjustment_account?: string; reference?: string; narration?: string }>({
+    adjustStock: b.mutation<ApiEnvelope<{ movement: StockMovement; stock_item: StockItemDetail }>, { id: number; entity: string; quantity_delta: number; location?: string | number; movement_date?: string; unit_cost?: number; adjustment_account?: string; reference?: string; narration?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/stock-items/${id}/adjust/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcStock", "FinanceJournals"],
     }),
-    getStockMovements: b.query<PaginatedEnvelope<StockMovement>, { entity: string; page?: number; stock_item?: string; movement_type?: string }>({
+    getStockMovements: b.query<PaginatedEnvelope<StockMovement>, { entity: string; page?: number; stock_item?: string; movement_type?: string; location?: string | number }>({
       query: (p) => ({ url: `/procurement/stock-movements/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
-    getStockReorderReport: b.query<ApiEnvelope<StockReorderReport>, { entity: string }>({
+    // With no `location` the numbers are identical to the pre-location reports.
+    getStockReorderReport: b.query<ApiEnvelope<StockReorderReport>, { entity: string; location?: string | number }>({
       query: (p) => ({ url: `/procurement/reports/stock-reorder/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
-    getStockValuationReport: b.query<ApiEnvelope<StockValuationReport>, { entity: string }>({
+    getStockValuationReport: b.query<ApiEnvelope<StockValuationReport>, { entity: string; location?: string | number }>({
       query: (p) => ({ url: `/procurement/reports/stock-valuation/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
@@ -313,6 +352,10 @@ export const {
   useUpdateQuotationMutation,
   useSubmitQuotationMutation,
   useAwardQuotationMutation,
+  useGetStockLocationsQuery,
+  useCreateStockLocationMutation,
+  useUpdateStockLocationMutation,
+  useGetStockBalancesQuery,
   useGetStockItemsQuery,
   useGetStockItemQuery,
   useGetStockSummaryQuery,

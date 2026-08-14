@@ -19,17 +19,21 @@ import {
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import {
   useGetStockItemsQuery, useGetStockItemQuery, useGetStockSummaryQuery,
   useGetStockMovementsQuery, useCreateStockItemMutation, useUpdateStockItemMutation,
-  useIssueStockMutation, useAdjustStockMutation,
+  useIssueStockMutation, useAdjustStockMutation, useGetStockBalancesQuery,
 } from "@/redux/services/procurement/procurement-ext-api";
 import type { StockItem, StockItemDetail, StockMovement } from "@/redux/services/procurement/procurement-types";
 import { formatMoney } from "@/utils/money";
 import { ActivityFeed, EmptyPanel, Field } from "./sourcing/shared";
 import { isForbidden, shortDate } from "./sourcing/helpers";
+import { BalancesTable, LocationsSection } from "./stock-locations";
+import { StockLocationPicker } from "./pickers";
+import { useStockLocations } from "./use-stock-locations";
 
 // ── Shared small helpers ─────────────────────────────────────────────────────
 // Quantities arrive as 14,4 decimal strings ("10.0000"); show them trimmed.
@@ -76,9 +80,9 @@ export default function InventoryPage() {
       </ProcurementShell>
     );
   }
-  return section === "movements"
-    ? <MovementsSection entity={entity} currency={currency} />
-    : <ItemsSection entity={entity} currency={currency} />;
+  if (section === "movements") return <MovementsSection entity={entity} currency={currency} />;
+  if (section === "locations") return <LocationsSection entity={entity} currency={currency} />;
+  return <ItemsSection entity={entity} currency={currency} />;
 }
 
 // ── Stock Items ──────────────────────────────────────────────────────────────
@@ -154,6 +158,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
 
 // ── Stock Item detail drawer ─────────────────────────────────────────────────
 function StockItemDrawer({ id, entity, currency, onClose }: { id: number | null; entity: string; currency?: string | null; onClose: () => void }) {
+  const { multi: multiLocation } = useStockLocations(entity);
   const [tab, setTab] = useState("overview");
   const [editing, setEditing] = useState(false);
   const [issuing, setIssuing] = useState(false);
@@ -182,7 +187,7 @@ function StockItemDrawer({ id, entity, currency, onClose }: { id: number | null;
           <button key={value} onClick={() => setTab(value)} className={cn("flex items-center gap-1.5 border-b-2 py-2.5 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}><Icon className="size-3.5" />{label}</button>
         ))}</div></div>
 
-        {tab === "overview" && (
+        {tab === "overview" && (<>
           <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
             <Field label="Code" value={item.code} />
             <Field label="Name" value={item.name} />
@@ -198,9 +203,10 @@ function StockItemDrawer({ id, entity, currency, onClose }: { id: number | null;
             <Field label="Valuation" value="Weighted average" />
             <Field label="Active" value={item.is_active ? "Yes" : "No"} />
           </dl>
-        )}
+          <ItemLocationBreakdown itemId={item.id} entity={entity} currency={currency} />
+        </>)}
 
-        {tab === "movements" && <MovementsSubTable movements={item.movements} currency={currency} />}
+        {tab === "movements" && <MovementsSubTable movements={item.movements} currency={currency} multi={multiLocation} />}
         {tab === "activity" && <ActivityFeed activity={item.activity} />}
       </div>}
     </DetailDrawer>
@@ -210,17 +216,45 @@ function StockItemDrawer({ id, entity, currency, onClose }: { id: number | null;
   </>;
 }
 
-function MovementsSubTable({ movements, currency }: { movements: StockMovement[]; currency?: string | null }) {
+// Where this item actually sits, under the headline totals (which stay the roll-up
+// across every store). Renders nothing at all for a school with one store: the
+// figures above are already the whole answer, and a one-row table under them would
+// only invite the question of what it is for.
+function ItemLocationBreakdown({ itemId, entity, currency }: { itemId: number; entity: string; currency?: string | null }) {
+  const { multi } = useStockLocations(entity);
+  const { data, isLoading } = useGetStockBalancesQuery(
+    { entity, stock_item: itemId, page_size: 100 }, { skip: !multi },
+  );
+  const rows = toArray(data?.data);
+  if (!multi) return null;
+  return (
+    <section className="space-y-2">
+      <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Held by location</p>
+      {isLoading ? <LoadingState rows={3} /> : rows.length
+        ? <>
+            <BalancesTable rows={rows} currency={currency} showItem={false} showLocation />
+            {/* Each store carries its own weighted average, so two stores holding the
+                same item at different unit costs is correct, not drift. */}
+            <p className="font-mont text-[11px] leading-5 text-gray-05">Each store keeps its own weighted-average cost, so unit costs can differ between stores for the same item.</p>
+          </>
+        : <EmptyPanel>This item is not held at any location yet.</EmptyPanel>}
+    </section>
+  );
+}
+
+function MovementsSubTable({ movements, currency, multi }: { movements: StockMovement[]; currency?: string | null; multi?: boolean }) {
   if (!movements.length) return <EmptyPanel>No movements recorded for this item yet.</EmptyPanel>;
+  const heads = ["Date", "Type", ...(multi ? ["Store"] : []), "Qty", "Value", multi ? "Bal. at store" : "Bal. qty", "Bal. value"];
   return (
     <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[560px]">
-      <thead><tr>{["Date", "Type", "Qty", "Value", "Bal. qty", "Bal. value"].map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
+      <thead><tr>{heads.map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
       <tbody>{movements.map((m) => {
         const q = num(m.quantity);
         return (
           <tr key={m.id}>
             <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(m.movement_date)}</td>
             <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={m.movement_type} /></td>
+            {multi && <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{m.location_code || "-"}</td>}
             <td className={cn("border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums", signClass(q))}>{q > 0 ? "+" : ""}{fmtQty(m.quantity)}</td>
             <td className="border-t border-gray-03 px-3 py-2 text-right"><Money kobo={m.value_amount} currency={currency} align="right" /></td>
             <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{fmtQty(m.balance_qty)}</td>
@@ -298,9 +332,56 @@ function StockItemForm({ entity, initial, onClose }: { entity: string; initial?:
   );
 }
 
+// ── Which store a movement applies to ────────────────────────────────────────
+/**
+ * Resolves the store a movement draws from, and the balance that store actually
+ * holds. With one location the field never appears and the item's own totals are
+ * the answer; with more than one the server refuses a movement that names none, so
+ * the field is required rather than defaulted silently.
+ */
+function useMovementLocation(entity: string, item: StockItemDetail) {
+  const { locations, multi, defaultLocation, resolved } = useStockLocations(entity);
+  const [locationId, setLocationId] = useState("");
+  const [prefilled, setPrefilled] = useState(false);
+  const balancesQ = useGetStockBalancesQuery(
+    { entity, stock_item: item.id, page_size: 100 }, { skip: !multi },
+  );
+  const balances = toArray(balancesQ.data?.data);
+
+  // Adjusted during render rather than in an effect, so the first paint already
+  // carries the default store instead of flashing an empty required field.
+  if (multi && !prefilled && defaultLocation) {
+    setPrefilled(true);
+    setLocationId(String(defaultLocation.id));
+  }
+
+  const selected = balances.find((row) => String(row.location_id) === locationId) ?? null;
+  // Availability is the store's, not the entity's. Reading the roll-up is exactly
+  // what let one campus issue against stock standing at another.
+  const onHand = multi ? num(selected?.on_hand_qty) : num(item.on_hand_qty);
+  const stockValue = multi ? (selected?.stock_value ?? 0) : item.stock_value;
+
+  return {
+    multi, locations, locationId, setLocationId, resolved,
+    onHand, stockValue,
+    /**
+     * What the other stores hold, richest first. Deliberately not filtered to
+     * stores that could cover the whole quantity: when nothing can, that filter
+     * stays silent at exactly the moment the user has least idea where the stock
+     * is. Naming the holdings always is the more useful answer.
+     */
+    elsewhere: () => balances
+      .filter((row) => String(row.location_id) !== locationId && num(row.on_hand_qty) > 0)
+      .sort((a, b) => num(b.on_hand_qty) - num(a.on_hand_qty))
+      .map((row) => `${row.location_code} holds ${fmtQty(row.on_hand_qty)}`),
+    ready: !multi || (!!locationId && resolved),
+  };
+}
+
 // ── Issue drawer (Dr expense · Cr inventory at moving-average cost) ───────────
 function IssueDrawer({ entity, currency, item, onClose }: { entity: string; currency?: string | null; item: StockItemDetail; onClose: () => void }) {
-  const onHand = num(item.on_hand_qty);
+  const loc = useMovementLocation(entity, item);
+  const onHand = loc.onHand;
   const [qty, setQty] = useState("");
   const [movementDate, setMovementDate] = useState("");
   const [expense, setExpense] = useState(item.expense_code || "");
@@ -311,9 +392,13 @@ function IssueDrawer({ entity, currency, item, onClose }: { entity: string; curr
   const q = Number(qty);
   const qtyValid = Number.isFinite(q) && q > 0 && q <= onHand;
   // Preview value at moving-average cost (server rounds with banker's rounding - a
-  // ≤1-kobo preview drift is fine).
-  const value = onHand > 0 && qtyValid ? Math.round((item.stock_value * q) / onHand) : 0;
-  const canSubmit = qtyValid && value > 0 && !!expense;
+  // ≤1-kobo preview drift is fine). With several stores this is the *store's* own
+  // average, which may legitimately differ from another store's for the same item.
+  const value = onHand > 0 && qtyValid ? Math.round((loc.stockValue * q) / onHand) : 0;
+  const canSubmit = qtyValid && value > 0 && !!expense && loc.ready;
+  // The usual real intent when a store falls short is to issue from the other one,
+  // so say where the stock actually is rather than only refusing.
+  const otherStores = Number.isFinite(q) && q > 0 && q > onHand ? loc.elsewhere() : [];
 
   const dr: RecapRow[] = [{ code: expense || "-", name: "", amount: value }];
   const cr: RecapRow[] = [{ code: item.inventory_code || "-", name: "", amount: value }];
@@ -323,6 +408,7 @@ function IssueDrawer({ entity, currency, item, onClose }: { entity: string; curr
     try {
       const r = await issue({
         id: item.id, entity, quantity: q, movement_date: movementDate,
+        ...(loc.multi ? { location: Number(loc.locationId) } : {}),
         expense_account: expense || undefined,
         reference: reference.trim() || undefined, narration: narration.trim() || undefined,
       }).unwrap();
@@ -334,13 +420,20 @@ function IssueDrawer({ entity, currency, item, onClose }: { entity: string; curr
   return (
     <FormDrawer
       open onOpenChange={(o) => !isLoading && !o && onClose()}
-      title="Issue stock" description={`Issue ${item.code} out at moving-average cost. ${fmtQty(item.on_hand_qty)} ${item.unit_of_measure} on hand.`}
+      title="Issue stock" description={`Issue ${item.code} out at moving-average cost. ${fmtQty(item.on_hand_qty)} ${item.unit_of_measure} on hand${loc.multi ? " across all stores" : ""}.`}
       widthClass="sm:max-w-lg" onSubmit={save} submitText="Issue" loading={isLoading} canSubmit={canSubmit}
     >
+      {loc.multi && (
+        <FormField label="Store" required>
+          <StockLocationPicker locations={loc.locations} value={loc.locationId} onChange={loc.setLocationId} isRequired />
+          <span className="mt-1 block font-mont text-[11px] text-gray-05">Stock is held per store, so a movement has to say which one it comes out of.</span>
+        </FormField>
+      )}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField label="Quantity" required>
           <Input type="number" min="0" value={qty} onChange={(e) => setQty(e.target.value)} className="bg-white tabular-nums" />
-          <span className="mt-1 block font-mont text-[11px] text-gray-05">{qtyValid ? `${fmtQty(String(onHand - q))} ${item.unit_of_measure} remaining` : `Up to ${fmtQty(item.on_hand_qty)} available`}</span>
+          <span className="mt-1 block font-mont text-[11px] text-gray-05">{qtyValid ? `${fmtQty(String(onHand - q))} ${item.unit_of_measure} remaining` : `Up to ${fmtQty(String(onHand))} available${loc.multi ? " here" : ""}`}</span>
+          {otherStores.length > 0 && <span className="mt-1 block font-mont text-[11px] font-medium text-amber-800">Not enough here. {otherStores.join(" · ")}.</span>}
         </FormField>
         <PostingDateField label="Movement date" entity={entity} value={movementDate} onChange={setMovementDate} />
       </div>
@@ -358,7 +451,8 @@ function IssueDrawer({ entity, currency, item, onClose }: { entity: string; curr
 const ADJUST_DIRECTIONS = [["increase", "Increase"], ["decrease", "Decrease"]] as const;
 
 function AdjustDrawer({ entity, currency, item, onClose }: { entity: string; currency?: string | null; item: StockItemDetail; onClose: () => void }) {
-  const onHand = num(item.on_hand_qty);
+  const loc = useMovementLocation(entity, item);
+  const onHand = loc.onHand;
   const [direction, setDirection] = useState<"increase" | "decrease">("increase");
   const [qty, setQty] = useState("");
   const [movementDate, setMovementDate] = useState("");
@@ -378,12 +472,13 @@ function AdjustDrawer({ entity, currency, item, onClose }: { entity: string; cur
   // entered unit cost, falling back to the current average when stock is already held.
   const value = !magnitudeValid ? 0
     : isIncrease
-      ? (unitCostKobo > 0 ? unitCostKobo * q : (onHand > 0 ? Math.round((item.stock_value * q) / onHand) : 0))
-      : (onHand > 0 ? Math.round((item.stock_value * q) / onHand) : 0);
+      ? (unitCostKobo > 0 ? unitCostKobo * q : (onHand > 0 ? Math.round((loc.stockValue * q) / onHand) : 0))
+      : (onHand > 0 ? Math.round((loc.stockValue * q) / onHand) : 0);
 
   // A write-up from zero has no average to fall back on - a unit cost is required.
+  // "Empty" is this store's shelf, not the entity: a count corrects one shelf.
   const unitCostOk = !isIncrease || !fromEmpty || unitCostKobo > 0;
-  const canSubmit = magnitudeValid && decreaseValid && value > 0 && unitCostOk;
+  const canSubmit = magnitudeValid && decreaseValid && value > 0 && unitCostOk && loc.ready;
 
   const inv: RecapRow = { code: item.inventory_code || "-", name: "", amount: value };
   const adj: RecapRow = { code: adjustment || "5150", name: "", amount: value };
@@ -397,6 +492,7 @@ function AdjustDrawer({ entity, currency, item, onClose }: { entity: string; cur
         id: item.id, entity,
         quantity_delta: isIncrease ? q : -q,
         movement_date: movementDate,
+        ...(loc.multi ? { location: Number(loc.locationId) } : {}),
         ...(isIncrease && unitCostKobo > 0 ? { unit_cost: unitCostKobo } : {}),
         adjustment_account: adjustment || undefined,
         reference: reference.trim() || undefined, narration: narration.trim() || undefined,
@@ -413,10 +509,16 @@ function AdjustDrawer({ entity, currency, item, onClose }: { entity: string; cur
       widthClass="sm:max-w-lg" onSubmit={save} submitText="Adjust" loading={isLoading} canSubmit={canSubmit}
     >
       <Segmented value={direction} onChange={setDirection} options={ADJUST_DIRECTIONS} label="Direction" />
+      {loc.multi && (
+        <FormField label="Store" required>
+          <StockLocationPicker locations={loc.locations} value={loc.locationId} onChange={loc.setLocationId} isRequired />
+          <span className="mt-1 block font-mont text-[11px] text-gray-05">A count corrects one store's shelf, so the adjustment has to say which.</span>
+        </FormField>
+      )}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <FormField label="Quantity" required>
           <Input type="number" min="0" value={qty} onChange={(e) => setQty(e.target.value)} className="bg-white tabular-nums" />
-          {!isIncrease && <span className="mt-1 block font-mont text-[11px] text-gray-05">Up to {fmtQty(item.on_hand_qty)} available</span>}
+          {!isIncrease && <span className="mt-1 block font-mont text-[11px] text-gray-05">Up to {fmtQty(String(onHand))} available{loc.multi ? " here" : ""}</span>}
         </FormField>
         <PostingDateField label="Movement date" entity={entity} value={movementDate} onChange={setMovementDate} />
       </div>
@@ -439,7 +541,13 @@ function AdjustDrawer({ entity, currency, item, onClose }: { entity: string; cur
 function MovementsSection({ entity, currency }: { entity: string; currency?: string | null }) {
   const [tab, setTab] = useState("");
   const [page, setPage] = useState(1);
-  const params = useMemo(() => ({ entity, page, ...(tab ? { movement_type: tab } : {}) }), [entity, page, tab]);
+  const [location, setLocation] = useState("");
+  const { locations, multi } = useStockLocations(entity);
+  const params = useMemo(() => ({
+    entity, page,
+    ...(tab ? { movement_type: tab } : {}),
+    ...(multi && location ? { location: Number(location) } : {}),
+  }), [entity, page, tab, multi, location]);
   const { currentData: data, isLoading, isFetching, isError, error, refetch } = useGetStockMovementsQuery(params);
   const rows = toArray(data?.data);
 
@@ -448,9 +556,12 @@ function MovementsSection({ entity, currency }: { entity: string; currency?: str
     { header: "Move #", cell: (m) => <span className="font-mont font-semibold text-primary">#{m.id}</span> },
     { header: "Type", cell: (m) => <StatusPill status={m.movement_type} /> },
     { header: "Item", cell: (m) => m.stock_item_code || "-" },
+    ...(multi ? [{ header: "Store", cell: (m: StockMovement) => m.location_code || "-" }] : []),
     { header: "Qty", align: "right", cell: (m) => { const q = num(m.quantity); return <span className={cn("tabular-nums", signClass(q))}>{q > 0 ? "+" : ""}{fmtQty(m.quantity)}</span>; } },
     { header: "Value", align: "right", cell: (m) => <Money kobo={m.value_amount} currency={currency} align="right" /> },
-    { header: "Bal. qty", align: "right", cell: (m) => <span className="tabular-nums">{fmtQty(m.balance_qty)}</span> },
+    // The running balance is the store's, not the entity's, once stock is held per
+    // location - so the column has to say so or it reads as an entity total.
+    { header: multi ? "Bal. at store" : "Bal. qty", align: "right", cell: (m) => <span className="tabular-nums">{fmtQty(m.balance_qty)}</span> },
     { header: "By", cell: (m) => m.created_by_name || "-" },
     { header: "Reference", cell: (m) => m.reference || "-" },
   ];
@@ -460,13 +571,24 @@ function MovementsSection({ entity, currency }: { entity: string; currency?: str
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
         <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">Stock Movements</h1>
-          <p className="mt-0.5 font-mont text-xs text-gray-05">Receipts, issues and adjustments.</p>
+          <p className="mt-0.5 font-mont text-xs text-gray-05">Receipts, issues and adjustments.{multi ? " Balances shown are the running balance at each store." : ""}</p>
         </div>
         <section className="min-w-0 rounded-md bg-white">
-          <div className="max-w-full overflow-x-auto border-b border-gray-03 px-4">
-            <div className="flex min-w-max gap-5">{MOVEMENT_TABS.map(([label, value]) => (
-              <button key={label} onClick={() => { setTab(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>
-            ))}</div>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
+            <div className="max-w-full overflow-x-auto">
+              <div className="flex min-w-max gap-5">{MOVEMENT_TABS.map(([label, value]) => (
+                <button key={label} onClick={() => { setTab(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>
+              ))}</div>
+            </div>
+            {multi && (
+              <label className="w-full py-2 sm:w-56">
+                <span className="sr-only">Filter by store</span>
+                <NativeSelect value={location} onChange={(e) => { setLocation(e.target.value); setPage(1); }}>
+                  <option value="">All stores</option>
+                  {locations.map((l) => <option key={l.id} value={String(l.id)}>{l.code} - {l.name}</option>)}
+                </NativeSelect>
+              </label>
+            )}
           </div>
           <DataTable columns={columns} rows={rows} rowKey={(m) => m.id} loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch} mobile="scroll" page={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={setPage} emptyTitle="No movements" emptyMessage={tab ? "No movements of this type yet." : "Stock movements will appear here as goods are received, issued and adjusted."} />
         </section>

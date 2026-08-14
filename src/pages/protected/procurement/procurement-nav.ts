@@ -5,7 +5,7 @@
 import {
   LayoutDashboard, FileText, ShoppingCart, PackageCheck, ReceiptText, Banknote,
   ClipboardCheck, Store, Tags, Package, Send, FileSignature, Boxes, ArrowLeftRight,
-  BarChart3, Scale, TrendingUp, Settings,
+  BarChart3, Scale, TrendingUp, Settings, Warehouse,
 } from "lucide-react";
 import type { ConsoleNavGroup } from "@/components/finance-ui/console-nav";
 import { routesPath } from "@/routes/routes-path";
@@ -53,6 +53,7 @@ export const procurementNav: ConsoleNavGroup[] = [
     items: [
       { title: "Stock Items", url: `${P.INVENTORY}/items`, icon: Boxes, prefixes: ["procurement.stock."] },
       { title: "Movements", url: `${P.INVENTORY}/movements`, icon: ArrowLeftRight, prefixes: ["procurement.stock."] },
+      { title: "Locations", url: `${P.INVENTORY}/locations`, icon: Warehouse, prefixes: ["procurement.stock."] },
     ],
   },
 

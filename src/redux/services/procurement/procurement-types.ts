@@ -676,15 +676,62 @@ export interface StockItem {
   is_active: boolean;
 }
 
+/**
+ * A place stock physically sits. Optionally tied to a branch; an entity-wide store
+ * leaves `branch_id` null. Exactly one location per entity carries `is_default`.
+ *
+ * Every entity has at least one (existing data was migrated to a location coded
+ * `MAIN`), so there is no null-location state anywhere. A school with one store must
+ * never be shown any of this - see `useStockLocations`.
+ */
+export interface StockLocation {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  branch_id: number | null;
+  branch_name: string | null;
+  is_default: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * What one item holds at one location. The stock item's own totals stay the roll-up
+ * across locations, so every entity-level figure is unchanged by this existing.
+ *
+ * `unit_cost` is that location's own weighted average and may legitimately differ
+ * from another location's for the same item. Never present a mismatch as an error.
+ */
+export interface StockBalance {
+  id: number;
+  stock_item_id: number;
+  stock_item_code: string | null;
+  stock_item_name: string | null;
+  location_id: number;
+  location_code: string | null;
+  on_hand_qty: string;
+  stock_value: number;
+  unit_cost: number;
+  updated_at: string;
+}
+
 export interface StockMovement {
   id: number;
   stock_item_id: number;
   stock_item_code: string | null;
+  location_id: number | null;
+  location_code: string | null;
   movement_type: string;
   movement_date: string;
   quantity: string;
   value_amount: number;
   value_amount_naira: string;
+  /**
+   * Running balance **at this movement's location**, not across the entity. The
+   * ledger's balance column must say so once an entity has more than one store.
+   */
   balance_qty: string;
   balance_value: number;
   balance_value_naira: string;
@@ -723,6 +770,8 @@ export interface StockReorderRow {
 
 export interface StockReorderReport {
   entity: string;
+  /** The location code the report was narrowed to, or null for the whole entity. */
+  location: string | null;
   rows: StockReorderRow[];
 }
 
@@ -738,6 +787,8 @@ export interface StockValuationRow {
 
 export interface StockValuationReport {
   entity: string;
+  /** The location code the report was narrowed to, or null for the whole entity. */
+  location: string | null;
   rows: StockValuationRow[];
   total_value: number;
 }

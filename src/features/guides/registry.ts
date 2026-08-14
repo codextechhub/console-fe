@@ -518,6 +518,30 @@ export const GUIDE_REGISTRY = [
     status: "draft",
   },
   {
+    id: "procurement.stock-locations",
+    slug: "hold-stock-in-more-than-one-store",
+    title: "Hold stock in more than one store",
+    summary: "Set up stock locations, see what each store holds, and issue or adjust against the right one.",
+    category: "procurement-and-inventory",
+    tags: ["inventory", "stock", "location", "store", "campus"],
+    aliases: ["stock locations", "second store", "annex store", "multi-campus stock", "warehouses"],
+    audiences: ["procurement-officer", "platform-administrator"],
+    // The inventory sections share one parameterised route, which is what the
+    // catalog carries; naming concrete sections would not match a real pattern.
+    routes: [R.PROCUREMENT.INVENTORY, `${R.PROCUREMENT.INVENTORY}/:section`],
+    actionIds: ["view-stock-locations", "create-stock-location"],
+    access: { mode: "any", permissions: [P.PROC_VIEW_STOCK, P.PROC_MANAGE_STOCK] },
+    owner: OWNER,
+    reviewedAt: REVIEWED_AT,
+    // Movements post real journals, but the location dimension itself adds no new
+    // posting: it decides which store a movement draws from. The risky actions
+    // (issue, adjust) are covered where they already were.
+    risk: "medium",
+    // Registered so the workflow is discoverable and shows in the coverage report;
+    // the article is unwritten, as it is for every guide in this category.
+    status: "draft",
+  },
+  {
     id: "data.import-batch",
     slug: "upload-and-resolve-an-import-batch",
     title: "Upload and resolve an import batch",

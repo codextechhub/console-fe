@@ -5,7 +5,7 @@ import { SearchSelect } from "@/components/custom/search-select";
 import { toArray } from "@/components/finance-ui";
 import { useGetVendorsQuery, useGetCategoriesQuery, useGetRequisitionsQuery, useGetPurchaseOrdersQuery } from "@/redux/services/procurement/procurement-api";
 import { useGetRfqsQuery, useGetContractsQuery } from "@/redux/services/procurement/procurement-ext-api";
-import type { VendorCategory } from "@/redux/services/procurement/procurement-types";
+import type { StockLocation, VendorCategory } from "@/redux/services/procurement/procurement-types";
 
 const adapt = (onChange: (v: string) => void) =>
   (e: React.ChangeEvent<HTMLSelectElement>) => onChange(e.target.value);
@@ -73,4 +73,15 @@ export function ContractPicker({ entity, vendor, value, onChange, label, placeho
   const { data, isLoading } = useGetContractsQuery({ entity, vendor, status: "ACTIVE" }, { skip: !vendor });
   const options = toArray(data?.data).map((c) => ({ value: String(c.id), label: `${c.reference} - ${c.title}` }));
   return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={isLoading} placeholder={vendor ? placeholder : "Select a vendor first"} disabled={!vendor} revealOnSearch />;
+}
+
+// Where a movement draws from or lands. Short, closed list, so it renders populated
+// rather than reveal-on-search. Callers must only mount this when the entity has
+// more than one active location - see useStockLocations.
+export function StockLocationPicker({ locations, value, onChange, label, placeholder = "Select location", isRequired, disabled, loading }: { locations: StockLocation[]; value: string; onChange: (v: string) => void; label?: string; placeholder?: string; isRequired?: boolean; disabled?: boolean; loading?: boolean }) {
+  const options = locations.map((l) => ({
+    value: String(l.id),
+    label: `${l.code} - ${l.name}${l.branch_name ? ` · ${l.branch_name}` : ""}${l.is_default ? " (default)" : ""}`,
+  }));
+  return <SearchSelect label={label} options={options} value={value} onChange={adapt(onChange)} loading={loading} placeholder={placeholder} isRequired={isRequired} disabled={disabled} />;
 }
