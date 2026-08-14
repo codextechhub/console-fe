@@ -1,8 +1,14 @@
 ## Undone (Ask questions for clarity where needed)
 
-3. Backend brief 2026-08-14 (`backend/docs/frontend/2026-08-14-frontend-adjustments.md`),
-   remaining items. Reply raised with backend in
-   `backend/docs/frontend/2026-08-14-frontend-reply-approval-gate.md` (uncommitted).
+3. Backend brief 2026-08-14 - **all nine items DONE on our side.** The reply
+   (`backend/docs/frontend/2026-08-14-frontend-reply-approval-gate.md`, committed
+   `4285dcf`) is **not yet safe to delete**: two of its findings are still open on the
+   backend. (a) `reorder_row` still reads the stock master, so a store-scoped reorder
+   report reports entity-wide quantities - our "On hand (entity)" label and its
+   explanatory line come back out when that changes. (b) The two adjustment submit
+   permissions still only arrive via a separate `seed_finance_permissions` run rather
+   than the provisioning path the ladders use, so the ordering trap remains. Delete the
+   note once both are closed.
    - **Items 1, 2, 4 - DONE** (see Done #30).
    - **Item 7 - DONE** (see Done #29).
    - **Item 5 - DONE** (see Done #29).
@@ -11,9 +17,7 @@
      narrows which rows appear but still reports entity-wide quantities, unlike
      `valuation_row` which reads the balance. Labelled honestly for now; if they fix it,
      the "On hand (entity)" column label and its explanatory line come back out.
-   - **Item 8 - ticket context.** Built. One latent bug left: `routeProductArea` emits
-     `"Account access"`, which is not in the backend's 19-value allowlist ("Account"
-     is). Only reachable from public routes today, so nothing is breaking.
+   - **Item 8 - DONE** (see Done #32).
 
 2. Dashboard action-first rebuild (planned 2026-08-12; slices 1 quick-actions row,
    2a/2b worklist + aging, and c module signals are DONE - signals strip shows
@@ -32,11 +36,7 @@
 4. Today's focus, remaining improvements (raised 2026-08-14 after the ticket-counter
    fix in Done #30). The invariant to hold everything to: **if you did the thing, the
    row goes away.**
-   - **Split personal from organizational.** The panel says "everything waiting on
-     you", but draft journals, roleless users, open RFQs, unpaid vendor bills and
-     expiring contracts are org conditions that are often nobody's personal queue.
-     Two groups - "Yours to act on" (approvals, returned, tasks, your tickets, your
-     failed jobs) and "Watch" - so org noise stops burying personal work.
+   - **Split personal from organizational - DONE** (see Done #31).
    - **Rank by age and deadline, not just severity colour.** `STALE_AFTER_DAYS` is
      already computed for approval rows and nothing else uses it; a 9-day-old
      approval currently sorts below a fresh amber signal.
@@ -51,6 +51,10 @@
      whether its output was collected.
 
 ## Done
+
+# 32. Ticket context cannot produce a payload the API refuses (2026-08-14) - closes brief item 8. The context we attach to a support ticket raised inside the console (guide, route pattern, product area, app version) was sent as the page computed it, but the endpoint validates all four **strictly and rejects an unknown value by failing the whole create** - so a bad field would lose the ticket, on a screen the user came to for help. `routeProductArea` emits `"Account access"` for the four auth routes, which is not among the API's 19 accepted values ("Account" is). Not reachable today (the composer lives only in the signed-in layout, those routes are signed-out), which is exactly why it was worth fixing before someone adds a support link to the login page. Fixed at the **boundary rather than in the map**: `buildSafeTicketContext` now validates every field against the API's own rules and drops or translates rather than sending - `"Account access"` → `"Account"` via an alias table (the friendly label is also shown on screen as "Guidance matched to ...", so flattening it at the source would have made the UI read worse), route patterns rejected if they carry a digit/query/fragment, guide ids and version strings checked against the same regexes the serializer uses. That fixes the class: any future mapping mistake costs a missing field instead of a rejected ticket. 4 new tests, including a sweep that runs **every catalogued route** through the builder and asserts the result is always acceptable. The old test named "uses backend-approved product-area labels" was asserting the bug; renamed and split so it now checks the display label and the wire value separately.
+
+# 31. Today's focus reads in two groups, and the guide says so (2026-08-14) - the panel promised "everything waiting on you" and then listed eleven things that were not: draft journals, roleless users, open RFQs, unpaid vendor bills, expiring contracts, platform incidents. On the seeded admin the one task actually assigned to them sat *below* five org conditions. Every row and card now carries an `ownership` (`mine` | `watch`) decided where it is built, not guessed in the view: your own jobs are yours because the backend already scopes them to you, incidents are watch even though they are the loudest red on the page. **Yours to act on** leads with the queue boxes (approvals, delegate cover, returned, tasks - they carry real items, so they answer "what do I open now" in a way a counted row cannot), then your counted rows; **Watch** follows. Severity order is preserved inside each group, so a red row is still first among its own kind while a platform-wide incident no longer outranks the approval actually waiting on the reader. The header summary changed from "N signals · M work queues" (shape) to "3 for you · 5 to watch" (ownership), and with nothing personal the intro says so plainly rather than claiming work: "Nothing is waiting on you personally. Here is what is going on around you." 3 new model tests incl. one that nothing is lost in the split. **Guide updated in the same change** (the point of the coverage contract): new `todays-focus` section in `get-started-with-console` covering both groups, what the counts do and do not include, the colour vocabulary, self-refresh, and the dismiss rule - "you can put information down, but not problems". Registered in the guide's section list and search aliases; the console-basics **walkthrough gained a step** on `overview.action-center` (new stable `data-guide` target, version 1 -> 2), branching around the panel because it renders nothing on a clear day. Two engine tests updated for the new step order and the version bump, and one of them was rewritten to bump relative to the real version so the next bump does not silently stop testing anything. Driven in the real app at both widths with the groups populated and with only Watch present; walkthrough launched and stepped through to the new step; guide article and its on-this-page nav confirmed. 488 FE tests, build green, phone clean at 390px.
 
 # 30. Ticket counters that clearing your queue actually clears (2026-08-14) - reported as "I cleared my assigned tickets and Today's focus still shows them". Not a caching problem: `_tickets()` counted `Q(assignee=user)` with **no status filter**, so every ticket ever assigned to you kept counting, resolved and closed included - the row could only be cleared by un-assigning yourself, while its copy claimed they were "waiting on your reply". Same defect one line up in the other direction: `open` counted `status=OPEN` only, so picking a ticket up dropped it out of the workload. **Same query shape, same bug, in the Support screen's own "Assigned to me" KPI** (`TicketDashboardView`) - fixed as one class: `ACTIVE_TICKET_STATUSES` (OPEN/ASSIGNED/IN_PROGRESS) in `vs_tickets/constants.py` is now the single definition every person-scoped workload number filters by (`assigned_to_me`, `requested_by_me`, the overview's renamed `active`), while `total` and the by_status/by_priority breakdowns stay whole-population. The list gained the matching `?state=active` and `?assignee=me` so a card lands on exactly the rows it counted, both surfaced as real controls ("Unresolved", "Assigned to me") rather than invisible URL state. **Freshness, separately**: the overview query only refetched on this tab's own mutations - no `refetchOnFocus`, no poll - so anything changed by someone else, another tab or Django admin stayed stale until reload; now focus-refetch plus a 2-minute poll skipped while unfocused. **Blue notices are dismissible** (`notice-dismissals.ts`, 7 tests): local per user, and deliberately narrow - one row, at one figure, for the rest of the local day, so a changed number brings it back and "dismiss" can never become "never tell me again". Red and amber rows have no dismiss. **Bug found while building**: `useFilterParam` stripped its key from the render's params snapshot, so two deep-link params on one screen fought - each write put the other's key back and the first one lost (`?status=ACTIVE&assignee=me` left `?status=ACTIVE` in the bar). Fixed at the hook for all 5 call sites by stripping every key consumed in the commit. The action-centre toggle also had **no accessible name below `sm`**, where its label text is hidden. Backend: 70 tests pass incl. 5 new (finished work excluded from both counters, list filters matching the counters, `assignee=me` unable to read another user's queue). FE: 485 tests, build green. Driven in the real app against the dev DB's actual case - a RESOLVED ticket assigned to admin, which is exactly what was stuck on the dashboard: card reads 0, no row; flipped live it reappears and the deep link lands on that one ticket with both filters shown. Phone clean at 390px, zero overflow. Guide impact: none - no article documents the ticket-list filters, and console-basics only describes hovering/maximizing Today's focus, which is unchanged.
 

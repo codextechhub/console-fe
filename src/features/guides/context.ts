@@ -103,12 +103,87 @@ export type SafeTicketContext = {
   app_version?: string;
 };
 
+/**
+ * The exact values the ticket API accepts for `product_area`.
+ *
+ * Not a display list - `GuidePageContext.productArea` is also shown on screen
+ * ("Guidance matched to ...") and may read more naturally than these. This is the
+ * wire contract, and anything outside it is **rejected outright**, taking the whole
+ * ticket create with it rather than just dropping the field.
+ */
+const TICKET_PRODUCT_AREAS = new Set([
+  "Account", "Audit and security", "Console", "Data imports", "Exports",
+  "Finance", "Health", "Notifications", "Organogram", "Permissions",
+  "Platform health", "Procurement", "Roles", "School management",
+  "Settings", "Support", "Tasks", "Users", "Workflow",
+]);
+
+/**
+ * Display labels that mean one of the accepted areas but are not spelled like it.
+ *
+ * "Account access" reads better beside a sign-in screen than "Account" does, so the
+ * label stays and is translated here instead of being flattened at the source.
+ */
+const PRODUCT_AREA_ALIASES: Record<string, string> = {
+  "Account access": "Account",
+};
+
+/** The accepted spelling, or undefined when there is no honest mapping. */
+function ticketProductArea(area: string | undefined): string | undefined {
+  if (!area) return undefined;
+  const mapped = PRODUCT_AREA_ALIASES[area] ?? area;
+  return TICKET_PRODUCT_AREAS.has(mapped) ? mapped : undefined;
+}
+
+/**
+ * A route pattern the API will accept, or undefined.
+ *
+ * Digits are rejected server-side on purpose: a parameter placeholder is the proof
+ * that record identifiers were stripped, so `/finance/invoices/8842/` must never be
+ * sent. Anything with a digit, a query string or a fragment is dropped rather than
+ * sent and refused.
+ */
+function ticketRoutePattern(pattern: string | undefined): string | undefined {
+  if (!pattern) return undefined;
+  const ok = /^\/[a-z0-9_./:-]{0,199}$/.test(pattern)
+    && !/\d/.test(pattern)
+    && !pattern.includes("?")
+    && !pattern.includes("#");
+  return ok ? pattern : undefined;
+}
+
+/**
+ * A guide id the API will accept, or undefined.
+ *
+ * Lowercase, and dots and hyphens only - an underscore is refused. Every id in the
+ * registry passes today; this is here so that adding one that does not costs a
+ * missing field rather than a rejected ticket.
+ */
+function ticketGuideId(id: string | undefined): string | undefined {
+  return id && /^[a-z0-9][a-z0-9.-]{0,119}$/.test(id) ? id : undefined;
+}
+
+/**
+ * The context attached to a ticket raised from inside the console.
+ *
+ * Every field is validated against the API's allowlist here rather than trusted from
+ * the page, because the endpoint rejects an unknown value by **failing the whole
+ * create**. Losing one field off a support ticket is a small thing; losing the
+ * ticket because of it is not, and it would surface to the user as an unexplained
+ * error on a screen they came to for help.
+ */
 export function buildSafeTicketContext(context: GuidePageContext): SafeTicketContext {
   const guide = context.guides[0] ?? context.troubleshooting[0];
+  const guideId = ticketGuideId(guide?.id);
+  const area = ticketProductArea(context.productArea);
+  const route = ticketRoutePattern(context.routePattern);
+  // Up to 40 characters of version string, and only these characters.
+  const rawVersion = import.meta.env.VITE_APP_VERSION;
+  const version = rawVersion && /^[A-Za-z0-9._+-]{1,40}$/.test(rawVersion) ? rawVersion : undefined;
   return {
-    ...(guide ? { guide_id: guide.id } : {}),
-    ...(context.routePattern ? { route_pattern: context.routePattern } : {}),
-    ...(context.productArea ? { product_area: context.productArea } : {}),
-    ...(import.meta.env.VITE_APP_VERSION ? { app_version: import.meta.env.VITE_APP_VERSION } : {}),
+    ...(guideId ? { guide_id: guideId } : {}),
+    ...(route ? { route_pattern: route } : {}),
+    ...(area ? { product_area: area } : {}),
+    ...(version ? { app_version: version } : {}),
   };
 }

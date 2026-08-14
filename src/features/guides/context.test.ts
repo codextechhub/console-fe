@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { GUIDE_REGISTRY } from "./registry";
+import { GUIDE_ROUTE_PATTERNS } from "./route-catalog";
 import {
   buildSafeTicketContext,
   contextualGuideContext,
@@ -81,9 +82,63 @@ describe("contextual guides", () => {
     });
   });
 
-  it("uses backend-approved product-area labels for every catalogued route", () => {
+  it("labels a screen for the reader, which is not always the wire value", () => {
+    // `productArea` is displayed ("Guidance matched to ..."), so it is allowed to
+    // read better than the API's vocabulary. The translation happens on the way out.
     expect(contextualGuideContext(GUIDE_REGISTRY, "/roles", []).productArea).toBe("Roles");
     expect(contextualGuideContext(GUIDE_REGISTRY, "/how-to-guide", []).productArea).toBe("Support");
     expect(contextualGuideContext(GUIDE_REGISTRY, "/forgot-password", []).productArea).toBe("Account access");
+  });
+
+  it("translates a display-only area to the spelling the API accepts", () => {
+    // "Account access" is not one of the API's 19 values; "Account" is. Sending the
+    // former fails the whole ticket create, not just the field.
+    expect(buildSafeTicketContext(
+      contextualGuideContext(GUIDE_REGISTRY, "/forgot-password", []),
+    ).product_area).toBe("Account");
+  });
+
+  it("cannot produce a payload the ticket API would refuse, from any catalogued route", () => {
+    // The guarantee that matters: every field is either absent or valid. A rejected
+    // value takes the whole ticket with it, on a screen the user came to for help.
+    const areas = new Set([
+      "Account", "Audit and security", "Console", "Data imports", "Exports",
+      "Finance", "Health", "Notifications", "Organogram", "Permissions",
+      "Platform health", "Procurement", "Roles", "School management",
+      "Settings", "Support", "Tasks", "Users", "Workflow",
+    ]);
+    for (const pattern of GUIDE_ROUTE_PATTERNS) {
+      // Stand in a real id for each parameter, the way a live URL would.
+      const pathname = pattern.replace(/:[^/]+/g, "4831");
+      const ctx = buildSafeTicketContext(contextualGuideContext(GUIDE_REGISTRY, pathname, []));
+      if (ctx.product_area !== undefined) {
+        expect(areas.has(ctx.product_area), `${pattern} -> ${ctx.product_area}`).toBe(true);
+      }
+      if (ctx.route_pattern !== undefined) {
+        expect(ctx.route_pattern, pattern).toMatch(/^\/[a-z_./:-]*$/);
+        expect(ctx.route_pattern, pattern).not.toMatch(/[\d?#]/);
+      }
+      if (ctx.guide_id !== undefined) {
+        expect(ctx.guide_id, pattern).toMatch(/^[a-z0-9][a-z0-9.-]{0,119}$/);
+      }
+    }
+  });
+
+  it("drops a route pattern that still carries an identifier", () => {
+    // Belt and braces for the digit rule: if resolution ever hands back a raw URL,
+    // the field is omitted rather than sent and refused.
+    expect(buildSafeTicketContext({
+      routePattern: "/finance/invoices/8842",
+      productArea: "Finance",
+      guides: [], troubleshooting: [], walkthroughs: [],
+    })).toEqual({ product_area: "Finance" });
+  });
+
+  it("drops an unmappable area rather than guessing one", () => {
+    expect(buildSafeTicketContext({
+      routePattern: "/overview",
+      productArea: "Something New",
+      guides: [], troubleshooting: [], walkthroughs: [],
+    })).toEqual({ route_pattern: "/overview" });
   });
 });
