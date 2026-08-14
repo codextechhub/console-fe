@@ -26,7 +26,26 @@ export function visibleGuides(
   guides: readonly GuideRecord[],
   permissionKeys: readonly string[],
 ): GuideRecord[] {
-  return guides.filter((guide) => canDiscoverGuide(guide, permissionKeys));
+  return guides.filter((guide) => (
+    guide.status === "published" && canDiscoverGuide(guide, permissionKeys)
+  ));
+}
+
+export type GuideLandingView = "browse" | "category-results" | "audience-results" | "search-results";
+
+export function guideLandingView({
+  category,
+  audience,
+  query,
+}: {
+  category: string | null;
+  audience: string | null;
+  query: string;
+}): GuideLandingView {
+  if (category) return "category-results";
+  if (query.trim()) return "search-results";
+  if (audience) return "audience-results";
+  return "browse";
 }
 
 export function guidesForAudience(

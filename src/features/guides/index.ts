@@ -9,11 +9,13 @@ export { buildGuideCoverageReport } from "./coverage";
 export {
   canDiscoverGuide,
   featuredGuides,
+  guideLandingView,
   GUIDE_ROLE_ENTRY_POINTS,
   guidesForAudience,
   recentlyReviewedGuides,
   visibleGuides,
 } from "./discovery";
+export type { GuideLandingView } from "./discovery";
 export { GUIDE_REGISTRY } from "./registry";
 export { searchGuides } from "./search";
 export { GUIDE_ROUTE_PATTERNS, GUIDE_ROUTE_PATTERN_SET } from "./route-catalog";

@@ -5,6 +5,7 @@ import { P, resolvePermissionKey } from "@/permissions";
 import {
   canDiscoverGuide,
   featuredGuides,
+  guideLandingView,
   guidesForAudience,
   recentlyReviewedGuides,
   visibleGuides,
@@ -41,10 +42,22 @@ describe("guide discovery", () => {
       "tasks.create-and-complete",
       "workflow.review-and-act",
       "workflow.delegate-and-track",
-      "account.secure-account",
-      "troubleshooting.permission-denied",
     ]);
     expect(guidesForAudience(visible, "finance-officer")).toEqual([]);
+  });
+
+  it("keeps draft guides out of normal discovery and availability counts", () => {
+    const visible = visibleGuides(GUIDE_REGISTRY, []);
+
+    expect(visible.every((guide) => guide.status === "published")).toBe(true);
+    expect(visible.some((guide) => guide.id === "account.secure-account")).toBe(false);
+  });
+
+  it("chooses one focused landing layout for each filter state", () => {
+    expect(guideLandingView({ category: null, audience: null, query: "" })).toBe("browse");
+    expect(guideLandingView({ category: null, audience: "approver", query: "" })).toBe("audience-results");
+    expect(guideLandingView({ category: null, audience: "approver", query: "approve" })).toBe("search-results");
+    expect(guideLandingView({ category: "approvals-and-workflow", audience: "approver", query: "approve" })).toBe("category-results");
   });
 
   it("returns curated and recently reviewed records deterministically", () => {

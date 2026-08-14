@@ -38,7 +38,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.getting-started.console-basics",
     estimatedMinutes: 6,
     owner: OWNER,
-    reviewedAt: REVIEWED_AT,
+    reviewedAt: C5_REVIEWED_AT,
     risk: "low",
     featured: true,
     status: "published",
