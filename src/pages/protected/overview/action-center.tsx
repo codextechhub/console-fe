@@ -9,15 +9,18 @@ import {
   FileClock,
   FileText,
   UserCheck,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { formatRelativeDate } from "@/utils/helpers";
 import { routesPath } from "@/routes/routes-path";
+import { useAppSelector } from "@/redux/store";
 import type { ConsoleOverview } from "@/redux/services/dashboard/overview-types";
 import type { Task } from "@/redux/services/dashboard/todo-types";
 import { DocumentRef } from "../workflow/components/workflow-ui";
-import { actionableTasks, buildActionRows } from "./action-center-model";
+import { actionableTasks, buildActionRows, type ActionRow } from "./action-center-model";
+import { dismissNotice, isDismissed, loadDismissals } from "./notice-dismissals";
 
 const R = routesPath.PROTECTED;
 
@@ -120,6 +123,47 @@ function QueueBox({
   );
 }
 
+/**
+ * One compact condition row. The link fills the card so the whole row stays
+ * clickable; a dismissible notice hands the trailing slot to its own button
+ * (nesting a button inside the anchor would be invalid markup).
+ */
+function ActionRowCard({ row, onDismiss }: { row: ActionRow; onDismiss?: () => void }) {
+  const { icon: Icon, title, stat, message, to, severity } = row;
+  return (
+    <div
+      className={cn(
+        "group flex items-center rounded-xl border transition duration-200",
+        ROW_TONES[severity].card,
+        onDismiss && "pr-1.5",
+      )}
+    >
+      <Link to={to} className="flex min-w-0 flex-1 items-center gap-3 p-3.5">
+        <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg", ROW_TONES[severity].tile)}>
+          <Icon className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-black-01">{title}</p>
+          <p className="mt-0.5 truncate text-xs text-gray-500">{message}</p>
+        </div>
+        <span className={cn("shrink-0 text-sm font-semibold tabular-nums", ROW_TONES[severity].stat)}>{stat}</span>
+        {!onDismiss && <ChevronRight className="size-4 shrink-0 text-gray-300 group-hover:text-gray-500" />}
+      </Link>
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          title="Hide until this number changes"
+          aria-label={`Dismiss ${title}`}
+          className="shrink-0 rounded-lg p-2 text-gray-300 transition hover:bg-white/70 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+        >
+          <X className="size-4" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 function TaskDot({ task }: { task: Task }) {
   return (
     <span
@@ -146,7 +190,12 @@ function taskDeadline(value: string): string {
 export function ActionCenter({ overview }: { overview: ConsoleOverview | undefined }) {
   const [pinnedOpen, setPinnedOpen] = useState(false);
   const [hoveredOpen, setHoveredOpen] = useState(false);
-  const rows = buildActionRows(overview);
+  const userId = useAppSelector((state) => state.auth.user?.id);
+  const [dismissals, setDismissals] = useState(() => loadDismissals(userId));
+  // Blue notices the reader put down today, at this exact figure, stay down.
+  const rows = buildActionRows(overview).filter(
+    (row) => !(row.severity === "blue" && isDismissed(dismissals, row.key, row.stat)),
+  );
 
   const allApprovalItems = overview?.approvals.items ?? [];
   // Delegate cover is its own duty, so it gets its own box; the counts split
@@ -189,6 +238,9 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
           type="button"
           aria-expanded={expanded}
           aria-controls="overview-action-details"
+          // The label text is hidden below sm, which would leave the button
+          // with no accessible name on exactly the devices that cannot hover.
+          aria-label={pinnedOpen ? "Minimize action needed" : "Maximize action needed"}
           onClick={() => {
             if (pinnedOpen) {
               setPinnedOpen(false);
@@ -218,25 +270,18 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
 
           {rows.length > 0 && (
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          {rows.map(({ key, icon: Icon, title, stat, message, to, severity }) => (
-            <Link
-              key={key}
-              to={to}
-              className={cn(
-                "group flex items-center gap-3 rounded-xl border p-3.5 transition duration-200",
-                ROW_TONES[severity].card,
-              )}
-            >
-              <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg", ROW_TONES[severity].tile)}>
-                <Icon className="size-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-black-01">{title}</p>
-                <p className="mt-0.5 truncate text-xs text-gray-500">{message}</p>
-              </div>
-              <span className={cn("shrink-0 text-sm font-semibold tabular-nums", ROW_TONES[severity].stat)}>{stat}</span>
-              <ChevronRight className="size-4 shrink-0 text-gray-300 group-hover:text-gray-500" />
-            </Link>
+          {rows.map((row) => (
+            <ActionRowCard
+              key={row.key}
+              row={row}
+              // Only notices can be put down. A red or amber row reports
+              // something broken or overdue, and hiding it would be a lie.
+              onDismiss={
+                row.severity === "blue"
+                  ? () => setDismissals((prev) => dismissNotice(userId, prev, row.key, row.stat))
+                  : undefined
+              }
+            />
           ))}
             </div>
           )}

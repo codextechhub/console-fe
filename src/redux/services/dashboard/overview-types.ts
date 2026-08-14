@@ -43,7 +43,12 @@ export interface ConsoleOverview {
   approvals: { pending: number; delegated: number; items: ApprovalWorklistItem[] };
   submissions: { returned: number; items: ReturnedSubmissionItem[] };
   notifications: { unread: number };
-  tickets?: { open: number; assigned_to_me: number };
+  /**
+   * Unfinished tickets only (OPEN / ASSIGNED / IN_PROGRESS). Resolved and
+   * closed work is excluded on purpose: a counter you cannot clear by doing
+   * the work is worse than no counter.
+   */
+  tickets?: { active: number; assigned_to_me: number };
   health?: { label: string; overall: string; active_incidents: number };
   /**
    * Module signals - conditions someone should act on soon. Doubly omitted:

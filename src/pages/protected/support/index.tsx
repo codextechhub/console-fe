@@ -40,10 +40,16 @@ export default function Support() {
   const nav = useNavigate();
   const dash = useGetTicketDashboardQuery();
   const [q, setQ] = useState("");
+  // "ACTIVE" is not a stored status - it is the unresolved set (OPEN,
+  // ASSIGNED, IN_PROGRESS), which is what every workload number counts. It
+  // travels as `state=active` on the wire.
   const [status, setStatus] = useState("");
+  const [assignee, setAssignee] = useState("");
   const [page, setPage] = useState(1);
-  // Dashboard deep-link: the tickets card lands here as ?status=OPEN.
-  useFilterParam("status", ["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"] as const, setStatus);
+  // Dashboard deep-links: the tickets card lands here as ?status=ACTIVE, and
+  // "Tickets assigned to you" adds &assignee=me.
+  useFilterParam("status", ["ACTIVE", "OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"] as const, setStatus);
+  useFilterParam("assignee", ["me"] as const, setAssignee);
   // /support/tickets/new is this same page with the composer open on arrival -
   // a deep-linkable "new ticket" URL (also reachable via the page button).
   const isNewRoute = useLocation().pathname === routesPath.PROTECTED.SUPPORT.NEW;
@@ -55,7 +61,12 @@ export default function Support() {
   };
 
   const debouncedQ = useDebounce(q, 400);
-  const list = useGetTicketsQuery({ page, q: debouncedQ, ...(status ? { status } : {}) });
+  const list = useGetTicketsQuery({
+    page,
+    q: debouncedQ,
+    ...(status === "ACTIVE" ? { state: "active" } : status ? { status } : {}),
+    ...(assignee ? { assignee } : {}),
+  });
 
   const d = dash.data?.data;
   const tableData = (list.data?.data ?? []).map((t) => ({
@@ -114,7 +125,9 @@ export default function Support() {
             value={d?.by_priority.URGENT ?? "-"}
             tone={d?.by_priority.URGENT ? "alert" : "default"}
           />
-          <KpiCard label="Assigned to me" value={d?.assigned_to_me ?? "-"} />
+          {/* Unresolved only, matching the dashboard row: resolving your queue
+              has to empty this card, or it stops meaning anything. */}
+          <KpiCard label="Open on me" value={d?.assigned_to_me ?? "-"} />
           <KpiCard label="Resolved" value={d?.by_status.RESOLVED ?? "-"} />
         </div>
 
@@ -143,9 +156,23 @@ export default function Support() {
               }}
             >
               <option value="">All statuses</option>
+              <option value="ACTIVE">Unresolved</option>
               {["OPEN", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((s) => (
                 <option key={s}>{s}</option>
               ))}
+            </NativeSelect>
+          </div>
+          <div className="w-full sm:w-48">
+            <NativeSelect
+              className="h-10"
+              value={assignee}
+              onChange={(e) => {
+                setAssignee(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Anyone&apos;s tickets</option>
+              <option value="me">Assigned to me</option>
             </NativeSelect>
           </div>
         </div>

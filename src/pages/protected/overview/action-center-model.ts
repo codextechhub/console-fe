@@ -60,6 +60,9 @@ export function buildActionRows(overview: ConsoleOverview | undefined): ActionRo
     });
   }
 
+  // Unfinished tickets only - the backend drops resolved and closed ones, so
+  // clearing your queue clears this row. The link lands on exactly the rows
+  // this number counted, rather than the whole ticket list.
   const assigned = overview?.tickets?.assigned_to_me ?? 0;
   if (assigned > 0) {
     rows.push({
@@ -67,8 +70,8 @@ export function buildActionRows(overview: ConsoleOverview | undefined): ActionRo
       icon: LifeBuoy,
       title: "Tickets assigned to you",
       stat: String(assigned),
-      message: "Support tickets are waiting on your reply.",
-      to: R.SUPPORT.INDEX,
+      message: "Support tickets are open on your queue.",
+      to: `${R.SUPPORT.INDEX}?status=ACTIVE&assignee=me`,
       severity: "amber",
     });
   }

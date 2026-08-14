@@ -26,6 +26,13 @@ import { RecentOpensRow } from "./recent-opens-row";
 
 const R = routesPath.PROTECTED;
 
+/** Hoisted so the options object is not a fresh reference on every render. */
+const OVERVIEW_REFRESH = {
+  pollingInterval: 120_000,
+  skipPollingIfUnfocused: true,
+  refetchOnFocus: true,
+} as const;
+
 function greetingCopy() {
   const hour = new Date().getHours();
   if (hour < 12) return "Start with what needs your attention, then make space for the important work.";
@@ -99,7 +106,12 @@ export default function Overview() {
   // One request for the whole screen. It used to be eight, which arrived in
   // whatever order the network settled and made the page appear in waves; the
   // numbers are one visual unit, so they now load and reveal as one.
-  const { data: overviewRes, isLoading } = useGetConsoleOverviewQuery();
+  //
+  // Tag invalidation only covers work done in THIS tab. Approvals, tickets and
+  // tasks all move because of what other people do, so the screen also refreshes
+  // when it regains focus and on a slow poll while it is actually being looked
+  // at - one request, so a stale worklist costs more than the traffic does.
+  const { data: overviewRes, isLoading } = useGetConsoleOverviewQuery(undefined, OVERVIEW_REFRESH);
   const overview = overviewRes?.data;
   const revealed = !isLoading;
 
@@ -117,7 +129,7 @@ export default function Overview() {
     <MetricCard key="tasks" icon={ClipboardCheck} label="Open tasks" value={taskStats?.in_progress ?? 0} note={`${taskStats?.overdue ?? 0} overdue`} to={`${R.TODO.INDEX}?tab=mine`} tone="amber" loading={!revealed} />,
     <MetricCard key="approvals" icon={Workflow} label="Pending approvals" value={approvalsCount} note={`${returnedCount} returned to you`} to={R.WORKFLOW.APPROVALS} tone="green" loading={!revealed} />,
     canViewTickets && (
-      <MetricCard key="tickets" icon={LifeBuoy} label="Support tickets" value={overview?.tickets?.open ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={`${R.SUPPORT.INDEX}?status=OPEN`} tone="amber" loading={!revealed} />
+      <MetricCard key="tickets" icon={LifeBuoy} label="Unresolved tickets" value={overview?.tickets?.active ?? 0} note={`${overview?.tickets?.assigned_to_me ?? 0} assigned to you`} to={`${R.SUPPORT.INDEX}?status=ACTIVE`} tone="amber" loading={!revealed} />
     ),
     canViewHealth && (
       <MetricCard key="health" icon={Activity} label="System posture" value={overview?.health ? ({ operational: "Normal", warning: "Warning", critical: "Critical" }[overview.health.overall] ?? overview.health.overall) : "Unknown"} note={`${overview?.health?.label ?? "Unknown"} - ${overview?.health?.active_incidents ?? 0} active incidents`} to={R.HEALTH.INDEX} tone="green" loading={!revealed} />

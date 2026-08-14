@@ -63,7 +63,7 @@ describe("buildActionRows", () => {
     const rows = buildActionRows(
       overview({
         signals: { webhook_failures_24h: { count: 2 } },
-        tickets: { open: 5, assigned_to_me: 3 },
+        tickets: { active: 5, assigned_to_me: 3 },
         notifications: { unread: 7 },
       }),
     );
@@ -72,8 +72,15 @@ describe("buildActionRows", () => {
   });
 
   it("omits tickets and notifications at zero", () => {
-    const rows = buildActionRows(overview({ tickets: { open: 4, assigned_to_me: 0 } }));
+    const rows = buildActionRows(overview({ tickets: { active: 4, assigned_to_me: 0 } }));
     expect(rows).toEqual([]);
+  });
+
+  it("sends the tickets row to the caller's own unresolved queue", () => {
+    // The row counts unfinished tickets assigned to the reader, so the link
+    // must land on that same set - not the whole ticket list.
+    const [row] = buildActionRows(overview({ tickets: { active: 9, assigned_to_me: 2 } }));
+    expect(row.to).toBe("/support?status=ACTIVE&assignee=me");
   });
 
   it("adds finished jobs and incidents from their own sections", () => {
