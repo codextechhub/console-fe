@@ -21,9 +21,9 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Organogram and tasks | Build the organogram | `organogram.build-structure` | Medium | Published | Published | Console product team | 2026-08-14 | Walkthrough explains the safe unit, position, and matrix order and never creates, edits, moves, or deletes structure |
 | Organogram and tasks | Maintain staff profiles | `organogram.maintain-staff-profiles` | Medium | Published | Published | Console product team | 2026-08-14 | Walkthrough explains identity, seat, employment, and payroll boundaries and never reads fields, creates a profile, or changes an assignment |
 | Organogram and tasks | Create and complete tasks | `tasks.create-and-complete` | Low | Published | Not required | Console product team | 2026-08-14 | The short form and completion control are covered by the article; assignment and completion remain explicit user actions |
-| Approvals and workflow | Review and act on an approval | Planned in C5 | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
-| Approvals and workflow | Delegate and track approvals | Planned in C5 | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
-| Approvals and workflow | Build a workflow template | `workflow.build-template` | High | Draft | Planned | Console product team | 2026-08-13 | Content must follow the current approver contract |
+| Approvals and workflow | Review and act on an approval | `workflow.review-and-act` | High | Published | Published | Console product team | 2026-08-14 | Walkthrough explains queue, evidence, stage rules, and outcomes, then stops before opening or recording a decision |
+| Approvals and workflow | Delegate and track approvals | `workflow.delegate-and-track` | High | Published | Published | Console product team | 2026-08-14 | Walkthrough explains bounded delegation and tracking, and never saves, revokes, withdraws, resubmits, cancels, or reverses work |
+| Approvals and workflow | Build a workflow template | `workflow.build-template` | High | Published | Published | Console product team | 2026-08-14 | No self-service retirement control exists; new stages also default auto-skip on, so the guide requires an explicit policy decision for that setting |
 | Finance and payments | Configure finance foundations | Planned in C6a | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
 | Finance and payments | Create and post a journal | `finance.create-and-post-journal` | High | Draft | Planned | Console product team | 2026-08-13 | Content and targets start in C6a |
 | Finance and payments | Close, lock, or reopen a fiscal period | Planned in C6a | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
@@ -212,3 +212,27 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - The low-risk task form does not need a walkthrough. Its create, assign, complete,
   undo, edit, and delete actions remain deliberate user actions described by the
   article.
+
+## C5 completion record
+
+- Approvals and workflow now publishes three task guides: review and act on an
+  approval, delegate and track approvals, and build an approval workflow template.
+- Decision guidance records queue eligibility, current-attempt handling, ANY,
+  QUORUM, and UNANIMOUS rules, terminal and return rejection behaviour, required
+  reasons, confirmations, and audited results.
+- Submission and delegation guidance records amendment and resubmission, permanent
+  withdrawal, date and document scope, exclusive versus shared authority, revocation,
+  administrative monitoring, cancellation, and audited vote reversal.
+- Template guidance records approver groups, effective members, dynamic roles,
+  organogram resolution, scopes, stage and route conditions, empty-approver policy,
+  notifications, shared and school-owned versions, validation, publishing, and
+  revision behaviour.
+- Three high-risk walkthroughs explain these decision boundaries. They never record
+  an approval, save or revoke a delegation, withdraw or resubmit a request, cancel or
+  reverse an instance, change template fields, or publish or switch a version.
+- Template retirement remains a known product gap because no self-service lifecycle
+  control is exposed. The guide directs authorized users to the approved support path
+  and preserves existing instances and dependencies.
+- New template stages currently default empty-approver auto-skip on. The guide and
+  walkthrough call this out and require the author to switch it off unless approved
+  policy explicitly permits skipping the stage.

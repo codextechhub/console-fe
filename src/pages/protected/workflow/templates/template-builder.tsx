@@ -416,7 +416,7 @@ export default function TemplateBuilder() {
             once per template sits in a rail beside them on a wide screen, and
             above them on a narrow one, which is the order you fill them in. */}
         <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
-          <aside className="min-w-0 space-y-5 xl:sticky xl:top-4">
+          <aside data-guide="workflow-template.details" className="min-w-0 space-y-5 xl:sticky xl:top-4">
         {/* Meta */}
         <Section title="Template details">
           <div className="space-y-4">
@@ -511,7 +511,7 @@ export default function TemplateBuilder() {
 
           </aside>
 
-          <div className="min-w-0 space-y-5">
+          <div data-guide="workflow-template.stages" className="min-w-0 space-y-5">
           {/* Stages */}
           <Section
             title="Stages"
@@ -793,4 +793,3 @@ export default function TemplateBuilder() {
     </>
   );
 }
-

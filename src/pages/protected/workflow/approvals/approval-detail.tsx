@@ -197,7 +197,7 @@ export default function ApprovalDetail() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
             {/* Left: document panel */}
-            <div className="space-y-5 min-w-0">
+            <div data-guide="approval-detail.document" className="space-y-5 min-w-0">
               <DocumentPanel instance={instance} name={name} initials={initials} role={role} />
               <Section title="Activity">
                 <AuditTimeline logs={instance.audit_logs} name={name} />
@@ -205,7 +205,7 @@ export default function ApprovalDetail() {
             </div>
 
             {/* Right: workflow + decision */}
-            <aside className="space-y-5">
+            <aside data-guide="approval-detail.workflow" className="space-y-5">
               <div className="rounded-lg border border-white-02 bg-white p-5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold">Workflow</h3>
@@ -215,7 +215,7 @@ export default function ApprovalDetail() {
                 <StageTracker stages={instance.stage_instances} name={name} initials={initials} />
               </div>
 
-              <div className="rounded-lg border border-white-02 bg-white p-5">
+              <div data-guide="approval-detail.decision" className="rounded-lg border border-white-02 bg-white p-5">
                 <h3 className="text-sm font-semibold">Your decision</h3>
                 {canVote ? (
                   <>

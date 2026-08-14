@@ -94,13 +94,13 @@ export default function Delegations() {
               Hand off your approval authority to another approver for a period.
             </p>
           </div>
-          <Button size="lg" onClick={() => setNewOpen(true)}>
+          <Button data-guide="workflow-delegations.new" size="lg" onClick={() => setNewOpen(true)}>
             <Plus /> New Delegation
           </Button>
         </div>
 
         <div className="flex items-center justify-between gap-3">
-          <div className="inline-flex rounded-lg border border-white-02 bg-white p-1">
+          <div data-guide="workflow-delegations.scope" className="inline-flex rounded-lg border border-white-02 bg-white p-1">
             <TabButton active={tab === "mine"} onClick={() => setTab("mine")}>
               My Delegations ({mine.length})
             </TabButton>
@@ -119,65 +119,67 @@ export default function Delegations() {
           </Button>
         </div>
 
-        {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-24 animate-pulse rounded-lg border border-white-02 bg-gray-50" />
-            ))}
-          </div>
-        ) : list.length === 0 ? (
-          <div className="rounded-lg border border-white-02 bg-white py-16 text-center">
-            <span className="mx-auto grid size-12 place-content-center rounded-full bg-pry-01 text-primary">
-              <Users className="size-6" />
-            </span>
-            <p className="mt-3 text-sm text-gray-01">
-              {tab === "mine"
-                ? "You haven't delegated your approvals to anyone."
-                : "No one has delegated their approvals to you."}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {list.map((d) => {
-              const state = delegationState(d);
-              const counterpartId = tab === "mine" ? d.delegate : d.delegator;
-              const canRevoke = state === "Active" || state === "Scheduled";
-              return (
-                <div key={d.id} className="rounded-lg border border-white-02 bg-white p-4">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <InitialsAvatar initials={initials(counterpartId)} seed={counterpartId} size={36} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-black-01">
-                        {tab === "mine" ? "To " : "From "}
-                        {name(counterpartId)}
-                      </p>
-                      <p className="text-xs text-gray-01">{role(counterpartId)}</p>
+        <div data-guide="workflow-delegations.records">
+          {isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-24 animate-pulse rounded-lg border border-white-02 bg-gray-50" />
+              ))}
+            </div>
+          ) : list.length === 0 ? (
+            <div className="rounded-lg border border-white-02 bg-white py-16 text-center">
+              <span className="mx-auto grid size-12 place-content-center rounded-full bg-pry-01 text-primary">
+                <Users className="size-6" />
+              </span>
+              <p className="mt-3 text-sm text-gray-01">
+                {tab === "mine"
+                  ? "You haven't delegated your approvals to anyone."
+                  : "No one has delegated their approvals to you."}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {list.map((d) => {
+                const state = delegationState(d);
+                const counterpartId = tab === "mine" ? d.delegate : d.delegator;
+                const canRevoke = state === "Active" || state === "Scheduled";
+                return (
+                  <div key={d.id} className="rounded-lg border border-white-02 bg-white p-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <InitialsAvatar initials={initials(counterpartId)} seed={counterpartId} size={36} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-black-01">
+                          {tab === "mine" ? "To " : "From "}
+                          {name(counterpartId)}
+                        </p>
+                        <p className="text-xs text-gray-01">{role(counterpartId)}</p>
+                      </div>
+                      <Badge variant={STATE_VARIANT[state]}>{state}</Badge>
+                      {tab === "mine" && canRevoke && (
+                        <Button variant="outline" size="sm" onClick={() => setRevokeTarget(d)}>
+                          Revoke
+                        </Button>
+                      )}
                     </div>
-                    <Badge variant={STATE_VARIANT[state]}>{state}</Badge>
-                    {tab === "mine" && canRevoke && (
-                      <Button variant="outline" size="sm" onClick={() => setRevokeTarget(d)}>
-                        Revoke
-                      </Button>
-                    )}
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-01">
-                    <span>
-                      {formatDate(new Date(d.starts_at))} → {formatDate(new Date(d.ends_at))}
-                    </span>
-                    <span>
-                      Scope:{" "}
-                      <span className="text-black-01">
-                        {d.document_type ? humanizeDocumentType(d.document_type) : "All document types"}
+                    <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-01">
+                      <span>
+                        {formatDate(new Date(d.starts_at))} → {formatDate(new Date(d.ends_at))}
                       </span>
-                    </span>
-                    {d.exclusive && <span className="text-orange-600">Exclusive</span>}
+                      <span>
+                        Scope:{" "}
+                        <span className="text-black-01">
+                          {d.document_type ? humanizeDocumentType(d.document_type) : "All document types"}
+                        </span>
+                      </span>
+                      {d.exclusive && <span className="text-orange-600">Exclusive</span>}
+                    </div>
+                    {d.reason && <p className="mt-2 text-xs text-gray-01 italic">“{d.reason}”</p>}
                   </div>
-                  {d.reason && <p className="mt-2 text-xs text-gray-01 italic">“{d.reason}”</p>}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </main>
 
       <NewDelegationSheet open={newOpen} onClose={() => setNewOpen(false)} selfId={uid} />

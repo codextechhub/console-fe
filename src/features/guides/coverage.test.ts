@@ -80,4 +80,17 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts implemented high-risk workflow walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "approval-decision", route: "/workflow/approvals", actionId: "view-approvals", risk: "high" },
+      { id: "approval-delegation", route: "/workflow/delegations", actionId: "view-delegations", risk: "high" },
+      { id: "workflow-template", route: "/workflow/templates/new", actionId: "create-workflow-template", risk: "high" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

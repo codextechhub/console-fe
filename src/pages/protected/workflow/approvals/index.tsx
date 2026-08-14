@@ -58,7 +58,7 @@ export default function PendingApprovals() {
       <main className="px-4.5 py-6 text-black-01">
         <div className="grid grid-cols-1 lg:grid-cols-[230px_1fr] gap-6">
           {/* ── Filter rail ─────────────────────────────────────────────── */}
-          <aside className="space-y-5">
+          <aside data-guide="workflow-approvals.filters" className="space-y-5">
             <div>
               <h4 className="px-2 text-[11px] font-semibold uppercase tracking-wide text-gray-01 mb-1.5">
                 Document type
@@ -103,7 +103,7 @@ export default function PendingApprovals() {
           </aside>
 
           {/* ── List ────────────────────────────────────────────────────── */}
-          <section className="space-y-4 min-w-0">
+          <section data-guide="workflow-approvals.queue" className="space-y-4 min-w-0">
             <div className="flex items-end justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
