@@ -2,13 +2,20 @@
 // react-refresh boundary. One attention system, three shapes: compact rows for
 // module conditions and low-urgency notices, queue boxes for the reader's own
 // work items (approvals, returned submissions, tasks).
+//
+// Everything here also carries an `ownership`, because the panel is read in two
+// passes: what is mine to clear today, and what is going on around me. Mixing
+// the two was the old failure - eleven org conditions could bury the one
+// approval that was actually waiting on the reader.
 import { Bell, FileDown, LifeBuoy, Siren } from "lucide-react";
 import { routesPath } from "@/routes/routes-path";
 import type { ConsoleOverview } from "@/redux/services/dashboard/overview-types";
 import type { Task } from "@/redux/services/dashboard/todo-types";
-import { buildSignalCards, type SignalCard } from "./signals-model";
+import { buildSignalCards, type RowOwnership, type SignalCard } from "./signals-model";
 
 const R = routesPath.PROTECTED;
+
+export type { RowOwnership };
 
 /** Compact row: a signal, plus "blue" for notices that inform rather than warn. */
 export interface ActionRow extends Omit<SignalCard, "severity"> {
@@ -57,6 +64,9 @@ export function buildActionRows(overview: ConsoleOverview | undefined): ActionRo
       message: "Service incidents are open right now.",
       to: R.HEALTH.INDEX,
       severity: "red",
+      // Platform-wide, and rarely one reader's to close - it belongs under
+      // watch even though it is the loudest thing on the page.
+      ownership: "watch",
     });
   }
 
@@ -73,6 +83,7 @@ export function buildActionRows(overview: ConsoleOverview | undefined): ActionRo
       message: "Support tickets are open on your queue.",
       to: `${R.SUPPORT.INDEX}?status=ACTIVE&assignee=me`,
       severity: "amber",
+      ownership: "mine",
     });
   }
 
@@ -88,6 +99,7 @@ export function buildActionRows(overview: ConsoleOverview | undefined): ActionRo
       message: "Jobs you started finished in the last 24 hours.",
       to: R.EXPORT.QUEUES,
       severity: "blue",
+      ownership: "mine",
     });
   }
 
@@ -101,8 +113,22 @@ export function buildActionRows(overview: ConsoleOverview | undefined): ActionRo
       message: "Updates you have not read yet.",
       to: `${R.NOTIFICATIONS}?filter=unread`,
       severity: "blue",
+      ownership: "mine",
     });
   }
 
   return rows.sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]);
+}
+
+/**
+ * Split the rows the way the panel reads them: the reader's own work first,
+ * then the organisation's conditions. Severity order is preserved inside each
+ * group, so a red row is still first among its own kind - but a platform-wide
+ * incident no longer outranks the approval that is actually waiting on you.
+ */
+export function partitionRows(rows: ActionRow[]): { mine: ActionRow[]; watch: ActionRow[] } {
+  return {
+    mine: rows.filter((row) => row.ownership === "mine"),
+    watch: rows.filter((row) => row.ownership === "watch"),
+  };
 }

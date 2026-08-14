@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { actionableTasks, buildActionRows } from "./action-center-model";
+import { actionableTasks, buildActionRows, partitionRows } from "./action-center-model";
 import type { Task } from "@/redux/services/dashboard/todo-types";
 import type { ConsoleOverview } from "@/redux/services/dashboard/overview-types";
 
@@ -94,6 +94,55 @@ describe("buildActionRows", () => {
       ["incidents", "red"],
       ["exports_ready", "blue"],
     ]);
+  });
+
+  it("counts your own work as yours and module conditions as watch", () => {
+    const rows = buildActionRows(
+      overview({
+        tickets: { active: 9, assigned_to_me: 2 },
+        notifications: { unread: 4 },
+        health: { label: "1 service down", overall: "critical", active_incidents: 1 },
+        signals: {
+          jobs_failed_24h: { count: 1 },
+          jobs_succeeded_24h: { count: 2 },
+          draft_journals: { count: 3 },
+          users_without_roles: { count: 38 },
+        },
+      }),
+    );
+    const { mine, watch } = partitionRows(rows);
+    // Your tickets, your jobs (failed and finished), your notifications.
+    expect(mine.map((r) => r.key).sort()).toEqual([
+      "exports_ready", "jobs", "notifications", "tickets",
+    ]);
+    // Incidents are red and loud, but they are still not one reader's to close.
+    expect(watch.map((r) => r.key).sort()).toEqual([
+      "incidents", "journals", "roleless_users",
+    ]);
+  });
+
+  it("loses no row in the split", () => {
+    const rows = buildActionRows(
+      overview({
+        tickets: { active: 2, assigned_to_me: 1 },
+        notifications: { unread: 1 },
+        signals: { rfqs_open: { count: 2 }, contracts_expiring: { count: 1 } },
+      }),
+    );
+    const { mine, watch } = partitionRows(rows);
+    expect(mine.length + watch.length).toBe(rows.length);
+  });
+
+  it("keeps severity order inside each group", () => {
+    const { watch } = partitionRows(
+      buildActionRows(
+        overview({
+          health: { label: "down", overall: "critical", active_incidents: 1 },
+          signals: { draft_journals: { count: 1 }, webhook_failures_24h: { count: 2 } },
+        }),
+      ),
+    );
+    expect(watch.map((r) => r.severity)).toEqual(["red", "red", "amber"]);
   });
 
   it("keeps notices behind every warning severity", () => {

@@ -19,6 +19,17 @@ import type { ConsoleOverview } from "@/redux/services/dashboard/overview-types"
 
 const R = routesPath.PROTECTED;
 
+/**
+ * Whose problem this is.
+ *
+ * `mine` means the reader is the one who clears it - their queue, their jobs,
+ * their tickets. `watch` means a condition somewhere in the organisation that
+ * they should see but may not personally own. The panel groups on this, so a
+ * miscategorised row either buries someone's real work or claims work that
+ * isn't theirs. When in doubt, it is `watch`.
+ */
+export type RowOwnership = "mine" | "watch";
+
 export interface SignalCard {
   key: string;
   icon: typeof CalendarX;
@@ -28,6 +39,7 @@ export interface SignalCard {
   message: string;
   to: string;
   severity: "red" | "amber";
+  ownership: RowOwnership;
 }
 
 /**
@@ -52,6 +64,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
         : `${entity_name}'s posting calendar runs out soon.`,
       to: R.FINANCE.SETUP,
       severity: expired ? "red" : "amber",
+      ownership: "watch",
     });
   }
   if (signals.webhook_failures_24h) {
@@ -63,6 +76,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Payment provider events failed in the last 24 hours.",
       to: R.HEALTH.PROVIDER_WEBHOOKS,
       severity: "red",
+      ownership: "watch",
     });
   }
   if (signals.jobs_failed_24h) {
@@ -74,6 +88,9 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Jobs you started failed in the last 24 hours.",
       to: R.EXPORT.QUEUES,
       severity: "red",
+      // The backend scopes this to the caller's own jobs, so it is theirs to
+      // rerun - unlike every other signal here, which is an org condition.
+      ownership: "mine",
     });
   }
   if (signals.draft_journals) {
@@ -85,6 +102,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Journal entries are still waiting to be posted.",
       to: R.FINANCE.LEDGER,
       severity: "amber",
+      ownership: "watch",
     });
   }
   if (signals.pos_awaiting_receipt) {
@@ -96,6 +114,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Purchase orders are still awaiting goods receipt.",
       to: R.PROCUREMENT.PURCHASE_ORDERS,
       severity: "amber",
+      ownership: "watch",
     });
   }
   if (signals.overdue_invoices) {
@@ -107,6 +126,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Customer invoices are overdue and not fully settled.",
       to: R.FINANCE.RECEIVABLES,
       severity: "amber",
+      ownership: "watch",
     });
   }
   if (signals.unallocated_credit) {
@@ -118,6 +138,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Receipts hold cash not yet applied to any invoice.",
       to: R.FINANCE.RECEIPTS_ALLOCATION,
       severity: "amber",
+      ownership: "watch",
     });
   }
   if (signals.vendor_invoices_unpaid) {
@@ -129,6 +150,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Posted vendor invoices are awaiting payment.",
       to: R.PROCUREMENT.VENDOR_INVOICES,
       severity: "amber",
+      ownership: "watch",
     });
   }
   if (signals.rfqs_open) {
@@ -140,6 +162,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Issued requests for quotation have not been awarded.",
       to: R.PROCUREMENT.SOURCING,
       severity: "amber",
+      ownership: "watch",
     });
   }
   if (signals.contracts_expiring) {
@@ -151,6 +174,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Active vendor contracts end within 30 days.",
       to: R.PROCUREMENT.CONTRACTS,
       severity: "amber",
+      ownership: "watch",
     });
   }
   if (signals.users_without_roles) {
@@ -162,6 +186,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Active accounts hold no role, so they can do nothing.",
       to: R.ROLES.INDEX,
       severity: "amber",
+      ownership: "watch",
     });
   }
   if (signals.team_overdue_tasks) {
@@ -173,6 +198,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       message: "Tasks across your team are past their deadlines.",
       to: R.TODO.INDEX,
       severity: "amber",
+      ownership: "watch",
     });
   }
   // Red (broken now) before amber (needs attention soon), payload order within.

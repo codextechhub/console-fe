@@ -19,7 +19,12 @@ import { useAppSelector } from "@/redux/store";
 import type { ConsoleOverview } from "@/redux/services/dashboard/overview-types";
 import type { Task } from "@/redux/services/dashboard/todo-types";
 import { DocumentRef } from "../workflow/components/workflow-ui";
-import { actionableTasks, buildActionRows, type ActionRow } from "./action-center-model";
+import {
+  actionableTasks,
+  buildActionRows,
+  partitionRows,
+  type ActionRow,
+} from "./action-center-model";
 import { dismissNotice, isDismissed, loadDismissals } from "./notice-dismissals";
 
 const R = routesPath.PROTECTED;
@@ -124,6 +129,34 @@ function QueueBox({
 }
 
 /**
+ * The label above each group. Small and quiet on purpose: it separates two
+ * readings of the same panel, it is not a second page heading.
+ */
+function GroupHeading({
+  title,
+  note,
+  tone,
+}: {
+  title: string;
+  note: string;
+  tone: "mine" | "watch";
+}) {
+  return (
+    <div className="mb-2.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <h3
+        className={cn(
+          "text-[11px] font-semibold uppercase tracking-[0.14em]",
+          tone === "mine" ? "text-primary" : "text-slate-500",
+        )}
+      >
+        {title}
+      </h3>
+      <p className="text-[11px] text-gray-400">{note}</p>
+    </div>
+  );
+}
+
+/**
  * One compact condition row. The link fills the card so the whole row stays
  * clickable; a dismissible notice hands the trailing slot to its own button
  * (nesting a button inside the anchor would be invalid markup).
@@ -181,11 +214,16 @@ function taskDeadline(value: string): string {
 }
 
 /**
- * The unified "Action needed" centre. One attention system for everything
- * waiting on the reader: compact tinted rows for module conditions and
- * notices, then a personalized queue box per work stream (approvals, returned
- * submissions, tasks) holding the actual items. Anything quiet is simply
- * absent; a fully clear day renders nothing at all - the hero already says so.
+ * The unified "Action needed" centre, read in two groups.
+ *
+ * "Yours to act on" is work the reader personally clears: a queue box per work
+ * stream (approvals, delegate cover, returned submissions, tasks) holding the
+ * actual items, then their own counted rows (assigned tickets, their jobs,
+ * their notices). "Watch" is everything else the modules are reporting -
+ * conditions across the organisation that they should see but may not own.
+ *
+ * Anything quiet is simply absent; a fully clear day renders nothing at all -
+ * the hero already says so.
  */
 export function ActionCenter({ overview }: { overview: ConsoleOverview | undefined }) {
   const [pinnedOpen, setPinnedOpen] = useState(false);
@@ -211,17 +249,32 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
     approvals.length > 0 || covering.length > 0 || returned.length > 0 || tasks.length > 0;
   if (rows.length === 0 && !hasQueues) return null;
 
+  // Two passes, not one list: what is mine to clear, then what is going on
+  // around me. Org conditions outnumber personal work most days, so without
+  // the split a single waiting approval sits below eleven things nobody asked
+  // this reader to fix.
+  const { mine, watch } = partitionRows(rows);
+  // Only notices can be put down. A red or amber row reports something broken
+  // or overdue, and hiding it would be a lie.
+  const dismissHandler = (row: ActionRow) =>
+    row.severity === "blue"
+      ? () => setDismissals((prev) => dismissNotice(userId, prev, row.key, row.stat))
+      : undefined;
   const queueCount = [approvals.length, covering.length, returned.length, tasks.length]
     .filter((count) => count > 0).length;
+  const hasMine = hasQueues || mine.length > 0;
+  const mineCount = queueCount + mine.length;
   const summary = [
-    rows.length > 0 ? `${rows.length} signal${rows.length === 1 ? "" : "s"}` : null,
-    queueCount > 0 ? `${queueCount} work queue${queueCount === 1 ? "" : "s"}` : null,
+    mineCount > 0 ? `${mineCount} for you` : null,
+    watch.length > 0 ? `${watch.length} to watch` : null,
   ].filter(Boolean).join(" · ");
   const expanded = pinnedOpen || hoveredOpen;
 
   return (
     <section
       aria-label="Action needed"
+      // Stable walkthrough target - the console-basics tour points here.
+      data-guide="overview.action-center"
       onMouseEnter={() => setHoveredOpen(true)}
       onMouseLeave={() => setHoveredOpen(false)}
       className="rounded-2xl border border-slate-200/75 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.035)] sm:p-5"
@@ -266,28 +319,20 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
         )}
       >
         <div className="min-h-0 overflow-hidden">
-          <p className="mb-4 mt-3 text-xs text-gray-400">Everything waiting on you, most urgent first.</p>
+          <p className="mb-4 mt-3 text-xs text-gray-400">
+            {hasMine
+              ? "What is yours to clear, then what to keep an eye on."
+              : "Nothing is waiting on you personally. Here is what is going on around you."}
+          </p>
 
-          {rows.length > 0 && (
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          {rows.map((row) => (
-            <ActionRowCard
-              key={row.key}
-              row={row}
-              // Only notices can be put down. A red or amber row reports
-              // something broken or overdue, and hiding it would be a lie.
-              onDismiss={
-                row.severity === "blue"
-                  ? () => setDismissals((prev) => dismissNotice(userId, prev, row.key, row.stat))
-                  : undefined
-              }
-            />
-          ))}
-            </div>
-          )}
+          {hasMine && (
+            <section aria-label="Yours to act on">
+              <GroupHeading title="Yours to act on" note="Work only you can clear" tone="mine" />
 
-          {hasQueues && (
-            <div className={cn("grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3", rows.length > 0 && "mt-3")}>
+              {/* Queues first: they carry the actual items, so they answer
+                  "what do I open now" in a way a counted row cannot. */}
+              {hasQueues && (
+            <div className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
           {approvals.length > 0 && (
             <QueueBox
               icon={FileClock}
@@ -429,6 +474,31 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
             </QueueBox>
           )}
             </div>
+              )}
+
+              {mine.length > 0 && (
+                <div className={cn("grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3", hasQueues && "mt-3")}>
+                  {mine.map((row) => (
+                    <ActionRowCard key={row.key} row={row} onDismiss={dismissHandler(row)} />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {watch.length > 0 && (
+            <section aria-label="Watch" className={cn(hasMine && "mt-5")}>
+              <GroupHeading
+                title="Watch"
+                note="Across the organisation, not only your work"
+                tone="watch"
+              />
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {watch.map((row) => (
+                  <ActionRowCard key={row.key} row={row} onDismiss={dismissHandler(row)} />
+                ))}
+              </div>
+            </section>
           )}
         </div>
       </div>

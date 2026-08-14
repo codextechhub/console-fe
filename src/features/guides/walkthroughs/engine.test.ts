@@ -33,11 +33,13 @@ describe("walkthrough engine", () => {
       completedStepIds: ["welcome", "quick-actions"],
     });
     expect(loadWalkthroughProgress(storage, "42:direct", walkthrough)?.currentStepId).toBe("workspace-search");
-    expect(loadWalkthroughProgress(storage, "42:direct", { ...walkthrough, version: 2 })).toBeNull();
+    expect(loadWalkthroughProgress(storage, "42:direct", { ...walkthrough, version: walkthrough.version + 1 })).toBeNull();
   });
 
   it("branches around an unavailable optional page target", () => {
-    expect(followingContentStep(walkthrough, "welcome", () => true)?.id).toBe("quick-actions");
+    expect(followingContentStep(walkthrough, "welcome", () => true)?.id).toBe("todays-focus");
+    // Nothing on the page: the focus panel branch falls through to the quick
+    // actions branch, which falls through again to a target that always exists.
     expect(followingContentStep(walkthrough, "welcome", () => false)?.id).toBe("workspace-search");
   });
 

@@ -21,7 +21,7 @@ export default function ConsoleBasicsArticle() {
 
       <GuideSection id="find-your-way-around" title="Find your way around">
         <GuideSteps>
-          <GuideStep title="Start from Home">Use Home to see work that needs attention, quick actions, important signals, and recently opened records. Today&apos;s focus stays compact until you hover over it or select Maximize.</GuideStep>
+          <GuideStep title="Start from Home">Use Home to see work that needs attention, quick actions, important signals, and recently opened records. Today&apos;s focus separates work that is yours from conditions to watch, and stays compact until you hover over it or select Maximize.</GuideStep>
           <GuideStep title="Choose an area from the sidebar">The main sidebar groups platform work such as schools, users, workflow, and audit. Expand Support to open Support Centre or How-to Guides. Finance and Procurement open their own focused consoles.</GuideStep>
           <GuideStep title="Use the page header">The header shows the current page, back navigation when available, workspace search, notifications, support, and your account menu.</GuideStep>
         </GuideSteps>
@@ -62,12 +62,29 @@ export default function ConsoleBasicsArticle() {
         <GuideCallout tone="warning" title="Check context before changing records">Before starting work, especially in Finance or Procurement, confirm that you are viewing the intended entity and branch. A permitted action can still be wrong when performed in the wrong context.</GuideCallout>
       </GuideSection>
 
-      <GuideSection id="attention-and-notifications" title="Attention and notifications">
+      <GuideSection id="todays-focus" title="Today's focus">
+        <p>Home opens with <strong>Today&apos;s focus</strong>, the single place Console collects everything that may need attention. It stays compact until you hover over it or select <strong>Maximize</strong>; on a phone, select Maximize. It is read in two groups, and a quiet area is simply absent rather than shown as a zero.</p>
+        <GuideSteps>
+          <GuideStep title="Start with Yours to act on">Approvals waiting on your decision, approvals you cover as a delegate, submissions returned to you for changes, tasks due soon or overdue, support tickets assigned to you, and background jobs you started. Nobody else clears these for you.</GuideStep>
+          <GuideStep title="Then read Watch">Conditions across the organization, such as unposted journals, deliveries outstanding, invoices past due, vendor bills unpaid, contracts expiring, people holding no role, and open service incidents. You may not personally own them. They are separated so that they never bury the work that is yours.</GuideStep>
+          <GuideStep title="Open a row to act on it">Every row opens exactly the records it counted. Selecting &ldquo;Tickets assigned to you&rdquo; opens Support Centre already filtered to <strong>Unresolved</strong> and <strong>Assigned to me</strong>, so the list you land on matches the number you selected.</GuideStep>
+        </GuideSteps>
         <GuideChecklist items={[
-          "Hover over Today's focus for a quick look, or select Maximize to keep your assigned tasks and approvals open.",
-          "Use Action needed signals for operational or financial issues.",
+          "Counts show unfinished work only. Resolving or closing a ticket removes it from your count.",
+          "Doing the work clears the row. If something remains, the work behind it is still open.",
+          "Red means broken now, amber means attention soon, blue is information rather than a problem.",
+          "The panel refreshes when you return to the tab and at intervals while you watch it, so work completed elsewhere disappears without reloading the page.",
+        ]} />
+        <GuideCallout tone="tip" title="You can put information down, but not problems">
+          A blue notice, such as finished exports or unread notifications, carries a dismiss control. Dismissing hides that single row for the rest of the day, and it returns as soon as its number changes, so new information is never suppressed. Red and amber rows report something broken or overdue and cannot be dismissed.
+        </GuideCallout>
+      </GuideSection>
+
+      <GuideSection id="attention-and-notifications" title="Notifications and recent work">
+        <GuideChecklist items={[
           "Open the notification bell for recent updates.",
           "Use Pick up where you left off to return to recent records.",
+          "Use the Home metric cards for the totals behind the focus panel, such as unresolved tickets or open tasks.",
         ]} />
         <GuideCallout tone="warning" title="A notification is not authorization">A message can tell you that work exists, but the destination still enforces its own permission and entity scope.</GuideCallout>
       </GuideSection>

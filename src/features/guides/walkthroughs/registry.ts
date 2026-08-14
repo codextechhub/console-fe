@@ -12,13 +12,30 @@ export const WALKTHROUGH_REGISTRY = [
     route: R.OVERVIEW.INDEX,
     permissions: [],
     prerequisites: ["Sign in to Console."],
-    version: 1,
+    version: 2,
     steps: [
       {
         id: "welcome",
         title: "Welcome to Console",
         body: "This short tour shows where to start work, find an action, and get help. It never submits anything for you.",
         advance: "next",
+      },
+      {
+        // The panel renders nothing at all on a clear day, so the tour has to
+        // branch around it rather than point at an element that is not there.
+        id: "todays-focus-branch",
+        kind: "branch",
+        target: "overview.action-center",
+        whenPresent: "todays-focus",
+        whenMissing: "quick-actions-branch",
+      },
+      {
+        id: "todays-focus",
+        target: "overview.action-center",
+        title: "See what needs you, and what to watch",
+        body: "Today's focus separates work only you can clear - approvals, returned submissions, tasks, your tickets - from conditions across the organization. Counts cover unfinished work only, so finishing something removes it. Selecting a row opens exactly the records it counted.",
+        placement: "bottom",
+        advance: "manual",
       },
       {
         id: "quick-actions-branch",
