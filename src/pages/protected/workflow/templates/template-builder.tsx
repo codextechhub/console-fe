@@ -47,6 +47,7 @@ import {
   ApproverPreview,
   DynamicRulesEditor,
 } from "./components/template-builder-bits";
+import { TemplateReachChip, TemplateReachNotice } from "./components/template-reach";
 
 const SOURCE_OPTIONS = [
   { value: "ROLE", label: "Role holders" },
@@ -492,7 +493,10 @@ export default function TemplateBuilder() {
               {stages.length === 1 ? "stage" : "stages"}
             </p>
           </div>
-          <div className="inline-flex items-center gap-3.5">
+          <div className="inline-flex flex-wrap items-center gap-3.5">
+            {/* The reach sits next to the button that acts on it, so nobody
+                updates a shared path without seeing how far it goes. */}
+            {editingShared && isEdit && id ? <TemplateReachChip templateId={id} /> : null}
             <Button variant="white" size="lg" onClick={() => navigate(-1)} disabled={isPublishing}>
               Cancel
             </Button>
@@ -571,11 +575,13 @@ export default function TemplateBuilder() {
               </p>
             )}
             {editingShared && (
-              <p className="rounded-md border border-white-02 bg-pry-01/40 px-3 py-2 text-xs text-gray-01">
-                {isEdit
-                  ? "You are editing the shared version. Every school still running it picks this up; schools running their own are unaffected."
-                  : "This publishes a shared template every school starts on."}
-              </p>
+              isEdit && id
+                ? <TemplateReachNotice templateId={id} />
+                : (
+                  <p className="rounded-md border border-white-02 bg-pry-01/40 px-3 py-2 text-xs text-gray-01">
+                    This publishes a shared template every school starts on.
+                  </p>
+                )
             )}
             {isEdit && (
               <FieldHint title="Can I change the document type or code?">

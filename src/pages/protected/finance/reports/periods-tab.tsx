@@ -16,6 +16,7 @@ import {
   Plus,
   ShieldCheck,
   TriangleAlert,
+  X,
 } from "lucide-react";
 import {
   ConfirmActionModal,
@@ -31,6 +32,7 @@ import { EmptyState, ErrorState, ForbiddenState, LoadingState } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { checklistLabel, checklistSeverity, closeOutcomeMessage, failedBlockers } from "./close-checklist";
 import { P } from "@/permissions";
 import {
   useCloseFiscalYearMutation,
@@ -511,12 +513,7 @@ function PeriodCloseDrawer({
   const doClose = async (soft: boolean) => {
     try {
       const response = await close({ id: id!, entity, soft }).unwrap();
-      const checklist = response.data?.checklist;
-      toast.success(
-        checklist && !checklist.passed
-          ? `Closed ${period?.name} with checklist warnings.`
-          : `Closed ${period?.name}.`,
-      );
+      toast.success(closeOutcomeMessage(period?.name, response.data?.checklist?.items));
       closeDrawer();
     } catch { /* central */ }
   };
@@ -627,29 +624,70 @@ function PeriodCloseDrawer({
               </div>
             ) : null}
 
+            {/* Why the close is refused, said once at the top. Warnings are
+                deliberately not counted here - they never stop a close. */}
+            {failedBlockers(items).length > 0 ? (
+              <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3">
+                <X className="mt-0.5 size-4 shrink-0 text-destructive" />
+                <p className="font-mont text-xs leading-5 text-gray-05">
+                  <span className="font-semibold text-destructive">
+                    {failedBlockers(items).length === 1
+                      ? "One check must pass before this period can close."
+                      : `${failedBlockers(items).length} checks must pass before this period can close.`}
+                  </span>{" "}
+                  Anything marked "Warning only" below will not stop it.
+                </p>
+              </div>
+            ) : null}
+
             <div>
               <div className="mb-3 flex items-center gap-1.5">
                 <h4 className="font-mont text-sm font-semibold text-gray-01">Close checklist</h4>
                 <InfoHint ariaLabel="About the close checklist">Closing runs month-end controls and due depreciation. Soft close is reversible; permanent locks are not.</InfoHint>
               </div>
+              {/* A failed warning drawn like a failed blocker stops month-end for a
+                  balance that is entirely legitimate, so the three states are told
+                  apart here rather than by a single grey "not done" circle. */}
               <div className="space-y-2">
-                {items.map((item, index) => (
-                  <div key={item.name} className="flex items-start gap-3 rounded-md border border-gray-03 bg-white px-3 py-3">
-                    <span className={cn(
-                      "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full font-mont text-[11px] font-semibold",
-                      item.passed ? "bg-green-01 text-white" : "border border-gray-03 text-gray-05",
+                {items.map((item, index) => {
+                  const severity = checklistSeverity(item);
+                  return (
+                    <div key={item.name} className={cn(
+                      "flex items-start gap-3 rounded-md border bg-white px-3 py-3",
+                      severity === "blocker" ? "border-red-200 bg-red-50/50"
+                        : severity === "warning" ? "border-amber-200 bg-amber-50/50"
+                          : "border-gray-03",
                     )}>
-                      {item.passed ? <Check className="size-3" /> : index + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-mont text-sm font-medium text-gray-01">{humanize(item.name)}</p>
-                        {!item.blocking ? <span className="rounded bg-gray-02 px-1.5 py-0.5 font-mont text-[10px] text-gray-05">Non-blocking</span> : null}
+                      <span className={cn(
+                        "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full font-mont text-[11px] font-semibold",
+                        severity === "passed" ? "bg-green-01 text-white"
+                          : severity === "blocker" ? "bg-destructive text-white"
+                            : "bg-amber-500 text-white",
+                      )}>
+                        {severity === "passed" ? <Check className="size-3" />
+                          : severity === "blocker" ? <X className="size-3" />
+                            : <TriangleAlert className="size-3" />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-mont text-sm font-medium text-gray-01">{checklistLabel(item.name, humanize)}</p>
+                          {severity === "blocker" ? (
+                            <span className="rounded bg-destructive/10 px-1.5 py-0.5 font-mont text-[10px] font-medium text-destructive">Blocks the close</span>
+                          ) : severity === "warning" ? (
+                            <span className="rounded bg-amber-100 px-1.5 py-0.5 font-mont text-[10px] font-medium text-amber-700">Warning only</span>
+                          ) : !item.blocking ? (
+                            <span className="rounded bg-gray-02 px-1.5 py-0.5 font-mont text-[10px] text-gray-05">Non-blocking</span>
+                          ) : null}
+                        </div>
+                        {item.detail ? <p className="mt-1 break-words font-mont text-xs leading-5 text-gray-05">{item.detail}</p> : null}
+                        {severity === "warning" ? (
+                          <p className="mt-1 font-mont text-[11px] leading-5 text-amber-700">This does not stop the close. It is here so the figure is seen first.</p>
+                        ) : null}
                       </div>
-                      {item.detail ? <p className="mt-1 break-words font-mont text-xs leading-5 text-gray-05">{item.detail}</p> : null}
+                      <span className="sr-only">{`Item ${index + 1}`}</span>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
