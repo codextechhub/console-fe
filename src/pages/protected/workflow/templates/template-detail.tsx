@@ -25,6 +25,7 @@ import {
 } from "@/redux/services/dashboard/workflow-api";
 import { pairTemplateVersions } from "./components/template-versions";
 import { AdoptionPanel } from "./components/adoption-panel";
+import { FieldHint } from "./components/template-builder-bits";
 import {
   advanceRuleLabel,
   approverScopeLabel,
@@ -111,6 +112,15 @@ export default function TemplateDetail() {
                         : "This school's version"}
                   </Badge>
                 </p>
+                {isPlatformTenant && !template.is_platform && (
+                  <div className="mt-2 max-w-2xl">
+                    <FieldHint title="Why doesn't any school get this one?">
+                      This one belongs to Codex alone - no school inherits it. To give every
+                      school this path, publish it with the same document type and code from a
+                      new template, which writes the shared version.
+                    </FieldHint>
+                  </div>
+                )}
                 {template.description && (
                   <p className="mt-2 max-w-2xl text-sm text-gray-01">{template.description}</p>
                 )}
@@ -154,13 +164,6 @@ export default function TemplateDetail() {
                   <>"Use Codex's version" puts this school back on whatever Codex has at that
                     moment.</>
                 )}
-              </p>
-            )}
-            {isPlatformTenant && !template.is_platform && (
-              <p className="rounded-md border border-white-02 bg-pry-01/40 px-4 py-3 text-xs text-gray-01">
-                This one belongs to Codex alone - no school inherits it. To give every school
-                this path, publish it with the same document type and code from a new
-                template, which writes the shared version.
               </p>
             )}
             {isPlatformTenant && template.is_platform && (
