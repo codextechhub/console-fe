@@ -9,11 +9,11 @@
 import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
-import { Plus, Search, Printer, Check } from "lucide-react";
+import { Plus, Search, Printer, Check, Send } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, ConfirmActionModal, DetailDrawer, FormField, Segmented,
   CustomerPicker, AccountPicker, InfoHint, PostingRecap, toArray, type Column, type RecapRow,
-  PostingDateField,} from "@/components/finance-ui";
+  PostingDateField, StatusPill,} from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,9 +22,12 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
+import { useNoApproverPrompt } from "@/components/finance-ui/no-approver-prompt";
+import { gateExplanation, primaryAction } from "./adjustment-approval";
+import { useAdjustmentGate } from "./use-adjustment-gate";
 import {
   useGetConcessionsQuery, useGetConcessionSummaryQuery, useCreateConcessionMutation,
-  usePostConcessionMutation, useGetInvoicesQuery,
+  usePostConcessionMutation, useSubmitConcessionMutation, useGetInvoicesQuery,
 } from "@/redux/services/finance/ar-api";
 import type { Concession } from "@/redux/services/finance/ar-types";
 import { DocumentVoidAction } from "./document-void-action";
@@ -38,11 +41,6 @@ const TYPE_CLS: Record<string, string> = {
 
 function TypeChip({ kind }: { kind: string }) {
   return <span className={cn(PILL, TYPE_CLS[kind] ?? "bg-gray-03/60 text-gray-05")}>{kindLabel(kind)}</span>;
-}
-function StatusPill({ status }: { status: string }) {
-  const posted = status === "POSTED";
-  const reversed = status === "REVERSED";
-  return <span className={cn(PILL, posted ? "bg-green-01/10 text-green-01" : reversed ? "bg-gray-03/60 text-gray-05" : "bg-amber-50 text-amber-700")}>{posted ? "Posted" : reversed ? "Voided" : "Draft"}</span>;
 }
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
@@ -127,6 +125,7 @@ export function ConcessionsTab({ entity, currency }: { entity: string; currency?
           <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); resetPage(); }} className={selectCls}>
             <option value="">All statuses</option>
             <option value="DRAFT">Draft</option>
+            <option value="PENDING_APPROVAL">Awaiting approval</option>
             <option value="POSTED">Posted</option>
             <option value="REVERSED">Voided</option>
           </select>
@@ -156,12 +155,30 @@ function ConcessionDetailDrawer({ concession, entity, currency, onClose }: {
   const { can } = useCan();
   const [confirmPost, setConfirmPost] = useState(false);
   const [post, { isLoading: posting }] = usePostConcessionMutation();
+  const [submit, { isLoading: submitting }] = useSubmitConcessionMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "concession" });
   if (!concession) return null;
 
   const isDraft = concession.status === "DRAFT";
+  // The server's own answer, computed by the same function `post` calls - so the
+  // button can never be the one the endpoint refuses. Above the tenant's threshold
+  // a concession must be submitted; below it, posting is still the ordinary route.
+  const gated = concession.approval_required === true;
   const recap = concessionRecap(concession.allowance_account, concession.amount);
-  const doPost = async () => {
+  const busy = posting || submitting;
+  const doAct = async () => {
     try {
+      if (gated) {
+        const res = await submit({ id: concession.id, entity }).unwrap();
+        toast.success(res.message || "Concession submitted for approval.");
+        // Submitted, but possibly with nobody able to approve it. The dialog lives
+        // in this component, so closing the drawer would unmount it before it is
+        // seen - a parked submission keeps the drawer open until it is answered.
+        promptIfParked(res.data?.approval);
+        setConfirmPost(false);
+        if (!res.data?.approval?.parked) onClose();
+        return;
+      }
       const res = await post({ id: concession.id, entity }).unwrap();
       toast.success(res.message || "Concession posted.");
       setConfirmPost(false); onClose();
@@ -186,7 +203,11 @@ function ConcessionDetailDrawer({ concession, entity, currency, onClose }: {
                 onVoided={onClose}
               />
             ) : null}
-            {isDraft && can(P.FIN_POST_CONCESSION) ? <Button onClick={() => setConfirmPost(true)} className="gap-1.5"><Check className="size-4" /> Post concession</Button> : null}
+            {isDraft && can(gated ? P.FIN_SUBMIT_CONCESSION : P.FIN_POST_CONCESSION) ? (
+              <Button onClick={() => setConfirmPost(true)} className="gap-1.5">
+                {gated ? <><Send className="size-4" /> Submit for approval</> : <><Check className="size-4" /> Post concession</>}
+              </Button>
+            ) : null}
           </>
         }
       >
@@ -197,6 +218,18 @@ function ConcessionDetailDrawer({ concession, entity, currency, onClose }: {
             <Field label="Against invoice">{concession.invoice_number ?? "-"}</Field>
             <Field label="Date">{concession.concession_date}</Field>
           </div>
+          {isDraft && gated ? (
+            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 font-mont text-xs leading-5 text-amber-900">
+              At this amount the concession needs a second person's approval, so it is submitted
+              rather than posted. The ledger is untouched until it is approved.
+              {/* Gated, and this user cannot submit: without saying so the drawer
+                  offers nothing at all and the draft looks abandoned. Posting is
+                  refused server-side, so the submit right is the only way out. */}
+              {!can(P.FIN_SUBMIT_CONCESSION)
+                ? " You do not have permission to submit it - ask somebody who holds finance.concession.submit."
+                : ""}
+            </p>
+          ) : null}
           <Field label="Basis"><span className="font-normal">{concession.reason || "-"}</span></Field>
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">GL posting</p>
@@ -212,10 +245,13 @@ function ConcessionDetailDrawer({ concession, entity, currency, onClose }: {
 
       <ConfirmActionModal
         open={confirmPost} onOpenChange={(o) => !o && setConfirmPost(false)}
-        title="Post this concession?"
-        description={`Posts ${concession.document_number} - reduces ${concession.invoice_number}'s balance (Dr allowance · Cr AR).`}
-        confirmText="Post" loading={posting} onConfirm={doPost}
+        title={gated ? "Submit this concession for approval?" : "Post this concession?"}
+        description={gated
+          ? `Sends ${concession.document_number} for approval. Nothing reaches the ledger until it is approved.`
+          : `Posts ${concession.document_number} - reduces ${concession.invoice_number}'s balance (Dr allowance · Cr AR).`}
+        confirmText={gated ? "Submit" : "Post"} loading={busy} onConfirm={doAct}
       />
+      {noApproverDialog}
     </>
   );
 }
@@ -235,7 +271,15 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
   const [reason, setReason] = useState("");
   const [create, { isLoading: creating }] = useCreateConcessionMutation();
   const [post, { isLoading: posting }] = usePostConcessionMutation();
-  const saving = creating || posting;
+  const [submitForApproval, { isLoading: submitting }] = useSubmitConcessionMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "concession" });
+  const saving = creating || posting || submitting;
+  // Predicted from the published ladder, and used only to label the button and
+  // explain the rule while the amount is being typed. The document does not exist
+  // yet, so there is no server answer to read - once it does, that answer wins.
+  const { rule } = useAdjustmentGate("finance.concession");
+  const willNeedApproval = primaryAction(undefined, rule, amount) === "submit";
+  const gateNote = gateExplanation(rule, amount, (kobo) => formatMoney(kobo, currency));
 
   const invQ = useGetInvoicesQuery({ entity, search: customer, status: "POSTED" }, { skip: !customer });
   const openInvoices = useMemo(
@@ -277,8 +321,25 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
         entity, customer: customer.trim().toUpperCase(), invoice: Number(invoice), kind,
         concession_date: date, amount, allowance_account: allowance || undefined, reason: reason.trim(),
       }).unwrap();
-      if (!asDraft) await post({ id: res.data.id, entity }).unwrap();
-      toast.success(asDraft ? "Concession saved as draft." : "Concession posted.");
+      if (asDraft) {
+        toast.success("Concession saved as draft.");
+        close();
+        return;
+      }
+      // The created draft carries the server's own verdict. Acting on that rather
+      // than on the predicted rule is what stops the form offering a Post the
+      // endpoint would refuse - the two can only disagree at the boundary, but
+      // that is exactly where a waiver sits when somebody rounds it up.
+      if (res.data.approval_required) {
+        const sent = await submitForApproval({ id: res.data.id, entity }).unwrap();
+        toast.success("Concession submitted for approval.");
+        promptIfParked(sent.data?.approval);
+        // Same reason as the detail drawer: the dialog is mounted here.
+        if (!sent.data?.approval?.parked) close();
+        return;
+      }
+      await post({ id: res.data.id, entity }).unwrap();
+      toast.success("Concession posted.");
       close();
     } catch { /* central */ }
   };
@@ -293,12 +354,22 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
           <Button variant="outline" disabled={saving} onClick={close}>Cancel</Button>
           <Button variant="outline" disabled={saving || !canSubmit} onClick={() => submit(true)}>Save draft</Button>
           <Button disabled={saving || !canSubmit} onClick={() => submit(false)} className="gap-1.5">
-            <Check className="size-4" />{saving ? "Working…" : "Post concession"}
+            {willNeedApproval ? <Send className="size-4" /> : <Check className="size-4" />}
+            {saving ? "Working…" : willNeedApproval ? "Submit for approval" : "Post concession"}
           </Button>
         </>
       }
     >
       <div className="space-y-4">
+        {gateNote ? (
+          <p className={`rounded-md border px-3 py-2 font-mont text-xs leading-5 ${
+            willNeedApproval
+              ? "border-amber-200 bg-amber-50 text-amber-900"
+              : "border-gray-03 bg-gray-01/5 text-gray-05"
+          }`}>
+            {gateNote}
+          </p>
+        ) : null}
         <Segmented label="Type" value={kind} onChange={setKind} options={KINDS} />
 
         <div className="grid grid-cols-2 gap-3">
@@ -352,6 +423,7 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
           helper="A concession reduces recognised revenue and the customer's outstanding balance."
         />
       </div>
+      {noApproverDialog}
     </DetailDrawer>
   );
 }

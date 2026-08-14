@@ -28,6 +28,9 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
+import { useNoApproverPrompt } from "@/components/finance-ui/no-approver-prompt";
+import { gateExplanation, predictsApproval } from "./adjustment-approval";
+import { useAdjustmentGate } from "./use-adjustment-gate";
 import { refundAmountIsWithinAvailableCredit } from "./refund-validation";
 import { BatchAdjustmentDrawer } from "./batch-adjustment-drawer";
 import {
@@ -178,11 +181,18 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
   const [submitRefund, { isLoading: submittingRefund }] = useSubmitRefundMutation();
   const [postWriteOff, { isLoading: postingWriteOff }] = usePostWriteOffRequestMutation();
   const [submitWriteOff, { isLoading: submittingWriteOff }] = useSubmitWriteOffRequestMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({
+    documentLabel: row?.kind === "WRITEOFF" ? "write-off" : "refund",
+  });
   if (!row) return null;
 
   const wo = row.kind === "WRITEOFF";
   const posted = row.status === "POSTED";
   const isDraft = row.status === "DRAFT";
+  // Server-computed. Refunds and write-offs are gated at any amount once the
+  // ladder is published, so this is normally true - but it is read rather than
+  // assumed, because a tenant that switched its own ladder off posts directly.
+  const gated = row.approval_required === true;
   const recap = wo
     ? { dr: [{ code: "5300", name: "Bad debt expense", amount: row.amount }], cr: [{ code: "AR", name: "Accounts Receivable (control)", amount: row.amount }] }
     : { dr: [{ code: "2140", name: "Customer credit", amount: row.amount }], cr: [{ code: "Bank", name: "cash out", amount: row.amount }] };
@@ -211,7 +221,11 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
         ? await submitWriteOff({ id: row.write_off_id!, entity }).unwrap()
         : await submitRefund({ id: row.refund_id!, entity }).unwrap();
       toast.success(res.message || `${wo ? "Write-off" : "Refund"} submitted for approval.`);
-      onClose();
+      // Submitted, but the approving role may be unstaffed - say so now rather
+      // than leaving the document to sit until somebody notices. The dialog is
+      // mounted in this drawer, so a parked one keeps it open to be answered.
+      promptIfParked(res.data?.approval);
+      if (!res.data?.approval?.parked) onClose();
     } catch { /* central */ }
   };
 
@@ -233,18 +247,27 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
               onVoided={onClose}
             />
           ) : null}
-          {isDraft && can(wo ? P.FIN_SUBMIT_WRITE_OFF : P.FIN_SUBMIT_REFUND) ? (
-            <Button variant="outline" onClick={doSubmit} disabled={submittingRefund || submittingWriteOff} className="gap-1.5">
-              <Send className="size-4" />{submittingRefund || submittingWriteOff ? "Submitting…" : "Submit"}
+          {isDraft && gated && can(wo ? P.FIN_SUBMIT_WRITE_OFF : P.FIN_SUBMIT_REFUND) ? (
+            <Button onClick={doSubmit} disabled={submittingRefund || submittingWriteOff} className="gap-1.5">
+              <Send className="size-4" />{submittingRefund || submittingWriteOff ? "Submitting…" : "Submit for approval"}
             </Button>
           ) : null}
-          {isDraft && can(wo ? P.FIN_POST_WRITE_OFF : P.FIN_POST_REFUND) ? (
+          {isDraft && !gated && can(wo ? P.FIN_POST_WRITE_OFF : P.FIN_POST_REFUND) ? (
             <Button onClick={doPost} disabled={posting || postingWriteOff} className="gap-1.5"><Check className="size-4" />{posting || postingWriteOff ? "Posting…" : "Post"}</Button>
           ) : null}
         </>
       }
     >
       <div className="space-y-5">
+        {isDraft && gated ? (
+          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 font-mont text-xs leading-5 text-amber-900">
+            {wo ? "A write-off concedes income" : "A refund moves cash out"}, so it needs a second
+            person's approval at any amount. Nothing reaches the ledger until it is approved.
+            {!can(wo ? P.FIN_SUBMIT_WRITE_OFF : P.FIN_SUBMIT_REFUND)
+              ? " You do not have permission to submit it - ask somebody who does."
+              : ""}
+          </p>
+        ) : null}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Amount"><Money kobo={row.amount} currency={currency} /></Field>
           <Field label="Status"><StatusPill status={row.status || "DRAFT"} /></Field>
@@ -257,6 +280,7 @@ function AdjustmentDetailDrawer({ row, entity, currency, onClose }: {
           <PostingRecap title={wo ? "Write-off posting" : "Refund posting"} dr={recap.dr} cr={recap.cr} currency={currency} helper={helper} stackOnMobile />
         </div>
       </div>
+      {noApproverDialog}
     </DetailDrawer>
   );
 }
@@ -283,8 +307,22 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
   const [createWriteOff, { isLoading: creatingW }] = useCreateWriteOffRequestMutation();
   const [postWriteOff, { isLoading: postingW }] = usePostWriteOffRequestMutation();
   const [submitWriteOff, { isLoading: submittingW }] = useSubmitWriteOffRequestMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({
+    documentLabel: mode === "WRITEOFF" ? "write-off" : "refund",
+  });
   const saving = creatingR || postingR || submittingR || creatingW || postingW || submittingW;
   const wo = mode === "WRITEOFF";
+  // Both rules are read up front (hooks cannot be conditional) and the active one
+  // picked by mode. Used for the label and for which next actions to offer; the
+  // created document's own `approval_required` still decides what runs.
+  const refundGate = useAdjustmentGate("finance.refund");
+  const writeOffGate = useAdjustmentGate("finance.write_off");
+  const rule = wo ? writeOffGate.rule : refundGate.rule;
+  const willNeedApproval = predictsApproval(rule, amount || 1);
+  const gateNote = gateExplanation(rule, amount, (kobo) => formatMoney(kobo, currency));
+  // Adjusted during render rather than in an effect, so the select never paints a
+  // frame with a value it no longer offers.
+  if (willNeedApproval && nextAction === "post") setNextAction("submit");
   const refundSearch = useDebounce(refundCustomerSearch.trim(), 250);
   // Availability is asked for **as at the chosen refund date**, not today. A refund
   // draws on credit that must already exist on its own accounting date, so a customer
@@ -393,9 +431,13 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
           entity, invoice: Number(invoice), amount, write_off_account: expenseAccount || undefined,
           write_off_date: date, narration: reason.trim() || undefined, reason: reason.trim() || undefined,
         }).unwrap();
-        if (nextAction === "submit") {
+        // The draft's own answer, not the chooser's: a write-off that turns out to
+        // be gated is submitted rather than sent to a post that would refuse it.
+        if (nextAction === "submit" || (nextAction === "post" && res.data.approval_required)) {
           const submitted = await submitWriteOff({ id: res.data.id, entity }).unwrap();
           toast.success(submitted.message || "Write-off submitted for approval.");
+          promptIfParked(submitted.data?.approval);
+          if (submitted.data?.approval?.parked) return;
         } else if (nextAction === "post") {
           const postedRes = await postWriteOff({ id: res.data.id, entity }).unwrap();
           toast.success(postedRes.message || "Write-off posted.");
@@ -407,9 +449,11 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
           entity, customer: customer.trim().toUpperCase(), refund_date: date, method: "BANK_TRANSFER",
           amount, bank_account: bankAccount ? Number(bankAccount) : undefined, narration: reason.trim() || undefined,
         }).unwrap();
-        if (nextAction === "submit") {
+        if (nextAction === "submit" || (nextAction === "post" && res.data.approval_required)) {
           const submitted = await submitRefund({ id: res.data.id, entity }).unwrap();
           toast.success(submitted.message || "Refund submitted for approval.");
+          promptIfParked(submitted.data?.approval);
+          if (submitted.data?.approval?.parked) return;
         } else if (nextAction === "post") {
           const postedRes = await postRefund({ id: res.data.id, entity }).unwrap();
           toast.success(postedRes.message || "Refund processed.");
@@ -539,12 +583,16 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
 
         <FormField label="Next action">
           <select value={nextAction} onChange={(e) => setNextAction(e.target.value as "post" | "submit" | "draft")} className="h-9 w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-black-01 focus:border-primary focus:outline-none">
-            <option value="post">Post now</option>
+            {/* Not offered when the ladder is published: the endpoint refuses it,
+                so leaving it selectable is an option that only ever errors. */}
+            {!willNeedApproval ? <option value="post">Post now</option> : null}
             <option value="submit">Submit for approval</option>
             <option value="draft">Save as draft</option>
           </select>
+          {gateNote ? <p className="mt-1 font-mont text-[11px] leading-5 text-gray-05">{gateNote}</p> : null}
         </FormField>
       </div>
+      {noApproverDialog}
     </DetailDrawer>
   );
 }

@@ -3,11 +3,13 @@ import { cn } from "@/lib/utils";
 import { useFilterParam } from "@/hooks/use-filter-param";
 import GroupsTab from "./groups-tab";
 import DynamicRoleTab from "./dynamic-role-tab";
+import ApprovalRolesTab from "./approval-roles-tab";
 
-type Tab = "groups" | "rules";
+type Tab = "groups" | "rules" | "roles";
 const TABS: { key: Tab; label: string }[] = [
   { key: "groups", label: "Approver Groups" },
   { key: "rules", label: "Dynamic Role" },
+  { key: "roles", label: "Approval Roles" },
 ];
 
 /**
@@ -23,7 +25,7 @@ export default function WorkflowApprover() {
   const [tab, setTab] = useState<Tab>("groups");
   // Deep links (from a template, a stalled approval, the action palette) can
   // land straight on the rules tab.
-  useFilterParam<Tab>("tab", ["groups", "rules"], setTab);
+  useFilterParam<Tab>("tab", ["groups", "rules", "roles"], setTab);
 
   return (
     <main className="px-4.5 py-6 space-y-5 text-black-01">
@@ -57,7 +59,7 @@ export default function WorkflowApprover() {
         ))}
       </div>
 
-      {tab === "groups" ? <GroupsTab /> : <DynamicRoleTab />}
+      {tab === "groups" ? <GroupsTab /> : tab === "rules" ? <DynamicRoleTab /> : <ApprovalRolesTab />}
     </main>
   );
 }

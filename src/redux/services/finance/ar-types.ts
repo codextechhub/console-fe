@@ -1,5 +1,7 @@
 // Accounts-Receivable types - mirror the vs_finance AR serializers. Money kobo.
 
+import type { ApprovalParkState } from "@/redux/services/dashboard/workflow-types";
+
 export type InvoiceStatus = "DRAFT" | "POSTED" | "REVERSED" | "CANCELLED";
 export type PaymentStatus = "UNPAID" | "PARTIAL" | "PAID";
 
@@ -57,6 +59,15 @@ export interface CreditNote {
   unallocated_amount: number;
   reason: string;
   reference: string;
+  /**
+   * Whether this document must go through approval instead of posting directly.
+   *
+   * Server-computed and **amount-dependent**: refunds and write-offs are gated at
+   * any size, concessions and credit notes only at or above the tenant's
+   * adjustment threshold. It therefore changes when the amount changes, so re-read
+   * it after an edit rather than caching it against a document id.
+   */
+  approval_required?: boolean;
   lines: CreditNoteLine[];
 }
 
@@ -74,6 +85,8 @@ export interface Refund {
   bank_account_id: number | null;
   reference: string;
   narration: string;
+  /** See {@link Concession.approval_required} - same rule, same caveat. */
+  approval_required?: boolean;
 }
 
 export interface RefundAvailabilityCustomer {
@@ -99,6 +112,8 @@ export interface WriteOffRequest {
   narration: string;
   reason: string;
   journal_id: number | null;
+  /** See {@link Concession.approval_required} - same rule, same caveat. */
+  approval_required?: boolean;
 }
 
 export type InvoiceWriteOffResult = Invoice | WriteOffRequest;
@@ -143,6 +158,15 @@ export interface ArAdjustment {
   status: string;
   refund_id: number | null;
   write_off_id?: number | null;
+  /**
+   * Whether this document must go through approval instead of posting directly.
+   *
+   * Server-computed and **amount-dependent**: refunds and write-offs are gated at
+   * any size, concessions and credit notes only at or above the tenant's
+   * adjustment threshold. It therefore changes when the amount changes, so re-read
+   * it after an edit rather than caching it against a document id.
+   */
+  approval_required?: boolean;
 }
 
 export interface Concession {
@@ -161,6 +185,15 @@ export interface Concession {
   allowance_account: string | null;
   reason: string;
   reference: string;
+  /**
+   * Whether this document must go through approval instead of posting directly.
+   *
+   * Server-computed and **amount-dependent**: refunds and write-offs are gated at
+   * any size, concessions and credit notes only at or above the tenant's
+   * adjustment threshold. It therefore changes when the amount changes, so re-read
+   * it after an edit rather than caching it against a document id.
+   */
+  approval_required?: boolean;
 }
 
 export interface PaymentPlanInstallment {
@@ -449,3 +482,12 @@ export interface FeeStructure {
   created_by_name?: string | null;
   usage?: FeeStructureUsage | null;
 }
+
+/**
+ * A submit response: the document, plus whether anybody can actually approve it.
+ *
+ * Every "submit for approval" endpoint in the product returns this shape. It was
+ * previously typed as a bare `ApiEnvelope<Doc>` here, which silently discarded the
+ * `approval` block and with it the only warning that a submission has parked.
+ */
+export type SubmittedDocument<T> = T & { approval?: ApprovalParkState };

@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
+import { gatedBatchRows, isBatchGateRefusal } from "./adjustment-approval";
+import { useAdjustmentGate } from "./use-adjustment-gate";
 import {
   useCreateArAdjustmentBatchMutation,
   useGetInvoicesQuery,
@@ -73,7 +75,11 @@ export function BatchAdjustmentDrawer({
   const [action, setAction] = useState<ArAdjustmentBatchAction>("DRAFT");
   const [lines, setLines] = useState<Line[]>(() => [newLine()]);
   const [createBatch, { isLoading }] = useCreateArAdjustmentBatchMutation();
+  const [gateRefusal, setGateRefusal] = useState<string | null>(null);
   const writeOff = kind === "WRITEOFF";
+  const refundGate = useAdjustmentGate("finance.refund");
+  const writeOffGate = useAdjustmentGate("finance.write_off");
+  const rule = writeOff ? writeOffGate.rule : refundGate.rule;
 
   // Every line in the batch shares one posting date, so eligibility is asked for as at
   // that date. A customer whose credit arrives after it has nothing to refund, and an
@@ -186,6 +192,7 @@ export function BatchAdjustmentDrawer({
   };
   const close = () => {
     reset();
+    setGateRefusal(null);
     onClose();
   };
   const submit = async () => {
@@ -204,11 +211,27 @@ export function BatchAdjustmentDrawer({
         ? lines.map((line) => ({ invoice: Number(line.target), amount: line.amount }))
         : lines.map((line) => ({ customer: line.target, amount: line.amount })),
     };
+    setGateRefusal(null);
     try {
       const response = await createBatch(input).unwrap();
       toast.success(response.message || `${response.data.count} adjustments processed.`);
       close();
-    } catch { /* central */ }
+    } catch (error) {
+      // A mixed batch is refused whole rather than posted in part, and the server
+      // does not say which rows caused it. The screen has the amounts the user
+      // typed, so it can name them - the difference between "something in here is
+      // too big" and "rows 3 and 7 are".
+      if (isBatchGateRefusal(error)) {
+        const culprits = gatedBatchRows(rule, lines.map((line) => line.amount));
+        setGateRefusal(
+          culprits.length === 0
+            ? "One or more of these need approval, so the batch cannot be posted. Choose \u201cSubmit for approval\u201d instead."
+            : `Row${culprits.length > 1 ? "s" : ""} ${culprits.map((row) => row.index).join(", ")} need approval, so the whole batch cannot be posted. Nothing was saved. Choose \u201cSubmit for approval\u201d to send them all together.`,
+        );
+        return;
+      }
+      /* central */
+    }
   };
 
   return (
@@ -236,6 +259,18 @@ export function BatchAdjustmentDrawer({
       )}
     >
       <div className="space-y-5">
+        {gateRefusal ? (
+          <div role="alert" className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5">
+            <p className="font-mont text-xs font-semibold text-amber-900">This batch was not posted</p>
+            <p className="mt-1 font-mont text-xs leading-5 text-amber-900">{gateRefusal}</p>
+            <Button
+              size="sm" variant="outline" className="mt-2.5"
+              onClick={() => { setAction("SUBMIT"); setGateRefusal(null); }}
+            >
+              Submit the batch instead
+            </Button>
+          </div>
+        ) : null}
         <Segmented
           label="Adjustment type"
           value={kind}

@@ -3,24 +3,7 @@
 3. Backend brief 2026-08-14 (`backend/docs/frontend/2026-08-14-frontend-adjustments.md`),
    remaining items. Reply raised with backend in
    `backend/docs/frontend/2026-08-14-frontend-reply-approval-gate.md` (uncommitted).
-   - **Items 1, 2, 4 - finance approvals. Backend has answered and built; waiting only
-     on their commit.** They confirmed the defect was real: below ₦50,000 a concession
-     or credit note posts directly, at or above it must be submitted, so build the
-     amount-driven Post → Submit swap the brief described. `approval_required` now
-     ships on all four adjustment serializers **and** on every `ar-adjustments` row,
-     behind a request-scoped gate. Caveat from them: the answer depends on the
-     document's own amount, so re-read it after an edit rather than caching it against
-     a document id. Their reply is `backend/docs/frontend/2026-08-14-backend-reply-approval-gate.md`.
-     Still to build here:
-     Concessions/credit notes need submit endpoints + `P` keys (`200830`, `200630`),
-     the `approval` block typed on all four AR submit mutations (today typed
-     `ApiEnvelope<Refund>`, so the parked warning is discarded), `useNoApproverPrompt`
-     wired into the AR adjustment flows, bulk refund **and** bulk write-off batch
-     refusals naming the offending rows, and an "Appoint your approvers" onboarding
-     over the five seeded role keys. Backend working tree already carries the
-     amount-aware gate (`ApprovalGate`, `resolution.py`) and `approval_required` on the
-     four adjustment serializers **and** the hand-built `ar-adjustments` rows. Start
-     once that lands on main.
+   - **Items 1, 2, 4 - DONE** (see Done #30).
    - **Item 7 - DONE** (see Done #29).
    - **Item 5 - DONE** (see Done #29).
    - **Item 6 - stock reports. DONE** (see Done #28), except one thing left with the

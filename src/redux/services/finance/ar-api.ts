@@ -7,6 +7,7 @@ import { baseApi } from "../base-api";
 import type { ApiEnvelope, PaginatedEnvelope, Pagination } from "./api-types";
 import type {
   ArAdjustment,
+  SubmittedDocument,
   ArAdjustmentBatchInput,
   ArAdjustmentBatchResult,
   Concession,
@@ -109,6 +110,10 @@ export const arApi = baseApi.injectEndpoints({
     }),
     // Posting defaults to auto-allocating on the backend; pass auto_allocate:false
     // to leave the note "Issued" (unallocated) so applying stays an explicit step.
+    submitCreditNote: builder.mutation<ApiEnvelope<SubmittedDocument<CreditNote>>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/credit-notes/${id}/submit/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinanceCreditNotes", "WorkflowPending", "WorkflowSubmissions"],
+    }),
     postCreditNote: builder.mutation<ApiEnvelope<CreditNote>, { id: number; entity: string; auto_allocate?: boolean }>({
       query: ({ id, entity, ...body }) => ({
         url: `/finance/credit-notes/${id}/post/${qs({ entity })}`,
@@ -153,7 +158,7 @@ export const arApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["FinanceRefunds", "FinanceReports", "FinanceJournals", "FinanceCustomers"],
     }),
-    submitRefund: builder.mutation<ApiEnvelope<Refund>, { id: number; entity: string }>({
+    submitRefund: builder.mutation<ApiEnvelope<SubmittedDocument<Refund>>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({
         url: `/finance/refunds/${id}/submit/${qs({ entity })}`,
         method: "POST",
@@ -180,7 +185,7 @@ export const arApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/finance/write-offs/${id}/post/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinanceWriteOffs", "FinanceInvoices", "FinanceReports", "FinanceJournals", "FinanceCustomers", "FinancePaymentPlans"],
     }),
-    submitWriteOffRequest: builder.mutation<ApiEnvelope<WriteOffRequest>, { id: number; entity: string }>({
+    submitWriteOffRequest: builder.mutation<ApiEnvelope<SubmittedDocument<WriteOffRequest>>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({ url: `/finance/write-offs/${id}/submit/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinanceWriteOffs", "WorkflowPending", "WorkflowSubmissions"],
     }),
@@ -220,6 +225,13 @@ export const arApi = baseApi.injectEndpoints({
     createConcession: builder.mutation<ApiEnvelope<Concession>, { entity: string; customer: string; invoice?: string | number; kind: string; concession_date: string; amount: number; allowance_account?: string; reason?: string }>({
       query: ({ entity, ...body }) => ({ url: `/finance/concessions/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceConcessions"],
+    }),
+    // At or above the tenant's adjustment threshold a concession must be submitted,
+    // and `post` refuses. Below it, posting is still the ordinary route - read
+    // `approval_required` off the document rather than guessing from the amount.
+    submitConcession: builder.mutation<ApiEnvelope<SubmittedDocument<Concession>>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/concessions/${id}/submit/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinanceConcessions", "WorkflowPending", "WorkflowSubmissions"],
     }),
     postConcession: builder.mutation<ApiEnvelope<Concession>, { id: number; entity: string }>({
       query: ({ id, entity }) => ({ url: `/finance/concessions/${id}/post/${qs({ entity })}`, method: "POST" }),
@@ -368,6 +380,7 @@ export const {
   useGetCreditNotesQuery,
   useCreateCreditNoteMutation,
   usePostCreditNoteMutation,
+  useSubmitCreditNoteMutation,
   useAllocateCreditNoteMutation,
   useGetRefundsQuery,
   useGetRefundAvailabilityQuery,
@@ -385,6 +398,7 @@ export const {
   useGetConcessionSummaryQuery,
   useCreateConcessionMutation,
   usePostConcessionMutation,
+  useSubmitConcessionMutation,
   useGetPaymentPlansQuery,
   useCreatePaymentPlanMutation,
   useActivatePaymentPlanMutation,

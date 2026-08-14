@@ -14,7 +14,7 @@
 import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
-import { Plus, Printer, Check, Search } from "lucide-react";
+import { Plus, Printer, Check, Search, Send } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, ConfirmActionModal, DetailDrawer, FormField,
   CustomerPicker, AccountPicker, CostCenterPicker, PostingRecap, Segmented, toArray, type Column, type RecapRow,
@@ -27,8 +27,12 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
+import { useNoApproverPrompt } from "@/components/finance-ui/no-approver-prompt";
+import { gateExplanation, primaryAction } from "./adjustment-approval";
+import { useAdjustmentGate } from "./use-adjustment-gate";
 import {
   useGetCreditNotesQuery, useCreateCreditNoteMutation, usePostCreditNoteMutation,
+  useSubmitCreditNoteMutation,
   useAllocateCreditNoteMutation, useGetInvoicesQuery,
 } from "@/redux/services/finance/ar-api";
 import type { CreditNote } from "@/redux/services/finance/ar-types";
@@ -45,20 +49,25 @@ function shortenReason(s: string): string {
 }
 
 // Posted credit note fully applied → "Applied"; otherwise "Issued". Debit notes
-// can't be allocated, so a posted debit note is always "Issued". Unposted → "Draft".
-function noteStatus(n: CreditNote): "DRAFT" | "ISSUED" | "APPLIED" | "REVERSED" {
+// can't be allocated, so a posted debit note is always "Issued". Unposted → "Draft",
+// except one waiting on an approver, which is neither.
+function noteStatus(n: CreditNote): "DRAFT" | "PENDING_APPROVAL" | "ISSUED" | "APPLIED" | "REVERSED" {
   if (n.status === "REVERSED") return "REVERSED";
+  // A note awaiting approval is not a draft: it cannot be edited, and showing it
+  // as one invites somebody to try to post it again.
+  if (n.status === "PENDING_APPROVAL") return "PENDING_APPROVAL";
   if (n.status !== "POSTED") return "DRAFT";
   if (n.kind === "CREDIT" && n.allocated_amount > 0 && n.unallocated_amount <= 0) return "APPLIED";
   return "ISSUED";
 }
 const STATUS_PILL: Record<string, string> = {
   DRAFT: "bg-gray-03/60 text-gray-05",
+  PENDING_APPROVAL: "bg-amber-100 text-amber-700",
   ISSUED: "bg-blue-50 text-blue-700",
   APPLIED: "bg-green-01/10 text-green-01",
   REVERSED: "bg-gray-03/60 text-gray-05",
 };
-const STATUS_LABEL: Record<string, string> = { DRAFT: "Draft", ISSUED: "Issued", APPLIED: "Applied", REVERSED: "Voided" };
+const STATUS_LABEL: Record<string, string> = { DRAFT: "Draft", PENDING_APPROVAL: "Awaiting approval", ISSUED: "Issued", APPLIED: "Applied", REVERSED: "Voided" };
 
 function TypeChip({ kind }: { kind: string }) {
   const debit = kind === "DEBIT";
@@ -298,8 +307,15 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
 
   const [create, { isLoading: creating }] = useCreateCreditNoteMutation();
   const [post, { isLoading: posting }] = usePostCreditNoteMutation();
-  const saving = creating || posting;
+  const [submitForApproval, { isLoading: submitting }] = useSubmitCreditNoteMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "note" });
+  const saving = creating || posting || submitting;
   const debit = kind === "DEBIT";
+  // Labels only, from the published ladder - the created note's own
+  // `approval_required` is what the flow actually acts on.
+  const { rule } = useAdjustmentGate("finance.credit_note");
+  const willNeedApproval = primaryAction(undefined, rule, amount) === "submit";
+  const gateNote = gateExplanation(rule, amount, (kobo) => formatMoney(kobo, currency));
 
   // Posted invoices that still owe money, for the chosen customer - a searchable
   // list. A credit note applies against an outstanding balance, so fully-paid /
@@ -337,6 +353,17 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
       }).unwrap();
       // Post immediately. For credit notes the toggle decides: auto-allocate
       // oldest-first ("Applied") or leave the credit unapplied ("Issued").
+      // Above the threshold the ledger is out of reach until somebody approves, so
+      // the note is submitted instead of issued - and the "apply now" choice waits
+      // with it, since there is nothing posted to allocate yet.
+      if (res.data.approval_required) {
+        const sent = await submitForApproval({ id: res.data.id, entity }).unwrap();
+        toast.success(`${kindLabel(kind)} submitted for approval.`);
+        promptIfParked(sent.data?.approval);
+        // A parked submission keeps the drawer open: the dialog is mounted in it.
+        if (!sent.data?.approval?.parked) close();
+        return;
+      }
       const auto = !debit && applyNow;
       await post({ id: res.data.id, entity, auto_allocate: auto }).unwrap();
       toast.success(auto ? `${kindLabel(kind)} issued and applied.` : `${kindLabel(kind)} issued.`);
@@ -354,12 +381,25 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
         <>
           <Button variant="outline" disabled={saving} onClick={close}>Cancel</Button>
           <Button disabled={saving || !canSubmit} onClick={submit} className="gap-1.5">
-            <Plus className="size-4" />{saving ? "Issuing…" : "Issue note"}
+            {willNeedApproval ? <Send className="size-4" /> : <Plus className="size-4" />}
+            {saving ? "Working…" : willNeedApproval ? "Submit for approval" : "Issue note"}
           </Button>
         </>
       }
     >
       <div className="space-y-4">
+        {gateNote ? (
+          <p className={`rounded-md border px-3 py-2 font-mont text-xs leading-5 ${
+            willNeedApproval
+              ? "border-amber-200 bg-amber-50 text-amber-900"
+              : "border-gray-03 bg-gray-01/5 text-gray-05"
+          }`}>
+            {gateNote}
+            {willNeedApproval && !debit && applyNow
+              ? " Applying it to the balance waits until it is approved."
+              : ""}
+          </p>
+        ) : null}
         <Segmented label="Note type" value={kind} onChange={changeKind} options={[["CREDIT", "Credit note"], ["DEBIT", "Debit note"]]} />
 
         <div className="grid grid-cols-2 gap-3">
@@ -399,6 +439,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
           />
         ) : null}
       </div>
+      {noApproverDialog}
     </DetailDrawer>
   );
 }
