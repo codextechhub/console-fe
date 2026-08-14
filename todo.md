@@ -3,7 +3,15 @@
 3. Backend brief 2026-08-14 (`backend/docs/frontend/2026-08-14-frontend-adjustments.md`),
    remaining items. Reply raised with backend in
    `backend/docs/frontend/2026-08-14-frontend-reply-approval-gate.md` (uncommitted).
-   - **Items 1, 2, 4 - finance approvals. BLOCKED on backend, now nearly unblocked.**
+   - **Items 1, 2, 4 - finance approvals. Backend has answered and built; waiting only
+     on their commit.** They confirmed the defect was real: below ₦50,000 a concession
+     or credit note posts directly, at or above it must be submitted, so build the
+     amount-driven Post → Submit swap the brief described. `approval_required` now
+     ships on all four adjustment serializers **and** on every `ar-adjustments` row,
+     behind a request-scoped gate. Caveat from them: the answer depends on the
+     document's own amount, so re-read it after an edit rather than caching it against
+     a document id. Their reply is `backend/docs/frontend/2026-08-14-backend-reply-approval-gate.md`.
+     Still to build here:
      Concessions/credit notes need submit endpoints + `P` keys (`200830`, `200630`),
      the `approval` block typed on all four AR submit mutations (today typed
      `ApiEnvelope<Refund>`, so the parked warning is discarded), `useNoApproverPrompt`
@@ -13,17 +21,19 @@
      amount-aware gate (`ApprovalGate`, `resolution.py`) and `approval_required` on the
      four adjustment serializers **and** the hand-built `ar-adjustments` rows. Start
      once that lands on main.
-   - **Item 7 - platform template adoption/compare. BLOCKED.** The login response omits
-     `tenant.kind`, so `selectIsPlatformTenant` is false for a platform operator all
-     session; backend working tree has the shared `tenant_context_block` fix.
+   - **Item 7 - platform template adoption/compare. UNBLOCKED.** The `tenant.kind` fix
+     landed on backend main in `4f66802`: login and `/me` are built by one
+     `tenant_context_block`, so `selectIsPlatformTenant` is now right from first paint.
      Note both endpoints return raw DRF `Response` (no `{success,message,data}`
      envelope) and `compare` also returns `base`/`other`.
    - **Item 5 - close checklist severity.** Unblocked, small: a *failed* non-blocking
      row renders identically to a failed blocker in
      `finance/reports/periods-tab.tsx`. Only the styling is missing.
-   - **Item 6 - stock reports filter.** The reorder and valuation report endpoints have
-     no UI at all, so there is nothing to add a `location` filter to. API layer +
-     response types are ready.
+   - **Item 6 - stock reports. DONE** (see Done #28), except one thing left with the
+     backend: `reorder_row` reads the stock master, so a store-scoped reorder report
+     narrows which rows appear but still reports entity-wide quantities, unlike
+     `valuation_row` which reads the balance. Labelled honestly for now; if they fix it,
+     the "On hand (entity)" column label and its explanatory line come back out.
    - **Item 8 - ticket context.** Built. One latent bug left: `routeProductArea` emits
      `"Account access"`, which is not in the backend's 19-value allowlist ("Account"
      is). Only reachable from public routes today, so nothing is breaking.
@@ -43,6 +53,8 @@
    "Your workspace" is a chip row at the page foot. Dashboard rebuild COMPLETE.
 
 ## Done
+
+# 28. Stock reorder + valuation report screens (2026-08-14) - both endpoints had been wired into the API slice for months with **no screen consuming them**, so the brief's "add a location filter to both reports" had nothing to filter. They exist now as two Analytics sections (`stock-reorder`, `stock-valuation`) behind `procurement.report.view`, with an optional store that hides itself unless the entity has more than one active store. **The existing types were wrong and would have rendered `[object Object]`**: these two reports carry money as the reports' `{kobo, naira}` pair rather than the bare integer the transactional endpoints use, and both paginate their rows while keeping the report object in `data` - a third envelope shape neither `ApiEnvelope` nor `PaginatedEnvelope` describes (now `PaginatedReportEnvelope`). Valuation uses the server's `total_value`, computed across every row, rather than summing the page. Two honesty calls: a reorder report with nothing priced says "Not yet known" rather than ₦0.00 (which reads as *free*), and an unpriced row shows a dash rather than a zero that would understate the total. **Backend inconsistency found**: `reorder_row` reads the stock master while `valuation_row` reads the balance, so a store-scoped reorder report narrows *which* rows appear but still reports entity-wide quantities - LTO-9 at ANNEX correctly lists as short while showing "On hand 25" against a reorder point of 20. Labelled "On hand (entity)" with an explanatory line and raised with the backend rather than papering over it with a second copy of their selection logic. Driven in the real app: valuation reconciles against the API entity-wide (₦3,817,500) and at ANNEX (₦200,000, at that store's own ₦20,000 average vs the ₦18,500 roll-up); phone clean, zero overflow. Note `npx tsc --noEmit` alone did **not** catch an invalid `EmptyState` prop - only `npm run build` did, so run the build before shipping.
 
 # 27. Non-PO match fix + stock held per location (2026-08-14) - first two unblocked pieces of the backend brief. **(a) `NON_PO_BLOCKED`**: `isBlockingInvoiceVariance` listed only `UNDER_RECEIVED`/`OVER_BILLED`, so with `allow_non_po_invoices` now defaulting off every non-PO bill rendered as a passed match with a plain Post button that 409s. Widened to the backend's `MATCH_BLOCKING` set, added `blockingMatchReason` copy per state, gave `PRICE_VARIANCE` its own amber non-blocking treatment (it does **not** need an override - GR/IR clears at the receipt basis and the difference lands in 5160), stopped `MatchPanel` short-circuiting non-PO bills before the blocked banner, and disabled the vendor-bill form's "Direct invoice" tab when the entity's setting is off (fails open when the caller cannot read procurement settings, since the server gates the post either way; an existing direct draft stays editable). The backend's own `seed_procurement_demo` is broken on main for the same reason - it posts a non-PO bill and dies on `NON_PO_BLOCKED`. **(b) Stock locations**: new `stock-locations` / `stock-balances` endpoints + types, `useStockLocations` as the single choke point for the platform rule that a school with **zero or one** active location sees none of this (no picker, no column, no chip, no empty state), a Locations admin screen (create/edit, make-default as an action not a checkbox, deactivate with the "still holds stock" refusal opening that store's balances, the migration prompt when only `MAIN` exists), a per-location breakdown under the item's headline roll-up totals, a required store picker on issue/adjust pre-filled with the default, and a store column + filter + "Bal. at store" relabel on the ledger. No Transfer button - there is no transfer document. **Bugs found and fixed while building**: `LocationBalancesDrawer` read `location!.id` in its query args, which RTK Query evaluates even when skipped, crashing the page on first paint (now `skipToken`); and `shortDate` appended `T00:00:00` unconditionally, so any full ISO timestamp became an Invalid Date and the `RangeError` took the whole procurement page to the error boundary - fixed at the helper (all 54 callers) to accept both shapes and return "-" rather than throw, with 5 tests. Driven in the real app against seeded data at one store and at two: roll-up 25 @ ₦19,100 = ANNEX 10 @ ₦20,000 + MAIN 15 @ ₦18,500, differing unit costs correct and explained; over-issue names where the stock actually is; phone clean, zero overflow. Guide registered (`procurement.stock-locations`, draft - the whole procurement guide category is unwritten); PERMISSIONS_AUDIT.md updated (no new keys).
 
