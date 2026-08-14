@@ -3,6 +3,7 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronUp,
+  Info,
   CornerDownRight,
   Eye,
   Network,
@@ -79,6 +80,36 @@ export function Advanced({
         )}
       </button>
       {open && <div className="mt-3">{children}</div>}
+    </div>
+  );
+}
+
+/**
+ * An explanation that waits to be asked for.
+ *
+ * The consequence of changing a template's identity fields matters exactly
+ * once - when somebody is about to change one - so it sits behind an info
+ * control rather than as a standing banner that is read once and then becomes
+ * furniture.
+ */
+export function FieldHint({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="text-xs">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="inline-flex items-center gap-1.5 text-gray-01 hover:text-black-01"
+      >
+        <Info className="size-3.5" />
+        <span className="underline decoration-dotted underline-offset-2">{title}</span>
+      </button>
+      {open && (
+        <p className="mt-1.5 rounded-md border border-white-02 bg-gray-06/30 px-3 py-2 leading-relaxed text-gray-01">
+          {children}
+        </p>
+      )}
     </div>
   );
 }
@@ -333,16 +364,23 @@ export function ApproverPreview({
   sampleText,
   onSampleChange,
   sampleId = "sample-document",
+  requesterOptions,
+  onRequesterChange,
 }: {
   stage: StageForm;
+  /** Who the preview resolves as. Defaults to the signed-in user upstream. */
   requester: string;
   sampleText?: string;
   onSampleChange?: (v: string) => void;
   sampleId?: string;
+  /** Only supplied where the answer depends on the person, i.e. an organogram climb. */
+  requesterOptions?: { value: string; label: string }[];
+  onRequesterChange?: (v: string) => void;
 }) {
   const [preview, { data, isLoading, error }] = usePreviewApproversMutation();
 
   const isDynamic = stage.approver_source === "DYNAMIC_ROLE";
+  const isOrganogram = stage.approver_source === "ORGANOGRAM";
   const ready = !!requester && previewReady(stage);
   const Icon = SOURCE_ICON[stage.approver_source] ?? Shield;
 
@@ -394,13 +432,7 @@ export function ApproverPreview({
           type="button"
           disabled={!ready || isLoading || sampleInvalid}
           onClick={run}
-          title={
-            !requester
-              ? "Pick a sample requester above"
-              : !ready
-                ? "Complete the approver config"
-                : "Resolve approvers"
-          }
+          title={!ready ? "Finish choosing who approves this step" : "Resolve approvers"}
         >
           <Eye className="size-3.5" /> {isLoading ? "Resolving…" : "Preview"}
         </Button>
@@ -425,8 +457,31 @@ export function ApproverPreview({
         </div>
       )}
 
-      {!requester && (
-        <p className="mt-1.5 text-[11px] text-gray-01">Pick a sample requester above to preview.</p>
+      {/* Role, group and rule stages resolve the same for anybody, so the
+          preview simply runs as you. An organogram climb is the exception:
+          "the requester's manager" has no answer without a requester, so the
+          person is asked for here, where it means something. */}
+      {isOrganogram ? (
+        requesterOptions && onRequesterChange ? (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] text-gray-01">Climbing from</span>
+            <div className="min-w-52 flex-1 sm:max-w-xs">
+              <SearchSelect
+                id={`${sampleId}-requester`}
+                options={requesterOptions}
+                value={requester}
+                onChange={(e) => onRequesterChange(e.target.value)}
+                placeholder="Whose chain to climb"
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="mt-1.5 text-[11px] text-gray-01">
+            Climbing from you. Previewing for someone else needs staff directory access.
+          </p>
+        )
+      ) : (
+        <p className="mt-1.5 text-[11px] text-gray-01">Resolved as if you raised this request.</p>
       )}
 
       {error != null && (

@@ -42,6 +42,7 @@ import {
 import {
   Advanced,
   Band,
+  FieldHint,
   Section,
   ApproverPreview,
   DynamicRulesEditor,
@@ -98,6 +99,68 @@ const NOTIF_EVENTS = [
   { key: "workflow.rejected", label: "Rejected - notify the requester" },
   { key: "workflow.final_approved", label: "Fully approved - notify the requester" },
 ];
+
+/**
+ * Everything a publish would send, as one comparable string.
+ *
+ * Publishing an unchanged template is a write that produces a new updated_at,
+ * a fresh audit entry and - on a shared template - a tenant fork for whoever
+ * pressed it. So the button follows the form rather than the intent: edit
+ * something and it wakes up, put it back and it goes quiet again, with no
+ * separate "dirty" flag to drift out of step with what is on screen.
+ *
+ * Sample-document text is deliberately absent: it drives the preview and is
+ * never published, so typing in it must not arm the button.
+ */
+function formSignature(form: {
+  name: string;
+  documentType: string;
+  code: string;
+  description: string;
+  notifEvents: Record<string, boolean>;
+  stages: StageForm[];
+  routesText: string;
+}): string {
+  return JSON.stringify({
+    name: form.name.trim(),
+    documentType: form.documentType.trim(),
+    code: form.code.trim(),
+    description: form.description.trim(),
+    // Key order varies with how the switches were toggled; sort so it does not
+    // read as a change.
+    notifEvents: Object.fromEntries(
+      Object.entries(form.notifEvents).sort(([a], [b]) => a.localeCompare(b)),
+    ),
+    routesText: form.routesText.trim(),
+    stages: form.stages.map((s) => ({
+      code: s.code.trim(),
+      label: s.label.trim(),
+      kind: s.kind,
+      approver_source: s.approver_source,
+      approver_scope: s.approver_scope,
+      approver_role_key: s.approver_role_key,
+      approver_group_code: s.approver_group_code,
+      organogram_target: s.organogram_target,
+      organogram_levels: s.organogram_levels,
+      organogram_position_code: s.organogram_position_code,
+      advance_rule: s.advance_rule,
+      quorum_count: s.quorum_count,
+      on_rejection: s.on_rejection,
+      skip_if_no_approvers: s.skip_if_no_approvers,
+      inclusion_condition_text: s.inclusion_condition_text.trim(),
+      // The rule rows without their React keys, which are not data.
+      dynamic_rules: s.dynamic_rules.map((r) => ({
+        field: r.field.trim(),
+        op: r.op,
+        value: r.value.trim(),
+        role_key: r.role_key.trim(),
+        label: r.label.trim(),
+        is_fallback: r.is_fallback,
+        raw: r.raw,
+      })),
+    })),
+  });
+}
 
 /** What a folded stage is still carrying, so nothing hides behind the fold. */
 function advancedSummary(s: StageForm, isPlatformTenant: boolean): string | null {
@@ -185,8 +248,10 @@ export default function TemplateBuilder() {
     () => (Array.isArray(usersRes?.data) ? usersRes!.data : []).map((u: { id: string; full_name: string; email: string }) => ({ value: u.id, label: `${u.full_name} · ${u.email}` })),
     [usersRes],
   );
+  // The preview runs as the signed-in user unless an organogram stage asks to
+  // climb from somebody else, which is the only case where the answer moves.
   const [sampleRequester, setSampleRequester] = useState(
-    !canSeeDirectory && self?.id != null ? String(self.id) : "",
+    self?.id != null ? String(self.id) : "",
   );
 
   const [name, setName] = useState("");
@@ -197,6 +262,8 @@ export default function TemplateBuilder() {
   const [routesText, setRoutesText] = useState("");
   const [notifEvents, setNotifEvents] = useState<Record<string, boolean>>({});
   const [prefilled, setPrefilled] = useState(false);
+  // The form as it was last saved (or as it started, when creating).
+  const [savedSignature, setSavedSignature] = useState<string | null>(null);
 
   // Prefill once when editing an existing template.
   useEffect(() => {
@@ -249,6 +316,19 @@ export default function TemplateBuilder() {
     );
     setPrefilled(true);
   }, [isEdit, existing, prefilled]);
+
+  const signature = formSignature({
+    name, documentType, code, description, notifEvents, stages, routesText,
+  });
+  // Creating starts from the empty form, so the first keystroke arms the button;
+  // editing starts from what was loaded.
+  useEffect(() => {
+    if (savedSignature !== null) return;
+    if (isEdit && !prefilled) return;
+    setSavedSignature(signature);
+  }, [savedSignature, isEdit, prefilled, signature]);
+
+  const hasChanges = savedSignature !== null && signature !== savedSignature;
 
   const updateStage = (i: number, patch: Partial<StageForm>) =>
     setStages((prev) => prev.map((s, j) => (j === i ? { ...s, ...patch } : s)));
@@ -374,6 +454,9 @@ export default function TemplateBuilder() {
     publish(payload)
       .unwrap()
       .then((t) => {
+        // Saved: the form is the new baseline, so the button goes quiet until
+        // something else moves.
+        setSavedSignature(signature);
         toast.success(
           willFork
             ? "Saved. This school now runs your version."
@@ -413,7 +496,12 @@ export default function TemplateBuilder() {
             <Button variant="white" size="lg" onClick={() => navigate(-1)} disabled={isPublishing}>
               Cancel
             </Button>
-            <Button size="lg" onClick={handlePublish} disabled={isPublishing}>
+            <Button
+              size="lg"
+              onClick={handlePublish}
+              disabled={isPublishing || !hasChanges}
+              title={hasChanges ? undefined : "Nothing has changed yet"}
+            >
               {isPublishing
                 ? "Publishing…"
                 : willFork
@@ -490,10 +578,13 @@ export default function TemplateBuilder() {
               </p>
             )}
             {isEdit && (
-              <p className="rounded-md bg-yellow-01/10 px-3 py-2 text-xs text-yellow-01">
-                Publishing with the same document type + code updates this template in place.
-                Changing either creates a new template.
-              </p>
+              <FieldHint title="Can I change the document type or code?">
+                These two name the template. Publishing with the same pair updates this
+                template in place; changing either publishes a <strong>new</strong> template
+                and leaves this one exactly as it is, still running for anyone using it. So
+                they are safe to correct before anything depends on them, and a rename after
+                that is really a new template plus a decision about the old one.
+              </FieldHint>
             )}
           </div>
         </Section>
@@ -542,29 +633,6 @@ export default function TemplateBuilder() {
             }
           >
             <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-2 rounded-md border border-white-02 bg-pry-01/30 px-3 py-2">
-                <span className="text-xs font-medium text-gray-01">Sample requester</span>
-                {canSeeDirectory ? (
-                  <>
-                    <div className="min-w-60 flex-1 sm:max-w-xs">
-                      <SearchSelect
-                        id="sample-requester"
-                        options={requesterOptions}
-                        value={sampleRequester}
-                        onChange={(e) => setSampleRequester(e.target.value)}
-                        placeholder="Pick a CX staff member to preview approvers"
-                      />
-                    </div>
-                    <span className="text-[11px] text-gray-01">
-                      Stages resolve relative to this person ↓
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-[11px] text-gray-01">
-                    Previews run as you. Picking someone else needs staff directory access.
-                  </span>
-                )}
-              </div>
               {stages.map((s, i) => (
                 <div key={i} className="space-y-3 rounded-md border border-white-02 p-4">
                   <div className="mb-3 flex items-center gap-2">
@@ -803,6 +871,12 @@ export default function TemplateBuilder() {
                     <ApproverPreview
                       stage={s}
                       requester={sampleRequester}
+                      requesterOptions={
+                        canSeeDirectory && s.approver_source === "ORGANOGRAM"
+                          ? requesterOptions
+                          : undefined
+                      }
+                      onRequesterChange={canSeeDirectory ? setSampleRequester : undefined}
                       sampleText={s.sample_document_text}
                       onSampleChange={(v) => updateStage(i, { sample_document_text: v })}
                       sampleId={`stage-sample-${i}`}
