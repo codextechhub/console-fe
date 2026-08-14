@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft, ArrowRight, BookOpenText, Check, Pause, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
@@ -21,6 +21,8 @@ import {
 } from "./engine";
 import { findWalkthrough } from "./registry";
 import { WalkthroughRuntimeContext } from "./context";
+import { positionWalkthroughCoach, visibleWalkthroughTarget } from "./positioning";
+import type { RectLike, SizeLike } from "./positioning";
 import type { Walkthrough, WalkthroughContentStep, WalkthroughProgress } from "./types";
 
 function targetElement(target?: string): HTMLElement | null {
@@ -102,9 +104,28 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!walkthrough || !step?.target) return;
-    const timeout = window.setTimeout(() => setMissingTarget(!targetElement(step.target)), 700);
-    return () => window.clearTimeout(timeout);
-  }, [step, walkthrough]);
+    let ready = false;
+    const check = () => {
+      if (ready) setMissingTarget(!targetElement(step.target));
+    };
+    const timeout = window.setTimeout(() => {
+      ready = true;
+      check();
+    }, 700);
+    const observer = new MutationObserver(check);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      window.clearTimeout(timeout);
+      observer.disconnect();
+    };
+  }, [location.search, step, walkthrough]);
+
+  useEffect(() => {
+    if (!walkthrough || !step?.search) return;
+    const search = step.search.startsWith("?") ? step.search : `?${step.search}`;
+    if (location.pathname === walkthrough.route && location.search === search) return;
+    navigate({ pathname: walkthrough.route, search }, { replace: true });
+  }, [location.pathname, location.search, navigate, step?.search, walkthrough]);
 
   const move = useCallback((direction: 1 | -1) => {
     if (!walkthrough || !step) return;
@@ -184,7 +205,8 @@ function WalkthroughCoach({
   onNext: () => void;
   onPause: () => void;
 }) {
-  const [rect, setRect] = useState<DOMRect | null>(null);
+  const [rect, setRect] = useState<RectLike | null>(null);
+  const [cardSize, setCardSize] = useState<SizeLike>({ width: 340, height: 280 });
   const cardRef = useRef<HTMLElement>(null);
   const guide = GUIDE_REGISTRY.find((item) => item.id === walkthrough.guideId);
   const contentSteps = walkthrough.steps.filter((item): item is WalkthroughContentStep => item.kind !== "branch");
@@ -192,22 +214,75 @@ function WalkthroughCoach({
   const finalStep = stepIndex === contentSteps.length - 1;
 
   useEffect(() => {
-    const update = () => {
-      const target = targetElement(step.target);
-      setRect(target?.getBoundingClientRect() ?? null);
-      target?.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+    let frame = 0;
+    let scrollTimer = 0;
+    let target: HTMLElement | null = null;
+    let targetObserver: ResizeObserver | null = null;
+    let scrolled = false;
+
+    const measure = () => {
+      frame = 0;
+      const nextTarget = targetElement(step.target);
+      if (nextTarget !== target) {
+        targetObserver?.disconnect();
+        target = nextTarget;
+        if (target) {
+          targetObserver = new ResizeObserver(scheduleMeasure);
+          targetObserver.observe(target);
+        }
+      }
+      if (target && !scrolled) {
+        scrolled = true;
+        target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+        scrollTimer = window.setTimeout(scheduleMeasure, 450);
+      }
+      const nextRect = target?.getBoundingClientRect();
+      setRect(nextRect ? {
+        left: nextRect.left,
+        top: nextRect.top,
+        right: nextRect.right,
+        bottom: nextRect.bottom,
+        width: nextRect.width,
+        height: nextRect.height,
+      } : null);
     };
-    update();
-    const observer = new MutationObserver(update);
+
+    function scheduleMeasure() {
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(measure);
+    }
+
+    scheduleMeasure();
+    const observer = new MutationObserver(scheduleMeasure);
     observer.observe(document.body, { childList: true, subtree: true });
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
+    window.addEventListener("resize", scheduleMeasure);
+    window.addEventListener("scroll", scheduleMeasure, true);
     return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.clearTimeout(scrollTimer);
       observer.disconnect();
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
+      targetObserver?.disconnect();
+      window.removeEventListener("resize", scheduleMeasure);
+      window.removeEventListener("scroll", scheduleMeasure, true);
     };
-  }, [step.target]);
+  }, [step.id, step.target]);
+
+  useLayoutEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    const measure = () => {
+      const next = card.getBoundingClientRect();
+      setCardSize((current) => (
+        current.width === next.width && current.height === next.height
+          ? current
+          : { width: next.width, height: next.height }
+      ));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, [missingTarget, step.id]);
 
   useEffect(() => {
     cardRef.current?.focus();
@@ -223,12 +298,23 @@ function WalkthroughCoach({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onBack, onNext, onPause]);
 
-  const desktopPosition = rect ? {
-    left: Math.min(window.innerWidth - 356, Math.max(16, rect.left + rect.width / 2 - 170)),
-    top: step.placement === "top"
-      ? Math.max(16, rect.top - 250)
-      : Math.min(window.innerHeight - 250, rect.bottom + 14),
-  } : { left: Math.max(16, window.innerWidth / 2 - 170), top: Math.max(80, window.innerHeight / 2 - 120) };
+  const viewport = { width: window.innerWidth, height: window.innerHeight };
+  const focusRect = rect ? visibleWalkthroughTarget({
+    target: rect,
+    viewport,
+    maxHeight: viewport.width < 640 ? 120 : 180,
+  }) : null;
+  const coachPosition = focusRect ? positionWalkthroughCoach({
+    target: focusRect,
+    card: cardSize,
+    viewport,
+    preferred: step.placement,
+    allowedSides: viewport.width < 640 ? ["top", "bottom"] : ["top", "right", "bottom", "left"],
+  }) : {
+    left: Math.max(16, (viewport.width - cardSize.width) / 2),
+    top: Math.max(80, (viewport.height - cardSize.height) / 2),
+    side: "bottom" as const,
+  };
 
   const card = (
     <section
@@ -238,7 +324,7 @@ function WalkthroughCoach({
       aria-modal="false"
       aria-labelledby="walkthrough-title"
       aria-describedby="walkthrough-description"
-      className="w-full rounded-t-3xl border border-gray-200 bg-white p-5 shadow-[0_-20px_60px_rgba(15,23,42,.2)] sm:w-[340px] sm:rounded-2xl sm:shadow-[0_20px_60px_rgba(15,23,42,.22)]"
+      className="w-full rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,.22)]"
     >
       <div className="flex items-start justify-between gap-4">
         <div><p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">Interactive walkthrough</p><p className="mt-1 text-xs text-gray-400">Step {stepIndex + 1} of {contentSteps.length}</p></div>
@@ -263,15 +349,28 @@ function WalkthroughCoach({
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[80]" data-walkthrough-active={walkthrough.id}>
-      <div className="absolute inset-0 bg-slate-950/45" aria-hidden="true" />
-      {rect && !missingTarget && (
+      {focusRect && !missingTarget && (
         <div
           aria-hidden="true"
-          className={cn("absolute rounded-xl border-2 border-white ring-4 ring-primary/70 shadow-[0_0_0_9999px_rgba(15,23,42,.05)] transition-all")}
-          style={{ left: rect.left - 6, top: rect.top - 6, width: rect.width + 12, height: rect.height + 12 }}
+          data-walkthrough-spotlight
+          className={cn("absolute rounded-xl border-2 border-white ring-4 ring-primary/70 transition-all")}
+          style={{
+            left: focusRect.left - 6,
+            top: focusRect.top - 6,
+            width: focusRect.width + 12,
+            height: focusRect.height + 12,
+            boxShadow: "0 0 0 9999px rgba(15, 23, 42, .45)",
+          }}
         />
       )}
-      <div className="pointer-events-auto absolute inset-x-0 bottom-0 sm:inset-auto" style={window.innerWidth >= 640 ? desktopPosition : undefined}>{card}</div>
+      {(!focusRect || missingTarget) && <div className="absolute inset-0 bg-slate-950/45" aria-hidden="true" />}
+      <div
+        className="pointer-events-auto absolute w-[calc(100%-2rem)] sm:w-[340px]"
+        data-walkthrough-coach-side={coachPosition.side}
+        style={{ left: coachPosition.left, top: coachPosition.top }}
+      >
+        {card}
+      </div>
     </div>
   );
 }

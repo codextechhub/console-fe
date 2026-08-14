@@ -10,6 +10,7 @@ import {
 } from "@/redux/services/dashboard/school-mgt-api";
 import { packageStepSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import type { PackageStepData } from "../create-school";
@@ -17,10 +18,11 @@ import type { PackageStepData } from "../create-school";
 interface Props {
   defaultValues: PackageStepData;
   onSubmit: (data: PackageStepData) => void;
+  onChange: (data: PackageStepData) => void;
   isSubmitting: boolean;
 }
 
-export default function PackageSetup({ defaultValues, onSubmit, isSubmitting }: Props) {
+export default function PackageSetup({ defaultValues, onSubmit, onChange, isSubmitting }: Props) {
   const navigate = useNavigate();
 
   const { data: plansRes, isLoading: plansLoading } = useGetPackagePlansQuery();
@@ -67,20 +69,24 @@ export default function PackageSetup({ defaultValues, onSubmit, isSubmitting }: 
     },
   });
 
+  useEffect(() => {
+    onChange(formik.values);
+  }, [formik.values, onChange]);
+
   return (
     <>
       <div className="max-w-235 mt-5">
         <div className="mb-7 space-y-1.5">
-          <h4 className="font-medium text-xl text-black-01" data-guide="school-create.current-step">Package Setup</h4>
+          <h4 className="font-medium text-xl text-black-01" data-guide="school-create.package">Package Setup</h4>
           <p className="text-gray-01 font-mont text-xs">
             Select a package plan and configure the school's module access and capacity limits.
           </p>
         </div>
 
-        <p className="inline-flex items-center text-gray-05 text-sm mb-4">
+        <div className="inline-flex items-center text-gray-05 text-sm mb-4">
           Package Information
           <figure className="size-fit ml-2">{svgIcons.infoIcon}</figure>
-        </p>
+        </div>
 
         <form onSubmit={formik.handleSubmit}>
           <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">

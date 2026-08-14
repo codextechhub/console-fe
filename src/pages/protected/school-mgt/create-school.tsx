@@ -243,13 +243,13 @@ export default function CreateSchool() {
   const renderStep = () => {
     switch (step) {
       case "branch":
-        return <AddSchoolBranch defaultValues={branches} onNext={handleBranchNext} />;
+        return <AddSchoolBranch defaultValues={branches} onNext={handleBranchNext} onChange={setBranches} />;
       case "admin":
-        return <AddSchoolAdmin defaultValues={adminData} onNext={handleAdminNext} />;
+        return <AddSchoolAdmin defaultValues={adminData} onNext={handleAdminNext} onChange={setAdminData} />;
       case "plan":
-        return <PackageSetup defaultValues={packageData} onSubmit={handleSubmit} isSubmitting={submitting} />;
+        return <PackageSetup defaultValues={packageData} onSubmit={handleSubmit} onChange={setPackageData} isSubmitting={submitting} />;
       default:
-        return <AddSchool defaultValues={schoolData} onNext={handleSchoolNext} onPrefill={handlePrefill} generateTestData={generateTestData} />;
+        return <AddSchool defaultValues={schoolData} onNext={handleSchoolNext} onChange={setSchoolData} onPrefill={handlePrefill} generateTestData={generateTestData} />;
     }
   };
 

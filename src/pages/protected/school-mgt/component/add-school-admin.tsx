@@ -2,15 +2,17 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
 import { adminStepSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { AdminStepData } from "../create-school";
 
 interface Props {
   defaultValues: AdminStepData;
   onNext: (data: AdminStepData) => void;
+  onChange: (data: AdminStepData) => void;
 }
 
-export default function AddSchoolAdmin({ defaultValues, onNext }: Props) {
+export default function AddSchoolAdmin({ defaultValues, onNext, onChange }: Props) {
   const navigate = useNavigate();
 
   const formik = useFormik<AdminStepData>({
@@ -20,10 +22,14 @@ export default function AddSchoolAdmin({ defaultValues, onNext }: Props) {
     onSubmit: (values) => onNext(values),
   });
 
+  useEffect(() => {
+    onChange(formik.values);
+  }, [formik.values, onChange]);
+
   return (
     <div className="max-w-235 mt-5">
       <div className="mb-7 space-y-1.5">
-        <h4 className="font-medium text-xl text-black-01" data-guide="school-create.current-step">Create School Admin</h4>
+        <h4 className="font-medium text-xl text-black-01" data-guide="school-create.school-admin">Create School Admin</h4>
         <p className="text-gray-01 font-mont text-xs">
           Add the primary administrator for this school.
         </p>

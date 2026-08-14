@@ -4,11 +4,12 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import type { BranchStepItem } from "../create-school";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   defaultValues: BranchStepItem[];
   onNext: (data: BranchStepItem[]) => void;
+  onChange: (data: BranchStepItem[]) => void;
 }
 
 const emptyBranch = (): BranchStepItem => ({
@@ -17,12 +18,16 @@ const emptyBranch = (): BranchStepItem => ({
   admin_email: "", admin_phone: "",
 });
 
-export default function AddSchoolBranch({ defaultValues, onNext }: Props) {
+export default function AddSchoolBranch({ defaultValues, onNext, onChange }: Props) {
   const navigate = useNavigate();
   const [branches, setBranches] = useState<BranchStepItem[]>(
     defaultValues.length > 0 ? defaultValues : [{ ...emptyBranch(), is_main: true }],
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    onChange(branches);
+  }, [branches, onChange]);
 
   const update = (idx: number, field: keyof BranchStepItem, value: unknown) => {
     setBranches((prev) => prev.map((b, i) => (i === idx ? { ...b, [field]: value } : b)));
@@ -69,7 +74,7 @@ export default function AddSchoolBranch({ defaultValues, onNext }: Props) {
   return (
     <div className="max-w-235 mt-5">
       <div className="mb-7 space-y-1.5">
-        <h4 className="font-medium text-xl text-black-01" data-guide="school-create.current-step">Add Branch</h4>
+        <h4 className="font-medium text-xl text-black-01" data-guide="school-create.branches">Add Branch</h4>
         <p className="text-gray-01 font-mont text-xs">
           Add at least one branch for the school. Exactly one must be set as the main branch.
         </p>

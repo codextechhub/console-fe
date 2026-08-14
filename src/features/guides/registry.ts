@@ -125,7 +125,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.schools.create-and-configure",
     estimatedMinutes: 10,
     owner: OWNER,
-    reviewedAt: REVIEWED_AT,
+    reviewedAt: C5_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",

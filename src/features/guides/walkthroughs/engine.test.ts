@@ -68,4 +68,37 @@ describe("walkthrough engine", () => {
       `Invalid branch in ${walkthrough.id}:broken-branch`,
     ]);
   });
+
+  it("rejects walkthrough step searches that are not URL search strings", () => {
+    expect(validateWalkthroughs([{
+      ...walkthrough,
+      steps: [{
+        id: "bad-search",
+        title: "Bad search",
+        body: "This search is missing its leading question mark.",
+        search: "step=school",
+        advance: "manual",
+      }],
+    }], new Set(GUIDE_REGISTRY.map((guide) => guide.id)))).toContain(
+      `Invalid search in ${walkthrough.id}:bad-search`,
+    );
+  });
+
+  it("maps every school wizard explanation to its matching view and target", () => {
+    const schoolWalkthrough = WALKTHROUGH_REGISTRY.find(
+      (item) => item.id === "walkthrough.schools.create-and-configure",
+    );
+    const mappedSteps = schoolWalkthrough?.steps.flatMap((item) => (
+      "search" in item && "target" in item
+        ? [{ id: item.id, search: item.search, target: item.target }]
+        : []
+    ));
+
+    expect(mappedSteps).toEqual([
+      { id: "school-details", search: "?step=school", target: "school-create.school-details" },
+      { id: "branches", search: "?step=branch", target: "school-create.branches" },
+      { id: "school-admin", search: "?step=admin", target: "school-create.school-admin" },
+      { id: "package-boundary", search: "?step=plan", target: "school-create.package" },
+    ]);
+  });
 });

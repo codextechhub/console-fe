@@ -13,7 +13,7 @@ export default function CreateAndConfigureSchoolArticle() {
           "Agree the package plan, enabled modules, capacity limits, and subscription expiry date.",
           "Check that administrator emails do not already belong to another account.",
         ]} />
-        <GuideCallout tone="warning" title="One submission creates several records">The final Submit action creates the school, its branches and administrator records, package access, and invitations. Review every step before submitting. The walkthrough only explains the screen and never fills or submits it.</GuideCallout>
+        <GuideCallout tone="warning" title="One submission creates several records">The final Submit action creates the school, its branches and administrator records, package access, and invitations. Review every step before submitting. The walkthrough opens each wizard view so its guidance matches the visible section and preserves what you have entered, but it never reads, fills, validates, or submits a field.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="add-school-details" title="Add school details">

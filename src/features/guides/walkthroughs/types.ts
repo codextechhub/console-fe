@@ -11,6 +11,7 @@ export type WalkthroughContentStep = {
   placement?: WalkthroughPlacement;
   advance: "next" | "target-click" | "route-change" | "manual";
   route?: string;
+  search?: string;
   optional?: boolean;
 };
 

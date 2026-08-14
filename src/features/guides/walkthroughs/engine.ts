@@ -130,6 +130,8 @@ export function validateWalkthroughs(
         if (!stepIds.has(step.whenPresent) || !stepIds.has(step.whenMissing)) {
           issues.push(`Invalid branch in ${walkthrough.id}:${step.id}`);
         }
+      } else if (step.search && !step.search.startsWith("?")) {
+        issues.push(`Invalid search in ${walkthrough.id}:${step.id}`);
       }
       if (step.target) {
         const contract = `${walkthrough.id}:${step.target}`;

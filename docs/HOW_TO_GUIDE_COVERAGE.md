@@ -11,7 +11,7 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Getting started | Account activation and sign-in | `getting-started.activate-and-sign-in` | Medium | Published | Not required | Console product team | 2026-08-13 | Activation uses a personal email link, so an in-product walkthrough would be unavailable before sign-in and would risk exposing the link |
 | Getting started | Reset a forgotten password | `getting-started.reset-password` | Medium | Published | Not required | Console product team | 2026-08-13 | Recovery uses a personal email link, so an in-product walkthrough would be unavailable before sign-in and would risk exposing the link |
 | Getting started | Workspace search and quick actions | `getting-started.console-basics` | Low | Published | Published | Console product team | 2026-08-14 | Covered by the Console basics article and walkthrough; guide results exclude drafts |
-| Schools and users | Create and configure a school | `schools.create-and-configure` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains each decision boundary and never fills, advances, or submits the form |
+| Schools and users | Create and configure a school | `schools.create-and-configure` | High | Published | Published | Console product team | 2026-08-14 | Walkthrough opens the matching school, branch, administrator, and package views, preserves entered values, keeps the target visible beside the coach, and never reads, changes, validates, or submits a field |
 | Schools and users | Manage schools and branches | `schools.manage-schools-and-branches` | Medium | Published | Not required | Console product team | 2026-08-13 | List, detail, and single-record edit tasks are fully covered by the article and do not need cross-screen automation |
 | Schools and users | Invite and manage CX or school users | `schools.invite-and-manage-users` | Medium | Published | Not required | Console product team | 2026-08-13 | The article covers approval, invitation, profile, and access states; consequential status actions remain explicit user actions |
 | Roles and permissions | Create and assign a role | `roles.create-and-assign` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains role composition and stops before role creation, assignment, change, or revocation |
@@ -169,9 +169,13 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - User management covers CX and school scopes, Members, Invites, and Drafts, filters,
   approval-before-invitation behaviour, organogram seats, staff-profile routing,
   and controlled suspend, reactivate, and unlock actions.
-- The high-risk school-creation walkthrough uses one stable form target across its
-  steps. It never reads fields, advances the form, changes package access, submits
-  creation, or sends invitations.
+- The high-risk school-creation walkthrough uses a distinct stable target for each
+  wizard view. It moves between those views so the visible form matches the spoken
+  step and preserves entered values, but never reads fields, changes values,
+  validates input, submits creation, or sends invitations.
+- The shared walkthrough coach measures its rendered size, chooses a non-overlapping
+  side, scrolls once per target, and leaves the highlighted content undimmed. The
+  same positioning behaviour applies to every published walkthrough.
 - Lower-risk school-list, branch, and user-management tasks use exact articles and
   contextual help. Their state-changing actions remain deliberate user actions, so
   additional walkthroughs are not required for C2.
