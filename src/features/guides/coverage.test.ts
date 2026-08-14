@@ -67,4 +67,17 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts implemented organogram and staff-profile walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "organogram-setup", route: "/organogram/manage", actionId: "manage-organogram", risk: "medium", walkthroughRequired: true },
+      { id: "staff-profile-setup", route: "/organogram/staff/create", risk: "medium", walkthroughRequired: true },
+      { id: "personal-tasks", route: "/tasks", actionId: "view-tasks", risk: "low" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

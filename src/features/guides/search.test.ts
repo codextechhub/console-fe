@@ -81,6 +81,18 @@ describe("guide search", () => {
     );
   });
 
+  it("finds organogram and task workflows using current interface language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "new org node")[0]?.guide.id).toBe(
+      "organogram.build-structure",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "assign seat")[0]?.guide.id).toBe(
+      "organogram.maintain-staff-profiles",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "mark task done")[0]?.guide.id).toBe(
+      "tasks.create-and-complete",
+    );
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

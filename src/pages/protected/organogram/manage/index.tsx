@@ -32,6 +32,7 @@ export default function OrganogramManage() {
           {TABS.map((t) => (
             <button
               key={t.id}
+              data-guide={`organogram-manage.tab.${t.id}`}
               onClick={() => setTab(t.id)}
               className={cn(
                 "relative flex items-center gap-1.5 px-3 py-2.5 text-[13px] font-semibold transition-colors",

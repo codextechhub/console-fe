@@ -38,6 +38,7 @@ describe("guide discovery", () => {
       "getting-started.console-basics",
       "getting-started.activate-and-sign-in",
       "getting-started.reset-password",
+      "tasks.create-and-complete",
       "account.secure-account",
       "troubleshooting.permission-denied",
     ]);
@@ -51,10 +52,11 @@ describe("guide discovery", () => {
       "getting-started.console-basics",
       "getting-started.activate-and-sign-in",
       "getting-started.reset-password",
+      "tasks.create-and-complete",
     ]);
     expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.title)).toEqual([
+      "Create, assign, and complete tasks",
       "Activate your account and sign in",
-      "Get started with Console",
     ]);
   });
 });

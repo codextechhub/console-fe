@@ -34,6 +34,15 @@ describe("contextual guides", () => {
 
     const permissionCreate = contextualGuideContext(GUIDE_REGISTRY, "/permissions/create", ["platform.permissions.create"]);
     expect(permissionCreate.guides.map((guide) => guide.id)).toEqual(["roles.maintain-permission-catalogue"]);
+
+    const organogramManage = contextualGuideContext(GUIDE_REGISTRY, "/organogram/manage", ["platform.organogram.manage"]);
+    expect(organogramManage.guides.map((guide) => guide.id)).toEqual(["organogram.build-structure"]);
+
+    const staffCreate = contextualGuideContext(GUIDE_REGISTRY, "/organogram/staff/create", ["platform.staff_profile.create"]);
+    expect(staffCreate.guides.map((guide) => guide.id)).toEqual(["organogram.maintain-staff-profiles"]);
+
+    const tasks = contextualGuideContext(GUIDE_REGISTRY, "/tasks", []);
+    expect(tasks.guides.map((guide) => guide.id)).toEqual(["tasks.create-and-complete"]);
   });
 
   it("resolves the current article by slug", () => {

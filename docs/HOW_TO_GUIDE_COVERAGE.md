@@ -18,9 +18,9 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Roles and permissions | Review permission changes and transfer Super Admin | `roles.review-changes-and-transfer-super-admin` | High | Published | Published | Console product team | 2026-08-13 | Ownership walkthrough verifies the current owner, successor, and immediate effect, then stops before transfer and confirmation |
 | Roles and permissions | Maintain the permission catalogue and groups | `roles.maintain-permission-catalogue` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains key composition and backend enforcement, then stops before permission creation or downstream catalogue changes |
 | Roles and permissions | Diagnose missing access | `troubleshooting.permission-denied` | Medium | Draft | Not required | Console product team | 2026-08-13 | Content starts in C12 |
-| Organogram and tasks | Build the organogram | `organogram.build-structure` | Medium | Draft | Planned | Console product team | 2026-08-13 | Walkthrough decision finalizes in C4 |
-| Organogram and tasks | Maintain staff profiles | Planned in C4 | Medium | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
-| Organogram and tasks | Create and complete tasks | Planned in C4 | Low | Planned | Not required | Console product team | 2026-08-13 | Registry record and content not started |
+| Organogram and tasks | Build the organogram | `organogram.build-structure` | Medium | Published | Published | Console product team | 2026-08-14 | Walkthrough explains the safe unit, position, and matrix order and never creates, edits, moves, or deletes structure |
+| Organogram and tasks | Maintain staff profiles | `organogram.maintain-staff-profiles` | Medium | Published | Published | Console product team | 2026-08-14 | Walkthrough explains identity, seat, employment, and payroll boundaries and never reads fields, creates a profile, or changes an assignment |
+| Organogram and tasks | Create and complete tasks | `tasks.create-and-complete` | Low | Published | Not required | Console product team | 2026-08-14 | The short form and completion control are covered by the article; assignment and completion remain explicit user actions |
 | Approvals and workflow | Review and act on an approval | Planned in C5 | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
 | Approvals and workflow | Delegate and track approvals | Planned in C5 | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
 | Approvals and workflow | Build a workflow template | `workflow.build-template` | High | Draft | Planned | Console product team | 2026-08-13 | Content must follow the current approver contract |
@@ -191,3 +191,24 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
   confirmation or authorization check.
 - Missing-access diagnosis remains linked to the planned troubleshooting article
   and is completed in C12, where cross-category recovery guidance is audited.
+
+## C4 completion record
+
+- Organogram and tasks now publishes three task guides: build the organogram,
+  maintain staff profiles and seat assignments, and create, assign, or complete
+  tasks.
+- Organogram guidance records the required Division, Department, Team, Position,
+  staff-seat order, the difference between solid and matrix lines, deletion
+  protection, and the effect of solid reporting on task visibility.
+- Staff guidance records brief and full profile boundaries, effective-dated
+  primary-seat history, the separate payroll field permissions, and recovery
+  when the profile saves but its seat assignment fails.
+- Task guidance records My Tasks and My Team behavior, backend-derived assignment
+  bounds, required task fields, status filters, completion notification and Undo,
+  and permanent deletion.
+- Two walkthroughs cover the difficult structure and staff-profile workflows.
+  They never create or alter structure, select a person or seat, read form values,
+  upload a photo, create a profile, change an assignment, or expose payroll data.
+- The low-risk task form does not need a walkthrough. Its create, assign, complete,
+  undo, edit, and delete actions remain deliberate user actions described by the
+  article.

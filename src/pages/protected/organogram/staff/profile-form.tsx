@@ -201,7 +201,7 @@ export function StaffProfileForm({
           )}
           {/* Identity (admin) */}
           {isAdmin && (
-            <Section title="Seat & identity">
+            <Section title="Seat & identity" guideTarget="staff-profile.seat-identity">
               {isCreate && (
                 <SearchSelect
                   label="Staff member"
@@ -263,7 +263,7 @@ export function StaffProfileForm({
 
           {/* Employment (admin only) */}
           {isAdmin && (
-            <Section title="Employment">
+            <Section title="Employment" guideTarget="staff-profile.employment">
               <SearchSelect label="Employment type" name="employment_type" options={EMP_TYPE} value={values.employment_type} onChange={handleChange} placeholder="Select" clearable />
               <SearchSelect label="Employment status" name="employment_status" options={EMP_STATUS} value={values.employment_status} onChange={handleChange} placeholder="Select" />
               <CustomInput id="date_joined" name="date_joined" type="date" label="Date joined" value={values.date_joined} onChange={handleChange} onBlur={handleBlur} />
@@ -275,6 +275,7 @@ export function StaffProfileForm({
           <Section
             title="Payroll"
             subtitle={payrollEditable ? "Sensitive - bank details." : undefined}
+            guideTarget="staff-profile.payroll"
           >
             {payrollEditable ? (
               <>
@@ -378,9 +379,9 @@ function PhotoPicker({
   );
 }
 
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+function Section({ title, subtitle, guideTarget, children }: { title: string; subtitle?: string; guideTarget?: string; children: React.ReactNode }) {
   return (
-    <section>
+    <section data-guide={guideTarget}>
       <div className="mb-3">
         <h3 className="text-sm font-semibold font-mont text-black-01">{title}</h3>
         {subtitle && <p className="text-xs text-gray-01 mt-0.5">{subtitle}</p>}
