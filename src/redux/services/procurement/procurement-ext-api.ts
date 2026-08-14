@@ -17,10 +17,7 @@ import type {
   StockItemDetail,
   StockLocation,
   StockMovement,
-  PaginatedReportEnvelope,
-  StockReorderReport,
   StockSummary,
-  StockValuationReport,
   VendorContract,
 } from "./procurement-types";
 import type {
@@ -223,7 +220,7 @@ export const procurementExtApi = baseApi.injectEndpoints({
       query: ({ id, entity }) => ({ url: `/procurement/stock-items/${id}/${qs({ entity })}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
-    getStockSummary: b.query<ApiEnvelope<StockSummary>, { entity: string }>({
+    getStockSummary: b.query<ApiEnvelope<StockSummary>, { entity: string; location?: string | number }>({
       query: (p) => ({ url: `/procurement/stock-items/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
@@ -254,14 +251,6 @@ export const procurementExtApi = baseApi.injectEndpoints({
     }),
     // With no `location` the numbers are identical to the pre-location reports.
     // Both reports paginate `rows` while keeping the report object in `data`.
-    getStockReorderReport: b.query<PaginatedReportEnvelope<StockReorderReport>, { entity: string; page?: number; location?: string | number }>({
-      query: (p) => ({ url: `/procurement/reports/stock-reorder/${qs(p)}`, method: "GET" }),
-      providesTags: ["ProcStock"],
-    }),
-    getStockValuationReport: b.query<PaginatedReportEnvelope<StockValuationReport>, { entity: string; page?: number; location?: string | number }>({
-      query: (p) => ({ url: `/procurement/reports/stock-valuation/${qs(p)}`, method: "GET" }),
-      providesTags: ["ProcStock"],
-    }),
 
     // Analytics reports
     getProcurementDashboard: b.query<ApiEnvelope<ProcurementDashboard>, { entity: string }>({
@@ -366,8 +355,6 @@ export const {
   useIssueStockMutation,
   useAdjustStockMutation,
   useGetStockMovementsQuery,
-  useGetStockReorderReportQuery,
-  useGetStockValuationReportQuery,
   useGetProcurementDashboardQuery,
   useGetApAgingQuery,
   useGetApReconciliationQuery,

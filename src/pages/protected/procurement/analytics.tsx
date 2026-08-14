@@ -13,15 +13,12 @@ import ApAgingScreen from "./analytics/ap-aging";
 import GrirScreen from "./analytics/grir";
 import SpendScreen from "./analytics/spend";
 import PerformanceScreen from "./analytics/performance";
-import { StockReorderScreen, StockValuationScreen } from "./analytics/stock";
 
 const SECTIONS: Record<string, (props: SectionProps) => React.ReactElement> = {
   "ap-aging": ApAgingScreen,
   grir: GrirScreen,
   spend: SpendScreen,
   performance: PerformanceScreen,
-  "stock-reorder": StockReorderScreen,
-  "stock-valuation": StockValuationScreen,
 };
 
 export default function AnalyticsPage() {

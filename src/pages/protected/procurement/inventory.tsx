@@ -93,19 +93,26 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  const [store, setStore] = useState("");
+  const { locations, multi } = useStockLocations(entity);
   useActionParam("new", () => setCreating(true));
   useEffect(() => {
     const timer = window.setTimeout(() => setDebounced(search.trim()), 350);
     return () => window.clearTimeout(timer);
   }, [search]);
 
+  // Narrowing to a store changes what the rows *report*, not just which appear:
+  // on hand, unit cost, value and the reorder status all become that store's. It
+  // is why this list replaced the separate reorder and valuation report screens,
+  // which showed the same figures for the entity and nothing else.
   const params = useMemo(() => ({
     entity, page,
     ...(debounced ? { q: debounced } : {}),
     ...(needsReorder ? { needs_reorder: "true" } : {}),
-  }), [entity, page, debounced, needsReorder]);
+    ...(store ? { location: Number(store) } : {}),
+  }), [entity, page, debounced, needsReorder, store]);
   const { currentData: data, isLoading, isFetching, isError, error, refetch } = useGetStockItemsQuery(params);
-  const { data: summaryData, isLoading: summaryLoading } = useGetStockSummaryQuery({ entity });
+  const { data: summaryData, isLoading: summaryLoading } = useGetStockSummaryQuery({ entity, ...(store ? { location: Number(store) } : {}) });
   const rows = toArray(data?.data);
   const summary = summaryData?.data;
 
@@ -126,7 +133,11 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="font-mont text-lg font-semibold text-gray-01">Stock Items</h1>
-            <p className="mt-0.5 font-mont text-xs text-gray-05">On-hand inventory with reorder thresholds and valuation.</p>
+            <p className="mt-0.5 font-mont text-xs text-gray-05">
+              {store
+                ? `On-hand inventory at ${locations.find((l) => String(l.id) === store)?.code ?? "this store"}, with its own reorder status and valuation.`
+                : "On-hand inventory with reorder thresholds and valuation."}
+            </p>
           </div>
           <Can permission={P.PROC_MANAGE_STOCK}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> New stock item</Button></Can>
         </header>
@@ -142,12 +153,29 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
 
         <section className="min-w-0 rounded-md bg-white">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4 py-2">
-            <label className="flex cursor-pointer items-center gap-2 font-mont text-xs font-medium text-gray-01">
-              <input type="checkbox" checked={needsReorder} onChange={(e) => { setNeedsReorder(e.target.checked); setPage(1); }} /> Needs reorder
-            </label>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <label className="flex cursor-pointer items-center gap-2 font-mont text-xs font-medium text-gray-01">
+                <input type="checkbox" checked={needsReorder} onChange={(e) => { setNeedsReorder(e.target.checked); setPage(1); }} /> Needs reorder
+              </label>
+              {/* Hidden entirely below two active stores, like every other location
+                  control - a single-store school never learns the concept exists. */}
+              {multi ? (
+                <label className="flex items-center gap-2 font-mont text-xs font-medium text-gray-01">
+                  Store
+                  <select
+                    value={store}
+                    onChange={(e) => { setStore(e.target.value); setPage(1); }}
+                    className="h-8 rounded-md border border-gray-03 bg-white px-2 font-mont text-xs text-gray-01"
+                  >
+                    <option value="">All stores</option>
+                    {locations.map((l) => <option key={l.id} value={String(l.id)}>{l.code} - {l.name}</option>)}
+                  </select>
+                </label>
+              ) : null}
+            </div>
             <label className="relative min-w-0 flex-1 sm:max-w-64"><Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-05" /><Input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search code or name" className="h-9 bg-white pl-9" /></label>
           </div>
-          <DataTable columns={columns} rows={rows} rowKey={(i) => i.id} loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch} onRowClick={(i) => setSelectedId(i.id)} page={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={setPage} emptyTitle="No stock items" emptyMessage={debounced || needsReorder ? "Try a different search or filter." : "Register a stock item to track its on-hand quantity and value."} />
+          <DataTable columns={columns} rows={rows} rowKey={(i) => i.id} loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch} onRowClick={(i) => setSelectedId(i.id)} page={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={setPage} emptyTitle="No stock items" emptyMessage={debounced || needsReorder || store ? "Try a different search or filter." : "Register a stock item to track its on-hand quantity and value."} />
         </section>
       </main>
       <StockItemDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
