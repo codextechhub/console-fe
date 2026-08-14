@@ -64,7 +64,7 @@ export const WALKTHROUGH_REGISTRY = [
         id: "page-help",
         target: "header.page-help",
         title: "Get help without losing your place",
-        body: "Open page-matched guides, available walkthroughs, troubleshooting, or a support ticket from here.",
+        body: "Opens a support ticket you can raise without leaving this screen. Guides matched to the page, walkthroughs and troubleshooting are one click below it.",
         placement: "bottom",
         advance: "manual",
       },

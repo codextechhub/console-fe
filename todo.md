@@ -1,14 +1,11 @@
 ## Undone (Ask questions for clarity where needed)
 
-3. Backend brief 2026-08-14 - **all nine items DONE on our side.** The reply
-   (`backend/docs/frontend/2026-08-14-frontend-reply-approval-gate.md`, committed
-   `4285dcf`) is **not yet safe to delete**: two of its findings are still open on the
-   backend. (a) `reorder_row` still reads the stock master, so a store-scoped reorder
-   report reports entity-wide quantities - our "On hand (entity)" label and its
-   explanatory line come back out when that changes. (b) The two adjustment submit
-   permissions still only arrive via a separate `seed_finance_permissions` run rather
-   than the provisioning path the ladders use, so the ordering trap remains. Delete the
-   note once both are closed.
+3. Backend brief 2026-08-14 - **CLOSED.** All nine items done on our side, and both
+   findings we raised back are now fixed on the backend too (`8966ff2`): the reorder
+   report reports the store you asked about, and publishing an adjustment ladder now
+   registers and grants the submit key that ladder makes load-bearing. The reply doc
+   (`backend/docs/frontend/2026-08-14-frontend-reply-approval-gate.md`) has nothing
+   outstanding in it and **is safe to delete**.
    - **Items 1, 2, 4 - DONE** (see Done #30).
    - **Item 7 - DONE** (see Done #29).
    - **Item 5 - DONE** (see Done #29).
@@ -37,20 +34,17 @@
    fix in Done #30). The invariant to hold everything to: **if you did the thing, the
    row goes away.**
    - **Split personal from organizational - DONE** (see Done #31).
-   - **Rank by age and deadline, not just severity colour.** `STALE_AFTER_DAYS` is
-     already computed for approval rows and nothing else uses it; a 9-day-old
-     approval currently sorts below a fresh amber signal.
-   - **Expand by default when anything red is present.** The panel starts collapsed
-     and opens on hover or a tap, so an active incident can sit unseen. (The
-     hover-only affordance is gone on phones; the toggle now at least has an
-     accessible name.)
-   - **"Exports ready to download" cannot be cleared by downloading.** The signal
-     counts `BackgroundJob` rows SUCCEEDED in 24h, and a job has no "collected"
-     marker - only `ExportFile.download_count`, which hangs off `ExportRun`, not the
-     job. Dismissal covers it for now; the real fix is a backend link from the job to
-     whether its output was collected.
+   - **Rank by age and deadline - DONE** (see Done #33).
+   - **Expand by default when anything red is present - DONE** (see Done #33).
+   - **"Exports ready to download" cannot be cleared by downloading - DONE**
+     (see Done #33). Left open behind it: an export that EXPIRES uncollected now
+     goes quiet, because a "ready to download" notice cannot honestly point at a
+     file that is gone. Telling someone they missed a download they asked for is a
+     different notice, and nobody has asked for it yet.
 
 ## Done
+
+# 33. The help button opens a ticket, not a reading list (2026-08-14) - the headset icon in the header opened a guidance sheet, and raising a ticket was a button at the bottom of it. That is backwards for what people press it for: someone stuck wants to tell us, and being handed articles first reads as being deflected. The icon now opens the ticket form directly; the page's guides sit in the panel's bottom-left as a quiet secondary option carrying its own count ("1 guide for this page"), because a number is a reason to look and a bare link is not. Coming back from the sheet, its primary button is now "Back to your ticket" rather than "Create support ticket" - the draft is still there. Dropped a "Before raising a ticket" caption I had first put beside the link: it re-asserted the old priority as a nudge, which is the thing being removed. **Guide impact handled in the same change** (per the coverage contract): the console-basics walkthrough step said "Open page-matched guides, available walkthroughs, troubleshooting, or a support ticket from here" and would have been describing the old product; both it and the article's Get help card now lead with the ticket. Walkthrough version deliberately **not** bumped - the step's wording changed but no step was added or reordered, and re-running the whole walkthrough for everyone over one sentence is not worth it. Driven at desktop and 390px: the form is what opens, the guides link is reachable in both, no overflow.
 
 # 32. Ticket context cannot produce a payload the API refuses (2026-08-14) - closes brief item 8. The context we attach to a support ticket raised inside the console (guide, route pattern, product area, app version) was sent as the page computed it, but the endpoint validates all four **strictly and rejects an unknown value by failing the whole create** - so a bad field would lose the ticket, on a screen the user came to for help. `routeProductArea` emits `"Account access"` for the four auth routes, which is not among the API's 19 accepted values ("Account" is). Not reachable today (the composer lives only in the signed-in layout, those routes are signed-out), which is exactly why it was worth fixing before someone adds a support link to the login page. Fixed at the **boundary rather than in the map**: `buildSafeTicketContext` now validates every field against the API's own rules and drops or translates rather than sending - `"Account access"` → `"Account"` via an alias table (the friendly label is also shown on screen as "Guidance matched to ...", so flattening it at the source would have made the UI read worse), route patterns rejected if they carry a digit/query/fragment, guide ids and version strings checked against the same regexes the serializer uses. That fixes the class: any future mapping mistake costs a missing field instead of a rejected ticket. 4 new tests, including a sweep that runs **every catalogued route** through the builder and asserts the result is always acceptable. The old test named "uses backend-approved product-area labels" was asserting the bug; renamed and split so it now checks the display label and the wire value separately.
 

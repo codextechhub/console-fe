@@ -228,6 +228,10 @@ export function SupportTicketComposer({
   const [created, setCreated] = useState<Ticket | null>(null);
   const [failedFiles, setFailedFiles] = useState<string[]>([]);
   const { start: startWalkthrough } = useWalkthrough();
+  // Guides plus troubleshooting: both are page-matched reading, and splitting the
+  // count across two labels would make the affordance wordier than the thing it
+  // points at.
+  const guideCount = (pageContext?.guides.length ?? 0) + (pageContext?.troubleshooting.length ?? 0);
 
   const reset = () => {
     setDraft(EMPTY_TICKET_DRAFT);
@@ -246,7 +250,7 @@ export function SupportTicketComposer({
           type="button"
           data-guide="header.page-help"
           aria-label="Help for this page"
-          onClick={() => setHelpOpen(true)}
+          onClick={() => setTicketOpen(true)}
           className="relative grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700 transition hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
         >
           <Headset className="size-4.5 stroke-[2.15]" />
@@ -334,7 +338,7 @@ export function SupportTicketComposer({
 
           <div className="grid gap-2 border-t border-gray-100 p-5">
             <Button asChild variant="outline"><Link to={routesPath.PROTECTED.SUPPORT.GUIDES} onClick={() => setHelpOpen(false)}>Browse all guides</Link></Button>
-            <Button onClick={() => { setHelpOpen(false); setTicketOpen(true); }}><Headset className="size-4" /> Create support ticket</Button>
+            <Button onClick={() => { setHelpOpen(false); setTicketOpen(true); }}><Headset className="size-4" /> Back to your ticket</Button>
             <p className="text-center text-[10px] leading-4 text-gray-400">Only the guide ID, route pattern, product area, and app version may be attached. Page values are never copied.</p>
           </div>
         </SheetContent>
@@ -367,6 +371,22 @@ export function SupportTicketComposer({
                     setFailedFiles(failed);
                   }}
                 />
+              </div>
+              {/* The guidance is still one click away, but it no longer stands
+                  between somebody and the ticket they came to raise. The count is
+                  shown because "3 guides" is a reason to look and a bare link is
+                  not. */}
+              <div className="relative flex items-center border-t border-white/80 px-5 py-3">
+                <button
+                  type="button"
+                  onClick={() => { setTicketOpen(false); setHelpOpen(true); }}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-xs font-medium text-primary transition hover:bg-primary/[0.06] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
+                >
+                  <BookOpenText className="size-3.5" />
+                  {guideCount > 0
+                    ? `${guideCount} guide${guideCount === 1 ? "" : "s"} for this page`
+                    : "Guides for this page"}
+                </button>
               </div>
             </>
           ) : (

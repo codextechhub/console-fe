@@ -112,14 +112,7 @@ export function StockReorderScreen({ entity, currency }: SectionProps) {
           : isError || !d ? <div className="rounded-md bg-white"><ErrorState onRetry={refetch} /></div>
             : (
               <div className="space-y-5">
-                {/* The store narrows which rows appear, not what they report:
-                    `reorder_row` reads the stock master, so on-hand and unit cost
-                    stay entity-wide even here (unlike the valuation report, whose
-                    rows are the store's own balances). Saying so is the honest
-                    option - without it a row reads as a plain contradiction, an
-                    item listed as needing reorder while showing an on-hand figure
-                    above its reorder point. Raised with the backend. */}
-                <ScopeNote location={d.location} what="These are the items short at that store. Quantities and unit cost below are still the entity-wide totals across every store, so an item can appear here while its overall on-hand looks healthy." />
+                <ScopeNote location={d.location} what="These are the items short at that store, with that store's own quantity and cost. A store can be short of something the entity as a whole still holds plenty of." />
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <StatCard label="Items to reorder" value={String(data?.pagination?.totalItems ?? rows.length)} icon={TriangleAlert} tone="amber" sub={d.location ? `short at ${d.location}` : "across every store"} />
@@ -146,7 +139,7 @@ export function StockReorderScreen({ entity, currency }: SectionProps) {
                       <table className="w-full min-w-[640px]">
                         <thead><tr>
                           <th className={TH}>Item</th>
-                          <th className={THR}>{d.location ? "On hand (entity)" : "On hand"}</th>
+                          <th className={THR}>On hand</th>
                           <th className={THR}>Reorder point</th>
                           <th className={THR}>Reorder qty</th>
                           <th className={THR}>Unit cost</th>
