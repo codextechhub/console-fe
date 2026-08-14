@@ -23,6 +23,11 @@ import { captureReturnTo } from "@/utils/return-to";
 import { apiErrorMessage } from "@/utils/api-errors";
 import { clearSelectedEntity } from "../features/finance/entity-slice";
 import { dismissOpenDrawerForError } from "@/utils/drawer-errors";
+import {
+  reportGatewayFailure,
+  reportRequestSuccess,
+  reportTransportFailure,
+} from "@/utils/connectivity";
 
 const getAccessToken = () => {
   const token = Cookies.get("token");
@@ -259,7 +264,11 @@ export const baseQueryInterceptor: BaseQueryFn<
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
   const result = await baseQueryWithTenant(args, api, extraOptions);
-  if (!result?.error) return result;
+  if (!result?.error) {
+    // Every completed request doubles as a connectivity heartbeat.
+    reportRequestSuccess();
+    return result;
+  }
 
   // Background requests (e.g. the notifications bell poll, which resumes the
   // instant the tab regains focus) pass `{ silent: true }` so a transient 5xx
@@ -289,6 +298,23 @@ export const baseQueryInterceptor: BaseQueryFn<
     /abort|aborted/i.test(String(res?.error ?? ""))
   ) {
     return result;
+  }
+
+  // Feed the connectivity monitor before any per-status handling below. It owns
+  // all "can we reach the backend" messaging, so a screen with several queries
+  // in flight produces one banner rather than one toast per failed request.
+  // An HTTP status arriving at all - even a 500 - proves the path works; the
+  // three gateway statuses are the edge reporting the app behind it is down.
+  if (typeof res?.status === "number") {
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      reportGatewayFailure();
+    } else {
+      reportRequestSuccess();
+    }
+  } else if (res?.status === "PARSING_ERROR") {
+    reportRequestSuccess();
+  } else if (res?.status === "FETCH_ERROR" || res?.status === "TIMEOUT_ERROR") {
+    reportTransportFailure({ notifyOnBlip: !silent && !isAuthRoute(args) });
   }
 
   if (res?.status === 409) {
@@ -400,17 +426,22 @@ export const baseQueryInterceptor: BaseQueryFn<
   }
 
   if (typeof res?.status === "number" && res.status >= 500) {
+    // 502/503/504 mean the backend is unreachable, not that this one request
+    // went wrong - the connectivity banner already says so, in one place.
+    const gatewayDown = res.status === 502 || res.status === 503 || res.status === 504;
     // Auth pages surface their own error state (friendly panel / inline copy).
-    if (!isAuthRoute(args)) notify("A server error occurred. Please try again later.");
+    if (!isAuthRoute(args) && !gatewayDown) {
+      notify("A server error occurred. Please try again later.");
+    }
     return result;
   }
 
-  // Transport-level failures (offline, DNS, timeout). Auth pages render their
-  // own friendly panel/inline copy from the query's isError, so stay quiet there.
-  if (!isAuthRoute(args)) {
-    if (res?.status === "TIMEOUT_ERROR") notify("The request timed out. Please try again.");
-    else if (res?.status === "FETCH_ERROR") notify("Could not reach the server. Please try again.");
-    else if (res?.status === "PARSING_ERROR") notify("Unexpected response from the server. Please try again.");
+  // FETCH_ERROR and TIMEOUT_ERROR are deliberately silent here: the
+  // connectivity monitor was told about them above and owns the message,
+  // whether that ends up as the banner or a single collapsed toast.
+  // Auth pages render their own friendly panel/inline copy from isError.
+  if (!isAuthRoute(args) && res?.status === "PARSING_ERROR") {
+    notify("Unexpected response from the server. Please try again.");
   }
 
   return result;
@@ -420,6 +451,10 @@ export const baseApi = createApi({
   baseQuery: baseQueryInterceptor,
   endpoints: () => ({}),
   reducerPath: "baseApi",
+  // Without this the "Back online" toast would be a lie: connectivity returns
+  // but every screen keeps showing whatever it managed to load before the drop.
+  // It fires only on a down → up transition, so it is not a refetch treadmill.
+  refetchOnReconnect: true,
   tagTypes: [
     "Users",
     "Role",

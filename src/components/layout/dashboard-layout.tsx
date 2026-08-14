@@ -48,7 +48,7 @@ import {
 import { ConsoleSidebar } from "@/components/finance-ui/console-sidebar";
 import { financeNav } from "@/pages/protected/finance/finance-nav";
 import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
-import { WorkspaceToaster } from "@/components/ui/sonner";
+import { getWorkspaceToastCenter, WorkspaceToaster } from "@/components/ui/sonner";
 import type { StaffProfileListItem } from "@/redux/services/dashboard/organogram-types";
 import type { GuideRecord } from "@/features/guides";
 import { buildSafeTicketContext, contextualGuideContext, GUIDE_REGISTRY, WalkthroughProvider } from "@/features/guides";
@@ -757,6 +757,20 @@ function SidebarFor({ kind }: { kind: SidebarKind | undefined }) {
 
 function DashboardToaster() {
   const { state } = useSidebar();
+
+  // The connectivity banner is mounted at the app root (it also covers the auth
+  // and public screens), so it cannot read the sidebar state itself. Publish the
+  // same centre the toasts use, and it lines up with them and with the content
+  // instead of drifting under the sidebar. Absent on auth/public pages, where
+  // the banner's own `50%` fallback is already correct.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--workspace-center", getWorkspaceToastCenter(state));
+    return () => {
+      root.style.removeProperty("--workspace-center");
+    };
+  }, [state]);
+
   return <WorkspaceToaster sidebarState={state} />;
 }
 

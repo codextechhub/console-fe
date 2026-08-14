@@ -17,6 +17,10 @@ import localStorage from "redux-persist/es/storage";
 import { baseApi } from "./services/base-api";
 import rootReducer, { type RootState } from "./features/root-reducer";
 import { bindTenantStore } from "@/utils/tenant-context";
+import {
+  bindConnectivityReconnect,
+  startConnectivityMonitor,
+} from "@/utils/connectivity";
 
 const persistConfig = {
   key: "root",
@@ -43,8 +47,40 @@ export const store = configureStore({
 });
 
 // Tracks window focus/online state so queries can use skipPollingIfUnfocused /
-// refetchOnFocus. Existing queries are unaffected (those behaviors are opt-in).
-setupListeners(store.dispatch);
+// refetchOnFocus, and drives the api-wide refetchOnReconnect.
+//
+// The custom handler exists for one reason: the browser only fires `online` when
+// the LINK returns. When the connection was fine all along and the API host was
+// the thing that was down, there is no such event, so the connectivity monitor
+// has to be able to announce recovery itself. `onOnline` is not exported from
+// the package, but setupListeners hands it to a custom handler - so we replicate
+// the default listeners and keep a reference for the monitor to call.
+setupListeners(store.dispatch, (dispatch, { onFocus, onFocusLost, onOnline, onOffline }) => {
+  const handleFocus = () => dispatch(onFocus());
+  const handleFocusLost = () => dispatch(onFocusLost());
+  const handleOnline = () => dispatch(onOnline());
+  const handleOffline = () => dispatch(onOffline());
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") handleFocus();
+    else handleFocusLost();
+  };
+
+  window.addEventListener("visibilitychange", handleVisibilityChange, false);
+  window.addEventListener("focus", handleFocus, false);
+  window.addEventListener("online", handleOnline, false);
+  window.addEventListener("offline", handleOffline, false);
+
+  bindConnectivityReconnect(handleOnline);
+
+  return () => {
+    window.removeEventListener("visibilitychange", handleVisibilityChange);
+    window.removeEventListener("focus", handleFocus);
+    window.removeEventListener("online", handleOnline);
+    window.removeEventListener("offline", handleOffline);
+  };
+});
+
+startConnectivityMonitor();
 
 // Let non-hook call sites (tenant-scoped RBAC URL paths) read the asserted
 // tenant slug straight from the live store.
