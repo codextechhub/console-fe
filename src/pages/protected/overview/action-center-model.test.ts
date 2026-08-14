@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { actionableTasks, buildActionRows, partitionRows } from "./action-center-model";
+import { actionableTasks, buildActionRows, partitionRows, rankQueues } from "./action-center-model";
 import type { Task } from "@/redux/services/dashboard/todo-types";
-import type { ConsoleOverview } from "@/redux/services/dashboard/overview-types";
+import type {
+  ApprovalWorklistItem,
+  ConsoleOverview,
+  ReturnedSubmissionItem,
+} from "@/redux/services/dashboard/overview-types";
 
 const DAY = 24 * 60 * 60 * 1000;
+const HOUR = 60 * 60 * 1000;
 const NOW = new Date("2026-08-12T12:00:00Z").getTime();
 
 const task = (over: Partial<Task>): Task =>
@@ -16,6 +21,28 @@ const task = (over: Partial<Task>): Task =>
     status: "IN_PROGRESS",
     ...over,
   }) as Task;
+
+let seq = 0;
+const approval = (awaiting_since: string | null): ApprovalWorklistItem => ({
+  id: `a${seq++}`,
+  document_type: "d",
+  document_object_id: "1",
+  stage_label: "s",
+  awaiting_since,
+  requested_by_name: "",
+  on_behalf_of_name: null,
+});
+
+const returnedItem = (returned_at: string): ReturnedSubmissionItem => ({
+  id: `r${seq++}`,
+  document_type: "d",
+  document_object_id: "1",
+  returned_at,
+});
+
+const ago = (ms: number) => new Date(NOW - ms).toISOString();
+const ahead = (ms: number) => new Date(NOW + ms).toISOString();
+const emptyQueues = { approvals: [], covering: [], returned: [], tasks: [] };
 
 const overview = (over: Partial<ConsoleOverview>): ConsoleOverview => ({
   approvals: { pending: 0, delegated: 0, items: [] },
@@ -86,7 +113,7 @@ describe("buildActionRows", () => {
   it("adds finished jobs and incidents from their own sections", () => {
     const rows = buildActionRows(
       overview({
-        signals: { jobs_succeeded_24h: { count: 2 } },
+        signals: { exports_uncollected: { count: 2 } },
         health: { label: "1 service down", overall: "critical", active_incidents: 1 },
       }),
     );
@@ -104,7 +131,7 @@ describe("buildActionRows", () => {
         health: { label: "1 service down", overall: "critical", active_incidents: 1 },
         signals: {
           jobs_failed_24h: { count: 1 },
-          jobs_succeeded_24h: { count: 2 },
+          exports_uncollected: { count: 2 },
           draft_journals: { count: 3 },
           users_without_roles: { count: 38 },
         },
@@ -153,5 +180,110 @@ describe("buildActionRows", () => {
       }),
     );
     expect(rows.map((r) => r.severity)).toEqual(["amber", "blue"]);
+  });
+});
+
+describe("rankQueues", () => {
+  it("orders boxes by the lateness of what they hold, most urgent first", () => {
+    // The bug this fixes: a 9-day-old approval must outrank a task not due
+    // until next week, whatever fixed order the boxes were declared in.
+    const order = rankQueues(
+      {
+        ...emptyQueues,
+        approvals: [approval(ago(9 * DAY))],
+        covering: [approval(ago(2 * DAY))],
+        returned: [returnedItem(ago(1 * DAY))],
+        tasks: [task({ deadline: ahead(7 * DAY) })],
+      },
+      NOW,
+    );
+    expect(order).toEqual(["approvals", "covering", "returned", "tasks"]);
+  });
+
+  it("ranks an overdue task above waiting work that is younger", () => {
+    const order = rankQueues(
+      {
+        ...emptyQueues,
+        approvals: [approval(ago(1 * DAY))],
+        tasks: [task({ status: "OVERDUE", deadline: ago(5 * DAY) })],
+      },
+      NOW,
+    );
+    expect(order).toEqual(["tasks", "approvals"]);
+  });
+
+  it("drops empty queues and returns only the ones that hold items", () => {
+    const order = rankQueues({ ...emptyQueues, approvals: [approval(ago(DAY))] }, NOW);
+    expect(order).toEqual(["approvals"]);
+    expect(rankQueues(emptyQueues, NOW)).toEqual([]);
+  });
+
+  it("treats a missing timestamp as least urgent, never most", () => {
+    // A null wait must not float to the top by accident: a box holding only an
+    // undated item ranks below one with even an hour of real waiting.
+    const order = rankQueues(
+      {
+        ...emptyQueues,
+        approvals: [approval(null)],
+        returned: [returnedItem(ago(1 * HOUR))],
+      },
+      NOW,
+    );
+    expect(order).toEqual(["returned", "approvals"]);
+  });
+
+  it("keeps the fixed fallback order when boxes are equally urgent", () => {
+    const at = ago(3 * DAY);
+    const order = rankQueues(
+      {
+        ...emptyQueues,
+        approvals: [approval(at)],
+        returned: [returnedItem(at)],
+      },
+      NOW,
+    );
+    // Equal lateness (including two undated boxes) resolves to the declared
+    // order, so the result is deterministic rather than sort-dependent.
+    expect(order).toEqual(["approvals", "returned"]);
+    expect(
+      rankQueues(
+        { ...emptyQueues, approvals: [approval(null)], covering: [approval(null)] },
+        NOW,
+      ),
+    ).toEqual(["approvals", "covering"]);
+  });
+
+  it("judges urgency from the visible items only, not the unseen remainder", () => {
+    // A box shows at most 3 items; an ancient 4th one it never renders must not
+    // lift its rank. Here approvals' visible items are all fresh, so a 5-day-old
+    // returned item outranks it despite a hidden 100-day-old approval.
+    const order = rankQueues(
+      {
+        ...emptyQueues,
+        approvals: [
+          approval(ago(1 * DAY)),
+          approval(ago(1 * DAY)),
+          approval(ago(1 * DAY)),
+          approval(ago(100 * DAY)),
+        ],
+        returned: [returnedItem(ago(5 * DAY))],
+      },
+      NOW,
+    );
+    expect(order).toEqual(["returned", "approvals"]);
+  });
+
+  it("does not let an overdue task with no deadline win by accident", () => {
+    // Overdue-but-undated sits at the boundary: still present, but below any
+    // work that is measurably late.
+    const order = rankQueues(
+      {
+        ...emptyQueues,
+        approvals: [approval(ago(2 * DAY))],
+        tasks: [task({ status: "OVERDUE", deadline: "" })],
+      },
+      NOW,
+    );
+    expect(order).toEqual(["approvals", "tasks"]);
   });
 });

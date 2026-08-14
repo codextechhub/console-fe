@@ -68,8 +68,13 @@ export interface ConsoleOverview {
     webhook_failures_24h?: { count: number };
     /** The caller's own background jobs that failed in the last 24h. */
     jobs_failed_24h?: { count: number };
-    /** The caller's own jobs that finished in the last 24h - ready to collect. */
-    jobs_succeeded_24h?: { count: number };
+    /**
+     * The caller's own finished exports that are still sitting there: not yet
+     * downloaded, not expired, not purged. Collecting the file clears it, which
+     * is the point - the old version counted anything that succeeded in 24h and
+     * so could not be cleared by doing the thing it asked for.
+     */
+    exports_uncollected?: { count: number };
     /** Posted AR invoices past due and not fully settled. */
     overdue_invoices?: { count: number };
     /** Posted receipts with cash not yet applied to any invoice or refunded. */

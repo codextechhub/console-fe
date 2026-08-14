@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { Link } from "react-router";
 import {
   ChevronRight,
@@ -23,16 +23,18 @@ import {
   actionableTasks,
   buildActionRows,
   partitionRows,
+  rankQueues,
+  QUEUE_SHOWN,
   type ActionRow,
+  type QueueKey,
 } from "./action-center-model";
 import { dismissNotice, isDismissed, loadDismissals } from "./notice-dismissals";
+import { initialPanelState, panelOpenReducer } from "./panel-open-state";
 
 const R = routesPath.PROTECTED;
 
 // Past this age a decision is officially lingering: the row's age turns red.
 const STALE_AFTER_DAYS = 3;
-// Each queue box lists at most this many items; the footer carries the rest.
-const QUEUE_SHOWN = 3;
 
 function ageDays(iso: string | null): number {
   if (!iso) return 0;
@@ -226,7 +228,7 @@ function taskDeadline(value: string): string {
  * the hero already says so.
  */
 export function ActionCenter({ overview }: { overview: ConsoleOverview | undefined }) {
-  const [pinnedOpen, setPinnedOpen] = useState(false);
+  const [panel, dispatchPanel] = useReducer(panelOpenReducer, undefined, initialPanelState);
   const [hoveredOpen, setHoveredOpen] = useState(false);
   const userId = useAppSelector((state) => state.auth.user?.id);
   const [dismissals, setDismissals] = useState(() => loadDismissals(userId));
@@ -234,6 +236,16 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
   const rows = buildActionRows(overview).filter(
     (row) => !(row.severity === "blue" && isDismissed(dismissals, row.key, row.stat)),
   );
+  // A red row is something actually broken (an open incident, a failed job). On
+  // a phone there is no hover, so the panel has to open itself or that row can
+  // sit unseen behind a one-line header. The payload lands after the first
+  // render, so the decision lives in a reducer fed one frame at a time rather
+  // than in a useState initializer that would only ever see "no data".
+  // (Filtering above cannot hide a red row: only blue notices are dismissible.)
+  const hasRed = rows.some((row) => row.severity === "red");
+  useEffect(() => {
+    dispatchPanel({ type: "data", hasRed });
+  }, [hasRed]);
 
   const allApprovalItems = overview?.approvals.items ?? [];
   // Delegate cover is its own duty, so it gets its own box; the counts split
@@ -268,7 +280,153 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
     mineCount > 0 ? `${mineCount} for you` : null,
     watch.length > 0 ? `${watch.length} to watch` : null,
   ].filter(Boolean).join(" · ");
-  const expanded = pinnedOpen || hoveredOpen;
+  const expanded = panel.expanded || hoveredOpen;
+
+  // Each box's markup keyed by its work stream, so the render can lay them out
+  // in whatever order rankQueues judges most urgent rather than a fixed one.
+  const queueBoxes: Record<QueueKey, React.ReactNode> = {
+    approvals: (
+      <QueueBox
+        key="approvals"
+        icon={FileClock}
+        title="Approvals waiting on you"
+        count={approvalsCount}
+        viewAllTo={R.WORKFLOW.APPROVALS}
+        viewAllLabel={`View all ${approvalsCount} pending approvals`}
+      >
+        {approvals.slice(0, QUEUE_SHOWN).map((item) => (
+          <Link
+            key={item.id}
+            to={R.WORKFLOW.APPROVAL_DETAIL(item.id)}
+            className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-primary/[0.025]"
+          >
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-pry-01 text-primary">
+              <FileText className="size-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="truncate text-sm">
+                  <DocumentRef documentType={item.document_type} objectId={item.document_object_id} />
+                </span>
+                <Badge variant="pending" className="hidden shrink-0 sm:inline-flex">
+                  {item.stage_label}
+                </Badge>
+              </div>
+              <p className="mt-0.5 truncate text-xs text-gray-400">
+                {item.requested_by_name ? `From ${item.requested_by_name}` : "Awaiting your decision"}
+                <AgeStamp since={item.awaiting_since} variant="inline" />
+              </p>
+            </div>
+            <AgeStamp since={item.awaiting_since} variant="row" />
+            <ChevronRight className="size-4 shrink-0 text-gray-300 group-hover:text-primary" />
+          </Link>
+        ))}
+      </QueueBox>
+    ),
+    covering: (
+      <QueueBox
+        key="covering"
+        icon={UserCheck}
+        title="Covering as delegate"
+        count={delegatedCount}
+        viewAllTo={`${R.WORKFLOW.APPROVALS}?acting=delegated`}
+        viewAllLabel={`View all ${delegatedCount} delegated approvals`}
+      >
+        {covering.slice(0, QUEUE_SHOWN).map((item) => (
+          <Link
+            key={item.id}
+            to={R.WORKFLOW.APPROVAL_DETAIL(item.id)}
+            className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-primary/[0.025]"
+          >
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600">
+              <UserCheck className="size-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="truncate text-sm">
+                  <DocumentRef documentType={item.document_type} objectId={item.document_object_id} />
+                </span>
+                <Badge variant="pending" className="hidden shrink-0 sm:inline-flex">
+                  {item.stage_label}
+                </Badge>
+              </div>
+              <p className="mt-0.5 truncate text-xs text-gray-400">
+                For {item.on_behalf_of_name}
+                <AgeStamp since={item.awaiting_since} variant="inline" />
+              </p>
+            </div>
+            <AgeStamp since={item.awaiting_since} variant="row" />
+            <ChevronRight className="size-4 shrink-0 text-gray-300 group-hover:text-primary" />
+          </Link>
+        ))}
+      </QueueBox>
+    ),
+    returned: (
+      <QueueBox
+        key="returned"
+        icon={CornerUpLeft}
+        title="Returned to you"
+        count={returned.length}
+        viewAllTo={`${R.WORKFLOW.MY_SUBMISSIONS}?status=RETURNED`}
+        viewAllLabel="View all returned submissions"
+      >
+        {returned.slice(0, QUEUE_SHOWN).map((item) => (
+          <Link
+            key={item.id}
+            to={R.WORKFLOW.SUBMISSION_DETAIL(item.id)}
+            className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-primary/[0.025]"
+          >
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-red-50 text-red-500">
+              <CornerUpLeft className="size-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <span className="block truncate text-sm">
+                <DocumentRef documentType={item.document_type} objectId={item.document_object_id} />
+              </span>
+              <p className="mt-0.5 truncate text-xs text-gray-400">
+                Fix and resubmit
+                <AgeStamp since={item.returned_at} variant="inline" />
+              </p>
+            </div>
+            <AgeStamp since={item.returned_at} variant="row" />
+            <ChevronRight className="size-4 shrink-0 text-gray-300 group-hover:text-primary" />
+          </Link>
+        ))}
+      </QueueBox>
+    ),
+    tasks: (
+      <QueueBox
+        key="tasks"
+        icon={ClipboardCheck}
+        title="Tasks needing action"
+        count={tasks.length}
+        viewAllTo={`${R.TODO.INDEX}?tab=mine`}
+        viewAllLabel="View all your tasks"
+      >
+        {tasks.slice(0, QUEUE_SHOWN).map((task) => (
+          <Link
+            key={task.id}
+            to={`${R.TODO.INDEX}?tab=mine`}
+            className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-primary/[0.025]"
+          >
+            <TaskDot task={task} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{task.title}</p>
+              <p className="mt-0.5 truncate text-xs text-gray-400">{task.department || "Personal task"}</p>
+            </div>
+            <span
+              className={cn(
+                "shrink-0 rounded-lg px-2 py-1 text-xs",
+                task.status === "OVERDUE" ? "bg-red-50 text-red-600" : "bg-gray-50 text-gray-500",
+              )}
+            >
+              {taskDeadline(task.deadline)}
+            </span>
+          </Link>
+        ))}
+      </QueueBox>
+    ),
+  };
 
   return (
     <section
@@ -293,19 +451,19 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
           aria-controls="overview-action-details"
           // The label text is hidden below sm, which would leave the button
           // with no accessible name on exactly the devices that cannot hover.
-          aria-label={pinnedOpen ? "Minimize action needed" : "Maximize action needed"}
+          aria-label={panel.expanded ? "Minimize action needed" : "Maximize action needed"}
           onClick={() => {
-            if (pinnedOpen) {
-              setPinnedOpen(false);
+            if (panel.expanded) {
+              dispatchPanel({ type: "close" });
               setHoveredOpen(false);
               return;
             }
-            setPinnedOpen(true);
+            dispatchPanel({ type: "open" });
           }}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:border-primary/25 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
         >
-          {pinnedOpen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
-          <span className="hidden sm:inline">{pinnedOpen ? "Minimize" : "Maximize"}</span>
+          {panel.expanded ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+          <span className="hidden sm:inline">{panel.expanded ? "Minimize" : "Maximize"}</span>
         </button>
       </div>
 
@@ -319,160 +477,26 @@ export function ActionCenter({ overview }: { overview: ConsoleOverview | undefin
         )}
       >
         <div className="min-h-0 overflow-hidden">
-          <p className="mb-4 mt-3 text-xs text-gray-400">
-            {hasMine
-              ? "What is yours to clear, then what to keep an eye on."
-              : "Nothing is waiting on you personally. Here is what is going on around you."}
-          </p>
+          {/* No preamble when there is personal work: the group headings below
+              already say which half is which, so a sentence repeating them just
+              pushes the first row down. The all-Watch case is different - no
+              heading tells the reader that nothing is theirs. */}
+          {!hasMine && (
+            <p className="mb-4 mt-3 text-xs text-gray-400">
+              Nothing is waiting on you personally. Here is what is going on around you.
+            </p>
+          )}
 
           {hasMine && (
-            <section aria-label="Yours to act on">
+            // Carries the gap the removed preamble used to provide.
+            <section aria-label="Yours to act on" className="mt-4">
               <GroupHeading title="Yours to act on" note="Work only you can clear" tone="mine" />
 
               {/* Queues first: they carry the actual items, so they answer
                   "what do I open now" in a way a counted row cannot. */}
               {hasQueues && (
             <div className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {approvals.length > 0 && (
-            <QueueBox
-              icon={FileClock}
-              title="Approvals waiting on you"
-              count={approvalsCount}
-              viewAllTo={R.WORKFLOW.APPROVALS}
-              viewAllLabel={`View all ${approvalsCount} pending approvals`}
-            >
-              {approvals.slice(0, QUEUE_SHOWN).map((item) => (
-                <Link
-                  key={item.id}
-                  to={R.WORKFLOW.APPROVAL_DETAIL(item.id)}
-                  className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-primary/[0.025]"
-                >
-                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-pry-01 text-primary">
-                    <FileText className="size-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate text-sm">
-                        <DocumentRef documentType={item.document_type} objectId={item.document_object_id} />
-                      </span>
-                      <Badge variant="pending" className="hidden shrink-0 sm:inline-flex">
-                        {item.stage_label}
-                      </Badge>
-                    </div>
-                    <p className="mt-0.5 truncate text-xs text-gray-400">
-                      {item.requested_by_name ? `From ${item.requested_by_name}` : "Awaiting your decision"}
-                      <AgeStamp since={item.awaiting_since} variant="inline" />
-                    </p>
-                  </div>
-                  <AgeStamp since={item.awaiting_since} variant="row" />
-                  <ChevronRight className="size-4 shrink-0 text-gray-300 group-hover:text-primary" />
-                </Link>
-              ))}
-            </QueueBox>
-          )}
-
-          {covering.length > 0 && (
-            <QueueBox
-              icon={UserCheck}
-              title="Covering as delegate"
-              count={delegatedCount}
-              viewAllTo={`${R.WORKFLOW.APPROVALS}?acting=delegated`}
-              viewAllLabel={`View all ${delegatedCount} delegated approvals`}
-            >
-              {covering.slice(0, QUEUE_SHOWN).map((item) => (
-                <Link
-                  key={item.id}
-                  to={R.WORKFLOW.APPROVAL_DETAIL(item.id)}
-                  className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-primary/[0.025]"
-                >
-                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600">
-                    <UserCheck className="size-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate text-sm">
-                        <DocumentRef documentType={item.document_type} objectId={item.document_object_id} />
-                      </span>
-                      <Badge variant="pending" className="hidden shrink-0 sm:inline-flex">
-                        {item.stage_label}
-                      </Badge>
-                    </div>
-                    <p className="mt-0.5 truncate text-xs text-gray-400">
-                      For {item.on_behalf_of_name}
-                      <AgeStamp since={item.awaiting_since} variant="inline" />
-                    </p>
-                  </div>
-                  <AgeStamp since={item.awaiting_since} variant="row" />
-                  <ChevronRight className="size-4 shrink-0 text-gray-300 group-hover:text-primary" />
-                </Link>
-              ))}
-            </QueueBox>
-          )}
-
-          {returned.length > 0 && (
-            <QueueBox
-              icon={CornerUpLeft}
-              title="Returned to you"
-              count={returned.length}
-              viewAllTo={`${R.WORKFLOW.MY_SUBMISSIONS}?status=RETURNED`}
-              viewAllLabel="View all returned submissions"
-            >
-              {returned.slice(0, QUEUE_SHOWN).map((item) => (
-                <Link
-                  key={item.id}
-                  to={R.WORKFLOW.SUBMISSION_DETAIL(item.id)}
-                  className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-primary/[0.025]"
-                >
-                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-red-50 text-red-500">
-                    <CornerUpLeft className="size-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <span className="block truncate text-sm">
-                      <DocumentRef documentType={item.document_type} objectId={item.document_object_id} />
-                    </span>
-                    <p className="mt-0.5 truncate text-xs text-gray-400">
-                      Fix and resubmit
-                      <AgeStamp since={item.returned_at} variant="inline" />
-                    </p>
-                  </div>
-                  <AgeStamp since={item.returned_at} variant="row" />
-                  <ChevronRight className="size-4 shrink-0 text-gray-300 group-hover:text-primary" />
-                </Link>
-              ))}
-            </QueueBox>
-          )}
-
-          {tasks.length > 0 && (
-            <QueueBox
-              icon={ClipboardCheck}
-              title="Tasks needing action"
-              count={tasks.length}
-              viewAllTo={`${R.TODO.INDEX}?tab=mine`}
-              viewAllLabel="View all your tasks"
-            >
-              {tasks.slice(0, QUEUE_SHOWN).map((task) => (
-                <Link
-                  key={task.id}
-                  to={`${R.TODO.INDEX}?tab=mine`}
-                  className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-primary/[0.025]"
-                >
-                  <TaskDot task={task} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{task.title}</p>
-                    <p className="mt-0.5 truncate text-xs text-gray-400">{task.department || "Personal task"}</p>
-                  </div>
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-lg px-2 py-1 text-xs",
-                      task.status === "OVERDUE" ? "bg-red-50 text-red-600" : "bg-gray-50 text-gray-500",
-                    )}
-                  >
-                    {taskDeadline(task.deadline)}
-                  </span>
-                </Link>
-              ))}
-            </QueueBox>
-          )}
+              {rankQueues({ approvals, covering, returned, tasks }).map((key) => queueBoxes[key])}
             </div>
               )}
 
