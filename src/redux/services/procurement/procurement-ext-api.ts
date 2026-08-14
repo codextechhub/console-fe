@@ -17,6 +17,7 @@ import type {
   StockItemDetail,
   StockLocation,
   StockMovement,
+  PaginatedReportEnvelope,
   StockReorderReport,
   StockSummary,
   StockValuationReport,
@@ -252,11 +253,12 @@ export const procurementExtApi = baseApi.injectEndpoints({
       providesTags: ["ProcStock"],
     }),
     // With no `location` the numbers are identical to the pre-location reports.
-    getStockReorderReport: b.query<ApiEnvelope<StockReorderReport>, { entity: string; location?: string | number }>({
+    // Both reports paginate `rows` while keeping the report object in `data`.
+    getStockReorderReport: b.query<PaginatedReportEnvelope<StockReorderReport>, { entity: string; page?: number; location?: string | number }>({
       query: (p) => ({ url: `/procurement/reports/stock-reorder/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),
-    getStockValuationReport: b.query<ApiEnvelope<StockValuationReport>, { entity: string; location?: string | number }>({
+    getStockValuationReport: b.query<PaginatedReportEnvelope<StockValuationReport>, { entity: string; page?: number; location?: string | number }>({
       query: (p) => ({ url: `/procurement/reports/stock-valuation/${qs(p)}`, method: "GET" }),
       providesTags: ["ProcStock"],
     }),

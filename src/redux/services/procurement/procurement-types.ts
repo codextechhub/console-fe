@@ -758,6 +758,9 @@ export interface StockSummary {
 }
 
 // Reorder report row - active items at/below their reorder level.
+// Both stock reports render money as the reports' `{kobo, naira}` pair, not as a
+// bare integer like the transactional endpoints do. Read `.kobo` (helpers' `kobo()`)
+// and format locally; the `naira` string is the server's own rendering.
 export interface StockReorderRow {
   stock_item_id: number;
   code: string;
@@ -765,7 +768,7 @@ export interface StockReorderRow {
   on_hand_qty: string;
   reorder_level: string;
   reorder_qty: string;
-  unit_cost: number;
+  unit_cost: ReportMoney;
 }
 
 export interface StockReorderReport {
@@ -781,8 +784,8 @@ export interface StockValuationRow {
   code: string;
   name: string;
   on_hand_qty: string;
-  unit_cost: number;
-  stock_value: number;
+  unit_cost: ReportMoney;
+  stock_value: ReportMoney;
 }
 
 export interface StockValuationReport {
@@ -790,9 +793,28 @@ export interface StockValuationReport {
   /** The location code the report was narrowed to, or null for the whole entity. */
   location: string | null;
   rows: StockValuationRow[];
-  total_value: number;
+  /**
+   * Carried value across every row, computed server-side so it is independent of
+   * the page boundary. With a location it is **that store's** total, not the
+   * entity's - say so on screen or the figure reads as the whole school's.
+   */
+  total_value: ReportMoney;
+}
+
+/**
+ * Both stock reports paginate their `rows` while keeping the report object in
+ * `data`, so the envelope carries `pagination` alongside a non-array `data`:
+ * neither `ApiEnvelope` nor `PaginatedEnvelope` describes it on its own.
+ */
+export interface PaginatedReportEnvelope<T> {
+  success: boolean;
+  message: string;
+  pagination: Pagination;
+  data: T;
 }
 import type { FinanceAuditLog, SettingConsumer } from "../finance/setup-types";
+import type { ReportMoney } from "../finance/reports-types";
+import type { Pagination } from "../finance/api-types";
 
 export interface ProcurementSettingsValues {
   default_payment_terms: string;
