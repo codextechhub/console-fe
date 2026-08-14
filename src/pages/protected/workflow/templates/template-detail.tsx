@@ -25,7 +25,12 @@ import {
 } from "@/redux/services/dashboard/workflow-api";
 import { pairTemplateVersions } from "./components/template-versions";
 import { AdoptionPanel } from "./components/adoption-panel";
-import { advanceRuleLabel, approverSummary, humanizeDocumentType } from "../components/workflow-format";
+import {
+  advanceRuleLabel,
+  approverScopeLabel,
+  approverSummary,
+  humanizeDocumentType,
+} from "../components/workflow-format";
 import { ConditionView } from "../components/condition-view";
 
 export default function TemplateDetail() {
@@ -197,7 +202,10 @@ export default function TemplateDetail() {
                         <>
                           <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-gray-01 sm:grid-cols-3">
                             <Detail label="Approved by" value={approverSummary(s)} />
-                            <Detail label="Scope" value={s.approver_scope} />
+                            <Detail
+                            label="Approvers looked for in"
+                            value={approverScopeLabel(s.approver_scope, isPlatformTenant)}
+                          />
                             <Detail label="Advance rule" value={advanceRuleLabel(s.advance_rule, s.quorum_count)} />
                             <Detail label="On rejection" value={s.on_rejection === "TERMINAL" ? "Ends workflow" : "Returns to requester"} />
                             <Detail label="Skip if no approvers" value={s.skip_if_no_approvers ? "Yes" : "No"} />

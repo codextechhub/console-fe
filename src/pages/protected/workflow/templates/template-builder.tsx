@@ -21,6 +21,7 @@ import {
 import { useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
 import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
 import { useGetAllRolesQuery } from "@/redux/services/dashboard/role-api";
+import { approverScopeLabel } from "../components/workflow-format";
 import type {
   ApproverScope,
   ApproverSource,
@@ -39,6 +40,7 @@ import {
   validateRules,
 } from "./components/stage-form";
 import {
+  Advanced,
   Band,
   Section,
   ApproverPreview,
@@ -70,22 +72,22 @@ const TARGET_OPTIONS = [
 ];
 
 const KIND_OPTIONS = [
-  { value: "APPROVAL", label: "Approval (waits for votes)" },
-  { value: "BRANCH", label: "Branch (routing only)" },
+  { value: "APPROVAL", label: "Waits for approval" },
+  { value: "BRANCH", label: "Routing only, nobody approves" },
 ];
-const SCOPE_OPTIONS = [
-  { value: "SCHOOL", label: "School" },
-  { value: "BRANCH", label: "Branch" },
-  { value: "PLATFORM", label: "Platform" },
+const SCOPE_OPTIONS = (isPlatformTenant: boolean) => [
+  { value: "SCHOOL", label: approverScopeLabel("SCHOOL", isPlatformTenant) },
+  { value: "BRANCH", label: approverScopeLabel("BRANCH", isPlatformTenant) },
+  { value: "PLATFORM", label: approverScopeLabel("PLATFORM", isPlatformTenant) },
 ];
 const RULE_OPTIONS = [
-  { value: "UNANIMOUS", label: "Unanimous - all must approve" },
-  { value: "QUORUM", label: "Quorum - N of M" },
-  { value: "ANY", label: "Any one approver" },
+  { value: "ANY", label: "Any one of them" },
+  { value: "UNANIMOUS", label: "All of them" },
+  { value: "QUORUM", label: "A set number of them" },
 ];
 const REJECT_OPTIONS = [
-  { value: "TERMINAL", label: "Ends the workflow" },
-  { value: "RETURN_TO_REQUESTER", label: "Returns to requester" },
+  { value: "TERMINAL", label: "The request ends there" },
+  { value: "RETURN_TO_REQUESTER", label: "It goes back to the requester" },
 ];
 // The lifecycle points the engine actually emits (backend NOTIF_WIRED_EVENT_KEYS).
 // An untouched template notifies for all of these; toggling any switch makes
@@ -96,6 +98,17 @@ const NOTIF_EVENTS = [
   { key: "workflow.rejected", label: "Rejected - notify the requester" },
   { key: "workflow.final_approved", label: "Fully approved - notify the requester" },
 ];
+
+/** What a folded stage is still carrying, so nothing hides behind the fold. */
+function advancedSummary(s: StageForm, isPlatformTenant: boolean): string | null {
+  const carried: string[] = [];
+  if (s.kind === "APPROVAL" && s.approver_source !== "ORGANOGRAM" && s.approver_scope !== "SCHOOL") {
+    carried.push(approverScopeLabel(s.approver_scope, isPlatformTenant));
+  }
+  if (s.kind === "APPROVAL" && !s.skip_if_no_approvers) carried.push("never skipped");
+  if (s.inclusion_condition_text.trim()) carried.push("runs conditionally");
+  return carried.length ? carried.join(" · ") : null;
+}
 
 export default function TemplateBuilder() {
   const { id } = useParams();
@@ -416,7 +429,14 @@ export default function TemplateBuilder() {
             once per template sits in a rail beside them on a wide screen, and
             above them on a narrow one, which is the order you fill them in. */}
         <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
-          <aside data-guide="workflow-template.details" className="min-w-0 space-y-5 xl:sticky xl:top-4">
+          {/* Sticky, but the rail is often taller than the screen - routing sits at
+              its foot. Pinned without a height it simply overflowed: the bottom
+              of the rail could never be scrolled to, and it sat over the stages
+              beside it. Cap it to the viewport and let it scroll itself. */}
+          <aside
+            data-guide="workflow-template.details"
+            className="min-w-0 space-y-5 xl:sticky xl:top-4 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto xl:pr-1"
+          >
         {/* Meta */}
         <Section title="Template details">
           <div className="space-y-4">
@@ -585,7 +605,7 @@ export default function TemplateBuilder() {
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     <CustomInput
                       id={`stage-code-${i}`}
-                      label="Code"
+                      label="Step code"
                       isRequired
                       placeholder="e.g. line-manager"
                       value={s.code}
@@ -593,7 +613,7 @@ export default function TemplateBuilder() {
                     />
                     <CustomInput
                       id={`stage-label-${i}`}
-                      label="Label"
+                      label="Step name"
                       isRequired
                       placeholder="e.g. Line Manager Approval"
                       value={s.label}
@@ -601,7 +621,7 @@ export default function TemplateBuilder() {
                     />
                     <SearchSelect
                       id={`stage-kind-${i}`}
-                      label="Kind"
+                      label="This step"
                       options={KIND_OPTIONS}
                       value={s.kind}
                       onChange={(e) => updateStage(i, { kind: e.target.value as StageKind })}
@@ -615,7 +635,7 @@ export default function TemplateBuilder() {
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <SearchSelect
                           id={`stage-source-${i}`}
-                          label="Approver source"
+                          label="Decided by"
                           containerClass="sm:col-span-2 lg:col-span-1"
                           clearable={false}
                           options={
@@ -627,23 +647,10 @@ export default function TemplateBuilder() {
                           onChange={(e) => updateStage(i, { approver_source: e.target.value as ApproverSource })}
                         />
 
-                        {/* Scope narrows the role lookup, so it applies to a role
-                            stage, to a group's role members, and to each dynamic
-                            rule's role - but means nothing to an organogram climb. */}
-                        {s.approver_source !== "ORGANOGRAM" && (
-                          <SearchSelect
-                            id={`stage-scope-${i}`}
-                            label="Approver scope"
-                            options={SCOPE_OPTIONS}
-                            value={s.approver_scope}
-                            onChange={(e) => updateStage(i, { approver_scope: e.target.value as ApproverScope })}
-                          />
-                        )}
-
                         {s.approver_source === "ROLE" && (
                           <SearchSelect
                             id={`stage-role-${i}`}
-                            label="Approver role"
+                            label="Role"
                             options={roleOptions}
                             value={s.approver_role_key}
                             onChange={(e) => updateStage(i, { approver_role_key: e.target.value })}
@@ -654,7 +661,7 @@ export default function TemplateBuilder() {
                         {s.approver_source === "WORKFLOW_GROUP" && (
                           <SearchSelect
                             id={`stage-group-${i}`}
-                            label="Approver group"
+                            label="Group"
                             options={groupOptions}
                             value={s.approver_group_code}
                             onChange={(e) => updateStage(i, { approver_group_code: e.target.value })}
@@ -666,7 +673,7 @@ export default function TemplateBuilder() {
                           <>
                             <SearchSelect
                               id={`stage-target-${i}`}
-                              label="Organogram target"
+                              label="Whose manager"
                               options={TARGET_OPTIONS}
                               value={s.organogram_target}
                               onChange={(e) => updateStage(i, { organogram_target: e.target.value as OrganogramTarget })}
@@ -705,7 +712,7 @@ export default function TemplateBuilder() {
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <SearchSelect
                           id={`stage-rule-${i}`}
-                          label="Advance rule"
+                          label="How many must approve"
                           options={RULE_OPTIONS}
                           value={s.advance_rule}
                           onChange={(e) => updateStage(i, { advance_rule: e.target.value as StageAdvanceRule })}
@@ -713,7 +720,7 @@ export default function TemplateBuilder() {
                         {s.advance_rule === "QUORUM" && (
                           <CustomInput
                             id={`stage-quorum-${i}`}
-                            label="Quorum count"
+                            label="How many"
                             type="number"
                             min={1}
                             value={s.quorum_count}
@@ -722,41 +729,60 @@ export default function TemplateBuilder() {
                         )}
                         <SearchSelect
                           id={`stage-reject-${i}`}
-                          label="On rejection"
+                          label="If someone rejects"
                           options={REJECT_OPTIONS}
                           value={s.on_rejection}
                           onChange={(e) => updateStage(i, { on_rejection: e.target.value as StageOnRejection })}
                         />
-                        <div className="flex items-center justify-between gap-3 rounded-md border border-white-02 px-3 py-2 sm:col-span-2 lg:col-span-1">
+                        </div>
+                      </Band>
+                    </>
+                  )}
+
+                  <Advanced summary={advancedSummary(s, isPlatformTenant)}>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {s.kind === "APPROVAL" && s.approver_source !== "ORGANOGRAM" && (
+                        <SearchSelect
+                          id={`stage-scope-${i}`}
+                          label="Approvers looked for in"
+                          options={SCOPE_OPTIONS(isPlatformTenant)}
+                          value={s.approver_scope}
+                          onChange={(e) =>
+                            updateStage(i, { approver_scope: e.target.value as ApproverScope })
+                          }
+                        />
+                      )}
+                      {s.kind === "APPROVAL" && (
+                        <div className="flex items-center justify-between gap-3 rounded-md border border-white-02 px-3 py-2">
                           <span className="text-xs text-gray-01">
-                            Auto-skip if nobody can approve
+                            Skip this step when nobody can approve
                           </span>
                           <Switch
                             checked={s.skip_if_no_approvers}
                             onCheckedChange={(v) => updateStage(i, { skip_if_no_approvers: v })}
                           />
                         </div>
-                        </div>
-                      </Band>
-                    </>
-                  )}
+                      )}
+                    </div>
 
-                  <Band title="When it applies">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium">
-                      Inclusion condition{" "}
-                      <span className="text-gray-01">(JSON, optional - stage skipped if false)</span>
-                    </label>
-                    <Textarea
-                      rows={2}
-                      className="font-mono text-xs"
-                      placeholder='{ "op": "gte", "field": "amount", "value": 500000 }'
-                      value={s.inclusion_condition_text}
-                      onChange={(e) => updateStage(i, { inclusion_condition_text: e.target.value })}
-                    />
-                  </div>
-
-                  </Band>
+                    <div className="mt-3 space-y-1.5">
+                      <label className="text-xs font-medium">
+                        Only run this step when{" "}
+                        <span className="text-gray-01">
+                          (optional - leave blank to run it every time)
+                        </span>
+                      </label>
+                      <Textarea
+                        rows={2}
+                        className="font-mono text-xs"
+                        placeholder='{ "op": "gte", "field": "amount", "value": 500000 }'
+                        value={s.inclusion_condition_text}
+                        onChange={(e) =>
+                          updateStage(i, { inclusion_condition_text: e.target.value })
+                        }
+                      />
+                    </div>
+                  </Advanced>
 
                   <div
                     className={cn(

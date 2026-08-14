@@ -1,5 +1,7 @@
+import { useState } from "react";
 import {
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   CornerDownRight,
   Eye,
@@ -39,6 +41,44 @@ export function Band({ title, children }: { title: string; children: React.React
         {title}
       </p>
       {children}
+    </div>
+  );
+}
+
+/**
+ * A stage's rarely-touched settings, folded away until asked for.
+ *
+ * Most steps are "this role approves, any one of them, rejection ends it" -
+ * the defaults. Showing scope, auto-skip and a condition editor on every stage
+ * made a four-stage template a wall of controls, most of which nobody was going
+ * to change. They stay one click away, and the summary says when a stage is
+ * carrying something other than the default so nothing hides.
+ */
+export function Advanced({
+  summary,
+  children,
+}: {
+  summary: string | null;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-md bg-gray-06/30 p-3">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 text-left"
+      >
+        <ChevronRight className={cn("size-3.5 text-gray-01 transition-transform", open && "rotate-90")} />
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-01">
+          More settings
+        </span>
+        {!open && summary && (
+          <span className="truncate text-[11px] text-gray-01">· {summary}</span>
+        )}
+      </button>
+      {open && <div className="mt-3">{children}</div>}
     </div>
   );
 }

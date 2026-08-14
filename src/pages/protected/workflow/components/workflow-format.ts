@@ -1,6 +1,7 @@
 // Pure (non-component) formatting helpers + metadata for the workflow UI.
 // Kept JSX-free so it isn't a react-refresh boundary.
 import type {
+  ApproverScope,
   AuditEventType,
   StageAdvanceRule,
   WorkflowInstanceStatus,
@@ -81,6 +82,25 @@ export function approverSummary(stage: WorkflowStage): string {
     default:
       return stage.approver_role_name || stage.approver_role_key || "-";
   }
+}
+
+/**
+ * Where a stage looks for its approvers, in words that fit the reader.
+ *
+ * The stored `SCHOOL` means "the tenant that raised the request", not a school
+ * specifically - it is the same value for Codex's own documents. Showing a
+ * platform operator that their approval step is "scoped to school" describes
+ * their own organisation as a customer, so the label follows the viewer while
+ * the value stays exactly what the engine stores.
+ */
+export function approverScopeLabel(
+  scope: ApproverScope | string,
+  isPlatformTenant = false,
+): string {
+  if (scope === "BRANCH") return "This branch only";
+  if (scope === "PLATFORM") return "Everyone, platform-wide";
+  if (scope === "SCHOOL") return isPlatformTenant ? "Whole organisation" : "Whole school";
+  return String(scope);
 }
 
 /** Turn a dotted document_type (e.g. "leave.request") into "Leave Request". */
