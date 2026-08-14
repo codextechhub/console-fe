@@ -29,7 +29,43 @@ export interface TemplateVersions {
   platformMovedOn: boolean;
 }
 
-export function pairTemplateVersions(rows: WorkflowTemplate[]): TemplateVersions[] {
+/**
+ * Pair the platform's version with this tenant's own.
+ *
+ * `collapse` is what a school sees: one line per approval path, because to them
+ * there is one leave approval and it runs either as published or as they
+ * adjusted it. The platform operator is not in that position - the shared
+ * definition they steward and a Codex-only template for the same path are two
+ * different objects, and collapsing them hid the shared one behind Codex's own,
+ * which is the row they least need. So they get both, listed separately.
+ */
+export function pairTemplateVersions(
+  rows: WorkflowTemplate[],
+  { collapse = true }: { collapse?: boolean } = {},
+): TemplateVersions[] {
+  if (!collapse) {
+    return rows
+      .filter((row) => row.is_platform || row.is_active)
+      .map((row) => ({
+        key: `${row.document_type}::${row.code}::${row.id}`,
+        document_type: row.document_type,
+        code: row.code,
+        running: row,
+        platform: row.is_platform ? row : null,
+        own: row.is_platform ? null : row,
+        isAdjusted: !row.is_platform,
+        platformMovedOn: false,
+      }))
+      .sort((a, b) =>
+        a.document_type.localeCompare(b.document_type) ||
+        a.code.localeCompare(b.code) ||
+        Number(b.isAdjusted) - Number(a.isAdjusted),
+      );
+  }
+  return pairCollapsed(rows);
+}
+
+function pairCollapsed(rows: WorkflowTemplate[]): TemplateVersions[] {
   const byPair = new Map<string, { platform: WorkflowTemplate | null; own: WorkflowTemplate | null }>();
 
   for (const row of rows) {

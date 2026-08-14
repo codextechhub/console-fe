@@ -16,6 +16,8 @@ import type {
   DelegationWritePayload,
   PendingApprovalsResponse,
   PublishTemplatePayload,
+  TemplateAdoption,
+  TemplateComparison,
   TeamLoadRow,
   VoteAction,
   WorkflowInstance,
@@ -52,6 +54,29 @@ export const workflowApi = baseApi.injectEndpoints({
     publishWorkflowTemplate: builder.mutation<WorkflowTemplate, PublishTemplatePayload>({
       query: (body) => ({ url: `/workflow/templates/publish/`, method: "POST", body }),
       invalidatesTags: ["WorkflowTemplates"],
+    }),
+
+    /**
+     * Who runs a shared template as published, and who runs their own.
+     *
+     * Platform actors only, and refused on anything but a shared template - the
+     * one place the console reads across tenant boundaries, so it owns its
+     * refusals rather than letting the global toast speak for it.
+     */
+    getTemplateAdoption: builder.query<TemplateAdoption, string>({
+      query: (id) => ({ url: `/workflow/templates/${id}/adoption/`, method: "GET" }),
+      extraOptions: { silent: true },
+      providesTags: ["WorkflowTemplates"],
+    }),
+
+    /** How one tenant's version of a shared template differs from it. */
+    compareTemplate: builder.query<TemplateComparison, { id: string; withId: string }>({
+      query: ({ id, withId }) => ({
+        url: `/workflow/templates/${id}/compare/${generateQueryString({ with: withId })}`,
+        method: "GET",
+      }),
+      extraOptions: { silent: true },
+      providesTags: ["WorkflowTemplates"],
     }),
 
     // ── Approver groups ─────────────────────────────────────────────────────
@@ -336,6 +361,8 @@ export const {
   useLazyGetWorkflowTemplateQuery,
   usePublishWorkflowTemplateMutation,
   useUsePlatformTemplateVersionMutation,
+  useGetTemplateAdoptionQuery,
+  useCompareTemplateQuery,
   useGetApproverGroupsQuery,
   useResolveApproverGroupQuery,
   useCreateApproverGroupMutation,

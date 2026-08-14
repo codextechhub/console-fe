@@ -33,11 +33,15 @@ export default function WorkflowTemplates() {
   // Codex's version and this school's are two records but one approval path, so
   // they are paired into a single row. Two rows with the same name would read as
   // "you have a copy", which is exactly the mental model this product avoids.
-  const versions = useMemo(() => pairTemplateVersions(items), [items]);
+  const versions = useMemo(
+    () => pairTemplateVersions(items, { collapse: !isPlatformTenant }),
+    [items, isPlatformTenant],
+  );
 
   const tableData = useMemo(
     () =>
       versions.map((v) => ({
+        _key: v.key,
         name: <span className="text-sm font-medium text-black-01">{v.running.name}</span>,
         documentType: <span className="text-sm">{humanizeDocumentType(v.document_type)}</span>,
         code: <span className="font-mono text-xs text-gray-01">{v.code}</span>,

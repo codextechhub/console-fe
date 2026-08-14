@@ -209,6 +209,67 @@ export interface PublishTemplatePayload {
   routes?: WorkflowRoutePayload[];
 }
 
+// ── Platform oversight (shared template vs a tenant's own) ───────────────────
+
+/** One tenant running its own version of a shared template. */
+export interface TemplateAdopter {
+  tenant_slug: string;
+  tenant_name: string;
+  template_id: string;
+  branch: string | number | null;
+  stage_count: number;
+  updated_at: string;
+}
+
+/**
+ * `GET /templates/{id}/adoption/` - platform only.
+ *
+ * Answers "who actually gets it if I edit this": everyone who has not adjusted
+ * it runs the published version, including tenants that never opened it.
+ */
+export interface TemplateAdoption {
+  template: { id: string; name: string; document_type: string; code: string; updated_at: string };
+  customer_count: number;
+  following_count: number;
+  adjusted_count: number;
+  adjusted: TemplateAdopter[];
+}
+
+/** One setting that differs, with both sides as stored. */
+export interface TemplateFieldDiff {
+  field: string;
+  label: string;
+  base: unknown;
+  other: unknown;
+}
+
+export interface TemplateStageDiff {
+  code: string;
+  label: string;
+  fields: TemplateFieldDiff[];
+}
+
+/**
+ * `GET /templates/{id}/compare/?with=<id>` - platform only.
+ *
+ * "Added" and "removed" read from the platform's point of view: added is a
+ * stage only the tenant has.
+ */
+export interface TemplateComparison {
+  base: { id: string; name: string; updated_at: string };
+  other: {
+    id: string; name: string; tenant_slug: string; tenant_name: string; updated_at: string;
+  };
+  template_fields: TemplateFieldDiff[];
+  stages: {
+    added: { code: string; label: string }[];
+    removed: { code: string; label: string }[];
+    changed: TemplateStageDiff[];
+  };
+  routes_differ: boolean;
+  identical: boolean;
+}
+
 // ── Instances ────────────────────────────────────────────────────────────────
 
 export interface WorkflowStageAction {

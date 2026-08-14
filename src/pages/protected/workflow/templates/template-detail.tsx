@@ -24,6 +24,7 @@ import {
   useUsePlatformTemplateVersionMutation,
 } from "@/redux/services/dashboard/workflow-api";
 import { pairTemplateVersions } from "./components/template-versions";
+import { AdoptionPanel } from "./components/adoption-panel";
 import { advanceRuleLabel, approverSummary, humanizeDocumentType } from "../components/workflow-format";
 import { ConditionView } from "../components/condition-view";
 
@@ -46,11 +47,11 @@ export default function TemplateDetail() {
   const versions = useMemo(
     () =>
       template
-        ? pairTemplateVersions(all?.data ?? []).find(
+        ? pairTemplateVersions(all?.data ?? [], { collapse: !isPlatformTenant }).find(
             (v) => v.document_type === template.document_type && v.code === template.code,
           ) ?? null
         : null,
-    [all, template],
+    [all, template, isPlatformTenant],
   );
 
   const doReset = () => {
@@ -158,10 +159,14 @@ export default function TemplateDetail() {
               </p>
             )}
             {isPlatformTenant && template.is_platform && (
-              <p className="rounded-md border border-white-02 bg-pry-01/40 px-4 py-3 text-xs text-gray-01">
-                Every school starts on this. Editing it reaches all of them except the ones
-                running their own version of this path.
-              </p>
+              <>
+                <p className="rounded-md border border-white-02 bg-pry-01/40 px-4 py-3 text-xs text-gray-01">
+                  Every school starts on this. Editing it reaches all of them except the ones
+                  running their own version of this path.
+                </p>
+                {/* Who that actually is, rather than leaving it to be assumed. */}
+                <AdoptionPanel templateId={template.id} />
+              </>
             )}
 
             {/* Stages */}
