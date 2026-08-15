@@ -2,6 +2,8 @@ import { lazy } from "react";
 import { type RouteObject } from "react-router";
 import type { DashboardHandle } from "@/components/layout/dashboard-header";
 import { routesPath } from "@/routes/routes-path";
+// Static list, so declaring the paths does not pull in the lazy analytics chunk.
+import { ANALYTICS_SECTIONS } from "@/pages/protected/procurement/analytics-sections";
 
 const ProcurementDashboard = lazy(() => import("@/pages/protected/procurement/dashboard"));
 const Vendors = lazy(() => import("@/pages/protected/procurement/vendors"));
@@ -43,7 +45,13 @@ export const procurementRoutes: RouteObject[] = [
       { path: P.INVENTORY, element: <Inventory /> },
       { path: `${P.INVENTORY}/:section`, element: <Inventory /> },
       { path: P.ANALYTICS, element: <Analytics /> },
-      { path: `${P.ANALYTICS}/:section`, element: <Analytics /> },
+      // One path per section that exists, rather than `:section` matching anything.
+      // An analytics URL that is not one of these matches no route and falls through
+      // to the app's 404, which is what an address for a deleted report should get.
+      ...ANALYTICS_SECTIONS.map((section) => ({
+        path: `${P.ANALYTICS}/${section}`,
+        element: <Analytics section={section} />,
+      })),
       { path: P.SETTINGS, element: <ProcurementSettings /> },
       { path: `${P.SETTINGS}/:section`, element: <ProcurementSettings /> },
     ],
