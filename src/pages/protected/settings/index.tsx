@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link } from "react-router";
 import {
   BookOpenCheck,
   Building2,
@@ -56,6 +56,7 @@ import {
   type ConsoleSettingsSection,
 } from "@/components/settings/settings-layout";
 import { usePermissions } from "@/hooks/use-permissions";
+import { DEFAULT_SETTINGS_SECTION, type SettingsSection } from "./sections";
 import { P, type PermissionCode } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import { useGetBranchesQuery, useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
@@ -129,9 +130,11 @@ const ALL_SECTIONS: Array<ConsoleSettingsSection & { permissions?: PermissionCod
 /** "notifications" → "Notifications", "parent_portal" → "Parent Portal". */
 const pretty = (s: string) => s.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-export default function Settings() {
+/** `section` comes from the route table; see sections.ts. */
+export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
+  section?: SettingsSection;
+}) {
   const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
-  const { section = "overview" } = useParams();
   const visible = ALL_SECTIONS.filter(
     (item) => !item.permissions || (
       item.requireAll
@@ -150,6 +153,9 @@ export default function Settings() {
     P.VIEW_INTEGRATION_SETTINGS,
   )) return <PageAccessDenied />;
 
+  // Only sections that exist reach this component, so this fallback is now purely
+  // about permission: a section the reader cannot see resolves to the overview
+  // rather than 404-ing, because "not yours" is not "not found".
   const activeSection = visible.some((item) => item.key === section) ? section : "overview";
 
   const download = async () => {

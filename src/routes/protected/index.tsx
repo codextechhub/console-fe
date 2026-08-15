@@ -21,6 +21,8 @@ import { exportRoutes } from "./export-routes";
 import { financeRoutes } from "./finance-routes";
 import { procurementRoutes } from "./procurement-routes";
 import { routesPath } from "@/routes/routes-path";
+// Static list, so declaring the paths does not pull in the lazy Settings chunk.
+import { SETTINGS_SECTIONS } from "@/pages/protected/settings/sections";
 import { healthRoutes } from "./health-routes";
 
 // Route-level code splitting: each page loads on first visit instead of
@@ -40,7 +42,13 @@ export const protectedRoutes = [
       { path: routesPath.PROTECTED.NOTIFICATIONS, element: <Notifications />, handle: { title: "Notifications" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.NOTIFICATIONS_ADMIN, element: <NotificationsAdmin />, handle: { title: "Notifications" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.SETTINGS.INDEX, element: <Settings />, handle: { title: "Settings" } satisfies DashboardHandle },
-      { path: `${routesPath.PROTECTED.SETTINGS.INDEX}/:section`, element: <Settings />, handle: { title: "Settings" } satisfies DashboardHandle },
+      // One path per section that exists, rather than `:section` matching any URL.
+      // An unknown section matches no route and falls through to the app's 404.
+      ...SETTINGS_SECTIONS.map((section) => ({
+        path: `${routesPath.PROTECTED.SETTINGS.INDEX}/${section}`,
+        element: <Settings section={section} />,
+        handle: { title: "Settings" } satisfies DashboardHandle,
+      })),
       { path: routesPath.PROTECTED.SUPPORT.INDEX, element: <Support />, handle: { title: "Support" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.SUPPORT.TICKETS, element: <Support />, handle: { title: "Support" } satisfies DashboardHandle },
       // Deep-linkable "new ticket": the Support page with the composer already open.
