@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { revealActiveSidebarItem } from "./sidebar-navigation";
+import { revealActiveSidebarItem, revealExpandedNavGroup } from "./sidebar-navigation";
 
 function rect(top: number, bottom: number): DOMRect {
   return {
@@ -33,5 +33,60 @@ describe("revealActiveSidebarItem", () => {
     revealActiveSidebarItem(sidebar, 40);
 
     expect(sidebar.scrollTop).toBe(98);
+  });
+});
+
+describe("revealExpandedNavGroup", () => {
+  /** A group row inside a scrollable sidebar-content container. */
+  function setup(groupTop: number, groupBottom: number, startScroll = 0) {
+    const container = document.createElement("div");
+    container.dataset.slot = "sidebar-content";
+    const group = document.createElement("li");
+    container.append(group);
+    document.body.append(container);
+
+    container.scrollTop = startScroll;
+    container.getBoundingClientRect = () => rect(0, 100);
+    group.getBoundingClientRect = () => rect(groupTop, groupBottom);
+    return { container, group };
+  }
+
+  it("scrolls a submenu that opened below the fold into view", () => {
+    // The reported case: Support sits near the bottom, so its expanded submenu
+    // runs past the container and the user sees nothing happen.
+    const { container, group } = setup(60, 150);
+
+    revealExpandedNavGroup(group);
+
+    // 50px hidden + 8px breathing room.
+    expect(container.scrollTop).toBe(58);
+  });
+
+  it("leaves a group that already fits exactly where it is", () => {
+    // Rule 1: clicking a visible group must not jolt the menu.
+    const { container, group } = setup(10, 90, 25);
+
+    revealExpandedNavGroup(group);
+
+    expect(container.scrollTop).toBe(25);
+  });
+
+  it("never scrolls the group header out of view", () => {
+    // Rule 2: a submenu taller than the sidebar would otherwise scroll past its
+    // own trigger, leaving children with nothing naming their section. The
+    // header pins to the top of the container instead.
+    const { container, group } = setup(60, 400);
+
+    revealExpandedNavGroup(group);
+
+    // Clamped to the header offset (60), not the 348 the overflow would ask for.
+    expect(container.scrollTop).toBe(60);
+  });
+
+  it("does nothing when the row is not inside a scroll container", () => {
+    const orphan = document.createElement("li");
+    orphan.getBoundingClientRect = () => rect(60, 150);
+
+    expect(() => revealExpandedNavGroup(orphan)).not.toThrow();
   });
 });

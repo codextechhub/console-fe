@@ -23,7 +23,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Link } from "react-router";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { revealExpandedNavGroup } from "./sidebar-navigation";
 
 type NavItem = {
   title: string;
@@ -81,6 +82,28 @@ function NavMainItems({
   const [openTitle, setOpenTitle] = useState<string | null>(
     items.find((item) => item.childActive)?.title ?? null,
   );
+
+  // Every group's row, keyed by title, so the one just opened can be scrolled
+  // into view. Keyed rather than a single conditional ref: with one shared ref
+  // the answer depends on React detaching the old element before attaching the
+  // new one, which is true but is a subtlety a reader should not have to know.
+  const itemRefs = useRef(new Map<string, HTMLLIElement>());
+  // Set only by a user expanding a group. Without it this would also fire on
+  // mount, where a group opens because the route is inside it - and there the
+  // sidebar has already been positioned by revealActiveSidebarItem, so scrolling
+  // again would fight it and land somewhere neither meant.
+  const userExpandedRef = useRef(false);
+
+  // Layout effect, not an effect: the reveal has to be measured and applied in
+  // the same frame the submenu renders, or the menu visibly jumps afterwards.
+  // The collapsible content carries no open animation, so it is already at full
+  // height here and can be measured directly.
+  useLayoutEffect(() => {
+    if (!userExpandedRef.current) return;
+    userExpandedRef.current = false;
+    const item = openTitle ? itemRefs.current.get(openTitle) : null;
+    if (item) revealExpandedNavGroup(item);
+  }, [openTitle]);
 
   return (
     <SidebarMenu className="space-y-1">
@@ -159,10 +182,19 @@ function NavMainItems({
               key={item.title}
               asChild
               open={openTitle === item.title}
-              onOpenChange={(open) => setOpenTitle(open ? item.title : null)}
+              onOpenChange={(open) => {
+                // Only an expansion needs revealing; collapsing shows more, not less.
+                userExpandedRef.current = open;
+                setOpenTitle(open ? item.title : null);
+              }}
               className="group/collapsible"
             >
-              <SidebarMenuItem>
+              <SidebarMenuItem
+                ref={(node) => {
+                  if (node) itemRefs.current.set(item.title, node);
+                  else itemRefs.current.delete(item.title);
+                }}
+              >
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     className="mx-auto h-9"
