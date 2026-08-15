@@ -30,17 +30,14 @@
    metric grid compacted to one-line tiles and moved below the worklist;
    "Your workspace" is a chip row at the page foot. Dashboard rebuild COMPLETE.
 
-4. Today's focus, remaining improvements (raised 2026-08-14 after the ticket-counter
-   fix in Done #30). The invariant to hold everything to: **if you did the thing, the
-   row goes away.**
-   - **Split personal from organizational - DONE** (see Done #31).
-   - **Rank by age and deadline - DONE** (see Done #34).
-   - **Expand by default when anything red is present - DONE** (see Done #34).
-   - **"Exports ready to download" cannot be cleared by downloading - DONE**
-     (see Done #34). Left open behind it: an export that EXPIRES uncollected now
-     goes quiet, because a "ready to download" notice cannot honestly point at a
-     file that is gone. Telling someone they missed a download they asked for is a
-     different notice, and nobody has asked for it yet.
+4. An export that expires before you collect it now says nothing (2026-08-14, left
+   open knowingly when the "uncollected exports" fix landed in Done #34). "Exports
+   ready to download" counts only files that are still collectable, so a file that
+   ages out of its availability window simply drops off the panel: the person who
+   asked for it is never told they missed it. That is right for THIS notice, which
+   cannot honestly point at a file that is gone, but the gap is real. Closing it
+   means a different notice ("an export expired before you collected it"), which is
+   a new signal rather than a change to this one. Nobody has asked for it yet.
 
 ## Done
 
