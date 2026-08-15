@@ -9,7 +9,7 @@ import PageAccessDenied from "@/components/custom/page-access-denied";
 import { useDashboardBack } from "@/components/layout/dashboard-header";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
-import { useCreateBranchMutation } from "@/redux/services/dashboard/school-mgt-api";
+import { useGetSchoolDetailQuery, useCreateBranchMutation } from "@/redux/services/dashboard/school-mgt-api";
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 
@@ -45,6 +45,13 @@ export default function CreateBranch() {
   const back = () => navigate(routesPath.PROTECTED.SCHOOL_MGT.VIEW(slug ?? ""));
   // Destination closes over the :slug param, so it can't live in the handle.
   useDashboardBack(back);
+
+  // The form is for a branch *of this school*, so a slug that resolves to nothing
+  // means there is nothing to add one to. Without this the whole form rendered and
+  // only failed on submit, after the reader had filled it in.
+  const {
+    data: school, isLoading: loadingSchool, isError: schoolFailed,
+  } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
 
   const [createBranch, { isLoading }] = useCreateBranchMutation();
 
@@ -88,6 +95,32 @@ export default function CreateBranch() {
 
   if (!canCreate) {
     return <PageAccessDenied onBack={back} />;
+  }
+
+  if (loadingSchool) {
+    return (
+      <main className="px-4.5 py-6">
+        <div className="max-w-235 space-y-3">
+          {[0, 1, 2].map((i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-slate-100" />)}
+        </div>
+      </main>
+    );
+  }
+
+  if (schoolFailed || !school) {
+    return (
+      <main className="px-4.5 py-6">
+        <div className="mx-auto max-w-md rounded-xl border border-white-02 bg-white px-6 py-10 text-center">
+          <p className="font-mont font-semibold text-black-01">School not found</p>
+          <p className="mt-1.5 text-sm text-gray-01">
+            There is no school at this address, so a branch cannot be added to it.
+          </p>
+          <Button variant="white" className="mt-5" onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.INDEX)}>
+            Back to schools
+          </Button>
+        </div>
+      </main>
+    );
   }
 
   return (

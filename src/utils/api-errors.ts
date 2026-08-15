@@ -10,6 +10,24 @@
  * the machine code (`POSTING_ERROR`, `PERIOD_CLOSED`, …), which must not be shown
  * to a user as the explanation.
  */
+/**
+ * Django's own words when `get_object_or_404` misses, e.g.
+ * "No TenantRoleTemplate matches the given query."
+ *
+ * DRF passes it straight through as the response message, so without this it is
+ * what the reader sees - naming an internal model class at them, which tells them
+ * nothing they can act on and leaks the schema's vocabulary into the product.
+ */
+const DJANGO_NOT_FOUND = /^No \w+ matches the given query\.?$/i;
+
+const NOT_FOUND_MESSAGE =
+  "That record could not be found. It may have been deleted, or the link may be wrong.";
+
+/** Replace a backend message that is not fit to show with one that is. */
+export function humanizeApiMessage(message: string): string {
+  return DJANGO_NOT_FOUND.test(message.trim()) ? NOT_FOUND_MESSAGE : message;
+}
+
 export function apiErrorMessage(
   error: unknown,
   fallback = "Something went wrong. Please try again.",
@@ -20,8 +38,10 @@ export function apiErrorMessage(
   const message = typeof envelope?.message === "string" ? envelope.message.trim() : "";
   const detail = extractFirstDetail(errorObject?.detail);
 
-  if (code && code !== "REQUEST_ERROR") return message || detail || fallback;
-  return detail || message || fallback;
+  const chosen = code && code !== "REQUEST_ERROR"
+    ? message || detail || fallback
+    : detail || message || fallback;
+  return humanizeApiMessage(chosen);
 }
 
 export function apiFieldError(error: unknown, field: string): string | null {

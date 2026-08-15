@@ -20,7 +20,7 @@ import { routesPath } from "@/routes/routes-path";
 import { refreshTokenSingleFlight } from "@/utils/token-refresh";
 import { endSession } from "@/utils/end-session";
 import { captureReturnTo } from "@/utils/return-to";
-import { apiErrorMessage } from "@/utils/api-errors";
+import { apiErrorMessage, humanizeApiMessage } from "@/utils/api-errors";
 import { clearSelectedEntity } from "../features/finance/entity-slice";
 import { dismissOpenDrawerForError } from "@/utils/drawer-errors";
 import {
@@ -411,7 +411,12 @@ export const baseQueryInterceptor: BaseQueryFn<
   }
 
   if (res?.status === 404) {
-    if (!isAuthRoute(args)) notify(res?.data?.message || "Resource not found.");
+    // The 404 branch reads the raw message rather than going through
+    // apiErrorMessage, so it needs the same scrubbing - this is the path that
+    // surfaced "No ImportBatch matches the given query." to users.
+    if (!isAuthRoute(args)) {
+      notify(humanizeApiMessage(res?.data?.message || "") || "Resource not found.");
+    }
     return result;
   }
 

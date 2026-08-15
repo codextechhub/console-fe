@@ -195,9 +195,9 @@ export default function TemplateBuilder() {
   // source at all would be offering something that cannot work for them.
   const canUseOrganogram = self?.user_type === "CX_STAFF";
 
-  const { data: existing, isLoading: isLoadingExisting } = useGetWorkflowTemplateQuery(id ?? "", {
-    skip: !isEdit,
-  });
+  const {
+    data: existing, isLoading: isLoadingExisting, isError: existingFailed,
+  } = useGetWorkflowTemplateQuery(id ?? "", { skip: !isEdit });
 
   // Codex edits the shared definition; a school edits its own. Neither is a mode
   // the user picks, because the wrong pick is silent and expensive: a school
@@ -477,6 +477,31 @@ export default function TemplateBuilder() {
           <Loader2 className="size-6 animate-spin text-primary" />
         </div>
       </>
+    );
+  }
+
+  // The read failed - almost always a template id that does not exist. Without
+  // this the builder fell through to an empty "Untitled · 1 stage" form, and
+  // publishing it would have created a template out of a bad URL rather than
+  // editing anything.
+  if (isEdit && (existingFailed || !existing)) {
+    return (
+      <main className="px-4.5 py-6">
+        <div className="mx-auto max-w-md rounded-lg border border-white-02 bg-white px-6 py-10 text-center">
+          <p className="font-mont font-semibold text-gray-01">Template not found</p>
+          <p className="mt-1.5 text-xs leading-5 text-gray-01">
+            This approval template does not exist, or it has been retired. It cannot be
+            edited from here.
+          </p>
+          <Button
+            variant="white"
+            className="mt-5"
+            onClick={() => navigate(routesPath.PROTECTED.WORKFLOW.TEMPLATES)}
+          >
+            Back to templates
+          </Button>
+        </div>
+      </main>
     );
   }
 

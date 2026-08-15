@@ -5,6 +5,7 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routes-path";
@@ -25,7 +26,9 @@ export default function StaffForm() {
   const { hasPermission } = usePermissions();
   const payrollEditable = hasPermission(P.MANAGE_STAFF_PAYROLL);
 
-  const { data: profileRes, isLoading: loadingProfile } = useGetStaffProfileQuery(id as string, { skip: !isEdit });
+  const {
+    data: profileRes, isLoading: loadingProfile, isError: profileFailed,
+  } = useGetStaffProfileQuery(id as string, { skip: !isEdit });
   const { data: positionsRes } = useGetPositionsQuery({ page_size: 100 });
   // CX staff users - only needed when creating a new profile.
   const { data: usersRes } = useGetTeamMembersQuery({ page_size: 100, user_type: "CX_STAFF" }, { skip: isEdit });
@@ -74,6 +77,16 @@ export default function StaffForm() {
 
         {isEdit && loadingProfile ? (
           <div className="space-y-3">{[0, 1, 2].map((i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-slate-100" />)}</div>
+        ) : isEdit && (profileFailed || !profile) ? (
+          // Without this the form rendered blank against a profile that does not
+          // exist, and saving would have PATCHed an id that is not there.
+          <div className="rounded-xl border border-white-02 bg-white px-6 py-10 text-center">
+            <p className="font-mont font-semibold text-black-01">Staff profile not found</p>
+            <p className="mt-1.5 text-sm text-gray-01">
+              This profile does not exist, or it has been removed.
+            </p>
+            <Button variant="white" className="mt-5" onClick={back}>Go back</Button>
+          </div>
         ) : (
           <StaffProfileForm
             mode={isEdit ? "admin-edit" : "admin-create"}
