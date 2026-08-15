@@ -25,6 +25,7 @@
 //                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
 //                       41=dispose  42=reopen  43=lock  44=approve_high_value
 //                       45=share  46=download  47=override_variance  48=replay
+//                       49=attach
 //
 // ── Adding a permission ───────────────────────────────────────────────────────
 //   1. Pick the next free code in the right MM RR range.
@@ -394,6 +395,7 @@ const REGISTRY: Record<string, string> = {
   "701030": "procurement.vendor_invoice.submit",
   "701031": "procurement.vendor_invoice.match",
   "701047": "procurement.vendor_invoice.override_variance",
+  "701049": "procurement.vendor_invoice.attach",
   "701101": "procurement.vendor_payment.view",
   "701102": "procurement.vendor_payment.create",
   "701103": "procurement.vendor_payment.update",
@@ -402,6 +404,7 @@ const REGISTRY: Record<string, string> = {
   "701128": "procurement.vendor_payment.cancel",
   "701130": "procurement.vendor_payment.submit",
   "701120": "procurement.vendor_payment.allocate",
+  "701149": "procurement.vendor_payment.attach",
   "701205": "procurement.approval.approve",
   "701208": "procurement.approval.manage",
   "701238": "procurement.approval.approve_senior",
@@ -759,6 +762,9 @@ export const P = {
   PROC_SUBMIT_VENDOR_INVOICE:"701030",
   PROC_MATCH_VENDOR_INVOICE:"701031",
   PROC_OVERRIDE_VENDOR_INVOICE_VARIANCE:"701047",
+  // Filing the supplier's own paper is separate from editing the bill's amounts,
+  // and stays available after the bill is posted.
+  PROC_ATTACH_VENDOR_INVOICE_FILE:"701049",
   PROC_VIEW_VENDOR_PAYMENTS:"701101",
   PROC_CREATE_VENDOR_PAYMENT:"701102",
   PROC_UPDATE_VENDOR_PAYMENT:"701103",
@@ -767,6 +773,7 @@ export const P = {
   PROC_ALLOCATE_VENDOR_ADVANCE: "701120",  // apply a prepayment to a later bill
   PROC_CANCEL_VENDOR_PAYMENT:"701128",
   PROC_SUBMIT_VENDOR_PAYMENT:"701130",
+  PROC_ATTACH_VENDOR_PAYMENT_FILE:"701149",  // the receipt, which arrives after posting
   PROC_APPROVE_SPEND:       "701205",
   PROC_MANAGE_APPROVALS:    "701208",
   PROC_APPROVE_SPEND_SENIOR:"701238",

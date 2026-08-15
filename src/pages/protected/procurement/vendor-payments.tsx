@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import {
   Banknote, Check, ChevronRight, Coins, FilePenLine, FileText, History, ListChecks,
-  Plus, Printer, ReceiptText, RotateCcw, Send, Undo2, X,
+  Paperclip, Plus, Printer, ReceiptText, RotateCcw, Send, Undo2, X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,6 +28,7 @@ import {
   useGetVendorPaymentsQuery, usePostVendorPaymentMutation,
   useAllocateVendorAdvanceMutation,
   useReverseVendorPaymentMutation, useSubmitVendorPaymentMutation,
+  useAttachVendorPaymentFileMutation, useDeleteVendorPaymentFileMutation,
   useUpdateVendorPaymentMutation,
 } from "@/redux/services/procurement/procurement-api";
 import type {
@@ -40,10 +41,12 @@ import type { VoteAction } from "@/redux/services/dashboard/workflow-types";
 import { useAppSelector } from "@/redux/store";
 import { formatMoney } from "@/utils/money";
 import { ActivityFeed } from "./activity-feed";
+import { DocumentAttachments } from "./document-attachments";
 
 const DETAIL_TABS = [
   ["overview", "Overview", FileText], ["invoices", "Invoices", ListChecks],
-  ["posting", "Posting", ReceiptText], ["activity", "Activity", History],
+  ["posting", "Posting", ReceiptText], ["attachments", "Attachments", Paperclip],
+  ["activity", "Activity", History],
 ] as const;
 
 function shortDate(value?: string | null) {
@@ -109,6 +112,8 @@ function PaymentDrawer({ id, entity, currency, onClose }: { id: number | null; e
   const [submit, { isLoading: submitting }] = useSubmitVendorPaymentMutation();
   const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "vendor payment" });
   const [post, { isLoading: posting }] = usePostVendorPaymentMutation();
+  const [attachFile, { isLoading: attaching }] = useAttachVendorPaymentFileMutation();
+  const [removeFile, { isLoading: removingFile }] = useDeleteVendorPaymentFileMutation();
   const [cancel, { isLoading: cancelling }] = useCancelVendorPaymentMutation();
   const [reverse, { isLoading: reversing }] = useReverseVendorPaymentMutation();
   const [applyAdvance, { isLoading: applying }] = useAllocateVendorAdvanceMutation();
@@ -164,6 +169,19 @@ function PaymentDrawer({ id, entity, currency, onClose }: { id: number | null; e
         </div>}
         {tab === "invoices" && <AllocationTable payment={payment} currency={currency} />}
         {tab === "posting" && <PaymentPosting payment={payment} currency={currency} />}
+        {tab === "attachments" && <DocumentAttachments
+          attachments={payment.attachments || []}
+          attachPermission={P.PROC_ATTACH_VENDOR_PAYMENT_FILE}
+          uploading={attaching}
+          deleting={removingFile}
+          emptyMessage="No receipt has been filed against this payment yet."
+          onUpload={async (file, caption) => {
+            try { await attachFile({ id: payment.id, entity, file, caption }).unwrap(); toast.success("Attachment uploaded."); } catch { /* central */ }
+          }}
+          onDelete={async (attachmentId) => {
+            try { await removeFile({ id: payment.id, entity, attachmentId }).unwrap(); toast.success("Attachment removed."); } catch { /* central */ }
+          }}
+        />}
         {tab === "activity" && <PaymentActivity payment={payment} workflow={workflow} name={name} />}
       </div>}
       {noApproverDialog}

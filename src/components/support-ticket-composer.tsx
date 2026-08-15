@@ -39,7 +39,9 @@ import {
   type TicketPriority,
 } from "@/redux/services/tickets-api";
 
-const ACCEPTED_FILES = ".csv,.xlsx,.png,.jpg,.jpeg,.pdf";
+// Mirrors core.uploads.TICKET_EXTENSIONS. The backend now also verifies that the
+// bytes match the extension, so a renamed file is refused with a 400.
+const ACCEPTED_FILES = ".pdf,.png,.jpg,.jpeg,.webp,.gif,.csv,.xls,.xlsx";
 
 export interface TicketDraft {
   title: string;

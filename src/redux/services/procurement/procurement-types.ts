@@ -337,6 +337,25 @@ export interface VendorInvoicePaymentHistory {
   amount: number;
   status: string;
 }
+/**
+ * Supporting evidence filed against a bill or a payment: the supplier's own invoice,
+ * or the receipt they issued. `url` is a capability URL - unguessable, and only ever
+ * handed to a caller already allowed to read the owning document - so it is served
+ * straight from the API rather than rebuilt on the client.
+ *
+ * Present on the detail payload only. List rows deliberately omit it.
+ */
+export interface DocumentAttachment {
+  id: number;
+  name: string;
+  content_type: string;
+  size: number;
+  caption: string;
+  url: string;
+  uploaded_by_name: string;
+  uploaded_at: string;
+}
+
 export interface VendorInvoice {
   id: number;
   document_number: string;
@@ -363,6 +382,7 @@ export interface VendorInvoice {
   balance_due: number;
   journal_id: number | null;
   lines: VendorInvoiceLine[];
+  attachments?: DocumentAttachment[];
   workflow_instance_id?: string | null;
   match_comparisons?: VendorInvoiceMatchComparison[];
   payments?: VendorInvoicePaymentHistory[];
@@ -449,6 +469,7 @@ export interface VendorPayment {
   created_at: string;
   created_by_name: string;
   allocations: VendorPaymentAllocation[];
+  attachments?: DocumentAttachment[];
   workflow_instance_id?: string | null;
   posting_lines?: { account_code: string; account_name: string; debit: number; credit: number }[];
   activity?: { id: number; action: string; message: string; status: string; actor_name: string; created_at: string }[];

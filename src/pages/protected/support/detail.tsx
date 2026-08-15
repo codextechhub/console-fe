@@ -385,7 +385,7 @@ export default function TicketDetail() {
                         Attach file
                         <input
                           type="file"
-                          accept=".csv,.xlsx,.png,.jpg,.jpeg,.pdf"
+                          accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.csv,.xls,.xlsx"
                           className="hidden"
                           onChange={(e) => setPendingFile(e.target.files?.[0] ?? null)}
                         />

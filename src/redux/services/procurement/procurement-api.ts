@@ -20,6 +20,7 @@ import type {
   VendorCategory,
   VendorCategoryInsight,
   VendorInsights,
+  DocumentAttachment,
   VendorInvoice,
   VendorInvoiceReferenceCheck,
   VendorInvoiceSummary,
@@ -246,6 +247,28 @@ export const procurementApi = baseApi.injectEndpoints({
       invalidatesTags: ["ProcVendorInvoices", "FinanceJournals"],
     }),
 
+    // Supplier evidence. Multipart, so the body is a FormData and no Content-Type is
+    // set by hand - the browser must supply its own multipart boundary.
+    // Available on a posted bill too: the supplier's formal invoice usually turns up
+    // after the charge has been booked.
+    attachVendorInvoiceFile: b.mutation<ApiEnvelope<DocumentAttachment>, Act & { file: File; caption?: string }>({
+      query: ({ id, entity, file, caption }) => {
+        const body = new FormData();
+        body.append("file", file);
+        if (caption) body.append("caption", caption);
+        return { url: `/procurement/vendor-invoices/${id}/attachments/${qs({ entity })}`, method: "POST", body };
+      },
+      extraOptions: { inlineValidation: true },
+      invalidatesTags: ["ProcVendorInvoices"],
+    }),
+    deleteVendorInvoiceFile: b.mutation<ApiEnvelope<{ attachments: DocumentAttachment[] }>, Act & { attachmentId: number }>({
+      query: ({ id, entity, attachmentId }) => ({
+        url: `/procurement/vendor-invoices/${id}/attachments/${attachmentId}/${qs({ entity })}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["ProcVendorInvoices"],
+    }),
+
     // Vendor payments
     getVendorPayments: b.query<PaginatedEnvelope<VendorPayment>, E & { approval_state?: string }>({
       query: (p) => ({ url: `/procurement/vendor-payments/${qs(p)}`, method: "GET" }),
@@ -288,6 +311,26 @@ export const procurementApi = baseApi.injectEndpoints({
     reverseVendorPayment: b.mutation<ApiEnvelope<VendorPayment>, Act & { date?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/procurement/vendor-payments/${id}/reverse/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["ProcVendorPayments", "ProcVendorInvoices", "FinanceJournals"],
+    }),
+
+    // The receipt the vendor issued. Necessarily uploaded after the payment posts,
+    // so this is never gated on the document being a draft.
+    attachVendorPaymentFile: b.mutation<ApiEnvelope<DocumentAttachment>, Act & { file: File; caption?: string }>({
+      query: ({ id, entity, file, caption }) => {
+        const body = new FormData();
+        body.append("file", file);
+        if (caption) body.append("caption", caption);
+        return { url: `/procurement/vendor-payments/${id}/attachments/${qs({ entity })}`, method: "POST", body };
+      },
+      extraOptions: { inlineValidation: true },
+      invalidatesTags: ["ProcVendorPayments"],
+    }),
+    deleteVendorPaymentFile: b.mutation<ApiEnvelope<{ attachments: DocumentAttachment[] }>, Act & { attachmentId: number }>({
+      query: ({ id, entity, attachmentId }) => ({
+        url: `/procurement/vendor-payments/${id}/attachments/${attachmentId}/${qs({ entity })}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["ProcVendorPayments"],
     }),
   }),
 });
@@ -341,6 +384,8 @@ export const {
   useMatchVendorInvoiceMutation,
   useSubmitVendorInvoiceMutation,
   usePostVendorInvoiceMutation,
+  useAttachVendorInvoiceFileMutation,
+  useDeleteVendorInvoiceFileMutation,
   useGetVendorPaymentsQuery,
   useGetVendorPaymentQuery,
   useGetVendorPaymentEligibleInvoicesQuery,
@@ -350,5 +395,7 @@ export const {
   usePostVendorPaymentMutation,
   useCancelVendorPaymentMutation,
   useReverseVendorPaymentMutation,
+  useAttachVendorPaymentFileMutation,
+  useDeleteVendorPaymentFileMutation,
   useAllocateVendorAdvanceMutation,
 } = procurementApi;

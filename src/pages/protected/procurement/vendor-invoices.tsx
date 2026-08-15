@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import {
   AlertTriangle, Check, ChevronRight, CircleDollarSign, Clock3, FilePenLine,
-  FileText, History, List, Plus, Printer, RotateCcw, Search, Send, X,
+  FileText, History, List, Paperclip, Plus, Printer, RotateCcw, Search, Send, X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -34,6 +34,7 @@ import {
   useLazyCheckVendorInvoiceReferenceQuery,
   useMatchVendorInvoiceMutation, usePostVendorInvoiceMutation,
   useSubmitVendorInvoiceMutation, useUpdateVendorInvoiceMutation,
+  useAttachVendorInvoiceFileMutation, useDeleteVendorInvoiceFileMutation,
 } from "@/redux/services/procurement/procurement-api";
 import type {
   VendorInvoice, VendorInvoiceReferenceCheck,
@@ -48,6 +49,7 @@ import { apiErrorMessage, apiFieldError } from "@/utils/api-errors";
 import { InvoiceVarianceOverrideAction } from "./procurement-action-gates";
 import { blockingMatchReason, isBlockingInvoiceVariance } from "./invoice-action-model";
 import { ActivityFeed } from "./activity-feed";
+import { DocumentAttachments } from "./document-attachments";
 
 const TABS = [
   ["All", ""], ["Draft", "DRAFT"], ["Under Review", "PENDING_APPROVAL"],
@@ -58,7 +60,7 @@ const TABS = [
 const DETAIL_TABS = [
   ["overview", "Overview", FileText], ["lines", "Line Items", List],
   ["match", "3-Way Match", Check], ["payments", "Payment History", CircleDollarSign],
-  ["activity", "Activity", History],
+  ["attachments", "Attachments", Paperclip], ["activity", "Activity", History],
 ] as const;
 
 function shortDate(value?: string | null) {
@@ -148,6 +150,8 @@ function InvoiceDrawer({ id, entity, currency, onClose }: { id: number | null; e
   const [submit, { isLoading: submitting }] = useSubmitVendorInvoiceMutation();
   const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "vendor invoice" });
   const [post, { isLoading: posting }] = usePostVendorInvoiceMutation();
+  const [attachFile, { isLoading: attaching }] = useAttachVendorInvoiceFileMutation();
+  const [removeFile, { isLoading: removingFile }] = useDeleteVendorInvoiceFileMutation();
   const activeStage = useMemo(() => (workflow?.stage_instances || []).filter((stage) => stage.status === "ACTIVE").at(-1), [workflow]);
   const canVote = !!activeStage && workflow?.status === "IN_PROGRESS" && activeStage.eligible_approvers.some((approver) => sameId(approver.user, uid) && approver.attempt === activeStage.attempt) && !activeStage.actions.some((action) => sameId(action.actor, uid) && !action.reversed_at && !action.is_reversal_of && action.attempt === activeStage.attempt);
   const vote = async (action: VoteAction) => {
@@ -190,6 +194,19 @@ function InvoiceDrawer({ id, entity, currency, onClose }: { id: number | null; e
         {tab === "lines" && (invoice.lines.length ? <div className="overflow-x-auto rounded-md border border-gray-03"><table className="min-w-[580px] w-full"><thead><tr>{["Description", "Qty", "Unit price", "Tax", "Total"].map((label) => <th key={label} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{label}</th>)}</tr></thead><tbody>{invoice.lines.map((line) => <tr key={line.id}><td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{line.description}</td><td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{formatQuantity(line.quantity)}</td><td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{formatMoney(line.unit_price, currency)}</td><td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{formatMoney(line.tax_amount, currency)}</td><td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold tabular-nums">{formatMoney(line.net_amount + line.tax_amount, currency)}</td></tr>)}</tbody></table></div> : <EmptyPanel>No invoice lines were recorded.</EmptyPanel>)}
         {tab === "match" && <MatchPanel invoice={invoice} currency={currency} />}
         {tab === "payments" && (invoice.payments?.length ? <div className="space-y-2">{invoice.payments.map((payment) => <div key={payment.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-md border border-gray-03 p-3"><div><p className="font-mont text-sm font-semibold">{payment.document_number}</p><p className="mt-1 font-mont text-xs text-gray-05">{shortDate(payment.payment_date)} · {payment.status}</p></div><p className="font-mont text-sm font-semibold tabular-nums">{formatMoney(payment.amount, currency)}</p></div>)}</div> : <EmptyPanel>No payment has been allocated to this invoice.</EmptyPanel>)}
+        {tab === "attachments" && <DocumentAttachments
+          attachments={invoice.attachments || []}
+          attachPermission={P.PROC_ATTACH_VENDOR_INVOICE_FILE}
+          uploading={attaching}
+          deleting={removingFile}
+          emptyMessage="No supplier paperwork has been filed against this bill yet."
+          onUpload={async (file, caption) => {
+            try { await attachFile({ id: invoice.id, entity, file, caption }).unwrap(); toast.success("Attachment uploaded."); } catch { /* central */ }
+          }}
+          onDelete={async (attachmentId) => {
+            try { await removeFile({ id: invoice.id, entity, attachmentId }).unwrap(); toast.success("Attachment removed."); } catch { /* central */ }
+          }}
+        />}
         {tab === "activity" && <ActivityPanel invoice={invoice} workflow={workflow} name={name} />}
       </div>}
       {noApproverDialog}
