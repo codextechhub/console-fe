@@ -11,6 +11,7 @@ import { NotificationEventIcon } from "@/components/custom/notification-event-ic
 import { formatRelativeDate } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routes-path";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useFilterParam } from "@/hooks/use-filter-param";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
@@ -21,12 +22,15 @@ import {
   useMarkNotificationsReadMutation,
 } from "@/redux/services/notifications-api";
 
-type Filter = "all" | "unread" | "read";
+type Filter = "unread" | "read" | "all";
 
+// Unread leads and is the tab the page opens on: the inbox exists to show what
+// still needs attention. "All" sits last as the fallback view - the backend
+// keeps unread on top there too, so it is never a wall of read messages.
 const FILTERS: Array<{ value: Filter; label: string }> = [
-  { value: "all", label: "All" },
   { value: "unread", label: "Unread" },
   { value: "read", label: "Read" },
+  { value: "all", label: "All" },
 ];
 
 export default function Notifications() {
@@ -37,13 +41,22 @@ export default function Notifications() {
     P.ENFORCE_NOTIFICATION_SETTINGS,
     P.CONFIGURE_NOTIFICATION_TEMPLATES,
   );
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<Filter>("unread");
   // Dashboard deep-link: the unread card lands here as ?filter=unread.
-  useFilterParam("filter", ["unread", "read"] as const, setFilter);
+  useFilterParam("filter", ["unread", "read", "all"] as const, setFilter);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search.trim(), 400);
 
-  const params = { page, page_size: 20, ...(filter === "all" ? {} : { is_read: filter === "read" }) };
+  // Search goes to the SERVER. Filtering the fetched page here instead would
+  // leave the page count and the Previous/Next controls describing the
+  // unsearched feed - which is exactly how pagination used to break mid-search.
+  const params = {
+    page,
+    page_size: 20,
+    ...(filter === "all" ? {} : { is_read: filter === "read" }),
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
+  };
   const { data, isLoading, isError, refetch } = useGetNotificationsQuery(params);
   // Total unread across all pages (drives "Mark all as read"); the bell
   // already polls this endpoint, so the page reuses the cached entry.
@@ -51,11 +64,8 @@ export default function Notifications() {
   const [markRead] = useMarkNotificationsReadMutation();
   const [markAll, { isLoading: markingAll }] = useMarkAllNotificationsReadMutation();
 
-  // Client-side filter over the loaded page only (the feed has no server-side
-  // text search) - the placeholder says so honestly.
-  const rows = (data?.data ?? []).filter(
-    (n) => !search || `${n.subject} ${n.body} ${n.event_type_label}`.toLowerCase().includes(search.toLowerCase()),
-  );
+  // Rows arrive ordered unread-first, newest-first - render them as given.
+  const rows = data?.data ?? [];
 
   const open = (notification: (typeof rows)[number]) => {
     // Fire-and-forget so navigation isn't held on the mark-read round-trip.
@@ -123,11 +133,16 @@ export default function Notifications() {
           <CustomInput
             id="notifications-search"
             canSearch
-            placeholder="Search this page"
+            placeholder="Search notifications"
             className="h-10"
             containerClass="w-full sm:max-w-[280px]"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              // Back to page 1: staying on page 4 of the previous result set
+              // would show an empty page for a search that has matches.
+              setPage(1);
+            }}
           />
         </div>
 
@@ -151,8 +166,20 @@ export default function Notifications() {
               <span className="mx-auto grid size-14 place-content-center rounded-full bg-pry-01 text-primary">
                 <Bell className="size-6" />
               </span>
-              <p className="mt-3 font-mont font-semibold">Nothing to show</p>
-              <p className="text-sm text-gray-01">New activity will appear here.</p>
+              <p className="mt-3 font-mont font-semibold">
+                {debouncedSearch
+                  ? "No notifications match that search"
+                  : filter === "unread"
+                    ? "You’re all caught up"
+                    : "Nothing to show"}
+              </p>
+              <p className="text-sm text-gray-01">
+                {debouncedSearch
+                  ? "Try a different word, or clear the search."
+                  : filter === "unread"
+                    ? "Anything unread will appear here first."
+                    : "New activity will appear here."}
+              </p>
             </div>
           ) : (
             <div className="divide-y divide-white-02">

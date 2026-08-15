@@ -29,6 +29,9 @@ import { healthRoutes } from "./health-routes";
 // shipping in the main bundle. Suspense fallback lives in routes/index.tsx.
 const Notifications = lazy(() => import("@/pages/protected/notifications"));
 const NotificationsAdmin = lazy(() => import("@/pages/protected/notifications/admin"));
+const NotificationTemplateEditor = lazy(
+  () => import("@/pages/protected/notifications/template-editor"),
+);
 const Settings = lazy(() => import("@/pages/protected/settings"));
 const Support = lazy(() => import("@/pages/protected/support"));
 const TicketDetail = lazy(() => import("@/pages/protected/support/detail"));
@@ -41,6 +44,9 @@ export const protectedRoutes = [
     children: [
       { path: routesPath.PROTECTED.NOTIFICATIONS, element: <Notifications />, handle: { title: "Notifications" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.NOTIFICATIONS_ADMIN, element: <NotificationsAdmin />, handle: { title: "Notifications" } satisfies DashboardHandle },
+      // "new" is declared before ":id" so it is never read as a template id.
+      { path: routesPath.PROTECTED.NOTIFICATION_TEMPLATE_NEW, element: <NotificationTemplateEditor mode="create" />, handle: { title: "Notifications" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.NOTIFICATION_TEMPLATE_PATH, element: <NotificationTemplateEditor />, handle: { title: "Notifications" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.SETTINGS.INDEX, element: <Settings />, handle: { title: "Settings" } satisfies DashboardHandle },
       // One path per section that exists, rather than `:section` matching any URL.
       // An unknown section matches no route and falls through to the app's 404.

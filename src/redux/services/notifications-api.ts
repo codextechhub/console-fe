@@ -73,15 +73,62 @@ export interface NotificationTemplate {
   id: string;
   event_type: string;
   event_type_key: string;
+  event_type_label: string;
   channel: "in_app" | "email";
   subject: string;
   body: string;
+  /** Button text. Only rendered when cta_url is set. */
+  cta_label: string;
+  /** Button destination, normally a single {{ variable }}. */
+  cta_url: string;
+  /** The email HTML as stored and as sent, placeholders intact. */
   html_body: string;
+  /** The {{ names }} this template uses - read-only, derived by the backend. */
+  variables: string[];
+  /**
+   * false: the markup follows the platform's standard design and is
+   * regenerated whenever the message changes.
+   * true: someone edited it by hand, so it is kept verbatim and no longer
+   * inherits design changes. PATCH false to restore the standard design.
+   */
+  html_is_custom: boolean;
   is_active: boolean;
   created_by: string | null;
   updated_by: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** Unsaved editor content, previewed without being written. */
+export type NotificationTemplateDraft = Partial<
+  Pick<
+    NotificationTemplate,
+    "subject" | "body" | "cta_label" | "cta_url" | "html_body" | "html_is_custom"
+  >
+>;
+
+/** What a recipient would actually see. html_body is the finished email. */
+export interface NotificationTemplatePreview {
+  channel: "in_app" | "email";
+  subject: string;
+  body: string;
+  /** Rendered for a recipient: placeholders replaced with sample values. */
+  html_body: string;
+  /** The markup behind it, placeholders intact. This is what the editor edits. */
+  html_source: string;
+  html_is_custom: boolean;
+  variables: string[];
+  context_used: Record<string, string>;
+}
+
+/** An (event, channel) pair that has no template yet. */
+export interface AvailableTemplateEvent {
+  event_type: string;
+  event_type_key: string;
+  event_type_label: string;
+  source_module: string;
+  description: string;
+  channels: ("in_app" | "email")[];
 }
 
 export const notificationsApi = baseApi.injectEndpoints({
@@ -146,8 +193,16 @@ export const notificationsApi = baseApi.injectEndpoints({
     }),
 
     // ── Templates (communication.notification_templates.configure) ─────────
-    getNotificationTemplates: builder.query<{ data: NotificationTemplate[] }, void>({
-      query: () => "/notify/templates/",
+    // ?search= filters on event key, event label, subject and body.
+    getNotificationTemplates: builder.query<
+      { data: NotificationTemplate[] },
+      Record<string, string> | void
+    >({
+      query: (params) => ({ url: `/notify/templates/${generateQueryString(params ?? {})}` }),
+      providesTags: ["NotificationTemplates"],
+    }),
+    getNotificationTemplate: builder.query<{ data: NotificationTemplate }, string>({
+      query: (id) => `/notify/templates/${id}/`,
       providesTags: ["NotificationTemplates"],
     }),
     updateNotificationTemplate: builder.mutation<
@@ -157,11 +212,36 @@ export const notificationsApi = baseApi.injectEndpoints({
       query: ({ id, body }) => ({ url: `/notify/templates/${id}/`, method: "PATCH", body }),
       invalidatesTags: ["NotificationTemplates"],
     }),
-    previewNotificationTemplate: builder.mutation<
-      { data: { subject: string; body: string; html_body: string } },
-      { id: string; context: Record<string, string> }
+    createNotificationTemplate: builder.mutation<
+      { data: NotificationTemplate },
+      Partial<NotificationTemplate> & { event_type: string; channel: string }
     >({
-      query: ({ id, ...body }) => ({ url: `/notify/templates/${id}/preview/`, method: "POST", body }),
+      query: (body) => ({ url: "/notify/templates/", method: "POST", body }),
+      invalidatesTags: ["NotificationTemplates"],
+    }),
+    // The (event, channel) pairs a new template can still be created for. An
+    // event exists only when code fires it, so this is the whole creatable set.
+    getAvailableTemplateEvents: builder.query<{ data: AvailableTemplateEvent[] }, void>({
+      query: () => "/notify/templates/available-events/",
+      providesTags: ["NotificationTemplates"],
+    }),
+    // Renders the template as a recipient would see it. Sample values are
+    // generated per variable, so an empty context still produces a real
+    // preview; anything passed in context overrides its sample.
+    // `draft` renders unsaved editor content: nothing is written, which is what
+    // lets the preview follow typing. Omit it to preview what is stored.
+    previewNotificationTemplate: builder.query<
+      { data: NotificationTemplatePreview },
+      { id: string; context?: Record<string, string>; draft?: NotificationTemplateDraft }
+    >({
+      query: ({ id, context, draft }) => ({
+        url: `/notify/templates/${id}/preview/`,
+        method: "POST",
+        body: { context: context ?? {}, ...(draft ? { draft } : {}) },
+        // The preview is derived state, never a reason to shout at the user.
+        meta: { silent: true },
+      }),
+      extraOptions: { silent: true },
     }),
 
     // ── Event-type catalogue ────────────────────────────────────────────────
@@ -182,7 +262,10 @@ export const {
   useGetNotificationSettingsQuery,
   useUpdateNotificationSettingsMutation,
   useGetNotificationTemplatesQuery,
+  useGetNotificationTemplateQuery,
   useUpdateNotificationTemplateMutation,
-  usePreviewNotificationTemplateMutation,
+  useCreateNotificationTemplateMutation,
+  useGetAvailableTemplateEventsQuery,
+  usePreviewNotificationTemplateQuery,
   useGetNotificationEventTypesQuery,
 } = notificationsApi;

@@ -4,28 +4,25 @@
 // decides which tabs to show.
 
 import { useMemo, useState } from "react";
-import { FileText, Loader2, Mail, Save } from "lucide-react";
+import { Link } from "react-router";
+import { FileText, Loader2, Mail, Plus } from "lucide-react";
 import { toast } from "sonner";
 import CustomTable from "@/components/custom/custom-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { useDebounce } from "@/hooks/use-debounce";
+import { routesPath } from "@/routes/routes-path";
 import {
   useGetNotificationEventTypesQuery,
   useGetNotificationHistoryQuery,
   useGetNotificationSettingsQuery,
   useGetNotificationTemplatesQuery,
-  usePreviewNotificationTemplateMutation,
   useUpdateNotificationSettingsMutation,
-  useUpdateNotificationTemplateMutation,
   type NotificationEventType,
   type NotificationSetting,
-  type NotificationTemplate,
 } from "@/redux/services/notifications-api";
 
 /** "vs_finance" → "Finance", "task_completed" → "Task Completed". */
@@ -191,95 +188,73 @@ export function SettingsPanel() {
 
 // ── Templates ─────────────────────────────────────────────────────────────────
 
+// The list is a directory; editing happens on its own full page, because a
+// message, its markup and a live preview do not fit in a drawer.
 export function TemplatesPanel() {
-  const q = useGetNotificationTemplatesQuery();
-  const [selected, setSelected] = useState<NotificationTemplate | null>(null);
+  const [search, setSearch] = useState("");
+  const debounced = useDebounce(search.trim(), 400);
+  const q = useGetNotificationTemplatesQuery(debounced ? { search: debounced } : {});
+  const rows = q.data?.data ?? [];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {q.isLoading ? (
-        <Busy />
-      ) : (
-        (q.data?.data ?? []).map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setSelected(t)}
-            className="rounded-md bg-white p-4 text-left hover:shadow-sm"
-          >
-            <div className="flex justify-between">
-              <FileText className="size-5 text-primary" />
-              <span className="rounded bg-white-05 px-2 py-1 font-mont text-xs uppercase">{t.channel}</span>
-            </div>
-            <p className="mt-4 font-mont font-semibold">{t.subject || "Untitled template"}</p>
-            <p className="mt-1 text-xs text-gray-01">{t.event_type_key}</p>
-          </button>
-        ))
-      )}
-      {selected && <TemplateEditor value={selected} close={() => setSelected(null)} />}
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Input
+          className="h-10 w-full bg-white sm:max-w-[280px]"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search templates"
+        />
+        <Button variant="white" size="lg" asChild>
+          <Link to={routesPath.PROTECTED.NOTIFICATION_TEMPLATE_NEW}>
+            <Plus className="size-4" />
+            New template
+          </Link>
+        </Button>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {q.isLoading ? (
+          <Busy />
+        ) : !rows.length ? (
+          <p className="py-10 text-sm text-gray-01">No templates match that search.</p>
+        ) : (
+          rows.map((t) => (
+            <Link
+              key={t.id}
+              to={routesPath.PROTECTED.NOTIFICATION_TEMPLATE(t.id)}
+              className="rounded-md bg-white p-4 text-left hover:shadow-sm"
+            >
+              <div className="flex justify-between">
+                <FileText className="size-5 text-primary" />
+                <span className="rounded bg-white-05 px-2 py-1 font-mont text-xs uppercase">
+                  {t.channel === "email" ? "Email" : "In-app"}
+                </span>
+              </div>
+              <p className="mt-4 font-mont font-semibold">
+                {t.subject || t.event_type_label || "Untitled template"}
+              </p>
+              <p className="mt-1 text-xs text-gray-01">{t.event_type_key}</p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {t.channel === "email" && (
+                  <Badge
+                    variant={t.html_is_custom ? "rejected" : "success"}
+                    className="text-[10px]"
+                  >
+                    {t.html_is_custom ? "Hand-edited design" : "Standard design"}
+                  </Badge>
+                )}
+                {!t.is_active && (
+                  <Badge variant="pending" className="text-[10px]">
+                    Paused
+                  </Badge>
+                )}
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
     </div>
-  );
-}
-
-function TemplateEditor({ value, close }: { value: NotificationTemplate; close: () => void }) {
-  const [form, setForm] = useState(value);
-  const [update, { isLoading }] = useUpdateNotificationTemplateMutation();
-  const [preview, { data, isLoading: previewing }] = usePreviewNotificationTemplateMutation();
-
-  const save = async () => {
-    await update({
-      id: value.id,
-      body: { subject: form.subject, body: form.body, html_body: form.html_body, is_active: form.is_active },
-    }).unwrap();
-    toast.success("Template saved");
-    close();
-  };
-
-  return (
-    <Sheet open onOpenChange={(v) => !v && close()}>
-      <SheetContent side="right" className="w-full overflow-y-auto p-6 sm:max-w-2xl">
-        <SheetHeader className="p-0">
-          <p className="text-xs text-gray-01">{value.event_type_key}</p>
-          <SheetTitle>Edit notification template</SheetTitle>
-        </SheetHeader>
-
-        <div className="mt-6 space-y-4">
-          <label className="grid gap-1 text-sm font-medium">
-            Subject
-            <Input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} />
-          </label>
-          <label className="grid gap-1 text-sm font-medium">
-            Plain-text body
-            <Textarea rows={9} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
-          </label>
-          <label className="grid gap-1 text-sm font-medium">
-            HTML body
-            <Textarea
-              rows={7}
-              className="font-mono text-xs"
-              value={form.html_body}
-              onChange={(e) => setForm({ ...form, html_body: e.target.value })}
-            />
-          </label>
-
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => preview({ id: value.id, context: {} })}>
-              {previewing ? "Rendering…" : "Preview"}
-            </Button>
-            <Button size="sm" className="ml-auto" onClick={save} disabled={isLoading}>
-              <Save className="size-4" />
-              Save
-            </Button>
-          </div>
-
-          {data && (
-            <div className="rounded-lg bg-white-05 p-4">
-              <p className="font-semibold">{data.data.subject}</p>
-              <p className="mt-2 whitespace-pre-wrap text-sm">{data.data.body}</p>
-            </div>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
   );
 }
 

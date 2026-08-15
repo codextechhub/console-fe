@@ -20,6 +20,11 @@ export const routesPath = {
     OVERVIEW: { INDEX: "/overview" },
     NOTIFICATIONS: "/notifications",
     NOTIFICATIONS_ADMIN: "/notifications/admin",
+    // Template editing is a full page, not a drawer: message, markup and a live
+    // preview do not fit in a panel.
+    NOTIFICATION_TEMPLATE_PATH: "/notifications/admin/templates/:id",
+    NOTIFICATION_TEMPLATE: (id: string) => `/notifications/admin/templates/${id}`,
+    NOTIFICATION_TEMPLATE_NEW: "/notifications/admin/templates/new",
     SETTINGS: { INDEX: "/settings" },
     SUPPORT: {
       INDEX: "/support",
