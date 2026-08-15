@@ -32,16 +32,29 @@
    That mirrors the existing SchoolListView and was chosen deliberately so the
    file matches the screen. Keep that key a platform-actor grant.
 
-4. **Flaky backend test, not ours (seen 2026-08-15).** `manage.py test vs_exports
-   vs_schools vs_user --parallel 4` intermittently reports ~15 errors in
-   `vs_user.tests.UserBranchAssignment/UserBranchTenantGuard`, all
-   `NotificationEventType.DoesNotExist` raised from `finalize_invitation` ->
-   notification dispatch. It is a seeding/sharding race: those tests need the
-   notification event types seeded, and under some parallel shard splits they run
-   without them. Proven unrelated to the export work by an A/B (registration
-   disabled vs enabled gave identical clean runs), and the same command passed on
-   re-run with 315 tests. Worth fixing at source - the invitation path should not
-   depend on seed data being present, or the test should seed it.
+4. **Notification-seed dependency in vs_user tests - fixed 2026-08-15, with one
+   loose end.** `UserBranchAssignmentTests` and `UserBranchTenantGuardTests`
+   created users on a test database whose `NotificationEventType` registry is
+   empty (no migration creates those rows - only `seed_notification_event_types`,
+   which `build.sh` runs on every real deploy, so environments were never at
+   risk). Dispatch could not resolve the invitation event key,
+   `finalize_invitation` caught and logged it, and the tests passed anyway - so
+   the invitation path was never actually exercised, and every user-creating test
+   printed error-level tracebacks. Those tracebacks are what made the run that
+   reported 15 errors unreadable, and what I initially misread as the failure
+   itself. Both classes now seed the registry, and so does `_ExportFixture` in
+   vs_exports - a completing export run notifies its owner
+   (`export.run_completed` / `export.run_failed`, plus `task.completed` from the
+   BackgroundJob), so the export suite had the same hole in the same shape.
+   Measured: 264 tracebacks across `vs_exports vs_schools vs_user` -> 0, with all
+   317 tests still passing.
+
+   **Loose end, stated honestly:** the original 15 errors were never reproduced -
+   five-plus full runs of the same command have been green since, including two
+   controlled A/B runs. Removing the state-dependence is the most plausible fix
+   and is a real improvement either way, but it is not proven to be *that*
+   failure's cause. If it recurs, capture the full output (not just the
+   `ERROR:` lines) - the error bodies are what is missing.
 
 5. Backend brief 2026-08-14 - **CLOSED.** All nine items done on our side, and both
    findings we raised back are now fixed on the backend too (`8966ff2`): the reorder
