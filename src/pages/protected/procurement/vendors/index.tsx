@@ -1,16 +1,18 @@
 // Vendors & catalog - route-selected master-data screens in the Procurement shell.
 
-import { useParams } from "react-router";
 import { ProcurementShell } from "../procurement-shell";
 import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { VendorsTab } from "./vendors-tab";
 import { CategoriesTab } from "./categories-tab";
 import { CatalogTab } from "./catalog-tab";
+import { DEFAULT_VENDOR_SECTION, type VendorSection } from "../console-sections";
 
-export default function VendorsPage() {
+/** `section` comes from the route table; see console-sections.ts. */
+export default function VendorsPage({ section = DEFAULT_VENDOR_SECTION }: {
+  section?: VendorSection;
+}) {
   const { code: entity, currency } = useActiveEntity();
-  const { section = "vendors" } = useParams();
 
   return (
     <ProcurementShell>

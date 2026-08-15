@@ -7,7 +7,7 @@ import { useCan } from "@/components/finance-ui/can";
 import { P } from "@/permissions";
 import { ProcurementShell } from "./procurement-shell";
 import type { SectionProps } from "./analytics/helpers";
-import { DEFAULT_ANALYTICS_SECTION, type AnalyticsSection } from "./analytics-sections";
+import { DEFAULT_ANALYTICS_SECTION, type AnalyticsSection } from "./console-sections";
 import ApAgingScreen from "./analytics/ap-aging";
 import GrirScreen from "./analytics/grir";
 import SpendScreen from "./analytics/spend";

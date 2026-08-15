@@ -21,7 +21,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,9 @@ import { useGetProcurementSettingsQuery, useUpdateProcurementSettingsMutation } 
 import type { ProcurementSettingsValues } from "@/redux/services/procurement/procurement-types";
 import type { FinanceAuditLog, SettingConsumer } from "@/redux/services/finance/setup-types";
 import { ProcurementShell } from "./procurement-shell";
+import {
+  DEFAULT_PROCUREMENT_SETTINGS_SECTION, type ProcurementSettingsSection,
+} from "./console-sections";
 
 const PR = routesPath.PROTECTED.PROCUREMENT;
 const F = routesPath.PROTECTED.FINANCE;
@@ -77,9 +80,12 @@ const PAYMENT_TERMS = [
   ["NET_30", "Net 30 days"], ["NET_60", "Net 60 days"], ["NET_90", "Net 90 days"],
 ] as const;
 
-export default function ProcurementSettings() {
-  const { section = "overview" } = useParams();
-  const activeSection = SECTIONS.some((item) => item.key === section) ? section : "overview";
+/** `section` comes from the route table; see console-sections.ts. */
+export default function ProcurementSettings({ section = DEFAULT_PROCUREMENT_SETTINGS_SECTION }: {
+  section?: ProcurementSettingsSection;
+}) {
+  // Only registered sections reach here, so no fallback guard is needed.
+  const activeSection = section;
   const active = useActiveEntity();
 
   return (

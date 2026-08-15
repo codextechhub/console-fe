@@ -3,7 +3,6 @@
 // sections render off the single :section route ("items" default | "movements").
 import { useEffect, useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
-import { useParams } from "react-router";
 import { toast } from "sonner";
 import {
   AlertTriangle, ArrowLeftRight, Banknote, Boxes, ChevronRight, FilePenLine, FileText,
@@ -34,6 +33,7 @@ import { isForbidden, shortDate } from "./sourcing/helpers";
 import { BalancesTable, LocationsSection } from "./stock-locations";
 import { StockLocationPicker } from "./pickers";
 import { useStockLocations } from "./use-stock-locations";
+import { DEFAULT_INVENTORY_SECTION, type InventorySection } from "./console-sections";
 
 // ── Shared small helpers ─────────────────────────────────────────────────────
 // Quantities arrive as 14,4 decimal strings ("10.0000"); show them trimmed.
@@ -67,9 +67,16 @@ const MOVEMENT_TABS = [
 ] as const;
 
 // ── Page ─────────────────────────────────────────────────────────────────────
-export default function InventoryPage() {
+/**
+ * `section` comes from the route table, not from `useParams`.
+ *
+ * Each section is registered at its own literal path so an unknown one 404s, and a
+ * literal path has no params to read.
+ */
+export default function InventoryPage({ section = DEFAULT_INVENTORY_SECTION }: {
+  section?: InventorySection;
+}) {
   const { code: entity, currency } = useActiveEntity();
-  const { section = "items" } = useParams();
 
   if (!entity) {
     return (

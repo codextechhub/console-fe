@@ -2,8 +2,10 @@ import { lazy } from "react";
 import { type RouteObject } from "react-router";
 import type { DashboardHandle } from "@/components/layout/dashboard-header";
 import { routesPath } from "@/routes/routes-path";
-// Static list, so declaring the paths does not pull in the lazy analytics chunk.
-import { ANALYTICS_SECTIONS } from "@/pages/protected/procurement/analytics-sections";
+// Static lists, so declaring the paths does not pull in the lazy page chunks.
+import {
+  ANALYTICS_SECTIONS, INVENTORY_SECTIONS, PROCUREMENT_SETTINGS_SECTIONS, VENDOR_SECTIONS,
+} from "@/pages/protected/procurement/console-sections";
 
 const ProcurementDashboard = lazy(() => import("@/pages/protected/procurement/dashboard"));
 const Vendors = lazy(() => import("@/pages/protected/procurement/vendors"));
@@ -31,7 +33,9 @@ export const procurementRoutes: RouteObject[] = [
     children: [
       { path: P.INDEX, element: <ProcurementDashboard /> },
       { path: P.VENDORS, element: <Vendors /> },
-      { path: `${P.VENDORS}/:section`, element: <Vendors /> },
+      ...VENDOR_SECTIONS.map((section) => ({
+        path: `${P.VENDORS}/${section}`, element: <Vendors section={section} />,
+      })),
       { path: P.REQUISITIONS, element: <Requisitions /> },
       { path: P.PURCHASE_ORDERS, element: <PurchaseOrders /> },
       { path: P.GOODS_RECEIPTS, element: <GoodsReceipts /> },
@@ -43,7 +47,9 @@ export const procurementRoutes: RouteObject[] = [
       { path: `${P.SOURCING}/quotations`, element: <SourcingQuotations /> },
       { path: P.CONTRACTS, element: <Contracts /> },
       { path: P.INVENTORY, element: <Inventory /> },
-      { path: `${P.INVENTORY}/:section`, element: <Inventory /> },
+      ...INVENTORY_SECTIONS.map((section) => ({
+        path: `${P.INVENTORY}/${section}`, element: <Inventory section={section} />,
+      })),
       { path: P.ANALYTICS, element: <Analytics /> },
       // One path per section that exists, rather than `:section` matching anything.
       // An analytics URL that is not one of these matches no route and falls through
@@ -53,7 +59,9 @@ export const procurementRoutes: RouteObject[] = [
         element: <Analytics section={section} />,
       })),
       { path: P.SETTINGS, element: <ProcurementSettings /> },
-      { path: `${P.SETTINGS}/:section`, element: <ProcurementSettings /> },
+      ...PROCUREMENT_SETTINGS_SECTIONS.map((section) => ({
+        path: `${P.SETTINGS}/${section}`, element: <ProcurementSettings section={section} />,
+      })),
     ],
   },
 ];
