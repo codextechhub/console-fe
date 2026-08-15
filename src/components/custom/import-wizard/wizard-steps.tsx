@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Combobox, ComboboxContent, ComboboxInput, ComboboxItem, ComboboxList, ComboboxEmpty } from "@/components/ui/combobox";
 import { cn } from "@/lib/utils";
+import { formatBytes } from "@/utils/format-bytes";
 import { toast } from "sonner";
 import {
   useGetImportTemplatesQuery,
@@ -27,15 +28,6 @@ export const unwrap = <T,>(res: { data: T } | T | undefined): T | undefined => {
   if (!res) return undefined;
   return (res as { data: T }).data ?? (res as T);
 };
-
-function formatBytes(bytes: number): string {
-  if (!bytes) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
-  let n = bytes;
-  let i = 0;
-  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
-  return `${n.toFixed(i > 0 ? 1 : 0)} ${units[i]}`;
-}
 
 export function extractUploadError(err: unknown): string | null {
   if (!err || typeof err !== "object") return null;

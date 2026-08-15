@@ -6,15 +6,6 @@ export const unwrap = <T,>(res: { data: T } | T | undefined): T | undefined => {
   return (res as { data: T }).data ?? (res as T);
 };
 
-export function formatBytes(bytes: number): string {
-  if (!bytes) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
-  let n = bytes;
-  let i = 0;
-  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
-  return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
-}
-
 export function triggerDownload(url: string, filename: string) {
   const a = document.createElement("a");
   a.href = url;

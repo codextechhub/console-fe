@@ -11,7 +11,8 @@ import { Download, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ExportFile } from "@/redux/services/dashboard/exports-types";
-import { daysUntil, formatBytes, formatDay } from "./format";
+import { formatBytes } from "@/utils/format-bytes";
+import { daysUntil, formatDay } from "./format";
 
 /** Monospace tabular figures for anything a person compares by eye. */
 const NUM = "font-geist-mono tabular-nums";

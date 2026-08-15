@@ -17,6 +17,7 @@ import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
+import { formatBytes } from "@/utils/format-bytes";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetImportBatchesQuery,
@@ -84,17 +85,6 @@ const DATASET_TYPES: DatasetType[] = ["schools", "branches"];
 type CardFilter = "all" | "inflight" | "failed" | "succeeded";
 
 const TABLE_HEADERS = ["File", "Dataset", "Template", "Status", "Rows / Cols", "Issues", "Uploaded", "Action"];
-
-// ── File size formatter ─────────────────────────────────────────────────────
-
-function formatBytes(bytes: number): string {
-  if (!bytes) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
-  let n = bytes;
-  let i = 0;
-  while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
-  return `${n.toFixed(n < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
-}
 
 // ── Main page ────────────────────────────────────────────────────────────────
 

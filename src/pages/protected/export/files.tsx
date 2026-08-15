@@ -27,7 +27,8 @@ import {
   useGetExportRunsQuery,
 } from "@/redux/services/dashboard/exports-api";
 import type { ExportRun, ExportRunStatus, RunListParams } from "@/redux/services/dashboard/exports-types";
-import { daysUntil, formatBytes, formatDay } from "./format";
+import { formatBytes } from "@/utils/format-bytes";
+import { daysUntil, formatDay } from "./format";
 import { useFileDownload } from "./use-file-download";
 
 const POLL_MS = 10_000;

@@ -24,7 +24,8 @@ import {
 } from "@/redux/services/dashboard/import-api";
 import type { ImportBatch } from "@/redux/services/dashboard/import-types";
 import { IN_FLIGHT, STATUS_BADGE, STATUS_LABEL } from "./components/batch-status";
-import { unwrap, formatBytes, triggerBlobDownload } from "./components/batch-utils";
+import { formatBytes } from "@/utils/format-bytes";
+import { unwrap, triggerBlobDownload } from "./components/batch-utils";
 import { PipelineTimeline } from "./components/pipeline-timeline";
 import { IssuesTab } from "./components/issues-tab";
 import { JobsTab } from "./components/jobs-tab";

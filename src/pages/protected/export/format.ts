@@ -1,18 +1,10 @@
-// Formatting shared by the Export Centre screens. Kept out of the component
-// files so fast refresh keeps working (a module that exports both components and
-// helpers loses it).
-
-/** Bytes as a person reads them. Deliberately coarse: nobody needs a file size
- *  to the byte, and "1.3 MB" compares better down a column than "1,363,148". */
-export function formatBytes(bytes: number): string {
-  if (!bytes) return "0 KB";
-  if (bytes < 1024) return `${bytes} B`;
-  const kb = bytes / 1024;
-  if (kb < 1024) return `${kb < 10 ? kb.toFixed(1) : Math.round(kb)} KB`;
-  const mb = kb / 1024;
-  if (mb < 1024) return `${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB`;
-  return `${(mb / 1024).toFixed(1)} GB`;
-}
+// Date and duration formatting shared by the Export Centre screens. Kept out of
+// the component files so fast refresh keeps working (a module that exports both
+// components and helpers loses it).
+//
+// formatBytes used to live here and is now `@/utils/format-bytes` - it is not
+// re-exported, deliberately: leaving a second import path for the same function
+// is what let four copies of it drift apart in the first place.
 
 export function formatDay(iso: string | null | undefined): string {
   if (!iso) return "-";

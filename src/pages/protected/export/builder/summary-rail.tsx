@@ -13,7 +13,7 @@
 
 import { cn } from "@/lib/utils";
 import type { PreviewResult } from "@/redux/services/dashboard/exports-types";
-import { formatBytes } from "../format";
+import { formatBytes } from "@/utils/format-bytes";
 import { rowsLabel } from "./helpers";
 
 const NUM = "font-geist-mono tabular-nums";

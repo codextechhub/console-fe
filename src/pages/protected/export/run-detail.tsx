@@ -39,7 +39,8 @@ import type {
 } from "@/redux/services/dashboard/exports-types";
 import { FileCard } from "./file-card";
 import { OMISSION_HEADING, omissionIsFixableInBuilder, remedyFor } from "./failure-actions";
-import { formatBytes, formatDay, formatDuration, formatStamp } from "./format";
+import { formatBytes } from "@/utils/format-bytes";
+import { formatDay, formatDuration, formatStamp } from "./format";
 import { useFileDownload } from "./use-file-download";
 import { useState } from "react";
 
