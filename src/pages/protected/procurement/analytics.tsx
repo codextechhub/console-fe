@@ -25,12 +25,25 @@ export default function AnalyticsPage() {
   const { code: entity, currency } = useActiveEntity();
   const { can } = useCan();
   const canReports = can(P.PROC_VIEW_PROC_REPORTS);
+  // `/procurement/analytics` with no section lands on the first report; a section
+  // that does not exist says so rather than quietly serving a different report,
+  // which is how the deleted stock reports kept appearing to "work" from an old
+  // bookmark. Rendered in the console rather than through the app's full-page 404,
+  // which is a top-level route carrying its own header and would stack a second
+  // one inside this layout.
   const { section = "ap-aging" } = useParams();
-  const Section = SECTIONS[section] ?? ApAgingScreen;
+  const Section = SECTIONS[section];
 
   return (
     <ProcurementShell>
-      {!entity ? (
+      {!Section ? (
+        <main className="px-4.5 py-6">
+          <EmptyState
+            title="Page not found"
+            message="This report does not exist. Pick one from the Analytics menu, or find stock figures under Inventory - Stock Items, which carries reorder status and valuation with an optional store."
+          />
+        </main>
+      ) : !entity ? (
         <main className="px-4.5 py-6">
           <EmptyState title="Select an entity" message="Choose a ledger entity to see its procurement reports." />
         </main>

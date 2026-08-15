@@ -7,7 +7,7 @@ import { useParams } from "react-router";
 import { toast } from "sonner";
 import {
   AlertTriangle, ArrowLeftRight, Banknote, Boxes, ChevronRight, FilePenLine, FileText,
-  History, PackageMinus, PackageX, Plus, Search, SlidersHorizontal,
+  History, MapPin, PackageMinus, PackageX, Plus, Search, SlidersHorizontal,
 } from "lucide-react";
 
 import { ProcurementShell } from "./procurement-shell";
@@ -153,16 +153,21 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
 
         <section className="min-w-0 rounded-md bg-white">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4 py-2">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
               <label className="flex cursor-pointer items-center gap-2 font-mont text-xs font-medium text-gray-01">
                 <input type="checkbox" checked={needsReorder} onChange={(e) => { setNeedsReorder(e.target.checked); setPage(1); }} /> Needs reorder
               </label>
               {/* Hidden entirely below two active stores, like every other location
                   control - a single-store school never learns the concept exists. */}
               {multi ? (
-                <label className="flex items-center gap-2 font-mont text-xs font-medium text-gray-01">
-                  Store
+                <label className="flex items-center gap-1.5 font-mont text-xs font-medium text-gray-01">
+                  {/* The pin carries the meaning; the options all name stores, so the
+                      word "Store" beside them only repeated itself. Kept as an
+                      accessible name so the control is still announced. */}
+                  <MapPin className="size-3.5 shrink-0 text-gray-05" aria-hidden="true" />
+                  <span className="sr-only">Store</span>
                   <select
+                    aria-label="Store"
                     value={store}
                     onChange={(e) => { setStore(e.target.value); setPage(1); }}
                     className="h-8 rounded-md border border-gray-03 bg-white px-2 font-mont text-xs text-gray-01"
@@ -173,7 +178,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
                 </label>
               ) : null}
             </div>
-            <label className="relative min-w-0 flex-1 sm:max-w-64"><Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-05" /><Input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search code or name" className="h-9 bg-white pl-9" /></label>
+            <label className="relative w-full min-w-0 sm:w-auto sm:flex-1 sm:max-w-64"><Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-05" /><Input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search code or name" className="h-9 bg-white pl-9" /></label>
           </div>
           <DataTable columns={columns} rows={rows} rowKey={(i) => i.id} loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch} onRowClick={(i) => setSelectedId(i.id)} page={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={setPage} emptyTitle="No stock items" emptyMessage={debounced || needsReorder || store ? "Try a different search or filter." : "Register a stock item to track its on-hand quantity and value."} />
         </section>
