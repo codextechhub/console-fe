@@ -26,6 +26,7 @@ export const routesPath = {
     NOTIFICATION_TEMPLATE: (id: string) => `/notifications/admin/templates/${id}`,
     NOTIFICATION_TEMPLATE_NEW: "/notifications/admin/templates/new",
     SETTINGS: { INDEX: "/settings" },
+    DOCUMENTS: { INDEX: "/documents" },
     SUPPORT: {
       INDEX: "/support",
       TICKETS: "/support/tickets",

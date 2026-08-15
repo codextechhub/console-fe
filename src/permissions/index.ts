@@ -111,6 +111,12 @@ const REGISTRY: Record<string, string> = {
   "101301": "platform.team_overrides.view",
   "101308": "platform.team_overrides.manage",
 
+  // ── platform / requirements document library  (MM=10, RR=14) ───────────────
+  // CX-internal product specs (the MRD and the per-module FRDs). The backend
+  // additionally requires the caller's home tenant to be the platform one, so
+  // this key on a school-tenant role grants nothing.
+  "101401": "platform.documents.view",
+
   // ── communication / global notifications  (MM=40) ────────────────────────
   "400108": "communication.notification_templates.configure",
   "400208": "communication.communication_permissions.enforce",
@@ -555,6 +561,9 @@ export const P = {
   // keys (school.user_overrides.*) belong to school-fe, not this console.
   VIEW_PERMISSION_EXCEPTIONS:   "101301",  // see a user's permission exceptions
   MANAGE_PERMISSION_EXCEPTIONS: "101308",  // add or lift a permission exception
+
+  // ── Requirements library ───────────────────────────────────────────────────
+  VIEW_REQUIREMENTS_DOCS: "101401",  // browse and download the MRD / module FRDs
 
   // ── Notifications administration ──────────────────────────────────────────
   CONFIGURE_NOTIFICATION_TEMPLATES: "400108",

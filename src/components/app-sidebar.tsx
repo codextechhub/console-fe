@@ -15,7 +15,7 @@ import {
   PermissionsIcon,
   DataImportsIcon,
 } from "@/assets/navbar-svg";
-import { Bell, ClipboardCheck, FileOutput, Headset, HeartPulse, Landmark, Network, Settings, Shield, ShoppingCart, Workflow } from "lucide-react";
+import { Bell, ClipboardCheck, FileOutput, Headset, HeartPulse, Landmark, Library, Network, Settings, Shield, ShoppingCart, Workflow } from "lucide-react";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routes-path";
 import { Link, useLocation } from "react-router";
@@ -534,6 +534,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         P.VIEW_SECURITY_SETTINGS,
         P.VIEW_INTEGRATION_SETTINGS,
       ] as PermissionCode[],
+      permissionMode: "any" as const,
+    },
+    {
+      // The requirements library. A leaf, not a group: it is one screen, and the
+      // per-document version history lives in its drawer rather than in the nav.
+      // Gated on the key alone is enough here - the backend additionally refuses
+      // any caller whose home tenant is not the platform one, so a school-tenant
+      // role carrying this key still gets a 403 rather than a broken screen.
+      title: "Documents",
+      url: R.DOCUMENTS.INDEX,
+      icon: Library,
+      isActive: location.startsWith(R.DOCUMENTS.INDEX),
+      childActive: false,
+      permission: P.VIEW_REQUIREMENTS_DOCS,
       permissionMode: "any" as const,
     },
     {

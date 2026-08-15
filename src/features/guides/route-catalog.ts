@@ -152,6 +152,7 @@ export const GUIDE_ROUTE_PATTERNS = [
   R.SUPPORT.GUIDES,
   R.SUPPORT.GUIDE_DETAIL_PATH,
   R.SUPPORT.GUIDE_ALIAS,
+  R.DOCUMENTS.INDEX,
 ] as const;
 
 export type GuideRoutePattern = (typeof GUIDE_ROUTE_PATTERNS)[number];

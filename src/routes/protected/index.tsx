@@ -37,6 +37,7 @@ const Support = lazy(() => import("@/pages/protected/support"));
 const TicketDetail = lazy(() => import("@/pages/protected/support/detail"));
 const HowToGuides = lazy(() => import("@/pages/protected/support/guides"));
 const GuideArticle = lazy(() => import("@/pages/protected/support/guide-article"));
+const Documents = lazy(() => import("@/pages/protected/documents"));
 
 export const protectedRoutes = [
   {
@@ -65,6 +66,7 @@ export const protectedRoutes = [
       { path: routesPath.PROTECTED.SUPPORT.GUIDES, element: <HowToGuides />, handle: { title: "How-to Guides" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL_PATH, element: <GuideArticle />, handle: { title: "How-to Guides" } satisfies DashboardHandle },
       { path: routesPath.PROTECTED.SUPPORT.GUIDE_ALIAS, element: <Navigate replace to={routesPath.PROTECTED.SUPPORT.GUIDES} />, handle: { title: "How-to Guides" } satisfies DashboardHandle },
+      { path: routesPath.PROTECTED.DOCUMENTS.INDEX, element: <Documents />, handle: { title: "Documents" } satisfies DashboardHandle },
       ...overviewRoutes,
       ...schoolRoutes,
       ...teamMgtRoutes,

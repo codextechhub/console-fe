@@ -104,6 +104,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-settings", label: "View settings", aliases: ["configuration"], console: "Main", group: "Settings", kind: "view", gate: { any: [P.VIEW_CONFIG_VALUES, P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CAPABILITIES, P.VIEW_ENTITLEMENTS, P.VIEW_CONFIG_OVERRIDES, P.VIEW_CONFIG_AUDIT] }, run: { to: R.SETTINGS.INDEX } },
   { id: "view-support", label: "View support", aliases: ["support tickets", "help"], console: "Main", group: "Support", kind: "view", gate: null, run: { to: R.SUPPORT.INDEX } },
   { id: "raise-support-ticket", label: "Raise support ticket", aliases: ["new ticket", "contact support"], console: "Main", group: "Support", kind: "do", gate: null, run: { to: R.SUPPORT.NEW } },
+  { id: "view-requirements-documents", label: "View requirements documents", aliases: ["mrd", "frd", "requirements", "product specs", "documents"], console: "Main", group: "Support", kind: "view", gate: { perm: P.VIEW_REQUIREMENTS_DOCS }, run: { to: R.DOCUMENTS.INDEX } },
 
   // ── Finance · Ledger & Setup ─────────────────────────────────────────────
   { id: "view-finance-dashboard", label: "View finance dashboard", aliases: ["finance"], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { module: ["finance.", "payments."] }, run: { to: F.INDEX } },

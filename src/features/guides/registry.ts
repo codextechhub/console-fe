@@ -8,6 +8,7 @@ const R = routesPath.PROTECTED;
 const REVIEWED_AT = "2026-08-13";
 const C4_REVIEWED_AT = "2026-08-14";
 const C5_REVIEWED_AT = "2026-08-14";
+const DOCS_REVIEWED_AT = "2026-08-15";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -616,6 +617,40 @@ export const GUIDE_REGISTRY = [
     reviewedAt: REVIEWED_AT,
     risk: "medium",
     status: "draft",
+  },
+  {
+    id: "platform.requirements-library",
+    slug: "find-and-download-requirements-documents",
+    title: "Find and download requirements documents",
+    summary: "Browse the MRD and the module FRDs, download the current version, and pull up an earlier revision.",
+    category: "platform-health-and-settings",
+    tags: ["documents", "requirements", "MRD", "FRD", "specifications"],
+    aliases: [
+      "requirements document", "module requirements", "functional requirements",
+      "product specs", "where are the docs", "download FRD", "MRD",
+    ],
+    audiences: ["platform-administrator", "support-and-operations"],
+    routes: [R.DOCUMENTS.INDEX],
+    actionIds: ["view-requirements-documents"],
+    access: { mode: "any", permissions: [P.VIEW_REQUIREMENTS_DOCS] },
+    primaryRoute: R.DOCUMENTS.INDEX,
+    sections: [
+      { id: "before-you-start", title: "Before you start" },
+      { id: "find-a-document", title: "Find a document" },
+      { id: "download-a-document", title: "Download a document" },
+      { id: "read-an-earlier-version", title: "Read an earlier version" },
+      { id: "common-problems", title: "Common problems" },
+      { id: "completion-check", title: "Completion check" },
+    ],
+    relatedGuideIds: ["troubleshooting.permission-denied"],
+    estimatedMinutes: 3,
+    owner: OWNER,
+    reviewedAt: DOCS_REVIEWED_AT,
+    // Read-only: the screen browses and downloads, and writes nothing. No
+    // walkthrough - there is no consequential action to guide anyone through.
+    risk: "low",
+    status: "published",
+    article: () => import("./content/platform-health-and-settings/requirements-library"),
   },
   {
     id: "troubleshooting.permission-denied",

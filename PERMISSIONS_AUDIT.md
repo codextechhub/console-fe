@@ -49,6 +49,7 @@ Parent items are hidden if the user lacks the listed permission. Sub-items inher
 | Support | - | _(none - always visible)_ | anyone authenticated may file a ticket (backend keeps creation keyless; ticket visibility is participant/school-scoped server-side). Staff actions gate per-control on the detail page (see §2) |
 | Health | Command Center / Uptime / API & Endpoints / Jobs & Queues / Incidents & Alerts / Tenant Health / SLOs | `P.VIEW_HEALTH` | the seven vs_health screens are spread in only for holders of this key. Backend enforces `platform.health.view` on every read and `platform.health.manage` on writes (method-based) |
 | Health | Provider Webhooks | `P.PAY_VIEW_UNATTRIBUTED_WEBHOOKS` | spread in separately - a payments-operations key, not a health one. The group itself is `permissionMode: "any"` over both keys, so either key alone reveals the group with only the children it covers |
+| Documents | - | `P.VIEW_REQUIREMENTS_DOCS` | the requirements library (MRD + module FRDs), added 2026-08-15. A leaf, not a group - version history lives in the row drawer. **Gated twice on the backend, and both gates are load-bearing:** `platform.documents.view` *and* `IsPlatformActor` (`vs_admin_console/permissions.py`), because `HasRBACPermission` matches the key string against roles on the caller's own tenant without checking which tenant that is. The content is global CX-internal product documentation rather than tenant-scoped rows, so the usual "a school actor sees no rows anyway" backstop does not apply - a school-tenant role carrying this key would otherwise have read it. See §2 Documents |
 
 > The Workflow parent group is always visible (permission `null`) because Approvals/Submissions/Delegations are open to every authenticated user. Admin-only children (All Instances, Team Load, Templates) are spread in by their own permission check.
 
@@ -666,6 +667,20 @@ Three tabs (2026-07-11 plain-language redesign): System Settings (GitHub-style r
 | View audit history | drawer | `P.VIEW_TICKET_AUDIT` |
 
 > Comment/attachment posting renders ungated (participants always may); the backend enforces `tickets.comment.post` / `tickets.attachment.create` for non-participants.
+
+---
+
+### Documents (`src/pages/protected/documents/`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Library list, KPIs, search, version-history drawer | page | `P.VIEW_REQUIREMENTS_DOCS` (`platform.documents.view`, 101401, NORMAL, on `GET /admin/documents/`) - renders `PageAccessDenied` without it |
+| Download (row) and per-version Download (drawer) | buttons | `P.VIEW_REQUIREMENTS_DOCS` - the same key gates the bytes (`GET /admin/documents/<slug>/download/`), not only the list |
+| Action palette `view-requirements-documents` | action | `P.VIEW_REQUIREMENTS_DOCS` |
+
+> **The key alone is not the boundary.** Both endpoints also require `IsPlatformActor` (`vs_admin_console/permissions.py`), which reads the caller's **home** tenant kind, never the asserted `?tenant=`. This is necessary because `HasRBACPermission` matches a permission *string* against roles on the caller's own tenant without checking which tenant that is - `vs_rbac/views.py` already reckons with "a school role that somehow carried a platform key". For most `platform.*` endpoints the gap is covered downstream, since the rows returned are tenant-scoped; it is **not** covered here, because the library serves global CX-internal product specs that describe every customer's system. `vs_admin_console/tests_documents.py` pins both the missing-key case and the school-tenant-with-the-key case.
+
+> Read-only surface: there are no create/update/delete endpoints. Documents are generated artefacts committed to the backend repo and served from the deployed working tree, so publishing a new one is a commit, not an upload.
 
 ---
 
