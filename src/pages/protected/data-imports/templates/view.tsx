@@ -7,7 +7,6 @@ import PageAccessDenied from "@/components/custom/page-access-denied";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetImportTemplateQuery,
@@ -54,11 +53,12 @@ async function triggerDownload(
 export default function ViewTemplate() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
-  const user = useAppSelector((s) => s.auth.user);
-  const isCxStaff = user?.user_type === "CX_STAFF";
   const { id } = useParams<{ id: string }>();
   const templateId = Number(id);
   const canView = hasPermission(P.VIEW_IMPORT_TEMPLATES);
+  // Was `user.user_type === "CX_STAFF"`, a field the API never returns, so it
+  // was always false and these affordances never appeared. RBAC owns this.
+  const canManageTemplates = hasPermission(P.MANAGE_IMPORT_TEMPLATES);
   const [downloadTemplate, downloadState] = useDownloadImportTemplateMutation();
 
   const { data, isLoading, isError, refetch } = useGetImportTemplateQuery(templateId, {
@@ -132,7 +132,7 @@ export default function ViewTemplate() {
             <Button variant="white" size="sm" onClick={() => refetch()}>
               <RefreshCw className="size-3.5" /> Refresh
             </Button>
-            {isCxStaff && (
+            {canManageTemplates && (
               <PermissionGate permission={P.MANAGE_IMPORT_TEMPLATES}>
                 <Button
                   size="sm"

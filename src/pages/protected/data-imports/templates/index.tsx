@@ -14,7 +14,6 @@ import PermissionGate from "@/components/custom/permission-gate";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useAppSelector } from "@/redux/store";
 import { useDebounce } from "react-haiku";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -69,8 +68,6 @@ type CardFilter = "all" | TemplateStatus;
 
 export default function ImportTemplatesList() {
   const navigate = useNavigate();
-  const user = useAppSelector((s) => s.auth.user);
-  const isCxStaff = user?.user_type === "CX_STAFF";
   const { hasPermission } = usePermissions();
   const [downloadTemplate] = useDownloadImportTemplateMutation();
 
@@ -81,6 +78,9 @@ export default function ImportTemplatesList() {
   const [page, setPage] = useState(1);
 
   const canView = hasPermission(P.VIEW_IMPORT_TEMPLATES);
+  // Was `user.user_type === "CX_STAFF"`, a field the API never returns, so it
+  // was always false and these affordances never appeared. RBAC owns this.
+  const canManageTemplates = hasPermission(P.MANAGE_IMPORT_TEMPLATES);
 
   const params = useMemo(() => {
     const p: Record<string, string | number> = { page, page_size: 100 };
@@ -119,7 +119,7 @@ export default function ImportTemplatesList() {
     retired: allTemplates.filter((t) => t.status === "retired").length,
   }), [allTemplates]);
 
-  const cards: { title: string; value: number; key: CardFilter; hint?: string }[] = isCxStaff
+  const cards: { title: string; value: number; key: CardFilter; hint?: string }[] = canManageTemplates
     ? [
         { title: "Total Templates", value: stats.total, key: "all", hint: "All lifecycles" },
         { title: "Active", value: stats.active, key: "active", hint: "Available for use" },
@@ -175,7 +175,7 @@ export default function ImportTemplatesList() {
           <div>
             <p className="font-semibold font-mont text-gray-01">Import Templates</p>
             <p className="text-xs text-gray-01 mt-0.5">
-              {isCxStaff
+              {canManageTemplates
                 ? "System-level templates defining column structure and validation for each dataset."
                 : "Available templates you can download and use for data uploads."}
             </p>
@@ -195,14 +195,14 @@ export default function ImportTemplatesList() {
         {/* Stat cards */}
         <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
           {cards.map((card, i) => {
-            const isClickable = isCxStaff && card.key !== "all";
-            const isActive = isCxStaff && cardFilter === card.key && card.key !== "all";
+            const isClickable = canManageTemplates && card.key !== "all";
+            const isActive = canManageTemplates && cardFilter === card.key && card.key !== "all";
             return (
               <button
                 type="button"
                 key={`${card.title}_${i}`}
-                onClick={() => isCxStaff && setCardFilter(cardFilter === card.key ? "all" : card.key)}
-                disabled={!isClickable && card.key === "all" && !isCxStaff}
+                onClick={() => canManageTemplates && setCardFilter(cardFilter === card.key ? "all" : card.key)}
+                disabled={!isClickable && card.key === "all" && !canManageTemplates}
                 className={cn(
                   "bg-white rounded-md text-left p-4 transition-colors border border-transparent",
                   isClickable && "cursor-pointer hover:border-primary/30",
@@ -273,7 +273,7 @@ export default function ImportTemplatesList() {
             <p className="text-xs text-gray-01">
               {debouncedSearch || cardFilter !== "all" || datasetFilter
                 ? "Try adjusting your filters."
-                : isCxStaff
+                : canManageTemplates
                   ? "Create the first system import template."
                   : "No templates are available for download yet."}
             </p>
@@ -297,7 +297,7 @@ export default function ImportTemplatesList() {
                     navigate(routesPath.PROTECTED.DATA_IMPORTS.TEMPLATES.VIEW(tpl.id)),
                 },
               ];
-              if (isCxStaff && hasPermission(P.MANAGE_IMPORT_TEMPLATES)) {
+              if (canManageTemplates && hasPermission(P.MANAGE_IMPORT_TEMPLATES)) {
                 items.push({
                   label: "Edit Template",
                   className: "",

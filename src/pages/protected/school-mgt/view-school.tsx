@@ -128,7 +128,14 @@ export default function ViewSchool() {
       ? { kind: "school", id: slug, label: school.name, to: routesPath.PROTECTED.SCHOOL_MGT.VIEW(slug) }
       : null,
   );
-  const isForbidden = isError && typeof error === "object" && error !== null && "status" in error && error.status === 403;
+  const status = isError && typeof error === "object" && error !== null && "status" in error
+    ? error.status : null;
+  const isForbidden = status === 403;
+  // A slug that resolves to nothing is not a failure to load - it is an address
+  // for a school that is not there, and "Try Again" would never succeed. The
+  // endpoint used to 500 on this, so the difference was invisible until it was
+  // fixed to 404 properly.
+  const isMissing = status === 404;
 
   const setTab = (tab: "overview" | "branches") => {
     setSearchParams((previous) => {
@@ -196,8 +203,20 @@ export default function ViewSchool() {
 
         {!isLoading && isError && (
           <div className="grid min-h-52 place-content-center rounded-xl bg-white p-6 text-center">
-            <p className="text-sm font-medium text-red-500">{isForbidden ? "You do not have permission to view this school." : "Failed to load school details."}</p>
-            {!isForbidden && <Button variant="outline" className="mt-4" onClick={() => refetch()}>Try Again</Button>}
+            <p className="text-sm font-medium text-red-500">
+              {isForbidden
+                ? "You do not have permission to view this school."
+                : isMissing
+                  ? "There is no school at this address. It may have been removed, or the link may be wrong."
+                  : "Failed to load school details."}
+            </p>
+            {isMissing ? (
+              <Button variant="outline" className="mt-4" onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.INDEX)}>
+                Back to schools
+              </Button>
+            ) : !isForbidden ? (
+              <Button variant="outline" className="mt-4" onClick={() => refetch()}>Try Again</Button>
+            ) : null}
           </div>
         )}
 

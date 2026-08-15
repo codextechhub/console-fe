@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/combobox";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useAppSelector } from "@/redux/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routes-path";
@@ -81,8 +80,6 @@ const unwrap = <T,>(res: { data: T } | T | undefined): T | undefined => {
 export default function EditTemplate() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
-  const user = useAppSelector((s) => s.auth.user);
-  const isCxStaff = user?.user_type === "CX_STAFF";
   const { id } = useParams<{ id: string }>();
   const templateId = Number(id);
 
@@ -90,7 +87,7 @@ export default function EditTemplate() {
 
   const { data: raw, isLoading: fetching, isError: fetchError } = useGetImportTemplateQuery(
     templateId,
-    { skip: !templateId || isNaN(templateId) || !canEdit || !isCxStaff },
+    { skip: !templateId || isNaN(templateId) || !canEdit },
   );
   const template = unwrap<ImportTemplate>(raw);
 
@@ -143,15 +140,16 @@ export default function EditTemplate() {
     setInitialized(true);
   }
 
-  if (!isCxStaff || !canEdit) {
+  // Gated on the permission the endpoint itself enforces. This used to also
+  // require `user.user_type === "CX_STAFF"`, a field the API does not return -
+  // so the check was `undefined === "CX_STAFF"` and denied everybody. The model
+  // calls user_type an inert marker that must never drive authorization; RBAC is
+  // where that decision belongs, and it is the one the server actually makes.
+  if (!canEdit) {
     return (
       <PageAccessDenied
         onBack={back}
-        message={
-          !isCxStaff
-            ? "Only CX staff can edit import templates."
-            : "You don't have permission to edit import templates."
-        }
+        message="You don't have permission to edit import templates."
       />
     );
   }

@@ -193,7 +193,14 @@ export default function TemplateBuilder() {
   // Organogram seats are Codex's own org chart, and that endpoint is CX-staff
   // only by design - a school admin can never resolve one, so offering the
   // source at all would be offering something that cannot work for them.
-  const canUseOrganogram = self?.user_type === "CX_STAFF";
+  // An organogram-sourced stage resolves its approver from the reporting line, and
+  // building one needs the positions list. So the gate is "can this person read the
+  // organogram", which is the permission that read is enforced on.
+  //
+  // Was `self.user_type === "CX_STAFF"` - a field the API does not return, so it
+  // was always false and ORGANOGRAM never appeared in the picker for anyone. The
+  // model calls user_type an inert marker that must never drive authorization.
+  const canUseOrganogram = hasPermission(P.VIEW_ORGANOGRAM);
 
   const {
     data: existing, isLoading: isLoadingExisting, isError: existingFailed,
