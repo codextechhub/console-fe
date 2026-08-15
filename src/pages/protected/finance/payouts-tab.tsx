@@ -1,7 +1,7 @@
 // Payouts - money out via the payment gateway, rebuilt to the Vision prototype in the
 // house theme: KPIs (settled 7d / pending / failed / count), status + provider filters,
 // a payouts table, a detail drawer with a status timeline and the settlement posting,
-// a New-payout drawer (vendor OR free-form), and a CSV export.
+// a New-payout drawer (vendor OR free-form), and a server-side export.
 //
 // Backed by the real model: initiate asks the provider to transfer out (PROCESSING); the
 // ledger entry books on confirmation (webhook / PSP), never here. A payout settles a
@@ -13,9 +13,10 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { Plus, Download, Layers, Banknote } from "lucide-react";
+import { Plus, Layers, Banknote } from "lucide-react";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, VendorPicker, AccountPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -30,7 +31,6 @@ import type { PayoutInstruction } from "@/redux/services/payments/payments-types
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 const MASK = "••••";
 
 // payout status → prototype group (Pending / Settled / Failed)
@@ -119,7 +119,15 @@ export function PayoutsTab({ entity, currency }: { entity: string; currency?: st
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={() => navigate(`${routesPath.PROTECTED.FINANCE.PAYMENTS}/batches`)} className="gap-1.5"><Layers className="size-4" /> Bulk disbursement</Button>
-          <Button variant="outline" onClick={() => exportCsv(rows, currency)} disabled={!rows.length} className="gap-1.5"><Download className="size-4" /> Export</Button>
+          {/* Replaces a client-side CSV of `rows` - the current page only. The
+              screen's status GROUP expands to its real statuses server-side. */}
+          <QuickExportButton
+            screen="payments.payouts"
+            params={{ group, provider }}
+            entity={entity}
+            typeface="geist"
+            defaultName="Payout instructions"
+          />
           <Can permission={P.PAY_CREATE_PAYOUT}>
             <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New payout</Button>
           </Can>
@@ -289,18 +297,3 @@ function NewPayoutDrawer({ open, onClose, entity, currency }: { open: boolean; o
   );
 }
 
-function exportCsv(rows: PayoutInstruction[], currency?: string | null) {
-  const head = ["Reference", "Created", "Recipient", "Account", "Provider", "Amount", "Status"];
-  const esc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
-  const body = rows.map((p) => [
-    p.reference, fmtDate(p.created_at), beneficiary(p), account(p),
-    (PROVIDERS[p.provider]?.label ?? p.provider), formatMoney(p.amount, currency),
-    (GROUP[STATUS_GROUP[p.status] ?? "PENDING"].label),
-  ].map(esc).join(","));
-  const csv = [head.map(esc).join(","), ...body].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = `payouts-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click(); URL.revokeObjectURL(url);
-}

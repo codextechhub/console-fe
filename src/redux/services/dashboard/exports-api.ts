@@ -25,7 +25,9 @@ import type {
   ExportRunDetail,
   FilterSpec,
   PreviewResult,
+  QuickExportBody,
   RunListParams,
+  ScreenExportPlan,
   ValuesMode,
 } from "./exports-types";
 
@@ -149,6 +151,57 @@ export const exportsApi = baseApi.injectEndpoints({
       invalidatesTags: ["ExportRuns", "ExportDefinitions"],
     }),
 
+    // ── Quick export from a list screen ──────────────────────────────────────
+    // Two calls, deliberately. `from-screen` translates the screen's own query
+    // params into dataset filters and hands back a runnable config plus an
+    // estimate; `quick` runs it. The FE never maps a filter itself - only the
+    // module that owns the screen knows what `?bucket=overdue` means, so the
+    // translation stays server-side and the drawer only reports the outcome.
+    //
+    // A query, not a mutation: it is a GET, it is idempotent, and the drawer
+    // wants it cached per (screen, params) so reopening the drawer on unchanged
+    // filters does not re-estimate.
+    getScreenExportPlan: builder.query<
+      ExportItemResponse<ScreenExportPlan>,
+      {
+        screen: string;
+        params?: Record<string, string | number | boolean | undefined>;
+        /** Required for entity-scoped datasets; the view resolves scope before
+         *  it can estimate, so omitting it is a 400, not an empty result. */
+        entity?: string;
+      }
+    >({
+      query: ({ screen, params, entity }) => {
+        // Empty values are dropped rather than sent: the backend treats any
+        // param it does not recognise as `unmapped`, so forwarding `status=""`
+        // would raise a "we could not carry this filter" warning about a filter
+        // the user never set.
+        const clean: Record<string, string | number> = { screen };
+        for (const [key, value] of Object.entries(params ?? {})) {
+          if (value !== undefined && value !== null && value !== "") {
+            clean[key] = typeof value === "boolean" ? String(value) : value;
+          }
+        }
+        // Set last so a screen can never shadow it with a filter of its own.
+        if (entity) clean.entity = entity;
+        return { url: `/exports/from-screen/${generateQueryString(clean)}`, method: "GET" };
+      },
+      providesTags: ["ExportCatalogue"],
+    }),
+
+    // 201 = a new run; 200 = an identical run is already in flight and this IS
+    // that run - the concurrency notice, not an error. Same contract as
+    // runExportDefinition, and the same reason for the client key.
+    runQuickExport: builder.mutation<ExportItemResponse<ExportRunDetail>, QuickExportBody>({
+      query: ({ entity, ...body }) => ({
+        url: `/exports/quick/${generateQueryString(entity ? { entity } : {})}`,
+        method: "POST",
+        body,
+      }),
+      // No definition is created, so only the runs list changes.
+      invalidatesTags: ["ExportRuns"],
+    }),
+
     // The Files list. One row per RUN, because a run that produced no file is
     // still something the user needs to see and act on.
     getExportRuns: builder.query<ExportListResponse<ExportRun>, RunListParams | void>({
@@ -228,6 +281,8 @@ export const {
   useDuplicateExportDefinitionMutation,
   useRunExportDefinitionMutation,
   useGetExportCapabilitiesQuery,
+  useGetScreenExportPlanQuery,
+  useRunQuickExportMutation,
   useGetExportRunsQuery,
   useGetExportRunQuery,
   useCancelExportRunMutation,

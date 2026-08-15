@@ -28,7 +28,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routes-path";
-import { apiErrorMessage } from "@/utils/api-errors";
+import { apiErrorMessage, errorStatus } from "@/utils/api-errors";
 import {
   useArchiveExportDefinitionMutation,
   useDuplicateExportDefinitionMutation,
@@ -102,7 +102,7 @@ export default function SavedExportsPage() {
   const hasFilters = !!(module || owner || debouncedSearch.trim());
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const forbidden = (error as any)?.status === 403;
+  const forbidden = errorStatus(error) === 403;
   if (!canView) return <PageAccessDenied />;
 
   const onRun = async (row: ExportDefinitionListItem) => {

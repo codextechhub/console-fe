@@ -26,7 +26,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routes-path";
-import { apiErrorMessage } from "@/utils/api-errors";
+import { apiErrorMessage, errorStatus } from "@/utils/api-errors";
 import {
   useCancelExportRunMutation,
   useGetExportDownloadLogQuery,
@@ -132,7 +132,7 @@ export default function ExportRunDetailPage() {
   const { save, busyId } = useFileDownload();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const status = (error as any)?.status;
+  const status = errorStatus(error);
   if (!canView || status === 403) return <PageAccessDenied />;
 
   const onCancel = async () => {
@@ -304,7 +304,7 @@ export default function ExportRunDetailPage() {
             </Section>
           </div>
 
-          {run.deliveries.length > 0 && (
+          {!!run.deliveries?.length && (
             <Section title="Deliveries">
               <div className="space-y-2.5">
                 {run.deliveries.map((d) => (

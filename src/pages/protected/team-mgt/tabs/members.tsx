@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Plus, RefreshCw, SlidersHorizontal } from "lucide-react";
-import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
@@ -172,7 +172,7 @@ export default function MembersTab({
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="font-semibold font-mont text-gray-01">
           {isDrafts ? "Draft users" : "User Information"}
         </p>
@@ -242,13 +242,16 @@ export default function MembersTab({
               </span>
             )}
           </Button>
-          <Button
-            variant={"white"}
-            size="lg"
-            className="[&_svg]:size-5 font-medium font-mont"
-          >
-            {svgIcons.exportIcon} Export
-          </Button>
+          {/* Was a Button with no onClick - visible, enabled and inert.
+              `params` carries page/ordering too; from-screen ignores those by
+              contract (COMMON_SCREEN_PARAMS), so forwarding it whole ties the
+              export to the exact query this table ran. */}
+          <QuickExportButton
+            screen="admin.users"
+            params={params}
+            defaultName={isDrafts ? "Draft users" : "Users"}
+            className="h-11 px-6 [&_svg]:size-5"
+          />
         </div>
       </div>
 

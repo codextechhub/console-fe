@@ -1,6 +1,49 @@
 ## Undone (Ask questions for clarity where needed)
 
-3. Backend brief 2026-08-14 - **CLOSED.** All nine items done on our side, and both
+1. Two of the three remaining tables from the quick-export work are now done
+   (2026-08-15): **Expense claims** got a real `finance.expense_claims` dataset +
+   binding, and the **Transactions Log** now exports whichever direction is
+   selected. **Settlement** turned out not to be the page-only defect at all -
+   its endpoint returns the whole snapshot unpaginated, so its old CSV was
+   complete; it gained server-rendered csv/xlsx/pdf (`?export=&view=`) for parity
+   with the other finance reports rather than a dataset, which it cannot have
+   (a computed reconciliation is not a queryset).
+
+2. **Fixed in passing (2026-08-15), worth knowing about:** every finance report
+   export button - Trial Balance, Income Statement, Balance Sheet, Cash Flow,
+   Changes in Equity, Cost & Dimension Analysis, 18 buttons in all - had been
+   returning a 400 and silently toasting "Export failed". `downloadReportExport`
+   is a raw fetch, so it never got the `?tenant=` that RTK Query's baseQuery
+   stamps on every other request. Confirmed in the browser before and after. The
+   fix is in the one helper they all share. Anything else that downloads via raw
+   fetch rather than the API layer needs the same treatment.
+
+3. Three of the five removed "Export" buttons are now real (2026-08-15):
+   **Invites** needed no dataset at all (an invite is a user row awaiting
+   activation, so the existing `admin.users` binding covers it) and
+   **School Management** got a new `platform.schools` dataset. Still without an
+   export, by decision rather than oversight: **Roles**, **Permissions** and
+   **Permission groups** - these are configuration, not records, so they belong
+   in the config snapshot export (`config.export.create`) if anywhere.
+
+   `platform.schools` carries a documented exception worth re-reading before
+   anyone touches school permissions: its base queryset is `School.objects.all()`,
+   NOT tenant-fenced, so the `platform.schools.view` key is the only boundary.
+   That mirrors the existing SchoolListView and was chosen deliberately so the
+   file matches the screen. Keep that key a platform-actor grant.
+
+4. **Flaky backend test, not ours (seen 2026-08-15).** `manage.py test vs_exports
+   vs_schools vs_user --parallel 4` intermittently reports ~15 errors in
+   `vs_user.tests.UserBranchAssignment/UserBranchTenantGuard`, all
+   `NotificationEventType.DoesNotExist` raised from `finalize_invitation` ->
+   notification dispatch. It is a seeding/sharding race: those tests need the
+   notification event types seeded, and under some parallel shard splits they run
+   without them. Proven unrelated to the export work by an A/B (registration
+   disabled vs enabled gave identical clean runs), and the same command passed on
+   re-run with 315 tests. Worth fixing at source - the invitation path should not
+   depend on seed data being present, or the test should seed it.
+
+5. Backend brief 2026-08-14 - **CLOSED.** All nine items done on our side, and both
    findings we raised back are now fixed on the backend too (`8966ff2`): the reorder
    report reports the store you asked about, and publishing an adjustment ladder now
    registers and grants the submit key that ladder makes load-bearing. The reply doc

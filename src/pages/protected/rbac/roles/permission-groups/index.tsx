@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { cn } from "@/lib/utils";
-import { svgIcons } from "@/assets/svg";
 import { routesPath } from "@/routes/routes-path";
 import { useGetPermissionGroupsQuery, useDeletePermissionGroupMutation } from "@/redux/services/dashboard/rbac-api";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -135,9 +134,6 @@ export default function PermissionGroupsList() {
               disabled={isFetching}
             >
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
-            </Button>
-            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
-              {svgIcons.exportIcon} Export
             </Button>
           </div>
         </div>

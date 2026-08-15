@@ -5,6 +5,7 @@ import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
@@ -81,12 +82,20 @@ export default function AllInstances() {
   return (
     <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
-        <div>
-          <p className="font-semibold font-mont text-gray-01">Workflow Instances</p>
-          <p className="text-xs text-gray-01 mt-0.5">
-            Every approval workflow running across the platform. Open one to monitor, cancel, or
-            reverse a recorded vote.
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="font-semibold font-mont text-gray-01">Workflow Instances</p>
+            <p className="text-xs text-gray-01 mt-0.5">
+              Every approval workflow running across the platform. Open one to monitor, cancel, or
+              reverse a recorded vote.
+            </p>
+          </div>
+          <QuickExportButton
+            screen="workflow.instances"
+            params={{ status, document_type: debouncedDocType }}
+            defaultName="Approval requests"
+            className="h-11 px-6"
+          />
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

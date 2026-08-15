@@ -28,6 +28,22 @@ export function humanizeApiMessage(message: string): string {
   return DJANGO_NOT_FOUND.test(message.trim()) ? NOT_FOUND_MESSAGE : message;
 }
 
+/**
+ * The HTTP status on an RTK Query error, or null when there isn't one.
+ *
+ * RTK Query's error union is `FetchBaseQueryError | SerializedError`, and only
+ * the first carries `status` - which is why screens kept reaching for
+ * `(error as any)?.status`. That cast also silently accepts the fetch-level
+ * string statuses ("FETCH_ERROR", "PARSING_ERROR"), so `=== 403` on a network
+ * failure is a comparison that can never be true but reads as though it could.
+ * This narrows to a real number instead.
+ */
+export function errorStatus(error: unknown): number | null {
+  if (typeof error !== "object" || error === null) return null;
+  const status = (error as { status?: unknown }).status;
+  return typeof status === "number" ? status : null;
+}
+
 export function apiErrorMessage(
   error: unknown,
   fallback = "Something went wrong. Please try again.",

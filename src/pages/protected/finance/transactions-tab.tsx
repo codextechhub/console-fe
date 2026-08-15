@@ -5,9 +5,9 @@
 // shows the movement's detail. Payout beneficiary name/account are FLS-masked server-side.
 
 import { useMemo, useState, type ReactNode } from "react";
-import { Download, ArrowDownLeft, ArrowUpRight, Receipt, Banknote } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Receipt, Banknote } from "lucide-react";
 import { DataTable, Money, KpiCard, DetailDrawer, toArray, type Column } from "@/components/finance-ui";
-import { Button } from "@/components/ui/button";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
@@ -16,7 +16,6 @@ import type { Movement } from "@/redux/services/payments/payments-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 
 const PROVIDERS: Record<string, { label: string; dot: string }> = {
   PAYSTACK: { label: "Paystack", dot: "bg-blue-500" },
@@ -112,7 +111,26 @@ export function TransactionsTab({ entity, currency }: { entity: string; currency
           <Select value={group} onChange={setGroup} className="w-36"><option value="">All status</option>{STATUS_GROUPS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select>
           <Select value={provider} onChange={setProvider} className="w-40"><option value="">All providers</option>{Object.entries(PROVIDERS).map(([v, p]) => <option key={v} value={v}>{p.label}</option>)}</Select>
         </div>
-        <Button variant="outline" onClick={() => exportCsv(rows, currency)} disabled={!rows.length} className="gap-1.5"><Download className="size-4" /> Export</Button>
+        {/* This screen is a MERGE of two datasets, and one file cannot hold
+            both: a collection has a payer and a provider reference, a payout has
+            a beneficiary and a batch. So the export follows the direction filter
+            and exports the side being viewed. With "All directions" chosen there
+            is no single honest answer, so the button says what to do rather than
+            guessing or quietly exporting half the feed.
+
+            Replaces a client-side CSV of `rows` - the current page only. */}
+        <QuickExportButton
+          screen={direction === "out" ? "payments.payouts" : "payments.collections"}
+          params={{ group, provider }}
+          entity={entity}
+          typeface="geist"
+          defaultName={direction === "out" ? "Payout instructions" : "Gateway collections"}
+          disabledReason={
+            direction
+              ? undefined
+              : "Choose In or Out first - money in and money out export as different files."
+          }
+        />
       </div>
 
       <DataTable columns={columns} rows={rows} rowKey={(m) => `${m.kind}-${m.gateway_id}`} onRowClick={(m) => setPicked(m)}
@@ -182,18 +200,3 @@ function MovementDrawer({ move, currency, onClose }: { move: Movement | null; cu
   );
 }
 
-function exportCsv(rows: Movement[], currency?: string | null) {
-  const head = ["Reference", "Date", "Direction", "Party", "Provider", "Amount", "Status"];
-  const esc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
-  const body = rows.map((m) => [
-    m.reference, fmtDate(m.created_at), m.direction === "in" ? "In" : "Out", m.party,
-    PROVIDERS[m.provider]?.label ?? m.provider, formatMoney(m.amount, currency),
-    STATUS_PILL[m.status]?.label ?? m.status,
-  ].map(esc).join(","));
-  const csv = [head.map(esc).join(","), ...body].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click(); URL.revokeObjectURL(url);
-}

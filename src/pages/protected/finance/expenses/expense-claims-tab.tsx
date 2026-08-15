@@ -13,13 +13,14 @@ import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import {
-  Plus, Search, Trash2, Download, Check, X, Printer, Wallet, Paperclip, UploadCloud, CircleDashed, CircleCheck, Ban,
+  Plus, Search, Trash2, Check, X, Printer, Wallet, Paperclip, UploadCloud, CircleDashed, CircleCheck, Ban,
 } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField, ConfirmActionModal,
   AccountPicker, TaxCodePicker, CostCenterPicker, BankAccountPicker, toArray, type Column,
   PostingDateField,} from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -90,15 +91,6 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
   const summaryQ = useGetExpenseClaimSummaryQuery({ entity });
   const kpis = summaryQ.data?.data ?? { open: 0, month_total: 0, avg: 0, awaiting: 0 };
 
-  const exportCsv = () => {
-    const head = ["Claim no", "Claimant", "Date", "Purpose", "Total (naira)", "Status"];
-    const lines = rows.map((c) => [c.document_number, c.claimant_name, c.claim_date, (c.title || "").replace(/,/g, " "), (c.total / 100).toFixed(2), disp(c).label]);
-    const csv = [head, ...lines].map((r) => r.join(",")).join("\n");
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    a.download = `expense-claims-${entity}.csv`; a.click(); URL.revokeObjectURL(a.href);
-  };
-
   const columns: Column<ExpenseClaim>[] = [
     { header: "Claim no.", cell: (c) => <span className="font-semibold tabular-nums">{c.document_number}</span> },
     { header: "Claimant", cell: (c) => <span className="inline-flex items-center gap-2"><Initials name={c.claimant_name || "-"} /><span className="font-medium text-gray-01">{c.claimant_name || "-"}</span></span> },
@@ -129,7 +121,16 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
           </select>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={exportCsv} className="gap-1.5"><Download className="size-4" /> Export</Button>
+          {/* Replaces a client-side CSV of `rows` - the current page only. The
+              screen's display status collapses (status x payment_status); the
+              binding expands it the same way the list endpoint does. */}
+          <QuickExportButton
+            screen="finance.expense_claims"
+            params={{ display_status: status, q: search }}
+            entity={entity}
+            typeface="geist"
+            defaultName="Expense claims"
+          />
           <Can permission={P.FIN_CREATE_EXPENSE_CLAIM}>
             <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New claim</Button>
           </Can>

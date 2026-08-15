@@ -12,6 +12,7 @@ import {
   FormField, LoadingState, StatCard, StatusPill, TaxCodePicker, toArray, type Column,
 } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -110,7 +111,25 @@ export function VendorsTab({ entity, currency }: { entity: string; currency?: st
         <h1 className="font-mont text-lg font-semibold text-gray-01">Vendors</h1>
         <p className="mt-0.5 font-mont text-xs text-gray-05">Vendors, categories and the item catalog.</p>
       </div>
-      <Can permission={P.PROC_CREATE_VENDOR}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> Add Vendor</Button></Can>
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Forwards the SAME derived params the list query uses, so the file
+            matches the tab that is open - the status tab expands to is_active
+            and on_hold, and both cross into the export. */}
+        <QuickExportButton
+          screen="procurement.vendors"
+          params={{
+            q: debouncedSearch,
+            ...(status === "active" ? { is_active: true, on_hold: false } : {}),
+            ...(status === "hold" ? { on_hold: true } : {}),
+            ...(status === "inactive" ? { is_active: false } : {}),
+            kyc_status: kyc,
+          }}
+          entity={entity}
+          typeface="geist"
+          defaultName="Vendor master"
+        />
+        <Can permission={P.PROC_CREATE_VENDOR}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> Add Vendor</Button></Can>
+      </div>
     </header>
 
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

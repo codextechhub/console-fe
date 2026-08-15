@@ -15,6 +15,7 @@ import {
   FormField, InfoHint, LoadingState, StatCard, StatusPill, toArray, useActiveEntity, useCan, type Column,
 } from "@/components/finance-ui";
 import { Button } from "@/components/ui/button";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -133,7 +134,16 @@ export default function PurchaseOrdersPage() {
             <div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Purchase Orders</h1><InfoHint ariaLabel="About purchase orders">Approved orders issued to vendors. Receipt and invoice progress are calculated from the real linked documents.</InfoHint></div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Track supplier commitments, delivery progress, and approval status.</p>
           </div>
-          <Can permission={P.PROC_CREATE_PURCHASE_ORDER}><Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New Purchase Order</Button></Can>
+          <div className="flex flex-wrap items-center gap-2">
+            <QuickExportButton
+              screen="procurement.purchase_orders"
+              params={{ status, search: debouncedSearch }}
+              entity={entity}
+              typeface="geist"
+              defaultName="Purchase orders"
+            />
+            <Can permission={P.PROC_CREATE_PURCHASE_ORDER}><Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New Purchase Order</Button></Can>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

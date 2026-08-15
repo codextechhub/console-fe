@@ -1,8 +1,8 @@
-import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -168,12 +168,15 @@ export default function SchoolManagement() {
             >
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
             </Button>
-            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont" disabled>
-              {svgIcons.filterIcon} Filter
-            </Button>
-            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont" disabled>
-              {svgIcons.exportIcon} Export
-            </Button>
+            {/* Forwards the same params the list query ran, so the file matches
+                the status tab that is open. This export covers every school on
+                the platform - the same register the screen shows. */}
+            <QuickExportButton
+              screen="platform.schools"
+              params={queryParams}
+              defaultName="Schools"
+              className="h-11 px-6 [&_svg]:size-5"
+            />
           </div>
         </div>
 

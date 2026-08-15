@@ -29,6 +29,7 @@ import {
 import type { ExportRun, ExportRunStatus, RunListParams } from "@/redux/services/dashboard/exports-types";
 import { formatBytes } from "@/utils/format-bytes";
 import { daysUntil, formatDay } from "./format";
+import { errorStatus } from "@/utils/api-errors";
 import { useFileDownload } from "./use-file-download";
 
 const POLL_MS = 10_000;
@@ -142,7 +143,7 @@ export default function ExportFilesPage() {
   ).length;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const forbidden = (error as any)?.status === 403;
+  const forbidden = errorStatus(error) === 403;
   if (!canView) return <PageAccessDenied />;
 
   const columns: Column<ExportRun>[] = [

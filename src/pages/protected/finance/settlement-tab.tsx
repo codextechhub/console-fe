@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { useGetSettlementReconciliationQuery } from "@/redux/services/payments/payments-api";
+import { downloadReportExport } from "@/utils/finance-export";
 import type { SettlementRow, UnmatchedBankLine } from "@/redux/services/payments/payments-types";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 
@@ -126,7 +127,27 @@ export function SettlementTab({ entity, currency }: { entity: string; currency?:
             <option value="">All providers</option>
             {Object.entries(PROVIDERS).map(([v, p]) => <option key={v} value={v}>{p.label}</option>)}
           </Select>
-          <Button variant="outline" onClick={() => exportCsv(tab, matched, unsettled, unmatched, currency)} className="gap-1.5"><Download className="size-4" /> Export</Button>
+          {/* Server-rendered, matching every other finance report - the same
+              three views the tabs show, in csv / xlsx / pdf rather than the
+              browser-built CSV this replaces. (This screen's old CSV was at
+              least complete: the endpoint returns the whole snapshot unpaginated,
+              unlike the list screens whose CSVs only held the current page.) */}
+          <div className="inline-flex items-center gap-1.5">
+            {(["csv", "xlsx", "pdf"] as const).map((f) => (
+              <Button
+                key={f}
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => downloadReportExport(
+                  "/payments/reports/settlement-reconciliation/",
+                  { entity, view: tab, ...(provider ? { provider } : {}) },
+                  f,
+                )}
+              >
+                <Download className="size-4" /> {f.toUpperCase()}
+              </Button>
+            ))}
+          </div>
           <Button variant="outline" disabled={isFetching} onClick={() => refetch()} className="gap-1.5"><RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Re-run match</Button>
         </div>
       </div>
@@ -238,29 +259,3 @@ function ProvidersLabel(p: string) {
   return PROVIDERS[p]?.label ?? p ?? "-";
 }
 
-function exportCsv(tab: Tab, matched: SettlementRow[], unsettled: SettlementRow[], unmatched: UnmatchedBankLine[], currency?: string | null) {
-  const esc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
-  let head: string[]; let body: string[];
-  if (tab === "unmatched") {
-    head = ["Date", "Description", "Reference", "Amount"];
-    body = unmatched.map((b) => [fmtDate(b.txn_date), b.description, b.reference, formatMoney(b.amount, currency)].map(esc).join(","));
-  } else {
-    const rows = tab === "matched" ? matched : unsettled;
-    head = tab === "matched"
-      ? ["Date", "Type", "Provider", "Reference", "Gross", "Fees", "Net settled", "Settlement ref", "Match basis"]
-      : ["Date", "Type", "Provider", "Reference", "Gross", "Status"];
-    body = rows.map((r) => {
-      const base = [fmtDate(r.confirmed_at), r.kind === "COLLECTION" ? "Collection" : "Payout", PROVIDERS[r.provider]?.label ?? r.provider, r.reference, formatMoney(Math.abs(r.amount), currency)];
-      const extra = tab === "matched"
-        ? [formatMoney(r.fee_amount, currency), formatMoney(Math.abs(r.settled_amount ?? r.amount), currency), r.settlement_reference, r.match_basis ? `By ${r.match_basis}` : ""]
-        : ["Awaiting bank"];
-      return [...base, ...extra].map(esc).join(",");
-    });
-  }
-  const csv = [head.map(esc).join(","), ...body].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = `settlement-${tab}-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click(); URL.revokeObjectURL(url);
-}

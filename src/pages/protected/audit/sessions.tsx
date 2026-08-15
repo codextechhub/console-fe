@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import {
-  RefreshCw, Download, LogOut, ExternalLink, GitBranch,
+  RefreshCw, LogOut, ExternalLink, GitBranch,
   AlertTriangle, EllipsisVertical, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -203,9 +204,21 @@ export default function LiveSessions() {
             <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
               <RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Refresh
             </Button>
-            <Button variant="white" size="lg">
-              <Download className="size-4" /> Export CSV
-            </Button>
+            {/* Was a button with no onClick at all - visible, enabled, inert.
+                Now the real server-side export, carrying this screen's filters. */}
+            <QuickExportButton
+              screen="admin.sign_ins"
+              params={{
+                search: querySearch,
+                ...(scope === "active" ? { is_active: "true" } : {}),
+                ...(scope === "ended_today" ? { is_active: "false", ended_today: "true" } : {}),
+                school: schoolFilter,
+                end_reason: endReasonFilter,
+              }}
+              defaultName="Sign-in sessions"
+              label="Export"
+              className="h-11 px-6"
+            />
           </div>
         </div>
 

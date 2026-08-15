@@ -120,7 +120,13 @@ export interface ExportRunDetail extends ExportRun {
     fields: string[];
     changes: { field: string; label: string; then: string; now: string }[];
   };
-  deliveries: ExportDelivery[];
+  /** Absent today. Delivery (recipients, secure links, revocation) is slice 4 and
+   *  is NOT built, so `ExportRunDetailSerializer` does not send this field at
+   *  all - it was typed as required, which is why the run-detail screen crashed
+   *  on `run.deliveries.length` for every run. Optional until the endpoint
+   *  actually returns it; a type that promises a field the server never sends is
+   *  worse than no type. */
+  deliveries?: ExportDelivery[];
 }
 
 /** One download attempt - allowed and refused alike. */
@@ -244,6 +250,75 @@ export interface PreviewResult {
   sample: { headers: string[]; rows: string[][] };
   /** One sentence a person can check without knowing the schema. */
   reads_as: string;
+}
+
+// ── Export from a list screen (vs_exports FromScreenView) ────────────────────
+// "Export what this table is showing." The screen forwards its own filter
+// params; the module that owns the screen translates them into dataset filters.
+// The FE never maps filters itself - it only reports what came back.
+
+/** One screen filter that could NOT be carried into the export.
+ *  Its presence means the file will be WIDER than the table on screen, which is
+ *  the one outcome the drawer must never let pass silently. */
+export interface UnmappedScreenFilter {
+  param: string;
+  value: string;
+  reason: string;
+}
+
+/** A filter the export needed that the screen did not supply - in practice the
+ *  required date window. Makes the file NARROWER than the screen, which is safe
+ *  but still worth showing. */
+export interface AddedScreenFilter {
+  id: string;
+  label: string;
+  reason: string;
+}
+
+/** The configuration `from-screen` prepared, ready to hand straight to /quick/. */
+export interface ScreenExportConfig {
+  dataset_key: string;
+  columns: string[];
+  filters: FilterSpec[];
+  sort: { field: string; direction: "asc" | "desc" }[];
+  format: ExportFormat;
+  values_mode: ValuesMode;
+}
+
+/** `from-screen` response: the config, the honesty about it, and an estimate.
+ *  Extends PreviewResult because the view spreads the same `estimate()` figures
+ *  and sample into its payload. */
+export interface ScreenExportPlan extends PreviewResult {
+  screen: { key: string; label: string; dataset: string; default_window_days: number };
+  config: ScreenExportConfig;
+  /** The dataset's own list, not the FE's assumption about it. */
+  supported_formats: ExportFormat[];
+  /** Every column this caller may pick, already filtered by the sensitive-field
+   *  gate - so the picker never offers one that would be dropped from the file. */
+  fields: DatasetField[];
+  /** Screen params that WERE expressed as export filters. */
+  carried: string[];
+  unmapped: UnmappedScreenFilter[];
+  added: AddedScreenFilter[];
+  /** True only when nothing was dropped: the file will match the table. */
+  exact: boolean;
+  /** Server-authored sentence, present only when `exact` is false. */
+  warning: string | null;
+}
+
+/** Body for POST /exports/quick/ - the config, plus a name and idempotency key.
+ *  Nothing is saved: there is no definition behind the run it creates. */
+export interface QuickExportBody extends ScreenExportConfig {
+  name?: string;
+  format_options?: Record<string, unknown>;
+  client_key?: string;
+  /** Required for entity-scoped datasets, ignored for tenant-scoped ones. */
+  entity?: string;
+  /** Produce the file inline instead of queueing it. The server honours this
+   *  only when its OWN estimate is small enough, and silently queues instead
+   *  when it is not - so the caller must read the returned run rather than
+   *  assume a file came back. */
+  sync?: boolean;
 }
 
 // ── Definitions ───────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 // Collections - money in via the payment gateway, rebuilt to the Vision prototype in
 // the house theme: KPIs (collected / pending / failed / success rate), status + provider
 // filters, a checkouts table, a detail drawer with a status timeline and the settlement
-// posting (Dr bank/collections, Cr AR), a New-checkout drawer, and a CSV export.
+// posting (Dr bank/collections, Cr AR), a New-checkout drawer, and a server-side export.
 //
 // Backed by the real model: initiate returns a hosted checkout_url; verify polls the PSP
 // and books a vs_finance receipt when settled. Honest: providers are Paystack (+
@@ -16,9 +16,10 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
-import { Plus, Download, RefreshCw, Link2, Receipt } from "lucide-react";
+import { Plus, RefreshCw, Link2, Receipt } from "lucide-react";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CustomerPicker, PostingRecap, KpiCard, toArray, type Column, type RecapRow } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -31,7 +32,6 @@ import type { Collection } from "@/redux/services/payments/payments-types";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 
 // filing-style status → prototype group (Pending / Paid / Failed / Refunded)
 const STATUS_GROUP: Record<string, "PENDING" | "PAID" | "FAILED" | "REFUNDED"> = {
@@ -118,8 +118,15 @@ export function CollectionsTab({ entity, currency }: { entity: string; currency?
             {Object.entries(PROVIDERS).map(([v, p]) => <option key={v} value={v}>{p.label}</option>)}
           </Select>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => exportCsv(rows, currency)} disabled={!rows.length} className="gap-1.5"><Download className="size-4" /> Export</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Replaces a client-side CSV of `rows` - the current page only. */}
+          <QuickExportButton
+            screen="payments.collections"
+            params={{ group, provider }}
+            entity={entity}
+            typeface="geist"
+            defaultName="Gateway collections"
+          />
           <Can permission={P.PAY_CREATE_COLLECTION}>
             <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New checkout</Button>
           </Can>
@@ -308,18 +315,3 @@ function NewCheckoutDrawer({ open, onClose, entity, currency }: { open: boolean;
   );
 }
 
-function exportCsv(rows: Collection[], currency?: string | null) {
-  const head = ["Reference", "Created", "Customer", "Narration", "Provider", "Amount", "Status"];
-  const esc = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
-  const body = rows.map((c) => [
-    c.reference, fmtDate(c.created_at), customerLabel(c), c.narration || "",
-    (PROVIDERS[c.provider]?.label ?? c.provider), formatMoney(c.amount, currency),
-    (GROUP[STATUS_GROUP[c.status] ?? "PENDING"].label),
-  ].map(esc).join(","));
-  const csv = [head.map(esc).join(","), ...body].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = `collections-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click(); URL.revokeObjectURL(url);
-}

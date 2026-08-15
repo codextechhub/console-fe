@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
 import type { BackgroundJob, JobStatus, QueueParams } from "@/redux/services/dashboard/queue-types";
 import { useGetMyTasksQuery, useGetMyTasksSummaryQuery } from "@/redux/services/dashboard/queue-api";
+import { errorStatus } from "@/utils/api-errors";
 import { displayStatus, exportOutcome } from "./job-outcome";
 
 const POLL_MS = 10_000;
@@ -167,7 +168,7 @@ export default function QueuesPage() {
   // Render-time state adjustment (guarded: `scope` derives from forceHideAll,
   // so flipping it makes this condition false and it cannot loop).
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (scope === "all" && listError && (listErr as any)?.status === 403) {
+  if (scope === "all" && listError && errorStatus(listErr) === 403) {
     setForceHideAll(true);
   }
 

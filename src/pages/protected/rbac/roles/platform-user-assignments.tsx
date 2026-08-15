@@ -3,6 +3,7 @@ import { useNow } from "@/hooks/use-now";
 import { ArrowRightLeft, Plus, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -543,11 +544,19 @@ export default function PlatformUserAssignments() {
             <p className="font-semibold font-mont text-gray-01">Platform User Role Assignments</p>
             <p className="text-xs text-gray-01 mt-0.5">Assign platform roles to CX staff. Revocations require a written justification.</p>
           </div>
-          <PermissionGate permission={P.ASSIGN_ROLE}>
-            <Button size="lg" onClick={() => setAssignOpen(true)}>
-              <Plus /> Assign Role
-            </Button>
-          </PermissionGate>
+          <div className="flex flex-wrap items-center gap-2">
+            <QuickExportButton
+              screen="admin.role_assignments"
+              params={{ search: debouncedSearch, assignment_status: statusFilter, role: roleFilter }}
+              defaultName="Role assignments"
+              className="h-11 px-6"
+            />
+            <PermissionGate permission={P.ASSIGN_ROLE}>
+              <Button size="lg" onClick={() => setAssignOpen(true)}>
+                <Plus /> Assign Role
+              </Button>
+            </PermissionGate>
+          </div>
         </div>
 
         <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">

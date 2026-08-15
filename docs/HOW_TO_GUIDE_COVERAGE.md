@@ -245,3 +245,53 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - New template stages currently default empty-approver auto-skip on. The guide and
   walkthrough call this out and require the author to switch it off unless approved
   policy explicitly permits skipping the stage.
+
+## Quick export from a list screen (2026-08-15)
+
+- New user-visible workflow: an **Export** button on fifteen list screens opens a
+  drawer that sends that screen's own filters to a background export. Registered as
+  `data.quick-export` (`export-what-a-table-is-showing`), category
+  `data-imports-and-exports`, access `exports.catalogue.view` **and**
+  `exports.run.create`. The article is **published** (`quick-export.tsx`) - the
+  first written article in this category.
+- Screens covered: Finance (Invoices, Customers, Receipts, General ledger,
+  Expense claims), Payments (Collections, Payouts, Transactions Log),
+  Procurement (Purchase orders, Vendors, Vendor invoices, Requisitions), Support
+  (Tickets), Administration (Users, Role assignments, Sign-in sessions), Workflow
+  (Approval requests).
+- **Transactions Log** is a merge of two datasets, so its export follows the
+  screen's direction filter: In exports collections, Out exports payouts, and
+  with neither chosen the button is disabled with a reason. One file cannot hold
+  both - a collection has a payer and a provider reference, a payout has a
+  beneficiary and a batch.
+- **Settlement** has no dataset and cannot have one: it is a computed
+  reconciliation, not a queryset. It gained server-rendered csv/xlsx/pdf via
+  `?export=&view=` on `payments/reports/settlement-reconciliation/` instead,
+  matching the finance reports. The article's "no Export button here" answer
+  covers it.
+- Audit → Events is deliberately **not** covered by this guide. It keeps its own
+  "Export filtered" flow into the audit export builder (`config.audit.export`),
+  which is a compliance artifact with its own retention and review path; pointing
+  readers at a quick export there would be wrong advice.
+- The guidance a reader most needs is the **honesty contract**: the drawer reports
+  which of the screen's filters were carried, which the export added (a required
+  date window, making the file narrower), and which could not be carried at all -
+  in which case the file is *wider* than the table, the warning names each dropped
+  filter, and the run button reads "Run anyway". Two known cases are unavoidable
+  and must be documented rather than fixed: Customers filtered to Overdue or In
+  credit (both computed from live AR balances, not stored), and Sign-in sessions
+  filtered by school or ended-today.
+- General ledger carries a second caveat: the screen lists one row per journal
+  **entry**, the export produces one row per **line**, so the row count in the
+  drawer legitimately exceeds what is on screen.
+
+### No walkthrough - recorded reason
+
+No interactive walkthrough is provided, and one would not help. The workflow is a
+single drawer with two inputs (name, format) and one action; there is no ordering
+to teach, no branch, and no destructive step. The one thing a reader must
+understand - the widening warning - is already stated in place, in full sentences,
+at the point of decision. A walkthrough would also have to highlight a control
+that lives on fifteen different screens rather than one route, so its stable
+`data-guide` target would be the drawer it cannot open without first choosing a
+screen. Revisit if quick export gains column selection or scheduling.

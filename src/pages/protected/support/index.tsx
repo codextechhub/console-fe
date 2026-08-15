@@ -3,7 +3,7 @@
 // live on the detail page. Built on the house kit: KpiCard, CustomTable
 // (phone cards + pagination), Dialog, Badge.
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { BookOpenText, Plus } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import KpiCard from "@/components/custom/kpi-card";
 import { Button } from "@/components/ui/button";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import {
   Dialog,
   DialogContent,
@@ -61,12 +62,15 @@ export default function Support() {
   };
 
   const debouncedQ = useDebounce(q, 400);
-  const list = useGetTicketsQuery({
-    page,
+  // One object, two consumers: the list query and the quick export. Building the
+  // export's params separately is how the two drift and the file stops matching
+  // the table - `state=active` in particular is three statuses, not one.
+  const ticketFilters = useMemo(() => ({
     q: debouncedQ,
     ...(status === "ACTIVE" ? { state: "active" } : status ? { status } : {}),
     ...(assignee ? { assignee } : {}),
-  });
+  }), [debouncedQ, status, assignee]);
+  const list = useGetTicketsQuery({ page, ...ticketFilters });
 
   const d = dash.data?.data;
   const tableData = (list.data?.data ?? []).map((t) => ({
@@ -110,6 +114,12 @@ export default function Support() {
             <Button asChild size="lg" variant="outline" className="flex-1 sm:flex-none">
               <Link to={routesPath.PROTECTED.SUPPORT.GUIDES}><BookOpenText /> How-to guides</Link>
             </Button>
+            <QuickExportButton
+              screen="support.tickets"
+              params={ticketFilters}
+              defaultName="Support tickets"
+              className="h-11 flex-1 px-6 sm:flex-none"
+            />
             <Button size="lg" onClick={() => setCreating(true)} className="flex-1 sm:flex-none">
               <Plus /> Create Ticket
             </Button>

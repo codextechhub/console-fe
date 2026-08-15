@@ -1,8 +1,8 @@
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import type { VariantProps } from "class-variance-authority";
 import { Button } from "@/components/ui/button";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Plus, RefreshCw, SlidersHorizontal } from "lucide-react";
-import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
@@ -186,13 +186,15 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
               </span>
             )}
           </Button>
-          <Button
-            variant={"white"}
-            size="lg"
-            className="[&_svg]:size-5 font-medium font-mont"
-          >
-            {svgIcons.exportIcon} Export
-          </Button>
+          {/* An invite IS a user row awaiting activation - this tab is the same
+              endpoint as Members with status=PENDING - so it needs no dataset of
+              its own; `params` already carries that status into the export. */}
+          <QuickExportButton
+            screen="admin.users"
+            params={params}
+            defaultName="Invites"
+            className="h-11 px-6 [&_svg]:size-5"
+          />
         </div>
       </div>
 

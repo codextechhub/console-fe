@@ -17,6 +17,7 @@ import {
   MoneyInput, StatCard, StatusPill, toArray, useActiveEntity, type Column,
 } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -159,9 +160,18 @@ export default function RequisitionsPage() {
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Create, track, and approve internal purchase requests.</p>
           </div>
-          <Can permission={P.PROC_CREATE_REQUISITION}>
-            <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New Requisition</Button>
-          </Can>
+          <div className="flex flex-wrap items-center gap-2">
+            <QuickExportButton
+              screen="procurement.requisitions"
+              params={{ status, search: debouncedSearch }}
+              entity={entity}
+              typeface="geist"
+              defaultName="Purchase requisitions"
+            />
+            <Can permission={P.PROC_CREATE_REQUISITION}>
+              <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New Requisition</Button>
+            </Can>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

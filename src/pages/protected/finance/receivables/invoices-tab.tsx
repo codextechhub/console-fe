@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Search, ArrowUp, ArrowDown, Layers, Plus } from "lucide-react";
 import { DataTable, Money, ConfirmActionModal, InfoHint, toArray, kpiValueClass, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -136,6 +137,15 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
           <p className="mt-0.5 font-mont text-xs text-gray-05">Accounts receivable for the selected entity.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {/* Sends the SCREEN's own params, not export filter ids - the backend
+              binding is what knows that `bucket=overdue` is a due-date window. */}
+          <QuickExportButton
+            screen="finance.invoices"
+            params={{ bucket, search }}
+            entity={entity}
+            typeface="geist"
+            defaultName="Customer invoices"
+          />
           <Can permission={P.FIN_GENERATE_FEE_STRUCTURE}>
             <Button variant="outline" onClick={() => setBatchOpen(true)} className="gap-1.5">
               <Layers className="size-4" /> Batch generate

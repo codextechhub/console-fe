@@ -5,10 +5,11 @@
 // click allocation drawer.
 import { useMemo, useState } from "react";
 import { useActionParam } from "@/hooks/use-action-param";
-import { Search, Plus, Download, Printer } from "lucide-react";
+import { Search, Plus, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable, toArray, type Column } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -78,16 +79,6 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
   const pg = data?.pagination;
   const sum = summaryRes?.data;
   const counts = sum?.status_counts ?? {};
-
-  const exportCsv = () => {
-    const head = ["Receipt", "Date", "Customer", "Method", "Amount (kobo)", "Unallocated (kobo)", "Refunded (kobo)", "Status"];
-    const lines = rows.map((p) => [p.document_number, p.payment_date, p.customer_name, methodLabel(p.method), String(p.amount), String(p.credit_remaining), String(p.refunded_amount), STATUS_LABEL[p.allocation_status]]
-      .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","));
-    const blob = new Blob([[head.join(","), ...lines].join("\n")], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `receipts-${entity}.csv`; a.click();
-    URL.revokeObjectURL(url);
-  };
 
   const openReceipt = async (id: number) => {
     try {
@@ -161,8 +152,17 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
           <option value="">All methods</option>
           {METHODS.map((m) => <option key={m} value={m}>{methodLabel(m)}</option>)}
         </select>
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="outline" onClick={exportCsv} disabled={!rows.length} className="gap-1.5"><Download className="size-4" /> Export</Button>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {/* Was a client-side CSV of `rows`, which is the CURRENT PAGE - 25 of
+              however many the filters match, in a file called "receipts". The
+              server-side export applies the same filters to the whole set. */}
+          <QuickExportButton
+            screen="finance.receipts"
+            params={{ search, status, method }}
+            entity={entity}
+            typeface="geist"
+            defaultName="Customer receipts"
+          />
           <Can permission={P.FIN_RECORD_PAYMENT}>
             <Button onClick={() => setNewOpen(true)} className="gap-1.5"><Plus className="size-4" /> Record receipt</Button>
           </Can>

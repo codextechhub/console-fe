@@ -1,9 +1,16 @@
 // Authenticated file download for the finance report ?export= endpoints. The
 // API is bearer-authenticated, so a plain <a href> can't carry the token - we
 // fetch the attachment with the Authorization header and save the blob.
+//
+// This is a raw fetch, so it sits OUTSIDE RTK Query and gets none of what
+// `baseQuery` adds for free. That is the whole reason for the tenant handling
+// below: these endpoints require `?tenant=`, baseApi stamps it on every request
+// it makes, and a hand-rolled fetch that forgets it gets a 400 every time.
 
 import Cookies from "js-cookie";
 import { toast } from "sonner";
+
+import { getTenantSlug } from "@/utils/tenant-context";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -20,6 +27,13 @@ export async function downloadReportExport(
   const search = new URLSearchParams({ export: format });
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") search.set(k, String(v));
+  }
+  // Never re-stamp a request that already asserts a tenant of its own.
+  // getTenantSlug also resolves to the IMPERSONATION target when a session is
+  // active, which reading auth.tenant.slug directly would get wrong.
+  if (!search.has("tenant")) {
+    const slug = getTenantSlug();
+    if (slug) search.set("tenant", slug);
   }
   try {
     const res = await fetch(`${baseUrl}${path}?${search.toString()}`, {

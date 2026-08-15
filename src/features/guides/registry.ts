@@ -567,6 +567,47 @@ export const GUIDE_REGISTRY = [
     status: "draft",
   },
   {
+    id: "data.quick-export",
+    slug: "export-what-a-table-is-showing",
+    title: "Export what a table is showing",
+    summary:
+      "Use the Export button on a list screen to send that table's own filters to a background export, and read the warning when the file would be wider than the table.",
+    category: "data-imports-and-exports",
+    tags: ["export", "download", "csv", "excel", "filters"],
+    aliases: [
+      "export this table", "export filtered list", "download this list",
+      "export to excel", "export to csv", "quick export",
+    ],
+    audiences: [
+      "platform-administrator", "finance-officer", "procurement-officer",
+      "support-and-operations",
+    ],
+    // The drawer has no route of its own - it opens over whichever list screen
+    // started it. The routes here are where the RESULT lands, which is what a
+    // reader looking for their file actually needs.
+    routes: [R.EXPORT.FILES, R.EXPORT.QUEUES, R.EXPORT.NEW],
+    primaryRoute: R.EXPORT.FILES,
+    actionIds: ["view-export-queues"],
+    access: { mode: "all", permissions: [P.VIEW_EXPORT_CATALOGUE, P.RUN_EXPORT] },
+    sections: [
+      { id: "before-you-start", title: "Before you start" },
+      { id: "export-a-table", title: "Export what a table is showing" },
+      { id: "when-the-file-is-wider", title: "When the file holds more than the table" },
+      { id: "dates-and-row-counts", title: "Date windows and row counts" },
+      { id: "find-your-file", title: "Find and download your file" },
+      { id: "common-problems", title: "Common problems" },
+      { id: "completion-check", title: "Completion check" },
+    ],
+    article: () => import("./content/data-imports-and-exports/quick-export"),
+    owner: OWNER,
+    reviewedAt: DOCS_REVIEWED_AT,
+    // Read-only: it produces a file, posts nothing. Medium rather than low
+    // because an export can carry personal data out of the building, and
+    // because the "wider than the table" case has to be understood, not skipped.
+    risk: "medium",
+    status: "published",
+  },
+  {
     id: "audit.investigate-event",
     slug: "investigate-an-audit-event",
     title: "Investigate an audit event",

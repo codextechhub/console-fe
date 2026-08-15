@@ -1,9 +1,19 @@
 import Cookies from "js-cookie";
 
+import { getTenantSlug } from "@/utils/tenant-context";
+
 const baseUrl = import.meta.env.VITE_BACKEND_URL || "";
 
 function buildUrl(path: string, params: Record<string, string | number | undefined>) {
-  const query = Object.entries(params)
+  // These are raw fetches, outside RTK Query, so nothing stamps the `?tenant=`
+  // that baseQuery adds to every request it makes - and the finance endpoints
+  // require it. Same fix as @/utils/finance-export; see the note there.
+  const withTenant: Record<string, string | number | undefined> = { ...params };
+  if (withTenant.tenant == null || withTenant.tenant === "") {
+    const slug = getTenantSlug();
+    if (slug) withTenant.tenant = slug;
+  }
+  const query = Object.entries(withTenant)
     .filter(([, value]) => value !== undefined && value !== "")
     .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
     .join("&");

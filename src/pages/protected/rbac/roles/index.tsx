@@ -9,7 +9,6 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
-import { svgIcons } from "@/assets/svg";
 import { routesPath } from "@/routes/routes-path";
 import { useGetPlatformRolesQuery, useDeletePlatformRoleMutation } from "@/redux/services/dashboard/rbac-api";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -143,9 +142,6 @@ export default function RolesList() {
               disabled={isFetching}
             >
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
-            </Button>
-            <Button variant="white" size="lg" className="[&_svg]:size-5 font-medium font-mont">
-              {svgIcons.exportIcon} Export
             </Button>
           </div>
         </div>

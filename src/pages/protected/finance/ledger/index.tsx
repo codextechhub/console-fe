@@ -9,6 +9,7 @@ import { FinanceShell } from "../finance-shell";
 import { DataTable, InfoHint, Money, StatusPill, useActiveEntity, type Column } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { Can } from "@/components/finance-ui/can";
+import { QuickExportButton } from "@/components/custom/quick-export-drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserAvatar } from "@/components/custom/user-avatar";
@@ -115,9 +116,21 @@ export default function GeneralLedgerPage() {
             </div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">The general ledger - every financial mutation lands here as a balanced Dr/Cr posting.</p>
           </div>
-          <Can permission={P.FIN_POST_DIRECT_ENTRY}>
-            <Button onClick={() => setDirectOpen(true)} className="gap-1.5"><Plus className="size-4" /> New journal</Button>
-          </Can>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* The screen lists one row per ENTRY; the postings dataset produces
+                one row per LINE, so the row count in the drawer will exceed what
+                is on screen. That is the dataset a trial balance needs. */}
+            <QuickExportButton
+              screen="finance.gl_postings"
+              params={{ status, source, date_from: range.from, date_to: range.to, search }}
+              entity={entity}
+              typeface="geist"
+              defaultName="General ledger postings"
+            />
+            <Can permission={P.FIN_POST_DIRECT_ENTRY}>
+              <Button onClick={() => setDirectOpen(true)} className="gap-1.5"><Plus className="size-4" /> New journal</Button>
+            </Can>
+          </div>
         </div>
 
         {/* Status tabs with counts */}

@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { useGetRequirementsDocumentsQuery } from "@/redux/services/dashboard/documents-api";
 import type { RequirementsDocument } from "@/redux/services/dashboard/documents-types";
 import { formatBytes } from "@/utils/format-bytes";
+import { errorStatus } from "@/utils/api-errors";
 import { useDocumentDownload } from "./use-document-download";
 
 const NUM = "font-geist-mono tabular-nums";
@@ -78,7 +79,7 @@ export default function DocumentsPage() {
   const totalFiles = documents.reduce((sum, d) => sum + d.version_count, 0);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const forbidden = (error as any)?.status === 403;
+  const forbidden = errorStatus(error) === 403;
   if (!canView) return <PageAccessDenied />;
 
   const columns: Column<RequirementsDocument>[] = [
