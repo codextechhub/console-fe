@@ -1,16 +1,18 @@
 // Collections (§6.4) - gateway cash-in and virtual accounts, one page per
 // sub-section (route-driven).
 
-import { useParams } from "react-router";
+import { DEFAULT_COLLECTIONS_SECTION, type CollectionsSection } from "../console-sections";
 import { FinanceShell } from "../finance-shell";
 import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { CollectionsTab } from "./collections-tab";
 import { VirtualAccountsTab } from "./virtual-accounts-tab";
 
-export default function CollectionsPage() {
+/** `section` comes from the route table; see console-sections.ts. */
+export default function CollectionsPage({ section = DEFAULT_COLLECTIONS_SECTION }: {
+  section?: CollectionsSection;
+}) {
   const { code: entity, currency } = useActiveEntity();
-  const { section = "gateway" } = useParams();
   const isVA = section === "virtual-accounts";
 
   return (

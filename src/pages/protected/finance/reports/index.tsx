@@ -2,7 +2,7 @@
 // driven by the :section route param.
 
 import { type ReactNode } from "react";
-import { useParams } from "react-router";
+import { DEFAULT_REPORTS_SECTION, type ReportsSection } from "../console-sections";
 import { FinanceShell } from "../finance-shell";
 import { useActiveEntity, InfoHint } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
@@ -40,9 +40,11 @@ const TITLE_HINT: Record<string, ReactNode> = {
   ),
 };
 
-export default function ReportsPage() {
+/** `section` comes from the route table; see console-sections.ts. */
+export default function ReportsPage({ section = DEFAULT_REPORTS_SECTION }: {
+  section?: ReportsSection;
+}) {
   const { code: entity, currency } = useActiveEntity();
-  const { section = "trial-balance" } = useParams();
 
   return (
     <FinanceShell>

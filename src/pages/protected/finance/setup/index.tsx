@@ -1,7 +1,7 @@
 // Setup & entity (§6.1) - entities, chart of accounts, periods; one page per
 // sub-section (route-driven).
 
-import { useParams } from "react-router";
+import { DEFAULT_SETUP_SECTION, type SetupSection } from "../console-sections";
 import { FinanceShell } from "../finance-shell";
 import { useActiveEntity, InfoHint } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
@@ -29,9 +29,11 @@ const HINTS: Record<string, string> = {
   dimensions: "Dimensions are extra analytical axes (e.g. fund, project) you can tag on journal lines, each with a constrained value list. The Cost & Dimension Analysis report slices net activity per account by any axis.",
 };
 
-export default function SetupPage() {
+/** `section` comes from the route table; see console-sections.ts. */
+export default function SetupPage({ section = DEFAULT_SETUP_SECTION }: {
+  section?: SetupSection;
+}) {
   const { code: entity } = useActiveEntity();
-  const { section = "entities" } = useParams();
   const needsEntity = (node: React.ReactNode) => (entity ? node : <EmptyState title="Select an entity" />);
 
   return (

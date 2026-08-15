@@ -1,6 +1,6 @@
 // Budgets, fixed assets & tax (§6.8) - one page per sub-section (route-driven).
 
-import { useParams } from "react-router";
+import { DEFAULT_BUDGETS_SECTION, type BudgetsSection } from "../console-sections";
 import { FinanceShell } from "../finance-shell";
 import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
@@ -14,9 +14,11 @@ const META: Record<string, { title: string; sub: string }> = {
   tax: { title: "Tax Remittance", sub: "Tax obligations and filings - amounts due, paid and outstanding." },
 };
 
-export default function BudgetsAssetsTaxPage() {
+/** `section` comes from the route table; see console-sections.ts. */
+export default function BudgetsAssetsTaxPage({ section = DEFAULT_BUDGETS_SECTION }: {
+  section?: BudgetsSection;
+}) {
   const { code: entity, currency } = useActiveEntity();
-  const { section = "budgets" } = useParams();
   const meta = META[section] ?? { title: "Budgets, Assets & Tax", sub: "" };
 
   return (

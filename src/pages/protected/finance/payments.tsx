@@ -1,7 +1,7 @@
 // Payments (§6.Payments) - single payouts, payout batches, settlement
 // reconciliation (gateway vs bank), and the gateway transactions log.
 // Beneficiary details are FLS-masked unless payments.payout.view_sensitive.
-import { useParams } from "react-router";
+import { DEFAULT_PAYMENTS_SECTION, type PaymentsSection } from "./console-sections";
 import { FinanceShell } from "./finance-shell";
 import { PayoutsTab } from "./payouts-tab";
 import { BatchesTab } from "./batches-tab";
@@ -11,9 +11,11 @@ import { WebhooksTab } from "./webhooks-tab";
 import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 
-export default function PaymentsPage() {
+/** `section` comes from the route table; see console-sections.ts. */
+export default function PaymentsPage({ section = DEFAULT_PAYMENTS_SECTION }: {
+  section?: PaymentsSection;
+}) {
   const { code: entity, currency } = useActiveEntity();
-  const { section = "payouts" } = useParams();
   const { label, subtitle } = section === "batches"
     ? { label: "Payout Batches", subtitle: "Assemble a batch of payouts and submit them in one run." }
     : section === "settlement"

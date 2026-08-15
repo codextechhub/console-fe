@@ -20,7 +20,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,7 @@ import {
   type ConsoleSettingsSection,
 } from "@/components/settings/settings-layout";
 import { useActiveEntity } from "@/components/finance-ui";
+import { DEFAULT_FINANCE_SETTINGS_SECTION, type FinanceSettingsSection } from "./console-sections";
 import { FinanceShell } from "./finance-shell";
 import { EntitiesTab } from "./setup/entities-tab";
 
@@ -82,8 +83,10 @@ const ACCOUNT_DESCRIPTIONS: Record<string, string> = {
   PURCHASE_PRICE_VARIANCE: "Difference between receipt basis and vendor invoice price.",
 };
 
-export default function FinanceSettings() {
-  const { section = "overview" } = useParams();
+/** `section` comes from the route table; see console-sections.ts. */
+export default function FinanceSettings({ section = DEFAULT_FINANCE_SETTINGS_SECTION }: {
+  section?: FinanceSettingsSection;
+}) {
   const activeSection = SECTIONS.some((item) => item.key === section) ? section : "overview";
   const active = useActiveEntity();
 

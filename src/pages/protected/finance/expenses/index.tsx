@@ -1,15 +1,17 @@
 // Expenses & petty cash (§6.6) - one page per sub-section (route-driven).
 
-import { useParams } from "react-router";
+import { DEFAULT_EXPENSES_SECTION, type ExpensesSection } from "../console-sections";
 import { FinanceShell } from "../finance-shell";
 import { useActiveEntity, InfoHint } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
 import { ExpenseClaimsTab } from "./expense-claims-tab";
 import { PettyCashTab } from "./petty-cash-tab";
 
-export default function ExpensesPage() {
+/** `section` comes from the route table; see console-sections.ts. */
+export default function ExpensesPage({ section = DEFAULT_EXPENSES_SECTION }: {
+  section?: ExpensesSection;
+}) {
   const { code: entity, currency } = useActiveEntity();
-  const { section = "claims" } = useParams();
   const isPettyCash = section === "petty-cash";
 
   return (

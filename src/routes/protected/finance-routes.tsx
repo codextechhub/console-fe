@@ -2,6 +2,11 @@ import { lazy } from "react";
 import { type RouteObject } from "react-router";
 import type { DashboardHandle } from "@/components/layout/dashboard-header";
 import { routesPath } from "@/routes/routes-path";
+// Static lists, so declaring the paths does not pull in the lazy page chunks.
+import {
+  BUDGETS_SECTIONS, COLLECTIONS_SECTIONS, EXPENSES_SECTIONS, FINANCE_SETTINGS_SECTIONS,
+  PAYMENTS_SECTIONS, RECEIVABLES_SECTIONS, REPORTS_SECTIONS, SETUP_SECTIONS,
+} from "@/pages/protected/finance/console-sections";
 
 // Route-level code splitting: each area page loads on first visit.
 const FinanceDashboard = lazy(() => import("@/pages/protected/finance/dashboard"));
@@ -28,30 +33,48 @@ export const financeRoutes: RouteObject[] = [
   {
     handle: { sidebar: "finance", title: "Finance" } satisfies DashboardHandle,
     children: [
-      // Multi-screen areas accept a :section param (the sidebar navigates between
-      // sub-screens); the bare path renders the area's default section.
+      // Multi-screen areas declare one path per section they have, rather than a
+      // `:section` param that would match any URL and leave the page deciding what
+      // is real. An unknown section matches no route and falls through to the app's
+      // 404. The bare path still renders the area's default section.
       { path: F.INDEX, element: <FinanceDashboard /> },
       { path: F.SETUP, element: <Setup /> },
-      { path: `${F.SETUP}/:section`, element: <Setup /> },
+      ...SETUP_SECTIONS.map((section) => ({
+        path: `${F.SETUP}/${section}`, element: <Setup section={section} />,
+      })),
       { path: F.LEDGER, element: <GeneralLedger /> },
       { path: F.RECEIVABLES, element: <Receivables /> },
-      { path: `${F.RECEIVABLES}/:section`, element: <Receivables /> },
+      ...RECEIVABLES_SECTIONS.map((section) => ({
+        path: `${F.RECEIVABLES}/${section}`, element: <Receivables section={section} />,
+      })),
       { path: F.COLLECTIONS, element: <Collections /> },
-      { path: `${F.COLLECTIONS}/:section`, element: <Collections /> },
+      ...COLLECTIONS_SECTIONS.map((section) => ({
+        path: `${F.COLLECTIONS}/${section}`, element: <Collections section={section} />,
+      })),
       { path: F.BANKING, element: <Banking /> },
       { path: F.BANK_RECON, element: <BankReconciliation /> },
       { path: F.EXPENSES, element: <Expenses /> },
-      { path: `${F.EXPENSES}/:section`, element: <Expenses /> },
+      ...EXPENSES_SECTIONS.map((section) => ({
+        path: `${F.EXPENSES}/${section}`, element: <Expenses section={section} />,
+      })),
       { path: F.PAYROLL, element: <Payroll /> },
       { path: F.BUDGETS, element: <BudgetsAssetsTax /> },
-      { path: `${F.BUDGETS}/:section`, element: <BudgetsAssetsTax /> },
+      ...BUDGETS_SECTIONS.map((section) => ({
+        path: `${F.BUDGETS}/${section}`, element: <BudgetsAssetsTax section={section} />,
+      })),
       { path: F.PAYMENTS, element: <Payments /> },
-      { path: `${F.PAYMENTS}/:section`, element: <Payments /> },
+      ...PAYMENTS_SECTIONS.map((section) => ({
+        path: `${F.PAYMENTS}/${section}`, element: <Payments section={section} />,
+      })),
       { path: F.REPORTS, element: <Reports /> },
-      { path: `${F.REPORTS}/:section`, element: <Reports /> },
+      ...REPORTS_SECTIONS.map((section) => ({
+        path: `${F.REPORTS}/${section}`, element: <Reports section={section} />,
+      })),
       { path: F.AUDIT, element: <FinanceAudit /> },
       { path: F.SETTINGS, element: <FinanceSettings /> },
-      { path: `${F.SETTINGS}/:section`, element: <FinanceSettings /> },
+      ...FINANCE_SETTINGS_SECTIONS.map((section) => ({
+        path: `${F.SETTINGS}/${section}`, element: <FinanceSettings section={section} />,
+      })),
     ],
   },
 ];
