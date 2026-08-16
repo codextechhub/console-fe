@@ -1,6 +1,36 @@
 ## Undone (Ask questions for clarity where needed)
 
-1. Two of the three remaining tables from the quick-export work are now done
+1. An export that expires before you collect it now says nothing (2026-08-14, left
+   open knowingly when the "uncollected exports" fix landed in Done #34). "Exports
+   ready to download" counts only files that are still collectable, so a file that
+   ages out of its availability window simply drops off the panel: the person who
+   asked for it is never told they missed it. That is right for THIS notice, which
+   cannot honestly point at a file that is gone, but the gap is real. Closing it
+   means a different notice ("an export expired before you collected it"), which is
+   a new signal rather than a change to this one. Nobody has asked for it yet.
+
+2. **The stock reorder report's entity-wide quantity workaround looks stale (raised
+   2026-08-14 with the backend, re-checked 2026-08-16 and it appears FIXED their side).**
+   The screen carries an "On hand (entity)" column label plus an explanatory line,
+   because a store-scoped reorder report used to narrow which rows appeared while still
+   reporting entity-wide quantities. `apps/vs_procurement/views/stock.py` now reports
+   **that store's** quantity, value, unit cost and reorder state under `?location=`, and
+   its docstring names the exact contradiction we raised. The old `reorder_row` /
+   `valuation_row` helpers no longer exist under those names, so it was restructured
+   rather than patched. Confirm which endpoint the screen actually calls and what it
+   returns per store, then take the label and its explanatory line back out. Do not
+   remove them on the strength of this note alone.
+
+3. **The notification-seed fix has an unproven cause (2026-08-15, from Done #41).** The
+   original 15 errors were never reproduced: five-plus full runs of the same command have
+   been green since, including two controlled A/B runs. Removing the state-dependence is
+   the most plausible fix and is a real improvement either way, but it is not proven to be
+   *that* failure's cause. If it recurs, capture the full output (not just the `ERROR:`
+   lines) - the error bodies are what is missing.
+
+## Done
+
+# 38. Two of the three remaining tables from the quick-export work are now done
    (2026-08-15): **Expense claims** got a real `finance.expense_claims` dataset +
    binding, and the **Transactions Log** now exports whichever direction is
    selected. **Settlement** turned out not to be the page-only defect at all -
@@ -9,7 +39,7 @@
    with the other finance reports rather than a dataset, which it cannot have
    (a computed reconciliation is not a queryset).
 
-2. **Fixed in passing (2026-08-15), worth knowing about:** every finance report
+# 39. **Fixed in passing (2026-08-15), worth knowing about:** every finance report
    export button - Trial Balance, Income Statement, Balance Sheet, Cash Flow,
    Changes in Equity, Cost & Dimension Analysis, 18 buttons in all - had been
    returning a 400 and silently toasting "Export failed". `downloadReportExport`
@@ -18,7 +48,7 @@
    fix is in the one helper they all share. Anything else that downloads via raw
    fetch rather than the API layer needs the same treatment.
 
-3. Three of the five removed "Export" buttons are now real (2026-08-15):
+# 40. Three of the five removed "Export" buttons are now real (2026-08-15):
    **Invites** needed no dataset at all (an invite is a user row awaiting
    activation, so the existing `admin.users` binding covers it) and
    **School Management** got a new `platform.schools` dataset. Still without an
@@ -32,7 +62,7 @@
    That mirrors the existing SchoolListView and was chosen deliberately so the
    file matches the screen. Keep that key a platform-actor grant.
 
-4. **Notification-seed dependency in vs_user tests - fixed 2026-08-15, with one
+# 41. **Notification-seed dependency in vs_user tests - fixed 2026-08-15, with one
    loose end.** `UserBranchAssignmentTests` and `UserBranchTenantGuardTests`
    created users on a test database whose `NotificationEventType` registry is
    empty (no migration creates those rows - only `seed_notification_event_types`,
@@ -56,7 +86,7 @@
    failure's cause. If it recurs, capture the full output (not just the
    `ERROR:` lines) - the error bodies are what is missing.
 
-5. Backend brief 2026-08-14 - **CLOSED.** All nine items done on our side, and both
+# 42. Backend brief 2026-08-14 - **CLOSED.** All nine items done on our side, and both
    findings we raised back are now fixed on the backend too (`8966ff2`): the reorder
    report reports the store you asked about, and publishing an adjustment ladder now
    registers and grants the submit key that ladder makes load-bearing. The reply doc
@@ -72,16 +102,6 @@
      the "On hand (entity)" column label and its explanatory line come back out.
    - **Item 8 - DONE** (see Done #32).
 
-4. An export that expires before you collect it now says nothing (2026-08-14, left
-   open knowingly when the "uncollected exports" fix landed in Done #34). "Exports
-   ready to download" counts only files that are still collectable, so a file that
-   ages out of its availability window simply drops off the panel: the person who
-   asked for it is never told they missed it. That is right for THIS notice, which
-   cannot honestly point at a file that is gone, but the gap is real. Closing it
-   means a different notice ("an export expired before you collected it"), which is
-   a new signal rather than a change to this one. Nobody has asked for it yet.
-
-## Done
 
 # 37. One formatBytes for the whole app (2026-08-15) - there were four copies in three mutually incompatible variants, and nothing pinned any of them, which is exactly how they drifted. They disagreed on two things: **zero** (`export/format.ts` said "0 KB", the other three said "0 B") and **whether a round value keeps a decimal** (the import wizard alone printed "12.0 KB"/"50.0 MB" where every other screen printed "12 KB"/"50 MB", because its copy had dropped the `n < 10` guard the others carry). So the same file could be described two ways on two screens. Canonical version now lives in `src/utils/format-bytes.ts` with the `export/format.ts` behaviour, and all 8 consumers import it from there. **Deliberately not re-exported from `export/format.ts`** - leaving a second import path for the same function is the thing being removed; `format.ts` keeps its four date/duration helpers and says where formatBytes went. **Output actually changes on three screens**, all of them toward the majority format: Import Batches list, Batch detail and the import wizard now print "0 KB" rather than "0 B" for a zero-byte file, and the wizard drops the spurious decimal on anything at or above 10 of a unit (its 50 MB upload-limit error message included). 7 new tests pin every case the old copies disagreed on, so the next edit has to change a test on purpose rather than change a screen by accident - the absence of those tests is the actual root cause here, not the copy-paste. Driven in the real app: attached a 12,276-byte file to the wizard and it renders "12 KB" (was "12.0 KB"); batches list and batch detail still read "154 B" against the seeded batch. Nothing submitted, no import batch created, dev DB restored to its exact pre-run state. 526 FE tests + build green.
 
@@ -125,7 +145,7 @@
 
 # 21. vs_workflow stage rejection behaviour exposed - added `on_rejection` (+ `advance_rule`, `quorum_count`) to `WorkflowStageInstanceReadSerializer` (sourced from the related stage; detail queryset already prefetches `stage_instances__stage`, no N+1). FE `WorkflowStageInstance` type gained the fields; `workflow/approvals/approval-detail.tsx` now reads `activeStage.on_rejection` directly and the second `GET /workflow/templates/?page_size=200` fetch was removed. Reject-confirmation copy + inline hint now reflect real terminal-vs-return behaviour with no extra request.
 
-# 22. Connectivity monitor - `src/utils/connectivity.ts` owns all "can we reach the backend" messaging; `ConnectivityBanner` (mounted in `App.tsx`) renders it. Three states: offline (navigator.onLine false, or the app's own origin unreachable), server-unreachable (own origin answers but the API host does not, or a 502/503/504 came back), online. Discrimination is a control probe: HEAD on our own origin vs a `mode: "no-cors"` GET on VITE_BACKEND_URL. The interceptor no longer toasts per failed request (`base-api.ts` FETCH_ERROR/TIMEOUT_ERROR branches) - it reports to the monitor, which shows one banner or one collapsed blip toast. `refetchOnReconnect: true` set api-wide, and store.ts uses setupListeners' custom handler to expose `onOnline` so the monitor can announce a server-side recovery (which fires no browser event).
+# 22b. Connectivity monitor - `src/utils/connectivity.ts` owns all "can we reach the backend" messaging; `ConnectivityBanner` (mounted in `App.tsx`) renders it. Three states: offline (navigator.onLine false, or the app's own origin unreachable), server-unreachable (own origin answers but the API host does not, or a 502/503/504 came back), online. Discrimination is a control probe: HEAD on our own origin vs a `mode: "no-cors"` GET on VITE_BACKEND_URL. The interceptor no longer toasts per failed request (`base-api.ts` FETCH_ERROR/TIMEOUT_ERROR branches) - it reports to the monitor, which shows one banner or one collapsed blip toast. `refetchOnReconnect: true` set api-wide, and store.ts uses setupListeners' custom handler to expose `onOnline` so the monitor can announce a server-side recovery (which fires no browser event).
   OPEN, deliberately deferred: the fourth state, "slow". A pending-but-not-failed request cannot be attributed from the browser without Resource Timing sub-timings, and those are zeroed cross-origin unless the backend sends `Timing-Allow-Origin: <frontend origin>`. Backend ask if we ever want "the server is responding slowly" rather than a neutral "taking longer than usual". The escalation would hang off `top-progress-bar.tsx`, which already tracks pending queries but is dev-only in production builds.
 
 # 20. Data Imports overhaul - replaced all dummy data with live `importApi` slice (22 endpoints from `vs_import_data`). Dropped fake "Template Columns" flat directory. Templates list now shows real backend data with create flow gated to CX_STAFF, real download links (CSV/XLSX), and a read-only detail sheet. Batches list shows real backend data with status filter mapped to full 14-value enum, in-flight polling indicator, and gated delete action. Batch detail page wires up the full lifecycle: pipeline timeline aligned to backend enum, Validate / Start Import / Delete actions with `PromptModal` confirms, validation summary, 5 tabs (Issues with resolve + CSV export, Jobs with progress bars + rollback dialog, Row Results from `ImportJobRowResult`, per-batch Audit, per-batch Notifications), and 5s auto-poll while in-flight. Added `import.*` permission constants (`P.CREATE_IMPORT_TEMPLATE`, `P.RUN_IMPORT_VALIDATION`, `P.EXECUTE_IMPORT_BATCH`, `P.DELETE_IMPORT_BATCH`, `P.RESOLVE_IMPORT_ISSUE`, `P.RUN_IMPORT_ROLLBACK`, etc.). Dataset enum restricted to backend's real choices (schools, branches). PERMISSIONS_AUDIT.md updated.
