@@ -53,8 +53,13 @@ export interface NotificationSetting {
   channel: "in_app" | "email";
   is_enabled: boolean;
   is_transactional: boolean;
-  /** Which layer produced the effective value: school override, platform row or registry default. */
-  source: "school" | "platform" | "default";
+  /**
+   * Which layer produced the effective value: this tenant's own override row,
+   * the platform row every tenant inherits, or the registry default.
+   * "tenant", not "school": the backend emits it from the tenant that owns the
+   * override, and a transactional or inactive event always reports "default".
+   */
+  source: "tenant" | "platform" | "default";
 }
 
 export interface NotificationEventType {
