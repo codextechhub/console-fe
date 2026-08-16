@@ -534,3 +534,136 @@
   font-family: var(--font-geist-mono);
   font-variant-numeric: tabular-nums;
 }
+
+/* The XVS shield turning over to write "CodeX" (see components/app-logo.tsx).
+   Two faces on a rotating card, plus a write-on that reveals the calligraphy
+   through a mask of thick pen strokes.
+
+   Every step is a *transition*, never a keyframe animation. A transition retargets
+   from wherever the property currently is, so moving the pointer on and off quickly
+   reverses the spin from mid-flight instead of snapping back to the start and
+   replaying. The delays are declared twice - once in the resting rule (which is what
+   plays on the way out) and once in the hover rule (the way in) - which is what lets
+   the letters un-write from X back to C rather than the way they were written. */
+.app-logo {
+  --flip-in: 620ms;
+  --flip-out: 560ms;
+  --draw-in: 700ms;
+  --draw-out: 340ms;
+  /* Hold the write-on until the card is past side-on and the back face has come
+     round. Later than this and the logo sits blank for a beat mid-spin; earlier and
+     the first letters are being written while still steeply foreshortened. */
+  --draw-start: 200ms;
+  --spin: cubic-bezier(0.2, 0.72, 0.24, 1);
+
+  position: relative;
+  display: inline-block;
+  perspective: 620px;
+}
+
+.app-logo__card {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform var(--flip-out) var(--spin) var(--draw-out);
+}
+/* Hover is gated behind a real pointer. Touch browsers keep :hover applied after a
+   tap, which would leave the logo flipped on a phone with no way to unflip it. */
+@media (hover: hover) and (pointer: fine) {
+  .app-logo:hover .app-logo__card {
+    transform: rotateY(180deg);
+    transition: transform var(--flip-in) var(--spin) 0ms;
+  }
+}
+.app-logo:focus-visible .app-logo__card,
+a:focus-visible .app-logo__card,
+button:focus-visible .app-logo__card {
+  transform: rotateY(180deg);
+  transition: transform var(--flip-in) var(--spin) 0ms;
+}
+
+.app-logo__face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.app-logo__face--back {
+  transform: rotateY(180deg);
+}
+
+/* `pathLength="1"` on the pen strokes normalises every stroke to a length of 1, so
+   one dash rule covers all of them whatever their real size. The gap is 2 rather
+   than 1 so that pushing the dash off the start can never bring the next repeat of
+   the pattern back in at the end. `--o` (the resting offset, per stroke) sits above
+   1 to clear the round cap - see app-logo-wordmark.ts.
+
+   stroke-width is 30 against a 100-unit-tall wordmark: fat enough to cover the
+   letters as it sweeps, tight enough not to spill into the next letter and reveal it
+   early. Changing it means regenerating `o` in app-logo-wordmark.ts. */
+.app-logo__pen {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 30;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: var(--o);
+  transition: stroke-dashoffset calc(var(--draw-out) * var(--l)) linear
+    calc(var(--draw-out) * (1 - var(--s) - var(--l)));
+}
+@media (hover: hover) and (pointer: fine) {
+  .app-logo:hover .app-logo__pen {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset calc(var(--draw-in) * var(--l)) linear
+      calc(var(--draw-start) + var(--draw-in) * var(--s));
+  }
+}
+.app-logo:focus-visible .app-logo__pen,
+a:focus-visible .app-logo__pen,
+button:focus-visible .app-logo__pen {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset calc(var(--draw-in) * var(--l)) linear
+    calc(var(--draw-start) + var(--draw-in) * var(--s));
+}
+
+/* Reduced motion: no spin and no writing hand, just a cross-fade between the two
+   faces with the calligraphy already complete. */
+@media (prefers-reduced-motion: reduce) {
+  .app-logo__card,
+  .app-logo:hover .app-logo__card,
+  .app-logo:focus-visible .app-logo__card,
+  a:focus-visible .app-logo__card,
+  button:focus-visible .app-logo__card {
+    transform: none;
+    transition: none;
+  }
+  .app-logo__face {
+    backface-visibility: visible;
+    -webkit-backface-visibility: visible;
+    transition: opacity 200ms ease;
+  }
+  .app-logo__face--back {
+    transform: none;
+    opacity: 0;
+  }
+  .app-logo:hover .app-logo__face:not(.app-logo__face--back),
+  a:focus-visible .app-logo__face:not(.app-logo__face--back) {
+    opacity: 0;
+  }
+  .app-logo:hover .app-logo__face--back,
+  a:focus-visible .app-logo__face--back {
+    opacity: 1;
+  }
+  .app-logo__pen,
+  .app-logo:hover .app-logo__pen,
+  a:focus-visible .app-logo__pen {
+    stroke-dashoffset: 0;
+    transition: none;
+  }
+}

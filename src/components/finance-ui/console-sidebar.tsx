@@ -13,7 +13,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { AppLogo } from "@/components/app-logo";
 import { NavMain } from "@/components/nav-main";
 import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routes-path";
@@ -30,6 +32,7 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
   const location = useLocation().pathname;
   const { hasModuleAccess } = usePermissions();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isCollapsed = useSidebar().state === "collapsed";
 
   useLayoutEffect(() => {
     const el = scrollRef.current;
@@ -113,7 +116,9 @@ export function ConsoleSidebar({ title, nav }: { title: string; nav: ConsoleNavG
         <SidebarMenu>
           <SidebarMenuItem className="mt-2">
             <Link to={routesPath.PROTECTED.OVERVIEW.INDEX} aria-label="Go to dashboard" className="flex items-center justify-center">
-              <img src="/image/logo.png" alt="XVS logo" className="h-10 w-auto" />
+              {/* Collapsed to the icon rail there is no width for the wordmark
+                  to turn into, so it stays a plain shield there. */}
+              <AppLogo animate={!isCollapsed} />
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>

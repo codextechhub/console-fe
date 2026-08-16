@@ -6,7 +6,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { AppLogo } from "./app-logo";
 import { NavMain } from "./nav-main";
 import { routesPath } from "@/routes/routes-path";
 import { Link, useLocation } from "react-router";
@@ -22,6 +24,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation().pathname;
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const gate = usePermissions();
+  const isCollapsed = useSidebar().state === "collapsed";
 
   // The menu itself is declared as data in ./main-nav.ts - this only resolves it
   // against the viewer's permissions and the current route.
@@ -44,11 +47,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 aria-label="Go to dashboard"
                 className="flex items-center justify-center"
               >
-                <img
-                  src="/image/logo.png"
-                  alt="XVS logo"
-                  className="h-10 w-auto"
-                />
+                {/* Collapsed to the icon rail there is no width for the wordmark
+                    to turn into, so it stays a plain shield there. */}
+                <AppLogo animate={!isCollapsed} />
               </Link>
             </SidebarMenuItem>
           </SidebarMenu>
