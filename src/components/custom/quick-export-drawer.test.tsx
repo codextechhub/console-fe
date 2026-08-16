@@ -9,7 +9,7 @@
 //   4. the run payload must be the config the SERVER prepared, not anything the
 //      FE re-derived from the screen's params
 
-import { act } from "react";
+import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -309,5 +309,178 @@ describe("QuickExportButton gating", () => {
       );
     });
     expect(container.querySelector("button")?.textContent).toContain("Export");
+  });
+});
+
+/** The drawer driven the way its own props allow: kept mounted, with `open`
+ *  controlled from outside, so a close and a reopen can both be exercised. The
+ *  app's own QuickExportButton drops the drawer on close instead, which reaches
+ *  the same fresh start by unmounting. */
+function ControlledDrawer() {
+  const [open, setOpen] = useState(true);
+  return (
+    <MemoryRouter>
+      <button type="button" id="reopen" onClick={() => setOpen(true)}>
+        reopen
+      </button>
+      <QuickExportDrawer open={open} onOpenChange={setOpen} screen="finance.invoices" />
+    </MemoryRouter>
+  );
+}
+
+// The drawer stores only what the USER chose and works out everything else from
+// the plan while rendering. These are the four things that break the moment it
+// goes back to keeping its own copy of the plan in state: each one is a case
+// where a plan arrives (or arrives again) after the user has already decided.
+describe("QuickExportDrawer keeps the user's choices, not a copy of the plan", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    mocks.hasAllPermissions.mockReturnValue(true);
+    mocks.runQuick.mockReturnValue({ unwrap: () => Promise.resolve({ data: { id: 7 }, message: "queued" }) });
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+    vi.clearAllMocks();
+  });
+
+  const show = () =>
+    act(() => {
+      root.render(
+        <MemoryRouter>
+          <QuickExportDrawer open onOpenChange={() => {}} screen="finance.invoices" />
+        </MemoryRouter>,
+      );
+    });
+
+  const nameField = () => document.body.querySelector<HTMLInputElement>("#quick-export-name")!;
+  const boxFor = (id: string) =>
+    Array.from(document.body.querySelectorAll<HTMLInputElement>('input[type="checkbox"]'))[
+      FIELDS.findIndex((f) => f.id === id)
+    ];
+  const byText = (label: string | RegExp) =>
+    Array.from(document.body.querySelectorAll("button")).find((b) => {
+      const text = b.textContent?.trim() ?? "";
+      return typeof label === "string" ? text === label : label.test(text);
+    })!;
+  const runButton = () => byText(/^(Download|Run) export$/);
+
+  // Typing as React sees it. Assigning `.value` straight onto the node is
+  // swallowed by React's value tracker, so go through the native setter and
+  // then fire the `input` event React actually listens for.
+  const typeName = async (value: string) => {
+    const input = nameField();
+    const setValue = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+    await act(async () => {
+      setValue?.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  };
+
+  // A re-estimate hands back a new plan. This is the moment a seeded copy of
+  // `config.columns` would quietly put the dataset's defaults back over the
+  // boxes the user had just ticked.
+  it("keeps the columns the user ticked when a re-estimated plan arrives", async () => {
+    mocks.plan.mockReturnValue(planData());
+    show();
+    await act(async () => { boxFor("customer_email").click(); });
+    expect(boxFor("customer_email").checked).toBe(true);
+
+    mocks.plan.mockReturnValue(planData({ matching_rows: 43, estimated_bytes: 4096 }));
+    show();
+
+    expect(boxFor("customer_email").checked).toBe(true);
+    await act(async () => { runButton().click(); });
+    expect(mocks.runQuick.mock.calls[0][0].columns).toContain("customer_email");
+  });
+
+  // The default name follows the screen only until the user types. After that a
+  // fresh plan must not touch it: they would lose what they wrote without
+  // pressing a key.
+  it("never overwrites a name the user typed, however many plans arrive", async () => {
+    mocks.plan.mockReturnValue(planData());
+    show();
+    expect(nameField().value).toContain("Finance - Invoices - ");
+
+    await typeName("July audit pack");
+    expect(nameField().value).toBe("July audit pack");
+
+    mocks.plan.mockReturnValue(planData({ matching_rows: 43 }));
+    show();
+    expect(nameField().value).toBe("July audit pack");
+
+    await act(async () => { runButton().click(); });
+    expect(mocks.runQuick.mock.calls[0][0].name).toBe("July audit pack");
+  });
+
+  // Emptying the box is a choice too, so "" must not read as "has not chosen"
+  // and spring the default back while the user is still mid-delete.
+  it("leaves the name empty when the user clears it instead of restoring the default", async () => {
+    mocks.plan.mockReturnValue(planData());
+    show();
+    await typeName("");
+    expect(nameField().value).toBe("");
+
+    mocks.plan.mockReturnValue(planData({ matching_rows: 43 }));
+    show();
+    expect(nameField().value).toBe("");
+
+    // An empty box still submits something sensible: the screen's own label.
+    await act(async () => { runButton().click(); });
+    expect(mocks.runQuick.mock.calls[0][0].name).toBe("Finance - Invoices");
+  });
+
+  // A dataset that cannot produce the drawer's default format must not let that
+  // format be submitted anyway.
+  it("falls back to a supported format when the current one is not offered", async () => {
+    mocks.plan.mockReturnValue(planData({ supported_formats: ["csv"] }));
+    show();
+    expect(byText("CSV (.csv)").getAttribute("aria-pressed")).toBe("true");
+
+    await act(async () => { runButton().click(); });
+    expect(mocks.runQuick.mock.calls[0][0].format).toBe("csv");
+  });
+
+  // ...but a supported format the user picked is theirs, and a re-estimate is
+  // not permission to put the dataset's first choice back.
+  it("keeps a supported format the user picked when a re-estimated plan arrives", async () => {
+    mocks.plan.mockReturnValue(planData());
+    show();
+    await act(async () => { byText("CSV (.csv)").click(); });
+    expect(byText("CSV (.csv)").getAttribute("aria-pressed")).toBe("true");
+
+    mocks.plan.mockReturnValue(planData({ matching_rows: 43 }));
+    show();
+    expect(byText("CSV (.csv)").getAttribute("aria-pressed")).toBe("true");
+
+    await act(async () => { runButton().click(); });
+    expect(mocks.runQuick.mock.calls[0][0].format).toBe("csv");
+  });
+
+  // What was ticked and typed belongs to one opening of the drawer. The format
+  // deliberately does not: it is a preference about the file rather than about
+  // this table, and it has always outlived a close.
+  it("forgets the ticked columns and the typed name on close, but not the format", async () => {
+    mocks.plan.mockReturnValue(planData());
+    await act(async () => { root.render(<ControlledDrawer />); });
+
+    await act(async () => { boxFor("customer_email").click(); });
+    await typeName("July audit pack");
+    await act(async () => { byText("CSV (.csv)").click(); });
+
+    await act(async () => { byText("Cancel").click(); });
+    await act(async () => {
+      document.body.querySelector<HTMLButtonElement>("#reopen")!.click();
+    });
+
+    expect(boxFor("customer_email").checked).toBe(false);
+    expect(nameField().value).toContain("Finance - Invoices - ");
+    expect(byText("CSV (.csv)").getAttribute("aria-pressed")).toBe("true");
   });
 });

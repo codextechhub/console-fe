@@ -131,7 +131,6 @@ export default function ExportRunDetailPage() {
   const [retryRun, { isLoading: retrying }] = useRetryExportRunMutation();
   const { save, busyId } = useFileDownload();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const status = errorStatus(error);
   if (!canView || status === 403) return <PageAccessDenied />;
 

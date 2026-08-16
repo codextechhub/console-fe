@@ -142,7 +142,6 @@ export default function ExportFilesPage() {
     (r) => r.status === "FAILED" || r.status === "COMPLETED_WITH_OMISSIONS",
   ).length;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const forbidden = errorStatus(error) === 403;
   if (!canView) return <PageAccessDenied />;
 

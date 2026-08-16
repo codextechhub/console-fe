@@ -167,7 +167,6 @@ export default function QueuesPage() {
 
   // Render-time state adjustment (guarded: `scope` derives from forceHideAll,
   // so flipping it makes this condition false and it cannot loop).
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (scope === "all" && listError && errorStatus(listErr) === 403) {
     setForceHideAll(true);
   }

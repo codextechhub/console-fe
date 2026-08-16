@@ -101,7 +101,6 @@ export default function SavedExportsPage() {
   const modules = catalogueRes?.data.modules.filter((m) => m.available) ?? [];
   const hasFilters = !!(module || owner || debouncedSearch.trim());
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const forbidden = errorStatus(error) === 403;
   if (!canView) return <PageAccessDenied />;
 

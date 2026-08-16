@@ -75,6 +75,21 @@ function configHash(value: string): string {
   return (h >>> 0).toString(16).padStart(8, "0");
 }
 
+/** The format the export will actually use: the user's pick for as long as the
+ *  dataset still supports it, otherwise the dataset's own first choice.
+ *
+ *  Worked out here rather than corrected into state, because correcting state
+ *  would also destroy the pick - a dataset that stops offering CSV would lose
+ *  "CSV" permanently instead of merely overriding it while it cannot be had. */
+function effectiveFormat(
+  picked: ExportFormat | null,
+  supported: ExportFormat[] | undefined,
+): ExportFormat {
+  if (!supported?.length) return picked ?? "xlsx";
+  if (picked !== null && supported.includes(picked)) return picked;
+  return supported[0];
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="border-t border-gray-03 pt-3.5 first:border-t-0 first:pt-0">
@@ -114,9 +129,23 @@ export function QuickExportDrawer({
   typeface?: "geist" | "app";
 }) {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [format, setFormat] = useState<ExportFormat>("xlsx");
-  const [touchedName, setTouchedName] = useState(false);
+
+  // Only the user's OVERRIDES are held in state. The values the drawer actually
+  // exports with - columns, name, format - are worked out from the plan further
+  // down, at render. Nothing mirrors the plan into state, which is what makes a
+  // late-arriving or re-fetched plan harmless: it cannot land on top of a choice
+  // the user has already made.
+  //
+  // `null` means "the user has not chosen", and that is deliberately not the
+  // same as empty. A name cleared to "" is still a name they chose, so it stays
+  // cleared instead of springing back to the default.
+  const [columnsOverride, setColumnsOverride] = useState<string[] | null>(null);
+  const [nameOverride, setNameOverride] = useState<string | null>(null);
+  const [formatOverride, setFormatOverride] = useState<ExportFormat | null>(null);
+  // The day the drawer was opened, read once. The default name carries a date
+  // stamp, and reading the clock on every render would make rendering impure for
+  // no gain - an open drawer does not outlive the day.
+  const [today] = useState(() => new Date().toISOString().slice(0, 10));
 
   // Only asked for while the drawer is open: the estimate runs real aggregate
   // queries, and a closed drawer must not cost the list screen anything.
@@ -143,28 +172,33 @@ export function QuickExportDrawer({
   const plan = data?.data;
   const status = errorStatus(error);
 
-  // Columns the user has chosen. Null until the plan arrives, then seeded from
-  // the dataset's defaults - which is what the estimate on the plan describes.
-  const [columns, setColumns] = useState<string[] | null>(null);
-  useEffect(() => {
-    if (!open) { setColumns(null); return; }
-    if (plan && columns === null) setColumns(plan.config.columns);
-  }, [open, plan, columns]);
+  // What the file will be called: the user's text from the moment they type any,
+  // and until then the screen's own label stamped with the date. The old rule -
+  // follow the screen until the user types their own, then stop - has nothing
+  // left to enforce, because their text simply IS the value here. A re-estimate
+  // has no way to overwrite it.
+  const name = nameOverride ?? (plan ? `${defaultName || plan.screen.label} - ${today}` : "");
+  const format = effectiveFormat(formatOverride, plan?.supported_formats);
 
   const lockedIds = useMemo(
     () => (plan?.fields ?? []).filter((f) => f.locked).map((f) => f.id),
     [plan?.fields],
   );
+  // The columns the export will carry. Until the user ticks anything this is the
+  // dataset's own defaults, which is exactly what the estimate on the plan
+  // describes - read straight off the plan rather than copied into state, so the
+  // two can never disagree.
+  //
   // Locked columns are the row's identity and are always present, whatever the
   // checkboxes say - the backend enforces this too, so leaving them out here
   // would only produce a file that disagrees with the picker.
   const chosen = useMemo(() => {
-    const picked = columns ?? plan?.config.columns ?? [];
+    const picked = columnsOverride ?? plan?.config.columns ?? [];
     const ordered = (plan?.fields ?? [])
       .map((f) => f.id)
       .filter((id) => picked.includes(id) || lockedIds.includes(id));
     return ordered.length ? ordered : picked;
-  }, [columns, plan?.config.columns, plan?.fields, lockedIds]);
+  }, [columnsOverride, plan?.config.columns, plan?.fields, lockedIds]);
 
   // Grouped for the picker, preserving the dataset's own field order within each
   // group - that order is deliberate (identity first, then detail).
@@ -179,11 +213,11 @@ export function QuickExportDrawer({
   }, [plan?.fields]);
 
   const columnsChanged = useMemo(() => {
-    if (!plan || columns === null) return false;
+    if (!plan || columnsOverride === null) return false;
     const a = [...chosen].sort().join("|");
     const b = [...plan.config.columns].sort().join("|");
     return a !== b;
-  }, [plan, columns, chosen]);
+  }, [plan, columnsOverride, chosen]);
 
   // Only re-price when the choice actually differs from what the plan measured.
   // Debounced, because ticking five boxes should cost one estimate, not five.
@@ -206,23 +240,19 @@ export function QuickExportDrawer({
   // plan's own. Never a blend of the two.
   const figures = columnsChanged && repriced?.data ? repriced.data : plan ?? null;
 
-  // The name follows the screen until the user types their own, then stops -
-  // otherwise a re-estimate would overwrite what they just wrote.
-  useEffect(() => {
-    if (!open) { setTouchedName(false); return; }
-    if (touchedName || !plan) return;
-    const today = new Date().toISOString().slice(0, 10);
-    setName(`${defaultName || plan.screen.label} - ${today}`);
-  }, [open, plan, defaultName, touchedName]);
-
-  // Reset the format to whatever the dataset actually leads with.
-  useEffect(() => {
-    if (plan?.supported_formats?.length) {
-      setFormat((current) =>
-        plan.supported_formats.includes(current) ? current : plan.supported_formats[0],
-      );
+  // What the user ticked and typed belongs to ONE opening of the drawer: reopen
+  // it and you get the plan's defaults back. Closing is an event, so the
+  // forgetting happens on the close itself and every close goes through here -
+  // the buttons, Escape, the overlay, and the two success paths in `submit`.
+  // (The format is deliberately not forgotten. It is a preference about the file
+  // rather than about this table, and it has always outlived a close.)
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      setColumnsOverride(null);
+      setNameOverride(null);
     }
-  }, [plan?.supported_formats]);
+    onOpenChange(next);
+  };
 
   const formatOptions = useMemo(
     () =>
@@ -281,7 +311,7 @@ export function QuickExportDrawer({
             ? { action: { label: "View", onClick: () => navigate(routesPath.PROTECTED.EXPORT.RUN(run.id)) } }
             : undefined,
         );
-        onOpenChange(false);
+        handleOpenChange(false);
         return;
       }
 
@@ -304,7 +334,7 @@ export function QuickExportDrawer({
           ? { label: "View", onClick: () => navigate(routesPath.PROTECTED.EXPORT.RUN(run.id)) }
           : undefined,
       });
-      onOpenChange(false);
+      handleOpenChange(false);
     } catch (err) {
       toast.error(apiErrorMessage(err, "That export could not be started."));
     }
@@ -313,7 +343,7 @@ export function QuickExportDrawer({
   return (
     <DetailDrawer
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       typeface={typeface}
       widthClass="sm:max-w-3xl"
       title="Export this table"
@@ -322,7 +352,7 @@ export function QuickExportDrawer({
       }
       footer={
         <>
-          <Button variant="white" onClick={() => onOpenChange(false)} disabled={running}>
+          <Button variant="white" onClick={() => handleOpenChange(false)} disabled={running}>
             Cancel
           </Button>
           <Button
@@ -407,14 +437,14 @@ export function QuickExportDrawer({
             <div className="mb-2.5 flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setColumns(plan.fields.map((f) => f.id))}
+                onClick={() => setColumnsOverride(plan.fields.map((f) => f.id))}
                 className="rounded border border-gray-03 px-2 py-1 font-mont text-[11px] text-gray-01 hover:bg-gray-50"
               >
                 Select all
               </button>
               <button
                 type="button"
-                onClick={() => setColumns(plan.config.columns)}
+                onClick={() => setColumnsOverride(plan.config.columns)}
                 disabled={!columnsChanged}
                 className="rounded border border-gray-03 px-2 py-1 font-mont text-[11px] text-gray-01 hover:bg-gray-50 disabled:opacity-40"
               >
@@ -445,7 +475,7 @@ export function QuickExportDrawer({
                               checked={isOn}
                               disabled={isLocked}
                               onChange={(e) =>
-                                setColumns((current) => {
+                                setColumnsOverride((current) => {
                                   const base = current ?? plan.config.columns;
                                   return e.target.checked
                                     ? [...base, f.id]
@@ -553,13 +583,13 @@ export function QuickExportDrawer({
                 id="quick-export-name"
                 label="Name"
                 value={name}
-                onChange={(e) => { setTouchedName(true); setName(e.target.value); }}
+                onChange={(e) => setNameOverride(e.target.value)}
                 placeholder={plan.screen.label}
               />
               <Segmented
                 label="Format"
                 value={format}
-                onChange={setFormat}
+                onChange={(next) => setFormatOverride(next)}
                 options={formatOptions}
               />
             </div>

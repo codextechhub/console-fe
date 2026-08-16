@@ -78,7 +78,6 @@ export default function DocumentsPage() {
   const moduleSpecs = documents.filter((d) => d.kind === "FRD").length;
   const totalFiles = documents.reduce((sum, d) => sum + d.version_count, 0);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const forbidden = errorStatus(error) === 403;
   if (!canView) return <PageAccessDenied />;
 
