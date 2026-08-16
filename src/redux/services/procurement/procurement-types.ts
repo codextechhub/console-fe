@@ -209,7 +209,7 @@ export interface PurchaseOrderEmailDelivery {
   status: "AWAITING_APPROVAL" | "PENDING" | "SENT" | "FAILED" | "CANCELLED";
   requested_by_name: string;
   recipient_count: number;
-  cc_count: number;
+  bcc_count: number;
   buyer_message: string;
   queued_at: string | null;
   sent_at: string | null;
@@ -220,7 +220,7 @@ export interface PurchaseOrderEmailDelivery {
 }
 export interface PurchaseOrderEmailPreview {
   recipients: string[];
-  cc: string[];
+  bcc: string[];
   subject: string;
   can_schedule: boolean;
   can_send: boolean;
