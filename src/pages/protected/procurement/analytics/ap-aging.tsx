@@ -15,9 +15,10 @@ import type { ReportMoney } from "@/redux/services/finance/reports-types";
 import { formatMoney } from "@/utils/money";
 import { isForbidden, shortDate } from "../sourcing/helpers";
 import { Field, EmptyPanel } from "../sourcing/shared";
-import { Card, ChartEmpty, DateFilter, Pill, StatusDotPill, SectionHeader, type PillTone } from "./shared";
+import { Card, ChartEmpty, DateFilter, Pill, ScopeNote, StatusDotPill, SectionHeader, type PillTone } from "./shared";
 import {
-  BUCKET_LABEL, TD, TDR, TFOOT, TFOOTR, TH, THR, ageColor, kobo, todayISO, type SectionProps,
+  BUCKET_LABEL, TD, TDR, TFOOT, TFOOTR, TH, THR, ageColor, excludedScopeNote, kobo, todayISO,
+  type SectionProps,
 } from "./helpers";
 
 // Status from the vendor's real buckets - any position 31+ days late reads Overdue.
@@ -99,6 +100,10 @@ function ApAgingBody({ d, cash, currency, entity, asOf }: {
         <StatCard label="Due this week" value={formatMoney(dueThisWeek, currency)} icon={Clock} tone="amber" sub="next 7 days" />
         <StatCard label="Paid in advance" value={formatMoney(advances, currency)} icon={HandCoins} tone="primary" sub="held in vendor advances" />
       </div>
+
+      {/* A branch-bound reader's totals are a subset, so say how many bills sit outside
+          them rather than let a narrowed figure read as the entity's whole payable. */}
+      <ScopeNote>{excludedScopeNote(d.unassigned_excluded_count, "vendor bill")}</ScopeNote>
 
       <Card title="Payables by age bucket" subtitle="Outstanding bills across aging windows">
         <BarChart

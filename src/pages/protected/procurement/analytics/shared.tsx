@@ -1,6 +1,8 @@
 // Shared presentational components for the Procurement Analytics report screens.
 // Kept separate from helpers.ts (pure) so this file only exports components.
 
+import { Info } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 
@@ -124,6 +126,21 @@ export function Card({ title, subtitle, children, className }: {
       </div>
       {children}
     </section>
+  );
+}
+
+/**
+ * A quiet line beneath a KPI strip saying what the reader is NOT seeing: a figure the
+ * backend withheld, or documents its branch scope excludes. Renders nothing for empty
+ * children, so a screen can hand it a null note without guarding at every call site.
+ */
+export function ScopeNote({ children }: { children?: React.ReactNode }) {
+  if (!children) return null;
+  return (
+    <p className="flex min-w-0 items-start gap-2 rounded-md bg-white px-4 py-3 font-mont text-xs leading-5 text-gray-05">
+      <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+      <span className="min-w-0">{children}</span>
+    </p>
   );
 }
 

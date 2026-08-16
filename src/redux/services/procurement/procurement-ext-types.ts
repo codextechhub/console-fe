@@ -1,5 +1,13 @@
 // Procurement analytics report shapes (§7.5). Money fields are the backend's
 // `{kobo, naira}` pair (same as the vs_finance reports) - read `.kobo`.
+//
+// Branch-scoped reports: when the caller is bound to a branch the backend answers
+// under that branch and adds `unassigned_excluded_count` - how many documents of the
+// report's population sit at entity level (no branch, typically raised before the
+// column existed) and are therefore outside the caller's figures. It is a COUNT, never
+// an amount, because an amount would disclose another scope's spend. The key is ABSENT
+// (not null) for an unbound caller and for a tenant with no branches, so `undefined`
+// means "these figures are the whole story" - hence the optional field, not `| null`.
 
 import type { ReportMoney } from "../finance/reports-types";
 
@@ -129,6 +137,8 @@ export interface ApAging {
   total_unallocated_credit: ReportMoney;
   /** outstanding - advances: the vendor's overall position, not a payable. */
   total_net: ReportMoney;
+  /** Entity-level bills left out of a branch-bound caller's figures; absent when unbound. */
+  unassigned_excluded_count?: number;
 }
 
 export interface ApReconciliation {
@@ -166,8 +176,15 @@ export interface GrirAging {
   rows: GrirAgingRow[];
   bucket_totals: Record<string, ReportMoney>;
   total_open: ReportMoney;
-  control_balance: ReportMoney;
-  difference: ReportMoney;
+  // Both come from the general ledger, which carries no branch, so a branch-bound
+  // caller is sent null rather than a GL total compared against a branch-only receipt
+  // walk - that comparison would report a fake discrepancy on every read. NULL IS NOT
+  // ZERO: never feed these through `kobo()`, which would turn a withheld figure into a
+  // reconciled 0. The entity-wide control stays on the GR/IR balance endpoint.
+  control_balance: ReportMoney | null;
+  difference: ReportMoney | null;
+  /** Entity-level goods receipts left out of a branch-bound caller's figures; absent when unbound. */
+  unassigned_excluded_count?: number;
 }
 
 // AP cash-requirements forecast - open bills bucketed by days-until-due.
@@ -213,6 +230,8 @@ export interface SpendAnalysis {
   total_tax: ReportMoney;
   total_gross: ReportMoney;
   invoice_count: number;
+  /** Entity-level bills left out of a branch-bound caller's figures; absent when unbound. */
+  unassigned_excluded_count?: number;
 }
 
 // Latest recorded scorecard summary carried on each performance row (or null).
@@ -250,6 +269,10 @@ export interface VendorPerformance {
   start_date: string | null;
   end_date: string | null;
   rows: VendorPerformanceRow[];
+  // The excluded population here is the bill population - billing is the report's
+  // headline and its row sort key - so the count reads as bills, like AP aging's.
+  /** Entity-level bills left out of a branch-bound caller's figures; absent when unbound. */
+  unassigned_excluded_count?: number;
 }
 
 // Full vendor assessment record (list item + create response).

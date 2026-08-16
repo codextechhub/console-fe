@@ -3,7 +3,7 @@
 // table drills to the **PO-line** grain (`grir-lines`) the prototype lists, and each
 // row opens a per-PO-line reconciliation drawer (its linked POSTED GRNs + invoices).
 import { useState } from "react";
-import { AlertCircle, ArrowLeftRight, CheckCircle2, Inbox } from "lucide-react";
+import { AlertCircle, ArrowLeftRight, CheckCircle2, EyeOff, Inbox } from "lucide-react";
 
 import {
   AgingStack, DetailDrawer, EmptyState, ErrorState, ForbiddenState, StatCard,
@@ -18,8 +18,10 @@ import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
 import { isForbidden, shortDate } from "../sourcing/helpers";
 import { Field, EmptyPanel } from "../sourcing/shared";
-import { Card, ChartEmpty, StatusDotPill, SectionHeader, type PillTone } from "./shared";
-import { BUCKET_LABEL, TD, TDR, TH, THR, ageColor, kobo, type SectionProps } from "./helpers";
+import { Card, ChartEmpty, ScopeNote, StatusDotPill, SectionHeader, type PillTone } from "./shared";
+import {
+  BUCKET_LABEL, TD, TDR, TH, THR, ageColor, excludedScopeNote, kobo, type SectionProps,
+} from "./helpers";
 
 // Status chip tone for a PO line's GR/IR position.
 function lineTone(status: string): PillTone {
@@ -29,6 +31,15 @@ function lineTone(status: string): PillTone {
 }
 
 const qty = (v: string) => formatQuantity(Number(v));
+
+// Why the two control cards read "Not shown" for a branch-bound reader. Said in full
+// here because a card sub-line cannot carry it, and a figure that is simply blank
+// invites the reader to assume zero.
+const CONTROL_WITHHELD_NOTE =
+  "You are viewing one branch. The clearing balance and the difference come from the "
+  + "general ledger, which is not kept per branch, so they are withheld rather than "
+  + "checked against a branch-only receipt total. The entity-wide GR/IR balance still "
+  + "carries them.";
 
 export default function GrirScreen({ entity, currency }: SectionProps) {
   const { data, isLoading, isError, error, refetch } = useGetGrirAgingQuery({ entity });
@@ -58,7 +69,15 @@ function GrirBody({ d, currency, entity }: { d: GrirAging; currency?: string | n
   const recvNotInv = rows.reduce((s, r) => s + Math.max(0, kobo(r.open_value)), 0);
   const invNotRecv = rows.reduce((s, r) => s + Math.max(0, -kobo(r.open_value)), 0);
   const totalOpen = kobo(d.total_open);
-  const diff = kobo(d.difference);
+  // Both control figures come from the general ledger, which has no branch, so a
+  // branch-bound reader gets null instead of an entity-wide balance set against a
+  // branch-only receipt walk. Read them directly, NOT through `kobo()`: that turns a
+  // withheld figure into 0, and 0 here would badge the card green "Reconciled" - a
+  // clean bill of health on a number nobody computed.
+  const controlWithheld = d.control_balance == null;
+  const control = d.control_balance == null ? null : kobo(d.control_balance);
+  const diff = d.difference == null ? null : kobo(d.difference);
+  const excluded = excludedScopeNote(d.unassigned_excluded_count, "goods receipt");
 
   // Aging stack over the received-not-invoiced composition (positive buckets only -
   // a negative bucket has no meaningful width, its real amount still shows in the row).
@@ -73,11 +92,30 @@ function GrirBody({ d, currency, entity }: { d: GrirAging; currency?: string | n
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="GR/IR clearing balance" value={formatMoney(kobo(d.control_balance), currency)} icon={ArrowLeftRight} tone="amber" sub="net uncleared" />
+        <StatCard
+          label="GR/IR clearing balance"
+          value={control == null ? "Not shown" : formatMoney(control, currency)}
+          icon={control == null ? EyeOff : ArrowLeftRight}
+          tone={control == null ? "gray" : "amber"}
+          sub={control == null ? "the ledger balance is not kept per branch" : "net uncleared"}
+        />
         <StatCard label="Received, not invoiced" value={formatMoney(recvNotInv, currency)} icon={Inbox} tone="indigo" sub="goods in, awaiting invoice" />
         <StatCard label="Invoiced, not received" value={formatMoney(invNotRecv, currency)} icon={AlertCircle} tone="red" sub="invoiced ahead of delivery" />
-        <StatCard label="Difference" value={formatMoney(diff, currency)} icon={CheckCircle2} tone="green" sub={diff === 0 ? "Reconciled" : "Variance to investigate"} />
+        <StatCard
+          label="Difference"
+          value={diff == null ? "Not shown" : formatMoney(diff, currency)}
+          icon={diff == null ? EyeOff : CheckCircle2}
+          tone={diff == null ? "gray" : "green"}
+          sub={diff == null ? "not checked for a single branch" : diff === 0 ? "Reconciled" : "Variance to investigate"}
+        />
       </div>
+
+      {(controlWithheld || excluded) && (
+        <div className="space-y-2">
+          <ScopeNote>{controlWithheld ? CONTROL_WITHHELD_NOTE : null}</ScopeNote>
+          <ScopeNote>{excluded}</ScopeNote>
+        </div>
+      )}
 
       <Card title="Open GR/IR by age" subtitle="Received-not-invoiced positions by goods-receipt age">
         {totalOpen > 0 && stack.length > 0 ? (
