@@ -348,7 +348,11 @@ export function QuickExportDrawer({
       widthClass="sm:max-w-3xl"
       title="Export this table"
       description={
-        plan ? `${plan.screen.label} · ${plan.reads_as}` : "Preparing the export…"
+        // Deliberately not "Preparing…": that is what the submit button says while
+        // the server is producing the file, and one word for two different waits
+        // (reading the screen vs building the file) is how a stall becomes
+        // unreadable - you cannot tell which of the two you are stuck in.
+        plan ? `${plan.screen.label} · ${plan.reads_as}` : "Reading this screen's filters…"
       }
       footer={
         <>
@@ -357,6 +361,12 @@ export function QuickExportDrawer({
           </Button>
           <Button
             onClick={submit}
+            // Fixed width because the label changes underneath the pointer:
+            // "Download export" becomes "Preparing…" the moment it is pressed, and
+            // the footer is right-aligned, so a narrower word dragged Cancel 43px
+            // sideways and back again. Cancel is the button you reach for when a
+            // run is taking too long - it must not move while you reach for it.
+            className="min-w-40"
             disabled={!plan || running || saving || isFetching || capExceeded || !chosen.length}
           >
             {running || saving

@@ -23,6 +23,9 @@ const DJANGO_NOT_FOUND = /^No \w+ matches the given query\.?$/i;
 const NOT_FOUND_MESSAGE =
   "That record could not be found. It may have been deleted, or the link may be wrong.";
 
+/** The code `core.exceptions.custom_exception_handler` puts on an unhandled 500. */
+const SERVER_ERROR_CODE = "SERVER_ERROR";
+
 /** Replace a backend message that is not fit to show with one that is. */
 export function humanizeApiMessage(message: string): string {
   return DJANGO_NOT_FOUND.test(message.trim()) ? NOT_FOUND_MESSAGE : message;
@@ -53,6 +56,12 @@ export function apiErrorMessage(
   const code = typeof errorObject?.code === "string" ? errorObject.code : "";
   const message = typeof envelope?.message === "string" ? envelope.message.trim() : "";
   const detail = extractFirstDetail(errorObject?.detail);
+
+  // An unhandled exception reaches the client as `SERVER_ERROR` / "An unexpected
+  // error occurred." - true, and useless. It says nothing about what the reader was
+  // trying to do, while the caller's fallback ("That export could not be started")
+  // at least names the action. So the generic 500 envelope never wins over it.
+  if (code === SERVER_ERROR_CODE) return fallback;
 
   const chosen = code && code !== "REQUEST_ERROR"
     ? message || detail || fallback

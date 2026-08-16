@@ -2,6 +2,24 @@
 
 ## Done
 
+# 47. **An export run whose worker never came back is now reconciled (2026-08-16).**
+`execute_run` already always left the row terminal, so no in-process path could strand
+one - but a Celery worker killed mid-run never reaches that code at all, and the row it
+was holding stayed RUNNING for good. THE PART THAT MADE IT WORSE THAN A SPINNER: a
+non-terminal run counts against `CONCURRENT_RUN_LIMIT`, so three stranded runs stop the
+whole tenant exporting, permanently, with nothing on any screen to cancel or retry.
+`vs_exports.sweep_abandoned_runs` closes them on a half-hourly beat: RUNNING past
+`ABANDONED_RUNNING_HOURS` (2), QUEUED past `ABANDONED_QUEUED_HOURS` (6) - the longer
+window because a queued run waiting behind others is a queue working, not a broken one.
+TWO DECISIONS WORTH KNOWING: a run the user had asked to cancel ends CANCELLED and
+silently, because a failure notice for something they stopped themselves is noise;
+everything else ends FAILED with `INFRASTRUCTURE`, which is retryable and notifies. And
+a file the dead worker had already stored is PURGED rather than handed over - the bytes
+are whole, but the run never recorded what is in them (no row count of its own, no
+omission list), and offering a file this app cannot describe is the exact silence the
+Export Centre exists to prevent. Eight tests, including the slot-exhaustion case and the
+"a slow run is not a dead run" guarantee.
+
 # 46. THE NOTIFICATION-SEED CAUSE IS NOW MOOT: the state-dependence is gone at the
 source (backend `90e8867`, 2026-08-16). The loose end below was that the original 15
 errors were never reproduced, so removing the state-dependence was only the most

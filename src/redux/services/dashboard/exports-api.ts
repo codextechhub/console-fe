@@ -200,6 +200,12 @@ export const exportsApi = baseApi.injectEndpoints({
       }),
       // No definition is created, so only the runs list changes.
       invalidatesTags: ["ExportRuns"],
+      // The drawer owns this failure, for two reasons. It said one thing twice -
+      // the global handler's "A server error occurred" landed on top of the
+      // drawer's own sentence about the same click. And a globally-handled error
+      // also closes whatever drawer is open, which threw away the columns the
+      // user had just picked at the exact moment they needed to change them.
+      extraOptions: { silent: true },
     }),
 
     // The Files list. One row per RUN, because a run that produced no file is
@@ -252,6 +258,11 @@ export const exportsApi = baseApi.injectEndpoints({
         "ExportDownloadLog",
         ...(runId ? [{ type: "ExportRuns" as const, id: runId }] : []),
       ],
+      // Same reason as the quick run above: useFileDownload already toasts the
+      // server's own refusal sentence, which is the useful one ("this file passed
+      // its availability date on 25 Aug"). A second, vaguer toast beside it - and a
+      // drawer closing underneath it - only obscures that.
+      extraOptions: { silent: true },
     }),
 
     // Who took the file, and who was refused. Refusals are logged too - "who

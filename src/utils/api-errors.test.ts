@@ -29,6 +29,17 @@ describe("apiErrorMessage", () => {
     }, "Invoice generation failed.")).toBe("Invoice generation failed.");
   });
 
+  it("keeps the caller's sentence over the platform's generic 500", () => {
+    expect(apiErrorMessage({
+      status: 500,
+      data: {
+        success: false,
+        message: "An unexpected error occurred.",
+        error: { code: "SERVER_ERROR" },
+      },
+    }, "That export could not be started.")).toBe("That export could not be started.");
+  });
+
   it("extracts one requested field without leaking a different field", () => {
     const error = {
       status: 400,
