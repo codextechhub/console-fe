@@ -24,6 +24,12 @@ import {
   type NotificationEventType,
   type NotificationSetting,
 } from "@/redux/services/notifications-api";
+import {
+  historyParams,
+  historyWindowStart,
+  PLATFORM_SCOPE,
+  type HistoryScope,
+} from "./history-params";
 
 /** "vs_finance" → "Finance", "task_completed" → "Task Completed". */
 const label = (s: string) =>
@@ -40,19 +46,18 @@ const groupBy = <T,>(items: T[], key: (item: T) => string) =>
 export function HistoryPanel() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("");
+  const [scope, setScope] = useState<HistoryScope>("");
   const [page, setPage] = useState(1);
   const debouncedEmail = useDebounce(email, 400);
-  const [createdAfter] = useState(() => new Date(Date.now() - 7 * 864e5).toISOString());
+  const [createdAfter] = useState(historyWindowStart);
 
   // Filters combine. The backend refuses an unfiltered dump, so the last-7-days
-  // window applies whenever no explicit filter is set.
-  const params = useMemo<Record<string, string>>(() => {
-    const next: Record<string, string> = { page: String(page) };
-    if (debouncedEmail) next.recipient_email = debouncedEmail;
-    if (status) next.status = status;
-    if (!debouncedEmail && !status) next.created_after = createdAfter;
-    return next;
-  }, [page, debouncedEmail, status, createdAfter]);
+  // window applies whenever no explicit row filter is set - see
+  // ./history-params, which also says why a scope on its own does not lift it.
+  const params = useMemo(
+    () => historyParams({ page, email: debouncedEmail, status, scope, createdAfter }),
+    [page, debouncedEmail, status, scope, createdAfter],
+  );
 
   const q = useGetNotificationHistoryQuery(params);
 
@@ -96,6 +101,7 @@ export function HistoryPanel() {
         <div className="w-full sm:w-60">
           <NativeSelect
             className="h-10"
+            aria-label="Delivery status"
             value={status}
             onChange={(e) => {
               setStatus(e.target.value);
@@ -106,6 +112,22 @@ export function HistoryPanel() {
             <option>PENDING</option>
             <option>SENT</option>
             <option>FAILED</option>
+          </NativeSelect>
+        </div>
+        {/* Platform is the only scope the backend narrows on, so this stays a
+            two-state choice rather than implying a list of scopes. */}
+        <div className="w-full sm:w-60">
+          <NativeSelect
+            className="h-10"
+            aria-label="Notification scope"
+            value={scope}
+            onChange={(e) => {
+              setScope(e.target.value as HistoryScope);
+              setPage(1);
+            }}
+          >
+            <option value="">All tenants</option>
+            <option value={PLATFORM_SCOPE}>Platform only</option>
           </NativeSelect>
         </div>
       </div>
