@@ -246,6 +246,13 @@ function coverAndContents({ trackNo, trackName, blurb, coverExtra = [], contents
 function partOne({
   trackNo, prefix, whatYouAreTesting, notYours, firstSteps, entityNote,
   houseRules, knownIntended, crossTrack,
+  // Overrides. A pack that has already been corrected keeps its own wording;
+  // everything else falls back to the generic text below. Porting Track 4 onto
+  // this chrome silently genericised its house rules, its priority examples and
+  // its worked ticket, which is exactly the drift a shared chrome is supposed to
+  // prevent - so the parts that differ per track are parameters, not constants.
+  houseRuleText = {}, ticketTitleExample, priorityRows, whatIDidHint,
+  workedExample, helpNote,
 }) {
   const body = [h1("Part 1  ·  Read this first")];
 
@@ -263,17 +270,25 @@ function partOne({
   }
 
   body.push(h2(`${entityNote ? "1.4" : "1.3"}  House rules`));
+  const rules = {
+    naming: `Something like "${prefix} Ada test". Then you can always find your own rows and nobody else has to guess whose they are.`,
+    neverTouch: "Never delete, cancel or suspend a record you did not create. ",
+    reference: "Write down the reference of everything you create ",
+    referenceTail: "(a code, a number, an email address). Every ticket you raise should carry one. It is the fastest way for a developer to find the exact row you were looking at.",
+    laptop: "The last section asks you to repeat a few things on a phone.",
+    ...houseRuleText,
+  };
   body.push(...bullets([
     [t("All six of us are on the same database. ", { bold: true }), t("Anything you create is visible to everyone else, and anything you delete is gone for them too.")],
-    [t(`Name everything you create with ${prefix} and your first name. `, { bold: true }), t(`Something like "${prefix} Ada test". Then you can always find your own rows and nobody else has to guess whose they are.`)],
-    [t("Never delete, cancel or suspend a record you did not create. ", { bold: true }), t("Somebody else is mid-test on it.")],
+    [t(`Name everything you create with ${prefix} and your first name. `, { bold: true }), t(rules.naming)],
+    [t(rules.neverTouch, { bold: true }), t("Somebody else is mid-test on it.")],
     ...houseRules,
-    [t("Write down the reference of everything you create ", { bold: true }), t("(a code, a number, an email address). Every ticket you raise should carry one. It is the fastest way for a developer to find the exact row you were looking at.")],
-    [t("Work on a laptop for the main runs. ", { bold: true }), t("The last section asks you to repeat a few things on a phone.")],
+    [t(rules.reference, { bold: true }), t(rules.referenceTail)],
+    [t("Work on a laptop for the main runs. ", { bold: true }), t(rules.laptop)],
   ]));
 
   body.push(h2(`${entityNote ? "1.5" : "1.4"}  Things that look broken but are not`));
-  body.push(p("These are deliberate. Do not raise tickets for them. If you spend an hour writing one of these up, that is an hour we all lose."));
+  body.push(p(`These are deliberate. Do not raise tickets for them. If you spend an hour ${trackNo === 4 ? "writing up one of these" : "writing one of these up"}, that is an hour we all lose.`));
   body.push(callout("Known and intended", knownIntended));
   body.push(spacer());
 
@@ -281,7 +296,7 @@ function partOne({
   body.push(p("Everything goes in as a support ticket inside the intranet. This does two jobs at once: we get a tracked report, and the ticketing system gets tested."));
   body.push(...steps([
     "Open Support in the main sidebar, then Create support ticket.",
-    [t("Title: start with your run number, then a short factual statement of what is wrong. Example: "), t(`"${trackNo === 1 ? "C2" : "B1"} - the invite email never arrives"`, { italics: true }), t(".")],
+    [t("Title: start with your run number, then a short factual statement of what is wrong. Example: "), t(`"${ticketTitleExample || "B1 - the first thing you try does not work"}"`, { italics: true }), t(".")],
     "Category: choose BUG for something broken, HELP for something you could not work out, OTHER for a suggestion.",
     "Priority: use the table below. Be honest in both directions. Marking cosmetics as URGENT hides the real fires.",
     "Description: use the five lines in the template below. Attach a screenshot if the problem is visual. Screenshots, PDFs, CSVs and spreadsheets are all accepted.",
@@ -290,7 +305,7 @@ function partOne({
 
   body.push(label("Priority"));
   body.push(table(
-    [
+    priorityRows || [
       ["Priority", "Use it when", "Example"],
       ["URGENT", "Data is lost or wrong, or you can see something you should not be able to see. Also: the screen is unusable and there is no way round it.", "A suspended user can still sign in."],
       ["HIGH", "A main action fails or produces the wrong result. There may be a workaround but it hurts.", "Saving a record returns an error and nothing is created."],
@@ -303,7 +318,7 @@ function partOne({
   body.push(label("Description template - copy this into every ticket"));
   body.push(table(
     [
-      ["What I did", "Step by step, from a screen I can name. Include the reference of the record."],
+      ["What I did", whatIDidHint || "Step by step, from a screen I can name. Include the reference of the record."],
       ["What I expected", "One sentence."],
       ["What actually happened", "One sentence, plus the exact text of any error message."],
       ["Where", "The web address in the bar, plus roughly what time it was."],
@@ -312,11 +327,16 @@ function partOne({
     [2200, 7160]
   ));
 
+  if (workedExample) {
+    body.push(label("A filled-in example"));
+    body.push(table(workedExample, [2200, 7160]));
+  }
+
   body.push(h2(`${entityNote ? "1.7" : "1.6"}  Help you have while testing`));
   body.push(...bullets([
     [t("The small circled i beside a page title. ", { bold: true }), t("It explains what the screen is for. Read it. If it says something the screen does not do, that is a real finding, so raise it.")],
-    [t("The help button. ", { bold: true }), t("It offers guides matched to the page you are on, and on some screens an interactive walkthrough that highlights things as you go.")],
-    [t("Cmd+E or Ctrl+E ", { bold: true }), t('opens an action launcher. Type a few letters of what you want and it takes you there. Worth trying once for each of your screens.')],
+    [t("The help button. ", { bold: true }), t("It offers guides matched to the page you are on, and on some screens an interactive walkthrough that highlights things as you go." + (helpNote ? " " + helpNote : ""))],
+    [t("Cmd+E or Ctrl+E ", { bold: true }), t("opens an action launcher. Type a few letters of what you want" + (trackNo === 4 ? ', such as "new invoice",' : "") + " and it takes you there. Worth trying once for each of your screens.")],
   ]));
 
   body.push(h2(`${entityNote ? "1.8" : "1.7"}  When your track touches somebody else's`));
