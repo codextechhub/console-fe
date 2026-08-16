@@ -32,6 +32,8 @@ import type {
   Refund,
   RefundAvailabilityCustomer,
   WriteOffRequest,
+  DocumentDelivery,
+  DocumentEmailPreview,
 } from "./ar-types";
 
 type EntityList = { entity: string; page?: number; status?: string; customer?: string };
@@ -260,6 +262,46 @@ export const arApi = baseApi.injectEndpoints({
       invalidatesTags: ["FinancePaymentPlans"],
     }),
 
+    // Emailing a document to its customer. GET previews the recipients and returns
+    // the delivery history; POST sends. Three documents, one shape, so the UI can
+    // drive all of them through one component.
+    getDocumentEmail: builder.query<
+      ApiEnvelope<DocumentEmailPreview>,
+      { kind: "invoices" | "payments"; id: number; entity: string } | { kind: "customers"; id: number | string; entity: string }
+    >({
+      query: ({ kind, id, entity }) => ({
+        url: kind === "customers"
+          ? `/finance/customers/${id}/statement-email/${qs({ entity })}`
+          : `/finance/${kind}/${id}/email/${qs({ entity })}`,
+        method: "GET",
+      }),
+      providesTags: ["FinanceDeliveries"],
+    }),
+    sendDocumentEmail: builder.mutation<
+      ApiEnvelope<DocumentDelivery>,
+      { kind: "invoices" | "payments" | "customers"; id: number | string; entity: string;
+        note?: string; start?: string; end?: string }
+    >({
+      query: ({ kind, id, entity, ...body }) => ({
+        url: kind === "customers"
+          ? `/finance/customers/${id}/statement-email/${qs({ entity })}`
+          : `/finance/${kind}/${id}/email/${qs({ entity })}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["FinanceDeliveries"],
+    }),
+    retryDocumentEmail: builder.mutation<
+      ApiEnvelope<DocumentDelivery>, { id: number; entity: string; note?: string }
+    >({
+      query: ({ id, entity, ...body }) => ({
+        url: `/finance/document-deliveries/${id}/retry/${qs({ entity })}`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["FinanceDeliveries"],
+    }),
+
     // Dunning notices + policies + cadence
     getDunningNotices: builder.query<PaginatedEnvelope<DunningNotice>, EntityList>({
       query: (params) => ({ url: `/finance/dunning-notices/${qs(params)}`, method: "GET" }),
@@ -276,6 +318,13 @@ export const arApi = baseApi.injectEndpoints({
     generateDunning: builder.mutation<ApiEnvelope<{ created: number }>, { entity: string; policy?: number; as_of?: string }>({
       query: ({ entity, ...body }) => ({ url: `/finance/dunning/generate/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinanceDunning"],
+    }),
+    // Dispatches the notice over its stage's channels and flips it to SENT. The
+    // notice carries the invoice it chases, so a send changes what the reminder
+    // queue and the invoice's Reminders tab both show.
+    sendDunningNotice: builder.mutation<ApiEnvelope<DunningNotice>, { id: number; entity: string }>({
+      query: ({ id, entity }) => ({ url: `/finance/dunning-notices/${id}/send/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinanceDunning", "FinanceInvoices"],
     }),
     cancelDunningNotice: builder.mutation<ApiEnvelope<DunningNotice>, { id: number; entity: string; reason?: string }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/dunning-notices/${id}/cancel/${qs({ entity })}`, method: "POST", body }),
@@ -408,6 +457,10 @@ export const {
   useGetDunningSummaryQuery,
   useGetDunningPoliciesQuery,
   useGenerateDunningMutation,
+  useGetDocumentEmailQuery,
+  useSendDocumentEmailMutation,
+  useRetryDocumentEmailMutation,
+  useSendDunningNoticeMutation,
   useCancelDunningNoticeMutation,
   useCreateDunningPolicyMutation,
   useUpdateDunningPolicyMutation,

@@ -2,26 +2,26 @@
 // theme: aging-bucket KPIs, a Reminder-queue tab (notices + the active cadence) and
 // a Policies tab with a full cadence editor (create/edit policies + stages).
 //
-// Honest adaptations: vs_finance only records reminder *intent* - there is no
-// email/SMS service - so "Run reminders now" / "Generate notices" raise the queue of
-// notices (no GL effect) but the per-notice **Send is deferred** (disabled with a
-// tooltip); Cancel is real. Channels are a single value per stage (Email/SMS/Letter/
-// In-app); the prototype's combined channels aren't supported.
+// "Run reminders now" / "Generate notices" raise the queue of notices (no GL
+// effect); Send dispatches one notice over its stage's channels and flips it to
+// SENT; Cancel withdraws it before it goes out. Send emails a customer, so it
+// confirms first and never fires straight off a row click.
+//
+// A stage's channel is one or more of Email / In-app, stored comma-separated.
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Play, SlidersHorizontal, Trash2, Pencil, Ban, Send } from "lucide-react";
-import { DataTable, toArray, type Column } from "@/components/finance-ui";
+import { ConfirmActionModal, DataTable, toArray, type Column } from "@/components/finance-ui";
 import { Can, useCan } from "@/components/finance-ui/can";
 import { DetailDrawer, FormField } from "@/components/finance-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
 import {
   useGetDunningNoticesQuery, useGetDunningSummaryQuery, useGetDunningPoliciesQuery,
-  useGenerateDunningMutation, useCancelDunningNoticeMutation,
+  useGenerateDunningMutation, useCancelDunningNoticeMutation, useSendDunningNoticeMutation,
   useCreateDunningPolicyMutation, useUpdateDunningPolicyMutation,
 } from "@/redux/services/finance/ar-api";
 import type { DunningNotice, DunningPolicy, DunningStage } from "@/redux/services/finance/ar-types";
@@ -107,18 +107,20 @@ export function DunningTab({ entity, currency }: { entity: string; currency?: st
       </div>
 
       {tab === "queue"
-        ? <ReminderQueue entity={entity} policies={policies} canCancel={can(P.FIN_SEND_DUNNING)} />
+        ? <ReminderQueue entity={entity} policies={policies} canDispatch={can(P.FIN_SEND_DUNNING)} />
         : <PoliciesPanel entity={entity} policies={policies} />}
     </>
   );
 }
 
-function ReminderQueue({ entity, policies, canCancel }: {
-  entity: string; policies: DunningPolicy[]; canCancel: boolean;
+function ReminderQueue({ entity, policies, canDispatch }: {
+  entity: string; policies: DunningPolicy[]; canDispatch: boolean;
 }) {
   const [page, setPage] = useState(1);
+  const [sending, setSending] = useState<DunningNotice | null>(null);
   const { data, isLoading, isFetching, isError, refetch } = useGetDunningNoticesQuery({ entity, page });
   const [cancel] = useCancelDunningNoticeMutation();
+  const [send, { isLoading: dispatching }] = useSendDunningNoticeMutation();
   const rows = useMemo(() => toArray(data?.data), [data]);
   const pg = data?.pagination;
   const cadence = policies.find((p) => p.is_default && p.is_active) ?? policies.find((p) => p.is_active) ?? policies[0];
@@ -127,18 +129,26 @@ function ReminderQueue({ entity, policies, canCancel }: {
     try { await cancel({ id: n.id, entity }).unwrap(); toast.success("Notice cancelled."); } catch { /* central */ }
   };
 
+  // Sending reaches a customer, so it is confirmed rather than fired from the row.
+  const doSend = async () => {
+    if (!sending) return;
+    try {
+      await send({ id: sending.id, entity }).unwrap();
+      toast.success(`Reminder sent to ${sending.customer_name}.`);
+      setSending(null);
+    } catch { /* central */ }
+  };
+
   const columns: Column<DunningNotice>[] = [
     { header: "Customer", cell: (n) => <span className="inline-flex items-center gap-2"><Initials name={n.customer_name} /><span className="font-medium text-gray-01">{n.customer_name}</span></span> },
     { header: "Stage", cell: (n) => <span className="font-mont text-sm text-gray-01">L{n.level}{n.policy_name ? <span className="ml-1 text-gray-05">· {n.policy_name}</span> : null}</span> },
     { header: "Channel", cell: (n) => <span className={cn(PILL, "bg-gray-03/70 text-gray-01")}>{channelLabel(n.channel)}</span> },
     { header: "Overdue", align: "right", cell: (n) => <span className={cn("tabular-nums", overdueCls(n.days_overdue))}>{n.days_overdue}d</span> },
     { header: "Status", cell: (n) => <StatusPill status={n.notice_status} /> },
-    { header: "", align: "right", cell: (n) => n.notice_status === "PENDING" ? (
+    { header: "", align: "right", cell: (n) => n.notice_status === "PENDING" && canDispatch ? (
       <span className="flex items-center justify-end gap-1.5">
-        <TooltipProvider><Tooltip><TooltipTrigger asChild>
-          <span className="inline-flex cursor-not-allowed items-center gap-1 rounded px-2 py-1 font-mont text-xs font-medium text-gray-05 opacity-60"><Send className="size-3.5" /> Send</span>
-        </TooltipTrigger><TooltipContent className="font-mont text-xs">Email / in-app dispatch isn't wired yet - coming soon.</TooltipContent></Tooltip></TooltipProvider>
-        {canCancel ? <button onClick={(e) => { e.stopPropagation(); doCancel(n); }} className="inline-flex items-center gap-1 rounded px-2 py-1 font-mont text-xs font-medium text-destructive hover:bg-destructive/5"><Ban className="size-3.5" /> Cancel</button> : null}
+        <button onClick={(e) => { e.stopPropagation(); setSending(n); }} className="inline-flex items-center gap-1 rounded px-2 py-1 font-mont text-xs font-medium text-primary hover:bg-primary/5"><Send className="size-3.5" /> Send</button>
+        <button onClick={(e) => { e.stopPropagation(); doCancel(n); }} className="inline-flex items-center gap-1 rounded px-2 py-1 font-mont text-xs font-medium text-destructive hover:bg-destructive/5"><Ban className="size-3.5" /> Cancel</button>
       </span>
     ) : null },
   ];
@@ -171,6 +181,29 @@ function ReminderQueue({ entity, policies, canCancel }: {
           </ol>
         ) : <p className="font-mont text-xs text-gray-05">Create a policy in the Policies tab to define the cadence.</p>}
       </div>
+
+      <ConfirmActionModal
+        open={!!sending}
+        onOpenChange={(open) => !open && setSending(null)}
+        title="Send this reminder?"
+        description="The notice goes out over its stage's channels and is marked sent. It cannot be recalled."
+        confirmText="Send reminder"
+        onConfirm={doSend}
+        loading={dispatching}
+      >
+        {sending ? (
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-md bg-gray-50 p-3">
+            <dt className="font-mont text-[11px] text-gray-05">Customer</dt>
+            <dd className="font-mont text-xs font-semibold text-black-01">{sending.customer_name}</dd>
+            <dt className="font-mont text-[11px] text-gray-05">Invoice</dt>
+            <dd className="font-mont text-xs font-semibold tabular-nums text-black-01">{sending.invoice_number}</dd>
+            <dt className="font-mont text-[11px] text-gray-05">Channel</dt>
+            <dd className="font-mont text-xs font-semibold text-black-01">{channelLabel(sending.channel)}</dd>
+            <dt className="font-mont text-[11px] text-gray-05">Overdue</dt>
+            <dd className="font-mont text-xs font-semibold tabular-nums text-black-01">{sending.days_overdue} days</dd>
+          </dl>
+        ) : null}
+      </ConfirmActionModal>
     </div>
   );
 }

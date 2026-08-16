@@ -6,13 +6,12 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { ArrowLeftRight, ScrollText, User, BellRing, CreditCard, Printer, Send, Receipt } from "lucide-react";
-import { DetailDrawer, Money, ConfirmActionModal, FormField, useActiveEntity } from "@/components/finance-ui";
+import { ArrowLeftRight, ScrollText, User, BellRing, CreditCard, Printer, Receipt } from "lucide-react";
+import { DetailDrawer, DocumentEmailAction, Money, ConfirmActionModal, FormField, useActiveEntity } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { LoadingState, ErrorState, EmptyState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
@@ -155,7 +154,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
           )}
 
           {tab === "statement" && (
-            <StatementTab d={d} entityName={activeEntity?.name ?? entity} currency={currency} />
+            <StatementTab d={d} entity={entity} entityName={activeEntity?.name ?? entity} currency={currency} />
           )}
 
           {tab === "contact" && <ContactPanel key={c.id} entity={entity} customer={c} currency={currency} />}
@@ -219,7 +218,7 @@ function OpenItemsTab({ d, currency }: { d: CustomerDetail; currency?: string | 
 }
 
 /** A printable statement-of-account document for the active date range. */
-function StatementTab({ d, entityName, currency }: { d: CustomerDetail; entityName: string; currency?: string | null }) {
+function StatementTab({ d, entity, entityName, currency }: { d: CustomerDetail; entity: string; entityName: string; currency?: string | null }) {
   const c = d.customer;
   const [from, setFrom] = useState("");
   const [to, setTo] = useState(todayISO());
@@ -250,14 +249,18 @@ function StatementTab({ d, entityName, currency }: { d: CustomerDetail; entityNa
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => window.print()} className="gap-1.5"><Printer className="size-4" /> Print</Button>
-          <TooltipProvider delayDuration={100}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span tabIndex={0}><Button disabled className="gap-1.5 opacity-60"><Send className="size-4" /> Send to customer</Button></span>
-              </TooltipTrigger>
-              <TooltipContent className="font-mont text-xs">Emailing the statement needs an email-sending service - coming soon.</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {/* The dates above bound what is printed, so they bound what is sent too -
+              a customer must receive the statement the sender was looking at. */}
+          <DocumentEmailAction
+            kind="customers"
+            id={d.customer.id}
+            entity={entity}
+            permission={P.FIN_EMAIL_STATEMENT}
+            label="Send to customer"
+            title="Email this statement to the customer?"
+            period={{ start: from || undefined, end: to || undefined }}
+            buttonVariant="default"
+          />
         </div>
       </div>
 

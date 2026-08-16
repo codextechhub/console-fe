@@ -76,9 +76,16 @@ these exactly so a new screen reads like AR:
 - **Section heading inside a drawer**: `font-mont text-xs font-semibold text-gray-05`.
 
 ## Honesty rules
-Never fake an action. Email-type actions (Email receipt, Send statement) are
-present but **disabled with a tooltip** until an email service exists. Posting
-panels **recap the real journal**. Print = `window.print()`.
+Never fake an action. Posting panels **recap the real journal**. Print =
+`window.print()`.
+
+**Email is live (2026-08-16).** The old rule here - "email actions are present
+but disabled until an email service exists" - was wrong by then and had been for
+a while: the platform notification system sends real email, procurement had been
+using it for vendor purchase orders and RFQs, and vs_finance itself was already
+emailing customers automatically when an invoice, receipt or credit note posted.
+What was actually missing was a *record* of those sends, which is why no re-send,
+history or retry could be offered. See "Customer document email" below.
 
 ## Customer credit is a liability (2140), AR never negative
 Customer credit (overpayments, unapplied credit notes) lives in **2140 Customer
@@ -533,6 +540,56 @@ accounts/` (paginated + KPIs + filters, `payments.virtual_account.view`) and
 `…view_sensitive` (rendered `••••`). `_entity_obj` now resolves by code or id so
 the UI pickers work. Demo: 3 VAs (Fake MFB) + 1 linked collection on CODEX.
 
+## Customer document email (invoice · receipt · statement)
+
+One shared capability in `vs_finance/document_email.py`, modelled on
+`vs_procurement/po_email.py`, behind all three send buttons.
+
+- **`FinanceDocumentDelivery`** (migration 0023) records one row per attempt:
+  entity, customer, `(document_type, document_id)` (a statement has no document
+  row, so it carries `period_start`/`period_end` instead), source
+  (AUTOMATIC/MANUAL/RETRY), status (PENDING→SENT/FAILED), recipients, cc, note,
+  the generated PDF, the notification ids, and the failure reason.
+- **The automatic copy is recorded too.** `notify_invoice_issued` /
+  `notify_payment_received` now delegate here, so history starts at the copy sent
+  when the document posted rather than at the first manual re-send. Both stay
+  best-effort: a mail failure must never roll back a posting (there is a test).
+  Credit/debit notes still send directly from `notifications.py` - no attachment,
+  no re-send control, so a delivery row would record something nobody can act on.
+- **PDFs** live in `vs_finance/pdf.py` and are driven by the *same* context dicts
+  the printable HTML documents use, so the attachment cannot drift from the
+  screen. Two things worth knowing: the naira sign has **no glyph** in any font
+  reportlab can rely on (it renders as a black box), so PDF money reads `NGN`,
+  matching the purchase-order PDF; and table money is right-aligned via the
+  paragraph style, never a TableStyle ALIGN rule, which cannot reach inside a
+  `Paragraph`.
+- **Status** is settled from the EMAIL notifications only (`receivers.py` on
+  `notification_sent`/`notification_failed`). These events also declare an in-app
+  channel, and an in-app row cannot decide whether a document reached a customer.
+  Dispatch no longer creates one for an `UnregisteredRecipient` at all (2026-08-16),
+  but the guard here stays: it is the channel that matters, not who happens to be
+  filtered out upstream.
+- **The monitoring copy is BCC, never CC.** These addresses are ours, not the
+  customer's - a visible copy exposed internal mailboxes and made reply-all a route
+  into one. `FINANCE_CUSTOMER_EMAIL_BCC` (falling back to the old
+  `FINANCE_CUSTOMER_EMAIL_CC` environment variable) narrows it away from the
+  platform-wide `EMAIL_BCC`.
+- **FE**: one `<DocumentEmailAction>` primitive (`finance-ui`) drives all three -
+  confirm modal with recipients/CC/subject preview, optional note, delivery
+  history and a Retry on failed rows.
+- **Dunning Send** was backend-complete all along (`POST
+  /dunning-notices/<id>/send/`, `finance.dunning.send`); the FE had wired Cancel
+  and left Send disabled behind a tooltip claiming dispatch was not built.
+
+**Deployment**: run `seed_finance_permissions`, `seed_notification_event_types`
+and `seed_notification_templates`, and apply `vs_finance` 0023 +
+`vs_notifications` 0007. The notifications migration rewrites the invoice and
+receipt email copy (school-specific "Dear Parent/Guardian" wording that predates
+the console billing any customer, and which never mentioned the attachment) -
+**only** for rows still holding the shipped default, comparing dash-insensitively
+because seeded rows predate the no-em-dash rule. Hand-edited templates are left
+alone.
+
 ## Backend endpoint + permission map (added for AR)
 | Endpoint | Permission key |
 |---|---|
@@ -558,6 +615,10 @@ the UI pickers work. Demo: 3 VAs (Fake MFB) + 1 linked collection on CODEX.
 | `GET /finance/dunning/summary/` (4 aging buckets) · `GET/POST /dunning-policies/` · `PATCH /dunning-policies/<id>/` (update + stages) | `finance.dunning.view` / `.manage` |
 | `POST /finance/dunning/generate/` (raise notices) · `GET /dunning-notices/` · `…/<id>/cancel/` (send is deferred - no comms service) | `finance.dunning.generate` / `.send` |
 | `GET/POST /finance/fee-structures/` (`?search=&is_active=`; items) · `…/<code>/generate/` | `finance.feestructure.view` / `.create` / `.generate` |
+| `GET/POST /finance/invoices/<id>/email/` (preview + history / send) | `finance.invoice.email` |
+| `GET/POST /finance/payments/<id>/email/` | `finance.payment.email` |
+| `GET/POST /finance/customers/<pk>/statement-email/` (`start`/`end` bound the period) | `finance.customer.email_statement` |
+| `POST /finance/document-deliveries/<id>/retry/` | any-of the three, then the exact key for that document kind |
 
 **Lists are paginated** (`XVSPagination`, `?page=&page_size=`, max 100) with a
 server-side `?search=` - the AR adjustment lists (credit-notes, ar-adjustments) no

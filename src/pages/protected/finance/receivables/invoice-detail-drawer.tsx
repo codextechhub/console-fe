@@ -1,16 +1,15 @@
 // Invoice detail drawer - design topology: header (no · customer · status), four
 // stat cards (Total / Paid / Balance / Aging), tabbed body (Lines · Payments · GL
 // postings · Reminders · Activity, each with an icon) and a footer (Print PDF · Email
-// receipt (deferred) · Send reminder · Record payment · Write off).
+// invoice · Send reminder · Record payment · Write off).
 import { useState } from "react";
 import { toast } from "sonner";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { List, CreditCard, BookOpen, BellRing, Activity, Printer, Mail, Check, Globe } from "lucide-react";
-import { DetailDrawer, Money, StatusPill, ConfirmActionModal } from "@/components/finance-ui";
+import { List, CreditCard, BookOpen, BellRing, Activity, Printer, Check, Globe } from "lucide-react";
+import { DetailDrawer, DocumentEmailAction, Money, StatusPill, ConfirmActionModal } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { LoadingState, ErrorState, EmptyState } from "@/components/finance-ui/states";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { useGetInvoiceDetailQuery, useRemindInvoiceMutation } from "@/redux/services/finance/ar-api";
@@ -100,14 +99,18 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
         <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={openPdf} disabled={!inv} className="gap-1.5"><Printer className="size-4" /> Print PDF</Button>
-            <TooltipProvider delayDuration={100}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span tabIndex={0}><Button variant="outline" disabled className="gap-1.5 opacity-60"><Mail className="size-4" /> Email receipt</Button></span>
-                </TooltipTrigger>
-                <TooltipContent className="font-mont text-xs">Needs an email-sending endpoint - coming soon.</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {/* Labelled "invoice", not "receipt": this drawer is an invoice, and a
+                receipt has its own send on the Receipts screen. */}
+            {inv ? (
+              <DocumentEmailAction
+                kind="invoices"
+                id={inv.id}
+                entity={entity}
+                permission={P.FIN_EMAIL_INVOICE}
+                label="Email invoice"
+                title="Email this invoice to the customer?"
+              />
+            ) : null}
             {inv?.status === "POSTED" ? (
               <DocumentVoidAction
                 documentType="INVOICE"

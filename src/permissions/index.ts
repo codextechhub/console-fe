@@ -25,7 +25,7 @@
 //                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
 //                       41=dispose  42=reopen  43=lock  44=approve_high_value
 //                       45=share  46=download  47=override_variance  48=replay
-//                       49=attach
+//                       49=attach  50=email  51=email_statement
 //
 // ── Adding a permission ───────────────────────────────────────────────────────
 //   1. Pick the next free code in the right MM RR range.
@@ -245,10 +245,12 @@ const REGISTRY: Record<string, string> = {
   "200502": "finance.invoice.create",
   "200514": "finance.invoice.reverse",
   "200521": "finance.invoice.writeoff",
+  "200550": "finance.invoice.email",
   "202801": "finance.payment.view",
   "202802": "finance.payment.create",
   "202814": "finance.payment.reverse",
   "202820": "finance.payment.allocate",
+  "202850": "finance.payment.email",
   "200601": "finance.creditnote.view",
   "200602": "finance.creditnote.create",
   "200630": "finance.creditnote.submit",
@@ -331,6 +333,7 @@ const REGISTRY: Record<string, string> = {
   "202601": "finance.customer.view",
   "202602": "finance.customer.create",
   "202603": "finance.customer.update",
+  "202651": "finance.customer.email_statement",
   "202701": "finance.feestructure.view",
   "202702": "finance.feestructure.create",
   "202703": "finance.feestructure.edit",
@@ -621,10 +624,14 @@ export const P = {
   FIN_CREATE_INVOICE:       "200502",
   FIN_REVERSE_INVOICE:      "200514",
   FIN_WRITE_OFF_INVOICE:    "200521",
+  // Emailing a document to the customer is gated apart from viewing it: reading a
+  // document internally and putting it in a customer's inbox are different acts.
+  FIN_EMAIL_INVOICE:        "200550",
   FIN_VIEW_PAYMENTS:        "202801",
   FIN_RECORD_PAYMENT:       "202802",
   FIN_REVERSE_PAYMENT:      "202814",
   FIN_ALLOCATE_PAYMENT:     "202820",
+  FIN_EMAIL_RECEIPT:        "202850",
   FIN_VIEW_CREDIT_NOTES:    "200601",
   FIN_CREATE_CREDIT_NOTE:   "200602",
   FIN_SUBMIT_CREDIT_NOTE:   "200630",
@@ -660,6 +667,7 @@ export const P = {
   FIN_VIEW_CUSTOMERS:       "202601",
   FIN_CREATE_CUSTOMER:      "202602",
   FIN_UPDATE_CUSTOMER:      "202603",
+  FIN_EMAIL_STATEMENT:      "202651",
   FIN_VIEW_FEE_STRUCTURES:  "202701",
   FIN_CREATE_FEE_STRUCTURE: "202702",
   FIN_EDIT_FEE_STRUCTURE:   "202703",

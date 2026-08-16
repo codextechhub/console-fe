@@ -491,3 +491,44 @@ export interface FeeStructure {
  * `approval` block and with it the only warning that a submission has parked.
  */
 export type SubmittedDocument<T> = T & { approval?: ApprovalParkState };
+
+/**
+ * One attempt to email a customer document (invoice, receipt or statement).
+ *
+ * History is per document and includes the automatic copy sent when the document
+ * posted, so a reader sees everything that reached the customer, not only what
+ * somebody pressed a button for.
+ */
+export interface DocumentDelivery {
+  id: number;
+  document_type: "INVOICE" | "RECEIPT" | "STATEMENT";
+  document_type_display: string;
+  document_id: string;
+  document_number: string;
+  period_start: string | null;
+  period_end: string | null;
+  source: "AUTOMATIC" | "MANUAL" | "RETRY";
+  source_display: string;
+  status: "PENDING" | "SENT" | "FAILED";
+  requested_by_name: string;
+  recipients: string[];
+  recipient_count: number;
+  bcc: string[];
+  note: string;
+  queued_at: string | null;
+  sent_at: string | null;
+  failure_reason: string;
+  can_retry: boolean;
+  created_at: string;
+}
+
+/** What a send would do, read before anything leaves the building. */
+export interface DocumentEmailPreview {
+  recipients: string[];
+  bcc: string[];
+  subject: string;
+  can_send: boolean;
+  /** Why sending is unavailable, ready to show as-is (blank when it is available). */
+  blocked_reason: string;
+  deliveries: DocumentDelivery[];
+}
