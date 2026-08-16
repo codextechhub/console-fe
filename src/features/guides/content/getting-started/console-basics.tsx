@@ -83,9 +83,13 @@ export default function ConsoleBasicsArticle() {
       <GuideSection id="attention-and-notifications" title="Notifications and recent work">
         <GuideChecklist items={[
           "Open the notification bell for recent updates.",
-          "Use Pick up where you left off to return to recent records.",
+          "Use Pick up where you left off to return to records you opened in the last few days.",
+          "Hover a card there and use its x to remove one you have finished with.",
           "Use the Home metric cards for the totals behind the focus panel, such as unresolved tickets or open tasks.",
         ]} />
+        <GuideCallout tone="tip" title="Recent work clears itself">
+          A record you opened once leaves Pick up where you left off after a day, and each time you return to it before it goes buys another day, to a maximum of three. So the strip shows the work you are actually in the middle of rather than everything you have ever clicked. It is per browser, not per account: it does not follow you to another device.
+        </GuideCallout>
         <GuideCallout tone="warning" title="A notification is not authorization">A message can tell you that work exists, but the destination still enforces its own permission and entity scope.</GuideCallout>
       </GuideSection>
 
