@@ -44,3 +44,5 @@ Health_Console.html
 .agents/skills/**/node_modules/
 .agents/skills/**/package.json
 .agents/skills/**/package-lock.json
+# Word lock files, created while a .docx is open and committed by accident once
+~$*
