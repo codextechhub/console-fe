@@ -1,6 +1,76 @@
 ## Undone (Ask questions for clarity where needed)
 
-1. An export that expires before you collect it now says nothing (2026-08-14, left
+1. **The notification-seed fix has an unproven cause (2026-08-15, from Done #41).** The
+   original 15 errors were never reproduced: five-plus full runs of the same command have
+   been green since, including two controlled A/B runs. Removing the state-dependence is
+   the most plausible fix and is a real improvement either way, but it is not proven to be
+   *that* failure's cause. If it recurs, capture the full output (not just the `ERROR:`
+   lines) - the error bodies are what is missing.
+
+## Done
+
+# 45. **Unreadable in-app notifications, and monitoring copies in the clear (2026-08-16).**
+   Two email defects found while building customer document email, both fixed at the
+   choke point every caller shares rather than per-caller.
+
+   **(a) In-app rows nobody could read.** Five billing events declare both IN_APP and
+   EMAIL while only ever being sent to payers with no console account, so every
+   invoice, receipt, credit note and overdue notice also created an in-app
+   Notification with `recipient_user = NULL`. Fixed in `vs_notifications` dispatch,
+   not by editing the five events: an `UnregisteredRecipient` is an email address and
+   nothing else, so in-app is skipped for one. Registered recipients are untouched,
+   which keeps every event ready for a customer portal without changing its channels.
+   Skipped rather than recorded FAILED - nobody intended a message, and a FAILED row
+   would be exactly as unreadable as the SENT one it replaced. 2 tests.
+
+   **(b) CC -> BCC everywhere.** Every CC list on the platform is an internal
+   monitoring mailbox. Copying it visibly put internal addresses in front of customers
+   and vendors, told each recipient their mail is watched, and made reply-all a route
+   into an internal inbox. `core.mail.send_email` now takes `bcc`, the notification
+   task reads `metadata["bcc"]`, and finance and procurement both store and send a
+   `bcc` list. Settings renamed (`EMAIL_BCC`, `PROCUREMENT_VENDOR_EMAIL_BCC`,
+   `FINANCE_CUSTOMER_EMAIL_BCC`), each falling back to its old CC environment variable
+   so a deployment that has not renamed its variables keeps the addresses it had.
+   `PurchaseOrderVendorDelivery.cc` renamed to `bcc` (migration 0031) rather than left
+   asserting the opposite of what it does. Verified in the real app: `cc=[]`,
+   `bcc=['backend-test@codexng.com']`, one notification instead of two.
+
+
+# 44. THE STOCK REORDER LABEL NEEDED NO FIX - THE SCREEN IT LIVED ON NO LONGER EXISTS
+(closed 2026-08-16 by looking, after the backend fixed its half). The workaround was an
+"On hand (entity)" column label plus an explanatory line, carried because a store-scoped
+reorder report narrowed which rows appeared while still reporting entity-wide quantities.
+Commit `25647c3` ("drop the two stock reports, put the store on the list") had already
+DELETED both the reorder and valuation report screens, and `a9218e0` cleaned up the route
+that outlived them. The behaviour now lives on the inventory list, which passes
+`location` and lets each row report that store's own on-hand, unit cost, value and
+reorder status; `inventory.tsx:112` says exactly that, and names the deleted screens as
+the reason. So the label went out with the screens that carried it: there is no such
+label, no such screens and no reorder-report endpoint in the app today.
+NOTE ON HOW THIS ENTRY CAME TO EXIST, because it is the fourth stale note this pass:
+it was written the same day, from Done #28, which describes screens a later commit
+deleted. The item was written as "confirm, then remove" rather than "remove", which is
+the only reason it cost a search instead of a broken screen. Verify the file exists
+before writing a task about editing it. ORIGINAL ENTRY: 1. **The stock reorder report's entity-wide quantity workaround looks stale (raised
+   2026-08-14 with the backend, re-checked 2026-08-16 and it appears FIXED their side).**
+   The screen carries an "On hand (entity)" column label plus an explanatory line,
+   because a store-scoped reorder report used to narrow which rows appeared while still
+   reporting entity-wide quantities. `apps/vs_procurement/views/stock.py` now reports
+   **that store's** quantity, value, unit cost and reorder state under `?location=`, and
+   its docstring names the exact contradiction we raised. The old `reorder_row` /
+   `valuation_row` helpers no longer exist under those names, so it was restructured
+   rather than patched. Confirm which endpoint the screen actually calls and what it
+   returns per store, then take the label and its explanatory line back out. Do not
+   remove them on the strength of this note alone.
+
+# 43. DECIDED 2026-08-16 by the user, so this is not work: an export that expires before
+anybody downloads it is FINE, and needs no notice. The panel counts only files that are
+still collectable, so an uncollected file ages out of its availability window and quietly
+drops off. That was left open on 2026-08-14 as a known gap, on the reasoning that the
+person who asked for the file is never told they missed it. The user's call is that this
+is correct behaviour: a file nobody collected is not an event worth interrupting anybody
+about, and a second notice ("an export expired before you collected it") would be noise.
+Do not build that notice without a new decision. ORIGINAL ENTRY: 1. An export that expires before you collect it now says nothing (2026-08-14, left
    open knowingly when the "uncollected exports" fix landed in Done #34). "Exports
    ready to download" counts only files that are still collectable, so a file that
    ages out of its availability window simply drops off the panel: the person who
