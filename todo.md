@@ -1,6 +1,30 @@
 ## Undone (Ask questions for clarity where needed)
 
-1. **The stock reorder report's entity-wide quantity workaround looks stale (raised
+1. **The notification-seed fix has an unproven cause (2026-08-15, from Done #41).** The
+   original 15 errors were never reproduced: five-plus full runs of the same command have
+   been green since, including two controlled A/B runs. Removing the state-dependence is
+   the most plausible fix and is a real improvement either way, but it is not proven to be
+   *that* failure's cause. If it recurs, capture the full output (not just the `ERROR:`
+   lines) - the error bodies are what is missing.
+
+## Done
+
+# 44. THE STOCK REORDER LABEL NEEDED NO FIX - THE SCREEN IT LIVED ON NO LONGER EXISTS
+(closed 2026-08-16 by looking, after the backend fixed its half). The workaround was an
+"On hand (entity)" column label plus an explanatory line, carried because a store-scoped
+reorder report narrowed which rows appeared while still reporting entity-wide quantities.
+Commit `25647c3` ("drop the two stock reports, put the store on the list") had already
+DELETED both the reorder and valuation report screens, and `a9218e0` cleaned up the route
+that outlived them. The behaviour now lives on the inventory list, which passes
+`location` and lets each row report that store's own on-hand, unit cost, value and
+reorder status; `inventory.tsx:112` says exactly that, and names the deleted screens as
+the reason. So the label went out with the screens that carried it: there is no such
+label, no such screens and no reorder-report endpoint in the app today.
+NOTE ON HOW THIS ENTRY CAME TO EXIST, because it is the fourth stale note this pass:
+it was written the same day, from Done #28, which describes screens a later commit
+deleted. The item was written as "confirm, then remove" rather than "remove", which is
+the only reason it cost a search instead of a broken screen. Verify the file exists
+before writing a task about editing it. ORIGINAL ENTRY: 1. **The stock reorder report's entity-wide quantity workaround looks stale (raised
    2026-08-14 with the backend, re-checked 2026-08-16 and it appears FIXED their side).**
    The screen carries an "On hand (entity)" column label plus an explanatory line,
    because a store-scoped reorder report used to narrow which rows appeared while still
@@ -11,15 +35,6 @@
    rather than patched. Confirm which endpoint the screen actually calls and what it
    returns per store, then take the label and its explanatory line back out. Do not
    remove them on the strength of this note alone.
-
-2. **The notification-seed fix has an unproven cause (2026-08-15, from Done #41).** The
-   original 15 errors were never reproduced: five-plus full runs of the same command have
-   been green since, including two controlled A/B runs. Removing the state-dependence is
-   the most plausible fix and is a real improvement either way, but it is not proven to be
-   *that* failure's cause. If it recurs, capture the full output (not just the `ERROR:`
-   lines) - the error bodies are what is missing.
-
-## Done
 
 # 43. DECIDED 2026-08-16 by the user, so this is not work: an export that expires before
 anybody downloads it is FINE, and needs no notice. The panel counts only files that are
