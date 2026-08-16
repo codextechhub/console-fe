@@ -1,0 +1,534 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Main sidebar visibility > marks the active entry for /export/new 1`] = `
+[
+  "Data Exports [childActive]",
+  "Data Exports > Exports",
+]
+`;
+
+exports[`Main sidebar visibility > marks the active entry for /finance/ledger 1`] = `
+[
+  "Finance [isActive]",
+]
+`;
+
+exports[`Main sidebar visibility > marks the active entry for /how-to-guide 1`] = `
+[
+  "Support [childActive]",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > marks the active entry for /notifications/admin 1`] = `
+[
+  "Notifications [childActive]",
+  "Notifications > Administration",
+]
+`;
+
+exports[`Main sidebar visibility > marks the active entry for /overview 1`] = `
+[
+  "Home [isActive]",
+]
+`;
+
+exports[`Main sidebar visibility > marks the active entry for /roles/permission-groups 1`] = `
+[
+  "Permissions [childActive]",
+  "Permissions > Permission Groups",
+]
+`;
+
+exports[`Main sidebar visibility > marks the active entry for /support/guides 1`] = `
+[
+  "Support [childActive]",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > marks the active entry for /users/schools 1`] = `
+[
+  "Users [childActive]",
+  "Users > School Users",
+]
+`;
+
+exports[`Main sidebar visibility > shows a role viewer without the modify or transfer keys 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Roles [group]",
+  "Roles > Platform Roles",
+  "Roles > Platform User Assignments",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows an auditor without the export or manage keys 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Audit & Security [group]",
+  "Audit & Security > Security Dashboard",
+  "Audit & Security > Events Explorer",
+  "Audit & Security > Entity Trails",
+  "Audit & Security > Live Sessions",
+  "Audit & Security > Login Attempts",
+  "Audit & Security > Account Lockouts",
+  "Audit & Security > Password Activity",
+  "Audit & Security > Proxy Sessions",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows data imports children by their own keys 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Imports [group]",
+  "Data Imports > Import Batches",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows documents only with the requirements key 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Documents [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows everything to a super admin 1`] = `
+[
+  "Home [leaf]",
+  "School Management [leaf]",
+  "Users [group]",
+  "Users > CX Users",
+  "Users > School Users",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Organogram > Manage",
+  "Tasks [leaf]",
+  "Roles [group]",
+  "Roles > Platform Roles",
+  "Roles > Platform User Assignments",
+  "Roles > Change Requests",
+  "Roles > Transfer Super Admin",
+  "Permissions [group]",
+  "Permissions > All Permissions",
+  "Permissions > Modules",
+  "Permissions > Resources",
+  "Permissions > Actions",
+  "Permissions > Dependencies",
+  "Permissions > Permission Groups",
+  "Data Imports [group]",
+  "Data Imports > Import Batches",
+  "Data Imports > Import Templates",
+  "Data Exports [group]",
+  "Data Exports > Exports",
+  "Data Exports > Files",
+  "Data Exports > View Queues",
+  "Finance [leaf]",
+  "Procurement [leaf]",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Workflow > All Instances",
+  "Workflow > Team Load",
+  "Workflow > Approver Groups",
+  "Workflow > Templates",
+  "Audit & Security [group]",
+  "Audit & Security > Security Dashboard",
+  "Audit & Security > Events Explorer",
+  "Audit & Security > Entity Trails",
+  "Audit & Security > Live Sessions",
+  "Audit & Security > Login Attempts",
+  "Audit & Security > Account Lockouts",
+  "Audit & Security > Password Activity",
+  "Audit & Security > Proxy Sessions",
+  "Audit & Security > Audit Exports",
+  "Audit & Security > Compliance Rules",
+  "Health [group]",
+  "Health > Command Center",
+  "Health > Uptime",
+  "Health > API & Endpoints",
+  "Health > Jobs & Queues",
+  "Health > Incidents & Alerts",
+  "Health > Tenant Health",
+  "Health > SLOs",
+  "Health > Provider Webhooks",
+  "Notifications [group]",
+  "Notifications > Inbox",
+  "Notifications > Administration",
+  "Settings [leaf]",
+  "Documents [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows health telemetry alone 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Health [group]",
+  "Health > Command Center",
+  "Health > Uptime",
+  "Health > API & Endpoints",
+  "Health > Jobs & Queues",
+  "Health > Incidents & Alerts",
+  "Health > Tenant Health",
+  "Health > SLOs",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows notifications as a group with an admin key 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [group]",
+  "Notifications > Inbox",
+  "Notifications > Administration",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows only the ungated entries to a user with no permissions 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows organogram manage only with the manage key 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Organogram > Manage",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows payments webhooks alone 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Finance [leaf]",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Health [group]",
+  "Health > Provider Webhooks",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows settings for a security-settings holder 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Settings [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows the RBAC administrator profile 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Roles [group]",
+  "Roles > Platform Roles",
+  "Roles > Platform User Assignments",
+  "Roles > Change Requests",
+  "Roles > Transfer Super Admin",
+  "Permissions [group]",
+  "Permissions > All Permissions",
+  "Permissions > Modules",
+  "Permissions > Resources",
+  "Permissions > Actions",
+  "Permissions > Dependencies",
+  "Permissions > Permission Groups",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows the auditor profile 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Audit & Security [group]",
+  "Audit & Security > Security Dashboard",
+  "Audit & Security > Events Explorer",
+  "Audit & Security > Entity Trails",
+  "Audit & Security > Live Sessions",
+  "Audit & Security > Login Attempts",
+  "Audit & Security > Account Lockouts",
+  "Audit & Security > Password Activity",
+  "Audit & Security > Proxy Sessions",
+  "Audit & Security > Audit Exports",
+  "Audit & Security > Compliance Rules",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows the export centre children by their own keys 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > Exports",
+  "Data Exports > Files",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows the finance console for a payments key 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Finance [leaf]",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows the finance console for any finance key 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Finance [leaf]",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows the procurement console for any procurement key 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Procurement [leaf]",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows the school-and-users profile 1`] = `
+[
+  "Home [leaf]",
+  "School Management [leaf]",
+  "Users [group]",
+  "Users > CX Users",
+  "Users > School Users",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
+
+exports[`Main sidebar visibility > shows the workflow admin children by their own keys 1`] = `
+[
+  "Home [leaf]",
+  "Organogram [group]",
+  "Organogram > Org Chart",
+  "Tasks [leaf]",
+  "Data Exports [group]",
+  "Data Exports > View Queues",
+  "Workflow [group]",
+  "Workflow > Approvals",
+  "Workflow > My Submissions",
+  "Workflow > Delegations",
+  "Workflow > All Instances",
+  "Workflow > Team Load",
+  "Workflow > Approver Groups",
+  "Workflow > Templates",
+  "Notifications [leaf]",
+  "Support [group]",
+  "Support > Support Centre",
+  "Support > How-to Guides",
+]
+`;
