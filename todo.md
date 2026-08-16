@@ -1,13 +1,36 @@
 ## Undone (Ask questions for clarity where needed)
 
-1. **The notification-seed fix has an unproven cause (2026-08-15, from Done #41).** The
+## Done
+
+# 46. THE NOTIFICATION-SEED CAUSE IS NOW MOOT: the state-dependence is gone at the
+source (backend `90e8867`, 2026-08-16). The loose end below was that the original 15
+errors were never reproduced, so removing the state-dependence was only the most
+PLAUSIBLE fix. That fix has now been done properly, which makes the question academic:
+`NotificationEventType` rows arrive with the database via new migration
+`vs_notifications/0008`, rather than each test class remembering to seed them.
+WHY THAT WAS THE REAL FIX: the per-test seeding had spread to EIGHT call sites, and any
+test that created a user and dispatched had the same silent hole whether anyone had
+noticed or not - dispatch could not resolve the event key, `finalize_invitation` caught
+and logged it, and the test passed while the invitation path never ran. It is the same
+pattern named twice more this session: a rule each caller must remember is a rule the
+next caller forgets. All eight hand-seeding sites were removed, so the suite passing is
+itself the proof the migration works. TWO THINGS WORTH KNOWING IF YOU TOUCH IT: the
+migration IMPORTS the registry rather than snapshotting it (the "never import live code"
+rule is about the MODEL moving on, and that is handled by writing rows through
+`apps.get_model` against a pinned field list); and its reverse deliberately deletes
+NOTHING, because `NotificationSetting.event_type` is CASCADE and would silently take
+every tenant's per-channel toggle with it, while the other two FKs are PROTECT and would
+raise mid-rollback. Ten suites verified one app at a time: vs_notifications 85, vs_user
+105, vs_exports 150, vs_payments 139, vs_finance 532, vs_admin_console 130, core 46,
+vs_todo 21, vs_workflow 253, vs_procurement 485, all OK, and zero dispatch-resolution
+tracebacks remain. THE ORIGINAL CAVEAT STANDS AS HISTORY, not as work: if those 15 errors
+ever recur, capture the FULL output rather than just the `ERROR:` lines - the error
+bodies are still what was missing. ORIGINAL ENTRY: **The notification-seed fix has an unproven cause (2026-08-15, from Done #41).** The
    original 15 errors were never reproduced: five-plus full runs of the same command have
    been green since, including two controlled A/B runs. Removing the state-dependence is
    the most plausible fix and is a real improvement either way, but it is not proven to be
    *that* failure's cause. If it recurs, capture the full output (not just the `ERROR:`
    lines) - the error bodies are what is missing.
-
-## Done
 
 # 45. **Unreadable in-app notifications, and monitoring copies in the clear (2026-08-16).**
    Two email defects found while building customer document email, both fixed at the
