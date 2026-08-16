@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { useActionParam } from "@/hooks/use-action-param";
 import { useFilterParam } from "@/hooks/use-filter-param";
 import type { Person, Task, TaskCreatePayload, TaskUpdatePayload } from "@/redux/services/dashboard/todo-types";
 import {
@@ -192,6 +193,12 @@ export default function TodoPage() {
   const openAdd = () => setModal({ mode: "add" });
   const openAssign = () => setModal({ mode: "assign", preset: focus ?? undefined });
   const openEdit = (task: Task) => setModal({ mode: "edit", editing: task });
+
+  // The action palette's "Create task" lands here with `?action=new` and the add
+  // modal opens on arrival. Only the add flow is addressable: assigning is bounded
+  // by the viewer's reporting line rather than by a permission key, so the palette
+  // has no gate that could keep the row off a non-manager's results.
+  useActionParam("new", openAdd);
 
   // ── Render ──────────────────────────────────────────────────────────────────
   const showTeam = effectiveTab === "team";

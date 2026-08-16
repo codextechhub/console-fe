@@ -14,6 +14,10 @@ const PR = R.PROCUREMENT;
 // A `do` destination that a list screen turns into an open-drawer instruction.
 const withAction = (base: string, action = "new") => `${base}?action=${action}`;
 
+// A tabbed screen's individual tab. Notification administration reads its tab
+// from `?panel=` (see notifications/admin.tsx), so each panel is addressable.
+const withPanel = (base: string, panel: string) => `${base}?panel=${panel}`;
+
 export const ACTIONS: ActionDef[] = [
   // ── Main · Home & account ────────────────────────────────────────────────
   { id: "view-home", label: "View home", aliases: ["home", "dashboard", "overview"], console: "Main", group: "Home & account", kind: "view", gate: null, run: { to: R.OVERVIEW.INDEX } },
@@ -39,6 +43,11 @@ export const ACTIONS: ActionDef[] = [
 
   // ── Main · Tasks ─────────────────────────────────────────────────────────
   { id: "view-tasks", label: "View tasks", aliases: ["tasks", "my tasks", "todo"], console: "Main", group: "Tasks", kind: "view", gate: null, run: { to: R.TODO.INDEX } },
+  // Everyone owns their own tasks, so this is ungated like the screen's Add Task
+  // button. Assigning down a reporting line is deliberately not a palette action:
+  // it depends on the viewer being a manager, which is organogram-derived and has
+  // no permission key to gate a row on.
+  { id: "create-task", label: "Create task", aliases: ["new task", "add task"], console: "Main", group: "Tasks", kind: "do", gate: null, run: { to: withAction(R.TODO.INDEX) } },
 
   // ── Main · Roles ─────────────────────────────────────────────────────────
   { id: "view-roles", label: "View roles", aliases: ["platform roles"], console: "Main", group: "Roles", kind: "view", gate: { perm: P.VIEW_ROLES }, run: { to: R.ROLES.INDEX } },
@@ -64,6 +73,12 @@ export const ACTIONS: ActionDef[] = [
   { id: "create-import-template", label: "Create import template", aliases: ["new template"], console: "Main", group: "Data Imports", kind: "do", gate: { perm: P.CREATE_IMPORT_TEMPLATE }, run: { to: R.DATA_IMPORTS.TEMPLATES.NEW } },
 
   // ── Main · Export ────────────────────────────────────────────────────────
+  // Gates mirror the Export Centre's nav entries in app-sidebar.tsx: queues are
+  // ungated (the backend scopes them to the caller), Exports needs the saved-export
+  // key and Files the run-view key.
+  { id: "view-saved-exports", label: "View exports", aliases: ["saved exports", "export definitions", "my export list"], console: "Main", group: "Export", kind: "view", gate: { perm: P.VIEW_SAVED_EXPORTS }, run: { to: R.EXPORT.SAVED } },
+  { id: "create-export", label: "Create export", aliases: ["new export", "export builder", "build export"], console: "Main", group: "Export", kind: "do", gate: { perm: P.CREATE_EXPORT }, run: { to: R.EXPORT.NEW } },
+  { id: "view-export-files", label: "View export files", aliases: ["files", "export runs", "generated files"], console: "Main", group: "Export", kind: "view", gate: { perm: P.VIEW_EXPORT_RUNS }, run: { to: R.EXPORT.FILES } },
   { id: "view-export-queues", label: "View export queues", aliases: ["queues", "my exports", "downloads"], console: "Main", group: "Export", kind: "view", gate: null, run: { to: R.EXPORT.QUEUES } },
 
   // ── Main · Workflow ──────────────────────────────────────────────────────
@@ -72,6 +87,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-delegations", label: "View delegations", aliases: ["delegate approvals"], console: "Main", group: "Workflow", kind: "view", gate: null, run: { to: R.WORKFLOW.DELEGATIONS } },
   { id: "view-workflow-instances", label: "View workflow instances", aliases: ["all instances"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_INSTANCES }, run: { to: R.WORKFLOW.INSTANCES } },
   { id: "view-team-load", label: "View team load", aliases: [], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_INSTANCES }, run: { to: R.WORKFLOW.TEAM_LOAD } },
+  { id: "view-approver-groups", label: "View approver groups", aliases: ["approver pools", "approval groups"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_APPROVER_GROUPS }, run: { to: R.WORKFLOW.APPROVER_GROUPS } },
   { id: "view-workflow-templates", label: "View workflow templates", aliases: [], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_TEMPLATES }, run: { to: R.WORKFLOW.TEMPLATES } },
   { id: "create-workflow-template", label: "Create workflow template", aliases: ["new workflow"], console: "Main", group: "Workflow", kind: "do", gate: { perm: P.MANAGE_WORKFLOW_TEMPLATES }, run: { to: R.WORKFLOW.TEMPLATE_NEW } },
 
@@ -97,13 +113,44 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-incidents", label: "View incidents", aliases: ["alerts"], console: "Main", group: "Health", kind: "view", gate: { perm: P.VIEW_HEALTH }, run: { to: R.HEALTH.INCIDENTS } },
   { id: "view-tenant-health", label: "View tenant health", aliases: [], console: "Main", group: "Health", kind: "view", gate: { perm: P.VIEW_HEALTH }, run: { to: R.HEALTH.TENANTS } },
   { id: "view-slos", label: "View SLOs", aliases: [], console: "Main", group: "Health", kind: "view", gate: { perm: P.VIEW_HEALTH }, run: { to: R.HEALTH.SLOS } },
+  // Sits under Health in the nav but is a payments screen: unattributed provider
+  // events. Its own key, not VIEW_HEALTH - a health reader must not see it.
+  { id: "view-provider-webhooks", label: "View provider webhooks", aliases: ["webhooks", "unattributed payments", "provider events"], console: "Main", group: "Health", kind: "view", gate: { perm: P.PAY_VIEW_UNATTRIBUTED_WEBHOOKS }, run: { to: R.HEALTH.PROVIDER_WEBHOOKS } },
 
   // ── Main · Notifications, Settings, Support ──────────────────────────────
   { id: "view-notifications", label: "View notifications", aliases: ["inbox", "my updates"], console: "Main", group: "Notifications", kind: "view", gate: null, run: { to: R.NOTIFICATIONS } },
   { id: "view-notification-administration", label: "View notification administration", aliases: ["notif admin"], console: "Main", group: "Notifications", kind: "view", gate: { any: [P.AUDIT_NOTIFICATION_ACTIVITY, P.ENFORCE_NOTIFICATION_SETTINGS, P.CONFIGURE_NOTIFICATION_TEMPLATES] }, run: { to: R.NOTIFICATIONS_ADMIN } },
-  { id: "view-settings", label: "View settings", aliases: ["configuration"], console: "Main", group: "Settings", kind: "view", gate: { any: [P.VIEW_CONFIG_VALUES, P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CAPABILITIES, P.VIEW_ENTITLEMENTS, P.VIEW_CONFIG_OVERRIDES, P.VIEW_CONFIG_AUDIT] }, run: { to: R.SETTINGS.INDEX } },
+  // The admin page's four tabs, each landing on its own `?panel=`. Gates match
+  // admin.tsx exactly: a panel the reader lacks is not offered, and the page
+  // falls back to their first readable tab if one is reached anyway. Event Types
+  // is reference material for whoever administers the others, so it carries the
+  // page's any-of-three gate rather than one of its own.
+  { id: "view-notification-history", label: "View notification delivery history", aliases: ["delivery history", "sent notifications", "notification log"], console: "Main", group: "Notifications", kind: "view", gate: { perm: P.AUDIT_NOTIFICATION_ACTIVITY }, run: { to: withPanel(R.NOTIFICATIONS_ADMIN, "history") } },
+  { id: "view-notification-settings", label: "View notification settings", aliases: ["channel settings", "notification matrix"], console: "Main", group: "Notifications", kind: "view", gate: { perm: P.ENFORCE_NOTIFICATION_SETTINGS }, run: { to: withPanel(R.NOTIFICATIONS_ADMIN, "settings") } },
+  { id: "view-notification-templates", label: "View notification templates", aliases: ["message templates", "email templates"], console: "Main", group: "Notifications", kind: "view", gate: { perm: P.CONFIGURE_NOTIFICATION_TEMPLATES }, run: { to: withPanel(R.NOTIFICATIONS_ADMIN, "templates") } },
+  { id: "create-notification-template", label: "Create notification template", aliases: ["new message template", "new email template"], console: "Main", group: "Notifications", kind: "do", gate: { perm: P.CONFIGURE_NOTIFICATION_TEMPLATES }, run: { to: R.NOTIFICATION_TEMPLATE_NEW } },
+  { id: "view-notification-event-types", label: "View notification event types", aliases: ["event catalogue", "event types"], console: "Main", group: "Notifications", kind: "view", gate: { any: [P.AUDIT_NOTIFICATION_ACTIVITY, P.ENFORCE_NOTIFICATION_SETTINGS, P.CONFIGURE_NOTIFICATION_TEMPLATES] }, run: { to: withPanel(R.NOTIFICATIONS_ADMIN, "events") } },
+  // Gate is the sidebar's list verbatim (app-sidebar.tsx), which is a superset of
+  // the page's own hasAnyPermission check. It previously omitted the security and
+  // integration keys, so a holder of only one of those could reach Settings from
+  // the nav but could not find it by typing.
+  { id: "view-settings", label: "View settings", aliases: ["configuration", "settings overview"], console: "Main", group: "Settings", kind: "view", gate: { any: [P.VIEW_CONFIG_VALUES, P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CAPABILITIES, P.VIEW_ENTITLEMENTS, P.VIEW_CONFIG_OVERRIDES, P.VIEW_CONFIG_AUDIT, P.VIEW_SECURITY_SETTINGS, P.VIEW_INTEGRATION_SETTINGS] }, run: { to: R.SETTINGS.INDEX } },
+  // The console's sections, each a declared route (settings/sections.ts). Gates
+  // are the per-section ones from ALL_SECTIONS in settings/index.tsx; the two
+  // sections with no gate of their own (Overview, Administration) take the page's
+  // own any-of-six guard. Overview is the `view-settings` row above, not a
+  // separate action - both land on the same screen.
+  { id: "view-settings-platform-profile", label: "View platform profile", aliases: ["issuer identity", "organisation profile"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_CONFIG_VALUES }, run: { to: `${R.SETTINGS.INDEX}/platform-profile` } },
+  { id: "view-settings-school-onboarding", label: "View school onboarding settings", aliases: ["tenant defaults", "onboarding defaults"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_CONFIG_VALUES }, run: { to: `${R.SETTINGS.INDEX}/school-onboarding` } },
+  { id: "view-settings-security", label: "View security settings", aliases: ["lockout", "runtime protection", "proxy safeguards"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_SECURITY_SETTINGS }, run: { to: `${R.SETTINGS.INDEX}/security` } },
+  { id: "view-settings-integrations", label: "View integration settings", aliases: ["integrations", "email delivery", "connections"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_INTEGRATION_SETTINGS }, run: { to: `${R.SETTINGS.INDEX}/integrations` } },
+  { id: "view-settings-features", label: "View features and access", aliases: ["feature flags", "entitlements", "plans", "overrides"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_CAPABILITIES }, run: { to: `${R.SETTINGS.INDEX}/features` } },
+  { id: "view-settings-administration", label: "View settings administration", aliases: ["specialist consoles"], console: "Main", group: "Settings", kind: "view", gate: { any: [P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CONFIG_VALUES, P.VIEW_CAPABILITIES, P.VIEW_CONFIG_AUDIT, P.VIEW_SECURITY_SETTINGS, P.VIEW_INTEGRATION_SETTINGS] }, run: { to: `${R.SETTINGS.INDEX}/administration` } },
+  { id: "view-settings-audit", label: "View configuration audit", aliases: ["config history", "settings audit", "compliance history"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_CONFIG_AUDIT }, run: { to: `${R.SETTINGS.INDEX}/audit` } },
+  { id: "view-settings-advanced", label: "View advanced catalogue", aliases: ["typed configuration", "config keys"], console: "Main", group: "Settings", kind: "view", gate: { all: [P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CONFIG_VALUES] }, run: { to: `${R.SETTINGS.INDEX}/advanced` } },
   { id: "view-support", label: "View support", aliases: ["support tickets", "help"], console: "Main", group: "Support", kind: "view", gate: null, run: { to: R.SUPPORT.INDEX } },
   { id: "raise-support-ticket", label: "Raise support ticket", aliases: ["new ticket", "contact support"], console: "Main", group: "Support", kind: "do", gate: null, run: { to: R.SUPPORT.NEW } },
+  { id: "view-how-to-guides", label: "View how-to guides", aliases: ["guides", "how to", "help articles", "documentation", "walkthroughs"], console: "Main", group: "Support", kind: "view", gate: null, run: { to: R.SUPPORT.GUIDES } },
   { id: "view-requirements-documents", label: "View requirements documents", aliases: ["mrd", "frd", "requirements", "product specs", "documents"], console: "Main", group: "Support", kind: "view", gate: { perm: P.VIEW_REQUIREMENTS_DOCS }, run: { to: R.DOCUMENTS.INDEX } },
 
   // ── Finance · Ledger & Setup ─────────────────────────────────────────────
@@ -168,6 +215,10 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-payout-batches", label: "View payout batches", aliases: ["batches"], console: "Finance", group: "Payments", kind: "view", gate: { perm: P.PAY_VIEW_PAYOUTS }, run: { to: `${F.PAYMENTS}/batches` } },
   { id: "view-settlement", label: "View settlement", aliases: [], console: "Finance", group: "Payments", kind: "view", gate: { perm: P.PAY_VIEW_PAYMENT_REPORTS }, run: { to: `${F.PAYMENTS}/settlement` } },
   { id: "view-transactions-log", label: "View transactions log", aliases: ["transactions"], console: "Finance", group: "Payments", kind: "view", gate: { perm: P.PAY_VIEW_PAYMENT_REPORTS }, run: { to: `${F.PAYMENTS}/transactions` } },
+  // Labelled "Needs Attention" in the Finance sidebar. Entity-scoped webhook
+  // exceptions, unlike the platform-scope Provider Webhooks screen under Health.
+  // Prefix gate, matching the nav entry's `payments.webhook.` prefixes.
+  { id: "view-payment-webhooks", label: "View payments needs attention", aliases: ["needs attention", "webhook exceptions", "failed webhooks"], console: "Finance", group: "Payments", kind: "view", gate: { module: ["payments.webhook."] }, run: { to: `${F.PAYMENTS}/webhooks` } },
 
   // ── Finance · Reports & Close ────────────────────────────────────────────
   { id: "view-trial-balance", label: "View trial balance", aliases: ["tb"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/trial-balance` } },

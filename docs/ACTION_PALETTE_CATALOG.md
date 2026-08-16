@@ -336,6 +336,57 @@ list screen's create drawer on arrival and strips the param.
   write-off (`…/refunds?action=new-writeoff`). Wire these when convenient by
   giving each screen a `useActionParam(...)` against its open-state.
 
+## Catch-up pass (2026-08-16)
+
+The registry had fallen behind the console: screens built after 18 July went into
+the sidebar without an action, so they were reachable by clicking and invisible to
+typing. Swept and added:
+
+- **Export Centre** - Exports (`/export/saved`), Create export (`/export/new`),
+  Files (`/export/files`). Only Queues had an action, the least used of the four.
+- **Approver Groups**, **Provider Webhooks**, **How-to Guides** - one view action
+  each, on the gate their nav entry already uses.
+- **Notification administration** - the four `?panel=` tabs are individually
+  addressable, plus Create notification template.
+- **Settings** - the eight sub-sections, each on its own section gate. Overview is
+  the existing *View settings* row, not a duplicate.
+- **Create task** - approved in this document at v1 but never built, because the
+  Tasks modal opened from local state. The screen now takes `useActionParam("new")`.
+- **Payments → Needs Attention** (`/finance/payments/webhooks`) - the one Finance
+  nav destination with no action, found by the new coverage test below.
+
+Two gate fixes went with it: *View settings* omitted `VIEW_SECURITY_SETTINGS` and
+`VIEW_INTEGRATION_SETTINGS`, so holders of only those keys could open Settings from
+the nav but never find it by typing.
+
+**Why the drift happened, and the guard against it.** Procurement had a test
+asserting every nav destination has an action; Finance and Main did not, so only
+Procurement stayed honest. All three consoles are now guarded:
+
+| Console | Nav declared in | Coverage guard |
+| --- | --- | --- |
+| Main | `src/components/main-nav.ts` | `main-registry.test.ts` |
+| Finance | `src/pages/protected/finance/finance-nav.ts` | `finance-registry.test.ts` |
+| Procurement | `src/pages/protected/procurement/procurement-nav.ts` | `procurement-registry.test.ts` |
+
+Main could not have a guard while its menu was built inline inside
+`app-sidebar.tsx`, mixed with permission calls and the current URL - nothing could
+read it. It is now a declaration (`MAIN_NAV`) plus a resolver (`buildMainNav`),
+and the component is 69 lines instead of 627. Adding a screen to any of the three
+sidebars without an action now fails the suite, naming the URL.
+
+The Main guard is deliberately kind-agnostic: it asks whether typing can reach the
+screen at all, because some entries are served by a `do` action rather than a list
+view (Manage organogram, Transfer super admin). A group's own url is skipped -
+it points at its first child rather than a screen of its own.
+
+**On changing `main-nav.ts`.** `app-sidebar.test.tsx` pins who sees what: 27
+snapshots across permission profiles (no keys, auditor with and without the export
+and manage keys, health telemetry vs payments webhooks alone, each console prefix,
+and the active-highlight rules for eight routes). They were captured against the
+pre-extraction component and passed unchanged after it, which is what makes them
+evidence rather than decoration. A gate you delete shows up there as a diff.
+
 ## Open questions (still open)
 
 1. **Short codes** - do you also want SAP-style codes (`po`, `pr`, `grn`, `tb`)?
@@ -345,3 +396,7 @@ list screen's create drawer on arrival and strips the param.
    or a dedicated bulk screen?). Omitted from the registry until decided.
 3. Items marked *(confirm)* had their backend gate assumed at build time
    (e.g. New journal entry → `FIN_SUBMIT_JOURNAL`); confirm against the registry.
+4. **Assign task** is deliberately absent. Assigning is bounded by the viewer's
+   reporting line (organogram-derived), not by a permission key, so the palette
+   has no gate that would keep the row off a non-manager's results.
+5. ~~Extracting the Main nav to a data module~~ - **done**, see the table above.
