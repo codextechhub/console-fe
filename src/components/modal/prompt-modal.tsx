@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -59,10 +60,24 @@ export default function PromptModal({
   descriptionClass,
   loading,
 }: PromptModalProp) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    // Only a close signal should close it. onOpenChange also reports opening,
+    // and passing onClose straight through would treat that as "shut".
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose?.(); }}>
       <DialogContent
+        ref={contentRef}
         showCloseButton={false}
+        // Focus the dialog itself rather than letting Radix land on the first
+        // button. This is a confirmation: the keystroke or click that opened it
+        // must not be able to answer it. Radix points aria-labelledby and
+        // aria-describedby at this element, so the title and the question are
+        // still announced on arrival.
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          contentRef.current?.focus();
+        }}
         className={cn(
           "lg:w-105 lg:max-w-[90dvw] min-h-90 max-h-[95dvh] rounded-xl place-content-center",
           containerClass,

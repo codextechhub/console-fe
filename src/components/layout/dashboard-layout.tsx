@@ -330,6 +330,14 @@ function DashboardHeader({
       return;
     }
     if (event.key === "Enter" && resultsOpen) {
+      // Acting on a result is the whole point of this Enter, so cancel the key's
+      // default action. Without this, launching anything that mounts a focusable
+      // control in the same keystroke (the logout confirm, the proxy dialog)
+      // hands the browser a new focus target before it runs Enter's default,
+      // which then arrives as a click on whatever Radix just focused: the
+      // confirm dialog opened and its Cancel button was pressed by the same
+      // keypress, so it appeared to flash and vanish.
+      event.preventDefault();
       const target = searchRows[activeResult] ?? searchRows[0];
       if (target?.kind === "show-all-actions") expandResults();
       else if (target?.kind === "action") launchAction(target.action.action);
