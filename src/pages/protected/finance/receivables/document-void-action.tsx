@@ -6,10 +6,16 @@ import { ConfirmActionModal } from "@/components/finance-ui";
 import { Can } from "@/components/finance-ui/can";
 import { Button } from "@/components/ui/button";
 import { useVoidArDocumentMutation } from "@/redux/services/finance/ar-api";
-import { DOCUMENT_VOID_CONFIG, type VoidableDocumentType } from "./document-void-config";
+import {
+  DOCUMENT_VOID_CONFIG,
+  voidDocumentLabel,
+  type VoidableDocumentType,
+  type VoidableDocumentVariant,
+} from "./document-void-config";
 
 export function DocumentVoidAction({
   documentType,
+  documentVariant,
   documentId,
   documentNumber,
   entity,
@@ -17,6 +23,8 @@ export function DocumentVoidAction({
   buttonText,
 }: {
   documentType: VoidableDocumentType;
+  /** Names the exact document open where a type covers more than one (credit vs debit note). */
+  documentVariant?: VoidableDocumentVariant | null;
   documentId: number;
   documentNumber: string;
   entity: string;
@@ -26,6 +34,7 @@ export function DocumentVoidAction({
   const [open, setOpen] = useState(false);
   const [voidDocument, { isLoading }] = useVoidArDocumentMutation();
   const config = DOCUMENT_VOID_CONFIG[documentType];
+  const label = voidDocumentLabel(documentType, documentVariant);
 
   const confirm = async () => {
     try {
@@ -49,7 +58,7 @@ export function DocumentVoidAction({
           onClick={() => setOpen(true)}
           className="gap-1.5 border-destructive/40 text-destructive hover:bg-destructive/5"
         >
-          <Ban className="size-4" /> {buttonText ?? `Void ${config.label}`}
+          <Ban className="size-4" /> {buttonText ?? `Void ${label}`}
         </Button>
       </Can>
       <ConfirmActionModal
@@ -57,7 +66,7 @@ export function DocumentVoidAction({
         onOpenChange={setOpen}
         title={`Void ${documentNumber}?`}
         description={`This ${config.effect} in one transaction. The original document and allocation rows remain in history for audit.`}
-        confirmText={`Void ${config.label}`}
+        confirmText={`Void ${label}`}
         destructive
         loading={isLoading}
         onConfirm={confirm}

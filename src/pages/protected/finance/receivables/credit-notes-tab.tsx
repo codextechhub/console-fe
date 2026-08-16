@@ -231,6 +231,7 @@ function NoteDetailDrawer({ note, entity, currency, onClose }: {
             {note.status === "POSTED" ? (
               <DocumentVoidAction
                 documentType="CREDIT_NOTE"
+                documentVariant={note.kind}
                 documentId={note.id}
                 documentNumber={note.document_number}
                 entity={entity}

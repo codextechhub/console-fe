@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { P } from "@/permissions";
-import { DOCUMENT_VOID_CONFIG } from "./document-void-config";
+import { DOCUMENT_VOID_CONFIG, voidDocumentLabel } from "./document-void-config";
 
 describe("document void actions", () => {
   it("routes every supported document to its own endpoint and reverse permission", () => {
@@ -12,5 +12,16 @@ describe("document void actions", () => {
       REFUND: { resource: "refunds", permission: P.FIN_REVERSE_REFUND },
       CONCESSION: { resource: "concessions", permission: P.FIN_REVERSE_CONCESSION },
     });
+  });
+
+  it("names the note that is open rather than the shared endpoint", () => {
+    expect(voidDocumentLabel("CREDIT_NOTE", "CREDIT")).toBe("credit note");
+    expect(voidDocumentLabel("CREDIT_NOTE", "DEBIT")).toBe("debit note");
+  });
+
+  it("falls back to the family label when the caller has no variant", () => {
+    expect(voidDocumentLabel("CREDIT_NOTE")).toBe("note");
+    expect(voidDocumentLabel("INVOICE")).toBe("invoice");
+    expect(voidDocumentLabel("PAYMENT", "CREDIT")).toBe("receipt");
   });
 });
