@@ -33,10 +33,12 @@ import {
   useUpdateTodoTaskMutation,
 } from "@/redux/services/dashboard/todo-api";
 import { asArray } from "./lib/todo-helpers";
+import { shouldForceMyTasks, type TasksTab } from "./lib/tab-resolution";
 import { Breadcrumb, MyTasksView, NodeDashboardView } from "./components/node-dashboard";
 import { TaskModal, type TaskModalMode } from "./components/task-modal";
 
-type Tab = "team" | "mine";
+// One definition, shared with the tab-resolution rules.
+type Tab = TasksTab;
 interface ModalState {
   mode: TaskModalMode;
   preset?: number;
@@ -87,7 +89,11 @@ export default function TodoPage() {
     focus ? { focus } : undefined,
   );
   const { data: mineRes, isLoading: mineLoading, isError: mineError, refetch: refetchMine } = useGetTodoMineQuery();
-  const { data: assignableRes } = useGetTodoAssignableQuery();
+  const {
+    data: assignableRes,
+    isSuccess: assignableLoaded,
+    isError: assignableFailed,
+  } = useGetTodoAssignableQuery();
 
   const [createTask, { isLoading: creating }] = useCreateTodoTaskMutation();
   const [updateTask, { isLoading: updating }] = useUpdateTodoTaskMutation();
@@ -99,14 +105,20 @@ export default function TodoPage() {
   const assignable = useMemo(() => asArray<Person>(assignableRes?.data), [assignableRes]);
 
   // A manager is anyone with at least one report (i.e. non-empty assignable set).
+  // Until the query settles this is false for everyone, because "no reports yet"
+  // and "no reports" look identical from an empty list - see the effect below.
   const viewerIsManager = assignable.length > 0;
+  // Settled either way: on failure we cannot tell a manager from anyone else, and
+  // "My Tasks" is the safe answer, same as for a genuine non-manager.
+  const managerStatusKnown = assignableLoaded || assignableFailed;
   const viewerId = mine?.person.id ?? team?.breadcrumb?.[0]?.id ?? 0;
   const viewer = mine?.person ?? team?.breadcrumb?.[0] ?? null;
 
-  // Non-managers only ever see "My Tasks".
+  // Non-managers only ever see "My Tasks" - but only once we actually know they
+  // are not managers. See lib/tab-resolution.ts for why the "known" input exists.
   useEffect(() => {
-    if (!viewerIsManager && tab !== "mine") setTab("mine");
-  }, [viewerIsManager, tab]);
+    if (shouldForceMyTasks({ tab, viewerIsManager, managerStatusKnown })) setTab("mine");
+  }, [managerStatusKnown, viewerIsManager, tab]);
 
   const effectiveTab: Tab = viewerIsManager ? tab : "mine";
 
