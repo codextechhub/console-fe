@@ -1,15 +1,6 @@
 ## Undone (Ask questions for clarity where needed)
 
-1. An export that expires before you collect it now says nothing (2026-08-14, left
-   open knowingly when the "uncollected exports" fix landed in Done #34). "Exports
-   ready to download" counts only files that are still collectable, so a file that
-   ages out of its availability window simply drops off the panel: the person who
-   asked for it is never told they missed it. That is right for THIS notice, which
-   cannot honestly point at a file that is gone, but the gap is real. Closing it
-   means a different notice ("an export expired before you collected it"), which is
-   a new signal rather than a change to this one. Nobody has asked for it yet.
-
-2. **The stock reorder report's entity-wide quantity workaround looks stale (raised
+1. **The stock reorder report's entity-wide quantity workaround looks stale (raised
    2026-08-14 with the backend, re-checked 2026-08-16 and it appears FIXED their side).**
    The screen carries an "On hand (entity)" column label plus an explanatory line,
    because a store-scoped reorder report used to narrow which rows appeared while still
@@ -21,7 +12,7 @@
    returns per store, then take the label and its explanatory line back out. Do not
    remove them on the strength of this note alone.
 
-3. **The notification-seed fix has an unproven cause (2026-08-15, from Done #41).** The
+2. **The notification-seed fix has an unproven cause (2026-08-15, from Done #41).** The
    original 15 errors were never reproduced: five-plus full runs of the same command have
    been green since, including two controlled A/B runs. Removing the state-dependence is
    the most plausible fix and is a real improvement either way, but it is not proven to be
@@ -29,6 +20,22 @@
    lines) - the error bodies are what is missing.
 
 ## Done
+
+# 43. DECIDED 2026-08-16 by the user, so this is not work: an export that expires before
+anybody downloads it is FINE, and needs no notice. The panel counts only files that are
+still collectable, so an uncollected file ages out of its availability window and quietly
+drops off. That was left open on 2026-08-14 as a known gap, on the reasoning that the
+person who asked for the file is never told they missed it. The user's call is that this
+is correct behaviour: a file nobody collected is not an event worth interrupting anybody
+about, and a second notice ("an export expired before you collected it") would be noise.
+Do not build that notice without a new decision. ORIGINAL ENTRY: 1. An export that expires before you collect it now says nothing (2026-08-14, left
+   open knowingly when the "uncollected exports" fix landed in Done #34). "Exports
+   ready to download" counts only files that are still collectable, so a file that
+   ages out of its availability window simply drops off the panel: the person who
+   asked for it is never told they missed it. That is right for THIS notice, which
+   cannot honestly point at a file that is gone, but the gap is real. Closing it
+   means a different notice ("an export expired before you collected it"), which is
+   a new signal rather than a change to this one. Nobody has asked for it yet.
 
 # 38. Two of the three remaining tables from the quick-export work are now done
    (2026-08-15): **Expense claims** got a real `finance.expense_claims` dataset +
