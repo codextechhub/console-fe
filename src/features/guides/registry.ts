@@ -9,6 +9,7 @@ const REVIEWED_AT = "2026-08-13";
 const C4_REVIEWED_AT = "2026-08-14";
 const C5_REVIEWED_AT = "2026-08-14";
 const DOCS_REVIEWED_AT = "2026-08-15";
+const GUIDE_EXPERIENCE_REVIEWED_AT = "2026-08-17";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -44,7 +45,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.getting-started.console-basics",
     estimatedMinutes: 6,
     owner: OWNER,
-    reviewedAt: C5_REVIEWED_AT,
+    reviewedAt: GUIDE_EXPERIENCE_REVIEWED_AT,
     risk: "low",
     featured: true,
     status: "published",

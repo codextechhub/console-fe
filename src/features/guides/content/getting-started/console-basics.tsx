@@ -96,7 +96,7 @@ export default function ConsoleBasicsArticle() {
       <GuideSection id="get-help" title="Get help">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
-            { icon: Search, title: "How-to Guides", body: "Under Support, search or choose a role or area. Filtered results replace unrelated sections and show only published guides you can open." },
+            { icon: Search, title: "How-to Guides", body: "Under Support, search or choose a role or area. Every guide opens at the top, and On This Page moves smoothly to the section you choose." },
             { icon: Headset, title: "Raise a ticket", body: "The headset icon in the header opens a ticket form on any screen. Say what happened, what you expected, and attach screenshots. Guides matched to that page sit one click below the form." },
             { icon: ShieldCheck, title: "Protect sensitive data", body: "Do not include passwords, access tokens, payment credentials, or unnecessary personal data." },
           ].map(({ icon: Icon, title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><Icon className="size-5 text-primary" /><p className="mt-3 text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}

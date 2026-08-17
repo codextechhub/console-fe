@@ -1,10 +1,11 @@
-import { createElement, lazy, Suspense, useEffect, useState } from "react";
+import { createElement, lazy, Suspense, useEffect, useLayoutEffect, useState, type MouseEvent } from "react";
 import { ArrowLeft, ArrowRight, BookOpenText, Check, Clock3, ExternalLink, Flag, Loader2, PlayCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { Button } from "@/components/ui/button";
 import { GUIDE_CATEGORIES, GUIDE_REGISTRY, canDiscoverGuide, findWalkthrough, useWalkthrough, type GuideRecord } from "@/features/guides";
+import { resetGuideArticleScroll, scrollToGuideSection } from "@/features/guides/article-navigation";
 import { selectPermissions } from "@/redux/features/auth/auth-slice";
 import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
@@ -24,6 +25,10 @@ export default function GuideArticlePage() {
   const [feedback, setFeedback] = useState<"yes" | "no" | null>(null);
   const Article = GUIDE_ARTICLES.get(slug);
   const { start: startWalkthrough } = useWalkthrough();
+
+  useLayoutEffect(() => {
+    resetGuideArticleScroll();
+  }, [slug]);
 
   useEffect(() => {
     if (!guide?.walkthroughId || !findWalkthrough(guide.walkthroughId) || searchParams.get("walkthrough") !== "start") return;
@@ -70,7 +75,10 @@ export default function GuideArticlePage() {
       <aside className="min-w-0 lg:order-last">
         <nav aria-label="On this page" className="rounded-2xl border border-gray-200 bg-white p-4 lg:sticky lg:top-22">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">On this page</p>
-          <ol className="mt-3 space-y-1">{guide.sections?.map((section) => <li key={section.id}><a href={`#${section.id}`} className="block rounded-lg px-2 py-2 text-xs leading-5 text-gray-600 hover:bg-primary/5 hover:text-primary">{section.title}</a></li>)}</ol>
+          <ol className="mt-3 space-y-1">{guide.sections?.map((section) => <li key={section.id}><a href={`#${section.id}`} onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+            event.preventDefault();
+            scrollToGuideSection(section.id);
+          }} className="block rounded-lg px-2 py-2 text-xs leading-5 text-gray-600 hover:bg-primary/5 hover:text-primary">{section.title}</a></li>)}</ol>
           <Button asChild variant="outline" size="sm" className="mt-4 w-full"><Link to={routesPath.PROTECTED.SUPPORT.GUIDES}>Browse guides <ArrowRight className="size-3.5" /></Link></Button>
         </nav>
       </aside>

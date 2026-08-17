@@ -72,8 +72,8 @@ describe("guide discovery", () => {
       "workflow.delegate-and-track",
     ]);
     expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.title)).toEqual([
+      "Get started with Console",
       "Create, assign, and complete tasks",
-      "Delegate and track approvals",
     ]);
   });
 });

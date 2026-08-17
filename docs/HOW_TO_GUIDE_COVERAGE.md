@@ -7,10 +7,10 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 
 | Category | Workflow | Guide ID | Risk | Article | Walkthrough | Owner | Last review | Known gap |
 |---|---|---|---|---|---|---|---|---|
-| Getting started | Console basics, navigation, access context, notifications, and help | `getting-started.console-basics` | Low | Published | Published | Console product team | 2026-08-14 | Guide discovery now uses focused filter states and published-only availability counts |
+| Getting started | Console basics, navigation, access context, notifications, and help | `getting-started.console-basics` | Low | Published | Published | Console product team | 2026-08-17 | Guide articles open at the top and contents links smoothly reveal their sections |
 | Getting started | Account activation and sign-in | `getting-started.activate-and-sign-in` | Medium | Published | Not required | Console product team | 2026-08-13 | Activation uses a personal email link, so an in-product walkthrough would be unavailable before sign-in and would risk exposing the link |
 | Getting started | Reset a forgotten password | `getting-started.reset-password` | Medium | Published | Not required | Console product team | 2026-08-13 | Recovery uses a personal email link, so an in-product walkthrough would be unavailable before sign-in and would risk exposing the link |
-| Getting started | Workspace search and quick actions | `getting-started.console-basics` | Low | Published | Published | Console product team | 2026-08-14 | Covered by the Console basics article and walkthrough; guide results exclude drafts |
+| Getting started | Workspace search and quick actions | `getting-started.console-basics` | Low | Published | Published | Console product team | 2026-08-17 | Covered by the Console basics article and walkthrough; guide results exclude drafts |
 | Schools and users | Create and configure a school | `schools.create-and-configure` | High | Published | Published | Console product team | 2026-08-14 | Walkthrough opens the matching school, branch, administrator, and package views, preserves entered values, keeps the target visible beside the coach, and never reads, changes, validates, or submits a field |
 | Schools and users | Manage schools and branches | `schools.manage-schools-and-branches` | Medium | Published | Not required | Console product team | 2026-08-13 | List, detail, and single-record edit tasks are fully covered by the article and do not need cross-screen automation |
 | Schools and users | Invite and manage CX or school users | `schools.invite-and-manage-users` | Medium | Published | Not required | Console product team | 2026-08-13 | The article covers approval, invitation, profile, and access states; consequential status actions remain explicit user actions |
@@ -79,8 +79,9 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 
 - Typed published-article metadata, contents sections, related-guide relationships,
   primary product routes, and read-time estimates: built.
-- Responsive article renderer with sticky desktop contents, in-page anchors, product
-  deep links, related guides, feedback, and outdated-report handoff: built.
+- Responsive article renderer with sticky desktop contents, smooth in-page anchors,
+  top-resetting article navigation, product deep links, related guides, feedback,
+  and outdated-report handoff: built.
 - Reusable numbered steps, callouts, checklists, and explanatory figures: built.
 - `Get started with Console`: published as the first complete article.
 - Real-backend desktop, 390px phone, and 820px tablet article rendering: verified
