@@ -1,12 +1,30 @@
 ## Undone (Ask questions for clarity where needed)
 
-# Item 9's refusal path has no surface yet (found 2026-08-20).
-The branch lifecycle 409s (`MAIN_BRANCH_CANNOT_LEAVE_SERVICE`,
-`LAST_BRANCH_CANNOT_LEAVE_SERVICE`) can only be reached by closing, suspending or
-deactivating a branch, and this console has no branch status-transition screen at all -
-`transitionBranch` is defined in `school-mgt-api.ts` and called by nothing. The
-promotion flow that makes those refusals followable now exists (branch detail →
-Make Main Branch); the transitions themselves are still unbuilt product surface.
+# The go-live queue has no list endpoint (found 2026-08-20).
+A CX reviewer cannot see which schools are waiting to go live. `GET
+/v1/onboarding/go-live/` is scoped to `request.tenant` through `rows_for`, and
+unlike approve and reject it does NOT set `platform_cross_tenant_param`. So:
+* `?tenant=codex` returns 200 and is always empty, because the platform tenant
+  never submits a go-live request, and
+* `?tenant=<school>` returns 404 "No tenant matches the requested context",
+  refusing the assertion outright. Same for `/v1/onboarding/state/`.
+Approve and reject DO accept the cross-tenant assertion and work, but they take
+a request id that nothing gives the console a way to discover. Verified against
+the running API, not inferred.
+NOT WORKED AROUND: a "queue" built on this could only ask the operator to type a
+request id. What is needed is either `platform_cross_tenant_param` on the list
+view, or a platform-wide pending-go-live endpoint. The frontend is then one
+screen.
+
+# There is no way to take an ACTIVE school out of service (found 2026-08-20).
+Nothing in `vs_schools`, `vs_onboarding` or `vs_tenants` moves a live school to
+INACTIVE or SUSPENDED on demand. What exists is go-live (PENDING -> ACTIVE),
+reinstate (SUSPENDED -> PENDING, and that one works for platform staff), and the
+automatic 90-day onboarding expiry sweep.
+This is why `LastBranchCannotLeaveService` gives advice nobody can follow: it
+tells the operator to "Deactivate the school itself instead", and the console has
+no way to do that. The branch screen therefore states the rule without repeating
+the instruction.
 
 ## Done
 

@@ -16,6 +16,7 @@ import { P } from "@/permissions";
 import {
   useGetBranchDetailQuery,
   useGetSchoolDetailQuery,
+  useTransitionBranchMutation,
   useUpdateBranchMutation,
 } from "@/redux/services/dashboard/school-mgt-api";
 import { routesPath } from "@/routes/routes-path";
@@ -36,11 +37,18 @@ import {
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-
-// A branch that is suspended, inactive or closed cannot be promoted: the
-// backend refuses it, and promoting one would rebuild the dead end that the
-// main-branch guard exists to prevent.
-const OUT_OF_SERVICE = new Set(["SUSPENDED", "INACTIVE", "CLOSED"]);
+import { Textarea } from "@/components/ui/textarea";
+import { CustomInput } from "@/components/custom/custom-input";
+import {
+  OUT_OF_SERVICE,
+  branchLeaveServiceBlock,
+  branchNameConfirmationRequired,
+  branchReasonRequired,
+  branchTransitionEffect,
+  branchTransitionLabel,
+  branchTransitionsFrom,
+  type BranchStatus,
+} from "./branch-lifecycle";
 
 function DetailField({ label, value, children }: { label: string; value?: ReactNode; children?: ReactNode }) {
   return (
@@ -74,6 +82,11 @@ export default function ViewBranch() {
   const canViewSchool = hasPermission(P.BROWSE_SCHOOLS);
 
   const [confirmPromote, setConfirmPromote] = useState(false);
+  // The move being confirmed, or null. Reason and typed name are cleared with
+  // it, so a cancelled close cannot leave a name sitting in the next dialog.
+  const [pendingMove, setPendingMove] = useState<BranchStatus | null>(null);
+  const [moveReason, setMoveReason] = useState("");
+  const [typedName, setTypedName] = useState("");
 
   const { data: schoolData, isLoading: schoolLoading } = useGetSchoolDetailQuery(slug ?? "", {
     skip: !slug || !canViewSchool,
@@ -90,6 +103,7 @@ export default function ViewBranch() {
   );
 
   const [updateBranch, { isLoading: promoting }] = useUpdateBranchMutation();
+  const [transitionBranch, { isLoading: transitioning }] = useTransitionBranchMutation();
 
   const school = schoolData?.data;
   const branch = branchData?.data;
@@ -98,6 +112,50 @@ export default function ViewBranch() {
   // so the handover has to be reachable or that refusal is unfollowable. The
   // backend demotes the incumbent in the same transaction.
   const canPromote = !!branch && !branch.is_main && !OUT_OF_SERVICE.has(branch.status);
+
+  const branchCount = school?.branches?.length ?? 0;
+  const transitions = branch ? branchTransitionsFrom(branch.status) : [];
+  // Shown but refused rather than hidden: an operator who cannot see the
+  // control never learns that the main designation has to be handed over first.
+  const blockedReason = (to: BranchStatus) =>
+    branch ? branchLeaveServiceBlock(to, { isMain: branch.is_main, branchCount }) : null;
+  const blockedReasons = [
+    ...new Set(transitions.map(blockedReason).filter((reason): reason is string => !!reason)),
+  ];
+
+  const closeMove = () => {
+    setPendingMove(null);
+    setMoveReason("");
+    setTypedName("");
+  };
+
+  const reasonMissing = !!pendingMove && branchReasonRequired(pendingMove) && !moveReason.trim();
+  const nameMismatch =
+    !!pendingMove
+    && branchNameConfirmationRequired(pendingMove)
+    && typedName.trim() !== (branch?.name ?? "").trim();
+  const moveBlocked = reasonMissing || nameMismatch;
+
+  const applyMove = () => {
+    if (!pendingMove || moveBlocked) return;
+    transitionBranch({
+      slug: slug ?? "",
+      code: parsedCode,
+      to_state: pendingMove,
+      reason: moveReason.trim(),
+    })
+      .unwrap()
+      .then((res) => {
+        const next = res?.data?.status ?? pendingMove;
+        closeMove();
+        toast.success(`${branch?.name ?? "This branch"} is now ${next.toLowerCase()}.`);
+      })
+      .catch(() => {
+        // The interceptor surfaces the backend's own refusal - the main-branch
+        // and last-branch guards answer 409 with the advice to follow - so the
+        // dialog stays open with the reader's own words still in it.
+      });
+  };
 
   const promoteToMain = () => {
     updateBranch({ slug: slug ?? "", code: parsedCode, body: { is_main: true } })
@@ -219,6 +277,41 @@ export default function ViewBranch() {
                     <DetailField label="Opened date"><span className="inline-flex items-center gap-1.5"><CalendarDays className="size-3.5 text-gray-01" />{branch.opened_at ? formatStartedTime(branch.opened_at) : "Not recorded"}</span></DetailField>
                     <DetailField label="Branch designation" value={branch.is_main ? "Main branch" : "Additional branch"} />
                   </div>
+
+                  <PermissionGate permission={P.MANAGE_BRANCH}>
+                    <div className="mt-5 border-t border-gray-200/80 pt-4">
+                      <p className="font-mont text-xs font-medium text-gray-01">Change status</p>
+                      {transitions.length === 0 ? (
+                        <p className="mt-2 text-xs text-gray-01">
+                          A closed branch is final. To trade here again, create a new branch.
+                        </p>
+                      ) : (
+                        <>
+                          <div className="mt-3 flex flex-col gap-2.5">
+                            {transitions.map((to) => (
+                              <Button
+                                key={to}
+                                variant={to === "CLOSED" ? "outline-dest" : "outline"}
+                                className="w-full justify-start"
+                                disabled={!!blockedReason(to)}
+                                onClick={() => { setMoveReason(""); setTypedName(""); setPendingMove(to); }}
+                              >
+                                {branchTransitionLabel(to, branch.status)}
+                              </Button>
+                            ))}
+                          </div>
+                          {/* Once, not under each disabled control: the same rule
+                              blocks every way out of service, and repeating it
+                              per button reads as several different problems. */}
+                          {blockedReasons.map((reason) => (
+                            <p key={reason} className="mt-2.5 font-mont text-[11px] leading-4 text-gray-01">
+                              {reason}
+                            </p>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  </PermissionGate>
                 </SectionCard>
               </div>
             </div>
@@ -229,6 +322,67 @@ export default function ViewBranch() {
           <div className="rounded-xl bg-white p-8 text-center"><p className="text-sm text-gray-01">Branch not found.</p></div>
         )}
       </main>
+
+      <AlertDialog open={!!pendingMove} onOpenChange={(open) => !open && closeMove()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingMove ? `${branchTransitionLabel(pendingMove, branch?.status ?? "")}?` : ""}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingMove ? branchTransitionEffect(pendingMove, branch?.name ?? "This branch") : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label htmlFor="transition-reason" className="text-sm text-black-01">
+                Reason
+                {pendingMove && branchReasonRequired(pendingMove) && (
+                  <span className="pl-1.5 text-error">*</span>
+                )}
+              </label>
+              <Textarea
+                id="transition-reason"
+                rows={3}
+                placeholder="What changed, and on whose instruction"
+                value={moveReason}
+                onChange={(e) => setMoveReason(e.target.value)}
+              />
+              <p className="font-mont text-[11px] leading-4 text-gray-01">
+                Written into this branch&apos;s lifecycle history, which is what a reviewer reads
+                later when they ask why this happened.
+              </p>
+            </div>
+
+            {pendingMove && branchNameConfirmationRequired(pendingMove) && (
+              <CustomInput
+                id="transition-confirm-name"
+                label={`Type ${branch?.name ?? "the branch name"} to confirm`}
+                placeholder={branch?.name ?? ""}
+                autoComplete="off"
+                value={typedName}
+                onChange={(e) => setTypedName(e.target.value)}
+              />
+            )}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={transitioning}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => { event.preventDefault(); applyMove(); }}
+              disabled={transitioning || moveBlocked}
+              className={pendingMove === "CLOSED" ? "bg-destructive text-white hover:bg-destructive/90" : undefined}
+            >
+              {transitioning
+                ? "Applying..."
+                : pendingMove
+                  ? branchTransitionLabel(pendingMove, branch?.status ?? "")
+                  : "Confirm"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={confirmPromote} onOpenChange={(open) => !open && setConfirmPromote(false)}>
         <AlertDialogContent>

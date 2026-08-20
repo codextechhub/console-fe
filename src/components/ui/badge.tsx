@@ -29,6 +29,10 @@ const badgeVariants = cva(
         suspended: "bg-orange-500/10 text-yellow-01-text",
         locked: "bg-destructive/10 text-error-text",
         deactivated: "bg-gray-05/10 text-gray-06-text",
+        // Terminal, not merely out of service: a closed branch is re-created,
+        // never reopened. Darker than `inactive` so the two do not read as the
+        // same thing, and not `rejected` red, because nothing went wrong.
+        closed: "bg-black-01/10 text-black-01",
         outline:
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",

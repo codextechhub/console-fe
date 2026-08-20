@@ -419,11 +419,19 @@ Sectioned console at `/procurement/settings/:section`, sub-nav gated by prefix `
 |---|---|---|
 | "Make Main Branch" button | `<PermissionGate>` | `P.MODIFY_BRANCH` |
 | "Edit Branch" button | `<PermissionGate>` | `P.MODIFY_BRANCH` |
+| Lifecycle - "Change status" actions | `<PermissionGate>` | `P.MANAGE_BRANCH` |
 
 > "Make Main Branch" is additionally hidden on a branch that is already main, or
 > whose status is SUSPENDED / INACTIVE / CLOSED - the backend refuses both. The
 > handover is what makes the "the main branch cannot leave service" refusal
 > followable.
+>
+> `P.MANAGE_BRANCH` maps to `platform.branches.manage`, which the backend seeds
+> as restricted/SENSITIVE and gates with `IsVisionStaff` as well as the key: a
+> school-tenant role that somehow held it still cannot reach the endpoint. The
+> status actions are offered per the lifecycle's own edges, and the ones that
+> would take the main or the sole branch out of service are shown disabled with
+> the reason rather than hidden, so the rule is visible before the click.
 
 ---
 
