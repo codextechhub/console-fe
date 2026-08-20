@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # Verify the seeded admin can log in and at least one ledger entity exists.
+# The login names its tenant ("codex", the platform tenant) exactly as the app
+# does: an address can be an account at more than one tenant, so an unscoped
+# sign-in is refused once REQUIRE_TENANT_ON_SIGN_IN is on.
 set -euo pipefail
 
 BACKEND="${BACKEND:-http://localhost:8000/v1}"
@@ -8,7 +11,7 @@ PASSWORD="${PASSWORD:-Admin@123456}"
 
 TOKEN=$(curl -s --max-time 8 -X POST "$BACKEND/user/auth/login/" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" \
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\",\"tenant\":\"codex\"}" \
   | python3 -c "import sys,json
 try:
     print(json.load(sys.stdin)['data']['access'])

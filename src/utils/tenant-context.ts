@@ -14,6 +14,14 @@ type AuthState = {
   };
 };
 
+// The tenant this app signs in to. school-fe reads its slug off the subdomain
+// it is served from (bright-star.xvs.codexng.com sends "bright-star"); the
+// console has no such subdomain and is always the platform tenant, so it sends
+// the constant. Sign-in and password reset are unauthenticated, so the slug
+// cannot come from the store the way getTenantSlug() reads it - one address may
+// now be an account at several tenants, and the backend has to be told which.
+export const PLATFORM_TENANT_SLUG = "codex";
+
 let readState: (() => AuthState) | null = null;
 
 export const bindTenantStore = (getState: () => AuthState): void => {

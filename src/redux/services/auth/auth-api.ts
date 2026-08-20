@@ -7,14 +7,20 @@ import { resetSessionInvalidation, setAuthCookies } from "@/utils/token-refresh"
 import { endSession } from "@/utils/end-session";
 import type { LoginResponse } from "./auth-types";
 import type { AuthSchool, AuthTenant, User } from "@/redux/features/auth/auth-types";
+import { PLATFORM_TENANT_SLUG } from "@/utils/tenant-context";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, { email: string; password: string }>({
+      // The tenant is added here, not at the call sites: an address can now be
+      // an account at more than one tenant, so "find the user by email" is only
+      // unambiguous once the sign-in names the tenant it is addressed to. Every
+      // login this app makes is a platform login, so there is nothing for a
+      // page to decide - see PLATFORM_TENANT_SLUG.
       query: (user) => ({
         url: `/user/auth/login/`,
         method: "POST",
-        body: user,
+        body: { ...user, tenant: PLATFORM_TENANT_SLUG },
       }),
       async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
@@ -56,10 +62,13 @@ export const authApi = baseApi.injectEndpoints({
       },
     }),
     forgotPassword: builder.mutation<{ message: string }, { email: string }>({
+      // Scoped to the same tenant as login, and for the same reason: a reset
+      // asked for here must never rewrite the password of an account that
+      // shares the address at a school.
       query: (payload) => ({
         url: `/user/auth/password/reset/request/`,
         method: "POST",
-        body: payload,
+        body: { ...payload, tenant: PLATFORM_TENANT_SLUG },
       }),
     }),
     passwordResetPreview: builder.query<{ message: string; data: { email: string; full_name: string } }, string>({
