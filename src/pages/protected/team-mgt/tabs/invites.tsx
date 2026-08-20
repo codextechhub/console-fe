@@ -30,7 +30,7 @@ import { CustomDateInput } from "@/components/custom/custom-date-input";
 import { useAllRoles } from "@/hooks/use-all-roles";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
-import { SchoolUserDetail, USER_TYPE_LABELS } from "../school-user-detail";
+import { SchoolUserDetail } from "../school-user-detail";
 import { usePermissions } from "@/hooks/use-permissions";
 
 const CX_TABLE_HEADER = [
@@ -48,7 +48,7 @@ const SCHOOL_TABLE_HEADER = [
   "User",
   "School",
   "Branch",
-  "User Type",
+  "Role",
   "Email Delivery",
   "Expires",
   "Invited By",
@@ -62,7 +62,6 @@ const INITIAL_FILTERS = {
   date_to: "",
   invited_by: "",
   school_id: "",
-  user_type: "",
 };
 
 const SORT_OPTIONS = [
@@ -107,7 +106,9 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
     () => ({
       ...query,
       ...appliedFilters,
-      ...(scope === "cx" ? { user_type: "CX_STAFF" } : { scope: "school" }),
+      // See members.tsx: `scope` is the tenant-kind split, asked server-side in
+      // whichever direction this tab is showing.
+      scope: scope === "school" ? "school" : "platform",
       search: debouncedValue,
       ordering: buildOrdering(sort.sortColumn, sort.sortOrder),
     }),
@@ -274,17 +275,6 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
               containerClass={scope === "school" ? undefined : "hidden"}
             />
             <SearchSelect
-              id="filter-user-type"
-              label="User Type"
-              placeholder="All user types"
-              options={Object.entries(USER_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
-              value={draftFilters.user_type}
-              onChange={(e) =>
-                setDraftFilters((p) => ({ ...p, user_type: e.target.value }))
-              }
-              containerClass={scope === "school" ? undefined : "hidden"}
-            />
-            <SearchSelect
               id="filter-role"
               label="Role"
               placeholder="All roles"
@@ -377,7 +367,7 @@ const FORMAT_TABLE_DATA = (data: TeamMember[] | undefined, scope: "cx" | "school
     ),
     school: item?.school_name?.trim() || "---",
     branch: item?.branch_name?.trim() || "School-wide",
-    userType: USER_TYPE_LABELS[item?.user_type] || item?.user_type || "---",
+    role: item?.role?.trim() || "---",
     emailSent: item?.invitation_email_status ? (
       <Badge variant={EMAIL_STATUS_VARIANT[item.invitation_email_status] ?? "pending"} className="min-w-16">
         {item.invitation_email_status}

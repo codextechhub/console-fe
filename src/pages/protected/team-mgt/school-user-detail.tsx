@@ -7,12 +7,13 @@ import PermissionOverrides, { useCanViewPermissionExceptions } from "@/component
 import { formatRelativeDate } from "@/utils/helpers";
 import { Building2, CalendarDays, GitBranch, KeyRound, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
 
-const USER_TYPE_LABELS: Record<string, string> = {
-  SCHOOL_ADMIN: "School Admin",
-  BRANCH_ADMIN: "Branch Admin",
-  STAFF: "Staff",
-  STUDENT: "Student",
-  PARENT: "Parent / Guardian",
+// The persona column is gone from the API: which side of the platform boundary
+// an account sits on is a fact about its tenant, and what the person actually
+// does is their role. Two accounts both reading "Staff" were a principal and a
+// Year 4 teacher, which is exactly what the role says and the persona did not.
+const TENANT_KIND_LABELS: Record<string, string> = {
+  PLATFORM: "CX Staff",
+  SCHOOL: "School User",
 };
 
 function DetailField({
@@ -105,7 +106,7 @@ export function SchoolUserDetail({
               <div className="grid gap-3 sm:grid-cols-2">
                 <DetailField icon={Building2} label="School" value={detail?.school_name || user?.school_name} />
                 <DetailField icon={GitBranch} label="Branch" value={detail?.branch_name || user?.branch_name} />
-                <DetailField icon={ShieldCheck} label="User type" value={USER_TYPE_LABELS[detail?.user_type || user?.user_type || ""] || detail?.user_type || user?.user_type} />
+                <DetailField icon={ShieldCheck} label="Account type" value={TENANT_KIND_LABELS[detail?.tenant_kind || user?.tenant_kind || ""] || detail?.tenant_kind || user?.tenant_kind} />
                 <DetailField icon={KeyRound} label="Assigned role" value={detail?.role || user?.role} />
               </div>
             </section>
@@ -132,4 +133,4 @@ export function SchoolUserDetail({
   );
 }
 
-export { USER_TYPE_LABELS };
+export { TENANT_KIND_LABELS };

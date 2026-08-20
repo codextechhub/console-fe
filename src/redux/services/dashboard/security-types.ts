@@ -108,7 +108,7 @@ export interface ProxyTarget {
   id: number;
   email: string;
   full_name: string;
-  user_type: string;
+  tenant_kind: string;
   role: string;
   tenant_slug: string;
   tenant_name: string;

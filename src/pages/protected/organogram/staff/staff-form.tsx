@@ -30,8 +30,9 @@ export default function StaffForm() {
     data: profileRes, isLoading: loadingProfile, isError: profileFailed,
   } = useGetStaffProfileQuery(id as string, { skip: !isEdit });
   const { data: positionsRes } = useGetPositionsQuery({ page_size: 100 });
-  // CX staff users - only needed when creating a new profile.
-  const { data: usersRes } = useGetTeamMembersQuery({ page_size: 100, user_type: "CX_STAFF" }, { skip: isEdit });
+  // Platform-tenant users - the organogram charts CX staff, not school accounts.
+  // Only needed when creating a new profile.
+  const { data: usersRes } = useGetTeamMembersQuery({ page_size: 100, scope: "platform" }, { skip: isEdit });
 
   const [createProfile, { isLoading: creating }] = useCreateStaffProfileMutation();
   const [updateProfile, { isLoading: updating }] = useUpdateStaffProfileMutation();

@@ -1,5 +1,13 @@
 ## Undone (Ask questions for clarity where needed)
 
+# Item 9's refusal path has no surface yet (found 2026-08-20).
+The branch lifecycle 409s (`MAIN_BRANCH_CANNOT_LEAVE_SERVICE`,
+`LAST_BRANCH_CANNOT_LEAVE_SERVICE`) can only be reached by closing, suspending or
+deactivating a branch, and this console has no branch status-transition screen at all -
+`transitionBranch` is defined in `school-mgt-api.ts` and called by nothing. The
+promotion flow that makes those refusals followable now exists (branch detail →
+Make Main Branch); the transitions themselves are still unbuilt product surface.
+
 ## Done
 
 # 47. **An export run whose worker never came back is now reconciled (2026-08-16).**

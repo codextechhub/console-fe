@@ -226,7 +226,7 @@ export default function TemplateBuilder() {
     { skip: !canUseOrganogram },
   );
   const { data: usersRes } = useGetTeamMembersQuery(
-    { page_size: 100, user_type: "CX_STAFF" },
+    { page_size: 100, scope: "platform" },
     { skip: !canSeeDirectory },
   );
   // Roles and approver groups are what stages now name; both are picked from a

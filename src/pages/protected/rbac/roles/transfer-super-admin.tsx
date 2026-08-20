@@ -51,11 +51,12 @@ export default function TransferSuperAdmin() {
 
   const activeSuperAdmin = assignmentsData?.data?.[0];
 
-  // CX staff candidates. The transfer endpoint rejects anyone who isn't
-  // CX_STAFF, so we filter here too and remove the current super admin
-  // from the picker.
+  // Platform-tenant candidates only. This picker decides who holds platform
+  // super-admin, so offering a school account is not a cosmetic slip: the
+  // transfer endpoint refuses one, and the list must not suggest it either.
+  // The current super admin is removed below.
   const { data: membersData, isLoading: membersLoading } = useGetTeamMembersQuery({
-    user_type: "CX_STAFF",
+    scope: "platform",
     status: "ACTIVE",
     page: 1,
     page_size: 200,

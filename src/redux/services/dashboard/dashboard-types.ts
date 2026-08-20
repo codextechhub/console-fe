@@ -12,7 +12,13 @@ export interface TeamMember {
   last_name?: string
   phone?: string
   gender?: string
-  user_type: string
+  /**
+   * PLATFORM or SCHOOL. The CX / School split has always really been a tenant
+   * kind, and this says per row what the tab could only say per page. `role` is
+   * the human answer beside it - two accounts both reading "Staff" were a
+   * principal and a Year 4 teacher, which a reviewer cannot act on.
+   */
+  tenant_kind: string
   role: string
   status: string
   school_id?: string

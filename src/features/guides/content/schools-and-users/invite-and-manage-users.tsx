@@ -19,7 +19,7 @@ export default function InviteAndManageUsersArticle() {
         <GuideSteps>
           <GuideStep title="Choose the correct list">Open <strong>CX Users</strong> for platform staff or <strong>School Users</strong> for school accounts.</GuideStep>
           <GuideStep title="Choose a lifecycle tab">Use <strong>Members</strong> for current accounts, <strong>Invites</strong> for invitation progress, and <strong>Drafts</strong> for incomplete CX hires.</GuideStep>
-          <GuideStep title="Narrow the results">Use Search, <strong>Filters</strong>, and the sort controls. School-user filters can include school and user type; CX filters can include role and account status.</GuideStep>
+          <GuideStep title="Narrow the results">Use Search, <strong>Filters</strong>, and the sort controls. School-user filters can include school; CX filters can include role and account status.</GuideStep>
           <GuideStep title="Refresh after a change">Select <strong>Refresh</strong> when an approval, activation, unlock, or suspension has just completed.</GuideStep>
         </GuideSteps>
       </GuideSection>

@@ -41,7 +41,7 @@ import { CustomDateInput } from "@/components/custom/custom-date-input";
 import { useAllRoles } from "@/hooks/use-all-roles";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
-import { SchoolUserDetail, USER_TYPE_LABELS } from "../school-user-detail";
+import { SchoolUserDetail } from "../school-user-detail";
 import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 
 const CX_TABLE_HEADER = [
@@ -57,7 +57,6 @@ const SCHOOL_TABLE_HEADER = [
   "User",
   "School",
   "Branch",
-  "User Type",
   "Role",
   "Status",
   "Date Created",
@@ -71,7 +70,6 @@ const INITIAL_FILTERS = {
   date_to: "",
   invited_by: "",
   school_id: "",
-  user_type: "",
 };
 
 const STATUS_OPTIONS = [
@@ -136,7 +134,10 @@ export default function MembersTab({
       // Drafts tab is always pinned to status=DRAFT (an empty applied status
       // filter must not widen it back to everyone).
       ...(isDrafts ? { status: "DRAFT" } : {}),
-      ...(scope === "cx" ? { user_type: "CX_STAFF" } : { scope: "school" }),
+      // The CX / School split is a tenant-kind split, and `scope` asks it in
+      // both directions. Server-side on purpose: filtering in the browser would
+      // leave the pagination totals counting rows the page does not show.
+      scope: scope === "school" ? "school" : "platform",
       search: debouncedValue,
       ordering: buildOrdering(sort.sortColumn, sort.sortOrder),
     }),
@@ -396,17 +397,6 @@ export default function MembersTab({
               containerClass={scope === "school" ? undefined : "hidden"}
             />
             <SearchSelect
-              id="filter-user-type"
-              label="User Type"
-              placeholder="All user types"
-              options={Object.entries(USER_TYPE_LABELS).map(([value, label]) => ({ value, label }))}
-              value={draftFilters.user_type}
-              onChange={(e) =>
-                setDraftFilters((p) => ({ ...p, user_type: e.target.value }))
-              }
-              containerClass={scope === "school" ? undefined : "hidden"}
-            />
-            <SearchSelect
               id="filter-role"
               label="Role"
               placeholder="All roles"
@@ -500,7 +490,6 @@ const FORMAT_TABLE_DATA = (data: TeamMember[] | undefined, scope: "cx" | "school
     ),
     school: item?.school_name?.trim() || "---",
     branch: item?.branch_name?.trim() || "School-wide",
-    userType: USER_TYPE_LABELS[item?.user_type] || item?.user_type || "---",
     role: item?.role?.trim() || "---",
     status: (
       <Badge variant={item.status?.toLowerCase()} className="min-w-19.25">

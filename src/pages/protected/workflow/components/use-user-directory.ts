@@ -47,7 +47,7 @@ export function useUserDirectory() {
 
   const role = (id: UserId): string => {
     const u = get(id);
-    return u?.role || u?.user_type || "";
+    return u?.role || "";
   };
 
   return { get, name, initials, role, byId, isLoading };

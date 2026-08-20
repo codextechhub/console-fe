@@ -13,7 +13,7 @@ export interface TicketUser {
   id: string;
   name: string;
   email: string;
-  user_type: string;
+  tenant_kind: string;
   role: string;
 }
 

@@ -111,7 +111,12 @@ function ImpersonationDetailDrawer({
                     <ActorCell label={session.target_email} email={session.target_email} userId={session.target_user} />
                     <div className="min-w-0">
                       <p className="text-xs font-medium truncate">{session.target_email}</p>
-                      <p className="text-[10px] text-gray-01">{session.tenant_name}</p>
+                      {/* The role, not the tenant alone: a reviewer has to be able
+                          to tell a stepped-into principal from a Year 4 teacher,
+                          and both sit at the same school. */}
+                      <p className="text-[10px] text-gray-01 truncate">
+                        {[session.target_type_label, session.tenant_name].filter(Boolean).join(" · ")}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -443,7 +448,9 @@ export default function Impersonations() {
                           <ActorCell label={i.target_email} email={i.target_email} userId={i.target_user} />
                           <div className="min-w-0">
                             <p className="text-xs font-medium truncate max-w-[160px]">{i.target_email}</p>
-                            <p className="text-[10px] text-gray-01">{i.tenant_name}</p>
+                            <p className="text-[10px] text-gray-01 truncate max-w-[160px]">
+                              {[i.target_type_label, i.tenant_name].filter(Boolean).join(" · ")}
+                            </p>
                           </div>
                         </div>
                       </td>

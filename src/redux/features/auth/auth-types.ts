@@ -39,7 +39,8 @@ export interface ProxyTargetIdentity {
   id: number
   email: string
   full_name: string
-  user_type: string
+  /** Which side of the platform boundary the account sits on: PLATFORM or SCHOOL. */
+  tenant_kind: string
   role: string
   tenant_slug: string
   tenant_name: string
@@ -60,7 +61,6 @@ export interface User {
   last_name: string
   full_name: string
   phone: string
-  user_type: string
   role: string
   status: string
   password_changed_at: string | null
