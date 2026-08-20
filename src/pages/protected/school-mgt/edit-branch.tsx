@@ -14,7 +14,11 @@ import * as Yup from "yup";
 
 const editBranchSchema = Yup.object({
   name: Yup.string().required("Branch name is required"),
-  _type: Yup.string().required("Branch type is required"),
+  // Optional, as the model has always had it: a branch created outside the
+  // serializers carries no type, and demanding one here would make that branch
+  // unpatchable through this form until somebody invented a classification for
+  // it. The create form still asks, because there a human is choosing.
+  _type: Yup.string(),
   address: Yup.string(),
   email: Yup.string().email("Enter a valid email"),
   country: Yup.string(),
@@ -110,7 +114,6 @@ export default function EditBranch() {
                   id="_type"
                   label="Branch Type"
                   placeholder="e.g. Primary, Secondary"
-                  isRequired
                   {...formik.getFieldProps("_type")}
                   error={formik.touched._type ? formik.errors._type : ""}
                 />

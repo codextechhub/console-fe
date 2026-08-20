@@ -9,10 +9,13 @@ import {
 import { routesPath } from "@/routes/routes-path";
 import { editSchoolSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import { apiErrorMessage, apiFieldError, errorStatus } from "@/utils/api-errors";
 
 interface EditSchoolValues {
+  slug: string;
   ownership_type: string;
   address: string;
   website: string;
@@ -31,10 +34,17 @@ export default function EditSchool() {
 
 
   const school = data?.data;
+  // A school's address is editable right up to go-live and frozen for ever
+  // after, because the slug is where its users sign in. This is the same test
+  // the backend applies (School._has_been_live), read off the same two fields,
+  // so the form and the API cannot disagree about which schools are frozen.
+  const isLive = !!school?.activated_at || school?.status === "ACTIVE";
+  const [slugError, setSlugError] = useState("");
 
   const formik = useFormik<EditSchoolValues>({
     enableReinitialize: true,
     initialValues: {
+      slug: school?.slug ?? "",
       ownership_type: school?.ownership_type ?? "",
       address: school?.address ?? "",
       website: school?.website ?? "",
@@ -45,7 +55,13 @@ export default function EditSchool() {
     },
     validationSchema: editSchoolSchema,
     onSubmit: (values) => {
+      setSlugError("");
       const body: Record<string, unknown> = {};
+      // Only when it actually moved: sending the current address is accepted
+      // but pointless, and on a live school it is the one field that would turn
+      // an ordinary edit into a refusal.
+      const nextSlug = values.slug.trim();
+      if (!isLive && nextSlug && nextSlug !== school?.slug) body.slug = nextSlug;
       if (values.ownership_type) body.ownership_type = values.ownership_type;
       if (values.address) body.address = values.address;
       if (values.website) body.website = values.website;
@@ -56,11 +72,23 @@ export default function EditSchool() {
 
       updateSchool({ slug: slug ?? "", body })
         .unwrap()
-        .then(() => {
+        .then((res) => {
           toast.success("School updated successfully!");
-          navigate(routesPath.PROTECTED.SCHOOL_MGT.VIEW(slug ?? ""));
+          // The address is the route's own key, so a rename has to be followed
+          // or the next screen reads a slug that no longer resolves.
+          navigate(routesPath.PROTECTED.SCHOOL_MGT.VIEW(res?.data?.slug || slug || ""));
         })
-        .catch(() => {});
+        .catch((err) => {
+          // Reserved names and collisions come back keyed on the field, which
+          // reads better under the input than as another toast. The endpoint
+          // opts out of the global 400 toast for that reason, so anything
+          // without a field of its own has to be said here instead.
+          const fieldError = apiFieldError(err, "slug");
+          setSlugError(fieldError ?? "");
+          if (!fieldError && errorStatus(err) !== 409) {
+            toast.error(apiErrorMessage(err, "The school could not be updated."));
+          }
+        });
     },
   });
 
@@ -89,6 +117,22 @@ export default function EditSchool() {
 
             <form onSubmit={formik.handleSubmit}>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
+                <div className="min-w-0">
+                  <CustomInput
+                    id="slug"
+                    label="Sign-in Address"
+                    placeholder="e.g. bright-star"
+                    disabled={isLive}
+                    {...formik.getFieldProps("slug")}
+                    onChange={(e) => { setSlugError(""); formik.handleChange(e); }}
+                    error={slugError || (formik.touched.slug ? formik.errors.slug : "")}
+                  />
+                  <p className="mt-1.5 font-mont text-xs text-gray-01">
+                    {isLive
+                      ? "This school is live, so its address is fixed. Changing it would break every link and sign-in its users already have."
+                      : "Where this school's users sign in, as in bright-star.xvs.codexng.com. Editable until the school goes live, then fixed for good."}
+                  </p>
+                </div>
                 <SearchSelect
                   id="ownership_type"
                   label="Ownership Type"

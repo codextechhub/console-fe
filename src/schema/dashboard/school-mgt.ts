@@ -51,6 +51,11 @@ export const packageStepSchema = Yup.object({
 });
 
 export const editSchoolSchema = Yup.object({
+  // Left loose on purpose: the backend normalises what is typed ("Bright Star"
+  // becomes "bright-star"), so refusing spaces and capitals here would reject
+  // input the API accepts. Reserved names and collisions are the server's
+  // answer to give, and it gives them per field.
+  slug: Yup.string(),
   ownership_type: Yup.string().required("Ownership type is required"),
   address: Yup.string().required("Address is required"),
   term_structure: Yup.string().required("Term structure is required"),

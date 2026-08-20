@@ -405,6 +405,26 @@ Sectioned console at `/procurement/settings/:section`, sub-nav gated by prefix `
 | "Add New School" button | `<PermissionGate>` | `P.ONBOARD_SCHOOL` |
 | Table row â "Edit School" dropdown action | `hasPermission()` | `P.MODIFY_SCHOOL` |
 
+
+### School detail (`src/pages/protected/school-mgt/view-school.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| "Audit Trail" button | `<PermissionGate>` | `P.VIEW_AUDIT` |
+| "Edit School" button | `<PermissionGate>` | `P.MODIFY_SCHOOL` |
+
+### Branch detail (`src/pages/protected/school-mgt/view-branch.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| "Make Main Branch" button | `<PermissionGate>` | `P.MODIFY_BRANCH` |
+| "Edit Branch" button | `<PermissionGate>` | `P.MODIFY_BRANCH` |
+
+> "Make Main Branch" is additionally hidden on a branch that is already main, or
+> whose status is SUSPENDED / INACTIVE / CLOSED - the backend refuses both. The
+> handover is what makes the "the main branch cannot leave service" refusal
+> followable.
+
 ---
 
 ### Team Management â Members (`src/pages/protected/team-mgt/tabs/members.tsx`)

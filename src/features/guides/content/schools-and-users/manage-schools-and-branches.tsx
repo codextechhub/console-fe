@@ -31,7 +31,10 @@ export default function ManageSchoolsAndBranchesArticle() {
           <GuideStep title="Review the summary">Confirm Branches, Package, Enabled modules, and Activated. A pending activation is not the same as an active school.</GuideStep>
           <GuideStep title="Check administrator status">Under <strong>Primary administrator</strong>, review the email and <strong>Invite status</strong>. A sent invitation still requires the recipient to activate their account.</GuideStep>
           <GuideStep title="Edit when permitted">Select <strong>Edit School</strong>, change only the approved fields, and save. If the button is missing, ask an administrator to check your school-modification permission.</GuideStep>
+          <GuideStep title="Correct the sign-in address before go-live"><strong>Sign-in Address</strong> is where the school&apos;s own users sign in, as in bright-star.xvs.codexng.com. It can be corrected while the school is still being set up, and it is fixed for good once the school goes live, because changing it would break every link and sign-in its users already have. Reserved names and addresses already in use are refused.</GuideStep>
+          <GuideStep title="Open the audit trail">Select <strong>Audit Trail</strong> to see every recorded change to this school. The trail follows the school itself, so it survives a change of address.</GuideStep>
         </GuideSteps>
+        <GuideCallout title="A school&apos;s name is not editable here">The spreadsheet importer matches a school by name when a row carries no address, so a rename would make the school&apos;s own import file create a second school.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="manage-branches" title="Manage branches">
@@ -39,9 +42,10 @@ export default function ManageSchoolsAndBranchesArticle() {
           <GuideStep title="Open Branches">Select the <strong>Branches</strong> tab. Search and sort within the current school&apos;s locations.</GuideStep>
           <GuideStep title="Add a branch">Select <strong>Add Branch</strong>, complete <strong>Branch Information</strong> and <strong>Branch Admin</strong>, decide whether it is the main branch, then select <strong>Create Branch</strong>.</GuideStep>
           <GuideStep title="Inspect a branch">Select its name or <strong>View Details</strong>. Review <strong>Branch overview</strong>, <strong>Branch administrator</strong>, invite status, and <strong>Lifecycle</strong>.</GuideStep>
-          <GuideStep title="Edit a branch">Select <strong>Edit Branch</strong> when permitted. Confirm the school and branch code before saving.</GuideStep>
+          <GuideStep title="Edit a branch">Select <strong>Edit Branch</strong> when permitted. Confirm the school and branch code before saving. Branch Type is optional.</GuideStep>
+          <GuideStep title="Hand the main designation over">On the branch you want to promote, select <strong>Make Main Branch</strong> and confirm. The branch that currently holds the designation becomes an additional branch in the same step. The action appears only on a branch that is in service and is not already the main one.</GuideStep>
         </GuideSteps>
-        <GuideCallout tone="warning" title="Main branch changes affect how the school is represented">A school should have one intended main location. Confirm the designation before creating or editing a branch.</GuideCallout>
+        <GuideCallout tone="warning" title="The main branch cannot be taken out of service">Closing, suspending, or deactivating a school&apos;s main branch is refused. Make another branch the main branch first, then take the former main branch out of service. A school with only one branch cannot take it out of service at all; deactivate the school instead.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="common-problems" title="Common problems">

@@ -28,6 +28,7 @@ import {
   PackageCheck,
   Pencil,
   Plus,
+  ScrollText,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
@@ -245,11 +246,24 @@ export default function ViewSchool() {
                   </div>
                 </div>
               </div>
-              <PermissionGate permission={P.MODIFY_SCHOOL}>
-                <Button variant="outline" onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT(slug ?? ""))}>
-                  <Pencil className="size-4" /> Edit School
-                </Button>
-              </PermissionGate>
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Audit trails are keyed on the primary key, not the address, so
+                    the trail survives a rename. The detail response carries the
+                    id for exactly this. */}
+                <PermissionGate permission={P.VIEW_AUDIT}>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(routesPath.PROTECTED.AUDIT.ENTITY_TRAIL_DETAIL("School", String(school.id)))}
+                  >
+                    <ScrollText className="size-4" /> Audit Trail
+                  </Button>
+                </PermissionGate>
+                <PermissionGate permission={P.MODIFY_SCHOOL}>
+                  <Button variant="outline" onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT(slug ?? ""))}>
+                    <Pencil className="size-4" /> Edit School
+                  </Button>
+                </PermissionGate>
+              </div>
             </section>
 
             <div className="max-w-full overflow-x-auto border-b border-gray-200" role="tablist" aria-label="School details">

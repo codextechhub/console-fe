@@ -1,4 +1,14 @@
 import PermissionGate from "@/components/custom/permission-gate";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -6,6 +16,7 @@ import { P } from "@/permissions";
 import {
   useGetBranchDetailQuery,
   useGetSchoolDetailQuery,
+  useUpdateBranchMutation,
 } from "@/redux/services/dashboard/school-mgt-api";
 import { routesPath } from "@/routes/routes-path";
 import { formatEnum, formatStartedTime, returnInitial } from "@/utils/helpers";
@@ -19,10 +30,17 @@ import {
   Pencil,
   School,
   ShieldCheck,
+  Star,
   UserRound,
 } from "lucide-react";
-import { type ComponentProps, type ReactNode } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
+
+// A branch that is suspended, inactive or closed cannot be promoted: the
+// backend refuses it, and promoting one would rebuild the dead end that the
+// main-branch guard exists to prevent.
+const OUT_OF_SERVICE = new Set(["SUSPENDED", "INACTIVE", "CLOSED"]);
 
 function DetailField({ label, value, children }: { label: string; value?: ReactNode; children?: ReactNode }) {
   return (
@@ -55,6 +73,8 @@ export default function ViewBranch() {
   const { hasPermission } = usePermissions();
   const canViewSchool = hasPermission(P.BROWSE_SCHOOLS);
 
+  const [confirmPromote, setConfirmPromote] = useState(false);
+
   const { data: schoolData, isLoading: schoolLoading } = useGetSchoolDetailQuery(slug ?? "", {
     skip: !slug || !canViewSchool,
   });
@@ -69,9 +89,28 @@ export default function ViewBranch() {
     { skip: !slug || !code || Number.isNaN(parsedCode) },
   );
 
+  const [updateBranch, { isLoading: promoting }] = useUpdateBranchMutation();
+
   const school = schoolData?.data;
   const branch = branchData?.data;
   const isLoading = schoolLoading || branchLoading;
+  // The main branch cannot be taken out of service until a sibling takes over,
+  // so the handover has to be reachable or that refusal is unfollowable. The
+  // backend demotes the incumbent in the same transaction.
+  const canPromote = !!branch && !branch.is_main && !OUT_OF_SERVICE.has(branch.status);
+
+  const promoteToMain = () => {
+    updateBranch({ slug: slug ?? "", code: parsedCode, body: { is_main: true } })
+      .unwrap()
+      .then(() => {
+        setConfirmPromote(false);
+        toast.success(`${branch?.name ?? "This branch"} is now the main branch.`);
+      })
+      .catch(() => {
+        // The interceptor surfaces the backend's own refusal; keep the dialog
+        // open so the reader sees it against what they were trying to do.
+      });
+  };
   const isForbidden = isError && typeof error === "object" && error !== null && "status" in error && error.status === 403;
 
   return (
@@ -111,9 +150,16 @@ export default function ViewBranch() {
                 </div>
               </div>
               <PermissionGate permission={P.MODIFY_BRANCH}>
-                <Button variant="outline" onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT_BRANCH(slug ?? "", parsedCode))}>
-                  <Pencil className="size-4" /> Edit Branch
-                </Button>
+                <div className="flex flex-wrap items-center gap-3">
+                  {canPromote && (
+                    <Button variant="outline" onClick={() => setConfirmPromote(true)}>
+                      <Star className="size-4" /> Make Main Branch
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => navigate(routesPath.PROTECTED.SCHOOL_MGT.EDIT_BRANCH(slug ?? "", parsedCode))}>
+                    <Pencil className="size-4" /> Edit Branch
+                  </Button>
+                </div>
               </PermissionGate>
             </section>
 
@@ -183,6 +229,29 @@ export default function ViewBranch() {
           <div className="rounded-xl bg-white p-8 text-center"><p className="text-sm text-gray-01">Branch not found.</p></div>
         )}
       </main>
+
+      <AlertDialog open={confirmPromote} onOpenChange={(open) => !open && setConfirmPromote(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Make this the main branch?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {branch?.name} becomes the main branch of {school?.name ?? "this school"}
+              {school?.main_branch?.name ? `, and ${school.main_branch.name} becomes an additional branch` : ""}.
+              The main branch is the one the school is addressed by, and it cannot be
+              taken out of service while it holds the designation.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={promoting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => { event.preventDefault(); promoteToMain(); }}
+              disabled={promoting}
+            >
+              {promoting ? "Updating..." : "Make main branch"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

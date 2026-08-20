@@ -41,6 +41,11 @@ export const schoolMgtApi = baseApi.injectEndpoints({
         method: "PATCH",
         body,
       }),
+      // The form renders field-level refusals under the field they belong to
+      // (a reserved or taken sign-in address), so the global 400 toast would be
+      // the same sentence twice. Anything without a field of its own is still
+      // surfaced by the form, from the same error.
+      extraOptions: { inlineValidation: true },
       invalidatesTags: (_res, _err, { slug }) => [
         "Schools",
         { type: "Schools", id: slug },
