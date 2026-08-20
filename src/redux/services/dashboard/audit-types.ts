@@ -42,6 +42,17 @@ export interface AuditEventFilterOptions {
   severities: AuditFilterOption[];
   statuses: AuditFilterOption[];
   actor_types: AuditFilterOption[];
+  /**
+   * The tenants `tenant_slug` accepts, plus the `__none__` sentinel for
+   * platform-level rows that belong to no customer.
+   *
+   * Populated only for platform-tenant callers: handing a school's audit
+   * officer the name of every other school would be Codex's customer list. An
+   * empty array is a complete answer, not a broken one - a single-tenant caller
+   * has no tenant dimension to narrow by - so the control is hidden rather than
+   * rendered empty.
+   */
+  tenants: AuditFilterOption[];
 }
 
 export interface ActorSlim {
@@ -100,6 +111,12 @@ export interface AuditExportJob {
   export_format: ExportFormat;
   status: ExportJobStatus;
   file_name: string;
+  // The authorised route to fetch the CSV, published by the API. Null whenever
+  // there is nothing to take: the job is not COMPLETED, or its file has
+  // expired. The storage key itself is never exposed, so this is the only way
+  // to the bytes - gate the download control on it, not on the status, because
+  // an expired job stays COMPLETED.
+  download_url: string | null;
   row_count: number;
   requested_at: string;
   started_at: string | null;
@@ -109,7 +126,6 @@ export interface AuditExportJob {
 
 export interface AuditExportJobDetail extends AuditExportJob {
   filter_payload: Record<string, unknown>;
-  file_path: string;
   failure_reason: string;
 }
 

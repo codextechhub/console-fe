@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  AUDIT_NO_TENANT,
   buildAuditEventQuery,
   buildAuditExportFilterPayload,
   defaultAuditEventFilters,
@@ -16,12 +17,13 @@ describe("Audit Event Explorer filter contract", () => {
       "action_type=PROCUREMENT_ACTION&action_type=EXPORT_COMPLETED&" +
       "severity=WARNING&severity=CRITICAL&status=FAILED&status=DENIED&" +
       "actor_type=USER&entity_type=%20PurchaseOrder%20&entity_id=%20PO-4%20&" +
-      "search=%20approval%20&page=3",
+      "tenant_slug=%20Bright-Star%20&search=%20approval%20&page=3",
     );
 
     expect(parseAuditEventFilters(params)).toEqual({
       dateRange: "all",
       search: "approval",
+      tenantSlug: "bright-star",
       modules: ["PROCUREMENT", "EXPORTS", "PLATFORM"],
       actionTypes: ["PROCUREMENT_ACTION", "EXPORT_COMPLETED"],
       severities: ["WARNING", "CRITICAL"],
@@ -73,6 +75,27 @@ describe("Audit Event Explorer filter contract", () => {
     expect(buildAuditExportFilterPayload(filters, now)).toEqual(explorerFilter);
   });
 
+  it("narrows to one tenant, and to the platform-level rows that belong to none", () => {
+    const now = Date.parse("2026-08-08T12:00:00.000Z");
+    const oneTenant: AuditEventFilters = {
+      ...defaultAuditEventFilters("all"),
+      tenantSlug: "bright-star",
+    };
+    const noTenant: AuditEventFilters = {
+      ...defaultAuditEventFilters("all"),
+      tenantSlug: AUDIT_NO_TENANT,
+    };
+
+    expect(buildAuditEventQuery(oneTenant, 1, now)).toEqual({ page: 1, tenant_slug: "bright-star" });
+    // The sentinel travels as the backend spells it, not folded away as empty.
+    expect(buildAuditEventQuery(noTenant, 1, now)).toEqual({ page: 1, tenant_slug: AUDIT_NO_TENANT });
+    // An export of what the Explorer is showing has to carry the same scope, or
+    // the CSV silently widens to every tenant.
+    expect(buildAuditExportFilterPayload(oneTenant, now)).toEqual({ tenant_slug: "bright-star" });
+    // "All tenants" sends no filter at all rather than an empty one.
+    expect(buildAuditEventQuery(defaultAuditEventFilters("all"), 1, now)).toEqual({ page: 1 });
+  });
+
   it("reset serializes to an empty URL and drops stale search/page state", () => {
     expect(serializeAuditEventFilters(defaultAuditEventFilters(), 1).toString()).toBe("");
   });
@@ -87,6 +110,7 @@ describe("Audit Event Explorer filter contract", () => {
       actorType: "USER",
       entityType: "PurchaseOrder",
       entityId: "PO-4",
+      tenantSlug: "bright-star",
       search: "Buyer",
     };
 

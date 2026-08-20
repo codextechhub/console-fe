@@ -16,9 +16,18 @@ export const AUDIT_DATE_RANGES = [
 
 export type AuditDateRange = (typeof AUDIT_DATE_RANGES)[number]["value"];
 
+/**
+ * The slug `tenant_slug` accepts to mean "events that belong to no customer":
+ * platform operations, sweeps and management commands. Underscored because a
+ * tenant slug cannot contain underscores, so no school can ever shadow it.
+ */
+export const AUDIT_NO_TENANT = "__none__";
+
 export interface AuditEventFilters {
   dateRange: AuditDateRange;
   search: string;
+  /** A tenant slug, AUDIT_NO_TENANT, or "" for every tenant. */
+  tenantSlug: string;
   modules: string[];
   actionTypes: string[];
   severities: AuditSeverity[];
@@ -36,6 +45,7 @@ export function defaultAuditEventFilters(dateRange: AuditDateRange = "24h"): Aud
   return {
     dateRange,
     search: "",
+    tenantSlug: "",
     modules: [],
     actionTypes: [],
     severities: [],
@@ -64,6 +74,10 @@ export function parseAuditEventFilters(params: URLSearchParams): AuditEventFilte
   return {
     dateRange,
     search: (params.get("search") ?? "").trim(),
+    // Not checked against the roster here: the roster is fetched, and a slug
+    // no tenant answers to is a 400 the backend gives on purpose, so that a
+    // misspelling reads as a refusal rather than as "nothing happened there".
+    tenantSlug: (params.get("tenant_slug") ?? "").trim().toLowerCase(),
     modules: uniqueNormalized(params.getAll("module_key")),
     actionTypes: uniqueNormalized(params.getAll("action_type")),
     severities: uniqueNormalized(params.getAll("severity")).filter(
@@ -98,6 +112,7 @@ export function buildAuditEventQuery(
   const entityId = normalizedText(filters.entityId);
 
   if (search) query.search = search;
+  if (filters.tenantSlug) query.tenant_slug = filters.tenantSlug;
   if (filters.modules.length) query.module_key = uniqueNormalized(filters.modules);
   if (filters.actionTypes.length) query.action_type = uniqueNormalized(filters.actionTypes);
   if (filters.severities.length) query.severity = filters.severities;
@@ -135,6 +150,7 @@ export function serializeAuditEventFilters(
 
   if (filters.dateRange !== "24h") params.set("date_range", filters.dateRange);
   if (normalizedText(filters.search)) params.set("search", normalizedText(filters.search));
+  if (filters.tenantSlug) params.set("tenant_slug", filters.tenantSlug);
   appendAll("module_key", filters.modules);
   appendAll("action_type", filters.actionTypes);
   appendAll("severity", filters.severities);

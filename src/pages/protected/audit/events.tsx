@@ -22,6 +22,7 @@ import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types"
 import EventDetailDrawer from "./components/event-detail-drawer";
 import {
   AUDIT_DATE_RANGES,
+  AUDIT_NO_TENANT,
   buildAuditEventQuery,
   defaultAuditEventFilters,
   parseAuditEventFilters,
@@ -52,6 +53,10 @@ export default function AuditEventsExplorer() {
   const debouncedEntityId = useDebounce(filters.entityId, 600);
   const [selectedEvent, setSelectedEvent] = useState<AuditEventListItem | null>(null);
   const { data: filterOptions } = useGetAuditEventFilterOptionsQuery();
+  // Empty for a school-tenant caller, who has no tenant dimension to narrow by
+  // and must not be handed the roster of every other school. Hidden rather than
+  // rendered as a control with nothing in it.
+  const tenantOptions = filterOptions?.data.tenants ?? [];
 
   // Quantised clock (30 s ticks) - keeps date_from stable between renders so
   // the query arg doesn't churn, while staying compiler-pure.
@@ -199,6 +204,30 @@ export default function AuditEventsExplorer() {
                 ))}
               </div>
             </div>
+
+            {tenantOptions.length > 0 && (
+              <div>
+                <h3 className="text-xs font-semibold uppercase text-gray-01 mb-2">Tenant</h3>
+                <select
+                  aria-label="Filter by tenant"
+                  className="w-full text-xs border border-gray-300 rounded px-2 py-1.5"
+                  value={filters.tenantSlug}
+                  onChange={(e) => updateFilters({ tenantSlug: e.target.value })}
+                >
+                  <option value="">All tenants</option>
+                  {tenantOptions.map((tenant) => (
+                    <option key={tenant.value} value={tenant.value}>{tenant.label}</option>
+                  ))}
+                </select>
+                {filters.tenantSlug && (
+                  <p className="mt-1.5 text-[10px] leading-4 text-gray-01">
+                    {filters.tenantSlug === AUDIT_NO_TENANT
+                      ? "Platform operations, sweeps and management commands, plus anything recorded before tenants were stamped on the trail."
+                      : "Events recorded before tenants were stamped on the trail carry none, so they are under No tenant rather than here."}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div>
               <h3 className="text-xs font-semibold uppercase text-gray-01 mb-2">Severity</h3>

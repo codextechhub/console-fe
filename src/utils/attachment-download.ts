@@ -1,4 +1,6 @@
 import Cookies from "js-cookie";
+import { appendTenantQuery } from "./tenant-context";
+import { apiErrorMessage } from "./api-errors";
 
 // Two things make an attachment URL not directly openable in an <a href>:
 //
@@ -56,4 +58,38 @@ export async function openAttachment(storedUrl: string, filename: string) {
     throw error;
   }
   return filename;
+}
+
+/**
+ * Fetch a file the backend will only hand to an authorised caller, and save it.
+ *
+ * Distinct from openAttachment above, which resolves a capability URL under
+ * `/media/` and shows the file in a tab. This one takes a route the API itself
+ * published (`download_url`), which re-asks the permission question on every
+ * call and therefore needs both the bearer token and the tenant assertion every
+ * other authenticated route takes. A CSV is also something you keep rather than
+ * read in a tab, so it is saved rather than opened.
+ *
+ * Rejects with the backend's own words when it refuses: not-ready, expired and
+ * not-yours all come back as an error envelope this can read.
+ */
+export async function downloadAuthorisedFile(path: string, filename: string): Promise<void> {
+  const token = Cookies.get("token");
+  const response = await fetch(appendTenantQuery(buildAttachmentUrl(path)), {
+    headers: token && token !== "undefined" ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(apiErrorMessage(body, "That file could not be downloaded."));
+  }
+
+  const url = URL.createObjectURL(await response.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

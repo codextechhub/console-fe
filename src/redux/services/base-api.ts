@@ -426,7 +426,10 @@ export const baseQueryInterceptor: BaseQueryFn<
   }
 
   if (res?.status === 413) {
-    notify("Content Too Large");
+    // "Content Too Large" is the HTTP phrase, not an explanation. The backend
+    // sends one the reader can act on (which limit was passed, and what to
+    // narrow), so show that and keep the phrase only as a last resort.
+    notify(apiErrorMessage(res?.data, "That file is larger than the limit allows."));
     return result;
   }
 

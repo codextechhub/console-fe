@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNow } from "@/hooks/use-now";
 import { useNavigate } from "react-router";
 import {
@@ -19,6 +19,8 @@ import {
 } from "@/redux/services/dashboard/audit-api";
 import type { AuditExportJob } from "@/redux/services/dashboard/audit-types";
 import { formatRelativeDate } from "@/utils/helpers";
+import { downloadAuthorisedFile } from "@/utils/attachment-download";
+import { toast } from "sonner";
 import { routesPath } from "@/routes/routes-path";
 import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
@@ -116,12 +118,10 @@ function TimelineStep({
 function ExportDetailDrawer({
   jobId,
   onClose,
-  onDownload,
   onRerun,
 }: {
   jobId: string | null;
   onClose: () => void;
-  onDownload: (id: string) => void;
   onRerun: () => void;
 }) {
   const { data, isLoading } = useGetAuditExportDetailQuery(jobId ?? "", { skip: !jobId });
@@ -130,6 +130,9 @@ function ExportDetailDrawer({
   const isCompleted = job?.status === "COMPLETED";
   const isFailed = job?.status === "FAILED";
   const isRunning = job?.status === "RUNNING";
+  // A completed job whose file has expired keeps its COMPLETED status and loses
+  // its download_url, so the button follows the url rather than the status.
+  const canDownload = !!job?.download_url;
 
   return (
     <Sheet open={!!jobId} onOpenChange={(open) => !open && onClose()}>
@@ -251,10 +254,10 @@ function ExportDetailDrawer({
 
             {/* Footer actions */}
             <div className="flex gap-3 pt-1">
-              {isCompleted && (
+              {canDownload && (
                 <Button
                   size="sm"
-                  onClick={() => { onClose(); onDownload(job.id); }}
+                  onClick={() => { onClose(); downloadExport(job); }}
                 >
                   <Download className="size-3.5" /> Download CSV
                 </Button>
@@ -318,30 +321,20 @@ function Pagination({
   );
 }
 
-// ── Download trigger ──────────────────────────────────────────────────────────
+// ── Download ──────────────────────────────────────────────────────────────────
 
-function DownloadTrigger({ jobId, onDone }: { jobId: string | null; onDone: () => void }) {
-  const { data } = useGetAuditExportDetailQuery(jobId ?? "", { skip: !jobId });
-  const triggeredRef = useRef(false);
-
-  useEffect(() => {
-    if (!data?.data || triggeredRef.current) return;
-    const job = data.data;
-    if (!job.file_path || !job.file_name) return;
-    triggeredRef.current = true;
-    const blob = new Blob([job.file_path], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = job.file_name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    onDone();
-  }, [data, onDone]);
-
-  return null;
+// The CSV body never travels in the JSON payload: the API publishes an
+// authorised route instead, and re-asks the permission question on every call.
+// So the download is a fetch of that route rather than a blob built from the
+// response, and its refusals (not ready, expired, not yours) arrive as an error
+// envelope the helper turns into the backend's own words.
+async function downloadExport(job: Pick<AuditExportJob, "download_url" | "file_name" | "id">) {
+  if (!job.download_url) return;
+  try {
+    await downloadAuthorisedFile(job.download_url, job.file_name || `audit_export_${job.id}.csv`);
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : "That export could not be downloaded.");
+  }
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -352,7 +345,6 @@ export default function AuditExports() {
   const [statusFilter, setStatusFilter] = useState("");
   const [dateRange, setDateRange] = useState<DateRange>("all");
   const [drawerJobId, setDrawerJobId] = useState<string | null>(null);
-  const [downloadId, setDownloadId] = useState<string | null>(null);
 
   const queryParams = useMemo(() => {
     const p: Record<string, string | number> = { page };
@@ -477,7 +469,7 @@ export default function AuditExports() {
                         key={j.id}
                         job={j}
                         onViewDetails={() => setDrawerJobId(j.id)}
-                        onDownload={() => setDownloadId(j.id)}
+                        onDownload={() => downloadExport(j)}
                         onRerun={() => navigate(routesPath.PROTECTED.AUDIT.EXPORT_NEW)}
                       />
                     ))
@@ -497,16 +489,8 @@ export default function AuditExports() {
       <ExportDetailDrawer
         jobId={drawerJobId}
         onClose={() => setDrawerJobId(null)}
-        onDownload={(id) => setDownloadId(id)}
         onRerun={() => navigate(routesPath.PROTECTED.AUDIT.EXPORT_NEW)}
       />
-
-      {downloadId && (
-        <DownloadTrigger
-          jobId={downloadId}
-          onDone={() => setDownloadId(null)}
-        />
-      )}
     </>
   );
 }
@@ -526,6 +510,8 @@ function ExportRow({
 }) {
   const isCompleted = j.status === "COMPLETED";
   const isPendingOrRunning = j.status === "PENDING" || j.status === "RUNNING";
+  // See the drawer: an expired file leaves the status COMPLETED behind.
+  const canDownload = !!j.download_url;
 
   return (
     <tr
@@ -600,7 +586,7 @@ function ExportRow({
             <DropdownMenuItem onClick={onViewDetails}>
               <Clock className="size-3.5 mr-2" /> View details
             </DropdownMenuItem>
-            {isCompleted && (
+            {canDownload && (
               <DropdownMenuItem onClick={onDownload}>
                 <Download className="size-3.5 mr-2" /> Download CSV
               </DropdownMenuItem>

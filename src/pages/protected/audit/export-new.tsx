@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { friendlyAction } from "./audit-constants";
 import {
   AUDIT_DATE_RANGES,
+  AUDIT_NO_TENANT,
   buildAuditExportFilterPayload,
   defaultAuditEventFilters,
   parseAuditEventFilters,
@@ -24,6 +25,8 @@ export default function NewAuditExport() {
   const [searchParams] = useSearchParams();
   const [createExport, { isLoading }] = useCreateAuditExportMutation();
   const { data: filterOptions } = useGetAuditEventFilterOptionsQuery();
+  // See the Explorer: empty for a school-tenant caller, so the control is hidden.
+  const tenantOptions = filterOptions?.data.tenants ?? [];
   const [filters, setFilters] = useState<AuditEventFilters>(() => {
     if (searchParams.get("from") === "events") return parseAuditEventFilters(searchParams);
     return defaultAuditEventFilters("7d");
@@ -72,6 +75,30 @@ export default function NewAuditExport() {
               ))}
             </div>
           </div>
+
+          {tenantOptions.length > 0 && (
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-gray-01 mb-2">Tenant</h3>
+              <select
+                aria-label="Filter by tenant"
+                className="w-full text-xs border border-gray-300 rounded px-2 py-2 sm:max-w-xs"
+                value={filters.tenantSlug}
+                onChange={(e) => updateFilters({ tenantSlug: e.target.value })}
+              >
+                <option value="">All tenants</option>
+                {tenantOptions.map((tenant) => (
+                  <option key={tenant.value} value={tenant.value}>{tenant.label}</option>
+                ))}
+              </select>
+              {filters.tenantSlug && (
+                <p className="mt-1.5 text-[10px] leading-4 text-gray-01">
+                  {filters.tenantSlug === AUDIT_NO_TENANT
+                    ? "Platform operations, sweeps and management commands, plus anything recorded before tenants were stamped on the trail."
+                    : "Events recorded before tenants were stamped on the trail carry none, so they are not in a single-tenant export."}
+                </p>
+              )}
+            </div>
+          )}
 
           <div>
             <h3 className="text-xs font-semibold uppercase text-gray-01 mb-2">Severity</h3>
