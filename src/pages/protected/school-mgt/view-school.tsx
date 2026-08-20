@@ -14,6 +14,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/school-mgt-api";
+import { useReinstateSchoolMutation } from "@/redux/services/dashboard/onboarding-api";
 import type { BranchDetail } from "@/redux/services/dashboard/school-types";
 import { routesPath } from "@/routes/routes-path";
 import { useLogRecentOpen } from "@/hooks/use-log-recent-open";
@@ -28,11 +29,23 @@ import {
   PackageCheck,
   Pencil,
   Plus,
+  RotateCcw,
   ScrollText,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
 import { useState, type ComponentProps, type ReactNode } from "react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useDebounce } from "react-haiku";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { SortBar, handleSortToggle } from "@/components/custom/sort-bar";
@@ -115,6 +128,7 @@ export default function ViewSchool() {
   const activeTab = requestedTab === "branches" && canViewBranches ? "branches" : "overview";
   const [search, setSearch] = useState("");
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [confirmReinstate, setConfirmReinstate] = useState(false);
   const debouncedSearch = useDebounce(search, 300);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
@@ -122,6 +136,25 @@ export default function ViewSchool() {
   const onSort = (col: string) => handleSortToggle(col, sort, setSort);
 
   const { data, isLoading, isError, error, refetch } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
+  const [reinstateSchool, { isLoading: reinstating }] = useReinstateSchoolMutation();
+
+  const reinstate = () => {
+    reinstateSchool(slug ?? "")
+      .unwrap()
+      .then((res) => {
+        setConfirmReinstate(false);
+        const days = res?.data?.expires_in_days;
+        toast.success(
+          days
+            ? `Returned to onboarding. The school has ${days} days to go live.`
+            : "Returned to onboarding.",
+        );
+      })
+      .catch(() => {
+        // The interceptor surfaces the backend's own refusal (a school that is
+        // not suspended answers 409), so the dialog stays open beneath it.
+      });
+  };
   const school = data?.data;
   const initials = returnInitial(school?.name ?? "");
   useLogRecentOpen(
@@ -247,6 +280,16 @@ export default function ViewSchool() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
+                {/* Only a school the onboarding sweep suspended can be returned to
+                    it. Any other status has nothing to undo, and the endpoint
+                    refuses with a 409 of its own. */}
+                {school.status === "SUSPENDED" && (
+                  <PermissionGate permission={P.REINSTATE_SCHOOL}>
+                    <Button variant="outline" onClick={() => setConfirmReinstate(true)}>
+                      <RotateCcw className="size-4" /> Return to Onboarding
+                    </Button>
+                  </PermissionGate>
+                )}
                 {/* Audit trails are keyed on the primary key, not the address, so
                     the trail survives a rename. The detail response carries the
                     id for exactly this. */}
@@ -466,6 +509,29 @@ export default function ViewSchool() {
         onClose={() => setBulkImportOpen(false)}
         onFinished={() => { void refetch(); }}
       />
+
+      <AlertDialog open={confirmReinstate} onOpenChange={(open) => !open && setConfirmReinstate(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Return this school to onboarding?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {data?.data?.name ?? "This school"} was suspended because its onboarding
+              was never finished. Returning it puts it back to Pending and lets its
+              administrators sign in again, with a fresh window to go live before the
+              sweep suspends it a second time. It does not make the school live.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={reinstating}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => { event.preventDefault(); reinstate(); }}
+              disabled={reinstating}
+            >
+              {reinstating ? "Returning..." : "Return to onboarding"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

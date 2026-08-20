@@ -410,8 +410,17 @@ Sectioned console at `/procurement/settings/:section`, sub-nav gated by prefix `
 
 | Element | Type | Permission Constant |
 |---|---|---|
+| "Return to Onboarding" button (SUSPENDED schools only) | `<PermissionGate>` | `P.REINSTATE_SCHOOL` |
 | "Audit Trail" button | `<PermissionGate>` | `P.VIEW_AUDIT` |
 | "Edit School" button | `<PermissionGate>` | `P.MODIFY_SCHOOL` |
+
+> `P.REINSTATE_SCHOOL` maps to `onboarding.progress.reactivate`, the first
+> `onboarding.*` key this registry carries. The backend seeds it to
+> `xvs_super_admin` and `xvs_platform_admin` via `seed_onboarding_permissions`,
+> and gates the endpoint on the caller's OWN tenant being the platform one as
+> well as on the key - so the key inside a school tenant grants nothing. The
+> button is additionally shown only when the school is SUSPENDED, because that
+> is the only status with an expiry to undo.
 
 ### Branch detail (`src/pages/protected/school-mgt/view-branch.tsx`)
 

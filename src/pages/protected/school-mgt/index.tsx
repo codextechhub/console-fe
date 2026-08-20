@@ -30,12 +30,13 @@ import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 
 const TABLE_HEADERS = ["S/N", "School Name", "Location", "Total Students", "Type", "Status", "Action"];
 
-const VALID_STATUSES = new Set(["active", "pending", "inactive"]);
+const VALID_STATUSES = new Set(["active", "pending", "inactive", "suspended"]);
 
 const STATUS_MAP: Record<string, string> = {
   active: "ACTIVE",
   pending: "PENDING",
   inactive: "INACTIVE",
+  suspended: "SUSPENDED",
 };
 
 export default function SchoolManagement() {
@@ -61,6 +62,11 @@ export default function SchoolManagement() {
 
   const { data: schoolsRes, isLoading, refetch, isFetching } = useGetSchoolsQuery(queryParams);
   const { data: statsRes, refetch: refetchStats } = useGetSchoolStatsQuery();
+  // The stats endpoint counts all/active/pending/inactive and has no suspended
+  // figure, so the card is counted from the list itself. One row is fetched for
+  // the pagination total and nothing is rendered from it; showing a 0 we had not
+  // actually counted would hide the schools this tab exists to find.
+  const { data: suspendedRes } = useGetSchoolsQuery({ status: "SUSPENDED", page_size: 1 });
 
 
   const stats = statsRes?.data;
@@ -70,6 +76,7 @@ export default function SchoolManagement() {
     { title: "Active Schools", value: stats?.active ?? 0, query: "active", active: filter_status === "active" },
     { title: "Pending Schools", value: stats?.pending ?? 0, query: "pending", active: filter_status === "pending" },
     { title: "Inactive Schools", value: stats?.inactive ?? 0, query: "inactive", active: filter_status === "inactive" },
+    { title: "Suspended Schools", value: suspendedRes?.pagination?.totalItems ?? 0, query: "suspended", active: filter_status === "suspended" },
   ];
 
   const tableData = schoolsRes?.data?.map((item: School, idx: number) => ({
@@ -89,7 +96,7 @@ export default function SchoolManagement() {
     totalStudents: item.total_students ?? "-",
     type: formatEnum(item.ownership_type),
     status: (
-      <Badge variant={item.status?.toLowerCase() as "active" | "pending" | "inactive" | "default"}>
+      <Badge variant={item.status?.toLowerCase() as "active" | "pending" | "inactive" | "suspended" | "default"}>
         {formatEnum(item.status)}
       </Badge>
     ),
@@ -132,7 +139,7 @@ export default function SchoolManagement() {
           </PermissionGate>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-5">
           {metricCards.map((item, idx) => (
             <div
               key={idx}

@@ -16,6 +16,14 @@ request id. What is needed is either `platform_cross_tenant_param` on the list
 view, or a platform-wide pending-go-live endpoint. The frontend is then one
 screen.
 
+# The school stats endpoint has no suspended count (found 2026-08-20).
+`GET /v1/i/stats/` aggregates all/active/pending/inactive and omits SUSPENDED,
+so the School Management "Suspended Schools" tab counts itself with a second
+`?status=SUSPENDED&page_size=1` request purely to read `pagination.totalItems`.
+It is one cheap call and it is honest, but it exists only because the figure is
+missing upstream. Adding `suspended=Count(...)` to that aggregate lets the
+frontend drop the extra query.
+
 # There is no way to take an ACTIVE school out of service (found 2026-08-20).
 Nothing in `vs_schools`, `vs_onboarding` or `vs_tenants` moves a live school to
 INACTIVE or SUSPENDED on demand. What exists is go-live (PENDING -> ACTIVE),

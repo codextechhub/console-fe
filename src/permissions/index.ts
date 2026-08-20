@@ -117,6 +117,19 @@ const REGISTRY: Record<string, string> = {
   // this key on a school-tenant role grants nothing.
   "101401": "platform.documents.view",
 
+  // ── platform / school onboarding progress  (MM=10, RR=15) ──────────────────
+  // A different backend namespace ("onboarding.", not "platform."), because the
+  // keys are TENANT-scoped and a school holds them for its own onboarding. The
+  // decisions CodeX makes ABOUT a school - reinstating one, approving its
+  // go-live - are additionally gated backend-side on the caller's own tenant
+  // being the platform one, so holding the key inside a school grants nothing.
+  //
+  // Only the reactivate key is registered so far: it is the one this console
+  // can act on. Approving and rejecting a go-live request needs a request id,
+  // and no endpoint lists them for a platform caller yet (see todo.md), so
+  // their keys arrive with the screen that uses them.
+  "101510": "onboarding.progress.reactivate",
+
   // ── communication / global notifications  (MM=40) ────────────────────────
   "400108": "communication.notification_templates.configure",
   "400208": "communication.communication_permissions.enforce",
@@ -567,6 +580,7 @@ export const P = {
 
   // ── Requirements library ───────────────────────────────────────────────────
   VIEW_REQUIREMENTS_DOCS: "101401",  // browse and download the MRD / module FRDs
+  REINSTATE_SCHOOL:     "101510",  // return a suspended school to onboarding
 
   // ── Notifications administration ──────────────────────────────────────────
   CONFIGURE_NOTIFICATION_TEMPLATES: "400108",
