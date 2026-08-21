@@ -139,6 +139,18 @@ describe("guide discovery", () => {
     expect(visibleGuides(GUIDE_REGISTRY, exportReader).map((guide) => guide.id)).toContain("data.recover-import-export");
   });
 
+  it("publishes C9 guides only inside the caller's audit and security permissions", () => {
+    const auditReader = [resolvePermissionKey(P.VIEW_AUDIT)];
+    const securityReader = [resolvePermissionKey(P.VIEW_AUDIT)];
+    const exportReader = [resolvePermissionKey(P.EXPORT_AUDIT)];
+    const ruleManager = [resolvePermissionKey(P.MANAGE_AUDIT)];
+
+    expect(visibleGuides(GUIDE_REGISTRY, auditReader).map((guide) => guide.id)).toContain("audit.investigate-event");
+    expect(visibleGuides(GUIDE_REGISTRY, securityReader).map((guide) => guide.id)).toContain("audit.review-security-operations");
+    expect(visibleGuides(GUIDE_REGISTRY, exportReader).map((guide) => guide.id)).toContain("audit.export-and-compliance");
+    expect(visibleGuides(GUIDE_REGISTRY, ruleManager).map((guide) => guide.id)).toContain("audit.export-and-compliance");
+  });
+
   it("chooses one focused landing layout for each filter state", () => {
     expect(guideLandingView({ category: null, audience: null, query: "" })).toBe("browse");
     expect(guideLandingView({ category: null, audience: "approver", query: "" })).toBe("audience-results");

@@ -170,7 +170,7 @@ export default function ComplianceRuleForm() {
         </div>
 
         {/* Tab bar */}
-        <div className="flex gap-0.5 bg-white rounded-md border p-1 w-fit">
+        <div data-guide="audit-compliance-rule.tabs" className="flex gap-0.5 bg-white rounded-md border p-1 w-fit">
           {tabs.map((t) => (
             <button
               key={t.key}

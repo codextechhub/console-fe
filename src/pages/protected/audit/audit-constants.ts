@@ -54,3 +54,7 @@ export const FRIENDLY_ACTION: Record<string, string> = {
 export function friendlyAction(code: string): string {
   return FRIENDLY_ACTION[code] ?? code;
 }
+
+export function auditEntityTrailRowKey(entityType: string, entityId: string): string {
+  return JSON.stringify([entityType, entityId]);
+}

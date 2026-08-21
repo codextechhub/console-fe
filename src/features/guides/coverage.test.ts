@@ -198,4 +198,17 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts the three high-risk C9 audit and security walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "audit-investigation", route: "/audit/events", actionId: "view-audit-events", risk: "high" },
+      { id: "security-operations", route: "/audit/sessions", actionId: "view-live-sessions", risk: "high" },
+      { id: "audit-compliance", route: "/audit/exports", actionId: "view-audit-exports", risk: "high" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

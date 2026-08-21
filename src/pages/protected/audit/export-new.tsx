@@ -58,7 +58,7 @@ export default function NewAuditExport() {
           <p className="text-xs text-gray-01 mt-0.5">Choose which audit data to export as a CSV file.</p>
         </div>
 
-        <div className="bg-white rounded-md p-5 space-y-5">
+        <div data-guide="audit-export-builder.filters" className="bg-white rounded-md p-5 space-y-5">
           <div>
             <h3 className="text-xs font-semibold uppercase text-gray-01 mb-2">Date range</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

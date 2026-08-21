@@ -190,7 +190,7 @@ export default function LiveSessions() {
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between gap-4">
+        <div data-guide="audit-sessions.heading" className="flex items-center justify-between gap-4">
           <div>
             <p className="font-semibold font-mont text-gray-01">Live Sessions</p>
             <div className="flex items-center gap-3 mt-0.5">

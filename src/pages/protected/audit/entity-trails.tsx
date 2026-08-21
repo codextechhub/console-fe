@@ -10,6 +10,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import type { EntityTrail } from "@/redux/services/dashboard/audit-types";
 import { EntityCell } from "./components/audit-cells";
+import { auditEntityTrailRowKey } from "./audit-constants";
 
 const TABLE_HEADERS = ["Entity", "ID", "Events", "First seen", "Last seen", "Action"];
 
@@ -44,14 +45,18 @@ export default function EntityTrailsList() {
     events: <span className="font-semibold">{t.event_count}</span>,
     first: t.first_event_at ? formatRelativeDate(t.first_event_at) : "-",
     last: t.last_event_at ? formatRelativeDate(t.last_event_at) : "-",
+    // Entity ids are unique only inside an entity type. CustomTable uses _id
+    // as the React row key, so use the full audit identity and keep the raw id
+    // separately for navigation.
     _type: t.entity_type,
-    _id: t.entity_id,
+    _id: auditEntityTrailRowKey(t.entity_type, t.entity_id),
+    _entityId: t.entity_id,
   }));
 
   return (
     <>
       <main className="px-4.5 py-6 space-y-5 text-black-01">
-        <div className="flex items-center justify-between">
+        <div data-guide="audit-entity-trails.heading" className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Entity Trails</p>
             <p className="text-xs text-gray-01 mt-0.5">Every audited entity with its full lifecycle.</p>
@@ -95,15 +100,15 @@ export default function EntityTrailsList() {
             tableHeaderList={TABLE_HEADERS}
             tableBodyList={tableData}
             loading={isLoading}
-            onRowClick={(row: { _type: string; _id: string }) =>
-              navigate(routesPath.PROTECTED.AUDIT.ENTITY_TRAIL_DETAIL(row._type, row._id))
+            onRowClick={(row: { _type: string; _entityId: string }) =>
+              navigate(routesPath.PROTECTED.AUDIT.ENTITY_TRAIL_DETAIL(row._type, row._entityId))
             }
             dropDown
             actionButton="View"
             actionButtonOnClick={(row) =>
               navigate(routesPath.PROTECTED.AUDIT.ENTITY_TRAIL_DETAIL(
-                (row as { _type: string; _id: string })._type,
-                (row as { _type: string; _id: string })._id,
+                (row as { _type: string; _entityId: string })._type,
+                (row as { _type: string; _entityId: string })._entityId,
               ))
             }
             perPage={data?.pagination?.pageSize}

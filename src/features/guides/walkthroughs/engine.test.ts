@@ -153,6 +153,18 @@ describe("walkthrough engine", () => {
     expect(walkthroughStepRoute(recovery!, "files")).toBe("/export/files");
   });
 
+  it("maps C9 walkthroughs across read-only audit and security screens", () => {
+    const investigation = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.audit.investigate-event");
+    const operations = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.audit.review-security-operations");
+    const compliance = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.audit.export-and-compliance");
+
+    expect(walkthroughStepRoute(investigation!, "entity-trails")).toBe("/audit/entity-trails");
+    expect(walkthroughStepRoute(operations!, "attempts")).toBe("/audit/login-attempts");
+    expect(walkthroughStepRoute(operations!, "proxy")).toBe("/audit/impersonations");
+    expect(walkthroughStepRoute(compliance!, "builder")).toBe("/audit/exports/new");
+    expect(walkthroughStepRoute(compliance!, "rule-form")).toBe("/audit/compliance-rules/create");
+  });
+
   it("maps every school wizard explanation to its matching view and target", () => {
     const schoolWalkthrough = WALKTHROUGH_REGISTRY.find(
       (item) => item.id === "walkthrough.schools.create-and-configure",

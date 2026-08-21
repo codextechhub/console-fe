@@ -373,7 +373,7 @@ export default function AuditExports() {
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div data-guide="audit-exports.heading" className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Audit Exports</p>
             <p className="text-xs text-gray-01 mt-0.5">Background jobs that package audit data for download.</p>

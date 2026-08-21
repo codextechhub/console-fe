@@ -158,7 +158,7 @@ export default function PasswordActivity() {
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between">
+        <div data-guide="audit-password-activity.heading" className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Password & Account Activity</p>
             <p className="text-xs text-gray-01 mt-0.5">Identity-related events across XVS.</p>

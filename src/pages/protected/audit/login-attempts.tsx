@@ -253,7 +253,7 @@ export default function LoginAttempts() {
       <main className="px-4.5 py-6 space-y-5 text-black-01">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between">
+        <div data-guide="audit-login-attempts.heading" className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Login Attempts & Lockouts</p>
             <p className="text-xs text-gray-01 mt-0.5">Forensic view of authentication outcomes.</p>

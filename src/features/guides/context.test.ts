@@ -70,6 +70,15 @@ describe("contextual guides", () => {
 
     const exportBuilder = contextualGuideContext(GUIDE_REGISTRY, "/export/new", [resolvePermissionKey(P.CREATE_EXPORT)]);
     expect(exportBuilder.guides.map((guide) => guide.id)).toContain("data.build-and-run-export");
+
+    const auditEvents = contextualGuideContext(GUIDE_REGISTRY, "/audit/events", [resolvePermissionKey(P.VIEW_AUDIT)]);
+    expect(auditEvents.guides.map((guide) => guide.id)).toContain("audit.investigate-event");
+
+    const securitySessions = contextualGuideContext(GUIDE_REGISTRY, "/audit/sessions", [resolvePermissionKey(P.VIEW_AUDIT)]);
+    expect(securitySessions.guides.map((guide) => guide.id)).toContain("audit.review-security-operations");
+
+    const auditExports = contextualGuideContext(GUIDE_REGISTRY, "/audit/exports", [resolvePermissionKey(P.EXPORT_AUDIT)]);
+    expect(auditExports.guides.map((guide) => guide.id)).toContain("audit.export-and-compliance");
   });
 
   it("resolves the current article by slug", () => {

@@ -152,6 +152,12 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "rollback import")[0]?.guide.id).toBe("data.recover-import-export");
   });
 
+  it("finds C9 workflows using investigation, security, and compliance language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "who deleted this")[0]?.guide.id).toBe("audit.investigate-event");
+    expect(searchGuides(GUIDE_REGISTRY, "blocked login")[0]?.guide.id).toBe("audit.review-security-operations");
+    expect(searchGuides(GUIDE_REGISTRY, "retention rule")[0]?.guide.id).toBe("audit.export-and-compliance");
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);
