@@ -25,7 +25,8 @@ the skill targets the screens you just changed (from the git diff). Examples:
 - `/verify-design HEAD~1` → verify the screens changed in the last commit
 
 Env overrides (rarely needed): `BACKEND` (default `http://localhost:8000/v1`),
-`EMAIL`/`PASSWORD` (default seeded super-admin), `DB` (default `cx_db`).
+`EMAIL`/`PASSWORD` (default seeded super-admin), `TENANT` (default `codex`),
+`DB` (default `cx_db`).
 
 ## Steps - follow in order
 
@@ -101,7 +102,8 @@ Logging in writes `vs_user_loginsession` / `vs_user_authattempt` /
 ```bash
 bash .Codex/skills/verify-design/scrub.sh
 ```
-Deletes exactly the rows created since the baseline and resets `last_login`.
+Deletes only the test account's rows created since the baseline and restores its
+previous `last_login` value.
 The drive is read-only, so business tables are never written.
 
 ### 8. Report

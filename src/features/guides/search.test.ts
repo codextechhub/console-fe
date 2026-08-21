@@ -165,6 +165,13 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "test SMTP")[0]?.guide.id).toBe("platform.manage-integrations");
   });
 
+  it("finds C11 workflows using personal security, profile, and privacy language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "unknown login")[0]?.guide.id).toBe("account.secure-account");
+    expect(searchGuides(GUIDE_REGISTRY, "sign out another device")[0]?.guide.id).toBe("account.secure-account");
+    expect(searchGuides(GUIDE_REGISTRY, "edit my profile")[0]?.guide.id).toBe("account.maintain-profile-and-privacy");
+    expect(searchGuides(GUIDE_REGISTRY, "download my data")[0]?.guide.id).toBe("account.maintain-profile-and-privacy");
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

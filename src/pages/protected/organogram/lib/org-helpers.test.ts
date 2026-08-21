@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { nextFocusedNode } from "./org-helpers";
+import { fmtDate, nextFocusedNode } from "./org-helpers";
+
+describe("fmtDate", () => {
+  it("formats date-only and timestamp values without leaking Invalid Date", () => {
+    expect(fmtDate("2026-08-21")).toBe("21 Aug 2026");
+    expect(fmtDate("2026-08-21T16:30:00Z")).toBe("21 Aug 2026");
+    expect(fmtDate("not-a-date")).toBe("-");
+    expect(fmtDate(null)).toBe("-");
+  });
+});
 
 describe("nextFocusedNode", () => {
   it("returns only the next branch on a viewer's initial reporting path", () => {

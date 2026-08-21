@@ -9,16 +9,20 @@ BASE=/tmp/verify-design
 source "$BASE/baseline.env"
 EMAIL="${EMAIL:-admin@codexng.com}"
 
-UID_SQL="(select id from vs_users_user where email='$EMAIL')"
+UID_SQL="(select id from vs_users_user where email=:'email')"
 
-psql -d "$DB" -v ON_ERROR_STOP=1 <<SQL
+psql -d "$DB" -v ON_ERROR_STOP=1 -v email="$EMAIL" -v last_login="${LAST_LOGIN:-}" <<SQL
 BEGIN;
 DELETE FROM vs_audit_auditevent
   WHERE actor_user_id=$UID_SQL AND action_type='LOGIN_SUCCESS' AND event_at >= '$MARKER';
-DELETE FROM vs_user_authattempt WHERE id > ${AUTHATTEMPT_MAX};
-DELETE FROM vs_user_loginsession WHERE id > ${LOGINSESSION_MAX};
-UPDATE vs_users_user SET last_login=NULL WHERE id=$UID_SQL;
+DELETE FROM vs_user_authattempt
+  WHERE id > ${AUTHATTEMPT_MAX} AND email_entered=:'email';
+DELETE FROM vs_user_loginsession
+  WHERE id > ${LOGINSESSION_MAX} AND user_id=$UID_SQL;
+UPDATE vs_users_user
+  SET last_login=NULLIF(:'last_login', '')::timestamptz
+  WHERE id=$UID_SQL;
 COMMIT;
 SQL
 
-echo "✓ scrubbed test-login rows (loginsession>$LOGINSESSION_MAX, authattempt>$AUTHATTEMPT_MAX, audit>=$MARKER) and reset last_login"
+echo "✓ scrubbed the test account's new login rows and restored its prior last_login"

@@ -71,10 +71,12 @@ export const EMP_TYPE_META: Record<EmploymentType, { label: string; cls: string 
 
 // ── Formatters ────────────────────────────────────────────────────────────────
 
-export const fmtDate = (s: string | null): string =>
-  s
-    ? new Date(s + "T00:00:00").toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
-    : "-";
+export function fmtDate(value: string | null | undefined): string {
+  if (!value) return "-";
+  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00` : value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
 
 export const yearsSince = (s: string | null): string => {
   if (!s) return "-";

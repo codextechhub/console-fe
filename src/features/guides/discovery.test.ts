@@ -42,15 +42,20 @@ describe("guide discovery", () => {
       "tasks.create-and-complete",
       "workflow.review-and-act",
       "workflow.delegate-and-track",
+      "account.secure-account",
+      "account.maintain-profile-and-privacy",
     ]);
     expect(guidesForAudience(visible, "finance-officer")).toEqual([]);
   });
 
-  it("keeps draft guides out of normal discovery and availability counts", () => {
+  it("keeps draft guides out of normal discovery and publishes C11 to every authenticated user", () => {
     const visible = visibleGuides(GUIDE_REGISTRY, []);
 
     expect(visible.every((guide) => guide.status === "published")).toBe(true);
-    expect(visible.some((guide) => guide.id === "account.secure-account")).toBe(false);
+    expect(visible.map((guide) => guide.id)).toEqual(expect.arrayContaining([
+      "account.secure-account",
+      "account.maintain-profile-and-privacy",
+    ]));
   });
 
   it("publishes C6a guides only inside the caller's finance permissions", () => {
@@ -182,8 +187,8 @@ describe("guide discovery", () => {
       "workflow.delegate-and-track",
     ]);
     expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.title)).toEqual([
-      "Get started with Console",
-      "Create, assign, and complete tasks",
+      "Maintain your profile and privacy",
+      "Secure your Console account",
     ]);
   });
 });

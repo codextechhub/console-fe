@@ -5,10 +5,11 @@ set -euo pipefail
 BACKEND="${BACKEND:-http://localhost:8000/v1}"
 EMAIL="${EMAIL:-admin@codexng.com}"
 PASSWORD="${PASSWORD:-Admin@123456}"
+TENANT="${TENANT:-codex}"
 
 TOKEN=$(curl -s --max-time 8 -X POST "$BACKEND/user/auth/login/" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" \
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\",\"tenant\":\"$TENANT\"}" \
   | python3 -c "import sys,json
 try:
     print(json.load(sys.stdin)['data']['access'])
@@ -19,7 +20,7 @@ if [ -z "${TOKEN:-}" ]; then
   echo "✗ Login failed for $EMAIL - is the DB seeded? (run backend's ./reseed-dev.sh)" >&2
   exit 1
 fi
-echo "✓ Login OK as $EMAIL"
+echo "✓ Login OK as $EMAIL in $TENANT"
 
 curl -s --max-time 8 "$BACKEND/finance/entities/" \
   -H "Authorization: Bearer $TOKEN" -H "accept: application/json" \

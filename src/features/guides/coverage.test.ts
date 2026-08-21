@@ -94,6 +94,15 @@ describe("guide coverage reporting", () => {
     ).gaps).toEqual([]);
   });
 
+  it("covers C11 personal account workflows without unnecessary walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "personal-security", route: "/me/security", actionId: "change-my-password", risk: "medium" },
+      { id: "personal-profile", route: "/me/profile", actionId: "view-my-profile", risk: "low" },
+      { id: "personal-privacy", route: "/me/security/privacy", risk: "low" },
+    ];
+    expect(buildGuideCoverageReport(GUIDE_REGISTRY, targets).gaps).toEqual([]);
+  });
+
   it("counts the three high-risk C6a finance walkthroughs", () => {
     const targets: GuideCoverageTarget[] = [
       { id: "finance-foundations", route: "/finance/setup/entities", actionId: "create-entity", risk: "high" },

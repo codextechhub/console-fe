@@ -24,9 +24,11 @@ function scoreGuide(guide: GuideRecord, query: string): Pick<ScoredGuide, "match
 
   const title = normalize(guide.title);
   const aliases = guide.aliases.map(normalize);
+  const routes = guide.routes.map(normalize);
   const sections = guide.sections?.map((section) => normalize(section.title)) ?? [];
   if (title === normalizedQuery) return { matchKind: "title", score: 400 };
   if (aliases.includes(normalizedQuery)) return { matchKind: "alias", score: 350 };
+  if (routes.includes(normalizedQuery)) return { matchKind: "content", score: 340 };
   if (sections.includes(normalizedQuery)) return { matchKind: "content", score: 330 };
 
   const category = GUIDE_CATEGORIES.find((candidate) => candidate.id === guide.category);

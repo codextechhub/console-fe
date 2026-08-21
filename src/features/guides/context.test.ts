@@ -91,6 +91,15 @@ describe("contextual guides", () => {
 
     const integrations = contextualGuideContext(GUIDE_REGISTRY, "/settings/integrations", [resolvePermissionKey(P.VIEW_INTEGRATION_SETTINGS)]);
     expect(integrations.guides.map((guide) => guide.id)).toContain("platform.manage-integrations");
+
+    const mySecurity = contextualGuideContext(GUIDE_REGISTRY, "/me/security/login-history", []);
+    expect(mySecurity.guides.map((guide) => guide.id)).toEqual(["account.secure-account"]);
+
+    const myProfile = contextualGuideContext(GUIDE_REGISTRY, "/me/profile", []);
+    expect(myProfile.guides.map((guide) => guide.id)).toEqual(["account.maintain-profile-and-privacy"]);
+
+    const myPrivacy = contextualGuideContext(GUIDE_REGISTRY, "/me/security/privacy", []);
+    expect(myPrivacy.guides.map((guide) => guide.id)).toEqual(["account.maintain-profile-and-privacy"]);
   });
 
   it("resolves the current article by slug", () => {
