@@ -127,6 +127,18 @@ describe("guide discovery", () => {
     expect(visibleGuides(GUIDE_REGISTRY, settingsReader).map((guide) => guide.id)).toContain("procurement.configure-settings");
   });
 
+  it("publishes C8 guides only inside the caller's import and export permissions", () => {
+    const batchReader = [resolvePermissionKey(P.VIEW_IMPORT_BATCHES)];
+    const templateReader = [resolvePermissionKey(P.VIEW_IMPORT_TEMPLATES)];
+    const exportBuilder = [resolvePermissionKey(P.CREATE_EXPORT)];
+    const exportReader = [resolvePermissionKey(P.VIEW_EXPORT_RUNS)];
+
+    expect(visibleGuides(GUIDE_REGISTRY, batchReader).map((guide) => guide.id)).toContain("data.import-batch");
+    expect(visibleGuides(GUIDE_REGISTRY, templateReader).map((guide) => guide.id)).toContain("data.import-templates");
+    expect(visibleGuides(GUIDE_REGISTRY, exportBuilder).map((guide) => guide.id)).toContain("data.build-and-run-export");
+    expect(visibleGuides(GUIDE_REGISTRY, exportReader).map((guide) => guide.id)).toContain("data.recover-import-export");
+  });
+
   it("chooses one focused landing layout for each filter state", () => {
     expect(guideLandingView({ category: null, audience: null, query: "" })).toBe("browse");
     expect(guideLandingView({ category: null, audience: "approver", query: "" })).toBe("audience-results");

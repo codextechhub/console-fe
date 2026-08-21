@@ -191,7 +191,7 @@ export default function ExportFilesPage() {
 
   return (
     <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3" data-guide="data-export-files.heading">
         <div>
           <p className="font-semibold font-mont text-gray-01">Files</p>
           <p className="mt-0.5 text-xs text-gray-01">
@@ -201,7 +201,7 @@ export default function ExportFilesPage() {
         </div>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-3" data-guide="data-export-files.summary">
         <KpiCard label="Ready to download" value={readyNow} foot="On this page" />
         <KpiCard
           label="Expiring within 7 days"

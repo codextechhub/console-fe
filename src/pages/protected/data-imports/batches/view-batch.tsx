@@ -181,7 +181,7 @@ export default function ViewBatch() {
     <>
       <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-6xl">
         {/* Header card */}
-        <div className="bg-white rounded-md p-5 space-y-5">
+        <div className="bg-white rounded-md p-5 space-y-5" data-guide="data-import-batch.detail">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-xs text-gray-01 mb-1">
@@ -289,7 +289,7 @@ export default function ViewBatch() {
         {/* Two-column meta + summary */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start">
           {/* Validation summary */}
-          <div className="bg-white rounded-md p-5 space-y-4">
+          <div className="bg-white rounded-md p-5 space-y-4" data-guide="data-import-batch.validation-summary">
             <p className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
               Validation Summary
             </p>
@@ -387,7 +387,7 @@ export default function ViewBatch() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-md p-5">
+        <div className="bg-white rounded-md p-5" data-guide="data-import-batch.evidence-tabs">
           <div className="flex gap-1 border-b border-gray-100 mb-4 -mx-5 px-5 overflow-x-auto">
             {tabs.map((t) => (
               <button

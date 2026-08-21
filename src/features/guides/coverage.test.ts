@@ -184,4 +184,18 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts the four high-risk C8 import and export walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "import-batch", route: "/data-imports/batches", actionId: "upload-import-batch", risk: "high" },
+      { id: "import-template", route: "/data-imports/templates", actionId: "create-import-template", risk: "high" },
+      { id: "saved-export", route: "/export/new", actionId: "create-export", risk: "high" },
+      { id: "data-recovery", route: "/export/queues", actionId: "view-export-queues", risk: "high" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

@@ -285,7 +285,7 @@ function BuilderForm({
   const loading = catalogueLoading;
 
   return (
-    <main className="min-w-0 px-4.5 py-6 text-black-01">
+    <main className="min-w-0 px-4.5 py-6 text-black-01" data-guide="data-export-builder.workspace">
       <button
         type="button"
         onClick={() => navigate(routesPath.PROTECTED.EXPORT.SAVED)}
@@ -294,7 +294,7 @@ function BuilderForm({
         <ArrowLeft className="size-3.5" /> Exports
       </button>
 
-      <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-3" data-guide="data-export-builder.heading">
         <div className="min-w-0">
           <h1 className="font-mont text-lg font-semibold text-black-01">
             {isEdit ? "Edit export" : "New export"}
@@ -306,7 +306,7 @@ function BuilderForm({
         </div>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5" data-guide="data-export-builder.steps">
         <WizardStepper currentStep={step} labels={STEP_LABELS} />
       </div>
 
@@ -393,7 +393,7 @@ function BuilderForm({
               />
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3" data-guide="data-export-builder.actions">
               <Button
                 variant="ghost"
                 disabled={step === 1}

@@ -234,7 +234,7 @@ export default function SavedExportsPage() {
 
   return (
     <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3" data-guide="data-exports.heading">
         <div>
           <p className="font-semibold font-mont text-gray-01">Exports</p>
           <p className="mt-0.5 text-xs text-gray-01">

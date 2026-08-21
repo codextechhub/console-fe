@@ -230,7 +230,7 @@ export default function QueuesPage() {
   return (
     <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
       {/* Header row: title + (permission-gated) scope toggle */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3" data-guide="data-export-queues.heading">
         <div>
           <p className="font-semibold font-mont text-gray-01">Queues</p>
           <p className="text-xs text-gray-01 mt-0.5">
@@ -250,7 +250,7 @@ export default function QueuesPage() {
       </div>
 
       {/* Status summary cards */}
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4" data-guide="data-export-queues.summary">
         <KpiCard label={runStatusWord("QUEUED")} value={counts.QUEUED ?? 0} />
         <KpiCard
           label={runStatusWord("RUNNING")}

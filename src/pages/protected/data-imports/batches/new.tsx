@@ -23,7 +23,7 @@ export default function NewImportBatch() {
 
   return (
     <>
-      <section className="px-4.5 py-6 max-w-5xl">
+      <section className="px-4.5 py-6 max-w-5xl" data-guide="data-import-batches.upload">
         <ImportWizard
           datasetType={datasetType ?? undefined}
           lockTemplate={lockTemplate}

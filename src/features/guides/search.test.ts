@@ -145,6 +145,13 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "change match tolerance")[0]?.guide.id).toBe("procurement.configure-settings");
   });
 
+  it("finds C8 workflows using import, export, and recovery language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "validate rows")[0]?.guide.id).toBe("data.import-batch");
+    expect(searchGuides(GUIDE_REGISTRY, "publish template")[0]?.guide.id).toBe("data.import-templates");
+    expect(searchGuides(GUIDE_REGISTRY, "restricted column")[0]?.guide.id).toBe("data.build-and-run-export");
+    expect(searchGuides(GUIDE_REGISTRY, "rollback import")[0]?.guide.id).toBe("data.recover-import-export");
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

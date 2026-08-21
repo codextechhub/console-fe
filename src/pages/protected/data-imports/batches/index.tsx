@@ -240,9 +240,9 @@ export default function ImportBatchesList() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <main className="px-4.5 py-6 space-y-5 text-black-01" data-guide="data-import-batches.workspace">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-3" data-guide="data-import-batches.heading">
           <div>
             <p className="font-semibold font-mont text-gray-01">Import Batches</p>
             <p className="text-xs text-gray-01 mt-0.5">
@@ -277,7 +277,7 @@ export default function ImportBatchesList() {
         )}
 
         {/* Stat cards */}
-        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4" data-guide="data-import-batches.summary">
           {cards.map((card) => {
             const isActive = cardFilter === card.key && card.key !== "all";
             const Icon = card.icon;

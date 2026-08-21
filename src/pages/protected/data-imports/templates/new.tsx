@@ -169,7 +169,7 @@ export default function NewTemplate() {
 
   return (
       <>
-        <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-4xl pb-32">
+        <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-4xl pb-32" data-guide="data-import-templates.editor">
           {/* Header */}
           <div>
             <h1 className="text-lg font-semibold font-mont text-black-01">New Import Template</h1>

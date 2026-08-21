@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { P, resolvePermissionKey } from "@/permissions";
+
 import { GUIDE_REGISTRY } from "./registry";
 import { GUIDE_ROUTE_PATTERNS } from "./route-catalog";
 import {
@@ -62,6 +64,12 @@ describe("contextual guides", () => {
 
     const settings = contextualGuideContext(GUIDE_REGISTRY, "/procurement/settings/matching", ["procurement.settings.view"]);
     expect(settings.guides.map((guide) => guide.id)).toEqual(["procurement.configure-settings"]);
+
+    const imports = contextualGuideContext(GUIDE_REGISTRY, "/data-imports/batches", [resolvePermissionKey(P.VIEW_IMPORT_BATCHES)]);
+    expect(imports.guides.map((guide) => guide.id)).toContain("data.import-batch");
+
+    const exportBuilder = contextualGuideContext(GUIDE_REGISTRY, "/export/new", [resolvePermissionKey(P.CREATE_EXPORT)]);
+    expect(exportBuilder.guides.map((guide) => guide.id)).toContain("data.build-and-run-export");
   });
 
   it("resolves the current article by slug", () => {

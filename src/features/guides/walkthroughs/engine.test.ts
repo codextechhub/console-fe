@@ -142,6 +142,17 @@ describe("walkthrough engine", () => {
     expect(walkthroughStepRoute(settings!, "approvals")).toBe("/procurement/settings/approvals");
   });
 
+  it("maps C8 walkthroughs across safe import and export screens", () => {
+    const batch = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.data.import-batch");
+    const templates = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.data.import-templates");
+    const recovery = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.data.recover-import-export");
+
+    expect(walkthroughStepRoute(batch!, "upload")).toBe("/data-imports/batches/new");
+    expect(walkthroughStepRoute(templates!, "editor")).toBe("/data-imports/templates/new");
+    expect(walkthroughStepRoute(recovery!, "queue")).toBe("/export/queues");
+    expect(walkthroughStepRoute(recovery!, "files")).toBe("/export/files");
+  });
+
   it("maps every school wizard explanation to its matching view and target", () => {
     const schoolWalkthrough = WALKTHROUGH_REGISTRY.find(
       (item) => item.id === "walkthrough.schools.create-and-configure",

@@ -169,9 +169,9 @@ export default function ImportTemplatesList() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <main className="px-4.5 py-6 space-y-5 text-black-01" data-guide="data-import-templates.workspace">
         {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-wrap items-start justify-between gap-3" data-guide="data-import-templates.heading">
           <div>
             <p className="font-semibold font-mont text-gray-01">Import Templates</p>
             <p className="text-xs text-gray-01 mt-0.5">
@@ -193,7 +193,7 @@ export default function ImportTemplatesList() {
         </div>
 
         {/* Stat cards */}
-        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4" data-guide="data-import-templates.summary">
           {cards.map((card, i) => {
             const isClickable = canManageTemplates && card.key !== "all";
             const isActive = canManageTemplates && cardFilter === card.key && card.key !== "all";
