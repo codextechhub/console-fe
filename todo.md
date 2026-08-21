@@ -1,13 +1,5 @@
 ## Undone (Ask questions for clarity where needed)
 
-# The school stats endpoint has no suspended count (found 2026-08-20).
-`GET /v1/i/stats/` aggregates all/active/pending/inactive and omits SUSPENDED,
-so the School Management "Suspended Schools" tab counts itself with a second
-`?status=SUSPENDED&page_size=1` request purely to read `pagination.totalItems`.
-It is one cheap call and it is honest, but it exists only because the figure is
-missing upstream. Adding `suspended=Count(...)` to that aggregate lets the
-frontend drop the extra query.
-
 # Per-branch payroll is enforced but invisible (found 2026-08-21).
 Two things the frontend needs before the last bullet of item 10 ("under
 PER_BRANCH a payroll officer pinned to one branch runs only that branch") can be
@@ -29,6 +21,22 @@ shown rather than merely obeyed:
    tenant-scoped would close it.
 
 ## Done
+
+# 48. **The school stats endpoint counts every status, including suspended (2026-08-21).**
+`GET /v1/i/stats/` aggregated all/active/pending/inactive and omitted SUSPENDED,
+so the "Suspended Schools" card fetched its own figure with a second
+`?status=SUSPENDED&page_size=1` request purely to read `pagination.totalItems`.
+THE ROOT, not the case: the aggregate named its statuses by hand, and SUSPENDED
+was added to `SchoolStatus` afterwards. Listing them meant the response could
+fall behind the enum in silence, and the next status added would have gone the
+same way. It is now derived from `SchoolStatus.values`, so a new status is
+counted the moment it exists and the four keys that shipped are unchanged.
+Frontend drops the extra query and reads `stats.suspended`. **Deploy order: the
+backend goes first.** The card falls back to 0, and a 0 nobody counted hides
+exactly the schools that tab exists to find. 5 new tests (`tests_stats.py`) -
+the endpoint previously had none - asserting against the enum rather than a
+list of four keys, so the regression cannot come back quietly.
+
 
 # 47. **An export run whose worker never came back is now reconciled (2026-08-16).**
 `execute_run` already always left the row terminal, so no in-process path could strand

@@ -125,6 +125,7 @@ export interface SchoolStats {
   active: number
   pending: number
   inactive: number
+  suspended: number
 }
 
 export interface BranchStats {

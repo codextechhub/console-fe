@@ -62,12 +62,6 @@ export default function SchoolManagement() {
 
   const { data: schoolsRes, isLoading, refetch, isFetching } = useGetSchoolsQuery(queryParams);
   const { data: statsRes, refetch: refetchStats } = useGetSchoolStatsQuery();
-  // The stats endpoint counts all/active/pending/inactive and has no suspended
-  // figure, so the card is counted from the list itself. One row is fetched for
-  // the pagination total and nothing is rendered from it; showing a 0 we had not
-  // actually counted would hide the schools this tab exists to find.
-  const { data: suspendedRes } = useGetSchoolsQuery({ status: "SUSPENDED", page_size: 1 });
-
 
   const stats = statsRes?.data;
 
@@ -76,7 +70,7 @@ export default function SchoolManagement() {
     { title: "Active Schools", value: stats?.active ?? 0, query: "active", active: filter_status === "active" },
     { title: "Pending Schools", value: stats?.pending ?? 0, query: "pending", active: filter_status === "pending" },
     { title: "Inactive Schools", value: stats?.inactive ?? 0, query: "inactive", active: filter_status === "inactive" },
-    { title: "Suspended Schools", value: suspendedRes?.pagination?.totalItems ?? 0, query: "suspended", active: filter_status === "suspended" },
+    { title: "Suspended Schools", value: stats?.suspended ?? 0, query: "suspended", active: filter_status === "suspended" },
   ];
 
   const tableData = schoolsRes?.data?.map((item: School, idx: number) => ({
