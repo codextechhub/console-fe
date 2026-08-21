@@ -89,7 +89,7 @@ export default function ContractsPage() {
 
   return <ProcurementShell>
     <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-      <header className="flex flex-wrap items-start justify-between gap-3">
+      <header data-guide="procurement-contracts.heading" className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">Contracts</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Vendor agreements with milestones and a renewal radar.</p>
@@ -97,7 +97,7 @@ export default function ContractsPage() {
         <Can permission={P.PROC_CREATE_CONTRACT}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> New contract</Button></Can>
       </header>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div data-guide="procurement-contracts.summary" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
           <StatCard label="Active" value={String(summary.active)} icon={FileCheck2} tone="green" />
           <StatCard label="Expiring ≤ 30 days" value={String(summary.expiring_soon)} icon={CalendarClock} tone="amber" />
@@ -108,7 +108,7 @@ export default function ContractsPage() {
         </>}
       </div>
 
-      <section className="min-w-0 rounded-md bg-white">
+      <section data-guide="procurement-contracts.list" className="min-w-0 rounded-md bg-white">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
           <div className="max-w-full overflow-x-auto"><div className="flex min-w-max gap-5">{STATUS_TABS.map(([label, value]) => (
             <button key={label} onClick={() => { setTab(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>

@@ -7,6 +7,7 @@ import {
   loadWalkthroughProgress,
   saveWalkthroughProgress,
   validateWalkthroughs,
+  walkthroughStepRoute,
   walkthroughStorageKey,
 } from "./engine";
 
@@ -83,6 +84,39 @@ describe("walkthrough engine", () => {
       }],
     }], new Set(GUIDE_REGISTRY.map((guide) => guide.id)))).toContain(
       `Invalid search in ${walkthrough.id}:bad-search`,
+    );
+  });
+
+  it("rejects walkthrough step routes that are not absolute paths", () => {
+    expect(validateWalkthroughs([{
+      ...walkthrough,
+      steps: [{
+        id: "bad-route",
+        title: "Bad route",
+        body: "This route is not absolute.",
+        route: "procurement/quotations",
+        advance: "manual",
+      }],
+    }], new Set(GUIDE_REGISTRY.map((guide) => guide.id)))).toContain(
+      `Invalid step route in ${walkthrough.id}:bad-route`,
+    );
+  });
+
+  it("maps the sourcing walkthrough across RFQs and quotations", () => {
+    const sourcing = WALKTHROUGH_REGISTRY.find(
+      (item) => item.id === "walkthrough.procurement.run-rfq-and-award",
+    );
+    const quotationStep = sourcing?.steps.find((item) => item.id === "quotation-scope");
+
+    expect(quotationStep).toMatchObject({
+      route: "/procurement/sourcing/quotations",
+      target: "procurement-quotations.heading",
+    });
+    expect(walkthroughStepRoute(sourcing!, "quotation-list")).toBe(
+      "/procurement/sourcing/quotations",
+    );
+    expect(walkthroughStepRoute(sourcing!, "rfq-list")).toBe(
+      "/procurement/sourcing/rfqs",
     );
   });
 

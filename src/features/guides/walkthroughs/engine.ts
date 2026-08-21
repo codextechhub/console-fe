@@ -110,6 +110,15 @@ export function followingContentStep(
   return nextContentStep(walkthrough, next.id, targetPresent);
 }
 
+export function walkthroughStepRoute(walkthrough: Walkthrough, stepId: string): string {
+  let route = walkthrough.route;
+  for (const candidate of walkthrough.steps) {
+    if (candidate.kind !== "branch" && candidate.route) route = candidate.route;
+    if (candidate.id === stepId) break;
+  }
+  return route;
+}
+
 export function validateWalkthroughs(
   walkthroughs: readonly Walkthrough[],
   guideIds: ReadonlySet<string>,
@@ -132,6 +141,8 @@ export function validateWalkthroughs(
         }
       } else if (step.search && !step.search.startsWith("?")) {
         issues.push(`Invalid search in ${walkthrough.id}:${step.id}`);
+      } else if (step.route && !step.route.startsWith("/")) {
+        issues.push(`Invalid step route in ${walkthrough.id}:${step.id}`);
       }
       if (step.target) {
         const contract = `${walkthrough.id}:${step.target}`;

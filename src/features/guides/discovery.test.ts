@@ -103,6 +103,18 @@ describe("guide discovery", () => {
     expect(visibleGuides(GUIDE_REGISTRY, payoutReader).map((guide) => guide.id)).toContain("finance.send-payouts-and-resolve-settlements");
   });
 
+  it("publishes C7a guides only inside the caller's procurement permissions", () => {
+    const vendorReader = [resolvePermissionKey(P.PROC_VIEW_VENDORS)];
+    const categoryReader = [resolvePermissionKey(P.PROC_VIEW_CATEGORIES)];
+    const rfqReader = [resolvePermissionKey(P.PROC_VIEW_RFQS)];
+    const contractReader = [resolvePermissionKey(P.PROC_VIEW_CONTRACTS)];
+
+    expect(visibleGuides(GUIDE_REGISTRY, vendorReader).map((guide) => guide.id)).toContain("procurement.add-and-govern-vendor");
+    expect(visibleGuides(GUIDE_REGISTRY, categoryReader).map((guide) => guide.id)).toContain("procurement.manage-categories-and-catalogue");
+    expect(visibleGuides(GUIDE_REGISTRY, rfqReader).map((guide) => guide.id)).toContain("procurement.run-rfq-and-award");
+    expect(visibleGuides(GUIDE_REGISTRY, contractReader).map((guide) => guide.id)).toContain("procurement.manage-contract-lifecycle");
+  });
+
   it("chooses one focused landing layout for each filter state", () => {
     expect(guideLandingView({ category: null, audience: null, query: "" })).toBe("browse");
     expect(guideLandingView({ category: null, audience: "approver", query: "" })).toBe("audience-results");

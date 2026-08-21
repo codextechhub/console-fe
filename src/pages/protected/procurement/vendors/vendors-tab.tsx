@@ -106,7 +106,7 @@ export function VendorsTab({ entity, currency }: { entity: string; currency?: st
   ];
 
   return <>
-    <header className="flex flex-wrap items-start justify-between gap-3">
+    <header data-guide="procurement-vendors.heading" className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="font-mont text-lg font-semibold text-gray-01">Vendors</h1>
         <p className="mt-0.5 font-mont text-xs text-gray-05">Vendors, categories and the item catalog.</p>
@@ -132,7 +132,7 @@ export function VendorsTab({ entity, currency }: { entity: string; currency?: st
       </div>
     </header>
 
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div data-guide="procurement-vendors.summary" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {summaryLoading ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : summary ? <>
         <StatCard label="Active Vendors" value={String(summary.active)} icon={BadgeCheck} tone="green" sub={`${summary.inactive} inactive`} />
         <StatCard label="Total Spend YTD" value={formatMoney(summary.total_spend_ytd, currency)} icon={CircleDollarSign} tone="indigo" sub="Posted vendor invoices" />
@@ -141,7 +141,7 @@ export function VendorsTab({ entity, currency }: { entity: string; currency?: st
       </> : <div className="col-span-full rounded-md border border-dashed border-gray-03 bg-white p-4 text-xs text-gray-05">{isForbidden(summaryError) ? "Vendor financial KPIs require Procurement report access." : "Vendor KPIs could not be loaded."}</div>}
     </div>
 
-    <section className="min-w-0 rounded-md bg-white">
+    <section data-guide="procurement-vendors.list" className="min-w-0 rounded-md bg-white">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
         <div className="max-w-full overflow-x-auto"><div className="flex min-w-max gap-5">{STATUS_TABS.map(([label, value]) => <button key={value} onClick={() => { setStatus(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", status === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>)}</div></div>
         <div className="my-2 flex min-w-0 basis-full flex-wrap justify-end gap-2 xl:basis-auto">

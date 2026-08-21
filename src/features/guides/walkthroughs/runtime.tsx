@@ -18,6 +18,7 @@ import {
   queueWalkthrough,
   saveWalkthroughProgress,
   WALKTHROUGH_START_EVENT,
+  walkthroughStepRoute,
 } from "./engine";
 import { findWalkthrough } from "./registry";
 import { WalkthroughRuntimeContext } from "./context";
@@ -87,7 +88,7 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
     setWalkthrough(selected);
     setStep(first);
     setMissingTarget(false);
-    persist(selected, first, saved?.completedStepIds ?? []);
+    persist(selected, first, savedStep ? (saved?.completedStepIds ?? []) : []);
   }, [auth.permissions, hasTarget, identityKey, location.pathname, navigate, persist]);
 
   useEffect(() => {
@@ -122,11 +123,14 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
   }, [location.search, step, walkthrough]);
 
   useEffect(() => {
-    if (!walkthrough || !step?.search) return;
-    const search = step.search.startsWith("?") ? step.search : `?${step.search}`;
-    if (location.pathname === walkthrough.route && location.search === search) return;
-    navigate({ pathname: walkthrough.route, search }, { replace: true });
-  }, [location.pathname, location.search, navigate, step?.search, walkthrough]);
+    if (!walkthrough || !step) return;
+    const pathname = walkthroughStepRoute(walkthrough, step.id);
+    const search = step.search
+      ? (step.search.startsWith("?") ? step.search : `?${step.search}`)
+      : undefined;
+    if (location.pathname === pathname && (search === undefined || location.search === search)) return;
+    navigate(search === undefined ? pathname : { pathname, search }, { replace: true });
+  }, [location.pathname, location.search, navigate, step, walkthrough]);
 
   const move = useCallback((direction: 1 | -1) => {
     if (!walkthrough || !step) return;

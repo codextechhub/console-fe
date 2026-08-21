@@ -144,4 +144,24 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts the three high-risk C7a procurement walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "vendor-governance", route: "/procurement/vendors/vendors", actionId: "create-vendor", risk: "high" },
+      {
+        id: "category-catalogue",
+        route: "/procurement/vendors/categories",
+        actionId: "create-category",
+        risk: "medium",
+        walkthroughException: "Short master-data forms have no cross-screen or irreversible action.",
+      },
+      { id: "sourcing-award", route: "/procurement/sourcing/rfqs", actionId: "create-rfq", risk: "high" },
+      { id: "contract-lifecycle", route: "/procurement/contracts", actionId: "create-contract", risk: "high" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

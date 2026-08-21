@@ -86,7 +86,7 @@ export default function QuotationsPage() {
 
   return <ProcurementShell>
     <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-      <header className="flex flex-wrap items-start justify-between gap-3">
+      <header data-guide="procurement-quotations.heading" className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">Quotations</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Vendor bids against your RFQs. Compare them, then award the winner.</p>
@@ -97,7 +97,7 @@ export default function QuotationsPage() {
         </div>
       </header>
 
-      <section className="min-w-0 rounded-md bg-white">
+      <section data-guide="procurement-quotations.list" className="min-w-0 rounded-md bg-white">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
           <div className="max-w-full overflow-x-auto"><div className="flex min-w-max gap-5">{QUOTATION_TABS.map(([label, value]) => (
             <button key={label} onClick={() => { setStatus(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", status === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>

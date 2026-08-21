@@ -131,7 +131,7 @@ export function CategoriesTab({ entity, currency }: { entity: string; currency?:
   ];
 
   return <>
-    <header className="flex flex-wrap items-start justify-between gap-3">
+    <header data-guide="procurement-categories.heading" className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h1 className="font-mont text-lg font-semibold text-gray-01">Categories</h1>
         <p className="mt-0.5 font-mont text-xs text-gray-05">Spend taxonomy and accounting defaults for vendor purchasing.</p>
@@ -139,7 +139,7 @@ export function CategoriesTab({ entity, currency }: { entity: string; currency?:
       <Can permission={P.PROC_CREATE_CATEGORY}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> New Category</Button></Can>
     </header>
 
-    <section className="min-w-0 rounded-md bg-white">
+    <section data-guide="procurement-categories.list" className="min-w-0 rounded-md bg-white">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
         <div className="max-w-full overflow-x-auto"><div className="flex min-w-max gap-5">{STATUS_TABS.map(([label, value]) => <button key={value} type="button" onClick={() => { setStatus(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", status === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>)}</div></div>
         <label className="relative my-2 min-w-0 basis-full sm:min-w-52 sm:flex-1 sm:basis-auto sm:max-w-72"><Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-05" /><Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search categories" className="h-9 bg-white pl-9" /></label>

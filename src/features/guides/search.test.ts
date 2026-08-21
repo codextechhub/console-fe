@@ -52,8 +52,8 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "/overview")[0]?.guide.id).toBe(
       "getting-started.console-basics",
     );
-    expect(searchGuides(GUIDE_REGISTRY, "procurement officer")[0]?.guide.id).toBe(
-      "procurement.complete-procure-to-pay",
+    expect(searchGuides(GUIDE_REGISTRY, "procurement officer")[0]?.guide.category).toBe(
+      "procurement-and-inventory",
     );
   });
 
@@ -129,6 +129,13 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "partial tax payment")[0]?.guide.id).toBe("finance.file-and-pay-tax");
     expect(searchGuides(GUIDE_REGISTRY, "customer paid online")[0]?.guide.id).toBe("finance.collect-online-payments");
     expect(searchGuides(GUIDE_REGISTRY, "payout failed")[0]?.guide.id).toBe("finance.send-payouts-and-resolve-settlements");
+  });
+
+  it("finds C7a procurement workflows using supplier and sourcing language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "put vendor on hold")[0]?.guide.id).toBe("procurement.add-and-govern-vendor");
+    expect(searchGuides(GUIDE_REGISTRY, "add catalogue item")[0]?.guide.id).toBe("procurement.manage-categories-and-catalogue");
+    expect(searchGuides(GUIDE_REGISTRY, "sole source exception")[0]?.guide.id).toBe("procurement.run-rfq-and-award");
+    expect(searchGuides(GUIDE_REGISTRY, "complete milestone")[0]?.guide.id).toBe("procurement.manage-contract-lifecycle");
   });
 
   it("respects the caller's visibility boundary and result limit", () => {
