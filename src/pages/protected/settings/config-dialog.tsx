@@ -7,6 +7,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { apiErrorMessage } from "@/utils/api-errors";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -107,9 +108,17 @@ export function ConfigDialog({
         is_active: true,
       }).unwrap();
     if (mode === "value")
+      // Its own message: setConfigValues opts out of the global 400 toast so a
+      // guard refusal that names people can be shown on screen where it is
+      // raised. This dialog has no such surface, so it speaks for itself.
       await setValue({
         values: [{ key: form.key, value: parse(form.value, pickedDef?.value_type), reason: form.reason }],
-      }).unwrap();
+      })
+        .unwrap()
+        .catch((error) => {
+          toast.error(apiErrorMessage(error, "That value could not be saved."));
+          throw error;
+        });
     if (mode === "capability")
       await createCap({
         key: form.key,

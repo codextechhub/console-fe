@@ -18,6 +18,7 @@ export const SETTINGS_SECTIONS = [
   "overview",
   "platform-profile",
   "school-onboarding",
+  "payroll",
   "security",
   "integrations",
   "features",

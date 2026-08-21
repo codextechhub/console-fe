@@ -24,8 +24,11 @@ import {
   Trash2,
   Users,
   Workflow,
+  CircleAlert,
+  Landmark,
 } from "lucide-react";
 import { toast } from "sonner";
+import { apiErrorMessage } from "@/utils/api-errors";
 import { CustomInput } from "@/components/custom/custom-input";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -69,6 +72,7 @@ import {
   useGetConfigAuditFacetsQuery,
   useGetConfigDefinitionsQuery,
   useGetConfigValuesQuery,
+  useGetEffectiveConfigQuery,
   useGetEffectiveCapabilitiesQuery,
   useGetEntitlementsQuery,
   useGetEntitlementCalendarQuery,
@@ -119,6 +123,7 @@ const ALL_SECTIONS: Array<ConsoleSettingsSection & { permissions?: PermissionCod
   { key: "overview", title: "Overview", description: "Configuration health", icon: Settings2 },
   { key: "platform-profile", title: "Platform profile", description: "Issuer identity", icon: Building2, permissions: [P.VIEW_CONFIG_VALUES] },
   { key: "school-onboarding", title: "School onboarding", description: "New tenant defaults", icon: Sparkles, permissions: [P.VIEW_CONFIG_VALUES] },
+  { key: "payroll", title: "Payroll", description: "Central or per branch", icon: Landmark, permissions: [P.VIEW_CONFIG_VALUES] },
   { key: "security", title: "Security", description: "Runtime protection", icon: ShieldCheck, permissions: [P.VIEW_SECURITY_SETTINGS] },
   { key: "integrations", title: "Integrations", description: "Connections and delivery", icon: Network, permissions: [P.VIEW_INTEGRATION_SETTINGS] },
   { key: "features", title: "Features and access", description: "Plans and overrides", icon: SlidersHorizontal, permissions: [P.VIEW_CAPABILITIES] },
@@ -188,6 +193,7 @@ export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
       ) : null}
       {activeSection === "platform-profile" ? <PlatformProfile /> : null}
       {activeSection === "school-onboarding" ? <SchoolOnboarding /> : null}
+      {activeSection === "payroll" ? <PayrollScope /> : null}
       {activeSection === "security" ? <SecuritySettings /> : null}
       {activeSection === "integrations" ? <IntegrationSettings /> : null}
       {activeSection === "features" ? <Features /> : null}
@@ -420,6 +426,142 @@ function securityFieldDescription(
   if (!compliance) return description;
   const direction = compliance.direction === "maximum" ? "or lower" : "or higher";
   return `${description} This scope must stay at ${compliance.boundary} ${direction}, based on its ${compliance.parent_scope} baseline.`;
+}
+
+// The backend key, and the two values it takes. CENTRAL is the default, so a
+// school that has never been touched runs exactly as it always did.
+const PAYROLL_SCOPE_KEY = "payroll.scope";
+
+const PAYROLL_SCOPE_OPTIONS = [
+  {
+    value: "CENTRAL",
+    label: "One central run",
+    description:
+      "Payroll covers every active employee in a single run, whatever branch they are on. This is what a school does until somebody changes it.",
+    icon: Landmark,
+  },
+  {
+    value: "PER_BRANCH",
+    label: "One run per branch",
+    description:
+      "Each branch runs its own payroll, covering exactly its own people. Every active employee must be on a branch first, or a branch run would miss them.",
+    icon: Network,
+  },
+];
+
+/**
+ * How a school runs payroll: one central run, or one run per branch.
+ *
+ * The switch is trivial. The refusal is the feature.
+ *
+ * Turning PER_BRANCH on is refused while any active employee has no branch,
+ * because a branch run reads its branch EXCLUSIVELY - an unassigned person is
+ * on nobody's run and simply does not get paid, and the first anybody hears of
+ * it is them asking where the month went. The backend names those people in
+ * the refusal rather than counting them, and this panel keeps them on screen
+ * instead of in a toast that vanishes: a bursar told "4 staff are unassigned"
+ * has to search a roster of 109, while one told the four names can go and fix
+ * them.
+ */
+function PayrollScope() {
+  const { hasPermission } = usePermissions();
+  const [school, setSchool] = useState("");
+  const [refusal, setRefusal] = useState("");
+  const canSave = hasPermission(P.UPDATE_CONFIG_VALUES);
+
+  const scope: Record<string, string> = school ? { tenant: school } : {};
+  const effective = useGetEffectiveConfigQuery(
+    { ...scope, keys: PAYROLL_SCOPE_KEY },
+    { skip: !school },
+  );
+  const [save, saveState] = useSetConfigValuesMutation();
+
+  const current = String(
+    (effective.data?.data as Record<string, unknown> | undefined)?.[PAYROLL_SCOPE_KEY] ?? "CENTRAL",
+  );
+
+  const choose = async (next: string) => {
+    if (!school || next === current) return;
+    setRefusal("");
+    try {
+      await save({
+        values: [{ key: PAYROLL_SCOPE_KEY, value: next, reason: "Changed payroll scope" }],
+        ...scope,
+      }).unwrap();
+      toast.success(
+        next === "PER_BRANCH"
+          ? "Payroll now runs per branch."
+          : "Payroll now runs centrally.",
+      );
+    } catch (error) {
+      // Held on screen rather than toasted: it names the people who still need
+      // a branch, and that list is the thing the reader has to act on.
+      setRefusal(apiErrorMessage(error, "The payroll scope could not be changed."));
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      <SettingsSectionHeader
+        title="Payroll scope"
+        description="Whether a school pays everybody in one run, or runs payroll separately for each branch. New schools run centrally until somebody changes this."
+      />
+
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-03 bg-white p-4">
+        <ScopePicker value={school} onChange={(value) => { setSchool(value); setRefusal(""); }} />
+        {!school ? (
+          <p className="font-mont text-xs text-gray-05">
+            Choose a school. Payroll scope is set per school, not platform-wide.
+          </p>
+        ) : null}
+      </div>
+
+      {school ? (
+        <>
+          {refusal ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5">
+              <p className="flex items-start gap-2 font-mont text-sm font-semibold text-amber-800">
+                <CircleAlert className="mt-0.5 size-4 shrink-0" />
+                Per-branch payroll is not possible yet
+              </p>
+              <p className="mt-1.5 pl-6 font-mont text-xs leading-5 text-amber-900">{refusal}</p>
+              <p className="mt-2 pl-6 font-mont text-[11px] leading-4 text-amber-800">
+                Give each of them a branch on the school&apos;s employee roster, then come back.
+              </p>
+            </div>
+          ) : null}
+
+          <SettingsPanel
+            title="How this school runs payroll"
+            description="Switching to per branch is refused while anybody active has no branch, because a branch run covers exactly its own people and would leave them unpaid."
+          >
+            {PAYROLL_SCOPE_OPTIONS.map((option) => (
+              <SettingsRow
+                key={option.value}
+                icon={option.icon}
+                label={option.label}
+                description={option.description}
+                value={
+                  current === option.value ? (
+                    <Badge variant="active" className="font-mont text-xs">In use</Badge>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!canSave || saveState.isLoading || effective.isFetching}
+                      onClick={() => choose(option.value)}
+                    >
+                      {saveState.isLoading ? "Saving..." : "Use this"}
+                    </Button>
+                  )
+                }
+              />
+            ))}
+          </SettingsPanel>
+        </>
+      ) : null}
+    </div>
+  );
 }
 
 function SecuritySettings() {
@@ -917,10 +1059,18 @@ function SettingRow({
   const canSetHere = canSet && !specialManaged;
 
   const write = async (value: unknown) => {
-    await save({
-      values: [{ key: def.key, value, reason: "Updated from System Settings" }],
-    }).unwrap();
-    toast.success(`${def.label} updated`);
+    try {
+      await save({
+        values: [{ key: def.key, value, reason: "Updated from System Settings" }],
+      }).unwrap();
+      toast.success(`${def.label} updated`);
+    } catch (error) {
+      // The endpoint opts out of the global 400 toast, because the payroll
+      // panel shows its refusal on screen instead. This row has no such place,
+      // so it says it here rather than failing silently.
+      toast.error(apiErrorMessage(error, `${def.label} could not be updated`));
+      throw error;
+    }
   };
 
   const isDirty = draft !== (effective == null ? "" : String(effective));

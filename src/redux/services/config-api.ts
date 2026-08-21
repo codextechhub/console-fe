@@ -316,6 +316,11 @@ export const configApi = baseApi.injectEndpoints({
         body,
         params: { ...(tenant ? { tenant } : {}), ...(branch ? { branch } : {}) },
       }),
+      // A guard on a config value can refuse with a list of names the reader has
+      // to act on - payroll.scope names every employee still missing a branch.
+      // That belongs on screen, not in a toast that slides away, so the global
+      // 400 toast stands down and each caller says its own piece.
+      extraOptions: { inlineValidation: true },
       invalidatesTags: ["Config"],
     }),
     resetConfigValue: builder.mutation<
@@ -511,6 +516,7 @@ export const {
   useUpdateConfigDefinitionMutation,
   useArchiveConfigDefinitionMutation,
   useGetConfigValuesQuery,
+  useGetEffectiveConfigQuery,
   useSetConfigValuesMutation,
   useResetConfigValueMutation,
   useGetCapabilitiesQuery,
