@@ -43,6 +43,7 @@ describe("Main-console actions added for post-palette screens", () => {
     ["view-settings-integrations", `${R.SETTINGS.INDEX}/integrations`, P.VIEW_INTEGRATION_SETTINGS],
     ["view-settings-features", `${R.SETTINGS.INDEX}/features`, P.VIEW_CAPABILITIES],
     ["view-settings-audit", `${R.SETTINGS.INDEX}/audit`, P.VIEW_CONFIG_AUDIT],
+    ["view-guide-coverage", R.SUPPORT.GUIDE_COVERAGE, P.VIEW_HEALTH],
   ])("%s lands on its screen and needs its key", (id, destination, permission) => {
     const action = byId(id);
     expect("to" in action.run && action.run.to).toBe(destination);

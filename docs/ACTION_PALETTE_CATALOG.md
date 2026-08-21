@@ -182,6 +182,7 @@ phrases/aliases first, then we implement.
 | View settings | configuration | view | any `config.*` view key | `/settings` |
 | View support | support tickets, help | view | - | `/support` |
 | Raise support ticket | new ticket, contact support | do | - | `/support/tickets/new` |
+| View guide coverage | guide freshness, documentation gaps, guide operations | view | `VIEW_HEALTH` | `/support/guides/coverage` |
 
 ---
 

@@ -399,21 +399,28 @@ screen. Revisit if quick export gains column selection or scheduling.
   walkthroughs. The ledger records which real workflow walkthroughs carry each
   safety boundary and why a second generic tour would be less accurate.
 
-## C12 completion record
+## O1 completion record
 
-- Seven task-sized troubleshooting guides now cover access, account and invitation,
-  list and download behaviour, import and export failures, stalled workflows and
-  record statuses, payment and provider health, and support-ticket preparation.
-- Cross-links connect each failure class to the existing permission-aware domain
-  guide that owns the detailed workflow. Restricted finance, procurement, import,
-  export, and platform titles remain hidden without at least one relevant view
-  permission.
-- Recovery guidance starts with evidence and classification. It blocks duplicate
-  imports, payments, payouts, postings, retries, replays, approvals, and status
-  bypasses until the original outcome is proven.
-- The support-ticket walkthrough uses stable targets for the issue, classification,
-  attachments, and submit boundary. It never reads a field, attaches a file, or
-  creates a ticket, and it stops before the consequential action.
-- High-risk generic troubleshooting does not duplicate the existing domain
-  walkthroughs. The ledger records which real workflow walkthroughs carry each
-  safety boundary and why a second generic tour would be less accurate.
+- The permission-gated Guide coverage screen compares the shipped product route
+  catalogue and registered high-value task actions with every active guide mapping.
+  Guide article and compatibility-alias routes are excluded because they deliver
+  guidance rather than represent product workflows.
+- Review freshness is calculated from the guide risk: high risk every 90 days,
+  medium every 180 days, and low every 365 days. Stale and due-soon articles are
+  ordered into an owner-visible review queue.
+- The registry validator now appears as an operations report for invalid routes,
+  actions, relations, sections, articles, permissions, and walkthrough references.
+- Walkthrough verification is versioned. A changed walkthrough version invalidates
+  the older result until its targets are driven again. The baseline records the C1
+  through C12 walkthrough versions verified on 2026-08-21.
+- `platform.review-guide-coverage` documents how to read and repair each report at
+  its source. The screen and guide require platform health access and expose no
+  customer records or mutation controls.
+
+### No walkthrough - recorded reason
+
+The dashboard is a read-only diagnostic with independent report sections. It has
+no ordered, consequential, or branching workflow to teach, and every repair occurs
+in the versioned source registry rather than in the screen. A walkthrough would add
+ceremony without making an operation safer. Revisit if the page later gains an
+editor, assignment, approval, or automated repair action.

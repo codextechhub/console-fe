@@ -202,6 +202,7 @@ export const GUIDE_ROUTE_PATTERNS = [
   R.SUPPORT.NEW,
   R.SUPPORT.DETAIL_PATH,
   R.SUPPORT.GUIDES,
+  R.SUPPORT.GUIDE_COVERAGE,
   R.SUPPORT.GUIDE_DETAIL_PATH,
   R.SUPPORT.GUIDE_ALIAS,
   R.DOCUMENTS.INDEX,
@@ -210,3 +211,9 @@ export const GUIDE_ROUTE_PATTERNS = [
 export type GuideRoutePattern = (typeof GUIDE_ROUTE_PATTERNS)[number];
 
 export const GUIDE_ROUTE_PATTERN_SET: ReadonlySet<string> = new Set(GUIDE_ROUTE_PATTERNS);
+
+// Guide delivery routes are infrastructure for the help system, not product
+// workflows. The operations page is a real admin workflow and stays included.
+export const GUIDE_COVERAGE_ROUTE_PATTERNS = GUIDE_ROUTE_PATTERNS.filter((route) => (
+  route !== R.SUPPORT.GUIDE_DETAIL_PATH && route !== R.SUPPORT.GUIDE_ALIAS
+));

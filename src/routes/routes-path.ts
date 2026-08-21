@@ -34,6 +34,7 @@ export const routesPath = {
       DETAIL_PATH: "/support/tickets/:id",
       DETAIL: (id:string)=>`/support/tickets/${id}`,
       GUIDES: "/support/guides",
+      GUIDE_COVERAGE: "/support/guides/coverage",
       GUIDE_DETAIL_PATH: "/support/guides/:slug",
       GUIDE_DETAIL: (slug: string) => `/support/guides/${encodeURIComponent(slug)}`,
       GUIDE_ALIAS: "/how-to-guide",

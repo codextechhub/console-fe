@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  BarChart3,
   BookOpenText,
   CheckCircle2,
   ChevronRight,
@@ -37,6 +38,8 @@ import {
 import { selectPermissions } from "@/redux/features/auth/auth-slice";
 import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 const CATEGORY_ICONS: Record<GuideCategoryId, React.ElementType> = {
   "getting-started": Compass,
@@ -55,6 +58,7 @@ const CATEGORY_ICONS: Record<GuideCategoryId, React.ElementType> = {
 
 export default function HowToGuides() {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const permissions = useAppSelector(selectPermissions);
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState("");
@@ -320,6 +324,19 @@ export default function HowToGuides() {
         </div>
         <Button asChild className="w-full shrink-0 sm:w-auto"><Link to={routesPath.PROTECTED.SUPPORT.NEW}>Create support ticket</Link></Button>
       </section>
+
+      {hasPermission(P.VIEW_HEALTH) && (
+        <section className="flex flex-col gap-4 rounded-2xl border border-primary/15 bg-primary/[0.035] p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><BarChart3 className="size-5" /></span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Maintain the guide system</p>
+              <p className="mt-1 text-xs leading-5 text-gray-01">Review route and action gaps, stale articles, broken relations, and walkthrough target checks.</p>
+            </div>
+          </div>
+          <Button asChild variant="white" className="w-full shrink-0 sm:w-auto"><Link to={routesPath.PROTECTED.SUPPORT.GUIDE_COVERAGE}>View coverage</Link></Button>
+        </section>
+      )}
     </main>
   );
 }

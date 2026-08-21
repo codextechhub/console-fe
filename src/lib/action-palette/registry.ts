@@ -153,6 +153,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-support", label: "View support", aliases: ["support tickets", "help"], console: "Main", group: "Support", kind: "view", gate: null, run: { to: R.SUPPORT.INDEX } },
   { id: "raise-support-ticket", label: "Raise support ticket", aliases: ["new ticket", "contact support"], console: "Main", group: "Support", kind: "do", gate: null, run: { to: R.SUPPORT.NEW } },
   { id: "view-how-to-guides", label: "View how-to guides", aliases: ["guides", "how to", "help articles", "documentation", "walkthroughs"], console: "Main", group: "Support", kind: "view", gate: null, run: { to: R.SUPPORT.GUIDES } },
+  { id: "view-guide-coverage", label: "View guide coverage", aliases: ["guide freshness", "documentation gaps", "guide operations"], console: "Main", group: "Support", kind: "view", gate: { perm: P.VIEW_HEALTH }, run: { to: R.SUPPORT.GUIDE_COVERAGE } },
   { id: "view-requirements-documents", label: "View requirements documents", aliases: ["mrd", "frd", "requirements", "product specs", "documents"], console: "Main", group: "Support", kind: "view", gate: { perm: P.VIEW_REQUIREMENTS_DOCS }, run: { to: R.DOCUMENTS.INDEX } },
 
   // ── Finance · Ledger & Setup ─────────────────────────────────────────────
