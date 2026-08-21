@@ -1,14 +1,47 @@
 import { baseApi } from "../base-api";
+import { generateQueryString } from "@/utils/helpers";
 
 // The `/onboarding/` surface, which is a different root from `/i/` and a
 // different permission namespace from the rest of school management.
 //
-// Only reinstatement lives here so far. The go-live decisions belong on this
-// service too, but a platform caller has no way to LIST the requests waiting on
-// one: `GET /onboarding/go-live/` is scoped to the caller's own tenant and does
-// not accept a cross-tenant assertion, so it answers an empty page for CodeX
-// and 404 for a school slug. Approve and reject do accept the assertion, but
-// they take a request id nothing hands out. Recorded in todo.md.
+// Reinstatement and the go-live queue.
+//
+// The queue and the decisions taken from it assert DIFFERENT tenants, which is
+// the one thing to know before reading further. The list is read as CodeX, so
+// it takes the caller's own tenant and the base query supplies it. Approve and
+// reject act ON a school, so they name that school's slug explicitly - the base
+// query leaves a request that already asserts a tenant alone.
+
+export type GoLiveStatus = "PENDING" | "APPROVED" | "REJECTED" | "ACTIVATED" | "FAILED";
+
+export interface GoLiveRequest {
+  id: number;
+  /** The school this request is for. Both are needed: the slug addresses the
+   *  decision endpoints, the name is what a reviewer reads. */
+  tenant_slug: string;
+  school_name: string;
+  status: GoLiveStatus;
+  preferred_go_live_at: string;
+  note: string;
+  acknowledged: boolean;
+  requested_by_name: string;
+  reviewed_by_name: string;
+  reviewed_at: string | null;
+  rejection_reason: string;
+  failure_reference: string;
+  created_at: string;
+}
+
+export interface GoLiveRequestsRes {
+  message: string;
+  data: GoLiveRequest[];
+  pagination: {
+    currentPage: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+  };
+}
 
 export interface ReinstateSchoolRes {
   message: string;
@@ -43,7 +76,57 @@ export const onboardingApi = baseApi.injectEndpoints({
       // stale - including the status tab counts the list renders from.
       invalidatesTags: (_res, _err, slug) => ["Schools", { type: "Schools", id: slug }],
     }),
+
+    /**
+     * The go-live queue: every school waiting on a decision.
+     *
+     * Read as CodeX, so the caller's own tenant is what is asserted and the
+     * base query adds it. Which rows come back is decided server-side by the
+     * caller's tenant kind, not by anything sent from here.
+     */
+    getGoLiveRequests: builder.query<GoLiveRequestsRes, Record<string, string | number>>({
+      query: (params) => ({
+        url: `/onboarding/go-live/${generateQueryString(params)}`,
+        method: "GET",
+      }),
+      providesTags: ["GoLiveRequests"],
+    }),
+
+    /**
+     * Approve, which takes the school live in the same call.
+     *
+     * The slug in the URL is the SCHOOL being decided about, not the caller's
+     * own tenant: this is one of the few endpoints a platform caller may
+     * address at another tenant. Sending our own would 404.
+     */
+    approveGoLive: builder.mutation<{ message: string }, { id: number; slug: string }>({
+      query: ({ id, slug }) => ({
+        url: `/onboarding/go-live/${id}/approve/?tenant=${encodeURIComponent(slug)}`,
+        method: "POST",
+        body: {},
+      }),
+      // The school goes live, so its record and the school list are stale too.
+      invalidatesTags: ["GoLiveRequests", "Schools"],
+    }),
+
+    /** Decline, with a reason the school reads. The backend refuses a blank one. */
+    rejectGoLive: builder.mutation<
+      { message: string },
+      { id: number; slug: string; rejection_reason: string }
+    >({
+      query: ({ id, slug, rejection_reason }) => ({
+        url: `/onboarding/go-live/${id}/reject/?tenant=${encodeURIComponent(slug)}`,
+        method: "POST",
+        body: { rejection_reason },
+      }),
+      invalidatesTags: ["GoLiveRequests"],
+    }),
   }),
 });
 
-export const { useReinstateSchoolMutation } = onboardingApi;
+export const {
+  useReinstateSchoolMutation,
+  useGetGoLiveRequestsQuery,
+  useApproveGoLiveMutation,
+  useRejectGoLiveMutation,
+} = onboardingApi;

@@ -406,6 +406,26 @@ Sectioned console at `/procurement/settings/:section`, sub-nav gated by prefix `
 | Table row â "Edit School" dropdown action | `hasPermission()` | `P.MODIFY_SCHOOL` |
 
 
+### Go-Live Requests (`src/pages/protected/school-mgt/go-live.tsx`)
+
+| Element | Type | Permission Constant |
+|---|---|---|
+| Sidebar entry "Go-Live Requests" | `MAIN_NAV` child gate | `P.VIEW_GO_LIVE` |
+| Row action "Approve and take live" | `hasPermission()` | `P.APPROVE_GO_LIVE` |
+| Row action "Decline with a reason" | `hasPermission()` | `P.REJECT_GO_LIVE` |
+
+> Both actions are additionally hidden on a request that is not PENDING: the
+> backend answers 409 for anything else, so an approved school gets no menu
+> rather than one that can only fail. The three keys map to
+> `onboarding.go_live.view` / `.approve` / `.reject`, which the backend seeds to
+> `xvs_super_admin` and `xvs_platform_admin`, and gates a second time on the
+> caller's own tenant being the platform one - so a school-tenant role holding
+> them still cannot decide on anybody's go-live, including its own.
+>
+> The list asserts the caller's own tenant; approve and reject assert the
+> SCHOOL's slug, which is the cross-tenant assertion those two endpoints opt
+> into. Sending our own tenant to them would 404.
+
 ### School detail (`src/pages/protected/school-mgt/view-school.tsx`)
 
 | Element | Type | Permission Constant |

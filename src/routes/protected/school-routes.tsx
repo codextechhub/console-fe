@@ -12,9 +12,11 @@ const EditSchool = lazy(() => import("@/pages/protected/school-mgt/edit-school")
 const ViewBranch = lazy(() => import("@/pages/protected/school-mgt/view-branch"));
 const EditBranch = lazy(() => import("@/pages/protected/school-mgt/edit-branch"));
 const CreateBranch = lazy(() => import("@/pages/protected/school-mgt/create-branch"));
+const GoLiveQueue = lazy(() => import("@/pages/protected/school-mgt/go-live"));
 
 export const schoolRoutes: RouteObject[] = [
   { path: routesPath.PROTECTED.SCHOOL_MGT.INDEX, Component: SchoolManagement, handle: { title: "School Management" } satisfies DashboardHandle },
+  { path: routesPath.PROTECTED.SCHOOL_MGT.GO_LIVE, Component: GoLiveQueue, handle: { title: "Go-Live Requests" } satisfies DashboardHandle },
   { path: routesPath.PROTECTED.SCHOOL_MGT.VIEW_PATH, Component: ViewSchool, handle: { title: "School Management", back: true } satisfies DashboardHandle },
   { path: routesPath.PROTECTED.SCHOOL_MGT.VIEW_BRANCH_PATH, Component: ViewBranch, handle: { title: "School Management", back: true } satisfies DashboardHandle },
   { path: routesPath.PROTECTED.SCHOOL_MGT.CREATE, Component: CreateSchool, handle: { title: "School Management", back: true } satisfies DashboardHandle },

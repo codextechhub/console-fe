@@ -25,7 +25,7 @@
 //                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
 //                       41=dispose  42=reopen  43=lock  44=approve_high_value
 //                       45=share  46=download  47=override_variance  48=replay
-//                       49=attach  50=email  51=email_statement
+//                       49=attach  50=email  51=email_statement  52=reject
 //
 // ── Adding a permission ───────────────────────────────────────────────────────
 //   1. Pick the next free code in the right MM RR range.
@@ -124,11 +124,16 @@ const REGISTRY: Record<string, string> = {
   // go-live - are additionally gated backend-side on the caller's own tenant
   // being the platform one, so holding the key inside a school grants nothing.
   //
-  // Only the reactivate key is registered so far: it is the one this console
-  // can act on. Approving and rejecting a go-live request needs a request id,
-  // and no endpoint lists them for a platform caller yet (see todo.md), so
-  // their keys arrive with the screen that uses them.
   "101510": "onboarding.progress.reactivate",
+
+  // ── platform / school go-live decisions  (MM=10, RR=16) ────────────────────
+  // The queue and the two decisions taken from it. `view` is held by both
+  // sides: a school reads its own request history with the same key CodeX
+  // reads every school's queue with, and which rows come back is decided by
+  // the caller's tenant kind rather than by the key.
+  "101601": "onboarding.go_live.view",
+  "101605": "onboarding.go_live.approve",
+  "101652": "onboarding.go_live.reject",
 
   // ── communication / global notifications  (MM=40) ────────────────────────
   "400108": "communication.notification_templates.configure",
@@ -581,6 +586,9 @@ export const P = {
   // ── Requirements library ───────────────────────────────────────────────────
   VIEW_REQUIREMENTS_DOCS: "101401",  // browse and download the MRD / module FRDs
   REINSTATE_SCHOOL:     "101510",  // return a suspended school to onboarding
+  VIEW_GO_LIVE:         "101601",  // read the go-live queue
+  APPROVE_GO_LIVE:      "101605",  // approve a request and take the school live
+  REJECT_GO_LIVE:       "101652",  // decline a request, with a reason
 
   // ── Notifications administration ──────────────────────────────────────────
   CONFIGURE_NOTIFICATION_TEMPLATES: "400108",

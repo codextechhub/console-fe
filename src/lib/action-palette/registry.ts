@@ -30,6 +30,7 @@ export const ACTIONS: ActionDef[] = [
   // ── Main · School Management ─────────────────────────────────────────────
   { id: "view-schools", label: "View schools", aliases: ["schools", "school list"], console: "Main", group: "School Management", kind: "view", gate: { perm: P.BROWSE_SCHOOLS }, run: { to: R.SCHOOL_MGT.INDEX } },
   { id: "create-school", label: "Create school", aliases: ["onboard school", "register school"], console: "Main", group: "School Management", kind: "do", gate: { perm: P.ONBOARD_SCHOOL }, run: { to: R.SCHOOL_MGT.CREATE } },
+  { id: "view-go-live-requests", label: "View go-live requests", aliases: ["go live", "golive", "activation queue", "take school live"], console: "Main", group: "School Management", kind: "view", gate: { perm: P.VIEW_GO_LIVE }, run: { to: R.SCHOOL_MGT.GO_LIVE } },
 
   // ── Main · Users ─────────────────────────────────────────────────────────
   { id: "view-cx-users", label: "View CX users", aliases: ["cx users", "team", "staff list"], console: "Main", group: "Users", kind: "view", gate: { perm: P.ACCESS_TEAM_PANEL }, run: { to: R.TEAM_MGT.CX } },

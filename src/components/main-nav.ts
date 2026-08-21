@@ -107,6 +107,10 @@ export const MAIN_NAV: MainNavEntry[] = [
     icon: SchoolIcon,
     match: (l) => l.startsWith(R.SCHOOL_MGT.INDEX),
     permission: P.BROWSE_SCHOOLS,
+    items: [
+      { title: "School Onboarding", url: R.SCHOOL_MGT.INDEX },
+      { title: "Go-Live Requests", url: R.SCHOOL_MGT.GO_LIVE, permission: P.VIEW_GO_LIVE },
+    ],
   },
   {
     title: "Users",

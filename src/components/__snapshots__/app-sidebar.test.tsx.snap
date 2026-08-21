@@ -148,7 +148,9 @@ exports[`Main sidebar visibility > shows documents only with the requirements ke
 exports[`Main sidebar visibility > shows everything to a super admin 1`] = `
 [
   "Home [leaf]",
-  "School Management [leaf]",
+  "School Management [group]",
+  "School Management > School Onboarding",
+  "School Management > Go-Live Requests",
   "Users [group]",
   "Users > CX Users",
   "Users > School Users",
@@ -490,7 +492,8 @@ exports[`Main sidebar visibility > shows the procurement console for any procure
 exports[`Main sidebar visibility > shows the school-and-users profile 1`] = `
 [
   "Home [leaf]",
-  "School Management [leaf]",
+  "School Management [group]",
+  "School Management > School Onboarding",
   "Users [group]",
   "Users > CX Users",
   "Users > School Users",

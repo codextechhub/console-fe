@@ -465,6 +465,7 @@ export const baseApi = createApi({
   refetchOnReconnect: true,
   tagTypes: [
     "Users",
+    "GoLiveRequests",
     "Role",
     "Schools",
     "Branches",

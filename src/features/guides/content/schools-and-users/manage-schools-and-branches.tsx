@@ -38,6 +38,17 @@ export default function ManageSchoolsAndBranchesArticle() {
         <GuideCallout title="A school&apos;s name is not editable here">The spreadsheet importer matches a school by name when a row carries no address, so a rename would make the school&apos;s own import file create a second school.</GuideCallout>
       </GuideSection>
 
+      <GuideSection id="decide-go-live" title="Decide a go-live request">
+        <p>A school that has finished onboarding asks to be taken live, and the request waits for CodeX to answer. <strong>School Management &gt; Go-Live Requests</strong> is where those requests are.</p>
+        <GuideSteps>
+          <GuideStep title="Open the queue">The list opens on <strong>Pending</strong>, which is every school waiting on an answer. Change <strong>Status</strong> to see requests already decided, including what was said when one was declined before.</GuideStep>
+          <GuideStep title="Read what the school said">Open the row action and choose a decision. Whatever the school wrote with its request is shown in the confirmation, so you are deciding on their words rather than on the date alone.</GuideStep>
+          <GuideStep title="Approve, and the school is live">Select <strong>Approve and take live</strong>. Approval and activation are the same step: its administrators can sign in immediately and every module its package allows becomes available. There is no separate activation to remember.</GuideStep>
+          <GuideStep title="Or decline, with a reason">Select <strong>Decline with a reason</strong> and say what has to change. The reason is required and is sent to the school. The school keeps everything it has done and can correct that one thing and ask again.</GuideStep>
+        </GuideSteps>
+        <GuideCallout tone="warning" title="A decision can only be made once">Approve and Decline appear only on a request that is still pending. Once answered, the request is history and the school must submit a new one.</GuideCallout>
+      </GuideSection>
+
       <GuideSection id="manage-branches" title="Manage branches">
         <GuideSteps>
           <GuideStep title="Open Branches">Select the <strong>Branches</strong> tab. Search and sort within the current school&apos;s locations.</GuideStep>
