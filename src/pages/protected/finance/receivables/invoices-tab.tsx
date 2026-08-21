@@ -185,11 +185,13 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
         </div>
       </div>
 
-      <DataTable columns={columns} rows={rows} rowKey={(r) => r.id}
-        loading={isLoading || isFetching} error={isError} onRetry={refetch}
-        onRowClick={setSelected}
-        emptyTitle="No invoices" emptyMessage="No invoices match these filters."
-        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+      <div data-guide="finance-invoices.list">
+        <DataTable columns={columns} rows={rows} rowKey={(r) => r.id}
+          loading={isLoading || isFetching} error={isError} onRetry={refetch}
+          onRowClick={setSelected}
+          emptyTitle="No invoices" emptyMessage="No invoices match these filters."
+          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} />
+      </div>
 
       {summary && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-white px-4 py-2.5 font-mont text-xs text-gray-05">

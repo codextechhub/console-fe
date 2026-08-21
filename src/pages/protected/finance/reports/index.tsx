@@ -48,7 +48,7 @@ export default function ReportsPage({ section = DEFAULT_REPORTS_SECTION }: {
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01" data-guide={`finance-reports.${section}.workspace`}>
         <div>
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Reports & Month-End"}</h1>

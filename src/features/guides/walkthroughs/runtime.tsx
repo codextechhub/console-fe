@@ -171,7 +171,7 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
     return () => window.clearTimeout(timeout);
   }, [location.pathname, move, step, walkthrough]);
 
-  const runtime = useMemo(() => ({ start: activate }), [activate]);
+  const runtime = useMemo(() => ({ start: activate, active: walkthrough != null }), [activate, walkthrough]);
 
   return (
     <WalkthroughRuntimeContext value={runtime}>

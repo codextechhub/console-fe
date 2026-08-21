@@ -27,10 +27,10 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Finance and payments | Configure finance foundations | `finance.configure-foundations` | High | Published | Published | Console product team | 2026-08-21 | Walkthrough explains entity, chart, reference-data, and mapping order, and never creates or saves configuration |
 | Finance and payments | Create and post a journal | `finance.create-and-post-journal` | High | Published | Published | Console product team | 2026-08-21 | Direct entry opens read-only during the walkthrough; it never reads fields, changes lines, posts, submits, reverses, or voids |
 | Finance and payments | Close, lock, or reopen a fiscal period | `finance.close-lock-or-reopen-period` | High | Published | Published | Console product team | 2026-08-21 | Walkthrough may open the period checklist but never creates a year or confirms close, reopen, year-end, or permanent lock actions |
-| Finance and payments | Invoice a customer and allocate a receipt | Planned in C6b | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
-| Finance and payments | Email a customer their invoice, receipt or statement | Planned in C6b | High | Planned | Planned | Console product team | 2026-08-16 | Workflow shipped 2026-08-16 (send with recipient preview, delivery history, retry; dunning notice send wired). Article deferred to C6b with the rest of the receivables chapter rather than writing one finance guide in isolation - the screens have no published finance articles to sit beside yet. Risk is High because the action reaches a paying customer and cannot be recalled; the in-product confirmation names the recipient, the CC and the subject before sending, which is what a first-time user most needs. A walkthrough must never press Send |
-| Finance and payments | Reconcile a bank statement | Planned in C6b | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
-| Finance and payments | Run financial reports | Planned in C6b | Medium | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
+| Finance and payments | Invoice a customer and allocate a receipt | `finance.invoice-and-allocate-receipt` | High | Published | Published | Console product team | 2026-08-21 | Covers customers, fee structures, invoices, receipts, allocation, notes, concessions, plans, dunning, refunds, write-offs, and source-to-GL checks. Walkthrough may inspect an existing receipt but never records, allocates, refunds, writes off, or voids |
+| Finance and payments | Email a customer their invoice, receipt or statement | `finance.email-customer-documents` | High | Published | Published | Console product team | 2026-08-21 | Walkthrough may open a posted invoice and recipient preview, but never presses Send or Retry. The article covers recipient, BCC, subject, attachment, delivery history, blocked sends, and failed-delivery recovery |
+| Finance and payments | Reconcile a bank statement | `finance.reconcile-bank-statement` | High | Published | Published | Console product team | 2026-08-21 | Walkthrough explains account scope, totals, one-to-one, group and split matching, exceptions, ignored lines, adjustments, and completion, but never imports, selects, matches, ignores, adjusts, unmatches, or completes |
+| Finance and payments | Run financial reports | `finance.run-financial-reports` | Medium | Published | Not required | Console product team | 2026-08-21 | Article covers report choice, entity and period scope, comparisons, accounting equations, control-account reconciliation, filters, and exports. Reports are read-only views with simple filters and exports, so an interactive walkthrough adds no safety or workflow-order value |
 | Finance and payments | Run payroll | Planned in C6c | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
 | Finance and payments | Manage expenses, petty cash, budgets, assets, and tax | Planned in C6c | High | Planned | Planned | Console product team | 2026-08-13 | Split into task-sized articles during C6c |
 | Finance and payments | Operate collections, payouts, settlements, and failures | Planned in C6c | High | Planned | Planned | Console product team | 2026-08-13 | Split into task-sized articles during C6c |
@@ -266,6 +266,34 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
   fiscal year, or confirm close, reopen, year-end, or permanent-lock actions.
 - Workspace search now opens the direct-entry drawer with the permission enforced by
   that drawer. It no longer advertises immediate posting to a draft-submit-only user.
+
+## C6b completion record
+
+- Finance receivables, banking, and reports now publish four task guides: invoice a
+  customer and allocate a receipt, email customer finance documents, reconcile a
+  bank statement, and run and interpret financial reports.
+- Receivables guidance covers customer and fee preparation, invoice issue, receipt
+  evidence, oldest-first, largest-first and manual allocation, customer credit,
+  notes, concessions, plans, dunning, refunds, write-offs, and source-to-GL checks.
+- Customer-email guidance covers invoice, receipt and statement choice, recipient
+  and BCC preview, subject and attachment checks, delivery status, blocked sends,
+  failure reasons, and safe retry.
+- Reconciliation guidance covers account and statement preparation, imports,
+  automatic and manual matching, equal-total one-to-one, group and split matches,
+  timing differences, adjustments, ignored duplicates, unmatching, completion, and
+  independent evidence review.
+- Reporting guidance covers Trial Balance, Income Statement, Balance Sheet, Cash
+  Flow, Changes in Equity, cost and dimension analysis, period comparison,
+  accounting equations, control-account reconciliation, and controlled exports.
+- Three high-risk walkthroughs explain receipt allocation, customer delivery and
+  bank reconciliation. They never post, send, retry, import, match, ignore, adjust,
+  unmatch, refund, write off, void, or complete a consequential action.
+- Shared drawers and dialogs become non-modal only while a walkthrough is active,
+  so Radix does not hide or trap the coach behind a newly opened record or preview.
+  Ordinary drawer and dialog behavior remains modal outside walkthroughs.
+- Financial reports do not need a walkthrough because they are read-only views with
+  simple filters and exports. The article records the judgment and interpretation
+  checks that matter more than control-by-control coaching.
 
 ## Quick export from a list screen (2026-08-15)
 

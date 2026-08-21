@@ -59,8 +59,8 @@ export default function BankReconciliationPage() {
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01" data-guide="finance-bank-reconciliation.workspace">
+        <div className="flex flex-wrap items-end justify-between gap-3" data-guide="finance-bank-reconciliation.scope">
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Bank Reconciliation</h1>
@@ -184,7 +184,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-guide="finance-bank-reconciliation.workbench">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-mont text-xs text-gray-05">{account.bank_name || "-"} · {account.gl_account}{detail?.statements?.[0]?.period_label ? ` · ${detail.statements[0].period_label}` : ""}</p>
         <div className="flex flex-wrap gap-2">
@@ -195,7 +195,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="finance-bank-reconciliation.balances">
         <Kpi label="Statement balance" value={formatMoney(statement, currency)} />
         <Kpi label="Book balance" value={formatMoney(book, currency)} />
         <Kpi label="Difference" value={formatMoney(difference, currency)} danger={difference !== 0} />
@@ -213,7 +213,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
         </div>
       ) : null}
 
-      <div className="grid items-start gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-2" data-guide="finance-bank-reconciliation.matching">
         {/* Bank statement unmatched */}
         <Column title="Bank statement (unmatched)" count={`${unmatched.length} of ${totalLines}`}>
           {unmatched.length === 0 ? <ColEmpty msg="Every statement line is matched." /> : unmatched.map((l) => {
@@ -243,7 +243,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
       </div>
 
       <Can permission={P.FIN_RECONCILE_BANK}>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2" data-guide="finance-bank-reconciliation.exceptions">
           <Button onClick={doMatch} disabled={!canMatch || matchBusy} className="gap-1.5"><Link2 className="size-4" />{matchBusy ? "Matching…" : selBanks.length >= 2 && selBooks.length === 1 ? `Split match (${selBanks.length})` : selBanks.length === 1 && selBooks.length >= 2 ? `Match group (${selBooks.length})` : "Match selected"}</Button>
           <Button variant="outline" onClick={() => setAdjusting(true)} disabled={soleBank == null} className="gap-1.5"><FilePlus2 className="size-4" /> Add adjusting entry</Button>
           <Button variant="outline" onClick={() => soleBank && doIgnore(soleBank.id, true)} disabled={soleBank == null || ignoringBusy} className="gap-1.5"><EyeOff className="size-4" /> Ignore line</Button>

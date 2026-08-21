@@ -5,11 +5,13 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { preventWalkthroughDismiss } from "@/components/ui/walkthrough-interaction"
+import { modalDuringWalkthrough, useWalkthrough } from "@/features/guides/walkthroughs/context"
 
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />
+  const walkthrough = useWalkthrough()
+  return <DialogPrimitive.Root data-slot="dialog" modal={props.modal ?? modalDuringWalkthrough(walkthrough.active)} {...props} />
 }
 
 function DialogTrigger({

@@ -132,7 +132,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
     >
       {isLoading ? <LoadingState rows={6} /> : isError || !d || !p ? <ErrorState onRetry={refetch} /> : (
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5" data-guide="finance-receipts.allocation">
             <StatusPill status={p.status} />
             <span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", STATUS_PILL[p.allocation_status])}>{STATUS_LABEL[p.allocation_status]}</span>
           </div>

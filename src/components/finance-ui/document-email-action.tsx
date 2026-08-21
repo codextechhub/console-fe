@@ -108,7 +108,7 @@ export function DocumentEmailAction({
   return (
     <>
       <Can permission={permission}>
-        <Button variant={buttonVariant} onClick={() => setOpen(true)} className={cn("gap-1.5", className)}>
+        <Button variant={buttonVariant} onClick={() => setOpen(true)} className={cn("gap-1.5", className)} data-guide="finance-email.action">
           <Mail className="size-4" /> {label}
         </Button>
       </Can>
@@ -124,7 +124,7 @@ export function DocumentEmailAction({
         confirmDisabled={isFetching || isError || blocked}
       >
         <div className="space-y-3">
-          <div className="rounded-md border border-gray-03 bg-gray-50 p-3 font-mont text-xs">
+          <div className="rounded-md border border-gray-03 bg-gray-50 p-3 font-mont text-xs" data-guide="finance-email.preview">
             {isFetching ? (
               <p className="text-gray-05">Loading recipients…</p>
             ) : isError || !preview ? (

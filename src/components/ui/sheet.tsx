@@ -5,12 +5,15 @@ import { Dialog as SheetPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 import { onDrawerError } from "@/utils/drawer-errors"
 import { preventWalkthroughDismiss } from "@/components/ui/walkthrough-interaction"
+import { modalDuringWalkthrough, useWalkthrough } from "@/features/guides/walkthroughs/context"
 
 function Sheet({
   open,
   onOpenChange,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Root>) {
+  const walkthrough = useWalkthrough()
+
   React.useEffect(() => {
     if (!open) return
     return onDrawerError(() => onOpenChange?.(false))
@@ -21,6 +24,7 @@ function Sheet({
       data-slot="sheet"
       open={open}
       onOpenChange={onOpenChange}
+      modal={props.modal ?? modalDuringWalkthrough(walkthrough.active)}
       {...props}
     />
   )

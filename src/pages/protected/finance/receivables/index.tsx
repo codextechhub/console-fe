@@ -41,7 +41,7 @@ export default function ReceivablesPage({ section = DEFAULT_RECEIVABLES_SECTION 
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01" data-guide={`finance-receivables.${section}.workspace`}>
         {(section !== "invoices" || !entity) && (
           <div>
             <div className="flex items-center gap-1.5">

@@ -106,4 +106,24 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts the three high-risk C6b finance walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "customer-receipt", route: "/finance/receivables/receipts", actionId: "record-receipt", risk: "high" },
+      { id: "customer-email", route: "/finance/receivables/invoices", actionId: "view-ar-invoices", risk: "high" },
+      { id: "bank-reconciliation", route: "/finance/bank-reconciliation", actionId: "view-bank-reconciliation", risk: "high" },
+      {
+        id: "financial-reports",
+        route: "/finance/reports/trial-balance",
+        actionId: "view-trial-balance",
+        risk: "medium",
+        walkthroughException: "Reports are read-only views with simple filters and exports.",
+      },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

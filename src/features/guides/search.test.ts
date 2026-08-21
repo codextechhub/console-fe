@@ -105,6 +105,21 @@ describe("guide search", () => {
     );
   });
 
+  it("finds C6b finance workflows using customer, banking, and report language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "unallocated receipt")[0]?.guide.id).toBe(
+      "finance.invoice-and-allocate-receipt",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "customer did not receive invoice")[0]?.guide.id).toBe(
+      "finance.email-customer-documents",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "unreconciled difference")[0]?.guide.id).toBe(
+      "finance.reconcile-bank-statement",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "statement of financial position")[0]?.guide.id).toBe(
+      "finance.run-financial-reports",
+    );
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

@@ -120,8 +120,8 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-4" data-guide="finance-receipts.workspace">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="finance-receipts.summary">
         <Kpi label="Received today" value={formatMoney(sum?.today.kobo ?? 0, currency)} />
         <Kpi label="This week" value={formatMoney(sum?.week.kobo ?? 0, currency)} hint="Last 7 days" />
         <Kpi
@@ -164,16 +164,18 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
             defaultName="Customer receipts"
           />
           <Can permission={P.FIN_RECORD_PAYMENT}>
-            <Button onClick={() => setNewOpen(true)} className="gap-1.5"><Plus className="size-4" /> Record receipt</Button>
+            <Button onClick={() => setNewOpen(true)} className="gap-1.5" data-guide="finance-receipts.record"><Plus className="size-4" /> Record receipt</Button>
           </Can>
         </div>
       </div>
 
-      <DataTable columns={columns} rows={rows} rowKey={(p) => p.id}
-        loading={isLoading || isFetching} error={isError} onRetry={refetch}
-        onRowClick={(p) => setSelected(p.id)}
-        page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
-        emptyTitle="No receipts" emptyMessage="Recorded receipts will appear here." />
+      <div data-guide="finance-receipts.list">
+        <DataTable columns={columns} rows={rows} rowKey={(p) => p.id}
+          loading={isLoading || isFetching} error={isError} onRetry={refetch}
+          onRowClick={(p) => setSelected(p.id)}
+          page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage}
+          emptyTitle="No receipts" emptyMessage="Recorded receipts will appear here." />
+      </div>
 
       <RecordReceiptDrawer open={newOpen} onOpenChange={setNewOpen} entity={entity} currency={currency}
         onCreated={(id) => setSelected(id)} />

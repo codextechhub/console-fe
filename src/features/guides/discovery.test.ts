@@ -69,6 +69,26 @@ describe("guide discovery", () => {
     );
   });
 
+  it("publishes C6b guides only inside the caller's finance permissions", () => {
+    const invoiceReader = [resolvePermissionKey(P.FIN_VIEW_INVOICES)];
+    const emailSender = [resolvePermissionKey(P.FIN_EMAIL_INVOICE)];
+    const bankReader = [resolvePermissionKey(P.FIN_VIEW_BANK_ACCOUNTS)];
+    const reportReader = [resolvePermissionKey(P.FIN_VIEW_REPORTS)];
+
+    expect(visibleGuides(GUIDE_REGISTRY, invoiceReader).map((guide) => guide.id)).toContain(
+      "finance.invoice-and-allocate-receipt",
+    );
+    expect(visibleGuides(GUIDE_REGISTRY, emailSender).map((guide) => guide.id)).toContain(
+      "finance.email-customer-documents",
+    );
+    expect(visibleGuides(GUIDE_REGISTRY, bankReader).map((guide) => guide.id)).toContain(
+      "finance.reconcile-bank-statement",
+    );
+    expect(visibleGuides(GUIDE_REGISTRY, reportReader).map((guide) => guide.id)).toContain(
+      "finance.run-financial-reports",
+    );
+  });
+
   it("chooses one focused landing layout for each filter state", () => {
     expect(guideLandingView({ category: null, audience: null, query: "" })).toBe("browse");
     expect(guideLandingView({ category: null, audience: "approver", query: "" })).toBe("audience-results");
