@@ -262,11 +262,15 @@ export const opsApi = baseApi.injectEndpoints({
       query: (p) => ({ url: `/finance/payroll-runs/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePayroll"],
     }),
-    getPayrollSummary: b.query<ApiEnvelope<{ runs: number; employees: number; net: number; to_pay: number }>, { entity: string }>({
+    // `payroll_scope` rides on the summary because the screen has to know
+    // whether to ask which branch a run is for, and reading the setting through
+    // the config API needs `config.value.view` - a settings key no payroll
+    // officer holds.
+    getPayrollSummary: b.query<ApiEnvelope<{ payroll_scope: "CENTRAL" | "PER_BRANCH"; runs: number; employees: number; net: number; to_pay: number }>, { entity: string }>({
       query: (p) => ({ url: `/finance/payroll-runs/summary/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePayroll"],
     }),
-    createPayrollRun: b.mutation<ApiEnvelope<PayrollRun>, { entity: string; pay_date: string; period_label?: string; narration?: string; lines: { employee_name: string; gross_amount: number; paye_amount: number; pension_amount: number }[] }>({
+    createPayrollRun: b.mutation<ApiEnvelope<PayrollRun>, { entity: string; pay_date: string; period_label?: string; narration?: string; branch?: number; lines: { employee_name: string; gross_amount: number; paye_amount: number; pension_amount: number }[] }>({
       query: ({ entity, ...body }) => ({ url: `/finance/payroll-runs/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePayroll"],
     }),
@@ -288,7 +292,10 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ id, entity, ...body }) => ({ url: `/finance/payroll-runs/${id}/pay/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePayroll", "FinanceJournals", "FinanceReports"],
     }),
-    generatePayrollRun: b.mutation<ApiEnvelope<PayrollRun>, { entity: string; pay_date: string; period_label?: string; narration?: string }>({
+    // `branch` is omitted for a whole-school run, and omitted entirely for a
+    // caller pinned to one site - the backend stamps hers, and naming a
+    // different one is refused rather than silently retargeted.
+    generatePayrollRun: b.mutation<ApiEnvelope<PayrollRun>, { entity: string; pay_date: string; period_label?: string; narration?: string; branch?: number }>({
       query: ({ entity, ...body }) => ({ url: `/finance/payroll-runs/generate/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePayroll"],
     }),

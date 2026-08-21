@@ -200,7 +200,8 @@ function RunsTab({ entity, currency }: { entity: string; currency?: string | nul
         emptyTitle="No payroll runs" emptyMessage="Generate a run from the employee roster with New payroll run." />
 
       <RunDrawer runId={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
-      <NewRunDrawer open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
+      <NewRunDrawer open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency}
+        perBranch={s?.payroll_scope === "PER_BRANCH"} />
     </div>
   );
 }
@@ -327,28 +328,46 @@ function PayDrawer({ run, entity, currency, onClose }: { run: PayrollRun; entity
 type EmpRow = { employee_name: string; gross: number; paye: number; pension: number };
 const emptyEmp = (): EmpRow => ({ employee_name: "", gross: 0, paye: 0, pension: 0 });
 
-function NewRunDrawer({ open, onClose, entity, currency }: { open: boolean; onClose: () => void; entity: string; currency?: string | null }) {
+/** Sentinel for "this run covers the whole school", kept apart from "" so an
+ *  unanswered picker and a deliberate whole-school run are different states. */
+const WHOLE_SCHOOL = "all";
+
+function NewRunDrawer({ open, onClose, entity, currency, perBranch }: { open: boolean; onClose: () => void; entity: string; currency?: string | null; perBranch: boolean }) {
   const [mode, setMode] = useState("roster");
   const [payDate, setPayDate] = useState("");
   const [periodLabel, setPeriodLabel] = useState("");
+  const [scopeChoice, setScopeChoice] = useState("");
   const [lines, setLines] = useState<EmpRow[]>([emptyEmp()]);
   const { data: rosterData } = useGetEmployeeSalariesQuery({ entity, is_active: "true" }, { skip: !open });
   const roster = useMemo(() => toArray(rosterData?.data), [rosterData]);
+  const { data: branchData } = useGetBranchOptionsQuery(undefined, { skip: !open || !perBranch });
+  const branches = useMemo(() => toArray(branchData?.data), [branchData]);
+
+  // Only where there is a choice to make. A caller pinned to one site has
+  // already answered by being pinned - the backend stamps her branch and
+  // refuses any other - so asking her would be a question with one answer. A
+  // central school is never asked at all: its runs cover everybody by design.
+  const asksForScope = perBranch && branches.length > 1;
   const [generate, { isLoading: generating }] = useGeneratePayrollRunMutation();
   const [create, { isLoading: creating }] = useCreatePayrollRunMutation();
   const isLoading = generating || creating;
 
   const setRow = (i: number, patch: Partial<EmpRow>) => setLines((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   const validLines = lines.filter((l) => l.employee_name.trim() && l.gross > 0);
-  const close = () => { setMode("roster"); setPayDate(""); setPeriodLabel(""); setLines([emptyEmp()]); onClose(); };
+  const close = () => { setMode("roster"); setPayDate(""); setPeriodLabel(""); setScopeChoice(""); setLines([emptyEmp()]); onClose(); };
+
+  // Left out for a whole-school run and for a caller who was not asked, so the
+  // backend applies its own rule rather than being told an answer we guessed.
+  const branchArg = asksForScope && scopeChoice && scopeChoice !== WHOLE_SCHOOL
+    ? { branch: Number(scopeChoice) } : {};
 
   const submit = async () => {
     try {
       if (mode === "roster") {
-        const res = await generate({ entity, pay_date: payDate, period_label: periodLabel.trim() || undefined }).unwrap();
+        const res = await generate({ entity, pay_date: payDate, period_label: periodLabel.trim() || undefined, ...branchArg }).unwrap();
         toast.success(res.message || "Run generated.");
       } else {
-        const res = await create({ entity, pay_date: payDate, period_label: periodLabel.trim() || undefined,
+        const res = await create({ entity, pay_date: payDate, period_label: periodLabel.trim() || undefined, ...branchArg,
           lines: validLines.map((l) => ({ employee_name: l.employee_name.trim(), gross_amount: l.gross, paye_amount: l.paye, pension_amount: l.pension })) }).unwrap();
         toast.success(res.message || "Run created.");
       }
@@ -356,7 +375,22 @@ function NewRunDrawer({ open, onClose, entity, currency }: { open: boolean; onCl
     } catch { /* central */ }
   };
 
-  const canSubmit = !!payDate && (mode === "roster" ? roster.length > 0 : validLines.length > 0);
+  // The people this run would pay, as chosen. Shown before she commits, because
+  // "the whole school" and "Lekki" are the same two clicks apart and only one
+  // of them is usually meant.
+  const covered = useMemo(() => {
+    if (!asksForScope || !scopeChoice || scopeChoice === WHOLE_SCHOOL) return roster;
+    return roster.filter((e) => String(e.branch_id) === scopeChoice);
+  }, [roster, asksForScope, scopeChoice]);
+  const coverageLabel = scopeChoice === WHOLE_SCHOOL
+    ? "every site"
+    : branches.find((b) => String(b.id) === scopeChoice)?.name ?? "";
+
+  // No default when she is asked. A whole-school run under per-branch payroll is
+  // a legitimate thing to raise - head office does it - but it should be picked,
+  // not fallen into by leaving a field alone.
+  const canSubmit = !!payDate && (!asksForScope || !!scopeChoice)
+    && (mode === "roster" ? covered.length > 0 : validLines.length > 0);
 
   return (
     <DetailDrawer open={open} onOpenChange={(o) => (o ? undefined : close())}
@@ -376,11 +410,28 @@ function NewRunDrawer({ open, onClose, entity, currency }: { open: boolean; onCl
           <PostingDateField label="Payment date" entity={entity} value={payDate} onChange={setPayDate} />
         </div>
 
+        {asksForScope ? (
+          <div>
+            <FormField label="This run covers" required>
+              <Select value={scopeChoice} onChange={setScopeChoice}>
+                <option value="">Choose…</option>
+                <option value={WHOLE_SCHOOL}>The whole school</option>
+                {branches.map((b) => <option key={b.id} value={String(b.id)}>{b.name} only</option>)}
+              </Select>
+            </FormField>
+            <p className="mt-1 font-mont text-[11px] text-gray-05">
+              This school runs payroll per branch. A whole-school run pays every site at once, and no branch run can be raised for the same period afterwards.
+            </p>
+          </div>
+        ) : null}
+
         {mode === "roster" ? (
           <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-3 font-mont text-[11px] text-gray-05">
-            {roster.length > 0
-              ? <>This will raise a draft run for the <span className="font-medium text-gray-01">{roster.length}</span> active employee(s) on the roster, copying each one's standard gross, PAYE and pension. Review, then post.</>
-              : <>No active employees on the roster yet. Add them under <span className="font-medium text-gray-01">Employee salaries</span>, or switch to Manual.</>}
+            {asksForScope && !scopeChoice
+              ? <>Choose what this run covers to see who it would pay.</>
+              : covered.length > 0
+              ? <>This will raise a draft run for the <span className="font-medium text-gray-01">{covered.length}</span> active employee(s){coverageLabel ? <> at <span className="font-medium text-gray-01">{coverageLabel}</span></> : null}, copying each one's standard gross, PAYE and pension. Review, then post.</>
+              : <>No active employees{coverageLabel ? <> at <span className="font-medium text-gray-01">{coverageLabel}</span></> : <> on the roster yet</>}. Add them under <span className="font-medium text-gray-01">Employee salaries</span>, or switch to Manual.</>}
           </p>
         ) : (
           <div>
