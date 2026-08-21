@@ -8,16 +8,6 @@ It is one cheap call and it is honest, but it exists only because the figure is
 missing upstream. Adding `suspended=Count(...)` to that aggregate lets the
 frontend drop the extra query.
 
-# There is no way to take an ACTIVE school out of service (found 2026-08-20).
-Nothing in `vs_schools`, `vs_onboarding` or `vs_tenants` moves a live school to
-INACTIVE or SUSPENDED on demand. What exists is go-live (PENDING -> ACTIVE),
-reinstate (SUSPENDED -> PENDING, and that one works for platform staff), and the
-automatic 90-day onboarding expiry sweep.
-This is why `LastBranchCannotLeaveService` gives advice nobody can follow: it
-tells the operator to "Deactivate the school itself instead", and the console has
-no way to do that. The branch screen therefore states the rule without repeating
-the instruction.
-
 ## Done
 
 # 47. **An export run whose worker never came back is now reconciled (2026-08-16).**
