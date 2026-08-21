@@ -120,6 +120,28 @@ describe("walkthrough engine", () => {
     );
   });
 
+  it("maps the procure-to-pay walkthrough across its five source lists", () => {
+    const p2p = WALKTHROUGH_REGISTRY.find(
+      (item) => item.id === "walkthrough.procurement.complete-procure-to-pay",
+    );
+
+    expect(walkthroughStepRoute(p2p!, "requisition-list")).toBe("/procurement/requisitions");
+    expect(walkthroughStepRoute(p2p!, "po-scope")).toBe("/procurement/purchase-orders");
+    expect(walkthroughStepRoute(p2p!, "receipt-scope")).toBe("/procurement/goods-receipts");
+    expect(walkthroughStepRoute(p2p!, "invoice-summary")).toBe("/procurement/vendor-invoices");
+    expect(walkthroughStepRoute(p2p!, "payment-scope")).toBe("/procurement/vendor-payments");
+  });
+
+  it("maps the procurement settings walkthrough without opening save actions", () => {
+    const settings = WALKTHROUGH_REGISTRY.find(
+      (item) => item.id === "walkthrough.procurement.configure-settings",
+    );
+
+    expect(walkthroughStepRoute(settings!, "purchasing")).toBe("/procurement/settings/purchasing");
+    expect(walkthroughStepRoute(settings!, "matching")).toBe("/procurement/settings/matching");
+    expect(walkthroughStepRoute(settings!, "approvals")).toBe("/procurement/settings/approvals");
+  });
+
   it("maps every school wizard explanation to its matching view and target", () => {
     const schoolWalkthrough = WALKTHROUGH_REGISTRY.find(
       (item) => item.id === "walkthrough.schools.create-and-configure",

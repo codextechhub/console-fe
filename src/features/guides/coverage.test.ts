@@ -164,4 +164,24 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts the C7b procurement and inventory coverage", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "procure-to-pay", route: "/procurement/requisitions", actionId: "create-requisition", risk: "high" },
+      { id: "stock-movement", route: "/procurement/inventory/items", actionId: "create-stock-item", risk: "high" },
+      {
+        id: "procurement-analytics",
+        route: "/procurement/analytics/ap-aging",
+        actionId: "view-ap-aging",
+        risk: "medium",
+        walkthroughException: "The report views are read-only; the article records the separate assessment boundary.",
+      },
+      { id: "procurement-settings", route: "/procurement/settings", actionId: "view-procurement-settings", risk: "high" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

@@ -99,7 +99,6 @@ function SpendBody({ d, currency, entity, start, end }: {
         ) : (
           <TrendArea
             height={200}
-            minWidth={0}
             labels={byPeriod.map((p) => p.label)}
             series={[{ name: "Spend", data: byPeriod.map((p) => kobo(p.gross)), color: "var(--color-primary, #2563eb)" }]}
             format={(v) => formatMoney(v, currency)}
@@ -207,7 +206,6 @@ function SpendCategoryBody({ d, currency }: { d: SpendAnalysis; currency?: strin
         ) : (
           <TrendArea
             height={180}
-            minWidth={0}
             labels={byPeriod.map((p) => p.label)}
             series={[{ name: "Spend", data: byPeriod.map((p) => kobo(p.gross)), color: "var(--color-primary, #2563eb)" }]}
             format={(v) => formatMoney(v, currency)}

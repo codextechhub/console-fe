@@ -246,14 +246,12 @@ export function TrendArea({
   labels,
   series,
   height = 220,
-  minWidth = 520,
   format = (v: number) => String(v),
   showLegend = true,
 }: {
   labels: string[];
   series: { name: string; data: number[]; color: string }[];
   height?: number;
-  minWidth?: number;
   format?: (v: number) => string;
   showLegend?: boolean;
 }) {
@@ -272,7 +270,7 @@ export function TrendArea({
     : activeIndex === n - 1 ? "translateX(-100%)" : "translateX(-50%)";
   return (
     <div className="overflow-x-auto">
-      <div style={{ minWidth }} onMouseLeave={() => setActiveIndex(null)}>
+      <div style={{ minWidth: 520 }} onMouseLeave={() => setActiveIndex(null)}>
         <div className="relative" style={{ height: H }}>
           <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
           {Array.from({ length: ticks + 1 }).map((_, i) => {

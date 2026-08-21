@@ -104,7 +104,7 @@ export function LocationsSection({ entity, currency }: { entity: string; currenc
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <header className="flex flex-wrap items-start justify-between gap-3">
+        <header data-guide="procurement-stock-locations.heading" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="font-mont text-lg font-semibold text-gray-01">Stock Locations</h1>
             <p className="mt-0.5 font-mont text-xs text-gray-05">The stores stock is held in. Each holds its own quantity, value and average cost.</p>
@@ -121,7 +121,7 @@ export function LocationsSection({ entity, currency }: { entity: string; currenc
           </section>
         )}
 
-        <section className="min-w-0 rounded-md bg-white">
+        <section data-guide="procurement-stock-locations.list" className="min-w-0 rounded-md bg-white">
           <DataTable
             columns={columns} rows={rows} rowKey={(l) => l.id}
             loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch}

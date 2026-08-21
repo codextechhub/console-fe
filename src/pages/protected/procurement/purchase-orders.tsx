@@ -129,7 +129,7 @@ export default function PurchaseOrdersPage() {
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <header className="flex flex-wrap items-start justify-between gap-3">
+        <header data-guide="procurement-purchase-orders.heading" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Purchase Orders</h1><InfoHint ariaLabel="About purchase orders">Approved orders issued to vendors. Receipt and invoice progress are calculated from the real linked documents.</InfoHint></div>
             <p className="mt-0.5 font-mont text-xs text-gray-05">Track supplier commitments, delivery progress, and approval status.</p>
@@ -146,7 +146,7 @@ export default function PurchaseOrdersPage() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div data-guide="procurement-purchase-orders.summary" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
             <StatCard label="Open POs" value={summary.open.count} sub={money(summary.open.amount)} icon={ShoppingCart} />
             <StatCard label="Partially Received" value={summary.partially_received.count} sub={summary.partially_received.count ? "Receipt work in progress" : "No partial receipts"} icon={PackageCheck} tone="amber" />
@@ -155,7 +155,7 @@ export default function PurchaseOrdersPage() {
           </>}
         </div>
 
-        <section className="min-w-0 rounded-md bg-white">
+        <section data-guide="procurement-purchase-orders.list" className="min-w-0 rounded-md bg-white">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
             <div className="max-w-full overflow-x-auto"><div className="flex min-w-max gap-5">
               {STATUS_TABS.map((tab) => <button key={tab.value || "all"} type="button" onClick={() => { setStatus(tab.value); setPage(1); }} className={cn("border-b-2 px-0.5 py-3 font-mont text-xs font-medium whitespace-nowrap", status === tab.value ? "border-primary text-primary" : "border-transparent text-gray-05 hover:text-black-01")}>{tab.label}</button>)}

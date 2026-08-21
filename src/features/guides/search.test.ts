@@ -138,6 +138,13 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "complete milestone")[0]?.guide.id).toBe("procurement.manage-contract-lifecycle");
   });
 
+  it("finds C7b workflows using purchasing, stock, reporting, and policy language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "invoice blocked by receipt")[0]?.guide.id).toBe("procurement.complete-procure-to-pay");
+    expect(searchGuides(GUIDE_REGISTRY, "issue stock")[0]?.guide.id).toBe("procurement.stock-locations");
+    expect(searchGuides(GUIDE_REGISTRY, "goods received not invoiced")[0]?.guide.id).toBe("procurement.review-analytics");
+    expect(searchGuides(GUIDE_REGISTRY, "change match tolerance")[0]?.guide.id).toBe("procurement.configure-settings");
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

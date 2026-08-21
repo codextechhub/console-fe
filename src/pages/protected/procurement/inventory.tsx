@@ -137,7 +137,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <header className="flex flex-wrap items-start justify-between gap-3">
+        <header data-guide="procurement-stock-items.heading" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="font-mont text-lg font-semibold text-gray-01">Stock Items</h1>
             <p className="mt-0.5 font-mont text-xs text-gray-05">
@@ -149,7 +149,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
           <Can permission={P.PROC_MANAGE_STOCK}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> New stock item</Button></Can>
         </header>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div data-guide="procurement-stock-items.summary" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
             <StatCard label="Items tracked" value={String(summary.tracked)} icon={Boxes} tone="gray" />
             <StatCard label="Low stock" value={String(summary.low_stock)} icon={AlertTriangle} tone="amber" />
@@ -158,7 +158,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
           </>}
         </div>
 
-        <section className="min-w-0 rounded-md bg-white">
+        <section data-guide="procurement-stock-items.list" className="min-w-0 rounded-md bg-white">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4 py-2">
             <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
               <label className="flex cursor-pointer items-center gap-2 font-mont text-xs font-medium text-gray-01">
@@ -609,11 +609,11 @@ function MovementsSection({ entity, currency }: { entity: string; currency?: str
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
+        <div data-guide="procurement-stock-movements.heading">
           <h1 className="font-mont text-lg font-semibold text-gray-01">Stock Movements</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Receipts, issues and adjustments.{multi ? " Balances shown are the running balance at each store." : ""}</p>
         </div>
-        <section className="min-w-0 rounded-md bg-white">
+        <section data-guide="procurement-stock-movements.list" className="min-w-0 rounded-md bg-white">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
             <div className="max-w-full overflow-x-auto">
               <div className="flex min-w-max gap-5">{MOVEMENT_TABS.map(([label, value]) => (

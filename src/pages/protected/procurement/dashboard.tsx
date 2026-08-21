@@ -207,7 +207,6 @@ export default function ProcurementDashboard() {
                 {!hasTrendData ? <EmptyBlock>No posted spend in the last eight months.</EmptyBlock> : (
                   <TrendArea
                     height={190}
-                    minWidth={0}
                     labels={d.monthly_spend_trend.labels}
                     series={[{ name: "Spend", data: d.monthly_spend_trend.values, color: CHART_COLORS.primary }]}
                     format={compactMoney}

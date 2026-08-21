@@ -152,7 +152,7 @@ export default function RequisitionsPage() {
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <header className="flex flex-wrap items-start justify-between gap-3">
+        <header data-guide="procurement-requisitions.heading" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Purchase Requisitions</h1>
@@ -174,7 +174,7 @@ export default function RequisitionsPage() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div data-guide="procurement-requisitions.summary" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
             <StatCard label="Pending Approval" value={summary.pending_approval.count} icon={Clock3} tone="amber" sub={money(summary.pending_approval.amount)} />
             <StatCard label="Approved (MTD)" value={summary.approved_mtd.count} icon={Check} tone="green" sub={countChange(summary.approved_mtd.change)} />
@@ -183,7 +183,7 @@ export default function RequisitionsPage() {
           </>}
         </div>
 
-        <section className="min-w-0 rounded-md bg-white">
+        <section data-guide="procurement-requisitions.list" className="min-w-0 rounded-md bg-white">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
             <div className="max-w-full overflow-x-auto">
               <div className="flex min-w-max gap-5">

@@ -50,6 +50,18 @@ describe("contextual guides", () => {
 
     const contracts = contextualGuideContext(GUIDE_REGISTRY, "/procurement/contracts", ["procurement.contract.view"]);
     expect(contracts.guides.map((guide) => guide.id)).toEqual(["procurement.manage-contract-lifecycle"]);
+
+    const requisitions = contextualGuideContext(GUIDE_REGISTRY, "/procurement/requisitions", ["procurement.requisition.view"]);
+    expect(requisitions.guides.map((guide) => guide.id)).toEqual(["procurement.complete-procure-to-pay"]);
+
+    const stock = contextualGuideContext(GUIDE_REGISTRY, "/procurement/inventory/items", ["procurement.stock.view"]);
+    expect(stock.guides.map((guide) => guide.id)).toEqual(["procurement.stock-locations"]);
+
+    const analytics = contextualGuideContext(GUIDE_REGISTRY, "/procurement/analytics/grir", ["procurement.report.view"]);
+    expect(analytics.guides.map((guide) => guide.id)).toEqual(["procurement.review-analytics"]);
+
+    const settings = contextualGuideContext(GUIDE_REGISTRY, "/procurement/settings/matching", ["procurement.settings.view"]);
+    expect(settings.guides.map((guide) => guide.id)).toEqual(["procurement.configure-settings"]);
   });
 
   it("resolves the current article by slug", () => {

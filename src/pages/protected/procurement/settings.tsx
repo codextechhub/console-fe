@@ -115,11 +115,11 @@ export default function ProcurementSettings({ section = DEFAULT_PROCUREMENT_SETT
 function Overview({ entity }: { entity: ReturnType<typeof useActiveEntity>["entity"] }) {
   return (
     <div className="space-y-5">
-      <SettingsSectionHeader title="Configuration overview" description="Review entity inheritance first, then the policies that control the procure-to-pay chain." />
+      <div data-guide="procurement-settings.overview"><SettingsSectionHeader title="Configuration overview" description="Review entity inheritance first, then the policies that control the procure-to-pay chain." /></div>
       <SettingsPanel title="Active entity" description="Procurement uses the same entity and fiscal posting window as Finance.">
         <SettingsRow icon={Building2} label={entity?.name ?? "No active entity selected"} description={entity ? `${entity.code} · reporting currency ${entity.base_currency}` : "Choose an entity from the header to inspect procurement settings."} badge={<PolicyBadge kind={entity ? "configured" : "default"}>{entity ? "Inherited" : "Needs entity"}</PolicyBadge>} />
       </SettingsPanel>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div data-guide="procurement-settings.sections" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <SettingsOverviewCard icon={Building2} title="General defaults" description="Review entity inheritance, currency, payment terms and delivery behavior." to={`${PR.SETTINGS}/general`} status="Inherited" />
         <SettingsOverviewCard icon={ShoppingCart} title="Purchasing policy" description="Set vendor eligibility, requisition timing and receipt evidence." to={`${PR.SETTINGS}/purchasing`} status="Configurable" tone="ready" />
         <SettingsOverviewCard icon={Clock3} title="Sourcing and lifecycle" description="Set RFQ response windows, closing alerts and contract renewal defaults." to={`${PR.SETTINGS}/sourcing-lifecycle`} status="Configurable" tone="ready" />
@@ -183,7 +183,7 @@ function PurchasingPolicy({ entityCode }: { entityCode: string | null }) {
   const payload = query.data?.data;
   return (
     <div className="space-y-5">
-      <SettingsSectionHeader title="Purchasing policy" description="Set entity-wide vendor, requisition and receipt defaults. The backend applies each saved rule to new purchasing activity." />
+      <div data-guide="procurement-settings.purchasing"><SettingsSectionHeader title="Purchasing policy" description="Set entity-wide vendor, requisition and receipt defaults. The backend applies each saved rule to new purchasing activity." /></div>
       {!canView ? <ProtectedSettings /> : query.isLoading || !payload ? <SettingsPanel><SettingsRow label="Loading purchasing policy" description="Reading the selected entity's procurement controls." /></SettingsPanel> : <PurchasingForm key={`${entityCode}-${payload.settings.updated_at}`} entityCode={entityCode!} values={payload.settings} history={payload.history} consumers={payload.consumers} canUpdate={canUpdate} />}
       <SettingsPanel title="Always-enforced controls">
         <SettingsRow icon={ClipboardCheck} label="Approved requisition required" description="A purchase order can only be created from an approved requisition in the same entity." badge={<PolicyBadge kind="enforced" />} />
@@ -303,7 +303,7 @@ function CompetitiveGovernance({ entityCode }: { entityCode: string | null }) {
   const payload = query.data?.data;
   return (
     <div className="space-y-5">
-      <SettingsSectionHeader title="Competitive bidding governance" description="Set the minimum market evidence required before an RFQ can be issued or a supplier can be selected." />
+      <div data-guide="procurement-settings.competition"><SettingsSectionHeader title="Competitive bidding governance" description="Set the minimum market evidence required before an RFQ can be issued or a supplier can be selected." /></div>
       {!canView ? <ProtectedSettings /> : query.isLoading || !payload ? <SettingsPanel><SettingsRow label="Loading competitive policy" description="Reading the selected entity's bidding controls." /></SettingsPanel> : <CompetitiveGovernanceForm key={`${entityCode}-${payload.settings.updated_at}`} entityCode={entityCode!} values={payload.settings} history={payload.history} consumers={payload.consumers} canUpdate={canUpdate} />}
       <SettingsPanel title="Exception controls">
         <SettingsRow icon={ShieldCheck} label="Separate override permission" description="Changing settings does not grant exception authority. A user also needs the critical competitive-policy override permission." badge={<PolicyBadge kind="enforced">Critical permission</PolicyBadge>} />
@@ -357,7 +357,7 @@ function MatchingPolicy({ entityCode }: { entityCode: string | null }) {
   const payload = query.data?.data;
   return (
     <div className="space-y-5">
-      <SettingsSectionHeader title="Invoice matching" description="Set the entity's allowed quantity and unit-price variance before an invoice is blocked for review." />
+      <div data-guide="procurement-settings.matching"><SettingsSectionHeader title="Invoice matching" description="Set the entity's allowed quantity and unit-price variance before an invoice is blocked for review." /></div>
       {!canView ? <ProtectedSettings /> : query.isLoading || !payload ? <SettingsPanel><SettingsRow label="Loading matching policy" description="Reading the selected entity's tolerances." /></SettingsPanel> : <MatchingForm key={`${entityCode}-${payload.settings.updated_at}`} entityCode={entityCode!} values={payload.settings} history={payload.history} consumers={payload.consumers} canUpdate={canUpdate} />}
     </div>
   );
@@ -399,7 +399,7 @@ function AccountingIntegration({ entityCode }: { entityCode: string | null }) {
   const byKey = new Map((query.data?.data.mappings ?? []).map((mapping) => [mapping.key, mapping]));
   return (
     <div className="space-y-5">
-      <SettingsSectionHeader title="Accounting integration" description="Procurement uses the Finance-owned account mappings, so there is one posting source of truth." action={canView ? <Button asChild variant="outline"><Link to={`${F.SETTINGS}/accounting`}>Edit in Finance</Link></Button> : undefined} />
+      <div data-guide="procurement-settings.accounting"><SettingsSectionHeader title="Accounting integration" description="Procurement uses the Finance-owned account mappings, so there is one posting source of truth." action={canView ? <Button asChild variant="outline"><Link to={`${F.SETTINGS}/accounting`}>Edit in Finance</Link></Button> : undefined} /></div>
       <SettingsPanel title="Required Finance accounts" description="Changes are made in Finance Settings and take effect in Procurement posting services immediately.">
         {!canView ? <SettingsRow icon={ShieldCheck} label="Finance mappings are protected" description="Finance settings view permission is required to resolve these account names." badge={<PolicyBadge kind="enforced">Permission required</PolicyBadge>} /> : PROCUREMENT_ACCOUNTS.map(([key, label, description]) => { const mapping = byKey.get(key); return <SettingsRow key={key} label={label} description={description} value={mapping?.account ? `${mapping.account.code} · ${mapping.account.name}` : mapping ? `${mapping.default_code} · Missing` : "Loading"} badge={<PolicyBadge kind={mapping?.is_valid ? "configured" : "default"}>{mapping?.source === "OVERRIDE" ? "Custom" : "Finance-owned"}</PolicyBadge>} />; })}
       </SettingsPanel>
@@ -416,7 +416,7 @@ function Approvals() {
   const canView = hasPermission(P.VIEW_WORKFLOW_TEMPLATES);
   return (
     <div className="space-y-5">
-      <SettingsSectionHeader title="Procurement approvals" description="Each document type can resolve its own branch, tenant or platform workflow template." action={canView ? <Button asChild><Link to={routesPath.PROTECTED.WORKFLOW.TEMPLATES}>Manage workflows</Link></Button> : undefined} />
+      <div data-guide="procurement-settings.approvals"><SettingsSectionHeader title="Procurement approvals" description="Each document type can resolve its own branch, tenant or platform workflow template." action={canView ? <Button asChild><Link to={routesPath.PROTECTED.WORKFLOW.TEMPLATES}>Manage workflows</Link></Button> : undefined} /></div>
       <SettingsPanel title="Approval-capable documents">
         <SettingsRow icon={ClipboardCheck} label="Purchase requisitions" description="Route the initial request and estimated commitment." badge={<PolicyBadge kind="configured">Workflow ready</PolicyBadge>} />
         <SettingsRow icon={ShoppingCart} label="Purchase orders" description="Approve the legal commitment before receipt." badge={<PolicyBadge kind="configured">Workflow ready</PolicyBadge>} />

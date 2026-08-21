@@ -67,7 +67,7 @@ export default function GoodsReceiptsPage() {
   return (
     <ProcurementShell>
       <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <header className="flex flex-wrap items-start justify-between gap-3">
+        <header data-guide="procurement-goods-receipts.heading" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Goods Receipts</h1>
@@ -80,7 +80,7 @@ export default function GoodsReceiptsPage() {
           </Can>
         </header>
 
-        <section className="min-w-0 rounded-md bg-white">
+        <section data-guide="procurement-goods-receipts.list" className="min-w-0 rounded-md bg-white">
           <DataTable columns={columns} rows={rows} rowKey={(receipt) => receipt.id}
             loading={isLoading || isFetching} error={isError} onRetry={refetch}
             onRowClick={(receipt) => setSelectedId(receipt.id)} page={pg?.currentPage} totalPages={pg?.totalPages}

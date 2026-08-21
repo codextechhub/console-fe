@@ -113,8 +113,8 @@ export default function VendorInvoicesPage() {
   if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view its vendor invoices." /></main></ProcurementShell>;
   return <ProcurementShell>
     <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-      <header className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Invoices</h1><InfoHint ariaLabel="About vendor invoices">Supplier bills remain drafts until matched, approved, and posted to Accounts Payable.</InfoHint></div><p className="mt-0.5 font-mont text-xs text-gray-05">Review three-way matches, approval, settlement, and overdue exposure.</p></div><div className="flex flex-wrap items-center gap-2"><QuickExportButton screen="procurement.vendor_invoices" params={{ status, search: debouncedSearch }} entity={entity} typeface="geist" defaultName="Vendor invoices" /><Can permission={P.PROC_CREATE_VENDOR_INVOICE}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> Record Invoice</Button></Can></div></header>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <header data-guide="procurement-vendor-invoices.heading" className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Invoices</h1><InfoHint ariaLabel="About vendor invoices">Supplier bills remain drafts until matched, approved, and posted to Accounts Payable.</InfoHint></div><p className="mt-0.5 font-mont text-xs text-gray-05">Review three-way matches, approval, settlement, and overdue exposure.</p></div><div className="flex flex-wrap items-center gap-2"><QuickExportButton screen="procurement.vendor_invoices" params={{ status, search: debouncedSearch }} entity={entity} typeface="geist" defaultName="Vendor invoices" /><Can permission={P.PROC_CREATE_VENDOR_INVOICE}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> Record Invoice</Button></Can></div></header>
+      <div data-guide="procurement-vendor-invoices.summary" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
           <StatCard label="Under Review" value={summary.under_review.count} icon={Clock3} tone="amber" />
           <StatCard label="Approved" value={summary.approved.count} icon={Check} tone="green" />
@@ -122,7 +122,7 @@ export default function VendorInvoicesPage() {
           <StatCard label="Disputed" value={summary.disputed.count} icon={AlertTriangle} tone="red" />
         </>}
       </div>
-      <section className="min-w-0 rounded-md bg-white">
+      <section data-guide="procurement-vendor-invoices.list" className="min-w-0 rounded-md bg-white">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
           <div className="max-w-full overflow-x-auto"><div className="flex min-w-max gap-5">{TABS.map(([label, value]) => <button key={label} onClick={() => { setStatus(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", status === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>)}</div></div>
           <label className="relative my-2 min-w-0 flex-1 sm:max-w-64"><Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-05" /><Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search invoices or vendors" className="h-9 bg-white pl-9" /></label>
