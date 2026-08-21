@@ -67,6 +67,8 @@ export const GUIDE_ROUTE_PATTERNS = [
   R.FINANCE.INDEX,
   R.FINANCE.SETUP,
   `${R.FINANCE.SETUP}/:section`,
+  `${R.FINANCE.SETUP}/entities`,
+  `${R.FINANCE.SETUP}/periods`,
   R.FINANCE.LEDGER,
   R.FINANCE.RECEIVABLES,
   `${R.FINANCE.RECEIVABLES}/:section`,

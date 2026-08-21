@@ -51,9 +51,9 @@ export function DetailDrawer({
       >
         <SheetHeader className="border-b border-gray-03 px-5 py-4">
           <SheetTitle className="font-mont text-base font-semibold text-black-01">{title}</SheetTitle>
-          {description ? (
-            <SheetDescription className="font-mont text-xs text-gray-05">{description}</SheetDescription>
-          ) : null}
+          <SheetDescription className={cn("font-mont text-xs text-gray-05", !description && "sr-only")}>
+            {description ?? "Review the selected record and its available actions."}
+          </SheetDescription>
         </SheetHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>

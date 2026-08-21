@@ -24,9 +24,9 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Approvals and workflow | Review and act on an approval | `workflow.review-and-act` | High | Published | Published | Console product team | 2026-08-14 | Walkthrough explains queue, evidence, stage rules, and outcomes, then stops before opening or recording a decision |
 | Approvals and workflow | Delegate and track approvals | `workflow.delegate-and-track` | High | Published | Published | Console product team | 2026-08-14 | Walkthrough explains bounded delegation and tracking, and never saves, revokes, withdraws, resubmits, cancels, or reverses work |
 | Approvals and workflow | Build a workflow template | `workflow.build-template` | High | Published | Published | Console product team | 2026-08-14 | No self-service retirement control exists; new stages also default auto-skip on, so the guide requires an explicit policy decision for that setting |
-| Finance and payments | Configure finance foundations | Planned in C6a | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
-| Finance and payments | Create and post a journal | `finance.create-and-post-journal` | High | Draft | Planned | Console product team | 2026-08-13 | Content and targets start in C6a |
-| Finance and payments | Close, lock, or reopen a fiscal period | Planned in C6a | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
+| Finance and payments | Configure finance foundations | `finance.configure-foundations` | High | Published | Published | Console product team | 2026-08-21 | Walkthrough explains entity, chart, reference-data, and mapping order, and never creates or saves configuration |
+| Finance and payments | Create and post a journal | `finance.create-and-post-journal` | High | Published | Published | Console product team | 2026-08-21 | Direct entry opens read-only during the walkthrough; it never reads fields, changes lines, posts, submits, reverses, or voids |
+| Finance and payments | Close, lock, or reopen a fiscal period | `finance.close-lock-or-reopen-period` | High | Published | Published | Console product team | 2026-08-21 | Walkthrough may open the period checklist but never creates a year or confirms close, reopen, year-end, or permanent lock actions |
 | Finance and payments | Invoice a customer and allocate a receipt | Planned in C6b | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
 | Finance and payments | Email a customer their invoice, receipt or statement | Planned in C6b | High | Planned | Planned | Console product team | 2026-08-16 | Workflow shipped 2026-08-16 (send with recipient preview, delivery history, retry; dunning notice send wired). Article deferred to C6b with the rest of the receivables chapter rather than writing one finance guide in isolation - the screens have no published finance articles to sit beside yet. Risk is High because the action reaches a paying customer and cannot be recalled; the in-product confirmation names the recipient, the CC and the subject before sending, which is what a first-time user most needs. A walkthrough must never press Send |
 | Finance and payments | Reconcile a bank statement | Planned in C6b | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
@@ -247,6 +247,25 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - New template stages currently default empty-approver auto-skip on. The guide and
   walkthrough call this out and require the author to switch it off unless approved
   policy explicitly permits skipping the stage.
+
+## C6a completion record
+
+- Finance setup, ledger, and close now publish three task guides: configure finance
+  foundations, create and post a journal, and close, lock, or reopen a fiscal period.
+- Foundation guidance records entity scope, fiscal calendar creation, the four-digit
+  chart code lines, postable and group accounts, FX direction, tax mappings, cost
+  centres, dimensions, Finance Settings consumers, and pre-go-live verification.
+- Journal guidance distinguishes immediate direct entry from draft submission and
+  source-document posting. It records posting-window checks, line balance, tags,
+  evidence, approval submission, manual reversal, and source-document voiding.
+- Fiscal-close guidance records Open, Soft-closed, Closed, and permanently Locked
+  states, blocker versus warning checklist rows, year-end Retained Earnings posting,
+  reopen controls, and the final-period lock boundary.
+- Three high-risk walkthroughs explain these workflows. They never create or save
+  configuration, read or change journal fields, post or submit a journal, create a
+  fiscal year, or confirm close, reopen, year-end, or permanent-lock actions.
+- Workspace search now opens the direct-entry drawer with the permission enforced by
+  that drawer. It no longer advertises immediate posting to a draft-submit-only user.
 
 ## Quick export from a list screen (2026-08-15)
 

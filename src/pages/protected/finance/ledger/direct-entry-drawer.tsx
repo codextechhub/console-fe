@@ -67,7 +67,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
       footer={
         <>
           <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
-          <Button disabled={isLoading || !balanced || hasBlankAccount} onClick={submit} className="gap-1.5">
+          <Button data-guide="finance-journal.post" disabled={isLoading || !balanced || hasBlankAccount} onClick={submit} className="gap-1.5">
             <BookCheck className="size-4" />{isLoading ? "Posting…" : "Post entry"}
           </Button>
         </>
@@ -75,7 +75,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
     >
       <div className="space-y-5">
         {/* header fields */}
-        <div className="space-y-3">
+        <div data-guide="finance-journal.header-fields" className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
             <label className="block space-y-1">
@@ -90,7 +90,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
         </div>
 
         {/* postings */}
-        <div className="space-y-2">
+        <div data-guide="finance-journal.postings" className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="font-mont text-sm font-semibold text-black-01">Postings</span>
             <Button type="button" variant="outline" size="sm" onClick={() => setRows((rs) => [...rs, emptyRow()])} className="h-7 gap-1 px-2 text-xs"><Plus className="size-3.5" /> Add line</Button>
@@ -136,7 +136,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
         </div>
 
         {/* balance check */}
-        <div className="flex items-center justify-between rounded-md bg-gray-50 px-4 py-3 font-mont text-sm">
+        <div data-guide="finance-journal.balance" className="flex items-center justify-between rounded-md bg-gray-50 px-4 py-3 font-mont text-sm">
           <span className={cn("font-semibold", balanced ? "text-green-01" : "text-destructive")}>
             {balanced ? "Balanced" : "Must balance"}
           </span>

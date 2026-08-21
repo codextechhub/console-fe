@@ -12,6 +12,7 @@ import { describe, expect, it } from "vitest";
 import { filterActionsForPermissions } from "./gate";
 import { ACTIONS } from "./registry";
 import { financeNav } from "@/pages/protected/finance/finance-nav";
+import { P, resolvePermissionKey } from "@/permissions";
 
 const financeActions = ACTIONS.filter((action) => action.console === "Finance");
 
@@ -34,5 +35,13 @@ describe("Finance action-palette destinations", () => {
 
   it("gates every Finance action - none is visible without permissions", () => {
     expect(filterActionsForPermissions(financeActions, [])).toEqual([]);
+  });
+
+  it("opens direct journal entry only for its immediate-post permission", () => {
+    const direct = (permissions: readonly string[]) => filterActionsForPermissions(financeActions, permissions)
+      .some((action) => action.id === "new-journal-entry");
+
+    expect(direct([resolvePermissionKey(P.FIN_POST_DIRECT_ENTRY)])).toBe(true);
+    expect(direct([resolvePermissionKey(P.FIN_SUBMIT_JOURNAL)])).toBe(false);
   });
 });

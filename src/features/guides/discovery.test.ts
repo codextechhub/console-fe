@@ -53,6 +53,22 @@ describe("guide discovery", () => {
     expect(visible.some((guide) => guide.id === "account.secure-account")).toBe(false);
   });
 
+  it("publishes C6a guides only inside the caller's finance permissions", () => {
+    const accountReader = [resolvePermissionKey(P.FIN_VIEW_ACCOUNTS)];
+    const periodReader = [resolvePermissionKey(P.FIN_VIEW_PERIODS)];
+    const directPoster = [resolvePermissionKey(P.FIN_POST_DIRECT_ENTRY)];
+
+    expect(visibleGuides(GUIDE_REGISTRY, accountReader).map((guide) => guide.id)).toContain(
+      "finance.configure-foundations",
+    );
+    expect(visibleGuides(GUIDE_REGISTRY, periodReader).map((guide) => guide.id)).toContain(
+      "finance.close-lock-or-reopen-period",
+    );
+    expect(visibleGuides(GUIDE_REGISTRY, directPoster).map((guide) => guide.id)).toContain(
+      "finance.create-and-post-journal",
+    );
+  });
+
   it("chooses one focused landing layout for each filter state", () => {
     expect(guideLandingView({ category: null, audience: null, query: "" })).toBe("browse");
     expect(guideLandingView({ category: null, audience: "approver", query: "" })).toBe("audience-results");

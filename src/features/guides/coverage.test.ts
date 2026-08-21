@@ -93,4 +93,17 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts the three high-risk C6a finance walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "finance-foundations", route: "/finance/setup/entities", actionId: "create-entity", risk: "high" },
+      { id: "manual-journal", route: "/finance/ledger", actionId: "new-journal-entry", risk: "high" },
+      { id: "fiscal-close", route: "/finance/setup/periods", actionId: "view-fiscal-periods", risk: "high" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

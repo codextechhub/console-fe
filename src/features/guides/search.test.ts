@@ -93,6 +93,18 @@ describe("guide search", () => {
     );
   });
 
+  it("finds C6a finance workflows using accounting and recovery language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "account mapping")[0]?.guide.id).toBe(
+      "finance.configure-foundations",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "direct entry")[0]?.guide.id).toBe(
+      "finance.create-and-post-journal",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "no fiscal period covers this date")[0]?.guide.id).toBe(
+      "finance.close-lock-or-reopen-period",
+    );
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

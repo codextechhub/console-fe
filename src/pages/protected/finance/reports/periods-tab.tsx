@@ -149,8 +149,8 @@ export function PeriodsTab({ entity }: { entity: string }) {
   }
 
   return (
-    <div className="min-w-0 space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <div data-guide="finance-periods.workbench" className="min-w-0 space-y-5">
+      <div data-guide="finance-periods.calendar-controls" className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="font-mont text-base font-semibold text-gray-01">Fiscal close workbench</h2>
           <p className="mt-1 max-w-2xl font-mont text-xs leading-5 text-gray-05">
@@ -211,7 +211,7 @@ export function PeriodsTab({ entity }: { entity: string }) {
             onCloseYear={() => setClosing({ id: activeFiscalYear.id, year: activeFiscalYear.year })}
           />
 
-          <section>
+          <section data-guide="finance-periods.periods">
             <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
               <div>
                 <h3 className="font-mont text-sm font-semibold text-gray-01">Posting periods</h3>
@@ -606,7 +606,7 @@ function PeriodCloseDrawer({
             ? <ForbiddenState message="You do not have permission to inspect this period." />
             : <ErrorState onRetry={refetch} />
         ) : (
-          <div className="space-y-5">
+          <div data-guide="finance-periods.checklist" className="space-y-5">
             <div className="rounded-lg border border-gray-03 bg-[#F7F8FA] p-4">
               <div className="flex flex-wrap items-center justify-between gap-3 font-mont text-sm">
                 <span className="flex items-center gap-2 text-gray-05">Current status <StatusPill status={period.status} /></span>

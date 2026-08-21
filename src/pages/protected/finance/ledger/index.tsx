@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserAvatar } from "@/components/custom/user-avatar";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useActionParam } from "@/hooks/use-action-param";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
@@ -54,6 +55,7 @@ export default function GeneralLedgerPage() {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<number | null>(null);
   const [directOpen, setDirectOpen] = useState(false);
+  useActionParam("new", () => setDirectOpen(true));
 
   const range = preset === "custom" ? custom : presetRange(preset);
   const filters = useMemo(() => ({
@@ -105,8 +107,8 @@ export default function GeneralLedgerPage() {
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-4 px-4.5 py-6 text-black-01">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <main data-guide="finance-ledger.workspace" className="min-w-0 space-y-4 px-4.5 py-6 text-black-01">
+        <div data-guide="finance-ledger.header" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5">
               <h1 className="font-mont text-lg font-semibold text-gray-01">Journal Entries</h1>
@@ -128,7 +130,7 @@ export default function GeneralLedgerPage() {
               defaultName="General ledger postings"
             />
             <Can permission={P.FIN_POST_DIRECT_ENTRY}>
-              <Button onClick={() => setDirectOpen(true)} className="gap-1.5"><Plus className="size-4" /> New journal</Button>
+              <Button data-guide="finance-ledger.new-journal" onClick={() => setDirectOpen(true)} className="gap-1.5"><Plus className="size-4" /> New journal</Button>
             </Can>
           </div>
         </div>

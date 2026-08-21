@@ -34,7 +34,7 @@ export function EntitiesTab() {
   ];
 
   return (
-    <div className="space-y-4">
+    <div data-guide="finance-setup.entities" className="space-y-4">
       <div className="flex items-center justify-end">
         <Can permission={P.FIN_CREATE_ENTITY}>
           <Button onClick={() => setCreating(true)} className="h-9 gap-1.5 font-mont text-xs font-semibold"><Plus className="size-3.5" /> New entity</Button>

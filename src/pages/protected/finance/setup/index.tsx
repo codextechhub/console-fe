@@ -38,8 +38,8 @@ export default function SetupPage({ section = DEFAULT_SETUP_SECTION }: {
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
+      <main data-guide="finance-setup.workspace" className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+        <div data-guide="finance-setup.heading">
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Setup & Entity"}</h1>
             {HINTS[section] && <InfoHint ariaLabel={`About ${LABELS[section] ?? "finance setup"}`}>{HINTS[section]}</InfoHint>}

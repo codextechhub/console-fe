@@ -21,6 +21,7 @@ import {
 } from "./engine";
 import { findWalkthrough } from "./registry";
 import { WalkthroughRuntimeContext } from "./context";
+import { canFocusWalkthroughCoach } from "./focus";
 import { positionWalkthroughCoach, visibleWalkthroughTarget } from "./positioning";
 import type { RectLike, SizeLike } from "./positioning";
 import type { Walkthrough, WalkthroughContentStep, WalkthroughProgress } from "./types";
@@ -285,7 +286,8 @@ function WalkthroughCoach({
   }, [missingTarget, step.id]);
 
   useEffect(() => {
-    cardRef.current?.focus();
+    const card = cardRef.current;
+    if (card && canFocusWalkthroughCoach(card)) card.focus();
   }, [step.id]);
 
   useEffect(() => {
