@@ -226,3 +226,59 @@ describe("baseQueryInterceptor", () => {
     expect(dismissOpenDrawerForError).not.toHaveBeenCalled();
   });
 });
+
+// Item 2 of the owed changes: the six account actions resolve through a
+// tenant-scoped gate now, so a 404 means "not yours OR not there" and the two
+// must stay indistinguishable. The backend says "User not found."; showing that
+// sends a CX operator hunting for a deleted account that is alive at another
+// school.
+describe("a 404 on an account action", () => {
+  const notFound = () =>
+    new Response(JSON.stringify({ success: false, message: "User not found.", error: {} }), {
+      status: 404,
+      headers: { "content-type": "application/json" },
+    });
+
+  const call = async (endpoint: string) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(notFound()));
+    const { baseQueryInterceptor } = await import("./base-api");
+    await baseQueryInterceptor(
+      { url: "/user/42/suspend/", method: "POST" },
+      {
+        endpoint,
+        getState: () => ({ auth: { tenant: { slug: "codex" } } }),
+        dispatch: vi.fn(),
+        signal: new AbortController().signal,
+        abort: vi.fn(),
+        extra: undefined,
+        type: "mutation" as const,
+      },
+      {},
+    );
+  };
+
+  it("never claims the account does not exist", async () => {
+    await call("suspendTeamMember");
+
+    const shown = String(toastError.mock.calls[0][0]);
+    expect(shown).not.toMatch(/user not found/i);
+    expect(shown).toMatch(/another school/i);
+  });
+
+  it("says the same thing for every one of the six", async () => {
+    for (const endpoint of [
+      "suspendTeamMember", "reactivateTeamMember", "unlockTeamMember",
+      "adminPasswordReset", "changeUserEmail", "resendInvite",
+    ]) {
+      toastError.mockClear();
+      await call(endpoint);
+      expect(String(toastError.mock.calls[0][0])).toMatch(/another school/i);
+    }
+  });
+
+  it("leaves an ordinary 404 elsewhere alone", async () => {
+    await call("getImportBatch");
+
+    expect(String(toastError.mock.calls[0][0])).not.toMatch(/another school/i);
+  });
+});

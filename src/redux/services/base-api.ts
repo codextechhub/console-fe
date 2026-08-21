@@ -75,6 +75,27 @@ const TENANT_EXEMPT_ENDPOINTS = new Set([
 
 // Impersonation management endpoints act as the platform admin, never as the
 // impersonated target - so they never receive the impersonation session header.
+// The six account actions that reach a user by id. Each now resolves through a
+// tenant-scoped gate, so a 404 from them means "not yours OR not there" and the
+// two are deliberately indistinguishable - a 403 would confirm the id exists.
+//
+// The backend answers them with the literal "User not found.", which is the one
+// thing this refusal must not say: a CX operator reading it goes looking for a
+// deleted account when the record is very much alive at another school. The
+// wording below keeps the ambiguity the backend went to the trouble of creating.
+const ACCOUNT_ACTION_ENDPOINTS = new Set([
+  "suspendTeamMember",
+  "reactivateTeamMember",
+  "unlockTeamMember",
+  "adminPasswordReset",
+  "changeUserEmail",
+  "resendInvite",
+]);
+
+const ACCOUNT_ACTION_NOT_FOUND =
+  "That account cannot be acted on from here. It may belong to another school, "
+  + "or it may no longer exist.";
+
 const IMPERSONATION_ENDPOINTS = new Set([
   "getImpersonations",
   "getProxyTargets",
@@ -415,7 +436,11 @@ export const baseQueryInterceptor: BaseQueryFn<
     // apiErrorMessage, so it needs the same scrubbing - this is the path that
     // surfaced "No ImportBatch matches the given query." to users.
     if (!isAuthRoute(args)) {
-      notify(humanizeApiMessage(res?.data?.message || "") || "Resource not found.");
+      notify(
+        ACCOUNT_ACTION_ENDPOINTS.has(api.endpoint)
+          ? ACCOUNT_ACTION_NOT_FOUND
+          : humanizeApiMessage(res?.data?.message || "") || "Resource not found.",
+      );
     }
     return result;
   }
