@@ -125,6 +125,7 @@ export default function PasswordActivity() {
     refetchOnMountOrArgChange: true,
   });
   const { data: resetsData, refetch: refetchResets } = useGetPendingResetsQuery();
+  const [resetTenantFilter, setResetTenantFilter] = useState("all");
   const [revokeReset, { isLoading: revoking }] = useRevokeResetMutation();
   const [resendReset, { isLoading: resending }] = useResendPasswordResetMutation();
   const { data: searchResults, isFetching: searching } = useGetTeamMembersQuery(
@@ -135,7 +136,28 @@ export default function PasswordActivity() {
   const [changeEmail, { isLoading: changingEmail }] = useChangeUserEmailMutation();
 
   const events = data?.data ?? [];
-  const pendingResets = resetsData?.data ?? [];
+  // Memoised because ``?? []`` mints a new array on every render, which would
+  // make the tenant list below recompute each time and defeat its own memo.
+  const pendingResets = useMemo(() => resetsData?.data ?? [], [resetsData]);
+
+  // The pending list spans every tenant on the platform. Its tenants are read
+  // off the rows themselves rather than fetched: the list is small (one active
+  // reset per user at most), and options taken from a separate school lookup
+  // would offer schools with nothing pending and answer with an empty panel.
+  const resetTenants = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const r of pendingResets) seen.set(r.tenant_slug, r.tenant_name);
+    return [...seen].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [pendingResets]);
+
+  // One tenant is the common case and a picker holding a single entry is
+  // noise, so the control appears only once there is a choice to make.
+  const showTenantFilter = resetTenants.length > 1;
+  const activeTenant = showTenantFilter ? resetTenantFilter : "all";
+  const visibleResets =
+    activeTenant === "all"
+      ? pendingResets
+      : pendingResets.filter((r) => r.tenant_slug === activeTenant);
 
   const resetPage = () => setPage(1);
 
@@ -356,13 +378,26 @@ export default function PasswordActivity() {
               <div className="px-4 py-3 border-b">
                 <p className="text-xs font-semibold font-mont text-gray-01">Pending password resets</p>
                 <p className="text-[10px] text-gray-01 mt-0.5">Active reset tokens awaiting use</p>
+                {showTenantFilter && (
+                  <select
+                    className="mt-2 w-full rounded border px-2 py-1 text-[10px] text-gray-01 bg-white"
+                    value={resetTenantFilter}
+                    onChange={(e) => setResetTenantFilter(e.target.value)}
+                    aria-label="Filter pending resets by school"
+                  >
+                    <option value="all">All schools ({pendingResets.length})</option>
+                    {resetTenants.map(([slug, name]) => (
+                      <option key={slug} value={slug}>{name}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
-              {pendingResets.length === 0 ? (
+              {visibleResets.length === 0 ? (
                 <div className="px-4 py-6 text-xs text-gray-01 text-center">No pending resets.</div>
               ) : (
                 <div className="divide-y">
-                  {pendingResets.map((r) => (
+                  {visibleResets.map((r) => (
                     <div key={r.id} className="px-4 py-3">
                       <div className="flex items-start gap-2">
                         <ActorCell
@@ -372,6 +407,9 @@ export default function PasswordActivity() {
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate">{r.user.full_name || r.user.email}</p>
+                          {activeTenant === "all" && (
+                            <p className="text-[10px] font-medium text-gray-01 truncate">{r.tenant_name}</p>
+                          )}
                           <p className="text-[10px] text-gray-01">
                             Requested {r.requested_by === "SELF" ? "by user" : "by admin"} · {formatRelativeDate(r.created_at)}
                           </p>

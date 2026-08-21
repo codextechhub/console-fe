@@ -58,6 +58,12 @@ export interface AccountLockout {
 export interface PasswordReset {
   id: number;
   user: { id: string; email: string; full_name: string; first_name: string; last_name: string };
+  // This list crosses tenants, so a row has to say which school it belongs to:
+  // revoking is irreversible for whoever holds the link, and two schools can
+  // easily have accounts under similar names.
+  tenant_id: number;
+  tenant_slug: string;
+  tenant_name: string;
   requested_by: "SELF" | "ADMIN";
   requested_ip: string | null;
   expires_at: string;
