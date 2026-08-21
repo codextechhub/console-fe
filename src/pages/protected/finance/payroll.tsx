@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, Search, Sparkles, Banknote, Printer, Pencil, FileText, Users, Layers3, ScrollText, Landmark, ArrowUpRight, Ban } from "lucide-react";
 import { routesPath } from "@/routes/routes-path";
 import { useGetTrialBalanceQuery } from "@/redux/services/finance/reports-api";
+import { useGetBranchOptionsQuery, type BranchOption } from "@/redux/services/tenants-api";
 import { FinanceShell } from "./finance-shell";
 import { DataTable, Money, MoneyInput, DetailDrawer, FormField, CostCenterPicker, Segmented, InfoHint, ConfirmActionModal, useActiveEntity, toArray, type Column, PostingDateField,} from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
@@ -114,8 +115,8 @@ export default function PayrollPage() {
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
+      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01" data-guide="finance-payroll.workspace">
+        <div data-guide="finance-payroll.heading">
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">Payroll</h1>
             <InfoHint ariaLabel="About payroll runs">A payroll run computes gross, PAYE, pension and net for every employee, then posts one journal - Dr salary expense; Cr PAYE payable, Cr pension payable, Cr net-wages payable. Paying it clears net-wages payable against the bank. Per-employee figures need the sensitive grant.</InfoHint>
@@ -123,7 +124,7 @@ export default function PayrollPage() {
           <p className="mt-0.5 font-mont text-xs text-gray-05">Monthly salary runs and payslips, generated from the employee roster.</p>
         </div>
 
-        <div className="flex flex-wrap gap-1 border-b border-gray-03">
+        <div className="flex flex-wrap gap-1 border-b border-gray-03" data-guide="finance-payroll.sections">
           {TABS.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={cn("-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 font-mont text-xs font-semibold",
@@ -156,9 +157,20 @@ function RunsTab({ entity, currency }: { entity: string; currency?: string | nul
   const s = summaryQ.data?.data;
   const kpis = { runs: s?.runs ?? 0, employees: s?.employees ?? 0, net: s?.net ?? 0, toPay: s?.to_pay ?? 0 };
 
+  // Only where it distinguishes anything. A central school's runs all carry no
+  // branch, so the column would be a stack of dashes - and a school that has not
+  // opted into per-branch payroll should not be able to tell it was built.
+  const showBranch = useMemo(() => rows.some((r) => r.branch_id != null), [rows]);
+
   const columns: Column<PayrollRun>[] = [
     { header: "Run no.", cell: (r) => <span className="font-semibold tabular-nums">{r.document_number}</span> },
     { header: "Period", cell: (r) => r.period_label || "-" },
+    ...(showBranch ? [{
+      header: "Branch",
+      cell: (r: PayrollRun) => r.branch_name
+        ? <span className="text-gray-01">{r.branch_name}</span>
+        : <span className={cn(PILL, "bg-gray-03/60 text-gray-05")}>Whole school</span>,
+    }] : []),
     { header: "Payment date", cell: (r) => <span className="tabular-nums text-gray-05">{fmtDate(r.pay_date)}</span> },
     { header: "Employees", align: "right", cell: (r) => <span className="tabular-nums text-gray-05">{r.lines.length}</span> },
     { header: "Total gross", align: "right", cell: (r) => <Money kobo={r.gross_total} currency={currency} align="right" /> },
@@ -168,8 +180,8 @@ function RunsTab({ entity, currency }: { entity: string; currency?: string | nul
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-4" data-guide="finance-payroll.runs">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="finance-payroll.summary">
         <Kpi label="Payroll runs" value={String(kpis.runs)} />
         <Kpi label="Employees (latest run)" value={String(kpis.employees)} />
         <Kpi label="Net pay (latest run)" value={formatMoney(kpis.net, currency)} />
@@ -212,7 +224,9 @@ function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null;
   return (
     <>
       <DetailDrawer open={runId != null} onOpenChange={(o) => (o ? undefined : onClose())}
-        title={r.document_number} description={`${r.period_label || "-"} · ${r.lines.length} employees`} widthClass="sm:max-w-3xl"
+        title={r.document_number}
+        description={[r.period_label || "-", r.branch_name, `${r.lines.length} employees`].filter(Boolean).join(" · ")}
+        widthClass="sm:max-w-3xl"
         footer={
           <>
             <RunPill status={r.run_status} />
@@ -414,17 +428,11 @@ function EmployeesTab({ entity, currency }: { entity: string; currency?: string 
   const { data, isLoading, isFetching, isError, refetch } = useGetEmployeeSalariesQuery({ entity });
   const all = useMemo(() => toArray(data?.data), [data]);
 
-  // The branches this roster knows about, read off the rows themselves. There
-  // is no branch list a payroll caller can reach: the only one the API offers
-  // is /i/<slug>/branches/, which is keyed by school slug (the finance console
-  // holds an entity, not a slug) and gated on platform.branches.view, which a
-  // bursar does not hold. Every site with at least one person already assigned
-  // is therefore selectable; a site with nobody on it yet is not.
-  const branches = useMemo(() => {
-    const seen = new Map<number, string>();
-    for (const e of all) if (e.branch_id != null) seen.set(e.branch_id, e.branch_name || `Branch ${e.branch_id}`);
-    return [...seen].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [all]);
+  // The branches this caller may work in, from the tenant rather than from the
+  // rows. Reading them off the roster only ever offered sites that already had
+  // somebody on them, which is never the new site she is trying to fill.
+  const { data: branchData } = useGetBranchOptionsQuery();
+  const branches = useMemo(() => toArray(branchData?.data), [branchData]);
   const unassignedCount = useMemo(() => all.filter((e) => e.branch_id == null).length, [all]);
 
   // A filter must not outlive what it filters on. Assigning the last unassigned
@@ -509,7 +517,7 @@ function EmployeesTab({ entity, currency }: { entity: string; currency?: string 
   );
 }
 
-function EmployeeDrawer({ open, salary, entity, currency, branches, onClose }: { open: boolean; salary: EmployeeSalary | null; entity: string; currency?: string | null; branches: { id: number; name: string }[]; onClose: () => void }) {
+function EmployeeDrawer({ open, salary, entity, currency, branches, onClose }: { open: boolean; salary: EmployeeSalary | null; entity: string; currency?: string | null; branches: BranchOption[]; onClose: () => void }) {
   const isEdit = !!salary;
   const [name, setName] = useState("");
   const [branchId, setBranchId] = useState("");

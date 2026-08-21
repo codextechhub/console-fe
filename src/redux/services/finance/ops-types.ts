@@ -265,6 +265,11 @@ export interface PayrollRun {
   document_number: string;
   pay_date: string;
   period_label: string;
+  // Which site the run covers. Null is a central run over the whole entity -
+  // the shape every run had before per-branch payroll existed - so null and
+  // "a branch I cannot read" are deliberately different answers.
+  branch_id: number | null;
+  branch_name: string | null;
   narration: string;
   run_status: string;
   status: string;

@@ -1,26 +1,34 @@
 ## Undone (Ask questions for clarity where needed)
 
-# Per-branch payroll is enforced but invisible (found 2026-08-21).
-Two things the frontend needs before the last bullet of item 10 ("under
-PER_BRANCH a payroll officer pinned to one branch runs only that branch") can be
-shown rather than merely obeyed:
-
-1. `PayrollRunSerializer` omits `branch` / `branch_name`, though `PayrollRun`
-   carries one. Under PER_BRANCH a school raises one run per branch per pay
-   date, so the runs list shows several rows with the same date, the same
-   period label and nothing to tell them apart. The officer pinned to one
-   branch is fine (`branch_q` already narrows her list); the bursar who covers
-   the school is the one left guessing.
-2. There is no branch list a payroll caller can reach. The only one the API
-   offers is `GET /v1/i/<slug>/branches/`, keyed by **school slug** (the finance
-   console holds a ledger entity, not a slug) and gated on
-   `platform.branches.view`, which is a platform key a bursar does not hold. The
-   roster screen therefore builds its branch picker from the branches already
-   present on roster rows, which means a branch nobody has been assigned to yet
-   cannot be picked - exactly the branch a new site needs. Something entity- or
-   tenant-scoped would close it.
-
 ## Done
+
+# 49. **Per-branch payroll can now be seen, not only obeyed (2026-08-21).**
+Both gaps recorded here earlier the same day are closed, backend and frontend.
+**(a) A branch list a bursar can read.** `GET /v1/tenants/branches/`. The only
+branch list in the codebase was keyed by school slug and gated on
+`platform.branches.view`, a platform key, so the roster's picker was built from
+branches that already had somebody on them - never the new site nobody has been
+assigned to yet, which is the one she is filling. It sits in `vs_tenants`
+because branches belong to the tenant, not to whichever console asks first, and
+it carries no RBAC key of its own: it is derived from `caller_branch_ids`, the
+same function `raised_branch` narrows a save by, so a branch it offers is one
+the save accepts. Out-of-service branches are excluded, matching what
+`_grant_scope` already does for a pinned caller.
+**(b) A branch on every run.** `PayrollRunSerializer` omitted it, so a
+per-branch school's runs list showed several rows with the same pay date and
+period label and nothing to tell them apart - invisible to the pinned officer,
+whose list `branch_q` had already narrowed to one row, and only ever a problem
+for the bursar who pays them. Plus `select_related`, `?branch=` on the runs
+list through one helper the roster now shares, and a Branch column that appears
+only when some run actually carries one, so a CENTRAL school still cannot tell
+any of this was built.
+**Found in passing and fixed:** the finance branch-scope sweep built its
+per-screen tag from `abs(hash(path)) % 900`. String hashing is salted per
+process, so twelve screens in 900 buckets collided about one run in fourteen
+and failed on a duplicate email for a reason unrelated to branch scoping.
+Driven against the real API: two runs on one pay date told apart by name, a
+branch with nobody on it offered in both pickers, and the Branch column absent
+for a central school. 12 + 74 + 637 backend tests OK; 692 frontend.
 
 # 48. **The school stats endpoint counts every status, including suspended (2026-08-21).**
 `GET /v1/i/stats/` aggregated all/active/pending/inactive and omitted SUSPENDED,
