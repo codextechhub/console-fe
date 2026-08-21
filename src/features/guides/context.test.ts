@@ -112,15 +112,27 @@ describe("contextual guides", () => {
   });
 
   it("includes published troubleshooting related by the page guide", () => {
-    const published = GUIDE_REGISTRY.map((guide) => (
-      guide.id === "troubleshooting.permission-denied"
-        ? { ...guide, status: "published" as const, article: GUIDE_REGISTRY[0].article }
-        : guide
-    ));
-    const context = contextualGuideContext(published, "/overview", []);
+    const context = contextualGuideContext(GUIDE_REGISTRY, "/overview", []);
     expect(context.troubleshooting.map((guide) => guide.id)).toEqual([
       "troubleshooting.permission-denied",
+      "troubleshooting.search-filter-and-download",
     ]);
+  });
+
+  it("keeps restricted recovery help within the matching product permission", () => {
+    const withoutPermission = contextualGuideContext(GUIDE_REGISTRY, "/data-imports/batches", []);
+    const withPermission = contextualGuideContext(
+      GUIDE_REGISTRY,
+      "/data-imports/batches",
+      [resolvePermissionKey(P.VIEW_IMPORT_BATCHES)],
+    );
+
+    expect(withoutPermission.troubleshooting.map((guide) => guide.id)).not.toContain(
+      "troubleshooting.import-and-export",
+    );
+    expect(withPermission.troubleshooting.map((guide) => guide.id)).toContain(
+      "troubleshooting.import-and-export",
+    );
   });
 
   it("builds an allowlisted ticket context from patterns, never the live URL", () => {

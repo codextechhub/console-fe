@@ -178,6 +178,25 @@ describe("walkthrough engine", () => {
     expect(walkthroughStepRoute(integrations!, "connections")).toBe("/settings/integrations");
   });
 
+  it("keeps the support-ticket walkthrough on evidence fields and before submit", () => {
+    const ticket = WALKTHROUGH_REGISTRY.find(
+      (item) => item.id === "walkthrough.troubleshooting.prepare-support-ticket",
+    );
+
+    expect(ticket?.route).toBe("/support/tickets/new");
+    expect(ticket?.steps.flatMap((step) => (
+      "target" in step && step.target ? [step.target] : []
+    ))).toEqual([
+      "support-ticket.issue",
+      "support-ticket.classification",
+      "support-ticket.attachments",
+      "support-ticket.submit-boundary",
+    ]);
+    expect(ticket?.steps.filter((step) => "target" in step && step.target).every(
+      (step) => "advance" in step && step.advance === "manual",
+    )).toBe(true);
+  });
+
   it("maps every school wizard explanation to its matching view and target", () => {
     const schoolWalkthrough = WALKTHROUGH_REGISTRY.find(
       (item) => item.id === "walkthrough.schools.create-and-configure",

@@ -1349,6 +1349,25 @@ export const WALKTHROUGH_REGISTRY = [
       { id: "complete", title: "No payout or replay was performed", body: "The walkthrough stops before New payout, batch submission or approval, and webhook replay. Reconcile confirmed provider results to the bank, and escalate ambiguous cases instead of sending twice.", advance: "next" },
     ],
   },
+  {
+    id: "walkthrough.troubleshooting.prepare-support-ticket",
+    guideId: "troubleshooting.prepare-support-ticket",
+    route: R.SUPPORT.NEW,
+    permissions: [],
+    prerequisites: [
+      "Keep passwords, access tokens, full payment details, raw provider payloads, and unnecessary personal data out of the ticket.",
+      "Record the safe reference, time, affected area, expected result, actual result, and checks already performed.",
+    ],
+    version: 1,
+    steps: [
+      { id: "welcome", title: "Give support evidence they can act on", body: "This walkthrough explains a useful support ticket. It never reads what you type, attaches a file, or creates the ticket.", advance: "next" },
+      { id: "issue", target: "support-ticket.issue", title: "State one problem clearly", body: "Use a short outcome-based title. In Description, include what you were doing, the safe record or job reference, expected result, actual result, exact message or safe error code, time and time zone, and what you already checked.", placement: "right", advance: "manual" },
+      { id: "classification", target: "support-ticket.classification", title: "Classify impact, not frustration", body: "Choose the closest category. Use Urgent only for a current severe business impact that needs immediate attention. A precise priority helps support route the work correctly.", placement: "top", advance: "manual" },
+      { id: "attachments", target: "support-ticket.attachments", title: "Attach only safe evidence", body: "Crop screenshots to the relevant area and mask personal, banking, payroll, security, and provider secrets. Do not attach raw exports or source spreadsheets unless an approved secure process asks for them.", placement: "top", advance: "manual" },
+      { id: "submit-boundary", target: "support-ticket.submit-boundary", title: "Review before creating the ticket", body: "Check that the issue is reproducible, the reference and time are correct, and no secret or unnecessary personal data is present. Create ticket is your action, and the walkthrough stops before it.", placement: "top", advance: "manual" },
+      { id: "complete", title: "Nothing was submitted", body: "Your fields and files remain under your control. Select Create ticket yourself only after the evidence and privacy check are complete.", advance: "next" },
+    ],
+  },
 ] as const satisfies readonly Walkthrough[];
 
 export function findWalkthrough(id: string): Walkthrough | undefined {

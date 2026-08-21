@@ -17,7 +17,7 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Roles and permissions | Create and assign a role | `roles.create-and-assign` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains role composition and stops before role creation, assignment, change, or revocation |
 | Roles and permissions | Review permission changes and transfer Super Admin | `roles.review-changes-and-transfer-super-admin` | High | Published | Published | Console product team | 2026-08-13 | Ownership walkthrough verifies the current owner, successor, and immediate effect, then stops before transfer and confirmation |
 | Roles and permissions | Maintain the permission catalogue and groups | `roles.maintain-permission-catalogue` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains key composition and backend enforcement, then stops before permission creation or downstream catalogue changes |
-| Roles and permissions | Diagnose missing access | `troubleshooting.permission-denied` | Medium | Draft | Not required | Console product team | 2026-08-13 | Content starts in C12 |
+| Roles and permissions | Diagnose missing access | `troubleshooting.permission-denied` | Medium | Published | Not required | Console product team | 2026-08-21 | Permission and scope diagnosis is read-only and cross-linked from access-sensitive guides; a walkthrough would add no ordered workflow or safety boundary |
 | Organogram and tasks | Build the organogram | `organogram.build-structure` | Medium | Published | Published | Console product team | 2026-08-14 | Walkthrough explains the safe unit, position, and matrix order and never creates, edits, moves, or deletes structure |
 | Organogram and tasks | Maintain staff profiles | `organogram.maintain-staff-profiles` | Medium | Published | Published | Console product team | 2026-08-14 | Walkthrough explains identity, seat, employment, and payroll boundaries and never reads fields, creates a profile, or changes an assignment |
 | Organogram and tasks | Create and complete tasks | `tasks.create-and-complete` | Low | Published | Not required | Console product team | 2026-08-14 | The short form and completion control are covered by the article; assignment and completion remain explicit user actions |
@@ -61,8 +61,13 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Platform health and settings | Find and download requirements documents | `platform.requirements-library` | Low | Published | Not required | Console product team | 2026-08-15 | The screen only browses and downloads; it writes nothing and has no consequential action for a walkthrough to guide. Restricted to CX platform staff - the backend requires the caller's home tenant to be the platform one in addition to the permission key |
 | Account and personal security | Secure a personal account | `account.secure-account` | Medium | Published | Not required | Console product team | 2026-08-21 | Covers the personal security overview, password changes, reset history, active sessions, login history, account activity, suspicious-access response, proxy awareness, and safe return to the direct session. No walkthrough is needed for these short screens, and every password or session change remains an explicit confirmed user action |
 | Account and personal security | Maintain profile and privacy | `account.maintain-profile-and-privacy` | Low | Published | Not required | Console product team | 2026-08-21 | Covers the CX self-service employment profile, editable personal and payroll fields, organisation-owned fields, missing-profile recovery, personal-data categories, variable retention, and the permission-gated activity CSV. No walkthrough is needed for these short read and edit screens, and profile saves or export requests remain explicit user actions |
-| Troubleshooting | Permission denied or navigation missing | `troubleshooting.permission-denied` | Medium | Draft | Not required | Console product team | 2026-08-13 | Content starts in C12 |
-| Troubleshooting | Account, invitation, import, export, workflow, finance, procurement, payment, provider, and health failures | Planned in C12 | High | Planned | Planned | Console product team | 2026-08-13 | Split by failure class during C12 |
+| Troubleshooting | Permission denied or navigation missing | `troubleshooting.permission-denied` | Medium | Published | Not required | Console product team | 2026-08-21 | Read-only diagnosis covers identity, tenant, entity, role, permission, scope, expiry, and minimum access requests; there is no ordered in-product recovery action for a walkthrough |
+| Troubleshooting | Inactive, locked, unactivated, or expired account and invitation | `troubleshooting.account-and-invitation` | Medium | Published | Not required | Console product team | 2026-08-21 | Recovery depends on private email links and administrator identity checks, so an in-product walkthrough cannot safely perform or observe it |
+| Troubleshooting | Search, filter, pagination, and download results | `troubleshooting.search-filter-and-download` | Low | Published | Not required | Console product team | 2026-08-21 | Generic read-only checks apply across many list screens; the article provides the reusable sequence without coupling a walkthrough to one route |
+| Troubleshooting | Import and export failures | `troubleshooting.import-and-export` | High | Published | Covered by domain walkthroughs | Console product team | 2026-08-21 | Cross-links to the import, export, and recovery guides whose existing walkthroughs explain the actual screens and stop before execution, retry, cancellation, download, or rollback |
+| Troubleshooting | Stalled workflow or record status | `troubleshooting.stalled-workflow-and-records` | High | Published | Covered by domain walkthroughs | Console product team | 2026-08-21 | Cross-links to workflow, finance, and procure-to-pay walkthroughs at the real decision boundaries; another generic tour would duplicate them and lose record-specific state |
+| Troubleshooting | Payment, provider, and platform health failures | `troubleshooting.payment-provider-and-health` | High | Published | Covered by domain walkthroughs | Console product team | 2026-08-21 | Cross-links to collection, payout, integration, and health walkthroughs that reconcile the real evidence and never retry, replay, post, or move money |
+| Troubleshooting | Prepare a useful support ticket | `troubleshooting.prepare-support-ticket` | Medium | Published | Published | Console product team | 2026-08-21 | Walkthrough explains evidence, priority, attachments, and privacy on the real ticket form, never reads fields or files, and stops before Create ticket |
 
 ## F1 completion record
 
@@ -374,3 +379,41 @@ at the point of decision. A walkthrough would also have to highlight a control
 that lives on fifteen different screens rather than one route, so its stable
 `data-guide` target would be the drawer it cannot open without first choosing a
 screen. Revisit if quick export gains column selection or scheduling.
+
+## C12 completion record
+
+- Seven task-sized troubleshooting guides now cover access, account and invitation,
+  list and download behaviour, import and export failures, stalled workflows and
+  record statuses, payment and provider health, and support-ticket preparation.
+- Cross-links connect each failure class to the existing permission-aware domain
+  guide that owns the detailed workflow. Restricted finance, procurement, import,
+  export, and platform titles remain hidden without at least one relevant view
+  permission.
+- Recovery guidance starts with evidence and classification. It blocks duplicate
+  imports, payments, payouts, postings, retries, replays, approvals, and status
+  bypasses until the original outcome is proven.
+- The support-ticket walkthrough uses stable targets for the issue, classification,
+  attachments, and submit boundary. It never reads a field, attaches a file, or
+  creates a ticket, and it stops before the consequential action.
+- High-risk generic troubleshooting does not duplicate the existing domain
+  walkthroughs. The ledger records which real workflow walkthroughs carry each
+  safety boundary and why a second generic tour would be less accurate.
+
+## C12 completion record
+
+- Seven task-sized troubleshooting guides now cover access, account and invitation,
+  list and download behaviour, import and export failures, stalled workflows and
+  record statuses, payment and provider health, and support-ticket preparation.
+- Cross-links connect each failure class to the existing permission-aware domain
+  guide that owns the detailed workflow. Restricted finance, procurement, import,
+  export, and platform titles remain hidden without at least one relevant view
+  permission.
+- Recovery guidance starts with evidence and classification. It blocks duplicate
+  imports, payments, payouts, postings, retries, replays, approvals, and status
+  bypasses until the original outcome is proven.
+- The support-ticket walkthrough uses stable targets for the issue, classification,
+  attachments, and submit boundary. It never reads a field, attaches a file, or
+  creates a ticket, and it stops before the consequential action.
+- High-risk generic troubleshooting does not duplicate the existing domain
+  walkthroughs. The ledger records which real workflow walkthroughs carry each
+  safety boundary and why a second generic tour would be less accurate.

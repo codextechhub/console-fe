@@ -118,29 +118,31 @@ export function CreateTicketForm({
   };
 
   return (
-    <form onSubmit={submit} className="space-y-3.5">
-      <label className="grid gap-1.5 text-xs font-semibold text-black-01">
-        Title
-        <Input
-          required
-          autoFocus
-          placeholder="Briefly describe the issue"
-          value={draft.title}
-          onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
-        />
-      </label>
-      <label className="grid gap-1.5 text-xs font-semibold text-black-01">
-        Description
-        <Textarea
-          required
-          rows={5}
-          placeholder="What happened, what did you expect, and what have you tried?"
-          className="max-h-40 min-h-28 resize-y bg-white"
-          value={draft.description}
-          onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))}
-        />
-      </label>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <form onSubmit={submit} className="space-y-3.5" data-guide="support-ticket.form">
+      <div className="space-y-3.5" data-guide="support-ticket.issue">
+        <label className="grid gap-1.5 text-xs font-semibold text-black-01">
+          Title
+          <Input
+            required
+            autoFocus
+            placeholder="Briefly describe the issue"
+            value={draft.title}
+            onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
+          />
+        </label>
+        <label className="grid gap-1.5 text-xs font-semibold text-black-01">
+          Description
+          <Textarea
+            required
+            rows={5}
+            placeholder="What happened, what did you expect, and what have you tried?"
+            className="max-h-40 min-h-28 resize-y bg-white"
+            value={draft.description}
+            onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))}
+          />
+        </label>
+      </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" data-guide="support-ticket.classification">
         <label className="grid gap-1.5 text-xs font-semibold text-black-01">
           Category
           <NativeSelect
@@ -167,7 +169,7 @@ export function CreateTicketForm({
         </label>
       </div>
 
-      <div>
+      <div data-guide="support-ticket.attachments">
         <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-gray-200 bg-white/70 px-3 py-3 text-xs font-medium text-gray-500 transition hover:border-primary/35 hover:bg-primary/[0.025] hover:text-primary">
           <Paperclip className="size-4" />
           Add screenshots or files
@@ -203,7 +205,7 @@ export function CreateTicketForm({
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
+      <div className="flex items-center justify-end gap-2 border-t border-gray-100 pt-3" data-guide="support-ticket.submit-boundary">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={busy}>
           Close
         </Button>

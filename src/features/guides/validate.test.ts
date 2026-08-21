@@ -37,7 +37,8 @@ describe("guide registry validation", () => {
   });
 
   it("requires an article loader before a guide can be published", () => {
-    const invalid = [{ ...GUIDE_REGISTRY.find((guide) => guide.status === "draft")!, status: "published" }] as unknown as readonly GuideRecord[];
+    const { article: _article, ...withoutArticle } = GUIDE_REGISTRY[0];
+    const invalid = [{ ...withoutArticle, status: "published" }] as unknown as readonly GuideRecord[];
 
     expect(validateGuideRegistry(invalid)).toContainEqual(expect.objectContaining({ code: "missing-article" }));
   });

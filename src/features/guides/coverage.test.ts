@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { buildGuideCoverageReport, type GuideCoverageTarget } from "./coverage";
 import { GUIDE_REGISTRY } from "./registry";
+import type { GuideRecord } from "./types";
 import { WALKTHROUGH_REGISTRY } from "./walkthroughs/registry";
+
+const guideRegistry: readonly GuideRecord[] = GUIDE_REGISTRY;
 
 describe("guide coverage reporting", () => {
   it("distinguishes covered targets from missing guides", () => {
@@ -14,8 +17,8 @@ describe("guide coverage reporting", () => {
     expect(buildGuideCoverageReport(GUIDE_REGISTRY, targets)).toMatchObject({
       targetCount: 2,
       coveredTargetCount: 1,
-      publishedGuideCount: GUIDE_REGISTRY.filter((guide) => guide.status === "published").length,
-      draftGuideCount: GUIDE_REGISTRY.filter((guide) => guide.status === "draft").length,
+      publishedGuideCount: guideRegistry.filter((guide) => guide.status === "published").length,
+      draftGuideCount: guideRegistry.filter((guide) => guide.status === "draft").length,
       gaps: [{ targetId: "unknown-flow", kind: "missing-guide" }],
     });
   });

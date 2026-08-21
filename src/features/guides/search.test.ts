@@ -172,6 +172,16 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "download my data")[0]?.guide.id).toBe("account.maintain-profile-and-privacy");
   });
 
+  it("finds C12 troubleshooting by the words users see when work fails", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "button missing")[0]?.guide.id).toBe("troubleshooting.permission-denied");
+    expect(searchGuides(GUIDE_REGISTRY, "unactivated account")[0]?.guide.id).toBe("troubleshooting.account-and-invitation");
+    expect(searchGuides(GUIDE_REGISTRY, "stuck on empty page")[0]?.guide.id).toBe("troubleshooting.search-filter-and-download");
+    expect(searchGuides(GUIDE_REGISTRY, "import partially failed")[0]?.guide.id).toBe("troubleshooting.import-and-export");
+    expect(searchGuides(GUIDE_REGISTRY, "workflow has no approver")[0]?.guide.id).toBe("troubleshooting.stalled-workflow-and-records");
+    expect(searchGuides(GUIDE_REGISTRY, "provider says successful")[0]?.guide.id).toBe("troubleshooting.payment-provider-and-health");
+    expect(searchGuides(GUIDE_REGISTRY, "what to include in ticket")[0]?.guide.id).toBe("troubleshooting.prepare-support-ticket");
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

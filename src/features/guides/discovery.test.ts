@@ -44,17 +44,25 @@ describe("guide discovery", () => {
       "workflow.delegate-and-track",
       "account.secure-account",
       "account.maintain-profile-and-privacy",
+      "troubleshooting.permission-denied",
+      "troubleshooting.account-and-invitation",
+      "troubleshooting.search-filter-and-download",
+      "troubleshooting.prepare-support-ticket",
     ]);
     expect(guidesForAudience(visible, "finance-officer")).toEqual([]);
   });
 
-  it("keeps draft guides out of normal discovery and publishes C11 to every authenticated user", () => {
+  it("keeps draft guides out of normal discovery and publishes universal C11 and C12 help", () => {
     const visible = visibleGuides(GUIDE_REGISTRY, []);
 
     expect(visible.every((guide) => guide.status === "published")).toBe(true);
     expect(visible.map((guide) => guide.id)).toEqual(expect.arrayContaining([
       "account.secure-account",
       "account.maintain-profile-and-privacy",
+      "troubleshooting.permission-denied",
+      "troubleshooting.account-and-invitation",
+      "troubleshooting.search-filter-and-download",
+      "troubleshooting.prepare-support-ticket",
     ]));
   });
 
@@ -187,8 +195,8 @@ describe("guide discovery", () => {
       "workflow.delegate-and-track",
     ]);
     expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.title)).toEqual([
+      "Fix search, filter, pagination, or download results",
       "Maintain your profile and privacy",
-      "Secure your Console account",
     ]);
   });
 });
