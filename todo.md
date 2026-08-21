@@ -1,21 +1,5 @@
 ## Undone (Ask questions for clarity where needed)
 
-# The go-live queue has no list endpoint (found 2026-08-20).
-A CX reviewer cannot see which schools are waiting to go live. `GET
-/v1/onboarding/go-live/` is scoped to `request.tenant` through `rows_for`, and
-unlike approve and reject it does NOT set `platform_cross_tenant_param`. So:
-* `?tenant=codex` returns 200 and is always empty, because the platform tenant
-  never submits a go-live request, and
-* `?tenant=<school>` returns 404 "No tenant matches the requested context",
-  refusing the assertion outright. Same for `/v1/onboarding/state/`.
-Approve and reject DO accept the cross-tenant assertion and work, but they take
-a request id that nothing gives the console a way to discover. Verified against
-the running API, not inferred.
-NOT WORKED AROUND: a "queue" built on this could only ask the operator to type a
-request id. What is needed is either `platform_cross_tenant_param` on the list
-view, or a platform-wide pending-go-live endpoint. The frontend is then one
-screen.
-
 # The school stats endpoint has no suspended count (found 2026-08-20).
 `GET /v1/i/stats/` aggregates all/active/pending/inactive and omits SUSPENDED,
 so the School Management "Suspended Schools" tab counts itself with a second
