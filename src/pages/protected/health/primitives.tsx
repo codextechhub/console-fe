@@ -62,6 +62,7 @@ export function HealthFrame({ children }: { children: React.ReactNode }) {
 export function PageIntro({
   title,
   description,
+  guideTarget,
   range,
   onRange,
   refreshing,
@@ -69,13 +70,14 @@ export function PageIntro({
 }: {
   title: string;
   description: string;
+  guideTarget?: string;
   range?: string;
   onRange?: (range: string) => void;
   refreshing?: boolean;
   onRefresh?: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div data-guide={guideTarget} className="flex flex-wrap items-center justify-between gap-3">
       <div>
         <p className="font-semibold font-mont text-gray-01">{title}</p>
         <p className="text-xs text-gray-01 mt-0.5">{description}</p>

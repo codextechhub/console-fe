@@ -33,6 +33,7 @@ export default function TenantsPage() {
     <PageIntro
       title="Tenant Health"
       description="Compare tenant-level demand, latency, and error signals."
+      guideTarget="platform-health.tenants"
       range={range}
       onRange={setRange}
       onRefresh={query.refetch}

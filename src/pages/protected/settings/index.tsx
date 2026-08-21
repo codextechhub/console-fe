@@ -183,6 +183,7 @@ export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
       activeSection={activeSection}
       sections={visible}
       scopeLabel="Platform-wide"
+      guideTargetPrefix="platform-settings"
     >
       {activeSection === "overview" ? (
         <PlatformOverview
@@ -222,7 +223,7 @@ function PlatformOverview({
     : 0;
 
   return (
-    <div className="space-y-5">
+    <div data-guide="platform-settings.overview" className="space-y-5">
       <SettingsSectionHeader
         title="Configuration overview"
         description="Start with the platform identity and school onboarding defaults, then review access, audit and the low-level catalogue."
@@ -376,7 +377,7 @@ function SchoolOnboarding() {
   );
 
   return (
-    <div className="space-y-5">
+    <div data-guide="platform-settings.school-onboarding" className="space-y-5">
       <SettingsSectionHeader
         title="School onboarding defaults"
         description="These values fill omitted fields when a new school or branch is created. They never rewrite an existing tenant, and an explicit onboarding value always wins."
@@ -755,7 +756,7 @@ function IntegrationSettings() {
 
   const status = query.data?.data.status;
   return (
-    <div className="space-y-5">
+    <div data-guide="platform-settings.integrations" className="space-y-5">
       <SettingsSectionHeader
         title="Integrations and delivery"
         description="Permitted operators can change safe runtime delivery defaults directly. Hosts, API keys, callback URLs and credentials stay deployment-owned."
@@ -766,6 +767,7 @@ function IntegrationSettings() {
           </Button>
         ) : <PolicyBadge kind="enforced">Read only</PolicyBadge>}
       />
+      <div data-guide="platform-settings.integration-email">
       <SettingsPanel title="Outbound email defaults" description="These values affect new sends immediately. Per-message sender names still take precedence.">
         <SettingsRow
           icon={Mail}
@@ -800,6 +802,8 @@ function IntegrationSettings() {
           />
         ))}
       </SettingsPanel>
+      </div>
+      <div data-guide="platform-settings.integration-connections">
       <SettingsPanel title="Deployment-owned connections" description="Readiness is safe to display. Secret values and infrastructure endpoints cannot be changed from the dashboard.">
         <SettingsRow
           icon={Mail}
@@ -817,6 +821,7 @@ function IntegrationSettings() {
         />
         <SettingsRow icon={Network} label="Public application URL" description={status?.public_application.base_url || "Not configured"} badge={<PolicyBadge kind="enforced">Deployment-owned</PolicyBadge>} />
       </SettingsPanel>
+      </div>
     </div>
   );
 }

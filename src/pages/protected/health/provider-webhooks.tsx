@@ -96,6 +96,7 @@ export default function ProviderWebhooksPage() {
       <PageIntro
         title="Provider Webhooks"
         description="Gateway events that matched no collection and no payout, so they belong to no school."
+        guideTarget="platform-health.provider-webhooks"
         onRefresh={refetch}
         refreshing={isFetching}
       />

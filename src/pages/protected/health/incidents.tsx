@@ -40,6 +40,7 @@ export default function IncidentsPage() {
       <PageIntro
         title="Incidents & Alerts"
         description="Coordinate incidents and review the signals that triggered them."
+        guideTarget="platform-health.incidents"
         onRefresh={() => {
           incidents.refetch();
           alerts.refetch();

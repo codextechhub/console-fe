@@ -47,14 +47,16 @@ export default function NotificationsAdmin() {
   return (
     <>
       <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
-        <div>
+        <div data-guide="notifications-admin.heading">
           <p className="font-semibold font-mont text-gray-01">Notification Administration</p>
           <p className="text-xs text-gray-01 mt-0.5">
             Delivery history, channel settings, templates and the event catalogue.
           </p>
         </div>
 
-        <Tabs tabKey="panel" tabs={panels.map((p) => ({ label: PANEL_LABELS[p], value: p }))} />
+        <div data-guide="notifications-admin.tabs">
+          <Tabs tabKey="panel" tabs={panels.map((p) => ({ label: PANEL_LABELS[p], value: p }))} />
+        </div>
 
         {panel === "history" && <HistoryPanel />}
         {panel === "settings" && <SettingsPanel />}

@@ -211,4 +211,18 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts the four high-risk C10 platform operations walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "platform-health", route: "/health", actionId: "view-system-health", risk: "high" },
+      { id: "platform-settings", route: "/settings", actionId: "view-settings", risk: "high" },
+      { id: "notification-administration", route: "/notifications/admin", actionId: "view-notification-administration", risk: "high" },
+      { id: "integration-settings", route: "/settings/integrations", actionId: "view-settings-integrations", risk: "high" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

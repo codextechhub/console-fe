@@ -38,6 +38,7 @@ export function ConsoleSettingsLayout({
   activeSection,
   sections,
   scopeLabel,
+  guideTargetPrefix,
   children,
 }: {
   title: string;
@@ -46,11 +47,12 @@ export function ConsoleSettingsLayout({
   activeSection: string;
   sections: ConsoleSettingsSection[];
   scopeLabel?: string | null;
+  guideTargetPrefix?: string;
   children: ReactNode;
 }) {
   return (
     <main className="min-w-0 space-y-5 px-4.5 pb-6 pt-14 text-black-01 sm:py-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div data-guide={guideTargetPrefix ? `${guideTargetPrefix}.heading` : undefined} className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="font-mont text-xl font-semibold text-gray-01">{title}</h1>
           <p className="mt-1 max-w-3xl font-mont text-xs leading-5 text-gray-05">{description}</p>
@@ -64,7 +66,7 @@ export function ConsoleSettingsLayout({
       </div>
 
       <div className="grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[220px_minmax(0,1fr)]">
-        <nav aria-label={`${title} sections`} className="min-w-0">
+        <nav data-guide={guideTargetPrefix ? `${guideTargetPrefix}.sections` : undefined} aria-label={`${title} sections`} className="min-w-0">
           <div className="flex max-w-full gap-2 overflow-x-auto pb-1 xl:sticky xl:top-4 xl:block xl:space-y-1 xl:overflow-visible xl:rounded-xl xl:border xl:border-gray-03 xl:bg-white xl:p-2">
             {sections.map((section) => {
               const Icon = section.icon;
@@ -93,7 +95,7 @@ export function ConsoleSettingsLayout({
           </div>
         </nav>
 
-        <section className="min-w-0">{children}</section>
+        <section data-guide={guideTargetPrefix ? `${guideTargetPrefix}.content` : undefined} className="min-w-0">{children}</section>
       </div>
     </main>
   );

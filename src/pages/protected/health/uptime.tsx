@@ -24,6 +24,7 @@ export default function UptimePage() {
     <PageIntro
       title="Uptime"
       description="Availability, response time, and certificate health."
+      guideTarget="platform-health.uptime"
       onRefresh={query.refetch}
       refreshing={query.isFetching}
     />

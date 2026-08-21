@@ -158,6 +158,13 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "retention rule")[0]?.guide.id).toBe("audit.export-and-compliance");
   });
 
+  it("finds C10 workflows using health, configuration, notification, and integration language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "stuck job")[0]?.guide.id).toBe("platform.investigate-health");
+    expect(searchGuides(GUIDE_REGISTRY, "new school defaults")[0]?.guide.id).toBe("platform.configure-platform");
+    expect(searchGuides(GUIDE_REGISTRY, "change email template")[0]?.guide.id).toBe("platform.administer-notifications");
+    expect(searchGuides(GUIDE_REGISTRY, "test SMTP")[0]?.guide.id).toBe("platform.manage-integrations");
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

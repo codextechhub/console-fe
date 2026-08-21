@@ -37,6 +37,7 @@ export default function JobsPage() {
       <PageIntro
         title="Jobs & Queues"
         description="Background processing, queue pressure, workers, and failures."
+        guideTarget="platform-health.jobs"
         onRefresh={() => {
           queues.refetch();
           tasks.refetch();

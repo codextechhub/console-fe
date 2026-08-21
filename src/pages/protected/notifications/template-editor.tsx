@@ -102,7 +102,7 @@ function CreateTemplate() {
   if (isLoading) return <PageBusy />;
 
   return (
-    <main className="min-w-0 px-4.5 py-6 text-black-01">
+    <main data-guide="notifications-admin.template-new" className="min-w-0 px-4.5 py-6 text-black-01">
       <BackLink />
       <h1 className="mt-3 font-mont text-lg font-semibold">New notification template</h1>
       <p className="mt-1 max-w-2xl text-xs leading-5 text-gray-01">
@@ -241,7 +241,7 @@ function Editor({ template }: { template: NotificationTemplate }) {
   };
 
   return (
-    <main className="min-w-0 px-4.5 py-5 text-black-01">
+    <main data-guide="notifications-admin.template-editor" className="min-w-0 px-4.5 py-5 text-black-01">
       {/* Header: identity, state, save. Deliberately tight - the work is below. */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">

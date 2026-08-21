@@ -18,6 +18,7 @@ export default function SlosPage() {
     <PageIntro
       title="Service Level Objectives"
       description="Reliability attainment and remaining error budgets per service."
+      guideTarget="platform-health.slos"
       onRefresh={query.refetch}
       refreshing={query.isFetching}
     />

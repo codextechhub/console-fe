@@ -79,6 +79,18 @@ describe("contextual guides", () => {
 
     const auditExports = contextualGuideContext(GUIDE_REGISTRY, "/audit/exports", [resolvePermissionKey(P.EXPORT_AUDIT)]);
     expect(auditExports.guides.map((guide) => guide.id)).toContain("audit.export-and-compliance");
+
+    const health = contextualGuideContext(GUIDE_REGISTRY, "/health/jobs", [resolvePermissionKey(P.VIEW_HEALTH)]);
+    expect(health.guides.map((guide) => guide.id)).toContain("platform.investigate-health");
+
+    const platformSettings = contextualGuideContext(GUIDE_REGISTRY, "/settings/school-onboarding", [resolvePermissionKey(P.VIEW_CONFIG_VALUES)]);
+    expect(platformSettings.guides.map((guide) => guide.id)).toContain("platform.configure-platform");
+
+    const notificationTemplates = contextualGuideContext(GUIDE_REGISTRY, "/notifications/admin/templates/4831", [resolvePermissionKey(P.CONFIGURE_NOTIFICATION_TEMPLATES)]);
+    expect(notificationTemplates.guides.map((guide) => guide.id)).toContain("platform.administer-notifications");
+
+    const integrations = contextualGuideContext(GUIDE_REGISTRY, "/settings/integrations", [resolvePermissionKey(P.VIEW_INTEGRATION_SETTINGS)]);
+    expect(integrations.guides.map((guide) => guide.id)).toContain("platform.manage-integrations");
   });
 
   it("resolves the current article by slug", () => {

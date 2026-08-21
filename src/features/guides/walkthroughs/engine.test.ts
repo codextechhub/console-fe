@@ -165,6 +165,19 @@ describe("walkthrough engine", () => {
     expect(walkthroughStepRoute(compliance!, "rule-form")).toBe("/audit/compliance-rules/create");
   });
 
+  it("maps C10 walkthroughs across read-only platform operations screens", () => {
+    const health = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.platform.investigate-health");
+    const settings = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.platform.configure-platform");
+    const notifications = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.platform.administer-notifications");
+    const integrations = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.platform.manage-integrations");
+
+    expect(walkthroughStepRoute(health!, "jobs")).toBe("/health/jobs");
+    expect(walkthroughStepRoute(health!, "slos")).toBe("/health/slos");
+    expect(walkthroughStepRoute(settings!, "onboarding")).toBe("/settings/school-onboarding");
+    expect(walkthroughStepRoute(notifications!, "new-template")).toBe("/notifications/admin/templates/new");
+    expect(walkthroughStepRoute(integrations!, "connections")).toBe("/settings/integrations");
+  });
+
   it("maps every school wizard explanation to its matching view and target", () => {
     const schoolWalkthrough = WALKTHROUGH_REGISTRY.find(
       (item) => item.id === "walkthrough.schools.create-and-configure",

@@ -151,6 +151,18 @@ describe("guide discovery", () => {
     expect(visibleGuides(GUIDE_REGISTRY, ruleManager).map((guide) => guide.id)).toContain("audit.export-and-compliance");
   });
 
+  it("publishes C10 guides only inside the caller's platform operations permissions", () => {
+    const healthReader = [resolvePermissionKey(P.VIEW_HEALTH)];
+    const configReader = [resolvePermissionKey(P.VIEW_CONFIG_VALUES)];
+    const notificationAdmin = [resolvePermissionKey(P.CONFIGURE_NOTIFICATION_TEMPLATES)];
+    const integrationReader = [resolvePermissionKey(P.VIEW_INTEGRATION_SETTINGS)];
+
+    expect(visibleGuides(GUIDE_REGISTRY, healthReader).map((guide) => guide.id)).toContain("platform.investigate-health");
+    expect(visibleGuides(GUIDE_REGISTRY, configReader).map((guide) => guide.id)).toContain("platform.configure-platform");
+    expect(visibleGuides(GUIDE_REGISTRY, notificationAdmin).map((guide) => guide.id)).toContain("platform.administer-notifications");
+    expect(visibleGuides(GUIDE_REGISTRY, integrationReader).map((guide) => guide.id)).toContain("platform.manage-integrations");
+  });
+
   it("chooses one focused landing layout for each filter state", () => {
     expect(guideLandingView({ category: null, audience: null, query: "" })).toBe("browse");
     expect(guideLandingView({ category: null, audience: "approver", query: "" })).toBe("audience-results");

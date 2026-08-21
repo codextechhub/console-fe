@@ -46,6 +46,7 @@ export default function CommandCenter() {
     <PageIntro
       title="Command Center"
       description="A live, unified view of platform reliability."
+      guideTarget="platform-health.command-center"
       range={range}
       onRange={setRange}
       onRefresh={query.refetch}
@@ -75,6 +76,7 @@ export default function CommandCenter() {
 
       {/* Posture banner */}
       <div
+        data-guide="platform-health.posture"
         className={cn(
           "flex items-center justify-between rounded-md border px-5 py-4",
           operational ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50",
@@ -149,7 +151,7 @@ export default function CommandCenter() {
       </div>
 
       {/* Service grid */}
-      <section>
+      <section data-guide="platform-health.services">
         <div className="mb-3">
           <h2 className="font-mont font-semibold">Service health</h2>
           <p className="text-xs text-gray-01">Select a service to inspect uptime and recent alerts</p>

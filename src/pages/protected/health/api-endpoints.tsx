@@ -72,6 +72,7 @@ export default function ApiPage() {
     <PageIntro
       title="API & Endpoints"
       description="Latency, request volume, errors, and throttling by route."
+      guideTarget="platform-health.api-endpoints"
       range={range}
       onRange={setRange}
       onRefresh={query.refetch}

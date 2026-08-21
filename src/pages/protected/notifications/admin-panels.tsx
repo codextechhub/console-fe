@@ -82,7 +82,7 @@ export function HistoryPanel() {
   }));
 
   return (
-    <div className="space-y-5">
+    <div data-guide="notifications-admin.history" className="space-y-5">
       {/* Filters float on the page background, house-style. */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-full sm:max-w-[280px]">
@@ -159,7 +159,7 @@ export function SettingsPanel() {
   if (q.isLoading) return <Busy />;
 
   return (
-    <div className="divide-y divide-white-02 rounded-md bg-white">
+    <div data-guide="notifications-admin.settings" className="divide-y divide-white-02 rounded-md bg-white">
       {Object.entries(grouped).map(([module, rows]) => (
         <div key={module} className="p-5">
           <h3 className="font-mont font-semibold">{label(module)}</h3>
@@ -219,7 +219,7 @@ export function TemplatesPanel() {
   const rows = q.data?.data ?? [];
 
   return (
-    <div className="space-y-4">
+    <div data-guide="notifications-admin.templates" className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Input
           className="h-10 w-full bg-white sm:max-w-[280px]"
@@ -294,7 +294,7 @@ export function EventsPanel() {
   if (q.isLoading) return <Busy />;
 
   return (
-    <div className="divide-y divide-white-02 rounded-md bg-white">
+    <div data-guide="notifications-admin.events" className="divide-y divide-white-02 rounded-md bg-white">
       {Object.entries(grouped).map(([module, events]) => (
         <div className="p-5" key={module}>
           <h3 className="font-mont font-semibold">{label(module)}</h3>
