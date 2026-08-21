@@ -210,18 +210,13 @@ describe("Main sidebar visibility", () => {
   });
 });
 
-const SUPER_ADMIN = [
-  ...keys(
-    P.BROWSE_SCHOOLS, P.ACCESS_TEAM_PANEL, P.MANAGE_ORGANOGRAM, P.VIEW_ROLES,
-    P.MODIFY_ROLE, P.TRANSFER_SUPER_ADMIN, P.VIEW_PERMISSIONS,
-    P.VIEW_IMPORT_BATCHES, P.VIEW_IMPORT_TEMPLATES, P.VIEW_SAVED_EXPORTS,
-    P.VIEW_EXPORT_RUNS, P.VIEW_WORKFLOW_INSTANCES, P.VIEW_APPROVER_GROUPS,
-    P.VIEW_WORKFLOW_TEMPLATES, P.VIEW_AUDIT, P.EXPORT_AUDIT, P.MANAGE_AUDIT,
-    P.VIEW_HEALTH, P.PAY_VIEW_UNATTRIBUTED_WEBHOOKS,
-    P.AUDIT_NOTIFICATION_ACTIVITY, P.ENFORCE_NOTIFICATION_SETTINGS,
-    P.CONFIGURE_NOTIFICATION_TEMPLATES, P.VIEW_CONFIG_VALUES,
-    P.VIEW_REQUIREMENTS_DOCS, P.VIEW_GO_LIVE,
-  ),
-  "finance.report.view",
-  "procurement.requisition.view",
-];
+/**
+ * Every key the console knows about, derived rather than listed.
+ *
+ * It used to be a hand-written set, which made "shows everything to a super
+ * admin" a promise the fixture could not keep: a nav entry gated on a key
+ * nobody had thought to add was simply absent from the snapshot, and absent is
+ * exactly what this test cannot distinguish from correct. Deriving it means a
+ * new entry appears in the diff the moment it exists.
+ */
+const SUPER_ADMIN = Object.values(P).map((code) => resolvePermissionKey(code));

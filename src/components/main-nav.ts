@@ -21,6 +21,24 @@
 //     whether the entry appears at all; a child's `permission` decides that child.
 //     `modulePrefixes` gates by raw backend key prefix, for whole-console entries
 //     where one specific key would be too narrow.
+//
+// ── Adding a destination touches four other places ───────────────────────────
+//
+// None of them is optional and none of them announces itself: each is enforced
+// by a different test, so the first you hear of the list is three unrelated
+// failures. Written down here because this file is where you start.
+//
+//   1. `lib/action-palette/registry.ts` - an action for the new destination.
+//      `main-registry.test.ts` asserts every Main nav destination has one, so
+//      the palette can never fall behind the sidebar.
+//   2. `features/guides/route-catalog.ts` - the route, or any guide that maps
+//      to it fails validation as an unknown product route.
+//   3. The guide record in `features/guides/registry.ts` - add the route to
+//      `routes` and the action to `actionIds`, or contextual help on the new
+//      screen offers nothing.
+//   4. `components/__snapshots__/app-sidebar.test.tsx.snap` - review the diff
+//      before updating. A gated child that does NOT appear for a profile is
+//      the assertion working, not a snapshot to be overwritten.
 
 import type { ElementType } from "react";
 import {
