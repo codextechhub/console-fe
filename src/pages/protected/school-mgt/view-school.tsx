@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { useReinstateSchoolMutation } from "@/redux/services/dashboard/onboarding-api";
+import { useSetSchoolServiceStateMutation } from "@/redux/services/dashboard/school-mgt-api";
+import { Textarea } from "@/components/ui/textarea";
 import type { BranchDetail } from "@/redux/services/dashboard/school-types";
 import { routesPath } from "@/routes/routes-path";
 import { useLogRecentOpen } from "@/hooks/use-log-recent-open";
@@ -28,6 +30,8 @@ import {
   MapPin,
   PackageCheck,
   Pencil,
+  PauseCircle,
+  PlayCircle,
   Plus,
   RotateCcw,
   ScrollText,
@@ -129,6 +133,9 @@ export default function ViewSchool() {
   const [search, setSearch] = useState("");
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const [confirmReinstate, setConfirmReinstate] = useState(false);
+  // null when no service-state change is being confirmed.
+  const [serviceMove, setServiceMove] = useState<"ACTIVE" | "INACTIVE" | null>(null);
+  const [serviceReason, setServiceReason] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
@@ -137,6 +144,40 @@ export default function ViewSchool() {
 
   const { data, isLoading, isError, error, refetch } = useGetSchoolDetailQuery(slug ?? "", { skip: !slug });
   const [reinstateSchool, { isLoading: reinstating }] = useReinstateSchoolMutation();
+  const [setServiceState, { isLoading: changingService }] = useSetSchoolServiceStateMutation();
+
+  // The backend refuses a blank reason on the way out, so the button does too
+  // rather than sending a call that can only come back as an error. Coming back
+  // needs none: somebody asks why a school went dark, not why it returned.
+  const serviceReasonMissing = serviceMove === "INACTIVE" && !serviceReason.trim();
+
+  const closeServiceMove = () => {
+    setServiceMove(null);
+    setServiceReason("");
+  };
+
+  const applyServiceMove = () => {
+    if (!serviceMove || serviceReasonMissing) return;
+    setServiceState({
+      slug: slug ?? "",
+      to_state: serviceMove,
+      reason: serviceReason.trim(),
+    })
+      .unwrap()
+      .then(() => {
+        const wentDark = serviceMove === "INACTIVE";
+        closeServiceMove();
+        toast.success(
+          wentDark
+            ? `${data?.data?.name ?? "The school"} is out of service. Its users can no longer sign in.`
+            : `${data?.data?.name ?? "The school"} is back in service.`,
+        );
+      })
+      .catch(() => {
+        // The interceptor shows the backend's own refusal; the dialog stays
+        // open beneath it so the reader sees it against what they attempted.
+      });
+  };
 
   const reinstate = () => {
     reinstateSchool(slug ?? "")
@@ -287,6 +328,24 @@ export default function ViewSchool() {
                   <PermissionGate permission={P.REINSTATE_SCHOOL}>
                     <Button variant="outline" onClick={() => setConfirmReinstate(true)}>
                       <RotateCcw className="size-4" /> Return to Onboarding
+                    </Button>
+                  </PermissionGate>
+                )}
+                {/* ACTIVE and INACTIVE are the only two this endpoint owns. A
+                    school still onboarding, or suspended by the sweep, is not
+                    the console's to switch off here - the backend refuses both,
+                    and Return to Onboarding above is the suspended case. */}
+                {school.status === "ACTIVE" && (
+                  <PermissionGate permission={P.MANAGE_SCHOOL}>
+                    <Button variant="outline-dest" onClick={() => { setServiceReason(""); setServiceMove("INACTIVE"); }}>
+                      <PauseCircle className="size-4" /> Take Out of Service
+                    </Button>
+                  </PermissionGate>
+                )}
+                {school.status === "INACTIVE" && (
+                  <PermissionGate permission={P.MANAGE_SCHOOL}>
+                    <Button variant="outline" onClick={() => { setServiceReason(""); setServiceMove("ACTIVE"); }}>
+                      <PlayCircle className="size-4" /> Return to Service
                     </Button>
                   </PermissionGate>
                 )}
@@ -509,6 +568,67 @@ export default function ViewSchool() {
         onClose={() => setBulkImportOpen(false)}
         onFinished={() => { void refetch(); }}
       />
+
+      <AlertDialog open={!!serviceMove} onOpenChange={(open) => !open && closeServiceMove()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {serviceMove === "INACTIVE"
+                ? `Take ${data?.data?.name ?? "this school"} out of service?`
+                : `Return ${data?.data?.name ?? "this school"} to service?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {serviceMove === "INACTIVE" ? (
+                <>
+                  Every account at this school stops being able to sign in, at
+                  once. Nothing is deleted: its branches keep their own statuses,
+                  so returning it to service restores exactly the arrangement it
+                  has now, including which branch is main.
+                </>
+              ) : (
+                <>
+                  Its administrators and staff can sign in again, and the school
+                  resumes with the branches it had when it went out of service.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {serviceMove === "INACTIVE" && (
+            <div className="space-y-1.5">
+              <label htmlFor="service-reason" className="text-sm text-black-01">
+                Reason <span className="pl-1.5 text-error">*</span>
+              </label>
+              <Textarea
+                id="service-reason"
+                rows={3}
+                placeholder="Why this school is being taken out of service"
+                value={serviceReason}
+                onChange={(e) => setServiceReason(e.target.value)}
+              />
+              <p className="font-mont text-[11px] leading-4 text-gray-01">
+                Written into the school&apos;s audit trail. It is the first thing
+                anybody asks after a school goes dark.
+              </p>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={changingService}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => { event.preventDefault(); applyServiceMove(); }}
+              disabled={changingService || serviceReasonMissing}
+              className={serviceMove === "INACTIVE" ? "bg-destructive text-white hover:bg-destructive/90" : undefined}
+            >
+              {changingService
+                ? "Saving..."
+                : serviceMove === "INACTIVE"
+                  ? "Take out of service"
+                  : "Return to service"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={confirmReinstate} onOpenChange={(open) => !open && setConfirmReinstate(false)}>
         <AlertDialogContent>

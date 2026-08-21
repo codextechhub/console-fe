@@ -431,9 +431,18 @@ Sectioned console at `/procurement/settings/:section`, sub-nav gated by prefix `
 | Element | Type | Permission Constant |
 |---|---|---|
 | "Return to Onboarding" button (SUSPENDED schools only) | `<PermissionGate>` | `P.REINSTATE_SCHOOL` |
+| "Take Out of Service" button (ACTIVE schools only) | `<PermissionGate>` | `P.MANAGE_SCHOOL` |
+| "Return to Service" button (INACTIVE schools only) | `<PermissionGate>` | `P.MANAGE_SCHOOL` |
 | "Audit Trail" button | `<PermissionGate>` | `P.VIEW_AUDIT` |
 | "Edit School" button | `<PermissionGate>` | `P.MODIFY_SCHOOL` |
 
+> The two service-state actions map to `platform.schools.manage`, which the
+> backend pairs with a platform-staff check: the key is namespaced `platform.`
+> but nothing stops it being attached to a role inside a school, and a school
+> must never switch itself off. Each is shown only for the status it applies to,
+> because ACTIVE and INACTIVE are the only two that endpoint owns - a suspended
+> school is Return to Onboarding's case, not this one.
+>
 > `P.REINSTATE_SCHOOL` maps to `onboarding.progress.reactivate`, the first
 > `onboarding.*` key this registry carries. The backend seeds it to
 > `xvs_super_admin` and `xvs_platform_admin` via `seed_onboarding_permissions`,

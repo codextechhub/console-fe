@@ -488,7 +488,7 @@ export const P = {
   ONBOARD_SCHOOL:       "100102",  // register and add a new school
   MODIFY_SCHOOL:        "100103",  // edit school info and settings
   DECOMMISSION_SCHOOL:  "100104",  // permanently remove a school record
-  MANAGE_SCHOOL:        "100108",  // reset config, manage school-level settings
+  MANAGE_SCHOOL:        "100108",  // reset config, take a school out of service
 
   // ── Branch Management ──────────────────────────────────────────────────────
   BROWSE_BRANCHES:      "100201",  // view branches under a school

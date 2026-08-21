@@ -95,6 +95,31 @@ export const schoolMgtApi = baseApi.injectEndpoints({
       ],
     }),
 
+    /**
+     * Take a live school out of service, or bring an inactive one back.
+     *
+     * The action the branch lifecycle points at: a school's last branch cannot
+     * leave service, and the refusal says to deactivate the school instead.
+     *
+     * INACTIVE and ACTIVE only. SUSPENDED is not this endpoint's to write - it
+     * means the onboarding sweep gave up, and reinstateSchool is what undoes
+     * that - so the backend refuses it as a field error.
+     */
+    setSchoolServiceState: builder.mutation<
+      SchoolDetailRes,
+      { slug: string; to_state: "ACTIVE" | "INACTIVE"; reason?: string }
+    >({
+      query: ({ slug, to_state, reason }) => ({
+        url: `/i/${slug}/service-state/`,
+        method: "POST",
+        body: { to_state, ...(reason ? { reason } : {}) },
+      }),
+      invalidatesTags: (_res, _err, { slug }) => [
+        "Schools",
+        { type: "Schools", id: slug },
+      ],
+    }),
+
     transitionBranch: builder.mutation<BranchDetailRes, { slug: string; code: number; to_state: string; reason?: string }>({
       query: ({ slug, code, to_state, reason }) => ({
         url: `/i/${slug}/branches/${code}/transition/`,
@@ -130,6 +155,7 @@ export const {
   useGetBranchDetailQuery,
   useCreateBranchMutation,
   useUpdateBranchMutation,
+  useSetSchoolServiceStateMutation,
   useTransitionBranchMutation,
   useGetPackagePlansQuery,
   useGetModulesQuery,
