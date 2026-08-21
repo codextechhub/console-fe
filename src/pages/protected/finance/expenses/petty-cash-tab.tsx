@@ -62,18 +62,18 @@ export function PettyCashTab({ entity, currency }: { entity: string; currency?: 
   if (isLoading) return <div className="py-10 text-center font-mont text-sm text-gray-05">Loading…</div>;
   if (funds.length === 0) {
     return (
-      <>
+      <div data-guide="finance-petty-cash.empty">
         <EmptyState title="No petty-cash floats" message="Establish a float - set it up and fund it in one step." />
         <div className="mt-3 flex justify-center">
           <Can permission={P.FIN_ESTABLISH_PETTY_CASH}><Button onClick={() => setEstablishing(true)} className="gap-1.5"><ArrowDownToLine className="size-4" /> Establish float</Button></Can>
         </div>
         {establishDrawer}
-      </>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-guide="finance-petty-cash.workbench">
       <div className="flex flex-wrap items-center gap-2">
         <select value={fund?.id ?? ""} onChange={(e) => setFundId(Number(e.target.value))}
           className="h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
@@ -129,7 +129,7 @@ function FundWorkbench({ fund, entity, currency, onEstablish }: { fund: PettyCas
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="finance-petty-cash.summary">
         <Kpi label="Float ceiling" value={formatMoney(fund.float_amount, currency)} />
         <Kpi label="Current balance" value={formatMoney(fund.current_balance, currency)} hint="Cash on hand" />
         <Kpi label="Spent (this week)" value={formatMoney(detail?.spent_this_week ?? 0, currency)} />

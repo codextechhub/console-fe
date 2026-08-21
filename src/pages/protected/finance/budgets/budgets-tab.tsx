@@ -95,8 +95,8 @@ export function BudgetsTab({ entity, currency }: { entity: string; currency?: st
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-5" data-guide="finance-budgets.workbench">
+      <div className="flex flex-wrap items-center justify-between gap-3" data-guide="finance-budgets.controls">
         <p className="max-w-2xl font-mont text-xs text-gray-05">
           A budget is a plan in the same shape as your chart of accounts - one line per income/expense GL × cost centre × period. The system compares it to live postings; red cells in the heatmap are overruns.
         </p>

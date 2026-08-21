@@ -120,6 +120,17 @@ describe("guide search", () => {
     );
   });
 
+  it("finds C6c workflows using payroll, operations, tax, and provider language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "pay salaries")[0]?.guide.id).toBe("finance.run-payroll");
+    expect(searchGuides(GUIDE_REGISTRY, "employee reimbursement")[0]?.guide.id).toBe("finance.submit-and-settle-expense-claim");
+    expect(searchGuides(GUIDE_REGISTRY, "replenish float")[0]?.guide.id).toBe("finance.manage-petty-cash");
+    expect(searchGuides(GUIDE_REGISTRY, "budget heatmap")[0]?.guide.id).toBe("finance.build-and-approve-budget");
+    expect(searchGuides(GUIDE_REGISTRY, "dispose asset")[0]?.guide.id).toBe("finance.manage-fixed-assets");
+    expect(searchGuides(GUIDE_REGISTRY, "partial tax payment")[0]?.guide.id).toBe("finance.file-and-pay-tax");
+    expect(searchGuides(GUIDE_REGISTRY, "customer paid online")[0]?.guide.id).toBe("finance.collect-online-payments");
+    expect(searchGuides(GUIDE_REGISTRY, "payout failed")[0]?.guide.id).toBe("finance.send-payouts-and-resolve-settlements");
+  });
+
   it("respects the caller's visibility boundary and result limit", () => {
     const publicSubset = GUIDE_REGISTRY.filter((guide) => guide.access.mode === "authenticated");
     const results = searchGuides(publicSubset, "account", 1);

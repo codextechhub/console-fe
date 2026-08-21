@@ -99,15 +99,15 @@ export function CollectionsTab({ entity, currency }: { entity: string; currency?
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-5" data-guide="finance-collections.workbench">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="finance-collections.summary">
         <KpiCard label="Collected (settled)" value={formatMoney(s?.collected.kobo ?? 0, currency)} foot="Confirmed receipts" />
         <KpiCard label="Pending" value={formatMoney(s?.pending.kobo ?? 0, currency)} foot="Awaiting payment" />
         <KpiCard label="Failed" value={formatMoney(s?.failed.kobo ?? 0, currency)} tone={(s?.failed.kobo ?? 0) > 0 ? "warn" : "default"} />
         <KpiCard label="Success rate" value={s?.success_rate == null ? "-" : `${s.success_rate}%`} foot="Settled ÷ completed" />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3" data-guide="finance-collections.controls">
         <div className="flex flex-wrap items-center gap-2">
           <Select value={group} onChange={(value) => { setGroup(value); setPage(1); }} className="w-36">
             <option value="">All status</option>
@@ -314,4 +314,3 @@ function NewCheckoutDrawer({ open, onClose, entity, currency }: { open: boolean;
     </DetailDrawer>
   );
 }
-

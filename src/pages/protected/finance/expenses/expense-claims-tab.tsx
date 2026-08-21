@@ -101,15 +101,15 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
   ];
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-4" data-guide="finance-expense-claims.workbench">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="finance-expense-claims.summary">
         <Kpi label="Open claims" value={String(kpis.open)} hint="Draft or awaiting payment" />
         <Kpi label="Submitted this month" value={formatMoney(kpis.month_total, currency)} />
         <Kpi label="Average claim" value={formatMoney(kpis.avg, currency)} />
         <Kpi label="Awaiting payment" value={formatMoney(kpis.awaiting, currency)} hint="Approved, not yet reimbursed" />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3" data-guide="finance-expense-claims.controls">
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />

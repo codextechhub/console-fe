@@ -23,8 +23,11 @@ export default function BudgetsAssetsTaxPage({ section = DEFAULT_BUDGETS_SECTION
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
+      <main
+        className="min-w-0 space-y-5 px-4.5 py-6 text-black-01"
+        data-guide={`finance-${section}.workspace`}
+      >
+        <div data-guide={`finance-${section}.heading`}>
           <h1 className="font-mont text-lg font-semibold text-gray-01">{meta.title}</h1>
           {meta.sub ? <p className="mt-0.5 font-mont text-xs text-gray-05">{meta.sub}</p> : null}
         </div>

@@ -126,4 +126,22 @@ describe("guide coverage reporting", () => {
       new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
     ).gaps).toEqual([]);
   });
+
+  it("counts the eight high-risk C6c finance and payment walkthroughs", () => {
+    const targets: GuideCoverageTarget[] = [
+      { id: "payroll", route: "/finance/payroll", actionId: "create-payroll-run", risk: "high" },
+      { id: "expense-claim", route: "/finance/expenses/claims", actionId: "create-expense-claim", risk: "high" },
+      { id: "petty-cash", route: "/finance/expenses/petty-cash", actionId: "new-petty-cash-voucher", risk: "high" },
+      { id: "budget", route: "/finance/budgets/budgets", actionId: "create-budget", risk: "high" },
+      { id: "fixed-asset", route: "/finance/budgets/assets", actionId: "create-fixed-asset", risk: "high" },
+      { id: "tax", route: "/finance/budgets/tax", actionId: "view-tax-remittance", risk: "high" },
+      { id: "collection", route: "/finance/collections", actionId: "view-collections", risk: "high" },
+      { id: "payout", route: "/finance/payments/payouts", actionId: "new-payout", risk: "high" },
+    ];
+    expect(buildGuideCoverageReport(
+      GUIDE_REGISTRY,
+      targets,
+      new Set(WALKTHROUGH_REGISTRY.map((walkthrough) => walkthrough.id)),
+    ).gaps).toEqual([]);
+  });
 });

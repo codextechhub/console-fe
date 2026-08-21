@@ -86,7 +86,7 @@ export function VirtualAccountsTab({ entity, currency }: { entity: string; curre
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-guide="finance-virtual-accounts.workbench">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi label="Active accounts" value={String(kpis?.active ?? 0)} hint="Open for transfers" />
         <Kpi label="Inactive" value={String(kpis?.inactive ?? 0)} />

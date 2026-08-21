@@ -82,15 +82,15 @@ export function TaxTab({ entity, currency }: { entity: string; currency?: string
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-5" data-guide="finance-tax.workbench">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="finance-tax.summary">
         <KpiCard label="Total outstanding" value={formatMoney(kpis.outstanding, currency)} tone={kpis.outstanding > 0 ? "alert" : "default"} foot="Filed/open, not yet remitted" />
         <KpiCard label="Open" value={String(kpis.open)} foot="Prepared, not filed" />
         <KpiCard label="Filed, awaiting payment" value={String(kpis.filed)} />
         <KpiCard label="Paid" value={String(kpis.paid)} />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3" data-guide="finance-tax.controls">
         <Select value={status} onChange={(v) => { setStatus(v); setPage(1); }} className="w-40">
           <option value="">All status</option>
           {Object.entries(STATUS).map(([v, s]) => <option key={v} value={v}>{s.label}</option>)}

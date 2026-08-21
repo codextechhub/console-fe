@@ -197,7 +197,7 @@ function SettlementDrawer({ picked, currency, onClose }: { picked: Picked | null
       <DetailDrawer open onOpenChange={(o) => (o ? undefined : onClose())}
         title={b.reference || b.description || "Bank line"} description={`Unexplained · ${signed(b.amount, currency)}`} widthClass="sm:max-w-md"
         footer={<span className={cn(PILL, "bg-amber-50 text-amber-700")}>No gateway record</span>}>
-        <div className="space-y-4">
+    <div className="space-y-4" data-guide="finance-settlement.workbench">
           <Section title="Bank statement line">
             <Field label="Date" mono>{fmtDate(b.txn_date)}</Field>
             <Field label="Description">{b.description || "-"}</Field>
@@ -258,4 +258,3 @@ function SettlementDrawer({ picked, currency, onClose }: { picked: Picked | null
 function ProvidersLabel(p: string) {
   return PROVIDERS[p]?.label ?? p ?? "-";
 }
-

@@ -98,15 +98,15 @@ export function PayoutsTab({ entity, currency }: { entity: string; currency?: st
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-5" data-guide="finance-payouts.workbench">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="finance-payouts.summary">
         <KpiCard label="Settled (7d)" value={formatMoney(s?.settled7d.kobo ?? 0, currency)} foot="Confirmed disbursements" />
         <KpiCard label="Pending" value={formatMoney(s?.pending.kobo ?? 0, currency)} foot="Awaiting settlement" />
         <KpiCard label="Failed" value={String(s?.failed ?? 0)} tone={(s?.failed ?? 0) > 0 ? "warn" : "default"} foot="Rejected / reversed" />
         <KpiCard label="Payouts" value={String(s?.total ?? 0)} foot="Total" />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3" data-guide="finance-payouts.controls">
         <div className="flex flex-wrap items-center gap-2">
           <Select value={group} onChange={setGroup} className="w-36">
             <option value="">All status</option>
@@ -296,4 +296,3 @@ function NewPayoutDrawer({ open, onClose, entity, currency }: { open: boolean; o
     </DetailDrawer>
   );
 }
-

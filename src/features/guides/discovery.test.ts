@@ -89,6 +89,20 @@ describe("guide discovery", () => {
     );
   });
 
+  it("publishes C6c guides only inside the caller's finance and payment permissions", () => {
+    const payrollReader = [resolvePermissionKey(P.FIN_VIEW_PAYROLL)];
+    const expenseReader = [resolvePermissionKey(P.FIN_VIEW_EXPENSE_CLAIMS)];
+    const assetReader = [resolvePermissionKey(P.FIN_VIEW_FIXED_ASSETS)];
+    const collectionReader = [resolvePermissionKey(P.PAY_VIEW_COLLECTIONS)];
+    const payoutReader = [resolvePermissionKey(P.PAY_VIEW_PAYOUTS)];
+
+    expect(visibleGuides(GUIDE_REGISTRY, payrollReader).map((guide) => guide.id)).toContain("finance.run-payroll");
+    expect(visibleGuides(GUIDE_REGISTRY, expenseReader).map((guide) => guide.id)).toContain("finance.submit-and-settle-expense-claim");
+    expect(visibleGuides(GUIDE_REGISTRY, assetReader).map((guide) => guide.id)).toContain("finance.manage-fixed-assets");
+    expect(visibleGuides(GUIDE_REGISTRY, collectionReader).map((guide) => guide.id)).toContain("finance.collect-online-payments");
+    expect(visibleGuides(GUIDE_REGISTRY, payoutReader).map((guide) => guide.id)).toContain("finance.send-payouts-and-resolve-settlements");
+  });
+
   it("chooses one focused landing layout for each filter state", () => {
     expect(guideLandingView({ category: null, audience: null, query: "" })).toBe("browse");
     expect(guideLandingView({ category: null, audience: "approver", query: "" })).toBe("audience-results");

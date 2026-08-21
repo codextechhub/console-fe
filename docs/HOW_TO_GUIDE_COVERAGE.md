@@ -31,9 +31,14 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Finance and payments | Email a customer their invoice, receipt or statement | `finance.email-customer-documents` | High | Published | Published | Console product team | 2026-08-21 | Walkthrough may open a posted invoice and recipient preview, but never presses Send or Retry. The article covers recipient, BCC, subject, attachment, delivery history, blocked sends, and failed-delivery recovery |
 | Finance and payments | Reconcile a bank statement | `finance.reconcile-bank-statement` | High | Published | Published | Console product team | 2026-08-21 | Walkthrough explains account scope, totals, one-to-one, group and split matching, exceptions, ignored lines, adjustments, and completion, but never imports, selects, matches, ignores, adjusts, unmatches, or completes |
 | Finance and payments | Run financial reports | `finance.run-financial-reports` | Medium | Published | Not required | Console product team | 2026-08-21 | Article covers report choice, entity and period scope, comparisons, accounting equations, control-account reconciliation, filters, and exports. Reports are read-only views with simple filters and exports, so an interactive walkthrough adds no safety or workflow-order value |
-| Finance and payments | Run payroll | Planned in C6c | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
-| Finance and payments | Manage expenses, petty cash, budgets, assets, and tax | Planned in C6c | High | Planned | Planned | Console product team | 2026-08-13 | Split into task-sized articles during C6c |
-| Finance and payments | Operate collections, payouts, settlements, and failures | Planned in C6c | High | Planned | Planned | Console product team | 2026-08-13 | Split into task-sized articles during C6c |
+| Finance and payments | Run payroll | `finance.run-payroll` | High | Published | Published | Console product team | 2026-08-21 | Covers structures, roster, generation, calculation and posting, net payment, payslips, statutory schedules, cancellation, voiding, and masked figures. Walkthrough never reads payroll fields or generates, posts, pays, cancels, voids, prints, or remits |
+| Finance and payments | Submit and settle an expense claim | `finance.submit-and-settle-expense-claim` | High | Published | Published | Console product team | 2026-08-21 | Covers coding, receipt evidence, posting, rejection, settlement, and voiding. Walkthrough never changes evidence or claim state |
+| Finance and payments | Establish, spend, and replenish petty cash | `finance.manage-petty-cash` | High | Published | Published | Console product team | 2026-08-21 | Covers float ceiling, custodian, vouchers, physical cash, register, replenishment, and voiding. Walkthrough never moves or posts cash |
+| Finance and payments | Build, approve, and monitor a budget | `finance.build-and-approve-budget` | High | Published | Published | Console product team | 2026-08-21 | Covers assumptions, account and cost-centre lines, phasing, approval, variance, heatmap, revisions, and draft deletion. Walkthrough never changes or approves a budget |
+| Finance and payments | Acquire, depreciate, and dispose of fixed assets | `finance.manage-fixed-assets` | High | Published | Published | Console product team | 2026-08-21 | Covers register identity, valuation, acquisition, individual and period depreciation, disposal, and ledger reconciliation. Walkthrough never posts an asset lifecycle action |
+| Finance and payments | Prepare, file, and pay tax | `finance.file-and-pay-tax` | High | Published | Published | Console product team | 2026-08-21 | Covers obligations, ledger-based preparation, authority evidence, adjustments, partial remittance, and unpaid un-filing. Walkthrough never files, un-files, or pays |
+| Finance and payments | Collect online payments and manage virtual accounts | `finance.collect-online-payments` | High | Published | Published | Console product team | 2026-08-21 | Covers provider state, virtual-account scope, receipt and ledger tracing, settlement, failed events, replay safety, and sensitive data. Walkthrough never creates, allocates, or replays |
+| Finance and payments | Send payouts and resolve settlement failures | `finance.send-payouts-and-resolve-settlements` | High | Published | Published | Console product team | 2026-08-21 | Covers beneficiary and duplicate checks, single and batch flows, maker-checker approval, provider state, read-only settlement, webhook recovery, and double-payment prevention. Walkthrough never sends, submits, approves, or replays |
 | Procurement and inventory | Complete procure-to-pay | `procurement.complete-procure-to-pay` | High | Draft | Planned | Console product team | 2026-08-13 | Walkthrough will use linked chapters |
 | Procurement and inventory | Govern vendors, categories, and catalogue items | Planned in C7a | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
 | Procurement and inventory | Run sourcing and manage contracts | Planned in C7a | High | Planned | Planned | Console product team | 2026-08-13 | Registry record and content not started |
@@ -294,6 +299,27 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - Financial reports do not need a walkthrough because they are read-only views with
   simple filters and exports. The article records the judgment and interpretation
   checks that matter more than control-by-control coaching.
+
+## C6c completion record
+
+- Payments, payroll, and finance operations now publish eight task-sized guides:
+  payroll, expense claims, petty cash, budgets, fixed assets, tax, collections, and
+  payouts with settlement recovery.
+- Payroll guidance separates roster and structure preparation, draft generation,
+  accrual posting, net-wage payment, payslips, statutory schedules, remittance, and
+  status-specific correction. It records payroll field masking as a privacy control.
+- Expense and petty-cash guidance preserves receipt evidence and source records,
+  separates expense posting from payment, reconciles the imprest register to physical
+  cash, and prevents replenishment from silently increasing the float ceiling.
+- Budget, asset, and tax guidance covers planning baselines and variance, the full
+  asset register and ledger lifecycle, and the separate preparation, filing, payment,
+  partial-remittance, and unpaid correction states of a tax return.
+- Collection and payout guidance traces provider, business-record, journal, and bank
+  states; protects bank and webhook data; and requires proof of non-posting before a
+  retry or replay that could duplicate real money.
+- Eight walkthroughs explain the high-risk controls through stable screen targets.
+  They never generate, post, pay, approve, send, file, allocate, replay, import,
+  create, void, dispose, replenish, or otherwise perform a consequential action.
 
 ## Quick export from a list screen (2026-08-15)
 

@@ -102,15 +102,15 @@ export function AssetsTab({ entity, currency }: { entity: string; currency?: str
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-5" data-guide="finance-assets.workbench">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-guide="finance-assets.summary">
         <KpiCard label="Total cost" value={formatMoney(kpis.cost, currency)} foot="Assets in the register" />
         <KpiCard label="Accumulated dep." value={formatMoney(kpis.accum, currency)} />
         <KpiCard label="Net book value" value={formatMoney(kpis.nbv, currency)} />
         <KpiCard label="Monthly depreciation" value={formatMoney(kpis.monthly, currency)} foot="Active assets, straight-line" />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3" data-guide="finance-assets.controls">
         <div className="flex flex-wrap items-center gap-2">
           <Select value={category} onChange={(v) => { setCategory(v); resetPage(); }} className="w-44">
             <option value="">All categories</option>

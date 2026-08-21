@@ -16,8 +16,11 @@ export default function ExpensesPage({ section = DEFAULT_EXPENSES_SECTION }: {
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
-        <div>
+      <main
+        className="min-w-0 space-y-5 px-4.5 py-6 text-black-01"
+        data-guide={isPettyCash ? "finance-petty-cash.workspace" : "finance-expense-claims.workspace"}
+      >
+        <div data-guide={isPettyCash ? "finance-petty-cash.heading" : "finance-expense-claims.heading"}>
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">{isPettyCash ? "Petty Cash" : "Expense Claims"}</h1>
             {isPettyCash
