@@ -292,15 +292,23 @@ export const opsApi = baseApi.injectEndpoints({
       query: ({ entity, ...body }) => ({ url: `/finance/payroll-runs/generate/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePayroll"],
     }),
-    getEmployeeSalaries: b.query<ApiEnvelope<EmployeeSalary[]>, { entity: string; search?: string; is_active?: string }>({
+    // `branch` accepts a branch id, or the literal "unassigned" for the people
+    // who belong to no branch yet. The roster tab narrows in memory instead
+    // (the endpoint is unpaginated, so it already holds every row), but the
+    // parameter is part of the contract and other callers use it.
+    getEmployeeSalaries: b.query<ApiEnvelope<EmployeeSalary[]>, { entity: string; search?: string; is_active?: string; branch?: string }>({
       query: (p) => ({ url: `/finance/employee-salaries/${qs(p)}`, method: "GET" }),
       providesTags: ["FinancePayroll"],
     }),
-    createEmployeeSalary: b.mutation<ApiEnvelope<EmployeeSalary>, { entity: string; name: string; gross_amount: number; structure?: number; paye_amount?: number; pension_amount?: number; cost_center?: string }>({
+    createEmployeeSalary: b.mutation<ApiEnvelope<EmployeeSalary>, { entity: string; name: string; gross_amount: number; structure?: number; paye_amount?: number; pension_amount?: number; cost_center?: string; branch?: number | null }>({
       query: ({ entity, ...body }) => ({ url: `/finance/employee-salaries/${qs({ entity })}`, method: "POST", body }),
       invalidatesTags: ["FinancePayroll"],
     }),
-    updateEmployeeSalary: b.mutation<ApiEnvelope<EmployeeSalary>, { id: number; entity: string; name?: string; gross_amount?: number; structure?: number | null; paye_amount?: number; pension_amount?: number; cost_center?: string; is_active?: boolean }>({
+    // `branch` is left out of the body unless it changed: the backend reads the
+    // key's presence as "retarget this row", and for a branch-pinned caller a
+    // blank one means their own branch, so sending it unchanged would move
+    // people nobody asked to move.
+    updateEmployeeSalary: b.mutation<ApiEnvelope<EmployeeSalary>, { id: number; entity: string; name?: string; gross_amount?: number; structure?: number | null; paye_amount?: number; pension_amount?: number; cost_center?: string; is_active?: boolean; branch?: number | null }>({
       query: ({ id, entity, ...body }) => ({ url: `/finance/employee-salaries/${id}/${qs({ entity })}`, method: "PATCH", body }),
       invalidatesTags: ["FinancePayroll"],
     }),

@@ -8,6 +8,26 @@ It is one cheap call and it is honest, but it exists only because the figure is
 missing upstream. Adding `suspended=Count(...)` to that aggregate lets the
 frontend drop the extra query.
 
+# Per-branch payroll is enforced but invisible (found 2026-08-21).
+Two things the frontend needs before the last bullet of item 10 ("under
+PER_BRANCH a payroll officer pinned to one branch runs only that branch") can be
+shown rather than merely obeyed:
+
+1. `PayrollRunSerializer` omits `branch` / `branch_name`, though `PayrollRun`
+   carries one. Under PER_BRANCH a school raises one run per branch per pay
+   date, so the runs list shows several rows with the same date, the same
+   period label and nothing to tell them apart. The officer pinned to one
+   branch is fine (`branch_q` already narrows her list); the bursar who covers
+   the school is the one left guessing.
+2. There is no branch list a payroll caller can reach. The only one the API
+   offers is `GET /v1/i/<slug>/branches/`, keyed by **school slug** (the finance
+   console holds a ledger entity, not a slug) and gated on
+   `platform.branches.view`, which is a platform key a bursar does not hold. The
+   roster screen therefore builds its branch picker from the branches already
+   present on roster rows, which means a branch nobody has been assigned to yet
+   cannot be picked - exactly the branch a new site needs. Something entity- or
+   tenant-scoped would close it.
+
 ## Done
 
 # 47. **An export run whose worker never came back is now reconciled (2026-08-16).**

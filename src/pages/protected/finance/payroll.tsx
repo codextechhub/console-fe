@@ -395,16 +395,55 @@ function NewRunDrawer({ open, onClose, entity, currency }: { open: boolean; onCl
 }
 
 // ── Employee salaries (roster) ───────────────────────────────────────────────
+
+/** Filter value for "belongs to no branch". Matches the literal the roster
+ *  endpoint accepts on `?branch=`, so the two spellings cannot drift. */
+const UNASSIGNED = "unassigned";
+
+/** A person's site, or a visible gap where one should be. */
+function BranchCell({ salary }: { salary: EmployeeSalary }) {
+  if (salary.branch_name) return <span className="text-gray-01">{salary.branch_name}</span>;
+  return <span className={cn(PILL, "bg-amber-50 text-amber-700")}>Unassigned</span>;
+}
+
 function EmployeesTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const { can } = useCan();
   const [searchInput, setSearchInput] = useState("");
+  const [branchFilter, setBranchFilter] = useState("");
   const [editing, setEditing] = useState<EmployeeSalary | "new" | null>(null);
   const { data, isLoading, isFetching, isError, refetch } = useGetEmployeeSalariesQuery({ entity });
   const all = useMemo(() => toArray(data?.data), [data]);
+
+  // The branches this roster knows about, read off the rows themselves. There
+  // is no branch list a payroll caller can reach: the only one the API offers
+  // is /i/<slug>/branches/, which is keyed by school slug (the finance console
+  // holds an entity, not a slug) and gated on platform.branches.view, which a
+  // bursar does not hold. Every site with at least one person already assigned
+  // is therefore selectable; a site with nobody on it yet is not.
+  const branches = useMemo(() => {
+    const seen = new Map<number, string>();
+    for (const e of all) if (e.branch_id != null) seen.set(e.branch_id, e.branch_name || `Branch ${e.branch_id}`);
+    return [...seen].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [all]);
+  const unassignedCount = useMemo(() => all.filter((e) => e.branch_id == null).length, [all]);
+
+  // A filter must not outlive what it filters on. Assigning the last unassigned
+  // person removes the "Unassigned" option, and a <select> whose value matches
+  // no option falls back to showing the first one - so the control would read
+  // "All branches" while the list stayed narrowed to nobody. Switching entity
+  // does the same thing to branch ids, which do not carry across sets of books.
+  const filterStillExists = !branchFilter
+    || (branchFilter === UNASSIGNED ? unassignedCount > 0 : branches.some((b) => String(b.id) === branchFilter));
+  if (!filterStillExists) setBranchFilter("");
+
   const rows = useMemo(() => {
     const q = searchInput.trim().toLowerCase();
-    return q ? all.filter((e) => e.name.toLowerCase().includes(q)) : all;
-  }, [all, searchInput]);
+    let out = q ? all.filter((e) => e.name.toLowerCase().includes(q)) : all;
+    if (!filterStillExists) return out;
+    if (branchFilter === UNASSIGNED) out = out.filter((e) => e.branch_id == null);
+    else if (branchFilter) out = out.filter((e) => String(e.branch_id) === branchFilter);
+    return out;
+  }, [all, searchInput, branchFilter, filterStillExists]);
 
   const [remove] = useDeleteEmployeeSalaryMutation();
   const doRemove = async (id: number) => { try { await remove({ id, entity }).unwrap(); toast.success("Employee removed."); } catch { /* central */ } };
@@ -412,6 +451,7 @@ function EmployeesTab({ entity, currency }: { entity: string; currency?: string 
   const cols: Column<EmployeeSalary>[] = [
     { header: "Employee", cell: (e) => <span className="font-medium text-gray-01">{e.name}</span> },
     { header: "Structure", cell: (e) => e.structure_name ? <span className={cn(PILL, "bg-blue-50 text-blue-700")}>{e.structure_name}</span> : <span className="font-mont text-[11px] text-gray-05">Flat</span> },
+    { header: "Branch", cell: (e) => <BranchCell salary={e} /> },
     { header: "Cost center", cell: (e) => <span className="tabular-nums text-gray-05">{e.cost_center || "-"}</span> },
     { header: "Gross", align: "right", cell: (e) => maskedMoney(e, "gross_amount", e.gross_amount, currency) },
     { header: "PAYE", align: "right", cell: (e) => maskedMoney(e, "paye_amount", e.paye_amount, currency) },
@@ -433,23 +473,46 @@ function EmployeesTab({ entity, currency }: { entity: string; currency?: string 
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
           <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search employee" className="h-9 w-64 bg-white pl-8 font-mont" />
         </div>
-        <Can permission={P.FIN_CREATE_SALARY}>
-          <Button onClick={() => setEditing("new")} className="gap-1.5"><Plus className="size-4" /> Add employee</Button>
-        </Can>
+        <div className="flex flex-wrap items-center gap-3">
+          {branches.length || unassignedCount ? (
+            <Select value={branchFilter} onChange={setBranchFilter} className="h-9 w-52 bg-white">
+              <option value="">All branches</option>
+              {branches.map((b) => <option key={b.id} value={String(b.id)}>{b.name}</option>)}
+              {unassignedCount ? <option value={UNASSIGNED}>Unassigned ({unassignedCount})</option> : null}
+            </Select>
+          ) : null}
+          <Can permission={P.FIN_CREATE_SALARY}>
+            <Button onClick={() => setEditing("new")} className="gap-1.5"><Plus className="size-4" /> Add employee</Button>
+          </Can>
+        </div>
       </div>
+
+      {/* Named, not counted. Per-branch payroll is refused while anyone is
+          unassigned, and a bursar told "4 staff are unassigned" has to search
+          the whole roster to find out who. */}
+      {unassignedCount && branchFilter !== UNASSIGNED ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
+          <p className="font-mont text-[13px] text-amber-900">
+            <span className="font-semibold">{unassignedCount}</span> {unassignedCount === 1 ? "person is" : "people are"} not assigned to a branch. Per-branch payroll cannot be switched on until {unassignedCount === 1 ? "they have" : "each of them has"} a site.
+          </p>
+          <button type="button" onClick={() => setBranchFilter(UNASSIGNED)} className="font-mont text-[13px] font-semibold text-amber-900 underline underline-offset-2">Show them</button>
+        </div>
+      ) : null}
+
       <DataTable columns={cols} rows={rows} rowKey={(e) => e.id}
         loading={isLoading || isFetching} error={isError} onRetry={refetch}
-        emptyTitle={searchInput ? "No matching employees" : "No employees yet"}
-        emptyMessage={searchInput ? "Try a different search." : "Add employees to generate payroll runs from the roster."} />
+        emptyTitle={searchInput || branchFilter ? "No matching employees" : "No employees yet"}
+        emptyMessage={searchInput || branchFilter ? "Try a different search or branch." : "Add employees to generate payroll runs from the roster."} />
 
-      <EmployeeDrawer open={editing !== null} salary={editing === "new" ? null : editing} entity={entity} currency={currency} onClose={() => setEditing(null)} />
+      <EmployeeDrawer open={editing !== null} salary={editing === "new" ? null : editing} entity={entity} currency={currency} branches={branches} onClose={() => setEditing(null)} />
     </div>
   );
 }
 
-function EmployeeDrawer({ open, salary, entity, currency, onClose }: { open: boolean; salary: EmployeeSalary | null; entity: string; currency?: string | null; onClose: () => void }) {
+function EmployeeDrawer({ open, salary, entity, currency, branches, onClose }: { open: boolean; salary: EmployeeSalary | null; entity: string; currency?: string | null; branches: { id: number; name: string }[]; onClose: () => void }) {
   const isEdit = !!salary;
   const [name, setName] = useState("");
+  const [branchId, setBranchId] = useState("");
   const [structureId, setStructureId] = useState("");
   const [gross, setGross] = useState(0);
   const [paye, setPaye] = useState(0);
@@ -468,13 +531,19 @@ function EmployeeDrawer({ open, salary, entity, currency, onClose }: { open: boo
   const [seededFor, setSeededFor] = useState<number | string | null>(null);
   if (open && seededFor !== seedKey) {
     setSeededFor(seedKey);
-    if (salary) { setName(salary.name); setStructureId(salary.structure_id ? String(salary.structure_id) : ""); setGross(salary.gross_amount ?? 0); setPaye(salary.paye_amount ?? 0); setPension(salary.pension_amount ?? 0); setCostCenter(salary.cost_center ?? ""); setActive(salary.is_active); }
-    else { setName(""); setStructureId(""); setGross(0); setPaye(0); setPension(0); setCostCenter(""); setActive(true); }
+    if (salary) { setName(salary.name); setBranchId(salary.branch_id ? String(salary.branch_id) : ""); setStructureId(salary.structure_id ? String(salary.structure_id) : ""); setGross(salary.gross_amount ?? 0); setPaye(salary.paye_amount ?? 0); setPension(salary.pension_amount ?? 0); setCostCenter(salary.cost_center ?? ""); setActive(salary.is_active); }
+    else { setName(""); setBranchId(""); setStructureId(""); setGross(0); setPaye(0); setPension(0); setCostCenter(""); setActive(true); }
   }
   if (!open && seededFor !== null) setSeededFor(null);
 
   const structure = structures.find((s) => String(s.id) === structureId);
   const derived = structure ? deriveFromStructure(gross, structure.components) : null;
+
+  // Only sent when it actually changed: the backend reads the key's presence as
+  // "retarget this row", and a blank one means "my own branch" to a caller
+  // pinned to a single site, so sending it unchanged would move people.
+  const branchChanged = String(salary?.branch_id ?? "") !== branchId;
+  const branchPatch = branchChanged ? { branch: branchId ? Number(branchId) : null } : {};
 
   const submit = async () => {
     try {
@@ -482,8 +551,8 @@ function EmployeeDrawer({ open, salary, entity, currency, onClose }: { open: boo
         structure: structure ? structure.id : (null as number | null),
         // In flat mode the manual figures are sent; with a structure they're derived server-side.
         ...(structure ? {} : { paye_amount: paye, pension_amount: pension }) };
-      if (isEdit && salary) { const r = await update({ id: salary.id, entity, is_active: active, ...base }).unwrap(); toast.success(r.message || "Updated."); }
-      else { const r = await create({ entity, ...base, structure: structure ? structure.id : undefined }).unwrap(); toast.success(r.message || "Employee added."); }
+      if (isEdit && salary) { const r = await update({ id: salary.id, entity, is_active: active, ...base, ...branchPatch }).unwrap(); toast.success(r.message || "Updated."); }
+      else { const r = await create({ entity, ...base, structure: structure ? structure.id : undefined, ...(branchId ? { branch: Number(branchId) } : {}) }).unwrap(); toast.success(r.message || "Employee added."); }
       onClose();
     } catch { /* central */ }
   };
@@ -498,7 +567,18 @@ function EmployeeDrawer({ open, salary, entity, currency, onClose }: { open: boo
       </>}>
       <div className="space-y-4">
         <FormField label="Employee name" required><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="h-9 bg-white" /></FormField>
-        <div className="grid grid-cols-2 gap-3">
+        {branches.length ? (
+          <div>
+            <FormField label="Branch">
+              <Select value={branchId} onChange={setBranchId}>
+                <option value="">Unassigned</option>
+                {branches.map((b) => <option key={b.id} value={String(b.id)}>{b.name}</option>)}
+              </Select>
+            </FormField>
+            <p className="mt-1 font-mont text-[11px] text-gray-05">The site this person is paid from. Everyone needs one before the school can switch to per-branch payroll.</p>
+          </div>
+        ) : null}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label="Gross (monthly)" required><MoneyInput valueKobo={gross} onChangeKobo={setGross} currency={currency} className="[&_input]:h-9" /></FormField>
           <FormField label="Cost center"><CostCenterPicker entity={entity} value={costCenter} onChange={setCostCenter} /></FormField>
         </div>

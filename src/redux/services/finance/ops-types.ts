@@ -219,6 +219,12 @@ export interface EmployeeSalary {
   name: string;
   structure_id: number | null;
   structure_name: string | null;
+  // Which site the person works at. Deliberately outside the FLS block below:
+  // it is not a pay figure, and whoever assigns branches before a school can
+  // switch to per-branch payroll has to be able to read it. Null means
+  // unassigned, which is the state that blocks that switch.
+  branch_id: number | null;
+  branch_name: string | null;
   gross_amount?: number; // FLS
   paye_amount?: number; // FLS (derived when a structure is set)
   pension_amount?: number; // FLS
