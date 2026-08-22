@@ -1,4 +1,8 @@
-import { selectTenant, selectUser } from "@/redux/features/auth/auth-slice";
+import {
+  selectImpersonation,
+  selectTenant,
+  selectUser,
+} from "@/redux/features/auth/auth-slice";
 import { useGetMeQuery } from "@/redux/services/auth/auth-api";
 import { routesPath } from "@/routes/routes-path";
 import { useEffect, useState } from "react";
@@ -33,6 +37,7 @@ export default function Authenticated() {
   const [{ shouldRedirect, refreshExpired, idleTooLong }] = useState(evaluateGate);
   const user = useSelector(selectUser);
   const tenant = useSelector(selectTenant);
+  const impersonation = useSelector(selectImpersonation);
 
   useEffect(() => {
     if (!shouldRedirect) return;
@@ -85,6 +90,8 @@ export default function Authenticated() {
   const contextGateState = getAuthContextGateState({
     shouldRedirect,
     hasTenant: !!tenant,
+    tenantKind: tenant?.kind,
+    isImpersonating: !!impersonation,
     isLoading: isLoadingContext,
     isFetching: isFetchingContext,
     isError: isContextError,
@@ -100,7 +107,22 @@ export default function Authenticated() {
     window.location.replace(LOGIN);
   }, [contextGateState]);
 
-  if (contextGateState === "redirect") return null;
+  // "forbidden": a valid session belonging to a customer tenant, not to Codex.
+  // Turn it away at the door rather than mounting the shell around panels the
+  // backend will refuse one by one. Deliberately no captureReturnTo: the page
+  // they aimed at is one they may never have, so remembering it would only send
+  // them back here after the next login.
+  useEffect(() => {
+    if (contextGateState !== "forbidden") return;
+    endSession(
+      "This area is restricted to CX platform staff. Please sign in from your organisation's portal."
+    );
+    window.location.replace(LOGIN);
+  }, [contextGateState]);
+
+  if (contextGateState === "redirect" || contextGateState === "forbidden") {
+    return null;
+  }
 
   // Older persisted sessions pre-date tenant context in the auth slice. Do not
   // mount protected screens until /me has hydrated it: otherwise their first

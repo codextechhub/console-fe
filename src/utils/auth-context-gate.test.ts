@@ -16,6 +16,7 @@ describe("getAuthContextGateState", () => {
     expect(getAuthContextGateState({
       shouldRedirect: false,
       hasTenant: true,
+      tenantKind: "PLATFORM",
       isLoading: false,
       isFetching: false,
       isError: false,
@@ -46,6 +47,60 @@ describe("getAuthContextGateState", () => {
     expect(getAuthContextGateState({
       shouldRedirect: true,
       hasTenant: false,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    })).toBe("redirect");
+  });
+  it("turns away a customer tenant instead of mounting the console shell", () => {
+    expect(getAuthContextGateState({
+      shouldRedirect: false,
+      hasTenant: true,
+      tenantKind: "SCHOOL",
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    })).toBe("forbidden");
+  });
+
+  it("turns away an organisation tenant too", () => {
+    expect(getAuthContextGateState({
+      shouldRedirect: false,
+      hasTenant: true,
+      tenantKind: "ORGANIZATION",
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    })).toBe("forbidden");
+  });
+
+  it("keeps an impersonating operator in, though the tenant reads SCHOOL", () => {
+    expect(getAuthContextGateState({
+      shouldRedirect: false,
+      hasTenant: true,
+      tenantKind: "SCHOOL",
+      isImpersonating: true,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    })).toBe("ready");
+  });
+
+  it("does not lock out a session whose tenant predates the kind field", () => {
+    expect(getAuthContextGateState({
+      shouldRedirect: false,
+      hasTenant: true,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+    })).toBe("ready");
+  });
+
+  it("expiry still wins over the platform check", () => {
+    expect(getAuthContextGateState({
+      shouldRedirect: true,
+      hasTenant: true,
+      tenantKind: "SCHOOL",
       isLoading: false,
       isFetching: false,
       isError: false,
