@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, TriangleAlert } from "lucide-react";
 
 import CustomTable from "@/components/custom/custom-table";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -126,6 +126,12 @@ export default function GoLiveQueue() {
       <div className="min-w-0">
         <p className="truncate font-semibold capitalize">{row.school_name}</p>
         <p className="mt-0.5 truncate font-mont text-xs text-gray-01">{row.tenant_slug}</p>
+        {row.books_provisioned === false && (
+          <Badge variant="rejected" className="mt-1 text-[11px]">
+            <TriangleAlert className="size-3" />
+            No books
+          </Badge>
+        )}
       </div>
     ),
     requested: formatStartedTime(row.created_at),
@@ -264,6 +270,20 @@ export default function GoLiveQueue() {
               />
               <p className="font-mont text-[11px] leading-4 text-gray-01">
                 Sent to the school with the decision.
+              </p>
+            </div>
+          )}
+
+          {decision?.request.books_provisioned === false && (
+            <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2.5">
+              <p className="flex items-center gap-1.5 font-mont text-[11px] font-semibold text-destructive">
+                <TriangleAlert className="size-3.5" />
+                This school has no set of books
+              </p>
+              <p className="mt-1 text-sm text-black-01">
+                {decision.kind === "approve"
+                  ? "Books are provisioned when a school is created, best effort, so this one's did not arrive. Approving takes it live without a ledger, and it will find out in Finance once it is already trading. Provision the books first if you can."
+                  : "Worth mentioning in your reason: this school has no ledger, so its books need provisioning before it can trade."}
               </p>
             </div>
           )}

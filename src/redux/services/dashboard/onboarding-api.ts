@@ -30,6 +30,17 @@ export interface GoLiveRequest {
   rejection_reason: string;
   failure_reference: string;
   created_at: string;
+  /**
+   * Whether this school has a set of books.
+   *
+   * Reviewer-only: the school's own copy of this payload does not carry the
+   * field at all. Books are provisioned at school creation on a best-effort
+   * basis, and confirming them used to be a required step on the school's
+   * checklist, which blocked go-live until somebody looked. That step was
+   * removed on 2026-08-22, so this is where the fact now surfaces - in front of
+   * the one person who can still act on it before the school starts trading.
+   */
+  books_provisioned: boolean;
 }
 
 export interface GoLiveRequestsRes {
