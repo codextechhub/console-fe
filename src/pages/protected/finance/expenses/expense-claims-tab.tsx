@@ -9,6 +9,7 @@
 // (post: Dr expense / Cr accrued reimbursement) → Reimbursed (settle: Cr bank).
 
 import { useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router";
 import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
@@ -35,6 +36,7 @@ import {
   useUploadExpenseReceiptMutation, useDeleteExpenseReceiptMutation, useSubmitExpenseClaimMutation,
 } from "@/redux/services/finance/ops-api";
 import type { ExpenseClaim, ExpenseClaimLine } from "@/redux/services/finance/ops-types";
+import { sourceDocumentIdFromParams } from "@/lib/source-document-route";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
@@ -76,6 +78,7 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
 ];
 
 export function ExpenseClaimsTab({ entity, currency }: { entity: string; currency?: string | null }) {
+  const [searchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState("");
   const search = useDebounce(searchInput.trim(), 250);
   const [status, setStatus] = useState("");
@@ -83,6 +86,13 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
   const [creating, setCreating] = useState(false);
   useActionParam("new", () => setCreating(true));
   const [selected, setSelected] = useState<ExpenseClaim | null>(null);
+  const [linkedDocumentDismissed, setLinkedDocumentDismissed] = useState(false);
+  const linkedDocumentId = sourceDocumentIdFromParams(searchParams);
+  const linkedClaimQuery = useGetExpenseClaimQuery(
+    linkedDocumentId ? { id: linkedDocumentId, entity } : skipToken,
+  );
+  const displayedClaim = selected
+    ?? (linkedDocumentDismissed ? null : linkedClaimQuery.data?.data ?? null);
 
   const { data, isLoading, isFetching, isError, refetch } = useGetExpenseClaimsQuery({
     entity, page, ...(search ? { q: search } : {}), ...(status ? { display_status: status } : {}),
@@ -148,7 +158,15 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
         emptyMessage={search || status ? "Try a different search or filter." : "Staff reimbursement claims appear here."}
       />
 
-      <ClaimDetailDrawer claim={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
+      <ClaimDetailDrawer
+        claim={displayedClaim}
+        entity={entity}
+        currency={currency}
+        onClose={() => {
+          setSelected(null);
+          setLinkedDocumentDismissed(true);
+        }}
+      />
       <NewClaimDrawer open={creating} onClose={() => setCreating(false)} entity={entity} currency={currency} />
     </div>
   );

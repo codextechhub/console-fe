@@ -26,6 +26,7 @@ import { useGetPayoutBatchesQuery, useGetPayoutBatchesSummaryQuery, useCreatePay
 import { useGetVendorsQuery } from "@/redux/services/procurement/procurement-api";
 import type { PayoutBatchSummary, PayoutInstruction, PayoutBatchItemPayload } from "@/redux/services/payments/payments-types";
 import type { Vendor } from "@/redux/services/procurement/procurement-types";
+import { sourceDocumentIdFromParams } from "@/lib/source-document-route";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const MASK = "••••";
@@ -76,10 +77,9 @@ function Select({ value, onChange, children, className }: { value: string; onCha
 
 export function BatchesTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [searchParams] = useSearchParams();
-  const [selectedId, setSelectedId] = useState<number | null>(() => {
-    const id = Number(searchParams.get("document"));
-    return Number.isSafeInteger(id) && id > 0 ? id : null;
-  });
+  const [selectedId, setSelectedId] = useState<number | null>(() => (
+    sourceDocumentIdFromParams(searchParams)
+  ));
   const [building, setBuilding] = useState(false);
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetPayoutBatchesQuery({ entity, page });

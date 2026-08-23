@@ -3,16 +3,26 @@ import type {
   WorkflowInstanceDetail,
   WorkflowInstanceStatus,
 } from "@/redux/services/dashboard/workflow-types";
+import { SOURCE_DOCUMENT_ID_PARAM } from "@/lib/source-document-route";
 
 const F = routesPath.PROTECTED.FINANCE;
+const P = routesPath.PROTECTED.PROCUREMENT;
 
-const SOURCE_DOCUMENT_ROUTES: Record<string, string> = {
-  "finance.journal": F.LEDGER,
-  "finance.refund": `${F.RECEIVABLES}/refunds`,
-  "finance.write_off": `${F.RECEIVABLES}/refunds`,
-  "finance.concession": `${F.RECEIVABLES}/concessions`,
-  "finance.credit_note": `${F.RECEIVABLES}/credit-notes`,
-  "payments.payout_batch": `${F.PAYMENTS}/batches`,
+const SOURCE_DOCUMENT_ROUTES: Record<
+  string,
+  { route: string; lookup: "reference" | "id" }
+> = {
+  "finance.journal": { route: F.LEDGER, lookup: "reference" },
+  "finance.refund": { route: `${F.RECEIVABLES}/refunds`, lookup: "reference" },
+  "finance.write_off": { route: `${F.RECEIVABLES}/refunds`, lookup: "reference" },
+  "finance.concession": { route: `${F.RECEIVABLES}/concessions`, lookup: "reference" },
+  "finance.credit_note": { route: `${F.RECEIVABLES}/credit-notes`, lookup: "reference" },
+  "finance.expense_claim": { route: `${F.EXPENSES}/claims`, lookup: "id" },
+  "payments.payout_batch": { route: `${F.PAYMENTS}/batches`, lookup: "id" },
+  "procurement.requisition": { route: P.REQUISITIONS, lookup: "id" },
+  "procurement.purchase_order": { route: P.PURCHASE_ORDERS, lookup: "id" },
+  "procurement.vendor_invoice": { route: P.VENDOR_INVOICES, lookup: "id" },
+  "procurement.vendor_payment": { route: P.VENDOR_PAYMENTS, lookup: "id" },
 };
 
 const SOURCE_DOCUMENT_PROMPTS: Record<
@@ -57,22 +67,35 @@ export function sourceDocumentPrompt(status: WorkflowInstanceStatus) {
   return SOURCE_DOCUMENT_PROMPTS[status];
 }
 
+function currentScopedLink(link: string | undefined, route: string): string | null {
+  if (!link?.startsWith("/")) return null;
+  const parsed = new URL(link, "http://console.local");
+  if (parsed.origin !== "http://console.local" || parsed.pathname !== route) return null;
+  if (!parsed.searchParams.get("entity")) return null;
+  return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+}
+
 /**
  * Resolve the console route for a workflow's source document.
  *
- * Finance handlers historically stored API-shaped detail paths in the workflow
- * snapshot. Those paths are not console routes and therefore render the app's
- * 404 page. Known document types are resolved from the frontend route contract
- * so existing snapshots are repaired as well as newly submitted approvals.
+ * Some handlers historically omitted links or stored API-shaped paths in the
+ * workflow snapshot. Known document types are resolved from the frontend route
+ * contract so existing snapshots are repaired as well as new approvals.
  */
 export function sourceDocumentLink(instance: WorkflowInstanceDetail): string | null {
-  const route = SOURCE_DOCUMENT_ROUTES[instance.document_type];
-  if (route) {
-    if (instance.document_type === "payments.payout_batch") {
-      return `${route}?document=${encodeURIComponent(String(instance.document_object_id))}`;
+  const config = SOURCE_DOCUMENT_ROUTES[instance.document_type];
+  if (config) {
+    const scopedLink = currentScopedLink(instance.document_summary?.link, config.route);
+    if (scopedLink) return scopedLink;
+
+    if (config.lookup === "id") {
+      const id = String(instance.document_object_id ?? "").trim();
+      return id
+        ? `${config.route}?${SOURCE_DOCUMENT_ID_PARAM}=${encodeURIComponent(id)}`
+        : config.route;
     }
     const reference = instance.document_summary?.title?.trim();
-    return reference ? `${route}?search=${encodeURIComponent(reference)}` : route;
+    return reference ? `${config.route}?search=${encodeURIComponent(reference)}` : config.route;
   }
 
   return instance.document_summary?.link || null;

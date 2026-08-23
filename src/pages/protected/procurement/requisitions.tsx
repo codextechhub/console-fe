@@ -5,7 +5,7 @@ import {
   Check, ChevronRight, Clock3, FilePenLine, FileText, Plus,
   RotateCcw, Search, Send, Trash2, TrendingDown, TrendingUp, X,
 } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { ProcurementShell } from "./procurement-shell";
@@ -40,6 +40,7 @@ import { useGetCostCentersQuery } from "@/redux/services/finance/setup-api";
 import { routesPath } from "@/routes/routes-path";
 import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
+import { sourceDocumentIdFromParams } from "@/lib/source-document-route";
 
 const STATUS_TABS = [
   { label: "All", value: "" },
@@ -69,7 +70,10 @@ function age(value?: string | null) {
 
 export default function RequisitionsPage() {
   const { code: entity, currency } = useActiveEntity();
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [searchParams] = useSearchParams();
+  const [selectedId, setSelectedId] = useState<number | null>(() => (
+    sourceDocumentIdFromParams(searchParams)
+  ));
   const [creating, setCreating] = useState(false);
   useActionParam("new", () => setCreating(true));
   const [page, setPage] = useState(1);

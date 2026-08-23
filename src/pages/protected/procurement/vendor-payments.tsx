@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import { useActionParam } from "@/hooks/use-action-param";
 import {
   Banknote, Check, ChevronRight, Coins, FilePenLine, FileText, History, ListChecks,
@@ -42,6 +43,7 @@ import { useAppSelector } from "@/redux/store";
 import { formatMoney } from "@/utils/money";
 import { ActivityFeed } from "./activity-feed";
 import { DocumentAttachments } from "./document-attachments";
+import { sourceDocumentIdFromParams } from "@/lib/source-document-route";
 
 const DETAIL_TABS = [
   ["overview", "Overview", FileText], ["invoices", "Invoices", ListChecks],
@@ -66,7 +68,10 @@ function EmptyPanel({ children }: { children: React.ReactNode }) {
 export default function VendorPaymentsPage() {
   const { code: entity, currency } = useActiveEntity();
   const [page, setPage] = useState(1);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [searchParams] = useSearchParams();
+  const [selectedId, setSelectedId] = useState<number | null>(() => (
+    sourceDocumentIdFromParams(searchParams)
+  ));
   const [creating, setCreating] = useState(false);
   useActionParam("new", () => setCreating(true));
   const { data, isLoading, isFetching, isError, error, refetch } = useGetVendorPaymentsQuery(

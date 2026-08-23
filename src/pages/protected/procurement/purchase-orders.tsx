@@ -4,7 +4,7 @@ import {
   CheckCircle2, ChevronRight, Clock3, FilePenLine, FileText, Info, Mail, PackageCheck,
   Plus, Printer, ReceiptText, Search, Send, ShoppingCart,
 } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 import { ProcurementShell } from "./procurement-shell";
@@ -34,6 +34,7 @@ import type { PurchaseOrder, PurchaseOrderEmailDelivery } from "@/redux/services
 import { useGetWorkflowInstanceQuery } from "@/redux/services/dashboard/workflow-api";
 import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
+import { sourceDocumentIdFromParams } from "@/lib/source-document-route";
 
 const STATUS_TABS = [
   { label: "All", value: "" },
@@ -77,7 +78,10 @@ function percent(value: string | number | null | undefined) {
 
 export default function PurchaseOrdersPage() {
   const { code: entity, currency } = useActiveEntity();
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [searchParams] = useSearchParams();
+  const [selectedId, setSelectedId] = useState<number | null>(() => (
+    sourceDocumentIdFromParams(searchParams)
+  ));
   const [creating, setCreating] = useState(false);
   useActionParam("new", () => setCreating(true));
   const [page, setPage] = useState(1);
