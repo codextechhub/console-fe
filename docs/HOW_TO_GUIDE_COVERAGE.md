@@ -466,3 +466,22 @@ editor, assignment, approval, or automated repair action.
   do not start a proxy session or create a bank account. Those consequential actions
   remain explicit user decisions. Task creation is a short, reversible personal form;
   the staff-profile walkthrough already covers the ordered profile and seat workflow.
+
+## Procurement route gap closure (2026-08-23)
+
+- The Procurement dashboard maps to analytics and controls guidance because its
+  spend, purchase-order, approval, invoice, vendor, and activity cards are report
+  summaries that lead readers back to their source records.
+- The Procurement approval queue maps to the complete procure-to-pay guide. Approval
+  permissions are included in that guide's discovery rules so an eligible approver
+  can see the guidance even without document-creation access.
+- All nine real Procurement settings section routes map to the settings guide. The
+  mapping follows the named sections registered by the router and the walkthrough.
+- Five wildcard section patterns were removed from the shipped route catalogue.
+  Procurement intentionally registers only named vendor, sourcing, inventory,
+  analytics, and settings sections, so the wildcards represented no reachable
+  screen and produced false coverage gaps.
+- No new walkthrough is required. The dashboard is read-only, the approval safety
+  sequence already belongs to the procure-to-pay walkthrough, and the settings
+  walkthrough already covers the consequential cross-section workflow without
+  saving a policy change.

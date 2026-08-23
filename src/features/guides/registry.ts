@@ -23,6 +23,7 @@ const C12_REVIEWED_AT = "2026-08-21";
 const O1_REVIEWED_AT = "2026-08-21";
 const FINANCE_RECOVERY_REVIEWED_AT = "2026-08-23";
 const ACTION_GAP_REVIEWED_AT = "2026-08-23";
+const PROCUREMENT_ROUTE_GAP_REVIEWED_AT = "2026-08-23";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -1284,7 +1285,7 @@ export const GUIDE_REGISTRY = [
     tags: ["procurement", "requisition", "purchase order", "goods receipt", "GRN", "three-way match", "vendor invoice", "vendor payment", "approval"],
     aliases: ["p2p", "procure to pay", "purchase lifecycle", "raise purchase request", "receive goods", "match supplier invoice", "pay supplier", "invoice blocked by receipt"],
     audiences: ["procurement-officer", "approver", "finance-officer"],
-    routes: [R.PROCUREMENT.REQUISITIONS, R.PROCUREMENT.PURCHASE_ORDERS, R.PROCUREMENT.GOODS_RECEIPTS, R.PROCUREMENT.VENDOR_INVOICES, R.PROCUREMENT.VENDOR_PAYMENTS],
+    routes: [R.PROCUREMENT.REQUISITIONS, R.PROCUREMENT.PURCHASE_ORDERS, R.PROCUREMENT.GOODS_RECEIPTS, R.PROCUREMENT.VENDOR_INVOICES, R.PROCUREMENT.VENDOR_PAYMENTS, R.PROCUREMENT.APPROVALS],
     actionIds: ["view-requisitions", "create-requisition", "view-purchase-orders", "create-purchase-order", "view-goods-receipts", "post-goods-receipt", "view-vendor-invoices", "create-vendor-invoice", "view-vendor-payments", "new-vendor-payment", "view-procurement-approvals"],
     access: { mode: "any", permissions: [
       P.PROC_VIEW_REQUISITIONS, P.PROC_CREATE_REQUISITION,
@@ -1292,6 +1293,7 @@ export const GUIDE_REGISTRY = [
       P.PROC_VIEW_GOODS_RECEIPTS, P.PROC_CREATE_GOODS_RECEIPT,
       P.PROC_VIEW_VENDOR_INVOICES, P.PROC_CREATE_VENDOR_INVOICE,
       P.PROC_VIEW_VENDOR_PAYMENTS, P.PROC_CREATE_VENDOR_PAYMENT,
+      P.PROC_APPROVE_SPEND, P.PROC_MANAGE_APPROVALS, P.PROC_APPROVE_SPEND_SENIOR,
     ] },
     primaryRoute: R.PROCUREMENT.REQUISITIONS,
     sections: [
@@ -1309,7 +1311,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.procurement.complete-procure-to-pay",
     estimatedMinutes: 13,
     owner: OWNER,
-    reviewedAt: C7B_REVIEWED_AT,
+    reviewedAt: PROCUREMENT_ROUTE_GAP_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
@@ -1356,7 +1358,7 @@ export const GUIDE_REGISTRY = [
     tags: ["analytics", "AP aging", "GR/IR", "spend", "vendor performance", "assessment", "overdue", "control account"],
     aliases: ["procurement reports", "supplier aging", "goods received not invoiced", "invoiced not received", "top supplier spend", "vendor scorecard", "late delivery"],
     audiences: ["procurement-officer", "finance-officer", "approver"],
-    routes: [R.PROCUREMENT.ANALYTICS, `${R.PROCUREMENT.ANALYTICS}/ap-aging`, `${R.PROCUREMENT.ANALYTICS}/grir`, `${R.PROCUREMENT.ANALYTICS}/spend`, `${R.PROCUREMENT.ANALYTICS}/performance`],
+    routes: [R.PROCUREMENT.INDEX, R.PROCUREMENT.ANALYTICS, `${R.PROCUREMENT.ANALYTICS}/ap-aging`, `${R.PROCUREMENT.ANALYTICS}/grir`, `${R.PROCUREMENT.ANALYTICS}/spend`, `${R.PROCUREMENT.ANALYTICS}/performance`],
     actionIds: ["view-procurement-analytics", "view-ap-aging", "view-grir-control", "view-spend-analytics", "view-vendor-performance", "create-vendor-assessment"],
     access: { mode: "any", permissions: [P.PROC_VIEW_PROC_REPORTS, P.PROC_CREATE_VENDOR_ASSESSMENT] },
     primaryRoute: `${R.PROCUREMENT.ANALYTICS}/ap-aging`,
@@ -1373,7 +1375,7 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["procurement.complete-procure-to-pay", "procurement.add-and-govern-vendor", "procurement.stock-locations"],
     estimatedMinutes: 8,
     owner: OWNER,
-    reviewedAt: C7B_REVIEWED_AT,
+    reviewedAt: PROCUREMENT_ROUTE_GAP_REVIEWED_AT,
     risk: "medium",
     status: "published",
     article: () => import("./content/procurement-and-inventory/review-analytics"),
@@ -1387,7 +1389,18 @@ export const GUIDE_REGISTRY = [
     tags: ["settings", "policy", "KYC", "requisition lead time", "receipt evidence", "RFQ minimum", "matching tolerance", "non-PO invoice", "account mapping", "approval workflow"],
     aliases: ["procurement configuration", "purchasing policy", "change match tolerance", "allow non po invoice", "require purchase order", "minimum vendor bids", "procurement defaults"],
     audiences: ["platform-administrator", "procurement-officer", "finance-officer"],
-    routes: [R.PROCUREMENT.SETTINGS, `${R.PROCUREMENT.SETTINGS}/:section`],
+    routes: [
+      R.PROCUREMENT.SETTINGS,
+      `${R.PROCUREMENT.SETTINGS}/overview`,
+      `${R.PROCUREMENT.SETTINGS}/general`,
+      `${R.PROCUREMENT.SETTINGS}/purchasing`,
+      `${R.PROCUREMENT.SETTINGS}/sourcing-lifecycle`,
+      `${R.PROCUREMENT.SETTINGS}/competitive-governance`,
+      `${R.PROCUREMENT.SETTINGS}/matching`,
+      `${R.PROCUREMENT.SETTINGS}/accounting`,
+      `${R.PROCUREMENT.SETTINGS}/approvals`,
+      `${R.PROCUREMENT.SETTINGS}/reference-data`,
+    ],
     actionIds: ["view-procurement-settings"],
     access: { mode: "any", permissions: [P.PROC_VIEW_SETTINGS, P.PROC_UPDATE_SETTINGS, P.FIN_VIEW_SETTINGS] },
     primaryRoute: R.PROCUREMENT.SETTINGS,
@@ -1405,7 +1418,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.procurement.configure-settings",
     estimatedMinutes: 11,
     owner: OWNER,
-    reviewedAt: C7B_REVIEWED_AT,
+    reviewedAt: PROCUREMENT_ROUTE_GAP_REVIEWED_AT,
     risk: "high",
     status: "published",
     article: () => import("./content/procurement-and-inventory/configure-settings"),

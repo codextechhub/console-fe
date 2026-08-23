@@ -47,6 +47,12 @@ describe("contextual guides", () => {
     const tasks = contextualGuideContext(GUIDE_REGISTRY, "/tasks", []);
     expect(tasks.guides.map((guide) => guide.id)).toEqual(["tasks.create-and-complete"]);
 
+    const procurementOverview = contextualGuideContext(GUIDE_REGISTRY, "/procurement", ["procurement.report.view"]);
+    expect(procurementOverview.guides.map((guide) => guide.id)).toEqual(["procurement.review-analytics"]);
+
+    const procurementApprovals = contextualGuideContext(GUIDE_REGISTRY, "/procurement/approvals", ["procurement.approval.approve"]);
+    expect(procurementApprovals.guides.map((guide) => guide.id)).toEqual(["procurement.complete-procure-to-pay"]);
+
     const rfqs = contextualGuideContext(GUIDE_REGISTRY, "/procurement/sourcing/rfqs", ["procurement.rfq.view"]);
     expect(rfqs.guides.map((guide) => guide.id)).toEqual(["procurement.run-rfq-and-award"]);
 
