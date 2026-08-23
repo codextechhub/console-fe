@@ -19,6 +19,20 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // An `_`-prefixed binding is a deliberate discard, and a property
+      // pulled out only to omit it from a rest spread is never read by
+      // design. Both are intent, not oversight.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
   },
   {
     // shadcn-style component files co-export their cva variants and small
