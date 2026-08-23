@@ -35,6 +35,7 @@ import { authApi } from "@/redux/services/auth/auth-api";
 import { toast, useSonner } from "sonner";
 import { clearSelectedEntity } from "@/redux/features/finance/entity-slice";
 import { useAcknowledgeNotificationRouteMutation } from "@/redux/services/notifications-api";
+import { useRecordGuideAnalyticsMutation } from "@/redux/services/guide-analytics-api";
 import { isPrimaryShortcut, isPrimaryShiftShortcut } from "@/utils/keyboard-shortcuts";
 import {
   DashboardHeaderContext,
@@ -89,6 +90,8 @@ function DashboardHeader({
   // match, grouped by console, in a scrollable box. Resets on each query change.
   const [resultsExpanded, setResultsExpanded] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const recordedNoResultSearches = useRef(new Set<string>());
+  const [recordGuideAnalytics] = useRecordGuideAnalyticsMutation();
   const { toasts: activeToasts } = useSonner();
   const desktopSearchRef = useRef<HTMLInputElement>(null);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
@@ -220,6 +223,40 @@ function DashboardHeader({
     peopleQueryTooShort,
     peopleQueryTooLong,
   } = useWorkspaceSearch(search);
+
+  useEffect(() => {
+    const query = search.trim();
+    const noResults = total === 0
+      && guides.length === 0
+      && people.length === 0
+      && !peopleLoading
+      && !peopleError
+      && !peopleQueryTooLong;
+    if (query.length < 2 || !noResults) return;
+    const key = `${pathname}:${query.toLocaleLowerCase()}`;
+    if (recordedNoResultSearches.current.has(key)) return;
+    const timeout = window.setTimeout(() => {
+      recordedNoResultSearches.current.add(key);
+      void recordGuideAnalytics({
+        name: "search.no_results",
+        query,
+        ...(pageGuideContext.routePattern ? { route_pattern: pageGuideContext.routePattern } : {}),
+        result_count: 0,
+      });
+    }, 800);
+    return () => window.clearTimeout(timeout);
+  }, [
+    guides.length,
+    pageGuideContext.routePattern,
+    pathname,
+    people.length,
+    peopleError,
+    peopleLoading,
+    peopleQueryTooLong,
+    recordGuideAnalytics,
+    search,
+    total,
+  ]);
 
   // Collapsed shows the top few; a broad query ("v") can match dozens, so the
   // rest hide behind a keyboard-reachable "show all" row.

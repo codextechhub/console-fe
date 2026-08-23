@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -16,7 +16,7 @@ import {
   UserRound,
   Wrench,
 } from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ import {
   findWalkthrough,
   guidesForAudience,
   recentlyReviewedGuides,
+  resolveGuideRoutePattern,
   searchGuides,
   visibleGuides,
   type GuideAudience,
@@ -40,6 +41,7 @@ import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
+import { useRecordGuideAnalyticsMutation } from "@/redux/services/guide-analytics-api";
 
 const CATEGORY_ICONS: Record<GuideCategoryId, React.ElementType> = {
   "getting-started": Compass,
@@ -58,12 +60,15 @@ const CATEGORY_ICONS: Record<GuideCategoryId, React.ElementType> = {
 
 export default function HowToGuides() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { hasPermission } = usePermissions();
   const permissions = useAppSelector(selectPermissions);
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState("");
   const [activeResult, setActiveResult] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
+  const recordedNoResults = useRef(new Set<string>());
+  const [recordAnalytics] = useRecordGuideAnalyticsMutation();
   const categoryParam = params.get("category");
   const audienceParam = params.get("audience");
   const category = GUIDE_CATEGORIES.some((candidate) => candidate.id === categoryParam)
@@ -95,6 +100,23 @@ export default function HowToGuides() {
   const activeSuggestionIndex = suggestions.length ? Math.min(activeResult, suggestions.length - 1) : 0;
   const landingView = guideLandingView({ category, audience, query: normalizedQuery });
   const roleEntries = selectedAudience ? [selectedAudience] : GUIDE_ROLE_ENTRY_POINTS;
+
+  useEffect(() => {
+    if (normalizedQuery.length < 2 || filtered.length > 0) return;
+    const key = `${category ?? "all"}:${audience ?? "all"}:${normalizedQuery.toLocaleLowerCase()}`;
+    if (recordedNoResults.current.has(key)) return;
+    const timeout = window.setTimeout(() => {
+      recordedNoResults.current.add(key);
+      const routePattern = resolveGuideRoutePattern(location.pathname);
+      void recordAnalytics({
+        name: "search.no_results",
+        query: normalizedQuery,
+        ...(routePattern ? { route_pattern: routePattern } : {}),
+        result_count: 0,
+      });
+    }, 800);
+    return () => window.clearTimeout(timeout);
+  }, [audience, category, filtered.length, location.pathname, normalizedQuery, recordAnalytics]);
 
   const selectParam = (key: "category" | "audience", value: string | null) => {
     setActiveResult(0);

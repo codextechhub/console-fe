@@ -152,8 +152,9 @@ Guide search should support:
 - Permission filtering before results render.
 - Keyboard navigation and a useful no-results state.
 - A no-results event containing the normalized query, current route, and result
-  count only. Never record form contents, record identifiers, names, emails,
-  amounts, or other user-entered values.
+  count only. The backend keeps only approved guide-task words and replaces every
+  other token with `[redacted]`. Never record form contents, record identifiers,
+  names, emails, amounts, or other user-entered values.
 
 Add a `Guides` section to workspace search after the standalone guide search works.
 
@@ -525,6 +526,8 @@ all walkthroughs to the end.
    - Add privacy-safe guide views, completions, walkthrough exits, helpful votes,
      outdated reports, and no-result searches.
    - Define a recurring review queue by owner and product risk.
+   - Keep analytics separate from audit evidence, expose aggregate counts only to
+     platform health operators, and delete raw events after 180 days.
 
 24. **Slice O3: Final accessibility, responsive, security, and content audit**
    - Verify every category, role entry point, support handoff, and walkthrough on

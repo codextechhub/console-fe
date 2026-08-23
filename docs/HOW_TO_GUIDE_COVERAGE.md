@@ -511,3 +511,26 @@ editor, assignment, approval, or automated repair action.
   Finance Audit, entity-trail detail, Administration hub, and notification feed are
   read-only. Existing Finance settings and audit walkthroughs retain their current
   consequential-action boundaries.
+
+## O2 analytics and editorial loop (2026-08-23)
+
+- Guide article opens, reader-marked completions, helpful or not-helpful votes,
+  outdated-guide ticket handoffs, and finished or paused walkthrough exits now use
+  one closed event contract.
+- Standalone and workspace no-result searches wait 800 ms after results settle.
+  The backend keeps only approved guide-task words, replaces all other tokens with
+  `[redacted]`, and stores the normalized route pattern and zero result count. It
+  never stores an actor, tenant breakdown, record id, form value, amount, email, or
+  free-text report.
+- Disposable analytics are retained for 180 days and remain separate from support
+  and security audit evidence. The ingest path is available to active users so the
+  sample is not permission-biased; aggregate summaries require
+  `platform.health.view` and expose no tenant dimension.
+- The Coverage and freshness screen now includes 30-day reader metrics, sanitized
+  no-result phrases, and an editorial queue that combines review deadlines, owner,
+  product risk, outdated reports, negative votes, low completion, and walkthrough
+  exits.
+- The coverage guide explains how to read these signals and why they prompt a
+  source review rather than prove that a workflow succeeded or failed. No new
+  walkthrough was added because analytics review is read-only and has no ordered,
+  consequential product action.

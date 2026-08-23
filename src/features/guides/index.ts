@@ -18,6 +18,8 @@ export {
 export type { GuideLandingView } from "./discovery";
 export { GUIDE_REGISTRY } from "./registry";
 export { searchGuides } from "./search";
+export { buildGuideEditorialQueue } from "./editorial";
+export type { GuideEditorialCounts, GuideEditorialQueueItem } from "./editorial";
 export { GUIDE_COVERAGE_ROUTE_PATTERNS, GUIDE_ROUTE_PATTERNS, GUIDE_ROUTE_PATTERN_SET } from "./route-catalog";
 export { buildGuideOperationsReport, guideFreshness, GUIDE_REVIEW_INTERVAL_DAYS } from "./operations";
 export { WALKTHROUGH_VERIFICATION_RECORDS } from "./walkthroughs/verification";

@@ -1,5 +1,5 @@
 import { createElement, lazy, Suspense, useEffect, useLayoutEffect, useState, type MouseEvent } from "react";
-import { ArrowLeft, ArrowRight, BookOpenText, Check, Clock3, ExternalLink, Flag, Loader2, PlayCircle, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpenText, Check, CheckCircle2, Clock3, ExternalLink, Flag, Loader2, PlayCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
 import PageAccessDenied from "@/components/custom/page-access-denied";
@@ -8,6 +8,7 @@ import { GUIDE_CATEGORIES, GUIDE_REGISTRY, canDiscoverGuide, findWalkthrough, us
 import { resetGuideArticleScroll, scrollToGuideSection } from "@/features/guides/article-navigation";
 import { selectPermissions } from "@/redux/features/auth/auth-slice";
 import { useAppSelector } from "@/redux/store";
+import { useRecordGuideAnalyticsMutation } from "@/redux/services/guide-analytics-api";
 import { routesPath } from "@/routes/routes-path";
 
 const GUIDE_RECORDS: readonly GuideRecord[] = GUIDE_REGISTRY;
@@ -23,8 +24,10 @@ export default function GuideArticlePage() {
   const permissions = useAppSelector(selectPermissions);
   const guide = GUIDE_RECORDS.find((candidate) => candidate.slug === slug);
   const [feedback, setFeedback] = useState<"yes" | "no" | null>(null);
+  const [completed, setCompleted] = useState(false);
   const Article = GUIDE_ARTICLES.get(slug);
   const { start: startWalkthrough } = useWalkthrough();
+  const [recordAnalytics] = useRecordGuideAnalyticsMutation();
 
   useLayoutEffect(() => {
     resetGuideArticleScroll();
@@ -37,6 +40,11 @@ export default function GuideArticlePage() {
     }, 0);
     return () => window.clearTimeout(timeout);
   }, [guide?.walkthroughId, searchParams, startWalkthrough]);
+
+  useEffect(() => {
+    if (!guide || guide.status !== "published" || !canDiscoverGuide(guide, permissions)) return;
+    void recordAnalytics({ name: "guide.viewed", guide_id: guide.id });
+  }, [guide, permissions, recordAnalytics]);
 
   if (!guide || guide.status === "retired") return <GuideUnavailable title="Guide not found" message="This guide does not exist or has been retired." />;
   if (!canDiscoverGuide(guide, permissions)) return <PageAccessDenied />;
@@ -67,8 +75,24 @@ export default function GuideArticlePage() {
         {related.length > 0 && <section className="mt-6"><h2 className="font-mont text-lg font-semibold">Related guides</h2><div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">{related.map((item) => item.status === "published" ? <Link key={item.id} to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(item.slug)} className="rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-primary/30"><p className="text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{item.summary}</p></Link> : <div key={item.id} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs text-gray-01">Planned for a later category release.</p></div>)}</div></section>}
 
         <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5">
-          {feedback ? <div className="flex items-center gap-2 text-sm font-medium text-emerald-700"><Check className="size-4" /> Thank you. Your feedback has been recorded for this visit.</div> : <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold">Was this guide helpful?</p><p className="mt-1 text-xs text-gray-01">Your answer helps us prioritize guide improvements.</p></div><div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => setFeedback("yes")}><ThumbsUp className="size-4" /> Yes</Button><Button size="sm" variant="outline" onClick={() => setFeedback("no")}><ThumbsDown className="size-4" /> Not yet</Button></div></div>}
-          <div className="mt-4 border-t border-gray-100 pt-4"><Button asChild variant="ghost" size="sm" className="px-0 text-gray-01"><Link to={routesPath.PROTECTED.SUPPORT.NEW}><Flag className="size-4" /> Report an outdated guide</Link></Button></div>
+          <div className="flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="text-sm font-semibold">Finished this guide?</p><p className="mt-1 text-xs text-gray-01">Marking it complete helps editors see which guides lead to a finished task.</p></div>
+            <Button
+              size="sm"
+              variant={completed ? "outline" : "default"}
+              disabled={completed}
+              onClick={() => {
+                setCompleted(true);
+                void recordAnalytics({ name: "guide.completed", guide_id: guide.id });
+              }}
+            >
+              <CheckCircle2 className="size-4" /> {completed ? "Completed" : "Mark complete"}
+            </Button>
+          </div>
+          <div className="pt-4">
+            {feedback ? <div className="flex items-center gap-2 text-sm font-medium text-emerald-700"><Check className="size-4" /> Thank you. Your feedback was noted for this visit.</div> : <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold">Was this guide helpful?</p><p className="mt-1 text-xs text-gray-01">Your answer helps us prioritize guide improvements.</p></div><div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => { setFeedback("yes"); void recordAnalytics({ name: "guide.helpful_voted", guide_id: guide.id, outcome: "helpful" }); }}><ThumbsUp className="size-4" /> Yes</Button><Button size="sm" variant="outline" onClick={() => { setFeedback("no"); void recordAnalytics({ name: "guide.helpful_voted", guide_id: guide.id, outcome: "not_helpful" }); }}><ThumbsDown className="size-4" /> Not yet</Button></div></div>}
+          </div>
+          <div className="mt-4 border-t border-gray-100 pt-4"><Button asChild variant="ghost" size="sm" className="px-0 text-gray-01"><Link to={routesPath.PROTECTED.SUPPORT.NEW} onClick={() => { void recordAnalytics({ name: "guide.outdated_reported", guide_id: guide.id }); }}><Flag className="size-4" /> Report an outdated guide</Link></Button></div>
         </section>
       </article>
 

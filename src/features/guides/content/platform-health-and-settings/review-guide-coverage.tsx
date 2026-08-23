@@ -4,8 +4,13 @@ export default function ReviewGuideCoverageArticle() {
   return (
     <div className="space-y-10">
       <GuideSection id="before-you-start" title="Before you start">
-        <p>You need platform health access. The dashboard reads the guide registry, route catalogue, action palette, and walkthrough verification records already shipped with Console. It does not read customer records or change a guide from the browser.</p>
+        <p>You need platform health access. The dashboard reads the guide registry, route catalogue, action palette, walkthrough verification records, and privacy-safe reader signals. It does not read customer records or change a guide from the browser.</p>
         <GuideCallout title="Fix the source, not the number">Each total is calculated from a versioned source contract. Update the affected route, action, guide, relation, review date, or walkthrough verification record in the same product change. There is no manual override on the dashboard.</GuideCallout>
+      </GuideSection>
+
+      <GuideSection id="read-reader-signals" title="Read reader signals">
+        <p>Use the 30-day counts to compare guide views, reader-marked completions, helpful votes, outdated-report handoffs, no-result searches, and walkthrough exits. These are prioritisation signals, not proof that a task succeeded or failed.</p>
+        <GuideCallout title="Search text is reduced before storage">Console waits for a settled no-result search, sends only its normalized route and zero result count, and the backend keeps approved task words while replacing every other word with [redacted]. Events contain no actor, record id, form value, amount, or free-text report and are deleted after 180 days.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="read-the-summary" title="Read the coverage summary">
@@ -24,7 +29,7 @@ export default function ReviewGuideCoverageArticle() {
       </GuideSection>
 
       <GuideSection id="work-the-review-queue" title="Work the review queue">
-        <p>Review stale items before due-soon items, then work higher-risk workflows first. Drive the current screen with the real permission state, compare every label, field, status, confirmation, result, and recovery path, and update screenshots or walkthrough targets when they changed. Move the review date only after the current guidance has been checked.</p>
+        <p>The editorial queue combines the recurring risk deadline with outdated reports, not-helpful votes, low completion after enough views, and walkthrough exits. Work the highest score first, confirm the signal against the current product, and then fix the source guide, search metadata, or walkthrough. Move the review date only after the current guidance has been checked.</p>
       </GuideSection>
 
       <GuideSection id="repair-integrity-and-targets" title="Repair integrity and target checks">
@@ -38,6 +43,7 @@ export default function ReviewGuideCoverageArticle() {
           <li>A current-looking guide is stale: the interval is based on its risk, not one shared annual date.</li>
           <li>Every target appears missing after a small walkthrough edit: changing the walkthrough version intentionally invalidates the older verification record.</li>
           <li>A dashboard total looks wrong: inspect the source registry and exclusion contract before adding an exception.</li>
+          <li>A search phrase contains [redacted]: this is the privacy boundary working. Use the remaining task words and route pattern to investigate without trying to recover a person or record value.</li>
         </ul>
       </GuideSection>
 
@@ -48,6 +54,7 @@ export default function ReviewGuideCoverageArticle() {
           "Stale articles were checked against the current screen before their review date changed",
           "Broken relations and registry references were repaired at their source",
           "Changed walkthrough versions were driven again on desktop, phone, and tablet",
+          "Reader signals were treated as prompts for review, not proof of task success",
           "No product permission, validation, confirmation, or tenant boundary was bypassed",
         ]} />
       </GuideSection>

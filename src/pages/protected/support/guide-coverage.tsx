@@ -2,6 +2,7 @@ import { useMemo, type ElementType, type ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
+  BarChart3,
   BookOpenCheck,
   CalendarClock,
   CheckCircle2,
@@ -10,6 +11,7 @@ import {
   MapPinOff,
   MousePointerClick,
   RouteOff,
+  SearchX,
 } from "lucide-react";
 import { Link } from "react-router";
 
@@ -17,6 +19,7 @@ import PageAccessDenied from "@/components/custom/page-access-denied";
 import { Button } from "@/components/ui/button";
 import {
   buildGuideOperationsReport,
+  buildGuideEditorialQueue,
   GUIDE_COVERAGE_ROUTE_PATTERNS,
   GUIDE_REGISTRY,
   WALKTHROUGH_REGISTRY,
@@ -28,6 +31,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { ACTIONS } from "@/lib/action-palette/registry";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
+import { useGetGuideAnalyticsSummaryQuery } from "@/redux/services/guide-analytics-api";
 
 const R = routesPath.PROTECTED;
 
@@ -39,6 +43,10 @@ const FRESHNESS_STYLE: Record<GuideFreshnessStatus, string> = {
 
 export default function GuideCoveragePage() {
   const { hasPermission } = usePermissions();
+  const canViewOperations = hasPermission(P.VIEW_HEALTH);
+  const { data: analyticsResponse, isLoading: analyticsLoading, isError: analyticsError } = useGetGuideAnalyticsSummaryQuery(30, {
+    skip: !canViewOperations,
+  });
   const report = useMemo(() => buildGuideOperationsReport({
     guides: GUIDE_REGISTRY,
     shippedRoutes: GUIDE_COVERAGE_ROUTE_PATTERNS,
@@ -46,8 +54,13 @@ export default function GuideCoveragePage() {
     walkthroughs: WALKTHROUGH_REGISTRY,
     verificationRecords: WALKTHROUGH_VERIFICATION_RECORDS,
   }), []);
+  const analytics = analyticsResponse?.data;
+  const editorialQueue = useMemo(() => buildGuideEditorialQueue({
+    guides: GUIDE_REGISTRY,
+    analytics: analytics?.guides ?? [],
+  }), [analytics?.guides]);
 
-  if (!hasPermission(P.VIEW_HEALTH)) return <PageAccessDenied />;
+  if (!canViewOperations) return <PageAccessDenied />;
 
   const activeGuideCount = report.publishedGuideCount + report.draftGuideCount;
   const integrityGapCount = report.integrityIssues.length + report.walkthroughTargetGaps.length;
@@ -149,6 +162,88 @@ export default function GuideCoveragePage() {
         ) : <HealthyState text="All active guides are inside their risk-based review window." />}
       </ReportPanel>
 
+      <section aria-labelledby="reader-signals-heading" className="min-w-0">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-primary">Editorial loop</p>
+            <h2 id="reader-signals-heading" className="mt-1 font-mont text-xl font-semibold">Reader signals from the last 30 days</h2>
+            <p className="mt-1 max-w-3xl text-xs leading-5 text-gray-01">
+              Counts contain guide keys and coarse outcomes only. Search phrases keep approved task words and replace other words with [redacted]. No actor, record id, form value, amount, or free-text report is stored.
+            </p>
+          </div>
+          {analytics && <p className="text-xs text-gray-01">Window starts <span className="font-semibold text-black-01">{analytics.since}</span></p>}
+        </div>
+
+        {analyticsLoading ? (
+          <div className="mt-4 rounded-2xl border border-gray-200 bg-white px-5 py-8 text-center text-sm text-gray-01">Loading reader signals...</div>
+        ) : analyticsError || !analytics ? (
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+            Reader signals are unavailable. Static route, action, freshness, and walkthrough checks above are still current.
+          </div>
+        ) : (
+          <>
+            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+              <MetricCard icon={BookOpenCheck} label="Guide views" value={analytics.totals["guide.viewed"] ?? 0} detail="Article opens" />
+              <MetricCard icon={CheckCircle2} label="Completions" value={analytics.totals["guide.completed"] ?? 0} detail="Reader-marked finishes" />
+              <MetricCard icon={BarChart3} label="Helpful votes" value={analytics.totals["guide.helpful_voted"] ?? 0} detail="Helpful and not helpful" />
+              <MetricCard icon={AlertTriangle} label="Outdated reports" value={analytics.totals["guide.outdated_reported"] ?? 0} detail="Ticket handoffs started" alert={(analytics.totals["guide.outdated_reported"] ?? 0) > 0} />
+              <MetricCard icon={SearchX} label="No-result searches" value={analytics.totals["search.no_results"] ?? 0} detail="Debounced guide searches" alert={(analytics.totals["search.no_results"] ?? 0) > 0} />
+              <MetricCard icon={MousePointerClick} label="Walkthrough exits" value={analytics.totals["walkthrough.exited"] ?? 0} detail="Finished, paused, or unavailable" />
+            </div>
+
+            <section className="mt-4 grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
+              <ReportPanel
+                icon={CalendarClock}
+                title="Editorial review queue"
+                description="Due reviews and reader signals, ordered by product risk and urgency."
+                count={editorialQueue.length}
+              >
+                {editorialQueue.length ? (
+                  <ul className="divide-y divide-gray-100">
+                    {editorialQueue.slice(0, 20).map((item) => {
+                      const guide = guideById.get(item.guideId);
+                      return (
+                        <li key={item.guideId} className="min-w-0 px-4 py-4 sm:px-5">
+                          <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+                            {guide?.status === "published" ? (
+                              <Link className="text-sm font-semibold hover:text-primary" to={R.SUPPORT.GUIDE_DETAIL(guide.slug)}>{item.title}</Link>
+                            ) : <p className="text-sm font-semibold">{item.title}</p>}
+                            <span className="rounded-full bg-gray-100 px-2 py-1 text-[10px] font-semibold text-gray-600">{item.risk} risk</span>
+                          </div>
+                          <p className="mt-1 text-xs text-gray-01">{item.owner} · due {item.dueAt}</p>
+                          <p className="mt-2 text-xs leading-5 text-amber-700">{item.reasons.join(" · ")}</p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : <HealthyState text="No scheduled review or reader signal needs editorial attention." />}
+              </ReportPanel>
+
+              <ReportPanel
+                icon={SearchX}
+                title="No-result guide searches"
+                description="Sanitised task phrases editors can turn into aliases or new guidance."
+                count={analytics.no_result_searches.length}
+              >
+                {analytics.no_result_searches.length ? (
+                  <ul className="divide-y divide-gray-100">
+                    {analytics.no_result_searches.map((item) => (
+                      <li key={`${item.search_query}-${item.route_pattern}`} className="min-w-0 px-4 py-3 sm:px-5">
+                        <div className="flex min-w-0 items-start justify-between gap-3">
+                          <code className="break-words text-xs text-black-01">{item.search_query}</code>
+                          <span className="shrink-0 rounded-full bg-gray-100 px-2 py-1 text-[10px] font-semibold">{item.count}</span>
+                        </div>
+                        {item.route_pattern && <code className="mt-1 block break-all text-[11px] text-gray-01">{item.route_pattern}</code>}
+                      </li>
+                    ))}
+                  </ul>
+                ) : <HealthyState text="Every recorded guide search returned a result." />}
+              </ReportPanel>
+            </section>
+          </>
+        )}
+      </section>
+
       <section className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
         <ReportPanel
           icon={Link2Off}
@@ -194,7 +289,7 @@ export default function GuideCoveragePage() {
           <div>
             <h2 className="text-sm font-semibold">What feeds this dashboard</h2>
             <p className="mt-1 text-xs leading-5 text-gray-01">
-              Route patterns come from the shipped guide route catalogue, actions come from the action palette, freshness comes from each guide's risk and review date, and walkthrough results come from versioned verification records. Fix the source registry instead of editing a total here.
+              Route patterns come from the shipped guide route catalogue, actions come from the action palette, freshness comes from each guide's risk and review date, and walkthrough results come from versioned verification records. Reader signals come from the closed analytics contract and feed the owner-and-risk editorial queue. Fix the source registry or content instead of editing a total here.
             </p>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { resolvePermissionKey } from "@/permissions";
 import { useAppSelector } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
+import { useRecordGuideAnalyticsMutation } from "@/redux/services/guide-analytics-api";
 
 import { GUIDE_REGISTRY } from "../registry";
 import {
@@ -51,6 +52,7 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
   const [walkthrough, setWalkthrough] = useState<Walkthrough | null>(null);
   const [step, setStep] = useState<WalkthroughContentStep | null>(null);
   const [missingTarget, setMissingTarget] = useState(false);
+  const [recordAnalytics] = useRecordGuideAnalyticsMutation();
 
   const hasTarget = useCallback((target: string) => Boolean(targetElement(target)), []);
 
@@ -183,6 +185,13 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
     const nextCompleted = [...new Set([...completed, step.id])];
     if (!next) {
       persist(walkthrough, step, nextCompleted, new Date().toISOString());
+      void recordAnalytics({
+        name: "walkthrough.exited",
+        guide_id: walkthrough.guideId,
+        walkthrough_id: walkthrough.id,
+        step_id: step.id,
+        outcome: "finished",
+      });
       const completionRoute = walkthroughCompletionRoute(walkthrough, GUIDE_REGISTRY);
       setWalkthrough(null);
       setStep(null);
@@ -192,7 +201,21 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
     setStep(next);
     setMissingTarget(false);
     persist(walkthrough, next, nextCompleted);
-  }, [hasTarget, identityKey, navigate, persist, step, walkthrough]);
+  }, [hasTarget, identityKey, navigate, persist, recordAnalytics, step, walkthrough]);
+
+  const pause = useCallback((outcome: "paused" | "target_unavailable") => {
+    if (walkthrough && step) {
+      void recordAnalytics({
+        name: "walkthrough.exited",
+        guide_id: walkthrough.guideId,
+        walkthrough_id: walkthrough.id,
+        step_id: step.id,
+        outcome,
+      });
+    }
+    setWalkthrough(null);
+    setStep(null);
+  }, [recordAnalytics, step, walkthrough]);
 
   useEffect(() => {
     if (!walkthrough || !step || step.advance !== "target-click" || !step.target) return;
@@ -259,7 +282,8 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
           missingTarget={missingTarget}
           onBack={() => move(-1)}
           onNext={() => move(1)}
-          onPause={() => { setWalkthrough(null); setStep(null); }}
+          onPause={() => pause(missingTarget ? "target_unavailable" : "paused")}
+          onReturnToGuide={() => pause("target_unavailable")}
         />,
         document.body,
       )}
@@ -274,6 +298,7 @@ function WalkthroughCoach({
   onBack,
   onNext,
   onPause,
+  onReturnToGuide,
 }: {
   walkthrough: Walkthrough;
   step: WalkthroughContentStep;
@@ -281,6 +306,7 @@ function WalkthroughCoach({
   onBack: () => void;
   onNext: () => void;
   onPause: () => void;
+  onReturnToGuide: () => void;
 }) {
   const [rect, setRect] = useState<RectLike | null>(null);
   const [cardSize, setCardSize] = useState<SizeLike>({ width: 340, height: 280 });
@@ -414,7 +440,7 @@ function WalkthroughCoach({
         {missingTarget ? "The highlighted control is not available in your current layout or permission state. Return to the guide or continue safely." : step.body}
       </p>
       {missingTarget && guide?.status === "published" && (
-        <Button asChild variant="outline" size="sm" className="mt-4 w-full"><a href={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)}><BookOpenText className="size-4" /> Return to the guide</a></Button>
+        <Button asChild variant="outline" size="sm" className="mt-4 w-full"><a href={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)} onClick={onReturnToGuide}><BookOpenText className="size-4" /> Return to the guide</a></Button>
       )}
       <div className="mt-5 flex items-center justify-between gap-3 border-t border-gray-100 pt-4">
         <Button type="button" variant="ghost" size="sm" onClick={onPause}><Pause className="size-4" /> Pause</Button>

@@ -19,11 +19,11 @@ const C9_REVIEWED_AT = "2026-08-21";
 const C10_REVIEWED_AT = "2026-08-21";
 const C11_REVIEWED_AT = "2026-08-21";
 const C12_REVIEWED_AT = "2026-08-21";
-const O1_REVIEWED_AT = "2026-08-21";
 const FINANCE_RECOVERY_REVIEWED_AT = "2026-08-23";
 const ACTION_GAP_REVIEWED_AT = "2026-08-23";
 const PROCUREMENT_ROUTE_GAP_REVIEWED_AT = "2026-08-23";
 const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-23";
+const O2_REVIEWED_AT = "2026-08-23";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -1954,13 +1954,14 @@ export const GUIDE_REGISTRY = [
   {
     id: "platform.review-guide-coverage",
     slug: "review-guide-coverage-and-freshness",
-    title: "Review guide coverage and freshness",
-    summary: "Find unmapped workflows, overdue reviews, broken guide links, and unverified walkthrough targets.",
+    title: "Review guide coverage, signals, and freshness",
+    summary: "Find unmapped workflows, reader friction, overdue reviews, broken guide links, and unverified walkthrough targets.",
     category: "platform-health-and-settings",
-    tags: ["guide coverage", "freshness", "documentation", "walkthrough verification", "review queue"],
+    tags: ["guide coverage", "freshness", "documentation", "walkthrough verification", "review queue", "helpful votes", "no result searches", "reader signals"],
     aliases: [
       "documentation gaps", "stale guides", "guide operations", "missing guide",
       "broken guide relation", "walkthrough target missing", "coverage dashboard",
+      "guide analytics", "outdated reports", "walkthrough exits", "search gaps",
     ],
     audiences: ["platform-administrator", "support-and-operations"],
     routes: [R.SUPPORT.GUIDE_COVERAGE],
@@ -1970,6 +1971,7 @@ export const GUIDE_REGISTRY = [
     sections: [
       { id: "before-you-start", title: "Before you start" },
       { id: "read-the-summary", title: "Read the coverage summary" },
+      { id: "read-reader-signals", title: "Read reader signals" },
       { id: "close-route-and-action-gaps", title: "Close route and action gaps" },
       { id: "work-the-review-queue", title: "Work the review queue" },
       { id: "repair-integrity-and-targets", title: "Repair integrity and target checks" },
@@ -1979,7 +1981,7 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["platform.investigate-health", "platform.requirements-library", "troubleshooting.prepare-support-ticket"],
     estimatedMinutes: 5,
     owner: OWNER,
-    reviewedAt: O1_REVIEWED_AT,
+    reviewedAt: O2_REVIEWED_AT,
     // Read-only operations report. There is no ordered or consequential action,
     // so a walkthrough would add ceremony without making the workflow safer.
     risk: "low",

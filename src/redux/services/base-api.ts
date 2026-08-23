@@ -551,6 +551,7 @@ export const baseApi = createApi({
     "Config",
     "Tickets",
     "TicketAssignees",
+    "GuideAnalytics",
     "Health",
     "RequirementsDocuments",
     // ── Finance & Procurement consoles ──────────────────────────────────────
