@@ -82,10 +82,15 @@ export function contextualGuideContext(
       : guide.routes.some((pattern) => routePatternMatches(pattern, pathname))
   ));
   const relatedIds = new Set(pageGuides.flatMap((guide) => [...(guide.relatedGuideIds ?? [])]));
-  const troubleshooting = permitted.filter((guide) => (
+  const directTroubleshooting = pageGuides.filter(
+    (guide) => guide.category === "troubleshooting",
+  );
+  const relatedTroubleshooting = permitted.filter((guide) => (
     guide.category === "troubleshooting"
-    && (pageGuides.includes(guide) || relatedIds.has(guide.id))
+    && !pageGuides.includes(guide)
+    && relatedIds.has(guide.id)
   ));
+  const troubleshooting = [...directTroubleshooting, ...relatedTroubleshooting];
 
   return {
     routePattern,

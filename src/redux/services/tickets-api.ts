@@ -65,7 +65,8 @@ export interface Ticket {
   /** Present on the detail serializer only. */
   comments?: TicketComment[];
   attachments?: TicketAttachment[];
-  capabilities?: { can_comment: boolean; can_attach: boolean };
+  capabilities?: { can_comment: boolean; can_attach: boolean; can_update: boolean };
+  is_following?: boolean;
 }
 
 export interface TicketDashboard {
@@ -139,6 +140,16 @@ export const ticketsApi = baseApi.injectEndpoints({
       query: ({ id, ...body }) => ({ url: `/support/tickets/${id}/comments/`, method: "POST", body }),
       invalidatesTags: ["Tickets"],
     }),
+    setTicketFollowing: builder.mutation<
+      { data: { is_following: boolean } },
+      { id: string; following: boolean }
+    >({
+      query: ({ id, following }) => ({
+        url: `/support/tickets/${id}/follow/`,
+        method: following ? "POST" : "DELETE",
+      }),
+      invalidatesTags: ["Tickets"],
+    }),
     uploadTicketAttachment: builder.mutation<
       { data: TicketAttachment },
       { id: string; file: File; comment_id?: string }
@@ -181,6 +192,7 @@ export const {
   useGetEligibleTicketAssigneesQuery,
   useTransitionTicketMutation,
   useAddTicketCommentMutation,
+  useSetTicketFollowingMutation,
   useUploadTicketAttachmentMutation,
   useDownloadTicketAttachmentMutation,
   useGetTicketAuditQuery,

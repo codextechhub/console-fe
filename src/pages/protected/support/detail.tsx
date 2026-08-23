@@ -31,6 +31,7 @@ import {
   useGetEligibleTicketAssigneesQuery,
   useGetTicketAuditQuery,
   useGetTicketQuery,
+  useSetTicketFollowingMutation,
   useTransitionTicketMutation,
   useUpdateTicketMutation,
   useUploadTicketAttachmentMutation,
@@ -39,6 +40,7 @@ import {
 } from "@/redux/services/tickets-api";
 import { isPrimaryShortcut } from "@/utils/keyboard-shortcuts";
 import { useDashboardTitle } from "@/components/layout/dashboard-header";
+import { FollowTicketControl } from "./follow-ticket-control";
 
 // Mirrors backend VALID_STATUS_TRANSITIONS (vs_tickets/constants.py).
 const transitions: Record<TicketStatus, TicketStatus[]> = {
@@ -144,6 +146,7 @@ export default function TicketDetail() {
   const canAssign = hasPermission(P.ASSIGN_TICKET);
   const canInternal = hasPermission(P.POST_INTERNAL_NOTE);
   const canAudit = hasPermission(P.VIEW_TICKET_AUDIT);
+  const canEdit = ticket?.capabilities?.can_update === true;
   const { data: eligibleAssignees, isLoading: assigneesLoading } =
     useGetEligibleTicketAssigneesQuery(id, { skip: !canAssign });
   const audit = useGetTicketAuditQuery(id, { skip: !canAudit });
@@ -151,6 +154,7 @@ export default function TicketDetail() {
   const [assign, assignState] = useAssignTicketMutation();
   const [update, updateState] = useUpdateTicketMutation();
   const [comment, commentState] = useAddTicketCommentMutation();
+  const [setFollowing, followState] = useSetTicketFollowingMutation();
   const [upload, uploadState] = useUploadTicketAttachmentMutation();
   const [body, setBody] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -438,7 +442,7 @@ export default function TicketDetail() {
               <div className="rounded-md bg-white p-5">
                 <div className="flex justify-between">
                   <h2 className="font-semibold">Ticket details</h2>
-                  {canManage && (
+                  {canEdit && (
                     <button onClick={() => setEditing(true)} className="text-xs font-medium text-primary">
                       Edit
                     </button>
@@ -463,6 +467,23 @@ export default function TicketDetail() {
                   ))}
                 </dl>
               </div>
+
+              <FollowTicketControl
+                following={ticket.is_following !== false}
+                busy={followState.isLoading}
+                onChange={async (following) => {
+                  try {
+                    await setFollowing({ id, following }).unwrap();
+                    toast.success(
+                      following
+                        ? "You are following this ticket"
+                        : "Ticket notifications stopped",
+                    );
+                  } catch {
+                    toast.error("Unable to update ticket notifications");
+                  }
+                }}
+              />
 
               {Object.keys(ticket.context ?? {}).length > 0 && (
                 <div className="rounded-md bg-white p-5">

@@ -144,6 +144,7 @@ describe("contextual guides", () => {
   it("builds an allowlisted ticket context from patterns, never the live URL", () => {
     const context = contextualGuideContext(GUIDE_REGISTRY, "/support/tickets/4831", []);
     expect(buildSafeTicketContext(context)).toEqual({
+      guide_id: "troubleshooting.prepare-support-ticket",
       route_pattern: "/support/tickets/:id",
       product_area: "Support",
     });
