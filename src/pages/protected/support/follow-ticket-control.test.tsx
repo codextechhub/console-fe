@@ -33,6 +33,8 @@ describe("FollowTicketControl", () => {
     const button = container.querySelector("button");
     expect(button?.textContent).toContain("Follow ticket");
     expect(button?.getAttribute("aria-pressed")).toBe("false");
+    expect(container.textContent).not.toContain("Notifications");
+    expect(container.textContent).not.toContain("Commenting follows this ticket automatically");
     await act(async () => button?.click());
     expect(onChange).toHaveBeenCalledWith(true);
   });

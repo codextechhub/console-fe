@@ -3,7 +3,7 @@
 // by its tickets.* key. House kit: Dialog, Sheet, NativeSelect, Badge.
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowLeft, Download, FileText, History, Image, Loader2, Lock, MessageSquare, Paperclip, Send, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ChevronDown, Download, FileText, History, Image, Loader2, Lock, MessageSquare, Paperclip, Send, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -302,10 +302,28 @@ export default function TicketDetail() {
               </div>
 
               <div className="p-4 sm:p-6 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
                   <MessageSquare className="size-4" />
                   <h2 className="font-semibold">Conversation</h2>
                   <span className="text-xs text-gray-01">{ticket.comments?.length ?? 0}</span>
+                  <div className="ml-auto">
+                    <FollowTicketControl
+                      following={ticket.is_following !== false}
+                      busy={followState.isLoading}
+                      onChange={async (following) => {
+                        try {
+                          await setFollowing({ id, following }).unwrap();
+                          toast.success(
+                            following
+                              ? "You are following this ticket"
+                              : "Ticket notifications stopped",
+                          );
+                        } catch {
+                          toast.error("Unable to update ticket notifications");
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className="mt-4 flex h-[65dvh] min-h-[430px] flex-col overflow-hidden rounded-xl border border-gray-200 bg-gray-50/40 lg:h-auto lg:min-h-0 lg:flex-1">
@@ -468,43 +486,6 @@ export default function TicketDetail() {
                 </dl>
               </div>
 
-              <FollowTicketControl
-                following={ticket.is_following !== false}
-                busy={followState.isLoading}
-                onChange={async (following) => {
-                  try {
-                    await setFollowing({ id, following }).unwrap();
-                    toast.success(
-                      following
-                        ? "You are following this ticket"
-                        : "Ticket notifications stopped",
-                    );
-                  } catch {
-                    toast.error("Unable to update ticket notifications");
-                  }
-                }}
-              />
-
-              {Object.keys(ticket.context ?? {}).length > 0 && (
-                <div className="rounded-md bg-white p-5">
-                  <h2 className="font-semibold">Console context</h2>
-                  <p className="mt-1 text-xs leading-5 text-gray-01">Safe product references captured when this ticket was created.</p>
-                  <dl className="mt-4 space-y-3 text-sm">
-                    {[
-                      ["Guide ID", ticket.context.guide_id],
-                      ["Route pattern", ticket.context.route_pattern],
-                      ["Product area", ticket.context.product_area],
-                      ["App version", ticket.context.app_version],
-                    ].filter((entry): entry is [string, string] => Boolean(entry[1])).map(([label, value]) => (
-                      <div key={label}>
-                        <dt className="text-xs text-gray-01">{label}</dt>
-                        <dd className="mt-0.5 break-all font-medium">{value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              )}
-
               {canAssign && (
                 <div className="rounded-md bg-white p-5">
                   <h2 className="font-semibold">Assignment</h2>
@@ -551,6 +532,45 @@ export default function TicketDetail() {
                     ))}
                   </div>
                 </div>
+              )}
+
+              {Object.keys(ticket.context ?? {}).length > 0 && (
+                <details
+                  className="group scroll-m-4 rounded-md bg-white"
+                  onToggle={(event) => {
+                    const disclosure = event.currentTarget;
+                    if (!disclosure.open) return;
+                    requestAnimationFrame(() => {
+                      disclosure.scrollIntoView({
+                        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                          ? "auto"
+                          : "smooth",
+                        block: "nearest",
+                      });
+                    });
+                  }}
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
+                    <span className="font-semibold">Console context</span>
+                    <ChevronDown className="size-4 shrink-0 text-gray-01 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="border-t border-white-02 px-5 pb-5 pt-4">
+                    <p className="text-xs leading-5 text-gray-01">Safe product references captured when this ticket was created.</p>
+                    <dl className="mt-4 space-y-3 text-sm">
+                      {[
+                        ["Guide ID", ticket.context.guide_id],
+                        ["Route pattern", ticket.context.route_pattern],
+                        ["Product area", ticket.context.product_area],
+                        ["App version", ticket.context.app_version],
+                      ].filter((entry): entry is [string, string] => Boolean(entry[1])).map(([label, value]) => (
+                        <div key={label}>
+                          <dt className="text-xs text-gray-01">{label}</dt>
+                          <dd className="mt-0.5 break-all font-medium">{value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                </details>
               )}
 
               {canAudit && (
