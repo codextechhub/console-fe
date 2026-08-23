@@ -222,7 +222,7 @@ phrases/aliases first, then we implement.
 | Create refund | new refund, raise refund | do | `FIN_CREATE_REFUND` | `…/refunds?action=new` |
 | Create write-off | write off invoice | do | `FIN_CREATE_WRITE_OFF` | `…/refunds?action=new-writeoff` |
 | View payment plans | instalments | view | `FIN_VIEW_PAYMENT_PLANS` | `/finance/receivables/payment-plans` |
-| Create payment plan | new plan | do | `FIN_CREATE_PAYMENT_PLAN` | `…/payment-plans?action=new` |
+| Create payment plan | new plan | do | all `FIN_CREATE_PAYMENT_PLAN`, `FIN_ACTIVATE_PAYMENT_PLAN` | `…/payment-plans?action=new` |
 | View concessions | discounts, scholarships | view | `FIN_VIEW_CONCESSIONS` | `/finance/receivables/concessions` |
 | Create concession | new concession | do | `FIN_CREATE_CONCESSION` | `…/concessions?action=new` |
 | View dunning | reminders | view | `FIN_VIEW_DUNNING` | `/finance/receivables/dunning` |

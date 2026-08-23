@@ -34,6 +34,11 @@ import { ConfirmActionModal } from "@/components/finance-ui/confirm-action-modal
 import { useContinueWithoutApprovalMutation } from "@/redux/services/dashboard/workflow-api";
 import type { ApprovalParkState } from "@/redux/services/dashboard/workflow-types";
 
+// DialogContent has a 200ms close animation. Keep the result toast behind that
+// transition so a completed outcome is never announced over the confirmation
+// that produced it.
+const DIALOG_CLOSE_DELAY_MS = 250;
+
 interface Options {
   /** What the user submitted, lowercase, for the dialog copy ("payout batch"). */
   documentLabel?: string;
@@ -44,6 +49,12 @@ interface Options {
 export function useNoApproverPrompt({ documentLabel = "document", onContinued }: Options = {}) {
   const [park, setPark] = useState<ApprovalParkState | null>(null);
   const [continueWithoutApproval, { isLoading }] = useContinueWithoutApprovalMutation();
+
+  const closeThenNotify = useCallback((message: string) => {
+    setPark(null);
+    window.setTimeout(() => toast.success(message), DIALOG_CLOSE_DELAY_MS);
+    onContinued?.();
+  }, [onContinued]);
 
   /**
    * Open the warning if the submission parked. Safe to call unconditionally
@@ -58,24 +69,20 @@ export function useNoApproverPrompt({ documentLabel = "document", onContinued }:
     if (!park) return;
     try {
       await continueWithoutApproval({ id: park.instance_id }).unwrap();
-      toast.success(`Continued without approval. This ${documentLabel} has been recorded as approved.`);
-      setPark(null);
-      onContinued?.();
+      closeThenNotify(`Continued without approval. This ${documentLabel} has been recorded as approved.`);
     } catch (err) {
       // The commonest failure is not a failure: somebody became able to approve
       // between the warning and the click, so the backend refused the bypass.
       // That is the right outcome and reads as good news.
       const code = (err as { data?: { error?: { code?: string } } })?.data?.error?.code;
       if (code === "NOT_PARKED") {
-        toast.success("Someone can approve this now, so it has gone for review instead.");
-        setPark(null);
-        onContinued?.();
+        closeThenNotify("Someone can approve this now, so it has gone for review instead.");
         return;
       }
       const message = (err as { data?: { message?: string } })?.data?.message;
       toast.error(message || "Could not continue without approval.");
     }
-  }, [park, continueWithoutApproval, documentLabel, onContinued]);
+  }, [park, continueWithoutApproval, documentLabel, closeThenNotify]);
 
   const noApproverDialog = (
     <ConfirmActionModal

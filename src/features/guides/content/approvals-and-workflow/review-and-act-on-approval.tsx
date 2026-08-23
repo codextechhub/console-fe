@@ -25,6 +25,7 @@ export default function ReviewAndActOnApprovalArticle() {
 
       <GuideSection id="review-the-request" title="Review the request">
         <p>Read the document panel, the visible workflow stages, and <strong>Activity</strong>. Skipped stages are omitted from progress. If a returned request was resubmitted, Console uses the newest attempt and its refreshed approver list.</p>
+        <p>Use the prominent <strong>View full document</strong> button below the summary to open the source area narrowed to that document. Its guidance follows the workflow status: active requests ask you to review before deciding, while completed, returned, rejected, withdrawn, and cancelled requests describe the recorded outcome. If the source area denies access, ask an authorized owner to review the evidence instead of acting from the summary alone.</p>
         <GuideCallout tone="warning" title="Do not approve from the title alone">The queue is a prompt to review, not evidence that the underlying document is complete. Return to the source module when the document panel does not contain enough detail.</GuideCallout>
       </GuideSection>
 
@@ -48,6 +49,7 @@ export default function ReviewAndActOnApprovalArticle() {
           {[
             ["The request disappeared from my queue", "It may have advanced, ended, been withdrawn, or received your earlier vote. Search its source record or ask an authorized workflow administrator to inspect the instance."],
             ["Console says I am not eligible", "Confirm the active stage, current attempt, approver group or role, and any active delegation. Do not ask someone to bypass the queue."],
+            ["View full document shows no match", "Clear any extra source-area filters, confirm the active entity, and search the displayed document reference. Report the workflow instance ID if the link opens another module or a missing page."],
             ["The stage is stalled", "An approver source may resolve to nobody, a quorum may be unreachable, or an inclusion condition may be wrong. An administrator should inspect the instance and template."],
             ["I made the wrong decision", "Do not add a compensating vote. Contact an administrator with reverse-action access so the original action stays visible in the audit trail."],
           ].map(([title, body]) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="flex items-start gap-2 text-sm font-semibold text-black-01"><CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" /> {title}</p><p className="mt-2 text-xs leading-5 text-gray-01">{body}</p></div>)}

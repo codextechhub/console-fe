@@ -9,6 +9,7 @@
 // "Bank file" is a CSV (no proprietary format); beneficiary details are FLS-masked.
 
 import { useMemo, useState, type ReactNode } from "react";
+import { useSearchParams } from "react-router";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import { Plus, Upload, Download, Send, X } from "lucide-react";
@@ -74,7 +75,11 @@ function Select({ value, onChange, children, className }: { value: string; onCha
 }
 
 export function BatchesTab({ entity, currency }: { entity: string; currency?: string | null }) {
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [searchParams] = useSearchParams();
+  const [selectedId, setSelectedId] = useState<number | null>(() => {
+    const id = Number(searchParams.get("document"));
+    return Number.isSafeInteger(id) && id > 0 ? id : null;
+  });
   const [building, setBuilding] = useState(false);
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetPayoutBatchesQuery({ entity, page });

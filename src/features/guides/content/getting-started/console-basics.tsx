@@ -83,6 +83,7 @@ export default function ConsoleBasicsArticle() {
       <GuideSection id="attention-and-notifications" title="Notifications and recent work">
         <GuideChecklist items={[
           "Open the notification bell for recent updates.",
+          "Use View Queues for routine background work such as email delivery; the bell is reserved for outcomes that need your attention.",
           "Use Pick up where you left off to return to records you opened in the last few days.",
           "Hover a card there and use its x to remove one you have finished with.",
           "Use the Home metric cards for the totals behind the focus panel, such as unresolved tickets or open tasks.",

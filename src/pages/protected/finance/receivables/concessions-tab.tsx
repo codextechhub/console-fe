@@ -7,6 +7,7 @@
 // required (the prototype's no-invoice scholarship isn't supported by our ledger).
 // Posting is Dr allowance (4910 Discounts & Allowances by default) · Cr AR.
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Search, Printer, Check, Send } from "lucide-react";
@@ -70,9 +71,10 @@ function concessionRecap(allowance: string | null, amount: number): { dr: RecapR
 }
 
 export function ConcessionsTab({ entity, currency }: { entity: string; currency?: string | null }) {
+  const [searchParams] = useSearchParams();
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(() => searchParams.get("search") ?? "");
   const search = useDebounce(searchInput.trim(), 350);
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
@@ -131,7 +133,7 @@ export function ConcessionsTab({ entity, currency }: { entity: string; currency?
           </select>
         </div>
         <Can permission={P.FIN_CREATE_CONCESSION}>
-          <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New concession</Button>
+          <Button data-guide="finance-concessions.new" onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New concession</Button>
         </Can>
       </div>
 
@@ -353,14 +355,14 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
         <>
           <Button variant="outline" disabled={saving} onClick={close}>Cancel</Button>
           <Button variant="outline" disabled={saving || !canSubmit} onClick={() => submit(true)}>Save draft</Button>
-          <Button disabled={saving || !canSubmit} onClick={() => submit(false)} className="gap-1.5">
+          <Button data-guide="finance-concessions.submit" disabled={saving || !canSubmit} onClick={() => submit(false)} className="gap-1.5">
             {willNeedApproval ? <Send className="size-4" /> : <Check className="size-4" />}
             {saving ? "Working…" : willNeedApproval ? "Submit for approval" : "Post concession"}
           </Button>
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-4" data-guide="finance-concessions.form">
         {gateNote ? (
           <p className={`rounded-md border px-3 py-2 font-mont text-xs leading-5 ${
             willNeedApproval
@@ -372,7 +374,7 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
         ) : null}
         <Segmented label="Type" value={kind} onChange={setKind} options={KINDS} />
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <PostingDateField
             label="Date" entity={entity} value={date} onChange={setDate}
             notBefore={selectedInvoice?.invoice_date}
@@ -389,7 +391,7 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
 
         <div className="space-y-2">
           <Segmented label="Enter as" value={entryMode} onChange={switchEntry} options={[["amount", "Amount"], ["pct", "% of balance"]]} />
-          <div className="grid grid-cols-2 items-start gap-3">
+          <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2">
             {entryMode === "amount" ? (
               <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} disabled={!invoice} /></FormField>
             ) : (
@@ -418,10 +420,12 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
 
         <FormField label="Basis / reason" required><Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Sibling discount 10%" className="bg-white" /></FormField>
 
-        <PostingRecap
-          title={`${kindLabel(kind)} posting`} dr={recap.dr} cr={recap.cr} currency={currency}
-          helper="A concession reduces recognised revenue and the customer's outstanding balance."
-        />
+        <div data-guide="finance-concessions.posting">
+          <PostingRecap
+            title={`${kindLabel(kind)} posting`} dr={recap.dr} cr={recap.cr} currency={currency}
+            helper="A concession reduces recognised revenue and the customer's outstanding balance."
+          />
+        </div>
       </div>
       {noApproverDialog}
     </DetailDrawer>

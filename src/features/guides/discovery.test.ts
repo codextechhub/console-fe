@@ -116,6 +116,17 @@ describe("guide discovery", () => {
     expect(visibleGuides(GUIDE_REGISTRY, payoutReader).map((guide) => guide.id)).toContain("finance.send-payouts-and-resolve-settlements");
   });
 
+  it("publishes finance recovery guides only for their receivables permissions", () => {
+    const noteReader = [resolvePermissionKey(P.FIN_VIEW_CREDIT_NOTES)];
+    const refundReader = [resolvePermissionKey(P.FIN_VIEW_REFUNDS)];
+    const planReader = [resolvePermissionKey(P.FIN_VIEW_PAYMENT_PLANS)];
+
+    expect(visibleGuides(GUIDE_REGISTRY, noteReader).map((guide) => guide.id)).toContain("finance.adjust-credit-notes-and-concessions");
+    expect(visibleGuides(GUIDE_REGISTRY, refundReader).map((guide) => guide.id)).toContain("finance.refund-or-write-off-balance");
+    expect(visibleGuides(GUIDE_REGISTRY, planReader).map((guide) => guide.id)).toContain("finance.create-and-manage-payment-plan");
+    expect(visibleGuides(GUIDE_REGISTRY, []).map((guide) => guide.id)).not.toContain("finance.refund-or-write-off-balance");
+  });
+
   it("publishes C7a guides only inside the caller's procurement permissions", () => {
     const vendorReader = [resolvePermissionKey(P.PROC_VIEW_VENDORS)];
     const categoryReader = [resolvePermissionKey(P.PROC_VIEW_CATEGORIES)];
@@ -194,9 +205,9 @@ describe("guide discovery", () => {
       "workflow.review-and-act",
       "workflow.delegate-and-track",
     ]);
-    expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.title)).toEqual([
-      "Fix search, filter, pagination, or download results",
-      "Maintain your profile and privacy",
+    expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.id)).toEqual([
+      "workflow.review-and-act",
+      "troubleshooting.search-filter-and-download",
     ]);
   });
 });

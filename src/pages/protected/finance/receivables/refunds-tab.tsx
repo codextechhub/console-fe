@@ -12,6 +12,7 @@
 //   • refunds and write-offs can either post directly or be submitted into the
 //     shared approval workflow, depending on the school's published templates.
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Search, Printer, Check, Send, Layers } from "lucide-react";
@@ -92,9 +93,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export function RefundsTab({ entity, currency }: { entity: string; currency?: string | null }) {
+  const [searchParams] = useSearchParams();
   const { can } = useCan();
   const [filter, setFilter] = useState<"" | Mode>("");
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(() => searchParams.get("search") ?? "");
   const search = useDebounce(searchInput.trim(), 350);
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
@@ -153,7 +155,7 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
             </Button>
           ) : null}
           {can(P.FIN_CREATE_REFUND) || can(P.FIN_CREATE_WRITE_OFF) || can(P.FIN_WRITE_OFF_INVOICE) ? (
-            <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New action</Button>
+            <Button data-guide="finance-refunds.new-action" onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New action</Button>
           ) : null}
         </div>
       </div>
@@ -476,14 +478,14 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
       footer={
         <>
           <Button variant="outline" disabled={saving} onClick={close}>Cancel</Button>
-          <Button disabled={saving || !canSubmit} onClick={submit} className="gap-1.5">
+          <Button data-guide="finance-refunds.submit" disabled={saving || !canSubmit} onClick={submit} className="gap-1.5">
             <Plus className="size-4" />
             {saving ? "Working…" : nextAction === "submit" ? "Submit for approval" : nextAction === "draft" ? "Save draft" : wo ? "Post write-off" : "Process refund"}
           </Button>
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-4" data-guide="finance-refunds.form">
         <Segmented
           label="Action" value={mode} onChange={changeMode}
           options={[["REFUND", "Refund to bank"], ["WRITEOFF", "Write off to expense"]]}
@@ -573,13 +575,15 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
 
         <FormField label="Reason"><Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why this action?" className="bg-white" /></FormField>
 
-        <PostingRecap
-          title={wo ? "Write-off posting" : "Refund posting"} dr={recap.dr} cr={recap.cr} currency={currency}
-          stackOnMobile
-          helper={wo
-            ? "A write-off recognises the loss as expense and clears the receivable."
-            : "A refund pays out a credit balance - cash leaves the bank."}
-        />
+        <div data-guide="finance-refunds.posting">
+          <PostingRecap
+            title={wo ? "Write-off posting" : "Refund posting"} dr={recap.dr} cr={recap.cr} currency={currency}
+            stackOnMobile
+            helper={wo
+              ? "A write-off recognises the loss as expense and clears the receivable."
+              : "A refund pays out a credit balance - cash leaves the bank."}
+          />
+        </div>
 
         <FormField label="Next action">
           <select value={nextAction} onChange={(e) => setNextAction(e.target.value as "post" | "submit" | "draft")} className="h-9 w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-black-01 focus:border-primary focus:outline-none">

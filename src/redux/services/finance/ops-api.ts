@@ -31,6 +31,7 @@ import type {
   TaxObligation,
 } from "./ops-types";
 import type { ImportBatch } from "../dashboard/import-types";
+import type { ApprovalParkState } from "../dashboard/workflow-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
 type E = { entity: string; page?: number; page_size?: number; status?: string };
@@ -192,6 +193,10 @@ export const opsApi = baseApi.injectEndpoints({
     postExpenseClaim: b.mutation<ApiEnvelope<ExpenseClaim>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/expense-claims/${id}/post/${qs({ entity })}`, method: "POST" }),
       invalidatesTags: ["FinanceExpenseClaims", "FinanceJournals", "FinanceReports"],
+    }),
+    submitExpenseClaim: b.mutation<ApiEnvelope<ExpenseClaim & { approval?: ApprovalParkState }>, Act>({
+      query: ({ id, entity }) => ({ url: `/finance/expense-claims/${id}/submit/${qs({ entity })}`, method: "POST" }),
+      invalidatesTags: ["FinanceExpenseClaims"],
     }),
     rejectExpenseClaim: b.mutation<ApiEnvelope<ExpenseClaim>, Act>({
       query: ({ id, entity }) => ({ url: `/finance/expense-claims/${id}/reject/${qs({ entity })}`, method: "POST" }),
@@ -487,6 +492,7 @@ export const {
   useGetExpenseClaimQuery,
   useCreateExpenseClaimMutation,
   usePostExpenseClaimMutation,
+  useSubmitExpenseClaimMutation,
   useRejectExpenseClaimMutation,
   useSettleExpenseClaimMutation,
   useVoidExpenseClaimMutation,

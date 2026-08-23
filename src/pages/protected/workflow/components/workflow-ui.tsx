@@ -83,7 +83,7 @@ export function UserChip({
   size?: number;
 }) {
   return (
-    <span className="inline-flex items-center gap-2 min-w-0">
+    <span className="inline-flex max-w-full items-center gap-2 min-w-0">
       <InitialsAvatar initials={initials} seed={id} size={size} />
       <span className="min-w-0">
         <span className="block truncate text-sm font-medium text-black-01">{name}</span>

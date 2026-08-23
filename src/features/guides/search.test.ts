@@ -131,6 +131,13 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "payout failed")[0]?.guide.id).toBe("finance.send-payouts-and-resolve-settlements");
   });
 
+  it("finds finance recovery work using the words finance teams use", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "issue debit note")[0]?.guide.id).toBe("finance.adjust-credit-notes-and-concessions");
+    expect(searchGuides(GUIDE_REGISTRY, "refund overpayment")[0]?.guide.id).toBe("finance.refund-or-write-off-balance");
+    expect(searchGuides(GUIDE_REGISTRY, "uncollectible invoice")[0]?.guide.id).toBe("finance.refund-or-write-off-balance");
+    expect(searchGuides(GUIDE_REGISTRY, "pay in installments")[0]?.guide.id).toBe("finance.create-and-manage-payment-plan");
+  });
+
   it("finds C7a procurement workflows using supplier and sourcing language", () => {
     expect(searchGuides(GUIDE_REGISTRY, "put vendor on hold")[0]?.guide.id).toBe("procurement.add-and-govern-vendor");
     expect(searchGuides(GUIDE_REGISTRY, "add catalogue item")[0]?.guide.id).toBe("procurement.manage-categories-and-catalogue");
@@ -162,6 +169,7 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "stuck job")[0]?.guide.id).toBe("platform.investigate-health");
     expect(searchGuides(GUIDE_REGISTRY, "new school defaults")[0]?.guide.id).toBe("platform.configure-platform");
     expect(searchGuides(GUIDE_REGISTRY, "change email template")[0]?.guide.id).toBe("platform.administer-notifications");
+    expect(searchGuides(GUIDE_REGISTRY, "notification clutter")[0]?.guide.id).toBe("platform.administer-notifications");
     expect(searchGuides(GUIDE_REGISTRY, "test SMTP")[0]?.guide.id).toBe("platform.manage-integrations");
   });
 

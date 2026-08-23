@@ -4,6 +4,7 @@
 // the Reverse action; Direct Entry is the only raw-lines post ("New journal").
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import { Plus, Search } from "lucide-react";
 import { FinanceShell } from "../finance-shell";
 import { DataTable, InfoHint, Money, StatusPill, useActiveEntity, type Column } from "@/components/finance-ui";
@@ -45,12 +46,13 @@ function presetRange(preset: string): { from: string; to: string } {
 }
 
 export default function GeneralLedgerPage() {
+  const [searchParams] = useSearchParams();
   const { code: entity, currency } = useActiveEntity();
   const [status, setStatus] = useState<JournalStatus | "">("");
   const [source, setSource] = useState<JournalSource | "">("");
   const [preset, setPreset] = useState("all");
   const [custom, setCustom] = useState({ from: "", to: "" });
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(() => searchParams.get("search") ?? "");
   const search = useDebounce(searchInput.trim(), 350);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<number | null>(null);

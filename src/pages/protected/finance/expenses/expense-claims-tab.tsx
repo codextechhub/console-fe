@@ -13,7 +13,7 @@ import { useActionParam } from "@/hooks/use-action-param";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { toast } from "sonner";
 import {
-  Plus, Search, Trash2, Check, X, Printer, Wallet, Paperclip, UploadCloud, CircleDashed, CircleCheck, Ban,
+  Plus, Search, Trash2, Check, X, Printer, Wallet, Paperclip, UploadCloud, CircleDashed, CircleCheck, Ban, Send,
 } from "lucide-react";
 import {
   DataTable, Money, MoneyInput, DetailDrawer, FormField, ConfirmActionModal,
@@ -27,10 +27,12 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/utils/money";
 import { P } from "@/permissions";
+import { openAttachment } from "@/utils/attachment-download";
+import { useNoApproverPrompt } from "@/components/finance-ui/no-approver-prompt";
 import {
   useGetExpenseClaimsQuery, useGetExpenseClaimSummaryQuery, useGetExpenseClaimQuery, useCreateExpenseClaimMutation,
   usePostExpenseClaimMutation, useRejectExpenseClaimMutation, useSettleExpenseClaimMutation, useVoidExpenseClaimMutation,
-  useUploadExpenseReceiptMutation, useDeleteExpenseReceiptMutation,
+  useUploadExpenseReceiptMutation, useDeleteExpenseReceiptMutation, useSubmitExpenseClaimMutation,
 } from "@/redux/services/finance/ops-api";
 import type { ExpenseClaim, ExpenseClaimLine } from "@/redux/services/finance/ops-types";
 
@@ -39,11 +41,12 @@ const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semib
 const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
 const fmtDate = (s: string) => new Date(s).toLocaleDateString();
 
-// Our model: status DRAFT/POSTED/CANCELLED × payment_status UNPAID/PARTIAL/PAID.
+// Our model: status DRAFT/PENDING_APPROVAL/POSTED/CANCELLED × payment status.
 // Collapse to the prototype's display states.
-type DispKey = "DRAFT" | "APPROVED" | "PART_PAID" | "PAID" | "REJECTED";
+type DispKey = "DRAFT" | "PENDING" | "APPROVED" | "PART_PAID" | "PAID" | "REJECTED";
 function disp(c: ExpenseClaim): { key: DispKey; label: string; cls: string } {
   if (c.status === "CANCELLED") return { key: "REJECTED", label: "Rejected", cls: "bg-destructive/10 text-destructive" };
+  if (c.status === "PENDING_APPROVAL") return { key: "PENDING", label: "Awaiting approval", cls: "bg-amber-50 text-amber-700" };
   if (c.status === "DRAFT") return { key: "DRAFT", label: "Draft", cls: "bg-gray-03/60 text-gray-05" };
   if (c.payment_status === "PAID") return { key: "PAID", label: "Paid", cls: "bg-green-01/10 text-green-01" };
   if (c.payment_status === "PARTIAL") return { key: "PART_PAID", label: "Part-paid", cls: "bg-amber-50 text-amber-700" };
@@ -68,7 +71,7 @@ function Kpi({ label, value, hint }: { label: string; value: string; hint?: stri
 }
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: "DRAFT", label: "Draft" }, { value: "APPROVED", label: "Approved" },
+  { value: "DRAFT", label: "Draft" }, { value: "PENDING", label: "Awaiting approval" }, { value: "APPROVED", label: "Approved" },
   { value: "PAID", label: "Paid" }, { value: "REJECTED", label: "Rejected" },
 ];
 
@@ -171,19 +174,29 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
   const { data } = useGetExpenseClaimQuery(claim ? { id: claim.id, entity } : skipToken);
   const full = data?.data ?? claim;
   const [post, { isLoading: posting }] = usePostExpenseClaimMutation();
+  const [submitClaim, { isLoading: submitting }] = useSubmitExpenseClaimMutation();
   const [reject, { isLoading: rejecting }] = useRejectExpenseClaimMutation();
   const [voidClaim, { isLoading: voiding }] = useVoidExpenseClaimMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "expense claim" });
   if (!claim || !full) return null;
 
   const d = disp(full);
   const isDraft = full.status === "DRAFT";
+  const isPending = full.status === "PENDING_APPROVAL";
   const isApprovedUnpaid = full.status === "POSTED" && full.payment_status !== "PAID";
   // Void needs a posted claim with NO reimbursement yet (the backend refuses once
   // amount_paid > 0 - including partial); reject is the DRAFT path.
   const canVoid = full.status === "POSTED" && full.payment_status === "UNPAID";
-  const attachable = full.status !== "CANCELLED" && full.payment_status !== "PAID";
+  const attachable = isDraft;
 
   const doPost = async () => { try { const r = await post({ id: full.id, entity }).unwrap(); toast.success(r.message || "Claim approved."); } catch { /* central */ } };
+  const doSubmit = async () => {
+    try {
+      const r = await submitClaim({ id: full.id, entity }).unwrap();
+      toast.success(r.message || "Claim submitted for approval.");
+      promptIfParked(r.data?.approval);
+    } catch { /* central */ }
+  };
   const doReject = async () => { try { const r = await reject({ id: full.id, entity }).unwrap(); toast.success(r.message || "Claim rejected."); } catch { /* central */ } };
   const doVoid = async () => { try { const r = await voidClaim({ id: full.id, entity }).unwrap(); toast.success(r.message || "Claim voided."); setVoidOpen(false); } catch { /* central */ } };
 
@@ -199,7 +212,11 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
             <StatusPill claim={full} />
             <div className="flex-1" />
             <Button variant="outline" onClick={() => printClaim(full, currency)} className="gap-1.5"><Printer className="size-4" /> Print</Button>
-            {isDraft ? (
+            {isDraft && full.approval_required ? (
+              <Can permission={P.FIN_CREATE_EXPENSE_CLAIM}>
+                <Button disabled={submitting} onClick={doSubmit} className="gap-1.5"><Send className="size-4" />{submitting ? "Submitting…" : "Submit for approval"}</Button>
+              </Can>
+            ) : isDraft ? (
               <Can permission={P.FIN_POST_EXPENSE_CLAIM}>
                 <Button variant="outline" disabled={rejecting} onClick={doReject} className="gap-1.5"><X className="size-4" /> Reject</Button>
                 <Button disabled={posting} onClick={doPost} className="gap-1.5"><Check className="size-4" />{posting ? "Approving…" : "Approve"}</Button>
@@ -219,7 +236,7 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
         }
       >
         <div className="space-y-5">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">Total</p><p className="mt-1 font-mont text-base font-semibold tabular-nums text-black-01">{formatMoney(full.total, currency)}</p></div>
             <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">Subtotal · Tax</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(full.subtotal, currency)} · {formatMoney(full.tax_total, currency)}</p></div>
             <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">{full.payment_status === "PAID" ? "Reimbursed" : "Awaiting payment"}</p><p className="mt-1 font-mont text-base font-semibold tabular-nums text-black-01">{formatMoney(full.payment_status === "PAID" ? full.amount_paid : full.balance_due, currency)}</p></div>
@@ -231,7 +248,7 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
               <Step done title="Submitted" sub={`${full.claimant_name || "Staff"} · ${fmtDate(full.claim_date)}`} />
               {d.key === "REJECTED"
                 ? <Step done={false} active title="Rejected" sub="The claim was rejected." />
-                : <Step done={full.status === "POSTED"} active={isDraft} title="Approved & accrued" sub={full.status === "POSTED" ? "Booked to Accrued Reimbursements" : "Awaiting approval"} />}
+                : <Step done={full.status === "POSTED"} active={isDraft || isPending} title="Approved & accrued" sub={full.status === "POSTED" ? "Booked to Accrued Reimbursements" : isPending ? "Waiting in the approver queue" : "Ready to submit"} />}
               {d.key !== "REJECTED"
                 ? <Step done={full.payment_status === "PAID"} active={isApprovedUnpaid} title="Reimbursed" sub={full.payment_status === "PAID" ? "Paid via bank transfer" : "Pending payment"} />
                 : null}
@@ -240,7 +257,7 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
 
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
-            <div className="overflow-hidden rounded-md border border-gray-03">
+            <div className="overflow-x-auto rounded-md border border-gray-03">
               <table className="w-full border-collapse">
                 <thead><tr>
                   <th className={thCls}>Category (GL)</th><th className={thCls}>Description</th>
@@ -276,11 +293,12 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
         loading={voiding}
         onConfirm={doVoid}
       />
+      {noApproverDialog}
     </>
   );
 }
 
-function ReceiptCell({ line, claimId, entity, attachable }: { line: ExpenseClaimLine; claimId: number; entity: string; attachable: boolean }) {
+export function ReceiptCell({ line, claimId, entity, attachable }: { line: ExpenseClaimLine; claimId: number; entity: string; attachable: boolean }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [upload, { isLoading: uploading }] = useUploadExpenseReceiptMutation();
   const [remove, { isLoading: removing }] = useDeleteExpenseReceiptMutation();
@@ -294,9 +312,9 @@ function ReceiptCell({ line, claimId, entity, attachable }: { line: ExpenseClaim
   if (line.receipt_url) {
     return (
       <span className="inline-flex max-w-[150px] items-center gap-1">
-        <a href={line.receipt_url} target="_blank" rel="noreferrer" className="inline-flex min-w-0 items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline" title={line.receipt_name || "Receipt"}>
+        <button type="button" onClick={() => openAttachment(line.receipt_url!, line.receipt_name || "Receipt").catch((error) => toast.error(error instanceof Error ? error.message : "Could not open the receipt."))} className="inline-flex min-w-0 items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline" title={line.receipt_name || "Receipt"}>
           <Paperclip className="size-3 shrink-0" /><span className="truncate">{line.receipt_name || "Receipt"}</span>
-        </a>
+        </button>
         {attachable ? <button type="button" disabled={removing} onClick={() => remove({ id: claimId, lineId: line.id, entity })} className="shrink-0 text-gray-05 hover:text-destructive disabled:opacity-40" aria-label="Remove receipt"><X className="size-3" /></button> : null}
       </span>
     );
@@ -406,6 +424,8 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
   const [receipts, setReceipts] = useState<File[]>([]);
   const [create, { isLoading }] = useCreateExpenseClaimMutation();
   const [uploadReceipt] = useUploadExpenseReceiptMutation();
+  const [submitClaim, { isLoading: isSubmitting }] = useSubmitExpenseClaimMutation();
+  const { promptIfParked, noApproverDialog } = useNoApproverPrompt({ documentLabel: "expense claim" });
 
   const setLine = (i: number, patch: Partial<EditLine>) => setLines((s) => s.map((l, idx) => idx === i ? { ...l, ...patch } : l));
   const total = lines.reduce((s, l) => s + l.unit_price, 0);
@@ -415,7 +435,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
   const reset = () => { setClaimant(""); setClaimDate(""); setTitle(""); setLines([emptyLine()]); setReceipts([]); };
   const close = () => { reset(); onClose(); };
 
-  const submit = async () => {
+  const persist = async (submitAfterCreate: boolean) => {
     try {
       const res = await create({
         entity, claimant_name: claimant.trim(), claim_date: claimDate, title: title.trim(),
@@ -423,11 +443,38 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
       }).unwrap();
       // Attach dropped receipts to the created lines in order.
       const created = res.data?.lines ?? [];
+      let uploadFailed = false;
       for (let i = 0; i < receipts.length && i < created.length; i++) {
-        await uploadReceipt({ id: res.data!.id, lineId: created[i].id, entity, file: receipts[i] }).unwrap()
-          .catch(() => toast.error(`Couldn't attach ${receipts[i].name}`));
+        try {
+          await uploadReceipt({ id: res.data!.id, lineId: created[i].id, entity, file: receipts[i] }).unwrap();
+        } catch {
+          uploadFailed = true;
+          toast.error(`Couldn't attach ${receipts[i].name}`);
+        }
       }
-      toast.success(res.message || "Claim created.");
+      if (submitAfterCreate && !uploadFailed && res.data?.approval_required) {
+        try {
+          const sent = await submitClaim({ id: res.data.id, entity }).unwrap();
+          toast.success(sent.message || "Claim submitted for approval.");
+          promptIfParked(sent.data?.approval);
+          close();
+          return;
+        } catch {
+          toast.warning("The claim was saved as a draft. Open it to submit again.");
+          close();
+          return;
+        }
+      }
+      if (submitAfterCreate && !uploadFailed && !res.data?.approval_required) {
+        toast.warning("The claim was saved as a draft because no approval route is configured.");
+        close();
+        return;
+      }
+      if (submitAfterCreate && uploadFailed) {
+        toast.warning("The claim was saved as a draft because a receipt did not attach.");
+      } else {
+        toast.success(res.message || "Claim draft saved.");
+      }
       close();
     } catch { /* central */ }
   };
@@ -438,12 +485,13 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
       title="New expense claim" description="Capture out-of-pocket spending for reimbursement, then drop the receipts."
       widthClass="sm:max-w-5xl"
       footer={<>
-        <Button variant="outline" disabled={isLoading} onClick={close}>Cancel</Button>
-        <Button disabled={isLoading || !canSubmit} onClick={submit} className="gap-1.5"><Plus className="size-4" />{isLoading ? "Saving…" : "Create draft"}</Button>
+        <Button variant="outline" disabled={isLoading || isSubmitting} onClick={close}>Cancel</Button>
+        <Button variant="outline" disabled={isLoading || isSubmitting || !canSubmit} onClick={() => persist(false)}>Save draft</Button>
+        <Button disabled={isLoading || isSubmitting || !canSubmit} onClick={() => persist(true)} className="gap-1.5"><Send className="size-4" />{isLoading || isSubmitting ? "Working…" : "Create and submit"}</Button>
       </>}
     >
       <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <FormField label="Claimant" required><Input value={claimant} onChange={(e) => setClaimant(e.target.value)} placeholder="Staff name" className="bg-white" /></FormField>
           <PostingDateField label="Date" entity={entity} value={claimDate} onChange={setClaimDate} />
           <FormField label="Purpose" required><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Travel to workshop" className="bg-white" /></FormField>
@@ -455,15 +503,15 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
           </div>
           <div className="space-y-2">
             {lines.map((l, i) => (
-              <div key={i} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
-                <div className="grid flex-1 grid-cols-12 gap-2">
-                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} placeholder="What was bought" className="h-9 bg-white text-sm" /></div>
-                  <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Expense account</p><AccountPicker entity={entity} value={l.expense_account} onChange={(v) => setLine(i, { expense_account: v })} accountType="EXPENSE" postableOnly placeholder="5xxx" /></div>
-                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Cost center</p><CostCenterPicker entity={entity} value={l.cost_center} onChange={(v) => setLine(i, { cost_center: v })} /></div>
-                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={l.unit_price} onChangeKobo={(v) => setLine(i, { unit_price: v })} currency={currency} className="[&_input]:h-9" /></div>
-                  <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={l.tax_code} onChange={(v) => setLine(i, { tax_code: v })} usage="purchase" /></div>
+              <div key={i} className="flex flex-col items-stretch gap-2 rounded-md border border-gray-03 bg-white p-2.5 sm:flex-row sm:items-end">
+                <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-12">
+                  <div className="sm:col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} placeholder="What was bought" className="h-9 bg-white text-sm" /></div>
+                  <div className="sm:col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Expense account</p><AccountPicker entity={entity} value={l.expense_account} onChange={(v) => setLine(i, { expense_account: v })} accountType="EXPENSE" postableOnly placeholder="5xxx" /></div>
+                  <div className="sm:col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Cost center</p><CostCenterPicker entity={entity} value={l.cost_center} onChange={(v) => setLine(i, { cost_center: v })} /></div>
+                  <div className="sm:col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Amount</p><MoneyInput valueKobo={l.unit_price} onChangeKobo={(v) => setLine(i, { unit_price: v })} currency={currency} className="[&_input]:h-9" /></div>
+                  <div className="sm:col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Tax</p><TaxCodePicker entity={entity} value={l.tax_code} onChange={(v) => setLine(i, { tax_code: v })} usage="purchase" /></div>
                 </div>
-                <button type="button" onClick={() => setLines((s) => s.filter((_, idx) => idx !== i))} disabled={lines.length <= 1} className="mb-0.5 shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button>
+                <button type="button" onClick={() => setLines((s) => s.filter((_, idx) => idx !== i))} disabled={lines.length <= 1} className="mb-0.5 self-end shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive disabled:opacity-30" aria-label="Remove line"><Trash2 className="size-4" /></button>
               </div>
             ))}
           </div>
@@ -472,6 +520,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
 
         <ReceiptDropzone files={receipts} onAdd={(fs) => setReceipts((s) => [...s, ...fs])} onRemove={(i) => setReceipts((s) => s.filter((_, idx) => idx !== i))} />
       </div>
+      {noApproverDialog}
     </DetailDrawer>
   );
 }

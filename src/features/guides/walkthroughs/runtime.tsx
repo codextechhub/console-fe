@@ -13,9 +13,11 @@ import { GUIDE_REGISTRY } from "../registry";
 import {
   consumeQueuedWalkthrough,
   followingContentStep,
+  isFollowingStepReady,
   loadWalkthroughProgress,
   nextContentStep,
   queueWalkthrough,
+  resumableContentStep,
   saveWalkthroughProgress,
   WALKTHROUGH_START_EVENT,
   walkthroughStepRoute,
@@ -74,21 +76,32 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
       .map(resolvePermissionKey)
       .every((permission) => (auth.permissions ?? []).includes(permission));
     if (!allowed) return;
-    if (location.pathname !== selected.route) {
-      queueWalkthrough(id);
-      navigate(selected.route);
-      return;
-    }
     const saved = loadWalkthroughProgress(localStorage, identityKey, selected);
     const savedStep = saved && !saved.completedAt
       ? nextContentStep(selected, saved.currentStepId, hasTarget)
       : undefined;
-    const first = savedStep ?? nextContentStep(selected, selected.steps[0]?.id ?? "", hasTarget);
+    const startRoute = savedStep
+      ? walkthroughStepRoute(selected, savedStep.id)
+      : selected.route;
+    if (location.pathname !== startRoute) {
+      queueWalkthrough(id);
+      navigate(startRoute);
+      return;
+    }
+    const first = savedStep
+      ? resumableContentStep(selected, savedStep.id, hasTarget)
+      : nextContentStep(selected, selected.steps[0]?.id ?? "", hasTarget);
     if (!first) return;
+    const firstIndex = selected.steps.findIndex((item) => item.id === first.id);
+    const completed = savedStep && first.id === savedStep.id
+      ? (saved?.completedStepIds ?? [])
+      : (saved?.completedStepIds ?? []).filter((stepId) => (
+          selected.steps.findIndex((item) => item.id === stepId) < firstIndex
+        ));
     setWalkthrough(selected);
     setStep(first);
     setMissingTarget(false);
-    persist(selected, first, savedStep ? (saved?.completedStepIds ?? []) : []);
+    persist(selected, first, completed);
   }, [auth.permissions, hasTarget, identityKey, location.pathname, navigate, persist]);
 
   useEffect(() => {
@@ -108,7 +121,26 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
     if (!walkthrough || !step?.target) return;
     let ready = false;
     const check = () => {
-      if (ready) setMissingTarget(!targetElement(step.target));
+      if (!ready) return;
+      if (targetElement(step.target)) {
+        setMissingTarget(false);
+        return;
+      }
+      const fallback = resumableContentStep(walkthrough, step.id, hasTarget);
+      if (
+        fallback
+        && fallback.id !== step.id
+        && walkthroughStepRoute(walkthrough, step.id) === location.pathname
+      ) {
+        const fallbackIndex = walkthrough.steps.findIndex((item) => item.id === fallback.id);
+        const completed = (loadWalkthroughProgress(localStorage, identityKey, walkthrough)?.completedStepIds ?? [])
+          .filter((stepId) => walkthrough.steps.findIndex((item) => item.id === stepId) < fallbackIndex);
+        setStep(fallback);
+        setMissingTarget(false);
+        persist(walkthrough, fallback, completed);
+        return;
+      }
+      setMissingTarget(true);
     };
     const timeout = window.setTimeout(() => {
       ready = true;
@@ -120,7 +152,7 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
       window.clearTimeout(timeout);
       observer.disconnect();
     };
-  }, [location.search, step, walkthrough]);
+  }, [hasTarget, identityKey, location.pathname, location.search, persist, step, walkthrough]);
 
   useEffect(() => {
     if (!walkthrough || !step) return;
@@ -163,10 +195,47 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
     if (!walkthrough || !step || step.advance !== "target-click" || !step.target) return;
     const target = targetElement(step.target);
     if (!target) return;
-    const advance = () => window.setTimeout(() => move(1), 0);
+    let observer: MutationObserver | null = null;
+    let timeout = 0;
+    let frame = 0;
+    let advanced = false;
+
+    const stopWaiting = () => {
+      observer?.disconnect();
+      observer = null;
+      window.clearTimeout(timeout);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+    const complete = () => {
+      if (advanced) return;
+      advanced = true;
+      stopWaiting();
+      window.setTimeout(() => move(1), 0);
+    };
+    const check = () => {
+      frame = 0;
+      if (isFollowingStepReady(walkthrough, step.id, hasTarget)) complete();
+    };
+    const advance = () => {
+      if (isFollowingStepReady(walkthrough, step.id, hasTarget)) {
+        complete();
+        return;
+      }
+      observer = new MutationObserver(check);
+      observer.observe(document.body, { childList: true, subtree: true });
+      frame = window.requestAnimationFrame(check);
+      const currentIndex = walkthrough.steps.findIndex((item) => item.id === step.id);
+      const next = walkthrough.steps[currentIndex + 1];
+      // Branches deliberately support a missing-target path. Direct content
+      // steps stay on the safe opener if the expected drawer never appears.
+      if (next?.kind === "branch") timeout = window.setTimeout(complete, 5000);
+    };
     target.addEventListener("click", advance, { once: true });
-    return () => target.removeEventListener("click", advance);
-  }, [move, step, walkthrough]);
+    return () => {
+      target.removeEventListener("click", advance);
+      stopWaiting();
+    };
+  }, [hasTarget, move, step, walkthrough]);
 
   useEffect(() => {
     if (!walkthrough || !step || step.advance !== "route-change") return;
@@ -217,6 +286,7 @@ function WalkthroughCoach({
   const contentSteps = walkthrough.steps.filter((item): item is WalkthroughContentStep => item.kind !== "branch");
   const stepIndex = contentSteps.findIndex((item) => item.id === step.id);
   const finalStep = stepIndex === contentSteps.length - 1;
+  const requiresTargetClick = step.advance === "target-click" && !missingTarget;
 
   useEffect(() => {
     let frame = 0;
@@ -297,12 +367,12 @@ function WalkthroughCoach({
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onPause();
-      if (event.key === "ArrowRight") onNext();
+      if (event.key === "ArrowRight" && !requiresTargetClick) onNext();
       if (event.key === "ArrowLeft") onBack();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onBack, onNext, onPause]);
+  }, [onBack, onNext, onPause, requiresTargetClick]);
 
   const viewport = { width: window.innerWidth, height: window.innerHeight };
   const focusRect = rect ? visibleWalkthroughTarget({
@@ -347,7 +417,11 @@ function WalkthroughCoach({
         <Button type="button" variant="ghost" size="sm" onClick={onPause}><Pause className="size-4" /> Pause</Button>
         <div className="flex gap-2">
           <Button type="button" variant="outline" size="sm" onClick={onBack} disabled={stepIndex === 0}><ArrowLeft className="size-4" /><span className="sr-only sm:not-sr-only">Back</span></Button>
-          <Button type="button" size="sm" onClick={onNext}>{finalStep ? <Check className="size-4" /> : null}{finalStep ? "Finish" : missingTarget ? "Skip step" : "Next"}{!finalStep && <ArrowRight className="size-4" />}</Button>
+          <Button type="button" size="sm" onClick={onNext} disabled={requiresTargetClick}>
+            {finalStep ? <Check className="size-4" /> : null}
+            {finalStep ? "Finish" : missingTarget ? "Skip step" : requiresTargetClick ? "Select highlight" : "Next"}
+            {!finalStep && !requiresTargetClick && <ArrowRight className="size-4" />}
+          </Button>
         </div>
       </div>
     </section>

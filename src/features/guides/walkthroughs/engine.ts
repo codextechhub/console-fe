@@ -110,6 +110,47 @@ export function followingContentStep(
   return nextContentStep(walkthrough, next.id, targetPresent);
 }
 
+/** A target-click step must not advance until the UI it opens is ready. */
+export function isFollowingStepReady(
+  walkthrough: Walkthrough,
+  currentStepId: string,
+  targetPresent: (target: string) => boolean,
+): boolean {
+  const currentIndex = walkthrough.steps.findIndex((step) => step.id === currentStepId);
+  const next = walkthrough.steps[currentIndex + 1];
+  if (!next) return true;
+  if (next.kind === "branch") return targetPresent(next.target);
+  return !next.target || targetPresent(next.target);
+}
+
+/**
+ * Resume drawer and modal walkthroughs at their nearest visible safe opener.
+ * Progress can outlive transient UI, so a stored form step is not resumable
+ * when the drawer that owns its target has closed.
+ */
+export function resumableContentStep(
+  walkthrough: Walkthrough,
+  currentStepId: string,
+  targetPresent: (target: string) => boolean,
+): WalkthroughContentStep | undefined {
+  const desired = nextContentStep(walkthrough, currentStepId, targetPresent);
+  if (!desired?.target || targetPresent(desired.target)) return desired;
+
+  const desiredIndex = walkthrough.steps.findIndex((step) => step.id === desired.id);
+  const desiredRoute = walkthroughStepRoute(walkthrough, desired.id);
+  for (let index = desiredIndex - 1; index >= 0; index -= 1) {
+    const candidate = walkthrough.steps[index];
+    if (
+      candidate.kind === "branch"
+      || candidate.advance !== "target-click"
+      || !candidate.target
+      || walkthroughStepRoute(walkthrough, candidate.id) !== desiredRoute
+    ) continue;
+    if (targetPresent(candidate.target)) return candidate;
+  }
+  return desired;
+}
+
 export function walkthroughStepRoute(walkthrough: Walkthrough, stepId: string): string {
   let route = walkthrough.route;
   for (const candidate of walkthrough.steps) {

@@ -4,7 +4,9 @@ import { GUIDE_REGISTRY } from "../registry";
 import { WALKTHROUGH_REGISTRY } from "./registry";
 import {
   followingContentStep,
+  isFollowingStepReady,
   loadWalkthroughProgress,
+  resumableContentStep,
   saveWalkthroughProgress,
   validateWalkthroughs,
   walkthroughStepRoute,
@@ -42,6 +44,44 @@ describe("walkthrough engine", () => {
     // Nothing on the page: the focus panel branch falls through to the quick
     // actions branch, which falls through again to a target that always exists.
     expect(followingContentStep(walkthrough, "welcome", () => false)?.id).toBe("workspace-search");
+  });
+
+  it("rewinds saved drawer progress to the nearest visible safe opener", () => {
+    const refund = WALKTHROUGH_REGISTRY.find(
+      (item) => item.id === "walkthrough.finance.refund-or-write-off-balance",
+    );
+    const present = new Set(["finance-refunds.new-action"]);
+
+    expect(resumableContentStep(refund!, "posting", (target) => present.has(target))?.id).toBe("new-action");
+    present.add("finance-refunds.form");
+    expect(resumableContentStep(refund!, "form", (target) => present.has(target))?.id).toBe("form");
+  });
+
+  it("waits for the UI opened by a target-click step before advancing", () => {
+    const refund = WALKTHROUGH_REGISTRY.find(
+      (item) => item.id === "walkthrough.finance.refund-or-write-off-balance",
+    );
+    const present = new Set<string>();
+
+    expect(isFollowingStepReady(refund!, "new-action", (target) => present.has(target))).toBe(false);
+    present.add("finance-refunds.form");
+    expect(isFollowingStepReady(refund!, "new-action", (target) => present.has(target))).toBe(true);
+  });
+
+  it("holds every target-click walkthrough step until its opened UI is ready", () => {
+    const targetClickSteps = WALKTHROUGH_REGISTRY.flatMap((walkthrough) => (
+      walkthrough.steps
+        .filter((step) => "advance" in step && step.advance === "target-click")
+        .map((step) => ({ walkthrough, step }))
+    ));
+
+    expect(targetClickSteps.length).toBeGreaterThan(0);
+    for (const { walkthrough, step } of targetClickSteps) {
+      expect(
+        isFollowingStepReady(walkthrough, step.id, () => false),
+        `${walkthrough.id}:${step.id}`,
+      ).toBe(false);
+    }
   });
 
   it("validates guide relations, routes, versions, steps, and branches", () => {

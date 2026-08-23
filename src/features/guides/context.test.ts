@@ -92,6 +92,12 @@ describe("contextual guides", () => {
     const integrations = contextualGuideContext(GUIDE_REGISTRY, "/settings/integrations", [resolvePermissionKey(P.VIEW_INTEGRATION_SETTINGS)]);
     expect(integrations.guides.map((guide) => guide.id)).toContain("platform.manage-integrations");
 
+    const refunds = contextualGuideContext(GUIDE_REGISTRY, "/finance/receivables/refunds", [resolvePermissionKey(P.FIN_VIEW_REFUNDS)]);
+    expect(refunds.guides.map((guide) => guide.id)).toContain("finance.refund-or-write-off-balance");
+
+    const paymentPlans = contextualGuideContext(GUIDE_REGISTRY, "/finance/receivables/payment-plans", [resolvePermissionKey(P.FIN_VIEW_PAYMENT_PLANS)]);
+    expect(paymentPlans.guides.map((guide) => guide.id)).toContain("finance.create-and-manage-payment-plan");
+
     const mySecurity = contextualGuideContext(GUIDE_REGISTRY, "/me/security/login-history", []);
     expect(mySecurity.guides.map((guide) => guide.id)).toEqual(["account.secure-account"]);
 

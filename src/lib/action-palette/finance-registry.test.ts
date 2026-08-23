@@ -44,4 +44,16 @@ describe("Finance action-palette destinations", () => {
     expect(direct([resolvePermissionKey(P.FIN_POST_DIRECT_ENTRY)])).toBe(true);
     expect(direct([resolvePermissionKey(P.FIN_SUBMIT_JOURNAL)])).toBe(false);
   });
+
+  it("offers payment-plan creation only when create and activate are both allowed", () => {
+    const visible = (permissions: readonly string[]) => filterActionsForPermissions(financeActions, permissions)
+      .some((action) => action.id === "create-payment-plan");
+
+    expect(visible([resolvePermissionKey(P.FIN_CREATE_PAYMENT_PLAN)])).toBe(false);
+    expect(visible([resolvePermissionKey(P.FIN_ACTIVATE_PAYMENT_PLAN)])).toBe(false);
+    expect(visible([
+      resolvePermissionKey(P.FIN_CREATE_PAYMENT_PLAN),
+      resolvePermissionKey(P.FIN_ACTIVATE_PAYMENT_PLAN),
+    ])).toBe(true);
+  });
 });

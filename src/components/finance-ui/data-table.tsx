@@ -110,12 +110,10 @@ export function DataTable<T>({
   // Defensive: the backend returns `{}` (not `[]`) for an empty list endpoint,
   // so a caller may hand us a non-array. Never let `.map` throw.
   const safeRows: T[] = Array.isArray(rows) ? rows : [];
-  // Cards replace the table on phones only when there are rows to show; the
-  // loading/empty/error/forbidden states render inside the table at any width.
-  // Cards own the phone viewport whenever the list would be card-shaped -
-  // including while loading, so the phone never flips table -> cards on arrival.
-  const cardsOnPhone =
-    mobile === "cards" && !forbidden && (loading || safeRows.length > 0);
+  // Card-mode lists own the phone viewport in every state. Keeping empty,
+  // error and forbidden states inside the desktop table leaves the table's
+  // minimum width active and clips their messages on narrow screens.
+  const cardsOnPhone = mobile === "cards";
 
   const body = () => {
     if (forbidden) {
@@ -177,7 +175,22 @@ export function DataTable<T>({
           ))}
         </div>
       )}
-      {cardsOnPhone && !loading && (
+      {cardsOnPhone && !loading && forbidden && (
+        <div className={cardBreakpoint === "lg" ? "lg:hidden" : "md:hidden"}>
+          <ForbiddenState message={forbiddenMessage} />
+        </div>
+      )}
+      {cardsOnPhone && !loading && !forbidden && error && safeRows.length === 0 && (
+        <div className={cardBreakpoint === "lg" ? "lg:hidden" : "md:hidden"}>
+          <ErrorState onRetry={onRetry} />
+        </div>
+      )}
+      {cardsOnPhone && !loading && !forbidden && !error && safeRows.length === 0 && (
+        <div className={cardBreakpoint === "lg" ? "lg:hidden" : "md:hidden"}>
+          <EmptyState title={emptyTitle} message={emptyMessage} />
+        </div>
+      )}
+      {cardsOnPhone && !loading && !forbidden && safeRows.length > 0 && (
         <div className={cardBreakpoint === "lg" ? "lg:hidden" : "md:hidden"}>
           {safeRows.map((row) =>
             mobileCard ? (

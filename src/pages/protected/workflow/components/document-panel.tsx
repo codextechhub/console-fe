@@ -1,8 +1,10 @@
 import { FileText, Info, ExternalLink } from "lucide-react";
 import { formatDate, formatRelativeDate } from "@/utils/helpers";
 import type { WorkflowInstanceDetail } from "@/redux/services/dashboard/workflow-types";
+import { Button } from "@/components/ui/button";
 import { humanizeDocumentType } from "./workflow-format";
 import { InstanceStatusBadge, UserChip } from "./workflow-ui";
+import { sourceDocumentLink, sourceDocumentPrompt } from "./source-document-link";
 
 type Resolver = (id?: string | number | null) => string;
 
@@ -23,6 +25,8 @@ export function DocumentPanel({
   role: Resolver;
 }) {
   const summary = instance.document_summary;
+  const documentLink = sourceDocumentLink(instance);
+  const documentPrompt = sourceDocumentPrompt(instance.status);
 
   return (
     <>
@@ -67,7 +71,7 @@ export function DocumentPanel({
           )}
         </div>
         <div className="p-5">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-x-6 gap-y-4">
             {(summary?.fields ?? []).map((f, i) => (
               <Field key={`${f.label}-${i}`} label={f.label}>
                 <span className="break-words text-black-01">{f.value || "-"}</span>
@@ -94,13 +98,21 @@ export function DocumentPanel({
             )}
           </div>
 
-          {summary?.link && (
-            <a
-              href={summary.link}
-              className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+          {documentLink && (
+            <div
+              data-guide="approval-detail.view-document"
+              className="mt-5 flex flex-col gap-3 rounded-lg border border-primary/20 bg-pry-01 p-3 sm:flex-row sm:items-center sm:justify-between"
             >
-              View full document <ExternalLink className="size-3" />
-            </a>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-black-01">{documentPrompt.title}</p>
+                <p className="mt-0.5 text-xs text-gray-01">{documentPrompt.description}</p>
+              </div>
+              <Button asChild className="w-full sm:w-auto">
+                <a href={documentLink}>
+                  View full document <ExternalLink className="size-4" />
+                </a>
+              </Button>
+            </div>
           )}
 
           {!summary?.fields?.length && !summary?.title && (
@@ -116,7 +128,7 @@ export function DocumentPanel({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1">
+    <div className="min-w-0 space-y-1">
       <p className="text-[11px] uppercase tracking-wide text-gray-05">{label}</p>
       <div className="text-sm">{children}</div>
     </div>

@@ -127,8 +127,8 @@ export function PaymentPlansTab({ entity, currency }: { entity: string; currency
           <Input value={searchInput} onChange={(e) => { setSearchInput(e.target.value); setPage(1); }}
             placeholder="Search plan no., customer, invoice" className="h-9 w-64 bg-white pl-8 font-mont" />
         </div>
-        <Can permission={P.FIN_CREATE_PAYMENT_PLAN}>
-          <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New plan</Button>
+        <Can permission={[P.FIN_CREATE_PAYMENT_PLAN, P.FIN_ACTIVATE_PAYMENT_PLAN]} mode="all">
+          <Button data-guide="finance-payment-plans.new" onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> New plan</Button>
         </Can>
       </div>
 
@@ -293,11 +293,11 @@ function RecordInstallmentDrawer({ plan, installment, entity, currency, onClose 
         <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">
           Posts a real receipt against invoice {plan.invoice_number} (Dr bank · Cr AR); the plan's progress updates automatically.
         </p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} /></FormField>
           <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label="Method">
             <select value={method} onChange={(e) => setMethod(e.target.value)} className="h-9 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm">
               {METHODS.map((m) => <option key={m} value={m}>{m.replace("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase())}</option>)}
@@ -360,13 +360,13 @@ function NewPlanDrawer({ open, onClose, entity, currency }: {
       widthClass="sm:max-w-2xl"
       footer={<>
         <Button variant="outline" disabled={saving} onClick={close}>Cancel</Button>
-        <Button disabled={saving || !canSubmit} onClick={submit} className="gap-1.5">
+        <Button data-guide="finance-payment-plans.submit" disabled={saving || !canSubmit} onClick={submit} className="gap-1.5">
           <Plus className="size-4" />{saving ? "Creating…" : "Create plan"}
         </Button>
       </>}
     >
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-4" data-guide="finance-payment-plans.form">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={(v) => { setCustomer(v); setInvoice(""); setTotal(0); }} /></FormField>
           <FormField label="Against invoice" required>
             <SearchSelect options={invoiceOptions} value={invoice} onChange={(e) => pickInvoice(e.target.value)}
@@ -374,14 +374,14 @@ function NewPlanDrawer({ open, onClose, entity, currency }: {
               placeholder={customer ? "Select an open invoice" : "Select a customer first"} />
           </FormField>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <FormField label="Total" required><MoneyInput valueKobo={total} onChangeKobo={setTotal} currency={currency} /></FormField>
           <FormField label="Start date" required><Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-white" /></FormField>
           <FormField label="Installments" required><Input type="number" min={1} max={60} value={count} onChange={(e) => setCount(Math.max(1, Number(e.target.value) || 1))} className="bg-white tabular-nums" /></FormField>
         </div>
         <Segmented label="Frequency" value={frequency} onChange={setFrequency} options={FREQS} />
 
-        <div>
+        <div data-guide="finance-payment-plans.schedule">
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Schedule preview</p>
           <div className="overflow-hidden rounded-md border border-gray-03">
             <table className="w-full border-collapse">

@@ -138,6 +138,7 @@ export interface ExpenseClaim {
   amount_paid: number;
   balance_due: number;
   journal_id: number | null;
+  approval_required: boolean;
   lines: ExpenseClaimLine[];
 }
 

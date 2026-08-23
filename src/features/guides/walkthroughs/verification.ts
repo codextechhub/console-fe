@@ -64,6 +64,24 @@ export const WALKTHROUGH_VERIFICATION_RECORDS: readonly WalkthroughVerificationR
     verifiedAt: "2026-08-21",
     missingTargetIds: [],
   },
+  {
+    walkthroughId: "walkthrough.finance.adjust-credit-notes-and-concessions",
+    version: 1,
+    verifiedAt: "2026-08-23",
+    missingTargetIds: [],
+  },
+  {
+    walkthroughId: "walkthrough.finance.refund-or-write-off-balance",
+    version: 3,
+    verifiedAt: "2026-08-23",
+    missingTargetIds: [],
+  },
+  {
+    walkthroughId: "walkthrough.finance.create-and-manage-payment-plan",
+    version: 2,
+    verifiedAt: "2026-08-23",
+    missingTargetIds: [],
+  },
   ...VERSION_ONE_WALKTHROUGHS.map((walkthroughId) => ({
     walkthroughId,
     version: 1,

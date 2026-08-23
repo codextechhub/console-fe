@@ -12,6 +12,7 @@
 //   • "Issue note" creates then posts - the auto-allocate toggle chooses whether
 //     it lands "Issued" (auto_allocate:false) or is applied oldest-first ("Applied").
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import { useActionParam } from "@/hooks/use-action-param";
 import { toast } from "sonner";
 import { Plus, Printer, Check, Search, Send } from "lucide-react";
@@ -110,9 +111,10 @@ function noteRecap(n: CreditNote): { dr: RecapRow[]; cr: RecapRow[] } {
 }
 
 export function CreditNotesTab({ entity, currency }: { entity: string; currency?: string | null }) {
+  const [searchParams] = useSearchParams();
   const [typeFilter, setTypeFilter] = useState("");   // "" | CREDIT | DEBIT
   const [statusFilter, setStatusFilter] = useState(""); // "" | ISSUED | APPLIED
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(() => searchParams.get("search") ?? "");
   const search = useDebounce(searchInput.trim(), 350);
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
@@ -175,7 +177,7 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
           </select>
         </div>
         <Can permission={P.FIN_CREATE_CREDIT_NOTE}>
-          <Button onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> Issue note</Button>
+          <Button data-guide="finance-credit-notes.issue" onClick={() => setCreating(true)} className="gap-1.5"><Plus className="size-4" /> Issue note</Button>
         </Can>
       </div>
 
@@ -381,14 +383,14 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
       footer={
         <>
           <Button variant="outline" disabled={saving} onClick={close}>Cancel</Button>
-          <Button disabled={saving || !canSubmit} onClick={submit} className="gap-1.5">
+          <Button data-guide="finance-credit-notes.submit" disabled={saving || !canSubmit} onClick={submit} className="gap-1.5">
             {willNeedApproval ? <Send className="size-4" /> : <Plus className="size-4" />}
             {saving ? "Working…" : willNeedApproval ? "Submit for approval" : "Issue note"}
           </Button>
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-4" data-guide="finance-credit-notes.form">
         {gateNote ? (
           <p className={`rounded-md border px-3 py-2 font-mont text-xs leading-5 ${
             willNeedApproval
@@ -403,7 +405,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
         ) : null}
         <Segmented label="Note type" value={kind} onChange={changeKind} options={[["CREDIT", "Credit note"], ["DEBIT", "Debit note"]]} />
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <PostingDateField label="Date" entity={entity} value={date} onChange={setDate} />
           <FormField label="Customer" required><CustomerPicker entity={entity} value={customer} onChange={(v) => { setCustomer(v); setInvoice(""); }} /></FormField>
         </div>
@@ -419,19 +421,21 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
             placeholder={customer ? "Optional - search this customer's invoices" : "Select a customer first"} />
         </FormField>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label="Amount" required><MoneyInput valueKobo={amount} onChangeKobo={setAmount} currency={currency} /></FormField>
           <FormField label="Cost centre"><CostCenterPicker entity={entity} value={costCenter} onChange={setCostCenter} /></FormField>
         </div>
 
         <FormField label="Reason" required><Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Why this adjustment?" className="bg-white" /></FormField>
 
-        <PostingRecap
-          title={`${kindLabel(kind)} posting`} dr={recap.dr} cr={recap.cr} currency={currency}
-          helper={debit
-            ? "A debit note raises an additional charge and increases the customer's balance."
-            : "A credit note lowers the customer's balance and reverses recognised revenue."}
-        />
+        <div data-guide="finance-credit-notes.posting">
+          <PostingRecap
+            title={`${kindLabel(kind)} posting`} dr={recap.dr} cr={recap.cr} currency={currency}
+            helper={debit
+              ? "A debit note raises an additional charge and increases the customer's balance."
+              : "A credit note lowers the customer's balance and reverses recognised revenue."}
+          />
+        </div>
 
         {!debit ? (
           <Segmented
