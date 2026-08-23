@@ -20,6 +20,7 @@ import {
   resumableContentStep,
   saveWalkthroughProgress,
   WALKTHROUGH_START_EVENT,
+  walkthroughCompletionRoute,
   walkthroughStepRoute,
 } from "./engine";
 import { findWalkthrough } from "./registry";
@@ -182,14 +183,16 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
     const nextCompleted = [...new Set([...completed, step.id])];
     if (!next) {
       persist(walkthrough, step, nextCompleted, new Date().toISOString());
+      const completionRoute = walkthroughCompletionRoute(walkthrough, GUIDE_REGISTRY);
       setWalkthrough(null);
       setStep(null);
+      navigate(completionRoute);
       return;
     }
     setStep(next);
     setMissingTarget(false);
     persist(walkthrough, next, nextCompleted);
-  }, [hasTarget, identityKey, persist, step, walkthrough]);
+  }, [hasTarget, identityKey, navigate, persist, step, walkthrough]);
 
   useEffect(() => {
     if (!walkthrough || !step || step.advance !== "target-click" || !step.target) return;

@@ -9,6 +9,7 @@ import {
   resumableContentStep,
   saveWalkthroughProgress,
   validateWalkthroughs,
+  walkthroughCompletionRoute,
   walkthroughStepRoute,
   walkthroughStorageKey,
 } from "./engine";
@@ -82,6 +83,19 @@ describe("walkthrough engine", () => {
         `${walkthrough.id}:${step.id}`,
       ).toBe(false);
     }
+  });
+
+  it("returns a completed walkthrough to the guide that launched it", () => {
+    const refund = WALKTHROUGH_REGISTRY.find(
+      (item) => item.id === "walkthrough.finance.refund-or-write-off-balance",
+    );
+
+    expect(walkthroughCompletionRoute(refund!, GUIDE_REGISTRY)).toBe(
+      "/support/guides/refund-customer-credit-or-write-off-bad-debt",
+    );
+    expect(walkthroughCompletionRoute({ ...refund!, guideId: "missing.guide" }, GUIDE_REGISTRY)).toBe(
+      "/support/guides",
+    );
   });
 
   it("validates guide relations, routes, versions, steps, and branches", () => {

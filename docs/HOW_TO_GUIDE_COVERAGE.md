@@ -136,8 +136,8 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 - A typed walkthrough registry and validator now enforce guide relations, stable
   step IDs, route shape, versions, and branch destinations.
 - The runtime supports route-aware launch, branching, back and next controls,
-  pause and resume, completion, version invalidation, keyboard control, and
-  missing-target recovery without reading page values.
+  pause and resume, completion back to the originating guide, version invalidation,
+  keyboard control, and missing-target recovery without reading page values.
 - Progress stores only walkthrough ID, guide ID, version, current and completed
   step IDs, and completion time. Direct and proxy sessions use separate identity
   keys.

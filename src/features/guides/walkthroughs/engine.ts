@@ -5,6 +5,8 @@ import type {
   WalkthroughProgress,
   WalkthroughStep,
 } from "./types";
+import type { GuideRecord } from "../types";
+import { routesPath } from "@/routes/routes-path";
 
 const STORAGE_PREFIX = "console-guide-walkthrough";
 const PENDING_KEY = `${STORAGE_PREFIX}:pending`;
@@ -158,6 +160,19 @@ export function walkthroughStepRoute(walkthrough: Walkthrough, stepId: string): 
     if (candidate.id === stepId) break;
   }
   return route;
+}
+
+/** Return completed walkthroughs to the published article that launched them. */
+export function walkthroughCompletionRoute(
+  walkthrough: Walkthrough,
+  guides: readonly Pick<GuideRecord, "id" | "slug" | "status">[],
+): string {
+  const guide = guides.find((candidate) => (
+    candidate.id === walkthrough.guideId && candidate.status === "published"
+  ));
+  return guide
+    ? routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)
+    : routesPath.PROTECTED.SUPPORT.GUIDES;
 }
 
 export function validateWalkthroughs(
