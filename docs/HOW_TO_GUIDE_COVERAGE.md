@@ -485,3 +485,29 @@ editor, assignment, approval, or automated repair action.
   sequence already belongs to the procure-to-pay walkthrough, and the settings
   walkthrough already covers the consequential cross-section workflow without
   saving a policy change.
+
+## Complete route gap closure (2026-08-23)
+
+- Every real protected or account-access route in the guide route catalogue now
+  maps to at least one active guide. The coverage contract fails if any route or
+  high-value action becomes unmapped.
+- Role editing maps to the role creation and assignment guide. The article now
+  covers the existing access snapshot, affected assignees, protected roles, the
+  full resulting permission set, and rollback before a direct save.
+- Finance Overview maps to financial-report guidance, Finance Audit maps to audit
+  investigation guidance, and entity-trail details map to the same investigation
+  guide. The articles distinguish summary signals, source reports, immutable
+  Finance before-and-after evidence, and the wider security trail.
+- Settings Overview maps to platform configuration guidance. The Administration
+  link hub and the personal notification feed map to Console basics, so readers
+  receive navigation and notification guidance without specialist configuration
+  permissions.
+- The platform Settings wildcard and eight Finance wildcards were removed. Their
+  routers accept only named sections, so the route catalogue now lists every real
+  Finance section explicitly and no longer treats mistyped section URLs as shipped
+  screens.
+- No new walkthrough is required. Role editing uses the same high-risk fields and
+  final save boundary already taught by the role walkthrough; the Finance dashboard,
+  Finance Audit, entity-trail detail, Administration hub, and notification feed are
+  read-only. Existing Finance settings and audit walkthroughs retain their current
+  consequential-action boundaries.

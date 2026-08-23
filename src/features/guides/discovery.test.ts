@@ -23,13 +23,13 @@ describe("guide discovery", () => {
     expect(canDiscoverGuide(byId("getting-started.console-basics"), [])).toBe(true);
   });
 
-  it("hides restricted guide details until its complete access rule is satisfied", () => {
+  it("shows role guidance for any declared role-management responsibility", () => {
     const guide = byId("roles.create-and-assign");
-    const partial = [P.VIEW_ROLES, P.DEFINE_ROLE].map(resolvePermissionKey);
-    const complete = [P.VIEW_ROLES, P.DEFINE_ROLE, P.ASSIGN_ROLE].map(resolvePermissionKey);
+    const roleEditor = [P.MODIFY_ROLE].map(resolvePermissionKey);
+    const unrelated = [P.VIEW_AUDIT].map(resolvePermissionKey);
 
-    expect(canDiscoverGuide(guide, partial)).toBe(false);
-    expect(canDiscoverGuide(guide, complete)).toBe(true);
+    expect(canDiscoverGuide(guide, unrelated)).toBe(false);
+    expect(canDiscoverGuide(guide, roleEditor)).toBe(true);
   });
 
   it("filters before audience selection so restricted titles never leak", () => {
@@ -207,7 +207,7 @@ describe("guide discovery", () => {
     ]);
     expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.id)).toEqual([
       "tasks.create-and-complete",
-      "troubleshooting.prepare-support-ticket",
+      "getting-started.console-basics",
     ]);
   });
 });

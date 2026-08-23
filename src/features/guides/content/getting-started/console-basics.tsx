@@ -23,6 +23,7 @@ export default function ConsoleBasicsArticle() {
         <GuideSteps>
           <GuideStep title="Start from Home">Use Home to see work that needs attention, quick actions, important signals, and recently opened records. Today&apos;s focus separates work that is yours from conditions to watch. It stays compact until you hover over it or select Maximize, and opens by itself when something is broken.</GuideStep>
           <GuideStep title="Choose an area from the sidebar">The main sidebar groups platform work such as schools, users, workflow, and audit. Expand Support to open Support Centre or How-to Guides. Finance and Procurement open their own focused consoles.</GuideStep>
+          <GuideStep title="Use the Administration hub">Settings &gt; Administration links to specialist consoles for people, roles, workflows, security, and communications. It does not grant access to them; each link still follows your permissions.</GuideStep>
           <GuideStep title="Use the page header">The header shows the current page, back navigation when available, workspace search, notifications, support, and your account menu.</GuideStep>
         </GuideSteps>
         <GuideFigure title="Console workspace map" caption="The exact areas depend on your permissions. The structure remains the same on every protected screen.">

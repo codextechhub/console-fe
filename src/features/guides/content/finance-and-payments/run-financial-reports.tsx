@@ -17,6 +17,7 @@ export default function RunFinancialReportsArticle() {
 
       <GuideSection id="choose-the-report" title="Choose the report">
         <GuideSteps>
+          <GuideStep title="Finance Overview">Use the Finance landing dashboard for live entity-level signals such as revenue, collection, aging, cash, payables, approvals, and fiscal runway. Treat each card as a starting point and open its source report or document before deciding.</GuideStep>
           <GuideStep title="Trial Balance">Check debit and credit totals by account and investigate imbalance or unexpected account movements before relying on other statements.</GuideStep>
           <GuideStep title="Income Statement">Review revenue, expenses, and net income over a period. Compare like-for-like periods and confirm unusual movements against source evidence.</GuideStep>
           <GuideStep title="Balance Sheet">Review assets, liabilities, and equity at a point in time. Assets must equal liabilities plus equity.</GuideStep>

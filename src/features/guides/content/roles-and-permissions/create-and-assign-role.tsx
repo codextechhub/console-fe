@@ -27,14 +27,16 @@ export default function CreateAndAssignRoleArticle() {
         </div>
       </GuideSection>
 
-      <GuideSection id="create-the-role" title="Create the role">
+      <GuideSection id="create-the-role" title="Create or edit the role">
         <GuideSteps>
           <GuideStep title="Review existing roles">On <strong>Roles Management</strong>, use All Roles, Active Roles, System Roles, Locked Roles, and <strong>Search roles...</strong>. Do not duplicate an existing role.</GuideStep>
           <GuideStep title="Open Create New Role">Select <strong>Add New Role</strong>. Enter <strong>Role Name</strong>, an explanatory Description, and the intended Status.</GuideStep>
           <GuideStep title="Choose permission groups">Search <strong>Permission Groups</strong> and select only groups whose complete contents match the job.</GuideStep>
           <GuideStep title="Add individual permissions">Use <strong>Individual Permissions</strong> only for required access not already represented by the selected groups.</GuideStep>
-          <GuideStep title="Review and create">Check the selected counts and permission keys. Select <strong>Create Role</strong> only after the access set is approved.</GuideStep>
+          <GuideStep title="Edit from the current access set">When editing an existing role, record its current groups, direct permissions, status, affected users, and whether it is protected. Compare every addition and removal with the approved change before saving.</GuideStep>
+          <GuideStep title="Review and save">Check the selected counts and permission keys. Select <strong>Create Role</strong> or <strong>Save changes</strong> only after the full access set is approved.</GuideStep>
         </GuideSteps>
+        <GuideCallout tone="danger" title="Editing changes every active assignment">A saved permission or group change affects every user who holds the role. Confirm the complete resulting access set and the rollback path, not only the boxes that changed.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="assign-or-change-a-role" title="Assign or change a role">
