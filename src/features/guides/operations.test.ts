@@ -115,6 +115,7 @@ describe("guide operations reporting", () => {
     });
 
     expect(report.integrityIssues).toEqual([]);
+    expect(report.actionGaps).toEqual([]);
     expect(report.walkthroughTargetGaps).toEqual([]);
     expect(new Set(WALKTHROUGH_VERIFICATION_RECORDS.map((record) => record.walkthroughId)).size)
       .toBe(WALKTHROUGH_REGISTRY.length);

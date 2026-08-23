@@ -22,6 +22,7 @@ const C11_REVIEWED_AT = "2026-08-21";
 const C12_REVIEWED_AT = "2026-08-21";
 const O1_REVIEWED_AT = "2026-08-21";
 const FINANCE_RECOVERY_REVIEWED_AT = "2026-08-23";
+const ACTION_GAP_REVIEWED_AT = "2026-08-23";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -350,6 +351,7 @@ export const GUIDE_REGISTRY = [
     aliases: ["create staff profile", "edit employee profile", "assign seat", "change position", "bank details", "HR profile"],
     audiences: ["platform-administrator", "support-and-operations"],
     routes: [R.ORGANOGRAM.STAFF_CREATE, R.ORGANOGRAM.STAFF_VIEW_PATH, R.ORGANOGRAM.STAFF_BY_USER_PATH, R.ORGANOGRAM.STAFF_EDIT_PATH],
+    actionIds: ["create-staff-profile"],
     access: { mode: "any", permissions: [P.VIEW_STAFF_PROFILE, P.CREATE_STAFF_PROFILE, P.MODIFY_STAFF_PROFILE] },
     primaryRoute: R.ORGANOGRAM.STAFF_CREATE,
     sections: [
@@ -365,7 +367,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.organogram.maintain-staff-profiles",
     estimatedMinutes: 9,
     owner: OWNER,
-    reviewedAt: C4_REVIEWED_AT,
+    reviewedAt: ACTION_GAP_REVIEWED_AT,
     risk: "medium",
     status: "published",
     article: () => import("./content/organogram-and-tasks/maintain-staff-profiles"),
@@ -380,7 +382,7 @@ export const GUIDE_REGISTRY = [
     aliases: ["add task", "assign task", "my tasks", "team tasks", "mark task done", "undo completion"],
     audiences: ["all-users"],
     routes: [R.TODO.INDEX],
-    actionIds: ["view-tasks"],
+    actionIds: ["view-tasks", "create-task"],
     access: { mode: "authenticated", permissions: [] },
     primaryRoute: R.TODO.INDEX,
     sections: [
@@ -396,7 +398,7 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["organogram.build-structure", "organogram.maintain-staff-profiles"],
     estimatedMinutes: 7,
     owner: OWNER,
-    reviewedAt: C4_REVIEWED_AT,
+    reviewedAt: ACTION_GAP_REVIEWED_AT,
     risk: "low",
     featured: true,
     status: "published",
@@ -818,11 +820,12 @@ export const GUIDE_REGISTRY = [
     aliases: [
       "bank recon", "match bank line", "unreconciled difference", "statement import",
       "bank charge", "payment in transit", "ignored bank line", "complete reconciliation",
+      "create bank account", "new bank account", "link bank to GL cash account",
     ],
     audiences: ["finance-officer", "approver"],
     routes: [R.FINANCE.BANKING, R.FINANCE.BANK_RECON],
-    actionIds: ["view-bank-accounts", "view-bank-reconciliation", "import-bank-statement"],
-    access: { mode: "any", permissions: [P.FIN_VIEW_BANK_ACCOUNTS, P.FIN_IMPORT_STATEMENT, P.FIN_RECONCILE_BANK] },
+    actionIds: ["view-bank-accounts", "create-bank-account", "view-bank-reconciliation", "import-bank-statement"],
+    access: { mode: "any", permissions: [P.FIN_VIEW_BANK_ACCOUNTS, P.FIN_CREATE_BANK_ACCOUNT, P.FIN_IMPORT_STATEMENT, P.FIN_RECONCILE_BANK] },
     primaryRoute: R.FINANCE.BANK_RECON,
     sections: [
       { id: "before-you-start", title: "Before you start" },
@@ -838,7 +841,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.reconcile-bank-statement",
     estimatedMinutes: 10,
     owner: OWNER,
-    reviewedAt: C6B_REVIEWED_AT,
+    reviewedAt: ACTION_GAP_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
@@ -1617,18 +1620,18 @@ export const GUIDE_REGISTRY = [
     summary: "Connect live sessions, authentication attempts, lockouts, password activity, and proxy evidence before taking a security action.",
     category: "audit-and-security",
     tags: ["session", "sign in", "login attempt", "lockout", "password", "proxy", "impersonation", "IP address", "device"],
-    aliases: ["active sessions", "failed login", "blocked login", "locked account", "unlock user", "password reset activity", "impersonated user", "force logout", "end proxy session"],
+    aliases: ["active sessions", "failed login", "blocked login", "locked account", "unlock user", "password reset activity", "impersonated user", "proxy user", "start proxy", "force logout", "end proxy session"],
     audiences: ["platform-administrator", "support-and-operations"],
     routes: [R.AUDIT.SESSIONS, R.AUDIT.LOGIN_ATTEMPTS, R.AUDIT.LOCKOUTS, R.AUDIT.PASSWORD_ACTIVITY, R.AUDIT.IMPERSONATIONS],
-    actionIds: ["view-live-sessions", "view-login-attempts", "view-account-lockouts", "view-password-activity", "view-proxy-sessions"],
-    access: { mode: "any", permissions: [P.VIEW_AUDIT] },
+    actionIds: ["view-live-sessions", "view-login-attempts", "view-account-lockouts", "view-password-activity", "view-proxy-sessions", "proxy-user"],
+    access: { mode: "any", permissions: [P.VIEW_AUDIT, P.IMPERSONATE_USER] },
     primaryRoute: R.AUDIT.SESSIONS,
     sections: [
       { id: "before-you-start", title: "Before you start" },
       { id: "review-live-sessions", title: "Review live sessions" },
       { id: "investigate-sign-in-attempts", title: "Investigate sign-in attempts" },
       { id: "review-lockouts-and-passwords", title: "Review lockouts and password activity" },
-      { id: "review-proxy-sessions", title: "Review proxy sessions" },
+      { id: "review-proxy-sessions", title: "Start and review proxy sessions" },
       { id: "respond-without-losing-evidence", title: "Respond without losing evidence" },
       { id: "common-problems", title: "Common problems" },
       { id: "completion-check", title: "Completion check" },
@@ -1637,7 +1640,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.audit.review-security-operations",
     estimatedMinutes: 12,
     owner: OWNER,
-    reviewedAt: C9_REVIEWED_AT,
+    reviewedAt: ACTION_GAP_REVIEWED_AT,
     risk: "high",
     status: "published",
     article: () => import("./content/audit-and-security/review-security-operations"),

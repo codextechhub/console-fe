@@ -19,6 +19,13 @@ export default function ReconcileBankStatementArticle() {
       </GuideSection>
 
       <GuideSection id="prepare-the-account" title="Prepare the bank account">
+        <GuideSteps>
+          <GuideStep title="Create the banking record only once">From Bank Accounts, select <strong>New bank account</strong>. First confirm that the active entity does not already contain the real account.</GuideStep>
+          <GuideStep title="Link the controlled identity">Enter the approved account name, bank name, masked or permitted account number, currency, and the single postable GL cash account that represents its book balance.</GuideStep>
+          <GuideStep title="Choose operational flags deliberately">Mark the account active only when it is ready for use. Set primary operating or invoice and receipt display flags only when finance policy approves that role.</GuideStep>
+          <GuideStep title="Create and verify">Select <strong>Create account</strong>, then reopen the record and confirm its entity, currency, GL mapping, status, and primary flags before importing a statement or using it in cash activity.</GuideStep>
+        </GuideSteps>
+        <GuideCallout title="Creating the account does not move money">This creates banking metadata and its one-to-one GL anchor. Receipts, payments, transfers, journals, and reconciliations remain separate controlled actions.</GuideCallout>
         <GuideChecklist items={[
           "The bank account belongs to the active entity and maps to the intended GL cash account.",
           "Currency, masked account identity, and opening balance agree with controlled records.",

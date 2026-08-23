@@ -206,8 +206,8 @@ describe("guide discovery", () => {
       "workflow.delegate-and-track",
     ]);
     expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.id)).toEqual([
+      "tasks.create-and-complete",
       "troubleshooting.prepare-support-ticket",
-      "workflow.review-and-act",
     ]);
   });
 });

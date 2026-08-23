@@ -20,8 +20,16 @@ export default function ReviewSecurityOperationsArticle() {
       <GuideSection id="review-lockouts-and-passwords" title="Review lockouts and password activity">
         <p>For a lockout, confirm its reason, failure count, last failure address, expiry, and whether the same pattern continues. Review password changes, resets, email changes, successes, failures, actor, target user, and school. Unlocking with a reset is not proof that the original activity was safe.</p>
       </GuideSection>
-      <GuideSection id="review-proxy-sessions" title="Review proxy sessions">
-        <p>Compare the staff proxier, target user, organisation, justification, start and end time, status, data accessed, and actions attempted or completed. Open-ended proxy sessions expire under the configured idle safeguard. An active unexpected session may need to be ended, but preserve its evidence first.</p>
+      <GuideSection id="review-proxy-sessions" title="Start and review proxy sessions">
+        <GuideSteps>
+          <GuideStep title="Confirm the support authority">Use proxy only for a specific approved support task. Record the target user, tenant, reason, expected checks, and work that must remain off limits.</GuideStep>
+          <GuideStep title="Open Proxy a user">Use workspace search or the approved account control to open <strong>Proxy a user</strong>. Enter at least two characters of the verified name or email.</GuideStep>
+          <GuideStep title="Verify the exact target">Compare the full name, email, tenant or school, and displayed role. Select the person only when all identifiers match the support case.</GuideStep>
+          <GuideStep title="Start deliberately">Select <strong>Proxy</strong>. Console switches to the target&apos;s effective identity and permissions; it does not grant the operator additional access.</GuideStep>
+          <GuideStep title="Exit as soon as the check ends">Use <strong>Exit proxy</strong> before returning to unrelated work. Confirm your own identity and tenant are restored.</GuideStep>
+        </GuideSteps>
+        <GuideCallout tone="danger" title="Proxy is not permission escalation">Never use proxy access to approve, pay, post, change permissions, reset credentials, or perform another business action merely because the target can. The support authority must cover the exact action.</GuideCallout>
+        <p>Afterward, compare the staff proxier, target user, organisation, justification, start and end time, status, data accessed, and actions attempted or completed. Open-ended proxy sessions expire under the configured idle safeguard. An active unexpected session may need to be ended, but preserve its evidence first.</p>
         <GuideCallout title="Proxy evidence has two layers">Changes and failed actions appear in the audit event trail with actor and effective-user context. Reads are recorded in the proxy session&apos;s access trail.</GuideCallout>
       </GuideSection>
       <GuideSection id="respond-without-losing-evidence" title="Respond without losing evidence">

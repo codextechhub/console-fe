@@ -450,3 +450,19 @@ editor, assignment, approval, or automated repair action.
 - Refund guidance measures credit on the selected accounting date, write-off
   guidance remains invoice-specific, and both require proof that an earlier
   attempt did not already create or post the adjustment before any retry.
+
+## High-value action gap closure (2026-08-23)
+
+- Every registered high-value action is now referenced by an active guide.
+- Create staff profile and Create task map to their existing task-sized articles,
+  whose instructions already follow those exact creation workflows.
+- Create bank account maps to bank reconciliation guidance. The account-preparation
+  section now covers the entity, controlled bank identity, one-to-one GL cash
+  mapping, currency, status, primary flags, and the separate money-movement boundary.
+- Proxy a user maps to security-operations guidance. The article now covers support
+  authority, target verification, the effective-identity boundary, prompt exit, and
+  the two-layer proxy audit trail.
+- Existing walkthroughs may explain the surrounding evidence and controls, but they
+  do not start a proxy session or create a bank account. Those consequential actions
+  remain explicit user decisions. Task creation is a short, reversible personal form;
+  the staff-profile walkthrough already covers the ordered profile and seat workflow.
