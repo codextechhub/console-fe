@@ -106,8 +106,10 @@ export function buildActingSet(assignments: CurrentOrganogramAssignment[]): Set<
 // ── Derived people tree from the server position tree ─────────────────────────
 //
 // A "person node" is a holder of a seat. Its children are the holders of the
-// seat's child positions, plus a ghost per vacant child seat. Mirrors the
-// prototype's peopleTreeChildren, but sourced from the server tree.
+// seat's child positions. An empty seat contributes no card of its own: the
+// chart shows people, and an unfilled post is not a person. Its reports are
+// spliced up to the nearest filled ancestor, so nobody drops off the chart
+// because the seat above them happens to be vacant.
 
 export interface PersonNodeData {
   kind: "person";
@@ -120,15 +122,7 @@ export interface PersonNodeData {
   children: PeopleNode[];
 }
 
-export interface VacantNodeData {
-  kind: "vacant";
-  key: string;
-  positionId: number;
-  positionTitle: string;
-  positionCode: string;
-}
-
-export type PeopleNode = PersonNodeData | VacantNodeData;
+export type PeopleNode = PersonNodeData;
 
 function peopleChildrenOf(node: OrganogramNode, actingSet: Set<string>): PeopleNode[] {
   const out: PeopleNode[] = [];
@@ -147,13 +141,9 @@ function peopleChildrenOf(node: OrganogramNode, actingSet: Set<string>): PeopleN
         });
       }
     } else {
-      out.push({
-        kind: "vacant",
-        key: `${child.id}-v`,
-        positionId: child.id,
-        positionTitle: child.title,
-        positionCode: child.code,
-      });
+      // Vacant seat: skip the seat itself and lift its reports a level, so the
+      // branch beneath an empty post stays visible.
+      out.push(...peopleChildrenOf(child, actingSet));
     }
   }
   return out;
@@ -177,24 +167,19 @@ export function buildPeopleTree(tree: OrganogramNode[], actingSet: Set<string>):
         });
       }
     } else {
-      roots.push({
-        kind: "vacant",
-        key: `${node.id}-v`,
-        positionId: node.id,
-        positionTitle: node.title,
-        positionCode: node.code,
-      });
+      // A vacant root promotes its own reports to roots.
+      roots.push(...peopleChildrenOf(node, actingSet));
     }
   }
   return roots;
 }
 
 // Count everyone reporting under these children, directly or indirectly
-// (i.e. the full team size below a person - vacant ghosts excluded).
+// (i.e. the full team size below a person).
 export function countAllReports(children: PeopleNode[]): number {
   let n = 0;
   for (const c of children) {
-    if (c.kind === "person") n += 1 + countAllReports(c.children);
+    n += 1 + countAllReports(c.children);
   }
   return n;
 }
@@ -202,10 +187,8 @@ export function countAllReports(children: PeopleNode[]): number {
 // Collect all expandable person ids in the people tree (for expand-all).
 export function collectPeopleIds(nodes: PeopleNode[], acc: string[] = []): string[] {
   for (const n of nodes) {
-    if (n.kind === "person") {
-      acc.push(n.user.id);
-      collectPeopleIds(n.children, acc);
-    }
+    acc.push(n.user.id);
+    collectPeopleIds(n.children, acc);
   }
   return acc;
 }
@@ -219,7 +202,6 @@ export function findPeoplePathToUser(
   match: (u: UserInline) => boolean,
 ): string[] | null {
   for (const n of nodes) {
-    if (n.kind !== "person") continue;
     if (match(n.user)) return [n.user.id];
     const below = findPeoplePathToUser(n.children, match);
     if (below) return [n.user.id, ...below];

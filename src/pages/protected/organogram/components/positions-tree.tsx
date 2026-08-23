@@ -11,7 +11,7 @@ import type {
 } from "@/redux/services/dashboard/organogram-types";
 import { cn } from "@/lib/utils";
 import { nextFocusedNode } from "../lib/org-helpers";
-import { ActingBadge, HeadcountMeter, HolderStack, VacantBadge } from "./org-primitives";
+import { ActingBadge, HeadcountMeter, HolderStack } from "./org-primitives";
 
 export interface PositionsCtx {
   expanded: Set<number>;
@@ -42,7 +42,6 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
   const inc = ctx.matrixIn.get(node.id) ?? [];
   const mxCount = out.length + inc.length;
   const highlighted = ctx.highlightId === node.id;
-  const fullyVacant = node.holders.length === 0;
   const actingFilled =
     node.holders.length > 0 && node.holders.every((u) => ctx.actingSet.has(`${u.id}@${node.id}`));
 
@@ -52,9 +51,7 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
         data-card
         className={cn(
           "group flex w-44 flex-col rounded-xl border px-3 py-2.5 shadow-sm transition-all",
-          fullyVacant
-            ? "border-dashed border-slate-300 bg-slate-50/70"
-            : "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md",
+          "border-slate-200 bg-white hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md",
           highlighted && "!border-indigo-400 ring-2 ring-indigo-300",
         )}
         style={highlighted ? { animation: "pulseHL 1.4s ease-out" } : undefined}
@@ -63,10 +60,9 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
             sit directly beneath the position name. */}
         <button onClick={() => ctx.openPosition(node.id)} className="w-full flex flex-col items-center text-center">
           <div className="flex items-center justify-center gap-1 mb-0.5">
-            {fullyVacant && <VacantBadge />}
-            {actingFilled && !fullyVacant && <ActingBadge />}
+            {actingFilled && <ActingBadge />}
           </div>
-          <span className={cn("block truncate w-full text-[12.5px] font-semibold leading-snug", fullyVacant ? "text-slate-400" : "text-slate-800")}>
+          <span className="block truncate w-full text-[12.5px] font-semibold leading-snug text-slate-800">
             {node.title}
           </span>
           {/* Code + headcount on same line, centered under the name */}
