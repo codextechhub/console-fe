@@ -1,10 +1,19 @@
 // Organogram → Manage. Tabbed CRUD for Org Units / Positions / Matrix.
-// Page reachable via the sidebar which is gated by P.MANAGE_ORGANOGRAM; the
-// backend is the authoritative gate (writes need platform.organogram.manage).
+//
+// Gated on P.MANAGE_ORGANOGRAM at the page itself, not only in the sidebar.
+// Hiding the nav link left the route reachable by typing the URL, and this
+// page is where establishment size lives: the position list shows headcount
+// and how many seats of each are unfilled, which the org chart deliberately
+// no longer reveals. The backend remains the authoritative gate for writes.
 
 import { useState } from "react";
 import { Building2, Briefcase, Spline } from "lucide-react";
+import { useNavigate } from "react-router";
 import { cn } from "@/lib/utils";
+import PageAccessDenied from "@/components/custom/page-access-denied";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
+import { routesPath } from "@/routes/routes-path";
 import OrgNodeManager from "./org-node-manager";
 import PositionManager from "./position-manager";
 import MatrixManager from "./matrix-manager";
@@ -19,6 +28,17 @@ type TabId = (typeof TABS)[number]["id"];
 
 export default function OrganogramManage() {
   const [tab, setTab] = useState<TabId>("units");
+  const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
+
+  if (!hasPermission(P.MANAGE_ORGANOGRAM)) {
+    return (
+      <PageAccessDenied
+        onBack={() => navigate(routesPath.PROTECTED.ORGANOGRAM.INDEX)}
+        message="You don't have permission to manage the organogram."
+      />
+    );
+  }
 
   return (
     <>
