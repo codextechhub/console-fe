@@ -78,14 +78,6 @@ export function ActingBadge() {
   );
 }
 
-export function VacantBadge() {
-  return (
-    <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 ring-1 ring-amber-200">
-      VACANT
-    </span>
-  );
-}
-
 export function DeptChip({ name, onClick }: { name?: string | null; onClick?: (e: React.MouseEvent) => void }) {
   if (!name) return null;
   return (
@@ -114,16 +106,6 @@ export function ReportsBadge({ direct, total }: { direct: number; total?: number
         direct
       )}
     </span>
-  );
-}
-
-export function HeadcountMeter({ filled, total }: { filled: number; total: number }) {
-  const full = filled >= total;
-  return (
-    <div className="flex items-center gap-1.5 rounded-md bg-slate-100 px-1.5 py-0.5">
-      <span className={cn("text-[12px] font-bold", full ? "text-slate-700" : "text-amber-600")}>{filled}</span>
-      <span className="text-[12px] text-slate-400">/ {total}</span>
-    </div>
   );
 }
 

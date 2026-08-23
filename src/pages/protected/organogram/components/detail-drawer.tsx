@@ -8,7 +8,7 @@ import {
   AtSign, Banknote, Briefcase, Building2, CalendarDays, Contact, CornerLeftUp,
   GitBranch, Hash, HeartHandshake, History, IdCard, Landmark, Lock, LockOpen,
   Mail, MapPin, Network, Pencil, Phone, ShieldAlert, ShieldCheck, Spline,
-  UserCheck, UserPlus, Users, X,
+  UserCheck, Users, X,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,7 @@ import {
   useGetAssignmentsQuery, useGetStaffProfileQuery,
 } from "@/redux/services/dashboard/organogram-api";
 import { fmtDate, yearsSince, type ProfileMap } from "../lib/org-helpers";
-import { ActingBadge, DeptChip, EmpBadge, OrgAvatar, StatusPill, VacantBadge } from "./org-primitives";
+import { ActingBadge, DeptChip, EmpBadge, OrgAvatar, StatusPill } from "./org-primitives";
 
 export type DetailTarget =
   | { kind: "person"; user: UserInline }
@@ -189,12 +189,10 @@ function PersonDetail({ user, ctx }: { user: UserInline; ctx: DrawerCtx }) {
                 const last = i === chain.length - 1;
                 return (
                   <span key={p.id} className="flex items-center gap-1">
-                    {holder ? (
+                    {holder && (
                       <button onClick={() => ctx.openUser(holder)} className="rounded px-1 py-0.5 text-indigo-600 hover:bg-indigo-50">
                         {holder.full_name.split(" ")[0]} <span className="text-slate-400">· {p.code}</span>
                       </button>
-                    ) : (
-                      <span className="text-slate-400">Vacant · {p.code}</span>
                     )}
                     {!last && <CornerLeftUp className="size-3 rotate-90 text-slate-300" />}
                   </span>
@@ -237,12 +235,10 @@ function PersonDetail({ user, ctx }: { user: UserInline; ctx: DrawerCtx }) {
                 const last = i === chain.length - 1;
                 return (
                   <span key={p.id} className="flex items-center gap-1">
-                    {holder ? (
+                    {holder && (
                       <button onClick={() => ctx.openUser(holder)} className="rounded px-1 py-0.5 text-indigo-600 hover:bg-indigo-50">
                         {holder.full_name.split(" ")[0]} <span className="text-slate-400">· {p.code}</span>
                       </button>
-                    ) : (
-                      <span className="text-slate-400">Vacant · {p.code}</span>
                     )}
                     {!last && <CornerLeftUp className="size-3 rotate-90 text-slate-300" />}
                   </span>
@@ -314,19 +310,21 @@ function PositionDetail({ id, ctx }: { id: number; ctx: DrawerCtx }) {
   const pos = ctx.posMap.get(id);
   const out = ctx.matrixOut.get(id) ?? [];
   const inc = ctx.matrixIn.get(id) ?? [];
-  const kids = useMemo(() => Array.from(ctx.posMap.values()).filter((p) => p.reports_to?.id === id), [ctx.posMap, id]);
+  const kids = useMemo(
+    () => Array.from(ctx.posMap.values()).filter((p) => p.reports_to?.id === id && !p.is_vacant),
+    [ctx.posMap, id],
+  );
 
   if (!pos) {
     return <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-[13px] text-slate-500">Position not found.</div>;
   }
 
-  const filled = pos.headcount - pos.open_seats;
   const parent = pos.reports_to ? ctx.posMap.get(pos.reports_to.id) : null;
 
   return (
     <div>
       <div className="flex items-start gap-4">
-        <span className={cn("inline-flex h-14 w-14 items-center justify-center rounded-2xl", pos.is_vacant ? "bg-slate-100 text-slate-300" : "bg-indigo-50 text-indigo-500")}>
+        <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500">
           <Briefcase className="size-6" />
         </span>
         <div className="min-w-0 flex-1">
@@ -334,15 +332,11 @@ function PositionDetail({ id, ctx }: { id: number; ctx: DrawerCtx }) {
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">{pos.code}</span>
             <DeptChip name={pos.org_node?.name} />
-            {pos.is_vacant && <VacantBadge />}
           </div>
         </div>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-3.5">
-        <Field icon={Users} label="Headcount">
-          {filled} filled / {pos.headcount} total{pos.open_seats > 0 && <span className="text-amber-600"> · {pos.open_seats} vacant</span>}
-        </Field>
         <Field icon={ShieldCheck} label="Status">{pos.is_active ? "Active" : "Inactive"}</Field>
         <Field icon={CornerLeftUp} label="Reports to (solid)">
           {parent ? <button onClick={() => ctx.openPosition(parent.id)} className="text-indigo-600 hover:underline">{parent.title}</button> : <span className="text-slate-400">- top of org</span>}
@@ -363,15 +357,9 @@ function PositionDetail({ id, ctx }: { id: number; ctx: DrawerCtx }) {
               {ctx.actingSet.has(`${u.id}@${id}`) && <ActingBadge />}
             </button>
           ))}
-          {Array.from({ length: pos.open_seats }).map((_, i) => (
-            <div key={i} className="flex items-center gap-2.5 rounded-lg border border-dashed border-slate-200 px-1.5 py-1.5">
-              <span className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full border border-dashed border-slate-300 text-slate-300"><UserPlus className="size-3.5" /></span>
-              <span className="text-[12.5px] text-slate-400">Vacant seat</span>
-            </div>
-          ))}
         </div>
       ) : (
-        <p className="text-[13px] text-slate-400">No current holder - seat is vacant.</p>
+        <p className="text-[13px] text-slate-400">Nobody to show here.</p>
       )}
 
       {(out.length > 0 || inc.length > 0) && (
@@ -400,7 +388,6 @@ function PositionDetail({ id, ctx }: { id: number; ctx: DrawerCtx }) {
           {kids.map((k) => (
             <button key={k.id} onClick={() => ctx.openPosition(k.id)} className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50">
               <div className="flex items-center gap-2"><Briefcase className="size-3.5 text-slate-400" /><span className="text-[13px] font-medium text-slate-700">{k.title}</span></div>
-              <span className="text-[11.5px] text-slate-400">{k.headcount - k.open_seats}/{k.headcount}</span>
             </button>
           ))}
         </div>

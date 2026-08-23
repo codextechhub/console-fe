@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Ban, Briefcase, Building2, ChevronsDownUp, Filter, Info, Maximize,
-  Minus, PlaneTakeoff, Plus, Search, Sparkles, UserPlus, Users, X,
+  Minus, PlaneTakeoff, Plus, Search, Sparkles, Users, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
@@ -23,7 +23,7 @@ import {
 import {
   asArray, buildActingSet, buildOrgNodeMap, buildPeopleTree, buildProfileMap,
   collectActiveHolderIds, collectPeopleIds, collectPositionIds, computeKpis,
-  findPeoplePathToUser, findPositionPathToUser,
+  findPeoplePathToUser, findPositionPathToUser, pruneVacantPositions,
   orgNodeDescendantIds, pruneTreeByOrgNodes,
 } from "./lib/org-helpers";
 import { useAppSelector } from "@/redux/store";
@@ -217,9 +217,10 @@ export default function OrganogramPage() {
   // Filter the position tree to the selected org node (and its descendant nodes),
   // re-parenting kept seats so the unit's positions surface as roots.
   const viewTree = useMemo(() => {
-    if (deptFilter === "ALL") return tree;
+    const staffed = pruneVacantPositions(tree);
+    if (deptFilter === "ALL") return staffed;
     const allowed = orgNodeDescendantIds(orgNodeMap, deptFilter);
-    return pruneTreeByOrgNodes(tree, allowed);
+    return pruneTreeByOrgNodes(staffed, allowed);
   }, [tree, orgNodeMap, deptFilter]);
 
   const peopleRoots = useMemo(() => buildPeopleTree(viewTree, actingSet), [viewTree, actingSet]);
@@ -238,7 +239,7 @@ export default function OrganogramPage() {
     setFullyExpandedPeople(new Set());
     setFullyExpandedPos(new Set());
     if (myPeoplePath?.length) {
-      const myPositionPath = findPositionPathToUser(tree, matchMe) ?? [];
+      const myPositionPath = findPositionPathToUser(viewTree, matchMe) ?? [];
       setFocusedPeoplePath(myPeoplePath);
       setFocusedPosPath(myPositionPath);
       setExpandedPeople(new Set(myPeoplePath.slice(0, -1)));
@@ -250,7 +251,7 @@ export default function OrganogramPage() {
     }
     const pos = new Set<number>();
     const ppl = new Set<string>();
-    for (const root of tree) {
+    for (const root of viewTree) {
       pos.add(root.id);
       root.direct_reports.forEach((c) => pos.add(c.id));
       root.holders.forEach((u) => ppl.add(u.id));
@@ -390,15 +391,13 @@ export default function OrganogramPage() {
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-semibold font-mont text-gray-01">Organisation Chart</p>
-              <p className="text-xs text-gray-01 mt-0.5">CX staff reporting structure - seats, holders, and vacancies.</p>
+              <p className="text-xs text-gray-01 mt-0.5">CX Staff reporting structure</p>
             </div>
             <OrgSearch posMap={posMap} profiles={profilesList} onJumpUser={jumpToUser} onJumpPosition={jumpToPosition} />
           </div>
           {canViewSummary && <div className="flex flex-wrap items-center gap-y-2 divide-x divide-slate-100">
             <Stat icon={Users} label="Active staff" value={kpis.headcountActive} accent="bg-indigo-50 text-indigo-500" />
             <Stat icon={Building2} label="Departments" value={kpis.departments} accent="bg-slate-100 text-slate-500" />
-            <Stat icon={Briefcase} label="Seats filled" value={kpis.filledSeats} sub={`/ ${kpis.totalSeats}`} accent="bg-emerald-50 text-emerald-500" />
-            <Stat icon={UserPlus} label="Vacancies" value={kpis.vacantSeats} accent="bg-amber-50 text-amber-500" />
             <Stat icon={Sparkles} label="Acting" value={kpis.acting} accent="bg-amber-50 text-amber-500" />
             <Stat icon={PlaneTakeoff} label="On leave" value={kpis.onLeave} accent="bg-amber-50 text-amber-500" />
             <Stat icon={Ban} label="Suspended" value={kpis.suspended} accent="bg-rose-50 text-rose-500" />
@@ -570,6 +569,7 @@ function OrgSearch({
       if (out.length >= 6) break;
     }
     for (const p of posMap.values()) {
+      if (p.is_vacant) continue;
       if ((p.title + " " + p.code).toLowerCase().includes(term)) {
         out.push({ kind: "position", id: p.id, title: p.title, sub: p.code });
       }

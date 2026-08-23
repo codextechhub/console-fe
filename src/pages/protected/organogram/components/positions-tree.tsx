@@ -1,6 +1,6 @@
 // Positions tab - top-down org CHART of the server-built position tree (solid
 // reporting lines via the `.org-chart` CSS in index.css), enriched with
-// headcount + matrix lines from the supporting lists.
+// matrix lines from the supporting lists.
 
 import { ChevronDown } from "lucide-react";
 import type {
@@ -11,7 +11,7 @@ import type {
 } from "@/redux/services/dashboard/organogram-types";
 import { cn } from "@/lib/utils";
 import { nextFocusedNode } from "../lib/org-helpers";
-import { ActingBadge, HeadcountMeter, HolderStack } from "./org-primitives";
+import { ActingBadge, HolderStack } from "./org-primitives";
 
 export interface PositionsCtx {
   expanded: Set<number>;
@@ -29,9 +29,6 @@ export interface PositionsCtx {
 }
 
 function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
-  const pos = ctx.posMap.get(node.id);
-  const headcount = pos?.headcount ?? Math.max(node.holders.length, 1);
-  const filled = pos ? pos.headcount - pos.open_seats : node.holders.length;
   const kids = node.direct_reports;
   const hasChildren = kids.length > 0;
   const open = ctx.expanded.has(node.id);
@@ -56,8 +53,8 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
         )}
         style={highlighted ? { animation: "pulseHL 1.4s ease-out" } : undefined}
       >
-        {/* Title + meta - click opens detail. Centered so the code + headcount
-            sit directly beneath the position name. */}
+        {/* Title + meta - click opens detail. Centered so the code sits
+            directly beneath the position name. */}
         <button onClick={() => ctx.openPosition(node.id)} className="w-full flex flex-col items-center text-center">
           <div className="flex items-center justify-center gap-1 mb-0.5">
             {actingFilled && <ActingBadge />}
@@ -65,10 +62,8 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
           <span className="block truncate w-full text-[12.5px] font-semibold leading-snug text-slate-800">
             {node.title}
           </span>
-          {/* Code + headcount on same line, centered under the name */}
           <div className="mt-1 flex items-center justify-center gap-2">
             <span className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px] text-slate-500 shrink-0">{node.code}</span>
-            <HeadcountMeter filled={filled} total={headcount} />
           </div>
         </button>
 

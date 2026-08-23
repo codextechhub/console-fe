@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import type { OrganogramNode, UserInline } from "@/redux/services/dashboard/organogram-types";
-import { buildPeopleTree, countAllReports, fmtDate, nextFocusedNode } from "./org-helpers";
+import {
+  buildPeopleTree,
+  countAllReports,
+  fmtDate,
+  nextFocusedNode,
+  pruneVacantPositions,
+} from "./org-helpers";
 
 describe("fmtDate", () => {
   it("formats date-only and timestamp values without leaking Invalid Date", () => {
@@ -86,5 +92,41 @@ describe("buildPeopleTree", () => {
     const roots = buildPeopleTree(tree, new Set());
 
     expect(roots[0].children).toEqual([]);
+  });
+});
+
+describe("pruneVacantPositions", () => {
+  const principal = user("u1", "Ada Principal");
+  const science = user("u2", "Bola Science");
+
+  it("drops an unfilled seat and reparents its reports to the filled seat above", () => {
+    const tree = [
+      seat(1, "Principal", [principal], [
+        seat(2, "Vice Principal", [], [seat(3, "Head of Science", [science])]),
+      ]),
+    ];
+
+    const pruned = pruneVacantPositions(tree);
+
+    expect(pruned.map((n) => n.id)).toEqual([1]);
+    expect(pruned[0].direct_reports.map((n) => n.id)).toEqual([3]);
+  });
+
+  it("leaves a fully staffed tree untouched", () => {
+    const tree = [seat(1, "Principal", [principal], [seat(2, "Head of Science", [science])])];
+
+    const pruned = pruneVacantPositions(tree);
+
+    expect(pruned[0].direct_reports.map((n) => n.id)).toEqual([2]);
+  });
+
+  it("removes a branch that is vacant all the way down", () => {
+    const tree = [
+      seat(1, "Principal", [principal], [seat(2, "Vice Principal", [], [seat(3, "Bursar", [])])]),
+    ];
+
+    const pruned = pruneVacantPositions(tree);
+
+    expect(pruned[0].direct_reports).toEqual([]);
   });
 });

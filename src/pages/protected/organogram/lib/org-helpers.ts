@@ -149,6 +149,26 @@ function peopleChildrenOf(node: OrganogramNode, actingSet: Set<string>): PeopleN
   return out;
 }
 
+// Strip unfilled seats out of the position tree before it is rendered.
+//
+// The chart is a view of the organisation as it is staffed, not of its
+// establishment: an empty post tells a reader nothing they can act on, and its
+// headcount is deliberately kept to Manage. A pruned seat splices its own
+// reports up to the nearest filled ancestor, exactly as the people tree does,
+// so removing a vacant manager never hides the team beneath them.
+export function pruneVacantPositions(tree: OrganogramNode[]): OrganogramNode[] {
+  const out: OrganogramNode[] = [];
+  for (const node of tree) {
+    const kept = pruneVacantPositions(node.direct_reports);
+    if (node.holders.length) {
+      out.push({ ...node, direct_reports: kept });
+    } else {
+      out.push(...kept);
+    }
+  }
+  return out;
+}
+
 // Build the people roots from the position-tree roots.
 export function buildPeopleTree(tree: OrganogramNode[], actingSet: Set<string>): PeopleNode[] {
   const roots: PeopleNode[] = [];
