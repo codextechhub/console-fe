@@ -224,15 +224,19 @@ export default function OrganogramPage() {
 
   const peopleRoots = useMemo(() => buildPeopleTree(viewTree, actingSet), [viewTree, actingSet]);
 
-  // Seed expansion once data arrives. Focus the chart on the logged-in viewer:
-  // show only their straight reporting path, hiding sibling branches beneath
-  // each manager until that manager is clicked. The viewer's own reports also
-  // start collapsed. If the viewer
-  // has no seat in the tree, fall back to roots + first level.
-  if (!initialised && tree.length) {
+  // The chart's home state: the logged-in viewer's own reporting line, with
+  // every sibling branch closed beneath each manager until that manager is
+  // clicked, and the viewer's own reports collapsed. If the viewer holds no
+  // seat in the tree, fall back to roots + first level.
+  //
+  // First load and "Collapse all" both land here, so the button returns you to
+  // the view you started from rather than to the top of the organisation.
+  const focusOnMyLine = () => {
     const matchMe = (u: UserInline) =>
       !!me && (u.email === me.email || String(u.id) === String(me.id));
     const myPeoplePath = me ? findPeoplePathToUser(peopleRoots, matchMe) : null;
+    setFullyExpandedPeople(new Set());
+    setFullyExpandedPos(new Set());
     if (myPeoplePath?.length) {
       const myPositionPath = findPositionPathToUser(tree, matchMe) ?? [];
       setFocusedPeoplePath(myPeoplePath);
@@ -242,18 +246,25 @@ export default function OrganogramPage() {
       const myUid = myPeoplePath[myPeoplePath.length - 1];
       setHighlightUid(myUid);
       setPendingScrollUid(myUid);
-    } else {
-      const pos = new Set<number>();
-      const ppl = new Set<string>();
-      for (const root of tree) {
-        pos.add(root.id);
-        root.direct_reports.forEach((c) => pos.add(c.id));
-        root.holders.forEach((u) => ppl.add(u.id));
-        root.direct_reports.forEach((c) => c.holders.forEach((u) => ppl.add(u.id)));
-      }
-      setExpandedPos(pos);
-      setExpandedPeople(ppl);
+      return;
     }
+    const pos = new Set<number>();
+    const ppl = new Set<string>();
+    for (const root of tree) {
+      pos.add(root.id);
+      root.direct_reports.forEach((c) => pos.add(c.id));
+      root.holders.forEach((u) => ppl.add(u.id));
+      root.direct_reports.forEach((c) => c.holders.forEach((u) => ppl.add(u.id)));
+    }
+    setFocusedPeoplePath([]);
+    setFocusedPosPath([]);
+    setExpandedPos(pos);
+    setExpandedPeople(ppl);
+  };
+
+  // Seed expansion once data arrives.
+  if (!initialised && tree.length) {
+    focusOnMyLine();
     setInitialised(true);
   }
 
@@ -295,17 +306,10 @@ export default function OrganogramPage() {
       setFullyExpandedPeople(new Set(ids));
     }
   };
-  const collapseAll = () => {
-    if (tab === "positions") {
-      setFocusedPosPath([]);
-      setFullyExpandedPos(new Set());
-      setExpandedPos(new Set(viewTree.map((n) => n.id)));
-    } else {
-      setFocusedPeoplePath([]);
-      setFullyExpandedPeople(new Set());
-      setExpandedPeople(new Set(peopleRoots.filter((n) => n.kind === "person").map((n) => (n.kind === "person" ? n.user.id : ""))));
-    }
-  };
+  // Collapse all returns the chart to its home state - the viewer's own line -
+  // rather than opening every root, which landed you on whoever sits at the top
+  // of the organisation instead of on yourself.
+  const collapseAll = focusOnMyLine;
 
   const scrollToNode = (selector: string) => {
     requestAnimationFrame(() => {
