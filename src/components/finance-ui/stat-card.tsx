@@ -4,6 +4,7 @@
 // <button> when `onClick` is set (clickable KPI), else a static <div>.
 
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { kpiValueClass } from "./money";
 
 export type StatTone = "primary" | "amber" | "red" | "green" | "indigo" | "gray";
@@ -29,7 +30,10 @@ export function StatCard({ label, value, sub, icon: Icon, tone = "primary", onCl
 }) {
   const t = STAT_TONES[tone];
   // pl-5 leaves a small gap past the w-1 accent bar so the label never touches it.
-  const base = "relative flex min-w-0 items-start justify-between gap-3 overflow-hidden rounded-md bg-white p-4 pl-5 text-left";
+  const base = cn(
+    INFORMATION_CARD_SURFACE,
+    "relative flex min-w-0 items-start justify-between gap-3 overflow-hidden rounded-md p-4 pl-5 text-left",
+  );
   const body = (
     <>
       <span aria-hidden="true" className={cn("absolute inset-y-0 left-0 w-1 rounded-l-md", t.bar)} />

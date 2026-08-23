@@ -11,6 +11,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { ghostWidth } from "@/components/custom/skeleton-widths";
 
 /** One ghost line of text. `width` is a Tailwind width class. */
@@ -109,7 +110,7 @@ export function SkeletonKpi({ className }: { className?: string }) {
   return (
     <div
       aria-hidden
-      className={cn("space-y-3 rounded-md bg-white p-4", className)}
+      className={cn(INFORMATION_CARD_SURFACE, "space-y-3 rounded-md p-4", className)}
     >
       <SkeletonText width="w-24" className="h-3" />
       <SkeletonText width="w-16" className="h-6" />

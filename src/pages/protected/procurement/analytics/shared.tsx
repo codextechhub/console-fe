@@ -4,6 +4,7 @@
 import { Info } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { formatMoney } from "@/utils/money";
 
 export type PillTone = "green" | "amber" | "red" | "gray";
@@ -119,7 +120,7 @@ export function Card({ title, subtitle, children, className }: {
   className?: string;
 }) {
   return (
-    <section className={cn("min-w-0 rounded-md bg-white p-5", className)}>
+    <section className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md p-5", className)}>
       <div className="mb-4 min-w-0">
         <h2 className="font-mont text-sm font-semibold text-gray-01">{title}</h2>
         {subtitle && <p className="mt-0.5 font-mont text-xs text-gray-05">{subtitle}</p>}
@@ -137,7 +138,7 @@ export function Card({ title, subtitle, children, className }: {
 export function ScopeNote({ children }: { children?: React.ReactNode }) {
   if (!children) return null;
   return (
-    <p className="flex min-w-0 items-start gap-2 rounded-md bg-white px-4 py-3 font-mont text-xs leading-5 text-gray-05">
+    <p className={cn(INFORMATION_CARD_SURFACE, "flex min-w-0 items-start gap-2 rounded-md px-4 py-3 font-mont text-xs leading-5 text-gray-05")}>
       <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
       <span className="min-w-0">{children}</span>
     </p>

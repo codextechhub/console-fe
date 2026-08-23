@@ -1,5 +1,6 @@
 import { HelpCircle, TrendingDown, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 interface KpiCardProps {
   label: string;
@@ -17,7 +18,8 @@ export default function KpiCard({ label, value, foot, tone = "default", help, de
   return (
     <div
       className={cn(
-        "bg-white rounded-md px-5.5 py-5 min-h-26 space-y-2.5 border border-transparent",
+        INFORMATION_CARD_SURFACE,
+        "rounded-md px-5.5 py-5 min-h-26 space-y-2.5",
         tone === "alert" && "bg-red-50 border-red-200",
         tone === "warn" && "bg-amber-50 border-amber-200",
       )}

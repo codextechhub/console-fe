@@ -22,6 +22,7 @@ import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { formatMoney } from "@/utils/money";
 import { useGetFinanceDashboardQuery } from "@/redux/services/finance/reports-api";
 import { useGetPeriodsQuery } from "@/redux/services/finance/setup-api";
@@ -44,7 +45,7 @@ function Card({ title, subtitle, action, className, children }: {
   title?: string; subtitle?: string; action?: React.ReactNode; className?: string; children: React.ReactNode;
 }) {
   return (
-    <div className={cn("rounded-md bg-white p-5", className)}>
+    <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5", className)}>
       {(title || action) && (
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
@@ -83,7 +84,7 @@ function StatCard({ label, kpi, currency, icon: Icon, tone }: {
 }) {
   const amount = formatMoney(kpi.value.kobo, currency);
   return (
-    <div className="flex min-w-0 items-start justify-between gap-3 rounded-md bg-white p-4">
+    <div className={cn(INFORMATION_CARD_SURFACE, "flex min-w-0 items-start justify-between gap-3 rounded-md p-4")}>
       <div className="min-w-0">
         <p className="font-mont text-xs text-gray-05">{label}</p>
         <p className={cn("mt-2 font-mont font-semibold text-black-01 tabular-nums", kpiValueClass(amount))}>{amount}</p>

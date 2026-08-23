@@ -12,6 +12,7 @@ import {
 } from "@/components/finance-ui";
 import { useCan } from "@/components/finance-ui/can";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import { useGetProcurementDashboardQuery } from "@/redux/services/procurement/procurement-ext-api";
 import { routesPath } from "@/routes/routes-path";
@@ -54,7 +55,7 @@ function Card({ title, subtitle, action, className, children }: {
   children: React.ReactNode;
 }) {
   return (
-    <section className={cn("min-w-0 rounded-md bg-white p-5", className)}>
+    <section className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md p-5", className)}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="font-mont text-sm font-semibold text-gray-01">{title}</h2>
