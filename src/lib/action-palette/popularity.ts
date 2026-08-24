@@ -96,7 +96,7 @@ export function recordPick(userId: string | undefined, actionId: string, query: 
     const adaptive = read<AdaptiveStore>(`${keyBase(userId)}:adaptive`, {});
     const bucket = (adaptive[q] ??= {});
     bucket[actionId] = (bucket[actionId] ?? 0) + 1;
-    write(`${keyBase(userId)}:adaptive`, capAdaptive(adaptive));
+    write(`${keyBase(userId)}:adaptive`, capAdaptive(adaptive, q));
   }
   const frecency = read<FrecencyStore>(`${keyBase(userId)}:frecency`, {});
   const entry = (frecency[actionId] ??= { count: 0, last: now });
@@ -105,14 +105,26 @@ export function recordPick(userId: string | undefined, actionId: string, query: 
   write(`${keyBase(userId)}:frecency`, frecency);
 }
 
-// Keep the adaptive store from growing unbounded: cap the number of remembered
-// query buckets, evicting the least-populated ones.
-function capAdaptive(store: AdaptiveStore, maxQueries = 200): AdaptiveStore {
+// Keep the adaptive store from growing unbounded, evicting the least-populated
+// query buckets. See the note inside about which one is never evicted.
+function capAdaptive(
+  store: AdaptiveStore,
+  justUsed?: string,
+  maxQueries = 200,
+): AdaptiveStore {
   const keys = Object.keys(store);
   if (keys.length <= maxQueries) return store;
   const weight = (q: string) => Object.values(store[q]).reduce((a, b) => a + b, 0);
-  const kept = keys.sort((a, b) => weight(b) - weight(a)).slice(0, maxQueries);
+  // `justUsed` is always kept. Without it the store silently stopped learning
+  // once full: a new query enters with weight 1, every other bucket is at least
+  // 1, the sort is stable so ties hold insertion order, and a newly added key
+  // sorts last - so it was evicted by the very write that created it, for ever.
+  // The user kept their old learned queries and never gained another.
+  const others = keys.filter((k) => k !== justUsed);
+  const room = justUsed && store[justUsed] ? maxQueries - 1 : maxQueries;
+  const kept = others.sort((a, b) => weight(b) - weight(a)).slice(0, room);
   const next: AdaptiveStore = {};
+  if (justUsed && store[justUsed]) next[justUsed] = store[justUsed];
   for (const k of kept) next[k] = store[k];
   return next;
 }
