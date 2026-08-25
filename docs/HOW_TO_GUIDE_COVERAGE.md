@@ -512,7 +512,7 @@ editor, assignment, approval, or automated repair action.
   read-only. Existing Finance settings and audit walkthroughs retain their current
   consequential-action boundaries.
 
-## O2 analytics and editorial loop (2026-08-23)
+## O2 analytics and editorial loop (2026-08-25)
 
 - Guide article opens, reader-marked completions, helpful or not-helpful votes,
   outdated-guide ticket handoffs, and finished or paused walkthrough exits now use
@@ -524,8 +524,9 @@ editor, assignment, approval, or automated repair action.
   free-text report.
 - Disposable analytics are retained for 180 days and remain separate from support
   and security audit evidence. The ingest path is available to active users so the
-  sample is not permission-biased; aggregate summaries require
-  `platform.health.view` and expose no tenant dimension.
+  sample is not permission-biased, but is scoped to 120 events per authenticated
+  user per minute. Excess requests return HTTP 429 and create no event. Aggregate
+  summaries require `platform.health.view` and expose no tenant dimension.
 - The Coverage and freshness screen now includes 30-day reader metrics, sanitized
   no-result phrases, and an editorial queue that combines review deadlines, owner,
   product risk, outdated reports, negative votes, low completion, and walkthrough
