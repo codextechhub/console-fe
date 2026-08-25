@@ -253,6 +253,7 @@ export default function HowToGuides() {
                 <button
                   key={role.id}
                   type="button"
+                  aria-pressed={selected}
                   onClick={() => selectParam("audience", selected ? null : role.id)}
                   className={`min-w-0 rounded-2xl border p-4 text-left transition ${selected ? "border-primary bg-primary/[0.06] ring-3 ring-primary/10" : "border-gray-200 bg-white hover:border-primary/30 hover:shadow-sm"}`}
                 >

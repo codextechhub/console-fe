@@ -25,6 +25,10 @@ export type CoachPosition = {
 const DEFAULT_GAP = 14;
 const DEFAULT_MARGIN = 16;
 
+export function walkthroughScrollBehavior(reducedMotion: boolean): ScrollBehavior {
+  return reducedMotion ? "auto" : "smooth";
+}
+
 export function visibleWalkthroughTarget({
   target,
   viewport,

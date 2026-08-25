@@ -653,7 +653,7 @@ export const WALKTHROUGH_REGISTRY = [
       "Confirm the active entity, fiscal year, period, approved close plan, and reconciliation evidence.",
       "Identify the owner of every draft journal, blocker, and warning before changing a period status.",
     ],
-    version: 1,
+    version: 2,
     steps: [
       {
         id: "welcome",
@@ -671,7 +671,7 @@ export const WALKTHROUGH_REGISTRY = [
       },
       {
         id: "period",
-        target: "finance-periods.periods",
+        target: "finance-periods.period",
         title: "Select the exact posting period",
         body: "Open is ordinary posting, Soft-closed allows controlled close work, Closed is reopenable by permission, and Locked is permanent. Select the period you intend to inspect; opening it is read-only.",
         placement: "top",

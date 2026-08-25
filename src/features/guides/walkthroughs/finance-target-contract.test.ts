@@ -4,6 +4,7 @@ import concessionSource from "../../../pages/protected/finance/receivables/conce
 import creditNoteSource from "../../../pages/protected/finance/receivables/credit-notes-tab.tsx?raw";
 import paymentPlanSource from "../../../pages/protected/finance/receivables/payment-plans-tab.tsx?raw";
 import refundSource from "../../../pages/protected/finance/receivables/refunds-tab.tsx?raw";
+import periodsSource from "../../../pages/protected/finance/reports/periods-tab.tsx?raw";
 
 function componentSource(source: string, functionName: string): string {
   const start = source.indexOf(`function ${functionName}`);
@@ -37,5 +38,12 @@ describe("finance recovery walkthrough targets", () => {
   ])("keeps $owner targets inside their intended drawer", ({ source, owner, targets }) => {
     const ownerSource = componentSource(source, owner);
     for (const target of targets) expect(ownerSource).toContain(`data-guide="${target}"`);
+  });
+
+  it("highlights a selectable period card before waiting for its drawer", () => {
+    const cardSource = componentSource(periodsSource, "PeriodCard");
+
+    expect(cardSource).toContain('data-guide="finance-periods.period"');
+    expect(cardSource).toContain("onClick={onClick}");
   });
 });

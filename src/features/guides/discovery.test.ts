@@ -206,8 +206,8 @@ describe("guide discovery", () => {
       "workflow.delegate-and-track",
     ]);
     expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.id)).toEqual([
+      "getting-started.activate-and-sign-in",
       "tasks.create-and-complete",
-      "getting-started.console-basics",
     ]);
   });
 });

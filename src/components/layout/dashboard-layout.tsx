@@ -590,6 +590,7 @@ function DashboardHeader({
       {/* Sidebar collapse toggle - on the left border, vertically centered in the header */}
       <button
         type="button"
+        aria-label={state === "collapsed" ? "Expand sidebar" : "Collapse sidebar"}
         onClick={toggleSidebar}
         className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 size-6 rounded-full bg-white border border-gray-200 shadow-md items-center justify-center text-gray-01 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200"
       >

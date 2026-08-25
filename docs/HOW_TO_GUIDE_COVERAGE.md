@@ -535,3 +535,44 @@ editor, assignment, approval, or automated repair action.
   source review rather than prove that a workflow succeeded or failed. No new
   walkthrough was added because analytics review is read-only and has no ordered,
   consequential product action.
+
+## O3 final audit (2026-08-25)
+
+- The final registry contains 64 active guides. All 215 shipped screen routes and
+  all 56 registered high-value actions are mapped, all review dates are current,
+  and the Coverage and freshness screen reports zero integrity gaps.
+- All 66 guide-system routes, comprising the landing page, coverage dashboard, and
+  64 articles, rendered against the real backend on desktop without a console or
+  page error. The same 66 routes passed 132 phone and tablet checks at 390px and
+  820px with no horizontal overflow or error boundary.
+- All 45 interactive walkthroughs passed on phone and desktop, for 90 clean
+  viewport runs. The desktop pass advanced every safe step, confirmed every live
+  target, checked that the coach did not cover its highlight, and confirmed that
+  Finish returned to the guide that launched the walkthrough.
+- The fiscal-period walkthrough previously highlighted the whole period list, so
+  selecting the highlight could not open a checklist. Version 2 now highlights a
+  real period card and waits for its close drawer before advancing. A source
+  contract keeps the marker on the selectable card.
+- A walkthrough ending over an open dialog could lose the guide destination to
+  the dialog's delayed close route. Completion now lets the layer finish handling
+  the click before navigating, so the support-ticket walkthrough and equivalent
+  modal or drawer flows return to their originating articles.
+- Accessibility inspection covered landmarks, heading structure, duplicate IDs,
+  hash targets, image alternatives, field labels, control names, filter state,
+  keyboard and coach focus contracts, and reduced motion. The role filter now
+  exposes its selected state, the desktop sidebar control announces Collapse
+  sidebar or Expand sidebar, and walkthrough scrolling no longer animates when
+  reduced motion is requested.
+- Guide discovery and access tests cover no-permission and representative role
+  permission sets so restricted guide titles do not leak through search, role
+  entry points, contextual help, or relations. Live screen checks used the seeded
+  platform administrator because no lower-privilege browser credentials are part
+  of the verification fixture.
+- The focused backend analytics suite passed all five privacy and security tests,
+  including closed event shapes, redaction, scoped throttling, aggregate access,
+  and 180-day retention. Analytics remains separate from support and audit
+  evidence and exposes no tenant or actor dimension.
+- Final automated evidence is 116 guide tests, clean scoped lint, a successful
+  production build, 66 clean accessibility routes, 132 clean responsive route
+  checks, and 90 clean walkthrough viewport runs. The build retains only the
+  existing dynamic-import and large-chunk advisory warnings.

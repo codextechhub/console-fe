@@ -381,6 +381,7 @@ function PeriodCard({ period, selected, onClick }: { period: FiscalPeriod; selec
   return (
     <button
       type="button"
+      data-guide="finance-periods.period"
       onClick={onClick}
       aria-label={`${periodActionLabel(period.status)} for ${period.name}`}
       className={cn(

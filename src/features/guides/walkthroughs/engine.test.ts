@@ -69,6 +69,21 @@ describe("walkthrough engine", () => {
     expect(isFollowingStepReady(refund!, "new-action", (target) => present.has(target))).toBe(true);
   });
 
+  it("uses a selectable period card to open the close checklist", () => {
+    const periods = WALKTHROUGH_REGISTRY.find(
+      (item) => item.id === "walkthrough.finance.close-lock-or-reopen-period",
+    );
+    const periodStep = periods?.steps.find((item) => item.id === "period");
+
+    expect(periodStep).toMatchObject({
+      target: "finance-periods.period",
+      advance: "target-click",
+    });
+    expect(isFollowingStepReady(periods!, "period", (target) => (
+      target === "finance-periods.checklist"
+    ))).toBe(true);
+  });
+
   it("holds every target-click walkthrough step until its opened UI is ready", () => {
     const targetClickSteps = WALKTHROUGH_REGISTRY.flatMap((walkthrough) => (
       walkthrough.steps
@@ -95,6 +110,12 @@ describe("walkthrough engine", () => {
     );
     expect(walkthroughCompletionRoute({ ...refund!, guideId: "missing.guide" }, GUIDE_REGISTRY)).toBe(
       "/support/guides",
+    );
+    const ticket = WALKTHROUGH_REGISTRY.find(
+      (item) => item.id === "walkthrough.troubleshooting.prepare-support-ticket",
+    );
+    expect(walkthroughCompletionRoute(ticket!, GUIDE_REGISTRY)).toBe(
+      "/support/guides/prepare-a-useful-support-ticket",
     );
   });
 

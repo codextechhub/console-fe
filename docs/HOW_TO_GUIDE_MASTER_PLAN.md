@@ -532,6 +532,8 @@ all walkthroughs to the end.
 24. **Slice O3: Final accessibility, responsive, security, and content audit**
    - Verify every category, role entry point, support handoff, and walkthrough on
      desktop and phone with real permission states.
+   - Completed 2026-08-25. The final evidence, repaired findings, and remaining
+     operating boundaries are recorded in `docs/HOW_TO_GUIDE_COVERAGE.md`.
 
 ## 9. Definition of done for every slice
 

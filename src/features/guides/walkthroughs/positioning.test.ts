@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { positionWalkthroughCoach, visibleWalkthroughTarget } from "./positioning";
+import { positionWalkthroughCoach, visibleWalkthroughTarget, walkthroughScrollBehavior } from "./positioning";
 
 const target = { left: 400, top: 300, right: 600, bottom: 360, width: 200, height: 60 };
 const card = { width: 340, height: 280 };
 const viewport = { width: 1200, height: 800 };
 
 describe("walkthrough coach positioning", () => {
+  it("does not smooth-scroll when reduced motion is requested", () => {
+    expect(walkthroughScrollBehavior(true)).toBe("auto");
+    expect(walkthroughScrollBehavior(false)).toBe("smooth");
+  });
+
   it("uses the measured card height to keep a top card clear of its target", () => {
     const position = positionWalkthroughCoach({ target, card, viewport, preferred: "top" });
 

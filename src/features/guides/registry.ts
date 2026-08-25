@@ -5,25 +5,25 @@ import type { GuideRecord } from "./types";
 
 const A = routesPath.AUTH;
 const R = routesPath.PROTECTED;
-const REVIEWED_AT = "2026-08-13";
-const C4_REVIEWED_AT = "2026-08-14";
-const C5_REVIEWED_AT = "2026-08-14";
-const DOCS_REVIEWED_AT = "2026-08-15";
-const C6A_REVIEWED_AT = "2026-08-21";
-const C6B_REVIEWED_AT = "2026-08-21";
-const C6C_REVIEWED_AT = "2026-08-21";
-const C7A_REVIEWED_AT = "2026-08-21";
-const C7B_REVIEWED_AT = "2026-08-21";
-const C8_REVIEWED_AT = "2026-08-21";
-const C9_REVIEWED_AT = "2026-08-21";
-const C10_REVIEWED_AT = "2026-08-21";
-const C11_REVIEWED_AT = "2026-08-21";
-const C12_REVIEWED_AT = "2026-08-21";
-const FINANCE_RECOVERY_REVIEWED_AT = "2026-08-23";
-const ACTION_GAP_REVIEWED_AT = "2026-08-23";
-const PROCUREMENT_ROUTE_GAP_REVIEWED_AT = "2026-08-23";
-const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-23";
-const O2_REVIEWED_AT = "2026-08-23";
+const REVIEWED_AT = "2026-08-25";
+const C4_REVIEWED_AT = "2026-08-25";
+const C5_REVIEWED_AT = "2026-08-25";
+const DOCS_REVIEWED_AT = "2026-08-25";
+const C6A_REVIEWED_AT = "2026-08-25";
+const C6B_REVIEWED_AT = "2026-08-25";
+const C6C_REVIEWED_AT = "2026-08-25";
+const C7A_REVIEWED_AT = "2026-08-25";
+const C7B_REVIEWED_AT = "2026-08-25";
+const C8_REVIEWED_AT = "2026-08-25";
+const C9_REVIEWED_AT = "2026-08-25";
+const C10_REVIEWED_AT = "2026-08-25";
+const C11_REVIEWED_AT = "2026-08-25";
+const C12_REVIEWED_AT = "2026-08-25";
+const FINANCE_RECOVERY_REVIEWED_AT = "2026-08-25";
+const ACTION_GAP_REVIEWED_AT = "2026-08-25";
+const PROCUREMENT_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
+const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
+const O2_REVIEWED_AT = "2026-08-25";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -432,7 +432,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.workflow.review-and-act",
     estimatedMinutes: 7,
     owner: OWNER,
-    reviewedAt: "2026-08-23",
+    reviewedAt: "2026-08-25",
     risk: "high",
     featured: true,
     status: "published",
@@ -973,7 +973,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.submit-and-settle-expense-claim",
     estimatedMinutes: 9,
     owner: OWNER,
-    reviewedAt: "2026-08-23",
+    reviewedAt: "2026-08-25",
     risk: "high",
     status: "published",
     article: () => import("./content/finance-and-payments/submit-and-settle-expense-claim"),
@@ -1810,7 +1810,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.platform.administer-notifications",
     estimatedMinutes: 11,
     owner: OWNER,
-    reviewedAt: "2026-08-23",
+    reviewedAt: "2026-08-25",
     risk: "high",
     status: "published",
     article: () => import("./content/platform-health-and-settings/administer-notifications"),
@@ -2183,7 +2183,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.troubleshooting.prepare-support-ticket",
     estimatedMinutes: 6,
     owner: OWNER,
-    reviewedAt: "2026-08-23",
+    reviewedAt: "2026-08-25",
     risk: "medium",
     featured: true,
     status: "published",

@@ -27,7 +27,7 @@ import {
 import { findWalkthrough } from "./registry";
 import { WalkthroughRuntimeContext } from "./context";
 import { canFocusWalkthroughCoach } from "./focus";
-import { positionWalkthroughCoach, visibleWalkthroughTarget } from "./positioning";
+import { positionWalkthroughCoach, visibleWalkthroughTarget, walkthroughScrollBehavior } from "./positioning";
 import type { RectLike, SizeLike } from "./positioning";
 import type { Walkthrough, WalkthroughContentStep, WalkthroughProgress } from "./types";
 
@@ -195,7 +195,10 @@ export function WalkthroughProvider({ children }: { children: React.ReactNode })
       const completionRoute = walkthroughCompletionRoute(walkthrough, GUIDE_REGISTRY);
       setWalkthrough(null);
       setStep(null);
-      navigate(completionRoute);
+      // Let an open dialog or sheet process the Finish click before leaving its
+      // route. Navigating in the same event can let the layer's delayed close
+      // handler replace the guide destination with its own fallback route.
+      window.setTimeout(() => navigate(completionRoute), 0);
       return;
     }
     setStep(next);
@@ -337,7 +340,11 @@ function WalkthroughCoach({
       }
       if (target && !scrolled) {
         scrolled = true;
-        target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+        target.scrollIntoView({
+          behavior: walkthroughScrollBehavior(window.matchMedia("(prefers-reduced-motion: reduce)").matches),
+          block: "center",
+          inline: "nearest",
+        });
         scrollTimer = window.setTimeout(scheduleMeasure, 450);
       }
       const nextRect = target?.getBoundingClientRect();
@@ -462,7 +469,7 @@ function WalkthroughCoach({
         <div
           aria-hidden="true"
           data-walkthrough-spotlight
-          className={cn("absolute rounded-xl border-2 border-white ring-4 ring-primary/70 transition-all")}
+          className={cn("absolute rounded-xl border-2 border-white ring-4 ring-primary/70 transition-all motion-reduce:transition-none")}
           style={{
             left: focusRect.left - 6,
             top: focusRect.top - 6,
