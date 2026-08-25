@@ -72,7 +72,11 @@ export interface NavGate {
 export interface MainNavChild {
   title: string;
   url: string;
-  /** Highlight rule. Defaults to a prefix match on `url`. */
+  /**
+   * Highlight rule. Defaults to "this url or a route under it, unless a
+   * longer-url sibling claims the same route" - see `childIsActive`. Declare
+   * one only for a rule that rule cannot express, such as an alias path.
+   */
   match?: (location: string) => boolean;
   permission?: NavPermission;
   permissionMode?: "any" | "all";
@@ -427,6 +431,40 @@ function passesGate(gate: NavGate, permission: NavPermission | undefined, mode: 
   return mode === "all" ? gate.hasAllPermissions(...codes) : gate.hasAnyPermission(...codes);
 }
 
+/**
+ * Is `location` this url or a route underneath it?
+ *
+ * Segment-aware on purpose: a bare `startsWith` also matches a *sibling* whose
+ * path merely begins with the same characters, so `/users/cx` would claim
+ * `/users/cx-archive`.
+ */
+function isUnder(location: string, url: string): boolean {
+  if (location === url) return true;
+  return location.startsWith(url.endsWith("/") ? url : url + "/");
+}
+
+/**
+ * The default child highlight rule: the most specific sibling wins.
+ *
+ * A child whose url is a prefix of another visible sibling's url would
+ * otherwise stay lit on that sibling's route - School Onboarding
+ * (`/school-management`) stayed grey next to Go-Live Requests
+ * (`/school-management/go-live`), so the sidebar showed two current pages and
+ * answered "where am I?" twice. Groups written later dodged this by
+ * hand-writing a `match` that negates each sibling one by one (Roles,
+ * Permissions, Notifications, Support all do), which fixes the pair in front of
+ * the author and leaves the next nested route to rediscover the bug. Deciding
+ * it here means a child only has to declare `match` when its highlight rule is
+ * genuinely unusual (an alias path, a builder living elsewhere), not to defend
+ * itself against its own siblings.
+ */
+function childIsActive(location: string, url: string, siblingUrls: string[]): boolean {
+  if (!isUnder(location, url)) return false;
+  return !siblingUrls.some(
+    (other) => other.length > url.length && isUnder(location, other),
+  );
+}
+
 /** Resolve the declaration against a viewer's permissions and current route. */
 export function buildMainNav(gate: NavGate, location: string): BuiltNavItem[] {
   const built: BuiltNavItem[] = [];
@@ -436,15 +474,19 @@ export function buildMainNav(gate: NavGate, location: string): BuiltNavItem[] {
     if (entry.modulePrefixes && !gate.hasModuleAccess(...entry.modulePrefixes)) continue;
 
     const wantsGroup = !!entry.items && passesGate(gate, entry.groupWhen);
-    const children = wantsGroup
-      ? entry.items!
-          .filter((child) => passesGate(gate, child.permission, child.permissionMode))
-          .map((child) => ({
-            title: child.title,
-            url: child.url,
-            isActive: child.match ? child.match(location) : location.startsWith(child.url),
-          }))
+    const visibleChildren = wantsGroup
+      ? entry.items!.filter((child) => passesGate(gate, child.permission, child.permissionMode))
       : [];
+    // Only children this viewer can see compete: a hidden sibling must not be
+    // able to unlight the row the viewer is actually standing on.
+    const siblingUrls = visibleChildren.map((child) => child.url);
+    const children = visibleChildren.map((child) => ({
+      title: child.title,
+      url: child.url,
+      isActive: child.match
+        ? child.match(location)
+        : childIsActive(location, child.url, siblingUrls),
+    }));
 
     // An entry with no visible children is a leaf, matching how NavMain renders.
     const isGroup = children.length > 0;
