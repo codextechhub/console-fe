@@ -2,8 +2,8 @@
 // background-job execution history (core.BackgroundJob), paginated.
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { NativeSelect } from "@/components/ui/native-select";
+import { RunStatusPill, runStatusWord } from "@/components/custom/run-status-pill";
 import {
   useGetHealthQueuesQuery,
   useGetHealthTasksQuery,
@@ -19,6 +19,18 @@ import {
   QueryState,
   StatusDot,
 } from "./primitives";
+
+// The API's own tokens, from core.BackgroundJob.Status. This screen used to
+// offer "pending" and "completed", which match no row the backend can produce -
+// the values are QUEUED and SUCCEEDED - so two of the four filters silently
+// returned an empty table. Labels come from runStatusWord, the same helper
+// Export -> View Queues uses, so the two screens cannot drift into two words
+// for one outcome. CANCELLED is deliberately absent: nothing writes it, and a
+// filter that can only ever return nothing is the bug this comment describes.
+export const STATUS_OPTIONS = (["QUEUED", "RUNNING", "SUCCEEDED", "FAILED"] as const).map((value) => ({
+  value,
+  label: runStatusWord(value),
+}));
 
 export default function JobsPage() {
   const [status, setStatus] = useState("all");
@@ -113,10 +125,11 @@ export default function JobsPage() {
             }}
           >
             <option value="all">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="running">Running</option>
-            <option value="completed">Completed</option>
-            <option value="failed">Failed</option>
+            {STATUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
           </NativeSelect>
         </div>
       </div>
@@ -130,12 +143,10 @@ export default function JobsPage() {
           </div>,
           t.queue,
           t.tenant || "Global",
-          <Badge
-            variant={t.status === "COMPLETED" ? "active" : t.status === "FAILED" ? "rejected" : "pending"}
-            className="font-mont text-xs"
-          >
-            {t.status}
-          </Badge>,
+          // RunStatusPill rather than a local variant map: the old one tested
+          // for "COMPLETED", which this API never sends, so every successful
+          // job was badged as pending.
+          <RunStatusPill status={t.status} />,
           t.duration_sec != null ? `${t.duration_sec}s` : "-",
           new Date(t.created_at).toLocaleString(),
         ])}

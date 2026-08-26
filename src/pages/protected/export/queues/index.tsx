@@ -421,8 +421,21 @@ function JobDrawer({ job, onClose }: { job: BackgroundJob | null; onClose: () =>
             <div className="rounded-md border-l-[3px] border-destructive bg-destructive/10 px-4 py-3">
               <p className="font-mont text-sm font-semibold text-error-text">This task failed</p>
               {/* The message the worker recorded, as prose. `traceback` is not
-                  serialised by the API, and nothing here re-creates one. */}
+                  serialised by the API, and nothing here re-creates one.
+
+                  The backend redacts this text before storing it, so personal
+                  data a failure quoted - a duplicate guardian's address inside
+                  a Postgres key error, say - arrives as `[redacted]`. Saying so
+                  matters: without the note the placeholder reads as a truncated
+                  or corrupted message, and somebody raises a ticket about the
+                  error message rather than about the error. */}
               <p className="mt-1 font-mont text-xs leading-relaxed text-gray-01">{job.error}</p>
+              {job.error.includes("[redacted]") && (
+                <p className="mt-2 font-mont text-[11px] leading-relaxed text-gray-05">
+                  Personal data in this message has been removed. The full text is kept for
+                  engineering and audit, and is not shown here.
+                </p>
+              )}
             </div>
           )}
 
