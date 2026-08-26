@@ -40,7 +40,18 @@ export interface NotificationHistory {
   failure_reason: string;
   recipient_name: string;
   recipient_email: string;
-  school: string | null;
+  /**
+   * The tenant that OWNS this delivery: the recipient's own tenant, which is
+   * also what the log is scoped to. Not the tenant the event was about - a
+   * school's support ticket notified to CodeX staff is owned by CodeX and
+   * appears in CodeX's history, never in the school's. The backend records
+   * where it came from separately and deliberately returns it to nobody, so
+   * this row cannot say which school a ticket notification concerned.
+   *
+   * A numeric primary key, not a slug or a name. There is nothing to render it
+   * as, which is why no column shows it.
+   */
+  tenant: number;
   dispatched_at: string | null;
   created_at: string;
   body?: string;

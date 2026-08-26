@@ -8,7 +8,8 @@ export default function AdministerNotificationsArticle() {
         <GuideCallout tone="warning" title="Changes affect future delivery">Switching a channel, pausing a template, or saving new wording can change every later message for that event. It does not repair or resend an earlier delivery. Preserve the current template and test the rendered result before publishing.</GuideCallout>
       </GuideSection>
       <GuideSection id="read-delivery-history" title="Read delivery history">
-        <p>Filter by recipient email, delivery status, tenant scope, and the bounded date window. Connect the row to its event, channel, creation time, provider evidence, and business action. A Sent state records dispatch, not proof that a person read or acted on the message.</p>
+        <p>Filter by recipient email, delivery status, ownership scope, and the bounded date window. Connect the row to its event, channel, creation time, provider evidence, and business action. A Sent state records dispatch, not proof that a person read or acted on the message.</p>
+        <GuideCallout tone="info" title="This log holds your own tenant's deliveries">A message belongs to the tenant of the person it was addressed to, not the tenant it was about. A support ticket raised by a school and notified to CodeX staff is a CodeX delivery and appears here; the school cannot see it, and its own deliveries do not appear here. Neither scope option crosses that line, so a missing row means the message was addressed elsewhere.</GuideCallout>
       </GuideSection>
       <GuideSection id="apply-channel-settings" title="Apply channel settings">
         <p>The settings matrix shows event and channel combinations with their inheritance source. Transactional events always dispatch and the in-app feed is always on, so those switches are locked. Change an editable email setting only after confirming the event policy and affected tenants.</p>

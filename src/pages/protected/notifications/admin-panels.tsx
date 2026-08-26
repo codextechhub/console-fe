@@ -115,7 +115,12 @@ export function HistoryPanel() {
           </NativeSelect>
         </div>
         {/* Platform is the only scope the backend narrows on, so this stays a
-            two-state choice rather than implying a list of scopes. */}
+            two-state choice rather than implying a list of scopes. Neither
+            option crosses a tenant: the log is scoped to the rows the caller's
+            OWN tenant owns, and "platform" narrows inside that by tenant kind.
+            The labels must not promise otherwise - a delivery addressed to
+            CodeX staff about a school's ticket is CodeX's row, and the school's
+            own rows are not in this table at all. */}
         <div className="w-full sm:w-60">
           <NativeSelect
             className="h-10"
@@ -126,8 +131,8 @@ export function HistoryPanel() {
               setPage(1);
             }}
           >
-            <option value="">All tenants</option>
-            <option value={PLATFORM_SCOPE}>Platform only</option>
+            <option value="">All deliveries</option>
+            <option value={PLATFORM_SCOPE}>Platform-owned only</option>
           </NativeSelect>
         </div>
       </div>

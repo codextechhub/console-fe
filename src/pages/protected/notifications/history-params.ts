@@ -9,11 +9,11 @@
 //
 // `scope` does satisfy the backend's "at least one filter" rule, so choosing a
 // scope would technically license dropping the window. We keep the window
-// anyway: scope says whose rows to show, not how far back to look, and
-// silently widening the table from a week to the whole of history because
-// somebody picked "Platform" is a bigger surprise than a date range that stays
-// put. The window still lifts on an explicit row filter (recipient email or
-// status), exactly as it did before scope existed.
+// anyway: scope says which of the caller's own rows to show, not how far back
+// to look, and silently widening the table from a week to the whole of history
+// because somebody picked "Platform" is a bigger surprise than a date range
+// that stays put. The window still lifts on an explicit row filter (recipient
+// email or status), exactly as it did before scope existed.
 
 /**
  * The only scope value the backend acts on (`_PLATFORM_SCOPE` in
@@ -23,7 +23,13 @@
  */
 export const PLATFORM_SCOPE = "platform";
 
-/** "" is every tenant's rows. There is no third scope to offer. */
+/**
+ * "" is every row this log holds, which is every row the caller's OWN tenant
+ * owns - never another tenant's. A notification belongs to the tenant of the
+ * recipient reading it, so a school's support ticket notified to CodeX staff
+ * is CodeX's row and the school never sees it. There is no third scope to
+ * offer, and no scope value reaches across the boundary.
+ */
 export type HistoryScope = "" | typeof PLATFORM_SCOPE;
 
 /** How far back the table looks when the user has set no explicit filter. */
