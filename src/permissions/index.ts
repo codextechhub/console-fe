@@ -26,6 +26,7 @@
 //                       41=dispose  42=reopen  43=lock  44=approve_high_value
 //                       45=share  46=download  47=override_variance  48=replay
 //                       49=attach  50=email  51=email_statement  52=reject
+//                       53=view_all (every tenant, not only the caller's own)
 //
 // ── Adding a permission ───────────────────────────────────────────────────────
 //   1. Pick the next free code in the right MM RR range.
@@ -134,6 +135,17 @@ const REGISTRY: Record<string, string> = {
   "101601": "onboarding.go_live.view",
   "101605": "onboarding.go_live.approve",
   "101652": "onboarding.go_live.reject",
+
+  // ── platform / background task monitor  (MM=10, RR=17) ─────────────────────
+  // Three keys, and the split is the point. `.view` carries the REDACTED queue
+  // and both platform roles hold it. The other two are CRITICAL and seeded to
+  // the Super Admin alone: `.view_all` reads every tenant at once, and
+  // `.view_sensitive` reads the raw failure text, which routinely contains the
+  // value a database constraint rejected - a guardian's email address, say.
+  // Reading it writes an audit event against the school's own tenant.
+  "101701": "platform.tasks.view",
+  "101753": "platform.tasks.view_all",
+  "101739": "platform.tasks.view_sensitive",
 
   // ── communication / global notifications  (MM=40) ────────────────────────
   "400108": "communication.notification_templates.configure",
@@ -574,6 +586,13 @@ export const P = {
   MANAGE_STAFF_PAYROLL: "101108",  // edit bank/account details on staff profiles
   VIEW_HEALTH: "101201",
   MANAGE_HEALTH: "101208",
+
+  // Background task monitor. VIEW_TASK_MONITOR opens the redacted queue;
+  // VIEW_RAW_TASK_DIAGNOSTIC opens one run's unredacted failure text and is
+  // audited on every read.
+  VIEW_TASK_MONITOR: "101701",
+  VIEW_ALL_TENANT_TASKS: "101753",
+  VIEW_RAW_TASK_DIAGNOSTIC: "101739",
 
   // ── Per-user permission exceptions ─────────────────────────────────────────
   // Gating follows the ACTOR's namespace, never the target's: a CX actor uses

@@ -4,6 +4,9 @@
 import { useState } from "react";
 import { NativeSelect } from "@/components/ui/native-select";
 import { RunStatusPill, runStatusWord } from "@/components/custom/run-status-pill";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
+import { TaskRunDrawer } from "./task-drawer";
 import {
   useGetHealthQueuesQuery,
   useGetHealthTasksQuery,
@@ -36,6 +39,12 @@ export default function JobsPage() {
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
   const [selectedQueue, setSelectedQueue] = useState<Queue | null>(null);
+  const [openJobId, setOpenJobId] = useState<string | null>(null);
+  // Rows open a drawer only for a caller who may read the detail. Without the
+  // key the row detail would 403, and a click that can only fail is worse than
+  // a row that does not invite one.
+  const { hasPermission } = usePermissions();
+  const canOpenRuns = hasPermission(P.VIEW_TASK_MONITOR);
   const queues = useGetHealthQueuesQuery(undefined, HEALTH_POLL);
   const tasks = useGetHealthTasksQuery({
     page,
@@ -136,6 +145,11 @@ export default function JobsPage() {
       <HealthTable
         headers={["Task", "Queue", "Tenant", "Status", "Duration", "Created"]}
         loading={tasks.isLoading}
+        onRowClick={
+          canOpenRuns
+            ? (index) => setOpenJobId((tasks.data?.data ?? [])[index]?.id ?? null)
+            : undefined
+        }
         rows={(tasks.data?.data ?? []).map((t) => [
           <div>
             <p className="text-sm font-medium">{t.label || t.task_name}</p>
@@ -157,6 +171,7 @@ export default function JobsPage() {
       />
 
       <QueueDrawer queue={selectedQueue} onClose={() => setSelectedQueue(null)} />
+      <TaskRunDrawer jobId={openJobId} onClose={() => setOpenJobId(null)} />
     </HealthFrame>
   );
 }
