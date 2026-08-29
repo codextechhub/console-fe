@@ -26,6 +26,7 @@ import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -376,7 +377,7 @@ export default function AuditExports() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
 
         {/* Header */}
         <div data-guide="audit-exports.heading" className="flex items-center justify-between">
@@ -490,7 +491,7 @@ export default function AuditExports() {
             />
           </div>
         )}
-      </main>
+      </PageShell>
 
       <ExportDetailDrawer
         jobId={drawerJobId}

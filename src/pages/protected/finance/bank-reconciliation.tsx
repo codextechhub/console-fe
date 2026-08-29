@@ -29,6 +29,7 @@ import {
   useIgnoreStatementLineMutation, useGroupMatchStatementLineMutation, useSplitMatchLineMutation,
 } from "@/redux/services/finance/ops-api";
 import type { BankAccount, BankStatementLine } from "@/redux/services/finance/ops-types";
+import { PageShell } from "@/components/layout/page-shell";
 
 const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 const signedCls = (kobo: number) => (kobo < 0 ? "text-destructive" : "text-green-01");
@@ -54,12 +55,12 @@ export default function BankReconciliationPage() {
   }, [accounts, accountId]);
 
   if (!entity) {
-    return <FinanceShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" /></main></FinanceShell>;
+    return <FinanceShell><PageShell><EmptyState title="Select an entity" /></PageShell></FinanceShell>;
   }
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01" data-guide="finance-bank-reconciliation.workspace">
+      <PageShell className="space-y-5 text-black-01" data-guide="finance-bank-reconciliation.workspace">
         <div className="flex flex-wrap items-end justify-between gap-3" data-guide="finance-bank-reconciliation.scope">
           <div>
             <div className="flex items-center gap-1.5">
@@ -82,7 +83,7 @@ export default function BankReconciliationPage() {
         ) : (
           <Workbench key={account.id} account={account} entity={entity} currency={currency} />
         )}
-      </main>
+      </PageShell>
     </FinanceShell>
   );
 }

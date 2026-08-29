@@ -30,6 +30,7 @@ import type { RequirementsDocument } from "@/redux/services/dashboard/documents-
 import { formatBytes } from "@/utils/format-bytes";
 import { errorStatus } from "@/utils/api-errors";
 import { useDocumentDownload } from "./use-document-download";
+import { PageShell } from "@/components/layout/page-shell";
 
 const NUM = "font-geist-mono tabular-nums";
 
@@ -124,7 +125,7 @@ export default function DocumentsPage() {
   ];
 
   return (
-    <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="font-semibold font-mont text-gray-01">Documents</p>
@@ -237,6 +238,6 @@ export default function DocumentsPage() {
           </div>
         )}
       </DetailDrawer>
-    </main>
+    </PageShell>
   );
 }

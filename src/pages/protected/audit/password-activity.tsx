@@ -26,6 +26,7 @@ import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
 import { FRIENDLY_ACTION } from "./audit-constants";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -177,7 +178,7 @@ export default function PasswordActivity() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div data-guide="audit-password-activity.heading" className="flex items-center justify-between">
@@ -457,7 +458,7 @@ export default function PasswordActivity() {
 
           </div>
         )}
-      </main>
+      </PageShell>
 
       {/* Change email modal */}
       <Dialog open={emailModal} onOpenChange={(open) => { setEmailModal(open); if (!open) setNewEmail(""); }}>

@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
+import { PageShell } from "@/components/layout/page-shell";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Group name is required"),
@@ -57,7 +58,7 @@ export default function EditPermissionGroup() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Permission Group</h1>
           {group.is_system && (
@@ -202,7 +203,7 @@ export default function EditPermissionGroup() {
             );
           }}
         </Formik>
-      </main>
+      </PageShell>
     </>
   );
 }

@@ -9,6 +9,7 @@ import Tabs from "@/components/custom/tab";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { EventsPanel, HistoryPanel, SettingsPanel, TemplatesPanel } from "./admin-panels";
+import { PageShell } from "@/components/layout/page-shell";
 
 type Panel = "history" | "settings" | "templates" | "events";
 
@@ -46,7 +47,7 @@ export default function NotificationsAdmin() {
 
   return (
     <>
-      <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div data-guide="notifications-admin.heading">
           <p className="font-semibold font-mont text-gray-01">Notification Administration</p>
           <p className="text-xs text-gray-01 mt-0.5">
@@ -62,7 +63,7 @@ export default function NotificationsAdmin() {
         {panel === "settings" && <SettingsPanel />}
         {panel === "templates" && <TemplatesPanel />}
         {panel === "events" && <EventsPanel />}
-      </main>
+      </PageShell>
     </>
   );
 }

@@ -12,6 +12,7 @@ import ApAgingScreen from "./analytics/ap-aging";
 import GrirScreen from "./analytics/grir";
 import SpendScreen from "./analytics/spend";
 import PerformanceScreen from "./analytics/performance";
+import { PageShell } from "@/components/layout/page-shell";
 
 const SECTIONS: Record<AnalyticsSection, (props: SectionProps) => React.ReactElement> = {
   "ap-aging": ApAgingScreen,
@@ -40,13 +41,13 @@ export default function AnalyticsPage({ section = DEFAULT_ANALYTICS_SECTION }: {
   return (
     <ProcurementShell>
       {!entity ? (
-        <main className="px-4.5 py-6">
+        <PageShell>
           <EmptyState title="Select an entity" message="Choose a ledger entity to see its procurement reports." />
-        </main>
+        </PageShell>
       ) : !canReports ? (
-        <main className="px-4.5 py-6">
+        <PageShell>
           <ForbiddenState message="You don’t hold procurement.report.view for this console." />
-        </main>
+        </PageShell>
       ) : (
         <Section entity={entity} currency={currency} />
       )}

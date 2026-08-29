@@ -9,6 +9,7 @@ import {
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { PageShell } from "@/components/layout/page-shell";
 
 const schema = Yup.object({
   description: Yup.string().trim(),
@@ -45,7 +46,7 @@ export default function EditModule() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Module</h1>
           <p className="font-mono text-sm text-gray-01 mt-1">{mod.name}</p>
@@ -139,7 +140,7 @@ export default function EditModule() {
             </Form>
           )}
         </Formik>
-      </main>
+      </PageShell>
     </>
   );
 }

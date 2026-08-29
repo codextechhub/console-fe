@@ -13,6 +13,7 @@ import { useGetAuditDashboardSummaryQuery, useGetAuditEventsQuery } from "@/redu
 import { formatRelativeDate } from "@/utils/helpers";
 import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types";
 import EventDetailDrawer from "./components/event-detail-drawer";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   CriticalHeatmap,
   ModuleDonut,
@@ -79,7 +80,7 @@ export default function AuditDashboard() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Security Dashboard</p>
@@ -334,7 +335,7 @@ export default function AuditDashboard() {
           eventId={selectedEventId}
           onClose={() => setSelectedEventId(null)}
         />
-      </main>
+      </PageShell>
     </>
   );
 }

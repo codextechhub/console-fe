@@ -14,6 +14,7 @@ import {
   useGetTransactionsLogQuery,
 } from "@/redux/services/payments/payments-api";
 import type { PayoutBatchSummary, PayoutInstruction, TransactionLogEntry } from "@/redux/services/payments/payments-types";
+import { PageShell } from "@/components/layout/page-shell";
 
 function PayoutsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [page, setPage] = useState(1);
@@ -113,7 +114,7 @@ export default function PayoutsPage() {
 
   return (
     <ProcurementShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">{label}</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Single and bulk payouts, batches and settlement reconciliation.</p>
@@ -129,7 +130,7 @@ export default function PayoutsPage() {
         ) : (
           <PayoutsTab entity={entity} currency={currency} />
         )}
-      </main>
+      </PageShell>
     </ProcurementShell>
   );
 }

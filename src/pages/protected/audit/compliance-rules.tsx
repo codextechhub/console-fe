@@ -25,6 +25,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import type { ComplianceRule } from "@/redux/services/dashboard/audit-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -142,7 +143,7 @@ export default function ComplianceRules() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
 
         {/* Header */}
         <div data-guide="audit-compliance-rules.heading" className="flex items-center justify-between">
@@ -259,7 +260,7 @@ export default function ComplianceRules() {
             />
           </div>
         )}
-      </main>
+      </PageShell>
 
       <PromptModal
         isOpen={!!confirmDelete}

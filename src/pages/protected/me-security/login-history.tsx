@@ -19,6 +19,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { useNavigate } from "react-router";
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -217,7 +218,7 @@ export default function MyLoginHistory() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -434,7 +435,7 @@ export default function MyLoginHistory() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </main>
+      </PageShell>
     </>
   );
 }

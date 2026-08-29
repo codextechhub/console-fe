@@ -11,6 +11,7 @@ import { useDebounce } from "react-haiku";
 import type { EntityTrail } from "@/redux/services/dashboard/audit-types";
 import { EntityCell } from "./components/audit-cells";
 import { auditEntityTrailRowKey } from "./audit-constants";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["Entity", "ID", "Events", "First seen", "Last seen", "Action"];
 
@@ -55,7 +56,7 @@ export default function EntityTrailsList() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div data-guide="audit-entity-trails.heading" className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Entity Trails</p>
@@ -117,7 +118,7 @@ export default function EntityTrailsList() {
             onPageChange={(p) => setPage(p as number)}
           />
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

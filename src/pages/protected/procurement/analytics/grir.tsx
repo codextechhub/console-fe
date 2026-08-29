@@ -19,6 +19,7 @@ import { formatQuantity } from "@/utils/quantity";
 import { isForbidden, shortDate } from "../sourcing/helpers";
 import { Field, EmptyPanel } from "../sourcing/shared";
 import { Card, ChartEmpty, ScopeNote, StatusDotPill, SectionHeader, type PillTone } from "./shared";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   BUCKET_LABEL, TD, TDR, TH, THR, ageColor, excludedScopeNote, kobo, type SectionProps,
 } from "./helpers";
@@ -46,7 +47,7 @@ export default function GrirScreen({ entity, currency }: SectionProps) {
   const d = data?.data;
 
   return (
-    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <SectionHeader title="GR/IR & Control" subtitle="Goods-received vs invoice-received reconciliation." />
 
       {isForbidden(error) ? (
@@ -58,7 +59,7 @@ export default function GrirScreen({ entity, currency }: SectionProps) {
       ) : (
         <GrirBody d={d} currency={currency} entity={entity} />
       )}
-    </main>
+    </PageShell>
   );
 }
 

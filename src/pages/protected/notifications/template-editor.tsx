@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import { hasUnsavedChanges, toForm } from "./template-dirty";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   useCreateNotificationTemplateMutation,
   useGetAvailableTemplateEventsQuery,
@@ -64,10 +65,10 @@ function EditTemplate() {
   if (isLoading) return <PageBusy />;
   if (isError || !template) {
     return (
-      <main className="px-4.5 py-6">
+      <PageShell>
         <p className="font-mont text-sm font-medium">That template could not be loaded.</p>
         <BackLink />
-      </main>
+      </PageShell>
     );
   }
   return <Editor key={template.id} template={template} />;
@@ -102,7 +103,7 @@ function CreateTemplate() {
   if (isLoading) return <PageBusy />;
 
   return (
-    <main data-guide="notifications-admin.template-new" className="min-w-0 px-4.5 py-6 text-black-01">
+    <PageShell className="text-black-01" data-guide="notifications-admin.template-new">
       <BackLink />
       <h1 className="mt-3 font-mont text-lg font-semibold">New notification template</h1>
       <p className="mt-1 max-w-2xl text-xs leading-5 text-gray-01">
@@ -160,7 +161,7 @@ function CreateTemplate() {
           </Button>
         </div>
       )}
-    </main>
+    </PageShell>
   );
 }
 
@@ -241,7 +242,7 @@ function Editor({ template }: { template: NotificationTemplate }) {
   };
 
   return (
-    <main data-guide="notifications-admin.template-editor" className="min-w-0 px-4.5 py-5 text-black-01">
+    <PageShell data-guide="notifications-admin.template-editor" className="py-5 text-black-01">
       {/* Header: identity, state, save. Deliberately tight - the work is below. */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
@@ -476,7 +477,7 @@ function Editor({ template }: { template: NotificationTemplate }) {
           close={() => setFullScreen(null)}
         />
       )}
-    </main>
+    </PageShell>
   );
 }
 

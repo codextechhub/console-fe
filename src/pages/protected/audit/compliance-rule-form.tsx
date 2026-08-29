@@ -15,6 +15,7 @@ import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -157,7 +158,7 @@ export default function ComplianceRuleForm() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01 max-w-2xl space-y-5">
+      <PageShell className="text-black-01 max-w-2xl space-y-5">
 
         {/* Page heading */}
         <div>
@@ -421,7 +422,7 @@ export default function ComplianceRuleForm() {
             {creating || updating ? "Saving…" : isEdit ? "Save changes" : "Create rule"}
           </Button>
         </div>
-      </main>
+      </PageShell>
     </>
   );
 }

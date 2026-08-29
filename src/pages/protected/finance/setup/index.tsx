@@ -12,6 +12,7 @@ import { CurrenciesTab } from "./currencies-tab";
 import { TaxCodesTab } from "./tax-codes-tab";
 import { CostCentersTab } from "./cost-centers-tab";
 import { DimensionsTab } from "./dimensions-tab";
+import { PageShell } from "@/components/layout/page-shell";
 
 const LABELS: Record<string, string> = {
   entities: "Entities", accounts: "Chart of Accounts", periods: "Periods",
@@ -38,7 +39,7 @@ export default function SetupPage({ section = DEFAULT_SETUP_SECTION }: {
 
   return (
     <FinanceShell>
-      <main data-guide="finance-setup.workspace" className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01" data-guide="finance-setup.workspace">
         <div data-guide="finance-setup.heading">
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Setup & Entity"}</h1>
@@ -53,7 +54,7 @@ export default function SetupPage({ section = DEFAULT_SETUP_SECTION }: {
           : section === "cost-centers" ? needsEntity(<CostCentersTab entity={entity!} />)
           : section === "dimensions" ? needsEntity(<DimensionsTab entity={entity!} />)
           : <EntitiesTab />}
-      </main>
+      </PageShell>
     </FinanceShell>
   );
 }

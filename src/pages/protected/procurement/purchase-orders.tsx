@@ -35,6 +35,7 @@ import { useGetWorkflowInstanceQuery } from "@/redux/services/dashboard/workflow
 import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
 import { sourceDocumentIdFromParams } from "@/lib/source-document-route";
+import { PageShell } from "@/components/layout/page-shell";
 
 const STATUS_TABS = [
   { label: "All", value: "" },
@@ -128,11 +129,11 @@ export default function PurchaseOrdersPage() {
     { header: "", align: "right", cell: () => <ChevronRight className="ml-auto size-4 text-gray-04" /> },
   ];
 
-  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view its purchase orders." /></main></ProcurementShell>;
+  if (!entity) return <ProcurementShell><PageShell><EmptyState title="Select an entity" message="Choose an entity to view its purchase orders." /></PageShell></ProcurementShell>;
 
   return (
     <ProcurementShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <header data-guide="procurement-purchase-orders.heading" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Purchase Orders</h1><InfoHint ariaLabel="About purchase orders">Approved orders issued to vendors. Receipt and invoice progress are calculated from the real linked documents.</InfoHint></div>
@@ -168,7 +169,7 @@ export default function PurchaseOrdersPage() {
           </div>
           <DataTable columns={columns} rows={rows} rowKey={(po) => po.id} loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(po) => setSelectedId(po.id)} page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} emptyTitle={status ? `No ${STATUS_TABS.find((tab) => tab.value === status)?.label.toLowerCase()} purchase orders` : "No purchase orders yet"} emptyMessage={debouncedSearch ? "Try a different search term or status." : "Create an order from an approved requisition to begin."} />
         </section>
-      </main>
+      </PageShell>
 
       <PurchaseOrderDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
       {creating && <CreatePurchaseOrderDrawer open entity={entity} currency={currency} onClose={() => setCreating(false)} onCreated={(id) => { setCreating(false); setSelectedId(id); }} />}

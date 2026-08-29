@@ -23,6 +23,7 @@ import { useGetConsoleOverviewQuery } from "@/redux/services/dashboard/overview-
 import { QuickActionsRow } from "./quick-actions";
 import { ActionCenter } from "./action-center";
 import { RecentOpensRow } from "./recent-opens-row";
+import { PageShell } from "@/components/layout/page-shell";
 
 const R = routesPath.PROTECTED;
 
@@ -163,7 +164,7 @@ export default function Overview() {
 
   return (
     <>
-      <main className="min-w-0 space-y-6 bg-[radial-gradient(circle_at_50%_0%,rgba(24,119,76,0.035),transparent_34%),#f8f9fb] px-4.5 py-5 text-black-01 lg:px-7 lg:py-6">
+      <PageShell className="space-y-6 bg-[radial-gradient(circle_at_50%_0%,rgba(24,119,76,0.035),transparent_34%),#f8f9fb] py-5 text-black-01 lg:px-7 lg:py-6">
         <motion.section
           {...enter(0)}
           className="relative overflow-hidden rounded-2xl bg-[#17281f] px-4.5 py-4 text-white shadow-[0_14px_34px_rgba(20,41,31,0.12)] sm:px-5 lg:px-6"
@@ -251,7 +252,7 @@ export default function Overview() {
         <footer className="flex items-center justify-between gap-4 pb-2 text-xs text-gray-400">
           <span className="inline-flex items-center gap-1.5"><Building2 className="size-3.5" /> Platform administration overview</span>
         </footer>
-      </main>
+      </PageShell>
     </>
   );
 }

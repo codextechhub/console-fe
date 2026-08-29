@@ -11,6 +11,7 @@ import type { WorkflowInstance, WorkflowInstanceStatus } from "@/redux/services/
 import { useFilterParam } from "@/hooks/use-filter-param";
 import { useUserDirectory } from "../components/use-user-directory";
 import { DocumentRef, InstanceStatusBadge } from "../components/workflow-ui";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["Document", "Template", "Status", "Current Stage", "Updated"];
 
@@ -58,7 +59,7 @@ export default function MySubmissions() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div>
           <p className="font-semibold font-mont text-gray-01">My Submissions</p>
           <p className="text-xs text-gray-01 mt-0.5">
@@ -105,7 +106,7 @@ export default function MySubmissions() {
             navigate(routesPath.PROTECTED.WORKFLOW.SUBMISSION_DETAIL(row._id))
           }
         />
-      </main>
+      </PageShell>
     </>
   );
 }

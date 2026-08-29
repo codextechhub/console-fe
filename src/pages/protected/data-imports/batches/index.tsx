@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
 import { formatBytes } from "@/utils/format-bytes";
 import { routesPath } from "@/routes/routes-path";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   useGetImportBatchesQuery,
   useDeleteImportBatchMutation,
@@ -240,7 +241,7 @@ export default function ImportBatchesList() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01" data-guide="data-import-batches.workspace">
+      <PageShell className="space-y-5 text-black-01" data-guide="data-import-batches.workspace">
         {/* Header */}
         <div className="flex items-start justify-between gap-3" data-guide="data-import-batches.heading">
           <div>
@@ -446,7 +447,7 @@ export default function ImportBatchesList() {
             </Button>
           </div>
         )}
-      </main>
+      </PageShell>
 
       <PromptModal
         isOpen={deleteTarget !== null}

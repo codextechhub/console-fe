@@ -13,6 +13,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { routesPath } from "@/routes/routes-path";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   useGetImportTemplateQuery,
   useUpdateImportTemplateMutation,
@@ -254,7 +255,7 @@ export default function EditTemplate() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-4xl pb-32">
+      <PageShell className="text-black-01 space-y-5 max-w-4xl pb-32">
         {/* Header */}
         <div>
           <h1 className="text-lg font-semibold font-mont text-black-01">Edit Import Template</h1>
@@ -525,7 +526,7 @@ export default function EditTemplate() {
             ))}
           </div>
         </section>
-      </main>
+      </PageShell>
 
       {/* Sticky footer */}
       <div className="fixed bottom-0 right-0 left-0 md:left-(--sidebar-width) group-has-data-[collapsible=icon]/sidebar-wrapper:md:left-(--sidebar-width-icon) transition-[left] duration-200 ease-linear border-t border-gray-100 bg-white px-4.5 py-3 flex justify-end gap-2 z-10">

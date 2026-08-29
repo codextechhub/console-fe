@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { apiErrorMessage, apiFieldError, errorStatus } from "@/utils/api-errors";
+import { PageShell } from "@/components/layout/page-shell";
 
 interface EditSchoolValues {
   slug: string;
@@ -94,7 +95,7 @@ export default function EditSchool() {
 
   return (
     <>
-      <main className="px-4.5 py-6">
+      <PageShell>
         {isLoading && (
           <div className="grid h-40 place-content-center">
             <div className="loader" />
@@ -222,7 +223,7 @@ export default function EditSchool() {
             </form>
           </div>
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

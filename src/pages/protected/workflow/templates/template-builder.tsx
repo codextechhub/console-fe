@@ -48,6 +48,7 @@ import {
   DynamicRulesEditor,
 } from "./components/template-builder-bits";
 import { TemplateReachChip, TemplateReachNotice } from "./components/template-reach";
+import { PageShell } from "@/components/layout/page-shell";
 
 const SOURCE_OPTIONS = [
   { value: "ROLE", label: "Role holders" },
@@ -493,7 +494,7 @@ export default function TemplateBuilder() {
   // editing anything.
   if (isEdit && (existingFailed || !existing)) {
     return (
-      <main className="px-4.5 py-6">
+      <PageShell>
         <div className="mx-auto max-w-md rounded-lg border border-white-02 bg-white px-6 py-10 text-center">
           <p className="font-mont font-semibold text-gray-01">Template not found</p>
           <p className="mt-1.5 text-xs leading-5 text-gray-01">
@@ -508,13 +509,13 @@ export default function TemplateBuilder() {
             Back to templates
           </Button>
         </div>
-      </main>
+      </PageShell>
     );
   }
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="font-semibold font-mont text-gray-01">
@@ -927,7 +928,7 @@ export default function TemplateBuilder() {
           </Section>
           </div>
         </div>
-      </main>
+      </PageShell>
     </>
   );
 }

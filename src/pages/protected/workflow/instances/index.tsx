@@ -14,6 +14,7 @@ import { useGetWorkflowInstancesQuery } from "@/redux/services/dashboard/workflo
 import type { WorkflowInstance } from "@/redux/services/dashboard/workflow-types";
 import { useUserDirectory } from "../components/use-user-directory";
 import { DocumentRef, InstanceStatusBadge, UserChip } from "../components/workflow-ui";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["Document", "Template", "Status", "Current Stage", "Requested By", "Updated"];
 
@@ -81,7 +82,7 @@ export default function AllInstances() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="font-semibold font-mont text-gray-01">Workflow Instances</p>
@@ -147,7 +148,7 @@ export default function AllInstances() {
           currentPage={data?.pagination?.currentPage}
           onPageChange={(p) => setPage(p as number)}
         />
-      </main>
+      </PageShell>
     </>
   );
 }

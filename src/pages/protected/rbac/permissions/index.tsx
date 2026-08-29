@@ -15,6 +15,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import type { Permission } from "@/redux/services/dashboard/rbac-types";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["Key", "Module", "Action Type", "Sensitivity", "Restricted", "Status", "Created", "Action"];
 
@@ -93,7 +94,7 @@ export default function PermissionsList() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Permission Registry</p>
@@ -179,7 +180,7 @@ export default function PermissionsList() {
             onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
           />
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

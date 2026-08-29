@@ -31,6 +31,7 @@ import { formatBytes } from "@/utils/format-bytes";
 import { daysUntil, formatDay } from "./format";
 import { errorStatus } from "@/utils/api-errors";
 import { useFileDownload } from "./use-file-download";
+import { PageShell } from "@/components/layout/page-shell";
 
 const POLL_MS = 10_000;
 const NUM = "font-geist-mono tabular-nums";
@@ -190,7 +191,7 @@ export default function ExportFilesPage() {
   ];
 
   return (
-    <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <div className="flex flex-wrap items-center justify-between gap-3" data-guide="data-export-files.heading">
         <div>
           <p className="font-semibold font-mont text-gray-01">Files</p>
@@ -266,6 +267,6 @@ export default function ExportFilesPage() {
         totalPages={pagination?.totalPages}
         onPageChange={(p) => patchParams({ page: String(p) })}
       />
-    </main>
+    </PageShell>
   );
 }

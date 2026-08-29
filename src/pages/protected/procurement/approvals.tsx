@@ -27,6 +27,7 @@ import type {
   ProcurementApprovalStage,
 } from "@/redux/services/procurement/procurement-ext-types";
 import { formatMoney } from "@/utils/money";
+import { PageShell } from "@/components/layout/page-shell";
 
 const DOCUMENT_TYPES = [
   ["", "All document types"],
@@ -113,7 +114,7 @@ export default function ProcurementApprovalsPage() {
   };
 
   return <ProcurementShell>
-    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <header>
         <div className="flex items-center gap-1.5">
           <h1 className="font-mont text-lg font-semibold text-gray-01">Approvals</h1>
@@ -145,7 +146,7 @@ export default function ProcurementApprovalsPage() {
             ? "No pending approvals match these filters."
             : "No Procurement documents are awaiting your decision in this entity."} />
       </>}
-    </main>
+    </PageShell>
     {entity && <ApprovalDrawer id={selectedId} entity={entity} currency={currency} onClose={closeDrawer} />}
   </ProcurementShell>;
 }

@@ -26,6 +26,7 @@ import type { PermissionAction } from "@/redux/services/dashboard/rbac-types";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["Name", "Description", "Permissions", "Status", "Created", "Action"];
 
@@ -118,7 +119,7 @@ export default function PermissionActions() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Permission Actions</p>
@@ -197,7 +198,7 @@ export default function PermissionActions() {
             onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
           />
         )}
-      </main>
+      </PageShell>
 
       <DeleteActionDialog item={deleteItem} onClose={() => setDeleteItem(null)} />
     </>

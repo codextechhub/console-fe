@@ -43,6 +43,7 @@ import { formatBytes } from "@/utils/format-bytes";
 import { formatDay, formatDuration, formatStamp } from "./format";
 import { useFileDownload } from "./use-file-download";
 import { useState } from "react";
+import { PageShell } from "@/components/layout/page-shell";
 
 // An open run detail polls harder than a list: this is the screen someone sits
 // on while they wait. Terminal runs never change, so polling stops entirely.
@@ -157,7 +158,7 @@ export default function ExportRunDetailPage() {
   };
 
   return (
-    <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <Link
         to={routesPath.PROTECTED.EXPORT.FILES}
         className="inline-flex items-center gap-1.5 font-mont text-xs font-medium text-gray-05 hover:text-primary"
@@ -338,7 +339,7 @@ export default function ExportRunDetailPage() {
         loading={cancelling}
         onConfirm={onCancel}
       />
-    </main>
+    </PageShell>
   );
 }
 

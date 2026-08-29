@@ -30,6 +30,7 @@ import {
 } from "@/redux/services/dashboard/rbac-api";
 import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
 import { routesPath } from "@/routes/routes-path";
+import { PageShell } from "@/components/layout/page-shell";
 
 const SUPER_ADMIN_ROLE_ID = "xvs_super_admin";
 
@@ -104,7 +105,7 @@ export default function TransferSuperAdmin() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="font-semibold font-mont text-gray-01">Transfer Super Admin Role</p>
@@ -229,7 +230,7 @@ export default function TransferSuperAdmin() {
             </Button>
           </div>
         </section>
-      </main>
+      </PageShell>
 
       {/* ── Confirmation dialog ───────────────────────────────────────────── */}
       <Dialog open={confirmOpen} onOpenChange={(v) => !v && setConfirmOpen(false)}>

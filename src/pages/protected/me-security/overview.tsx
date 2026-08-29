@@ -7,6 +7,7 @@ import { useGetMyLoginSessionsQuery, useGetMySecurityStatsQuery } from "@/redux/
 import { useGetMyActivityQuery } from "@/redux/services/dashboard/audit-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import type { AuditSeverity } from "@/redux/services/dashboard/audit-types";
+import { PageShell } from "@/components/layout/page-shell";
 
 function parseUA(ua: string | null | undefined): { browser: string; os: string } {
   if (!ua) return { browser: "-", os: "-" };
@@ -65,7 +66,7 @@ export default function MeSecurityOverview() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         {/* Page header */}
         <div className="flex items-center gap-3">
           <ShieldCheck className="size-7 text-blue-600" />
@@ -239,7 +240,7 @@ export default function MeSecurityOverview() {
             </ul>
           )}
         </div>
-      </main>
+      </PageShell>
     </>
   );
 }

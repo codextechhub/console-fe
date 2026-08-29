@@ -10,6 +10,7 @@ import {
   useGetPermissionModulesQuery,
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
+import { PageShell } from "@/components/layout/page-shell";
 
 const schema = Yup.object({
   module: Yup.string().required("Module is required"),
@@ -31,7 +32,7 @@ export default function CreateResource() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission Resource</h1>
           <p className="text-sm text-gray-01 mt-1">
@@ -168,7 +169,7 @@ export default function CreateResource() {
             );
           }}
         </Formik>
-      </main>
+      </PageShell>
     </>
   );
 }

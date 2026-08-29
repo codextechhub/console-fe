@@ -13,6 +13,7 @@ import { EquityReport } from "./equity-tab";
 import { TrialBalanceReport } from "./trial-balance-tab";
 import { AnalyticsSliceReport } from "./analytics-slice-tab";
 import { PeriodsTab } from "./periods-tab";
+import { PageShell } from "@/components/layout/page-shell";
 
 const LABELS: Record<string, string> = {
   "trial-balance": "Trial Balance", "income-statement": "Income Statement (P&L)",
@@ -48,7 +49,7 @@ export default function ReportsPage({ section = DEFAULT_REPORTS_SECTION }: {
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01" data-guide={`finance-reports.${section}.workspace`}>
+      <PageShell className="space-y-5 text-black-01" data-guide={`finance-reports.${section}.workspace`}>
         <div>
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">{LABELS[section] ?? "Reports & Month-End"}</h1>
@@ -73,7 +74,7 @@ export default function ReportsPage({ section = DEFAULT_REPORTS_SECTION }: {
         ) : (
           <TrialBalanceReport entity={entity} currency={currency} />
         )}
-      </main>
+      </PageShell>
     </FinanceShell>
   );
 }

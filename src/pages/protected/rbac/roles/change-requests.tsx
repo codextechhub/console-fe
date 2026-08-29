@@ -34,6 +34,7 @@ import {
 } from "@/redux/services/dashboard/rbac-api";
 import type { ChangeRequest, ChangeRequestDelta } from "@/redux/services/dashboard/rbac-types";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["Request ID", "Target Role", "Deltas", "Status", "Requested By", "Submitted", "Decided"];
 
@@ -443,7 +444,7 @@ export default function ChangeRequests() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Role Change Requests</p>
@@ -535,7 +536,7 @@ export default function ChangeRequests() {
             onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
           />
         )}
-      </main>
+      </PageShell>
 
       <NewRequestSheet open={newRequestOpen} onClose={() => setNewRequestOpen(false)} />
 

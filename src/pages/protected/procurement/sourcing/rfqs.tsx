@@ -34,6 +34,7 @@ import type { Rfq, RfqDetail, RfqInvitation } from "@/redux/services/procurement
 import { formatQuantity } from "@/utils/quantity";
 import { ActivityFeed, EmptyPanel, Field, ExpiredPill } from "./shared";
 import { RFQ_TABS, isForbidden, shortDate } from "./helpers";
+import { PageShell } from "@/components/layout/page-shell";
 
 const DETAIL_TABS = [
   ["overview", "Overview", FileText], ["lines", "Lines", List],
@@ -92,10 +93,10 @@ export default function RfqsPage() {
     { header: "", align: "right", cell: () => <ChevronRight className="ml-auto size-4 text-gray-04" /> },
   ];
 
-  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view its RFQs." /></main></ProcurementShell>;
+  if (!entity) return <ProcurementShell><PageShell><EmptyState title="Select an entity" message="Choose an entity to view its RFQs." /></PageShell></ProcurementShell>;
 
   return <ProcurementShell>
-    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <header data-guide="procurement-rfqs.heading" className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">RFQs</h1>
@@ -122,7 +123,7 @@ export default function RfqsPage() {
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(r) => r.id} loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch} onRowClick={(r) => setSelectedId(r.id)} page={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={setPage} emptyTitle="No RFQs" emptyMessage={debounced ? "Try a different search term or status." : "Create an RFQ to invite vendor quotations."} />
       </section>
-    </main>
+    </PageShell>
     <RfqDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
     {creating && <RfqForm entity={entity} currency={currency} onClose={() => setCreating(false)} />}
   </ProcurementShell>;

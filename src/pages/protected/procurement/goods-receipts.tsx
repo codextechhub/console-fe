@@ -23,6 +23,7 @@ import type { GoodsReceipt } from "@/redux/services/procurement/procurement-type
 import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
 import { canReceiveRemaining, completeReceiptSave } from "./goods-receipt-fulfilment";
+import { PageShell } from "@/components/layout/page-shell";
 
 const DETAIL_TABS = [
   { value: "overview", label: "Overview", icon: FileText },
@@ -61,12 +62,12 @@ export default function GoodsReceiptsPage() {
   ];
 
   if (!entity) {
-    return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view goods receipts." /></main></ProcurementShell>;
+    return <ProcurementShell><PageShell><EmptyState title="Select an entity" message="Choose an entity to view goods receipts." /></PageShell></ProcurementShell>;
   }
 
   return (
     <ProcurementShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <header data-guide="procurement-goods-receipts.heading" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5">
@@ -88,7 +89,7 @@ export default function GoodsReceiptsPage() {
             emptyMessage="Record a delivery against an open purchase order."
           />
         </section>
-      </main>
+      </PageShell>
 
       <ReceiptDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency}
         onClose={() => setSelectedId(null)} onSelectReceipt={setSelectedId} />

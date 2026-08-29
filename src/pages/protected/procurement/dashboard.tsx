@@ -17,6 +17,7 @@ import { P } from "@/permissions";
 import { useGetProcurementDashboardQuery } from "@/redux/services/procurement/procurement-ext-api";
 import { routesPath } from "@/routes/routes-path";
 import { currencySymbol, formatMoney, toNaira } from "@/utils/money";
+import { PageShell } from "@/components/layout/page-shell";
 
 const PROC = routesPath.PROTECTED.PROCUREMENT;
 const DONUT_COLORS = [
@@ -126,7 +127,7 @@ export default function ProcurementDashboard() {
 
   return (
     <ProcurementShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <header>
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">Dashboard</h1>
@@ -271,7 +272,7 @@ export default function ProcurementDashboard() {
             </div>
           </>
         )}
-      </main>
+      </PageShell>
     </ProcurementShell>
   );
 }

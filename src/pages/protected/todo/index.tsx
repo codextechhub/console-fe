@@ -36,6 +36,7 @@ import { asArray } from "./lib/todo-helpers";
 import { shouldForceMyTasks, type TasksTab } from "./lib/tab-resolution";
 import { Breadcrumb, MyTasksView, NodeDashboardView } from "./components/node-dashboard";
 import { TaskModal, type TaskModalMode } from "./components/task-modal";
+import { PageShell } from "@/components/layout/page-shell";
 
 // One definition, shared with the tab-resolution rules.
 type Tab = TasksTab;
@@ -220,7 +221,7 @@ export default function TodoPage() {
 
   return (
     <>
-      <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         {/* Intro row: heading + subtitle left, actions right (house pattern) */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -289,7 +290,7 @@ export default function TodoPage() {
             togglingId={togglingId}
           />
         ) : null}
-      </main>
+      </PageShell>
 
       <TaskModal
         open={!!modal}

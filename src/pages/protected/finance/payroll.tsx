@@ -38,6 +38,7 @@ import {
   useUpdateSalaryStructureMutation, useDeleteSalaryStructureMutation,
 } from "@/redux/services/finance/ops-api";
 import type { PayrollLine, PayrollRun, EmployeeSalary, SalaryStructure, SalaryComponent, PayslipComponent } from "@/redux/services/finance/ops-types";
+import { PageShell } from "@/components/layout/page-shell";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
@@ -111,11 +112,11 @@ const TABS = [
 export default function PayrollPage() {
   const { code: entity, currency } = useActiveEntity();
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("runs");
-  if (!entity) return <FinanceShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" /></main></FinanceShell>;
+  if (!entity) return <FinanceShell><PageShell><EmptyState title="Select an entity" /></PageShell></FinanceShell>;
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01" data-guide="finance-payroll.workspace">
+      <PageShell className="space-y-5 text-black-01" data-guide="finance-payroll.workspace">
         <div data-guide="finance-payroll.heading">
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-lg font-semibold text-gray-01">Payroll</h1>
@@ -139,7 +140,7 @@ export default function PayrollPage() {
           : tab === "structures" ? <StructuresTab entity={entity} currency={currency} />
           : tab === "payslips" ? <PayslipsTab entity={entity} currency={currency} />
           : <StatutoryTab entity={entity} currency={currency} />}
-      </main>
+      </PageShell>
     </FinanceShell>
   );
 }

@@ -41,6 +41,7 @@ import { routesPath } from "@/routes/routes-path";
 import { formatMoney } from "@/utils/money";
 import { formatQuantity } from "@/utils/quantity";
 import { sourceDocumentIdFromParams } from "@/lib/source-document-route";
+import { PageShell } from "@/components/layout/page-shell";
 
 const STATUS_TABS = [
   { label: "All", value: "" },
@@ -151,11 +152,11 @@ export default function RequisitionsPage() {
     </span>
   );
 
-  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view its requisitions." /></main></ProcurementShell>;
+  if (!entity) return <ProcurementShell><PageShell><EmptyState title="Select an entity" message="Choose an entity to view its requisitions." /></PageShell></ProcurementShell>;
 
   return (
     <ProcurementShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <header data-guide="procurement-requisitions.heading" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5">
@@ -212,7 +213,7 @@ export default function RequisitionsPage() {
             emptyMessage={debouncedSearch ? "Try a different search term or status." : "New requisitions will appear here."}
           />
         </section>
-      </main>
+      </PageShell>
 
       <RequisitionDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
       {creating && <RequisitionForm open onClose={() => setCreating(false)} entity={entity} currency={currency} />}

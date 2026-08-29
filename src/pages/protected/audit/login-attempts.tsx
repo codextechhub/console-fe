@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import type { AuthAttempt } from "@/redux/services/dashboard/security-types";
 import { routesPath } from "@/routes/routes-path";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -251,7 +252,7 @@ export default function LoginAttempts() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div data-guide="audit-login-attempts.heading" className="flex items-center justify-between">
@@ -551,7 +552,7 @@ export default function LoginAttempts() {
           </SheetContent>
         </Sheet>
 
-      </main>
+      </PageShell>
     </>
   );
 }

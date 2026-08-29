@@ -13,6 +13,7 @@ import { P } from "@/permissions";
 import type { AccountLockout } from "@/redux/services/dashboard/security-types";
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["User", "Locked until", "Reason", "Failure count", "Last failure IP", "Last failure", "Status", "Action"];
 
@@ -70,7 +71,7 @@ export default function AccountLockouts() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div data-guide="audit-lockouts.heading" className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Login Attempts & Lockouts</p>
@@ -158,7 +159,7 @@ export default function AccountLockouts() {
           canCancel
           loading={unlocking}
         />
-      </main>
+      </PageShell>
     </>
   );
 }

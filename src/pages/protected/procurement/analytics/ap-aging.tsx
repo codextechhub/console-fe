@@ -16,6 +16,7 @@ import { formatMoney } from "@/utils/money";
 import { isForbidden, shortDate } from "../sourcing/helpers";
 import { Field, EmptyPanel } from "../sourcing/shared";
 import { Card, ChartEmpty, DateFilter, Pill, ScopeNote, StatusDotPill, SectionHeader, type PillTone } from "./shared";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   BUCKET_LABEL, TD, TDR, TFOOT, TFOOTR, TH, THR, ageColor, excludedScopeNote, kobo, todayISO,
   type SectionProps,
@@ -54,7 +55,7 @@ export default function ApAgingScreen({ entity, currency }: SectionProps) {
   const d = aging.data?.data;
 
   return (
-    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <SectionHeader title="AP Aging" subtitle="Outstanding payables bucketed by age.">
         <DateFilter label="As of" value={asOf} onChange={setAsOf} />
       </SectionHeader>
@@ -68,7 +69,7 @@ export default function ApAgingScreen({ entity, currency }: SectionProps) {
       ) : (
         <ApAgingBody d={d} cash={cash.data?.data} currency={currency} entity={entity} asOf={asOf} />
       )}
-    </main>
+    </PageShell>
   );
 }
 

@@ -22,6 +22,7 @@ import { Field, EmptyPanel } from "../sourcing/shared";
 import { AssessmentFormDrawer } from "./assessment-form";
 import { DateFilter, GradeBadge, GradePill, Meter, Pill, ScopeNote, SectionHeader } from "./shared";
 import { TD, TH, excludedScopeNote, meanOrNull, meterScoreColor, type SectionProps } from "./helpers";
+import { PageShell } from "@/components/layout/page-shell";
 
 function otPct(rate: number | null) {
   return rate == null ? null : Math.round(rate * 100);
@@ -47,7 +48,7 @@ export default function PerformanceScreen({ entity, currency }: SectionProps) {
   );
 
   return (
-    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <SectionHeader title="Vendor Performance" subtitle="Delivery timeliness and payment behaviour from posted records.">
         <DateFilter label="From" value={start} onChange={setStart} />
         <DateFilter label="To" value={end} onChange={setEnd} />
@@ -70,7 +71,7 @@ export default function PerformanceScreen({ entity, currency }: SectionProps) {
       {creating && (
         <AssessmentFormDrawer entity={entity} onTimeByVendor={onTimeByVendor} onClose={() => setCreating(false)} />
       )}
-    </main>
+    </PageShell>
   );
 }
 

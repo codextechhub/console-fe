@@ -34,6 +34,7 @@ import { BalancesTable, LocationsSection } from "./stock-locations";
 import { StockLocationPicker } from "./pickers";
 import { useStockLocations } from "./use-stock-locations";
 import { DEFAULT_INVENTORY_SECTION, type InventorySection } from "./console-sections";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Shared small helpers ─────────────────────────────────────────────────────
 // Quantities arrive as 14,4 decimal strings ("10.0000"); show them trimmed.
@@ -81,9 +82,9 @@ export default function InventoryPage({ section = DEFAULT_INVENTORY_SECTION }: {
   if (!entity) {
     return (
       <ProcurementShell>
-        <main className="px-4.5 py-6">
+        <PageShell>
           <EmptyState title="Select an entity" message="Choose an entity to view its inventory." />
-        </main>
+        </PageShell>
       </ProcurementShell>
     );
   }
@@ -136,7 +137,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
 
   return (
     <ProcurementShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <header data-guide="procurement-stock-items.heading" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="font-mont text-lg font-semibold text-gray-01">Stock Items</h1>
@@ -189,7 +190,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
           </div>
           <DataTable columns={columns} rows={rows} rowKey={(i) => i.id} loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch} onRowClick={(i) => setSelectedId(i.id)} page={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={setPage} emptyTitle="No stock items" emptyMessage={debounced || needsReorder || store ? "Try a different search or filter." : "Register a stock item to track its on-hand quantity and value."} />
         </section>
-      </main>
+      </PageShell>
       <StockItemDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
       {creating && <StockItemForm entity={entity} onClose={() => setCreating(false)} />}
     </ProcurementShell>
@@ -608,7 +609,7 @@ function MovementsSection({ entity, currency }: { entity: string; currency?: str
 
   return (
     <ProcurementShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div data-guide="procurement-stock-movements.heading">
           <h1 className="font-mont text-lg font-semibold text-gray-01">Stock Movements</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Receipts, issues and adjustments.{multi ? " Balances shown are the running balance at each store." : ""}</p>
@@ -632,7 +633,7 @@ function MovementsSection({ entity, currency }: { entity: string; currency?: str
           </div>
           <DataTable columns={columns} rows={rows} rowKey={(m) => m.id} loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch} mobile="scroll" page={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={setPage} emptyTitle="No movements" emptyMessage={tab ? "No movements of this type yet." : "Stock movements will appear here as goods are received, issued and adjusted."} />
         </section>
-      </main>
+      </PageShell>
     </ProcurementShell>
   );
 }

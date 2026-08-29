@@ -46,6 +46,7 @@ import { useNavigate } from "react-router";
 import { routesPath } from "@/routes/routes-path";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Modal state ──────────────────────────────────────────────────────────────
 
@@ -188,7 +189,7 @@ export default function LiveSessions() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div data-guide="audit-sessions.heading" className="flex items-center justify-between gap-4">
@@ -757,7 +758,7 @@ export default function LiveSessions() {
           </DialogContent>
         </Dialog>
 
-      </main>
+      </PageShell>
     </>
   );
 }

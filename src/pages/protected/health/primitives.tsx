@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { HealthStatus } from "@/redux/services/health-api";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PageShell } from "@/components/layout/page-shell";
 
 // Live-ish screens poll gently; paused while the tab is unfocused.
 export const HEALTH_POLL = { pollingInterval: 30_000, skipPollingIfUnfocused: true } as const;
@@ -54,7 +55,7 @@ export function SeverityBadge({ severity }: { severity: number }) {
 export function HealthFrame({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">{children}</main>
+      <PageShell className="space-y-5 text-black-01">{children}</PageShell>
     </>
   );
 }

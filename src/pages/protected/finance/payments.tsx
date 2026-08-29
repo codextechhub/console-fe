@@ -10,6 +10,7 @@ import { TransactionsTab } from "./transactions-tab";
 import { WebhooksTab } from "./webhooks-tab";
 import { useActiveEntity } from "@/components/finance-ui";
 import { EmptyState } from "@/components/finance-ui/states";
+import { PageShell } from "@/components/layout/page-shell";
 
 /** `section` comes from the route table; see console-sections.ts. */
 export default function PaymentsPage({ section = DEFAULT_PAYMENTS_SECTION }: {
@@ -28,7 +29,7 @@ export default function PaymentsPage({ section = DEFAULT_PAYMENTS_SECTION }: {
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01" data-guide={`finance-payments-${section}.workspace`}>
+      <PageShell className="space-y-5 text-black-01" data-guide={`finance-payments-${section}.workspace`}>
         <div data-guide={`finance-payments-${section}.heading`}>
           <h1 className="font-mont text-lg font-semibold text-gray-01">{label}</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">{subtitle}</p>
@@ -46,7 +47,7 @@ export default function PaymentsPage({ section = DEFAULT_PAYMENTS_SECTION }: {
         ) : (
           <PayoutsTab entity={entity} currency={currency} />
         )}
-      </main>
+      </PageShell>
     </FinanceShell>
   );
 }

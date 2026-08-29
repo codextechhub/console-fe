@@ -24,6 +24,7 @@ import { sameId, humanizeDocumentType } from "../components/workflow-format";
 import { DocumentPanel } from "../components/document-panel";
 import { StageTracker } from "../components/stage-tracker";
 import { AuditTimeline } from "../components/audit-timeline";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function SubmissionDetail() {
   const { id = "" } = useParams();
@@ -68,7 +69,7 @@ export default function SubmissionDetail() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
             <Loader2 className="size-6 animate-spin text-primary" />
@@ -115,7 +116,7 @@ export default function SubmissionDetail() {
             </div>
           </div>
         )}
-      </main>
+      </PageShell>
 
       <Dialog open={!!confirmKind} onOpenChange={(v) => !v && setConfirmKind(null)}>
         <DialogContent className="sm:max-w-md">

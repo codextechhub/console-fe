@@ -18,6 +18,7 @@ import type { StaffProfile } from "@/redux/services/dashboard/organogram-types";
 import { StaffProfileForm } from "../organogram/staff/profile-form";
 import { OrgAvatar, StatusPill, EmpBadge } from "../organogram/components/org-primitives";
 import { fmtDate } from "../organogram/lib/org-helpers";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Read-view primitives (same family as staff-detail) ───────────────────────
 function Row({ label, value }: { label: string; value?: React.ReactNode }) {
@@ -123,7 +124,7 @@ export default function MyProfile() {
 
   return (
     <>
-      <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="font-semibold font-mont text-gray-01">My Profile</p>
@@ -299,7 +300,7 @@ export default function MyProfile() {
             )}
           </>
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

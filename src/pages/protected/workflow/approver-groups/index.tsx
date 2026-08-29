@@ -4,6 +4,7 @@ import { useFilterParam } from "@/hooks/use-filter-param";
 import GroupsTab from "./groups-tab";
 import DynamicRoleTab from "./dynamic-role-tab";
 import ApprovalRolesTab from "./approval-roles-tab";
+import { PageShell } from "@/components/layout/page-shell";
 
 type Tab = "groups" | "rules" | "roles";
 const TABS: { key: Tab; label: string }[] = [
@@ -28,7 +29,7 @@ export default function WorkflowApprover() {
   useFilterParam<Tab>("tab", ["groups", "rules", "roles"], setTab);
 
   return (
-    <main className="px-4.5 py-6 space-y-5 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <div>
         <p className="font-semibold font-mont text-gray-01">Workflow Approver</p>
         <p className="mt-0.5 text-xs text-gray-01">
@@ -60,6 +61,6 @@ export default function WorkflowApprover() {
       </div>
 
       {tab === "groups" ? <GroupsTab /> : tab === "rules" ? <DynamicRoleTab /> : <ApprovalRolesTab />}
-    </main>
+    </PageShell>
   );
 }

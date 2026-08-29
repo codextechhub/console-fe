@@ -54,6 +54,7 @@ import { useDebounce } from "react-haiku";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { SortBar, handleSortToggle } from "@/components/custom/sort-bar";
 import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
+import { PageShell } from "@/components/layout/page-shell";
 
 const BRANCH_TABLE_HEADERS = [
   "S/N",
@@ -269,7 +270,7 @@ export default function ViewSchool() {
 
   return (
     <>
-      <main className="grid min-w-0 grid-cols-1 gap-5 px-4.5 py-6 text-black-01 sm:gap-6">
+      <PageShell className="gap-5 text-black-01 sm:gap-6" grid>
         {isLoading && (
           <div className="grid h-52 place-content-center rounded-xl bg-white">
             <div className="loader" />
@@ -557,7 +558,7 @@ export default function ViewSchool() {
         {!isLoading && !isError && !school && (
           <div className="rounded-xl bg-white p-8 text-center"><p className="text-sm text-gray-01">School not found.</p></div>
         )}
-      </main>
+      </PageShell>
 
       <BulkImportDrawer
         open={bulkImportOpen}

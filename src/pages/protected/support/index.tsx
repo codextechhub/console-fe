@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useFilterParam } from "@/hooks/use-filter-param";
 import { TicketStatusBadge } from "./status-badge";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   CreateTicketForm,
   EMPTY_TICKET_DRAFT,
@@ -101,7 +102,7 @@ export default function Support() {
 
   return (
     <>
-      <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         {/* Intro row */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -209,7 +210,7 @@ export default function Support() {
             done={(id) => nav(routesPath.PROTECTED.SUPPORT.DETAIL(id))}
           />
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

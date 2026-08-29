@@ -14,6 +14,7 @@ import { selectIsPlatformTenant } from "@/redux/features/auth/auth-slice";
 import { useGetWorkflowTemplatesQuery } from "@/redux/services/dashboard/workflow-api";
 import { humanizeDocumentType } from "../components/workflow-format";
 import { pairTemplateVersions, versionLabel } from "./components/template-versions";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["Name", "Document Type", "Code", "Stages", "Running", "Updated"];
 
@@ -64,7 +65,7 @@ export default function WorkflowTemplates() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Workflow Templates</p>
@@ -118,7 +119,7 @@ export default function WorkflowTemplates() {
           currentPage={data?.pagination?.currentPage}
           onPageChange={(p) => setPage(p as number)}
         />
-      </main>
+      </PageShell>
     </>
   );
 }

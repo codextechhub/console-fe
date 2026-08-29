@@ -26,6 +26,7 @@ import { sameId, INSTANCE_STATUS_META, humanizeDocumentType } from "../component
 import { DocumentPanel } from "../components/document-panel";
 import { StageTracker } from "../components/stage-tracker";
 import { AuditTimeline } from "../components/audit-timeline";
+import { PageShell } from "@/components/layout/page-shell";
 
 const VOTE_COPY: Record<VoteAction, { title: string; confirm: string; note: string }> = {
   APPROVED: {
@@ -182,7 +183,7 @@ export default function ApprovalDetail() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         {isLoading ? (
           <CenterState>
             <Loader2 className="size-6 animate-spin text-primary" />
@@ -307,7 +308,7 @@ export default function ApprovalDetail() {
             </aside>
           </div>
         )}
-      </main>
+      </PageShell>
 
       {/* Confirmation */}
       <Dialog open={!!confirm} onOpenChange={(v) => !v && setConfirm(null)}>

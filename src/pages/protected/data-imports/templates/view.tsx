@@ -8,6 +8,7 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routes-path";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   useGetImportTemplateQuery,
   useDownloadImportTemplateMutation,
@@ -107,7 +108,7 @@ export default function ViewTemplate() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-5xl">
+      <PageShell className="text-black-01 space-y-5 max-w-5xl">
         {/* Header card */}
         <div className="bg-white rounded-md p-5 space-y-4">
           <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -259,7 +260,7 @@ export default function ViewTemplate() {
             </div>
           )}
         </div>
-      </main>
+      </PageShell>
     </>
   );
 }

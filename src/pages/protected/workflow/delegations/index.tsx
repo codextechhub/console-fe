@@ -35,6 +35,7 @@ import type { ApprovalDelegation } from "@/redux/services/dashboard/workflow-typ
 import { useUserDirectory } from "../components/use-user-directory";
 import { InitialsAvatar } from "../components/workflow-ui";
 import { humanizeDocumentType, sameId } from "../components/workflow-format";
+import { PageShell } from "@/components/layout/page-shell";
 
 type DelegationState = "Active" | "Scheduled" | "Expired" | "Revoked";
 
@@ -86,7 +87,7 @@ export default function Delegations() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Approval Delegations</p>
@@ -180,7 +181,7 @@ export default function Delegations() {
             </div>
           )}
         </div>
-      </main>
+      </PageShell>
 
       <NewDelegationSheet open={newOpen} onClose={() => setNewOpen(false)} selfId={uid} />
 

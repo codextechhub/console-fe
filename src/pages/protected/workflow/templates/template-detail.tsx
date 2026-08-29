@@ -33,6 +33,7 @@ import {
   humanizeDocumentType,
 } from "../components/workflow-format";
 import { ConditionView } from "../components/condition-view";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function TemplateDetail() {
   const { id = "" } = useParams();
@@ -79,7 +80,7 @@ export default function TemplateDetail() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
             <Loader2 className="size-6 animate-spin text-primary" />
@@ -288,7 +289,7 @@ export default function TemplateDetail() {
             )}
           </div>
         )}
-      </main>
+      </PageShell>
 
       <Dialog open={resetOpen} onOpenChange={(v) => !v && setResetOpen(false)}>
         <DialogContent className="sm:max-w-md">

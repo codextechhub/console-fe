@@ -42,6 +42,7 @@ import { isPrimaryShortcut } from "@/utils/keyboard-shortcuts";
 import { useDashboardTitle } from "@/components/layout/dashboard-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FollowTicketControl } from "./follow-ticket-control";
+import { PageShell } from "@/components/layout/page-shell";
 
 // Mirrors backend VALID_STATUS_TRANSITIONS (vs_tickets/constants.py).
 const transitions: Record<TicketStatus, TicketStatus[]> = {
@@ -267,7 +268,7 @@ export default function TicketDetail() {
 
   return (
     <>
-      <main className="px-4.5 py-6 lg:h-[calc(100dvh-3.75rem)] lg:overflow-hidden lg:px-8">
+      <PageShell className="lg:h-[calc(100dvh-3.75rem)] lg:overflow-hidden lg:px-8">
         <div className="mx-auto max-w-6xl lg:flex lg:h-full lg:flex-col">
           <button
             onClick={() => navigate(-1)}
@@ -628,7 +629,7 @@ export default function TicketDetail() {
             </SheetContent>
           </Sheet>
         </div>
-      </main>
+      </PageShell>
     </>
   );
 }

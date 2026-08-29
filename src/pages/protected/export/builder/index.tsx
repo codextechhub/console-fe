@@ -44,6 +44,7 @@ import { filterIsSet } from "./helpers";
 import { FormatOptions } from "./format-options";
 import { SummaryBar, SummaryRail } from "./summary-rail";
 import { type BuilderState, defaultsForDataset, useBuilderState, usePreview } from "./use-builder-state";
+import { PageShell } from "@/components/layout/page-shell";
 
 const STEP_LABELS = ["Data", "Columns", "File", "Review"];
 const TOTAL_STEPS = 4;
@@ -68,20 +69,20 @@ export default function ExportBuilderPage() {
 
   if (isEdit && isLoading) {
     return (
-      <main className="min-w-0 px-4.5 py-6">
+      <PageShell>
         <div className="rounded-md bg-white">
           <LoadingState rows={6} label="Loading export…" />
         </div>
-      </main>
+      </PageShell>
     );
   }
   if (isEdit && (isError || !existingRes)) {
     return (
-      <main className="min-w-0 px-4.5 py-6">
+      <PageShell>
         <div className="rounded-md bg-white">
           <ErrorState onRetry={refetch} />
         </div>
-      </main>
+      </PageShell>
     );
   }
 
@@ -285,7 +286,7 @@ function BuilderForm({
   const loading = catalogueLoading;
 
   return (
-    <main className="min-w-0 px-4.5 py-6 text-black-01" data-guide="data-export-builder.workspace">
+    <PageShell className="text-black-01" data-guide="data-export-builder.workspace">
       <button
         type="button"
         onClick={() => navigate(routesPath.PROTECTED.EXPORT.SAVED)}
@@ -454,7 +455,7 @@ function BuilderForm({
           />
         </div>
       )}
-    </main>
+    </PageShell>
   );
 }
 

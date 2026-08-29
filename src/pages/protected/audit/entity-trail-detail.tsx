@@ -15,6 +15,7 @@ import type { AuditEventDetail } from "@/redux/services/dashboard/audit-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { friendlyAction } from "./audit-constants";
+import { PageShell } from "@/components/layout/page-shell";
 
 const SEV_DOT: Record<string, string> = {
   CRITICAL: "bg-red-500",
@@ -119,7 +120,7 @@ export default function EntityTrailDetail() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         {/* Page heading */}
         <div className="flex items-center justify-between">
           <div>
@@ -337,7 +338,7 @@ export default function EntityTrailDetail() {
         ) : null}
 
         <EventDetailDrawer eventId={selectedId} onClose={() => setSelectedId(null)} />
-      </main>
+      </PageShell>
     </>
   );
 }

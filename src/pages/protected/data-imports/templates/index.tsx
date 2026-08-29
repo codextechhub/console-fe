@@ -18,6 +18,7 @@ import { useDebounce } from "react-haiku";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/utils/helpers";
 import { routesPath } from "@/routes/routes-path";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   useGetImportTemplatesQuery,
   useDownloadImportTemplateMutation,
@@ -169,7 +170,7 @@ export default function ImportTemplatesList() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01" data-guide="data-import-templates.workspace">
+      <PageShell className="space-y-5 text-black-01" data-guide="data-import-templates.workspace">
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-3" data-guide="data-import-templates.heading">
           <div>
@@ -345,7 +346,7 @@ export default function ImportTemplatesList() {
             </Button>
           </div>
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

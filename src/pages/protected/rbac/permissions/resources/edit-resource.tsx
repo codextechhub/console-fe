@@ -9,6 +9,7 @@ import {
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Loader2, Lock } from "lucide-react";
+import { PageShell } from "@/components/layout/page-shell";
 
 const schema = Yup.object({
   description: Yup.string().trim().required("Description is required"),
@@ -45,7 +46,7 @@ export default function EditResource() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Resource</h1>
           <p className="font-mono text-sm text-gray-01 mt-1">{resource.module}.{resource.name}</p>
@@ -156,7 +157,7 @@ export default function EditResource() {
             </Form>
           )}
         </Formik>
-      </main>
+      </PageShell>
     </>
   );
 }

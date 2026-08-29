@@ -39,6 +39,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { CustomInput } from "@/components/custom/custom-input";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   OUT_OF_SERVICE,
   branchLeaveServiceBlock,
@@ -173,7 +174,7 @@ export default function ViewBranch() {
 
   return (
     <>
-      <main className="grid min-w-0 grid-cols-1 gap-5 px-4.5 py-6 text-black-01 sm:gap-6">
+      <PageShell className="gap-5 text-black-01 sm:gap-6" grid>
         {isLoading && (
           <div className="grid h-52 place-content-center rounded-xl bg-white"><div className="loader" /></div>
         )}
@@ -321,7 +322,7 @@ export default function ViewBranch() {
         {!isLoading && !isError && !branch && (
           <div className="rounded-xl bg-white p-8 text-center"><p className="text-sm text-gray-01">Branch not found.</p></div>
         )}
-      </main>
+      </PageShell>
 
       <AlertDialog open={!!pendingMove} onOpenChange={(open) => !open && closeMove()}>
         <AlertDialogContent>

@@ -53,6 +53,7 @@ import { blockingMatchReason, isBlockingInvoiceVariance } from "./invoice-action
 import { ActivityFeed } from "./activity-feed";
 import { DocumentAttachments } from "./document-attachments";
 import { sourceDocumentIdFromParams } from "@/lib/source-document-route";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABS = [
   ["All", ""], ["Draft", "DRAFT"], ["Under Review", "PENDING_APPROVAL"],
@@ -115,9 +116,9 @@ export default function VendorInvoicesPage() {
     { header: "Status", cell: (invoice) => <div className="flex flex-wrap gap-1"><StatusPill status={invoice.status} />{invoice.display_status !== invoice.status && <StatusPill status={invoice.display_status} />}</div> },
     { header: "", align: "right", cell: () => <ChevronRight className="ml-auto size-4 text-gray-04" /> },
   ];
-  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view its vendor invoices." /></main></ProcurementShell>;
+  if (!entity) return <ProcurementShell><PageShell><EmptyState title="Select an entity" message="Choose an entity to view its vendor invoices." /></PageShell></ProcurementShell>;
   return <ProcurementShell>
-    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <header data-guide="procurement-vendor-invoices.heading" className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Invoices</h1><InfoHint ariaLabel="About vendor invoices">Supplier bills remain drafts until matched, approved, and posted to Accounts Payable.</InfoHint></div><p className="mt-0.5 font-mont text-xs text-gray-05">Review three-way matches, approval, settlement, and overdue exposure.</p></div><div className="flex flex-wrap items-center gap-2"><QuickExportButton screen="procurement.vendor_invoices" params={{ status, search: debouncedSearch }} entity={entity} typeface="geist" defaultName="Vendor invoices" /><Can permission={P.PROC_CREATE_VENDOR_INVOICE}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> Record Invoice</Button></Can></div></header>
       <div data-guide="procurement-vendor-invoices.summary" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
@@ -134,7 +135,7 @@ export default function VendorInvoicesPage() {
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(invoice) => invoice.id} loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch} onRowClick={(invoice) => setSelectedId(invoice.id)} page={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={setPage} emptyTitle={status ? `No ${TABS.find((tab) => tab[1] === status)?.[0].toLowerCase()} invoices` : "No vendor invoices yet"} emptyMessage={debouncedSearch ? "Try a different search term or status." : "Record a supplier bill to begin matching."} />
       </section>
-    </main>
+    </PageShell>
     <InvoiceDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
     {creating && <InvoiceForm entity={entity} currency={currency} onClose={() => setCreating(false)} />}
   </ProcurementShell>;

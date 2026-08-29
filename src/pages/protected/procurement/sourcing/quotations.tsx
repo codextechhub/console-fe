@@ -35,6 +35,7 @@ import { formatQuantity } from "@/utils/quantity";
 import { ActivityFeed, CompareModal, EmptyPanel, Field, ExpiredPill } from "./shared";
 import { QUOTATION_TABS, isForbidden, shortDate } from "./helpers";
 import { useFetchAuthMediaQuery } from "@/redux/services/media-api";
+import { PageShell } from "@/components/layout/page-shell";
 
 const DETAIL_TABS = [
   ["overview", "Overview", FileText], ["comparison", "Line comparison", Layers],
@@ -82,10 +83,10 @@ export default function QuotationsPage() {
     { header: "", align: "right", cell: () => <ChevronRight className="ml-auto size-4 text-gray-04" /> },
   ];
 
-  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view its quotations." /></main></ProcurementShell>;
+  if (!entity) return <ProcurementShell><PageShell><EmptyState title="Select an entity" message="Choose an entity to view its quotations." /></PageShell></ProcurementShell>;
 
   return <ProcurementShell>
-    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <header data-guide="procurement-quotations.heading" className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">Quotations</h1>
@@ -110,7 +111,7 @@ export default function QuotationsPage() {
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(q) => q.id} loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch} onRowClick={(q) => setSelectedId(q.id)} page={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={setPage} emptyTitle="No quotations" emptyMessage={debounced ? "Try a different search term or filter." : "Capture a vendor's bid against an issued RFQ."} />
       </section>
-    </main>
+    </PageShell>
     <QuotationDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
     {creating && <QuotationForm entity={entity} currency={currency} onClose={() => setCreating(false)} />}
     <CompareModal entity={entity} currency={currency} open={comparing} onClose={() => setComparing(false)} />

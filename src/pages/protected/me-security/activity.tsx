@@ -19,6 +19,7 @@ import { friendlyAction } from "../audit/audit-constants";
 import { cn } from "@/lib/utils";
 import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -230,7 +231,7 @@ export default function MyActivity() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         {/* ── Header ── */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
@@ -319,7 +320,7 @@ export default function MyActivity() {
             </>
           )}
         </div>
-      </main>
+      </PageShell>
 
       {/* ── Detail drawer ── */}
       <Sheet open={!!selected} onOpenChange={(v) => { if (!v) setSelected(null); }}>

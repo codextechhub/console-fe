@@ -26,6 +26,7 @@ import {
 } from "@/redux/services/dashboard/onboarding-api";
 import { formatEnum, formatStartedTime } from "@/utils/helpers";
 import { toast } from "sonner";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = [
   "School",
@@ -148,7 +149,7 @@ export default function GoLiveQueue() {
 
   return (
     <>
-      <main className="grid min-w-0 grid-cols-1 gap-5 px-4.5 py-6 text-black-01">
+      <PageShell className="gap-5 text-black-01" grid>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <h4 className="text-xl font-medium">Go-Live Requests</h4>
@@ -225,7 +226,7 @@ export default function GoLiveQueue() {
             }
           />
         )}
-      </main>
+      </PageShell>
 
       <AlertDialog open={!!decision} onOpenChange={(open) => !open && closeDecision()}>
         <AlertDialogContent>

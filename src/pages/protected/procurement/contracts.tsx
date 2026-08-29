@@ -31,6 +31,7 @@ import { formatMoney } from "@/utils/money";
 import { ActivityFeed, EmptyPanel, Field } from "./sourcing/shared";
 import { isForbidden, shortDate } from "./sourcing/helpers";
 import { ContractRenewButton } from "./procurement-action-gates";
+import { PageShell } from "@/components/layout/page-shell";
 
 const STATUS_TABS = [
   ["All", ""], ["Active", "ACTIVE"], ["Expiring", "EXPIRING"], ["Expired", "EXPIRED"],
@@ -85,10 +86,10 @@ export default function ContractsPage() {
     { header: "", align: "right", cell: () => <ChevronRight className="ml-auto size-4 text-gray-04" /> },
   ];
 
-  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view its contracts." /></main></ProcurementShell>;
+  if (!entity) return <ProcurementShell><PageShell><EmptyState title="Select an entity" message="Choose an entity to view its contracts." /></PageShell></ProcurementShell>;
 
   return <ProcurementShell>
-    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <header data-guide="procurement-contracts.heading" className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-mont text-lg font-semibold text-gray-01">Contracts</h1>
@@ -117,7 +118,7 @@ export default function ContractsPage() {
         </div>
         <DataTable columns={columns} rows={rows} rowKey={(c) => c.id} loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch} onRowClick={(c) => setSelectedId(c.id)} page={data?.pagination?.currentPage} totalPages={data?.pagination?.totalPages} onPageChange={setPage} emptyTitle="No contracts" emptyMessage={debounced ? "Try a different search term or tab." : "Register a vendor contract to track its term and milestones."} />
       </section>
-    </main>
+    </PageShell>
     <ContractDrawer key={selectedId ?? "closed"} id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
     {creating && <ContractForm entity={entity} currency={currency} onClose={() => setCreating(false)} />}
   </ProcurementShell>;

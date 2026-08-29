@@ -32,6 +32,7 @@ import { JobsTab } from "./components/jobs-tab";
 import { RowResultsTab } from "./components/row-results-tab";
 import { AuditLogsTab } from "./components/audit-logs-tab";
 import { NotificationsTab } from "./components/notifications-tab";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Main page ────────────────────────────────────────────────────────────────
 
@@ -179,7 +180,7 @@ export default function ViewBatch() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-6xl">
+      <PageShell className="text-black-01 space-y-5 max-w-6xl">
         {/* Header card */}
         <div className="bg-white rounded-md p-5 space-y-5" data-guide="data-import-batch.detail">
           <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -419,7 +420,7 @@ export default function ViewBatch() {
           {tab === "audit" && <AuditLogsTab batchId={batchId} />}
           {tab === "notifications" && <NotificationsTab batchId={batchId} />}
         </div>
-      </main>
+      </PageShell>
 
       {/* Confirms */}
       <PromptModal

@@ -17,6 +17,7 @@ import { Loader2, Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
+import { PageShell } from "@/components/layout/page-shell";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
@@ -76,7 +77,7 @@ export default function EditRole() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Role</h1>
           <p className="text-sm text-gray-01 mt-1">Update the details and permission assignments for this role.</p>
@@ -314,7 +315,7 @@ export default function EditRole() {
             );
           }}
         </Formik>
-      </main>
+      </PageShell>
     </>
   );
 }

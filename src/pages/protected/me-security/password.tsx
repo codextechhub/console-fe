@@ -12,6 +12,7 @@ import {
 import { useAppSelector } from "@/redux/store";
 import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -82,7 +83,7 @@ export default function MyPassword() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-4 text-black-01 max-w-2xl">
+      <PageShell className="space-y-4 text-black-01 max-w-2xl">
 
         {/* Page header */}
         <div className="flex items-center gap-3">
@@ -261,7 +262,7 @@ export default function MyPassword() {
           )}
         </div>
 
-      </main>
+      </PageShell>
     </>
   );
 }

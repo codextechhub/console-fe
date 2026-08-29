@@ -20,6 +20,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types";
 import EventDetailDrawer from "./components/event-detail-drawer";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   AUDIT_DATE_RANGES,
   AUDIT_NO_TENANT,
@@ -155,7 +156,7 @@ export default function AuditEventsExplorer() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div data-guide="audit-events.heading" className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="font-semibold font-mont text-gray-01">Audit Events Explorer</p>
@@ -389,7 +390,7 @@ export default function AuditEventsExplorer() {
             setSelectedEvent(null);
           }}
         />
-      </main>
+      </PageShell>
     </>
   );
 }

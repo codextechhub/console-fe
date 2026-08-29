@@ -14,6 +14,7 @@ import { isForbidden } from "../sourcing/helpers";
 import { Field } from "../sourcing/shared";
 import { Card, ChartEmpty, DateFilter, HBars, Meter, ScopeNote, SectionHeader } from "./shared";
 import { DONUT_COLORS, TD, TDR, TH, THR, excludedScopeNote, kobo, type SectionProps } from "./helpers";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function SpendScreen({ entity, currency }: SectionProps) {
   const [start, setStart] = useState("");
@@ -26,7 +27,7 @@ export default function SpendScreen({ entity, currency }: SectionProps) {
   const d = data?.data;
 
   return (
-    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <SectionHeader title="Spend Analytics" subtitle="Spend by category, vendor and over time.">
         <DateFilter label="From" value={start} onChange={setStart} />
         <DateFilter label="To" value={end} onChange={setEnd} />
@@ -41,7 +42,7 @@ export default function SpendScreen({ entity, currency }: SectionProps) {
       ) : (
         <SpendBody d={d} currency={currency} entity={entity} start={start} end={end} />
       )}
-    </main>
+    </PageShell>
   );
 }
 

@@ -14,6 +14,7 @@ import {
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Loader2, Lock, Link2 } from "lucide-react";
+import { PageShell } from "@/components/layout/page-shell";
 
 const ACTIONS = ["view", "create", "update", "delete", "approve", "export", "import", "assign", "revoke", "refund", "send"];
 
@@ -85,7 +86,7 @@ export default function EditPermission() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01 space-y-5">
+      <PageShell className="text-black-01 space-y-5">
         <div>
           <h1 className="text-xl font-semibold font-mont text-black-01">Edit Permission</h1>
           <p className="font-mono text-sm text-gray-01 mt-1">{perm.key}</p>
@@ -332,7 +333,7 @@ export default function EditPermission() {
             );
           }}
         </Formik>
-      </main>
+      </PageShell>
     </>
   );
 }

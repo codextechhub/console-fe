@@ -14,6 +14,7 @@ import { SearchSelect } from "@/components/custom/search-select";
 import { cn } from "@/lib/utils";
 import { useGetAuditLogQuery, useGetAuditFacetsQuery } from "@/redux/services/finance/setup-api";
 import type { FinanceAuditLog } from "@/redux/services/finance/setup-types";
+import { PageShell } from "@/components/layout/page-shell";
 
 // Action tone: rejections read red, reversals/cancellations amber, master-data
 // edits blue, everything else (posts/approvals/completions) green.
@@ -194,11 +195,11 @@ export default function FinanceAuditPage() {
     { header: "Status", cell: (l) => <StatusPill status={l.status} /> },
   ];
 
-  if (!entity) return <FinanceShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" /></main></FinanceShell>;
+  if (!entity) return <FinanceShell><PageShell><EmptyState title="Select an entity" /></PageShell></FinanceShell>;
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5">
@@ -245,7 +246,7 @@ export default function FinanceAuditPage() {
           description={selected ? (selected.document_number || (selected.target_id ? `#${selected.target_id}` : undefined)) : undefined}>
           {selected ? <AuditDetail log={selected} /> : null}
         </DetailDrawer>
-      </main>
+      </PageShell>
     </FinanceShell>
   );
 }

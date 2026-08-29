@@ -30,6 +30,7 @@ import { useChangeUserEmailMutation } from "@/redux/services/dashboard/team-mgt-
 import type { StaffProfile, StaffProfileBrief } from "@/redux/services/dashboard/organogram-types";
 import { OrgAvatar, StatusPill, EmpBadge } from "../components/org-primitives";
 import { fmtDate } from "../lib/org-helpers";
+import { PageShell } from "@/components/layout/page-shell";
 
 function Row({ label, value }: { label: string; value?: React.ReactNode }) {
   return (
@@ -134,7 +135,7 @@ export default function StaffDetail() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         {lookupMiss ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 px-6 py-14 text-center">
             <p className="text-sm font-medium text-gray-01">No staff profile is on record for this user yet.</p>
@@ -307,7 +308,7 @@ export default function StaffDetail() {
             )}
           </>
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

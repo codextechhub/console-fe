@@ -11,6 +11,7 @@ import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import * as Yup from "yup";
+import { PageShell } from "@/components/layout/page-shell";
 
 const editBranchSchema = Yup.object({
   name: Yup.string().required("Branch name is required"),
@@ -79,7 +80,7 @@ export default function EditBranch() {
 
   return (
     <>
-      <main className="px-4.5 py-6">
+      <PageShell>
         {isLoading && (
           <div className="grid h-40 place-content-center">
             <div className="loader" />
@@ -175,7 +176,7 @@ export default function EditBranch() {
             </form>
           </div>
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

@@ -6,6 +6,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import { routesPath } from "@/routes/routes-path";
 import { useCreatePermissionModuleMutation } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
+import { PageShell } from "@/components/layout/page-shell";
 
 const schema = Yup.object({
   name: Yup.string()
@@ -22,7 +23,7 @@ export default function CreateModule() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         <div className="mb-6">
           <h1 className="text-xl font-semibold font-mont text-black-01">Create Permission Module</h1>
           <p className="text-sm text-gray-01 mt-1">
@@ -117,7 +118,7 @@ export default function CreateModule() {
             </Form>
           )}
         </Formik>
-      </main>
+      </PageShell>
     </>
   );
 }

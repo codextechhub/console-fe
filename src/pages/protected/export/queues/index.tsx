@@ -34,6 +34,7 @@ import type { BackgroundJob, JobStatus, QueueParams } from "@/redux/services/das
 import { useGetMyTasksQuery, useGetMyTasksSummaryQuery } from "@/redux/services/dashboard/queue-api";
 import { errorStatus } from "@/utils/api-errors";
 import { displayStatus, exportOutcome } from "./job-outcome";
+import { PageShell } from "@/components/layout/page-shell";
 
 const POLL_MS = 10_000;
 
@@ -228,7 +229,7 @@ export default function QueuesPage() {
   }, [now, scope]);
 
   return (
-    <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       {/* Header row: title + (permission-gated) scope toggle */}
       <div className="flex flex-wrap items-center justify-between gap-3" data-guide="data-export-queues.heading">
         <div>
@@ -322,7 +323,7 @@ export default function QueuesPage() {
       />
 
       <JobDrawer job={openJob} onClose={() => setOpenJobId(null)} />
-    </main>
+    </PageShell>
   );
 }
 

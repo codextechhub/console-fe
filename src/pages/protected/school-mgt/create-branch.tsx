@@ -12,6 +12,7 @@ import { P } from "@/permissions";
 import { useGetSchoolDetailQuery, useCreateBranchMutation } from "@/redux/services/dashboard/school-mgt-api";
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
+import { PageShell } from "@/components/layout/page-shell";
 
 const schema = Yup.object({
   name: Yup.string().required("Branch name is required"),
@@ -99,17 +100,17 @@ export default function CreateBranch() {
 
   if (loadingSchool) {
     return (
-      <main className="px-4.5 py-6">
+      <PageShell>
         <div className="max-w-235 space-y-3">
           {[0, 1, 2].map((i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-slate-100" />)}
         </div>
-      </main>
+      </PageShell>
     );
   }
 
   if (schoolFailed || !school) {
     return (
-      <main className="px-4.5 py-6">
+      <PageShell>
         <div className="mx-auto max-w-md rounded-xl border border-white-02 bg-white px-6 py-10 text-center">
           <p className="font-mont font-semibold text-black-01">School not found</p>
           <p className="mt-1.5 text-sm text-gray-01">
@@ -119,13 +120,13 @@ export default function CreateBranch() {
             Back to schools
           </Button>
         </div>
-      </main>
+      </PageShell>
     );
   }
 
   return (
     <>
-      <main className="px-4.5 py-6">
+      <PageShell>
         <div className="max-w-235 mt-5">
           <div className="mb-7 space-y-1.5">
             <h4 className="font-medium text-xl text-black-01">Add Branch</h4>
@@ -248,7 +249,7 @@ export default function CreateBranch() {
             </div>
           </form>
         </div>
-      </main>
+      </PageShell>
     </>
   );
 }

@@ -8,6 +8,7 @@ import {
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 import { friendlyAction } from "./audit-constants";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   AUDIT_DATE_RANGES,
   AUDIT_NO_TENANT,
@@ -52,7 +53,7 @@ export default function NewAuditExport() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01 max-w-2xl">
+      <PageShell className="space-y-5 text-black-01 max-w-2xl">
         <div>
           <p className="font-semibold font-mont text-gray-01">New Audit Export</p>
           <p className="text-xs text-gray-01 mt-0.5">Choose which audit data to export as a CSV file.</p>
@@ -247,7 +248,7 @@ export default function NewAuditExport() {
             {isLoading ? "Generating…" : "Generate CSV"}
           </Button>
         </div>
-      </main>
+      </PageShell>
     </>
   );
 }

@@ -15,6 +15,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import type { PlatformRole } from "@/redux/services/dashboard/rbac-types";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["Role Name", "Status", "System", "Locked", "Users", "Permissions", "Created", "Action"];
 
@@ -95,7 +96,7 @@ export default function RolesList() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Roles Management</p>
@@ -183,7 +184,7 @@ export default function RolesList() {
             onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
           />
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

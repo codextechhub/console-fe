@@ -21,6 +21,7 @@ import type { ImpersonationSession } from "@/redux/services/dashboard/security-t
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PageShell } from "@/components/layout/page-shell";
 
 // ── Countdown ─────────────────────────────────────────────────────────────────
 
@@ -321,7 +322,7 @@ export default function Impersonations() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
 
         {/* Header */}
         <div data-guide="audit-proxy-sessions.heading" className="flex items-center justify-between">
@@ -538,7 +539,7 @@ export default function Impersonations() {
             </table>
           </div>
         )}
-      </main>
+      </PageShell>
 
       {/* Detail drawer */}
       <ImpersonationDetailDrawer

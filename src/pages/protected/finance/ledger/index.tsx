@@ -23,6 +23,7 @@ import { useGetJournalsQuery, useGetJournalSummaryQuery } from "@/redux/services
 import type { JournalListItem, JournalSource, JournalStatus } from "@/redux/services/finance/gl-types";
 import { DirectEntryDrawer } from "./direct-entry-drawer";
 import { JournalDetailDrawer } from "./journal-detail-drawer";
+import { PageShell } from "@/components/layout/page-shell";
 
 const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 const SOURCES: JournalSource[] = ["MANUAL", "SALES", "PURCHASE", "BANK", "PAYROLL", "CLOSING", "OPENING", "FX", "SYSTEM"];
@@ -97,7 +98,7 @@ export default function GeneralLedgerPage() {
   if (!entity) {
     return (
       <FinanceShell>
-        <main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose a ledger entity to view its journals." /></main>
+        <PageShell><EmptyState title="Select an entity" message="Choose a ledger entity to view its journals." /></PageShell>
       </FinanceShell>
     );
   }
@@ -109,7 +110,7 @@ export default function GeneralLedgerPage() {
 
   return (
     <FinanceShell>
-      <main data-guide="finance-ledger.workspace" className="min-w-0 space-y-4 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-4 text-black-01" data-guide="finance-ledger.workspace">
         <div data-guide="finance-ledger.header" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5">
@@ -189,7 +190,7 @@ export default function GeneralLedgerPage() {
             </span>
           </div>
         )}
-      </main>
+      </PageShell>
 
       <DirectEntryDrawer open={directOpen} onClose={() => setDirectOpen(false)} entity={entity} currency={currency} />
       <JournalDetailDrawer journalId={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />

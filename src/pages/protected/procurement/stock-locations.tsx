@@ -34,6 +34,7 @@ import { apiFieldError } from "@/utils/api-errors";
 import { ProcurementShell } from "./procurement-shell";
 import { EmptyPanel, Field } from "./sourcing/shared";
 import { isForbidden, shortDate } from "./sourcing/helpers";
+import { PageShell } from "@/components/layout/page-shell";
 
 const fmtQty = (value?: string | null) => {
   const n = Number(value);
@@ -103,7 +104,7 @@ export function LocationsSection({ entity, currency }: { entity: string; currenc
 
   return (
     <ProcurementShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <header data-guide="procurement-stock-locations.heading" className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="font-mont text-lg font-semibold text-gray-01">Stock Locations</h1>
@@ -131,7 +132,7 @@ export function LocationsSection({ entity, currency }: { entity: string; currenc
             emptyMessage="Every entity is provisioned with one. If you are seeing this, create a store before moving stock."
           />
         </section>
-      </main>
+      </PageShell>
 
       {creating && <LocationForm entity={entity} isFirst={total === 0} onClose={() => setCreating(false)} />}
       {editing && <LocationForm entity={entity} initial={editing} isFirst={false} onClose={() => setEditing(null)} />}

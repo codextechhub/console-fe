@@ -27,6 +27,7 @@ import { useDebounce } from "react-haiku";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["S/N", "School Name", "Location", "Total Students", "Type", "Status", "Action"];
 
@@ -99,7 +100,7 @@ export default function SchoolManagement() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h4 className="font-medium text-xl">School Onboarding</h4>
 
@@ -216,7 +217,7 @@ export default function SchoolManagement() {
             }] : []),
           ]}
         />
-      </main>
+      </PageShell>
 
       <BulkImportDrawer
         open={bulkImportOpen}

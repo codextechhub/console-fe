@@ -15,6 +15,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { useFilterParam } from "@/hooks/use-filter-param";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
+import { PageShell } from "@/components/layout/page-shell";
 import {
   useGetNotificationsQuery,
   useGetUnreadCountQuery,
@@ -75,7 +76,7 @@ export default function Notifications() {
 
   return (
     <>
-      <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         {/* Intro row */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -244,7 +245,7 @@ export default function Notifications() {
           )}
         </section>
 
-      </main>
+      </PageShell>
     </>
   );
 }

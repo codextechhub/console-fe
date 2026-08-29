@@ -12,6 +12,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { toast } from "sonner";
 import { routesPath } from "@/routes/routes-path";
 import { useCreateImportTemplateMutation } from "@/redux/services/dashboard/import-api";
+import { PageShell } from "@/components/layout/page-shell";
 import type {
   CreateTemplatePayload,
   DatasetType,
@@ -169,7 +170,7 @@ export default function NewTemplate() {
 
   return (
       <>
-        <main className="px-4.5 py-6 text-black-01 space-y-5 max-w-4xl pb-32" data-guide="data-import-templates.editor">
+        <PageShell className="text-black-01 space-y-5 max-w-4xl pb-32" data-guide="data-import-templates.editor">
           {/* Header */}
           <div>
             <h1 className="text-lg font-semibold font-mont text-black-01">New Import Template</h1>
@@ -470,7 +471,7 @@ export default function NewTemplate() {
               ))}
             </div>
           </section>
-        </main>
+        </PageShell>
 
         {/* Sticky footer */}
         <div className="fixed bottom-0 right-0 left-0 md:left-(--sidebar-width) group-has-data-[collapsible=icon]/sidebar-wrapper:md:left-(--sidebar-width-icon) transition-[left] duration-200 ease-linear border-t border-gray-100 bg-white px-4.5 py-3 flex justify-end gap-2 z-10">

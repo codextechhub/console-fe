@@ -27,6 +27,7 @@ import { formatMoney } from "@/utils/money";
 import { useGetFinanceDashboardQuery } from "@/redux/services/finance/reports-api";
 import { useGetPeriodsQuery } from "@/redux/services/finance/setup-api";
 import type { DashboardKpi, FinanceDashboard, FiscalRunway, ReportMoney } from "@/redux/services/finance/reports-types";
+import { PageShell } from "@/components/layout/page-shell";
 
 /** "2026-06-16" → "16 Jun 2026" (the design's as-of format). */
 function fmtDate(iso?: string) {
@@ -200,7 +201,7 @@ export default function FinanceDashboard() {
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5">
@@ -440,7 +441,7 @@ export default function FinanceDashboard() {
             </Card>
           </>
         )}
-      </main>
+      </PageShell>
     </FinanceShell>
   );
 }

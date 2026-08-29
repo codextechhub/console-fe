@@ -6,6 +6,7 @@ import { useCreateAuditExportMutation } from "@/redux/services/dashboard/audit-a
 import { useAppSelector } from "@/redux/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/layout/page-shell";
 
 function InfoCard({
   iconName: Icon,
@@ -89,7 +90,7 @@ export default function MyPrivacy() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01 max-w-2xl">
+      <PageShell className="space-y-5 text-black-01 max-w-2xl">
         <div>
           <p className="font-semibold font-mont text-gray-01">Data & privacy</p>
           <p className="text-xs text-gray-01 mt-0.5">
@@ -144,7 +145,7 @@ export default function MyPrivacy() {
             </div>
           </InfoCard>
         </div>
-      </main>
+      </PageShell>
     </>
   );
 }

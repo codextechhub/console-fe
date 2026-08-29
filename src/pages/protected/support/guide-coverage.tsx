@@ -32,6 +32,7 @@ import { ACTIONS } from "@/lib/action-palette/registry";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import { useGetGuideAnalyticsSummaryQuery } from "@/redux/services/guide-analytics-api";
+import { PageShell } from "@/components/layout/page-shell";
 
 const R = routesPath.PROTECTED;
 
@@ -69,7 +70,7 @@ export default function GuideCoveragePage() {
   );
 
   return (
-    <main className="grid min-w-0 grid-cols-1 gap-6 px-4.5 py-6 text-black-01 sm:px-6 lg:px-8">
+    <PageShell className="gap-6 text-black-01 sm:px-6 lg:px-8" grid>
       <header className="rounded-3xl border border-primary/10 bg-gradient-to-br from-primary/[0.08] via-white to-emerald-50/60 p-5 shadow-[0_20px_60px_rgba(15,23,42,.05)] sm:p-8">
         <Button asChild variant="ghost" size="sm" className="-ml-3 mb-3">
           <Link to={R.SUPPORT.GUIDES}><ArrowLeft className="size-4" /> How-to Guides</Link>
@@ -294,7 +295,7 @@ export default function GuideCoveragePage() {
           </div>
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }
 

@@ -26,6 +26,7 @@ import { useUserDirectory } from "../components/use-user-directory";
 import { DocumentPanel } from "../components/document-panel";
 import { StageTracker } from "../components/stage-tracker";
 import { AuditTimeline } from "../components/audit-timeline";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TERMINAL = ["APPROVED", "REJECTED", "WITHDRAWN", "CANCELLED"];
 
@@ -102,7 +103,7 @@ export default function InstanceDetail() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
             <Loader2 className="size-6 animate-spin text-primary" />
@@ -184,7 +185,7 @@ export default function InstanceDetail() {
             </Section>
           </div>
         )}
-      </main>
+      </PageShell>
 
       {/* Cancel dialog */}
       <Dialog open={cancelOpen} onOpenChange={(v) => !v && setCancelOpen(false)}>

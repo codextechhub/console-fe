@@ -51,6 +51,7 @@ import { baseApi } from "@/redux/services/base-api";
 import { useAppDispatch } from "@/redux/store";
 import { routesPath } from "@/routes/routes-path";
 import { todayISO } from "@/utils/posting-window";
+import { PageShell } from "@/components/layout/page-shell";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
@@ -119,12 +120,12 @@ export default function BankingPage() {
   ];
 
   if (!entity) {
-    return <FinanceShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" /></main></FinanceShell>;
+    return <FinanceShell><PageShell><EmptyState title="Select an entity" /></PageShell></FinanceShell>;
   }
 
   return (
     <FinanceShell>
-      <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-1.5">
@@ -157,7 +158,7 @@ export default function BankingPage() {
           emptyTitle={search ? "No matching accounts" : "No bank accounts"}
           emptyMessage={search ? "Try a different search." : "Add a bank account to import statements and reconcile."}
         />
-      </main>
+      </PageShell>
 
       <BankAccountDrawer account={selected} entity={entity} currency={currency} onClose={() => setSelected(null)} />
       <CreateBankAccountModal open={creating} onClose={() => setCreating(false)} entity={entity} />

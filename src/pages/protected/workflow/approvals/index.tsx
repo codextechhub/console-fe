@@ -12,6 +12,7 @@ import { useFilterParam } from "@/hooks/use-filter-param";
 import { useUserDirectory } from "../components/use-user-directory";
 import { DocumentRef, InitialsAvatar } from "../components/workflow-ui";
 import { humanizeDocumentType } from "../components/workflow-format";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function PendingApprovals() {
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ export default function PendingApprovals() {
 
   return (
     <>
-      <main className="px-4.5 py-6 text-black-01">
+      <PageShell className="text-black-01">
         <div className="grid grid-cols-1 lg:grid-cols-[230px_1fr] gap-6">
           {/* ── Filter rail ─────────────────────────────────────────────── */}
           <aside data-guide="workflow-approvals.filters" className="space-y-5">
@@ -156,7 +157,7 @@ export default function PendingApprovals() {
             )}
           </section>
         </div>
-      </main>
+      </PageShell>
     </>
   );
 }

@@ -3,6 +3,7 @@ import { useLocation, useSearchParams } from "react-router";
 import InvitesTab from "./tabs/invites";
 import MembersTab from "./tabs/members";
 import { routesPath } from "@/routes/routes-path";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function TeamManagement() {
   const [searchParams] = useSearchParams();
@@ -21,15 +22,13 @@ export default function TeamManagement() {
 
   return (
     <>
-      {/* `grid` without `grid-cols-1 min-w-0` is what pushed this page off the
-          right of the screen. An implicit grid column is sized to its
-          min-content, and the widest thing here is a nowrap table, so the
-          column grew to the table's natural width and the whole page scrolled
-          sideways with it - 133px over at 1200 and 507px over at 820.
-          `grid-cols-1` is `minmax(0, 1fr)`, which removes that floor and makes
-          the table scroll inside its own box instead. Every other grid main in
-          the app already carries both; this one had the grid and neither. */}
-      <main className="grid min-w-0 grid-cols-1 px-4.5 py-6 space-y-5 text-black-01">
+      {/* This page is where the missing guard was found: it had a bare `grid`,
+          whose implicit column is sized to its min-content, so a nowrap table
+          grew the column past the viewport and the whole page scrolled
+          sideways. PageShell's `grid` prop cannot be asked for without
+          `grid-cols-1 min-w-0`, so the shape is now unreachable rather than
+          merely corrected here. */}
+      <PageShell className="space-y-5 text-black-01" grid>
         <Tabs tabs={tabList} tabKey="tab" />
 
         {/* Distinct keys so switching Members↔Drafts remounts MembersTab - its
@@ -41,7 +40,7 @@ export default function TeamManagement() {
         ) : (
           <MembersTab key="members" scope={scope} />
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

@@ -41,6 +41,7 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PageShell } from "@/components/layout/page-shell";
 
 const TABLE_HEADERS = ["User", "Role", "Status", "Assigned By", "Assigned", "Revoked", "Action"];
 
@@ -543,7 +544,7 @@ export default function PlatformUserAssignments() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-semibold font-mont text-gray-01">Platform User Role Assignments</p>
@@ -650,7 +651,7 @@ export default function PlatformUserAssignments() {
             onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
           />
         )}
-      </main>
+      </PageShell>
 
       <AssignRoleSheet
         key={changeItem?.id ?? "assign-role"}

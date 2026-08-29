@@ -41,6 +41,7 @@ import type {
   ExportDefinitionListItem,
 } from "@/redux/services/dashboard/exports-types";
 import { formatDay } from "./format";
+import { PageShell } from "@/components/layout/page-shell";
 
 const NUM = "font-geist-mono tabular-nums";
 
@@ -233,7 +234,7 @@ export default function SavedExportsPage() {
   ];
 
   return (
-    <main className="min-w-0 px-4.5 py-6 space-y-5 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <div className="flex flex-wrap items-center justify-between gap-3" data-guide="data-exports.heading">
         <div>
           <p className="font-semibold font-mont text-gray-01">Exports</p>
@@ -323,6 +324,6 @@ export default function SavedExportsPage() {
         loading={archiving}
         onConfirm={onArchive}
       />
-    </main>
+    </PageShell>
   );
 }

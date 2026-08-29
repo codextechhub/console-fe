@@ -10,6 +10,7 @@ import { selectPermissions } from "@/redux/features/auth/auth-slice";
 import { useAppSelector } from "@/redux/store";
 import { useRecordGuideAnalyticsMutation } from "@/redux/services/guide-analytics-api";
 import { routesPath } from "@/routes/routes-path";
+import { PageShell } from "@/components/layout/page-shell";
 
 const GUIDE_RECORDS: readonly GuideRecord[] = GUIDE_REGISTRY;
 const GUIDE_ARTICLES = new Map(
@@ -54,7 +55,7 @@ export default function GuideArticlePage() {
   const related = GUIDE_RECORDS.filter((candidate) => guide.relatedGuideIds?.includes(candidate.id) && canDiscoverGuide(candidate, permissions));
 
   return (
-    <main className="grid min-w-0 grid-cols-1 gap-6 px-4.5 py-6 text-black-01 sm:px-6 lg:grid-cols-[minmax(0,1fr)_15rem] lg:px-8 xl:grid-cols-[minmax(0,1fr)_17rem]">
+    <PageShell className="gap-6 text-black-01 sm:px-6 lg:grid-cols-[minmax(0,1fr)_15rem] lg:px-8 xl:grid-cols-[minmax(0,1fr)_17rem]" grid>
       <article className="min-w-0">
         <Link to={routesPath.PROTECTED.SUPPORT.GUIDES} className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-01 hover:text-primary"><ArrowLeft className="size-3.5" /> All guides</Link>
         <header className="mt-4 rounded-3xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
@@ -106,7 +107,7 @@ export default function GuideArticlePage() {
           <Button asChild variant="outline" size="sm" className="mt-4 w-full"><Link to={routesPath.PROTECTED.SUPPORT.GUIDES}>Browse guides <ArrowRight className="size-3.5" /></Link></Button>
         </nav>
       </aside>
-    </main>
+    </PageShell>
   );
 }
 

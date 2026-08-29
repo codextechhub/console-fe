@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useGetTeamLoadQuery } from "@/redux/services/dashboard/workflow-api";
 import { humanizeDocumentType } from "../components/workflow-format";
+import { PageShell } from "@/components/layout/page-shell";
 
 export default function TeamLoad() {
   const { data, isLoading, isFetching, refetch } = useGetTeamLoadQuery(undefined, {
@@ -26,7 +27,7 @@ export default function TeamLoad() {
 
   return (
     <>
-      <main className="px-4.5 py-6 space-y-5 text-black-01">
+      <PageShell className="space-y-5 text-black-01">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="font-semibold font-mont text-gray-01">Active Approvals by Stage</p>
@@ -92,7 +93,7 @@ export default function TeamLoad() {
             })}
           </div>
         )}
-      </main>
+      </PageShell>
     </>
   );
 }

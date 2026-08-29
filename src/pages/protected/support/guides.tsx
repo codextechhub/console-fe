@@ -42,6 +42,7 @@ import { routesPath } from "@/routes/routes-path";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { useRecordGuideAnalyticsMutation } from "@/redux/services/guide-analytics-api";
+import { PageShell } from "@/components/layout/page-shell";
 
 const CATEGORY_ICONS: Record<GuideCategoryId, React.ElementType> = {
   "getting-started": Compass,
@@ -148,7 +149,7 @@ export default function HowToGuides() {
   };
 
   return (
-    <main className="grid min-w-0 grid-cols-1 gap-8 px-4.5 py-6 text-black-01 sm:px-6 lg:px-8">
+    <PageShell className="gap-8 text-black-01 sm:px-6 lg:px-8" grid>
       <section className="relative z-10 rounded-3xl border border-primary/10 bg-gradient-to-br from-primary/[0.09] via-white to-emerald-50/70 px-5 py-8 shadow-[0_24px_70px_rgba(15,23,42,.06)] sm:px-8 sm:py-10 lg:px-12">
         <div className="pointer-events-none absolute right-0 top-0 size-40 rounded-full bg-primary/10 blur-3xl sm:size-56" />
         <div className="relative max-w-3xl">
@@ -360,7 +361,7 @@ export default function HowToGuides() {
           <Button asChild variant="white" className="w-full shrink-0 sm:w-auto"><Link to={routesPath.PROTECTED.SUPPORT.GUIDE_COVERAGE}>View coverage</Link></Button>
         </section>
       )}
-    </main>
+    </PageShell>
   );
 }
 

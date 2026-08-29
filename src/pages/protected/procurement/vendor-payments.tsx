@@ -44,6 +44,7 @@ import { formatMoney } from "@/utils/money";
 import { ActivityFeed } from "./activity-feed";
 import { DocumentAttachments } from "./document-attachments";
 import { sourceDocumentIdFromParams } from "@/lib/source-document-route";
+import { PageShell } from "@/components/layout/page-shell";
 
 const DETAIL_TABS = [
   ["overview", "Overview", FileText], ["invoices", "Invoices", ListChecks],
@@ -77,7 +78,7 @@ export default function VendorPaymentsPage() {
   const { data, isLoading, isFetching, isError, error, refetch } = useGetVendorPaymentsQuery(
     { entity: entity!, page }, { skip: !entity },
   );
-  if (!entity) return <ProcurementShell><main className="px-4.5 py-6"><EmptyState title="Select an entity" message="Choose an entity to view vendor payments." /></main></ProcurementShell>;
+  if (!entity) return <ProcurementShell><PageShell><EmptyState title="Select an entity" message="Choose an entity to view vendor payments." /></PageShell></ProcurementShell>;
 
   const rows = toArray(data?.data);
   const pg = data?.pagination;
@@ -93,10 +94,10 @@ export default function VendorPaymentsPage() {
   ];
 
   return <ProcurementShell>
-    <main className="min-w-0 space-y-5 px-4.5 py-6 text-black-01">
+    <PageShell className="space-y-5 text-black-01">
       <header data-guide="procurement-vendor-payments.heading" className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-1.5"><h1 className="font-mont text-lg font-semibold text-gray-01">Vendor Payments</h1><InfoHint ariaLabel="About vendor payments">Payments settle approved supplier invoices and post through Accounts Payable.</InfoHint></div><p className="mt-0.5 font-mont text-xs text-gray-05">Disbursements against approved and posted vendor invoices.</p></div><Can permission={P.PROC_CREATE_VENDOR_PAYMENT}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> New Payment</Button></Can></header>
       <section data-guide="procurement-vendor-payments.list">{isForbidden(error) ? <EmptyState title="Access restricted" message="You do not have permission to view vendor payments." /> : <DataTable columns={columns} rows={rows} rowKey={(payment) => payment.id} loading={isLoading || isFetching} error={isError} onRetry={refetch} onRowClick={(payment) => setSelectedId(payment.id)} page={pg?.currentPage} totalPages={pg?.totalPages} onPageChange={setPage} emptyTitle="No vendor payments" emptyMessage="Approved supplier disbursements will appear here." />}</section>
-    </main>
+    </PageShell>
     <PaymentDrawer id={selectedId} entity={entity} currency={currency} onClose={() => setSelectedId(null)} />
     {creating && <PaymentForm key="new-payment" entity={entity} currency={currency} onClose={() => setCreating(false)} />}
   </ProcurementShell>;
