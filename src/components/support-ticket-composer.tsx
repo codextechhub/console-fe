@@ -274,7 +274,7 @@ export function SupportTicketComposer({
             </SheetDescription>
           </SheetHeader>
 
-          <ScrollArea className="min-h-0 flex-1">
+          <ScrollArea className="min-h-0 flex-auto">
             <div className="px-5 py-5">
               {pageContext?.guides.length ? (
                 <section aria-labelledby="page-guides-heading">
@@ -353,75 +353,80 @@ export function SupportTicketComposer({
 
       <Dialog open={ticketOpen} onOpenChange={setTicketOpen}>
         <DialogContent
-          className="left-3 right-3 top-auto bottom-3 max-h-[calc(100dvh-1.5rem)] w-auto max-w-none translate-x-0 translate-y-0 gap-0 overflow-y-auto overscroll-contain rounded-3xl border-white bg-white/95 p-0 shadow-[0_24px_80px_rgba(15,23,42,.24),inset_0_1px_0_rgba(255,255,255,.98)] [backdrop-filter:blur(22px)_saturate(150%)] sm:bottom-auto sm:left-auto sm:right-6 sm:top-[72px] sm:h-auto sm:max-h-[calc(100dvh-96px)] sm:w-[430px] sm:max-w-[calc(100vw-3rem)]"
+          className="left-3 right-3 top-auto bottom-3 max-h-[calc(100dvh-1.5rem)] w-auto max-w-none translate-x-0 translate-y-0 gap-0 overscroll-contain rounded-3xl border-white bg-white/95 p-0 shadow-[0_24px_80px_rgba(15,23,42,.24),inset_0_1px_0_rgba(255,255,255,.98)] [backdrop-filter:blur(22px)_saturate(150%)] sm:bottom-auto sm:left-auto sm:right-6 sm:top-[72px] sm:h-auto sm:max-h-[calc(100dvh-96px)] sm:w-[430px] sm:max-w-[calc(100vw-3rem)] flex flex-col"
         >
           <div className="pointer-events-none absolute inset-x-3 top-1 h-12 rounded-[22px] bg-gradient-to-b from-white/90 to-transparent" />
-          {!created ? (
-            <>
-              <DialogHeader className="relative border-b border-white/80 px-5 pb-4 pt-5 pr-12 text-left">
-                <div className="mb-2 grid size-9 place-items-center rounded-xl border border-white bg-white/70 text-primary shadow-sm">
-                  <Headset className="size-4.5" />
-                </div>
-                <DialogTitle className="text-base">How can we help?</DialogTitle>
-                <DialogDescription className="text-xs">Create a ticket without leaving your work.</DialogDescription>
-              </DialogHeader>
-              <div className="relative px-5 py-4">
-                <CreateTicketForm
-                  draft={draft}
-                  setDraft={setDraft}
-                  files={files}
-                  setFiles={setFiles}
-                  onCancel={() => setTicketOpen(false)}
-                  context={ticketContext}
-                  onCreated={(ticket, failed) => {
-                    setCreated(ticket);
-                    setFailedFiles(failed);
-                  }}
-                />
-              </div>
-              {/* The guidance is still one click away, but it no longer stands
-                  between somebody and the ticket they came to raise. The count is
-                  shown because "3 guides" is a reason to look and a bare link is
-                  not. */}
-              <div className="relative flex items-center border-t border-white/80 px-5 py-3">
-                <button
-                  type="button"
-                  onClick={() => { setTicketOpen(false); setHelpOpen(true); }}
-                  className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-xs font-medium text-primary transition hover:bg-primary/[0.06] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
-                >
-                  <BookOpenText className="size-3.5" />
-                  {guideCount > 0
-                    ? `${guideCount} guide${guideCount === 1 ? "" : "s"} for this page`
-                    : "Guides for this page"}
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="relative px-6 py-8 text-center">
-              <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
-                <CheckCircle2 className="size-6" />
-              </div>
-              <DialogHeader className="mt-4 text-center">
-                <DialogTitle>Ticket created</DialogTitle>
-                <DialogDescription>
-                  {created.ticket_number} is now with the support team.
-                </DialogDescription>
-              </DialogHeader>
-              {failedFiles.length > 0 && (
-                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs text-amber-800">
-                  The ticket was created, but these files could not be uploaded: {failedFiles.join(", ")}.
+          <ScrollArea className="min-h-0 flex-auto">
+            <div className="flex flex-col gap-0">
+              {!created ? (
+                <>
+                  <DialogHeader className="relative border-b border-white/80 px-5 pb-4 pt-5 pr-12 text-left">
+                    <div className="mb-2 grid size-9 place-items-center rounded-xl border border-white bg-white/70 text-primary shadow-sm">
+                      <Headset className="size-4.5" />
+                    </div>
+                    <DialogTitle className="text-base">How can we help?</DialogTitle>
+                    <DialogDescription className="text-xs">Create a ticket without leaving your work.</DialogDescription>
+                  </DialogHeader>
+                  <div className="relative px-5 py-4">
+                    <CreateTicketForm
+                      draft={draft}
+                      setDraft={setDraft}
+                      files={files}
+                      setFiles={setFiles}
+                      onCancel={() => setTicketOpen(false)}
+                      context={ticketContext}
+                      onCreated={(ticket, failed) => {
+                        setCreated(ticket);
+                        setFailedFiles(failed);
+                      }}
+                    />
+                  </div>
+                  {/* The guidance is still one click away, but it no longer stands
+                      between somebody and the ticket they came to raise. The count is
+                      shown because "3 guides" is a reason to look and a bare link is
+                      not. */}
+                  <div className="relative flex items-center border-t border-white/80 px-5 py-3">
+                    <button
+                      type="button"
+                      onClick={() => { setTicketOpen(false); setHelpOpen(true); }}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-xs font-medium text-primary transition hover:bg-primary/[0.06] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
+                    >
+                      <BookOpenText className="size-3.5" />
+                      {guideCount > 0
+                        ? `${guideCount} guide${guideCount === 1 ? "" : "s"} for this page`
+                        : "Guides for this page"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="relative px-6 py-8 text-center">
+                  <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
+                    <CheckCircle2 className="size-6" />
+                  </div>
+                  <DialogHeader className="mt-4 text-center">
+                    <DialogTitle>Ticket created</DialogTitle>
+                    <DialogDescription>
+                      {created.ticket_number} is now with the support team.
+                    </DialogDescription>
+                  </DialogHeader>
+                  {failedFiles.length > 0 && (
+                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs text-amber-800">
+                      The ticket was created, but these files could not be uploaded: {failedFiles.join(", ")}.
+                    </div>
+                  )}
+                  <div className="mt-6 grid gap-2 sm:grid-cols-2">
+                    <Button variant="outline" size="sm" onClick={reset}>
+                      <Plus className="size-4" /> Create another
+                    </Button>
+                    <Button asChild size="sm" onClick={() => setTicketOpen(false)}>
+                      <Link to={routesPath.PROTECTED.SUPPORT.DETAIL(created.id)}>View ticket</Link>
+                    </Button>
+                  </div>
                 </div>
               )}
-              <div className="mt-6 grid gap-2 sm:grid-cols-2">
-                <Button variant="outline" size="sm" onClick={reset}>
-                  <Plus className="size-4" /> Create another
-                </Button>
-                <Button asChild size="sm" onClick={() => setTicketOpen(false)}>
-                  <Link to={routesPath.PROTECTED.SUPPORT.DETAIL(created.id)}>View ticket</Link>
-                </Button>
-              </div>
+
             </div>
-          )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </>

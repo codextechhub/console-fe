@@ -20,6 +20,7 @@ import type {
 } from "@/redux/services/procurement/procurement-types";
 import { toArray } from "@/components/finance-ui";
 import { formatMoney } from "@/utils/money";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { shortDate } from "./helpers";
 
 // ── Small presentational helpers (match the finance-ui drawer typography) ─────
@@ -76,42 +77,47 @@ export function CompareModal({ entity, currency, open, onClose }: { entity: stri
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="console-geist max-h-[92dvh] w-[95vw] overflow-y-auto sm:max-w-4xl">
-        <DialogHeader>
-          <DialogTitle className="font-mont text-base font-semibold text-black-01">Compare quotations</DialogTitle>
-          <DialogDescription className="font-mont text-sm text-gray-05">
-            Side-by-side of the bids received against one RFQ. Award the chosen quotation to raise its purchase order.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="console-geist max-h-[92dvh] w-[95vw] sm:max-w-4xl flex flex-col">
+        <ScrollArea className="min-h-0 flex-auto">
+          <div className="flex flex-col gap-4">
+            <DialogHeader>
+              <DialogTitle className="font-mont text-base font-semibold text-black-01">Compare quotations</DialogTitle>
+              <DialogDescription className="font-mont text-sm text-gray-05">
+                Side-by-side of the bids received against one RFQ. Award the chosen quotation to raise its purchase order.
+              </DialogDescription>
+            </DialogHeader>
 
-        {comparable.length === 0 ? (
-          <EmptyPanel>No RFQ has received a quotation yet.</EmptyPanel>
-        ) : (
-          <div className="space-y-4 py-1">
-            <div className="flex max-w-full flex-wrap gap-2">
-              {comparable.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => setRfqId(r.id)}
-                  className={cn(
-                    "rounded border px-3 py-1.5 font-mont text-xs font-medium whitespace-nowrap",
-                    selected === r.id ? "border-primary bg-primary/5 text-primary" : "border-gray-03 text-gray-05",
-                  )}
-                >
-                  {r.document_number}
-                  <span className="ml-1.5 text-gray-04">· {r.response_count} bid{r.response_count === 1 ? "" : "s"}</span>
-                </button>
-              ))}
+            {comparable.length === 0 ? (
+              <EmptyPanel>No RFQ has received a quotation yet.</EmptyPanel>
+            ) : (
+              <div className="space-y-4 py-1">
+                <div className="flex max-w-full flex-wrap gap-2">
+                  {comparable.map((r) => (
+                    <button
+                      key={r.id}
+                      onClick={() => setRfqId(r.id)}
+                      className={cn(
+                        "rounded border px-3 py-1.5 font-mont text-xs font-medium whitespace-nowrap",
+                        selected === r.id ? "border-primary bg-primary/5 text-primary" : "border-gray-03 text-gray-05",
+                      )}
+                    >
+                      {r.document_number}
+                      <span className="ml-1.5 text-gray-04">· {r.response_count} bid{r.response_count === 1 ? "" : "s"}</span>
+                    </button>
+                  ))}
+                </div>
+                {selected != null && <CompareMatrix key={selected} rfqId={selected} entity={entity} currency={currency} onAwarded={onClose} />}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2">
+              <button onClick={onClose} className="inline-flex items-center gap-1.5 rounded border border-gray-03 px-3 py-1.5 font-mont text-xs font-medium text-gray-05">
+                <X className="size-3.5" /> Close
+              </button>
             </div>
-            {selected != null && <CompareMatrix key={selected} rfqId={selected} entity={entity} currency={currency} onAwarded={onClose} />}
-          </div>
-        )}
 
-        <div className="flex justify-end pt-2">
-          <button onClick={onClose} className="inline-flex items-center gap-1.5 rounded border border-gray-03 px-3 py-1.5 font-mont text-xs font-medium text-gray-05">
-            <X className="size-3.5" /> Close
-          </button>
-        </div>
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

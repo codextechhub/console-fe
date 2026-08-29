@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ConfirmActionModalProps {
   open: boolean;
@@ -44,30 +45,35 @@ export function ConfirmActionModal({
 }: ConfirmActionModalProps) {
   return (
     <Dialog open={open} onOpenChange={(o) => !loading && onOpenChange(o)}>
-      <DialogContent className="console-geist max-h-[92dvh] gap-0 overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="font-mont text-base font-semibold text-black-01">{title}</DialogTitle>
-          {description ? (
-            <DialogDescription className="font-mont text-sm text-gray-05">{description}</DialogDescription>
-          ) : null}
-        </DialogHeader>
+      <DialogContent className="console-geist max-h-[92dvh] gap-0 sm:max-w-lg flex flex-col">
+        <ScrollArea className="min-h-0 flex-auto">
+          <div className="flex flex-col gap-0">
+            <DialogHeader>
+              <DialogTitle className="font-mont text-base font-semibold text-black-01">{title}</DialogTitle>
+              {description ? (
+                <DialogDescription className="font-mont text-sm text-gray-05">{description}</DialogDescription>
+              ) : null}
+            </DialogHeader>
 
-        {children ? <div className="my-4">{children}</div> : <div className="h-2" />}
+            {children ? <div className="my-4">{children}</div> : <div className="h-2" />}
 
-        <div className="flex items-center justify-end gap-2">
-          <Button variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
-            {cancelText}
-          </Button>
-          <Button
-            disabled={loading || confirmDisabled}
-            onClick={onConfirm}
-            className={cn(
-              destructive && "bg-error-01 text-white hover:bg-error-01/90 focus-visible:ring-error-01/20",
-            )}
-          >
-            {loading ? "Working…" : confirmText}
-          </Button>
-        </div>
+            <div className="flex items-center justify-end gap-2">
+              <Button variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>
+                {cancelText}
+              </Button>
+              <Button
+                disabled={loading || confirmDisabled}
+                onClick={onConfirm}
+                className={cn(
+                  destructive && "bg-error-01 text-white hover:bg-error-01/90 focus-visible:ring-error-01/20",
+                )}
+              >
+                {loading ? "Working…" : confirmText}
+              </Button>
+            </div>
+
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

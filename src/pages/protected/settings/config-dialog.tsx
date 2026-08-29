@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   useCreateCapabilityMutation,
   useCreateConfigDefinitionMutation,
@@ -138,115 +139,120 @@ export function ConfigDialog({
 
   return (
     <Dialog open onOpenChange={(v) => !v && close()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-        <DialogHeader>
-          <p className="text-xs text-gray-01">Platform settings</p>
-          <DialogTitle>{TITLES[mode]}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={submit} className="space-y-4">
-          {mode === "definition" && (
-            <>
-              <Field label="Key">
-                <Input
-                  required
-                  pattern="[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*"
-                  value={form.key}
-                  onChange={set("key")}
-                  placeholder="module.setting_name"
-                />
-              </Field>
-              <Field label="Label">
-                <Input required value={form.label} onChange={set("label")} />
-              </Field>
-              <Field label="Description">
-                <Textarea value={form.description} onChange={set("description")} />
-              </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Select
-                  label="Value type"
-                  value={form.value_type}
-                  onChange={set("value_type")}
-                  options={["STRING", "INTEGER", "DECIMAL", "BOOLEAN", "JSON", "CHOICE", "SECRET_REFERENCE"]}
-                />
-                <Select
-                  label="Sensitivity"
-                  value={form.sensitivity}
-                  onChange={set("sensitivity")}
-                  options={["PUBLIC", "INTERNAL", "SECRET_REFERENCE"]}
-                />
-              </div>
-              <Field label="Default value">
-                <Input value={form.default_value} onChange={set("default_value")} />
-              </Field>
-              <Field label="Allowed scopes (comma separated)">
-                <Input value={form.allowed_scopes} onChange={set("allowed_scopes")} />
-              </Field>
-            </>
-          )}
-
-          {mode === "value" && (
-            <>
-              {initial?.key ? (
-                // Opened from a settings row - the setting is already chosen.
-                <div>
-                  <p className="text-sm font-medium">{pickedDef?.label ?? initial.key}</p>
-                  {pickedDef?.description && (
-                    <p className="text-xs text-gray-01">{pickedDef.description}</p>
-                  )}
-                </div>
-              ) : (
-                <Select
-                  label="Setting"
-                  value={form.key}
-                  onChange={set("key")}
-                  options={(defs.data?.data ?? []).map((x) => x.key)}
-                />
+      <DialogContent className="max-h-[90vh] sm:max-w-xl flex flex-col">
+        <ScrollArea className="min-h-0 flex-auto">
+          <div className="flex flex-col gap-4">
+            <DialogHeader>
+              <p className="text-xs text-gray-01">Platform settings</p>
+              <DialogTitle>{TITLES[mode]}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={submit} className="space-y-4">
+              {mode === "definition" && (
+                <>
+                  <Field label="Key">
+                    <Input
+                      required
+                      pattern="[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*"
+                      value={form.key}
+                      onChange={set("key")}
+                      placeholder="module.setting_name"
+                    />
+                  </Field>
+                  <Field label="Label">
+                    <Input required value={form.label} onChange={set("label")} />
+                  </Field>
+                  <Field label="Description">
+                    <Textarea value={form.description} onChange={set("description")} />
+                  </Field>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Select
+                      label="Value type"
+                      value={form.value_type}
+                      onChange={set("value_type")}
+                      options={["STRING", "INTEGER", "DECIMAL", "BOOLEAN", "JSON", "CHOICE", "SECRET_REFERENCE"]}
+                    />
+                    <Select
+                      label="Sensitivity"
+                      value={form.sensitivity}
+                      onChange={set("sensitivity")}
+                      options={["PUBLIC", "INTERNAL", "SECRET_REFERENCE"]}
+                    />
+                  </div>
+                  <Field label="Default value">
+                    <Input value={form.default_value} onChange={set("default_value")} />
+                  </Field>
+                  <Field label="Allowed scopes (comma separated)">
+                    <Input value={form.allowed_scopes} onChange={set("allowed_scopes")} />
+                  </Field>
+                </>
               )}
-              <ValueInput valueType={pickedDef?.value_type} value={form.value} onChange={set("value")} />
-              <Field label="Reason">
-                <Input value={form.reason} onChange={set("reason")} />
-              </Field>
-            </>
-          )}
 
-          {mode === "capability" && (
-            <>
-              <Field label="Key">
-                <Input required value={form.key} onChange={set("key")} />
-              </Field>
-              <Field label="Label">
-                <Input required value={form.label} onChange={set("label")} />
-              </Field>
-              <Field label="Description">
-                <Textarea value={form.description} onChange={set("description")} />
-              </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Select label="Kind" value={form.kind} onChange={set("kind")} options={["MODULE", "FEATURE"]} />
-                <Select
-                  label="On by default"
-                  value={form.default_enabled}
-                  onChange={set("default_enabled")}
-                  options={["false", "true"]}
-                />
-              </div>
-              <Select
-                label="Requires a plan (entitlement)"
-                value={form.requires_entitlement}
-                onChange={set("requires_entitlement")}
-                options={["false", "true"]}
-              />
-            </>
-          )}
+              {mode === "value" && (
+                <>
+                  {initial?.key ? (
+                    // Opened from a settings row - the setting is already chosen.
+                    <div>
+                      <p className="text-sm font-medium">{pickedDef?.label ?? initial.key}</p>
+                      {pickedDef?.description && (
+                        <p className="text-xs text-gray-01">{pickedDef.description}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <Select
+                      label="Setting"
+                      value={form.key}
+                      onChange={set("key")}
+                      options={(defs.data?.data ?? []).map((x) => x.key)}
+                    />
+                  )}
+                  <ValueInput valueType={pickedDef?.value_type} value={form.value} onChange={set("value")} />
+                  <Field label="Reason">
+                    <Input value={form.reason} onChange={set("reason")} />
+                  </Field>
+                </>
+              )}
 
-          <DialogFooter className="gap-3">
-            <Button type="button" variant="white" size="sm" onClick={close}>
-              Cancel
-            </Button>
-            <Button type="submit" size="sm" disabled={busy}>
-              {busy ? "Saving…" : "Save"}
-            </Button>
-          </DialogFooter>
-        </form>
+              {mode === "capability" && (
+                <>
+                  <Field label="Key">
+                    <Input required value={form.key} onChange={set("key")} />
+                  </Field>
+                  <Field label="Label">
+                    <Input required value={form.label} onChange={set("label")} />
+                  </Field>
+                  <Field label="Description">
+                    <Textarea value={form.description} onChange={set("description")} />
+                  </Field>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Select label="Kind" value={form.kind} onChange={set("kind")} options={["MODULE", "FEATURE"]} />
+                    <Select
+                      label="On by default"
+                      value={form.default_enabled}
+                      onChange={set("default_enabled")}
+                      options={["false", "true"]}
+                    />
+                  </div>
+                  <Select
+                    label="Requires a plan (entitlement)"
+                    value={form.requires_entitlement}
+                    onChange={set("requires_entitlement")}
+                    options={["false", "true"]}
+                  />
+                </>
+              )}
+
+              <DialogFooter className="gap-3">
+                <Button type="button" variant="white" size="sm" onClick={close}>
+                  Cancel
+                </Button>
+                <Button type="submit" size="sm" disabled={busy}>
+                  {busy ? "Saving…" : "Save"}
+                </Button>
+              </DialogFooter>
+            </form>
+
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

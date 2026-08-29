@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { DetailDrawer } from "./detail-drawer";
 
 interface FormModalProps {
@@ -40,16 +41,21 @@ export function FormModal({
 }: FormModalProps) {
   return (
     <Dialog open={open} onOpenChange={(o) => !loading && onOpenChange(o)}>
-      <DialogContent className={`console-geist max-h-[92dvh] overflow-y-auto ${widthClass}`}>
-        <DialogHeader>
-          <DialogTitle className="font-mont text-base font-semibold text-black-01">{title}</DialogTitle>
-          {description ? <DialogDescription className="font-mont text-sm text-gray-05">{description}</DialogDescription> : null}
-        </DialogHeader>
-        <div className="space-y-3 py-2">{children}</div>
-        <div className="flex items-center justify-end gap-2">
-          <Button variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button disabled={loading || !canSubmit} onClick={onSubmit}>{loading ? "Saving…" : submitText}</Button>
-        </div>
+      <DialogContent className={`console-geist max-h-[92dvh] ${widthClass} flex flex-col`}>
+        <ScrollArea className="min-h-0 flex-auto">
+          <div className="flex flex-col gap-4">
+            <DialogHeader>
+              <DialogTitle className="font-mont text-base font-semibold text-black-01">{title}</DialogTitle>
+              {description ? <DialogDescription className="font-mont text-sm text-gray-05">{description}</DialogDescription> : null}
+            </DialogHeader>
+            <div className="space-y-3 py-2">{children}</div>
+            <div className="flex items-center justify-end gap-2">
+              <Button variant="outline" disabled={loading} onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button disabled={loading || !canSubmit} onClick={onSubmit}>{loading ? "Saving…" : submitText}</Button>
+            </div>
+
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
