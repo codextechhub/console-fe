@@ -19,6 +19,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { HealthStatus } from "@/redux/services/health-api";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Live-ish screens poll gently; paused while the tab is unfocused.
 export const HEALTH_POLL = { pollingInterval: 30_000, skipPollingIfUnfocused: true } as const;
@@ -221,19 +222,24 @@ export function DrawerFrame({
 }) {
   return (
     <Sheet open={open} onOpenChange={(next) => !next && onClose()}>
-      <SheetContent side="right" className="w-full gap-0 overflow-y-auto p-0 sm:max-w-[620px]" showCloseButton={false}>
-        <SheetHeader className="sticky top-0 z-10 flex-row items-start justify-between border-b bg-white px-6 py-5">
-          <div>
-            <SheetTitle className="font-mont text-lg text-black-01">{title}</SheetTitle>
-            <SheetDescription className="mt-1">{description}</SheetDescription>
+      <SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-[620px]" showCloseButton={false}>
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="flex flex-col gap-0">
+            <SheetHeader className="sticky top-0 z-10 flex-row items-start justify-between border-b bg-white px-6 py-5">
+              <div>
+                <SheetTitle className="font-mont text-lg text-black-01">{title}</SheetTitle>
+                <SheetDescription className="mt-1">{description}</SheetDescription>
+              </div>
+              <SheetClose asChild>
+                <button className="rounded-md p-2 text-gray-01 hover:bg-gray-50" aria-label="Close details">
+                  <X className="size-4" />
+                </button>
+              </SheetClose>
+            </SheetHeader>
+            <div className="space-y-5 p-6 text-black-01">{children}</div>
+
           </div>
-          <SheetClose asChild>
-            <button className="rounded-md p-2 text-gray-01 hover:bg-gray-50" aria-label="Close details">
-              <X className="size-4" />
-            </button>
-          </SheetClose>
-        </SheetHeader>
-        <div className="space-y-5 p-6 text-black-01">{children}</div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

@@ -40,6 +40,7 @@ import {
 } from "@/redux/services/tickets-api";
 import { isPrimaryShortcut } from "@/utils/keyboard-shortcuts";
 import { useDashboardTitle } from "@/components/layout/dashboard-header";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { FollowTicketControl } from "./follow-ticket-control";
 
 // Mirrors backend VALID_STATUS_TRANSITIONS (vs_tickets/constants.py).
@@ -601,24 +602,29 @@ export default function TicketDetail() {
           )}
 
           <Sheet open={showAudit} onOpenChange={setShowAudit}>
-            <SheetContent side="right" className="w-full overflow-y-auto p-6 sm:max-w-lg">
-              <SheetHeader className="p-0">
-                <SheetTitle>Audit history</SheetTitle>
-              </SheetHeader>
-              <div className="mt-6 space-y-5">
-                {audit.isLoading ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  audit.data?.data.map((a) => (
-                    <div className="border-l-2 border-primary/30 pl-4" key={a.id}>
-                      <p className="text-sm font-semibold">{a.summary}</p>
-                      <p className="text-xs text-gray-01">
-                        {a.actor?.name ?? "System"} · {new Date(a.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                  ))
-                )}
-              </div>
+            <SheetContent side="right" className="w-full p-6 sm:max-w-lg">
+              <ScrollArea className="min-h-0 flex-1">
+                <div className="flex flex-col gap-4">
+                  <SheetHeader className="p-0">
+                    <SheetTitle>Audit history</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 space-y-5">
+                    {audit.isLoading ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      audit.data?.data.map((a) => (
+                        <div className="border-l-2 border-primary/30 pl-4" key={a.id}>
+                          <p className="text-sm font-semibold">{a.summary}</p>
+                          <p className="text-xs text-gray-01">
+                            {a.actor?.name ?? "System"} · {new Date(a.created_at).toLocaleString()}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                </div>
+              </ScrollArea>
             </SheetContent>
           </Sheet>
         </div>

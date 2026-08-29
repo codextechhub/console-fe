@@ -115,6 +115,7 @@ import {
 } from "@/redux/services/config-api";
 import CustomTable from "@/components/custom/custom-table";
 import { UserAvatar } from "@/components/custom/user-avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { ConfigDialog } from "./config-dialog";
 
 const S = routesPath.PROTECTED.SETTINGS.INDEX;
@@ -1640,99 +1641,104 @@ function FeatureDetail({
 
   return (
     <Sheet open onOpenChange={(v) => !v && close()}>
-      <SheetContent side="right" className="w-full overflow-y-auto p-6 sm:max-w-lg">
-        <SheetHeader className="p-0">
-          <SheetTitle>{cap.label}</SheetTitle>
-        </SheetHeader>
+      <SheetContent side="right" className="w-full p-6 sm:max-w-lg">
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="flex flex-col gap-4">
+            <SheetHeader className="p-0">
+              <SheetTitle>{cap.label}</SheetTitle>
+            </SheetHeader>
 
-        <div className="mt-6 space-y-4 text-sm">
-          {cap.description && <p className="text-gray-600">{cap.description}</p>}
+            <div className="mt-6 space-y-4 text-sm">
+              {cap.description && <p className="text-gray-600">{cap.description}</p>}
 
-          <div className="rounded-lg border border-white-02 p-4">
-            <p className="font-mont text-xs font-semibold text-gray-01">HOW THIS RESOLVES</p>
-            <ul className="mt-2 space-y-1.5 text-xs leading-5 text-gray-600">
+              <div className="rounded-lg border border-white-02 p-4">
+                <p className="font-mont text-xs font-semibold text-gray-01">HOW THIS RESOLVES</p>
+                <ul className="mt-2 space-y-1.5 text-xs leading-5 text-gray-600">
+                  {deps.length > 0 && (
+                    <li>0. Needs {deps.map((d) => d.label).join(" and ")} switched on first - without that it stays off no matter what.</li>
+                  )}
+                  {cap.requires_entitlement ? (
+                    <>
+                      <li>1. In the plan → on. Not in the plan → off.</li>
+                      <li>2. A forced status (on/off) wins over the plan.</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>1. No plan needed - ships {cap.default_enabled ? "ON" : "OFF"} by default.</li>
+                      <li>2. A forced status (on/off) wins over the default.</li>
+                    </>
+                  )}
+                </ul>
+              </div>
+
+              {cap.requires_entitlement && canViewEntitlements ? (
+                <EntitlementScheduleEditor cap={cap} school={school} entitlement={entitlement} />
+              ) : null}
+
               {deps.length > 0 && (
-                <li>0. Needs {deps.map((d) => d.label).join(" and ")} switched on first - without that it stays off no matter what.</li>
+                <div className="rounded-lg border border-white-02 p-4">
+                  <p className="font-mont text-xs font-semibold text-gray-01">
+                    REQUIRES - {school ? "AT THIS SCHOOL" : "AT PLATFORM"}
+                  </p>
+                  <ul className="mt-2 space-y-2">
+                    {deps.map((d) => (
+                      <li key={d.label} className="flex items-center justify-between text-xs">
+                        <span className="font-medium">{d.label}</span>
+                        {d.on ? (
+                          <Badge variant="success" className="font-mont text-xs">On</Badge>
+                        ) : (
+                          <Badge variant="rejected" className="font-mont text-xs">Off - blocking</Badge>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
-              {cap.requires_entitlement ? (
-                <>
-                  <li>1. In the plan → on. Not in the plan → off.</li>
-                  <li>2. A forced status (on/off) wins over the plan.</li>
-                </>
-              ) : (
-                <>
-                  <li>1. No plan needed - ships {cap.default_enabled ? "ON" : "OFF"} by default.</li>
-                  <li>2. A forced status (on/off) wins over the default.</li>
-                </>
+
+              <div className="rounded-lg border border-white-02 p-4">
+                <p className="font-mont text-xs font-semibold text-gray-01">
+                  CURRENT RECORDS - {school ? "THIS SCHOOL" : "PLATFORM"}
+                </p>
+                <dl className="mt-2 space-y-3 text-xs">
+                  <div>
+                    <dt className="text-gray-01">Plan grant (entitlement)</dt>
+                    <dd className="mt-0.5 font-medium">
+                      {!canViewEntitlements
+                        ? "Protected by entitlement-view permission"
+                        : entitlement
+                        ? `${entitlement.state} · via ${entitlement.source} · updated ${new Date(entitlement.updated_at).toLocaleDateString()}`
+                        : "None recorded"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-01">Forced status (override)</dt>
+                    <dd className="mt-0.5 font-medium">
+                      {!canViewOverrides
+                        ? "Protected by override-view permission"
+                        : override && override.state !== "INHERIT"
+                        ? `${override.state === "ENABLED" ? "Forced on" : "Forced off"}${override.reason ? ` - “${override.reason}”` : ""} · updated ${new Date(override.updated_at).toLocaleDateString()}`
+                        : "None - follows the plan"}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="mt-3 text-[11px] text-gray-01">
+                  Full history lives in the Audit Trail tab.
+                </p>
+              </div>
+
+              {hasPermission(P.MANAGE_CAPABILITIES) && (
+                <ArchiveButton
+                  label={cap.label}
+                  onConfirm={() => {
+                    archiveCap({ key: cap.key, reason: "Archived from Settings console" });
+                    close();
+                  }}
+                />
               )}
-            </ul>
-          </div>
-
-          {cap.requires_entitlement && canViewEntitlements ? (
-            <EntitlementScheduleEditor cap={cap} school={school} entitlement={entitlement} />
-          ) : null}
-
-          {deps.length > 0 && (
-            <div className="rounded-lg border border-white-02 p-4">
-              <p className="font-mont text-xs font-semibold text-gray-01">
-                REQUIRES - {school ? "AT THIS SCHOOL" : "AT PLATFORM"}
-              </p>
-              <ul className="mt-2 space-y-2">
-                {deps.map((d) => (
-                  <li key={d.label} className="flex items-center justify-between text-xs">
-                    <span className="font-medium">{d.label}</span>
-                    {d.on ? (
-                      <Badge variant="success" className="font-mont text-xs">On</Badge>
-                    ) : (
-                      <Badge variant="rejected" className="font-mont text-xs">Off - blocking</Badge>
-                    )}
-                  </li>
-                ))}
-              </ul>
             </div>
-          )}
 
-          <div className="rounded-lg border border-white-02 p-4">
-            <p className="font-mont text-xs font-semibold text-gray-01">
-              CURRENT RECORDS - {school ? "THIS SCHOOL" : "PLATFORM"}
-            </p>
-            <dl className="mt-2 space-y-3 text-xs">
-              <div>
-                <dt className="text-gray-01">Plan grant (entitlement)</dt>
-                <dd className="mt-0.5 font-medium">
-                  {!canViewEntitlements
-                    ? "Protected by entitlement-view permission"
-                    : entitlement
-                    ? `${entitlement.state} · via ${entitlement.source} · updated ${new Date(entitlement.updated_at).toLocaleDateString()}`
-                    : "None recorded"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-gray-01">Forced status (override)</dt>
-                <dd className="mt-0.5 font-medium">
-                  {!canViewOverrides
-                    ? "Protected by override-view permission"
-                    : override && override.state !== "INHERIT"
-                    ? `${override.state === "ENABLED" ? "Forced on" : "Forced off"}${override.reason ? ` - “${override.reason}”` : ""} · updated ${new Date(override.updated_at).toLocaleDateString()}`
-                    : "None - follows the plan"}
-                </dd>
-              </div>
-            </dl>
-            <p className="mt-3 text-[11px] text-gray-01">
-              Full history lives in the Audit Trail tab.
-            </p>
           </div>
-
-          {hasPermission(P.MANAGE_CAPABILITIES) && (
-            <ArchiveButton
-              label={cap.label}
-              onConfirm={() => {
-                archiveCap({ key: cap.key, reason: "Archived from Settings console" });
-                close();
-              }}
-            />
-          )}
-        </div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );
@@ -2092,13 +2098,18 @@ function Audit() {
         </SheetContent>
       </Sheet>
       <Sheet open={Boolean(selected)} onOpenChange={(open) => { if (!open) setSelected(null); }}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
-          <SheetHeader className="border-b border-gray-03">
-            <SheetTitle>Configuration change detail</SheetTitle>
-          </SheetHeader>
-          {detail.isFetching ? <Busy /> : detail.data?.data ? <AuditDetail event={detail.data.data} /> : (
-            <div className="p-5 font-mont text-sm text-gray-05">This audit event could not be loaded.</div>
-          )}
+        <SheetContent className="w-full sm:max-w-xl">
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="flex flex-col gap-4">
+              <SheetHeader className="border-b border-gray-03">
+                <SheetTitle>Configuration change detail</SheetTitle>
+              </SheetHeader>
+              {detail.isFetching ? <Busy /> : detail.data?.data ? <AuditDetail event={detail.data.data} /> : (
+                <div className="p-5 font-mont text-sm text-gray-05">This audit event could not be loaded.</div>
+              )}
+
+            </div>
+          </ScrollArea>
         </SheetContent>
       </Sheet>
     </div>

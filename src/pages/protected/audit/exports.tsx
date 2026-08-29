@@ -25,6 +25,7 @@ import { routesPath } from "@/routes/routes-path";
 import { ActorCell } from "./components/audit-cells";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -136,146 +137,151 @@ function ExportDetailDrawer({
 
   return (
     <Sheet open={!!jobId} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-[560px] overflow-y-auto p-0">
-        <SheetTitle className="sr-only">Export job details</SheetTitle>
+      <SheetContent side="right" className="w-full sm:max-w-[560px] p-0">
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="flex flex-col gap-4">
+            <SheetTitle className="sr-only">Export job details</SheetTitle>
 
-        {/* Header */}
-        <div className="flex items-center justify-between border-b px-5 py-4">
-          <div>
-            <p className="font-semibold text-sm text-black-01">Export Job</p>
-            {job && (
-              <p className="text-[10px] text-gray-01 mt-0.5 font-mono">{job.id}</p>
-            )}
-          </div>
-          {job && (
-            <Badge
-              variant={STATUS_TONE[job.status] ?? "inactive"}
-              className={cn("text-[10px] uppercase", job.status === "EXPIRED" && "line-through")}
-            >
-              {job.status}
-            </Badge>
-          )}
-        </div>
-
-        {isLoading ? (
-          <div className="flex h-60 items-center justify-center">
-            <Loader2 className="size-5 animate-spin text-gray-400" />
-          </div>
-        ) : job ? (
-          <div className="px-5 py-5 space-y-5">
-
-            {/* Requested by card */}
-            <div className="rounded-md border bg-white p-4">
-              <p className="text-[10px] font-semibold font-mont text-gray-01 uppercase tracking-wide mb-3">Requested by</p>
-              <div className="flex items-center gap-3">
-                <ActorCell
-                  label={job.requested_by?.full_name || job.requested_by?.email || "System"}
-                  email={job.requested_by?.email}
-                  userId={job.requested_by?.id}
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium leading-snug truncate">
-                    {job.requested_by?.full_name || job.requested_by?.email || "System"}
-                  </p>
-                  {job.requested_by?.email && (
-                    <p className="text-[10px] text-gray-01 truncate">{job.requested_by.email}</p>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <div>
-                  <p className="text-[10px] text-gray-01">Format</p>
-                  <p className="text-xs font-medium mt-0.5">{job.export_format}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-01">Rows exported</p>
-                  <p className="text-xs font-medium mt-0.5">
-                    {job.row_count && job.row_count > 0 ? job.row_count.toLocaleString() : "-"}
-                  </p>
-                </div>
-                {job.file_name && (
-                  <div className="col-span-2">
-                    <p className="text-[10px] text-gray-01">File</p>
-                    <p className="text-xs font-mono mt-0.5 break-all">{job.file_name}</p>
-                  </div>
-                )}
-                {job.expires_at && isCompleted && (
-                  <div>
-                    <p className="text-[10px] text-gray-01">Expires in</p>
-                    <CountdownCell iso={job.expires_at} />
-                  </div>
+            {/* Header */}
+            <div className="flex items-center justify-between border-b px-5 py-4">
+              <div>
+                <p className="font-semibold text-sm text-black-01">Export Job</p>
+                {job && (
+                  <p className="text-[10px] text-gray-01 mt-0.5 font-mono">{job.id}</p>
                 )}
               </div>
-            </div>
-
-            {/* Filter payload */}
-            <div className="rounded-md border bg-white p-4">
-              <p className="text-[10px] font-semibold font-mont text-gray-01 uppercase tracking-wide mb-3">Applied filters</p>
-              <FilterSummary payload={job.filter_payload ?? null} />
-            </div>
-
-            {/* Failure banner */}
-            {isFailed && job.failure_reason && (
-              <div className="rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3 flex items-start gap-2">
-                <XCircle className="size-4 text-destructive shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs font-medium text-destructive">Export failed</p>
-                  <p className="text-[10px] text-destructive/80 mt-0.5">{job.failure_reason}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Timeline */}
-            <div className="rounded-md border bg-white p-4">
-              <p className="text-[10px] font-semibold font-mont text-gray-01 uppercase tracking-wide mb-4">Timeline</p>
-              <div className="space-y-4">
-                <TimelineStep
-                  icon={Circle}
-                  label="Requested"
-                  time={job.requested_at}
-                  done
-                />
-                <TimelineStep
-                  icon={isRunning ? Loader2 : Circle}
-                  label="Processing started"
-                  time={job.started_at}
-                  done={!!job.started_at && !isRunning}
-                  active={isRunning}
-                />
-                <TimelineStep
-                  icon={isCompleted ? CheckCircle2 : isFailed ? XCircle : Circle}
-                  label={isCompleted ? "Completed" : isFailed ? "Failed" : "Completed"}
-                  time={job.completed_at}
-                  done={isCompleted}
-                  active={isFailed}
-                />
-              </div>
-            </div>
-
-            {/* Footer actions */}
-            <div className="flex gap-3 pt-1">
-              {canDownload && (
-                <Button
-                  size="sm"
-                  onClick={() => { onClose(); downloadExport(job); }}
+              {job && (
+                <Badge
+                  variant={STATUS_TONE[job.status] ?? "inactive"}
+                  className={cn("text-[10px] uppercase", job.status === "EXPIRED" && "line-through")}
                 >
-                  <Download className="size-3.5" /> Download CSV
-                </Button>
+                  {job.status}
+                </Badge>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => { onClose(); onRerun(); }}
-              >
-                Re-run with same filters
-              </Button>
             </div>
+
+            {isLoading ? (
+              <div className="flex h-60 items-center justify-center">
+                <Loader2 className="size-5 animate-spin text-gray-400" />
+              </div>
+            ) : job ? (
+              <div className="px-5 py-5 space-y-5">
+
+                {/* Requested by card */}
+                <div className="rounded-md border bg-white p-4">
+                  <p className="text-[10px] font-semibold font-mont text-gray-01 uppercase tracking-wide mb-3">Requested by</p>
+                  <div className="flex items-center gap-3">
+                    <ActorCell
+                      label={job.requested_by?.full_name || job.requested_by?.email || "System"}
+                      email={job.requested_by?.email}
+                      userId={job.requested_by?.id}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium leading-snug truncate">
+                        {job.requested_by?.full_name || job.requested_by?.email || "System"}
+                      </p>
+                      {job.requested_by?.email && (
+                        <p className="text-[10px] text-gray-01 truncate">{job.requested_by.email}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <div>
+                      <p className="text-[10px] text-gray-01">Format</p>
+                      <p className="text-xs font-medium mt-0.5">{job.export_format}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-01">Rows exported</p>
+                      <p className="text-xs font-medium mt-0.5">
+                        {job.row_count && job.row_count > 0 ? job.row_count.toLocaleString() : "-"}
+                      </p>
+                    </div>
+                    {job.file_name && (
+                      <div className="col-span-2">
+                        <p className="text-[10px] text-gray-01">File</p>
+                        <p className="text-xs font-mono mt-0.5 break-all">{job.file_name}</p>
+                      </div>
+                    )}
+                    {job.expires_at && isCompleted && (
+                      <div>
+                        <p className="text-[10px] text-gray-01">Expires in</p>
+                        <CountdownCell iso={job.expires_at} />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Filter payload */}
+                <div className="rounded-md border bg-white p-4">
+                  <p className="text-[10px] font-semibold font-mont text-gray-01 uppercase tracking-wide mb-3">Applied filters</p>
+                  <FilterSummary payload={job.filter_payload ?? null} />
+                </div>
+
+                {/* Failure banner */}
+                {isFailed && job.failure_reason && (
+                  <div className="rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3 flex items-start gap-2">
+                    <XCircle className="size-4 text-destructive shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-medium text-destructive">Export failed</p>
+                      <p className="text-[10px] text-destructive/80 mt-0.5">{job.failure_reason}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Timeline */}
+                <div className="rounded-md border bg-white p-4">
+                  <p className="text-[10px] font-semibold font-mont text-gray-01 uppercase tracking-wide mb-4">Timeline</p>
+                  <div className="space-y-4">
+                    <TimelineStep
+                      icon={Circle}
+                      label="Requested"
+                      time={job.requested_at}
+                      done
+                    />
+                    <TimelineStep
+                      icon={isRunning ? Loader2 : Circle}
+                      label="Processing started"
+                      time={job.started_at}
+                      done={!!job.started_at && !isRunning}
+                      active={isRunning}
+                    />
+                    <TimelineStep
+                      icon={isCompleted ? CheckCircle2 : isFailed ? XCircle : Circle}
+                      label={isCompleted ? "Completed" : isFailed ? "Failed" : "Completed"}
+                      time={job.completed_at}
+                      done={isCompleted}
+                      active={isFailed}
+                    />
+                  </div>
+                </div>
+
+                {/* Footer actions */}
+                <div className="flex gap-3 pt-1">
+                  {canDownload && (
+                    <Button
+                      size="sm"
+                      onClick={() => { onClose(); downloadExport(job); }}
+                    >
+                      <Download className="size-3.5" /> Download CSV
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { onClose(); onRerun(); }}
+                  >
+                    Re-run with same filters
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex h-40 items-center justify-center">
+                <p className="text-xs text-gray-01">Failed to load export details.</p>
+              </div>
+            )}
+
           </div>
-        ) : (
-          <div className="flex h-40 items-center justify-center">
-            <p className="text-xs text-gray-01">Failed to load export details.</p>
-          </div>
-        )}
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

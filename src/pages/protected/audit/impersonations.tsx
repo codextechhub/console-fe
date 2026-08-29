@@ -20,6 +20,7 @@ import { P } from "@/permissions";
 import type { ImpersonationSession } from "@/redux/services/dashboard/security-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // ── Countdown ─────────────────────────────────────────────────────────────────
 
@@ -63,181 +64,186 @@ function ImpersonationDetailDrawer({
 
   return (
     <Sheet open={!!session} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-[680px] overflow-y-auto p-0">
-        <SheetTitle className="sr-only">Proxy session details</SheetTitle>
-        {session && (
-          <>
-            {/* Drawer header */}
-            <div className="px-5 pt-5 pb-4 border-b space-y-1">
-              <div className="flex items-center gap-2">
-                {session.status === "ACTIVE" ? (
-                  <>
-                    <span className="size-1.5 rounded-full bg-destructive shrink-0" />
-                    <Badge variant="suspended" className="text-[10px] uppercase">Active</Badge>
-                    <span className="text-gray-01 text-xs">·</span>
-                    <Countdown iso={session.ends_at} className="text-xs font-mono text-destructive" />
-                  </>
-                ) : (
-                  <Badge variant="inactive" className="text-[10px] uppercase">
-                    {session.status === "EXPIRED" ? "Expired" : "Ended"}
-                  </Badge>
-                )}
-                <span className="text-gray-01 text-xs">·</span>
-                <span className="font-mono text-[10px] text-gray-01 truncate">#{session.id}</span>
-              </div>
-              <p className="font-semibold font-mont text-sm">Proxy session</p>
-            </div>
-
-            <div className="px-5 py-4 space-y-4">
-              {/* Impersonator → Target */}
-              {/* Phone: Proxier stacks above Target (arrow turns down); sm+: side by side. */}
-              <div className="grid grid-cols-1 gap-2 items-center sm:grid-cols-[1fr_32px_1fr]">
-                <div className="rounded-md border bg-gray-50 p-3 space-y-2">
-                  <p className="text-[10px] font-semibold uppercase text-gray-01">Proxier</p>
-                  <div className="flex items-center gap-2.5">
-                    <ActorCell label={session.staff_email} email={session.staff_email} userId={session.staff_user} />
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium truncate">{session.staff_email}</p>
-                      <p className="text-[10px] text-gray-01">{session.staff_type_label}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex justify-center text-gray-01">
-                  <ArrowRight className="size-4 rotate-90 sm:rotate-0" />
-                </div>
-                <div className="rounded-md border bg-gray-50 p-3 space-y-2">
-                  <p className="text-[10px] font-semibold uppercase text-gray-01">Target</p>
-                  <div className="flex items-center gap-2.5">
-                    <ActorCell label={session.target_email} email={session.target_email} userId={session.target_user} />
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium truncate">{session.target_email}</p>
-                      {/* The role, not the tenant alone: a reviewer has to be able
-                          to tell a stepped-into principal from a Year 4 teacher,
-                          and both sit at the same school. */}
-                      <p className="text-[10px] text-gray-01 truncate">
-                        {[session.target_type_label, session.tenant_name].filter(Boolean).join(" · ")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Justification */}
-              <div className="rounded-md border bg-white p-3 space-y-1.5">
-                <p className="text-[10px] font-semibold uppercase text-gray-01">Justification</p>
-                <p className="text-sm text-black-01">{session.justification}</p>
-              </div>
-
-              {/* Stat strip */}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {[
-                  { label: "Started", value: formatRelativeDate(session.started_at) },
-                  {
-                    label: session.status === "ACTIVE" ? "Ends" : "Ended",
-                    value: session.status === "ACTIVE"
-                      ? null
-                      : session.ended_at
-                        ? formatRelativeDate(session.ended_at)
-                        : "-",
-                    countdown: session.status === "ACTIVE" ? session.ends_at : null,
-                  },
-                  { label: "Actions captured", value: eventsLoading ? "…" : String(events.length) },
-                  // The backend ImpersonationSessionSerializer has no
-                  // end_reason field - status is the closest real signal.
-                  {
-                    label: "Status",
-                    value: session.status === "ACTIVE" ? "Active"
-                      : session.status === "EXPIRED" ? "Expired"
-                      : "Ended",
-                  },
-                ].map(({ label, value, countdown }) => (
-                  <div key={label} className="rounded-md border bg-gray-50 p-2.5 space-y-1">
-                    <p className="text-[10px] font-semibold uppercase text-gray-01">{label}</p>
-                    {countdown ? (
-                      <Countdown iso={countdown} className="text-xs font-medium" />
+      <SheetContent side="right" className="w-full sm:max-w-[680px] p-0">
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="flex flex-col gap-4">
+            <SheetTitle className="sr-only">Proxy session details</SheetTitle>
+            {session && (
+              <>
+                {/* Drawer header */}
+                <div className="px-5 pt-5 pb-4 border-b space-y-1">
+                  <div className="flex items-center gap-2">
+                    {session.status === "ACTIVE" ? (
+                      <>
+                        <span className="size-1.5 rounded-full bg-destructive shrink-0" />
+                        <Badge variant="suspended" className="text-[10px] uppercase">Active</Badge>
+                        <span className="text-gray-01 text-xs">·</span>
+                        <Countdown iso={session.ends_at} className="text-xs font-mono text-destructive" />
+                      </>
                     ) : (
-                      <p className="text-xs font-medium">{value}</p>
+                      <Badge variant="inactive" className="text-[10px] uppercase">
+                        {session.status === "EXPIRED" ? "Expired" : "Ended"}
+                      </Badge>
                     )}
+                    <span className="text-gray-01 text-xs">·</span>
+                    <span className="font-mono text-[10px] text-gray-01 truncate">#{session.id}</span>
                   </div>
-                ))}
-              </div>
+                  <p className="font-semibold font-mont text-sm">Proxy session</p>
+                </div>
 
-              {/* Read trail - what the proxier viewed, deduped by endpoint */}
-              <div>
-                <p className="text-xs font-semibold font-mont mb-2">Data accessed during session</p>
-                {(session.access_log ?? []).length === 0 ? (
-                  <div className="flex h-16 items-center justify-center text-xs text-gray-01 border rounded-md bg-gray-50">
-                    No reads recorded for this session.
-                  </div>
-                ) : (
-                  <div className="divide-y border rounded-md overflow-hidden max-h-56 overflow-y-auto">
-                    {[...session.access_log]
-                      .sort((a, b) => b.last_at.localeCompare(a.last_at))
-                      .map((entry) => (
-                        <div key={entry.path} className="flex items-center gap-3 px-3 py-2 bg-white hover:bg-gray-50">
-                          <p className="flex-1 min-w-0 truncate font-mono text-[11px] text-black-01">{entry.path}</p>
-                          <span className="shrink-0 text-[10px] text-gray-01 tabular-nums">
-                            ×{entry.count} · {formatRelativeDate(entry.last_at)}
-                          </span>
+                <div className="px-5 py-4 space-y-4">
+                  {/* Impersonator → Target */}
+                  {/* Phone: Proxier stacks above Target (arrow turns down); sm+: side by side. */}
+                  <div className="grid grid-cols-1 gap-2 items-center sm:grid-cols-[1fr_32px_1fr]">
+                    <div className="rounded-md border bg-gray-50 p-3 space-y-2">
+                      <p className="text-[10px] font-semibold uppercase text-gray-01">Proxier</p>
+                      <div className="flex items-center gap-2.5">
+                        <ActorCell label={session.staff_email} email={session.staff_email} userId={session.staff_user} />
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium truncate">{session.staff_email}</p>
+                          <p className="text-[10px] text-gray-01">{session.staff_type_label}</p>
                         </div>
-                      ))}
+                      </div>
+                    </div>
+                    <div className="flex justify-center text-gray-01">
+                      <ArrowRight className="size-4 rotate-90 sm:rotate-0" />
+                    </div>
+                    <div className="rounded-md border bg-gray-50 p-3 space-y-2">
+                      <p className="text-[10px] font-semibold uppercase text-gray-01">Target</p>
+                      <div className="flex items-center gap-2.5">
+                        <ActorCell label={session.target_email} email={session.target_email} userId={session.target_user} />
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium truncate">{session.target_email}</p>
+                          {/* The role, not the tenant alone: a reviewer has to be able
+                              to tell a stepped-into principal from a Year 4 teacher,
+                              and both sit at the same school. */}
+                          <p className="text-[10px] text-gray-01 truncate">
+                            {[session.target_type_label, session.tenant_name].filter(Boolean).join(" · ")}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
 
-              {/* Actions timeline */}
-              <div>
-                <p className="text-xs font-semibold font-mont mb-2">Actions taken during session</p>
-                {eventsLoading ? (
-                  <div className="flex h-24 items-center justify-center">
-                    <div className="loader" />
+                  {/* Justification */}
+                  <div className="rounded-md border bg-white p-3 space-y-1.5">
+                    <p className="text-[10px] font-semibold uppercase text-gray-01">Justification</p>
+                    <p className="text-sm text-black-01">{session.justification}</p>
                   </div>
-                ) : events.length === 0 ? (
-                  <div className="flex h-24 items-center justify-center text-xs text-gray-01 border rounded-md bg-gray-50">
-                    No meaningful audited actions recorded for this session.
-                  </div>
-                ) : (
-                  <div className="divide-y border rounded-md overflow-hidden">
-                    {events.map((e) => (
-                      <div key={e.id} className="flex items-start gap-3 px-3 py-2.5 bg-white hover:bg-gray-50">
-                        <span
-                          className={cn(
-                            "size-1.5 rounded-full shrink-0 mt-1.5",
-                            e.severity === "CRITICAL" ? "bg-destructive"
-                              : e.severity === "WARNING" ? "bg-yellow-01"
-                              : "bg-blue-400",
-                          )}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            <span className="text-xs font-medium">{friendlyAction(e.action_type)}</span>
-                            <span className="text-[10px] text-gray-01 uppercase bg-gray-100 px-1 rounded">{e.module_key}</span>
-                          </div>
-                          {e.summary && <p className="text-[10px] text-gray-01 truncate">{e.summary}</p>}
-                        </div>
-                        <span className="text-[10px] text-gray-01 shrink-0">{formatRelativeDate(e.event_at)}</span>
+
+                  {/* Stat strip */}
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {[
+                      { label: "Started", value: formatRelativeDate(session.started_at) },
+                      {
+                        label: session.status === "ACTIVE" ? "Ends" : "Ended",
+                        value: session.status === "ACTIVE"
+                          ? null
+                          : session.ended_at
+                            ? formatRelativeDate(session.ended_at)
+                            : "-",
+                        countdown: session.status === "ACTIVE" ? session.ends_at : null,
+                      },
+                      { label: "Actions captured", value: eventsLoading ? "…" : String(events.length) },
+                      // The backend ImpersonationSessionSerializer has no
+                      // end_reason field - status is the closest real signal.
+                      {
+                        label: "Status",
+                        value: session.status === "ACTIVE" ? "Active"
+                          : session.status === "EXPIRED" ? "Expired"
+                          : "Ended",
+                      },
+                    ].map(({ label, value, countdown }) => (
+                      <div key={label} className="rounded-md border bg-gray-50 p-2.5 space-y-1">
+                        <p className="text-[10px] font-semibold uppercase text-gray-01">{label}</p>
+                        {countdown ? (
+                          <Countdown iso={countdown} className="text-xs font-medium" />
+                        ) : (
+                          <p className="text-xs font-medium">{value}</p>
+                        )}
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* Footer */}
-            {session.status === "ACTIVE" && (
-              <div className="px-5 py-3 border-t flex justify-end">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  disabled={ending}
-                  onClick={() => onEnd(session)}
-                >
-                  <XCircle className="size-3.5" /> End proxy session now
-                </Button>
-              </div>
+                  {/* Read trail - what the proxier viewed, deduped by endpoint */}
+                  <div>
+                    <p className="text-xs font-semibold font-mont mb-2">Data accessed during session</p>
+                    {(session.access_log ?? []).length === 0 ? (
+                      <div className="flex h-16 items-center justify-center text-xs text-gray-01 border rounded-md bg-gray-50">
+                        No reads recorded for this session.
+                      </div>
+                    ) : (
+                      <div className="divide-y border rounded-md overflow-hidden max-h-56 overflow-y-auto">
+                        {[...session.access_log]
+                          .sort((a, b) => b.last_at.localeCompare(a.last_at))
+                          .map((entry) => (
+                            <div key={entry.path} className="flex items-center gap-3 px-3 py-2 bg-white hover:bg-gray-50">
+                              <p className="flex-1 min-w-0 truncate font-mono text-[11px] text-black-01">{entry.path}</p>
+                              <span className="shrink-0 text-[10px] text-gray-01 tabular-nums">
+                                ×{entry.count} · {formatRelativeDate(entry.last_at)}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions timeline */}
+                  <div>
+                    <p className="text-xs font-semibold font-mont mb-2">Actions taken during session</p>
+                    {eventsLoading ? (
+                      <div className="flex h-24 items-center justify-center">
+                        <div className="loader" />
+                      </div>
+                    ) : events.length === 0 ? (
+                      <div className="flex h-24 items-center justify-center text-xs text-gray-01 border rounded-md bg-gray-50">
+                        No meaningful audited actions recorded for this session.
+                      </div>
+                    ) : (
+                      <div className="divide-y border rounded-md overflow-hidden">
+                        {events.map((e) => (
+                          <div key={e.id} className="flex items-start gap-3 px-3 py-2.5 bg-white hover:bg-gray-50">
+                            <span
+                              className={cn(
+                                "size-1.5 rounded-full shrink-0 mt-1.5",
+                                e.severity === "CRITICAL" ? "bg-destructive"
+                                  : e.severity === "WARNING" ? "bg-yellow-01"
+                                  : "bg-blue-400",
+                              )}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <span className="text-xs font-medium">{friendlyAction(e.action_type)}</span>
+                                <span className="text-[10px] text-gray-01 uppercase bg-gray-100 px-1 rounded">{e.module_key}</span>
+                              </div>
+                              {e.summary && <p className="text-[10px] text-gray-01 truncate">{e.summary}</p>}
+                            </div>
+                            <span className="text-[10px] text-gray-01 shrink-0">{formatRelativeDate(e.event_at)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer */}
+                {session.status === "ACTIVE" && (
+                  <div className="px-5 py-3 border-t flex justify-end">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={ending}
+                      onClick={() => onEnd(session)}
+                    >
+                      <XCircle className="size-3.5" /> End proxy session now
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+
+          </div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

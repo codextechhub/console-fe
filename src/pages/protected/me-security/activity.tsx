@@ -18,6 +18,7 @@ import { useDebounce } from "react-haiku";
 import { friendlyAction } from "../audit/audit-constants";
 import { cn } from "@/lib/utils";
 import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -322,109 +323,114 @@ export default function MyActivity() {
 
       {/* ── Detail drawer ── */}
       <Sheet open={!!selected} onOpenChange={(v) => { if (!v) setSelected(null); }}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto p-0" showCloseButton={false}>
-          {selected && (
-            <>
-              <SheetHeader className="flex flex-row items-center justify-between border-b border-gray-03 px-5 py-4 gap-4">
-                <div className="min-w-0">
-                  <SheetTitle className="text-sm font-semibold text-black-01">Event detail</SheetTitle>
-                  <p className="text-xs text-gray-01 font-mont mt-0.5">
-                    {new Date(selected.event_at).toLocaleString()}
-                  </p>
-                </div>
-                <SheetClose asChild>
-                  <Button variant="ghost" size="icon" className="size-7 shrink-0">
-                    <X className="size-4" />
-                  </Button>
-                </SheetClose>
-              </SheetHeader>
-
-              <div className="px-5 py-4 space-y-4">
-                {/* "Was this you?" banner - only on done-to-me tab */}
-                {activeTab === "on-me" && (
-                  <div className="flex items-start gap-2.5 rounded-md bg-amber-50 border border-amber-200 px-3 py-3">
-                    <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
-                    <p className="text-xs text-amber-800 leading-relaxed">
-                      This action was performed on your account by another user. If you did not authorize this, contact your administrator.
-                    </p>
-                  </div>
-                )}
-
-                {/* Severity + module + action */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span
-                      className={cn(
-                        "text-xs font-medium px-2 py-0.5 rounded border",
-                        SEV_BADGE[selected.severity] ?? "bg-gray-50 text-gray-700 border-gray-200",
-                      )}
-                    >
-                      {selected.severity}
-                    </span>
-                    <ModuleChip module={selected.module_key} />
-                  </div>
-                  <p className="text-base font-semibold text-black-01">
-                    {selected.summary ?? friendlyAction(selected.action_type)}
-                  </p>
-                  {selected.entity_label && (
-                    <p className="text-xs text-gray-01 font-mont">{selected.entity_label}</p>
-                  )}
-                </div>
-
-                {/* Status */}
-                <div className="flex items-center gap-2 text-xs text-gray-01 font-mont">
-                  <span>Status:</span>
-                  <Badge
-                    variant={selected.status === "SUCCESS" ? "active" : "suspended"}
-                    className="text-[10px] uppercase"
-                  >
-                    {selected.status}
-                  </Badge>
-                </div>
-
-                {/* By / When card */}
-                <div className="rounded-lg border border-gray-03 bg-white p-4 space-y-3">
-                  <p className="text-[11px] font-semibold text-gray-01 font-mont uppercase tracking-wider">
-                    By
-                  </p>
-                  <div className="flex items-start gap-2">
-                    <User className="size-4 text-gray-01 mt-0.5 shrink-0" />
+        <SheetContent className="w-full sm:max-w-md p-0" showCloseButton={false}>
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="flex flex-col gap-4">
+              {selected && (
+                <>
+                  <SheetHeader className="flex flex-row items-center justify-between border-b border-gray-03 px-5 py-4 gap-4">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-black-01">
-                        {selected.actor_user?.full_name ?? selected.actor_label ?? "System"}
+                      <SheetTitle className="text-sm font-semibold text-black-01">Event detail</SheetTitle>
+                      <p className="text-xs text-gray-01 font-mont mt-0.5">
+                        {new Date(selected.event_at).toLocaleString()}
                       </p>
-                      {selected.actor_user?.email && (
-                        <p className="text-xs text-gray-01 font-mont break-all">
-                          {selected.actor_user.email}
+                    </div>
+                    <SheetClose asChild>
+                      <Button variant="ghost" size="icon" className="size-7 shrink-0">
+                        <X className="size-4" />
+                      </Button>
+                    </SheetClose>
+                  </SheetHeader>
+
+                  <div className="px-5 py-4 space-y-4">
+                    {/* "Was this you?" banner - only on done-to-me tab */}
+                    {activeTab === "on-me" && (
+                      <div className="flex items-start gap-2.5 rounded-md bg-amber-50 border border-amber-200 px-3 py-3">
+                        <AlertTriangle className="size-4 text-amber-600 mt-0.5 shrink-0" />
+                        <p className="text-xs text-amber-800 leading-relaxed">
+                          This action was performed on your account by another user. If you did not authorize this, contact your administrator.
                         </p>
+                      </div>
+                    )}
+
+                    {/* Severity + module + action */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={cn(
+                            "text-xs font-medium px-2 py-0.5 rounded border",
+                            SEV_BADGE[selected.severity] ?? "bg-gray-50 text-gray-700 border-gray-200",
+                          )}
+                        >
+                          {selected.severity}
+                        </span>
+                        <ModuleChip module={selected.module_key} />
+                      </div>
+                      <p className="text-base font-semibold text-black-01">
+                        {selected.summary ?? friendlyAction(selected.action_type)}
+                      </p>
+                      {selected.entity_label && (
+                        <p className="text-xs text-gray-01 font-mont">{selected.entity_label}</p>
                       )}
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="size-4 text-gray-01 shrink-0" />
-                    <p className="text-sm text-black-01">
-                      {formatRelativeDate(selected.event_at)}
-                    </p>
-                  </div>
-                </div>
 
-                {/* From card (IP) */}
-                {selected.ip_address && (
-                  <div className="rounded-lg border border-gray-03 bg-white p-4 space-y-3">
-                    <p className="text-[11px] font-semibold text-gray-01 font-mont uppercase tracking-wider">
-                      From
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Globe className="size-4 text-gray-01 shrink-0" />
-                      <p className="text-sm text-black-01 font-mono">
-                        {maskIp(selected.ip_address)}
-                      </p>
+                    {/* Status */}
+                    <div className="flex items-center gap-2 text-xs text-gray-01 font-mont">
+                      <span>Status:</span>
+                      <Badge
+                        variant={selected.status === "SUCCESS" ? "active" : "suspended"}
+                        className="text-[10px] uppercase"
+                      >
+                        {selected.status}
+                      </Badge>
                     </div>
+
+                    {/* By / When card */}
+                    <div className="rounded-lg border border-gray-03 bg-white p-4 space-y-3">
+                      <p className="text-[11px] font-semibold text-gray-01 font-mont uppercase tracking-wider">
+                        By
+                      </p>
+                      <div className="flex items-start gap-2">
+                        <User className="size-4 text-gray-01 mt-0.5 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-black-01">
+                            {selected.actor_user?.full_name ?? selected.actor_label ?? "System"}
+                          </p>
+                          {selected.actor_user?.email && (
+                            <p className="text-xs text-gray-01 font-mont break-all">
+                              {selected.actor_user.email}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="size-4 text-gray-01 shrink-0" />
+                        <p className="text-sm text-black-01">
+                          {formatRelativeDate(selected.event_at)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* From card (IP) */}
+                    {selected.ip_address && (
+                      <div className="rounded-lg border border-gray-03 bg-white p-4 space-y-3">
+                        <p className="text-[11px] font-semibold text-gray-01 font-mont uppercase tracking-wider">
+                          From
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Globe className="size-4 text-gray-01 shrink-0" />
+                          <p className="text-sm text-black-01 font-mono">
+                            {maskIp(selected.ip_address)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </>
-          )}
+                </>
+              )}
+
+            </div>
+          </ScrollArea>
         </SheetContent>
       </Sheet>
     </>
