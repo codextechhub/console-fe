@@ -97,6 +97,17 @@
   --color-pry-01: #DBE0EB;
   --color-error: #E33131;
   --color-error-01: #f76659;
+  /* The hairline every box is drawn with, and the surface behind the ones that
+     recede. Both were USED and neither was DEFINED - 157 `white-02` and 8
+     `white-05` across 45 files - so Tailwind emitted nothing for them. The
+     borders survived on the base layer's default colour, by luck rather than by
+     intent, and `bg-white-05` painted nothing at all.
+
+     `white-02` is bound to `--border` rather than given its own hex, so the
+     hand-written classes and the primitives that use `border-border` cannot
+     drift apart. Same binding as school-fe, which hit this first. */
+  --color-white-02: var(--border);
+  --color-white-05: #FBFBFA;
   --color-black-01: #212121;
   --color-gray-01: #555654;
   --color-gray-02: #B8BAB7;

@@ -39,9 +39,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <>
       <Sidebar className="bg-white" collapsible="icon" {...props}>
-        <SidebarHeader className="bg-white">
+        {/* The rule under the mark is the same rule that runs under the page
+            title, so the two meet and the top of the app reads as one line
+            rather than a step. The heights have to agree in BOTH states: the
+            page header is `min-h-15` and drops to `min-h-12` on the icon rail,
+            so this follows it. It also gives the sidebar a fixed edge for its
+            content to scroll under, which is what school-fe has and this did
+            not. */}
+        <SidebarHeader className="h-15 justify-center border-b border-white-02 bg-white group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <SidebarMenu>
-            <SidebarMenuItem className="mt-2">
+            <SidebarMenuItem>
               <Link
                 to={routesPath.PROTECTED.OVERVIEW.INDEX}
                 aria-label="Go to dashboard"
