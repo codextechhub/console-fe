@@ -45,6 +45,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { routesPath } from "@/routes/routes-path";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // ── Modal state ──────────────────────────────────────────────────────────────
 
@@ -572,128 +573,130 @@ export default function LiveSessions() {
                     </div>
                   </SheetHeader>
 
-                  <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-                    {/* User */}
-                    <div className="rounded-lg border p-3">
-                      <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">
-                        User
-                      </p>
-                      <div className="flex items-center gap-3">
-                        <ActorCell
-                          label={detailSession.user?.full_name || detailSession.user?.email || "-"}
-                          email={detailSession.user?.email}
-                          userId={detailSession.user?.id}
-                        />
-                        <div>
-                          <div className="text-sm font-medium">
-                            {detailSession.user?.full_name || "-"}
+                  <ScrollArea className="flex-1">
+                    <div className="px-4 py-4 space-y-3">
+                      {/* User */}
+                      <div className="rounded-lg border p-3">
+                        <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">
+                          User
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <ActorCell
+                            label={detailSession.user?.full_name || detailSession.user?.email || "-"}
+                            email={detailSession.user?.email}
+                            userId={detailSession.user?.id}
+                          />
+                          <div>
+                            <div className="text-sm font-medium">
+                              {detailSession.user?.full_name || "-"}
+                            </div>
+                            <div className="text-xs text-gray-01">{detailSession.user?.email}</div>
+                            {detailSession.user?.role && (
+                              <div className="text-xs text-gray-01">
+                                {detailSession.user.role} · {detailSession.school?.name ?? "Platform"}
+                              </div>
+                            )}
                           </div>
-                          <div className="text-xs text-gray-01">{detailSession.user?.email}</div>
-                          {detailSession.user?.role && (
-                            <div className="text-xs text-gray-01">
-                              {detailSession.user.role} · {detailSession.school?.name ?? "Platform"}
+                        </div>
+                      </div>
+
+                      {/* Device */}
+                      <div className="rounded-lg border p-3">
+                        <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">
+                          Device
+                        </p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <DevIcon className="size-4 text-gray-01" />
+                          <span className="text-sm font-medium">{deviceName}</span>
+                        </div>
+                        <p className="text-xs text-gray-01">
+                          {browserLabel} · {deviceName} · {deviceClass}
+                        </p>
+                      </div>
+
+                      {/* Network */}
+                      <div className="rounded-lg border p-3">
+                        <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">
+                          Network
+                        </p>
+                        <div className="space-y-1.5 text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-gray-01">IP </span>
+                            <span className="font-mono">{detailSession.ip_address ?? "-"}</span>
+                          </div>
+                          <details>
+                            <summary className="text-gray-01 cursor-pointer list-none flex items-center gap-1 select-none">
+                              <span className="text-[10px]">▶</span> Raw user-agent
+                            </summary>
+                            <div className="mt-2 font-mono text-[10px] bg-gray-50 p-2 rounded break-all leading-relaxed">
+                              {detailSession.user_agent}
+                            </div>
+                          </details>
+                        </div>
+                      </div>
+
+                      {/* Timestamps */}
+                      <div className="rounded-lg border p-3">
+                        <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">
+                          Timestamps
+                        </p>
+                        <div className="space-y-1.5 text-xs">
+                          <div>
+                            <span className="text-gray-01">Created </span>
+                            {formatRelativeDate(detailSession.created_at)}
+                          </div>
+                          <div>
+                            <span className="text-gray-01">Last seen </span>
+                            {formatRelativeDate(detailSession.last_seen_at)}
+                          </div>
+                          {detailSession.ended_at && (
+                            <div>
+                              <span className="text-gray-01">Ended </span>
+                              {formatRelativeDate(detailSession.ended_at)}
                             </div>
                           )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Device */}
-                    <div className="rounded-lg border p-3">
-                      <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">
-                        Device
-                      </p>
-                      <div className="flex items-center gap-2 mb-1">
-                        <DevIcon className="size-4 text-gray-01" />
-                        <span className="text-sm font-medium">{deviceName}</span>
-                      </div>
-                      <p className="text-xs text-gray-01">
-                        {browserLabel} · {deviceName} · {deviceClass}
-                      </p>
-                    </div>
-
-                    {/* Network */}
-                    <div className="rounded-lg border p-3">
-                      <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">
-                        Network
-                      </p>
-                      <div className="space-y-1.5 text-xs">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-gray-01">IP </span>
-                          <span className="font-mono">{detailSession.ip_address ?? "-"}</span>
-                        </div>
-                        <details>
-                          <summary className="text-gray-01 cursor-pointer list-none flex items-center gap-1 select-none">
-                            <span className="text-[10px]">▶</span> Raw user-agent
-                          </summary>
-                          <div className="mt-2 font-mono text-[10px] bg-gray-50 p-2 rounded break-all leading-relaxed">
-                            {detailSession.user_agent}
-                          </div>
-                        </details>
-                      </div>
-                    </div>
-
-                    {/* Timestamps */}
-                    <div className="rounded-lg border p-3">
-                      <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">
-                        Timestamps
-                      </p>
-                      <div className="space-y-1.5 text-xs">
-                        <div>
-                          <span className="text-gray-01">Created </span>
-                          {formatRelativeDate(detailSession.created_at)}
-                        </div>
-                        <div>
-                          <span className="text-gray-01">Last seen </span>
-                          {formatRelativeDate(detailSession.last_seen_at)}
-                        </div>
-                        {detailSession.ended_at && (
                           <div>
-                            <span className="text-gray-01">Ended </span>
-                            {formatRelativeDate(detailSession.ended_at)}
+                            <span className="text-gray-01">Session age </span>
+                            {formatAge(detailSession.created_at)}
                           </div>
-                        )}
-                        <div>
-                          <span className="text-gray-01">Session age </span>
-                          {formatAge(detailSession.created_at)}
                         </div>
                       </div>
-                    </div>
 
-                    {/* Related events */}
-                    <div className="rounded-lg border p-3">
-                      <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">
-                        Related events
-                      </p>
-                      {relatedEvents.length === 0 ? (
-                        <p className="text-xs text-gray-01">No related events.</p>
-                      ) : (
-                        relatedEvents.map((e) => (
-                          <div
-                            key={e.id}
-                            className="flex items-center gap-2 py-1.5 border-b last:border-0"
-                          >
-                            <span
-                              className={cn(
-                                "size-1.5 rounded-full shrink-0",
-                                e.severity === "CRITICAL"
-                                  ? "bg-destructive"
-                                  : e.severity === "WARNING"
-                                  ? "bg-yellow-01"
-                                  : "bg-blue-400",
-                              )}
-                            />
-                            <span className="text-xs flex-1 leading-snug">
-                              {e.summary || e.action_type}
-                            </span>
-                            <span className="text-[10px] text-gray-01 shrink-0">
-                              {formatRelativeDate(e.event_at)}
-                            </span>
-                          </div>
-                        ))
-                      )}
-                    </div>
+                      {/* Related events */}
+                      <div className="rounded-lg border p-3">
+                        <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">
+                          Related events
+                        </p>
+                        {relatedEvents.length === 0 ? (
+                          <p className="text-xs text-gray-01">No related events.</p>
+                        ) : (
+                          relatedEvents.map((e) => (
+                            <div
+                              key={e.id}
+                              className="flex items-center gap-2 py-1.5 border-b last:border-0"
+                            >
+                              <span
+                                className={cn(
+                                  "size-1.5 rounded-full shrink-0",
+                                  e.severity === "CRITICAL"
+                                    ? "bg-destructive"
+                                    : e.severity === "WARNING"
+                                    ? "bg-yellow-01"
+                                    : "bg-blue-400",
+                                )}
+                              />
+                              <span className="text-xs flex-1 leading-snug">
+                                {e.summary || e.action_type}
+                              </span>
+                              <span className="text-[10px] text-gray-01 shrink-0">
+                                {formatRelativeDate(e.event_at)}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
                   </div>
+                  </ScrollArea>
 
                   <SheetFooter className="border-t px-4 py-3 flex items-center justify-end gap-2">
                     {detailSession.is_active && canManage && (

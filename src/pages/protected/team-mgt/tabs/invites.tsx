@@ -32,6 +32,7 @@ import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/so
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { SchoolUserDetail } from "../school-user-detail";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const CX_TABLE_HEADER = [
   "Full Name",
@@ -259,58 +260,60 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
               Filters
             </SheetTitle>
           </SheetHeader>
-          <div className="flex-1 overflow-y-auto px-4 space-y-5">
-            <SearchSelect
-              id="filter-school"
-              label="School"
-              placeholder="All schools"
-              options={(schoolsRes?.data ?? []).map((school) => ({
-                value: String(school.id),
-                label: school.name,
-              }))}
-              value={draftFilters.school_id}
-              onChange={(e) =>
-                setDraftFilters((p) => ({ ...p, school_id: e.target.value }))
-              }
-              containerClass={scope === "school" ? undefined : "hidden"}
-            />
-            <SearchSelect
-              id="filter-role"
-              label="Role"
-              placeholder="All roles"
-              options={roles.map((r) => ({ value: r.name, label: r.name }))}
-              value={draftFilters.role}
-              onChange={(e) =>
-                setDraftFilters((p) => ({ ...p, role: e.target.value }))
-              }
-              containerClass={scope === "school" ? "hidden" : undefined}
-            />
-            <CustomDateInput
-              id="filter-date-from"
-              label="Date Created From"
-              value={draftFilters.date_from}
-              onValueChange={(v) =>
-                setDraftFilters((p) => ({ ...p, date_from: v }))
-              }
-            />
-            <CustomDateInput
-              id="filter-date-to"
-              label="Date Created To"
-              value={draftFilters.date_to}
-              onValueChange={(v) =>
-                setDraftFilters((p) => ({ ...p, date_to: v }))
-              }
-            />
-            <CustomInput
-              id="filter-invited-by"
-              label="Invited By"
-              placeholder="Search by name..."
-              value={draftFilters.invited_by}
-              onChange={(e) =>
-                setDraftFilters((p) => ({ ...p, invited_by: e.target.value }))
-              }
-            />
+          <ScrollArea className="flex-1">
+            <div className="px-4 space-y-5">
+              <SearchSelect
+                id="filter-school"
+                label="School"
+                placeholder="All schools"
+                options={(schoolsRes?.data ?? []).map((school) => ({
+                  value: String(school.id),
+                  label: school.name,
+                }))}
+                value={draftFilters.school_id}
+                onChange={(e) =>
+                  setDraftFilters((p) => ({ ...p, school_id: e.target.value }))
+                }
+                containerClass={scope === "school" ? undefined : "hidden"}
+              />
+              <SearchSelect
+                id="filter-role"
+                label="Role"
+                placeholder="All roles"
+                options={roles.map((r) => ({ value: r.name, label: r.name }))}
+                value={draftFilters.role}
+                onChange={(e) =>
+                  setDraftFilters((p) => ({ ...p, role: e.target.value }))
+                }
+                containerClass={scope === "school" ? "hidden" : undefined}
+              />
+              <CustomDateInput
+                id="filter-date-from"
+                label="Date Created From"
+                value={draftFilters.date_from}
+                onValueChange={(v) =>
+                  setDraftFilters((p) => ({ ...p, date_from: v }))
+                }
+              />
+              <CustomDateInput
+                id="filter-date-to"
+                label="Date Created To"
+                value={draftFilters.date_to}
+                onValueChange={(v) =>
+                  setDraftFilters((p) => ({ ...p, date_to: v }))
+                }
+              />
+              <CustomInput
+                id="filter-invited-by"
+                label="Invited By"
+                placeholder="Search by name..."
+                value={draftFilters.invited_by}
+                onChange={(e) =>
+                  setDraftFilters((p) => ({ ...p, invited_by: e.target.value }))
+                }
+              />
           </div>
+          </ScrollArea>
           <SheetFooter>
             <div className="flex gap-3">
               <Button

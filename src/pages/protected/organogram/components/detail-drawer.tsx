@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type {
   MatrixReport, Position, StaffProfile, UserInline,
 } from "@/redux/services/dashboard/organogram-types";
@@ -414,10 +415,12 @@ export function DetailDrawer({ target, onClose, ctx }: { target: DetailTarget | 
             <X className="size-4.5" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-5">
-          {target?.kind === "person" && <PersonDetail user={target.user} ctx={ctx} />}
-          {target?.kind === "position" && <PositionDetail id={target.id} ctx={ctx} />}
+        <ScrollArea className="flex-1">
+          <div className="px-5 py-5">
+            {target?.kind === "person" && <PersonDetail user={target.user} ctx={ctx} />}
+            {target?.kind === "position" && <PositionDetail id={target.id} ctx={ctx} />}
         </div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

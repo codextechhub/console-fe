@@ -20,6 +20,7 @@ import { useDebounce } from "react-haiku";
 import { cn } from "@/lib/utils";
 import type { AuthAttempt } from "@/redux/services/dashboard/security-types";
 import { routesPath } from "@/routes/routes-path";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -484,64 +485,66 @@ export default function LoginAttempts() {
                     </div>
                   </SheetHeader>
 
-                  <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-                    {/* Stat strip */}
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { label: "Email", value: drawer.email_entered, mono: true },
-                        { label: "IP", value: drawer.ip_address ?? "-", mono: true },
-                        { label: "Browser", value: ua.browser },
-                        { label: "OS", value: ua.os },
-                      ].map(({ label, value, mono }) => (
-                        <div key={label} className="rounded-lg border p-3">
-                          <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-1">{label}</p>
-                          <p className={cn("text-sm font-medium truncate", mono && "font-mono text-xs")}>{value}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Device */}
-                    <div className="rounded-lg border p-3">
-                      <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">Device</p>
-                      <div className="flex items-center gap-2">
-                        <DevIcon className="size-4 text-gray-01" />
-                        <span className="text-sm">{ua.browser} · {ua.os}</span>
+                  <ScrollArea className="flex-1">
+                    <div className="px-4 py-4 space-y-4">
+                      {/* Stat strip */}
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { label: "Email", value: drawer.email_entered, mono: true },
+                          { label: "IP", value: drawer.ip_address ?? "-", mono: true },
+                          { label: "Browser", value: ua.browser },
+                          { label: "OS", value: ua.os },
+                        ].map(({ label, value, mono }) => (
+                          <div key={label} className="rounded-lg border p-3">
+                            <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-1">{label}</p>
+                            <p className={cn("text-sm font-medium truncate", mono && "font-mono text-xs")}>{value}</p>
+                          </div>
+                        ))}
                       </div>
-                    </div>
 
-                    {/* Resolved user */}
-                    {drawer.user && (
+                      {/* Device */}
                       <div className="rounded-lg border p-3">
-                        <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">Resolved to user</p>
+                        <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">Device</p>
                         <div className="flex items-center gap-2">
-                          <ActorCell label={drawer.user.full_name || drawer.user.email} email={drawer.user.email} userId={drawer.user.id} />
-                          <div>
-                            <p className="text-sm font-medium">{drawer.user.full_name || "-"}</p>
-                            <p className="text-xs text-gray-01">{drawer.user.email}</p>
+                          <DevIcon className="size-4 text-gray-01" />
+                          <span className="text-sm">{ua.browser} · {ua.os}</span>
+                        </div>
+                      </div>
+
+                      {/* Resolved user */}
+                      {drawer.user && (
+                        <div className="rounded-lg border p-3">
+                          <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">Resolved to user</p>
+                          <div className="flex items-center gap-2">
+                            <ActorCell label={drawer.user.full_name || drawer.user.email} email={drawer.user.email} userId={drawer.user.id} />
+                            <div>
+                              <p className="text-sm font-medium">{drawer.user.full_name || "-"}</p>
+                              <p className="text-xs text-gray-01">{drawer.user.email}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Failure code */}
-                    {drawer.failure_code && (
+                      {/* Failure code */}
+                      {drawer.failure_code && (
+                        <div className="rounded-lg border p-3">
+                          <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">Failure code</p>
+                          <Badge variant="outline" className="font-mono text-xs">{drawer.failure_code}</Badge>
+                        </div>
+                      )}
+
+                      {/* Metadata */}
                       <div className="rounded-lg border p-3">
-                        <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">Failure code</p>
-                        <Badge variant="outline" className="font-mono text-xs">{drawer.failure_code}</Badge>
+                        <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">Metadata</p>
+                        <pre className="text-[11px] font-mono bg-gray-50 p-2.5 rounded overflow-x-auto leading-relaxed text-black-01">
+                          {JSON.stringify(
+                            { id: drawer.id, result: drawer.result, failure_code: drawer.failure_code || null, ip_address: drawer.ip_address, user_agent: drawer.user_agent },
+                            null, 2,
+                          )}
+                        </pre>
                       </div>
-                    )}
-
-                    {/* Metadata */}
-                    <div className="rounded-lg border p-3">
-                      <p className="text-[10px] font-semibold text-gray-01 uppercase tracking-wide mb-2">Metadata</p>
-                      <pre className="text-[11px] font-mono bg-gray-50 p-2.5 rounded overflow-x-auto leading-relaxed text-black-01">
-                        {JSON.stringify(
-                          { id: drawer.id, result: drawer.result, failure_code: drawer.failure_code || null, ip_address: drawer.ip_address, user_agent: drawer.user_agent },
-                          null, 2,
-                        )}
-                      </pre>
-                    </div>
                   </div>
+                  </ScrollArea>
                 </>
               );
             })()}

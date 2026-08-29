@@ -24,6 +24,7 @@ import {
 import { useCancelImportBatchMutation } from "@/redux/services/dashboard/import-api";
 import type { DatasetType } from "@/redux/services/dashboard/import-types";
 import { routesPath } from "@/routes/routes-path";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function ImportProcessDrawer({
   open,
@@ -56,9 +57,11 @@ export function ImportProcessDrawer({
             </SheetDescription>
           ) : null}
         </SheetHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto bg-gray-50/60 p-3 sm:p-5">
-          {children}
+        <ScrollArea className="min-h-0 flex-1 bg-gray-50/60">
+          <div className="p-3 sm:p-5">
+            {children}
         </div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

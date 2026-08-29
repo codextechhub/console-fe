@@ -33,6 +33,7 @@ import {
   useGetPermissionsQuery,
 } from "@/redux/services/dashboard/rbac-api";
 import type { ChangeRequest, ChangeRequestDelta } from "@/redux/services/dashboard/rbac-types";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const TABLE_HEADERS = ["Request ID", "Target Role", "Deltas", "Status", "Requested By", "Submitted", "Decided"];
 
@@ -105,71 +106,73 @@ function NewRequestSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <SearchSelect
-            id="req-target-role"
-            label="Target Role"
-            isRequired
-            placeholder="Select a role to modify..."
-            options={roleOptions}
-            value={targetRoleId}
-            onChange={(e) => setTargetRoleId(e.target.value)}
-          />
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-black-01">
-              Justification <span className="text-destructive">*</span>
-            </label>
-            <p className="text-xs text-gray-01">Why is this change needed? The reviewer will see this.</p>
-            <Textarea
-              placeholder="e.g. Finance team needs refund authority for Q2 ops..."
-              value={justification}
-              onChange={(e) => setJustification(e.target.value)}
-              rows={3}
+        <ScrollArea className="flex-1">
+          <div className="px-6 py-5 space-y-5">
+            <SearchSelect
+              id="req-target-role"
+              label="Target Role"
+              isRequired
+              placeholder="Select a role to modify..."
+              options={roleOptions}
+              value={targetRoleId}
+              onChange={(e) => setTargetRoleId(e.target.value)}
             />
-          </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Delta Items</p>
-              <Button variant="outline" size="sm" onClick={addDelta}>
-                <Plus className="size-3" /> Add Delta
-              </Button>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-black-01">
+                Justification <span className="text-destructive">*</span>
+              </label>
+              <p className="text-xs text-gray-01">Why is this change needed? The reviewer will see this.</p>
+              <Textarea
+                placeholder="e.g. Finance team needs refund authority for Q2 ops..."
+                value={justification}
+                onChange={(e) => setJustification(e.target.value)}
+                rows={3}
+              />
             </div>
-            <div className="space-y-2">
-              {deltas.map((d, i) => (
-                <div key={i} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
-                  <select
-                    className="text-xs border border-white-02 rounded px-2 py-1.5 bg-white text-black-01 shrink-0"
-                    value={d.operation}
-                    onChange={(e) => updateDelta(i, "operation", e.target.value)}
-                  >
-                    <option value="ADD">ADD</option>
-                    <option value="REMOVE">REMOVE</option>
-                  </select>
-                  <select
-                    className="flex-1 text-xs border border-white-02 rounded px-2 py-1.5 bg-white text-black-01 min-w-0"
-                    value={d.permission_key}
-                    onChange={(e) => updateDelta(i, "permission_key", e.target.value)}
-                  >
-                    <option value="">Select permission...</option>
-                    {permOptions.map((p) => (
-                      <option key={p.value} value={p.value}>{p.label}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    disabled={deltas.length === 1}
-                    onClick={() => removeDelta(i)}
-                    className="text-gray-01 hover:text-destructive disabled:opacity-40 shrink-0"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
-                </div>
-              ))}
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Delta Items</p>
+                <Button variant="outline" size="sm" onClick={addDelta}>
+                  <Plus className="size-3" /> Add Delta
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {deltas.map((d, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
+                    <select
+                      className="text-xs border border-white-02 rounded px-2 py-1.5 bg-white text-black-01 shrink-0"
+                      value={d.operation}
+                      onChange={(e) => updateDelta(i, "operation", e.target.value)}
+                    >
+                      <option value="ADD">ADD</option>
+                      <option value="REMOVE">REMOVE</option>
+                    </select>
+                    <select
+                      className="flex-1 text-xs border border-white-02 rounded px-2 py-1.5 bg-white text-black-01 min-w-0"
+                      value={d.permission_key}
+                      onChange={(e) => updateDelta(i, "permission_key", e.target.value)}
+                    >
+                      <option value="">Select permission...</option>
+                      {permOptions.map((p) => (
+                        <option key={p.value} value={p.value}>{p.label}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      disabled={deltas.length === 1}
+                      onClick={() => removeDelta(i)}
+                      className="text-gray-01 hover:text-destructive disabled:opacity-40 shrink-0"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
         </div>
+        </ScrollArea>
 
         <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row justify-end gap-3">
           <Button variant="outline" size="lg" onClick={onClose} disabled={isLoading}>
@@ -209,63 +212,65 @@ function RequestDetailSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <div className="flex flex-wrap gap-2">
-            <Badge variant={statusBadgeVariant(request.status)}>
-              {request.status.replace("_", " ")}
-            </Badge>
-            <Badge variant="default">{request.requested_by_name}</Badge>
-            <Badge variant="default">Submitted {formatRelativeDate(request.submitted_at)}</Badge>
-            {request.decided_at && (
-              <Badge variant="default">Decided {formatRelativeDate(request.decided_at)}</Badge>
-            )}
-          </div>
-
-          {request.status === "APPLY_FAILED" && (
-            <div className="rounded-md bg-destructive/5 border border-destructive/20 px-4 py-3 text-xs text-destructive">
-              <p className="font-semibold">Apply step failed</p>
-              <p className="mt-0.5">The request was approved but the apply step failed. Check the dependency graph and retry.</p>
-            </div>
-          )}
-
-          <div className="space-y-1.5">
-            <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Justification</p>
-            <div className="bg-white border border-white-02 rounded-md px-4 py-3">
-              <p className="text-sm text-gray-01 leading-relaxed">{request.justification}</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">
-              Delta Items ({request.delta_items.length})
-            </p>
-            <div className="bg-white border border-white-02 rounded-md divide-y divide-white-02">
-              {request.delta_items.map((d, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-2.5">
-                  <Badge variant={d.operation === "ADD" ? "active" : "deactivated"}>
-                    {d.operation}
-                  </Badge>
-                  <span className="font-mono text-xs text-black-01">{d.permission?.key ?? d.permission_key}</span>
-                </div>
-              ))}
-              {request.delta_items.length === 0 && (
-                <p className="px-4 py-3 text-xs text-gray-01">No delta items.</p>
+        <ScrollArea className="flex-1">
+          <div className="px-6 py-5 space-y-5">
+            <div className="flex flex-wrap gap-2">
+              <Badge variant={statusBadgeVariant(request.status)}>
+                {request.status.replace("_", " ")}
+              </Badge>
+              <Badge variant="default">{request.requested_by_name}</Badge>
+              <Badge variant="default">Submitted {formatRelativeDate(request.submitted_at)}</Badge>
+              {request.decided_at && (
+                <Badge variant="default">Decided {formatRelativeDate(request.decided_at)}</Badge>
               )}
             </div>
-          </div>
 
-          {request.reviewer_notes && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Reviewer</p>
-              <div className="bg-white border border-white-02 rounded-md divide-y divide-white-02">
-                <div className="flex items-start justify-between gap-4 px-4 py-3">
-                  <p className="text-xs text-gray-01 font-mont shrink-0">Notes</p>
-                  <p className="text-xs font-medium text-black-01 text-right">{request.reviewer_notes}</p>
-                </div>
+            {request.status === "APPLY_FAILED" && (
+              <div className="rounded-md bg-destructive/5 border border-destructive/20 px-4 py-3 text-xs text-destructive">
+                <p className="font-semibold">Apply step failed</p>
+                <p className="mt-0.5">The request was approved but the apply step failed. Check the dependency graph and retry.</p>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Justification</p>
+              <div className="bg-white border border-white-02 rounded-md px-4 py-3">
+                <p className="text-sm text-gray-01 leading-relaxed">{request.justification}</p>
               </div>
             </div>
-          )}
+
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">
+                Delta Items ({request.delta_items.length})
+              </p>
+              <div className="bg-white border border-white-02 rounded-md divide-y divide-white-02">
+                {request.delta_items.map((d, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-2.5">
+                    <Badge variant={d.operation === "ADD" ? "active" : "deactivated"}>
+                      {d.operation}
+                    </Badge>
+                    <span className="font-mono text-xs text-black-01">{d.permission?.key ?? d.permission_key}</span>
+                  </div>
+                ))}
+                {request.delta_items.length === 0 && (
+                  <p className="px-4 py-3 text-xs text-gray-01">No delta items.</p>
+                )}
+              </div>
+            </div>
+
+            {request.reviewer_notes && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Reviewer</p>
+                <div className="bg-white border border-white-02 rounded-md divide-y divide-white-02">
+                  <div className="flex items-start justify-between gap-4 px-4 py-3">
+                    <p className="text-xs text-gray-01 font-mont shrink-0">Notes</p>
+                    <p className="text-xs font-medium text-black-01 text-right">{request.reviewer_notes}</p>
+                  </div>
+                </div>
+              </div>
+            )}
         </div>
+        </ScrollArea>
 
         <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row justify-end gap-3">
           <Button variant="outline" size="lg" onClick={onClose}>

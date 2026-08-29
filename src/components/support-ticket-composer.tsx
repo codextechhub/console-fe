@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/sheet";
 import { GUIDE_CATEGORIES, findWalkthrough, useWalkthrough, type GuidePageContext, type SafeTicketContext } from "@/features/guides";
 import { routesPath } from "@/routes/routes-path";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   useCreateTicketMutation,
   useUploadTicketAttachmentMutation,
@@ -273,72 +274,74 @@ export function SupportTicketComposer({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-            {pageContext?.guides.length ? (
-              <section aria-labelledby="page-guides-heading">
-                <h2 id="page-guides-heading" className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">Guides for this page</h2>
-                <div className="mt-3 space-y-2">
-                  {pageContext.guides.map((guide) => {
-                    const category = GUIDE_CATEGORIES.find((item) => item.id === guide.category);
-                    return (
-                      <Link
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="px-5 py-5">
+              {pageContext?.guides.length ? (
+                <section aria-labelledby="page-guides-heading">
+                  <h2 id="page-guides-heading" className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">Guides for this page</h2>
+                  <div className="mt-3 space-y-2">
+                    {pageContext.guides.map((guide) => {
+                      const category = GUIDE_CATEGORIES.find((item) => item.id === guide.category);
+                      return (
+                        <Link
+                          key={guide.id}
+                          to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)}
+                          onClick={() => setHelpOpen(false)}
+                          className="flex min-w-0 items-start gap-3 rounded-xl border border-gray-200 p-3 transition hover:border-primary/30 hover:bg-primary/[0.025]"
+                        >
+                          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/8 text-primary"><BookOpenText className="size-4" /></span>
+                          <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{guide.title}</span><span className="mt-0.5 block text-xs leading-5 text-gray-01">{category?.title}</span></span>
+                          <ChevronRight className="mt-2 size-4 shrink-0 text-gray-300" />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : (
+                <section className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/60 px-4 py-6 text-center">
+                  <BookOpenText className="mx-auto size-7 text-gray-300" />
+                  <h2 className="mt-3 text-sm font-semibold">No page-specific guide yet</h2>
+                  <p className="mt-1 text-xs leading-5 text-gray-01">Browse the guide centre or tell support what you need from this screen.</p>
+                </section>
+              )}
+
+              <section className="mt-6" aria-labelledby="walkthrough-heading">
+                <h2 id="walkthrough-heading" className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">Available walkthroughs</h2>
+                {pageContext?.walkthroughs.some((guide) => guide.walkthroughId && findWalkthrough(guide.walkthroughId)) ? (
+                  <div className="mt-2 space-y-2">
+                    {pageContext.walkthroughs.filter((guide) => guide.walkthroughId && findWalkthrough(guide.walkthroughId)).map((guide) => (
+                      <button
                         key={guide.id}
-                        to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)}
-                        onClick={() => setHelpOpen(false)}
-                        className="flex min-w-0 items-start gap-3 rounded-xl border border-gray-200 p-3 transition hover:border-primary/30 hover:bg-primary/[0.025]"
+                        type="button"
+                        onClick={() => {
+                          setHelpOpen(false);
+                          if (guide.walkthroughId) window.setTimeout(() => startWalkthrough(guide.walkthroughId!), 350);
+                        }}
+                        className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 p-3 text-left text-sm font-medium transition hover:border-primary/30 hover:bg-primary/[0.025]"
                       >
-                        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/8 text-primary"><BookOpenText className="size-4" /></span>
-                        <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{guide.title}</span><span className="mt-0.5 block text-xs leading-5 text-gray-01">{category?.title}</span></span>
-                        <ChevronRight className="mt-2 size-4 shrink-0 text-gray-300" />
-                      </Link>
-                    );
-                  })}
-                </div>
+                        <span>{guide.title}</span><ChevronRight className="size-4 shrink-0 text-gray-300" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-xs leading-5 text-gray-01">No published interactive walkthrough is mapped to this page yet.</p>
+                )}
               </section>
-            ) : (
-              <section className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/60 px-4 py-6 text-center">
-                <BookOpenText className="mx-auto size-7 text-gray-300" />
-                <h2 className="mt-3 text-sm font-semibold">No page-specific guide yet</h2>
-                <p className="mt-1 text-xs leading-5 text-gray-01">Browse the guide centre or tell support what you need from this screen.</p>
+
+              <section className="mt-6" aria-labelledby="troubleshooting-heading">
+                <h2 id="troubleshooting-heading" className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">Related troubleshooting</h2>
+                {pageContext?.troubleshooting.length ? (
+                  <div className="mt-2 space-y-2">
+                    {pageContext.troubleshooting.map((guide) => (
+                      <Link key={guide.id} to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)} onClick={() => setHelpOpen(false)} className="block rounded-xl border border-gray-200 p-3 text-sm font-medium hover:border-primary/30">{guide.title}</Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-xs leading-5 text-gray-01">No published troubleshooting article is related to this page yet.</p>
+                )}
               </section>
-            )}
-
-            <section className="mt-6" aria-labelledby="walkthrough-heading">
-              <h2 id="walkthrough-heading" className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">Available walkthroughs</h2>
-              {pageContext?.walkthroughs.some((guide) => guide.walkthroughId && findWalkthrough(guide.walkthroughId)) ? (
-                <div className="mt-2 space-y-2">
-                  {pageContext.walkthroughs.filter((guide) => guide.walkthroughId && findWalkthrough(guide.walkthroughId)).map((guide) => (
-                    <button
-                      key={guide.id}
-                      type="button"
-                      onClick={() => {
-                        setHelpOpen(false);
-                        if (guide.walkthroughId) window.setTimeout(() => startWalkthrough(guide.walkthroughId!), 350);
-                      }}
-                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 p-3 text-left text-sm font-medium transition hover:border-primary/30 hover:bg-primary/[0.025]"
-                    >
-                      <span>{guide.title}</span><ChevronRight className="size-4 shrink-0 text-gray-300" />
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-2 text-xs leading-5 text-gray-01">No published interactive walkthrough is mapped to this page yet.</p>
-              )}
-            </section>
-
-            <section className="mt-6" aria-labelledby="troubleshooting-heading">
-              <h2 id="troubleshooting-heading" className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-01">Related troubleshooting</h2>
-              {pageContext?.troubleshooting.length ? (
-                <div className="mt-2 space-y-2">
-                  {pageContext.troubleshooting.map((guide) => (
-                    <Link key={guide.id} to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)} onClick={() => setHelpOpen(false)} className="block rounded-xl border border-gray-200 p-3 text-sm font-medium hover:border-primary/30">{guide.title}</Link>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-2 text-xs leading-5 text-gray-01">No published troubleshooting article is related to this page yet.</p>
-              )}
-            </section>
           </div>
+          </ScrollArea>
 
           <div className="grid gap-2 border-t border-gray-100 p-5">
             <Button asChild variant="outline"><Link to={routesPath.PROTECTED.SUPPORT.GUIDES} onClick={() => setHelpOpen(false)}>Browse all guides</Link></Button>

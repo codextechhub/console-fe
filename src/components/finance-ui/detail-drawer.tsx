@@ -10,6 +10,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DetailDrawerProps {
   open: boolean;
@@ -56,7 +57,9 @@ export function DetailDrawer({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="px-5 py-4">{children}</div>
+        </ScrollArea>
 
         {footer ? (
           <div className="flex flex-wrap items-center justify-end gap-2 border-t border-gray-03 px-5 py-4">

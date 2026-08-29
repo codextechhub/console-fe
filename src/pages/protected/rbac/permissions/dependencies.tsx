@@ -31,6 +31,7 @@ import { routesPath } from "@/routes/routes-path";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const TABLE_HEADERS = ["Permission", "", "Depends On", "Action"];
 
@@ -76,41 +77,43 @@ function DependencyChainSheet({
           <SheetDescription className="font-mono text-xs text-gray-01">{permissionKey}</SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">This permission requires</p>
-              {requires.length === 0 ? (
-                <p className="text-xs text-gray-01">No upstream dependencies.</p>
-              ) : (
-                <div className="space-y-2">
-                  {requires.map((k) => (
-                    <div key={k} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
-                      <Link className="size-3.5 text-gray-01 shrink-0" />
-                      <span className="font-mono text-xs text-black-01">{k}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+        <ScrollArea className="flex-1">
+          <div className="px-6 py-5 space-y-6">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">This permission requires</p>
+                {requires.length === 0 ? (
+                  <p className="text-xs text-gray-01">No upstream dependencies.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {requires.map((k) => (
+                      <div key={k} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
+                        <Link className="size-3.5 text-gray-01 shrink-0" />
+                        <span className="font-mono text-xs text-black-01">{k}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Required by</p>
-              {requiredBy.length === 0 ? (
-                <p className="text-xs text-gray-01">Nothing depends on this permission.</p>
-              ) : (
-                <div className="space-y-2">
-                  {requiredBy.map((k) => (
-                    <div key={k} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
-                      <Link className="size-3.5 text-gray-01 shrink-0" />
-                      <span className="font-mono text-xs text-black-01">{k}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="space-y-3">
+                <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Required by</p>
+                {requiredBy.length === 0 ? (
+                  <p className="text-xs text-gray-01">Nothing depends on this permission.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {requiredBy.map((k) => (
+                      <div key={k} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
+                        <Link className="size-3.5 text-gray-01 shrink-0" />
+                        <span className="font-mono text-xs text-black-01">{k}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
         </div>
+        </ScrollArea>
 
         <SheetFooter className="px-6 py-4 border-t border-white-02 flex flex-row justify-end">
           <Button variant="outline" size="lg" onClick={onClose}>Close</Button>

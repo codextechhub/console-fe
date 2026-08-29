@@ -65,6 +65,7 @@ import {
 } from "@/redux/services/rbac/override-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Props {
   /** Target user's id. */
@@ -508,113 +509,115 @@ function AddExceptionDrawer({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="min-w-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <SearchSelect
-              id="override-module"
-              label="Module"
-              placeholder="All modules"
-              options={modules.map((m) => ({ value: m, label: m }))}
-              loading={loadingCatalogue}
-              value={module}
-              onChange={(e) => {
-                setModule(e.target.value);
-                setPermission("");
-              }}
-            />
-            <SearchSelect
-              id="override-permission"
-              label="Permission"
-              isRequired
-              placeholder="Search permissions…"
-              revealOnSearch
-              options={options}
-              loading={loadingCatalogue}
-              value={permission}
-              error={permissionError}
-              onChange={(e) => setPermission(e.target.value)}
-            />
-          </div>
-
-          {!canReadCatalogue && (
-            <p className="rounded-md bg-gray-03 px-3 py-2 text-xs text-gray-01">
-              The full permission catalogue needs the permission-registry view
-              right. Ask an admin who has it if the key you need is missing.
-            </p>
-          )}
-
-          {alreadyOverridden && (
-            <p className="rounded-md bg-yellow-01/10 px-3 py-2 text-xs text-yellow-01">
-              This user already has a{" "}
-              <span className="font-semibold">
-                {MODE_LABEL[alreadyOverridden.mode]}
-              </span>{" "}
-              exception on this permission. Saving REPLACES it - the old one is
-              removed and recorded in the audit trail.
-            </p>
-          )}
-
-          <div>
-            <p className="mb-1.5 text-sm text-black-01">Mode</p>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {(["DENY", "ALLOW"] as OverrideMode[]).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  aria-pressed={mode === option}
-                  onClick={() => setMode(option)}
-                  className={cn(
-                    "min-w-0 rounded-md border p-3 text-left transition-colors",
-                    mode === option
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-03 hover:border-primary/40",
-                  )}
-                >
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-black-01">
-                    {option === "DENY" ? (
-                      <ShieldMinus className="size-3.5" />
-                    ) : (
-                      <ShieldPlus className="size-3.5" />
-                    )}
-                    {MODE_LABEL[option]}
-                  </span>
-                  <span className="mt-1 block text-xs text-gray-01">
-                    {option === "DENY"
-                      ? "Withhold this permission even if a role grants it."
-                      : "Grant this permission even though no role does."}
-                  </span>
-                </button>
-              ))}
+        <ScrollArea className="min-w-0 flex-1">
+          <div className="space-y-5 px-4 py-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <SearchSelect
+                id="override-module"
+                label="Module"
+                placeholder="All modules"
+                options={modules.map((m) => ({ value: m, label: m }))}
+                loading={loadingCatalogue}
+                value={module}
+                onChange={(e) => {
+                  setModule(e.target.value);
+                  setPermission("");
+                }}
+              />
+              <SearchSelect
+                id="override-permission"
+                label="Permission"
+                isRequired
+                placeholder="Search permissions…"
+                revealOnSearch
+                options={options}
+                loading={loadingCatalogue}
+                value={permission}
+                error={permissionError}
+                onChange={(e) => setPermission(e.target.value)}
+              />
             </div>
-          </div>
 
-          <div className="grid w-full items-center gap-1">
-            <label htmlFor="override-reason" className="text-sm text-black-01 after:pl-1.5 after:text-error after:content-['*']">
-              Reason
-            </label>
-            <textarea
-              id="override-reason"
-              rows={3}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              onBlur={() => setTouched(true)}
-              aria-invalid={Boolean(reasonError)}
-              placeholder="Why this user needs this exception (kept in the audit trail)."
-              className="w-full rounded-md border border-gray-03 px-3 py-2 text-sm focus:border-primary focus:outline-none"
-            />
-            {reasonError && (
-              <p className="text-xs font-medium text-error">{reasonError}</p>
+            {!canReadCatalogue && (
+              <p className="rounded-md bg-gray-03 px-3 py-2 text-xs text-gray-01">
+                The full permission catalogue needs the permission-registry view
+                right. Ask an admin who has it if the key you need is missing.
+              </p>
             )}
-          </div>
 
-          <CustomDateInput
-            id="override-expiry"
-            label="Expires on (optional)"
-            placeholder="Never expires"
-            value={expiresAt}
-            onValueChange={setExpiresAt}
-          />
+            {alreadyOverridden && (
+              <p className="rounded-md bg-yellow-01/10 px-3 py-2 text-xs text-yellow-01">
+                This user already has a{" "}
+                <span className="font-semibold">
+                  {MODE_LABEL[alreadyOverridden.mode]}
+                </span>{" "}
+                exception on this permission. Saving REPLACES it - the old one is
+                removed and recorded in the audit trail.
+              </p>
+            )}
+
+            <div>
+              <p className="mb-1.5 text-sm text-black-01">Mode</p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {(["DENY", "ALLOW"] as OverrideMode[]).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    aria-pressed={mode === option}
+                    onClick={() => setMode(option)}
+                    className={cn(
+                      "min-w-0 rounded-md border p-3 text-left transition-colors",
+                      mode === option
+                        ? "border-primary bg-primary/5"
+                        : "border-gray-03 hover:border-primary/40",
+                    )}
+                  >
+                    <span className="flex items-center gap-1.5 text-sm font-medium text-black-01">
+                      {option === "DENY" ? (
+                        <ShieldMinus className="size-3.5" />
+                      ) : (
+                        <ShieldPlus className="size-3.5" />
+                      )}
+                      {MODE_LABEL[option]}
+                    </span>
+                    <span className="mt-1 block text-xs text-gray-01">
+                      {option === "DENY"
+                        ? "Withhold this permission even if a role grants it."
+                        : "Grant this permission even though no role does."}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid w-full items-center gap-1">
+              <label htmlFor="override-reason" className="text-sm text-black-01 after:pl-1.5 after:text-error after:content-['*']">
+                Reason
+              </label>
+              <textarea
+                id="override-reason"
+                rows={3}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                onBlur={() => setTouched(true)}
+                aria-invalid={Boolean(reasonError)}
+                placeholder="Why this user needs this exception (kept in the audit trail)."
+                className="w-full rounded-md border border-gray-03 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+              />
+              {reasonError && (
+                <p className="text-xs font-medium text-error">{reasonError}</p>
+              )}
+            </div>
+
+            <CustomDateInput
+              id="override-expiry"
+              label="Expires on (optional)"
+              placeholder="Never expires"
+              value={expiresAt}
+              onValueChange={setExpiresAt}
+            />
         </div>
+        </ScrollArea>
 
         <SheetFooter className="border-t border-gray-03">
           <div className="flex flex-col-reverse gap-2 sm:flex-row">
