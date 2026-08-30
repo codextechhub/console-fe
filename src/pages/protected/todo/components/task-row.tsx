@@ -63,7 +63,7 @@ export function TaskRow({
     <div
       className={cn(
         "group flex items-start gap-4 rounded-md border px-4 py-4 transition-colors",
-        done ? "border-transparent bg-gray-04" : "border bg-white hover:border-primary/40",
+        done ? "border-white-02 bg-gray-04" : "border-white-02 bg-white hover:border-primary/40",
       )}
     >
       <button

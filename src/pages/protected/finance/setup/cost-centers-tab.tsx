@@ -12,7 +12,7 @@ import { P } from "@/permissions";
 import { useGetCostCentersQuery, useCreateCostCenterMutation } from "@/redux/services/finance/setup-api";
 import type { CostCenter } from "@/redux/services/finance/setup-types";
 
-const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
+const selectCls = "h-9 rounded-md border border-white-02 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 // CC-LAG-FAC → LAG (branch segment); CC-HQ-IT → HQ.
 const branchOf = (code: string) => { const p = code.split(/[-_]/); return (p[1] || "").toUpperCase(); };
 

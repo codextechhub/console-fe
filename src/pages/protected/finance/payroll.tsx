@@ -42,7 +42,7 @@ import { PageShell } from "@/components/layout/page-shell";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const tdCls = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 const fmtDate = (s: string) => new Date(s).toLocaleDateString();
 
 const RUN_STATUS: Record<string, { label: string; cls: string }> = {
@@ -61,7 +61,7 @@ function maskedMoney(obj: { _stripped_fields?: string[] }, field: string, value:
 }
 function Kpi({ label, value, hint, danger }: { label: string; value: string; hint?: string; danger?: boolean }) {
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="font-mont text-xs text-gray-05">{label}</p>
       <p className={cn("mt-1 font-mont text-xl font-semibold tabular-nums", danger ? "text-destructive" : "text-black-01")}>{value}</p>
       {hint && <p className="mt-0.5 font-mont text-[11px] text-gray-05">{hint}</p>}
@@ -74,7 +74,7 @@ function Kpi({ label, value, hint, danger }: { label: string; value: string; hin
 function Select({ value, onChange, children, className }: { value: string; onChange: (v: string) => void; children: ReactNode; className?: string }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className={cn("h-9 w-full rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      className={cn("h-9 w-full rounded-md border border-white-02 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
       {children}
     </select>
   );
@@ -125,7 +125,7 @@ export default function PayrollPage() {
           <p className="mt-0.5 font-mont text-xs text-gray-05">Monthly salary runs and payslips, generated from the employee roster.</p>
         </div>
 
-        <div className="flex flex-wrap gap-1 border-b border-gray-03" data-guide="finance-payroll.sections">
+        <div className="flex flex-wrap gap-1 border-b border-white-02" data-guide="finance-payroll.sections">
           {TABS.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className={cn("-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 font-mont text-xs font-semibold",
@@ -244,12 +244,12 @@ function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null;
             <Metric label="PAYE" kobo={r.paye_total} currency={currency} />
             <Metric label="Pension" kobo={r.pension_total} currency={currency} />
             <Metric label="Net" kobo={r.net_total} currency={currency} />
-            <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">Status</p><div className="mt-1.5"><RunPill status={r.run_status} /></div></div>
+            <div className="rounded-md border border-white-02 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">Status</p><div className="mt-1.5"><RunPill status={r.run_status} /></div></div>
           </div>
 
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Payslips · {r.lines.length}</p>
-            <div className="overflow-hidden rounded-md border border-gray-03">
+            <div className="overflow-hidden rounded-md border border-white-02">
               <table className="w-full border-collapse">
                 <thead><tr>
                   <th className={thCls}>Employee</th><th className={cn(thCls, "text-right")}>Gross</th>
@@ -294,7 +294,7 @@ function RunDrawer({ runId, entity, currency, onClose }: { runId: number | null;
 }
 
 function Metric({ label, kobo, currency }: { label: string; kobo: number; currency?: string | null }) {
-  return <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">{label}</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(kobo, currency)}</p></div>;
+  return <div className="rounded-md border border-white-02 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">{label}</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(kobo, currency)}</p></div>;
 }
 
 function PayDrawer({ run, entity, currency, onClose }: { run: PayrollRun; entity: string; currency?: string | null; onClose: () => void }) {
@@ -442,7 +442,7 @@ function NewRunDrawer({ open, onClose, entity, currency, perBranch }: { open: bo
             </div>
             <div className="space-y-2">
               {lines.map((l, i) => (
-                <div key={i} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+                <div key={i} className="flex items-end gap-2 rounded-md border border-white-02 bg-white p-2.5">
                   <div className="grid flex-1 grid-cols-12 gap-2">
                     <div className="col-span-5"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Employee</p><Input value={l.employee_name} onChange={(e) => setRow(i, { employee_name: e.target.value })} placeholder="Name" className="h-9 bg-white text-sm" /></div>
                     <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Gross</p><MoneyInput valueKobo={l.gross} onChangeKobo={(k) => setRow(i, { gross: k })} currency={currency} className="[&_input]:h-9" /></div>
@@ -653,9 +653,9 @@ function EmployeeDrawer({ open, salary, entity, currency, branches, onClose }: {
         </div>
 
         {structure && derived ? (
-          <div className="rounded-md border border-gray-03 bg-white">
-            <p className="border-b border-gray-03 px-3 py-2 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Derived breakdown</p>
-            <div className="divide-y divide-gray-03">
+          <div className="rounded-md border border-white-02 bg-white">
+            <p className="border-b border-white-02 px-3 py-2 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Derived breakdown</p>
+            <div className="divide-y divide-white-02">
               {derived.lines.map((l, i) => (
                 <div key={i} className="flex items-center justify-between px-3 py-1.5 font-mont text-xs">
                   <span className={cn(l.kind === "DEDUCTION" ? "text-gray-05" : "text-black-01")}>{l.name}{l.kind === "DEDUCTION" ? <span className="ml-1 text-[10px] text-gray-05">({l.statutory_type})</span> : null}</span>
@@ -799,7 +799,7 @@ function StructureDrawer({ open, structure, entity, currency, onClose }: { open:
           </div>
           <div className="space-y-2">
             {comps.map((c, i) => (
-              <div key={i} className="flex items-start gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+              <div key={i} className="flex items-start gap-2 rounded-md border border-white-02 bg-white p-2.5">
                 <div className="grid flex-1 grid-cols-12 gap-2">
                   <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Name</p><Input value={c.name} onChange={(e) => setComp(i, { name: e.target.value })} placeholder={c.kind === "DEDUCTION" ? "e.g. PAYE" : "e.g. Basic"} className="h-9 bg-white text-sm" /></div>
                   <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Type</p><Select value={c.kind} onChange={(v) => setKind(i, v as SalaryComponent["kind"])}>{KIND_OPTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</Select></div>
@@ -840,7 +840,7 @@ function StructureDrawer({ open, structure, entity, currency, onClose }: { open:
               </div>
             ))}
           </div>
-          <div className="mt-2 flex items-center justify-between border-t border-gray-03 pt-2 font-mont text-xs font-semibold">
+          <div className="mt-2 flex items-center justify-between border-t border-white-02 pt-2 font-mont text-xs font-semibold">
             <span>Net (take-home)</span><span className="tabular-nums">{formatMoney(preview.net, currency)}</span>
           </div>
         </div>
@@ -918,8 +918,8 @@ function PayslipBreakdown({ line, currency }: { line: PayrollLine; currency?: st
         { label: "Pension", amount: line.pension_amount ?? 0, ded: true },
       ];
   return (
-    <div className="overflow-hidden rounded-md border border-gray-03 bg-white">
-      <div className="divide-y divide-gray-03">
+    <div className="overflow-hidden rounded-md border border-white-02 bg-white">
+      <div className="divide-y divide-white-02">
         {rows.map((r, i) => "sec" in r
           ? <p key={i} className="bg-gray-03/40 px-3 py-1.5 font-mont text-[10px] font-semibold uppercase tracking-wide text-gray-05">{r.sec}</p>
           : (
@@ -1043,21 +1043,21 @@ function StatutoryDrawer({ run, entity, currency, onClose }: { run: PayrollRun |
           <Metric label={`Pension payable (this run · ${run.pension_payable_account || "2320"})`} kobo={run.pension_total} currency={currency} />
         </div>
 
-        <div className="rounded-md border border-gray-03 bg-white">
-          <div className="flex items-center justify-between border-b border-gray-03 px-3 py-2">
+        <div className="rounded-md border border-white-02 bg-white">
+          <div className="flex items-center justify-between border-b border-white-02 px-3 py-2">
             <p className="font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Remittance status</p>
             <Link to={`${routesPath.PROTECTED.FINANCE.BUDGETS}/tax`} className="inline-flex items-center gap-1 font-mont text-[11px] font-medium text-primary hover:underline">Tax Remittance <ArrowUpRight className="size-3" /></Link>
           </div>
-          <div className="divide-y divide-gray-03">
+          <div className="divide-y divide-white-02">
             <RemitRow label="PAYE payable" code={run.paye_payable_account} outstanding={payeOut} currency={currency} />
             <RemitRow label="Pension payable" code={run.pension_payable_account} outstanding={pensionOut} currency={currency} />
           </div>
-          <p className="border-t border-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">Outstanding is the current balance on the liability account (all runs, this entity) - remittance is tracked against the account, not per run. Settle it under Tax Remittance.</p>
+          <p className="border-t border-white-02 px-3 py-2 font-mont text-[11px] text-gray-05">Outstanding is the current balance on the liability account (all runs, this entity) - remittance is tracked against the account, not per run. Settle it under Tax Remittance.</p>
         </div>
 
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Per-employee schedule · {run.lines.length}</p>
-          <div className="overflow-hidden rounded-md border border-gray-03">
+          <div className="overflow-hidden rounded-md border border-white-02">
             <table className="w-full border-collapse">
               <thead><tr>
                 <th className={thCls}>Employee</th><th className={cn(thCls, "text-right")}>PAYE</th><th className={cn(thCls, "text-right")}>Pension</th>

@@ -419,7 +419,7 @@ export default function Impersonations() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-03">
+              <tbody className="divide-y divide-white-02">
                 {list.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="h-48 text-center">

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Activity, AlertTriangle, CheckCircle2, Server } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { useGetHealthOverviewQuery } from "@/redux/services/health-api";
 import { TrendChart } from "./charts";
 import { IncidentDrawer, ServiceDrawer } from "./drawers";
@@ -113,7 +114,7 @@ export default function CommandCenter() {
 
       {/* Activity + incidents */}
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.65fr_1fr]">
-        <section className="rounded-md bg-white p-5.5">
+        <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5.5")}>
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="font-mont font-semibold">Request activity</h2>
@@ -123,7 +124,7 @@ export default function CommandCenter() {
           </div>
           <TrendChart data={data.request_series} />
         </section>
-        <section className="rounded-md bg-white p-5.5">
+        <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5.5")}>
           <h2 className="font-mont font-semibold">Active incidents</h2>
           <div className="mt-4 space-y-3">
             {data.active_incidents.length ? (
@@ -132,7 +133,7 @@ export default function CommandCenter() {
                   type="button"
                   onClick={() => setSelectedIncident(incident.id)}
                   key={incident.id}
-                  className="block w-full rounded-md border border-gray-100 p-3 text-left transition-colors hover:bg-gray-50"
+                  className="block w-full rounded-md border border-white-02 p-3 text-left transition-colors hover:bg-gray-50"
                 >
                   <div className="flex justify-between gap-3">
                     <p className="text-sm font-medium">{incident.title}</p>
@@ -162,7 +163,7 @@ export default function CommandCenter() {
               type="button"
               onClick={() => setSelectedService(service.key)}
               key={service.key}
-              className="rounded-md bg-white p-4 text-left transition-colors hover:bg-pry-01/40"
+              className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-4 text-left transition-colors hover:bg-pry-01/40")}
             >
               <div className="flex items-center justify-between">
                 <span className="flex size-9 items-center justify-center rounded-md bg-gray-50 text-primary">

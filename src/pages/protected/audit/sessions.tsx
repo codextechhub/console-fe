@@ -361,7 +361,7 @@ export default function LiveSessions() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-03">
+              <tbody className="divide-y divide-white-02">
                 {sessions.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="h-56 text-center">

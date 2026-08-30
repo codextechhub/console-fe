@@ -124,8 +124,8 @@ export function StatusCodeChart({ data }: { data: SeriesPoint[] }) {
           <Tooltip
             content={({ active, payload, label }) =>
               active && payload?.length ? (
-                <div className="min-w-32 rounded-lg border border-gray-100 bg-white px-3.5 py-3 shadow-lg">
-                  <p className="border-b border-gray-100 pb-2 text-[11px] font-medium text-gray-01">
+                <div className="min-w-32 rounded-lg border border-white-02 bg-white px-3.5 py-3 shadow-lg">
+                  <p className="border-b border-white-02 pb-2 text-[11px] font-medium text-gray-01">
                     {new Date(String(label)).toLocaleString()}
                   </p>
                   <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2">

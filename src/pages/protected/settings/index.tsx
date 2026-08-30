@@ -117,6 +117,8 @@ import CustomTable from "@/components/custom/custom-table";
 import { UserAvatar } from "@/components/custom/user-avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ConfigDialog } from "./config-dialog";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const S = routesPath.PROTECTED.SETTINGS.INDEX;
 
@@ -509,7 +511,7 @@ function PayrollScope() {
         description="Whether a school pays everybody in one run, or runs payroll separately for each branch. New schools run centrally until somebody changes this."
       />
 
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-03 bg-white p-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white-02 bg-white p-4">
         <ScopePicker value={school} onChange={(value) => { setSchool(value); setRefusal(""); }} />
         {!school ? (
           <p className="font-mont text-xs text-gray-05">
@@ -623,7 +625,7 @@ function SecuritySettings() {
           </Button>
         ) : <PolicyBadge kind="enforced">Read only</PolicyBadge>}
       />
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-03 bg-white p-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white-02 bg-white p-4">
         <ScopePicker value={school} onChange={(value) => { setSchool(value); setBranch(""); setDraft(null); }} />
         <SecurityBranchPicker school={school} value={branch} onChange={(value) => { setBranch(value); setDraft(null); }} />
         <PolicyBadge kind="enforced">
@@ -909,7 +911,7 @@ function ScopePicker({ value, onChange }: { value: string; onChange: (schoolId: 
 
 function Busy() {
   return (
-    <div className="grid h-48 place-content-center rounded-md bg-white">
+    <div className={cn(INFORMATION_CARD_SURFACE, "grid h-48 place-content-center rounded-md")}>
       <Loader2 className="size-6 animate-spin text-primary" />
     </div>
   );
@@ -917,7 +919,7 @@ function Busy() {
 
 function SettingsLoadError({ retry }: { retry: () => void }) {
   return (
-    <div className="grid min-h-48 place-content-center rounded-xl border border-gray-03 bg-white p-6 text-center">
+    <div className="grid min-h-48 place-content-center rounded-xl border border-white-02 bg-white p-6 text-center">
       <p className="font-mont text-sm font-semibold text-gray-01">Settings could not be loaded</p>
       <p className="mt-1 font-mont text-xs text-gray-05">Check your access or try the request again.</p>
       <Button className="mx-auto mt-4" variant="outline" size="sm" onClick={retry}>Try again</Button>
@@ -1007,15 +1009,15 @@ function SystemSettings() {
       </div>
 
       {!rows.length ? (
-        <div className="grid h-40 place-content-center rounded-md bg-white text-sm text-gray-01">
+        <div className={cn(INFORMATION_CARD_SURFACE, "grid h-40 place-content-center rounded-md text-sm text-gray-01")}>
           No settings match your search.
         </div>
       ) : (
-        <div className="divide-y divide-gray-03 rounded-xl border border-gray-03 bg-white">
+        <div className="divide-y divide-white-02 rounded-xl border border-white-02 bg-white">
           {[...groups.entries()].map(([group, defsInGroup]) => (
             <div key={group} className="p-5">
               <h3 className="font-mont font-semibold">{group}</h3>
-              <div className="mt-3 divide-y divide-gray-03 rounded-lg border border-gray-03">
+              <div className="mt-3 divide-y divide-white-02 rounded-lg border border-white-02">
                 {defsInGroup.map((d) => (
                   <SettingRow
                     key={d.key}
@@ -1271,11 +1273,11 @@ function Features() {
         />
       ) : null}
 
-      <div className="divide-y divide-gray-03 rounded-xl border border-gray-03 bg-white">
+      <div className="divide-y divide-white-02 rounded-xl border border-white-02 bg-white">
         {[...groups.entries()].map(([group, caps]) => (
           <div key={group} className="p-5">
             <h3 className="font-mont font-semibold">{group}</h3>
-            <div className="mt-3 divide-y divide-gray-03 rounded-lg border border-gray-03">
+            <div className="mt-3 divide-y divide-white-02 rounded-lg border border-white-02">
               {caps.map((c) => (
                 <FeatureRow
                   key={c.key}
@@ -1367,7 +1369,7 @@ function EntitlementRenewalCalendar({
     >
       {loading ? <div className="p-5"><Busy /></div> : (
         <>
-          <div className="grid grid-cols-2 gap-3 border-b border-gray-03 p-4 sm:p-5 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 border-b border-white-02 p-4 sm:p-5 lg:grid-cols-5">
             <RenewalMetric label="Expired" value={data?.summary.expired ?? 0} tone="danger" />
             <RenewalMetric label="Next 7 days" value={data?.summary.expiring_7_days ?? 0} tone="danger" />
             <RenewalMetric label="Next 30 days" value={data?.summary.expiring_30_days ?? 0} tone="warning" />
@@ -1384,7 +1386,7 @@ function EntitlementRenewalCalendar({
           {visibleEntries.length === 0 ? (
             <div className="p-5 font-mont text-sm text-gray-05">No scheduled activation or expiry falls in this window.</div>
           ) : (
-            <div className="divide-y divide-gray-03">
+            <div className="divide-y divide-white-02">
               {visibleEntries.map((entry) => (
                 <EntitlementCalendarRow
                   key={entry.id}
@@ -1403,7 +1405,7 @@ function EntitlementRenewalCalendar({
           )}
 
           {canManage ? (
-            <div className="grid grid-cols-1 gap-3 border-t border-gray-03 p-4 sm:p-5 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+            <div className="grid grid-cols-1 gap-3 border-t border-white-02 p-4 sm:p-5 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
               <label className="space-y-1 font-mont text-xs text-gray-01">New activation (optional)<Input type="datetime-local" value={startsAt} onChange={(event) => setStartsAt(event.target.value)} /></label>
               <label className="space-y-1 font-mont text-xs text-gray-01">New expiry (optional)<Input type="datetime-local" value={endsAt} onChange={(event) => setEndsAt(event.target.value)} /></label>
               <Button disabled={selectedEntries.length === 0 || (!startsAt && !endsAt) || invalidRange || expiredEnd || bulkState.isLoading} onClick={schedule}>
@@ -2068,7 +2070,7 @@ function Audit() {
       />
       {canExport && (exportJobs.data?.data ?? []).length > 0 ? (
         <SettingsPanel title="Queued audit exports" description="Large exports run in the background. Completed files remain available for seven days and can only be downloaded by the person who requested them.">
-          <div className="divide-y divide-gray-03">
+          <div className="divide-y divide-white-02">
             {(exportJobs.data?.data ?? []).map((job) => (
               <div key={job.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:px-5">
                 <div className="min-w-0 flex-1">
@@ -2089,7 +2091,7 @@ function Audit() {
       ) : null}
       <Sheet open={showSaveView} onOpenChange={setShowSaveView}>
         <SheetContent className="w-full sm:max-w-md">
-          <SheetHeader className="border-b border-gray-03"><SheetTitle>Save personal audit view</SheetTitle></SheetHeader>
+          <SheetHeader className="border-b border-white-02"><SheetTitle>Save personal audit view</SheetTitle></SheetHeader>
           <div className="space-y-4 p-5">
             <p className="font-mont text-sm leading-6 text-gray-05">Save the current window, change type, actor, target and school filters as a shortcut visible only to you.</p>
             <label className="space-y-1 font-mont text-xs font-semibold text-gray-01">View name<Input value={savedViewName} onChange={(event) => setSavedViewName(event.target.value)} maxLength={80} placeholder="For example, School entitlement changes" /></label>
@@ -2101,7 +2103,7 @@ function Audit() {
         <SheetContent className="w-full sm:max-w-xl">
           <ScrollArea className="min-h-0 flex-1">
             <div className="flex flex-col gap-4">
-              <SheetHeader className="border-b border-gray-03">
+              <SheetHeader className="border-b border-white-02">
                 <SheetTitle>Configuration change detail</SheetTitle>
               </SheetHeader>
               {detail.isFetching ? <Busy /> : detail.data?.data ? <AuditDetail event={detail.data.data} /> : (

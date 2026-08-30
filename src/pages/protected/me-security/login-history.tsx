@@ -255,7 +255,7 @@ export default function MyLoginHistory() {
                     className={`px-3 py-1 text-xs rounded-full border transition ${
                       filter === f
                         ? "bg-black-01 text-white border-black-01"
-                        : "bg-white text-gray-01 border-gray-100 hover:border-gray-300"
+                        : "bg-white text-gray-01 border-white-02 hover:border-gray-300"
                     }`}
                   >
                     {f}
@@ -270,7 +270,7 @@ export default function MyLoginHistory() {
                     className={`px-3 py-1 text-xs rounded-full border transition ${
                       range === r.v
                         ? "bg-black-01 text-white border-black-01"
-                        : "bg-white text-gray-01 border-gray-100 hover:border-gray-300"
+                        : "bg-white text-gray-01 border-white-02 hover:border-gray-300"
                     }`}
                   >
                     {r.v === "all" ? "All" : r.v}
@@ -281,16 +281,16 @@ export default function MyLoginHistory() {
 
             {/* Table */}
             {isError ? (
-              <div className="flex h-40 flex-col items-center justify-center gap-2 bg-white rounded-md border border-gray-100">
+              <div className="flex h-40 flex-col items-center justify-center gap-2 bg-white rounded-md border border-white-02">
                 <p className="text-sm font-medium text-destructive">Failed to load login history.</p>
               </div>
             ) : isLoading ? (
-              <div className="bg-white rounded-md border border-gray-100 h-48 animate-pulse" />
+              <div className="bg-white rounded-md border border-white-02 h-48 animate-pulse" />
             ) : (
-              <div className="bg-white rounded-md border border-gray-100 overflow-x-auto">
+              <div className="bg-white rounded-md border border-white-02 overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-100">
+                    <tr className="border-b border-white-02">
                       <th className="w-9 px-3 py-2.5" />
                       <th className="px-3 py-2.5 text-left font-medium text-gray-01 whitespace-nowrap">Event</th>
                       <th className="px-3 py-2.5 text-left font-medium text-gray-01 whitespace-nowrap">When</th>
@@ -299,7 +299,7 @@ export default function MyLoginHistory() {
                       <th className="px-3 py-2.5 text-left font-medium text-gray-01 whitespace-nowrap">Result</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white-02">
                     {filteredItems.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="px-3 py-8 text-center text-gray-01">
@@ -380,7 +380,7 @@ export default function MyLoginHistory() {
           </div>
 
           {/* "This month" stats sidebar */}
-          <div className="order-first grid w-full shrink-0 grid-cols-2 gap-3 self-start rounded-md border border-gray-100 bg-white p-4 sm:order-none sm:flex sm:w-[200px] sm:flex-col">
+          <div className="order-first grid w-full shrink-0 grid-cols-2 gap-3 self-start rounded-md border border-white-02 bg-white p-4 sm:order-none sm:flex sm:w-[200px] sm:flex-col">
             <p className="col-span-2 text-[10px] font-semibold text-gray-01 uppercase tracking-wide">This month</p>
             <div>
               <p className="text-xs text-gray-01">Sign-ins</p>

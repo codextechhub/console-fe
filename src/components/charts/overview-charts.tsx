@@ -131,7 +131,7 @@ function DowntimeTooltip({
   const slice = payload[0].payload;
   const pct = total ? Math.round((slice.value / total) * 100) : 0;
   return (
-    <div className="rounded-md border border-gray-100 bg-white px-3 py-2 text-xs shadow-md">
+    <div className="rounded-md border border-white-02 bg-white px-3 py-2 text-xs shadow-md">
       <p className="font-medium text-red-500">{pct}% of downtime</p>
     </div>
   );

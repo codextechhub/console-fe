@@ -14,6 +14,7 @@ import { routesPath } from "@/routes/routes-path";
 import type { AuditEventDetail } from "@/redux/services/dashboard/audit-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { friendlyAction } from "./audit-constants";
 import { PageShell } from "@/components/layout/page-shell";
 
@@ -153,7 +154,7 @@ export default function EntityTrailDetail() {
         </div>
 
         {isError ? (
-          <div className="flex h-56 flex-col items-center justify-center gap-3 bg-white rounded-md">
+          <div className={cn(INFORMATION_CARD_SURFACE, "flex h-56 flex-col items-center justify-center gap-3 rounded-md")}>
             <p className="text-sm font-medium text-destructive">Trail not found or failed to load.</p>
           </div>
         ) : isLoading ? (
@@ -161,7 +162,7 @@ export default function EntityTrailDetail() {
         ) : trail ? (
           <>
             {/* Entity card */}
-            <div className="bg-white rounded-md p-5 space-y-4">
+            <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}>
               <div className="flex items-start gap-2">
                 <Badge variant="inactive" className="text-[10px] uppercase shrink-0 mt-0.5">
                   {trail.entity_type}
@@ -175,7 +176,7 @@ export default function EntityTrailDetail() {
               </div>
 
               {/* Stat strip - 4 tiles */}
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white-02 sm:grid-cols-4">
                 <div>
                   <p className="text-[10px] uppercase text-gray-01 tracking-wide mb-0.5">Events</p>
                   <p className="text-xl font-semibold">{trail.event_count}</p>
@@ -197,7 +198,7 @@ export default function EntityTrailDetail() {
 
             {/* Snapshot comparison panel - appears when 2 events are selected */}
             {selectedSnap.length >= 2 && (
-              <div className="bg-white rounded-md p-4 space-y-3">
+              <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-4 space-y-3")}>
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold">Snapshot comparison</p>
                   <Button
@@ -234,7 +235,7 @@ export default function EntityTrailDetail() {
             )}
 
             {/* Timeline */}
-            <div className="bg-white rounded-md overflow-hidden">
+            <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md overflow-hidden")}>
               {/* Timeline header */}
               <div className="flex items-center justify-between px-5 pt-5 pb-3">
                 <p className="text-sm font-semibold">Timeline ({events.length})</p>
@@ -261,7 +262,7 @@ export default function EntityTrailDetail() {
               </div>
 
               {/* Feed */}
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-white-02">
                 {filtered.length === 0 ? (
                   <p className="text-xs text-gray-01 px-5 py-6">No events match this filter.</p>
                 ) : (

@@ -59,7 +59,7 @@ function ProviderTag({ provider }: { provider: string }) {
 function Select({ value, onChange, children, className }: { value: string; onChange: (v: string) => void; children: ReactNode; className?: string }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className={cn("h-9 rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      className={cn("h-9 rounded-md border border-white-02 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
       {children}
     </select>
   );
@@ -147,7 +147,7 @@ export function PayoutsTab({ entity, currency }: { entity: string; currency?: st
 
 function Metric({ label, value, children }: { label: string; value?: string; children?: ReactNode }) {
   return (
-    <div className="rounded-md border border-gray-03 bg-white p-3">
+    <div className="rounded-md border border-white-02 bg-white p-3">
       <p className="font-mont text-[11px] text-gray-05">{label}</p>
       {value ? <p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value}</p> : <div className="mt-1.5">{children}</div>}
     </div>
@@ -187,7 +187,7 @@ function PayoutDrawer({ payoutId, payouts, currency, onClose }: { payoutId: numb
           <Metric label="Status"><StatusPill status={p.status} /></Metric>
         </div>
 
-        <div className="rounded-md border border-gray-03 bg-white p-4">
+        <div className="rounded-md border border-white-02 bg-white p-4">
           <p className="mb-3 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Status timeline</p>
           <div className="space-y-3">
             <TimelineStep done title="Payout created" sub={fmtDateTime(p.created_at)} />

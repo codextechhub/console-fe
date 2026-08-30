@@ -18,6 +18,8 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
@@ -131,8 +133,8 @@ export default function EditRole() {
               <Form className="space-y-5">
                 <div className="grid grid-cols-1 lg:grid-cols-[5fr_6fr] gap-5 items-start">
                   {/* Left - Basic Info */}
-                  <div className="bg-white rounded-md p-6 space-y-5">
-                    <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+                  <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
+                    <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
                       Basic Information
                     </h2>
 
@@ -181,8 +183,8 @@ export default function EditRole() {
                   </div>
 
                   {/* Right - Permission Groups */}
-                  <div className="bg-white rounded-md p-6 flex flex-col gap-4">
-                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 flex flex-col gap-4")}>
+                    <div className="flex items-center justify-between border-b border-white-02 pb-3">
                       <h2 className="text-sm font-semibold font-mont text-black-01">Permission Groups</h2>
                       {values.group_ids.length > 0 && (
                         <span className="text-xs font-medium text-primary bg-pry-01/30 px-2 py-0.5 rounded-full">
@@ -211,7 +213,7 @@ export default function EditRole() {
                         {filteredGroups.map((group) => (
                           <label
                             key={group.id}
-                            className="flex items-start gap-3 p-3 rounded-md border border-gray-100 hover:border-primary/30 hover:bg-primary/5 cursor-pointer transition-colors"
+                            className="flex items-start gap-3 p-3 rounded-md border border-white-02 hover:border-primary/30 hover:bg-primary/5 cursor-pointer transition-colors"
                           >
                             <input
                               type="checkbox"
@@ -239,8 +241,8 @@ export default function EditRole() {
                 </div>
 
                 {/* Individual Permissions - full width */}
-                <div className="bg-white rounded-md p-6 flex flex-col gap-4">
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 flex flex-col gap-4")}>
+                  <div className="flex items-center justify-between border-b border-white-02 pb-3">
                     <div>
                       <h2 className="text-sm font-semibold font-mont text-black-01">Individual Permissions</h2>
                       <p className="text-xs text-gray-01 mt-0.5">
@@ -274,7 +276,7 @@ export default function EditRole() {
                       {filteredPerms.map((perm) => (
                         <label
                           key={perm.key}
-                          className="flex items-start gap-3 p-3 rounded-md border border-gray-100 hover:border-primary/30 hover:bg-primary/5 cursor-pointer transition-colors"
+                          className="flex items-start gap-3 p-3 rounded-md border border-white-02 hover:border-primary/30 hover:bg-primary/5 cursor-pointer transition-colors"
                         >
                           <input
                             type="checkbox"

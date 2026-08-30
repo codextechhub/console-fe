@@ -133,7 +133,7 @@ export function CreditNotesTab({ entity, currency }: { entity: string; currency?
   const pg = data?.pagination;
   const resetPage = () => setPage(1);
 
-  const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01";
+  const selectCls = "h-9 rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01";
 
   const columns: Column<CreditNote>[] = [
     { header: "Note no.", cell: (r) => <span className="font-semibold tabular-nums">{r.document_number}</span> },
@@ -395,7 +395,7 @@ function IssueNoteDrawer({ open, onClose, entity, currency }: {
           <p className={`rounded-md border px-3 py-2 font-mont text-xs leading-5 ${
             willNeedApproval
               ? "border-amber-200 bg-amber-50 text-amber-900"
-              : "border-gray-03 bg-gray-01/5 text-gray-05"
+              : "border-white-02 bg-gray-01/5 text-gray-05"
           }`}>
             {gateNote}
             {willNeedApproval && !debit && applyNow

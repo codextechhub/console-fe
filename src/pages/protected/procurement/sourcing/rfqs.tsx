@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
@@ -106,7 +107,7 @@ export default function RfqsPage() {
       </header>
 
       <div data-guide="procurement-rfqs.summary" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
+        {summaryLoading || !summary ? <div className={cn(INFORMATION_CARD_SURFACE, "col-span-full rounded-md")}><LoadingState rows={2} /></div> : <>
           <StatCard label="Draft" value={summary.draft} icon={FileText} />
           <StatCard label="Open" value={summary.open} icon={Clock} tone="green" />
           <StatCard label="Responses in" value={summary.responses_in} icon={Inbox} tone="amber" />
@@ -114,8 +115,8 @@ export default function RfqsPage() {
         </>}
       </div>
 
-      <section data-guide="procurement-rfqs.list" className="min-w-0 rounded-md bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
+      <section data-guide="procurement-rfqs.list" className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-white-02 px-4">
           <div className="max-w-full overflow-x-auto"><div className="flex min-w-max gap-5">{RFQ_TABS.map(([label, value]) => (
             <button key={label} onClick={() => { setStatus(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", status === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>
           ))}</div></div>
@@ -171,12 +172,12 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
           <RfqStatusPill status={rfq.rfq_status} />
           <p className="font-mont text-xs text-gray-05">{rfq.response_count} response{rfq.response_count === 1 ? "" : "s"} · {rfq.line_count} line{rfq.line_count === 1 ? "" : "s"}</p>
         </div>
-        <div className="max-w-full overflow-x-auto border-b border-gray-03"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([value, label, Icon]) => (
+        <div className="max-w-full overflow-x-auto border-b border-white-02"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([value, label, Icon]) => (
           <button key={value} onClick={() => setTab(value)} className={cn("flex items-center gap-1.5 border-b-2 py-2.5 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}><Icon className="size-3.5" />{label}</button>
         ))}</div></div>
 
         {tab === "overview" && (
-          <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
+          <dl className="grid grid-cols-1 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2">
             <Field label="RFQ number" value={rfq.document_number} />
             <Field label="Status" value={<RfqStatusPill status={rfq.rfq_status} />} />
             <Field label="Title" value={rfq.title} />
@@ -188,51 +189,51 @@ function RfqDrawer({ id, entity, currency, onClose }: { id: number | null; entit
             <Field label="Vendors invited" value={rfq.invited_count} />
             <Field label="Responses received" value={rfq.response_count} />
             <div className="sm:col-span-2"><dt className="font-mont text-[11px] text-gray-05">Notes</dt><dd className="mt-1 font-mont text-sm text-black-01">{rfq.notes || "-"}</dd></div>
-            {rfq.amendments.length > 0 && <div className="sm:col-span-2"><dt className="font-mont text-[11px] text-gray-05">Amendments</dt><dd className="mt-2 space-y-2">{rfq.amendments.map((row) => <div key={row.id} className="rounded border border-gray-03 bg-gray-50 p-2.5 font-mont text-xs"><span className="font-semibold">Version {row.version}</span> · {row.summary}<span className="ml-1 text-gray-05">({row.response_required ? "new response required" : "information only"})</span></div>)}</dd></div>}
+            {rfq.amendments.length > 0 && <div className="sm:col-span-2"><dt className="font-mont text-[11px] text-gray-05">Amendments</dt><dd className="mt-2 space-y-2">{rfq.amendments.map((row) => <div key={row.id} className="rounded border border-white-02 bg-gray-50 p-2.5 font-mont text-xs"><span className="font-semibold">Version {row.version}</span> · {row.summary}<span className="ml-1 text-gray-05">({row.response_required ? "new response required" : "information only"})</span></div>)}</dd></div>}
           </dl>
         )}
 
         {tab === "lines" && (rfq.lines.length ? (
-          <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[520px]">
+          <div className="overflow-x-auto rounded-md border border-white-02"><table className="w-full min-w-[520px]">
             <thead><tr>{["#", "Description", "Qty", "Expense account", "Tax"].map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
             <tbody>{rfq.lines.map((line) => (
               <tr key={line.id}>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums text-gray-05">{line.line_no}</td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{line.description}</td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{formatQuantity(line.quantity)}</td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{line.expense_code || "-"}</td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{line.tax_code_id ? "Taxed" : "-"}</td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums text-gray-05">{line.line_no}</td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs font-semibold">{line.description}</td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{formatQuantity(line.quantity)}</td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs">{line.expense_code || "-"}</td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs">{line.tax_code_id ? "Taxed" : "-"}</td>
               </tr>
             ))}</tbody>
           </table></div>
         ) : <EmptyPanel>This RFQ has no specification lines.</EmptyPanel>)}
 
         {tab === "invited" && (rfq.invitations.length ? (
-          <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[820px]">
+          <div className="overflow-x-auto rounded-md border border-white-02"><table className="w-full min-w-[820px]">
             <thead><tr>{["Vendor", "Invitation", "Contacts", "Quotation", "Total", "Actions"].map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
             <tbody>{rfq.invitations.map((inv) => (
               <tr key={inv.vendor_id}>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs"><p className="font-semibold">{inv.vendor_name}</p><p className="mt-0.5 text-gray-05">{inv.vendor_code}</p></td>
-                <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={inv.status || (inv.responded ? "RESPONDED" : "AWAITED")} /><p className="mt-1 font-mont text-[10px] text-gray-05">{inv.deadline ? new Date(inv.deadline).toLocaleString() : "No deadline"}</p></td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs"><p>{inv.recipients.map((row) => row.name || row.email).join(", ") || "No RFQ contact"}</p><p className="mt-0.5 text-[10px] text-gray-05">{inv.recipients.map((row) => row.email).join(", ")}</p></td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{inv.quotation_id ? <span className="flex flex-wrap items-center gap-1.5"><StatusPill status={inv.quotation_status || ""} /></span> : "-"}</td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{inv.quotation_total != null ? <Money kobo={inv.quotation_total} currency={currency} /> : "-"}</td>
-                <td className="border-t border-gray-03 px-3 py-2"><div className="flex gap-1.5"><Button size="sm" variant="outline" onClick={async () => { try { await resend({ id: rfq.id, invitationId: inv.id, entity }).unwrap(); toast.success("Invitation resent."); } catch { /* central */ } }}><MailPlus className="size-3.5" /> Resend</Button><Button size="sm" variant="outline" onClick={() => setExtending(inv)}><CalendarPlus className="size-3.5" /> Extend</Button></div></td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs"><p className="font-semibold">{inv.vendor_name}</p><p className="mt-0.5 text-gray-05">{inv.vendor_code}</p></td>
+                <td className="border-t border-white-02 px-3 py-2"><StatusPill status={inv.status || (inv.responded ? "RESPONDED" : "AWAITED")} /><p className="mt-1 font-mont text-[10px] text-gray-05">{inv.deadline ? new Date(inv.deadline).toLocaleString() : "No deadline"}</p></td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs"><p>{inv.recipients.map((row) => row.name || row.email).join(", ") || "No RFQ contact"}</p><p className="mt-0.5 text-[10px] text-gray-05">{inv.recipients.map((row) => row.email).join(", ")}</p></td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs">{inv.quotation_id ? <span className="flex flex-wrap items-center gap-1.5"><StatusPill status={inv.quotation_status || ""} /></span> : "-"}</td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{inv.quotation_total != null ? <Money kobo={inv.quotation_total} currency={currency} /> : "-"}</td>
+                <td className="border-t border-white-02 px-3 py-2"><div className="flex gap-1.5"><Button size="sm" variant="outline" onClick={async () => { try { await resend({ id: rfq.id, invitationId: inv.id, entity }).unwrap(); toast.success("Invitation resent."); } catch { /* central */ } }}><MailPlus className="size-3.5" /> Resend</Button><Button size="sm" variant="outline" onClick={() => setExtending(inv)}><CalendarPlus className="size-3.5" /> Extend</Button></div></td>
               </tr>
             ))}</tbody>
           </table></div>
         ) : <EmptyPanel>No vendors have been invited yet.</EmptyPanel>)}
 
         {tab === "quotations" && (rfq.quotations.length ? (
-          <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[560px]">
+          <div className="overflow-x-auto rounded-md border border-white-02"><table className="w-full min-w-[560px]">
             <thead><tr>{["Quotation", "Vendor", "Total", "Lead time", "Status"].map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
             <tbody>{rfq.quotations.map((q) => (
               <tr key={q.id}>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{q.document_number}</td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{q.vendor_name || q.vendor_code}</td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums"><Money kobo={q.total} currency={currency} /></td>
-                <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{q.lead_time_days == null ? "-" : `${q.lead_time_days} days`}</td>
-                <td className="border-t border-gray-03 px-3 py-2"><div className="flex flex-wrap items-center gap-1.5"><StatusPill status={q.quotation_status} />{q.is_expired && <ExpiredPill />}</div></td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs font-semibold">{q.document_number}</td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs">{q.vendor_name || q.vendor_code}</td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums"><Money kobo={q.total} currency={currency} /></td>
+                <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{q.lead_time_days == null ? "-" : `${q.lead_time_days} days`}</td>
+                <td className="border-t border-white-02 px-3 py-2"><div className="flex flex-wrap items-center gap-1.5"><StatusPill status={q.quotation_status} />{q.is_expired && <ExpiredPill />}</div></td>
               </tr>
             ))}</tbody>
           </table></div>
@@ -266,8 +267,8 @@ function RfqAmendmentForm({ rfq, entity, onClose }: { rfq: RfqDetail; entity: st
     <div className="space-y-4">
       <FormField label="Change summary" required><Textarea value={summary} onChange={(event) => setSummary(event.target.value)} maxLength={500} placeholder="Explain what changed and what vendors should review." /></FormField>
       <FormField label="New deadline (optional)"><Input type="datetime-local" value={deadline} onChange={(event) => setDeadline(event.target.value)} /></FormField>
-      <label className="flex items-start gap-2 rounded-md border border-gray-03 p-3 font-mont text-xs"><input type="checkbox" className="mt-0.5" checked={responseRequired} onChange={(event) => setResponseRequired(event.target.checked)} /><span><strong className="block text-gray-01">Require a new response</strong><span className="mt-1 block leading-5 text-gray-05">Submitted quotations reopen as drafts. Their earlier receipts remain unchanged.</span></span></label>
-      <label className="flex items-start gap-2 rounded-md border border-gray-03 p-3 font-mont text-xs"><input type="checkbox" className="mt-0.5" checked={changeLines} onChange={(event) => setChangeLines(event.target.checked)} /><span><strong className="block text-gray-01">Change requested items or quantities</strong><span className="mt-1 block leading-5 text-gray-05">The current specification remains preserved in earlier quotation receipts.</span></span></label>
+      <label className="flex items-start gap-2 rounded-md border border-white-02 p-3 font-mont text-xs"><input type="checkbox" className="mt-0.5" checked={responseRequired} onChange={(event) => setResponseRequired(event.target.checked)} /><span><strong className="block text-gray-01">Require a new response</strong><span className="mt-1 block leading-5 text-gray-05">Submitted quotations reopen as drafts. Their earlier receipts remain unchanged.</span></span></label>
+      <label className="flex items-start gap-2 rounded-md border border-white-02 p-3 font-mont text-xs"><input type="checkbox" className="mt-0.5" checked={changeLines} onChange={(event) => setChangeLines(event.target.checked)} /><span><strong className="block text-gray-01">Change requested items or quantities</strong><span className="mt-1 block leading-5 text-gray-05">The current specification remains preserved in earlier quotation receipts.</span></span></label>
       {changeLines && <div><p className="mb-2 font-mont text-xs font-semibold text-gray-05">Replacement specification</p><LineEditor entity={entity} lines={lines} onChange={setLines} accountLabel="Expense account (optional)" accountType="EXPENSE" showTax showCostCenter={false} taxUsage="purchase" /></div>}
     </div>
   </DetailDrawer>;
@@ -316,7 +317,7 @@ function InviteVendorsEditor({ entity, invited, onChange }: { entity: string; in
       ) : (
         <div className="flex flex-wrap gap-2">
           {invited.map((v) => (
-            <span key={v.code} className="inline-flex max-w-full items-center gap-1.5 rounded border border-gray-03 bg-gray-50 px-2 py-1 font-mont text-xs">
+            <span key={v.code} className="inline-flex max-w-full items-center gap-1.5 rounded border border-white-02 bg-gray-50 px-2 py-1 font-mont text-xs">
               <span className="min-w-0 truncate">{v.code} - {v.name}</span>
               <button
                 type="button" onClick={() => onChange(invited.filter((row) => row.code !== v.code))}

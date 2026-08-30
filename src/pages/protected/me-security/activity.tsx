@@ -108,7 +108,7 @@ function EventRow({
   return (
     <div
       onClick={onClick}
-      className="flex items-center gap-3 px-4 py-3 border-b border-gray-03 last:border-0 cursor-pointer hover:bg-gray-50 group"
+      className="flex items-center gap-3 px-4 py-3 border-b border-white-02 last:border-0 cursor-pointer hover:bg-gray-50 group"
     >
       <span
         className={cn(
@@ -157,7 +157,7 @@ function Pagination({
 }) {
   if (totalPages <= 1) return null;
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-03">
+    <div className="flex items-center justify-between px-4 py-3 border-t border-white-02">
       <Button
         variant="outline"
         size="sm"
@@ -292,7 +292,7 @@ export default function MyActivity() {
         />
 
         {/* ── Table ── */}
-        <div className="bg-white border border-gray-03 rounded-lg overflow-hidden">
+        <div className="bg-white border border-white-02 rounded-lg overflow-hidden">
           {isError ? (
             <EmptyState message="Failed to load activity." />
           ) : isLoading ? (
@@ -329,7 +329,7 @@ export default function MyActivity() {
             <div className="flex flex-col gap-4">
               {selected && (
                 <>
-                  <SheetHeader className="flex flex-row items-center justify-between border-b border-gray-03 px-5 py-4 gap-4">
+                  <SheetHeader className="flex flex-row items-center justify-between border-b border-white-02 px-5 py-4 gap-4">
                     <div className="min-w-0">
                       <SheetTitle className="text-sm font-semibold text-black-01">Event detail</SheetTitle>
                       <p className="text-xs text-gray-01 font-mont mt-0.5">
@@ -387,7 +387,7 @@ export default function MyActivity() {
                     </div>
 
                     {/* By / When card */}
-                    <div className="rounded-lg border border-gray-03 bg-white p-4 space-y-3">
+                    <div className="rounded-lg border border-white-02 bg-white p-4 space-y-3">
                       <p className="text-[11px] font-semibold text-gray-01 font-mont uppercase tracking-wider">
                         By
                       </p>
@@ -414,7 +414,7 @@ export default function MyActivity() {
 
                     {/* From card (IP) */}
                     {selected.ip_address && (
-                      <div className="rounded-lg border border-gray-03 bg-white p-4 space-y-3">
+                      <div className="rounded-lg border border-white-02 bg-white p-4 space-y-3">
                         <p className="text-[11px] font-semibold text-gray-01 font-mont uppercase tracking-wider">
                           From
                         </p>

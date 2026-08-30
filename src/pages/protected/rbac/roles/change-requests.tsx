@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
@@ -462,8 +463,9 @@ export default function ChangeRequests() {
             <div
               key={card.key}
               className={cn(
-                "bg-white rounded-md min-h-26 w-full px-4 sm:px-5.5 pt-5 pb-4 space-y-2.5 cursor-pointer transition-colors",
-                cardFilter === card.key && "bg-pry-01",
+                INFORMATION_CARD_SURFACE,
+                "rounded-md min-h-26 w-full px-4 sm:px-5.5 pt-5 pb-4 space-y-2.5 cursor-pointer transition-colors",
+                cardFilter === card.key && "border-primary/30 bg-pry-01",
               )}
               onClick={() => setCardFilter(cardFilter === card.key ? "all" : card.key)}
             >

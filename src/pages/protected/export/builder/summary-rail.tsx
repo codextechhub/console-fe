@@ -12,6 +12,7 @@
 // user is here to watch.
 
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import type { PreviewResult } from "@/redux/services/dashboard/exports-types";
 import { formatBytes } from "@/utils/format-bytes";
 import { rowsLabel } from "./helpers";
@@ -53,14 +54,14 @@ export function SummaryRail({
 }) {
   return (
     <aside
-      className={cn("space-y-4 rounded-md bg-white p-4", className)}
+      className={cn(INFORMATION_CARD_SURFACE, "space-y-4 rounded-md p-4", className)}
       aria-label="Export summary"
     >
       <section>
         <h2 className="mb-2 font-mont text-[11px] uppercase tracking-widest text-gray-05">
           This export
         </h2>
-        <div className="divide-y divide-gray-03">
+        <div className="divide-y divide-white-02">
           <Line label="Name" value={<span className="font-mont">{name || "Untitled export"}</span>} />
           <Line label="Dataset" value={<span className="font-mont">{datasetName || "-"}</span>} />
           <Line label="Scope" value={<span className="font-mont">{scopeLabel || "-"}</span>} />
@@ -70,7 +71,7 @@ export function SummaryRail({
 
       <section
         aria-busy={recalculating}
-        className={cn("border-t border-gray-03 pt-3.5 transition-opacity", recalculating && "opacity-60")}
+        className={cn("border-t border-white-02 pt-3.5 transition-opacity", recalculating && "opacity-60")}
       >
         <div className="mb-2 flex items-baseline justify-between gap-2">
           <h2 className="font-mont text-[11px] uppercase tracking-widest text-gray-05">Estimate</h2>
@@ -83,7 +84,7 @@ export function SummaryRail({
           <p className="font-mont text-xs leading-relaxed text-error-text">{error}</p>
         ) : (
           <>
-            <div className="divide-y divide-gray-03">
+            <div className="divide-y divide-white-02">
               <Line label="Matching rows" value={rowsLabel(preview)} />
               <Line label="Columns" value={columns} />
               <Line
@@ -114,7 +115,7 @@ export function SummaryRail({
               </p>
             ))}
 
-            <p className="mt-2.5 border-t border-gray-03 pt-2.5 font-mont text-[11px] leading-relaxed text-gray-05">
+            <p className="mt-2.5 border-t border-white-02 pt-2.5 font-mont text-[11px] leading-relaxed text-gray-05">
               Recalculated as you change columns and filters. Actual figures are recorded on the run.
             </p>
           </>
@@ -124,7 +125,7 @@ export function SummaryRail({
       {preview?.sample?.headers?.length ? (
         <section
           aria-busy={recalculating}
-          className={cn("border-t border-gray-03 pt-3.5 transition-opacity", recalculating && "opacity-60")}
+          className={cn("border-t border-white-02 pt-3.5 transition-opacity", recalculating && "opacity-60")}
         >
           <h2 className="mb-2 font-mont text-[11px] uppercase tracking-widest text-gray-05">Preview</h2>
           <SamplePreview sample={preview.sample} maxColumns={3} maxRows={4} />
@@ -154,14 +155,14 @@ export function SamplePreview({
   if (!headers.length) return null;
 
   return (
-    <div className="overflow-x-auto rounded-md border border-gray-03">
+    <div className="overflow-x-auto rounded-md border border-white-02">
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-gray-04">
             {headers.map((h) => (
               <th
                 key={h}
-                className="truncate border-b border-gray-03 px-2 py-1.5 text-left font-geist-mono text-[10px] font-semibold uppercase tracking-wide text-gray-05"
+                className="truncate border-b border-white-02 px-2 py-1.5 text-left font-geist-mono text-[10px] font-semibold uppercase tracking-wide text-gray-05"
               >
                 {h}
               </th>
@@ -180,7 +181,7 @@ export function SamplePreview({
             </tr>
           ) : (
             rows.map((row, i) => (
-              <tr key={i} className="border-b border-gray-03 last:border-0">
+              <tr key={i} className="border-b border-white-02 last:border-0">
                 {row.slice(0, maxColumns).map((cell, j) => (
                   <td
                     key={j}

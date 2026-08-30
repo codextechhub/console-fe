@@ -92,7 +92,7 @@ function effectiveFormat(
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="border-t border-gray-03 pt-3.5 first:border-t-0 first:pt-0">
+    <section className="border-t border-white-02 pt-3.5 first:border-t-0 first:pt-0">
       <h3 className="mb-2 font-mont text-[11px] uppercase tracking-widest text-gray-05">{title}</h3>
       {children}
     </section>
@@ -412,7 +412,7 @@ export function QuickExportDrawer({
           )}
 
           <Section title="Estimate">
-            <div className={cn("divide-y divide-gray-03 transition-opacity", repricing && "opacity-60")}>
+            <div className={cn("divide-y divide-white-02 transition-opacity", repricing && "opacity-60")}>
               <Line label="Matching rows" value={rows} />
               <Line label="Columns" value={chosen.length || plan.columns} />
               <Line
@@ -448,7 +448,7 @@ export function QuickExportDrawer({
               <button
                 type="button"
                 onClick={() => setColumnsOverride(plan.fields.map((f) => f.id))}
-                className="rounded border border-gray-03 px-2 py-1 font-mont text-[11px] text-gray-01 hover:bg-gray-50"
+                className="rounded border border-white-02 px-2 py-1 font-mont text-[11px] text-gray-01 hover:bg-gray-50"
               >
                 Select all
               </button>
@@ -456,7 +456,7 @@ export function QuickExportDrawer({
                 type="button"
                 onClick={() => setColumnsOverride(plan.config.columns)}
                 disabled={!columnsChanged}
-                className="rounded border border-gray-03 px-2 py-1 font-mont text-[11px] text-gray-01 hover:bg-gray-50 disabled:opacity-40"
+                className="rounded border border-white-02 px-2 py-1 font-mont text-[11px] text-gray-01 hover:bg-gray-50 disabled:opacity-40"
               >
                 Reset to default
               </button>
@@ -550,10 +550,10 @@ export function QuickExportDrawer({
             {plan.sample.rows.length > 0 ? (
               // Its own scroller: a wide sample must never widen the drawer, and
               // the page behind it must never scroll sideways.
-              <div className="overflow-x-auto rounded border border-gray-03">
+              <div className="overflow-x-auto rounded border border-white-02">
                 <table className="w-full min-w-max border-collapse text-left">
                   <thead>
-                    <tr className="border-b border-gray-03 bg-gray-50">
+                    <tr className="border-b border-white-02 bg-gray-50">
                       {plan.sample.headers.map((h) => (
                         <th
                           key={h}
@@ -566,7 +566,7 @@ export function QuickExportDrawer({
                   </thead>
                   <tbody>
                     {plan.sample.rows.map((row, i) => (
-                      <tr key={i} className="border-b border-gray-03 last:border-0">
+                      <tr key={i} className="border-b border-white-02 last:border-0">
                         {row.map((cell, j) => (
                           <td
                             key={j}

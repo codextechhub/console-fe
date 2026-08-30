@@ -36,7 +36,7 @@ const signedCls = (kobo: number) => (kobo < 0 ? "text-destructive" : "text-green
 
 function Kpi({ label, value, danger, children }: { label: string; value: string; danger?: boolean; children?: React.ReactNode }) {
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="font-mont text-xs text-gray-05">{label}</p>
       <p className={cn("mt-1 font-mont text-xl font-semibold tabular-nums", danger ? "text-destructive" : "text-black-01")}>{value}</p>
       {children}
@@ -72,7 +72,7 @@ export default function BankReconciliationPage() {
           {accounts.length > 0 ? (
             <select
               value={account?.id ?? ""} onChange={(e) => setAccountId(Number(e.target.value))}
-              className="h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
+              className="h-9 rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01">
               {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}{a.is_primary ? " · Primary" : ""}</option>)}
             </select>
           ) : null}
@@ -262,7 +262,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
       <div>
         <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Matched lines · {matched.length} pair(s)</p>
         {matched.length === 0 ? <ColEmpty msg="Matched pairs will appear here." /> : (
-          <div className="overflow-hidden rounded-md border border-gray-03">
+          <div className="overflow-hidden rounded-md border border-white-02">
             <table className="w-full border-collapse">
               <thead><tr>
                 <th className={th}>Date</th><th className={th}>Bank statement</th>
@@ -296,7 +296,7 @@ function Workbench({ account, entity, currency }: { account: BankAccount; entity
       {ignored.length > 0 && (
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Ignored lines · {ignored.length}</p>
-          <div className="overflow-hidden rounded-md border border-gray-03">
+          <div className="overflow-hidden rounded-md border border-white-02">
             <table className="w-full border-collapse">
               <thead><tr>
                 <th className={th}>Date</th><th className={th}>Bank statement</th>
@@ -379,7 +379,7 @@ function MatchedLineDrawer({ line, currency, onClose, onUnmatch, canUnmatch, unm
 }
 
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const td = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 
 function ReconField({ label, children }: { label: string; children: React.ReactNode }) {
   return <div><p className="font-mont text-[11px] text-gray-05">{label}</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</p></div>;
@@ -387,15 +387,15 @@ function ReconField({ label, children }: { label: string; children: React.ReactN
 
 function Column({ title, count, children, footer }: { title: string; count: string; children: React.ReactNode; footer?: React.ReactNode }) {
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-gray-03 bg-white">
-      <div className="flex items-center justify-between border-b border-gray-03 bg-[#F7F7F7] px-3.5 py-2.5">
+    <div className="flex flex-col overflow-hidden rounded-lg border border-white-02 bg-white">
+      <div className="flex items-center justify-between border-b border-white-02 bg-[#F7F7F7] px-3.5 py-2.5">
         <p className="font-mont text-xs font-semibold text-gray-01">{title}</p>
-        <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 font-mont text-[11px] font-medium text-gray-05 ring-1 ring-gray-03">{count}</span>
+        <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 font-mont text-[11px] font-medium text-gray-05 ring-1 ring-white-02">{count}</span>
       </div>
       {/* Fill the viewport but cap it, so a long reconciliation scrolls inside
           the box rather than pushing the whole page down. */}
-      <div className="min-h-[280px] max-h-[calc(100dvh-24rem)] divide-y divide-gray-03 overflow-y-auto">{children}</div>
-      {footer ? <div className="border-t border-gray-03 px-3 py-2">{footer}</div> : null}
+      <div className="min-h-[280px] max-h-[calc(100dvh-24rem)] divide-y divide-white-02 overflow-y-auto">{children}</div>
+      {footer ? <div className="border-t border-white-02 px-3 py-2">{footer}</div> : null}
     </div>
   );
 }
@@ -510,7 +510,7 @@ function AdjustDrawer({ line, entity, currency, onClose, onDone }: {
         />
         <FormField label="Narration">
           <textarea value={narration} onChange={(e) => setNarration(e.target.value)} rows={2}
-            className="w-full rounded-md border border-gray-03 bg-white px-3 py-2 font-mont text-sm" />
+            className="w-full rounded-md border border-white-02 bg-white px-3 py-2 font-mont text-sm" />
         </FormField>
       </div>
     </DetailDrawer>

@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { routesPath } from "@/routes/routes-path";
 import { apiErrorMessage, errorStatus } from "@/utils/api-errors";
 import {
@@ -68,7 +69,7 @@ function Field({ label, value, mono }: { label: string; value: React.ReactNode; 
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-md bg-white p-4">
+    <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-4")}>
       <h2 className="mb-3.5 font-mont text-[11px] uppercase tracking-widest text-gray-05">{title}</h2>
       {children}
     </section>
@@ -167,11 +168,11 @@ export default function ExportRunDetailPage() {
       </Link>
 
       {isLoading ? (
-        <div className="rounded-md bg-white">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
           <LoadingState rows={5} columns={3} label="Loading run…" />
         </div>
       ) : isError || !run ? (
-        <div className="rounded-md bg-white">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
           <ErrorState onRetry={refetch} />
         </div>
       ) : (
@@ -276,7 +277,7 @@ export default function ExportRunDetailPage() {
               {/* Drift is the point of freezing the config: the export has moved
                   on, and this file did not. Stated, never silently reconciled. */}
               {run.drift.count > 0 && (
-                <div className="mt-4 border-t border-gray-03 pt-3">
+                <div className="mt-4 border-t border-white-02 pt-3">
                   <p className="font-mont text-xs leading-relaxed text-gray-01">
                     This differs from the export's current setup in {run.drift.count}{" "}
                     {run.drift.count === 1 ? "place" : "places"}. Editing an export changes future
@@ -365,7 +366,7 @@ function RunBody({
     const { rows_done, rows_total, phase_label, queue_position } = run.progress;
     const pct = rows_total ? Math.min(100, Math.round((rows_done / rows_total) * 100)) : null;
     return (
-      <section className="rounded-md bg-white p-5">
+      <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
         <div className="flex items-center justify-between gap-3">
           <p className="font-mont text-sm font-medium text-black-01">{phase_label}</p>
           {pct !== null && <p className={cn(NUM, "text-sm font-semibold text-black-01")}>{pct}%</p>}
@@ -392,7 +393,7 @@ function RunBody({
             Waiting for a worker - position {queue_position} in the queue.
           </p>
         )}
-        <p className="mt-4 border-t border-gray-03 pt-3.5 font-mont text-xs leading-relaxed text-gray-01">
+        <p className="mt-4 border-t border-white-02 pt-3.5 font-mont text-xs leading-relaxed text-gray-01">
           You can leave this page. The export keeps running and you will be notified when the file is ready.
         </p>
       </section>
@@ -443,7 +444,7 @@ function RunBody({
 
   if (run.status === "CANCELLED") {
     return (
-      <section className="rounded-md bg-white p-5">
+      <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
         <p className="font-mont text-sm font-medium text-black-01">This run was cancelled</p>
         <p className="mt-1.5 font-mont text-xs leading-relaxed text-gray-01">
           It was stopped by a person before it finished, so no file was produced and no partial file was
@@ -518,7 +519,7 @@ function RunBody({
           </p>
         </>
       ) : (
-        <section className="rounded-md bg-white p-5">
+        <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
           <p className="font-mont text-sm font-medium text-black-01">No file is attached to this run</p>
           <p className="mt-1.5 font-mont text-xs leading-relaxed text-gray-01">
             The run finished, but its file is no longer on record.

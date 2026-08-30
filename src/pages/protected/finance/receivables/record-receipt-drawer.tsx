@@ -14,8 +14,8 @@ import { useRecordCustomerReceiptMutation } from "@/redux/services/finance/ar-ap
 import { useGetChartOfAccountsQuery } from "@/redux/services/finance/setup-api";
 import type { Account } from "@/redux/services/finance/setup-types";
 
-const selectCls = "h-9 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
-const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const selectCls = "h-9 w-full rounded-md border border-white-02 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
+const td = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 const METHODS = ["BANK_TRANSFER", "CASH", "CARD", "CHEQUE", "ONLINE", "OTHER"] as const;
 const methodLabel = (m: string) => m.replace("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
@@ -101,7 +101,7 @@ export function RecordReceiptDrawer({ open, onOpenChange, entity, currency, onCr
         {kobo > 0 && account && (
           <div>
             <p className="mb-1 font-mont text-sm font-semibold text-black-01">Posting on receipt</p>
-            <div className="overflow-x-auto rounded-md border border-gray-03">
+            <div className="overflow-x-auto rounded-md border border-white-02">
               <table className="w-full border-collapse">
                 <thead><tr><th className={th}>Account</th><th className={cn(th, "text-right")}>Debit</th><th className={cn(th, "text-right")}>Credit</th></tr></thead>
                 <tbody>

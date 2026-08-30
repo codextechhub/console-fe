@@ -16,6 +16,7 @@ import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useDebounce } from "react-haiku";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { formatRelativeDate } from "@/utils/helpers";
 import { routesPath } from "@/routes/routes-path";
 import { PageShell } from "@/components/layout/page-shell";
@@ -205,7 +206,8 @@ export default function ImportTemplatesList() {
                 onClick={() => canManageTemplates && setCardFilter(cardFilter === card.key ? "all" : card.key)}
                 disabled={!isClickable && card.key === "all" && !canManageTemplates}
                 className={cn(
-                  "bg-white rounded-md text-left p-4 transition-colors border border-transparent",
+                  INFORMATION_CARD_SURFACE,
+                  "rounded-md text-left p-4 transition-colors",
                   isClickable && "cursor-pointer hover:border-primary/30",
                   !isClickable && "cursor-default",
                   isActive && "border-primary bg-primary/5",

@@ -63,7 +63,7 @@ export function FileCard({
     <div
       className={cn(
         "flex flex-wrap items-center gap-4 rounded-lg border bg-white px-4 py-4 sm:flex-nowrap",
-        gone ? "border-gray-03" : tone === "partial" ? "border-yellow-01/40" : "border-green-01/30",
+        gone ? "border-white-02" : tone === "partial" ? "border-yellow-01/40" : "border-green-01/30",
         className,
       )}
     >

@@ -33,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useDebounce } from "@/hooks/use-debounce";
 import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import { hasUnsavedChanges, toForm } from "./template-dirty";
@@ -113,11 +114,11 @@ function CreateTemplate() {
       </p>
 
       {!events.length ? (
-        <p className="mt-8 rounded-md bg-white p-6 text-sm text-gray-01">
+        <p className={cn(INFORMATION_CARD_SURFACE, "mt-8 rounded-md p-6 text-sm text-gray-01")}>
           Every event already has a template for each of its channels. Nothing to create.
         </p>
       ) : (
-        <div className="mt-6 max-w-xl space-y-4 rounded-md bg-white p-5">
+        <div className={cn(INFORMATION_CARD_SURFACE, "mt-6 max-w-xl space-y-4 rounded-md p-5")}>
           <label className="grid gap-1 text-sm font-medium">
             Event
             <NativeSelect
@@ -306,7 +307,7 @@ function Editor({ template }: { template: NotificationTemplate }) {
       <div className="mt-5 grid gap-5 xl:grid-cols-2">
         {/* ── Left: the content ── */}
         <div className="space-y-4">
-          <div className="rounded-md bg-white p-5 space-y-4">
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}>
             <label className="grid gap-1 text-sm font-medium">
               {isEmail ? "Subject line" : "Headline"}
               <Input value={form.subject} onChange={(e) => set("subject", e.target.value)} />
@@ -371,7 +372,7 @@ function Editor({ template }: { template: NotificationTemplate }) {
           </div>
 
           {isEmail && (
-            <div className="rounded-md bg-white p-5">
+            <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
               <p className="text-sm font-medium">Action button</p>
               <p className="mt-0.5 text-xs leading-5 text-gray-01">
                 The big blue button in the email. Leave both boxes empty for no button. The link
@@ -400,7 +401,7 @@ function Editor({ template }: { template: NotificationTemplate }) {
             </div>
           )}
 
-          <label className="flex items-center gap-3 rounded-md bg-white p-5">
+          <label className={cn(INFORMATION_CARD_SURFACE, "flex items-center gap-3 rounded-md p-5")}>
             <Switch
               checked={template.is_active}
               onCheckedChange={async (v) => {
@@ -419,7 +420,7 @@ function Editor({ template }: { template: NotificationTemplate }) {
 
         {/* ── Right: what the recipient gets ── */}
         <div className="xl:sticky xl:top-4 xl:self-start">
-          <div className="rounded-md bg-white p-5">
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-medium">
@@ -588,7 +589,7 @@ function FullScreenEditor({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/40 p-4 sm:p-8">
-      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-white">
+      <div className={cn(INFORMATION_CARD_SURFACE, "flex min-h-0 flex-1 flex-col rounded-lg")}>
         <div className="flex items-center justify-between border-b border-white-02 px-5 py-3">
           <p className="font-mont font-semibold">{title}</p>
           <button type="button" onClick={close} className="rounded p-1.5 hover:bg-white-05">

@@ -7,6 +7,8 @@ import { routesPath } from "@/routes/routes-path";
 import { useCreatePermissionModuleMutation } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const schema = Yup.object({
   name: Yup.string()
@@ -60,8 +62,8 @@ export default function CreateModule() {
         >
           {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting, dirty }) => (
             <Form className="space-y-5">
-              <div className="bg-white rounded-md p-6 space-y-5">
-                <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+              <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
+                <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
                   Module Details
                 </h2>
 

@@ -20,7 +20,7 @@ export const TD = `${cellCls} px-3 py-2`;
 export const TDR = `${TD} text-right tabular-nums`;
 // Totals row: house cell sizing, but a stronger top rule + tint + heavier weight.
 export const TFOOT =
-  "border-t-2 border-gray-03 bg-gray-50 px-3 py-2.5 font-mont text-sm font-semibold text-black-01";
+  "border-t-2 border-white-02 bg-gray-50 px-3 py-2.5 font-mont text-sm font-semibold text-black-01";
 export const TFOOTR = `${TFOOT} text-right tabular-nums`;
 
 /** Read `.kobo` off a `{kobo, naira}` pair, tolerating a missing bucket. */

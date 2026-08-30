@@ -23,7 +23,7 @@ const STATUS_PILL: Record<string, string> = {
   UNALLOCATED: "bg-amber-50 text-amber-700",
 };
 const STATUS_LABEL: Record<string, string> = { ALLOCATED: "Allocated", PARTIAL: "Partial", UNALLOCATED: "Unallocated" };
-const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const td = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 
 // A settleable open AR item - an invoice or a posted DEBIT note.
@@ -154,7 +154,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
                     {auto && (
                       <select value={strategy} onChange={(e) => setStrategy(e.target.value as "oldest" | "largest")}
                         aria-label="Allocation strategy"
-                        className="h-7 rounded-md border border-gray-03 bg-white px-1.5 font-mont text-[11px] focus:border-primary focus:outline-none">
+                        className="h-7 rounded-md border border-white-02 bg-white px-1.5 font-mont text-[11px] focus:border-primary focus:outline-none">
                         <option value="oldest">oldest first</option>
                         <option value="largest">largest first</option>
                       </select>
@@ -162,9 +162,9 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
                   </div>
                 </div>
                 {open.length === 0 ? <EmptyState title="No open items" message="Nothing to allocate to - the cash stays as customer credit." /> : (
-                  <div className="overflow-hidden rounded-md border border-gray-03">
+                  <div className="overflow-hidden rounded-md border border-white-02">
                     {open.map((t) => (
-                      <div key={t.key} className="flex items-center gap-3 border-t border-gray-03 px-3 py-2 first:border-t-0">
+                      <div key={t.key} className="flex items-center gap-3 border-t border-white-02 px-3 py-2 first:border-t-0">
                         <div className="min-w-0 flex-1">
                           <p className="flex items-center gap-1.5 truncate font-mont text-xs font-semibold text-black-01">
                             {t.document_number}
@@ -188,7 +188,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
                 <p className="font-semibold text-black-01">Allocation summary</p>
                 <div className="flex justify-between"><span className="text-gray-05">Receipt amount</span><span className="font-semibold tabular-nums">{formatMoney(p.amount, currency)}</span></div>
                 <div className="flex justify-between"><span className="text-gray-05">Allocated</span><span className="font-semibold tabular-nums">{formatMoney(allocatedNow, currency)}</span></div>
-                <div className="flex justify-between border-t border-gray-03 pt-2"><span className="text-gray-05">Remainder</span><span className={cn("font-semibold tabular-nums", remainder === 0 ? "text-green-01" : remainder < 0 ? "text-destructive" : "text-black-01")}>{formatMoney(remainder, currency)}</span></div>
+                <div className="flex justify-between border-t border-white-02 pt-2"><span className="text-gray-05">Remainder</span><span className={cn("font-semibold tabular-nums", remainder === 0 ? "text-green-01" : remainder < 0 ? "text-destructive" : "text-black-01")}>{formatMoney(remainder, currency)}</span></div>
                 {remainder === 0 && <p className="flex items-center gap-1 text-green-01"><CheckCircle2 className="size-3.5" /> Fully allocated.</p>}
                 {remainder < 0 && <p className="text-destructive">Over-allocated - reduce the amounts.</p>}
               </div>
@@ -199,7 +199,7 @@ export function PaymentAllocationDrawer({ id, entity, currency, onClose }: {
           {d.gl_postings.length > 0 && (
             <div>
               <p className="mb-1 font-mont text-sm font-semibold text-black-01">Allocation posting</p>
-              <div className="overflow-x-auto rounded-md border border-gray-03">
+              <div className="overflow-x-auto rounded-md border border-white-02">
                 <table className="w-full border-collapse">
                   <thead><tr><th className={th}>Account</th><th className={cn(th, "text-right")}>Debit</th><th className={cn(th, "text-right")}>Credit</th></tr></thead>
                   <tbody>

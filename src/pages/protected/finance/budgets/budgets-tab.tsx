@@ -24,7 +24,7 @@ import type { Budget, BudgetLineInput } from "@/redux/services/finance/ops-types
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const tdCls = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 const PL_TYPES = "INCOME,EXPENSE";
 
 function StatusPill({ status }: { status: string }) {
@@ -67,7 +67,7 @@ function ConsumedBar({ pct }: { pct: number | null }) {
 function Select({ value, onChange, children, className }: { value: string; onChange: (v: string) => void; children: ReactNode; className?: string }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className={cn("h-9 rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      className={cn("h-9 rounded-md border border-white-02 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
       {children}
     </select>
   );
@@ -111,7 +111,7 @@ export function BudgetsTab({ entity, currency }: { entity: string; currency?: st
         emptyTitle="No budgets" emptyMessage="Create a budget for a fiscal year and add its lines." />
 
       {activeHeatmapId != null ? (
-        <div className="rounded-md border border-gray-03 bg-white p-4">
+        <div className="rounded-md border border-white-02 bg-white p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1.5">
               <h2 className="font-mont text-sm font-semibold text-gray-01">Variance heatmap</h2>
@@ -138,7 +138,7 @@ function HeatLegend() {
     <div className="mt-3 flex flex-wrap items-center gap-4">
       {items.map(([label, cls]) => (
         <span key={label} className="inline-flex items-center gap-1.5 font-mont text-[11px] text-gray-05">
-          <span className={cn("size-3 rounded-sm border border-gray-03", cls)} /> {label}
+          <span className={cn("size-3 rounded-sm border border-white-02", cls)} /> {label}
         </span>
       ))}
     </div>
@@ -175,7 +175,7 @@ function Heatmap({ budgetId, entity }: { budgetId: number; entity: string }) {
                   const ratio = cell && cell.budget ? cell.actual / cell.budget : null;
                   const hasActual = !!cell && cell.actual !== 0;
                   return (
-                    <td key={p.period_no} className={cn("border-t border-gray-03 px-2 py-1.5 text-right font-mont text-[11px] tabular-nums", heatClass(ratio))}>
+                    <td key={p.period_no} className={cn("border-t border-white-02 px-2 py-1.5 text-right font-mont text-[11px] tabular-nums", heatClass(ratio))}>
                       {hasActual ? compactNaira(cell!.actual) : <span className="text-gray-05">-</span>}
                     </td>
                   );
@@ -209,7 +209,7 @@ function LinesEditor({ entity, currency, rows, setRows }: { entity: string; curr
       </div>
       <div className="space-y-2">
         {rows.map((r) => (
-          <div key={r.key} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+          <div key={r.key} className="flex items-end gap-2 rounded-md border border-white-02 bg-white p-2.5">
             <div className="grid flex-1 grid-cols-12 gap-2">
               <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Account</p><AccountPicker entity={entity} value={r.account} onChange={(v) => setRow(r.key, { account: v })} accountType={PL_TYPES} postableOnly placeholder="Income/expense account" /></div>
               <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Cost center</p><CostCenterPicker entity={entity} value={r.cost_center} onChange={(v) => setRow(r.key, { cost_center: v })} /></div>
@@ -219,7 +219,7 @@ function LinesEditor({ entity, currency, rows, setRows }: { entity: string; curr
             <button type="button" onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))} className="mb-0.5 shrink-0 rounded p-1.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive"><Trash2 className="size-4" /></button>
           </div>
         ))}
-        {rows.length === 0 ? <p className="rounded-md border border-dashed border-gray-03 px-3 py-4 text-center font-mont text-[11px] text-gray-05">No lines yet - add one below.</p> : null}
+        {rows.length === 0 ? <p className="rounded-md border border-dashed border-white-02 px-3 py-4 text-center font-mont text-[11px] text-gray-05">No lines yet - add one below.</p> : null}
       </div>
       <Button variant="outline" size="sm" onClick={() => setRows((rs) => [...rs, newLine()])} className="mt-2 gap-1.5"><Plus className="size-3.5" /> Add line</Button>
     </div>
@@ -340,8 +340,8 @@ function DraftEditor({ budget, entity, currency, onClose }: { budget: Budget; en
       <div className="space-y-4">
         <FormField label="Name" required><Input value={name} onChange={(e) => setName(e.target.value)} className="h-9 bg-white" /></FormField>
         <div className="grid grid-cols-2 gap-3 text-[11px] text-gray-05 sm:grid-cols-4">
-          <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont">Code</p><p className="mt-1 font-mont text-xs font-semibold tabular-nums text-black-01">{budget.code}</p></div>
-          <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont">Fiscal year</p><p className="mt-1 font-mont text-xs font-semibold tabular-nums text-black-01">{budget.fiscal_year}</p></div>
+          <div className="rounded-md border border-white-02 bg-white p-3"><p className="font-mont">Code</p><p className="mt-1 font-mont text-xs font-semibold tabular-nums text-black-01">{budget.code}</p></div>
+          <div className="rounded-md border border-white-02 bg-white p-3"><p className="font-mont">Fiscal year</p><p className="mt-1 font-mont text-xs font-semibold tabular-nums text-black-01">{budget.fiscal_year}</p></div>
         </div>
         <LinesEditor entity={entity} currency={currency} rows={rows} setRows={setRows} />
       </div>
@@ -381,7 +381,7 @@ function VarianceView({ budget, entity, currency, onClose }: { budget: Budget; e
           <Metric label="Budgeted" kobo={budgeted} currency={currency} />
           <Metric label="Actual YTD" kobo={actual} currency={currency} />
           <Metric label="Variance (remaining)" kobo={remaining} currency={currency} tone={remaining < 0 ? "bad" : "good"} />
-          <div className="rounded-md border border-gray-03 bg-white p-3">
+          <div className="rounded-md border border-white-02 bg-white p-3">
             <p className="font-mont text-[11px] text-gray-05">% Consumed</p>
             <p className={cn("mt-1 font-mont text-sm font-semibold tabular-nums", consumed != null && consumed > 100 ? "text-destructive" : "text-black-01")}>{consumed == null ? "-" : `${consumed}%`}</p>
           </div>
@@ -389,7 +389,7 @@ function VarianceView({ budget, entity, currency, onClose }: { budget: Budget; e
 
         <div>
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines · actual vs budget</p>
-          <div className="overflow-hidden rounded-md border border-gray-03">
+          <div className="overflow-hidden rounded-md border border-white-02">
             <table className="w-full border-collapse">
               <thead><tr>
                 <th className={thCls}>GL · Account</th>
@@ -422,7 +422,7 @@ function VarianceView({ budget, entity, currency, onClose }: { budget: Budget; e
 
 function Metric({ label, kobo, currency, tone }: { label: string; kobo: number; currency?: string | null; tone?: "good" | "bad" }) {
   return (
-    <div className="rounded-md border border-gray-03 bg-white p-3">
+    <div className="rounded-md border border-white-02 bg-white p-3">
       <p className="font-mont text-[11px] text-gray-05">{label}</p>
       <p className={cn("mt-1 font-mont text-sm font-semibold tabular-nums", tone === "bad" ? "text-destructive" : tone === "good" ? "text-green-01" : "text-black-01")}>{formatMoney(kobo, currency)}</p>
     </div>

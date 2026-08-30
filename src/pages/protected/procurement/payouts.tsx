@@ -15,6 +15,8 @@ import {
 } from "@/redux/services/payments/payments-api";
 import type { PayoutBatchSummary, PayoutInstruction, TransactionLogEntry } from "@/redux/services/payments/payments-types";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 function PayoutsTab({ entity, currency }: { entity: string; currency?: string | null }) {
   const [page, setPage] = useState(1);
@@ -73,7 +75,7 @@ function SettlementTab({ entity, currency }: { entity: string; currency?: string
   if (isLoading) return <LoadingState />;
   const d = (data?.data ?? {}) as { unmatched_bank_total?: number; unmatched_bank_count?: number };
   return (
-    <div className="rounded-md bg-white p-5 font-mont text-sm">
+    <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 font-mont text-sm")}>
       <p className="mb-3 font-semibold text-gray-01">Settlement reconciliation (gateway vs bank)</p>
       <div className="flex flex-wrap gap-8">
         <div><p className="text-xs text-gray-05">Unmatched bank lines</p><p className="mt-1 text-lg font-semibold">{d.unmatched_bank_count ?? 0}</p></div>

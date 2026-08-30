@@ -344,7 +344,7 @@ export function BatchAdjustmentDrawer({
               // The target was picked, then the date moved and it stopped qualifying.
               const ineligible = !!line.target && line.available <= 0;
               return (
-                <div key={line.id} className="rounded-md border border-gray-03 bg-white p-2.5">
+                <div key={line.id} className="rounded-md border border-white-02 bg-white p-2.5">
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_auto]">
                     <div className="col-span-2 min-w-0 sm:col-span-1">
                       <p className="mb-1 font-mont text-[11px] text-gray-05">
@@ -427,7 +427,7 @@ export function BatchAdjustmentDrawer({
           <select
             value={action}
             onChange={(event) => setAction(event.target.value as ArAdjustmentBatchAction)}
-            className="h-9 w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-black-01 focus:border-primary focus:outline-none"
+            className="h-9 w-full rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-black-01 focus:border-primary focus:outline-none"
           >
             {actionOptions.map((option) => (
               <option key={option.value} value={option.value}>{option.label}</option>

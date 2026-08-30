@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
@@ -98,13 +99,13 @@ export default function QuotationsPage() {
         </div>
       </header>
 
-      <section data-guide="procurement-quotations.list" className="min-w-0 rounded-md bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
+      <section data-guide="procurement-quotations.list" className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-white-02 px-4">
           <div className="max-w-full overflow-x-auto"><div className="flex min-w-max gap-5">{QUOTATION_TABS.map(([label, value]) => (
             <button key={label} onClick={() => { setStatus(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", status === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>
           ))}</div></div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 border-b border-gray-03 px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white-02 px-4 py-2.5">
           <div className="min-w-44 flex-1 sm:max-w-56"><SearchSelect options={rfqOptions} value={rfqFilter} onChange={(e) => { setRfqFilter(e.target.value); setPage(1); }} placeholder="All RFQs" revealOnSearch /></div>
           <div className="min-w-44 flex-1 sm:max-w-56"><SearchSelect options={vendorOptions} value={vendorFilter} onChange={(e) => { setVendorFilter(e.target.value); setPage(1); }} placeholder="All vendors" revealOnSearch /></div>
           <label className="relative min-w-0 flex-1 sm:max-w-64"><Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-05" /><Input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search quote #, vendor or reference" className="h-9 bg-white pl-9" /></label>
@@ -150,12 +151,12 @@ function QuotationDrawer({ id, entity, currency, onClose }: { id: number | null;
           <div className="flex flex-wrap items-center gap-1.5"><StatusPill status={q.quotation_status} />{q.is_expired && <ExpiredPill />}</div>
           <p className="font-mont text-lg font-semibold tabular-nums">{formatMoney(q.total, currency)}</p>
         </div>
-        <div className="max-w-full overflow-x-auto border-b border-gray-03"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([value, label, Icon]) => (
+        <div className="max-w-full overflow-x-auto border-b border-white-02"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([value, label, Icon]) => (
           <button key={value} onClick={() => setTab(value)} className={cn("flex items-center gap-1.5 border-b-2 py-2.5 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}><Icon className="size-3.5" />{label}</button>
         ))}</div></div>
 
         {tab === "overview" && (
-          <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
+          <dl className="grid grid-cols-1 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2">
             <Field label="Quotation number" value={q.document_number} />
             <Field label="Status" value={<div className="flex items-center gap-1.5"><StatusPill status={q.quotation_status} />{q.is_expired && <ExpiredPill />}</div>} />
             <Field label="Vendor" value={q.vendor_name || q.vendor_code} />
@@ -182,14 +183,14 @@ function QuotationDrawer({ id, entity, currency, onClose }: { id: number | null;
 
 function QuotationEvidence({ quotation }: { quotation: QuotationDetail }) {
   return <div className="space-y-4">
-    <section><h3 className="font-mont text-xs font-semibold">Submission history</h3><div className="mt-2 space-y-2">{quotation.submissions.length ? quotation.submissions.map((row) => <div key={row.id} className="rounded-md border border-gray-03 p-3 font-mont text-xs"><span className="font-semibold">Revision {row.revision}</span><span className="text-gray-05"> · RFQ version {row.rfq_version} · {new Date(row.submitted_at).toLocaleString()}</span><p className="mt-1 text-gray-05">Submitted by {row.submitted_by_email}</p></div>) : <EmptyPanel>No vendor submission receipt has been recorded.</EmptyPanel>}</div></section>
+    <section><h3 className="font-mont text-xs font-semibold">Submission history</h3><div className="mt-2 space-y-2">{quotation.submissions.length ? quotation.submissions.map((row) => <div key={row.id} className="rounded-md border border-white-02 p-3 font-mont text-xs"><span className="font-semibold">Revision {row.revision}</span><span className="text-gray-05"> · RFQ version {row.rfq_version} · {new Date(row.submitted_at).toLocaleString()}</span><p className="mt-1 text-gray-05">Submitted by {row.submitted_by_email}</p></div>) : <EmptyPanel>No vendor submission receipt has been recorded.</EmptyPanel>}</div></section>
     <section><h3 className="font-mont text-xs font-semibold">Attachments</h3><div className="mt-2 space-y-2">{quotation.attachments.length ? quotation.attachments.map((row) => <AttachmentRow key={row.id} attachment={row} />) : <EmptyPanel>No PDF or image evidence was attached.</EmptyPanel>}</div></section>
   </div>;
 }
 
 function AttachmentRow({ attachment }: { attachment: QuotationDetail["attachments"][number] }) {
   const { data: blobUrl, isLoading } = useFetchAuthMediaQuery(attachment.url);
-  return <div className="flex flex-wrap items-center gap-3 rounded-md border border-gray-03 p-3"><Paperclip className="size-4 text-primary" /><div className="min-w-0 flex-1"><p className="truncate font-mont text-xs font-semibold">{attachment.name}</p><p className="mt-0.5 font-mont text-[11px] text-gray-05">{Math.ceil(attachment.size / 1024)}KB · Revision {attachment.revision}</p></div><Button asChild size="sm" variant="outline" disabled={isLoading || !blobUrl}><a href={blobUrl || "#"} target="_blank" rel="noreferrer">{attachment.content_type === "application/pdf" ? "Open PDF" : "View image"}</a></Button></div>;
+  return <div className="flex flex-wrap items-center gap-3 rounded-md border border-white-02 p-3"><Paperclip className="size-4 text-primary" /><div className="min-w-0 flex-1"><p className="truncate font-mont text-xs font-semibold">{attachment.name}</p><p className="mt-0.5 font-mont text-[11px] text-gray-05">{Math.ceil(attachment.size / 1024)}KB · Revision {attachment.revision}</p></div><Button asChild size="sm" variant="outline" disabled={isLoading || !blobUrl}><a href={blobUrl || "#"} target="_blank" rel="noreferrer">{attachment.content_type === "application/pdf" ? "Open PDF" : "View image"}</a></Button></div>;
 }
 
 // Loads a sibling quote's detail so the lowest unit price per RFQ line can be
@@ -225,20 +226,20 @@ function LineComparison({ quotation, entity, currency }: { quotation: QuotationD
 
   return <div className="space-y-2">
     {siblingIds.map((id) => <SiblingFetcher key={id} id={id} entity={entity} onLoaded={onLoaded} />)}
-    <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[620px]">
+    <div className="overflow-x-auto rounded-md border border-white-02"><table className="w-full min-w-[620px]">
       <thead><tr>{["Description", "Response", "Qty", "Unit price", "Net", "Tax", "Lowest"].map((h) => <th key={h} className={cn("bg-[#F1F1F1] px-3 py-2 font-mont text-[11px] font-semibold text-gray-01", h === "Description" || h === "Response" ? "text-left" : "text-right")}>{h}</th>)}</tr></thead>
       <tbody>{quotation.lines.map((line) => {
         const lowest = lowestFor(line.rfq_line_id, line.unit_price);
         const isLowest = line.rfq_line_id != null && line.unit_price === lowest;
         return (
           <tr key={line.id}>
-            <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{line.description}</td>
-            <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={line.response_type} /></td>
-            <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{formatQuantity(line.quantity)}</td>
-            <td className={cn("border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums", isLowest && "font-semibold text-emerald-700")}>{money(line.unit_price)}</td>
-            <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{money(line.net_amount)}</td>
-            <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{money(line.tax_amount)}</td>
-            <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums text-gray-05">{line.rfq_line_id == null ? "-" : money(lowest)}</td>
+            <td className="border-t border-white-02 px-3 py-2 font-mont text-xs font-semibold">{line.description}</td>
+            <td className="border-t border-white-02 px-3 py-2"><StatusPill status={line.response_type} /></td>
+            <td className="border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums">{formatQuantity(line.quantity)}</td>
+            <td className={cn("border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums", isLowest && "font-semibold text-emerald-700")}>{money(line.unit_price)}</td>
+            <td className="border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums">{money(line.net_amount)}</td>
+            <td className="border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums">{money(line.tax_amount)}</td>
+            <td className="border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums text-gray-05">{line.rfq_line_id == null ? "-" : money(lowest)}</td>
           </tr>
         );
       })}</tbody>
@@ -329,7 +330,7 @@ function QuotationForm({ entity, currency, initial, onClose }: { entity: string;
           {initial ? (
             <VendorPicker entity={entity} value={vendor} onChange={setVendor} purchaseEligible isRequired disabled />
           ) : !rfq ? (
-            <p className="rounded border border-gray-03 bg-gray-50 px-3 py-2 font-mont text-xs text-gray-05">Select an RFQ first to choose from its invited vendors.</p>
+            <p className="rounded border border-white-02 bg-gray-50 px-3 py-2 font-mont text-xs text-gray-05">Select an RFQ first to choose from its invited vendors.</p>
           ) : invitedAvailable.length ? (
             <SearchSelect
               options={invitedAvailable.map((i) => ({ value: i.vendor_code, label: `${i.vendor_code} - ${i.vendor_name}` }))}
@@ -337,7 +338,7 @@ function QuotationForm({ entity, currency, initial, onClose }: { entity: string;
               placeholder="Select an invited vendor" isRequired revealOnSearch
             />
           ) : (
-            <p className="rounded border border-gray-03 bg-gray-50 px-3 py-2 font-mont text-xs text-gray-05">
+            <p className="rounded border border-white-02 bg-gray-50 px-3 py-2 font-mont text-xs text-gray-05">
               {rfqDetail ? "Every invited vendor on this RFQ has already quoted." : "Loading invited vendors…"}
             </p>
           )}
@@ -354,7 +355,7 @@ function QuotationForm({ entity, currency, initial, onClose }: { entity: string;
       <div className="space-y-3 pt-1">
         <p className="font-mont text-xs font-semibold text-gray-05">Priced lines</p>
         {rows.map((row) => (
-          <div key={row.key} className="space-y-2 rounded-md border border-gray-03 p-3">
+          <div key={row.key} className="space-y-2 rounded-md border border-white-02 p-3">
             <div className="flex items-center gap-2">
               <Input value={row.description} onChange={(e) => setRow(row.key, { description: e.target.value })} placeholder="Description" className="flex-1 bg-white" />
               <button type="button" onClick={() => removeRow(row.key)} disabled={rows.length <= 1} className="text-gray-05 hover:text-destructive disabled:opacity-30" aria-label="Remove line">✕</button>

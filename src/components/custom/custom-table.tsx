@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { EllipsisVertical } from "lucide-react";
 import {
   SkeletonCard,
@@ -182,7 +183,7 @@ const CustomTable = ({
     >
       {row?.map((cell: any, index: any) => (
         <TableCell
-          className="text-black-01 border-gray-03 font-medium font-mont text-sm border-y-5"
+          className="text-black-01 border-white-02 font-medium font-mont text-sm border-y-5"
           key={index}
           onClick={onClick}
         >
@@ -206,7 +207,7 @@ const CustomTable = ({
       {/* Phone rendering: each row as a stacked label/value card (the empty
           state stays in the table, which renders fine at any width). */}
       {showCards && loading && (
-        <div className="rounded-md bg-white md:hidden">
+        <div className={cn(INFORMATION_CARD_SURFACE, "overflow-hidden rounded-md md:hidden")}>
           <SkeletonLoadingLabel text={loadingText || "Loading…"} />
           {Array.from({ length: GHOST_ROWS }).map((_, rowIndex) => (
             <SkeletonCard
@@ -218,7 +219,7 @@ const CustomTable = ({
         </div>
       )}
       {showCards && !loading && (
-        <div className="rounded-md bg-white md:hidden">
+        <div className={cn(INFORMATION_CARD_SURFACE, "overflow-hidden rounded-md md:hidden")}>
           {tableBodyList?.map((item: any, rowIndex: any) => {
             const cells = Object.entries(item)
               .filter(([key]) => !key.startsWith("_"))
@@ -246,7 +247,7 @@ const CustomTable = ({
                 key={rowKey}
                 onClick={handleRowClick}
                 className={cn(
-                  "space-y-2 border-b border-gray-03 px-3.5 py-3 last:border-0",
+                  "space-y-2 border-b border-white-02 px-3.5 py-3 last:border-0",
                   onRowClick && "cursor-pointer transition-colors active:bg-primary/5",
                 )}
               >
@@ -276,7 +277,7 @@ const CustomTable = ({
         </div>
       )}
       {/* table component start here ------ */}
-      <Table containerClassName={cn(showCards && "max-md:hidden")}>
+      <Table containerClassName={cn(INFORMATION_CARD_SURFACE, "overflow-hidden rounded-md", showCards && "max-md:hidden")}>
         {tableHeaderList?.length > 0 && (
           <TableHeader className="border-0">
             <TableRow>
@@ -356,7 +357,7 @@ const CustomTable = ({
                         }}
                       >
                         {dropDown && (
-                          <TableCell className="text-black-01 border-gray-03 font-medium font-mont text-sm border-y-5">
+                          <TableCell className="text-black-01 border-white-02 font-medium font-mont text-sm border-y-5">
                             <div
                               style={{
                                 width: "100%",

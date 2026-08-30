@@ -155,7 +155,7 @@ export function ProxyUserDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="grid-rows-[auto_auto_auto] gap-0 overflow-hidden p-0 sm:max-w-xl">
-        <DialogHeader className="border-b border-slate-100 px-6 py-5">
+        <DialogHeader className="border-b border-white-02 px-6 py-5">
           <DialogTitle className="flex items-center gap-2 text-base">
             <ShieldCheck className="size-5 text-primary" /> Proxy user
           </DialogTitle>
@@ -183,7 +183,7 @@ export function ProxyUserDialog({
             )}
           </div>
 
-          <div className="mt-4 h-[276px] flex-none overflow-y-auto rounded-xl border border-slate-100">
+          <div className="mt-4 h-[276px] flex-none overflow-y-auto rounded-xl border border-white-02">
             {search.trim().length < 2 ? (
               <Empty icon={<Search className="size-5" />} text="Enter at least two characters to search." />
             ) : isFetching && !data ? (
@@ -193,7 +193,7 @@ export function ProxyUserDialog({
             ) : results.length === 0 ? (
               <Empty icon={<UserRound className="size-5" />} text="No eligible users match your search." />
             ) : (
-              <div className="divide-y divide-slate-100 p-1.5">
+              <div className="divide-y divide-white-02 p-1.5">
                 {results.map((target) => {
                   const isCurrent = target.id === auth.impersonation?.target.id;
                   const isSelected = selectedTarget?.id === target.id;
@@ -232,7 +232,7 @@ export function ProxyUserDialog({
           </div>
         </div>
 
-        <DialogFooter className="border-t border-slate-100 bg-slate-50/60 px-5 py-4 sm:items-center sm:justify-between">
+        <DialogFooter className="border-t border-white-02 bg-slate-50/60 px-5 py-4 sm:items-center sm:justify-between">
           <p className="min-w-0 truncate text-xs text-slate-500">
             {selectedTarget ? (
               <>Selected: <span className="font-semibold text-black-01">{selectedTarget.full_name}</span></>

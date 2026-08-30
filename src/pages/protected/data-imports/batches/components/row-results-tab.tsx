@@ -80,7 +80,7 @@ export function RowResultsTab({ batchId, latestJobId }: { batchId: number; lates
         </Combobox>
       </div>
 
-      <div className="rounded-md border border-gray-100 divide-y divide-gray-50 overflow-hidden max-h-[600px] overflow-y-auto">
+      <div className="rounded-md border border-white-02 divide-y divide-white-02 overflow-hidden max-h-[600px] overflow-y-auto">
         {filtered.map((row) => {
           const actionColor =
             row.action === "create" ? "active" :

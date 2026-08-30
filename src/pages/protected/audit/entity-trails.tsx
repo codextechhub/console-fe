@@ -12,6 +12,8 @@ import type { EntityTrail } from "@/redux/services/dashboard/audit-types";
 import { EntityCell } from "./components/audit-cells";
 import { auditEntityTrailRowKey } from "./audit-constants";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const TABLE_HEADERS = ["Entity", "ID", "Events", "First seen", "Last seen", "Action"];
 
@@ -90,7 +92,7 @@ export default function EntityTrailsList() {
         </div>
 
         {isError ? (
-          <div className="flex h-56 flex-col items-center justify-center gap-3 bg-white rounded-md">
+          <div className={cn(INFORMATION_CARD_SURFACE, "flex h-56 flex-col items-center justify-center gap-3 rounded-md")}>
             <p className="text-sm font-medium text-destructive">Failed to load entity trails.</p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               <RefreshCw className="size-3.5" /> Retry

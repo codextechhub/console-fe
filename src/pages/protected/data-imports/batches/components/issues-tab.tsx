@@ -109,7 +109,7 @@ export function IssuesTab({ batchId }: { batchId: number }) {
           </p>
         </div>
       ) : (
-        <div className="rounded-md border border-gray-100 divide-y divide-gray-50 overflow-hidden">
+        <div className="rounded-md border border-white-02 divide-y divide-white-02 overflow-hidden">
           {issues.map((issue) => (
             <IssueRow key={issue.id} issue={issue} />
           ))}

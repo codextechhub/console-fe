@@ -73,7 +73,7 @@ function presetToDateFrom(preset: string): string | undefined {
 function FilterSelect({ value, onChange, className, children }: { value: string; onChange: (v: string) => void; className?: string; children: React.ReactNode }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className={cn("h-9 rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      className={cn("h-9 rounded-md border border-white-02 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
       {children}
     </select>
   );
@@ -89,7 +89,7 @@ function Stat({ label, children }: { label: string; children: React.ReactNode })
 }
 
 const thd = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdd = "border-t border-gray-03 px-3 py-2 align-top font-mont text-xs";
+const tdd = "border-t border-white-02 px-3 py-2 align-top font-mont text-xs";
 
 function AuditDetail({ log }: { log: FinanceAuditLog }) {
   const rows = diffRows(log.before, log.after);
@@ -112,11 +112,11 @@ function AuditDetail({ log }: { log: FinanceAuditLog }) {
       <div>
         <p className="mb-2 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">Field changes</p>
         {rows.length === 0 ? (
-          <p className="rounded-md border border-dashed border-gray-03 px-3 py-4 text-center font-mont text-xs text-gray-05">
+          <p className="rounded-md border border-dashed border-white-02 px-3 py-4 text-center font-mont text-xs text-gray-05">
             No field-level changes recorded for this action.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-md border border-gray-03">
+          <div className="overflow-x-auto rounded-md border border-white-02">
             <table className="w-full">
               <thead><tr>
                 <th className={thd}>Field</th><th className={thd}>Before</th><th className={thd}>After</th>
@@ -214,7 +214,7 @@ export default function FinanceAuditPage() {
             <p className="mt-0.5 font-mont text-xs text-gray-05">Every finance mutation, recorded immutably for this entity.</p>
           </div>
           <button type="button" disabled title="Audit export is not available yet"
-            className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md border border-gray-03 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-04 opacity-70">
+            className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-md border border-white-02 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-04 opacity-70">
             <Download className="size-3.5" /> Export
           </button>
         </div>

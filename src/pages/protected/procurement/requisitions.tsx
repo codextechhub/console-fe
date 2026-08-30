@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useNoApproverPrompt } from "@/components/finance-ui/no-approver-prompt";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import { useAppSelector } from "@/redux/store";
 import {
@@ -180,7 +181,7 @@ export default function RequisitionsPage() {
         </header>
 
         <div data-guide="procurement-requisitions.summary" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
+          {summaryLoading || !summary ? <div className={cn(INFORMATION_CARD_SURFACE, "col-span-full rounded-md")}><LoadingState rows={2} /></div> : <>
             <StatCard label="Pending Approval" value={summary.pending_approval.count} icon={Clock3} tone="amber" sub={money(summary.pending_approval.amount)} />
             <StatCard label="Approved (MTD)" value={summary.approved_mtd.count} icon={Check} tone="green" sub={countChange(summary.approved_mtd.change)} />
             <StatCard label="Draft" value={summary.draft.count} icon={FilePenLine} tone="gray" sub={money(summary.draft.amount)} />
@@ -188,8 +189,8 @@ export default function RequisitionsPage() {
           </>}
         </div>
 
-        <section data-guide="procurement-requisitions.list" className="min-w-0 rounded-md bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
+        <section data-guide="procurement-requisitions.list" className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-white-02 px-4">
             <div className="max-w-full overflow-x-auto">
               <div className="flex min-w-max gap-5">
                 {STATUS_TABS.map((tab) => (
@@ -288,7 +289,7 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
               <StatusPill status={displayStatus(req)} />
               <p className="font-mont text-lg font-semibold tabular-nums text-black-01">{formatMoney(req.estimated_total, currency)}</p>
             </div>
-            <div className="max-w-full overflow-x-auto border-b border-gray-03">
+            <div className="max-w-full overflow-x-auto border-b border-white-02">
               <div className="flex min-w-max gap-5">
                 {(["overview", "lines", "approval", "activity"] as const).map((value) => (
                   <button key={value} onClick={() => setTab(value)} className={cn("border-b-2 py-2.5 font-mont text-xs font-medium capitalize", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{value === "lines" ? "Line Items" : value === "approval" ? "Approval Trail" : value}</button>
@@ -311,7 +312,7 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
                   </> : workflowId && <Button size="sm" variant="outline" className="mt-3" onClick={() => navigate(routesPath.PROTECTED.WORKFLOW.INSTANCE_DETAIL(workflowId))}>Open approval workflow <ChevronRight className="size-4" /></Button>}
                 </section>
               )}
-              <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
+              <dl className="grid grid-cols-1 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2">
                 <Info label="Requested by" value={req.requested_by_name} />
                 <Info label="Cost Centre" value={req.cost_center_name || "Not assigned"} />
                 <Info label="Request date" value={shortDate(req.request_date)} />
@@ -321,20 +322,20 @@ function RequisitionDrawer({ id, entity, currency, onClose }: {
             </div>}
 
             {tab === "lines" && (req.lines.length ? <div className="space-y-2">
-              {req.lines.map((line) => <div key={line.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-md border border-gray-03 p-3">
+              {req.lines.map((line) => <div key={line.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-md border border-white-02 p-3">
                 <div className="min-w-0"><p className="truncate font-mont text-sm font-semibold text-black-01">{line.description}</p><p className="mt-1 font-mont text-xs text-gray-05">{formatQuantity(line.quantity)} {line.unit} × {formatMoney(line.estimated_unit_price, currency)}</p></div>
                 <p className="font-mont text-sm font-semibold tabular-nums">{formatMoney(line.estimated_line_total, currency)}</p>
               </div>)}
             </div> : <EmptyBlock text="No line items were added." />)}
 
             {tab === "approval" && (workflow?.stage_instances.length ? <div className="space-y-3">
-              {workflow.stage_instances.map((stage) => <div key={stage.id} className="rounded-md border border-gray-03 p-3">
+              {workflow.stage_instances.map((stage) => <div key={stage.id} className="rounded-md border border-white-02 p-3">
                 <div className="flex items-center justify-between gap-3"><p className="font-mont text-sm font-semibold">{stage.stage_label}</p><StatusPill status={stage.status} /></div>
-                {stage.actions.length ? <div className="mt-3 space-y-2">{stage.actions.filter((action) => !action.is_reversal_of).map((action) => <div key={action.id} className="border-t border-gray-03 pt-2 font-mont text-xs"><p><span className="font-semibold">{name(action.actor)}</span> · {action.action.toLowerCase()}</p><p className="mt-0.5 text-gray-05">{action.comment || "No comment"} · {age(action.acted_at)}</p></div>)}</div> : <p className="mt-2 font-mont text-xs text-gray-05">No decision recorded for this step.</p>}
+                {stage.actions.length ? <div className="mt-3 space-y-2">{stage.actions.filter((action) => !action.is_reversal_of).map((action) => <div key={action.id} className="border-t border-white-02 pt-2 font-mont text-xs"><p><span className="font-semibold">{name(action.actor)}</span> · {action.action.toLowerCase()}</p><p className="mt-0.5 text-gray-05">{action.comment || "No comment"} · {age(action.acted_at)}</p></div>)}</div> : <p className="mt-2 font-mont text-xs text-gray-05">No decision recorded for this step.</p>}
               </div>)}
             </div> : <EmptyBlock text={req.status === "DRAFT" ? "Submit this draft to start its approval trail." : "No approval trail is available."} />)}
 
-            {tab === "activity" && (workflow?.audit_logs.length ? <div className="divide-y divide-gray-03">
+            {tab === "activity" && (workflow?.audit_logs.length ? <div className="divide-y divide-white-02">
               {workflow.audit_logs.map((log) => <div key={log.id} className="py-3 first:pt-0"><p className="font-mont text-sm font-medium">{log.message || log.event_type.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 font-mont text-xs text-gray-05">{log.actor ? name(log.actor) : "System"} · {age(log.occurred_at)}</p></div>)}
             </div> : <EmptyBlock text="No workflow activity has been recorded yet." />)}
           </div>
@@ -351,7 +352,7 @@ function Info({ label, value }: { label: string; value: string }) {
 }
 
 function EmptyBlock({ text }: { text: string }) {
-  return <div className="flex min-h-36 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">{text}</div>;
+  return <div className="flex min-h-36 items-center justify-center rounded-md border border-dashed border-white-02 px-4 text-center font-mont text-xs text-gray-05">{text}</div>;
 }
 
 type FormLine = { catalogItem: string; description: string; quantity: number; unit: string; unitPriceKobo: number };
@@ -433,7 +434,7 @@ function RequisitionForm({ open, onClose, entity, currency, initial, onSaved }: 
       </>}
     >
       <div className="space-y-5">
-        <section className="rounded-md border border-gray-03 bg-gray-50 p-4">
+        <section className="rounded-md border border-white-02 bg-gray-50 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-mont text-sm font-semibold">Budget Availability</p><span className="font-mont text-xs text-gray-05">{budget?.period || "Select a cost centre"}</span></div>
           {!costCenter ? <p className="mt-2 font-mont text-xs text-gray-05">Choose a cost centre to check its approved budget and current commitments.</p>
             : budgetLoading ? <p className="mt-2 font-mont text-xs text-gray-05">Checking budget…</p>
@@ -458,7 +459,7 @@ function RequisitionForm({ open, onClose, entity, currency, initial, onSaved }: 
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-3"><p className="font-mont text-sm font-semibold">Line Items</p><p className="font-mont text-sm font-semibold tabular-nums">Est. {formatMoney(estimate, currency)}</p></div>
           <div className="space-y-3">
-            {lines.map((line, index) => <div key={index} className="rounded-md border border-gray-03 p-3">
+            {lines.map((line, index) => <div key={index} className="rounded-md border border-white-02 p-3">
               <div className="mb-2 flex items-center justify-between"><p className="font-mont text-xs font-semibold text-gray-05">Item {index + 1}</p><button type="button" disabled={lines.length === 1} onClick={() => setLines((current) => current.filter((_, i) => i !== index))} className="text-gray-05 hover:text-destructive disabled:opacity-30"><Trash2 className="size-4" /></button></div>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1.5fr)_80px_100px_minmax(130px,0.7fr)]">
                 <div className="space-y-2"><SearchSelect options={catalogOptions} loading={catalogLoading} value={line.catalogItem} onChange={(e) => chooseCatalog(index, e.target.value)} placeholder="Catalog item (optional)" /><Input value={line.description} onChange={(e) => setLine(index, { description: e.target.value })} placeholder="Item description" /></div>

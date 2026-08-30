@@ -206,7 +206,7 @@ export function CreateTicketForm({
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-gray-100 pt-3" data-guide="support-ticket.submit-boundary">
+      <div className="flex items-center justify-end gap-2 border-t border-white-02 pt-3" data-guide="support-ticket.submit-boundary">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={busy}>
           Close
         </Button>
@@ -264,7 +264,7 @@ export function SupportTicketComposer({
 
       <Sheet open={helpOpen} onOpenChange={setHelpOpen}>
         <SheetContent side="right" className="w-full gap-0 border-gray-200 bg-white p-0 sm:max-w-md">
-          <SheetHeader className="border-b border-gray-100 px-5 pb-5 pt-6 pr-12 text-left">
+          <SheetHeader className="border-b border-white-02 px-5 pb-5 pt-6 pr-12 text-left">
             <div className="mb-2 grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
               <Headset className="size-5" />
             </div>
@@ -343,7 +343,7 @@ export function SupportTicketComposer({
           </div>
           </ScrollArea>
 
-          <div className="grid gap-2 border-t border-gray-100 p-5">
+          <div className="grid gap-2 border-t border-white-02 p-5">
             <Button asChild variant="outline"><Link to={routesPath.PROTECTED.SUPPORT.GUIDES} onClick={() => setHelpOpen(false)}>Browse all guides</Link></Button>
             <Button onClick={() => { setHelpOpen(false); setTicketOpen(true); }}><Headset className="size-4" /> Back to your ticket</Button>
             <p className="text-center text-[10px] leading-4 text-gray-400">Only the guide ID, route pattern, product area, and app version may be attached. Page values are never copied.</p>

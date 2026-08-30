@@ -67,7 +67,7 @@ export function WizardStepper({
 }) {
   const STEP_LABELS = labels;
   return (
-    <div className="bg-white rounded-md border border-gray-100 px-5 py-4">
+    <div className="bg-white rounded-md border border-white-02 px-5 py-4">
       <div className="flex items-center">
         {STEP_LABELS.map((label, i) => {
           const num = (i + 1) as WizardStep;
@@ -240,8 +240,8 @@ export function UploadStep({
   const ext = file?.name.split(".").pop()?.toUpperCase() ?? "";
 
   return (
-    <div className="bg-white rounded-md border border-gray-100 p-6 space-y-5">
-      <div className="border-b border-gray-100 pb-4">
+    <div className="bg-white rounded-md border border-white-02 p-6 space-y-5">
+      <div className="border-b border-white-02 pb-4">
         <h2 className="text-base font-semibold font-mont text-black-01">Select template & upload file</h2>
         <p className="text-xs text-gray-01 mt-1">Choose the dataset template that matches your file, then drop your CSV or XLSX to begin.</p>
       </div>
@@ -345,9 +345,9 @@ export function UploadStep({
             </thead>
             <tbody>
               {csvPreview.rows.map((row, ri) => (
-                <tr key={ri} className="border-b border-gray-100 last:border-0">
+                <tr key={ri} className="border-b border-white-02 last:border-0">
                   {csvPreview.headers.map((_, ci) => (
-                    <td key={ci} className="px-3 py-1.5 text-gray-600 font-mono whitespace-nowrap max-w-[160px] truncate border-r border-gray-100 last:border-r-0">{row[ci] ?? ""}</td>
+                    <td key={ci} className="px-3 py-1.5 text-gray-600 font-mono whitespace-nowrap max-w-[160px] truncate border-r border-white-02 last:border-r-0">{row[ci] ?? ""}</td>
                   ))}
                 </tr>
               ))}
@@ -515,8 +515,8 @@ export function HeaderReviewStep({
   };
 
   return (
-    <div className="bg-white rounded-md border border-gray-100 p-6 space-y-5">
-      <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+    <div className="bg-white rounded-md border border-white-02 p-6 space-y-5">
+      <div className="flex items-center justify-between border-b border-white-02 pb-4">
         <div>
           <h2 className="text-base font-semibold font-mont text-black-01">Header comparison</h2>
           <p className="text-xs text-gray-01 mt-1">Compare the headers your file contains against the template.</p>
@@ -533,7 +533,7 @@ export function HeaderReviewStep({
             <p className="text-xs font-semibold text-black-01">Template headers (expected)</p>
             <Badge variant="inactive" className="text-[10px]">{expected.length} fields</Badge>
           </div>
-          <div className="rounded-md border border-gray-200 overflow-hidden divide-y divide-gray-100">
+          <div className="rounded-md border border-gray-200 overflow-hidden divide-y divide-white-02">
             {expected.map((h) => {
               const isMissing = !uploadedSet.has(h.toLowerCase());
               const isRequired = requiredCols.has(h.toLowerCase());
@@ -566,7 +566,7 @@ export function HeaderReviewStep({
               {totalIssues > 0 ? `${totalIssues} issues` : "All matched"}
             </Badge>
           </div>
-          <div className="rounded-md border border-gray-200 overflow-hidden divide-y divide-gray-100">
+          <div className="rounded-md border border-gray-200 overflow-hidden divide-y divide-white-02">
             {uploaded.map((h) => {
               const isExtra = !expectedSet.has(h.toLowerCase());
               return (
@@ -683,7 +683,7 @@ export function ValidationStep({ phase, onComplete }: { phase: "running" | "done
   }, [phase, onComplete]);
 
   return (
-    <div className="bg-white rounded-md border border-gray-100 p-6">
+    <div className="bg-white rounded-md border border-white-02 p-6">
       <div className="text-center py-10 space-y-4">
         <div className="size-11 mx-auto rounded-full border-[3px] border-primary/20 border-t-primary animate-spin" />
         <div>
@@ -737,8 +737,8 @@ export function ReviewIssuesStep({
   const canProceed = errorCount === 0 && batch.is_ready_for_import;
 
   return (
-    <div className="bg-white rounded-md border border-gray-100 p-6 space-y-5">
-      <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+    <div className="bg-white rounded-md border border-white-02 p-6 space-y-5">
+      <div className="flex items-center justify-between border-b border-white-02 pb-4">
         <div>
           <h2 className="text-base font-semibold font-mont text-black-01">Review validation issues</h2>
           <p className="text-xs text-gray-01 mt-1">
@@ -771,7 +771,7 @@ export function ReviewIssuesStep({
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 border-b border-gray-100">
+      <div className="flex gap-1 border-b border-white-02">
         {([
           ["all", "All", totalIssues],
           ["error", "Errors", errorCount],
@@ -826,7 +826,7 @@ export function ReviewIssuesStep({
                     {rowIssues.length} {rowIssues.length === 1 ? "issue" : "issues"}
                   </span>
                 </div>
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-white-02">
                   {rowIssues.map((issue) => (
                     <div key={issue.id} className="flex items-start gap-3 px-3 py-2.5">
                       <span className={cn(
@@ -925,8 +925,8 @@ export function ConfirmStep({
     : null;
 
   return (
-    <div className="bg-white rounded-md border border-gray-100 p-6 space-y-5">
-      <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+    <div className="bg-white rounded-md border border-white-02 p-6 space-y-5">
+      <div className="flex items-center justify-between border-b border-white-02 pb-4">
         <div>
           <h2 className="text-base font-semibold font-mont text-black-01">Confirm import</h2>
           <p className="text-xs text-gray-01 mt-1">Review the summary below. This is the last step before data is written.</p>
@@ -979,9 +979,9 @@ export function ConfirmStep({
               </thead>
               <tbody>
                 {batch.preview_rows.map((row, ri) => (
-                  <tr key={ri} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
+                  <tr key={ri} className="border-b border-white-02 last:border-0 hover:bg-gray-50/50">
                     {batch.uploaded_headers.map((h, ci) => (
-                      <td key={ci} className="px-3 py-2 font-mono text-gray-600 whitespace-nowrap max-w-[180px] truncate border-r border-gray-100 last:border-r-0">
+                      <td key={ci} className="px-3 py-2 font-mono text-gray-600 whitespace-nowrap max-w-[180px] truncate border-r border-white-02 last:border-r-0">
                         {row[h] != null ? String(row[h]) : <span className="text-gray-300 italic">empty</span>}
                       </td>
                     ))}
@@ -1085,8 +1085,8 @@ export function ImportProgressStep({
   const total = job?.total_rows ?? 0;
 
   return (
-    <div className="bg-white rounded-md border border-gray-100 p-6 space-y-5">
-      <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+    <div className="bg-white rounded-md border border-white-02 p-6 space-y-5">
+      <div className="flex items-center justify-between border-b border-white-02 pb-4">
         <div>
           <h2 className="text-base font-semibold font-mont text-black-01">Import in progress…</h2>
           <p className="text-xs text-gray-01 mt-1">Writing records. This page will auto-advance when the job completes.</p>
@@ -1192,7 +1192,7 @@ export function CompleteStep({
   const PREVIEW_LIMIT = 5;
 
   return (
-    <div className="bg-white rounded-md border border-gray-100 p-6 space-y-5">
+    <div className="bg-white rounded-md border border-white-02 p-6 space-y-5">
       <div className="flex items-center gap-4">
         <div className={cn("size-14 rounded-xl flex items-center justify-center shrink-0", iconBg)}>
           {isSuccess ? <Check className="size-7" /> : <AlertTriangle className="size-7" />}
@@ -1340,7 +1340,7 @@ export function CompleteStep({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white-02">
         <div className="flex flex-wrap gap-2.5">
           {onViewDetails && (
             <Button variant="white" onClick={() => onViewDetails(batchId)}>
@@ -1384,7 +1384,7 @@ function StatCard({ label, value, icon, iconBg }: { label: string; value: number
 
 function StepFooter({ step, children }: { step: number; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between pt-5 border-t border-gray-100">
+    <div className="flex items-center justify-between pt-5 border-t border-white-02">
       <span className="text-[11px] text-gray-400">Step {step} of 7</span>
       <div className="flex items-center gap-2.5">{children}</div>
     </div>

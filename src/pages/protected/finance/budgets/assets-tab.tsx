@@ -28,7 +28,7 @@ import { todayISO } from "@/utils/posting-window";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const tdCls = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 const monthEndISO = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10); };
 const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 
@@ -50,7 +50,7 @@ function StatusPill({ status }: { status: string }) {
 function Select({ value, onChange, children, className }: { value: string; onChange: (v: string) => void; children: ReactNode; className?: string }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className={cn("h-9 rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      className={cn("h-9 rounded-md border border-white-02 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
       {children}
     </select>
   );
@@ -145,7 +145,7 @@ export function AssetsTab({ entity, currency }: { entity: string; currency?: str
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-gray-03 bg-white p-3">
+    <div className="rounded-md border border-white-02 bg-white p-3">
       <p className="font-mont text-[11px] text-gray-05">{label}</p>
       <p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value}</p>
     </div>
@@ -191,9 +191,9 @@ function AssetDrawer({ assetId, assets, entity, currency, onClose }: { assetId: 
               Depreciation schedule · {asset.method_display} · {asset.useful_life_months}-month life
             </p>
             {years.length === 0 ? (
-              <p className="rounded-md border border-dashed border-gray-03 px-3 py-4 text-center font-mont text-[11px] text-gray-05">No schedule yet - acquire the asset to build it.</p>
+              <p className="rounded-md border border-dashed border-white-02 px-3 py-4 text-center font-mont text-[11px] text-gray-05">No schedule yet - acquire the asset to build it.</p>
             ) : (
-              <div className="overflow-hidden rounded-md border border-gray-03">
+              <div className="overflow-hidden rounded-md border border-white-02">
                 <table className="w-full border-collapse">
                   <thead><tr>
                     <th className={thCls}>Year</th><th className={cn(thCls, "text-right")}>Opening NBV</th>
@@ -377,7 +377,7 @@ function RunDepreciationDrawer({ open, onClose, entity, currency }: { open: bool
         {isFetching && !preview ? <p className="py-6 text-center font-mont text-xs text-gray-05">Loading…</p> : null}
         {preview ? (
           nothing ? (
-            <p className="rounded-md border border-dashed border-gray-03 px-3 py-6 text-center font-mont text-xs text-gray-05">No depreciation is due up to {fmtDate(upTo)}.</p>
+            <p className="rounded-md border border-dashed border-white-02 px-3 py-6 text-center font-mont text-xs text-gray-05">No depreciation is due up to {fmtDate(upTo)}.</p>
           ) : (
             <>
               <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 font-mont text-[11px] text-amber-700">

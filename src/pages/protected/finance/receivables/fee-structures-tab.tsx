@@ -35,7 +35,7 @@ import type { FeeStructure, FeeAppliesTo } from "@/redux/services/finance/ar-typ
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const tdCls = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 
 const APPLIES_OPTIONS: { value: FeeAppliesTo; label: string }[] = [
   { value: "CUSTOMER", label: "Customer" },
@@ -75,7 +75,7 @@ export function FeeStructuresTab({ entity, currency }: { entity: string; currenc
   }), [entity, search, status, appliesTo]);
   const { data, isLoading, isFetching, isError, refetch } = useGetFeeStructuresQuery(params);
   const rows = useMemo(() => toArray(data?.data), [data]);
-  const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01";
+  const selectCls = "h-9 rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01";
 
   const columns: Column<FeeStructure>[] = [
     { header: "Code", cell: (f) => <span className="font-semibold tabular-nums">{f.code}</span> },
@@ -176,7 +176,7 @@ function FeeStructureDetailDrawer({ structure, entity, currency, onClose, onEdit
 
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
-            <div className="overflow-hidden rounded-md border border-gray-03">
+            <div className="overflow-hidden rounded-md border border-white-02">
               <table className="w-full border-collapse">
                 <thead><tr>
                   <th className={thCls}>Fee item</th><th className={thCls}>GL account</th>
@@ -416,7 +416,7 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
             <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="e.g. FS-STD-2026" disabled={isEdit} className="bg-white font-mont disabled:opacity-60" />
           </FormField>
           <FormField label="Applies to" required>
-            <select value={appliesTo} onChange={(e) => setAppliesTo(e.target.value as FeeAppliesTo)} className="h-9 w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
+            <select value={appliesTo} onChange={(e) => setAppliesTo(e.target.value as FeeAppliesTo)} className="h-9 w-full rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01">
               {APPLIES_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </FormField>
@@ -435,7 +435,7 @@ function StructureFormDrawer({ open, structure, onClose, entity, currency }: {
           </div>
           <div className="space-y-2">
             {items.map((it, i) => (
-              <div key={i} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+              <div key={i} className="flex items-end gap-2 rounded-md border border-white-02 bg-white p-2.5">
                 <div className="grid flex-1 grid-cols-12 gap-2">
                   <div className="col-span-2"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee code</p><Input value={it.code} onChange={(e) => setItem(i, { code: e.target.value })} placeholder="SERVICE" className="bg-white font-mont text-sm" /></div>
                   <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Fee item</p><Input value={it.description} onChange={(e) => setItem(i, { description: e.target.value })} placeholder="Service fee" className="bg-white font-mont text-sm" /></div>

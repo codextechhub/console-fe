@@ -7,6 +7,7 @@ import {
   DetailDrawer, Donut, EmptyState, ErrorState, ForbiddenState, Money, StatCard, LoadingState, TrendArea, toArray,
 } from "@/components/finance-ui";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { useGetSpendAnalysisQuery } from "@/redux/services/procurement/procurement-ext-api";
 import type { SpendAnalysis } from "@/redux/services/procurement/procurement-ext-types";
 import { formatMoney } from "@/utils/money";
@@ -34,11 +35,11 @@ export default function SpendScreen({ entity, currency }: SectionProps) {
       </SectionHeader>
 
       {isForbidden(error) ? (
-        <div className="rounded-md bg-white"><ForbiddenState /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><ForbiddenState /></div>
       ) : isLoading ? (
-        <div className="rounded-md bg-white"><LoadingState rows={8} /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><LoadingState rows={8} /></div>
       ) : isError || !d ? (
-        <div className="rounded-md bg-white"><ErrorState onRetry={refetch} /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><ErrorState onRetry={refetch} /></div>
       ) : (
         <SpendBody d={d} currency={currency} entity={entity} start={start} end={end} />
       )}
@@ -108,7 +109,7 @@ function SpendBody({ d, currency, entity, start, end }: {
         )}
       </Card>
 
-      <section className="min-w-0 rounded-md bg-white">
+      <section className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
         {byCategory.length === 0 ? (
           <EmptyState title="No spend" message="No posted vendor invoices fall in this window." />
         ) : (
@@ -184,7 +185,7 @@ function SpendCategoryBody({ d, currency }: { d: SpendAnalysis; currency?: strin
   const byPeriod = toArray(d.by_period);
   return (
     <div className="space-y-5">
-      <dl className="grid grid-cols-2 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-4">
         <Field label="Total spend" value={formatMoney(kobo(d.total_gross), currency)} />
         <Field label="Net" value={formatMoney(kobo(d.total_net), currency)} />
         <Field label="Tax" value={formatMoney(kobo(d.total_tax), currency)} />

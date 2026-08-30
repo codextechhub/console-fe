@@ -35,7 +35,7 @@ export function Field({ label, value }: { label: string; value: React.ReactNode 
 
 export function EmptyPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">
+    <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-white-02 px-4 text-center font-mont text-xs text-gray-05">
       {children}
     </div>
   );
@@ -98,7 +98,7 @@ export function CompareModal({ entity, currency, open, onClose }: { entity: stri
                       onClick={() => setRfqId(r.id)}
                       className={cn(
                         "rounded border px-3 py-1.5 font-mont text-xs font-medium whitespace-nowrap",
-                        selected === r.id ? "border-primary bg-primary/5 text-primary" : "border-gray-03 text-gray-05",
+                        selected === r.id ? "border-primary bg-primary/5 text-primary" : "border-white-02 text-gray-05",
                       )}
                     >
                       {r.document_number}
@@ -111,7 +111,7 @@ export function CompareModal({ entity, currency, open, onClose }: { entity: stri
             )}
 
             <div className="flex justify-end pt-2">
-              <button onClick={onClose} className="inline-flex items-center gap-1.5 rounded border border-gray-03 px-3 py-1.5 font-mont text-xs font-medium text-gray-05">
+              <button onClick={onClose} className="inline-flex items-center gap-1.5 rounded border border-white-02 px-3 py-1.5 font-mont text-xs font-medium text-gray-05">
                 <X className="size-3.5" /> Close
               </button>
             </div>
@@ -155,19 +155,19 @@ function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; 
     return prices.length ? Math.min(...prices) : null;
   };
 
-  const labelCell = "sticky left-0 z-10 border-t border-gray-03 bg-white px-3 py-2 font-mont text-[11px] font-semibold text-gray-05";
-  const dataCell = "border-t border-l border-gray-03 px-3 py-2 font-mont text-xs tabular-nums text-black-01";
+  const labelCell = "sticky left-0 z-10 border-t border-white-02 bg-white px-3 py-2 font-mont text-[11px] font-semibold text-gray-05";
+  const dataCell = "border-t border-l border-white-02 px-3 py-2 font-mont text-xs tabular-nums text-black-01";
 
   return (
     <>
       {quotes.map((q) => <DetailFetcher key={q.id} id={q.id} entity={entity} onLoaded={onLoaded} />)}
-      <div className="overflow-x-auto rounded-md border border-gray-03">
+      <div className="overflow-x-auto rounded-md border border-white-02">
         <table className="min-w-max border-collapse">
           <thead>
             <tr>
               <th className="sticky left-0 z-10 bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">Criteria</th>
               {quotes.map((q) => (
-                <th key={q.id} className="border-l border-gray-03 bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">
+                <th key={q.id} className="border-l border-white-02 bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">
                   <div className="flex items-center gap-1.5">
                     <span>{q.vendor_name || q.vendor_code}</span>
                     {q.total === lowestTotal && <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">Lowest bid</span>}
@@ -203,7 +203,7 @@ function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; 
 
             {rfqLines.length > 0 && (
               <tr>
-                <td colSpan={quotes.length + 1} className="border-t border-gray-03 bg-gray-50 px-3 py-1.5 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">
+                <td colSpan={quotes.length + 1} className="border-t border-white-02 bg-gray-50 px-3 py-1.5 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">
                   Unit price by RFQ line
                 </td>
               </tr>
@@ -225,9 +225,9 @@ function CompareMatrix({ rfqId, entity, currency, onAwarded }: { rfqId: number; 
             })}
 
             <tr>
-              <td className="sticky left-0 z-10 border-t border-gray-03 bg-white px-3 py-2" />
+              <td className="sticky left-0 z-10 border-t border-white-02 bg-white px-3 py-2" />
               {quotes.map((q) => (
-                <td key={q.id} className="border-t border-l border-gray-03 px-3 py-2">
+                <td key={q.id} className="border-t border-l border-white-02 px-3 py-2">
                   {q.quotation_status === "SUBMITTED" && !q.is_expired && !q.awarded_po_id ? (
                     <ActionButton
                       asLink label="Award" permission={P.PROC_AWARD_QUOTATION}

@@ -24,11 +24,11 @@ export function ActivityFeed({
   const items = mergeActivityItems({ workflowLogs, activity, created });
 
   if (!items.length) {
-    return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">{emptyMessage}</div>;
+    return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-white-02 px-4 text-center font-mont text-xs text-gray-05">{emptyMessage}</div>;
   }
 
   return (
-    <div className="divide-y divide-gray-03">
+    <div className="divide-y divide-white-02">
       {items.map((item) => (
         <div key={item.key} className="py-3 first:pt-0">
           <p className="font-mont text-sm font-medium">{item.message}</p>

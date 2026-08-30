@@ -35,7 +35,7 @@ const ACCOUNT_PILL: Record<string, string> = {
 };
 const ACCOUNT_LABEL: Record<string, string> = { ACTIVE: "Active", OVERDUE: "Overdue", CREDIT: "In credit" };
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const td = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 // Statement transaction type → badge. DEBIT notes are supplementary AR charges (debit
 // side), distinct from an invoice.
 const TXN_META: Record<string, { label: string; cls: string }> = {
@@ -57,7 +57,7 @@ function signed(kobo: number, currency?: string | null) {
 
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-3 ring-1 ring-white-02">
       <p className="font-mont text-[11px] text-gray-05">{label}</p>
       <div className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</div>
     </div>
@@ -119,7 +119,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
             <Stat label="Open invoices">{s.open_invoice_count}</Stat>
           </div>
 
-          <div className="flex flex-wrap gap-1 border-b border-gray-03">
+          <div className="flex flex-wrap gap-1 border-b border-white-02">
             {TABS.map((t) => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={cn("-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 font-mont text-xs font-semibold",
@@ -133,7 +133,7 @@ export function CustomerDetailDrawer({ id, entity, currency, onClose }: {
 
           {tab === "transactions" && (
             d.transactions.length === 0 ? <EmptyState title="No transactions" /> : (
-              <div className="overflow-x-auto rounded-md border border-gray-03">
+              <div className="overflow-x-auto rounded-md border border-white-02">
                 <table className="w-full border-collapse">
                   <thead><tr>
                     <th className={th}>Date</th><th className={th}>Type</th><th className={th}>Reference</th><th className={cn(th, "text-right")}>Amount</th>
@@ -195,7 +195,7 @@ function OpenItemsTab({ d, currency }: { d: CustomerDetail; currency?: string | 
   ];
   if (rows.length === 0) return <EmptyState title="No open items" message="Outstanding invoices and debit notes will appear here." />;
   return (
-    <div className="overflow-x-auto rounded-md border border-gray-03">
+    <div className="overflow-x-auto rounded-md border border-white-02">
       <table className="w-full border-collapse">
         <thead><tr>
           <th className={th}>Type</th><th className={th}>Reference</th><th className={th}>Due</th>
@@ -265,7 +265,7 @@ function StatementTab({ d, entity, entityName, currency }: { d: CustomerDetail; 
       </div>
 
       {/* statement document */}
-      <div className="rounded-md border border-gray-03 bg-white p-5">
+      <div className="rounded-md border border-white-02 bg-white p-5">
         <div className="flex items-start justify-between">
           <div>
             <p className="font-mont text-base font-semibold text-black-01">{entityName}</p>
@@ -278,7 +278,7 @@ function StatementTab({ d, entity, entityName, currency }: { d: CustomerDetail; 
           </div>
         </div>
 
-        <div className="mt-4 overflow-x-auto border-t border-gray-03">
+        <div className="mt-4 overflow-x-auto border-t border-white-02">
           <table className="w-full border-collapse">
             <thead><tr>
               <th className={th}>Date</th><th className={th}>Description</th>
@@ -305,7 +305,7 @@ function StatementTab({ d, entity, entityName, currency }: { d: CustomerDetail; 
           </table>
         </div>
 
-        <div className="mt-4 flex items-end justify-between border-t border-gray-03 pt-3">
+        <div className="mt-4 flex items-end justify-between border-t border-white-02 pt-3">
           <div>
             <p className="font-mont text-[11px] text-gray-05">Closing balance due</p>
             <p className="font-mont text-lg font-semibold tabular-nums text-black-01">{signed(closing, currency)}</p>

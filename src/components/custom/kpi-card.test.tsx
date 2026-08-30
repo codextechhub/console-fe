@@ -7,7 +7,7 @@ describe("KpiCard", () => {
   it("gives default information cards a visible boundary", () => {
     const html = renderToStaticMarkup(<KpiCard label="Documents" value={12} />);
 
-    expect(html).toContain("border-gray-200");
+    expect(html).toContain("border-white-02");
     expect(html).not.toContain("border-transparent");
   });
 
@@ -16,8 +16,8 @@ describe("KpiCard", () => {
     const warning = renderToStaticMarkup(<KpiCard label="Pending" value={4} tone="warn" />);
 
     expect(alert).toContain("border-red-200");
-    expect(alert).not.toContain("border-gray-200");
+    expect(alert).not.toContain("border-white-02");
     expect(warning).toContain("border-amber-200");
-    expect(warning).not.toContain("border-gray-200");
+    expect(warning).not.toContain("border-white-02");
   });
 });

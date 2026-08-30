@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import {
   useGetStockItemsQuery, useGetStockItemQuery, useGetStockSummaryQuery,
@@ -151,7 +152,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
         </header>
 
         <div data-guide="procurement-stock-items.summary" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
+          {summaryLoading || !summary ? <div className={cn(INFORMATION_CARD_SURFACE, "col-span-full rounded-md")}><LoadingState rows={2} /></div> : <>
             <StatCard label="Items tracked" value={String(summary.tracked)} icon={Boxes} tone="gray" />
             <StatCard label="Low stock" value={String(summary.low_stock)} icon={AlertTriangle} tone="amber" />
             <StatCard label="Out of stock" value={String(summary.out_of_stock)} icon={PackageX} tone="red" />
@@ -159,8 +160,8 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
           </>}
         </div>
 
-        <section data-guide="procurement-stock-items.list" className="min-w-0 rounded-md bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4 py-2">
+        <section data-guide="procurement-stock-items.list" className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-white-02 px-4 py-2">
             <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
               <label className="flex cursor-pointer items-center gap-2 font-mont text-xs font-medium text-gray-01">
                 <input type="checkbox" checked={needsReorder} onChange={(e) => { setNeedsReorder(e.target.checked); setPage(1); }} /> Needs reorder
@@ -178,7 +179,7 @@ function ItemsSection({ entity, currency }: { entity: string; currency?: string 
                     aria-label="Store"
                     value={store}
                     onChange={(e) => { setStore(e.target.value); setPage(1); }}
-                    className="h-8 rounded-md border border-gray-03 bg-white px-2 font-mont text-xs text-gray-01"
+                    className="h-8 rounded-md border border-white-02 bg-white px-2 font-mont text-xs text-gray-01"
                   >
                     <option value="">All stores</option>
                     {locations.map((l) => <option key={l.id} value={String(l.id)}>{l.code} - {l.name}</option>)}
@@ -224,12 +225,12 @@ function StockItemDrawer({ id, entity, currency, onClose }: { id: number | null;
           <StatusPill status={itemStatus(item)} />
           <p className="font-mont text-lg font-semibold tabular-nums">{formatMoney(item.stock_value, currency)}</p>
         </div>
-        <div className="max-w-full overflow-x-auto border-b border-gray-03"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([value, label, Icon]) => (
+        <div className="max-w-full overflow-x-auto border-b border-white-02"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([value, label, Icon]) => (
           <button key={value} onClick={() => setTab(value)} className={cn("flex items-center gap-1.5 border-b-2 py-2.5 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}><Icon className="size-3.5" />{label}</button>
         ))}</div></div>
 
         {tab === "overview" && (<>
-          <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
+          <dl className="grid grid-cols-1 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2">
             <Field label="Code" value={item.code} />
             <Field label="Name" value={item.name} />
             <Field label="Catalog item" value={item.catalog_item_code || "-"} />
@@ -287,19 +288,19 @@ function MovementsSubTable({ movements, currency, multi }: { movements: StockMov
   if (!movements.length) return <EmptyPanel>No movements recorded for this item yet.</EmptyPanel>;
   const heads = ["Date", "Type", ...(multi ? ["Store"] : []), "Qty", "Value", multi ? "Bal. at store" : "Bal. qty", "Bal. value"];
   return (
-    <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[560px]">
+    <div className="overflow-x-auto rounded-md border border-white-02"><table className="w-full min-w-[560px]">
       <thead><tr>{heads.map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
       <tbody>{movements.map((m) => {
         const q = num(m.quantity);
         return (
           <tr key={m.id}>
-            <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(m.movement_date)}</td>
-            <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={m.movement_type} /></td>
-            {multi && <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs">{m.location_code || "-"}</td>}
-            <td className={cn("border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums", signClass(q))}>{q > 0 ? "+" : ""}{fmtQty(m.quantity)}</td>
-            <td className="border-t border-gray-03 px-3 py-2 text-right"><Money kobo={m.value_amount} currency={currency} align="right" /></td>
-            <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{fmtQty(m.balance_qty)}</td>
-            <td className="border-t border-gray-03 px-3 py-2 text-right"><Money kobo={m.balance_value} currency={currency} align="right" /></td>
+            <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(m.movement_date)}</td>
+            <td className="border-t border-white-02 px-3 py-2"><StatusPill status={m.movement_type} /></td>
+            {multi && <td className="border-t border-white-02 px-3 py-2 font-mont text-xs">{m.location_code || "-"}</td>}
+            <td className={cn("border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums", signClass(q))}>{q > 0 ? "+" : ""}{fmtQty(m.quantity)}</td>
+            <td className="border-t border-white-02 px-3 py-2 text-right"><Money kobo={m.value_amount} currency={currency} align="right" /></td>
+            <td className="border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums">{fmtQty(m.balance_qty)}</td>
+            <td className="border-t border-white-02 px-3 py-2 text-right"><Money kobo={m.balance_value} currency={currency} align="right" /></td>
           </tr>
         );
       })}</tbody>
@@ -614,8 +615,8 @@ function MovementsSection({ entity, currency }: { entity: string; currency?: str
           <h1 className="font-mont text-lg font-semibold text-gray-01">Stock Movements</h1>
           <p className="mt-0.5 font-mont text-xs text-gray-05">Receipts, issues and adjustments.{multi ? " Balances shown are the running balance at each store." : ""}</p>
         </div>
-        <section data-guide="procurement-stock-movements.list" className="min-w-0 rounded-md bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
+        <section data-guide="procurement-stock-movements.list" className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-white-02 px-4">
             <div className="max-w-full overflow-x-auto">
               <div className="flex min-w-max gap-5">{MOVEMENT_TABS.map(([label, value]) => (
                 <button key={label} onClick={() => { setTab(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>

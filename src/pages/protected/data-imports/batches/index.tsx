@@ -16,6 +16,7 @@ import { P } from "@/permissions";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { formatRelativeDate } from "@/utils/helpers";
 import { formatBytes } from "@/utils/format-bytes";
 import { routesPath } from "@/routes/routes-path";
@@ -288,7 +289,8 @@ export default function ImportBatchesList() {
                 key={card.key}
                 onClick={() => setCardFilter(cardFilter === card.key ? "all" : card.key)}
                 className={cn(
-                  "bg-white rounded-md text-left p-4 transition-colors border border-transparent",
+                  INFORMATION_CARD_SURFACE,
+                  "rounded-md text-left p-4 transition-colors",
                   "cursor-pointer hover:border-primary/30",
                   isActive && "border-primary bg-primary/5",
                 )}

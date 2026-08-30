@@ -20,7 +20,7 @@ export function AuditLogsTab({ batchId }: { batchId: number }) {
   }
 
   return (
-    <div className="rounded-md border border-gray-100 divide-y divide-gray-50 overflow-hidden">
+    <div className="rounded-md border border-white-02 divide-y divide-white-02 overflow-hidden">
       {logs.map((log) => (
         <div key={log.id} className="flex items-start gap-3 px-4 py-3">
           <ShieldAlert className="size-3.5 text-gray-300 mt-1 shrink-0" />

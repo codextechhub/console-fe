@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import { formatMoney } from "@/utils/money";
 import {
@@ -48,7 +49,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 function RestrictedPanel({ children }: { children: React.ReactNode }) {
-  return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">{children}</div>;
+  return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-white-02 px-4 text-center font-mont text-xs text-gray-05">{children}</div>;
 }
 
 function hierarchyRows(rows: VendorCategory[]) {
@@ -139,8 +140,8 @@ export function CategoriesTab({ entity, currency }: { entity: string; currency?:
       <Can permission={P.PROC_CREATE_CATEGORY}><Button onClick={() => setCreating(true)}><Plus className="size-4" /> New Category</Button></Can>
     </header>
 
-    <section data-guide="procurement-categories.list" className="min-w-0 rounded-md bg-white">
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
+    <section data-guide="procurement-categories.list" className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-white-02 px-4">
         <div className="max-w-full overflow-x-auto"><div className="flex min-w-max gap-5">{STATUS_TABS.map(([label, value]) => <button key={value} type="button" onClick={() => { setStatus(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", status === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>)}</div></div>
         <label className="relative my-2 min-w-0 basis-full sm:min-w-52 sm:flex-1 sm:basis-auto sm:max-w-72"><Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-gray-05" /><Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search categories" className="h-9 bg-white pl-9" /></label>
       </div>
@@ -179,9 +180,9 @@ function CategoryDrawer({ id, entity, currency, canReports, insight, onClose }: 
   return <>
     <DetailDrawer open={id != null} onOpenChange={(open) => !open && onClose()} title={category?.name || "Category"} description={category ? `${category.code} · ${category.default_expense_code || "No default expense account"}` : "Loading category"} widthClass="sm:max-w-[640px]" footer={category && <Can permission={P.PROC_UPDATE_CATEGORY}><Button variant="outline" onClick={() => setEditing(true)}>Edit Category</Button></Can>}>
       {isLoading ? <RestrictedPanel>Loading category…</RestrictedPanel> : isForbidden(error) ? <RestrictedPanel>You do not have permission to view this category.</RestrictedPanel> : isError || !category ? <RestrictedPanel><button type="button" className="text-primary" onClick={() => refetch()}>Category could not be loaded. Try again.</button></RestrictedPanel> : <div className="space-y-5">
-        <div className="max-w-full overflow-x-auto border-b border-gray-03"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([label, value, Icon]) => <button key={value} type="button" onClick={() => setTab(value)} className={cn("flex items-center gap-1.5 border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}><Icon className="size-3.5" />{label}</button>)}</div></div>
-        {tab === "overview" && <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2"><Field label="Category name" value={category.name} /><Field label="Code" value={category.code} /><Field label="Level" value={`Level ${category.level}`} /><Field label="Parent category" value={category.parent_name || "Root category"} /><Field label="Default expense account" value={category.default_expense_code || "Not configured"} /><Field label="Status" value={<StatusPill status={category.is_active ? "ACTIVE" : "INACTIVE"} />} /></dl>}
-        {tab === "usage" && <div className="space-y-4"><dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2"><Field label="Linked vendors" value={category.vendor_count ?? 0} /><Field label="Direct sub-categories" value={category.child_count ?? 0} /><Field label="Catalog items" value={category.catalog_item_count ?? 0} /><Field label="Hierarchy position" value={category.parent_name ? `${category.parent_name} · Level ${category.level}` : "Root · Level 1"} /><Field label="Assignment state" value={category.is_active ? "Available for new vendors" : "Historical links only"} /></dl><p className="rounded-md border border-dashed border-gray-03 p-4 font-mont text-xs leading-5 text-gray-05">The hierarchy supports three levels. Catalog items counts reflect items assigned directly to this category, not its sub-categories.</p></div>}
+        <div className="max-w-full overflow-x-auto border-b border-white-02"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([label, value, Icon]) => <button key={value} type="button" onClick={() => setTab(value)} className={cn("flex items-center gap-1.5 border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}><Icon className="size-3.5" />{label}</button>)}</div></div>
+        {tab === "overview" && <dl className="grid grid-cols-1 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2"><Field label="Category name" value={category.name} /><Field label="Code" value={category.code} /><Field label="Level" value={`Level ${category.level}`} /><Field label="Parent category" value={category.parent_name || "Root category"} /><Field label="Default expense account" value={category.default_expense_code || "Not configured"} /><Field label="Status" value={<StatusPill status={category.is_active ? "ACTIVE" : "INACTIVE"} />} /></dl>}
+        {tab === "usage" && <div className="space-y-4"><dl className="grid grid-cols-1 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2"><Field label="Linked vendors" value={category.vendor_count ?? 0} /><Field label="Direct sub-categories" value={category.child_count ?? 0} /><Field label="Catalog items" value={category.catalog_item_count ?? 0} /><Field label="Hierarchy position" value={category.parent_name ? `${category.parent_name} · Level ${category.level}` : "Root · Level 1"} /><Field label="Assignment state" value={category.is_active ? "Available for new vendors" : "Historical links only"} /></dl><p className="rounded-md border border-dashed border-white-02 p-4 font-mont text-xs leading-5 text-gray-05">The hierarchy supports three levels. Catalog items counts reflect items assigned directly to this category, not its sub-categories.</p></div>}
         {tab === "spend" && (!canReports ? <RestrictedPanel>Category spend requires Procurement report access.</RestrictedPanel> : <div className="space-y-3"><div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><SpendCard label="This month" value={formatMoney(insight?.spend_mtd ?? 0, currency)} /><SpendCard label="Last month" value={formatMoney(insight?.spend_prior_month ?? 0, currency)} /><SpendCard label="Year to date" value={formatMoney(insight?.spend_ytd ?? 0, currency)} /></div><p className="font-mont text-xs text-gray-05">Realised spend is sourced only from posted vendor invoices for vendors currently linked to this category.</p></div>)}
       </div>}
     </DetailDrawer>
@@ -190,7 +191,7 @@ function CategoryDrawer({ id, entity, currency, canReports, insight, onClose }: 
 }
 
 function SpendCard({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-md border border-gray-03 p-3"><p className="font-mont text-[11px] text-gray-05">{label}</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value}</p></div>;
+  return <div className="rounded-md border border-white-02 p-3"><p className="font-mont text-[11px] text-gray-05">{label}</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value}</p></div>;
 }
 
 function CategoryForm({ entity, initial, onClose }: { entity: string; initial?: VendorCategory; onClose: () => void }) {

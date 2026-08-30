@@ -38,10 +38,10 @@ export function ChoiceCard({
       className={cn(
         "flex w-full items-start gap-3 rounded-md border px-3.5 py-3 text-left transition-colors",
         disabled
-          ? "cursor-not-allowed border-gray-03 bg-white opacity-60"
+          ? "cursor-not-allowed border-white-02 bg-white opacity-60"
           : selected
             ? "cursor-pointer border-primary bg-pry-01/40"
-            : "cursor-pointer border-gray-03 bg-white hover:border-primary/40",
+            : "cursor-pointer border-white-02 bg-white hover:border-primary/40",
       )}
     >
       <span

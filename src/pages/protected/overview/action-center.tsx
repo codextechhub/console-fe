@@ -117,7 +117,7 @@ function QueueBox({
           {count}
         </span>
       </div>
-      <div className="mt-3 flex-1 divide-y divide-gray-100/80">{children}</div>
+      <div className="mt-3 flex-1 divide-y divide-white-02/80">{children}</div>
       {count > QUEUE_SHOWN && (
         <Link
           to={viewAllTo}

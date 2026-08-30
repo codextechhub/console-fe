@@ -6,6 +6,7 @@ import { ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchSelect } from "@/components/custom/search-select";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { toast } from "sonner";
 import { routesPath } from "@/routes/routes-path";
 import { PageShell } from "@/components/layout/page-shell";
@@ -83,7 +84,7 @@ function SearchablePicker({
           className={cn(
             "w-full h-10 px-3 rounded-md border text-sm font-mono text-left bg-white outline-none flex items-center justify-between gap-2 transition-colors",
             disabled
-              ? "border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed"
+              ? "border-white-02 bg-gray-50 text-gray-400 cursor-not-allowed"
               : open
                 ? "border-primary ring-2 ring-primary/20"
                 : "border-gray-200 hover:border-gray-300",
@@ -97,7 +98,7 @@ function SearchablePicker({
 
         {open && !disabled && (
           <div className="absolute z-50 mt-1 left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden">
-            <div className="p-2 border-b border-gray-100 flex items-center gap-2">
+            <div className="p-2 border-b border-white-02 flex items-center gap-2">
               <Search className="size-3.5 text-gray-01 shrink-0" />
               <input
                 ref={inputRef}
@@ -202,13 +203,13 @@ export default function CreatePermission() {
 
             return (
               <Form className="space-y-5">
-                <div className="bg-white rounded-md p-6 space-y-5">
-                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3" data-guide="permission-create.key">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
+                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3" data-guide="permission-create.key">
                     Permission Key
                   </h2>
 
                   {keyPreview && (
-                    <div className="bg-gray-50 rounded-md px-4 py-3 border border-gray-100">
+                    <div className="bg-gray-50 rounded-md px-4 py-3 border border-white-02">
                       <p className="text-xs text-gray-01 font-mont mb-1">Preview key</p>
                       <p className="font-mono text-sm font-semibold text-black-01">{keyPreview}</p>
                     </div>
@@ -271,8 +272,8 @@ export default function CreatePermission() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-md p-6 space-y-5">
-                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3" data-guide="permission-create.classification">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
+                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3" data-guide="permission-create.classification">
                     Details & Classification
                   </h2>
 

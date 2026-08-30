@@ -374,7 +374,7 @@ function PositionDetail({ id, ctx }: { id: number; ctx: DrawerCtx }) {
               </div>
             ))}
             {inc.map((m) => (
-              <div key={m.id} className="flex items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-2 text-[12.5px] text-slate-600 ring-1 ring-slate-100">
+              <div key={m.id} className="flex items-center gap-2 rounded-lg bg-slate-50 px-2.5 py-2 text-[12.5px] text-slate-600 ring-1 ring-white-02">
                 <span className="inline-block h-0 w-5 border-t-2 border-dotted border-slate-400" />
                 <span><button onClick={() => ctx.openPosition(m.position.id)} className="font-semibold hover:underline">{m.position.title}</button> dotted-reports here</span>
               </div>
@@ -406,7 +406,7 @@ export function DetailDrawer({ target, onClose, ctx }: { target: DetailTarget | 
       <SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-[440px]" showCloseButton={false}>
         <SheetTitle className="sr-only">{isPosition ? "Seat detail" : "Person detail"}</SheetTitle>
         <SheetDescription className="sr-only">Organogram detail panel</SheetDescription>
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
+        <div className="flex items-center justify-between border-b border-white-02 px-5 py-3.5">
           <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wider text-slate-400">
             {isPosition ? <Briefcase className="size-3.5" /> : <Users className="size-3.5" />}
             {isPosition ? "Seat detail" : "Person detail"}

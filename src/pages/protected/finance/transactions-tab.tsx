@@ -54,7 +54,7 @@ const STATUS_GROUPS = [["SETTLED", "Settled"], ["PENDING", "Pending"], ["FAILED"
 function Select({ value, onChange, children, className }: { value: string; onChange: (v: string) => void; children: ReactNode; className?: string }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className={cn("h-9 rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      className={cn("h-9 rounded-md border border-white-02 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
       {children}
     </select>
   );
@@ -154,7 +154,7 @@ function Field({ label, children, mono }: { label: string; children: ReactNode; 
 }
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="rounded-md border border-gray-03 bg-white p-4">
+    <div className="rounded-md border border-white-02 bg-white p-4">
       <p className="mb-1.5 font-mont text-[11px] font-semibold uppercase tracking-wide text-gray-05">{title}</p>
       <div className="divide-y divide-gray-02">{children}</div>
     </div>

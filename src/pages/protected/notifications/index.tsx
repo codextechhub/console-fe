@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { NotificationEventIcon } from "@/components/custom/notification-event-icon";
 import { formatRelativeDate } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { routesPath } from "@/routes/routes-path";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useFilterParam } from "@/hooks/use-filter-param";
@@ -148,7 +149,7 @@ export default function Notifications() {
         </div>
 
         {/* Feed */}
-        <section className="rounded-md bg-white">
+        <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
           {isLoading ? (
             <div className="grid h-72 place-content-center">
               <Loader2 className="size-6 animate-spin text-primary" />

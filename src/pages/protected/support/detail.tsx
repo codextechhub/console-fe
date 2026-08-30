@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { routesPath } from "@/routes/routes-path";
 import { useLogRecentOpen } from "@/hooks/use-log-recent-open";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { TicketStatusBadge } from "./status-badge";
@@ -279,7 +280,7 @@ export default function TicketDetail() {
           </button>
 
           <div className="mt-5 grid gap-5 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_310px]">
-            <section className="overflow-hidden rounded-md bg-white lg:flex lg:min-h-0 lg:flex-col">
+            <section className={cn(INFORMATION_CARD_SURFACE, "overflow-hidden rounded-md lg:flex lg:min-h-0 lg:flex-col")}>
               <div className="shrink-0 border-b border-white-02 p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -459,7 +460,7 @@ export default function TicketDetail() {
             </section>
 
             <aside className="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
-              <div className="rounded-md bg-white p-5">
+              <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
                 <div className="flex justify-between">
                   <h2 className="font-semibold">Ticket details</h2>
                   {canEdit && (
@@ -489,7 +490,7 @@ export default function TicketDetail() {
               </div>
 
               {canAssign && (
-                <div className="rounded-md bg-white p-5">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
                   <h2 className="font-semibold">Assignment</h2>
                   <NativeSelect
                     className="mt-3"
@@ -513,7 +514,7 @@ export default function TicketDetail() {
               )}
 
               {canManage && (
-                <div className="rounded-md bg-white p-5">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
                   <h2 className="font-semibold">Update status</h2>
                   <p className="mt-1 text-xs text-gray-01">Only valid workflow transitions are available.</p>
                   <div className="mt-4 grid gap-2">
@@ -538,7 +539,7 @@ export default function TicketDetail() {
 
               {Object.keys(ticket.context ?? {}).length > 0 && (
                 <details
-                  className="group scroll-m-4 rounded-md bg-white"
+                  className={cn(INFORMATION_CARD_SURFACE, "group scroll-m-4 rounded-md")}
                   onToggle={(event) => {
                     const disclosure = event.currentTarget;
                     if (!disclosure.open) return;
@@ -578,7 +579,7 @@ export default function TicketDetail() {
               {canAudit && (
                 <button
                   onClick={() => setShowAudit(true)}
-                  className="flex w-full items-center gap-2 rounded-md bg-white p-4 text-sm font-medium"
+                  className={cn(INFORMATION_CARD_SURFACE, "flex w-full items-center gap-2 rounded-md p-4 text-sm font-medium")}
                 >
                   <History className="size-4 text-primary" />
                   View audit history

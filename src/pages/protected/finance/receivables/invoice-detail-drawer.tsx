@@ -28,7 +28,7 @@ const TABS = [
 ] as const;
 
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const td = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 
 // Settlement / GL source-document type → short label + pill colour.
 const SETTLEMENT_META: Record<string, { label: string; cls: string }> = {
@@ -45,7 +45,7 @@ function TypeBadge({ type }: { type: string }) {
 
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-3 ring-1 ring-white-02">
       <p className="font-mont text-[11px] text-gray-05">{label}</p>
       <div className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</div>
     </div>
@@ -165,7 +165,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
           </div>
 
           {/* tabs */}
-          <div className="flex flex-wrap gap-1 border-b border-gray-03">
+          <div className="flex flex-wrap gap-1 border-b border-white-02">
             {TABS.map((t) => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={cn("-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 font-mont text-xs font-semibold",
@@ -177,7 +177,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
 
           {tab === "lines" && (
             d.lines.length === 0 ? <EmptyState title="No lines" /> : (
-              <div className="overflow-x-auto rounded-md border border-gray-03">
+              <div className="overflow-x-auto rounded-md border border-white-02">
                 <table className="w-full border-collapse">
                   <thead><tr>
                     <th className={th}>Description</th><th className={th}>GL account</th>
@@ -222,7 +222,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
             d.gl_journals.length === 0 ? <EmptyState title="No GL postings" message="The AR journal posts when the invoice is posted." /> : (
               <div className="space-y-3">
                 {d.gl_journals.map((j, i) => (
-                  <div key={i} className="overflow-hidden rounded-md border border-gray-03">
+                  <div key={i} className="overflow-hidden rounded-md border border-white-02">
                     <div className="flex items-center justify-between gap-2 bg-[#F1F1F1] px-3 py-2">
                       <span className="flex items-center gap-2"><TypeBadge type={j.document_type} /><span className="font-mont text-xs font-semibold text-gray-01">{j.reference}</span></span>
                       <span className="font-mont text-[11px] tabular-nums text-gray-05">{j.date}</span>
@@ -306,7 +306,7 @@ export function InvoiceDetailDrawer({ id, entity, currency, onClose, onWriteOff 
 
 function SimpleTable({ head, rows, rightCols = [] }: { head: string[]; rows: React.ReactNode[][]; rightCols?: number[] }) {
   return (
-    <div className="overflow-x-auto rounded-md border border-gray-03">
+    <div className="overflow-x-auto rounded-md border border-white-02">
       <table className="w-full border-collapse">
         <thead><tr>{head.map((h, i) => <th key={i} className={cn(th, rightCols.includes(i) && "text-right")}>{h}</th>)}</tr></thead>
         <tbody>

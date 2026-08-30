@@ -129,10 +129,10 @@ export default function ProcurementApprovalsPage() {
             <label className="relative w-full sm:max-w-xs">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-04" />
               <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search document or requester"
-                className="h-9 w-full rounded-md border border-gray-03 bg-white pl-9 pr-3 font-mont text-sm outline-none focus:border-primary" />
+                className="h-9 w-full rounded-md border border-white-02 bg-white pl-9 pr-3 font-mont text-sm outline-none focus:border-primary" />
             </label>
             <select value={documentType} onChange={(event) => setDocumentType(event.target.value)}
-              className="h-9 max-w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01 outline-none focus:border-primary">
+              className="h-9 max-w-full rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01 outline-none focus:border-primary">
               {DOCUMENT_TYPES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </div>
@@ -205,7 +205,7 @@ function ApprovalDrawer({ id, entity, currency, onClose }: {
       title={approval ? <span className="flex flex-wrap items-center gap-2"><span className="text-primary">{approval.reference}</span><StatusPill status="PENDING_APPROVAL" /></span> : "Approval"}
       description={approval?.title ?? "Loading approval details"} widthClass="sm:max-w-[720px]">
       {isLoading ? <LoadingState rows={8} /> : isError || !approval ? <ErrorState message="This approval is no longer available in your queue." onRetry={refetch} /> : <div className="space-y-5">
-        <div className="max-w-full overflow-x-auto border-b border-gray-03">
+        <div className="max-w-full overflow-x-auto border-b border-white-02">
           <div className="flex min-w-max gap-5">
             {(["overview", "activity"] as const).map((value) => {
               const Icon = value === "overview" ? FileText : History;
@@ -258,7 +258,7 @@ function ApprovalOverview({ approval, activeStage, currency, comment, setComment
       </div>
     </section>
 
-    <dl className="grid grid-cols-1 overflow-hidden rounded-md border border-gray-03 sm:grid-cols-2">
+    <dl className="grid grid-cols-1 overflow-hidden rounded-md border border-white-02 sm:grid-cols-2">
       <Field label="Document" value={approval.reference} />
       <Field label="Title" value={approval.title} />
       <Field label="Type" value={approval.document_type_label} />
@@ -277,7 +277,7 @@ function ApprovalOverview({ approval, activeStage, currency, comment, setComment
 }
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return <div className="border-b border-gray-03 px-4 py-3 last:border-b-0 sm:border-r sm:[&:nth-child(even)]:border-r-0">
+  return <div className="border-b border-white-02 px-4 py-3 last:border-b-0 sm:border-r sm:[&:nth-child(even)]:border-r-0">
     <dt className="font-mont text-[11px] text-gray-05">{label}</dt>
     <dd className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{value || "-"}</dd>
   </div>;
@@ -295,14 +295,14 @@ function stageRule(stage?: ProcurementApprovalStage, next?: ProcurementApprovalD
 function StageCard({ stage }: { stage: ProcurementApprovalStage }) {
   const Icon = stage.status === "SKIPPED" ? SkipForward : stage.status === "ACTIVE" ? Clock3 : stage.status === "APPROVED" ? Check : stage.status === "REJECTED" ? X : RotateCcw;
   const liveActions = stage.actions.filter((action) => !action.is_reversal);
-  return <div className="rounded-md border border-gray-03 p-3">
+  return <div className="rounded-md border border-white-02 p-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex items-center gap-2"><span className="grid size-7 place-content-center rounded-full bg-primary/10 text-primary"><Icon className="size-3.5" /></span><div><p className="font-mont text-sm font-semibold">{stage.label}</p>{stage.attempt > 1 && <p className="font-mont text-[11px] text-gray-05">Attempt {stage.attempt}</p>}</div></div>
       <StatusPill status={stage.status} />
     </div>
     <p className="mt-2 font-mont text-xs text-gray-05">{stage.advance_rule === "ANY" ? "Any eligible approver" : stage.advance_rule === "QUORUM" ? `Quorum of ${stage.quorum_count ?? 1}` : `All ${stage.eligible_count} eligible approvers`}</p>
     {stage.skip_reason && <p className="mt-2 rounded-md bg-gray-50 px-3 py-2 font-mont text-xs text-gray-05">Skipped: {stage.skip_reason.replaceAll("_", " ")}</p>}
-    {liveActions.length > 0 && <div className="mt-3 space-y-2 border-t border-gray-03 pt-3">{liveActions.map((action) => <div key={action.id} className="font-mont text-xs"><p className="font-medium text-black-01">{action.actor} · {action.action.toLowerCase()}{action.on_behalf_of ? ` for ${action.on_behalf_of}` : ""}</p>{action.comment && <p className="mt-1 rounded-md bg-gray-50 px-3 py-2 text-gray-05">“{action.comment}”</p>}</div>)}</div>}
+    {liveActions.length > 0 && <div className="mt-3 space-y-2 border-t border-white-02 pt-3">{liveActions.map((action) => <div key={action.id} className="font-mont text-xs"><p className="font-medium text-black-01">{action.actor} · {action.action.toLowerCase()}{action.on_behalf_of ? ` for ${action.on_behalf_of}` : ""}</p>{action.comment && <p className="mt-1 rounded-md bg-gray-50 px-3 py-2 text-gray-05">“{action.comment}”</p>}</div>)}</div>}
   </div>;
 }
 

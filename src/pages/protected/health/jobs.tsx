@@ -22,6 +22,8 @@ import {
   QueryState,
   StatusDot,
 } from "./primitives";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 // The API's own tokens, from core.BackgroundJob.Status. This screen used to
 // offer "pending" and "completed", which match no row the backend can produce -
@@ -87,7 +89,7 @@ export default function JobsPage() {
                 type="button"
                 onClick={() => setSelectedQueue(q)}
                 key={q.name}
-                className="rounded-md bg-white p-5 text-left transition-colors hover:bg-pry-01/40"
+                className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 text-left transition-colors hover:bg-pry-01/40")}
               >
                 <div className="flex justify-between">
                   <div>

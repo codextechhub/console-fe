@@ -31,6 +31,8 @@ import {
   serializeAuditEventFilters,
   type AuditEventFilters,
 } from "./event-filter-contract";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const TABLE_HEADERS = ["Sev", "Status", "When", "Module", "Action Type", "Actor", "Entity", "Action"];
 
@@ -179,7 +181,7 @@ export default function AuditEventsExplorer() {
         {/* Phone: filter rail stacks above the feed; md+: fixed 260px rail. */}
         <div className="grid grid-cols-1 gap-5 items-start md:grid-cols-[260px_1fr]">
           {/* Filter rail */}
-          <aside data-guide="audit-events.filters" className="bg-white rounded-md p-4 space-y-5 h-fit">
+          <aside data-guide="audit-events.filters" className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-4 space-y-5 h-fit")}>
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold flex items-center gap-1.5">
                 <Filter className="size-3.5" /> Filters
@@ -358,7 +360,7 @@ export default function AuditEventsExplorer() {
               onChange={(e) => updateFilters({ search: e.target.value })}
             />
             {isError ? (
-              <div className="flex h-56 flex-col items-center justify-center gap-3 bg-white rounded-md">
+              <div className={cn(INFORMATION_CARD_SURFACE, "flex h-56 flex-col items-center justify-center gap-3 rounded-md")}>
                 <p className="text-sm font-medium text-destructive">Failed to load events.</p>
                 <Button variant="outline" size="sm" onClick={() => refetch()}>
                   <RefreshCw className="size-3.5" /> Retry

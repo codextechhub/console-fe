@@ -135,7 +135,7 @@ export function Donut({
 /** A compact label/value/sub strip - for summary rows above a table. */
 export function StatStrip({ items }: { items: { label: string; value: React.ReactNode; sub?: string }[] }) {
   return (
-    <div className="flex flex-wrap divide-x divide-gray-03 rounded-md border border-gray-03 bg-white">
+    <div className="flex flex-wrap divide-x divide-white-02 rounded-md border border-white-02 bg-white">
       {items.map((it, i) => (
         <div key={i} className="min-w-36 flex-1 px-4 py-3">
           <p className="font-mont text-xs text-gray-05">{it.label}</p>

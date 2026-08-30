@@ -12,6 +12,7 @@ import { Download } from "lucide-react";
 import { Money, KpiCard, InfoHint } from "@/components/finance-ui";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { formatMoney } from "@/utils/money";
 import { downloadReportExport } from "@/utils/finance-export";
 import { useGetTrialBalanceQuery } from "@/redux/services/finance/reports-api";
@@ -33,7 +34,7 @@ function TypePill({ t }: { t: string }) {
 function Select({ value, onChange, children, className }: { value: string; onChange: (v: string) => void; children: ReactNode; className?: string }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className={cn("h-9 rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      className={cn("h-9 rounded-md border border-white-02 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
       {children}
     </select>
   );
@@ -114,14 +115,14 @@ export function TrialBalanceReport({ entity, currency }: { entity: string; curre
         <div className="flex items-center gap-2">
           {(["csv", "xlsx", "pdf"] as const).map((f) => (
             <button key={f} onClick={() => downloadReportExport("/finance/reports/trial-balance/", { entity, period: period || undefined }, f)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-03 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:border-primary hover:text-primary">
+              className="inline-flex items-center gap-1.5 rounded-md border border-white-02 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:border-primary hover:text-primary">
               <Download className="size-3.5" /> {f.toUpperCase()}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-md bg-white">
+      <div className={cn(INFORMATION_CARD_SURFACE, "overflow-x-auto rounded-md")}>
         <table className="w-full">
           <thead>
             <tr className="bg-[#F1F1F1] text-left font-mont text-xs font-semibold text-gray-01">
@@ -141,7 +142,7 @@ export function TrialBalanceReport({ entity, currency }: { entity: string; curre
               // up with the Debit/Credit columns (no confusing net-sign mismatch).
               const change = Math.abs(cur) - Math.abs(pri);
               return (
-                <tr key={r.account_id} className="border-t border-gray-03 font-mont text-sm">
+                <tr key={r.account_id} className="border-t border-white-02 font-mont text-sm">
                   <td className="px-3 py-2 tabular-nums text-gray-05">{r.code}</td>
                   <td className="px-3 py-2 font-medium text-gray-01">{r.name}</td>
                   <td className="px-3 py-2"><TypePill t={r.account_type} /></td>
@@ -159,7 +160,7 @@ export function TrialBalanceReport({ entity, currency }: { entity: string; curre
             {!rows.length ? <tr><td colSpan={comparing ? 7 : 5} className="px-3 py-10 text-center font-mont text-sm text-gray-05">No accounts with a balance{acctType ? ` of type ${acctType.toLowerCase()}` : ""}.</td></tr> : null}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-gray-03 bg-white-02/40 font-mont text-sm font-semibold">
+            <tr className="border-t-2 border-white-02 bg-white-02/40 font-mont text-sm font-semibold">
               <td className="px-3 py-2.5" colSpan={3}>
                 Total
                 <span className={cn("ml-2", PILL, tb.is_balanced ? "bg-green-01/10 text-green-01" : "bg-destructive/10 text-destructive")}>{tb.is_balanced ? "Balanced ✓" : "Out of balance"}</span>

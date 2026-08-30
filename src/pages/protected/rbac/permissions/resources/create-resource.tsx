@@ -11,6 +11,8 @@ import {
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const schema = Yup.object({
   module: Yup.string().required("Module is required"),
@@ -75,13 +77,13 @@ export default function CreateResource() {
             const keyPreview = values.module && values.name ? `${values.module}.${values.name}` : "";
             return (
               <Form className="space-y-5">
-                <div className="bg-white rounded-md p-6 space-y-5">
-                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
+                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
                     Resource Details
                   </h2>
 
                   {keyPreview && (
-                    <div className="bg-gray-50 rounded-md px-4 py-3 border border-gray-100">
+                    <div className="bg-gray-50 rounded-md px-4 py-3 border border-white-02">
                       <p className="text-xs text-gray-01 font-mont mb-1">Resource key preview</p>
                       <p className="font-mono text-sm font-semibold text-black-01">{keyPreview}</p>
                     </div>

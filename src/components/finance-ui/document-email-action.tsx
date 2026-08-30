@@ -124,7 +124,7 @@ export function DocumentEmailAction({
         confirmDisabled={isFetching || isError || blocked}
       >
         <div className="space-y-3">
-          <div className="rounded-md border border-gray-03 bg-gray-50 p-3 font-mont text-xs" data-guide="finance-email.preview">
+          <div className="rounded-md border border-white-02 bg-gray-50 p-3 font-mont text-xs" data-guide="finance-email.preview">
             {isFetching ? (
               <p className="text-gray-05">Loading recipients…</p>
             ) : isError || !preview ? (
@@ -164,7 +164,7 @@ export function DocumentEmailAction({
                 {deliveries.map((delivery) => {
                   const meta = STATUS_META[delivery.status];
                   return (
-                    <div key={delivery.id} className="rounded-md border border-gray-03 p-2.5">
+                    <div key={delivery.id} className="rounded-md border border-white-02 p-2.5">
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="font-mont text-xs font-semibold text-black-01">{delivery.source_display}</p>

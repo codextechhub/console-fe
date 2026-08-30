@@ -17,6 +17,8 @@ import type {
   ImportTemplate,
   TemplateStatus,
 } from "@/redux/services/dashboard/import-types";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const STATUS_BADGE: Record<TemplateStatus, "active" | "pending" | "inactive"> = {
   active: "active",
@@ -110,7 +112,7 @@ export default function ViewTemplate() {
     <>
       <PageShell className="text-black-01 space-y-5 max-w-5xl">
         {/* Header card */}
-        <div className="bg-white rounded-md p-5 space-y-4">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
               <p className="text-xs text-gray-01 font-mono mb-1">#{template.id}</p>
@@ -129,7 +131,7 @@ export default function ViewTemplate() {
           </div>
 
           {/* Action bar */}
-          <div className="flex items-center gap-2 flex-wrap border-t border-gray-100 pt-4">
+          <div className="flex items-center gap-2 flex-wrap border-t border-white-02 pt-4">
             <Button variant="white" size="sm" onClick={() => refetch()}>
               <RefreshCw className="size-3.5" /> Refresh
             </Button>
@@ -168,7 +170,7 @@ export default function ViewTemplate() {
 
         {/* Two columns: meta + description */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-start">
-          <div className="bg-white rounded-md p-5 space-y-5">
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-5")}>
             {template.description && (
               <div>
                 <p className="text-[10px] uppercase tracking-wide text-gray-01 font-mont mb-1.5">Description</p>
@@ -177,7 +179,7 @@ export default function ViewTemplate() {
             )}
 
             {template.instructions && (
-              <div className={template.description ? "border-t border-gray-100 pt-5" : ""}>
+              <div className={template.description ? "border-t border-white-02 pt-5" : ""}>
                 <p className="text-[10px] uppercase tracking-wide text-gray-01 font-mont mb-1.5">Instructions</p>
                 <p className="text-sm text-black-01 leading-relaxed whitespace-pre-wrap">{template.instructions}</p>
               </div>
@@ -188,8 +190,8 @@ export default function ViewTemplate() {
             )}
           </div>
 
-          <div className="bg-white rounded-md p-5 space-y-3.5">
-            <p className="text-sm font-semibold font-mont border-b border-gray-100 pb-3">Metadata</p>
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-3.5")}>
+            <p className="text-sm font-semibold font-mont border-b border-white-02 pb-3">Metadata</p>
             <MetaRow label="Dataset"><span className="text-sm capitalize">{template.dataset_type}</span></MetaRow>
             <MetaRow label="Format"><span className="text-sm font-mono uppercase">{template.default_file_format}</span></MetaRow>
             <MetaRow label="Columns"><span className="text-sm">{template.columns?.length ?? template.total_columns ?? 0}</span></MetaRow>
@@ -207,7 +209,7 @@ export default function ViewTemplate() {
         </div>
 
         {/* Columns section */}
-        <div className="bg-white rounded-md p-5">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-semibold font-mont">
               Columns <span className="text-gray-01 font-normal">({cols.length})</span>
@@ -220,7 +222,7 @@ export default function ViewTemplate() {
               <p className="text-sm text-gray-01">No columns defined.</p>
             </div>
           ) : (
-            <div className="rounded-md border border-gray-100 divide-y divide-gray-50 overflow-hidden">
+            <div className="rounded-md border border-white-02 divide-y divide-white-02 overflow-hidden">
               {cols.map((col) => (
                 <div key={col.id} className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50">
                   <span className="text-xs text-gray-400 font-mono mt-0.5 w-6 shrink-0 text-right">

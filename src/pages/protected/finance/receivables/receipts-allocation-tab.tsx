@@ -37,7 +37,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 const METHODS = ["BANK_TRANSFER", "CASH", "CARD", "CHEQUE", "ONLINE", "OTHER"];
 const methodLabel = (m: string) => m.replace("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
-const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
+const selectCls = "h-9 rounded-md border border-white-02 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
 
 function Initials({ name }: { name: string }) {
   const init = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join("");
@@ -45,7 +45,7 @@ function Initials({ name }: { name: string }) {
 }
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="font-mont text-xs text-gray-05">{label}</p>
       <p className="mt-1 font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
       {hint && <p className="mt-0.5 font-mont text-[11px] text-gray-05">{hint}</p>}
@@ -134,7 +134,7 @@ export function ReceiptsAllocationTab({ entity, currency }: { entity: string; cu
         <Kpi label="Receipts" value={String(sum?.count ?? 0)} />
       </div>
 
-      <div className="flex flex-wrap items-center gap-1 rounded-md border border-gray-03 bg-white p-1">
+      <div className="flex flex-wrap items-center gap-1 rounded-md border border-white-02 bg-white p-1">
         {STATUS_TABS.map((t) => (
           <button key={t.key} onClick={() => setStatus(t.key)}
             className={cn("rounded-md px-3 py-1.5 font-mont text-xs font-semibold", status === t.key ? "bg-primary text-white" : "text-gray-05 hover:bg-gray-50 hover:text-gray-01")}>

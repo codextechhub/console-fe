@@ -49,7 +49,7 @@ function Initials({ name }: { name: string }) {
 }
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="flex items-center gap-1 font-mont text-xs text-gray-05">
         {label}
         {hint ? <InfoHint ariaLabel={`About ${label}`} className="text-gray-02">{hint}</InfoHint> : null}
@@ -93,7 +93,7 @@ export function ConcessionsTab({ entity, currency }: { entity: string; currency?
   const pg = data?.pagination;
   const summary = summaryQ.data?.data;
   const resetPage = () => setPage(1);
-  const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01";
+  const selectCls = "h-9 rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01";
 
   const columns: Column<Concession>[] = [
     { header: "Ref", cell: (c) => <span className="font-semibold tabular-nums">{c.document_number}</span> },
@@ -367,7 +367,7 @@ function NewConcessionDrawer({ open, onClose, entity, currency }: {
           <p className={`rounded-md border px-3 py-2 font-mont text-xs leading-5 ${
             willNeedApproval
               ? "border-amber-200 bg-amber-50 text-amber-900"
-              : "border-gray-03 bg-gray-01/5 text-gray-05"
+              : "border-white-02 bg-gray-01/5 text-gray-05"
           }`}>
             {gateNote}
           </p>

@@ -106,7 +106,7 @@ export function DateFilter({ label, value, onChange }: {
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 rounded-md border border-gray-03 bg-white px-2.5 font-mont text-sm text-black-01 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+        className="h-9 rounded-md border border-white-02 bg-white px-2.5 font-mont text-sm text-black-01 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
       />
     </label>
   );
@@ -148,7 +148,7 @@ export function ScopeNote({ children }: { children?: React.ReactNode }) {
 /** Dashed placeholder for an empty chart / section. */
 export function ChartEmpty({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-40 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">
+    <div className="flex min-h-40 items-center justify-center rounded-md border border-dashed border-white-02 px-4 text-center font-mont text-xs text-gray-05">
       {children}
     </div>
   );
@@ -219,7 +219,7 @@ export function ScoreInput({ label, weight, value, onChange }: {
         <input
           type="number" min={0} max={100} value={value}
           onChange={(e) => onChange(clamp(Number(e.target.value)))}
-          className="h-9 w-16 rounded-md border border-gray-03 bg-white px-2 text-center font-mont text-sm tabular-nums text-black-01 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+          className="h-9 w-16 rounded-md border border-white-02 bg-white px-2 text-center font-mont text-sm tabular-nums text-black-01 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
         />
       </div>
     </div>

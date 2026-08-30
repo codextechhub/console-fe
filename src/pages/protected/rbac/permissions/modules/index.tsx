@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetPermissionModulesQuery,
@@ -93,8 +94,9 @@ export default function PermissionModulesList() {
             <div
               key={idx}
               className={cn(
-                "bg-white rounded-md min-h-26 w-full px-4 sm:px-5.5 pt-5 pb-4 space-y-2.5 cursor-pointer",
-                card.active && "bg-pry-01",
+                INFORMATION_CARD_SURFACE,
+                "rounded-md min-h-26 w-full px-4 sm:px-5.5 pt-5 pb-4 space-y-2.5 cursor-pointer",
+                card.active && "border-primary/30 bg-pry-01",
               )}
               onClick={() => { setCardFilter(card.key); setQuery({ page: 1 }); }}
             >

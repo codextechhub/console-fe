@@ -20,6 +20,8 @@ import {
   SeverityStackedBar,
   SigninDualLine,
 } from "@/components/charts/audit-charts";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const FEED_FILTERS = ["All", "Critical only", "Failed/Denied", "Last hour", "Last 24h"] as const;
 type FeedFilter = (typeof FEED_FILTERS)[number];
@@ -189,7 +191,7 @@ export default function AuditDashboard() {
                 <div className="text-center text-xs text-gray-01 py-6">Loading dashboard metrics…</div>
               )}
 
-              <div className="bg-white rounded-md p-5">
+              <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <p className="font-semibold text-sm">Events by severity</p>
@@ -214,14 +216,14 @@ export default function AuditDashboard() {
               </div>
 
               <div className="grid gap-5 lg:grid-cols-2">
-                <div className="bg-white rounded-md p-5">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
                   <div className="mb-2">
                     <p className="font-semibold text-sm">By module</p>
                     <p className="text-xs text-gray-01">Last 24 hours</p>
                   </div>
                   <ModuleDonut data={summary?.module_breakdown ?? []} height={200} />
                 </div>
-                <div className="bg-white rounded-md p-5">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
                   <div className="mb-2">
                     <p className="font-semibold text-sm">Sign-in attempts</p>
                     <p className="text-xs text-gray-01">Success vs failure - last 30 days</p>
@@ -230,7 +232,7 @@ export default function AuditDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-md p-5">
+              <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
                 <div className="mb-3">
                   <p className="font-semibold text-sm">Critical events heatmap</p>
                   <p className="text-xs text-gray-01">Hour of day × day of week - last 30 days</p>
@@ -240,8 +242,8 @@ export default function AuditDashboard() {
             </div>
 
             {/* Right - live event feed */}
-            <div className="bg-white rounded-md border border-gray-100 xl:sticky xl:top-4 overflow-hidden">
-              <div className="px-4 pt-4 pb-3 border-b border-gray-100">
+            <div className="bg-white rounded-md border border-white-02 xl:sticky xl:top-4 overflow-hidden">
+              <div className="px-4 pt-4 pb-3 border-b border-white-02">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <SignalIcon />
                   <p className="font-semibold text-sm leading-none">Live event feed</p>
@@ -250,7 +252,7 @@ export default function AuditDashboard() {
               </div>
 
               {/* Filter chips */}
-              <div className="px-4 py-2.5 border-b border-gray-100 flex flex-wrap gap-1.5">
+              <div className="px-4 py-2.5 border-b border-white-02 flex flex-wrap gap-1.5">
                 {FEED_FILTERS.map((f) => (
                   <button
                     key={f}
@@ -319,7 +321,7 @@ export default function AuditDashboard() {
                 )}
               </div>
 
-              <div className="px-4 py-2.5 border-t border-gray-100">
+              <div className="px-4 py-2.5 border-t border-white-02">
                 <button
                   onClick={() => navigate(routesPath.PROTECTED.AUDIT.EVENTS)}
                   className="text-xs text-blue-600 hover:underline"

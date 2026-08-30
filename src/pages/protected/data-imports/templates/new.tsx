@@ -21,6 +21,8 @@ import type {
   TemplateColumnDataType,
   TemplateStatus,
 } from "@/redux/services/dashboard/import-types";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const DATASET_TYPES: DatasetType[] = ["schools", "branches"];
 const FILE_FORMATS: FileFormat[] = ["csv", "xlsx", "xls"];
@@ -180,8 +182,8 @@ export default function NewTemplate() {
           </div>
 
           {/* Section 1: Identity */}
-          <section className="bg-white rounded-md p-5 space-y-4">
-            <p className="text-sm font-semibold font-mont border-b border-gray-100 pb-3">Identity</p>
+          <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}>
+            <p className="text-sm font-semibold font-mont border-b border-white-02 pb-3">Identity</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <CustomInput
@@ -266,8 +268,8 @@ export default function NewTemplate() {
           </section>
 
           {/* Section 2: Description + Instructions */}
-          <section className="bg-white rounded-md p-5 space-y-4">
-            <p className="text-sm font-semibold font-mont border-b border-gray-100 pb-3">Description & Instructions</p>
+          <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}>
+            <p className="text-sm font-semibold font-mont border-b border-white-02 pb-3">Description & Instructions</p>
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-black-01 font-mont">Description</label>
@@ -314,8 +316,8 @@ export default function NewTemplate() {
           </section>
 
           {/* Section 3: Columns */}
-          <section className="bg-white rounded-md p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}>
+            <div className="flex items-center justify-between border-b border-white-02 pb-3">
               <p className="text-sm font-semibold font-mont">
                 Columns <span className="text-gray-01 font-normal">({columns.length})</span>
               </p>
@@ -326,7 +328,7 @@ export default function NewTemplate() {
 
             <div className="space-y-3">
               {columns.map((col, idx) => (
-                <div key={col._tmpId} className="rounded-md border border-gray-100 p-4 space-y-3 bg-gray-50/50">
+                <div key={col._tmpId} className="rounded-md border border-white-02 p-4 space-y-3 bg-gray-50/50">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-mont font-semibold text-gray-01">
                       Column #{col.column_order}
@@ -474,7 +476,7 @@ export default function NewTemplate() {
         </PageShell>
 
         {/* Sticky footer */}
-        <div className="fixed bottom-0 right-0 left-0 md:left-(--sidebar-width) group-has-data-[collapsible=icon]/sidebar-wrapper:md:left-(--sidebar-width-icon) transition-[left] duration-200 ease-linear border-t border-gray-100 bg-white px-4.5 py-3 flex justify-end gap-2 z-10">
+        <div className="fixed bottom-0 right-0 left-0 md:left-(--sidebar-width) group-has-data-[collapsible=icon]/sidebar-wrapper:md:left-(--sidebar-width-icon) transition-[left] duration-200 ease-linear border-t border-white-02 bg-white px-4.5 py-3 flex justify-end gap-2 z-10">
           <Button type="button" variant="white" onClick={back} disabled={isLoading}>
             Cancel
           </Button>

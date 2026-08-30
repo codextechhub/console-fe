@@ -15,7 +15,7 @@ import { useGetTaxCodesQuery, useUpsertTaxCodeMutation } from "@/redux/services/
 import type { TaxCode } from "@/redux/services/finance/setup-types";
 import { taxCodeFormValues, taxCodeUpsertPayload } from "./tax-code-form";
 
-const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
+const selectCls = "h-9 rounded-md border border-white-02 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 const taxType = (code: string) => (code.split(/[-_ ]/)[0] || code).toUpperCase();
 
 export function TaxCodesTab({ entity }: { entity: string }) {

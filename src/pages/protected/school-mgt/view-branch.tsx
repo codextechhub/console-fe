@@ -50,6 +50,8 @@ import {
   branchTransitionsFrom,
   type BranchStatus,
 } from "./branch-lifecycle";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 function DetailField({ label, value, children }: { label: string; value?: ReactNode; children?: ReactNode }) {
   return (
@@ -176,11 +178,11 @@ export default function ViewBranch() {
     <>
       <PageShell className="gap-5 text-black-01 sm:gap-6" grid>
         {isLoading && (
-          <div className="grid h-52 place-content-center rounded-xl bg-white"><div className="loader" /></div>
+          <div className={cn(INFORMATION_CARD_SURFACE, "grid h-52 place-content-center rounded-xl")}><div className="loader" /></div>
         )}
 
         {!isLoading && isError && (
-          <div className="grid min-h-52 place-content-center rounded-xl bg-white p-6 text-center">
+          <div className={cn(INFORMATION_CARD_SURFACE, "grid min-h-52 place-content-center rounded-xl p-6 text-center")}>
             <p className="text-sm font-medium text-red-500">{isForbidden ? "You do not have permission to view this branch." : "Failed to load branch details."}</p>
             {!isForbidden && <Button variant="outline" className="mt-4" onClick={() => refetch()}>Try Again</Button>}
           </div>
@@ -320,7 +322,7 @@ export default function ViewBranch() {
         )}
 
         {!isLoading && !isError && !branch && (
-          <div className="rounded-xl bg-white p-8 text-center"><p className="text-sm text-gray-01">Branch not found.</p></div>
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-xl p-8 text-center")}><p className="text-sm text-gray-01">Branch not found.</p></div>
         )}
       </PageShell>
 

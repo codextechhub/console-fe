@@ -156,7 +156,7 @@ export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
           {lines.map((l, i) => {
             const net = Math.round((parseFloat(l.qty) || 0) * toKobo(l.price));
             return (
-              <div key={i} className="space-y-2 rounded-md border border-gray-03 bg-white p-3">
+              <div key={i} className="space-y-2 rounded-md border border-white-02 bg-white p-3">
                 <div className="flex items-start gap-2">
                   <div className="flex-1">
                     <AccountPicker entity={entity} value={l.account} onChange={(v) => setLine(i, { account: v })} postableOnly accountType="INCOME" placeholder="Type a revenue account…" />
@@ -196,7 +196,7 @@ export function NewInvoiceDrawer({ open, onOpenChange, entity, currency }: {
             <span className="text-gray-05">Tax</span>
             <span className="font-semibold text-black-01"><Money kobo={totals.tax} currency={currency} /></span>
           </div>
-          <div className="flex items-center justify-between border-t border-gray-03 pt-2 text-sm">
+          <div className="flex items-center justify-between border-t border-white-02 pt-2 text-sm">
             <span className="font-semibold text-black-01">Total</span>
             <span className="font-semibold text-black-01"><Money kobo={totals.total} currency={currency} /></span>
           </div>

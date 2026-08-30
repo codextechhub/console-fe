@@ -30,6 +30,8 @@ import {
   PLATFORM_SCOPE,
   type HistoryScope,
 } from "./history-params";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 /** "vs_finance" → "Finance", "task_completed" → "Task Completed". */
 const label = (s: string) =>
@@ -164,7 +166,7 @@ export function SettingsPanel() {
   if (q.isLoading) return <Busy />;
 
   return (
-    <div data-guide="notifications-admin.settings" className="divide-y divide-white-02 rounded-md bg-white">
+    <div data-guide="notifications-admin.settings" className={cn(INFORMATION_CARD_SURFACE, "divide-y divide-white-02 rounded-md")}>
       {Object.entries(grouped).map(([module, rows]) => (
         <div key={module} className="p-5">
           <h3 className="font-mont font-semibold">{label(module)}</h3>
@@ -299,7 +301,7 @@ export function EventsPanel() {
   if (q.isLoading) return <Busy />;
 
   return (
-    <div data-guide="notifications-admin.events" className="divide-y divide-white-02 rounded-md bg-white">
+    <div data-guide="notifications-admin.events" className={cn(INFORMATION_CARD_SURFACE, "divide-y divide-white-02 rounded-md")}>
       {Object.entries(grouped).map(([module, events]) => (
         <div className="p-5" key={module}>
           <h3 className="font-mont font-semibold">{label(module)}</h3>

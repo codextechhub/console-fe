@@ -78,7 +78,7 @@ export function DocumentAttachments({
   return (
     <div className="space-y-4">
       <Can permission={attachPermission}>
-        <div className="rounded-md border border-dashed border-gray-03 p-4">
+        <div className="rounded-md border border-dashed border-white-02 p-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-[200px] flex-1">
               <label className="font-mont text-[11px] text-gray-05" htmlFor="attachment-caption">
@@ -111,7 +111,7 @@ export function DocumentAttachments({
       </Can>
 
       {attachments.length === 0 ? (
-        <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">
+        <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-white-02 px-4 text-center font-mont text-xs text-gray-05">
           {emptyMessage}
         </div>
       ) : (
@@ -119,7 +119,7 @@ export function DocumentAttachments({
           {attachments.map((row) => (
             <li
               key={row.id}
-              className="flex flex-wrap items-center gap-3 rounded-md border border-gray-03 p-3"
+              className="flex flex-wrap items-center gap-3 rounded-md border border-white-02 p-3"
             >
               <Paperclip className="size-4 shrink-0 text-gray-05" />
               <div className="min-w-0 flex-1">

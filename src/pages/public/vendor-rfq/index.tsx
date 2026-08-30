@@ -141,7 +141,7 @@ function Verification({ token, preview, onVerified }: {
   };
 
   return <section className="overflow-hidden rounded-xl bg-white shadow-sm">
-    <div className="border-b border-gray-03 bg-[#f8fafc] p-5 sm:p-6">
+    <div className="border-b border-white-02 bg-[#f8fafc] p-5 sm:p-6">
       <div className="flex items-start gap-3">
         <div className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"><FileText className="size-5" /></div>
         <div>
@@ -358,7 +358,7 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
     <section className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
       <h2 className="font-mont text-base font-semibold">Requested items</h2>
       <p className="mt-1 text-xs text-gray-05">Answer every line as quoted, alternative offered, or not available.</p>
-      <div className="mt-4 space-y-3">{draft.lines.map((line, index) => <div key={line.rfq_line} className="rounded-lg border border-gray-03 p-4">
+      <div className="mt-4 space-y-3">{draft.lines.map((line, index) => <div key={line.rfq_line} className="rounded-lg border border-white-02 p-4">
         <div className="flex items-start gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{index + 1}</span><div className="min-w-0"><p className="font-mont text-sm font-semibold">{data.rfq.lines[index]?.description}</p><p className="mt-1 text-xs text-gray-05">Requested quantity: {data.rfq.lines[index]?.quantity}</p></div></div>
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-4">
           <Field label="Response"><select className="h-10 w-full rounded-md border border-input bg-white px-3 text-sm disabled:bg-gray-03" value={line.response_type} onChange={(event) => updateLine(index, { response_type: event.target.value as ResponseKind })} disabled={readOnly}><option value="">Choose response</option><option value="QUOTED">Quoted</option><option value="ALTERNATIVE">Alternative offered</option><option value="NO_BID">Not available / no-bid</option></select></Field>
@@ -366,12 +366,12 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
           <Field label={`Unit price (${data.rfq.currency})`}><Input type="number" min="0" step="0.01" value={line.unitPrice} onChange={(event) => updateLine(index, { unitPrice: event.target.value })} disabled={readOnly || !line.response_type || line.response_type === "NO_BID"} /></Field>
         </div>
       </div>)}</div>
-      {data.quotation && <div className="mt-5 grid grid-cols-1 gap-3 border-t border-gray-03 pt-4 sm:grid-cols-3"><Total label="Subtotal" value={money(data.quotation.subtotal, data.rfq.currency)} /><Total label="Tax" value={money(data.quotation.tax_total, data.rfq.currency)} /><Total label="Total" value={money(data.quotation.total, data.rfq.currency)} strong /></div>}
+      {data.quotation && <div className="mt-5 grid grid-cols-1 gap-3 border-t border-white-02 pt-4 sm:grid-cols-3"><Total label="Subtotal" value={money(data.quotation.subtotal, data.rfq.currency)} /><Total label="Tax" value={money(data.quotation.tax_total, data.rfq.currency)} /><Total label="Total" value={money(data.quotation.total, data.rfq.currency)} strong /></div>}
     </section>
 
     <section className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-mont text-base font-semibold">Supporting documents</h2><p className="mt-1 text-xs text-gray-05">Up to five PDF or image files, 500KB each.</p></div>{!readOnly && <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm font-medium hover:bg-gray-02"><UploadCloud className="size-4" />{uploadState.isLoading ? "Uploading..." : "Upload file"}<input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="sr-only" disabled={uploadState.isLoading} onChange={(event) => void uploadFile(event.target.files?.[0])} /></label>}</div>
-      <div className="mt-4 space-y-2">{data.attachments.length ? data.attachments.map((file) => <div key={file.id} className="flex items-center gap-3 rounded-lg border border-gray-03 p-3"><Paperclip className="size-4 text-gray-04" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-gray-05">{Math.ceil(file.size / 1024)}KB · Revision {file.revision}</p></div><Button size="sm" variant="outline" onClick={() => void openAttachment(file.id, file.name)}>Open</Button></div>) : <p className="rounded-lg bg-[#f8fafc] p-4 text-center text-sm text-gray-05">No supporting documents uploaded.</p>}</div>
+      <div className="mt-4 space-y-2">{data.attachments.length ? data.attachments.map((file) => <div key={file.id} className="flex items-center gap-3 rounded-lg border border-white-02 p-3"><Paperclip className="size-4 text-gray-04" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-gray-05">{Math.ceil(file.size / 1024)}KB · Revision {file.revision}</p></div><Button size="sm" variant="outline" onClick={() => void openAttachment(file.id, file.name)}>Open</Button></div>) : <p className="rounded-lg bg-[#f8fafc] p-4 text-center text-sm text-gray-05">No supporting documents uploaded.</p>}</div>
     </section>
 
     <section className="flex flex-col-reverse gap-3 rounded-xl bg-white p-5 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">

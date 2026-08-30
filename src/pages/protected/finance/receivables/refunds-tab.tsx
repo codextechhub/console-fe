@@ -69,7 +69,7 @@ function StatusPill({ status }: { status: string }) {
 
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="flex items-center gap-1 font-mont text-xs text-gray-05">
         {label}
         {hint ? (
@@ -115,7 +115,7 @@ export function RefundsTab({ entity, currency }: { entity: string; currency?: st
   const rows = useMemo(() => toArray(data?.data), [data]);
   const pg = data?.pagination;
   const resetPage = () => setPage(1);
-  const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01";
+  const selectCls = "h-9 rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01";
 
   const columns: Column<ArAdjustment>[] = [
     { header: "Ref", cell: (r) => <span className="font-semibold tabular-nums">{r.reference || "-"}</span> },
@@ -586,7 +586,7 @@ function NewActionDrawer({ open, onClose, entity, currency }: {
         </div>
 
         <FormField label="Next action">
-          <select value={nextAction} onChange={(e) => setNextAction(e.target.value as "post" | "submit" | "draft")} className="h-9 w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-black-01 focus:border-primary focus:outline-none">
+          <select value={nextAction} onChange={(e) => setNextAction(e.target.value as "post" | "submit" | "draft")} className="h-9 w-full rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-black-01 focus:border-primary focus:outline-none">
             {/* Not offered when the ladder is published: the endpoint refuses it,
                 so leaving it selectable is an option that only ever errors. */}
             {!willNeedApproval ? <option value="post">Post now</option> : null}

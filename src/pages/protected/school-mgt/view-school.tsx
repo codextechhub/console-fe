@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import { useGetSchoolDetailQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { useReinstateSchoolMutation } from "@/redux/services/dashboard/onboarding-api";
@@ -272,13 +273,13 @@ export default function ViewSchool() {
     <>
       <PageShell className="gap-5 text-black-01 sm:gap-6" grid>
         {isLoading && (
-          <div className="grid h-52 place-content-center rounded-xl bg-white">
+          <div className={cn(INFORMATION_CARD_SURFACE, "grid h-52 place-content-center rounded-xl")}>
             <div className="loader" />
           </div>
         )}
 
         {!isLoading && isError && (
-          <div className="grid min-h-52 place-content-center rounded-xl bg-white p-6 text-center">
+          <div className={cn(INFORMATION_CARD_SURFACE, "grid min-h-52 place-content-center rounded-xl p-6 text-center")}>
             <p className="text-sm font-medium text-red-500">
               {isForbidden
                 ? "You do not have permission to view this school."
@@ -556,7 +557,7 @@ export default function ViewSchool() {
         )}
 
         {!isLoading && !isError && !school && (
-          <div className="rounded-xl bg-white p-8 text-center"><p className="text-sm text-gray-01">School not found.</p></div>
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-xl p-8 text-center")}><p className="text-sm text-gray-01">School not found.</p></div>
         )}
       </PageShell>
 

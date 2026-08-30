@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export function GuideSection({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-24 border-t border-gray-100 pt-8 first:border-t-0 first:pt-0">
+    <section id={id} className="scroll-mt-24 border-t border-white-02 pt-8 first:border-t-0 first:pt-0">
       <h2 className="font-mont text-xl font-semibold tracking-tight text-black-01 sm:text-2xl">{title}</h2>
       <div className="mt-4 space-y-4 text-sm leading-7 text-gray-700">{children}</div>
     </section>

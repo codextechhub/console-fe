@@ -18,6 +18,8 @@ import { routesPath } from "@/routes/routes-path";
 import type { LoginSession } from "@/redux/services/dashboard/security-types";
 import { toast } from "sonner";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -162,17 +164,17 @@ export default function MyActiveSessions() {
 
         {/* Gap 1 - card grid (replaces table) */}
         {isError ? (
-          <div className="flex h-56 flex-col items-center justify-center gap-3 bg-white rounded-md">
+          <div className={cn(INFORMATION_CARD_SURFACE, "flex h-56 flex-col items-center justify-center gap-3 rounded-md")}>
             <p className="text-sm font-medium text-destructive">Failed to load sessions.</p>
           </div>
         ) : isLoading ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2].map((i) => (
-              <div key={i} className="bg-white border border-gray-100 rounded-md p-4 h-44 animate-pulse" />
+              <div key={i} className="bg-white border border-white-02 rounded-md p-4 h-44 animate-pulse" />
             ))}
           </div>
         ) : activeSessions.length === 0 ? (
-          <div className="flex h-40 items-center justify-center bg-white rounded-md">
+          <div className={cn(INFORMATION_CARD_SURFACE, "flex h-40 items-center justify-center rounded-md")}>
             <p className="text-sm text-gray-01">No active sessions found.</p>
           </div>
         ) : (
@@ -189,7 +191,7 @@ export default function MyActiveSessions() {
                   className={`bg-white border rounded-md p-4 flex flex-col gap-3 ${
                     current
                       ? "border-green-500 ring-1 ring-green-500"
-                      : "border-gray-100"
+                      : "border-white-02"
                   }`}
                 >
                   {/* Gap 2 - device icon + Gap 3 - "This device" badge + Gap 4 - browser/OS */}
@@ -246,14 +248,14 @@ export default function MyActiveSessions() {
                   {current ? (
                     <button
                       disabled
-                      className="w-full text-xs py-1.5 px-3 rounded border border-gray-100 text-gray-400 bg-gray-50 cursor-not-allowed"
+                      className="w-full text-xs py-1.5 px-3 rounded border border-white-02 text-gray-400 bg-gray-50 cursor-not-allowed"
                     >
                       Current session
                     </button>
                   ) : (
                     <button
                       onClick={() => setConfirmEnd(s)}
-                      className="w-full text-xs py-1.5 px-3 rounded border border-gray-100 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition flex items-center justify-center gap-1.5"
+                      className="w-full text-xs py-1.5 px-3 rounded border border-white-02 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition flex items-center justify-center gap-1.5"
                     >
                       <LogOut size={12} />
                       Sign out
@@ -277,7 +279,7 @@ export default function MyActiveSessions() {
             </button>
             {showEnded && (
               <>
-                <div className="mt-3 bg-white rounded-md overflow-hidden border border-gray-100">
+                <div className="mt-3 bg-white rounded-md overflow-hidden border border-white-02">
                   {endedSessions.map((s, i) => {
                     const ua = parseUA(s.user_agent);
                     const DevIcon = DEVICE_ICON[ua.type];
@@ -285,7 +287,7 @@ export default function MyActiveSessions() {
                       <div
                         key={s.id}
                         className={`flex items-center gap-3 px-4 py-2.5 text-xs ${
-                          i < endedSessions.length - 1 ? "border-b border-gray-50" : ""
+                          i < endedSessions.length - 1 ? "border-b border-white-02" : ""
                         }`}
                       >
                         <DevIcon size={14} className="text-gray-300 shrink-0" strokeWidth={1.5} />

@@ -17,6 +17,7 @@ import type {
 import { Input } from "@/components/ui/input";
 import KpiCard from "@/components/custom/kpi-card";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { Avatar, HealthPill, ProgressRing } from "./primitives";
 import { PersonTaskList } from "./person-task-list";
 
@@ -83,7 +84,7 @@ function StatsGrid({
           onClick={() => onFilter(active === card.filter && card.filter !== "all" ? "all" : card.filter)}
           className={cn(
             "h-full rounded-md text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring [&>div]:h-full",
-            active === card.filter && "[&>div]:border-transparent [&>div]:bg-pry-01",
+            active === card.filter && "[&>div]:border-primary/30 [&>div]:bg-pry-01",
           )}
         >
           {card.node}
@@ -115,7 +116,7 @@ function PersonHeader({
       : "No commitments logged yet.";
 
   return (
-    <div className="flex items-center justify-between gap-6 rounded-md bg-white px-5.5 py-5">
+    <div className={cn(INFORMATION_CARD_SURFACE, "flex items-center justify-between gap-6 rounded-md px-5.5 py-5")}>
       <div className="flex items-center gap-3.5">
         <Avatar person={person} size={42} />
         <div>

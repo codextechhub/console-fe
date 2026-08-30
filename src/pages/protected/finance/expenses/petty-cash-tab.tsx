@@ -37,7 +37,7 @@ function Initials({ name }: { name: string }) {
 }
 function Kpi({ label, value, hint, danger }: { label: string; value: string; hint?: string; danger?: boolean }) {
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="font-mont text-xs text-gray-05">{label}</p>
       <p className={cn("mt-1 font-mont text-xl font-semibold tabular-nums", danger ? "text-destructive" : "text-black-01")}>{value}</p>
       {hint && <p className="mt-0.5 font-mont text-[11px] text-gray-05">{hint}</p>}
@@ -76,7 +76,7 @@ export function PettyCashTab({ entity, currency }: { entity: string; currency?: 
     <div className="space-y-4" data-guide="finance-petty-cash.workbench">
       <div className="flex flex-wrap items-center gap-2">
         <select value={fund?.id ?? ""} onChange={(e) => setFundId(Number(e.target.value))}
-          className="h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
+          className="h-9 rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01">
           {funds.map((f) => <option key={f.id} value={f.id}>{f.name}{f.custodian_label ? ` · ${f.custodian_label}` : ""}</option>)}
         </select>
       </div>
@@ -136,7 +136,7 @@ function FundWorkbench({ fund, entity, currency, onEstablish }: { fund: PettyCas
         <Kpi label="To replenish" value={formatMoney(fund.shortfall, currency)} danger={fund.shortfall > 0} hint="Restores the float" />
       </div>
 
-      <div className="flex flex-wrap gap-1 border-b border-gray-03">
+      <div className="flex flex-wrap gap-1 border-b border-white-02">
         {TABS.map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={cn("-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 font-mont text-xs font-semibold",

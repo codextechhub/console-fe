@@ -257,7 +257,7 @@ export default function PasswordActivity() {
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-03">
+                    <tbody className="divide-y divide-white-02">
                       {events.length === 0 ? (
                         <tr>
                           <td colSpan={7} className="h-48 text-center">
@@ -340,7 +340,7 @@ export default function PasswordActivity() {
 
                 {/* Actions for selected user */}
                 {selectedUser && (
-                  <div className="pt-1 border-t border-gray-100 space-y-1.5">
+                  <div className="pt-1 border-t border-white-02 space-y-1.5">
                     <p className="text-[10px] text-gray-01">
                       Actions for <span className="font-medium text-black-01">{selectedUser.full_name || selectedUser.email}</span>
                     </p>

@@ -48,7 +48,7 @@ export function LineEditor({
   return (
     <div className="space-y-3">
       {lines.map((l, i) => (
-        <div key={i} className="space-y-2 rounded-md border border-gray-03 p-3">
+        <div key={i} className="space-y-2 rounded-md border border-white-02 p-3">
           <div className="flex items-center gap-2">
             <Input value={l.description} onChange={(e) => set(i, { description: e.target.value })} placeholder="Description" className="flex-1 bg-white" />
             <button type="button" onClick={() => remove(i)} disabled={lines.length <= 1} className="text-gray-05 hover:text-destructive disabled:opacity-30">

@@ -196,7 +196,7 @@ function OverridesSection({
   return (
     <section
       className={cn(
-        "rounded-md border border-gray-03 bg-white p-4 min-w-0",
+        "rounded-md border border-white-02 bg-white p-4 min-w-0",
         className,
       )}
     >
@@ -224,7 +224,7 @@ function OverridesSection({
 
       <div className="mt-4">
         {isLoading ? (
-          <div className="rounded-md border border-gray-03">
+          <div className="rounded-md border border-white-02">
             <SkeletonLoadingLabel text="Loading permission exceptions…" />
             {[0, 1, 2].map((i) => (
               <SkeletonCard key={i} lines={2} rowIndex={i} />
@@ -324,7 +324,7 @@ function OverrideRow({
   return (
     <li
       className={cn(
-        "rounded-md border border-gray-03 p-3.5 min-w-0",
+        "rounded-md border border-white-02 p-3.5 min-w-0",
         spent && "border-dashed bg-gray-03/70",
       )}
     >
@@ -356,7 +356,7 @@ function OverrideRow({
               type="button"
               onClick={onLift}
               aria-label={`Lift exception on ${row.permission_key}`}
-              className="inline-flex items-center gap-1 rounded-md border border-gray-03 px-1.5 py-1 text-[11px] font-semibold text-gray-01 transition-colors hover:border-destructive/40 hover:text-destructive"
+              className="inline-flex items-center gap-1 rounded-md border border-white-02 px-1.5 py-1 text-[11px] font-semibold text-gray-01 transition-colors hover:border-destructive/40 hover:text-destructive"
             >
               <Trash2 className="size-3" /> Lift
             </button>
@@ -499,7 +499,7 @@ function AddExceptionDrawer({
       }}
     >
       <SheetContent className="flex w-full flex-col sm:max-w-[480px]">
-        <SheetHeader className="border-b border-gray-03">
+        <SheetHeader className="border-b border-white-02">
           <SheetTitle className="text-base font-semibold font-mont">
             Add permission exception
           </SheetTitle>
@@ -569,7 +569,7 @@ function AddExceptionDrawer({
                       "min-w-0 rounded-md border p-3 text-left transition-colors",
                       mode === option
                         ? "border-primary bg-primary/5"
-                        : "border-gray-03 hover:border-primary/40",
+                        : "border-white-02 hover:border-primary/40",
                     )}
                   >
                     <span className="flex items-center gap-1.5 text-sm font-medium text-black-01">
@@ -602,7 +602,7 @@ function AddExceptionDrawer({
                 onBlur={() => setTouched(true)}
                 aria-invalid={Boolean(reasonError)}
                 placeholder="Why this user needs this exception (kept in the audit trail)."
-                className="w-full rounded-md border border-gray-03 px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                className="w-full rounded-md border border-white-02 px-3 py-2 text-sm focus:border-primary focus:outline-none"
               />
               {reasonError && (
                 <p className="text-xs font-medium text-error">{reasonError}</p>
@@ -619,7 +619,7 @@ function AddExceptionDrawer({
         </div>
         </ScrollArea>
 
-        <SheetFooter className="border-t border-gray-03">
+        <SheetFooter className="border-t border-white-02">
           <div className="flex flex-col-reverse gap-2 sm:flex-row">
             <Button
               variant="white"

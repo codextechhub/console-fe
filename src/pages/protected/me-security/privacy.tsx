@@ -30,7 +30,7 @@ function InfoCard({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="bg-white border border-gray-03 rounded-lg p-[18px] space-y-3.5">
+    <div className="bg-white border border-white-02 rounded-lg p-[18px] space-y-3.5">
       <div className="flex flex-col items-start gap-3 sm:flex-row">
         <div
           className={cn(

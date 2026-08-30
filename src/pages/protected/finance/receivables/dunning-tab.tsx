@@ -50,7 +50,7 @@ function Initials({ name }: { name: string }) {
 }
 function AgingKpi({ label, amount, count, currency }: { label: string; amount: number; count: number; currency?: string | null }) {
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="font-mont text-xs text-gray-05">{label}</p>
       <p className="mt-1 font-mont text-xl font-semibold tabular-nums text-black-01">{formatMoney(amount, currency)}</p>
       <p className="mt-0.5 font-mont text-[11px] text-gray-05 tabular-nums">{count} invoice{count === 1 ? "" : "s"}</p>
@@ -164,7 +164,7 @@ function ReminderQueue({ entity, policies, canDispatch }: {
           emptyMessage="Run reminders to raise notices for overdue invoices."
         />
       </div>
-      <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+      <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
         <p className="font-mont text-sm font-semibold text-black-01">Reminder cadence</p>
         <p className="mb-3 font-mont text-[11px] text-gray-05">{cadence ? `${cadence.name} · automated follow-up` : "No active policy"}</p>
         {cadence ? (
@@ -209,7 +209,7 @@ function ReminderQueue({ entity, policies, canDispatch }: {
 }
 
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const tdCls = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 
 function PoliciesPanel({ entity, policies }: { entity: string; policies: DunningPolicy[] }) {
   const [editing, setEditing] = useState<DunningPolicy | "new" | null>(null);
@@ -229,12 +229,12 @@ function PoliciesPanel({ entity, policies }: { entity: string; policies: Dunning
     <div className="space-y-4">
       {manage ? <div className="flex justify-end"><Button variant="outline" onClick={() => setEditing("new")} className="gap-1.5"><Plus className="size-4" /> New policy</Button></div> : null}
       {policies.length === 0 ? (
-        <div className="rounded-md bg-white p-8 text-center ring-1 ring-gray-03">
+        <div className="rounded-md bg-white p-8 text-center ring-1 ring-white-02">
           <p className="font-mont text-sm text-gray-05">No reminder policies yet. Create one to define the dunning cadence.</p>
         </div>
       ) : policies.map((p) => (
-        <div key={p.id} className="rounded-md bg-white ring-1 ring-gray-03">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-03 px-4 py-3">
+        <div key={p.id} className="rounded-md bg-white ring-1 ring-white-02">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white-02 px-4 py-3">
             <div>
               <p className="font-mont text-sm font-semibold text-black-01">{p.name}{p.is_default ? <span className={cn(PILL, "ml-2 bg-blue-50 text-blue-700")}>Default</span> : null}</p>
               <p className="font-mont text-[11px] text-gray-05">{p.stages.length} stage{p.stages.length === 1 ? "" : "s"}</p>
@@ -332,7 +332,7 @@ function PolicyEditorDrawer({ entity, policy, onClose }: { entity: string; polic
           </div>
           <div className="space-y-2">
             {stages.map((st, i) => (
-              <div key={i} className="grid grid-cols-12 items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+              <div key={i} className="grid grid-cols-12 items-end gap-2 rounded-md border border-white-02 bg-white p-2.5">
                 <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Template name</p><Input value={st.name} onChange={(e) => setStage(i, { name: e.target.value })} placeholder="Friendly reminder" className="h-8 bg-white font-mont text-sm" /></div>
                 <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Days overdue</p><Input type="number" min={0} value={st.min_days_overdue} onChange={(e) => setStage(i, { min_days_overdue: Math.max(0, Number(e.target.value) || 0) })} className="h-8 bg-white font-mont text-sm tabular-nums" /></div>
                 <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Channels</p>

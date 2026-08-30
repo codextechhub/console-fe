@@ -114,7 +114,7 @@ function ConnectingStrip({
 
   return (
     <div className="auth-strip-in" role="status" aria-live="polite">
-      <div className="flex items-center gap-2 rounded-md border border-gray-100 bg-gray-03 px-3 py-2">
+      <div className="flex items-center gap-2 rounded-md border border-white-02 bg-gray-03 px-3 py-2">
         <Loader2 className="size-3.5 shrink-0 animate-spin text-primary" />
         {/* Keyed so the escalation replays the rise instead of swapping in place. */}
         <span key={text} className="auth-line-in font-mont text-xs font-medium text-gray-01">

@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { EmptyState, ErrorState, ForbiddenState, LoadingRows } from "./states";
 import { SkeletonCard, SkeletonLoadingLabel } from "@/components/custom/skeletons";
 
@@ -42,7 +43,7 @@ function RowCard<T>({ columns, row, onClick }: { columns: Column<T>[]; row: T; o
     <div
       onClick={onClick}
       className={cn(
-        "space-y-2 border-b border-gray-03 px-3.5 py-3 last:border-0",
+        "space-y-2 border-b border-white-02 px-3.5 py-3 last:border-0",
         onClick && "cursor-pointer transition-colors active:bg-primary/5",
       )}
     >
@@ -85,7 +86,7 @@ interface DataTableProps<T> {
 
 export const headCls =
   "text-gray-01 bg-[#F1F1F1] font-semibold font-mont text-xs lg:text-sm whitespace-nowrap pt-3 pb-2";
-export const cellCls = "text-black-01 border-gray-03 font-medium font-mont text-sm border-y-5";
+export const cellCls = "text-black-01 border-white-02 font-medium font-mont text-sm border-y-5";
 
 export function DataTable<T>({
   columns,
@@ -166,7 +167,7 @@ export function DataTable<T>({
   };
 
   return (
-    <div className="rounded-md bg-white">
+    <div className={cn(INFORMATION_CARD_SURFACE, "overflow-hidden rounded-md")}>
       {cardsOnPhone && loading && (
         <div className={cardBreakpoint === "lg" ? "lg:hidden" : "md:hidden"}>
           <SkeletonLoadingLabel />
@@ -198,7 +199,7 @@ export function DataTable<T>({
                 key={rowKey(row)}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 className={cn(
-                  "border-b border-gray-03 px-3.5 py-3 last:border-0",
+                  "border-b border-white-02 px-3.5 py-3 last:border-0",
                   onRowClick && "cursor-pointer transition-colors active:bg-primary/5",
                 )}
               >

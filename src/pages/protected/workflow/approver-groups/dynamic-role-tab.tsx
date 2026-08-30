@@ -15,6 +15,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import { selectIsPlatformTenant } from "@/redux/features/auth/auth-slice";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -182,7 +183,7 @@ export default function DynamicRoleTab() {
 
   if (!canSeeTemplates) {
     return (
-      <section className="rounded-md bg-white py-16 text-center">
+      <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md py-16 text-center")}>
         <span className="mx-auto grid size-12 place-content-center rounded-full bg-pry-01 text-primary">
           <Info className="size-6" />
         </span>
@@ -208,7 +209,7 @@ export default function DynamicRoleTab() {
       </div>
 
       <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-[280px_1fr]">
-        <aside className="min-w-0 rounded-md bg-white p-3">
+        <aside className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md p-3")}>
           <p className="px-1 pb-1 text-xs font-semibold uppercase text-gray-01">
             {ruleSets.length} {ruleSets.length === 1 ? "rule set" : "rule sets"}
           </p>
@@ -278,7 +279,7 @@ export default function DynamicRoleTab() {
           {isLoading ? (
             <div className="h-64 animate-pulse rounded-md bg-gray-50" />
           ) : !selected ? (
-            <div className="rounded-md bg-white py-16 text-center">
+            <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md py-16 text-center")}>
               <span className="mx-auto grid size-12 place-content-center rounded-full bg-pry-01 text-primary">
                 <FlaskConical className="size-6" />
               </span>
@@ -289,7 +290,7 @@ export default function DynamicRoleTab() {
             </div>
           ) : (
             <>
-              <div className="rounded-md bg-white p-4">
+              <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-4")}>
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-base font-semibold text-black-01">
                     {selected.stage.label}
@@ -328,7 +329,7 @@ export default function DynamicRoleTab() {
               </div>
 
               {selected.isCentral && (
-                <div className="rounded-md bg-white">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white-02 px-4 py-3">
                     <p className="text-sm font-semibold">Shared with every tenant</p>
                     <PermissionGate permission={P.MANAGE_WORKFLOW_TEMPLATES}>
@@ -388,7 +389,7 @@ export default function DynamicRoleTab() {
               )}
 
               {/* The tester is the reason to open this screen, so it comes first. */}
-              <div className="rounded-md bg-white">
+              <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
                 <div className="border-b border-white-02 px-4 py-3">
                   <p className="text-sm font-semibold">Try a request</p>
                 </div>
@@ -469,7 +470,7 @@ export default function DynamicRoleTab() {
               </div>
 
               {/* Rules, numbered because order is the contract. */}
-              <div className="rounded-md bg-white">
+              <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
                 <div className="border-b border-white-02 px-4 py-3">
                   <p className="text-sm font-semibold">
                     Rules{" "}

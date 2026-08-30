@@ -47,7 +47,7 @@ export function ImportProcessDrawer({
         onPointerDownOutside={(event) => event.preventDefault()}
         className="console-geist flex w-full gap-0 overflow-hidden p-0 sm:max-w-5xl"
       >
-        <SheetHeader className="border-b border-gray-100 px-4 py-4 text-left sm:px-6">
+        <SheetHeader className="border-b border-white-02 px-4 py-4 text-left sm:px-6">
           <SheetTitle className="font-mont text-base font-semibold text-black-01">
             {title}
           </SheetTitle>

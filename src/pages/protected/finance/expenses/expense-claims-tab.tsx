@@ -40,7 +40,7 @@ import { sourceDocumentIdFromParams } from "@/lib/source-document-route";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const tdCls = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 const fmtDate = (s: string) => new Date(s).toLocaleDateString();
 
 // Our model: status DRAFT/PENDING_APPROVAL/POSTED/CANCELLED × payment status.
@@ -64,7 +64,7 @@ function Initials({ name }: { name: string }) {
 }
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="font-mont text-xs text-gray-05">{label}</p>
       <p className="mt-1 font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
       {hint && <p className="mt-0.5 font-mont text-[11px] text-gray-05">{hint}</p>}
@@ -128,7 +128,7 @@ export function ExpenseClaimsTab({ entity, currency }: { entity: string; currenc
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
             <Input value={searchInput} onChange={(e) => { setSearchInput(e.target.value); resetPage(); }} placeholder="Search claimant, purpose or no." className="h-9 w-72 bg-white pl-8 font-mont" />
           </div>
-          <select value={status} onChange={(e) => { setStatus(e.target.value); resetPage(); }} className="h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
+          <select value={status} onChange={(e) => { setStatus(e.target.value); resetPage(); }} className="h-9 rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01">
             <option value="">All statuses</option>
             {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -255,9 +255,9 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
       >
         <div className="space-y-5">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">Total</p><p className="mt-1 font-mont text-base font-semibold tabular-nums text-black-01">{formatMoney(full.total, currency)}</p></div>
-            <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">Subtotal · Tax</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(full.subtotal, currency)} · {formatMoney(full.tax_total, currency)}</p></div>
-            <div className="rounded-md border border-gray-03 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">{full.payment_status === "PAID" ? "Reimbursed" : "Awaiting payment"}</p><p className="mt-1 font-mont text-base font-semibold tabular-nums text-black-01">{formatMoney(full.payment_status === "PAID" ? full.amount_paid : full.balance_due, currency)}</p></div>
+            <div className="rounded-md border border-white-02 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">Total</p><p className="mt-1 font-mont text-base font-semibold tabular-nums text-black-01">{formatMoney(full.total, currency)}</p></div>
+            <div className="rounded-md border border-white-02 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">Subtotal · Tax</p><p className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(full.subtotal, currency)} · {formatMoney(full.tax_total, currency)}</p></div>
+            <div className="rounded-md border border-white-02 bg-white p-3"><p className="font-mont text-[11px] text-gray-05">{full.payment_status === "PAID" ? "Reimbursed" : "Awaiting payment"}</p><p className="mt-1 font-mont text-base font-semibold tabular-nums text-black-01">{formatMoney(full.payment_status === "PAID" ? full.amount_paid : full.balance_due, currency)}</p></div>
           </div>
 
           <div>
@@ -275,7 +275,7 @@ function ClaimDetailDrawer({ claim, entity, currency, onClose }: { claim: Expens
 
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Lines</p>
-            <div className="overflow-x-auto rounded-md border border-gray-03">
+            <div className="overflow-x-auto rounded-md border border-white-02">
               <table className="w-full border-collapse">
                 <thead><tr>
                   <th className={thCls}>Category (GL)</th><th className={thCls}>Description</th>
@@ -423,7 +423,7 @@ function ReceiptDropzone({ files, onAdd, onRemove }: { files: File[]; onAdd: (fs
       {files.length ? (
         <div className="mt-2 flex flex-wrap gap-2">
           {files.map((f, i) => (
-            <span key={i} className="inline-flex max-w-[200px] items-center gap-1 rounded-md border border-gray-03 bg-white py-1 pl-2 pr-1 font-mont text-[11px]">
+            <span key={i} className="inline-flex max-w-[200px] items-center gap-1 rounded-md border border-white-02 bg-white py-1 pl-2 pr-1 font-mont text-[11px]">
               <Paperclip className="size-3 shrink-0 text-primary" /><span className="truncate" title={f.name}>{f.name}</span>
               <button type="button" onClick={() => onRemove(i)} className="shrink-0 rounded p-0.5 text-gray-05 hover:bg-destructive/5 hover:text-destructive" aria-label="Remove receipt"><X className="size-3" /></button>
             </span>
@@ -521,7 +521,7 @@ function NewClaimDrawer({ open, onClose, entity, currency }: { open: boolean; on
           </div>
           <div className="space-y-2">
             {lines.map((l, i) => (
-              <div key={i} className="flex flex-col items-stretch gap-2 rounded-md border border-gray-03 bg-white p-2.5 sm:flex-row sm:items-end">
+              <div key={i} className="flex flex-col items-stretch gap-2 rounded-md border border-white-02 bg-white p-2.5 sm:flex-row sm:items-end">
                 <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-12">
                   <div className="sm:col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={l.description} onChange={(e) => setLine(i, { description: e.target.value })} placeholder="What was bought" className="h-9 bg-white text-sm" /></div>
                   <div className="sm:col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Expense account</p><AccountPicker entity={entity} value={l.expense_account} onChange={(v) => setLine(i, { expense_account: v })} accountType="EXPENSE" postableOnly placeholder="5xxx" /></div>

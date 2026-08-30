@@ -25,6 +25,7 @@ import {
 import { UserAvatar } from "@/components/custom/user-avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
@@ -569,7 +570,7 @@ export default function PlatformUserAssignments() {
           {metricCards.map((card, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-md min-h-26 w-full px-5.5 pt-5 pb-5 space-y-2.5"
+              className={cn(INFORMATION_CARD_SURFACE, "rounded-md min-h-26 w-full px-5.5 pt-5 pb-5 space-y-2.5")}
             >
               <h5 className="font-mont text-sm font-medium text-gray-01">{card.title}</h5>
               <p className="font-semibold text-2xl text-[#221122]">{card.value}</p>

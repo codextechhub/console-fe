@@ -116,6 +116,11 @@ needed, the console-error text + the offending endpoint's real shape
 - Works for every area: pass any route, or let step 2 target your changes.
 - Some screens are entity-scoped (finance/procurement) and need a ledger entity
   to show data; `preflight.sh` reports whether any exist.
+- **Invisible outlines**: a card can carry `border`/`ring` in its markup and
+  still have no outline on screen, because the colour is a fill. `_outline_audit.mjs`
+  measures every panel's boundary against what is behind it and lists the ones
+  under ~1.12:1 (i.e. not there):
+  `BASE_URL=<vite-url> ROUTES="/finance/banking" node .claude/skills/verify-design/_outline_audit.mjs`
 - **Loading/error states**: `drive.mjs` can only capture the loaded screen. To
   screenshot a route's LOADING and ERROR render states (invisible-skeleton and
   broken-error-UI bugs only surface there), run `probe-loading.mjs` - it delays

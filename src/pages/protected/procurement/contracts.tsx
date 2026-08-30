@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import {
   useGetContractsQuery, useGetContractQuery, useGetContractsSummaryQuery,
@@ -99,7 +100,7 @@ export default function ContractsPage() {
       </header>
 
       <div data-guide="procurement-contracts.summary" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {summaryLoading || !summary ? <div className="col-span-full rounded-md bg-white"><LoadingState rows={2} /></div> : <>
+        {summaryLoading || !summary ? <div className={cn(INFORMATION_CARD_SURFACE, "col-span-full rounded-md")}><LoadingState rows={2} /></div> : <>
           <StatCard label="Active" value={String(summary.active)} icon={FileCheck2} tone="green" />
           <StatCard label="Expiring ≤ 30 days" value={String(summary.expiring_soon)} icon={CalendarClock} tone="amber" />
           <StatCard label="Expired" value={String(summary.expired)} icon={CalendarX2} tone="gray" />
@@ -109,8 +110,8 @@ export default function ContractsPage() {
         </>}
       </div>
 
-      <section data-guide="procurement-contracts.list" className="min-w-0 rounded-md bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-03 px-4">
+      <section data-guide="procurement-contracts.list" className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-white-02 px-4">
           <div className="max-w-full overflow-x-auto"><div className="flex min-w-max gap-5">{STATUS_TABS.map(([label, value]) => (
             <button key={label} onClick={() => { setTab(value); setPage(1); }} className={cn("border-b-2 py-3 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}>{label}</button>
           ))}</div></div>
@@ -155,12 +156,12 @@ function ContractDrawer({ id, entity, currency, onClose }: { id: number | null; 
           <div className="flex flex-wrap items-center gap-1.5"><StatusPill status={c.status} />{c.is_expired && <ExpiredOverlay />}{c.auto_renew && <span className="font-mont text-xs text-gray-05">· Auto-renew</span>}</div>
           <p className="font-mont text-lg font-semibold tabular-nums">{formatMoney(c.contract_value, currency)}</p>
         </div>
-        <div className="max-w-full overflow-x-auto border-b border-gray-03"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([value, label, Icon]) => (
+        <div className="max-w-full overflow-x-auto border-b border-white-02"><div className="flex min-w-max gap-5">{DETAIL_TABS.map(([value, label, Icon]) => (
           <button key={value} onClick={() => setTab(value)} className={cn("flex items-center gap-1.5 border-b-2 py-2.5 font-mont text-xs font-medium whitespace-nowrap", tab === value ? "border-primary text-primary" : "border-transparent text-gray-05")}><Icon className="size-3.5" />{label}</button>
         ))}</div></div>
 
         {tab === "overview" && (
-          <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
+          <dl className="grid grid-cols-1 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2">
             <Field label="Contract number" value={c.reference} />
             <Field label="Status" value={<div className="flex items-center gap-1.5"><StatusPill status={c.status} />{c.is_expired && <ExpiredOverlay />}</div>} />
             <Field label="Vendor" value={c.vendor_name || c.vendor_code} />
@@ -175,7 +176,7 @@ function ContractDrawer({ id, entity, currency, onClose }: { id: number | null; 
         )}
 
         {tab === "terms" && (
-          <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
+          <dl className="grid grid-cols-1 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2">
             <Field label="Payment terms" value={termLabel(c.payment_terms)} />
             <Field label="Renewal notice" value={`${c.renewal_notice_days} days`} />
             <Field label="Auto-renew" value={c.auto_renew ? "Yes" : "No"} />
@@ -199,15 +200,15 @@ function MilestonesTab({ contract, entity, currency }: { contract: VendorContrac
   const editable = contract.status !== "TERMINATED" && contract.status !== "RENEWED";
   if (!milestones.length) return <EmptyPanel>No milestones on this contract.</EmptyPanel>;
   return (
-    <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[560px]">
+    <div className="overflow-x-auto rounded-md border border-white-02"><table className="w-full min-w-[560px]">
       <thead><tr>{["Milestone", "Due", "Amount", "Status", ""].map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
       <tbody>{milestones.map((m: ContractMilestone) => (
         <tr key={m.id}>
-          <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{m.name}</td>
-          <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(m.due_date)}</td>
-          <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{m.amount ? <Money kobo={m.amount} currency={currency} /> : "-"}</td>
-          <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={m.status} /></td>
-          <td className="border-t border-gray-03 px-3 py-2 text-right" onClick={(e) => e.stopPropagation()}>
+          <td className="border-t border-white-02 px-3 py-2 font-mont text-xs font-semibold">{m.name}</td>
+          <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(m.due_date)}</td>
+          <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{m.amount ? <Money kobo={m.amount} currency={currency} /> : "-"}</td>
+          <td className="border-t border-white-02 px-3 py-2"><StatusPill status={m.status} /></td>
+          <td className="border-t border-white-02 px-3 py-2 text-right" onClick={(e) => e.stopPropagation()}>
             {editable && m.status !== "COMPLETED" && (
               <ActionButton asLink label="Complete" permission={P.PROC_UPDATE_CONTRACT} title="Complete this milestone?" description={`Marks '${m.name}' as delivered.`} onConfirm={async () => { const r = await complete({ id: contract.id, entity, milestoneId: m.id }).unwrap(); toast.success(r.message || "Milestone completed."); }} />
             )}
@@ -231,19 +232,19 @@ function LinkedPosTab({ contract, entity, currency }: { contract: VendorContract
         {" "}<span className="font-semibold text-black-01">In-term</span> = other POs with {contract.vendor_name || contract.vendor_code} inside the period with no explicit link (a vendor + period association, not a hard link).
       </p>
       {rows.length === 0 ? <EmptyPanel>No purchase orders linked to, or raised with this vendor during, the term.</EmptyPanel> : (
-        <div className="overflow-x-auto rounded-md border border-gray-03"><table className="w-full min-w-[560px]">
+        <div className="overflow-x-auto rounded-md border border-white-02"><table className="w-full min-w-[560px]">
           <thead><tr>{["PO #", "Link", "Date", "Amount", "Status"].map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
           <tbody>{rows.map((po) => (
             <tr key={po.id}>
-              <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{po.document_number}</td>
-              <td className="border-t border-gray-03 px-3 py-2">
+              <td className="border-t border-white-02 px-3 py-2 font-mont text-xs font-semibold">{po.document_number}</td>
+              <td className="border-t border-white-02 px-3 py-2">
                 <span className={cn("rounded px-2 py-0.5 font-mont text-[11px] font-medium", po.link_type === "linked" ? "bg-primary/10 text-primary" : "bg-gray-100 text-gray-05")}>
                   {po.link_type === "linked" ? "Linked" : "In-term"}
                 </span>
               </td>
-              <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(po.order_date)}</td>
-              <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums"><Money kobo={po.total} currency={currency} /></td>
-              <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={po.status} /></td>
+              <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(po.order_date)}</td>
+              <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums"><Money kobo={po.total} currency={currency} /></td>
+              <td className="border-t border-white-02 px-3 py-2"><StatusPill status={po.status} /></td>
             </tr>
           ))}</tbody>
         </table></div>
@@ -377,14 +378,14 @@ function ContractForm({ entity, currency, initial, onClose }: { entity: string; 
       {initial && initial.milestones?.length > 0 && (
         <div className="space-y-1">
           <p className="font-mont text-xs font-semibold text-gray-05">Existing milestones</p>
-          {initial.milestones.map((m) => <div key={m.id} className="flex items-center justify-between rounded-md border border-gray-03 px-3 py-1.5 font-mont text-xs"><span>{m.name}</span><StatusPill status={m.status} /></div>)}
+          {initial.milestones.map((m) => <div key={m.id} className="flex items-center justify-between rounded-md border border-white-02 px-3 py-1.5 font-mont text-xs"><span>{m.name}</span><StatusPill status={m.status} /></div>)}
         </div>
       )}
 
       <div className="space-y-2 pt-1">
         <p className="font-mont text-xs font-semibold text-gray-05">{initial ? "Add milestones" : "Milestones (optional)"}</p>
         {milestones.map((row) => (
-          <div key={row.key} className="flex flex-wrap items-center gap-2 rounded-md border border-gray-03 p-2">
+          <div key={row.key} className="flex flex-wrap items-center gap-2 rounded-md border border-white-02 p-2">
             <Input value={row.name} onChange={(e) => setMs(row.key, { name: e.target.value })} placeholder="Milestone name" className="min-w-40 flex-1 bg-white" />
             <Input type="date" value={row.due_date} onChange={(e) => setMs(row.key, { due_date: e.target.value })} className="w-40 bg-white" aria-label="Due date" />
             <div className="w-36"><MoneyInput valueKobo={row.amountKobo} onChangeKobo={(k) => setMs(row.key, { amountKobo: k })} currency={currency} placeholder="Amount" /></div>

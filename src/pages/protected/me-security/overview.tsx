@@ -8,6 +8,8 @@ import { useGetMyActivityQuery } from "@/redux/services/dashboard/audit-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import type { AuditSeverity } from "@/redux/services/dashboard/audit-types";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 function parseUA(ua: string | null | undefined): { browser: string; os: string } {
   if (!ua) return { browser: "-", os: "-" };
@@ -115,7 +117,7 @@ export default function MeSecurityOverview() {
         {/* Gap 2 - 4-column KPI grid */}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {/* KPI 1: Active sessions */}
-          <div className="bg-white rounded-md px-5.5 py-5 min-h-26 flex flex-col gap-1.5">
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md px-5.5 py-5 min-h-26 flex flex-col gap-1.5")}>
             <p className="font-mont text-sm font-medium text-gray-01">Active sessions</p>
             <p className="font-semibold text-2xl text-[#221122]">{activeSessionCount}</p>
             <button
@@ -127,7 +129,7 @@ export default function MeSecurityOverview() {
           </div>
 
           {/* KPI 2: Last sign-in */}
-          <div className="bg-white rounded-md px-5.5 py-5 min-h-26 flex flex-col gap-1.5">
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md px-5.5 py-5 min-h-26 flex flex-col gap-1.5")}>
             <p className="font-mont text-sm font-medium text-gray-01">Last sign-in</p>
             <p className="font-semibold text-xl text-[#221122] leading-tight">
               {lastLoginAt ? formatRelativeDate(lastLoginAt) : "-"}
@@ -142,7 +144,7 @@ export default function MeSecurityOverview() {
             className={`rounded-md px-5.5 py-5 min-h-26 flex flex-col gap-1.5 border ${
               needsAttention
                 ? "bg-amber-50 border-amber-200"
-                : "bg-white border-transparent"
+                : "bg-white border-white-02"
             }`}
           >
             <p className="font-mont text-sm font-medium text-gray-01">Failed sign-ins (7d)</p>
@@ -160,7 +162,7 @@ export default function MeSecurityOverview() {
           </div>
 
           {/* KPI 4: Password last changed */}
-          <div className="bg-white rounded-md px-5.5 py-5 min-h-26 flex flex-col gap-1.5">
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md px-5.5 py-5 min-h-26 flex flex-col gap-1.5")}>
             <p className="font-mont text-sm font-medium text-gray-01">Password last changed</p>
             <p className="font-semibold text-xl text-[#221122] leading-tight">
               {passwordChangedAt ? formatRelativeDate(passwordChangedAt) : "Never"}
@@ -178,7 +180,7 @@ export default function MeSecurityOverview() {
         <div className="grid gap-5 lg:grid-cols-3">
           <button
             onClick={() => navigate(routesPath.PROTECTED.ME_SECURITY.SESSIONS)}
-            className="bg-white rounded-md p-5 text-left hover:shadow-sm transition"
+            className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 text-left hover:shadow-sm transition")}
           >
             <Monitor className="size-5 text-blue-600 mb-2" />
             <p className="font-semibold text-sm">Active sessions</p>
@@ -186,7 +188,7 @@ export default function MeSecurityOverview() {
           </button>
           <button
             onClick={() => navigate(routesPath.PROTECTED.ME_SECURITY.PASSWORD)}
-            className="bg-white rounded-md p-5 text-left hover:shadow-sm transition"
+            className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 text-left hover:shadow-sm transition")}
           >
             <Key className="size-5 text-blue-600 mb-2" />
             <p className="font-semibold text-sm">Password & sign-in</p>
@@ -194,7 +196,7 @@ export default function MeSecurityOverview() {
           </button>
           <button
             onClick={() => navigate(routesPath.PROTECTED.ME_SECURITY.ACTIVITY)}
-            className="bg-white rounded-md p-5 text-left hover:shadow-sm transition"
+            className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 text-left hover:shadow-sm transition")}
           >
             <Clock className="size-5 text-blue-600 mb-2" />
             <p className="font-semibold text-sm">Account activity</p>
@@ -203,7 +205,7 @@ export default function MeSecurityOverview() {
         </div>
 
         {/* Gaps 3–7 - Recent activity card */}
-        <div className="bg-white rounded-md p-5">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
           <div className="flex items-center justify-between mb-1">
             <p className="font-semibold text-sm">Recent activity</p>
             <Button

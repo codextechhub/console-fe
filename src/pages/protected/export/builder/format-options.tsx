@@ -61,7 +61,7 @@ export function FormatOptions({
   const set = (key: string, next: unknown) => onChange({ ...value, [key]: next });
 
   return (
-    <div className="divide-y divide-gray-03 rounded-md border border-gray-03 bg-white px-3.5">
+    <div className="divide-y divide-white-02 rounded-md border border-white-02 bg-white px-3.5">
       {keys.map((key) => {
         const option = schema[key];
         const meta = LABELS[key] ?? { label: humanise(key) };

@@ -160,7 +160,7 @@ export function WebhooksTab({ entity, currency }: { entity: string; currency?: s
         <KpiCard label="Unmatched" value={sum?.ignored ?? 0} foot="Nothing local to attach it to" />
       </div>
 
-      <div className="flex flex-wrap items-center gap-1 rounded-md border border-gray-03 bg-white p-1">
+      <div className="flex flex-wrap items-center gap-1 rounded-md border border-white-02 bg-white p-1">
         {FILTERS.map((f) => (
           <button
             key={f.key || "default"}

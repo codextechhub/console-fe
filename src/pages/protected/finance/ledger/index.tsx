@@ -25,7 +25,7 @@ import { DirectEntryDrawer } from "./direct-entry-drawer";
 import { JournalDetailDrawer } from "./journal-detail-drawer";
 import { PageShell } from "@/components/layout/page-shell";
 
-const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
+const selectCls = "h-9 rounded-md border border-white-02 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 const SOURCES: JournalSource[] = ["MANUAL", "SALES", "PURCHASE", "BANK", "PAYROLL", "CLOSING", "OPENING", "FX", "SYSTEM"];
 const STATUS_TABS: { key: JournalStatus; label: string }[] = [
   { key: "DRAFT", label: "Drafts" },
@@ -139,7 +139,7 @@ export default function GeneralLedgerPage() {
         </div>
 
         {/* Status tabs with counts */}
-        <div className="flex flex-wrap items-center gap-1 rounded-md border border-gray-03 bg-white p-1">
+        <div className="flex flex-wrap items-center gap-1 rounded-md border border-white-02 bg-white p-1">
           <button onClick={() => { setStatus(""); setPage(1); }} className={tabBtn(status === "")}>All <span className="ml-1 opacity-70">{count()}</span></button>
           {STATUS_TABS.map((t) => (
             <button key={t.key} onClick={() => { setStatus(t.key); setPage(1); }} className={tabBtn(status === t.key)}>

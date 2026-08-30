@@ -96,7 +96,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
             <Button type="button" variant="outline" size="sm" onClick={() => setRows((rs) => [...rs, emptyRow()])} className="h-7 gap-1 px-2 text-xs"><Plus className="size-3.5" /> Add line</Button>
           </div>
           {rows.map((r, i) => (
-            <div key={i} className="space-y-2 rounded-md border border-gray-03 bg-white p-3">
+            <div key={i} className="space-y-2 rounded-md border border-white-02 bg-white p-3">
               <div className="flex items-start gap-2">
                 <div className="flex-1">
                   <AccountPicker entity={entity} value={r.account} onChange={(v) => setRow(i, { account: v })} postableOnly placeholder="Type an account…" />
@@ -107,7 +107,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <div className="inline-flex overflow-hidden rounded-md border border-gray-03">
+                <div className="inline-flex overflow-hidden rounded-md border border-white-02">
                   {(["debit", "credit"] as const).map((s) => (
                     <button key={s} type="button" onClick={() => setRow(i, { side: s })}
                       className={cn("px-3 py-2 font-mont text-xs capitalize", r.side === s ? "bg-primary text-white" : "bg-white text-gray-05")}>
@@ -124,7 +124,7 @@ export function DirectEntryDrawer({ open, onClose, entity, currency }: {
                     <select key={dim.code} aria-label={dim.name}
                       value={r.dimensions[dim.code] ?? ""}
                       onChange={(e) => setRow(i, { dimensions: { ...r.dimensions, [dim.code]: e.target.value } })}
-                      className="h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-xs text-black-01 focus:border-primary focus:outline-none">
+                      className="h-9 rounded-md border border-white-02 bg-white px-2 font-mont text-xs text-black-01 focus:border-primary focus:outline-none">
                       <option value="">{dim.name} - none</option>
                       {dim.allowed_values.map((v) => <option key={v} value={v}>{v}</option>)}
                     </select>

@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { routesPath } from "@/routes/routes-path";
 import { apiErrorMessage } from "@/utils/api-errors";
 import {
@@ -70,7 +71,7 @@ export default function ExportBuilderPage() {
   if (isEdit && isLoading) {
     return (
       <PageShell>
-        <div className="rounded-md bg-white">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
           <LoadingState rows={6} label="Loading export…" />
         </div>
       </PageShell>
@@ -79,7 +80,7 @@ export default function ExportBuilderPage() {
   if (isEdit && (isError || !existingRes)) {
     return (
       <PageShell>
-        <div className="rounded-md bg-white">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
           <ErrorState onRetry={refetch} />
         </div>
       </PageShell>
@@ -312,11 +313,11 @@ function BuilderForm({
       </div>
 
       {loading ? (
-        <div className="mt-5 rounded-md bg-white">
+        <div className={cn(INFORMATION_CARD_SURFACE, "mt-5 rounded-md")}>
           <LoadingState rows={6} label="Loading the catalogue…" />
         </div>
       ) : catalogueError ? (
-        <div className="mt-5 rounded-md bg-white">
+        <div className={cn(INFORMATION_CARD_SURFACE, "mt-5 rounded-md")}>
           <ErrorState onRetry={refetch} />
         </div>
       ) : (
@@ -485,7 +486,7 @@ function StepData({
   const empty = modules.filter((m) => !m.available).map((m) => m.name);
 
   return (
-    <section className="space-y-5 rounded-md bg-white p-4">
+    <section className={cn(INFORMATION_CARD_SURFACE, "space-y-5 rounded-md p-4")}>
       <div>
         <h2 className="font-mont text-base font-semibold text-black-01">Choose the data to export</h2>
         <p className="mt-1 font-mont text-xs leading-relaxed text-gray-01">
@@ -579,14 +580,14 @@ function StepColumns({
 }) {
   if (loading || !dataset) {
     return (
-      <section className="rounded-md bg-white">
+      <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
         <LoadingState rows={5} columns={2} label="Loading fields…" />
       </section>
     );
   }
 
   return (
-    <section className="space-y-5 rounded-md bg-white p-4">
+    <section className={cn(INFORMATION_CARD_SURFACE, "space-y-5 rounded-md p-4")}>
       <div>
         <h2 className="font-mont text-base font-semibold text-black-01">Choose columns and filters</h2>
         <p className="mt-1 font-mont text-xs leading-relaxed text-gray-01">
@@ -676,7 +677,7 @@ function StepFile({
       .replace("{run}", "1") + `.${format}`;
 
   return (
-    <section className="space-y-5 rounded-md bg-white p-4">
+    <section className={cn(INFORMATION_CARD_SURFACE, "space-y-5 rounded-md p-4")}>
       <div>
         <h2 className="font-mont text-base font-semibold text-black-01">Configure the file</h2>
         <p className="mt-1 font-mont text-xs leading-relaxed text-gray-01">
@@ -754,7 +755,7 @@ function StepFile({
               key={token}
               type="button"
               onClick={() => onFileNamePattern(`${fileNamePattern}${token}`)}
-              className="rounded border border-gray-03 px-1.5 py-0.5 font-geist-mono text-[11px] text-gray-05 hover:border-primary hover:text-primary"
+              className="rounded border border-white-02 px-1.5 py-0.5 font-geist-mono text-[11px] text-gray-05 hover:border-primary hover:text-primary"
             >
               {token}
             </button>
@@ -813,7 +814,7 @@ function StepReview({
   ];
 
   return (
-    <section className="space-y-5 rounded-md bg-white p-4">
+    <section className={cn(INFORMATION_CARD_SURFACE, "space-y-5 rounded-md p-4")}>
       <div>
         <h2 className="font-mont text-base font-semibold text-black-01">Review</h2>
         {preview?.reads_as && (
@@ -884,7 +885,7 @@ function StepReview({
         </div>
       )}
 
-      <div className="divide-y divide-gray-03 rounded-md border border-gray-03">
+      <div className="divide-y divide-white-02 rounded-md border border-white-02">
         {rows.map((r) => (
           <div key={r.k} className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-3.5 py-2.5">
             <span className="w-24 shrink-0 font-mont text-[11px] text-gray-05">{r.k}</span>

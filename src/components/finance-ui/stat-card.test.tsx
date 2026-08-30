@@ -10,7 +10,7 @@ describe("StatCard", () => {
       <StatCard label="Open" value="4" sub="Ordinary posting allowed" icon={Circle} />,
     );
 
-    expect(html).toContain("border-gray-200");
+    expect(html).toContain("border-white-02");
     expect(html).toContain("bg-white");
   });
 });

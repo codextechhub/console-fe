@@ -92,8 +92,8 @@ export function FieldPicker({
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       {/* ── Available ─────────────────────────────────────────────────────── */}
-      <div className="flex min-w-0 flex-col rounded-md border border-gray-03 bg-white">
-        <div className="border-b border-gray-03 px-3.5 py-3">
+      <div className="flex min-w-0 flex-col rounded-md border border-white-02 bg-white">
+        <div className="border-b border-white-02 px-3.5 py-3">
           <div className="flex items-baseline justify-between gap-2">
             <p className="font-mont text-xs font-semibold text-black-01">Available fields</p>
             <p className={cn(MONO, "text-[11px] text-gray-05")}>
@@ -120,7 +120,7 @@ export function FieldPicker({
           ) : (
             grouped.map(({ group, items }, gi) => (
               <div key={`${group}-${gi}`}>
-                <p className="border-b border-gray-03 bg-gray-04 px-3.5 py-2 font-geist-mono text-[10px] font-semibold uppercase tracking-widest text-gray-05">
+                <p className="border-b border-white-02 bg-gray-04 px-3.5 py-2 font-geist-mono text-[10px] font-semibold uppercase tracking-widest text-gray-05">
                   {group}
                 </p>
                 {items.map((f) => {
@@ -134,7 +134,7 @@ export function FieldPicker({
                       aria-pressed={on}
                       title={f.description || undefined}
                       className={cn(
-                        "flex w-full items-center gap-2.5 border-b border-gray-03 px-3.5 py-2.5 text-left last:border-0",
+                        "flex w-full items-center gap-2.5 border-b border-white-02 px-3.5 py-2.5 text-left last:border-0",
                         f.locked ? "cursor-default" : "cursor-pointer hover:bg-primary/5",
                       )}
                     >
@@ -169,8 +169,8 @@ export function FieldPicker({
       </div>
 
       {/* ── Selected ──────────────────────────────────────────────────────── */}
-      <div className="flex min-w-0 flex-col rounded-md border border-gray-03 bg-white">
-        <div className="flex items-baseline justify-between gap-2 border-b border-gray-03 px-3.5 py-3">
+      <div className="flex min-w-0 flex-col rounded-md border border-white-02 bg-white">
+        <div className="flex items-baseline justify-between gap-2 border-b border-white-02 px-3.5 py-3">
           <p className="font-mont text-xs font-semibold text-black-01">Selected · file order</p>
           <p className={cn(MONO, "text-[11px] text-gray-05")}>{selected.length}</p>
         </div>
@@ -190,7 +190,7 @@ export function FieldPicker({
                   key={id}
                   className={cn(
                     "flex items-center gap-2 rounded-md border px-2.5 py-2",
-                    isWithdrawn ? "border-destructive/30 bg-destructive/5" : "border-gray-03 bg-gray-04",
+                    isWithdrawn ? "border-destructive/30 bg-destructive/5" : "border-white-02 bg-gray-04",
                   )}
                 >
                   <span className={cn(MONO, "w-4 shrink-0 text-[11px] text-gray-05")}>{index + 1}</span>
@@ -240,7 +240,7 @@ export function FieldPicker({
         {/* A field the dataset has withdrawn is struck through and explained,
             never quietly dropped - the saved export genuinely names it. */}
         {withdrawn.length > 0 && (
-          <p className="border-t border-gray-03 px-3.5 py-2.5 font-mont text-[11px] leading-relaxed text-error-text">
+          <p className="border-t border-white-02 px-3.5 py-2.5 font-mont text-[11px] leading-relaxed text-error-text">
             {withdrawn.length === 1 ? "One column is" : `${withdrawn.length} columns are`} no longer
             available on this dataset. Remove {withdrawn.length === 1 ? "it" : "them"} before saving.
           </p>
@@ -273,7 +273,7 @@ function IconButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "grid size-6 place-content-center rounded border border-gray-03 text-gray-05 transition-colors",
+        "grid size-6 place-content-center rounded border border-white-02 text-gray-05 transition-colors",
         disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer hover:border-primary hover:text-primary",
       )}
     >

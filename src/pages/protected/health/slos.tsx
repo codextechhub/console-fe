@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { useGetSlosQuery, type Slo } from "@/redux/services/health-api";
 import { SloDrawer } from "./drawers";
 import { HealthFrame, HealthKpi, PageIntro, QueryState } from "./primitives";
@@ -59,7 +60,7 @@ export default function SlosPage() {
             type="button"
             onClick={() => setSelectedSlo(s)}
             key={s.service_key}
-            className="rounded-md bg-white p-5.5 text-left transition-colors hover:bg-pry-01/40"
+            className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5.5 text-left transition-colors hover:bg-pry-01/40")}
           >
             <div className="flex items-start justify-between">
               <span className="flex size-10 items-center justify-center rounded-md bg-pry-01 text-primary">

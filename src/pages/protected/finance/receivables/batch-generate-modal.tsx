@@ -11,7 +11,7 @@ import { apiErrorMessage } from "@/utils/api-errors";
 import { useGetFeeStructuresQuery, useGenerateFromFeeStructureMutation } from "@/redux/services/finance/ar-api";
 import type { FeeStructure } from "@/redux/services/finance/ar-types";
 
-const selectCls = "h-9 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
+const selectCls = "h-9 w-full rounded-md border border-white-02 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
 
 export function BatchGenerateModal({ open, onOpenChange, entity }: {
   open: boolean; onOpenChange: (o: boolean) => void; entity: string;

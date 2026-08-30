@@ -35,6 +35,8 @@ import { ProcurementShell } from "./procurement-shell";
 import { EmptyPanel, Field } from "./sourcing/shared";
 import { isForbidden, shortDate } from "./sourcing/helpers";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const fmtQty = (value?: string | null) => {
   const n = Number(value);
@@ -122,7 +124,7 @@ export function LocationsSection({ entity, currency }: { entity: string; currenc
           </section>
         )}
 
-        <section data-guide="procurement-stock-locations.list" className="min-w-0 rounded-md bg-white">
+        <section data-guide="procurement-stock-locations.list" className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
           <DataTable
             columns={columns} rows={rows} rowKey={(l) => l.id}
             loading={isLoading || isFetching} error={isError} forbidden={isForbidden(error)} onRetry={refetch}
@@ -275,7 +277,7 @@ function LocationBalancesDrawer({ location, entity, currency, onClose }: {
     >
       {!location ? null : (
         <div className="space-y-5">
-          <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
+          <dl className="grid grid-cols-1 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2">
             <Field label="Code" value={location.code} />
             <Field label="Campus" value={location.branch_name || "Entity-wide"} />
             <Field label="Default" value={location.is_default ? "Yes" : "No"} />
@@ -301,16 +303,16 @@ export function BalancesTable({ rows, currency, showItem = true, showLocation = 
     "On hand", "Unit cost", "Value",
   ];
   return (
-    <div className="overflow-x-auto rounded-md border border-gray-03">
+    <div className="overflow-x-auto rounded-md border border-white-02">
       <table className="w-full min-w-[480px]">
         <thead><tr>{heads.map((h) => <th key={h} className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">{h}</th>)}</tr></thead>
         <tbody>{rows.map((row) => (
           <tr key={row.id}>
-            {showLocation && <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold">{row.location_code || "-"}</td>}
-            {showItem && <td className="border-t border-gray-03 px-3 py-2"><p className="font-mont text-xs font-semibold">{row.stock_item_name || row.stock_item_code}</p><p className="font-mont text-[11px] text-gray-05">{row.stock_item_code}</p></td>}
-            <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{fmtQty(row.on_hand_qty)}</td>
-            <td className="border-t border-gray-03 px-3 py-2 text-right"><Money kobo={row.unit_cost} currency={currency} align="right" /></td>
-            <td className="border-t border-gray-03 px-3 py-2 text-right"><Money kobo={row.stock_value} currency={currency} align="right" /></td>
+            {showLocation && <td className="border-t border-white-02 px-3 py-2 font-mont text-xs font-semibold">{row.location_code || "-"}</td>}
+            {showItem && <td className="border-t border-white-02 px-3 py-2"><p className="font-mont text-xs font-semibold">{row.stock_item_name || row.stock_item_code}</p><p className="font-mont text-[11px] text-gray-05">{row.stock_item_code}</p></td>}
+            <td className="border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums">{fmtQty(row.on_hand_qty)}</td>
+            <td className="border-t border-white-02 px-3 py-2 text-right"><Money kobo={row.unit_cost} currency={currency} align="right" /></td>
+            <td className="border-t border-white-02 px-3 py-2 text-right"><Money kobo={row.stock_value} currency={currency} align="right" /></td>
           </tr>
         ))}</tbody>
       </table>

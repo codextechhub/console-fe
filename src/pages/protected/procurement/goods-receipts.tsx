@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { P } from "@/permissions";
 import {
   useCreateGoodsReceiptMutation, useGetGoodsReceiptQuery, useGetGoodsReceiptsQuery,
@@ -81,7 +82,7 @@ export default function GoodsReceiptsPage() {
           </Can>
         </header>
 
-        <section data-guide="procurement-goods-receipts.list" className="min-w-0 rounded-md bg-white">
+        <section data-guide="procurement-goods-receipts.list" className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
           <DataTable columns={columns} rows={rows} rowKey={(receipt) => receipt.id}
             loading={isLoading || isFetching} error={isError} onRetry={refetch}
             onRowClick={(receipt) => setSelectedId(receipt.id)} page={pg?.currentPage} totalPages={pg?.totalPages}
@@ -141,7 +142,7 @@ function ReceiptDrawer({ id, entity, currency, onClose, onSelectReceipt }: {
           <p className="font-mont text-sm font-semibold text-gray-05">{formatQuantity(receipt.received_item_count)} of {formatQuantity(receipt.ordered_item_count)} items</p>
         </div>
 
-        {receipt.purchase_order_id && <section className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gray-03 bg-gray-02/30 p-3">
+        {receipt.purchase_order_id && <section className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-white-02 bg-gray-02/30 p-3">
           <div>
             <p className="font-mont text-xs font-semibold text-gray-05">Purchase order fulfilment</p>
             <p className="mt-1 font-mont text-xs text-gray-05">
@@ -152,7 +153,7 @@ function ReceiptDrawer({ id, entity, currency, onClose, onSelectReceipt }: {
           <StatusPill status={receipt.purchase_order_fulfilment_status} />
         </section>}
 
-        <div className="max-w-full overflow-x-auto border-b border-gray-03">
+        <div className="max-w-full overflow-x-auto border-b border-white-02">
           <div className="flex min-w-max gap-5">
             {DETAIL_TABS.map(({ value, label, icon: Icon }) => (
               <button key={value} type="button" onClick={() => setTab(value)}
@@ -163,7 +164,7 @@ function ReceiptDrawer({ id, entity, currency, onClose, onSelectReceipt }: {
         </div>
 
         {tab === "overview" && <div className="space-y-5">
-          <dl className="grid grid-cols-1 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
+          <dl className="grid grid-cols-1 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2">
             <Field label="GR number" value={receipt.document_number} />
             <Field label="PO reference" value={receipt.purchase_order_number || "Not linked"} />
             <Field label="Vendor" value={receipt.vendor_name || receipt.vendor_code} />
@@ -178,7 +179,7 @@ function ReceiptDrawer({ id, entity, currency, onClose, onSelectReceipt }: {
           />}
         </div>}
 
-        {tab === "items" && (receipt.lines.length ? <div className="overflow-x-auto rounded-md border border-gray-03">
+        {tab === "items" && (receipt.lines.length ? <div className="overflow-x-auto rounded-md border border-white-02">
           <div className="grid min-w-[580px] grid-cols-[minmax(220px,1fr)_90px_90px_140px] font-mont text-xs">
             <div className="contents bg-[#F1F1F1] font-semibold text-gray-01">
               <span className="bg-[#F1F1F1] px-3 py-2 text-[11px]">Item</span>
@@ -187,15 +188,15 @@ function ReceiptDrawer({ id, entity, currency, onClose, onSelectReceipt }: {
               <span className="bg-[#F1F1F1] px-3 py-2 text-right text-[11px]">Value</span>
             </div>
             {receipt.lines.map((line) => <div key={line.id} className="contents">
-              <span className="min-w-0 truncate border-t border-gray-03 px-3 py-3 font-semibold">{line.description}</span>
-              <span className="border-t border-gray-03 px-3 py-3 text-right tabular-nums">{formatQuantity(line.accepted_qty)}</span>
-              <span className="border-t border-gray-03 px-3 py-3 text-right tabular-nums">{formatQuantity(line.rejected_qty)}</span>
-              <span className="border-t border-gray-03 px-3 py-3 text-right font-semibold tabular-nums">{formatMoney(line.value_amount, currency)}</span>
+              <span className="min-w-0 truncate border-t border-white-02 px-3 py-3 font-semibold">{line.description}</span>
+              <span className="border-t border-white-02 px-3 py-3 text-right tabular-nums">{formatQuantity(line.accepted_qty)}</span>
+              <span className="border-t border-white-02 px-3 py-3 text-right tabular-nums">{formatQuantity(line.rejected_qty)}</span>
+              <span className="border-t border-white-02 px-3 py-3 text-right font-semibold tabular-nums">{formatMoney(line.value_amount, currency)}</span>
             </div>)}
           </div>
         </div> : <EmptyPanel text="No received items were recorded." />)}
 
-        {tab === "quality" && <section className="rounded-md border border-gray-03 p-4">
+        {tab === "quality" && <section className="rounded-md border border-white-02 p-4">
           <p className="font-mont text-xs font-semibold text-gray-05">Inspection notes</p>
           <p className="mt-2 whitespace-pre-wrap font-mont text-sm leading-6 text-black-01">{receipt.narration || "No inspection notes were recorded."}</p>
         </section>}
@@ -214,7 +215,7 @@ function Field({ label, value }: { label: string; value: string }) {
 }
 
 function EmptyPanel({ text }: { text: string }) {
-  return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">{text}</div>;
+  return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-white-02 px-4 text-center font-mont text-xs text-gray-05">{text}</div>;
 }
 
 type ReceiptLine = {
@@ -326,7 +327,7 @@ function ReceiptForm({ entity, currency, onClose, onSaved, initial, sourcePurcha
           <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Received Items</p>
           {!purchaseOrder ? <EmptyPanel text="Choose a purchase order to load its real line items." />
             : poLoading ? <p className="font-mont text-xs text-gray-05">Loading purchase-order lines…</p>
-            : lines.length ? <div className="space-y-2">{lines.map((line, index) => <div key={line.po_line} className="rounded-md border border-gray-03 p-3">
+            : lines.length ? <div className="space-y-2">{lines.map((line, index) => <div key={line.po_line} className="rounded-md border border-white-02 p-3">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div><p className="font-mont text-sm font-semibold">{line.description}</p><p className="mt-1 font-mont text-xs text-gray-05">Ordered {formatQuantity(line.ordered)} · Remaining {formatQuantity(line.remaining)} · {formatMoney(line.unit_price, currency)} each</p></div>
                 <p className="font-mont text-sm font-semibold tabular-nums">{formatMoney(Math.round(line.accepted_qty * line.unit_price), currency)}</p>

@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Group name is required"),
@@ -61,8 +63,8 @@ export default function CreatePermissionGroup() {
             return (
               <Form className="space-y-5">
                 <div className="grid grid-cols-1 lg:grid-cols-[5fr_6fr] gap-5 items-start">
-                  <div className="bg-white rounded-md p-6 space-y-5">
-                    <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+                  <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
+                    <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
                       Group Details
                     </h2>
 
@@ -104,8 +106,8 @@ export default function CreatePermissionGroup() {
                     </label>
                   </div>
 
-                  <div className="bg-white rounded-md p-6 flex flex-col gap-4">
-                    <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+                  <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 flex flex-col gap-4")}>
+                    <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
                       Permissions
                     </h2>
                     <p className="text-xs text-gray-01">

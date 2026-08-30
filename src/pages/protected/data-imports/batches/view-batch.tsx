@@ -12,6 +12,7 @@ import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routes-path";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { toast } from "sonner";
 import { formatRelativeDate } from "@/utils/helpers";
 import {
@@ -182,7 +183,7 @@ export default function ViewBatch() {
     <>
       <PageShell className="text-black-01 space-y-5 max-w-6xl">
         {/* Header card */}
-        <div className="bg-white rounded-md p-5 space-y-5" data-guide="data-import-batch.detail">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-5")} data-guide="data-import-batch.detail">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-xs text-gray-01 mb-1">
@@ -224,7 +225,7 @@ export default function ViewBatch() {
           <PipelineTimeline status={batch.status} />
 
           {/* Action bar */}
-          <div className="flex items-center gap-2 flex-wrap border-t border-gray-100 pt-4">
+          <div className="flex items-center gap-2 flex-wrap border-t border-white-02 pt-4">
             <Button variant="white" size="sm" onClick={() => refetch()}>
               <RefreshCw className="size-3.5" /> Refresh
             </Button>
@@ -290,8 +291,8 @@ export default function ViewBatch() {
         {/* Two-column meta + summary */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start">
           {/* Validation summary */}
-          <div className="bg-white rounded-md p-5 space-y-4" data-guide="data-import-batch.validation-summary">
-            <p className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")} data-guide="data-import-batch.validation-summary">
+            <p className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
               Validation Summary
             </p>
             {batch.validation_summary == null ? (
@@ -342,8 +343,8 @@ export default function ViewBatch() {
           </div>
 
           {/* Side meta */}
-          <div className="bg-white rounded-md p-5 space-y-4">
-            <p className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}>
+            <p className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
               Metadata
             </p>
             <MetaRow label="Template">
@@ -379,7 +380,7 @@ export default function ViewBatch() {
               <span className="text-xs font-mono">{batch.header_row_index}</span>
             </MetaRow>
             {batch.notes && (
-              <div className="pt-3 border-t border-gray-100">
+              <div className="pt-3 border-t border-white-02">
                 <p className="text-[10px] uppercase tracking-wide text-gray-01 font-mont mb-1">Notes</p>
                 <p className="text-xs whitespace-pre-wrap">{batch.notes}</p>
               </div>
@@ -388,8 +389,8 @@ export default function ViewBatch() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-md p-5" data-guide="data-import-batch.evidence-tabs">
-          <div className="flex gap-1 border-b border-gray-100 mb-4 -mx-5 px-5 overflow-x-auto">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")} data-guide="data-import-batch.evidence-tabs">
+          <div className="flex gap-1 border-b border-white-02 mb-4 -mx-5 px-5 overflow-x-auto">
             {tabs.map((t) => (
               <button
                 key={t.key}
@@ -496,7 +497,7 @@ function ReadyChip({ label, ok }: { label: string; ok: boolean }) {
   return (
     <div className={cn(
       "flex items-center gap-2 rounded-md border px-3 py-2 text-xs",
-      ok ? "border-green-100 bg-green-50 text-green-700" : "border-gray-100 bg-gray-50 text-gray-500",
+      ok ? "border-green-100 bg-green-50 text-green-700" : "border-white-02 bg-gray-50 text-gray-500",
     )}>
       {ok ? <Check className="size-3.5 shrink-0" /> : <Inbox className="size-3.5 shrink-0" />}
       <span>{label}</span>

@@ -392,7 +392,7 @@ export default function LoginAttempts() {
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-03">
+                    <tbody className="divide-y divide-white-02">
                       {attempts.length === 0 ? (
                         <tr>
                           <td colSpan={8} className="h-48 text-center">

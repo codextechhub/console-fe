@@ -156,7 +156,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const tdCls = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 
 function PlanDetailDrawer({ plan, entity, currency, onClose }: {
   plan: PaymentPlan | null; entity: string; currency?: string | null; onClose: () => void;
@@ -211,7 +211,7 @@ function PlanDetailDrawer({ plan, entity, currency, onClose }: {
 
           <div>
             <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Schedule</p>
-            <div className="overflow-hidden rounded-md border border-gray-03">
+            <div className="overflow-hidden rounded-md border border-white-02">
               <table className="w-full border-collapse">
                 <thead><tr>
                   <th className={thCls}>#</th><th className={thCls}>Due date</th>
@@ -299,7 +299,7 @@ function RecordInstallmentDrawer({ plan, installment, entity, currency, onClose 
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <FormField label="Method">
-            <select value={method} onChange={(e) => setMethod(e.target.value)} className="h-9 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm">
+            <select value={method} onChange={(e) => setMethod(e.target.value)} className="h-9 w-full rounded-md border border-white-02 bg-white px-2 font-mont text-sm">
               {METHODS.map((m) => <option key={m} value={m}>{m.replace("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase())}</option>)}
             </select>
           </FormField>
@@ -383,7 +383,7 @@ function NewPlanDrawer({ open, onClose, entity, currency }: {
 
         <div data-guide="finance-payment-plans.schedule">
           <p className="mb-2 font-mont text-xs font-semibold uppercase tracking-wide text-gray-05">Schedule preview</p>
-          <div className="overflow-hidden rounded-md border border-gray-03">
+          <div className="overflow-hidden rounded-md border border-white-02">
             <table className="w-full border-collapse">
               <thead><tr>
                 <th className={thCls}>#</th><th className={thCls}>Due date</th><th className={cn(thCls, "text-right")}>Amount</th>

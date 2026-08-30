@@ -17,7 +17,7 @@ function RecapColumn({ label, totalLabel, rows, currency, side }: {
   const amtColor = side === "DR" ? "text-destructive" : "text-green-01";
   return (
     <div className="flex flex-col">
-      <p className="border-b border-gray-03 px-4 py-2 font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-05">{label}</p>
+      <p className="border-b border-white-02 px-4 py-2 font-mont text-[10px] font-semibold uppercase tracking-wider text-gray-05">{label}</p>
       <div className="flex-1 space-y-2 px-4 py-3">
         {rows.map((r, i) => (
           <div key={i} className="flex items-baseline justify-between gap-3">
@@ -28,7 +28,7 @@ function RecapColumn({ label, totalLabel, rows, currency, side }: {
           </div>
         ))}
       </div>
-      <div className="flex items-center justify-between border-t border-gray-03 px-4 py-2.5">
+      <div className="flex items-center justify-between border-t border-white-02 px-4 py-2.5">
         <span className="font-mont text-[11px] font-semibold uppercase tracking-wider text-gray-05">{totalLabel}</span>
         <span className="font-mont text-sm font-semibold tabular-nums text-black-01">{formatMoney(total, currency)}</span>
       </div>
@@ -44,7 +44,7 @@ export function PostingRecap({ title, dr, cr, currency, helper, stackOnMobile = 
   const totalCr = cr.reduce((s, r) => s + r.amount, 0);
   const balanced = totalDr === totalCr;
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-03 bg-white">
+    <div className="overflow-hidden rounded-lg border border-white-02 bg-white">
       <div className="flex items-center justify-between border-b border-gray-03 bg-gray-03 px-4 py-2.5">
         <p className="font-mont text-xs font-semibold uppercase tracking-wide text-gray-01">{title}</p>
         <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mont text-[11px] font-semibold",
@@ -55,8 +55,8 @@ export function PostingRecap({ title, dr, cr, currency, helper, stackOnMobile = 
       <div className={cn(
         "grid",
         stackOnMobile
-          ? "grid-cols-1 divide-y divide-gray-03 sm:grid-cols-2 sm:divide-x sm:divide-y-0"
-          : "grid-cols-2 divide-x divide-gray-03",
+          ? "grid-cols-1 divide-y divide-white-02 sm:grid-cols-2 sm:divide-x sm:divide-y-0"
+          : "grid-cols-2 divide-x divide-white-02",
       )}>
         <RecapColumn label="Debit (DR)" totalLabel="Total Dr" rows={dr} currency={currency} side="DR" />
         <RecapColumn label="Credit (CR)" totalLabel="Total Cr" rows={cr} currency={currency} side="CR" />

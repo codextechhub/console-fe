@@ -200,7 +200,7 @@ export default function DocumentsPage() {
               </p>
             </div>
 
-            <ul className="divide-y divide-gray-03 border-y border-gray-03">
+            <ul className="divide-y divide-white-02 border-y border-white-02">
               {openDoc.versions.map((version, index) => (
                 <li
                   key={version.version}

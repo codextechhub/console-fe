@@ -9,6 +9,7 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { routesPath } from "@/routes/routes-path";
 import { useGetPermissionsQuery, useDeletePermissionMutation } from "@/redux/services/dashboard/rbac-api";
 import { formatRelativeDate } from "@/utils/helpers";
@@ -112,8 +113,9 @@ export default function PermissionsList() {
             <div
               key={idx}
               className={cn(
-                "bg-white rounded-md min-h-26 w-full px-4 sm:px-5.5 pt-5 pb-4 space-y-2.5 cursor-pointer",
-                card.active && "bg-pry-01",
+                INFORMATION_CARD_SURFACE,
+                "rounded-md min-h-26 w-full px-4 sm:px-5.5 pt-5 pb-4 space-y-2.5 cursor-pointer",
+                card.active && "border-primary/30 bg-pry-01",
               )}
               onClick={() => { setCardFilter(card.key); setQuery({ page: 1 }); }}
             >

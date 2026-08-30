@@ -66,7 +66,7 @@ export default function GuideArticlePage() {
             {guide.primaryRoute && <Button asChild><Link to={guide.primaryRoute}>Open Console screen <ExternalLink className="size-4" /></Link></Button>}
             {guide.walkthroughId && findWalkthrough(guide.walkthroughId) && <Button variant="outline" onClick={() => startWalkthrough(guide.walkthroughId!)}><PlayCircle className="size-4" /> Start walkthrough</Button>}
           </div>
-          <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-gray-100 pt-4 text-xs text-gray-01"><span>Owner: {guide.owner}</span><span className="inline-flex items-center gap-1"><Clock3 className="size-3.5" /> Reviewed {guide.reviewedAt}</span></div>
+          <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-white-02 pt-4 text-xs text-gray-01"><span>Owner: {guide.owner}</span><span className="inline-flex items-center gap-1"><Clock3 className="size-3.5" /> Reviewed {guide.reviewedAt}</span></div>
         </header>
 
         <div className="mt-6 rounded-3xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
@@ -76,7 +76,7 @@ export default function GuideArticlePage() {
         {related.length > 0 && <section className="mt-6"><h2 className="font-mont text-lg font-semibold">Related guides</h2><div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">{related.map((item) => item.status === "published" ? <Link key={item.id} to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(item.slug)} className="rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-primary/30"><p className="text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{item.summary}</p></Link> : <div key={item.id} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs text-gray-01">Planned for a later category release.</p></div>)}</div></section>}
 
         <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5">
-          <div className="flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-white-02 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div><p className="text-sm font-semibold">Finished this guide?</p><p className="mt-1 text-xs text-gray-01">Marking it complete helps editors see which guides lead to a finished task.</p></div>
             <Button
               size="sm"
@@ -93,7 +93,7 @@ export default function GuideArticlePage() {
           <div className="pt-4">
             {feedback ? <div className="flex items-center gap-2 text-sm font-medium text-emerald-700"><Check className="size-4" /> Thank you. Your feedback was noted for this visit.</div> : <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold">Was this guide helpful?</p><p className="mt-1 text-xs text-gray-01">Your answer helps us prioritize guide improvements.</p></div><div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => { setFeedback("yes"); void recordAnalytics({ name: "guide.helpful_voted", guide_id: guide.id, outcome: "helpful" }); }}><ThumbsUp className="size-4" /> Yes</Button><Button size="sm" variant="outline" onClick={() => { setFeedback("no"); void recordAnalytics({ name: "guide.helpful_voted", guide_id: guide.id, outcome: "not_helpful" }); }}><ThumbsDown className="size-4" /> Not yet</Button></div></div>}
           </div>
-          <div className="mt-4 border-t border-gray-100 pt-4"><Button asChild variant="ghost" size="sm" className="px-0 text-gray-01"><Link to={routesPath.PROTECTED.SUPPORT.NEW} onClick={() => { void recordAnalytics({ name: "guide.outdated_reported", guide_id: guide.id }); }}><Flag className="size-4" /> Report an outdated guide</Link></Button></div>
+          <div className="mt-4 border-t border-white-02 pt-4"><Button asChild variant="ghost" size="sm" className="px-0 text-gray-01"><Link to={routesPath.PROTECTED.SUPPORT.NEW} onClick={() => { void recordAnalytics({ name: "guide.outdated_reported", guide_id: guide.id }); }}><Flag className="size-4" /> Report an outdated guide</Link></Button></div>
         </section>
       </article>
 

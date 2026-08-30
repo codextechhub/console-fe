@@ -53,7 +53,7 @@ import {
   type YearCloseState,
 } from "./periods-model";
 
-const selectCls = "h-9 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
+const selectCls = "h-9 w-full rounded-md border border-white-02 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
@@ -182,7 +182,7 @@ export function PeriodsTab({ entity }: { entity: string }) {
       </div>
 
       {fiscalYears.length === 0 ? (
-        <div className="rounded-md border border-gray-03 bg-white">
+        <div className="rounded-md border border-white-02 bg-white">
           <EmptyState title="No fiscal calendar" message="Create the first fiscal year to open its monthly or quarterly posting periods." />
         </div>
       ) : periodsLoading ? (
@@ -274,7 +274,7 @@ function FiscalYearOverview({
 }) {
   const progress = summary.total ? Math.round((summary.progressed / summary.total) * 100) : 0;
   return (
-    <section className="rounded-lg border border-gray-03 bg-[#F7F8FA] p-4 sm:p-5">
+    <section className="rounded-lg border border-white-02 bg-[#F7F8FA] p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -386,7 +386,7 @@ function PeriodCard({ period, selected, onClick }: { period: FiscalPeriod; selec
       aria-label={`${periodActionLabel(period.status)} for ${period.name}`}
       className={cn(
         "group relative min-w-0 overflow-hidden rounded-lg border bg-white p-4 text-left transition-all",
-        selected ? "border-primary ring-2 ring-primary/10" : "border-gray-03 hover:border-primary/50 hover:shadow-sm",
+        selected ? "border-primary ring-2 ring-primary/10" : "border-white-02 hover:border-primary/50 hover:shadow-sm",
       )}
     >
       <span aria-hidden className={cn("absolute inset-y-0 left-0 w-1", tone)} />
@@ -400,7 +400,7 @@ function PeriodCard({ period, selected, onClick }: { period: FiscalPeriod; selec
       <p className="mt-4 pl-1 font-mont text-xs text-gray-05 tabular-nums">
         {formatDate(period.start_date)} - {formatDate(period.end_date)}
       </p>
-      <div className="mt-4 flex items-center justify-between gap-2 border-t border-gray-03 pt-3 pl-1">
+      <div className="mt-4 flex items-center justify-between gap-2 border-t border-white-02 pt-3 pl-1">
         <span className="font-mont text-xs font-semibold text-primary">{periodActionLabel(period.status)}</span>
         <ArrowRight className="size-3.5 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" />
       </div>
@@ -608,7 +608,7 @@ function PeriodCloseDrawer({
             : <ErrorState onRetry={refetch} />
         ) : (
           <div data-guide="finance-periods.checklist" className="space-y-5">
-            <div className="rounded-lg border border-gray-03 bg-[#F7F8FA] p-4">
+            <div className="rounded-lg border border-white-02 bg-[#F7F8FA] p-4">
               <div className="flex flex-wrap items-center justify-between gap-3 font-mont text-sm">
                 <span className="flex items-center gap-2 text-gray-05">Current status <StatusPill status={period.status} /></span>
                 <span className="text-gray-05">Checklist <span className="font-semibold tabular-nums text-black-01">{detail.done} / {detail.total}</span></span>
@@ -657,7 +657,7 @@ function PeriodCloseDrawer({
                       "flex items-start gap-3 rounded-md border bg-white px-3 py-3",
                       severity === "blocker" ? "border-red-200 bg-red-50/50"
                         : severity === "warning" ? "border-amber-200 bg-amber-50/50"
-                          : "border-gray-03",
+                          : "border-white-02",
                     )}>
                       <span className={cn(
                         "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full font-mont text-[11px] font-semibold",

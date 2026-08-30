@@ -70,7 +70,7 @@ function Card({ title, subtitle, action, className, children }: {
 }
 
 function EmptyBlock({ children }: { children: React.ReactNode }) {
-  return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-gray-03 px-4 text-center font-mont text-xs text-gray-05">{children}</div>;
+  return <div className="flex min-h-32 items-center justify-center rounded-md border border-dashed border-white-02 px-4 text-center font-mont text-xs text-gray-05">{children}</div>;
 }
 
 function CardLink({ label, onClick, text = false }: {
@@ -224,7 +224,7 @@ export default function ProcurementDashboard() {
                   ? <CardLink label="View all" text onClick={() => navigate(routesPath.PROTECTED.AUDIT.EVENTS)} />
                   : undefined}>
                 {d.recent_activity.length === 0 ? <EmptyBlock>No procurement activity has been recorded yet.</EmptyBlock> : (
-                  <div className="divide-y divide-gray-03">
+                  <div className="divide-y divide-white-02">
                     {d.recent_activity.map((item) => (
                       <div key={item.id} className="flex min-w-0 items-center gap-3 py-3 first:pt-0 last:pb-0">
                         <span className="size-2 shrink-0 rounded-full bg-primary" />
@@ -249,7 +249,7 @@ export default function ProcurementDashboard() {
                         : item.document_type.includes("vendor_invoice") ? ReceiptText : FileText;
                       return (
                         <button key={item.workflow_id} type="button" onClick={() => navigate(`${PROC.APPROVALS}?approval=${item.workflow_id}`)}
-                          className="flex w-full min-w-0 items-center gap-3 rounded-md border border-gray-03 p-3 text-left transition-colors hover:bg-primary/5">
+                          className="flex w-full min-w-0 items-center gap-3 rounded-md border border-white-02 p-3 text-left transition-colors hover:bg-primary/5">
                           <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon className="size-4" /></span>
                           <span className="min-w-0 flex-1">
                             <span className="block truncate font-mont text-sm font-semibold text-gray-01">{item.reference}</span>

@@ -18,6 +18,8 @@ import {
   QueryState,
   StatusDot,
 } from "./primitives";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 function RankPanel({
   title,
@@ -29,7 +31,7 @@ function RankPanel({
   metric: (row: Endpoint) => string;
 }) {
   return (
-    <section className="rounded-md bg-white p-5.5">
+    <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5.5")}>
       <h2 className="font-mont font-semibold">{title}</h2>
       <div className="mt-4 space-y-3">
         {rows.length ? (
@@ -98,7 +100,7 @@ export default function ApiPage() {
         <RankPanel title="Highest error rates" rows={data.top_errors} metric={(e) => `${e.error_rate}% errors`} />
       </div>
 
-      <section className="rounded-md bg-white p-5.5">
+      <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5.5")}>
         <h2 className="font-mont font-semibold">Status code traffic</h2>
         <StatusCodeChart data={data.status_code_series} />
       </section>

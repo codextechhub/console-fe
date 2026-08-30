@@ -81,7 +81,7 @@ export function FilterEditor({
             key={spec.id}
             className={cn(
               "rounded-md border bg-white px-3.5 py-3",
-              def.required && unset ? "border-destructive/40" : "border-gray-03",
+              def.required && unset ? "border-destructive/40" : "border-white-02",
             )}
           >
             <div className="mb-2.5 flex items-start justify-between gap-3">

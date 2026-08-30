@@ -65,7 +65,7 @@ export function AssessmentFormDrawer({ entity, onClose, defaultVendor, onTimeByV
         <VendorPicker entity={entity} value={vendor} onChange={handleVendor} placeholder="Select a vendor to assess" />
       </FormField>
 
-      <div className="space-y-4 rounded-md border border-gray-03 p-4">
+      <div className="space-y-4 rounded-md border border-white-02 p-4">
         {ASSESSMENT_CRITERIA.map(({ key, label }) => (
           <ScoreInput key={key} label={label} weight={ASSESSMENT_WEIGHTS[key]} value={scores[key]} onChange={setScore(key)} />
         ))}
@@ -83,7 +83,7 @@ export function AssessmentFormDrawer({ entity, onClose, defaultVendor, onTimeByV
         <textarea
           value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={2000}
           placeholder="Optional context for this scorecard"
-          className="w-full rounded-md border border-gray-03 bg-white px-3 py-2 font-mont text-sm text-black-01 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+          className="w-full rounded-md border border-white-02 bg-white px-3 py-2 font-mont text-sm text-black-01 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
         />
       </FormField>
     </FormDrawer>

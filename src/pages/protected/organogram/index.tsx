@@ -387,7 +387,7 @@ export default function OrganogramPage() {
     <>
       <main className="min-w-0 text-slate-800">
         {/* search + summary */}
-        <div className="border-b border-slate-100 bg-white px-4.5 py-3">
+        <div className="border-b border-white-02 bg-white px-4.5 py-3">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-semibold font-mont text-gray-01">Organisation Chart</p>
@@ -395,7 +395,7 @@ export default function OrganogramPage() {
             </div>
             <OrgSearch posMap={posMap} profiles={profilesList} onJumpUser={jumpToUser} onJumpPosition={jumpToPosition} />
           </div>
-          {canViewSummary && <div className="flex flex-wrap items-center gap-y-2 divide-x divide-slate-100">
+          {canViewSummary && <div className="flex flex-wrap items-center gap-y-2 divide-x divide-white-02">
             <Stat icon={Users} label="Active staff" value={kpis.headcountActive} accent="bg-indigo-50 text-indigo-500" />
             <Stat icon={Building2} label="Departments" value={kpis.departments} accent="bg-slate-100 text-slate-500" />
             <Stat icon={Sparkles} label="Acting" value={kpis.acting} accent="bg-amber-50 text-amber-500" />
@@ -405,7 +405,7 @@ export default function OrganogramPage() {
         </div>
 
         {/* tabs */}
-        <div className="flex items-center gap-1 border-b border-slate-100 bg-white px-4.5">
+        <div className="flex items-center gap-1 border-b border-white-02 bg-white px-4.5">
           {([["people", "People", Users], ["positions", "Positions", Briefcase]] as const).map(([id, label, Icon]) => (
             <button
               key={id}
@@ -419,7 +419,7 @@ export default function OrganogramPage() {
         </div>
 
         {/* toolbar */}
-        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-white/90 px-4.5 py-2.5 backdrop-blur">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b border-white-02 bg-white/90 px-4.5 py-2.5 backdrop-blur">
           <div className="flex items-center gap-2">
             <Building2 className="size-4 text-slate-400" />
             <div className="w-60">

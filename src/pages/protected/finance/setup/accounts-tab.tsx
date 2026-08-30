@@ -37,7 +37,7 @@ const TYPE_PILL: Record<string, string> = {
   EXPENSE: "bg-destructive/10 text-destructive",
 };
 const headCls = "text-gray-01 bg-[#F1F1F1] font-semibold font-mont text-xs whitespace-nowrap px-3 py-2.5 text-left";
-const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
+const selectCls = "h-9 rounded-md border border-white-02 bg-white px-2 font-mont text-sm focus:border-primary focus:outline-none";
 
 function Tag({ label }: { label: string }) {
   return <span className="ml-1.5 rounded bg-gray-03/60 px-1.5 py-0.5 font-mont text-[10px] font-semibold uppercase tracking-wide text-gray-05">{label}</span>;
@@ -48,7 +48,7 @@ function AccountRow({ node, depth, expanded, toggle, currency, onSelect }: {
 }) {
   const hasChildren = node.children.length > 0;
   const open = expanded.has(node.id);
-  const cell = "border-t border-gray-03 px-3 py-2 font-mont text-sm text-black-01";
+  const cell = "border-t border-white-02 px-3 py-2 font-mont text-sm text-black-01";
   return (
     <>
       <tr className="cursor-pointer hover:bg-primary/5" onClick={() => onSelect(node.id)}>
@@ -130,7 +130,7 @@ export function AccountsTab({ entity }: { entity: string }) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search code or name" className="h-9 max-w-xs font-mont text-sm" />
-        <div className="flex rounded-md border border-gray-03 p-0.5 font-mont text-xs">
+        <div className="flex rounded-md border border-white-02 p-0.5 font-mont text-xs">
           {(["tree", "flat"] as const).map((v) => (
             <button key={v} onClick={() => setView(v)}
               className={cn("rounded px-2.5 py-1 capitalize", view === v ? "bg-primary text-white" : "text-gray-05 hover:text-gray-01")}>
@@ -156,7 +156,7 @@ export function AccountsTab({ entity }: { entity: string }) {
       ) : rows.length === 0 ? (
         <EmptyState title="No accounts" message="The chart of accounts will appear here." />
       ) : (
-        <div className="overflow-x-auto rounded-md border border-gray-03 bg-white">
+        <div className="overflow-x-auto rounded-md border border-white-02 bg-white">
           <table className="w-full border-collapse">
             <thead>
               <tr>
@@ -336,7 +336,7 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
   const tabs = DRAWER_TABS.filter((candidate) => availableTabKeys.includes(candidate.key));
   const activeTab = availableTabKeys.includes(tab) ? tab : availableTabKeys[0];
 
-  const cell = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+  const cell = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
   const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
 
   return (
@@ -353,31 +353,31 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
           {/* KPI cards */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {acc.is_postable ? (
-              <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+              <div className="rounded-md bg-white p-3 ring-1 ring-white-02">
                 <p className="font-mont text-[11px] text-gray-05">Current balance</p>
                 <p className="mt-1 font-mont text-base font-semibold tabular-nums"><Money kobo={d.summary.current_balance.kobo} currency={currency} /></p>
               </div>
             ) : (
               <button type="button" onClick={() => setGroupView("balances")}
-                className="rounded-md bg-white p-3 text-left ring-1 ring-gray-03 transition hover:bg-primary/5 hover:ring-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                className="rounded-md bg-white p-3 text-left ring-1 ring-white-02 transition hover:bg-primary/5 hover:ring-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                 <p className="font-mont text-[11px] text-gray-05">Group balance</p>
                 <p className="mt-1 font-mont text-base font-semibold tabular-nums"><Money kobo={d.summary.current_balance.kobo} currency={currency} /></p>
                 <span className="mt-1 inline-flex items-center gap-0.5 font-mont text-[11px] font-semibold text-primary">View breakdown <ChevronRight className="size-3" /></span>
               </button>
             )}
-            <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+            <div className="rounded-md bg-white p-3 ring-1 ring-white-02">
               <p className="font-mont text-[11px] text-gray-05">{acc.is_postable ? "Opening (FY carry-in)" : "Opening group balance"}</p>
               <p className="mt-1 font-mont text-base font-semibold tabular-nums"><Money kobo={d.summary.opening_balance.kobo} currency={currency} /></p>
             </div>
             {acc.is_postable ? (
-              <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+              <div className="rounded-md bg-white p-3 ring-1 ring-white-02">
                 <p className="font-mont text-[11px] text-gray-05">Posted YTD</p>
                 <p className="mt-1 font-mont text-base font-semibold tabular-nums">{d.summary.line_count} lines</p>
                 <p className="font-mont text-[11px] text-gray-05">across {d.summary.journal_count} journals</p>
               </div>
             ) : (
               <button type="button" onClick={() => setGroupView("activity")}
-                className="rounded-md bg-white p-3 text-left ring-1 ring-gray-03 transition hover:bg-primary/5 hover:ring-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                className="rounded-md bg-white p-3 text-left ring-1 ring-white-02 transition hover:bg-primary/5 hover:ring-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                 <p className="font-mont text-[11px] text-gray-05">Posted activity YTD</p>
                 <p className="mt-1 font-mont text-base font-semibold tabular-nums">{d.summary.line_count} lines</p>
                 <p className="font-mont text-[11px] text-gray-05">across {d.summary.journal_count} journals</p>
@@ -400,7 +400,7 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
           ) : (
             <>
           {/* tabs */}
-          <div className="flex max-w-full gap-1 overflow-x-auto border-b border-gray-03">
+          <div className="flex max-w-full gap-1 overflow-x-auto border-b border-white-02">
             {tabs.map((t) => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={cn("-mb-px inline-flex whitespace-nowrap items-center gap-1.5 border-b-2 px-3 py-2 font-mont text-xs font-semibold",
@@ -413,7 +413,7 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
 
           {activeTab === "activity" && (
             d.activity.length === 0 ? <EmptyState title="No postings" message="Posted journal lines hitting this account will appear here." /> : (
-              <div className="overflow-x-auto rounded-md border border-gray-03">
+              <div className="overflow-x-auto rounded-md border border-white-02">
                 <table className="w-full border-collapse">
                   <thead><tr>
                     <th className={th}>Date</th><th className={th}>Journal</th><th className={th}>Description</th>
@@ -440,14 +440,14 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
 
           {activeTab === "taccount" && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="rounded-md border border-gray-03">
-                <p className="border-b border-gray-03 bg-[#F1F1F1] px-3 py-2 font-mont text-xs font-semibold">Debits</p>
+              <div className="rounded-md border border-white-02">
+                <p className="border-b border-white-02 bg-[#F1F1F1] px-3 py-2 font-mont text-xs font-semibold">Debits</p>
                 {d.activity.filter((a) => a.debit.kobo).map((a, i) => (
                   <div key={i} className="flex justify-between px-3 py-1.5 font-mont text-xs"><span className="truncate text-gray-05">{a.journal_no}</span><Money kobo={a.debit.kobo} currency={currency} /></div>
                 ))}
               </div>
-              <div className="rounded-md border border-gray-03">
-                <p className="border-b border-gray-03 bg-[#F1F1F1] px-3 py-2 font-mont text-xs font-semibold">Credits</p>
+              <div className="rounded-md border border-white-02">
+                <p className="border-b border-white-02 bg-[#F1F1F1] px-3 py-2 font-mont text-xs font-semibold">Credits</p>
                 {d.activity.filter((a) => a.credit.kobo).map((a, i) => (
                   <div key={i} className="flex justify-between px-3 py-1.5 font-mont text-xs"><span className="truncate text-gray-05">{a.journal_no}</span><Money kobo={a.credit.kobo} currency={currency} /></div>
                 ))}
@@ -457,9 +457,9 @@ function AccountDetailDrawer({ id, entity, accounts, currency, onClose }: {
 
           {activeTab === "subs" && (
             kids.length === 0 ? <EmptyState title="No sub-accounts" message="This is a leaf account." /> : (
-              <div className="rounded-md border border-gray-03">
+              <div className="rounded-md border border-white-02">
                 {kids.map((k) => (
-                  <div key={k.id} className="flex items-center justify-between border-t border-gray-03 px-3 py-2 font-mont text-sm first:border-t-0">
+                  <div key={k.id} className="flex items-center justify-between border-t border-white-02 px-3 py-2 font-mont text-sm first:border-t-0">
                     <span><span className="font-semibold tabular-nums">{k.code}</span><span className="ml-2">{k.name}</span></span>
                     <StatusPill status={k.is_active ? "ACTIVE" : "INACTIVE"} />
                   </div>
@@ -599,7 +599,7 @@ function GroupLedger({ initialView, entity, account, accounts, summary, currency
 
   return (
     <section className="space-y-3">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-03 pb-3">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white-02 pb-3">
         <div className="flex min-w-0 items-start gap-2">
           <button type="button" onClick={onBack} aria-label="Back to account details"
             className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md text-gray-05 hover:bg-gray-02 hover:text-gray-01">
@@ -610,7 +610,7 @@ function GroupLedger({ initialView, entity, account, accounts, summary, currency
             <p className="font-mont text-xs text-gray-05">Balances and posted movement across every posting account under {account.code}.</p>
           </div>
         </div>
-        <div className="flex max-w-full overflow-x-auto rounded-md border border-gray-03 p-0.5 font-mont text-xs">
+        <div className="flex max-w-full overflow-x-auto rounded-md border border-white-02 p-0.5 font-mont text-xs">
           <button type="button" onClick={() => setView("balances")} aria-pressed={view === "balances"}
             className={cn("whitespace-nowrap rounded px-2.5 py-1.5 font-semibold", view === "balances" ? "bg-primary text-white" : "text-gray-05 hover:text-gray-01")}>
             Balance breakdown
@@ -692,7 +692,7 @@ function GroupLedger({ initialView, entity, account, accounts, summary, currency
                   <p className="text-xs font-semibold">{line.journal_no}</p>
                   <p className="text-xs text-gray-05">{line.description || "No description"}{line.cost_center ? ` · ${line.cost_center}` : ""}</p>
                 </div>
-                <div className="grid grid-cols-2 gap-3 border-t border-gray-03 pt-2">
+                <div className="grid grid-cols-2 gap-3 border-t border-white-02 pt-2">
                   <div><p className="text-[10px] uppercase tracking-wide text-gray-05">Debit</p><p className="text-sm font-semibold">{line.debit.kobo ? <Money kobo={line.debit.kobo} currency={currency} /> : "-"}</p></div>
                   <div className="text-right"><p className="text-[10px] uppercase tracking-wide text-gray-05">Credit</p><p className="text-sm font-semibold">{line.credit.kobo ? <Money kobo={line.credit.kobo} currency={currency} /> : "-"}</p></div>
                 </div>

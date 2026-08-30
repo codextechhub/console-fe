@@ -17,11 +17,11 @@ import { DocumentVoidAction } from "../receivables/document-void-action";
 
 const cap = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
 const th = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const td = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const td = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-md bg-white p-3 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-3 ring-1 ring-white-02">
       <p className="font-mont text-[11px] text-gray-05">{label}</p>
       <div className="mt-1 font-mont text-sm font-semibold tabular-nums text-black-01">{children}</div>
     </div>
@@ -119,7 +119,7 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
                 <p className="font-mont text-sm font-semibold text-gray-01">Lines</p>
                 <InfoHint ariaLabel="About journal lines">Each line targets one GL account; the cost centre tags the spending department. Manual journals can be reversed with a mirror entry. Journals created by invoices, receipts and other documents must be voided with their source document so the sub-ledger and GL stay together.</InfoHint>
               </div>
-              <div className="overflow-x-auto rounded-md border border-gray-03">
+              <div className="overflow-x-auto rounded-md border border-white-02">
                 <table className="w-full border-collapse">
                   <thead><tr>
                     <th className={th}>Account</th><th className={th}>Description</th><th className={th}>Cost centre</th><th className={th}>Dimensions</th>
@@ -141,7 +141,7 @@ export function JournalDetailDrawer({ journalId, entity, currency, onClose }: {
                     })}
                   </tbody>
                   <tfoot>
-                    <tr className="border-t-2 border-gray-03 font-semibold">
+                    <tr className="border-t-2 border-white-02 font-semibold">
                       <td className={cn(td, "border-t-0")} colSpan={4}>Totals</td>
                       <td className={cn(td, "border-t-0 text-right tabular-nums")}><Money kobo={j.total_debit} currency={currency} align="right" /></td>
                       <td className={cn(td, "border-t-0 text-right tabular-nums")}><Money kobo={j.total_credit} currency={currency} align="right" /></td>

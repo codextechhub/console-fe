@@ -16,7 +16,7 @@ import { P } from "@/permissions";
 import { useGetCurrenciesQuery, useGetFxRatesQuery, useCreateFxRateMutation } from "@/redux/services/finance/setup-api";
 import type { Currency, FxRate } from "@/redux/services/finance/setup-types";
 
-const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
+const selectCls = "h-9 rounded-md border border-white-02 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 const fmtRate = (r: string | number) => Number(r).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 
 function Delta({ pct }: { pct: number | null }) {
@@ -81,7 +81,7 @@ export function CurrenciesTab() {
     <div className="space-y-4">
       {/* tabs + action */}
       <div className="flex items-center justify-between">
-        <div className="flex gap-1 rounded-md border border-gray-03 bg-white p-1">
+        <div className="flex gap-1 rounded-md border border-white-02 bg-white p-1">
           {(["fx", "currencies"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)} className={cn("rounded px-3 py-1.5 font-mont text-xs font-semibold", tab === t ? "bg-primary text-white" : "text-gray-05 hover:text-gray-01")}>
               {t === "fx" ? "FX Rates" : "Currencies"}
@@ -100,7 +100,7 @@ export function CurrenciesTab() {
           {cards.length > 0 && (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {cards.map((c) => (
-                <div key={c.pair} className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+                <div key={c.pair} className="rounded-md bg-white p-4 ring-1 ring-white-02">
                   <p className="font-mont text-xs text-gray-05">{c.pair.replace("→", " / ")}{c.latest.source ? ` · ${c.latest.source}` : ""}</p>
                   <div className="mt-1 flex items-end justify-between gap-2">
                     <p className="font-mont text-xl font-semibold tabular-nums text-black-01">{fmtRate(c.latest.rate)}<span className="ml-1 text-xs font-normal text-gray-05">{c.latest.quote}</span></p>

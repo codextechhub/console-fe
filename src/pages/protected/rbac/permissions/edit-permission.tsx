@@ -15,6 +15,8 @@ import {
 import { toast } from "sonner";
 import { Loader2, Lock, Link2 } from "lucide-react";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const ACTIONS = ["view", "create", "update", "delete", "approve", "export", "import", "assign", "revoke", "refund", "send"];
 
@@ -114,8 +116,8 @@ export default function EditPermission() {
         )}
 
         {(hasGroups || hasDependencies) && (
-          <div className="bg-white rounded-md p-5 space-y-4">
-            <p className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3 flex items-center gap-2">
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}>
+            <p className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3 flex items-center gap-2">
               <Link2 size={15} /> Connections
             </p>
             {hasGroups && (
@@ -198,12 +200,12 @@ export default function EditPermission() {
 
             return (
               <Form className="space-y-5">
-                <div className="bg-white rounded-md p-6 space-y-5">
-                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
+                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
                     Permission Key
                   </h2>
 
-                  <div className="bg-gray-50 rounded-md px-4 py-3 border border-gray-100 space-y-0.5">
+                  <div className="bg-gray-50 rounded-md px-4 py-3 border border-white-02 space-y-0.5">
                     <p className="text-xs text-gray-01 font-mont">Current key</p>
                     <p className="font-mono text-sm font-semibold text-black-01">{perm.key}</p>
                     {keyChanged && (
@@ -260,8 +262,8 @@ export default function EditPermission() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-md p-6 space-y-5">
-                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
+                  <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
                     Details & Classification
                   </h2>
 

@@ -449,7 +449,7 @@ function WalkthroughCoach({
       {missingTarget && guide?.status === "published" && (
         <Button asChild variant="outline" size="sm" className="mt-4 w-full"><a href={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(guide.slug)} onClick={onReturnToGuide}><BookOpenText className="size-4" /> Return to the guide</a></Button>
       )}
-      <div className="mt-5 flex items-center justify-between gap-3 border-t border-gray-100 pt-4">
+      <div className="mt-5 flex items-center justify-between gap-3 border-t border-white-02 pt-4">
         <Button type="button" variant="ghost" size="sm" onClick={onPause}><Pause className="size-4" /> Pause</Button>
         <div className="flex gap-2">
           <Button type="button" variant="outline" size="sm" onClick={onBack} disabled={stepIndex === 0}><ArrowLeft className="size-4" /><span className="sr-only sm:not-sr-only">Back</span></Button>

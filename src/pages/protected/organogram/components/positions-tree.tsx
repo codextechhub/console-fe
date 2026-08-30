@@ -100,7 +100,7 @@ function SeatNode({ node, ctx }: { node: OrganogramNode; ctx: PositionsCtx }) {
               </span>
             ))}
             {inc.map((m) => (
-              <span key={m.id} className="inline-flex items-center gap-1.5 truncate rounded-lg bg-slate-50 px-2 py-1 text-[10.5px] text-slate-600 ring-1 ring-slate-100">
+              <span key={m.id} className="inline-flex items-center gap-1.5 truncate rounded-lg bg-slate-50 px-2 py-1 text-[10.5px] text-slate-600 ring-1 ring-white-02">
                 <span className="inline-block h-0 w-3.5 shrink-0 border-t-2 border-dotted border-slate-400" />
                 <span className="truncate"><span className="font-semibold">{m.position.title}</span> → here</span>
               </span>

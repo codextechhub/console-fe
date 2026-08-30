@@ -10,6 +10,7 @@ import { Download, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Money } from "@/components/finance-ui";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { formatMoney } from "@/utils/money";
 import { downloadReportExport } from "@/utils/finance-export";
 import { useGetChangesInEquityQuery } from "@/redux/services/finance/reports-api";
@@ -19,7 +20,7 @@ import type { EquityColumn } from "@/redux/services/finance/reports-types";
 function Select({ value, onChange, children, className }: { value: string; onChange: (v: string) => void; children: ReactNode; className?: string }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className={cn("h-9 rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      className={cn("h-9 rounded-md border border-white-02 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
       {children}
     </select>
   );
@@ -56,7 +57,7 @@ export function EquityReport({ entity, currency }: { entity: string; currency?: 
 
   // One movement row across all component columns + the Total column.
   const row = (label: string, valueOf: (c: EquityColumn) => number, total: number, opts?: { bold?: boolean; band?: boolean; tint?: "profit" }) => (
-    <tr className={cn("border-t border-gray-03 font-mont text-sm",
+    <tr className={cn("border-t border-white-02 font-mont text-sm",
       opts?.band ? "border-t-2 bg-violet-50/50 font-bold text-black-01" : opts?.bold ? "bg-gray-03/30 font-semibold text-gray-01" : "text-gray-01")}>
       <td className="px-4 py-2">{label}</td>
       {cols.map((c) => <td key={c.key} className={cell}>{amt(valueOf(c), opts?.tint)}</td>)}
@@ -74,14 +75,14 @@ export function EquityReport({ entity, currency }: { entity: string; currency?: 
         <div className="flex items-center gap-2">
           {(["csv", "xlsx", "pdf"] as const).map((f) => (
             <button key={f} onClick={() => downloadReportExport("/finance/reports/changes-in-equity/", { entity, period: period || undefined }, f)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-03 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:border-primary hover:text-primary">
+              className="inline-flex items-center gap-1.5 rounded-md border border-white-02 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:border-primary hover:text-primary">
               <Download className="size-3.5" /> {f.toUpperCase()}
             </button>
           ))}
         </div>
       </div>
 
-      <div className={cn("overflow-x-auto rounded-md bg-white", isFetching && "opacity-60")}>
+      <div className={cn(INFORMATION_CARD_SURFACE, "overflow-x-auto rounded-md", isFetching && "opacity-60")}>
         <table className="w-full">
           <thead>
             <tr className="bg-[#F1F1F1] text-left">

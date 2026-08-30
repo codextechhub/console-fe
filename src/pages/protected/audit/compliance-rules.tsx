@@ -224,7 +224,7 @@ export default function ComplianceRules() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-03">
+                <tbody className="divide-y divide-white-02">
                   {isLoading ? (
                     <tr>
                       <td colSpan={9} className="h-60 text-center">

@@ -16,7 +16,7 @@ import { useGetCurrenciesQuery } from "@/redux/services/finance/setup-api";
 import type { LedgerEntity } from "@/redux/services/finance/entity-types";
 import { buildEntityCreatePayload } from "./entity-create-payload";
 
-const selectCls = "h-9 w-full rounded-md border border-gray-03 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
+const selectCls = "h-9 w-full rounded-md border border-white-02 bg-white px-2 font-mont text-sm text-black-01 focus:border-primary focus:outline-none";
 
 export function EntitiesTab() {
   const { data, isLoading, isFetching, isError, refetch } = useGetEntitiesQuery();

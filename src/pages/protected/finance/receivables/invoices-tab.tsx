@@ -60,7 +60,7 @@ function Kpi({ label, value, delta, deltaIsPoints }: {
   const up = (delta ?? 0) >= 0;
   const Icon = up ? ArrowUp : ArrowDown;
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="font-mont text-xs text-gray-05">{label}</p>
       <p className={cn("mt-2 font-mont font-semibold tabular-nums text-black-01", kpiValueClass(value))}>{value}</p>
       <div className="mt-2 flex items-center gap-1.5">
@@ -170,7 +170,7 @@ export function InvoicesTab({ entity, currency }: { entity: string; currency?: s
       {/* search + status filters */}
       <div className="flex min-w-0 flex-col gap-2 md:flex-row md:items-center">
         <div className="min-w-0 flex-1">
-          <div className="flex max-w-full items-center gap-1 overflow-x-auto whitespace-nowrap rounded-md border border-gray-03 bg-white p-1">
+          <div className="flex max-w-full items-center gap-1 overflow-x-auto whitespace-nowrap rounded-md border border-white-02 bg-white p-1">
             {TABS.map((t) => (
               <button key={t.key} onClick={() => { setBucket(t.key); setPage(1); }}
                 className={cn("shrink-0 rounded-md px-3 py-1.5 font-mont text-xs font-semibold", bucket === t.key ? "bg-primary text-white" : "text-gray-05 hover:bg-gray-50 hover:text-gray-01")}>

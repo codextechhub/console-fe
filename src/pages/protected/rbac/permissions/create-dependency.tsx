@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { PageShell } from "@/components/layout/page-shell";
 import {
   useCreatePermissionDependencyMutation,
@@ -95,7 +96,7 @@ function PermissionPicker({
 
         {open && (
           <div className="absolute z-50 mt-1 left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg overflow-hidden">
-            <div className="p-2 border-b border-gray-100 flex items-center gap-2">
+            <div className="p-2 border-b border-white-02 flex items-center gap-2">
               <Search className="size-3.5 text-gray-01 shrink-0" />
               <input
                 ref={inputRef}
@@ -195,8 +196,8 @@ export default function CreateDependency() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-5 items-start">
           {/* Left - picker form */}
-          <div className="bg-white rounded-md p-6 space-y-5">
-            <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+          <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
+            <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
               Select Permissions
             </h2>
 
@@ -233,7 +234,7 @@ export default function CreateDependency() {
 
           {/* Right - preview + info */}
           <div className="space-y-5">
-            <div className="bg-white rounded-md p-6 space-y-3">
+            <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-3")}>
               <p className="text-xs font-semibold text-black-01 uppercase tracking-wide">Preview</p>
               {canPreview ? (
                 <div className="flex items-center gap-3 flex-wrap">

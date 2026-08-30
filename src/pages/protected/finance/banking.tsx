@@ -55,7 +55,7 @@ import { PageShell } from "@/components/layout/page-shell";
 
 const PILL = "inline-flex rounded px-2 py-0.5 font-mont text-[11px] font-medium";
 const thCls = "bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01";
-const tdCls = "border-t border-gray-03 px-3 py-2 font-mont text-xs text-black-01";
+const tdCls = "border-t border-white-02 px-3 py-2 font-mont text-xs text-black-01";
 const fmtDate = (s: string | null) => (s ? new Date(s).toLocaleDateString() : "-");
 const partialMask = (n: string) => {
   const s = n.replace(/\s+/g, "");
@@ -69,7 +69,7 @@ const listAcctNo = (a: { account_number?: string; _stripped_fields?: string[] })
 
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="font-mont text-xs text-gray-05">{label}</p>
       <p className="mt-1 font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
       {hint && <p className="mt-0.5 font-mont text-[11px] text-gray-05">{hint}</p>}
@@ -176,7 +176,7 @@ const TABS = [
 
 function MetricCard({ label, kobo, currency, danger }: { label: string; kobo: number; currency?: string | null; danger?: boolean }) {
   return (
-    <div className="rounded-md border border-gray-03 bg-white p-3">
+    <div className="rounded-md border border-white-02 bg-white p-3">
       <p className="font-mont text-[11px] text-gray-05">{label}</p>
       <p className={cn("mt-1 font-mont text-base font-semibold tabular-nums", danger && kobo !== 0 ? "text-destructive" : "text-black-01")}>{formatMoney(kobo, currency)}</p>
     </div>
@@ -246,7 +246,7 @@ function BankAccountDrawer({ account, entity, currency, onClose }: { account: Ba
             <MetricCard label="Unreconciled diff" kobo={m?.unreconciled_diff ?? 0} currency={currency} danger />
           </div>
 
-          <div className="flex flex-wrap gap-1 border-b border-gray-03">
+          <div className="flex flex-wrap gap-1 border-b border-white-02">
             {TABS.map((t) => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={cn("-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 font-mont text-xs font-semibold",
@@ -298,7 +298,7 @@ function TransactionsTab({ detail, currency }: { detail?: { transactions: import
   const txns = detail?.transactions ?? [];
   if (txns.length === 0) return <EmptyState title="No transactions" message="Posted movements on this account's GL appear here." />;
   return (
-    <div className="overflow-hidden rounded-md border border-gray-03">
+    <div className="overflow-hidden rounded-md border border-white-02">
       <table className="w-full border-collapse">
         <thead><tr>
           <th className={thCls}>Date</th><th className={thCls}>Description</th><th className={thCls}>Reference</th>
@@ -342,7 +342,7 @@ function StatementLinesTab({ id, entity, currency }: { id: number; entity: strin
   if (lines.length === 0) return <EmptyState title="No statement lines" message="Import a statement to begin reconciling." />;
   return (
     <>
-      <div className="overflow-hidden rounded-md border border-gray-03">
+      <div className="overflow-hidden rounded-md border border-white-02">
         <table className="w-full border-collapse">
           <thead><tr>
             <th className={thCls}>Date</th><th className={thCls}>Description</th><th className={thCls}>Reference</th>
@@ -404,7 +404,7 @@ function StatementsTab({
   const sts = detail?.statements ?? [];
   if (sts.length === 0) return <EmptyState title="No statements" message="Imported statement batches appear here." />;
   return (
-    <div className="overflow-hidden rounded-md border border-gray-03">
+    <div className="overflow-hidden rounded-md border border-white-02">
       <table className="w-full border-collapse">
         <thead><tr>
           <th className={thCls}>Statement date</th><th className={thCls}>Period</th>
@@ -447,7 +447,7 @@ function ReconciliationsTab({ detail, currency }: { detail?: { reconciliations: 
   const recs = detail?.reconciliations ?? [];
   if (recs.length === 0) return <EmptyState title="No reconciliations yet" message="Each Auto-reconcile run is recorded here for audit." />;
   return (
-    <div className="overflow-hidden rounded-md border border-gray-03">
+    <div className="overflow-hidden rounded-md border border-white-02">
       <table className="w-full border-collapse">
         <thead><tr>
           <th className={thCls}>Date</th><th className={cn(thCls, "text-right")}>Book</th>
@@ -696,7 +696,7 @@ function EditStatementForm({
         </div>
         <div className="space-y-2">
           {rows.map((row, index) => (
-            <div key={row.id ?? `new-${index}`} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+            <div key={row.id ?? `new-${index}`} className="flex items-end gap-2 rounded-md border border-white-02 bg-white p-2.5">
               <div className="grid flex-1 grid-cols-12 gap-2">
                 <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Date</p><Input type="date" value={row.txn_date} onChange={(event) => setRow(index, { txn_date: event.target.value })} disabled={!statement.can_edit} className="bg-white font-mont text-sm" /></div>
                 <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={row.description} onChange={(event) => setRow(index, { description: event.target.value })} disabled={!statement.can_edit} className="bg-white text-sm" /></div>
@@ -790,7 +790,7 @@ function ImportStatementDrawer({ id, entity, onClose }: { id: number; entity: st
           </div>
           <div className="space-y-2">
             {rows.map((r, i) => (
-              <div key={i} className="flex items-end gap-2 rounded-md border border-gray-03 bg-white p-2.5">
+              <div key={i} className="flex items-end gap-2 rounded-md border border-white-02 bg-white p-2.5">
                 <div className="grid flex-1 grid-cols-12 gap-2">
                   <div className="col-span-3"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Date</p><Input type="date" value={r.txn_date} onChange={(e) => setRow(i, { txn_date: e.target.value })} className="bg-white font-mont text-sm" /></div>
                   <div className="col-span-4"><p className="mb-1 font-mont text-[10px] uppercase tracking-wide text-gray-05">Description</p><Input value={r.description} onChange={(e) => setRow(i, { description: e.target.value })} className="bg-white text-sm" /></div>
@@ -930,7 +930,7 @@ function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity
           onCancel={requestCancel}
         />
       ) : (
-        <div className="space-y-5 rounded-md border border-gray-100 bg-white p-4 sm:p-6">
+        <div className="space-y-5 rounded-md border border-white-02 bg-white p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gray-03 bg-gray-03 px-4 py-3">
             <div>
               <p className="font-mont text-xs font-semibold text-gray-01">Use the statement template</p>
@@ -975,7 +975,7 @@ function BulkImportStatementDrawer({ id, entity, onClose }: { id: number; entity
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
               placeholder="Optional note for this import"
-              className="w-full rounded-md border border-gray-03 bg-white px-3 py-2 font-mont text-sm"
+              className="w-full rounded-md border border-white-02 bg-white px-3 py-2 font-mont text-sm"
             />
           </FormField>
 

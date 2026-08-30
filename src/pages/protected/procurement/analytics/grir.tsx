@@ -10,6 +10,7 @@ import {
   LoadingState, Money, toArray,
 } from "@/components/finance-ui";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import {
   useGetGrirAgingQuery, useGetGrirPoLineDetailQuery, useGetGrirPoLinesQuery,
 } from "@/redux/services/procurement/procurement-ext-api";
@@ -51,11 +52,11 @@ export default function GrirScreen({ entity, currency }: SectionProps) {
       <SectionHeader title="GR/IR & Control" subtitle="Goods-received vs invoice-received reconciliation." />
 
       {isForbidden(error) ? (
-        <div className="rounded-md bg-white"><ForbiddenState /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><ForbiddenState /></div>
       ) : isLoading ? (
-        <div className="rounded-md bg-white"><LoadingState rows={8} /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><LoadingState rows={8} /></div>
       ) : isError || !d ? (
-        <div className="rounded-md bg-white"><ErrorState onRetry={refetch} /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><ErrorState onRetry={refetch} /></div>
       ) : (
         <GrirBody d={d} currency={currency} entity={entity} />
       )}
@@ -143,7 +144,7 @@ function GrirLinesTable({ entity, currency, onSelect }: {
   const rows = toArray(data?.data?.rows);
 
   return (
-    <section className="min-w-0 rounded-md bg-white">
+    <section className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
       {isForbidden(error) ? (
         <ForbiddenState />
       ) : isLoading ? (
@@ -226,7 +227,7 @@ function GrirPoLineBody({ d, currency }: { d: GrirPoLineDetail; currency?: strin
           <p className="font-mont text-xs font-semibold text-gray-05">Reconciliation</p>
           <StatusDotPill tone={lineTone(d.status)}>{d.status}</StatusDotPill>
         </div>
-        <dl className="grid grid-cols-2 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-3">
+        <dl className="grid grid-cols-2 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-3">
           <Field label="Ordered" value={qty(d.ordered_qty)} />
           <Field label="Received" value={qty(d.received_qty)} />
           <Field label="Invoiced" value={qty(d.invoiced_qty)} />
@@ -241,7 +242,7 @@ function GrirPoLineBody({ d, currency }: { d: GrirPoLineDetail; currency?: strin
 
       <div>
         <p className="mb-2 font-mont text-xs font-semibold text-gray-05">Linked documents</p>
-        <dl className="grid grid-cols-2 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-2">
+        <dl className="grid grid-cols-2 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-2">
           <Field label="Source PO" value={d.po_number} />
           <Field label="Vendor" value={`${d.vendor_code} · ${d.vendor_name}`} />
           <Field label="Unit price" value={formatMoney(kobo(d.unit_price), currency)} />
@@ -254,7 +255,7 @@ function GrirPoLineBody({ d, currency }: { d: GrirPoLineDetail; currency?: strin
         {grns.length === 0 ? (
           <EmptyPanel>No posted goods receipt references this PO line yet.</EmptyPanel>
         ) : (
-          <div className="overflow-x-auto rounded-md border border-gray-03">
+          <div className="overflow-x-auto rounded-md border border-white-02">
             <table className="w-full min-w-[460px] border-collapse">
               <thead>
                 <tr>
@@ -266,10 +267,10 @@ function GrirPoLineBody({ d, currency }: { d: GrirPoLineDetail; currency?: strin
               <tbody>
                 {grns.map((g) => (
                   <tr key={g.id}>
-                    <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold tabular-nums text-primary">{g.reference}</td>
-                    <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(g.received_date)}</td>
-                    <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{qty(g.accepted_qty)}</td>
-                    <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{formatMoney(kobo(g.value), currency)}</td>
+                    <td className="border-t border-white-02 px-3 py-2 font-mont text-xs font-semibold tabular-nums text-primary">{g.reference}</td>
+                    <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(g.received_date)}</td>
+                    <td className="border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums">{qty(g.accepted_qty)}</td>
+                    <td className="border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums">{formatMoney(kobo(g.value), currency)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -283,7 +284,7 @@ function GrirPoLineBody({ d, currency }: { d: GrirPoLineDetail; currency?: strin
         {invoices.length === 0 ? (
           <EmptyPanel>No posted vendor invoice has cleared this PO line yet.</EmptyPanel>
         ) : (
-          <div className="overflow-x-auto rounded-md border border-gray-03">
+          <div className="overflow-x-auto rounded-md border border-white-02">
             <table className="w-full min-w-[460px] border-collapse">
               <thead>
                 <tr>
@@ -295,10 +296,10 @@ function GrirPoLineBody({ d, currency }: { d: GrirPoLineDetail; currency?: strin
               <tbody>
                 {invoices.map((vi) => (
                   <tr key={vi.id}>
-                    <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold tabular-nums text-primary">{vi.document_number}</td>
-                    <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(vi.invoice_date)}</td>
-                    <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{qty(vi.quantity)}</td>
-                    <td className="border-t border-gray-03 px-3 py-2 text-right font-mont text-xs tabular-nums">{formatMoney(kobo(vi.net), currency)}</td>
+                    <td className="border-t border-white-02 px-3 py-2 font-mont text-xs font-semibold tabular-nums text-primary">{vi.document_number}</td>
+                    <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(vi.invoice_date)}</td>
+                    <td className="border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums">{qty(vi.quantity)}</td>
+                    <td className="border-t border-white-02 px-3 py-2 text-right font-mont text-xs tabular-nums">{formatMoney(kobo(vi.net), currency)}</td>
                   </tr>
                 ))}
               </tbody>

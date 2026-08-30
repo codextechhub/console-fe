@@ -50,7 +50,7 @@ export function DetailDrawer({
           widthClass,
         )}
       >
-        <SheetHeader className="border-b border-gray-03 px-5 py-4">
+        <SheetHeader className="border-b border-white-02 px-5 py-4">
           <SheetTitle className="font-mont text-base font-semibold text-black-01">{title}</SheetTitle>
           <SheetDescription className={cn("font-mont text-xs text-gray-05", !description && "sr-only")}>
             {description ?? "Review the selected record and its available actions."}
@@ -62,7 +62,7 @@ export function DetailDrawer({
         </ScrollArea>
 
         {footer ? (
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-gray-03 px-5 py-4">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-white-02 px-5 py-4">
             {footer}
           </div>
         ) : null}

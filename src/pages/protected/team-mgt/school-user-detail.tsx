@@ -27,7 +27,7 @@ function DetailField({
   value?: string | number | null;
 }) {
   return (
-    <div className="rounded-md border border-gray-03 bg-white p-3.5">
+    <div className="rounded-md border border-white-02 bg-white p-3.5">
       <div className="mb-1.5 flex items-center gap-2 text-xs text-gray-01">
         <Icon className="size-3.5" />
         <span>{label}</span>
@@ -69,7 +69,7 @@ export function SchoolUserDetail({
       <SheetContent className="w-full sm:max-w-xl">
         <ScrollArea className="min-h-0 flex-1">
           <div className="flex flex-col gap-4">
-            <SheetHeader className="border-b border-gray-03 pb-4">
+            <SheetHeader className="border-b border-white-02 pb-4">
               <SheetTitle>School User Details</SheetTitle>
               <SheetDescription>Read-only identity, placement, access, and account activity.</SheetDescription>
             </SheetHeader>

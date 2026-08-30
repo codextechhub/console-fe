@@ -7,6 +7,7 @@ import {
   LoadingState, Money, toArray,
 } from "@/components/finance-ui";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import {
   useGetApAgingQuery, useGetApAgingVendorQuery, useGetApCashRequirementsQuery,
 } from "@/redux/services/procurement/procurement-ext-api";
@@ -61,11 +62,11 @@ export default function ApAgingScreen({ entity, currency }: SectionProps) {
       </SectionHeader>
 
       {forbidden ? (
-        <div className="rounded-md bg-white"><ForbiddenState /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><ForbiddenState /></div>
       ) : aging.isLoading ? (
-        <div className="rounded-md bg-white"><LoadingState rows={8} /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><LoadingState rows={8} /></div>
       ) : aging.isError || !d ? (
-        <div className="rounded-md bg-white"><ErrorState onRetry={aging.refetch} /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><ErrorState onRetry={aging.refetch} /></div>
       ) : (
         <ApAgingBody d={d} cash={cash.data?.data} currency={currency} entity={entity} asOf={asOf} />
       )}
@@ -115,7 +116,7 @@ function ApAgingBody({ d, cash, currency, entity, asOf }: {
         />
       </Card>
 
-      <section className="min-w-0 rounded-md bg-white">
+      <section className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
         {rows.length === 0 ? (
           <EmptyState title="No outstanding payables" message="Nothing is owed to vendors as of this date." />
         ) : (
@@ -220,7 +221,7 @@ function ApVendorBody({ d, currency }: { d: ApVendorDetail; currency?: string | 
         )}
       </div>
 
-      <dl className="grid grid-cols-2 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-3">
+      <dl className="grid grid-cols-2 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-3">
         <Field label="Outstanding" value={formatMoney(outstanding, currency)} />
         <Field label="Paid in advance" value={formatMoney(kobo(d.unallocated_credit), currency)} />
         <Field label="Net payable" value={formatMoney(kobo(d.net), currency)} />
@@ -231,7 +232,7 @@ function ApVendorBody({ d, currency }: { d: ApVendorDetail; currency?: string | 
         {invoices.length === 0 ? (
           <EmptyPanel>No open invoices for this vendor.</EmptyPanel>
         ) : (
-          <div className="overflow-x-auto rounded-md border border-gray-03">
+          <div className="overflow-x-auto rounded-md border border-white-02">
             <table className="w-full min-w-[620px] border-collapse">
               <thead>
                 <tr>
@@ -243,12 +244,12 @@ function ApVendorBody({ d, currency }: { d: ApVendorDetail; currency?: string | 
               <tbody>
                 {invoices.map((inv) => (
                   <tr key={inv.invoice_id}>
-                    <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold tabular-nums text-primary">{inv.document_number}</td>
-                    <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(inv.invoice_date)}</td>
-                    <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{inv.due_date ? shortDate(inv.due_date) : "-"}</td>
-                    <td className={cn("border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums", inv.days_overdue > 0 ? "text-destructive" : "text-gray-05")}>{inv.days_overdue > 0 ? `${inv.days_overdue}d` : "-"}</td>
-                    <td className="border-t border-gray-03 px-3 py-2"><Pill tone={bucketTone(inv.bucket)}>{BUCKET_LABEL[inv.bucket] ?? inv.bucket}</Pill></td>
-                    <td className="border-t border-gray-03 px-3 py-2 text-right"><Money kobo={kobo(inv.balance_due)} currency={currency} align="right" /></td>
+                    <td className="border-t border-white-02 px-3 py-2 font-mont text-xs font-semibold tabular-nums text-primary">{inv.document_number}</td>
+                    <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(inv.invoice_date)}</td>
+                    <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{inv.due_date ? shortDate(inv.due_date) : "-"}</td>
+                    <td className={cn("border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums", inv.days_overdue > 0 ? "text-destructive" : "text-gray-05")}>{inv.days_overdue > 0 ? `${inv.days_overdue}d` : "-"}</td>
+                    <td className="border-t border-white-02 px-3 py-2"><Pill tone={bucketTone(inv.bucket)}>{BUCKET_LABEL[inv.bucket] ?? inv.bucket}</Pill></td>
+                    <td className="border-t border-white-02 px-3 py-2 text-right"><Money kobo={kobo(inv.balance_due)} currency={currency} align="right" /></td>
                   </tr>
                 ))}
               </tbody>

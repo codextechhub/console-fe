@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { useActionParam } from "@/hooks/use-action-param";
 import { useFilterParam } from "@/hooks/use-filter-param";
 import type { Person, Task, TaskCreatePayload, TaskUpdatePayload } from "@/redux/services/dashboard/todo-types";
@@ -330,13 +331,13 @@ function DashboardSkeleton() {
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-26 rounded-md bg-white" />
+          <Skeleton key={i} className={cn(INFORMATION_CARD_SURFACE, "h-26 rounded-md")} />
         ))}
       </div>
       <Skeleton className="h-11 w-64 rounded-sm bg-white" />
       <div className="space-y-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 rounded-md bg-white" />
+          <Skeleton key={i} className={cn(INFORMATION_CARD_SURFACE, "h-24 rounded-md")} />
         ))}
       </div>
     </div>

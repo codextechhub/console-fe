@@ -38,7 +38,7 @@ function fmtDate(iso?: string) {
 
 const F = routesPath.PROTECTED.FINANCE;
 const headCls = "text-gray-01 bg-[#F1F1F1] font-semibold font-mont text-xs whitespace-nowrap pt-3 pb-2";
-const cellCls = "text-black-01 border-gray-03 font-medium font-mont text-sm border-y-5";
+const cellCls = "text-black-01 border-white-02 font-medium font-mont text-sm border-y-5";
 
 // ── small building blocks ────────────────────────────────────────────────────
 
@@ -219,14 +219,14 @@ export default function FinanceDashboard() {
           <div className="flex items-center gap-2">
             {periods.length > 0 && (
               <select value={period} onChange={(e) => setPicked({ entity: entity!, period: e.target.value })}
-                className="h-8 rounded-md border border-gray-03 bg-white px-2 font-mont text-xs font-medium text-gray-01">
+                className="h-8 rounded-md border border-white-02 bg-white px-2 font-mont text-xs font-medium text-gray-01">
                 <option value="">Current period</option>
                 {periods.map((p) => (
                   <option key={p.id} value={p.period_no}>{p.name}</option>
                 ))}
               </select>
             )}
-            <button onClick={() => navigate(F.LEDGER)} className="inline-flex items-center gap-1.5 rounded-md border border-gray-03 bg-white px-3 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:bg-gray-50">
+            <button onClick={() => navigate(F.LEDGER)} className="inline-flex items-center gap-1.5 rounded-md border border-white-02 bg-white px-3 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:bg-gray-50">
               <FileText className="size-3.5" /> New journal
             </button>
             <button onClick={() => navigate(F.RECORD_PAYMENT)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 font-mont text-xs font-semibold text-white hover:bg-primary/90">
@@ -269,7 +269,7 @@ export default function FinanceDashboard() {
                   <BudgetBar label="Expense YTD" pct={d.revenue_vs_budget.expense.pct_of_plan}
                     valueText={m(d.revenue_vs_budget.expense.actual)} planText={m(d.revenue_vs_budget.expense.plan)}
                     color={(d.revenue_vs_budget.expense.pct_of_plan ?? 0) > 100 ? CHART_COLORS.red : CHART_COLORS.primary} />
-                  <div className="flex items-center justify-between border-t border-gray-03 pt-3 font-mont">
+                  <div className="flex items-center justify-between border-t border-white-02 pt-3 font-mont">
                     <span className="text-sm font-medium text-gray-01">Net income YTD vs budget</span>
                     <span className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-black-01 tabular-nums">{m(d.revenue_vs_budget.net.actual)}</span>
@@ -285,7 +285,7 @@ export default function FinanceDashboard() {
                   key: b.key, label: AGING_META[b.key]?.label ?? b.key, pct: b.pct,
                   amount: <Money kobo={b.amount.kobo} currency={currency} />, color: AGING_META[b.key]?.color ?? CHART_COLORS.slate,
                 }))} />
-                <div className="mt-3 flex items-center justify-between border-t border-gray-03 pt-3 font-mont text-sm">
+                <div className="mt-3 flex items-center justify-between border-t border-white-02 pt-3 font-mont text-sm">
                   <span className="text-gray-05">Total outstanding</span>
                   <span className="font-semibold text-black-01"><Money kobo={d.ar_aging.total.kobo} currency={currency} /></span>
                 </div>
@@ -295,7 +295,7 @@ export default function FinanceDashboard() {
             {/* Receivables vs Collections trend */}
             <Card title="Receivables vs Collections" subtitle="Trailing 12 months"
               action={
-                <div className="flex rounded-md border border-gray-03 p-0.5 font-mont text-xs">
+                <div className="flex rounded-md border border-white-02 p-0.5 font-mont text-xs">
                   {(["monthly", "quarterly"] as const).map((g) => (
                     <button key={g} onClick={() => setGranularity(g)}
                       className={cn("rounded px-2.5 py-1 capitalize", granularity === g ? "bg-primary text-white" : "text-gray-05 hover:text-gray-01")}>
@@ -376,7 +376,7 @@ export default function FinanceDashboard() {
                   <div className="space-y-2">
                     {d.close_progress.checks.map((c) => (
                       <div key={c.name} className="flex items-center gap-2 font-mont text-sm">
-                        <span className={cn("flex size-4 items-center justify-center rounded-full", c.passed ? "bg-green-01 text-white" : "border border-gray-03")}>
+                        <span className={cn("flex size-4 items-center justify-center rounded-full", c.passed ? "bg-green-01 text-white" : "border border-white-02")}>
                           {c.passed && <Check className="size-3" />}
                         </span>
                         <span className={cn(c.passed ? "text-gray-01" : "text-gray-05")}>{c.name.replace(/_/g, " ")}</span>
@@ -398,7 +398,7 @@ export default function FinanceDashboard() {
                   { label: "Run report", icon: BarChart3, to: `${F.REPORTS}/trial-balance` },
                 ].map((q) => (
                   <button key={q.label} onClick={() => navigate(q.to)}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-gray-03 bg-white px-3 py-2 font-mont text-xs font-medium text-gray-01 hover:bg-gray-50">
+                    className="inline-flex items-center gap-1.5 rounded-md border border-white-02 bg-white px-3 py-2 font-mont text-xs font-medium text-gray-01 hover:bg-gray-50">
                     <q.icon className="size-3.5 text-gray-05" /> {q.label}
                   </button>
                 ))}

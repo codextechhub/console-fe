@@ -10,6 +10,7 @@ import { Download } from "lucide-react";
 import { Money } from "@/components/finance-ui";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { formatMoney } from "@/utils/money";
 import { downloadReportExport } from "@/utils/finance-export";
 import { useGetIncomeStatementQuery } from "@/redux/services/finance/reports-api";
@@ -19,7 +20,7 @@ import type { IncomeStatementLine, IncomeStatementTotals } from "@/redux/service
 function Select({ value, onChange, children, className }: { value: string; onChange: (v: string) => void; children: ReactNode; className?: string }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className={cn("h-9 rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      className={cn("h-9 rounded-md border border-white-02 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
       {children}
     </select>
   );
@@ -68,7 +69,7 @@ export function IncomeStatementReport({ entity, currency }: { entity: string; cu
   const muted = "text-gray-05";
 
   const line = (r: IncomeStatementLine) => (
-    <tr key={r.account_id} className="border-t border-gray-03 font-mont text-sm">
+    <tr key={r.account_id} className="border-t border-white-02 font-mont text-sm">
       <td className="px-3 py-2"><span className="tabular-nums text-gray-05">{r.code}</span> <span className="text-gray-01">{r.name}</span></td>
       <td className={cn(numCell, "font-medium text-black-01")}><Money kobo={r.amount.kobo} currency={currency} align="right" /></td>
       {showBudget ? <td className={cn(numCell, muted)}>{r.budget ? <Money kobo={r.budget.kobo} currency={currency} align="right" /> : "-"}</td> : null}
@@ -85,7 +86,7 @@ export function IncomeStatementReport({ entity, currency }: { entity: string; cu
   );
 
   const totalRow = (label: string, t: IncomeStatementTotals, opts?: { net?: boolean }) => (
-    <tr className={cn("border-t border-gray-03 font-mont", opts?.net
+    <tr className={cn("border-t border-white-02 font-mont", opts?.net
       ? "border-t-2 bg-white-02/50 text-[15px] font-bold text-black-01"
       : "bg-gray-03/30 text-sm font-semibold text-gray-01")}>
       <td className="px-3 py-2.5">{label}</td>
@@ -110,14 +111,14 @@ export function IncomeStatementReport({ entity, currency }: { entity: string; cu
         <div className="flex items-center gap-2">
           {(["csv", "xlsx", "pdf"] as const).map((f) => (
             <button key={f} onClick={() => downloadReportExport("/finance/reports/income-statement/", { entity, period: period || undefined }, f)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-03 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:border-primary hover:text-primary">
+              className="inline-flex items-center gap-1.5 rounded-md border border-white-02 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:border-primary hover:text-primary">
               <Download className="size-3.5" /> {f.toUpperCase()}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-md bg-white">
+      <div className={cn(INFORMATION_CARD_SURFACE, "overflow-x-auto rounded-md")}>
         <table className="w-full">
           <thead>
             <tr className="bg-[#F1F1F1] text-left">

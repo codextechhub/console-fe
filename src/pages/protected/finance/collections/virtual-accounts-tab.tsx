@@ -31,11 +31,11 @@ const PROVIDERS: { value: string; label: string }[] = [
   { value: "FAKE", label: "Fake (testing)" },
 ];
 const providerLabel = (p: string) => PROVIDERS.find((x) => x.value === p)?.label ?? p;
-const selectCls = "h-9 rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01";
+const selectCls = "h-9 rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01";
 
 function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-md bg-white p-4 ring-1 ring-gray-03">
+    <div className="rounded-md bg-white p-4 ring-1 ring-white-02">
       <p className="font-mont text-xs text-gray-05">{label}</p>
       <p className="mt-1 font-mont text-xl font-semibold tabular-nums text-black-01">{value}</p>
       {hint && <p className="mt-0.5 font-mont text-[11px] text-gray-05">{hint}</p>}
@@ -200,7 +200,7 @@ function VirtualAccountDetailDrawer({ va, entity, currency, onClose, onUpdated }
           ) : collections.length === 0 ? (
             <p className="rounded-md border border-gray-03 bg-gray-03 px-3 py-2 font-mont text-[11px] text-gray-05">No transfers have arrived through this account yet.</p>
           ) : (
-            <div className="overflow-hidden rounded-md border border-gray-03">
+            <div className="overflow-hidden rounded-md border border-white-02">
               <table className="w-full border-collapse">
                 <thead><tr>
                   <th className="bg-[#F1F1F1] px-3 py-2 text-left font-mont text-[11px] font-semibold text-gray-01">Reference</th>
@@ -211,10 +211,10 @@ function VirtualAccountDetailDrawer({ va, entity, currency, onClose, onUpdated }
                 <tbody>
                   {collections.map((c) => (
                     <tr key={c.id}>
-                      <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums text-black-01">{c.reference}</td>
-                      <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums text-gray-05">{new Date(c.created_at).toLocaleDateString()}</td>
-                      <td className="border-t border-gray-03 px-3 py-2 text-right"><Money kobo={c.amount} currency={currency} align="right" /></td>
-                      <td className="border-t border-gray-03 px-3 py-2"><StatusPill status={c.status} /></td>
+                      <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums text-black-01">{c.reference}</td>
+                      <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums text-gray-05">{new Date(c.created_at).toLocaleDateString()}</td>
+                      <td className="border-t border-white-02 px-3 py-2 text-right"><Money kobo={c.amount} currency={currency} align="right" /></td>
+                      <td className="border-t border-white-02 px-3 py-2"><StatusPill status={c.status} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -266,7 +266,7 @@ function ProvisionDrawer({ open, onClose, entity }: { open: boolean; onClose: ()
           <CustomerPicker entity={entity} value={customer} onChange={setCustomer} placeholder="Select customer" />
         </FormField>
         <FormField label="Provider" required>
-          <select value={provider} onChange={(e) => setProvider(e.target.value)} className="h-9 w-full rounded-md border border-gray-03 bg-white px-3 font-mont text-sm text-gray-01">
+          <select value={provider} onChange={(e) => setProvider(e.target.value)} className="h-9 w-full rounded-md border border-white-02 bg-white px-3 font-mont text-sm text-gray-01">
             {PROVIDERS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
           </select>
         </FormField>

@@ -10,6 +10,7 @@ import { Download, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Money } from "@/components/finance-ui";
 import { LoadingState, ErrorState } from "@/components/finance-ui/states";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { formatMoney } from "@/utils/money";
 import { downloadReportExport } from "@/utils/finance-export";
 import { useGetCashFlowQuery } from "@/redux/services/finance/reports-api";
@@ -30,7 +31,7 @@ const signed = (kobo: number, currency?: string | null) => `${kobo < 0 ? "−" :
 function Select({ value, onChange, children, className }: { value: string; onChange: (v: string) => void; children: ReactNode; className?: string }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className={cn("h-9 rounded-md border border-gray-03 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
+      className={cn("h-9 rounded-md border border-white-02 bg-white px-2.5 font-mont text-xs text-black-01 focus:border-primary focus:outline-none", className)}>
       {children}
     </select>
   );
@@ -65,14 +66,14 @@ export function CashFlowReport({ entity, currency }: { entity: string; currency?
         <div className="flex items-center gap-2">
           {(["csv", "xlsx", "pdf"] as const).map((f) => (
             <button key={f} onClick={() => downloadReportExport("/finance/reports/cash-flow/", { entity, period: period || undefined }, f)}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-03 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:border-primary hover:text-primary">
+              className="inline-flex items-center gap-1.5 rounded-md border border-white-02 px-2.5 py-1.5 font-mont text-xs font-semibold text-gray-01 hover:border-primary hover:text-primary">
               <Download className="size-3.5" /> {f.toUpperCase()}
             </button>
           ))}
         </div>
       </div>
 
-      <div className={cn("overflow-x-auto rounded-md bg-white", isFetching && "opacity-60")}>
+      <div className={cn(INFORMATION_CARD_SURFACE, "overflow-x-auto rounded-md", isFetching && "opacity-60")}>
         <table className="w-full">
           <tbody>
             {ACTIVITIES.map(({ key, label }) => {
@@ -85,7 +86,7 @@ export function CashFlowReport({ entity, currency }: { entity: string; currency?
                     <td className="px-4 py-1.5" colSpan={2}>{label}</td>
                   </tr>
                   {lines.map((ln) => (
-                    <tr key={`${key}-${ln.account_id}`} className="border-t border-gray-03 font-mont text-sm">
+                    <tr key={`${key}-${ln.account_id}`} className="border-t border-white-02 font-mont text-sm">
                       <td className="px-4 py-2 text-gray-01">{ln.name}</td>
                       <td className={numCell}>{amountCell(ln.amount.kobo)}</td>
                     </tr>
@@ -99,15 +100,15 @@ export function CashFlowReport({ entity, currency }: { entity: string; currency?
             })}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-gray-03 bg-white-02/50 font-mont text-[15px] font-bold text-black-01">
+            <tr className="border-t-2 border-white-02 bg-white-02/50 font-mont text-[15px] font-bold text-black-01">
               <td className="px-4 py-2.5">Net {d.net_change.kobo < 0 ? "decrease" : "increase"} in cash</td>
               <td className={numCell}>{amountCell(d.net_change.kobo)}</td>
             </tr>
-            <tr className="border-t border-gray-03 font-mont text-sm text-gray-01">
+            <tr className="border-t border-white-02 font-mont text-sm text-gray-01">
               <td className="px-4 py-2">Cash at start of period</td>
               <td className={cn(numCell, "text-gray-05")}><Money kobo={d.opening_cash.kobo} currency={currency} align="right" /></td>
             </tr>
-            <tr className="border-t border-gray-03 font-mont text-sm font-semibold text-gray-01">
+            <tr className="border-t border-white-02 font-mont text-sm font-semibold text-gray-01">
               <td className="px-4 py-2">Cash at end of period</td>
               <td className={numCell}><Money kobo={d.closing_cash.kobo} currency={currency} align="right" /></td>
             </tr>

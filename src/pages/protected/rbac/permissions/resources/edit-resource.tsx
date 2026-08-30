@@ -10,6 +10,8 @@ import {
 import { toast } from "sonner";
 import { Loader2, Lock } from "lucide-react";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const schema = Yup.object({
   description: Yup.string().trim().required("Description is required"),
@@ -93,8 +95,8 @@ export default function EditResource() {
         >
           {({ values, errors, touched, handleChange, handleBlur, setFieldValue, isSubmitting, dirty }) => (
             <Form className="space-y-5">
-              <div className="bg-white rounded-md p-6 space-y-5">
-                <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-gray-100 pb-3">
+              <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
+                <h2 className="text-sm font-semibold font-mont text-black-01 border-b border-white-02 pb-3">
                   Resource Details
                 </h2>
 

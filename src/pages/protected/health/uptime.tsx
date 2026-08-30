@@ -14,6 +14,7 @@ import {
   statusStyle,
 } from "./primitives";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 export default function UptimePage() {
   const query = useGetHealthUptimeQuery();
@@ -60,7 +61,7 @@ export default function UptimePage() {
         <HealthKpi label="Certificates tracked" value={monitors.filter((m) => m.ssl).length} />
       </div>
 
-      <section className="overflow-hidden rounded-md bg-white">
+      <section className={cn(INFORMATION_CARD_SURFACE, "overflow-hidden rounded-md")}>
         <div className="border-b border-white-02 px-5.5 py-4">
           <h2 className="font-mont font-semibold">Service monitors</h2>
           <p className="text-xs text-gray-01">Select a monitor for its response and certificate details</p>

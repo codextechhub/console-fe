@@ -13,6 +13,8 @@ import { useAppSelector } from "@/redux/store";
 import { formatRelativeDate } from "@/utils/helpers";
 import { toast } from "sonner";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -95,7 +97,7 @@ export default function MyPassword() {
         </div>
 
         {/* ── Change password card ───────────────────────────────────────────── */}
-        <div className="bg-white rounded-md p-5 space-y-4">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}>
           <div>
             <p className="text-sm font-semibold">Change password</p>
             {passwordChangedAt && (
@@ -191,7 +193,7 @@ export default function MyPassword() {
         </div>
 
         {/* ── Email address card (read-only) ────────────────────────────────── */}
-        <div className="bg-white rounded-md p-5 flex items-center justify-between gap-4">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 flex items-center justify-between gap-4")}>
           <div>
             <p className="text-sm font-semibold">Email address</p>
             <p className="text-xs font-mont text-gray-01 mt-0.5 tracking-wide">
@@ -204,7 +206,7 @@ export default function MyPassword() {
         </div>
 
         {/* ── Password reset history (collapsible) ──────────────────────────── */}
-        <div className="bg-white rounded-md">
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
           <button
             className="w-full flex items-center justify-between px-5 py-4 text-sm font-medium"
             onClick={() => setShowHistory((v) => !v)}
@@ -213,20 +215,20 @@ export default function MyPassword() {
             <span className="text-xs text-gray-01">{showHistory ? "Hide ▲" : "Show ▼"}</span>
           </button>
           {showHistory && (
-            <div className="border-t border-gray-100 overflow-x-auto">
+            <div className="border-t border-white-02 overflow-x-auto">
               {resets.length === 0 ? (
                 <p className="px-5 py-4 text-xs text-gray-01">No password reset requests found.</p>
               ) : (
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-50">
+                    <tr className="border-b border-white-02">
                       <th className="px-5 py-2.5 text-left font-medium text-gray-01">Requested</th>
                       <th className="px-5 py-2.5 text-left font-medium text-gray-01">By</th>
                       <th className="px-5 py-2.5 text-left font-medium text-gray-01">Status</th>
                       <th className="px-5 py-2.5 text-left font-medium text-gray-01">IP</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-white-02">
                     {resets.map((r) => {
                       const isUsed = !!r.used_at;
                       const isExpired = !isUsed && new Date(r.expires_at) < new Date();

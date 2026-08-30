@@ -18,6 +18,8 @@ import type {
   TemplateAdopter,
   TemplateFieldDiff,
 } from "@/redux/services/dashboard/workflow-types";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 // The engine's stored values, in the words the rest of the console uses. A diff
 // is meant to be read by whoever owns the path, not by whoever wrote the enum.
@@ -207,7 +209,7 @@ export function AdoptionPanel({ templateId }: { templateId: string }) {
 
   return (
     <>
-      <div className="rounded-md bg-white">
+      <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white-02 px-4 py-3">
           <p className="flex items-center gap-2 text-sm font-semibold">
             <Users className="size-4 text-primary" /> Who runs this

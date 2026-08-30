@@ -28,7 +28,7 @@ export interface JournalLineView {
 
 const headCls =
   "text-gray-01 bg-[#F1F1F1] font-semibold font-mont text-xs whitespace-nowrap pt-3 pb-2";
-const cellCls = "text-black-01 border-gray-03 font-medium font-mont text-sm";
+const cellCls = "text-black-01 border-white-02 font-medium font-mont text-sm";
 
 export function JournalTable({
   lines,
@@ -47,7 +47,7 @@ export function JournalTable({
   const balanced = sumDebit === sumCredit;
 
   return (
-    <div className="rounded-md border border-gray-03 bg-white">
+    <div className="rounded-md border border-white-02 bg-white">
       <Table>
         <TableHeader className="border-0">
           <TableRow>
@@ -81,7 +81,7 @@ export function JournalTable({
       </Table>
 
       {/* Totals + balanced indicator */}
-      <div className="flex items-center justify-between gap-4 border-t border-gray-03 px-4 py-3">
+      <div className="flex items-center justify-between gap-4 border-t border-white-02 px-4 py-3">
         <span
           className={cn(
             "inline-flex items-center gap-1.5 font-mont text-xs font-semibold",

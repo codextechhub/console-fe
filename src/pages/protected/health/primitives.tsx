@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import type { HealthStatus } from "@/redux/services/health-api";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
@@ -114,7 +115,7 @@ export function QueryState({ loading, error, retry }: { loading: boolean; error:
     return (
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, index) => (
-          <Skeleton key={index} className="h-32 rounded-md bg-white" />
+          <Skeleton key={index} className={cn(INFORMATION_CARD_SURFACE, "h-32 rounded-md")} />
         ))}
       </div>
     );

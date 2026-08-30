@@ -68,7 +68,7 @@ function OrgChain({ profile }: { profile: StaffProfile }) {
       {tiers.map((t, i) => (
         <span key={`${t.tier}-${t.name}`} className="inline-flex items-center gap-1.5">
           {i > 0 && <ChevronRight className="size-3.5 text-slate-300" />}
-          <span className="inline-flex flex-col rounded-lg bg-slate-50 px-2.5 py-1.5 ring-1 ring-slate-100">
+          <span className="inline-flex flex-col rounded-lg bg-slate-50 px-2.5 py-1.5 ring-1 ring-white-02">
             <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">{t.tier}</span>
             <span className="text-[13px] font-semibold text-black-01">{t.name}</span>
           </span>

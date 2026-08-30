@@ -105,7 +105,7 @@ export default function GuideCoveragePage() {
           count={report.routeGaps.length}
         >
           {report.routeGaps.length ? (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-white-02">
               {report.routeGaps.map(({ route }) => (
                 <li key={route} className="break-all px-4 py-3 font-mono text-xs text-gray-700 sm:px-5">{route}</li>
               ))}
@@ -120,7 +120,7 @@ export default function GuideCoveragePage() {
           count={report.actionGaps.length}
         >
           {report.actionGaps.length ? (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-white-02">
               {report.actionGaps.map((gap) => (
                 <li key={gap.actionId} className="min-w-0 px-4 py-3 sm:px-5">
                   <p className="text-sm font-semibold">{gap.label}</p>
@@ -142,7 +142,7 @@ export default function GuideCoveragePage() {
         count={report.freshnessQueue.length}
       >
         {report.freshnessQueue.length ? (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-white-02">
             {report.freshnessQueue.map((item) => {
               const guide = guideById.get(item.guideId);
               return (
@@ -200,7 +200,7 @@ export default function GuideCoveragePage() {
                 count={editorialQueue.length}
               >
                 {editorialQueue.length ? (
-                  <ul className="divide-y divide-gray-100">
+                  <ul className="divide-y divide-white-02">
                     {editorialQueue.slice(0, 20).map((item) => {
                       const guide = guideById.get(item.guideId);
                       return (
@@ -227,7 +227,7 @@ export default function GuideCoveragePage() {
                 count={analytics.no_result_searches.length}
               >
                 {analytics.no_result_searches.length ? (
-                  <ul className="divide-y divide-gray-100">
+                  <ul className="divide-y divide-white-02">
                     {analytics.no_result_searches.map((item) => (
                       <li key={`${item.search_query}-${item.route_pattern}`} className="min-w-0 px-4 py-3 sm:px-5">
                         <div className="flex min-w-0 items-start justify-between gap-3">
@@ -253,7 +253,7 @@ export default function GuideCoveragePage() {
           count={report.integrityIssues.length}
         >
           {report.integrityIssues.length ? (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-white-02">
               {report.integrityIssues.map((issue, index) => (
                 <li key={`${issue.guideId}-${issue.code}-${index}`} className="px-4 py-3 sm:px-5">
                   <p className="text-xs font-semibold uppercase tracking-wide text-red-700">{issue.code}</p>
@@ -272,7 +272,7 @@ export default function GuideCoveragePage() {
           count={report.walkthroughTargetGaps.length}
         >
           {report.walkthroughTargetGaps.length ? (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-white-02">
               {report.walkthroughTargetGaps.map((gap, index) => (
                 <li key={`${gap.walkthroughId}-${gap.targetId}-${index}`} className="px-4 py-3 sm:px-5">
                   <p className="text-sm font-semibold">{gap.targetId}</p>
@@ -342,7 +342,7 @@ function ReportPanel({
 }) {
   return (
     <section className="min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white">
-      <div className="flex min-w-0 items-start justify-between gap-3 border-b border-gray-100 px-4 py-4 sm:px-5">
+      <div className="flex min-w-0 items-start justify-between gap-3 border-b border-white-02 px-4 py-4 sm:px-5">
         <div className="flex min-w-0 items-start gap-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gray-100 text-gray-700"><Icon className="size-4" /></span>
           <div className="min-w-0">

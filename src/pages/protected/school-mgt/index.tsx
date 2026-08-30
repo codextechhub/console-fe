@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetSchoolsQuery,
@@ -139,8 +140,9 @@ export default function SchoolManagement() {
             <div
               key={idx}
               className={cn(
-                "bg-white rounded-md min-h-26 w-full px-4 sm:px-5.5 pt-5 pb-4 space-y-2.5 cursor-pointer",
-                item.active && "bg-pry-01",
+                INFORMATION_CARD_SURFACE,
+                "rounded-md min-h-26 w-full px-4 sm:px-5.5 pt-5 pb-4 space-y-2.5 cursor-pointer",
+                item.active && "border-primary/30 bg-pry-01",
               )}
               onClick={() => { setPage(1); setSearchParams({ status: item.query }); }}
             >

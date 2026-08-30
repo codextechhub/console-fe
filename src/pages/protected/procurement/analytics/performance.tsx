@@ -23,6 +23,8 @@ import { AssessmentFormDrawer } from "./assessment-form";
 import { DateFilter, GradeBadge, GradePill, Meter, Pill, ScopeNote, SectionHeader } from "./shared";
 import { TD, TH, excludedScopeNote, meanOrNull, meterScoreColor, type SectionProps } from "./helpers";
 import { PageShell } from "@/components/layout/page-shell";
+import { cn } from "@/lib/utils";
+import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 function otPct(rate: number | null) {
   return rate == null ? null : Math.round(rate * 100);
@@ -58,11 +60,11 @@ export default function PerformanceScreen({ entity, currency }: SectionProps) {
       </SectionHeader>
 
       {isForbidden(error) ? (
-        <div className="rounded-md bg-white"><ForbiddenState /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><ForbiddenState /></div>
       ) : isLoading ? (
-        <div className="rounded-md bg-white"><LoadingState rows={8} /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><LoadingState rows={8} /></div>
       ) : isError || !d ? (
-        <div className="rounded-md bg-white"><ErrorState onRetry={refetch} /></div>
+        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}><ErrorState onRetry={refetch} /></div>
       ) : (
         <PerformanceBody rows={rows} excluded={d.unassigned_excluded_count} onSelect={setSelected} />
       )}
@@ -106,7 +108,7 @@ function PerformanceBody({ rows, excluded, onSelect }: {
           a branch reader knows their vendor picture is drawn from a subset of billing. */}
       <ScopeNote>{excludedScopeNote(excluded, "vendor bill")}</ScopeNote>
 
-      <section className="min-w-0 rounded-md bg-white">
+      <section className={cn(INFORMATION_CARD_SURFACE, "min-w-0 rounded-md")}>
         {rows.length === 0 ? (
           <EmptyState title="No vendor activity" message="No vendor has ordering, delivery or payment activity in this window." />
         ) : (
@@ -161,7 +163,7 @@ function PerformanceBody({ rows, excluded, onSelect }: {
                 </tbody>
               </table>
             </div>
-            <p className="border-t border-gray-03 px-4 py-3 font-mont text-[11px] text-gray-05">
+            <p className="border-t border-white-02 px-4 py-3 font-mont text-[11px] text-gray-05">
               On-time delivery is computed from each goods-receipt date vs its PO&rsquo;s expected date (receipts on a PO
               with no expected date are not rated); days-to-pay is measured from a bill&rsquo;s invoice date to the settling
               payment. Quality, invoice accuracy, responsiveness and the overall grade come from the most recent recorded
@@ -198,7 +200,7 @@ function VendorPerformanceDrawer({ row, entity, currency, onClose }: {
         <div className="space-y-5">
           <div>
             <p className="mb-2 font-mont text-xs font-semibold text-gray-05">Computed metrics</p>
-            <dl className="grid grid-cols-2 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-3">
+            <dl className="grid grid-cols-2 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-3">
               <Field label="Purchase orders" value={row.po_count} />
               <Field label="Ordered" value={money(row.total_ordered)} />
               <Field label="Receipts" value={`${row.receipt_count} (${row.on_time_receipts} on-time · ${row.late_receipts} late)`} />
@@ -217,7 +219,7 @@ function VendorPerformanceDrawer({ row, entity, currency, onClose }: {
               {a && <GradePill grade={a.grade} />}
             </div>
             {a ? (
-              <dl className="grid grid-cols-2 gap-4 rounded-md border border-gray-03 p-4 sm:grid-cols-3">
+              <dl className="grid grid-cols-2 gap-4 rounded-md border border-white-02 p-4 sm:grid-cols-3">
                 <Field label="Overall score" value={`${a.overall_score} / 100`} />
                 <Field label="On-time (computed)" value={otPct(row.on_time_rate) == null ? "-" : `${otPct(row.on_time_rate)}%`} />
                 <Field label="Assessed" value={shortDate(a.assessment_date)} />
@@ -237,7 +239,7 @@ function VendorPerformanceDrawer({ row, entity, currency, onClose }: {
             ) : history.length === 0 ? (
               <EmptyPanel>No assessments recorded for this vendor.</EmptyPanel>
             ) : (
-              <div className="overflow-x-auto rounded-md border border-gray-03">
+              <div className="overflow-x-auto rounded-md border border-white-02">
                 <table className="w-full min-w-[560px] border-collapse">
                   <thead>
                     <tr>
@@ -249,14 +251,14 @@ function VendorPerformanceDrawer({ row, entity, currency, onClose }: {
                   <tbody>
                     {history.map((h) => (
                       <tr key={h.id}>
-                        <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(h.assessment_date)}</td>
-                        <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{h.on_time_delivery}</td>
-                        <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{h.quality_acceptance}</td>
-                        <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{h.invoice_accuracy}</td>
-                        <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs tabular-nums">{h.responsiveness}</td>
-                        <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs font-semibold tabular-nums">{h.overall_score}</td>
-                        <td className="border-t border-gray-03 px-3 py-2"><Pill tone={h.grade === "A" ? "green" : h.grade === "B" ? "amber" : "red"}>{h.grade}</Pill></td>
-                        <td className="border-t border-gray-03 px-3 py-2 font-mont text-xs text-gray-05">{h.assessor || "-"}</td>
+                        <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{shortDate(h.assessment_date)}</td>
+                        <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{h.on_time_delivery}</td>
+                        <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{h.quality_acceptance}</td>
+                        <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{h.invoice_accuracy}</td>
+                        <td className="border-t border-white-02 px-3 py-2 font-mont text-xs tabular-nums">{h.responsiveness}</td>
+                        <td className="border-t border-white-02 px-3 py-2 font-mont text-xs font-semibold tabular-nums">{h.overall_score}</td>
+                        <td className="border-t border-white-02 px-3 py-2"><Pill tone={h.grade === "A" ? "green" : h.grade === "B" ? "amber" : "red"}>{h.grade}</Pill></td>
+                        <td className="border-t border-white-02 px-3 py-2 font-mont text-xs text-gray-05">{h.assessor || "-"}</td>
                       </tr>
                     ))}
                   </tbody>
