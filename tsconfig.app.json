@@ -7,71 +7,76 @@
     "module": "ESNext",
     "types": ["vite/client"],
     "skipLibCheck": true,
+    // The package is a SYMLINK to a sibling checkout. Without this, TypeScript
+    // resolves its imports from the symlink's real path - outside this app -
+    // where react and every other dependency is invisible, and the whole
+    // package silently degrades to `any`. Resolve through the link instead.
+    "preserveSymlinks": true,
     "baseUrl": ".",
     "paths": {
       "@xvs-host": [
             "./src/xvs-host.ts"
       ],
       "@xvs/finance/*": [
-            "./packages/xvs-finance/src/*"
+            "./node_modules/@xvs/finance/src/*"
       ],
       "@/redux/services/payments/*": [
-            "./packages/xvs-finance/src/redux/services/payments/*"
+            "./node_modules/@xvs/finance/src/redux/services/payments/*"
       ],
       "@/redux/services/tenants-api": [
-            "./packages/xvs-finance/src/redux/services/tenants-api.ts"
+            "./node_modules/@xvs/finance/src/redux/services/tenants-api.ts"
       ],
       "@/lib/source-document-route": [
-            "./packages/xvs-finance/src/lib/source-document-route.ts"
+            "./node_modules/@xvs/finance/src/lib/source-document-route.ts"
       ],
       "@/hooks/use-action-param": [
-            "./packages/xvs-finance/src/hooks/use-action-param.ts"
+            "./node_modules/@xvs/finance/src/hooks/use-action-param.ts"
       ],
       "@/pages/protected/workflow/components/*": [
-            "./packages/xvs-finance/src/components/workflow/*"
+            "./node_modules/@xvs/finance/src/components/workflow/*"
       ],
       "@/pages/protected/procurement/*": [
-            "./packages/xvs-finance/src/pages/procurement/*"
+            "./node_modules/@xvs/finance/src/pages/procurement/*"
       ],
       "@/pages/protected/finance/*": [
-            "./packages/xvs-finance/src/pages/finance/*"
+            "./node_modules/@xvs/finance/src/pages/finance/*"
       ],
 
       "@/components/finance-ui/*": [
-            "./packages/xvs-finance/src/components/finance-ui/*"
+            "./node_modules/@xvs/finance/src/components/finance-ui/*"
       ],
       "@/components/finance-ui": [
-            "./packages/xvs-finance/src/components/finance-ui/index.ts"
+            "./node_modules/@xvs/finance/src/components/finance-ui/index.ts"
       ],
       "@/redux/services/finance/*": [
-            "./packages/xvs-finance/src/redux/services/finance/*"
+            "./node_modules/@xvs/finance/src/redux/services/finance/*"
       ],
       "@/redux/services/procurement/*": [
-            "./packages/xvs-finance/src/redux/services/procurement/*"
+            "./node_modules/@xvs/finance/src/redux/services/procurement/*"
       ],
       "@/redux/features/finance/*": [
-            "./packages/xvs-finance/src/redux/features/finance/*"
+            "./node_modules/@xvs/finance/src/redux/features/finance/*"
       ],
       "@/utils/money": [
-            "./packages/xvs-finance/src/utils/money.ts"
+            "./node_modules/@xvs/finance/src/utils/money.ts"
       ],
       "@/utils/posting-window": [
-            "./packages/xvs-finance/src/utils/posting-window.ts"
+            "./node_modules/@xvs/finance/src/utils/posting-window.ts"
       ],
       "@/utils/quantity": [
-            "./packages/xvs-finance/src/utils/quantity.ts"
+            "./node_modules/@xvs/finance/src/utils/quantity.ts"
       ],
       "@/utils/fls": [
-            "./packages/xvs-finance/src/utils/fls.ts"
+            "./node_modules/@xvs/finance/src/utils/fls.ts"
       ],
       "@/utils/finance-export": [
-            "./packages/xvs-finance/src/utils/finance-export.ts"
+            "./node_modules/@xvs/finance/src/utils/finance-export.ts"
       ],
       "@/utils/finance-documents": [
-            "./packages/xvs-finance/src/utils/finance-documents.ts"
+            "./node_modules/@xvs/finance/src/utils/finance-documents.ts"
       ],
       "@/utils/chart-of-accounts": [
-            "./packages/xvs-finance/src/utils/chart-of-accounts.ts"
+            "./node_modules/@xvs/finance/src/utils/chart-of-accounts.ts"
       ],
       "@/*": [
         "./src/*"
@@ -94,5 +99,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "packages/xvs-finance/src"]
+  "include": ["src", "node_modules/@xvs/finance/src"],
+  // exclude defaults to ["node_modules", ...] and FILTERS include, so without
+  // this the package's own sources are silently not compiled - which reads as
+  // 800 implicit-any errors in this app rather than as a missing program.
+  "exclude": ["node_modules/.vite", "dist"]
 }
