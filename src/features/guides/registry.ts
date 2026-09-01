@@ -844,7 +844,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["finance-officer", "approver"],
     routes: [R.FINANCE.BANKING, R.FINANCE.BANK_RECON],
     actionIds: ["view-bank-accounts", "create-bank-account", "view-bank-reconciliation", "import-bank-statement"],
-    access: { mode: "any", permissions: [P.FIN_VIEW_BANK_ACCOUNTS, P.FIN_CREATE_BANK_ACCOUNT, P.FIN_IMPORT_STATEMENT, P.FIN_RECONCILE_BANK] },
+    access: { mode: "any", permissions: [P.FIN_VIEW_BANK_ACCOUNTS, P.FIN_CREATE_BANK_ACCOUNT, P.FIN_IMPORT_BANK, P.FIN_RECONCILE_BANK] },
     primaryRoute: R.FINANCE.BANK_RECON,
     sections: [
       { id: "before-you-start", title: "Before you start" },

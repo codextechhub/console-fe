@@ -9,12 +9,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { AppLogo } from "./app-logo";
-import { NavMain } from "./nav-main";
+import { NavMain } from "@xvs/finance/components/finance-ui/nav-main";
 import { routesPath } from "@/routes/routes-path";
 import { Link, useLocation } from "react-router";
 import { usePermissions } from "@/hooks/use-permissions";
 import { buildMainNav } from "./main-nav";
-import { revealActiveSidebarItem } from "./sidebar-navigation";
+import { revealActiveSidebarItem } from "@xvs/finance/components/finance-ui/sidebar-navigation";
 
 // The app shell can remount as protected routes change. Keep the main menu at
 // the exact offset the user left it instead of jumping back to the first item.

@@ -28,6 +28,7 @@ import {
   reportRequestSuccess,
   reportTransportFailure,
 } from "@/utils/connectivity";
+import { FINANCE_TAG_TYPES } from "@xvs/finance/redux/tag-types";
 
 const getAccessToken = () => {
   const token = Cookies.get("token");
@@ -489,6 +490,9 @@ export const baseApi = createApi({
   // It fires only on a down → up transition, so it is not a refetch treadmill.
   refetchOnReconnect: true,
   tagTypes: [
+    // Owned by @xvs/finance: they name that package\'s resources, and RTK
+    // refuses a tag the base api has not declared.
+    ...FINANCE_TAG_TYPES,
     "Users",
     "GoLiveRequests",
     "Role",

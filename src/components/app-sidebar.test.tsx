@@ -41,7 +41,7 @@ interface CapturedItem {
   items?: { title: string; url: string; isActive: boolean }[];
 }
 let captured: CapturedItem[] = [];
-vi.mock("./nav-main", () => ({
+vi.mock("@xvs/finance/components/finance-ui/nav-main", () => ({
   NavMain: ({ items }: { items: CapturedItem[] }) => {
     captured = items;
     return null;
