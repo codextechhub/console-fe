@@ -6,6 +6,8 @@ export default defineConfig({
     // Specific package paths first: alias resolution is order-sensitive in
     // array form, and "@" would otherwise swallow them.
     alias: [
+      { find: "@xvs/finance", replacement: path.resolve(__dirname, "./packages/xvs-finance/src") },
+      { find: "@xvs-host", replacement: path.resolve(__dirname, "./src/xvs-host.ts") },
       { find: "@/redux/services/payments", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/services/payments") },
       { find: "@/redux/services/tenants-api", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/services/tenants-api.ts") },
       { find: "@/lib/source-document-route", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/lib/source-document-route.ts") },

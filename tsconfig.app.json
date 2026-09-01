@@ -9,6 +9,12 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@xvs-host": [
+            "./src/xvs-host.ts"
+      ],
+      "@xvs/finance/*": [
+            "./packages/xvs-finance/src/*"
+      ],
       "@/redux/services/payments/*": [
             "./packages/xvs-finance/src/redux/services/payments/*"
       ],
