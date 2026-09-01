@@ -3,7 +3,7 @@
 // ?export=csv|xlsx|pdf for a file download (handled in the UI via a direct link).
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../base-api";
+import { baseApi } from "@/redux/services/base-api";
 import type { ApiEnvelope } from "./api-types";
 import type {
   AnalyticsSlice,

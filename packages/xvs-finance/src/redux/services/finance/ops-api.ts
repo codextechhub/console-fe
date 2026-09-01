@@ -3,7 +3,7 @@
 // *.view; actions on their own rbac_permission.
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../base-api";
+import { baseApi } from "@/redux/services/base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
 import type {
   BankAccount,
@@ -30,8 +30,8 @@ import type {
   TaxFiling,
   TaxObligation,
 } from "./ops-types";
-import type { ImportBatch } from "../dashboard/import-types";
-import type { ApprovalParkState } from "../dashboard/workflow-types";
+import type { ImportBatch } from "@/redux/services/dashboard/import-types";
+import type { ApprovalParkState } from "@/redux/services/dashboard/workflow-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
 type E = { entity: string; page?: number; page_size?: number; status?: string };

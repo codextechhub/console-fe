@@ -2,7 +2,7 @@
 // (stock + movements) and analytics reports (§7.3–7.5).
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../base-api";
+import { baseApi } from "@/redux/services/base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "../finance/api-types";
 import type {
   ContractLinkedPo,

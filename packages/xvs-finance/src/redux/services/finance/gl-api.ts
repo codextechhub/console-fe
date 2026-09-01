@@ -8,7 +8,7 @@
 //   POST /finance/direct-entries/           finance.directentry.post
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../base-api";
+import { baseApi } from "@/redux/services/base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
 import type {
   DirectEntryPayload,

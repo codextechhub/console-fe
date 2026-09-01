@@ -5,7 +5,7 @@
 //   POST /finance/entities/      finance.entity.create
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../base-api";
+import { baseApi } from "@/redux/services/base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "./api-types";
 import type { CreateEntityPayload, EntityListParams, LedgerEntity } from "./entity-types";
 

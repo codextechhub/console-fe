@@ -4,7 +4,7 @@
 // own rbac_permission. Every call is entity-scoped.
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../base-api";
+import { baseApi } from "@/redux/services/base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "../finance/api-types";
 import type {
   CatalogItem,
@@ -31,7 +31,7 @@ import type {
 } from "./procurement-types";
 // Every submit-for-approval response says whether anybody can actually approve
 // what was just submitted; see useNoApproverPrompt.
-import type { ApprovalParkState } from "../dashboard/workflow-types";
+import type { ApprovalParkState } from "@/redux/services/dashboard/workflow-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
 type E = { entity: string; page?: number; page_size?: number; status?: string; search?: string };

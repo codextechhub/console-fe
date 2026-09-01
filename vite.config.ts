@@ -14,9 +14,20 @@ export default defineConfig({
     tailwindcss(),
   ],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: [
+      { find: "@/components/finance-ui", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/components/finance-ui") },
+      { find: "@/redux/services/finance", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/services/finance") },
+      { find: "@/redux/services/procurement", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/services/procurement") },
+      { find: "@/redux/features/finance", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/features/finance") },
+      { find: "@/utils/money", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/utils/money.ts") },
+      { find: "@/utils/posting-window", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/utils/posting-window.ts") },
+      { find: "@/utils/quantity", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/utils/quantity.ts") },
+      { find: "@/utils/fls", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/utils/fls.ts") },
+      { find: "@/utils/finance-export", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/utils/finance-export.ts") },
+      { find: "@/utils/finance-documents", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/utils/finance-documents.ts") },
+      { find: "@/utils/chart-of-accounts", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/utils/chart-of-accounts.ts") },
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+    ],
   },
   build: {
     rollupOptions: {

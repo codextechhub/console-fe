@@ -21,7 +21,7 @@ import { refreshTokenSingleFlight } from "@/utils/token-refresh";
 import { endSession } from "@/utils/end-session";
 import { captureReturnTo } from "@/utils/return-to";
 import { apiErrorMessage, humanizeApiMessage } from "@/utils/api-errors";
-import { clearSelectedEntity } from "../features/finance/entity-slice";
+import { clearSelectedEntity } from "@/redux/features/finance/entity-slice";
 import { dismissOpenDrawerForError } from "@/utils/drawer-errors";
 import {
   reportGatewayFailure,

@@ -9,6 +9,43 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
+
+      "@/components/finance-ui/*": [
+            "./packages/xvs-finance/src/components/finance-ui/*"
+      ],
+      "@/components/finance-ui": [
+            "./packages/xvs-finance/src/components/finance-ui/index.ts"
+      ],
+      "@/redux/services/finance/*": [
+            "./packages/xvs-finance/src/redux/services/finance/*"
+      ],
+      "@/redux/services/procurement/*": [
+            "./packages/xvs-finance/src/redux/services/procurement/*"
+      ],
+      "@/redux/features/finance/*": [
+            "./packages/xvs-finance/src/redux/features/finance/*"
+      ],
+      "@/utils/money": [
+            "./packages/xvs-finance/src/utils/money.ts"
+      ],
+      "@/utils/posting-window": [
+            "./packages/xvs-finance/src/utils/posting-window.ts"
+      ],
+      "@/utils/quantity": [
+            "./packages/xvs-finance/src/utils/quantity.ts"
+      ],
+      "@/utils/fls": [
+            "./packages/xvs-finance/src/utils/fls.ts"
+      ],
+      "@/utils/finance-export": [
+            "./packages/xvs-finance/src/utils/finance-export.ts"
+      ],
+      "@/utils/finance-documents": [
+            "./packages/xvs-finance/src/utils/finance-documents.ts"
+      ],
+      "@/utils/chart-of-accounts": [
+            "./packages/xvs-finance/src/utils/chart-of-accounts.ts"
+      ],
       "@/*": [
         "./src/*"
       ]
@@ -30,5 +67,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src", "packages/xvs-finance/src"]
 }

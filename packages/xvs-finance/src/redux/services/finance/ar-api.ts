@@ -3,7 +3,7 @@
 // action gates on its own backend rbac_permission.
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../base-api";
+import { baseApi } from "@/redux/services/base-api";
 import type { ApiEnvelope, PaginatedEnvelope, Pagination } from "./api-types";
 import type {
   ArAdjustment,

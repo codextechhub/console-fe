@@ -1,4 +1,4 @@
-import { baseApi } from "../base-api";
+import { baseApi } from "@/redux/services/base-api";
 import type { ApiEnvelope } from "../finance/api-types";
 
 export type PublicRfqLine = {
