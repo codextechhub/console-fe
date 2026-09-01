@@ -9,6 +9,9 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@/pages/protected/finance/*": [
+            "./packages/xvs-finance/src/pages/finance/*"
+      ],
 
       "@/components/finance-ui/*": [
             "./packages/xvs-finance/src/components/finance-ui/*"

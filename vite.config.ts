@@ -15,6 +15,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: [
+      { find: "@/pages/protected/finance", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/pages/finance") },
       { find: "@/components/finance-ui", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/components/finance-ui") },
       { find: "@/redux/services/finance", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/services/finance") },
       { find: "@/redux/services/procurement", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/services/procurement") },

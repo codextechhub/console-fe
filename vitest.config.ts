@@ -6,6 +6,7 @@ export default defineConfig({
     // Specific package paths first: alias resolution is order-sensitive in
     // array form, and "@" would otherwise swallow them.
     alias: [
+      { find: "@/pages/protected/finance", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/pages/finance") },
       { find: "@/components/finance-ui", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/components/finance-ui") },
       { find: "@/redux/services/finance", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/services/finance") },
       { find: "@/redux/services/procurement", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/services/procurement") },
@@ -24,7 +25,12 @@ export default defineConfig({
     // happy-dom provides document.cookie / sessionStorage / localStorage for
     // the auth-session utilities under test.
     environment: "happy-dom",
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: [
+      "src/**/*.test.{ts,tsx}",
+      // The package's own tests. Without this line the finance suites are
+      // silently not discovered, which reads as a smaller passing run.
+      "packages/xvs-finance/src/**/*.test.{ts,tsx}",
+    ],
     env: {
       VITE_BACKEND_URL: "http://test.local/v1",
     },

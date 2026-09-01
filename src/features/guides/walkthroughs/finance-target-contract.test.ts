@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import concessionSource from "../../../pages/protected/finance/receivables/concessions-tab.tsx?raw";
-import creditNoteSource from "../../../pages/protected/finance/receivables/credit-notes-tab.tsx?raw";
-import paymentPlanSource from "../../../pages/protected/finance/receivables/payment-plans-tab.tsx?raw";
-import refundSource from "../../../pages/protected/finance/receivables/refunds-tab.tsx?raw";
-import periodsSource from "../../../pages/protected/finance/reports/periods-tab.tsx?raw";
+import concessionSource from "@/pages/protected/finance/receivables/concessions-tab.tsx?raw";
+import creditNoteSource from "@/pages/protected/finance/receivables/credit-notes-tab.tsx?raw";
+import paymentPlanSource from "@/pages/protected/finance/receivables/payment-plans-tab.tsx?raw";
+import refundSource from "@/pages/protected/finance/receivables/refunds-tab.tsx?raw";
+import periodsSource from "@/pages/protected/finance/reports/periods-tab.tsx?raw";
 
 function componentSource(source: string, functionName: string): string {
   const start = source.indexOf(`function ${functionName}`);
