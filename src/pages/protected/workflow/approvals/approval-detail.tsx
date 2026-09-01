@@ -19,10 +19,10 @@ import {
   useRecordWorkflowActionMutation,
 } from "@/redux/services/dashboard/workflow-api";
 import type { VoteAction, WorkflowInstanceDetail } from "@/redux/services/dashboard/workflow-types";
-import { useUserDirectory } from "../components/use-user-directory";
+import { useUserDirectory } from "@/pages/protected/workflow/components/use-user-directory";
 import { routesPath } from "@/routes/routes-path";
 import { useLogRecentOpen } from "@/hooks/use-log-recent-open";
-import { sameId, INSTANCE_STATUS_META, humanizeDocumentType } from "../components/workflow-format";
+import { sameId, INSTANCE_STATUS_META, humanizeDocumentType } from "@/pages/protected/workflow/components/workflow-format";
 import { DocumentPanel } from "../components/document-panel";
 import { StageTracker } from "../components/stage-tracker";
 import { AuditTimeline } from "../components/audit-timeline";

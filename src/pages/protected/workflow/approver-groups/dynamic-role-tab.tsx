@@ -38,7 +38,7 @@ import type {
   WorkflowTemplate,
 } from "@/redux/services/dashboard/workflow-types";
 import { ConditionView } from "../components/condition-view";
-import { humanizeDocumentType } from "../components/workflow-format";
+import { humanizeDocumentType } from "@/pages/protected/workflow/components/workflow-format";
 import { DynamicRulesEditor } from "../templates/components/template-builder-bits";
 import {
   type RuleForm,

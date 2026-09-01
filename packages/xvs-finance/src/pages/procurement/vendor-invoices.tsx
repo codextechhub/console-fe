@@ -9,8 +9,8 @@ import { toast } from "sonner";
 
 import { ProcurementShell } from "./procurement-shell";
 import { PurchaseOrderPicker, VendorPicker } from "./pickers";
-import { useUserDirectory } from "../workflow/components/use-user-directory";
-import { sameId } from "../workflow/components/workflow-format";
+import { useUserDirectory } from "../../components/workflow/use-user-directory";
+import { sameId } from "../../components/workflow/workflow-format";
 import {
   DataTable, DetailDrawer, EmptyState, ErrorState, FormField, InfoHint, LineEditor,
   LoadingState, PostingRecap, StatCard, StatusPill, emptyLine, toApiLines, toArray,

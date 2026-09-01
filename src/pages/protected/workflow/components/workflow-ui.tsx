@@ -9,7 +9,7 @@ import {
   humanizeDocumentType,
   INSTANCE_STATUS_META,
   STAGE_STATUS_META,
-} from "./workflow-format";
+} from "@/pages/protected/workflow/components/workflow-format";
 
 export function InstanceStatusBadge({ status }: { status: WorkflowInstanceStatus }) {
   const meta = INSTANCE_STATUS_META[status] ?? { label: status, variant: "default" as const };

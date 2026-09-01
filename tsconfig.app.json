@@ -9,6 +9,12 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@/pages/protected/workflow/components/*": [
+            "./packages/xvs-finance/src/components/workflow/*"
+      ],
+      "@/pages/protected/procurement/*": [
+            "./packages/xvs-finance/src/pages/procurement/*"
+      ],
       "@/pages/protected/finance/*": [
             "./packages/xvs-finance/src/pages/finance/*"
       ],

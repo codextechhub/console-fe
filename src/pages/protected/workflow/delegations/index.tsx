@@ -32,9 +32,9 @@ import {
   useRevokeDelegationMutation,
 } from "@/redux/services/dashboard/workflow-api";
 import type { ApprovalDelegation } from "@/redux/services/dashboard/workflow-types";
-import { useUserDirectory } from "../components/use-user-directory";
+import { useUserDirectory } from "@/pages/protected/workflow/components/use-user-directory";
 import { InitialsAvatar } from "../components/workflow-ui";
-import { humanizeDocumentType, sameId } from "../components/workflow-format";
+import { humanizeDocumentType, sameId } from "@/pages/protected/workflow/components/workflow-format";
 import { PageShell } from "@/components/layout/page-shell";
 
 type DelegationState = "Active" | "Scheduled" | "Expired" | "Revoked";

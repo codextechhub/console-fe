@@ -17,10 +17,10 @@ import {
   useWithdrawWorkflowInstanceMutation,
   useResubmitWorkflowInstanceMutation,
 } from "@/redux/services/dashboard/workflow-api";
-import { useUserDirectory } from "../components/use-user-directory";
+import { useUserDirectory } from "@/pages/protected/workflow/components/use-user-directory";
 import { routesPath } from "@/routes/routes-path";
 import { useLogRecentOpen } from "@/hooks/use-log-recent-open";
-import { sameId, humanizeDocumentType } from "../components/workflow-format";
+import { sameId, humanizeDocumentType } from "@/pages/protected/workflow/components/workflow-format";
 import { DocumentPanel } from "../components/document-panel";
 import { StageTracker } from "../components/stage-tracker";
 import { AuditTimeline } from "../components/audit-timeline";

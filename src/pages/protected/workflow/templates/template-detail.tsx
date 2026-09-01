@@ -31,7 +31,7 @@ import {
   approverScopeLabel,
   approverSummary,
   humanizeDocumentType,
-} from "../components/workflow-format";
+} from "@/pages/protected/workflow/components/workflow-format";
 import { ConditionView } from "../components/condition-view";
 import { PageShell } from "@/components/layout/page-shell";
 

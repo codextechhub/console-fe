@@ -3,7 +3,7 @@ import { Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useGetTeamLoadQuery } from "@/redux/services/dashboard/workflow-api";
-import { humanizeDocumentType } from "../components/workflow-format";
+import { humanizeDocumentType } from "@/pages/protected/workflow/components/workflow-format";
 import { PageShell } from "@/components/layout/page-shell";
 
 export default function TeamLoad() {

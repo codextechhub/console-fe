@@ -21,7 +21,7 @@ import {
 import { useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
 import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
 import { useGetAllRolesQuery } from "@/redux/services/dashboard/role-api";
-import { approverScopeLabel } from "../components/workflow-format";
+import { approverScopeLabel } from "@/pages/protected/workflow/components/workflow-format";
 import type {
   ApproverScope,
   ApproverSource,

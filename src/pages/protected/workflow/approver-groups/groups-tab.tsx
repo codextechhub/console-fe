@@ -52,7 +52,7 @@ import type {
   ApproverGroupResolvedMember,
   GroupMemberKind,
 } from "@/redux/services/dashboard/workflow-types";
-import { humanizeDocumentType } from "../components/workflow-format";
+import { humanizeDocumentType } from "@/pages/protected/workflow/components/workflow-format";
 import AddMemberSheet from "./add-member-sheet";
 
 const KIND_LABEL: Record<GroupMemberKind, string> = {

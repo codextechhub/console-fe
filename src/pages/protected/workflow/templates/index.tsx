@@ -12,7 +12,7 @@ import { routesPath } from "@/routes/routes-path";
 import { useAppSelector } from "@/redux/store";
 import { selectIsPlatformTenant } from "@/redux/features/auth/auth-slice";
 import { useGetWorkflowTemplatesQuery } from "@/redux/services/dashboard/workflow-api";
-import { humanizeDocumentType } from "../components/workflow-format";
+import { humanizeDocumentType } from "@/pages/protected/workflow/components/workflow-format";
 import { pairTemplateVersions, versionLabel } from "./components/template-versions";
 import { PageShell } from "@/components/layout/page-shell";
 

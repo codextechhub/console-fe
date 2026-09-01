@@ -12,7 +12,7 @@ import { useDebounce } from "react-haiku";
 import { routesPath } from "@/routes/routes-path";
 import { useGetWorkflowInstancesQuery } from "@/redux/services/dashboard/workflow-api";
 import type { WorkflowInstance } from "@/redux/services/dashboard/workflow-types";
-import { useUserDirectory } from "../components/use-user-directory";
+import { useUserDirectory } from "@/pages/protected/workflow/components/use-user-directory";
 import { DocumentRef, InstanceStatusBadge, UserChip } from "../components/workflow-ui";
 import { PageShell } from "@/components/layout/page-shell";
 

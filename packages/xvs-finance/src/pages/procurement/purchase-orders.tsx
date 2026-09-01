@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 import { ProcurementShell } from "./procurement-shell";
 import { RequisitionPicker, VendorPicker, ContractPicker } from "./pickers";
-import { useUserDirectory } from "../workflow/components/use-user-directory";
+import { useUserDirectory } from "../../components/workflow/use-user-directory";
 import {
   Can, ConfirmActionModal, DataTable, DetailDrawer, EmptyState, ErrorState,
   FormField, InfoHint, LoadingState, StatCard, StatusPill, toArray, useActiveEntity, useCan, type Column,

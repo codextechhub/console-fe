@@ -9,9 +9,9 @@ import { routesPath } from "@/routes/routes-path";
 import { useGetPendingApprovalsQuery } from "@/redux/services/dashboard/workflow-api";
 import type { PendingApproval } from "@/redux/services/dashboard/workflow-types";
 import { useFilterParam } from "@/hooks/use-filter-param";
-import { useUserDirectory } from "../components/use-user-directory";
+import { useUserDirectory } from "@/pages/protected/workflow/components/use-user-directory";
 import { DocumentRef, InitialsAvatar } from "../components/workflow-ui";
-import { humanizeDocumentType } from "../components/workflow-format";
+import { humanizeDocumentType } from "@/pages/protected/workflow/components/workflow-format";
 import { PageShell } from "@/components/layout/page-shell";
 
 export default function PendingApprovals() {
