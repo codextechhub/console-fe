@@ -7,7 +7,7 @@
 //   GET  /payments/payouts/ , /payout-batches/  payments.payout.view (slice 6)
 
 import { generateQueryString } from "@/utils/helpers";
-import { baseApi } from "../base-api";
+import { baseApi } from "@/redux/services/base-api";
 import type { ApiEnvelope, PaginatedEnvelope } from "@/redux/services/finance/api-types";
 import type {
   Collection,
@@ -29,7 +29,7 @@ import type {
   WebhookEvent,
   WebhookSummary,
 } from "./payments-types";
-import type { ApprovalParkState } from "../dashboard/workflow-types";
+import type { ApprovalParkState } from "@/redux/services/dashboard/workflow-types";
 
 const qs = (p: object) => generateQueryString(p as Record<string, string | number>);
 

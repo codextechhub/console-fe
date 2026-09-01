@@ -15,6 +15,10 @@ export default defineConfig({
   ],
   resolve: {
     alias: [
+      { find: "@/redux/services/payments", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/services/payments") },
+      { find: "@/redux/services/tenants-api", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/redux/services/tenants-api.ts") },
+      { find: "@/lib/source-document-route", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/lib/source-document-route.ts") },
+      { find: "@/hooks/use-action-param", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/hooks/use-action-param.ts") },
       { find: "@/pages/protected/workflow/components", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/components/workflow") },
       { find: "@/pages/protected/procurement", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/pages/procurement") },
       { find: "@/pages/protected/finance", replacement: path.resolve(__dirname, "./packages/xvs-finance/src/pages/finance") },

@@ -4,7 +4,7 @@ import { MemoryRouter, useLocation } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useActionParam } from "./use-action-param";
-import { useFilterParam } from "./use-filter-param";
+import { useFilterParam } from "@/hooks/use-filter-param";
 
 let container: HTMLDivElement;
 let root: Root;

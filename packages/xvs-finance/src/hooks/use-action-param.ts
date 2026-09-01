@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router";
-import { markParamConsumed, releaseParamKey, withoutConsumedParams } from "./consumed-params";
+import { markParamConsumed, releaseParamKey, withoutConsumedParams } from "@/hooks/consumed-params";
 
 const ACTION_KEY = "action";
 

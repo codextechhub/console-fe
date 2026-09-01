@@ -9,6 +9,18 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@/redux/services/payments/*": [
+            "./packages/xvs-finance/src/redux/services/payments/*"
+      ],
+      "@/redux/services/tenants-api": [
+            "./packages/xvs-finance/src/redux/services/tenants-api.ts"
+      ],
+      "@/lib/source-document-route": [
+            "./packages/xvs-finance/src/lib/source-document-route.ts"
+      ],
+      "@/hooks/use-action-param": [
+            "./packages/xvs-finance/src/hooks/use-action-param.ts"
+      ],
       "@/pages/protected/workflow/components/*": [
             "./packages/xvs-finance/src/components/workflow/*"
       ],

@@ -5,7 +5,7 @@
 // not to whichever console happens to need them first. Payroll is the first
 // screen to ask; procurement will be the second.
 
-import { baseApi } from "./base-api";
+import { baseApi } from "@/redux/services/base-api";
 import type { ApiEnvelope } from "@/redux/services/finance/api-types";
 
 /** A branch as something to pick. Narrower than the School Management row. */
