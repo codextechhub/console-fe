@@ -10,6 +10,10 @@ export { AppLogo } from "@/components/app-logo";
 export { QuickExportButton } from "@/components/custom/quick-export-drawer";
 export { UserAvatar } from "@/components/custom/user-avatar";
 export { useDashboardTitle } from "@/components/layout/dashboard-header";
+// The extra section on Setup -> Entities. It reads a console permission code
+// that means something else entirely in the school app, which is why the
+// package asks for it rather than shipping it.
+export { PlatformLedgerInventory } from "@/components/finance/platform-ledger-inventory";
 
 export function useBranches(): HostQueryResult<HostBranch> {
   const slug = getTenantSlug();
