@@ -37,6 +37,49 @@ const financeSrc = (command: string) =>
     ? realpathSync(path.resolve(__dirname, "./node_modules/@xvs/finance/src"))
     : path.resolve(__dirname, "./node_modules/@xvs/finance/src")
 
+// Every specifier this app redirects into the package, paired with its path
+// inside the package. One list feeds two settings that MUST agree: the alias
+// table and optimizeDeps.exclude.
+const PACKAGE_SPECIFIERS: [find: string, target: string][] = [
+  ["@xvs/finance", ""],
+  ["@/redux/services/payments", "redux/services/payments"],
+  ["@/redux/services/tenants-api", "redux/services/tenants-api.ts"],
+  ["@/lib/source-document-route", "lib/source-document-route.ts"],
+  ["@/hooks/use-action-param", "hooks/use-action-param.ts"],
+  ["@/pages/protected/workflow/components", "components/workflow"],
+  ["@/pages/protected/procurement", "pages/procurement"],
+  ["@/pages/protected/finance", "pages/finance"],
+  ["@/components/finance-ui", "components/finance-ui"],
+  ["@/redux/services/finance", "redux/services/finance"],
+  ["@/redux/services/procurement", "redux/services/procurement"],
+  ["@/redux/features/finance", "redux/features/finance"],
+  ["@/utils/money", "utils/money.ts"],
+  ["@/utils/posting-window", "utils/posting-window.ts"],
+  ["@/utils/quantity", "utils/quantity.ts"],
+  ["@/utils/fls", "utils/fls.ts"],
+  ["@/utils/finance-export", "utils/finance-export.ts"],
+  ["@/utils/finance-documents", "utils/finance-documents.ts"],
+  ["@/utils/chart-of-accounts", "utils/chart-of-accounts.ts"],
+]
+
+const packageAlias = (command: string) =>
+  PACKAGE_SPECIFIERS.map(([find, target]) => ({
+    find,
+    replacement: target
+      ? path.resolve(financeSrc(command), target)
+      : financeSrc(command),
+  }))
+
+// Excluding the package NAME is not enough, and the realpath trick above only
+// helps while the package is npm-linked. On a plain `npm ci` the alias targets
+// sit inside node_modules again, Vite's scanner calls them dependencies, and a
+// pre-bundled chunk inlines its own copy of `@/redux/services/base-api`. The
+// finance endpoints then inject into a second RTK Query instance the store
+// never registered, so every finance hook returns `{ data: undefined }` and
+// issues no request. Excluding the specifiers themselves closes that off in
+// both setups.
+const EXCLUDE_FROM_PREBUNDLE = PACKAGE_SPECIFIERS.map(([find]) => find)
+
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
   // Fixed port so the two apps can run side by side: 5173 is the Console (Codex staff).
@@ -54,31 +97,13 @@ export default defineConfig(({ command }) => ({
   ],
   // Consumed as TypeScript source, not as a built dependency: it resolves
   // @/* against THIS app, so Vite must process it rather than pre-bundle it.
-  optimizeDeps: { exclude: ["@xvs/finance"] },
+  optimizeDeps: { exclude: EXCLUDE_FROM_PREBUNDLE },
   resolve: {
     // See tsconfig: the package is a symlinked sibling checkout.
     preserveSymlinks: true,
     alias: [
-      { find: "@xvs/finance", replacement: financeSrc(command) },
       { find: "@xvs-host", replacement: path.resolve(__dirname, "./src/xvs-host.ts") },
-      { find: "@/redux/services/payments", replacement: path.resolve(financeSrc(command), "redux/services/payments") },
-      { find: "@/redux/services/tenants-api", replacement: path.resolve(financeSrc(command), "redux/services/tenants-api.ts") },
-      { find: "@/lib/source-document-route", replacement: path.resolve(financeSrc(command), "lib/source-document-route.ts") },
-      { find: "@/hooks/use-action-param", replacement: path.resolve(financeSrc(command), "hooks/use-action-param.ts") },
-      { find: "@/pages/protected/workflow/components", replacement: path.resolve(financeSrc(command), "components/workflow") },
-      { find: "@/pages/protected/procurement", replacement: path.resolve(financeSrc(command), "pages/procurement") },
-      { find: "@/pages/protected/finance", replacement: path.resolve(financeSrc(command), "pages/finance") },
-      { find: "@/components/finance-ui", replacement: path.resolve(financeSrc(command), "components/finance-ui") },
-      { find: "@/redux/services/finance", replacement: path.resolve(financeSrc(command), "redux/services/finance") },
-      { find: "@/redux/services/procurement", replacement: path.resolve(financeSrc(command), "redux/services/procurement") },
-      { find: "@/redux/features/finance", replacement: path.resolve(financeSrc(command), "redux/features/finance") },
-      { find: "@/utils/money", replacement: path.resolve(financeSrc(command), "utils/money.ts") },
-      { find: "@/utils/posting-window", replacement: path.resolve(financeSrc(command), "utils/posting-window.ts") },
-      { find: "@/utils/quantity", replacement: path.resolve(financeSrc(command), "utils/quantity.ts") },
-      { find: "@/utils/fls", replacement: path.resolve(financeSrc(command), "utils/fls.ts") },
-      { find: "@/utils/finance-export", replacement: path.resolve(financeSrc(command), "utils/finance-export.ts") },
-      { find: "@/utils/finance-documents", replacement: path.resolve(financeSrc(command), "utils/finance-documents.ts") },
-      { find: "@/utils/chart-of-accounts", replacement: path.resolve(financeSrc(command), "utils/chart-of-accounts.ts") },
+      ...packageAlias(command),
       { find: "@", replacement: path.resolve(__dirname, "./src") },
     ],
   },
