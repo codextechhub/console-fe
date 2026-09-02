@@ -1,4 +1,12 @@
 @import "tailwindcss";
+
+/* The finance and procurement screens live in @xvs/finance, and Tailwind v4
+   does not scan node_modules. Without this line every class those screens use
+   and this app does not is silently never generated - the entity switcher lost
+   its glass treatment and rendered a plain black-outlined pill, because
+   border-white/90 did not exist and `border` fell back to the default colour.
+   Nothing errors; the markup is right and the CSS simply is not there. */
+@source "../node_modules/@xvs/finance/src";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
