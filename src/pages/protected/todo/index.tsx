@@ -212,7 +212,14 @@ export default function TodoPage() {
   // modal opens on arrival. Only the add flow is addressable: assigning is bounded
   // by the viewer's reporting line rather than by a permission key, so the palette
   // has no gate that could keep the row off a non-manager's results.
-  useActionParam("new", openAdd);
+  //
+  // `true` is the answer here, not a placeholder. v0.1.7 made the permission a
+  // required argument because thirty-six call sites in the package left it to
+  // the callback and one remembered; this screen is the case that genuinely has
+  // no key to pass. Adding a task for yourself is open to anyone who can reach
+  // the screen - the Add Task button beside this is drawn unconditionally, and
+  // the only gated control here (Assign Task) is not addressable by the param.
+  useActionParam("new", true, openAdd);
 
   // ── Render ──────────────────────────────────────────────────────────────────
   const showTeam = effectiveTab === "team";
