@@ -103,6 +103,10 @@ export interface School {
   activated_at: string | null
   total_students: number
   main_branch: Branch | null
+  /** Absolute public brand URL, or "" when the school has no logo.
+   *  Empty rather than null so a row never has to tell "no logo" apart from
+   *  "logo I may not fetch": both reach the same fallback. */
+  logo: string
 }
 
 export interface SchoolDetail extends School {

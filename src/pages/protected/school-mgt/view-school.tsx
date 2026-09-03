@@ -19,6 +19,7 @@ import { useReinstateSchoolMutation } from "@/redux/services/dashboard/onboardin
 import { useSetSchoolServiceStateMutation } from "@/redux/services/dashboard/school-mgt-api";
 import { Textarea } from "@/components/ui/textarea";
 import type { BranchDetail } from "@/redux/services/dashboard/school-types";
+import { SchoolMark } from "@/components/custom/school-mark";
 import { routesPath } from "@/routes/routes-path";
 import { useLogRecentOpen } from "@/hooks/use-log-recent-open";
 import { formatEnum, formatStartedTime, returnInitial } from "@/utils/helpers";
@@ -199,7 +200,6 @@ export default function ViewSchool() {
       });
   };
   const school = data?.data;
-  const initials = returnInitial(school?.name ?? "");
   useLogRecentOpen(
     school && slug
       ? { kind: "school", id: slug, label: school.name, to: routesPath.PROTECTED.SCHOOL_MGT.VIEW(slug) }
@@ -301,13 +301,15 @@ export default function ViewSchool() {
           <>
             <section className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                <div className="grid size-14 shrink-0 place-content-center overflow-hidden rounded-full border border-primary/15 bg-pry-01 sm:size-16">
-                  {school.branding?.logo ? (
-                    <img src={school.branding.logo} alt={`${school.name} logo`} className="size-full object-cover" />
-                  ) : (
-                    <span className="text-lg font-bold text-primary sm:text-xl">{initials}</span>
-                  )}
-                </div>
+                {/* Was a hand-rolled block with no onError, so a logo that
+                    failed to load drew the browser's broken-image glyph rather
+                    than the initials sitting right there in the else branch. */}
+                <SchoolMark
+                  name={school.name}
+                  logo={school.branding?.logo}
+                  className="size-14 sm:size-16"
+                  textClassName="text-lg sm:text-xl"
+                />
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h1 className="text-xl font-semibold capitalize tracking-tight text-black-01 sm:text-2xl">{school.name}</h1>

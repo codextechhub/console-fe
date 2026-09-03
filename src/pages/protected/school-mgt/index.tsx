@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
+import { SchoolMark } from "@/components/custom/school-mark";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetSchoolsQuery,
@@ -81,9 +82,13 @@ export default function SchoolManagement() {
       <Link
         to={routesPath.PROTECTED.SCHOOL_MGT.VIEW(item.slug)}
         onClick={(event) => event.stopPropagation()}
-        className="font-medium capitalize text-black-01 underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        className="flex min-w-0 items-center gap-2.5 font-medium capitalize text-black-01 underline-offset-4 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
       >
-        {item.name || "-"}
+        {/* A column of names reads as a spreadsheet; a column of marks reads as
+            a list of schools, and an operator finds the one they want by its
+            crest before they have finished reading the second word. */}
+        <SchoolMark name={item.name} logo={item.logo} className="size-7" textClassName="text-[10px]" />
+        <span className="truncate hover:underline">{item.name || "-"}</span>
       </Link>
     ),
     location: item.main_branch
