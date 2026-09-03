@@ -1,5 +1,4 @@
 import PromptModal from "@/components/modal/prompt-modal";
-import { Button } from "@/components/ui/button";
 import { useCreateSchoolMutation } from "@/redux/services/dashboard/school-mgt-api";
 import { routesPath } from "@/routes/routes-path";
 import { useState } from "react";
@@ -45,9 +44,6 @@ export interface AdminStepData {
 export interface PackageStepData {
   package_plan: string;
   enabled_modules: string[];
-  student_capacity: number | string;
-  teacher_capacity: number | string;
-  admin_capacity: number | string;
   subscription_expires_at: string;
 }
 
@@ -67,8 +63,7 @@ const initialAdmin: AdminStepData = {
 };
 
 const initialPackage: PackageStepData = {
-  package_plan: "", enabled_modules: [], student_capacity: "",
-  teacher_capacity: "", admin_capacity: "", subscription_expires_at: "",
+  package_plan: "", enabled_modules: [], subscription_expires_at: "",
 };
 
 export interface PrefillData {
@@ -117,9 +112,6 @@ function generateTestData(): PrefillData {
     pkg: {
       package_plan: "",
       enabled_modules: [],
-      student_capacity: 500,
-      teacher_capacity: 50,
-      admin_capacity: 10,
       subscription_expires_at: "2027-12-31",
     },
   };
@@ -174,9 +166,6 @@ function buildPayload(
     payload.package_setup_data = {
       package_plan: pkg.package_plan,
       enabled_modules: pkg.enabled_modules,
-      student_capacity: pkg.student_capacity !== "" ? Number(pkg.student_capacity) : undefined,
-      teacher_capacity: pkg.teacher_capacity !== "" ? Number(pkg.teacher_capacity) : undefined,
-      admin_capacity: pkg.admin_capacity !== "" ? Number(pkg.admin_capacity) : undefined,
       ...(pkg.subscription_expires_at ? { subscription_expires_at: pkg.subscription_expires_at } : {}),
     };
   }
@@ -197,21 +186,13 @@ export default function CreateSchool() {
   const [createSchool, { isLoading: submitting }] = useCreateSchoolMutation();
 
 
-  const isDev = import.meta.env.VITE_SHOW_PREFILL === "true";
-
+  // Fills the LATER steps from the school step's own test data, so one press
+  // in the step header carries through the whole wizard. The step header owns
+  // that control; there is no second, wizard-level one above the form.
   const handlePrefill = (data: PrefillData) => {
     setBranches(data.branches);
     setAdminData(data.admin);
     setPackageData(data.pkg);
-  };
-
-  const handlePrefillAll = () => {
-    const data = generateTestData();
-    setSchoolData(data.school);
-    setBranches(data.branches);
-    setAdminData(data.admin);
-    setPackageData(data.pkg);
-    navigate({ search: "?step=school" });
   };
 
   const handleSchoolNext = (data: SchoolStepData) => {
@@ -255,14 +236,10 @@ export default function CreateSchool() {
 
   return (
     <>
-      {isDev && (
-        <div className="px-4.5 pt-4 flex justify-end">
-          <Button type="button" variant="outline" size="sm" className="text-xs" onClick={handlePrefillAll}>
-            Fill test data
-          </Button>
-        </div>
-      )}
-      <section className="px-4.5 py-6">{renderStep()}</section>
+      {/* No top padding: every step opens with its own mt-5, and the two used
+          to be separated by the "Fill test data" bar that sat here. With the
+          bar gone they stacked into a 44px gap above the heading. */}
+      <section className="px-4.5 pb-6">{renderStep()}</section>
       <PromptModal
         isOpen={showSuccess}
         onConfirm={() => {

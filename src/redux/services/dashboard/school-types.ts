@@ -83,9 +83,6 @@ export interface PackageSetup {
   id: string
   package_plan: PackagePlan
   enabled_modules: XVSModule[]
-  student_capacity: number
-  teacher_capacity: number
-  admin_capacity: number
   subscription_expires_at: string | null
   is_active: boolean
   notes: string

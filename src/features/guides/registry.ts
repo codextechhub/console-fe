@@ -127,7 +127,7 @@ export const GUIDE_REGISTRY = [
     title: "Create and configure a school",
     summary: "Register a school, choose its package, add its first branch, and confirm its setup.",
     category: "schools-and-users",
-    tags: ["school", "branch", "administrator", "onboarding", "package", "modules", "capacity"],
+    tags: ["school", "branch", "administrator", "onboarding", "package", "modules"],
     aliases: ["onboard school", "register school", "school setup", "add new school", "school admin"],
     audiences: ["platform-administrator"],
     routes: [R.SCHOOL_MGT.INDEX, R.SCHOOL_MGT.CREATE],

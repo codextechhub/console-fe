@@ -427,16 +427,13 @@ export default function ViewSchool() {
                       </div>
                     </SectionCard>
 
-                    <SectionCard title="Package and access" description="Subscription capacity and enabled modules" icon={<PackageCheck className="size-4.5" />}>
+                    <SectionCard title="Package and access" description="Subscription and enabled modules" icon={<PackageCheck className="size-4.5" />}>
                       {school.package_setup ? (
                         <div className="grid min-w-0 grid-cols-1 gap-5">
                           <div className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3">
                             <DetailField label="Plan" value={school.package_setup.package_plan.name} />
                             <DetailField label="Billing cycle" value={formatEnum(school.package_setup.package_plan.billing_cycle)} />
                             <DetailField label="Subscription expires" value={school.package_setup.subscription_expires_at ? formatStartedTime(school.package_setup.subscription_expires_at) : "No expiry set"} />
-                            <DetailField label="Student capacity" value={school.package_setup.student_capacity.toLocaleString()} />
-                            <DetailField label="Teacher capacity" value={school.package_setup.teacher_capacity.toLocaleString()} />
-                            <DetailField label="Admin capacity" value={school.package_setup.admin_capacity.toLocaleString()} />
                           </div>
                           <div>
                             <p className="mb-2 font-mont text-xs font-medium text-gray-01">Enabled modules</p>

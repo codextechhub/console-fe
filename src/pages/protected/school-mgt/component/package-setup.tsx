@@ -1,6 +1,5 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomDateInput } from "@/components/custom/custom-date-input";
-import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { MultiSelectInput } from "@/components/custom/multiselect-input";
 import { Button } from "@/components/ui/button";
@@ -79,7 +78,7 @@ export default function PackageSetup({ defaultValues, onSubmit, onChange, isSubm
         <div className="mb-7 space-y-1.5">
           <h4 className="font-medium text-xl text-black-01" data-guide="school-create.package">Package Setup</h4>
           <p className="text-gray-01 font-mont text-xs">
-            Select a package plan and configure the school's module access and capacity limits.
+            Select a package plan and configure the school's module access.
           </p>
         </div>
 
@@ -128,33 +127,6 @@ export default function PackageSetup({ defaultValues, onSubmit, onChange, isSubm
               }
             />
 
-            <CustomInput
-              id="student_capacity"
-              type="number"
-              label="Number of Students"
-              placeholder="Enter student capacity"
-              isRequired
-              {...formik.getFieldProps("student_capacity")}
-              error={formik.touched.student_capacity ? (formik.errors.student_capacity as string) : ""}
-            />
-            <CustomInput
-              id="teacher_capacity"
-              type="number"
-              label="Number of Teachers"
-              placeholder="Enter teacher capacity"
-              isRequired
-              {...formik.getFieldProps("teacher_capacity")}
-              error={formik.touched.teacher_capacity ? (formik.errors.teacher_capacity as string) : ""}
-            />
-            <CustomInput
-              id="admin_capacity"
-              type="number"
-              label="Number of Admins"
-              placeholder="Enter admin capacity"
-              isRequired
-              {...formik.getFieldProps("admin_capacity")}
-              error={formik.touched.admin_capacity ? (formik.errors.admin_capacity as string) : ""}
-            />
             <CustomDateInput
               id="subscription_expires_at"
               label="Subscription Expires"

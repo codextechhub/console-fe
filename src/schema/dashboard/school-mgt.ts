@@ -44,9 +44,6 @@ export const adminStepSchema = Yup.object({
 export const packageStepSchema = Yup.object({
   package_plan: Yup.string().required("Package plan is required"),
   enabled_modules: Yup.array().of(Yup.string()).min(1, "Select at least one module"),
-  student_capacity: Yup.number().min(1, "Must be at least 1").required("Student capacity is required"),
-  teacher_capacity: Yup.number().min(1, "Must be at least 1").required("Teacher capacity is required"),
-  admin_capacity: Yup.number().min(1, "Must be at least 1").required("Admin capacity is required"),
   subscription_expires_at: Yup.string().nullable(),
 });
 

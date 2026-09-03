@@ -16,7 +16,24 @@ interface Props {
   generateTestData: () => PrefillData;
 }
 
-const isDev = import.meta.env.VITE_SHOW_PREFILL === "true";
+// Whether to offer the "Fill test data" shortcut, which invents a whole school.
+//
+// Two conditions, and both are deliberate:
+//
+//   import.meta.env.DEV  is replaced at build time, so a production bundle has
+//                        `false &&` here and the control, its handler and the
+//                        generator behind it are dropped from the output. A
+//                        button that is merely hidden still ships.
+//   the hostname         because `npm run dev` can be reached from a phone on
+//                        the LAN or an ngrok tunnel, and this is a shortcut for
+//                        the person typing, not for anyone who found the port.
+//
+// It replaced VITE_SHOW_PREFILL, an env flag: a flag is set by whoever writes
+// the deploy config, so nothing but care kept a staging box from offering
+// operators a button that fabricates a school.
+const isLocalDev =
+  import.meta.env.DEV &&
+  ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
 
 export default function AddSchool({ defaultValues, onNext, onChange, onPrefill, generateTestData }: Props) {
   const navigate = useNavigate();
@@ -49,7 +66,7 @@ export default function AddSchool({ defaultValues, onNext, onChange, onPrefill, 
             To add a new school fill all the compulsory questions below.
           </p>
         </div>
-        {isDev && (
+        {isLocalDev && (
           <Button
             type="button"
             variant="outline"

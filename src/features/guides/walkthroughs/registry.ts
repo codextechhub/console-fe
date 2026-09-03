@@ -90,7 +90,7 @@ export const WALKTHROUGH_REGISTRY = [
       {
         id: "welcome",
         title: "Plan the complete school setup",
-        body: "This form creates the school, branches, administrators, package access, capacity limits, and invitations. This walkthrough explains the decisions but never fills a field or submits anything.",
+        body: "This form creates the school, branches, administrators, package access, and invitations. This walkthrough explains the decisions but never fills a field or submits anything.",
         advance: "next",
       },
       {

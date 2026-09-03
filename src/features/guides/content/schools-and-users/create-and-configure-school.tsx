@@ -10,7 +10,7 @@ export default function CreateAndConfigureSchoolArticle() {
         <GuideChecklist items={[
           "Confirm the school name, ownership type, address, term structure, and currency.",
           "Confirm which branch is the main branch and use working administrator email addresses.",
-          "Agree the package plan, enabled modules, capacity limits, and subscription expiry date.",
+          "Agree the package plan, enabled modules, and subscription expiry date.",
           "Check that administrator emails do not already belong to another account.",
         ]} />
         <GuideCallout tone="warning" title="One submission creates several records">The final Submit action creates the school, its branches and administrator records, package access, and invitations. Review every step before submitting. The walkthrough opens each wizard view so its guidance matches the visible section and preserves what you have entered, but it never reads, fills, validates, or submits a field.</GuideCallout>
@@ -51,7 +51,7 @@ export default function CreateAndConfigureSchoolArticle() {
               { icon: School, title: "School and branches", body: "Identity, location, academic defaults, and main-branch designation." },
               { icon: UsersRound, title: "Administrators", body: "Primary and branch administrator records and invitations." },
               { icon: PackageCheck, title: "Package access", body: "Plan, modules, and any module dependencies." },
-              { icon: ShieldCheck, title: "Capacity and expiry", body: "Student, teacher, administrator limits, and subscription date." },
+              { icon: ShieldCheck, title: "Subscription", body: "When the subscription expires, and whether the setup is active." },
             ].map(({ icon: Icon, title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><Icon className="size-5 text-primary" /><p className="mt-3 text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}
           </div>
         </GuideFigure>
