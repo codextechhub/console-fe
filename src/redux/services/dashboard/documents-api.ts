@@ -1,13 +1,15 @@
-// RTK Query endpoints for the requirements-document library. Backend:
-// apps/vs_admin_console/views_documents.py, mounted at /v1/admin/documents/.
-//
-// Read-only by design. The documents are generated artefacts committed to the
-// backend repo, so git is their version store - there is no create/update/delete
-// endpoint to call, and adding a document is a commit rather than an upload.
-//
-// No polling: the library changes only when the backend is redeployed, so a
-// timer here would be pure background traffic for an answer that cannot have
-// changed.
+/**
+ * RTK Query endpoints for the requirements-document library. Backend:
+ * apps/vs_admin_console/views_documents.py, mounted at /v1/admin/documents/.
+ *
+ * Read-only by design. The documents are generated artefacts committed to the
+ * backend repo, so git is their version store - there is no create/update/delete
+ * endpoint to call, and adding a document is a commit rather than an upload.
+ *
+ * No polling: the library changes only when the backend is redeployed, so a
+ * timer here would be pure background traffic for an answer that cannot have
+ * changed.
+ */
 
 import { baseApi } from "../base-api";
 import type {

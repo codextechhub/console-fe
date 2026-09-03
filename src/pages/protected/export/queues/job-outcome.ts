@@ -1,14 +1,16 @@
-// The one place the job vocabulary and the export-run vocabulary meet.
-//
-// A BackgroundJob says whether the WORKER finished. For an export that is not
-// the whole truth: a job can SUCCEED while the file it produced left columns or
-// rows out. vs_exports.tasks.run_export_task reports that back in
-// `BackgroundJob.result` as {run, status, rows, omissions}, so the queue row can
-// show the RUN's status instead of the job's - otherwise a partly-complete
-// export reads here as a clean success, which is exactly the confusion the
-// Export Centre exists to remove. See docs/EXPORT_BUILD_NOTES.md.
-//
-// Kept free of React so it can be tested directly.
+/**
+ * The one place the job vocabulary and the export-run vocabulary meet.
+ *
+ * A BackgroundJob says whether the WORKER finished. For an export that is not
+ * the whole truth: a job can SUCCEED while the file it produced left columns or
+ * rows out. vs_exports.tasks.run_export_task reports that back in
+ * `BackgroundJob.result` as {run, status, rows, omissions}, so the queue row can
+ * show the RUN's status instead of the job's - otherwise a partly-complete
+ * export reads here as a clean success, which is exactly the confusion the
+ * Export Centre exists to remove. See docs/EXPORT_BUILD_NOTES.md.
+ *
+ * Kept free of React so it can be tested directly.
+ */
 
 import type { BackgroundJob } from "@/redux/services/dashboard/queue-types";
 

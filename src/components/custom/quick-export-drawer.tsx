@@ -1,28 +1,30 @@
-// "Export what this table is showing" - the quick export drawer, shared by every
-// list screen that has a backend ScreenBinding.
-//
-// The whole design turns on one problem. A quick export is only trustworthy if
-// the file matches the table the user was looking at, and the dangerous failure
-// is SILENCE: a screen filter that cannot be expressed as an export filter, and
-// is dropped without saying so, produces a file WIDER than the screen. The user
-// asked for overdue invoices and got every invoice, with nothing to tell them.
-//
-// So the FE deliberately translates nothing. It forwards the screen's own query
-// params to `from-screen`; the module that owns the screen does the translation
-// (only Finance knows what `?bucket=overdue` means) and reports back three lists:
-//
-//   carried  - filters that made it across, so the file matches the table
-//   added    - filters the export needed that the screen never had, in practice
-//              a required date window. The file is NARROWER than the screen.
-//   unmapped - filters that could NOT be carried. The file is WIDER. This is the
-//              one the drawer refuses to bury: it goes above the estimate, in a
-//              warning panel, and the run button reads "Run anyway".
-//
-// Columns ARE editable here, seeded from the dataset's defaults so the common
-// case is still one click. Changing them re-prices through the same preview
-// endpoint the builder's summary rail uses, so the estimate - and with it the
-// download-now vs queue decision - stays honest. Sorting and scheduling remain
-// the builder's job, and the drawer links to it rather than growing into it.
+/**
+ * "Export what this table is showing" - the quick export drawer, shared by every
+ * list screen that has a backend ScreenBinding.
+ *
+ * The whole design turns on one problem. A quick export is only trustworthy if
+ * the file matches the table the user was looking at, and the dangerous failure
+ * is SILENCE: a screen filter that cannot be expressed as an export filter, and
+ * is dropped without saying so, produces a file WIDER than the screen. The user
+ * asked for overdue invoices and got every invoice, with nothing to tell them.
+ *
+ * So the FE deliberately translates nothing. It forwards the screen's own query
+ * params to `from-screen`; the module that owns the screen does the translation
+ * (only Finance knows what `?bucket=overdue` means) and reports back three lists:
+ *
+ *   carried  - filters that made it across, so the file matches the table
+ *   added    - filters the export needed that the screen never had, in practice
+ *              a required date window. The file is NARROWER than the screen.
+ *   unmapped - filters that could NOT be carried. The file is WIDER. This is the
+ *              one the drawer refuses to bury: it goes above the estimate, in a
+ *              warning panel, and the run button reads "Run anyway".
+ *
+ * Columns ARE editable here, seeded from the dataset's defaults so the common
+ * case is still one click. Changing them re-prices through the same preview
+ * endpoint the builder's summary rail uses, so the estimate - and with it the
+ * download-now vs queue decision - stays honest. Sorting and scheduling remain
+ * the builder's job, and the drawer links to it rather than growing into it.
+ */
 
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";

@@ -1,12 +1,14 @@
-// Coverage for the Main-console screens that shipped after the palette did and
-// went unsearchable until now: the Export Centre beyond Queues, Approver Groups,
-// Provider Webhooks, How-to Guides, the Settings sections, the Notification
-// administration panels, and Create task.
-//
-// Each case pins the destination and asserts the gate both ways - a holder of the
-// key sees the action, a user with an unrelated key does not - because a wrong
-// gate is worse than a missing action: it offers a row that lands on a denied
-// page.
+/**
+ * Coverage for the Main-console screens that shipped after the palette did and
+ * went unsearchable until now: the Export Centre beyond Queues, Approver Groups,
+ * Provider Webhooks, How-to Guides, the Settings sections, the Notification
+ * administration panels, and Create task.
+ *
+ * Each case pins the destination and asserts the gate both ways - a holder of the
+ * key sees the action, a user with an unrelated key does not - because a wrong
+ * gate is worse than a missing action: it offers a row that lands on a denied
+ * page.
+ */
 
 import { describe, expect, it } from "vitest";
 
@@ -76,8 +78,8 @@ describe("Main-console actions added for post-palette screens", () => {
   });
 
   it("Settings is findable by every key that opens it from the nav", () => {
-    // The gate previously omitted these two, so their holders could reach
-    // Settings by clicking but never by typing.
+    // A gate omitting these two lets their holders reach Settings by clicking
+    // and never by typing.
     const action = byId("view-settings");
     for (const key of [P.VIEW_SECURITY_SETTINGS, P.VIEW_INTEGRATION_SETTINGS]) {
       expect(passesActionGate(action.gate, [resolvePermissionKey(key)])).toBe(true);

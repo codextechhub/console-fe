@@ -1,8 +1,10 @@
-// Tasks - Org Accountability. The CX-staff accountability tool: every person owns
-// KPI "tasks"; managers see their whole area roll up, drill into reports, add
-// their own tasks and assign tasks down their reporting line. Hierarchy, roll-up
-// and assignment bounds are all enforced server-side (vs_todo, derived from the
-// organogram) - this page just orchestrates the dashboards and the task modal.
+/**
+ * Tasks - Org Accountability. The CX-staff accountability tool: every person owns
+ * KPI "tasks"; managers see their whole area roll up, drill into reports, add
+ * their own tasks and assign tasks down their reporting line. Hierarchy, roll-up
+ * and assignment bounds are all enforced server-side (vs_todo, derived from the
+ * organogram) - this page just orchestrates the dashboards and the task modal.
+ */
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";

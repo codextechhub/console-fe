@@ -1,20 +1,22 @@
-// Provider Webhooks - inbound gateway events that belong to no tenant.
-//
-// Every other view of a webhook event reaches it through the collection or payout it
-// matched, which is also how it gets an entity. An event that matched neither has no
-// entity, so it appeared on no screen at all - and it is not nothing: money moved at
-// the provider against a reference we do not recognise. It cannot be shown to every
-// tenant either, because the reference belongs to exactly one of them.
-//
-// So it lives here, at platform scope, for CX staff only. Expect the list to be short
-// and usually empty; that is the healthy state. What is left over is genuine debris -
-// a staging PSP pointed at production, a reference that no longer exists, an event
-// type we do not handle - plus the occasional one that becomes bookable once whatever
-// was missing (most often the virtual account the deposit named) has been created.
-//
-// Replay re-runs the stored event against the body already on file. It is safe to
-// press twice: the confirm services are idempotent on a terminal record. A replay that
-// succeeds attributes the event, so it leaves this list for that entity's own screen.
+/**
+ * Provider Webhooks - inbound gateway events that belong to no tenant.
+ *
+ * Every other view of a webhook event reaches it through the collection or payout it
+ * matched, which is also how it gets an entity. An event that matched neither has no
+ * entity, so it appeared on no screen at all - and it is not nothing: money moved at
+ * the provider against a reference we do not recognise. It cannot be shown to every
+ * tenant either, because the reference belongs to exactly one of them.
+ *
+ * So it lives here, at platform scope, for CX staff only. Expect the list to be short
+ * and usually empty; that is the healthy state. What is left over is genuine debris -
+ * a staging PSP pointed at production, a reference that no longer exists, an event
+ * type we do not handle - plus the occasional one that becomes bookable once whatever
+ * was missing (most often the virtual account the deposit named) has been created.
+ *
+ * Replay re-runs the stored event against the body already on file. It is safe to
+ * press twice: the confirm services are idempotent on a terminal record. A replay that
+ * succeeds attributes the event, so it leaves this list for that entity's own screen.
+ */
 
 import { useMemo, useState } from "react";
 import { RotateCcw } from "lucide-react";

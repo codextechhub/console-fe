@@ -1,9 +1,11 @@
-// My Profile - self-service CX staff profile (platform-staff-profiles/me).
-// Opens as a READ view: grouped cards (organisation, personal, contact, next of
-// kin, position history, payroll). Editing is an explicit mode behind the
-// "Edit Profile" button; Save stays disabled until something actually changes
-// (Formik dirty). Owner can always read & write their own payroll fields
-// (backend FLS owner exception).
+/**
+ * My Profile - self-service CX staff profile (platform-staff-profiles/me).
+ * Opens as a READ view: grouped cards (organisation, personal, contact, next of
+ * kin, position history, payroll). Editing is an explicit mode behind the
+ * "Edit Profile" button; Save stays disabled until something actually changes
+ * (Formik dirty). Owner can always read & write their own payroll fields
+ * (backend FLS owner exception).
+ */
 
 import { useState } from "react";
 import { toast } from "sonner";

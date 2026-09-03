@@ -1,15 +1,17 @@
-// The export builder - new export, and edit an existing one.
-//
-// FOUR steps, not the spec's five. Step 4 of the original design asked "when
-// should this run, and where should the file go?"; schedules are out of the MVP,
-// so the "when" half no longer exists and the "where" half is delivery, which
-// arrives with slice 4. Rather than ship a step that only says "Export Centre",
-// timing folds into the review step's two actions - save, or save and run. The
-// delivery step comes back when there is something to put in it.
-//
-// Step navigation is free: any step is clickable at any time, and blocking
-// validation lives on the review step rather than on the gates between steps.
-// Someone who wants to change one column should not have to walk the wizard.
+/**
+ * The export builder - new export, and edit an existing one.
+ *
+ * FOUR steps, not the spec's five. Step 4 of the original design asked "when
+ * should this run, and where should the file go?"; schedules are out of the MVP,
+ * so the "when" half no longer exists and the "where" half is delivery, which
+ * arrives with slice 4. Rather than ship a step that only says "Export Centre",
+ * timing folds into the review step's two actions - save, or save and run. The
+ * delivery step comes back when there is something to put in it.
+ *
+ * Step navigation is free: any step is clickable at any time, and blocking
+ * validation lives on the review step rather than on the gates between steps.
+ * Someone who wants to change one column should not have to walk the wizard.
+ */
 
 import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
@@ -50,10 +52,12 @@ import { PageShell } from "@/components/layout/page-shell";
 const STEP_LABELS = ["Data", "Columns", "File", "Review"];
 const TOTAL_STEPS = 4;
 
-// Loader. Its whole job is to have the saved export IN HAND before the form
-// mounts, so the form can seed its state from props rather than copy it in
-// through an effect afterwards - no cascading render, and no window in which
-// the builder is showing an empty form for an export that does exist.
+/**
+ * Loader. Its whole job is to have the saved export IN HAND before the form
+ * mounts, so the form can seed its state from props rather than copy it in
+ * through an effect afterwards - no cascading render, and no window in which
+ * the builder is showing an empty form for an export that does exist.
+ */
 export default function ExportBuilderPage() {
   const { id } = useParams();
   const definitionId = id ? Number(id) : null;

@@ -1,7 +1,9 @@
-// The security-critical test in this file is the FIRST one: a viewer without
-// platform.team_overrides.view/.manage must see no trace of the section AND
-// must fire no request. Everything else (read-only vs manage, render states,
-// drawer validation) hangs off that gate.
+/**
+ * The security-critical test in this file is the FIRST one: a viewer without
+ * platform.team_overrides.view/.manage must see no trace of the section AND
+ * must fire no request. Everything else (read-only vs manage, render states,
+ * drawer validation) hangs off that gate.
+ */
 
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";

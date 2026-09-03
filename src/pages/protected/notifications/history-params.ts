@@ -1,19 +1,21 @@
-// What the delivery-history table asks the backend for.
-//
-// Kept out of the panel because it carries a rule the screen cannot show: the
-// history endpoint refuses an unfiltered dump. With none of scope,
-// recipient_email, event_type_key, channel, status, created_after,
-// created_before or search supplied it answers 422 rather than a page of rows,
-// so this object must never come back as just `{ page }`. The last-7-days
-// window is what guarantees that.
-//
-// `scope` does satisfy the backend's "at least one filter" rule, so choosing a
-// scope would technically license dropping the window. We keep the window
-// anyway: scope says which of the caller's own rows to show, not how far back
-// to look, and silently widening the table from a week to the whole of history
-// because somebody picked "Platform" is a bigger surprise than a date range
-// that stays put. The window still lifts on an explicit row filter (recipient
-// email or status), exactly as it did before scope existed.
+/**
+ * What the delivery-history table asks the backend for.
+ *
+ * Kept out of the panel because it carries a rule the screen cannot show: the
+ * history endpoint refuses an unfiltered dump. With none of scope,
+ * recipient_email, event_type_key, channel, status, created_after,
+ * created_before or search supplied it answers 422 rather than a page of rows,
+ * so this object must never come back as just `{ page }`. The last-7-days
+ * window is what guarantees that.
+ *
+ * `scope` does satisfy the backend's "at least one filter" rule, so choosing a
+ * scope would technically license dropping the window. We keep the window
+ * anyway: scope says which of the caller's own rows to show, not how far back
+ * to look, and silently widening the table from a week to the whole of history
+ * because somebody picked "Platform" is a bigger surprise than a date range
+ * that stays put. The window still lifts on an explicit row filter (recipient
+ * email or status), exactly as it did before scope existed.
+ */
 
 /**
  * The only scope value the backend acts on (`_PLATFORM_SCOPE` in

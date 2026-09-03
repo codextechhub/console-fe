@@ -1,11 +1,13 @@
-// The Finance half of the palette's coverage contract, mirroring
-// procurement-registry.test.ts. Its point is drift: a screen added to the Finance
-// sidebar without a matching action is reachable by clicking and invisible to
-// typing, which is how the console accumulated unsearchable screens before.
-//
-// The Main console has no equivalent guard because its nav is inline JSX in
-// app-sidebar.tsx rather than a data module - see the note at the end of
-// docs/ACTION_PALETTE_CATALOG.md.
+/**
+ * The Finance half of the palette's coverage contract, mirroring
+ * procurement-registry.test.ts. Its point is drift: a screen added to the Finance
+ * sidebar without a matching action is reachable by clicking and invisible to
+ * typing, which is how the console accumulated unsearchable screens before.
+ *
+ * The Main console has no equivalent guard because its nav is inline JSX in
+ * app-sidebar.tsx rather than a data module - see the note at the end of
+ * docs/ACTION_PALETTE_CATALOG.md.
+ */
 
 import { describe, expect, it } from "vitest";
 

@@ -1,13 +1,15 @@
-// The quick export drawer's job is honesty about what the file will contain.
-// These tests cover the parts that would silently mislead if they broke:
-//
-//   1. an unmapped screen filter means the file is WIDER than the table, so the
-//      warning must render and the run button must say "Run anyway"
-//   2. a clean plan must NOT show that warning
-//   3. the button needs BOTH permissions - one alone opens a drawer that cannot
-//      submit, which is the dead-button defect wearing a different hat
-//   4. the run payload must be the config the SERVER prepared, not anything the
-//      FE re-derived from the screen's params
+/**
+ * The quick export drawer's job is honesty about what the file will contain.
+ * These tests cover the parts that would silently mislead if they broke:
+ *
+ *   1. an unmapped screen filter means the file is WIDER than the table, so the
+ *      warning must render and the run button must say "Run anyway"
+ *   2. a clean plan must NOT show that warning
+ *   3. the button needs BOTH permissions - one alone opens a drawer that cannot
+ *      submit, which is the dead-button defect wearing a different hat
+ *   4. the run payload must be the config the SERVER prepared, not anything the
+ *      FE re-derived from the screen's params
+ */
 
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";

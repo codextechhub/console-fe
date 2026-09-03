@@ -1,9 +1,11 @@
-// Create/edit dialog shared by the Settings panels: new setting definitions,
-// setting a (typed) configuration value, and new capabilities. Entitlements
-// and overrides are edited inline on the Features switchboard, not here.
-//
-// `initial.key` prefills the value form when a System Settings row's Edit
-// action opens the dialog.
+/**
+ * Create/edit dialog shared by the Settings panels: new setting definitions,
+ * setting a (typed) configuration value, and new capabilities. Entitlements
+ * and overrides are edited inline on the Features switchboard, not here.
+ *
+ * `initial.key` prefills the value form when a System Settings row's Edit
+ * action opens the dialog.
+ */
 
 import { useState } from "react";
 import { toast } from "sonner";

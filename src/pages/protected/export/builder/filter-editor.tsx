@@ -1,14 +1,16 @@
-// Filters, driven entirely by the dataset's own declarations.
-//
-// The control for each filter comes from its `type`, and the value keys are the
-// backend's, not ours: date_range → {start, end}, choice → {values},
-// text/boolean → {value}, number_range → {min, max}. Getting a key wrong does
-// not fail loudly - the filter is simply ignored when the queryset is compiled,
-// and the export quietly returns the wrong rows. So the mapping lives in one
-// place, here.
-//
-// A required filter cannot be removed; it renders with a REQUIRED flag and,
-// unset, blocks the save on the review step.
+/**
+ * Filters, driven entirely by the dataset's own declarations.
+ *
+ * The control for each filter comes from its `type`, and the value keys are the
+ * backend's, not ours: date_range → {start, end}, choice → {values},
+ * text/boolean → {value}, number_range → {min, max}. Getting a key wrong does
+ * not fail loudly - the filter is simply ignored when the queryset is compiled,
+ * and the export quietly returns the wrong rows. So the mapping lives in one
+ * place, here.
+ *
+ * A required filter cannot be removed; it renders with a REQUIRED flag and,
+ * unset, blocks the save on the review step.
+ */
 
 import { Plus, X } from "lucide-react";
 import { CustomNativeSelect } from "@/components/custom/custom-native-select";

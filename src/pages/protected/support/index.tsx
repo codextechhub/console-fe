@@ -1,7 +1,9 @@
-// Support centre - ticket dashboard KPIs, filterable list and create modal
-// over /support/. Anyone authenticated may file a ticket; staff-side actions
-// live on the detail page. Built on the house kit: KpiCard, CustomTable
-// (phone cards + pagination), Dialog, Badge.
+/**
+ * Support centre - ticket dashboard KPIs, filterable list and create modal
+ * over /support/. Anyone authenticated may file a ticket; staff-side actions
+ * live on the detail page. Built on the house kit: KpiCard, CustomTable
+ * (phone cards + pagination), Dialog, Badge.
+ */
 
 import { useMemo, useState } from "react";
 import { BookOpenText, Plus } from "lucide-react";

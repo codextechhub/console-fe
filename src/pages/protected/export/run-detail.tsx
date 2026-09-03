@@ -1,15 +1,17 @@
-// Export Centre → one run.
-//
-// The screen answers, in this order: what happened, what you can do about it,
-// and what produced it. Each outcome gets its own body - a progress bar while
-// it runs, the file when there is one, the omissions when something was left
-// out, the cause and the fix when it failed - because "an export finished" and
-// "an export finished, minus two columns you are no longer allowed to see" are
-// different events and must not share a screen.
-//
-// Everything shown is on the run record. The frozen configuration is what
-// produced THIS file, not what the export has since become, which is the only
-// honest answer to "why does last month differ?".
+/**
+ * Export Centre → one run.
+ *
+ * The screen answers, in this order: what happened, what you can do about it,
+ * and what produced it. Each outcome gets its own body - a progress bar while
+ * it runs, the file when there is one, the omissions when something was left
+ * out, the cause and the fix when it failed - because "an export finished" and
+ * "an export finished, minus two columns you are no longer allowed to see" are
+ * different events and must not share a screen.
+ *
+ * Everything shown is on the run record. The frozen configuration is what
+ * produced THIS file, not what the export has since become, which is the only
+ * honest answer to "why does last month differ?".
+ */
 
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router";

@@ -1,13 +1,15 @@
-// Downloading a requirements document needs the bearer token, so it cannot be an
-// <a href> - a plain navigation arrives unauthenticated and is refused. The
-// endpoint hands back an object URL (never the Blob, which RTK Query would cache
-// in the Redux store), and this hook saves it and revokes it.
-//
-// Mirrors src/pages/protected/export/use-file-download.ts. Kept separate rather
-// than generalised because the two identify a file differently - an export file
-// has a numeric id, a document is a slug plus an optional version - and folding
-// both into one hook would mean a union type at every call site to save a dozen
-// lines.
+/**
+ * Downloading a requirements document needs the bearer token, so it cannot be an
+ * <a href> - a plain navigation arrives unauthenticated and is refused. The
+ * endpoint hands back an object URL (never the Blob, which RTK Query would cache
+ * in the Redux store), and this hook saves it and revokes it.
+ *
+ * Mirrors src/pages/protected/export/use-file-download.ts. Kept separate rather
+ * than generalised because the two identify a file differently - an export file
+ * has a numeric id, a document is a slug plus an optional version - and folding
+ * both into one hook would mean a union type at every call site to save a dozen
+ * lines.
+ */
 
 import { useState } from "react";
 import { toast } from "sonner";

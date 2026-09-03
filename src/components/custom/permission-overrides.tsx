@@ -1,22 +1,24 @@
-// "Permission exceptions" - per-user overrides layered on top of role grants.
-//
-// One implementation, two mounts: the CX staff profile
-// (pages/protected/organogram/staff/staff-detail.tsx) and the school-user
-// detail drawer (pages/protected/team-mgt/school-user-detail.tsx).
-//
-// ── VISIBILITY (the security crux) ───────────────────────────────────────────
-// The whole section renders ONLY when the VIEWER holds
-// P.VIEW_PERMISSION_EXCEPTIONS or P.MANAGE_PERMISSION_EXCEPTIONS. A user
-// browsing their own profile without those keys must see no trace: no section,
-// no heading, no count, no empty state, no skeleton - and no request. That is
-// why the gate lives in the exported wrapper and the RTK Query hook lives in a
-// separate inner component: an ungated viewer never mounts the component that
-// owns the hook, so nothing can be fired even for a moment. Fail closed -
-// missing tenant/user also renders nothing.
-//
-// Gating uses the ACTOR's namespace (platform.team_overrides.*) on BOTH mounts;
-// the target's namespace is never unioned in. The backend enforces the same
-// key - this is UI gating on top of, not instead of, server authz.
+/**
+ * "Permission exceptions" - per-user overrides layered on top of role grants.
+ *
+ * One implementation, two mounts: the CX staff profile
+ * (pages/protected/organogram/staff/staff-detail.tsx) and the school-user
+ * detail drawer (pages/protected/team-mgt/school-user-detail.tsx).
+ *
+ * ── VISIBILITY (the security crux) ───────────────────────────────────────────
+ * The whole section renders ONLY when the VIEWER holds
+ * P.VIEW_PERMISSION_EXCEPTIONS or P.MANAGE_PERMISSION_EXCEPTIONS. A user
+ * browsing their own profile without those keys must see no trace: no section,
+ * no heading, no count, no empty state, no skeleton - and no request. That is
+ * why the gate lives in the exported wrapper and the RTK Query hook lives in a
+ * separate inner component: an ungated viewer never mounts the component that
+ * owns the hook, so nothing can be fired even for a moment. Fail closed -
+ * missing tenant/user also renders nothing.
+ *
+ * Gating uses the ACTOR's namespace (platform.team_overrides.*) on BOTH mounts;
+ * the target's namespace is never unioned in. The backend enforces the same
+ * key - this is UI gating on top of, not instead of, server authz.
+ */
 
 import { useState } from "react";
 import { toast } from "sonner";
@@ -124,10 +126,10 @@ export function useCanViewPermissionExceptions(): boolean {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Public entry point - the permission gate. Renders nothing (and mounts no
-// query) unless the viewer may see exceptions.
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Public entry point - the permission gate. Renders nothing (and mounts no
+ * query) unless the viewer may see exceptions.
+ */
 export default function PermissionOverrides({
   userId,
   tenantSlug,

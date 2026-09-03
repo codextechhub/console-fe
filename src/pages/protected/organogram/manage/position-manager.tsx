@@ -1,8 +1,10 @@
-// Positions (seats) CRUD (admin). Gated by P.MANAGE_ORGANOGRAM at the page level.
-//
-// Renders as a collapsible tree ordered by the solid "reports to" line.
-// Clicking a row that has direct reports collapses/expands them - no arrow
-// indicator, just the click. Vertical guide lines connect siblings at each depth.
+/**
+ * Positions (seats) CRUD (admin). Gated by P.MANAGE_ORGANOGRAM at the page level.
+ *
+ * Renders as a collapsible tree ordered by the solid "reports to" line.
+ * Clicking a row that has direct reports collapses/expands them - no arrow
+ * indicator, just the click. Vertical guide lines connect siblings at each depth.
+ */
 
 import { useMemo, useState } from "react";
 import { ChevronRight, Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";

@@ -1,13 +1,15 @@
-// Full-page notification template editor.
-//
-// Two panes: what the message says on the left, what the recipient will see on
-// the right. The preview is not a button you press - it re-renders from the
-// unsaved draft as you type, through the backend's own render path, so it is
-// the email itself rather than an impression of it.
-//
-// The long fields (message text, email HTML) stay COLLAPSED. Most visits are to
-// read a template or change one line, and two big code boxes make that harder,
-// not easier. Each one opens in place, or full-screen for real editing.
+/**
+ * Full-page notification template editor.
+ *
+ * Two panes: what the message says on the left, what the recipient will see on
+ * the right. The preview is not a button you press - it re-renders from the
+ * unsaved draft as you type, through the backend's own render path, so it is
+ * the email itself rather than an impression of it.
+ *
+ * The long fields (message text, email HTML) stay COLLAPSED. Most visits are to
+ * read a template or change one line, and two big code boxes make that harder,
+ * not easier. Each one opens in place, or full-screen for real editing.
+ */
 
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";

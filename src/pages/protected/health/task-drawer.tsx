@@ -1,18 +1,20 @@
-// One background job in full, opened from the Jobs & Queues table.
-//
-// Three layers, because reading them costs three different things:
-//
-//   the list          metadata. Everyone with the health console sees it.
-//   this drawer       + the REDACTED error, on platform.tasks.view.
-//   the raw record    the unredacted traceback, on platform.tasks.view_sensitive,
-//                     and every read writes an audit event.
-//
-// The last one is behind a confirmation rather than a click, and the
-// confirmation names the consequence: the read is recorded against the SCHOOL's
-// audit trail, not CodeX's, so the customer can see who read their data. That
-// is not a warning for the sake of friction - it is the fact that makes the
-// design defensible, and hiding it would leave an operator surprised by their
-// own footprint.
+/**
+ * One background job in full, opened from the Jobs & Queues table.
+ *
+ * Three layers, because reading them costs three different things:
+ *
+ *   the list          metadata. Everyone with the health console sees it.
+ *   this drawer       + the REDACTED error, on platform.tasks.view.
+ *   the raw record    the unredacted traceback, on platform.tasks.view_sensitive,
+ *                     and every read writes an audit event.
+ *
+ * The last one is behind a confirmation rather than a click, and the
+ * confirmation names the consequence: the read is recorded against the SCHOOL's
+ * audit trail, not CodeX's, so the customer can see who read their data. That
+ * is not a warning for the sake of friction - it is the fact that makes the
+ * design defensible, and hiding it would leave an operator surprised by their
+ * own footprint.
+ */
 
 import { useState } from "react";
 import { AlertTriangle, Eye, Loader2 } from "lucide-react";

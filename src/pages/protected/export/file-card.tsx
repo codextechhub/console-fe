@@ -1,11 +1,13 @@
-// <FileCard> - the produced file, and whether you can still have it.
-//
-// One of the three genuinely new pieces of UI in the Export Centre. A format
-// tile, the file name, a metadata line (rows · columns · size · availability)
-// and exactly one primary action, which changes with what is actually possible:
-// download it, download it anyway, or run the export again because the bytes
-// are gone. Availability is derived server-side at read time (is_expired /
-// is_purged / is_downloadable) - never inferred here from a date.
+/**
+ * <FileCard> - the produced file, and whether you can still have it.
+ *
+ * One of the three genuinely new pieces of UI in the Export Centre. A format
+ * tile, the file name, a metadata line (rows · columns · size · availability)
+ * and exactly one primary action, which changes with what is actually possible:
+ * download it, download it anyway, or run the export again because the bytes
+ * are gone. Availability is derived server-side at read time (is_expired /
+ * is_purged / is_downloadable) - never inferred here from a date.
+ */
 
 import { Download, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";

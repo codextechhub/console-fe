@@ -8,10 +8,12 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Building2, CalendarDays, GitBranch, KeyRound, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
 
-// The persona column is gone from the API: which side of the platform boundary
-// an account sits on is a fact about its tenant, and what the person actually
-// does is their role. Two accounts both reading "Staff" were a principal and a
-// Year 4 teacher, which is exactly what the role says and the persona did not.
+/**
+ * The persona column is gone from the API: which side of the platform boundary
+ * an account sits on is a fact about its tenant, and what the person actually
+ * does is their role. Two accounts both reading "Staff" were a principal and a
+ * Year 4 teacher, which is exactly what the role says and the persona did not.
+ */
 const TENANT_KIND_LABELS: Record<string, string> = {
   PLATFORM: "CX Staff",
   SCHOOL: "School User",

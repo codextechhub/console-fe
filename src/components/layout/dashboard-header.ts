@@ -1,20 +1,22 @@
-// Per-screen header config for the dashboard shell.
-//
-// DashboardLayout is an eager LAYOUT ROUTE (see routes/protected/index.tsx): it
-// renders once above the lazy page chunks and so can no longer receive props
-// from the page it wraps. Two channels replace those props:
-//
-//  1. `handle` - react-router's slot for static, route-owned metadata. Carries
-//     the screen's default title, its back affordance, and which sidebar the
-//     console uses. Deepest matched route wins, so a nested screen overrides
-//     its parent without the parent knowing.
-//  2. `useDashboardTitle` / `useDashboardBack` - the runtime escape hatch, for
-//     the handful of screens whose title only exists once server data lands
-//     (a ticket number) or whose back destination is a closure over state.
-//
-// A runtime override is stamped with the location key it was set under and is
-// ignored the moment the location changes, so a stale title can never bleed
-// into the next screen even if a page forgets to clean up.
+/**
+ * Per-screen header config for the dashboard shell.
+ *
+ * DashboardLayout is an eager LAYOUT ROUTE (see routes/protected/index.tsx): it
+ * renders once above the lazy page chunks and so can no longer receive props
+ * from the page it wraps. Two channels replace those props:
+ *
+ *  1. `handle` - react-router's slot for static, route-owned metadata. Carries
+ *     the screen's default title, its back affordance, and which sidebar the
+ *     console uses. Deepest matched route wins, so a nested screen overrides
+ *     its parent without the parent knowing.
+ *  2. `useDashboardTitle` / `useDashboardBack` - the runtime escape hatch, for
+ *     the handful of screens whose title only exists once server data lands
+ *     (a ticket number) or whose back destination is a closure over state.
+ *
+ * A runtime override is stamped with the location key it was set under and is
+ * ignored the moment the location changes, so a stale title can never bleed
+ * into the next screen even if a page forgets to clean up.
+ */
 
 import { createContext, useContext, useEffect, useRef } from "react";
 

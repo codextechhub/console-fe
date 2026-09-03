@@ -1,10 +1,12 @@
-// A selectable card wrapping the real Checkbox (or its single-select
-// equivalent) - used for datasets, formats and values mode.
-//
-// Selected reads as a primary border plus a --color-pry-01 fill. A choice that
-// is unavailable is DISABLED WITH THE REASON BESIDE IT, never hidden: "why can
-// I not pick CSV here?" is a question the screen should answer without anyone
-// having to ask.
+/**
+ * A selectable card wrapping the real Checkbox (or its single-select
+ * equivalent) - used for datasets, formats and values mode.
+ *
+ * Selected reads as a primary border plus a --color-pry-01 fill. A choice that
+ * is unavailable is DISABLED WITH THE REASON BESIDE IT, never hidden: "why can
+ * I not pick CSV here?" is a question the screen should answer without anyone
+ * having to ask.
+ */
 
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";

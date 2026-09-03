@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router";
 
-// Background notification feeds (the header bell polls these every 60 s).
-// They have their own in-page loading states, so their fetches must not flash
-// the top bar. These are the *Bell endpoints from workflowApi - the page-level
-// getPendingApprovals / getMySubmissions queries are foreground requests and
-// SHOULD show the bar.
+/**
+ * Background notification feeds (the header bell polls these every 60 s).
+ * They have their own in-page loading states, so their fetches must not flash
+ * the top bar. These are the *Bell endpoints from workflowApi - the page-level
+ * getPendingApprovals / getMySubmissions queries are foreground requests and
+ * SHOULD show the bar.
+ */
 const SILENT_ENDPOINTS = new Set([
   "getPendingApprovalsBell",
   "getReturnedSubmissionsBell",
@@ -51,21 +53,25 @@ const selectAnyPending = (state: BaseApiState): boolean => {
 // only genuinely slow work - the case the bar exists for - surfaces it.
 const SHOW_DELAY_MS = 300;
 
-// In production the bar is a NAVIGATION signal only. Data fetches there have
-// their own in-page loading states, and real network latency would otherwise
-// keep the bar crawling on every screen - reading as background trouble rather
-// than feedback. Local dev keeps the API signal: latency is near zero, so it
-// only ever appears when something is genuinely stuck, which is exactly when a
-// developer wants to see it.
+/**
+ * In production the bar is a NAVIGATION signal only. Data fetches there have
+ * their own in-page loading states, and real network latency would otherwise
+ * keep the bar crawling on every screen - reading as background trouble rather
+ * than feedback. Local dev keeps the API signal: latency is near zero, so it
+ * only ever appears when something is genuinely stuck, which is exactly when a
+ * developer wants to see it.
+ */
 const TRACK_API_ACTIVITY = import.meta.env.DEV;
 
 type Phase = "idle" | "running" | "finishing";
 
-// Animation is pure CSS (keyframes below) instead of timer-driven setState, so
-// there is no synchronous setState inside effects and nothing for the React
-// Compiler to mis-memoise. Phase transitions happen via the sanctioned
-// render-phase adjustment pattern; "finishing" → "idle" is event-driven
-// (onAnimationEnd).
+/**
+ * Animation is pure CSS (keyframes below) instead of timer-driven setState, so
+ * there is no synchronous setState inside effects and nothing for the React
+ * Compiler to mis-memoise. Phase transitions happen via the sanctioned
+ * render-phase adjustment pattern; "finishing" → "idle" is event-driven
+ * (onAnimationEnd).
+ */
 export function TopProgressBar() {
   const hasPendingRequest = useSelector(
     TRACK_API_ACTIVITY ? selectAnyPending : () => false,

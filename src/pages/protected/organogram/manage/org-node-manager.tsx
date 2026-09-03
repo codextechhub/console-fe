@@ -1,9 +1,11 @@
-// Org nodes CRUD (admin): Division → Department → Team.
-// Gated by P.MANAGE_ORGANOGRAM at the page level; backend enforces tiering.
-//
-// The hierarchy renders as a collapsible tree: clicking a Division row
-// collapses/expands its departments; clicking a Department row does the same
-// for its teams. No arrow indicator - just click the row.
+/**
+ * Org nodes CRUD (admin): Division → Department → Team.
+ * Gated by P.MANAGE_ORGANOGRAM at the page level; backend enforces tiering.
+ *
+ * The hierarchy renders as a collapsible tree: clicking a Division row
+ * collapses/expands its departments; clicking a Department row does the same
+ * for its teams. No arrow indicator - just click the row.
+ */
 
 import { useMemo, useState } from "react";
 import { ChevronRight, Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";

@@ -1,44 +1,46 @@
-// The Main console's sidebar, as data.
-//
-// Finance and Procurement already declare their sidebars this way
-// (finance-nav.ts, procurement-nav.ts), which is what lets a test assert that
-// every nav destination has an action-palette entry. Main used to build its
-// items inline inside app-sidebar.tsx, mixed with permission calls and the
-// current URL, so nothing could read it - and it drifted: screens shipped into
-// the nav that the palette could not find. This module exists so the same guard
-// covers all three consoles (see main-registry.test.ts).
-//
-// Two rules keep the declaration honest:
-//
-//   * **One `match` per entry, not two active flags.** A leaf highlights itself
-//     (`isActive`); a group highlights its parent row because a child is open
-//     (`childActive`). Which one applies follows from whether the entry renders
-//     as a group, so the declaration states the route rule once and `buildMainNav`
-//     assigns it. Children default to a prefix match on their own url and only
-//     declare `match` when that is wrong (exact matches, and sections that must
-//     exclude a sibling's prefix).
-//   * **Gates are fields, not control flow.** Entry-level `permission` decides
-//     whether the entry appears at all; a child's `permission` decides that child.
-//     `modulePrefixes` gates by raw backend key prefix, for whole-console entries
-//     where one specific key would be too narrow.
-//
-// ── Adding a destination touches four other places ───────────────────────────
-//
-// None of them is optional and none of them announces itself: each is enforced
-// by a different test, so the first you hear of the list is three unrelated
-// failures. Written down here because this file is where you start.
-//
-//   1. `lib/action-palette/registry.ts` - an action for the new destination.
-//      `main-registry.test.ts` asserts every Main nav destination has one, so
-//      the palette can never fall behind the sidebar.
-//   2. `features/guides/route-catalog.ts` - the route, or any guide that maps
-//      to it fails validation as an unknown product route.
-//   3. The guide record in `features/guides/registry.ts` - add the route to
-//      `routes` and the action to `actionIds`, or contextual help on the new
-//      screen offers nothing.
-//   4. `components/__snapshots__/app-sidebar.test.tsx.snap` - review the diff
-//      before updating. A gated child that does NOT appear for a profile is
-//      the assertion working, not a snapshot to be overwritten.
+/**
+ * The Main console's sidebar, as data.
+ *
+ * Finance and Procurement already declare their sidebars this way
+ * (finance-nav.ts, procurement-nav.ts), which is what lets a test assert that
+ * every nav destination has an action-palette entry. Main used to build its
+ * items inline inside app-sidebar.tsx, mixed with permission calls and the
+ * current URL, so nothing could read it - and it drifted: screens shipped into
+ * the nav that the palette could not find. This module exists so the same guard
+ * covers all three consoles (see main-registry.test.ts).
+ *
+ * Two rules keep the declaration honest:
+ *
+ *   * **One `match` per entry, not two active flags.** A leaf highlights itself
+ *     (`isActive`); a group highlights its parent row because a child is open
+ *     (`childActive`). Which one applies follows from whether the entry renders
+ *     as a group, so the declaration states the route rule once and `buildMainNav`
+ *     assigns it. Children default to a prefix match on their own url and only
+ *     declare `match` when that is wrong (exact matches, and sections that must
+ *     exclude a sibling's prefix).
+ *   * **Gates are fields, not control flow.** Entry-level `permission` decides
+ *     whether the entry appears at all; a child's `permission` decides that child.
+ *     `modulePrefixes` gates by raw backend key prefix, for whole-console entries
+ *     where one specific key would be too narrow.
+ *
+ * ── Adding a destination touches four other places ───────────────────────────
+ *
+ * None of them is optional and none of them announces itself: each is enforced
+ * by a different test, so the first you hear of the list is three unrelated
+ * failures. Written down here because this file is where you start.
+ *
+ *   1. `lib/action-palette/registry.ts` - an action for the new destination.
+ *      `main-registry.test.ts` asserts every Main nav destination has one, so
+ *      the palette can never fall behind the sidebar.
+ *   2. `features/guides/route-catalog.ts` - the route, or any guide that maps
+ *      to it fails validation as an unknown product route.
+ *   3. The guide record in `features/guides/registry.ts` - add the route to
+ *      `routes` and the action to `actionIds`, or contextual help on the new
+ *      screen offers nothing.
+ *   4. `components/__snapshots__/app-sidebar.test.tsx.snap` - review the diff
+ *      before updating. A gated child that does NOT appear for a profile is
+ *      the assertion working, not a snapshot to be overwritten.
+ */
 
 import type { ElementType } from "react";
 import {
@@ -53,10 +55,12 @@ import { routesPath } from "@/routes/routes-path";
 
 const R = routesPath.PROTECTED;
 
-// First path segment of a route, e.g. "/workflow/approvals" → "/workflow".
-// Group-level matching derives its prefix from a real routesPath constant via
-// this, so renaming a path propagates here instead of silently breaking
-// highlighting against a stale literal.
+/**
+ * First path segment of a route, e.g. "/workflow/approvals" → "/workflow".
+ * Group-level matching derives its prefix from a real routesPath constant via
+ * this, so renaming a path propagates here instead of silently breaking
+ * highlighting against a stale literal.
+ */
 const moduleRoot = (path: string) => "/" + path.split("/")[1];
 
 export type NavPermission = PermissionCode | PermissionCode[] | null;

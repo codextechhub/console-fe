@@ -1,10 +1,12 @@
-// Organogram → Manage. Tabbed CRUD for Org Units / Positions / Matrix.
-//
-// Gated on P.MANAGE_ORGANOGRAM at the page itself, not only in the sidebar.
-// Hiding the nav link left the route reachable by typing the URL, and this
-// page is where establishment size lives: the position list shows headcount
-// and how many seats of each are unfilled, which the org chart deliberately
-// no longer reveals. The backend remains the authoritative gate for writes.
+/**
+ * Organogram → Manage. Tabbed CRUD for Org Units / Positions / Matrix.
+ *
+ * Gated on P.MANAGE_ORGANOGRAM at the page itself, not only in the sidebar.
+ * Hiding the nav link left the route reachable by typing the URL, and this
+ * page is where establishment size lives: the position list shows headcount
+ * and how many seats of each are unfilled, which the org chart deliberately
+ * no longer reveals. The backend remains the authoritative gate for writes.
+ */
 
 import { useState } from "react";
 import { Building2, Briefcase, Spline } from "lucide-react";

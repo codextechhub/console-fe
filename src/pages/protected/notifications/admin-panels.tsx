@@ -1,7 +1,9 @@
-// Admin panels for the Notification administration page (./admin.tsx):
-// delivery history, the effective settings matrix, template editing, and the
-// event-type catalogue. Each panel maps to one communication.* key - the page
-// decides which tabs to show.
+/**
+ * Admin panels for the Notification administration page (./admin.tsx):
+ * delivery history, the effective settings matrix, template editing, and the
+ * event-type catalogue. Each panel maps to one communication.* key - the page
+ * decides which tabs to show.
+ */
 
 import { useMemo, useState } from "react";
 import { Link } from "react-router";

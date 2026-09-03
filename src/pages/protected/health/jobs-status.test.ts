@@ -1,13 +1,15 @@
-// The status filter on Jobs & Queues must speak the API's vocabulary.
-//
-// It used to offer "pending" and "completed". core.BackgroundJob.Status has no
-// such members - they are QUEUED and SUCCEEDED - and the backend filters on
-// `status=<value>.upper()`, so both options matched zero rows and the table
-// went blank with no error to explain it. The same mistake in the row badge
-// tested for "COMPLETED" and so styled every successful job as pending.
-//
-// This pins the tokens against the enum rather than against the words a person
-// reads, which is the half that drifted.
+/**
+ * The status filter on Jobs & Queues must speak the API's vocabulary.
+ *
+ * It used to offer "pending" and "completed". core.BackgroundJob.Status has no
+ * such members - they are QUEUED and SUCCEEDED - and the backend filters on
+ * `status=<value>.upper()`, so both options matched zero rows and the table
+ * went blank with no error to explain it. The same mistake in the row badge
+ * tested for "COMPLETED" and so styled every successful job as pending.
+ *
+ * This pins the tokens against the enum rather than against the words a person
+ * reads, which is the half that drifted.
+ */
 
 import { describe, expect, it } from "vitest";
 import { STATUS_OPTIONS } from "./jobs";

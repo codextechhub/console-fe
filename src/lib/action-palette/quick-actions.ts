@@ -6,10 +6,12 @@ import type { ActionDef } from "./types";
 
 export const QUICK_ACTIONS_MAX = 6;
 
-// Actions that never belong on the home screen's quick row:
-// - command actions (proxy/logout) are header concerns, not dashboard shortcuts
-//   (excluded structurally below, listed here only for the reader);
-// - view-home navigates to the page the row is already on.
+/**
+ * Actions that never belong on the home screen's quick row:
+ * - command actions (proxy/logout) are header concerns, not dashboard shortcuts
+ *   (excluded structurally below, listed here only for the reader);
+ * - view-home navigates to the page the row is already on.
+ */
 const EXCLUDED_IDS = new Set(["view-home"]);
 
 // Cold-start defaults, in order. Gating trims this to what the user can see, so

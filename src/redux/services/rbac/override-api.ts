@@ -1,16 +1,18 @@
-// Per-user permission overrides ("permission exceptions").
-//
-// One override is one exception layered on top of what the user's ROLES grant:
-//   DENY  - carve a key out of their access (beats every role grant)
-//   ALLOW - hand them a key no role of theirs grants
-// Both apply instantly (no approval workflow); expiry is optional and lazy.
-//
-// Tenant scoping: unlike most endpoints, the tenant here is the TARGET's, not
-// the caller's - a CX actor administering a school user asserts the school's
-// slug. The backend requires `?tenant=<slug>` to equal the slug in the path
-// (non-enumerating 404 otherwise), so every endpoint sets `params.tenant`
-// explicitly. base-api's central injector leaves requests that already assert a
-// tenant untouched (`hasTenantParam`), so nothing here is double-stamped.
+/**
+ * Per-user permission overrides ("permission exceptions").
+ *
+ * One override is one exception layered on top of what the user's ROLES grant:
+ *   DENY  - carve a key out of their access (beats every role grant)
+ *   ALLOW - hand them a key no role of theirs grants
+ * Both apply instantly (no approval workflow); expiry is optional and lazy.
+ *
+ * Tenant scoping: unlike most endpoints, the tenant here is the TARGET's, not
+ * the caller's - a CX actor administering a school user asserts the school's
+ * slug. The backend requires `?tenant=<slug>` to equal the slug in the path
+ * (non-enumerating 404 otherwise), so every endpoint sets `params.tenant`
+ * explicitly. base-api's central injector leaves requests that already assert a
+ * tenant untouched (`hasTenantParam`), so nothing here is double-stamped.
+ */
 
 import { baseApi } from "../base-api";
 

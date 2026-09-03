@@ -1,44 +1,44 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// PERMISSION REGISTRY
-//
-// Single source of truth. The backend permission keys ("module.resource.action")
-// exist ONLY inside REGISTRY below - nowhere else in the codebase.
-//
-// P.* names describe what the user is doing in the UI, not how the backend
-// models the permission. A reader of any other file cannot infer the backend
-// key format from the constant name alone.
-//
-// ── Code format: MM RR AA (6 digits) ─────────────────────────────────────────
-//   MM = module group   10=platform  20=finance  30=academics  40=communication
-//                       50=imports   60=workflow  70=procurement  80=payments
-//                       90=config    91=tickets   92=exports
-//   RR = resource       01 02 03 … (assigned sequentially per module)
-//   AA = action         01=view   02=create  03=update  04=delete
-//                       05=approve  06=export  08=manage
-//                       09=suspend  10=reactivate  11=assign  12=transfer
-//   Finance/Procurement document actions extend the AA vocabulary:
-//                       13=post  14=reverse  15=settle  16=pay  17=reconcile
-//                       18=import  19=file  20=allocate  21=writeoff  22=acquire
-//                       23=depreciate  24=close  25=generate  26=send
-//                       27=activate  28=cancel  29=refresh  30=submit  31=match
-//                       32=award  33=issue  34=renew  35=terminate  36=replenish
-//                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
-//                       41=dispose  42=reopen  43=lock  44=approve_high_value
-//                       45=share  46=download  47=override_variance  48=replay
-//                       49=attach  50=email  51=email_statement  52=reject
-//                       53=view_all (every tenant, not only the caller's own)
-//
-// ── Adding a permission ───────────────────────────────────────────────────────
-//   1. Pick the next free code in the right MM RR range.
-//   2. Add  "MMRRAA": "module.resource.action"  to REGISTRY.
-//   3. Add a named constant to P that describes the UI capability.
-//   4. Use P.YOUR_CONSTANT everywhere - never the raw key or the code directly.
-//
-// ── Adding a new module ───────────────────────────────────────────────────────
-//   1. Pick the next free MM (30, 40, …).
-//   2. Start RR at 01 and AA at 01 within that range.
-//   3. Add a comment block and constants to P below.
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * PERMISSION REGISTRY
+ *
+ * Single source of truth. The backend permission keys ("module.resource.action")
+ * exist ONLY inside REGISTRY below - nowhere else in the codebase.
+ *
+ * P.* names describe what the user is doing in the UI, not how the backend
+ * models the permission. A reader of any other file cannot infer the backend
+ * key format from the constant name alone.
+ *
+ * ── Code format: MM RR AA (6 digits) ─────────────────────────────────────────
+ *   MM = module group   10=platform  20=finance  30=academics  40=communication
+ *                       50=imports   60=workflow  70=procurement  80=payments
+ *                       90=config    91=tickets   92=exports
+ *   RR = resource       01 02 03 … (assigned sequentially per module)
+ *   AA = action         01=view   02=create  03=update  04=delete
+ *                       05=approve  06=export  08=manage
+ *                       09=suspend  10=reactivate  11=assign  12=transfer
+ *   Finance/Procurement document actions extend the AA vocabulary:
+ *                       13=post  14=reverse  15=settle  16=pay  17=reconcile
+ *                       18=import  19=file  20=allocate  21=writeoff  22=acquire
+ *                       23=depreciate  24=close  25=generate  26=send
+ *                       27=activate  28=cancel  29=refresh  30=submit  31=match
+ *                       32=award  33=issue  34=renew  35=terminate  36=replenish
+ *                       37=adjust  38=approve_senior  39=view_sensitive  40=establish
+ *                       41=dispose  42=reopen  43=lock  44=approve_high_value
+ *                       45=share  46=download  47=override_variance  48=replay
+ *                       49=attach  50=email  51=email_statement  52=reject
+ *                       53=view_all (every tenant, not only the caller's own)
+ *
+ * ── Adding a permission ───────────────────────────────────────────────────────
+ *   1. Pick the next free code in the right MM RR range.
+ *   2. Add  "MMRRAA": "module.resource.action"  to REGISTRY.
+ *   3. Add a named constant to P that describes the UI capability.
+ *   4. Use P.YOUR_CONSTANT everywhere - never the raw key or the code directly.
+ *
+ * ── Adding a new module ───────────────────────────────────────────────────────
+ *   1. Pick the next free MM (30, 40, …).
+ *   2. Start RR at 01 and AA at 01 within that range.
+ *   3. Add a comment block and constants to P below.
+ */
 
 const REGISTRY_BASE: Record<string, string> = {
 
@@ -595,16 +595,16 @@ export function resolvePermissionKey(code: PermissionCode): string {
   return REGISTRY[code] ?? "";
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Human labels for raw backend keys
-//
-// The permission-exceptions screens are the one place that renders keys the
-// user did not pick from a P.* constant (they come back from the API, and for
-// school users they are `school.*` keys this console never gates on). They need
-// a readable label, so derive one from the P.* name where we have it - the
-// constant names are already written as UI capabilities ("MODIFY_SCHOOL" →
-// "Modify school") - and fall back to a title-cased reading of the dotted key.
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Human labels for raw backend keys
+ *
+ * The permission-exceptions screens are the one place that renders keys the
+ * user did not pick from a P.* constant (they come back from the API, and for
+ * school users they are `school.*` keys this console never gates on). They need
+ * a readable label, so derive one from the P.* name where we have it - the
+ * constant names are already written as UI capabilities ("MODIFY_SCHOOL" →
+ * "Modify school") - and fall back to a title-cased reading of the dotted key.
+ */
 
 const LABEL_BY_KEY: Record<string, string> = Object.entries(P).reduce(
   (acc, [name, code]) => {

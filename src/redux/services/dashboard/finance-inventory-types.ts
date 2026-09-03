@@ -1,8 +1,10 @@
-// Shapes for the platform's ledger-entity roll-call (`/admin/finance/entities/`).
-//
-// Deliberately narrow: the endpoint carries no figure of any kind, and these
-// types are the second place that is enforced. A balance appearing here would
-// be the first sign that the reporting route has been bypassed.
+/**
+ * Shapes for the platform's ledger-entity roll-call (`/admin/finance/entities/`).
+ *
+ * Deliberately narrow: the endpoint carries no figure of any kind, and these
+ * types are the second place that is enforced. A balance appearing here would
+ * be the first sign that the reporting route has been bypassed.
+ */
 
 /** The owning organisation. `kind` separates the platform's own tenant from a
  *  customer's; `status` is the tenant lifecycle, not the books'. */

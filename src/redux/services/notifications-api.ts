@@ -1,7 +1,9 @@
-// Universal notifications API (backend: vs_notifications, mounted at /v1/notify/).
-// Covers the user-facing feed (bell + Notifications page) and the admin
-// surfaces: delivery history, the effective settings matrix, templates and the
-// event-type catalogue.
+/**
+ * Universal notifications API (backend: vs_notifications, mounted at /v1/notify/).
+ * Covers the user-facing feed (bell + Notifications page) and the admin
+ * surfaces: delivery history, the effective settings matrix, templates and the
+ * event-type catalogue.
+ */
 
 import { baseApi } from "./base-api";
 import { generateQueryString } from "@/utils/helpers";

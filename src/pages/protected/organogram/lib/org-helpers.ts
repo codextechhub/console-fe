@@ -1,7 +1,9 @@
-// Pure helpers for the organogram views. Operate on the API shapes
-// (organogramTypes) - no network, no React. The server already builds the
-// position tree; here we derive the people view from it and enrich with
-// staff-profile status, plus KPI math from the supporting lists.
+/**
+ * Pure helpers for the organogram views. Operate on the API shapes
+ * (organogramTypes) - no network, no React. The server already builds the
+ * position tree; here we derive the people view from it and enrich with
+ * staff-profile status, plus KPI math from the supporting lists.
+ */
 
 import type {
   EmploymentStatus,
@@ -103,13 +105,15 @@ export function buildActingSet(assignments: CurrentOrganogramAssignment[]): Set<
   return s;
 }
 
-// ── Derived people tree from the server position tree ─────────────────────────
-//
-// A "person node" is a holder of a seat. Its children are the holders of the
-// seat's child positions. An empty seat contributes no card of its own: the
-// chart shows people, and an unfilled post is not a person. Its reports are
-// spliced up to the nearest filled ancestor, so nobody drops off the chart
-// because the seat above them happens to be vacant.
+/**
+ * ── Derived people tree from the server position tree ─────────────────────────
+ *
+ * A "person node" is a holder of a seat. Its children are the holders of the
+ * seat's child positions. An empty seat contributes no card of its own: the
+ * chart shows people, and an unfilled post is not a person. Its reports are
+ * spliced up to the nearest filled ancestor, so nobody drops off the chart
+ * because the seat above them happens to be vacant.
+ */
 
 export interface PersonNodeData {
   kind: "person";
@@ -149,13 +153,15 @@ function peopleChildrenOf(node: OrganogramNode, actingSet: Set<string>): PeopleN
   return out;
 }
 
-// Strip unfilled seats out of the position tree before it is rendered.
-//
-// The chart is a view of the organisation as it is staffed, not of its
-// establishment: an empty post tells a reader nothing they can act on, and its
-// headcount is deliberately kept to Manage. A pruned seat splices its own
-// reports up to the nearest filled ancestor, exactly as the people tree does,
-// so removing a vacant manager never hides the team beneath them.
+/**
+ * Strip unfilled seats out of the position tree before it is rendered.
+ *
+ * The chart is a view of the organisation as it is staffed, not of its
+ * establishment: an empty post tells a reader nothing they can act on, and its
+ * headcount is deliberately kept to Manage. A pruned seat splices its own
+ * reports up to the nearest filled ancestor, exactly as the people tree does,
+ * so removing a vacant manager never hides the team beneath them.
+ */
 export function pruneVacantPositions(tree: OrganogramNode[]): OrganogramNode[] {
   const out: OrganogramNode[] = [];
   for (const node of tree) {
@@ -213,10 +219,12 @@ export function collectPeopleIds(nodes: PeopleNode[], acc: string[] = []): strin
   return acc;
 }
 
-// Person-node user ids from a root down to the matched user (inclusive).
-// Expanding exactly these ids reveals the user's chain - and their own direct
-// reports - while every other branch stays collapsed. Used to auto-focus the
-// chart on the logged-in viewer.
+/**
+ * Person-node user ids from a root down to the matched user (inclusive).
+ * Expanding exactly these ids reveals the user's chain - and their own direct
+ * reports - while every other branch stays collapsed. Used to auto-focus the
+ * chart on the logged-in viewer.
+ */
 export function findPeoplePathToUser(
   nodes: PeopleNode[],
   match: (u: UserInline) => boolean,

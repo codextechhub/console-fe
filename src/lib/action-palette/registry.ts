@@ -1,7 +1,9 @@
-// The action catalog. One entry per row in docs/ACTION_PALETTE_CATALOG.md.
-// Destinations use routesPath constants so a route rename propagates here.
-// `do` actions that open a drawer on a list screen navigate with `?action=new`
-// (or a variant); the target screen opens its drawer via useActionParam.
+/**
+ * The action catalog. One entry per row in docs/ACTION_PALETTE_CATALOG.md.
+ * Destinations use routesPath constants so a route rename propagates here.
+ * `do` actions that open a drawer on a list screen navigate with `?action=new`
+ * (or a variant); the target screen opens its drawer via useActionParam.
+ */
 
 import { routesPath } from "@/routes/routes-path";
 import { P } from "@/permissions";
@@ -132,9 +134,9 @@ export const ACTIONS: ActionDef[] = [
   { id: "create-notification-template", label: "Create notification template", aliases: ["new message template", "new email template"], console: "Main", group: "Notifications", kind: "do", gate: { perm: P.CONFIGURE_NOTIFICATION_TEMPLATES }, run: { to: R.NOTIFICATION_TEMPLATE_NEW } },
   { id: "view-notification-event-types", label: "View notification event types", aliases: ["event catalogue", "event types"], console: "Main", group: "Notifications", kind: "view", gate: { any: [P.AUDIT_NOTIFICATION_ACTIVITY, P.ENFORCE_NOTIFICATION_SETTINGS, P.CONFIGURE_NOTIFICATION_TEMPLATES] }, run: { to: withPanel(R.NOTIFICATIONS_ADMIN, "events") } },
   // Gate is the sidebar's list verbatim (app-sidebar.tsx), which is a superset of
-  // the page's own hasAnyPermission check. It previously omitted the security and
-  // integration keys, so a holder of only one of those could reach Settings from
-  // the nav but could not find it by typing.
+  // the page's own hasAnyPermission check. Omitting the security or integration
+  // keys lets a holder of only one of those reach Settings from the nav and
+  // never find it by typing.
   { id: "view-settings", label: "View settings", aliases: ["configuration", "settings overview"], console: "Main", group: "Settings", kind: "view", gate: { any: [P.VIEW_CONFIG_VALUES, P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CAPABILITIES, P.VIEW_ENTITLEMENTS, P.VIEW_CONFIG_OVERRIDES, P.VIEW_CONFIG_AUDIT, P.VIEW_SECURITY_SETTINGS, P.VIEW_INTEGRATION_SETTINGS] }, run: { to: R.SETTINGS.INDEX } },
   // The console's sections, each a declared route (settings/sections.ts). Gates
   // are the per-section ones from ALL_SECTIONS in settings/index.tsx; the two

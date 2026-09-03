@@ -1,7 +1,9 @@
-// Canonical password policy for every set/change-password screen.
-// Mirrors the backend source of truth in apps/vs_user/password_policy.py
-// (GET /auth/password/policy/). Keep the two in sync - the backend enforces
-// exactly these rules, so weakening them here only hides real failures.
+/**
+ * Canonical password policy for every set/change-password screen.
+ * Mirrors the backend source of truth in apps/vs_user/password_policy.py
+ * (GET /auth/password/policy/). Keep the two in sync - the backend enforces
+ * exactly these rules, so weakening them here only hides real failures.
+ */
 
 export const PASSWORD_MIN_LENGTH = 12;
 

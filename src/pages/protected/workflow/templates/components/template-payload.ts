@@ -1,11 +1,13 @@
-// Turning a template the API *returned* back into a payload the publish
-// endpoint accepts.
-//
-// Publishing replaces a template wholesale: there is no "patch one stage"
-// endpoint, so any screen that changes one thing has to resend everything else
-// exactly as it was. Doing that mapping per screen is how a stage quietly loses
-// its quorum count, so it lives here once, with a test, and every caller that
-// edits part of a published template goes through it.
+/**
+ * Turning a template the API *returned* back into a payload the publish
+ * endpoint accepts.
+ *
+ * Publishing replaces a template wholesale: there is no "patch one stage"
+ * endpoint, so any screen that changes one thing has to resend everything else
+ * exactly as it was. Doing that mapping per screen is how a stage quietly loses
+ * its quorum count, so it lives here once, with a test, and every caller that
+ * edits part of a published template goes through it.
+ */
 import type {
   DynamicRulePayload,
   PublishTemplatePayload,

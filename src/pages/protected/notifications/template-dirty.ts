@@ -1,11 +1,13 @@
-// Does the template editor have anything worth saving?
-//
-// Kept out of the component because it is the rule the Save button lives by,
-// and it has one subtlety worth pinning in tests: a STANDARD template's markup
-// is derived from its message, regenerated on every keystroke. Comparing that
-// derived value would report a change while the author is still typing, and
-// would still report one after they typed the message back to how it started.
-// So the comparison only ever looks at what a person can actually type.
+/**
+ * Does the template editor have anything worth saving?
+ *
+ * Kept out of the component because it is the rule the Save button lives by,
+ * and it has one subtlety worth pinning in tests: a STANDARD template's markup
+ * is derived from its message, regenerated on every keystroke. Comparing that
+ * derived value would report a change while the author is still typing, and
+ * would still report one after they typed the message back to how it started.
+ * So the comparison only ever looks at what a person can actually type.
+ */
 
 import type { NotificationTemplate, NotificationTemplateDraft } from "@/redux/services/notifications-api";
 

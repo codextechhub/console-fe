@@ -1,13 +1,15 @@
-// Dismissals for the action centre's blue NOTICES only (exports ready, unread
-// notifications). Red and amber rows report something broken or overdue and
-// stay put; a notice is information, so the reader is allowed to put it down.
-//
-// A dismissal is deliberately narrow: it hides one row, at one figure, for the
-// rest of the local day. The moment the number moves - two more exports finish,
-// three more notifications arrive - the row is new information and comes back.
-// That keeps "dismiss" from quietly becoming "never tell me again".
-//
-// Local per user, fail-safe, no backend: same storage posture as recent-opens.
+/**
+ * Dismissals for the action centre's blue NOTICES only (exports ready, unread
+ * notifications). Red and amber rows report something broken or overdue and
+ * stay put; a notice is information, so the reader is allowed to put it down.
+ *
+ * A dismissal is deliberately narrow: it hides one row, at one figure, for the
+ * rest of the local day. The moment the number moves - two more exports finish,
+ * three more notifications arrive - the row is new information and comes back.
+ * That keeps "dismiss" from quietly becoming "never tell me again".
+ *
+ * Local per user, fail-safe, no backend: same storage posture as recent-opens.
+ */
 
 const VERSION = "v1";
 const storageKey = (userId: string | number | undefined) =>

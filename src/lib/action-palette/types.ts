@@ -1,7 +1,9 @@
-// Action palette - the Cmd/Ctrl+E workspace search is an *action* launcher, not
-// a page finder. Every entry is a permission-gated action a user can type
-// ("view schools", "new payout"). See docs/ACTION_PALETTE_CATALOG.md for the
-// approved vocabulary this registry implements.
+/**
+ * Action palette - the Cmd/Ctrl+E workspace search is an *action* launcher, not
+ * a page finder. Every entry is a permission-gated action a user can type
+ * ("view schools", "new payout"). See docs/ACTION_PALETTE_CATALOG.md for the
+ * approved vocabulary this registry implements.
+ */
 
 import type { PermissionCode } from "@/permissions";
 
@@ -9,12 +11,14 @@ import type { PermissionCode } from "@/permissions";
 // expanded results list (fixed order: Main → Finance → Procurement).
 export type ActionConsole = "Main" | "Finance" | "Procurement";
 
-// A gate is evaluated against usePermissions(). `null` = always visible.
-// - perm:   hasPermission(code)
-// - any:    hasAnyPermission(...codes)
-// - all:    hasAllPermissions(...codes)
-// - module: hasModuleAccess(...prefixes) - visible with ANY backend key under a
-//           prefix (the one place raw keys are used, matching the sidebar).
+/**
+ * A gate is evaluated against usePermissions(). `null` = always visible.
+ * - perm:   hasPermission(code)
+ * - any:    hasAnyPermission(...codes)
+ * - all:    hasAllPermissions(...codes)
+ * - module: hasModuleAccess(...prefixes) - visible with ANY backend key under a
+ *           prefix (the one place raw keys are used, matching the sidebar).
+ */
 export type ActionGate =
   | null
   | { perm: PermissionCode }

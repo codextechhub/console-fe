@@ -1,16 +1,18 @@
-// The two-pane field picker: Available (grouped, searchable) and Selected
-// (ordered, numbered). One of the three genuinely new pieces of UI here.
-//
-// The handoff calls this the highest accessibility risk in the product, so it is
-// fully operable without a pointer: Space or Enter toggles a field, Alt+↑/↓
-// reorders the selection, and every move is announced through a live region
-// ("Customer moved to position 2 of 6"). There is deliberately no drag-only
-// affordance - the arrow buttons ARE the interface, and a mouse user gets the
-// same one.
-//
-// Two field flags come from the catalogue and are never inferred:
-//   locked    - always exported, cannot be deselected (the row's identity)
-//   sensitive - needs exports.sensitive_field.export; called out again at review
+/**
+ * The two-pane field picker: Available (grouped, searchable) and Selected
+ * (ordered, numbered). One of the three genuinely new pieces of UI here.
+ *
+ * The handoff calls this the highest accessibility risk in the product, so it is
+ * fully operable without a pointer: Space or Enter toggles a field, Alt+↑/↓
+ * reorders the selection, and every move is announced through a live region
+ * ("Customer moved to position 2 of 6"). There is deliberately no drag-only
+ * affordance - the arrow buttons ARE the interface, and a mouse user gets the
+ * same one.
+ *
+ * Two field flags come from the catalogue and are never inferred:
+ *   locked    - always exported, cannot be deselected (the row's identity)
+ *   sensitive - needs exports.sensitive_field.export; called out again at review
+ */
 
 import { useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronUp, Search, X } from "lucide-react";

@@ -1,7 +1,9 @@
-// Right-side slide-over for People & Positions. Payroll uses REAL field-level
-// security: the backend omits bank/account fields (and lists them in
-// _stripped_fields) when the caller lacks platform.staff_payroll.view and is not
-// the owner. So "restricted" keys off field absence - there is no masked value.
+/**
+ * Right-side slide-over for People & Positions. Payroll uses REAL field-level
+ * security: the backend omits bank/account fields (and lists them in
+ * _stripped_fields) when the caller lacks platform.staff_payroll.view and is not
+ * the owner. So "restricted" keys off field absence - there is no masked value.
+ */
 
 import { useMemo } from "react";
 import {

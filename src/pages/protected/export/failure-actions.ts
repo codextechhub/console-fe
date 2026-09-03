@@ -1,14 +1,16 @@
-// What a person can actually DO about each failure and omission.
-//
-// The backend already supplies a user-safe message and a recommended action in
-// words. This adds the missing half: which of those recommendations the UI can
-// turn into a button, and which are genuinely out-of-band.
-//
-// The distinction that matters is retry. Only a transient infrastructure fault
-// is worth retrying - a filter, permission, row-cap or date-span failure fails
-// again identically, so offering Retry there wastes a wait and teaches people
-// the button does not work. The API enforces this too (`failure.retryable`);
-// this map is what decides which button appears in its place.
+/**
+ * What a person can actually DO about each failure and omission.
+ *
+ * The backend already supplies a user-safe message and a recommended action in
+ * words. This adds the missing half: which of those recommendations the UI can
+ * turn into a button, and which are genuinely out-of-band.
+ *
+ * The distinction that matters is retry. Only a transient infrastructure fault
+ * is worth retrying - a filter, permission, row-cap or date-span failure fails
+ * again identically, so offering Retry there wastes a wait and teaches people
+ * the button does not work. The API enforces this too (`failure.retryable`);
+ * this map is what decides which button appears in its place.
+ */
 
 import type { OmissionCode } from "@/redux/services/dashboard/exports-types";
 

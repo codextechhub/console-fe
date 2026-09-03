@@ -1,13 +1,15 @@
-// Downloading an export file is a server-authorised, audited act, not a link.
-//
-// The endpoint re-checks the DOWNLOADER (not the person who ran the export)
-// against the run's frozen entity and dataset plus the file's expiry, and logs
-// the attempt either way. So it has to go through the API layer with the bearer
-// token attached - an <a href> would arrive unauthenticated and be refused.
-//
-// The refusal message the server sends is the useful one ("this file passed its
-// availability date on 25 Aug - run the export again"), so it is surfaced as-is
-// rather than replaced with a generic failure.
+/**
+ * Downloading an export file is a server-authorised, audited act, not a link.
+ *
+ * The endpoint re-checks the DOWNLOADER (not the person who ran the export)
+ * against the run's frozen entity and dataset plus the file's expiry, and logs
+ * the attempt either way. So it has to go through the API layer with the bearer
+ * token attached - an <a href> would arrive unauthenticated and be refused.
+ *
+ * The refusal message the server sends is the useful one ("this file passed its
+ * availability date on 25 Aug - run the export again"), so it is surfaced as-is
+ * rather than replaced with a generic failure.
+ */
 
 import { useState } from "react";
 import { toast } from "sonner";

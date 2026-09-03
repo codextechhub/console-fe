@@ -1,12 +1,14 @@
-// Types for the CX-staff organogram (vs_user app: OrgNode / Position /
-// PositionAssignment / MatrixReport) and the platform staff profile.
-//
-// Mirrors the DRF serializers in backend/apps/vs_user/serializers.py. Read
-// representations nest inline objects; writes take *_id fields.
-//
-// Org structure is tiered: DIVISION → DEPARTMENT → TEAM (OrgNode.kind). A
-// Position belongs to one org node (any tier); a person's department/division
-// are derived by walking up from their seat's node.
+/**
+ * Types for the CX-staff organogram (vs_user app: OrgNode / Position /
+ * PositionAssignment / MatrixReport) and the platform staff profile.
+ *
+ * Mirrors the DRF serializers in backend/apps/vs_user/serializers.py. Read
+ * representations nest inline objects; writes take *_id fields.
+ *
+ * Org structure is tiered: DIVISION → DEPARTMENT → TEAM (OrgNode.kind). A
+ * Position belongs to one org node (any tier); a person's department/division
+ * are derived by walking up from their seat's node.
+ */
 
 import type { PaginatedResponse } from "./rbac-types";
 
@@ -156,11 +158,13 @@ export interface StaffProfileBrief {
   is_active_employee: boolean;
 }
 
-// Full profile. Payroll fields (bank_name / account_name / account_number) are
-// FLS-gated: when the caller lacks platform.staff_payroll.view (and is not the
-// owner), the backend OMITS those keys entirely and lists them in
-// `_stripped_fields` - they are absent, not masked. Treat their absence as
-// "restricted", and use `_stripped_fields` to render the restricted notice.
+/**
+ * Full profile. Payroll fields (bank_name / account_name / account_number) are
+ * FLS-gated: when the caller lacks platform.staff_payroll.view (and is not the
+ * owner), the backend OMITS those keys entirely and lists them in
+ * `_stripped_fields` - they are absent, not masked. Treat their absence as
+ * "restricted", and use `_stripped_fields` to render the restricted notice.
+ */
 export interface StaffProfile {
   profile_view: "full";
   id: number;

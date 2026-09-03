@@ -1,13 +1,15 @@
-// "Appoint your approvers" - the seeded approval roles and who holds them.
-//
-// A tenant's approval ladders are published with its books and arrive blocked:
-// the roles exist, nobody is appointed, and no stage auto-skips. Without this
-// screen the first symptom is a requisition that parks with nothing useful said,
-// which reads as broken software rather than as a control working correctly.
-//
-// Read-only plus a link out. Appointing somebody is a permission change with its
-// own audit trail and its own screen, and duplicating that here would be a second
-// path to the same grant with fewer checks around it.
+/**
+ * "Appoint your approvers" - the seeded approval roles and who holds them.
+ *
+ * A tenant's approval ladders are published with its books and arrive blocked:
+ * the roles exist, nobody is appointed, and no stage auto-skips. Without this
+ * screen the first symptom is a requisition that parks with nothing useful said,
+ * which reads as broken software rather than as a control working correctly.
+ *
+ * Read-only plus a link out. Appointing somebody is a permission change with its
+ * own audit trail and its own screen, and duplicating that here would be a second
+ * path to the same grant with fewer checks around it.
+ */
 import { Link } from "react-router";
 import { AlertTriangle, Check, ExternalLink, ShieldCheck } from "lucide-react";
 

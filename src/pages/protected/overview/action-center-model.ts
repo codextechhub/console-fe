@@ -1,12 +1,14 @@
-// Model for the unified "Action needed" centre - kept JSX-free so it isn't a
-// react-refresh boundary. One attention system, three shapes: compact rows for
-// module conditions and low-urgency notices, queue boxes for the reader's own
-// work items (approvals, returned submissions, tasks).
-//
-// Everything here also carries an `ownership`, because the panel is read in two
-// passes: what is mine to clear today, and what is going on around me. Mixing
-// the two was the old failure - eleven org conditions could bury the one
-// approval that was actually waiting on the reader.
+/**
+ * Model for the unified "Action needed" centre - kept JSX-free so it isn't a
+ * react-refresh boundary. One attention system, three shapes: compact rows for
+ * module conditions and low-urgency notices, queue boxes for the reader's own
+ * work items (approvals, returned submissions, tasks).
+ *
+ * Everything here also carries an `ownership`, because the panel is read in two
+ * passes: what is mine to clear today, and what is going on around me. Mixing
+ * the two was the old failure - eleven org conditions could bury the one
+ * approval that was actually waiting on the reader.
+ */
 import { Bell, FileDown, LifeBuoy, Siren } from "lucide-react";
 import { routesPath } from "@/routes/routes-path";
 import type {
@@ -57,13 +59,15 @@ export const QUEUE_SHOWN = 3;
 export type QueueKey = "approvals" | "covering" | "returned" | "tasks";
 const QUEUE_ORDER: QueueKey[] = ["approvals", "covering", "returned", "tasks"];
 
-// Urgency is measured as "lateness": milliseconds past the moment a thing became
-// actionable, so a bigger number is more urgent and the scale is shared across
-// every box. A waiting approval 9 days old (+9d) and a task overdue by 9 days
-// (+9d) read as equally pressing; a task not due until next week is negative
-// (its deadline is still in the future), so it always sits below anything that
-// is already waiting or overdue. A missing timestamp is never late by accident:
-// it scores -Infinity (least urgent), so an item we cannot date cannot win.
+/**
+ * Urgency is measured as "lateness": milliseconds past the moment a thing became
+ * actionable, so a bigger number is more urgent and the scale is shared across
+ * every box. A waiting approval 9 days old (+9d) and a task overdue by 9 days
+ * (+9d) read as equally pressing; a task not due until next week is negative
+ * (its deadline is still in the future), so it always sits below anything that
+ * is already waiting or overdue. A missing timestamp is never late by accident:
+ * it scores -Infinity (least urgent), so an item we cannot date cannot win.
+ */
 const UNKNOWN_LATENESS = Number.NEGATIVE_INFINITY;
 
 function waitingLateness(iso: string | null, now: number): number {

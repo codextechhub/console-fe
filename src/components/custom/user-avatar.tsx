@@ -1,8 +1,10 @@
-// One photo-aware avatar for the whole app. Give it a user's id + display name;
-// it shows their profile photo when there is one (resolved by id from the shared
-// staff-photo map and fetched through the auth-gated media pipeline), otherwise
-// their initials. Built on the shadcn Avatar primitives so it matches every place
-// that previously rendered <Avatar><AvatarFallback>… initials.
+/**
+ * One photo-aware avatar for the whole app. Give it a user's id + display name;
+ * it shows their profile photo when there is one (resolved by id from the shared
+ * staff-photo map and fetched through the auth-gated media pipeline), otherwise
+ * their initials. Built on the shadcn Avatar primitives so it matches every
+ * plain <Avatar><AvatarFallback> initials block in the app.
+ */
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserPhoto } from "@/hooks/use-user-photo";

@@ -1,10 +1,12 @@
-// Date and duration formatting shared by the Export Centre screens. Kept out of
-// the component files so fast refresh keeps working (a module that exports both
-// components and helpers loses it).
-//
-// formatBytes used to live here and is now `@/utils/format-bytes` - it is not
-// re-exported, deliberately: leaving a second import path for the same function
-// is what let four copies of it drift apart in the first place.
+/**
+ * Date and duration formatting shared by the Export Centre screens. Kept out of
+ * the component files so fast refresh keeps working (a module that exports both
+ * components and helpers loses it).
+ *
+ * formatBytes used to live here and is now `@/utils/format-bytes` - it is not
+ * re-exported, deliberately: leaving a second import path for the same function
+ * is what let four copies of it drift apart in the first place.
+ */
 
 export function formatDay(iso: string | null | undefined): string {
   if (!iso) return "-";

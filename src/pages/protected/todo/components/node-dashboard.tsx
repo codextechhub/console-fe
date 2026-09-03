@@ -1,8 +1,10 @@
-// The "My Team" dashboard for one focused node and the personal "My Tasks" view.
-// Both render straight off the API payloads (NodeDashboard / MineDashboard) - the
-// roll-up stats, reports and breadcrumb are all computed server-side. Structured
-// like the console's other pages: KPI grid, font-mont section headings, flat
-// white rounded-md cards.
+/**
+ * The "My Team" dashboard for one focused node and the personal "My Tasks" view.
+ * Both render straight off the API payloads (NodeDashboard / MineDashboard) - the
+ * roll-up stats, reports and breadcrumb are all computed server-side. Structured
+ * like the console's other pages: KPI grid, font-mont section headings, flat
+ * white rounded-md cards.
+ */
 
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, Search, Users } from "lucide-react";

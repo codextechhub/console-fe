@@ -1,18 +1,20 @@
-// Documents - the requirements library. One row per document, not per file.
-//
-// The docs tree holds 42 .docx files, but they are 12 documents with history:
-// the cross-module MRD (16 revisions) and 11 module FRDs. Listing all 42 would
-// bury the current M23 spec under four near-identical filenames, so the table
-// shows the current version of each document and the drawer reveals the rest.
-//
-// Ordering is flat: the MRD first because it spans every module, then the FRDs
-// by module number. No folders and no domain grouping - with 12 rows a grouping
-// is a thing to navigate rather than a thing that helps, and the module number
-// is already the order the team refers to these documents in.
-//
-// Everything here downloads; nothing previews. A .docx cannot render in a
-// browser tab anyway, and the backend sends Content-Disposition: attachment, so
-// a click saves the file and the reader opens it beside the console.
+/**
+ * Documents - the requirements library. One row per document, not per file.
+ *
+ * The docs tree holds 42 .docx files, but they are 12 documents with history:
+ * the cross-module MRD (16 revisions) and 11 module FRDs. Listing all 42 would
+ * bury the current M23 spec under four near-identical filenames, so the table
+ * shows the current version of each document and the drawer reveals the rest.
+ *
+ * Ordering is flat: the MRD first because it spans every module, then the FRDs
+ * by module number. No folders and no domain grouping - with 12 rows a grouping
+ * is a thing to navigate rather than a thing that helps, and the module number
+ * is already the order the team refers to these documents in.
+ *
+ * Everything here downloads; nothing previews. A .docx cannot render in a
+ * browser tab anyway, and the backend sends Content-Disposition: attachment, so
+ * a click saves the file and the reader opens it beside the console.
+ */
 
 import { useMemo, useState } from "react";
 import { Download, FileText, Search } from "lucide-react";

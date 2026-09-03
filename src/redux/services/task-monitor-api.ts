@@ -1,17 +1,19 @@
-// The platform task monitor - /v1/admin/tasks/, the hardened operator surface
-// over core.BackgroundJob. Distinct from `health-api`'s /health/tasks/, which
-// reads the same table for the Jobs & Queues list but serves metadata only and
-// has no per-run detail.
-//
-// Three keys govern it, and the split is the whole design:
-//   platform.tasks.view            the redacted list and one run's detail
-//   platform.tasks.view_all        widens the list past the caller's own tenant
-//   platform.tasks.view_sensitive  the raw failure text (audited on every read)
-//
-// The tenant filter is `for_tenant`, never `tenant`. `?tenant=` is the
-// assertion the auth layer requires - who is asking - and this viewset does not
-// accept a foreign one, so sending it as a filter would narrow every caller to
-// their own tenant and hide every school from the person holding view_all.
+/**
+ * The platform task monitor - /v1/admin/tasks/, the hardened operator surface
+ * over core.BackgroundJob. Distinct from `health-api`'s /health/tasks/, which
+ * reads the same table for the Jobs & Queues list but serves metadata only and
+ * has no per-run detail.
+ *
+ * Three keys govern it, and the split is the whole design:
+ *   platform.tasks.view            the redacted list and one run's detail
+ *   platform.tasks.view_all        widens the list past the caller's own tenant
+ *   platform.tasks.view_sensitive  the raw failure text (audited on every read)
+ *
+ * The tenant filter is `for_tenant`, never `tenant`. `?tenant=` is the
+ * assertion the auth layer requires - who is asking - and this viewset does not
+ * accept a foreign one, so sending it as a filter would narrow every caller to
+ * their own tenant and hide every school from the person holding view_all.
+ */
 
 import { baseApi } from "./base-api";
 import { generateQueryString } from "@/utils/helpers";

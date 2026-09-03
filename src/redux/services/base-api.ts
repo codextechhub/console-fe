@@ -37,10 +37,12 @@ const getAccessToken = () => {
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
-// Endpoints that must never carry a (possibly stale) Bearer token. Sending one
-// to the login/activation/reset routes makes the backend treat the request as
-// already-authenticated, which can surface as a 500. Mirrors AUTH_URLS below;
-// prepareHeaders only has the endpoint name to work with, not the URL.
+/**
+ * Endpoints that must never carry a (possibly stale) Bearer token. Sending one
+ * to the login/activation/reset routes makes the backend treat the request as
+ * already-authenticated, which can surface as a 500. Mirrors AUTH_URLS below;
+ * prepareHeaders only has the endpoint name to work with, not the URL.
+ */
 const AUTH_ENDPOINTS = new Set([
   "login",
   "forgotPassword",
@@ -61,10 +63,12 @@ const AUTH_ENDPOINTS = new Set([
   "uploadPublicRfqAttachment",
 ]);
 
-// Endpoints that operate purely on the caller and therefore must NOT carry the
-// mandatory `?tenant=` assertion (the backend 400s if one is sent to these).
-// Union of the unauthenticated auth routes plus the self-service `/me` family
-// and logout. Mirrors the "Exempt" list in docs/tenants/frontend-migration.md.
+/**
+ * Endpoints that operate purely on the caller and therefore must NOT carry the
+ * mandatory `?tenant=` assertion (the backend 400s if one is sent to these).
+ * Union of the unauthenticated auth routes plus the self-service `/me` family
+ * and logout. Mirrors the "Exempt" list in docs/tenants/frontend-migration.md.
+ */
 const TENANT_EXEMPT_ENDPOINTS = new Set([
   ...AUTH_ENDPOINTS,
   "logout",
@@ -74,16 +78,18 @@ const TENANT_EXEMPT_ENDPOINTS = new Set([
   "changeMyPassword",
 ]);
 
-// Impersonation management endpoints act as the platform admin, never as the
-// impersonated target - so they never receive the impersonation session header.
-// The six account actions that reach a user by id. Each now resolves through a
-// tenant-scoped gate, so a 404 from them means "not yours OR not there" and the
-// two are deliberately indistinguishable - a 403 would confirm the id exists.
-//
-// The backend answers them with the literal "User not found.", which is the one
-// thing this refusal must not say: a CX operator reading it goes looking for a
-// deleted account when the record is very much alive at another school. The
-// wording below keeps the ambiguity the backend went to the trouble of creating.
+/**
+ * Impersonation management endpoints act as the platform admin, never as the
+ * impersonated target - so they never receive the impersonation session header.
+ * The six account actions that reach a user by id. Each now resolves through a
+ * tenant-scoped gate, so a 404 from them means "not yours OR not there" and the
+ * two are deliberately indistinguishable - a 403 would confirm the id exists.
+ *
+ * The backend answers them with the literal "User not found.", which is the one
+ * thing this refusal must not say: a CX operator reading it goes looking for a
+ * deleted account when the record is very much alive at another school. The
+ * wording below keeps the ambiguity the backend went to the trouble of creating.
+ */
 const ACCOUNT_ACTION_ENDPOINTS = new Set([
   "suspendTeamMember",
   "reactivateTeamMember",
@@ -112,14 +118,16 @@ const IMPERSONATION_HEADER_EXEMPT_ENDPOINTS = new Set([
   "logout",
 ]);
 
-// ── Identity-swap gate ────────────────────────────────────────────────────
-// While a proxy start/exit is hydrating the new identity, screens mounted for
-// the OLD identity can refire their queries faster than React unmounts them
-// (router.navigate resolves before the commit). Those requests would be
-// discarded by the post-swap cache reset anyway - short-circuit them here so
-// they never reach the network: no misleading permission toasts, and no false
-// PROXY_ACTION_FAILED rows in the backend audit trail. The caller resets the
-// api state AFTER the gate lifts so nothing is left in a dropped-error state.
+/**
+ * ── Identity-swap gate ────────────────────────────────────────────────────
+ * While a proxy start/exit is hydrating the new identity, screens mounted for
+ * the OLD identity can refire their queries faster than React unmounts them
+ * (router.navigate resolves before the commit). Those requests would be
+ * discarded by the post-swap cache reset anyway - short-circuit them here so
+ * they never reach the network: no misleading permission toasts, and no false
+ * PROXY_ACTION_FAILED rows in the backend audit trail. The caller resets the
+ * api state AFTER the gate lifts so nothing is left in a dropped-error state.
+ */
 let identitySwapInProgress = false;
 export const runWithIdentitySwap = async <T>(work: () => Promise<T>): Promise<T> => {
   identitySwapInProgress = true;
@@ -246,11 +254,13 @@ const isAuthRoute = (args: string | FetchArgs): boolean => {
   return AUTH_URLS.some((u) => url.includes(u));
 };
 
-// Wraps the raw fetch base query so the mandatory `?tenant=` assertion is
-// appended centrally to every authenticated request. Exempt endpoints (auth,
-// `/me` family, logout) and requests that already assert a tenant are left
-// untouched. When an impersonation session is active, the TARGET tenant slug is
-// asserted instead of the caller's own.
+/**
+ * Wraps the raw fetch base query so the mandatory `?tenant=` assertion is
+ * appended centrally to every authenticated request. Exempt endpoints (auth,
+ * `/me` family, logout) and requests that already assert a tenant are left
+ * untouched. When an impersonation session is active, the TARGET tenant slug is
+ * asserted instead of the caller's own.
+ */
 const baseQueryWithTenant: BaseQueryFn<
   string | FetchArgs,
   unknown,

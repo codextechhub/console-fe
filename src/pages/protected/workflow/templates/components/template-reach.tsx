@@ -1,14 +1,16 @@
-// How far an edit to a shared template actually reaches.
-//
-// Editing the shared version changes the approval path for every tenant still
-// following it, and for nobody who has adjusted it. That is the number the person
-// pressing Update needs *before* they press it, not on a page they might visit
-// afterwards - so it sits beside the button and in the form itself.
-//
-// Reuses the same `adoption` read the template page's panel uses. A refusal
-// renders nothing: for anyone but a platform operator on a shared template the
-// question does not arise, and a red box would be answering a question nobody
-// asked.
+/**
+ * How far an edit to a shared template actually reaches.
+ *
+ * Editing the shared version changes the approval path for every tenant still
+ * following it, and for nobody who has adjusted it. That is the number the person
+ * pressing Update needs *before* they press it, not on a page they might visit
+ * afterwards - so it sits beside the button and in the form itself.
+ *
+ * Reuses the same `adoption` read the template page's panel uses. A refusal
+ * renders nothing: for anyone but a platform operator on a shared template the
+ * question does not arise, and a red box would be answering a question nobody
+ * asked.
+ */
 import { Users } from "lucide-react";
 
 import { useGetTemplateAdoptionQuery } from "@/redux/services/dashboard/workflow-api";

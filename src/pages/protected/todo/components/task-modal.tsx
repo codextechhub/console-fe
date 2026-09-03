@@ -1,8 +1,10 @@
-// Add / Assign / Edit task modal. One component, three modes:
-//   "add"    - self-log a task (no assignee picker)
-//   "assign" - hand a task down to someone in your area (assignee picker)
-//   "edit"   - edit an existing task's descriptive fields
-// Built on the console's shadcn Dialog + design tokens (primary/gray/font-mont).
+/**
+ * Add / Assign / Edit task modal. One component, three modes:
+ *   "add"    - self-log a task (no assignee picker)
+ *   "assign" - hand a task down to someone in your area (assignee picker)
+ *   "edit"   - edit an existing task's descriptive fields
+ * Built on the console's shadcn Dialog + design tokens (primary/gray/font-mont).
+ */
 
 import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";

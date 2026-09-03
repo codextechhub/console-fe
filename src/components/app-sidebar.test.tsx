@@ -1,14 +1,16 @@
-// Characterization test for the Main sidebar: who sees which nav entries.
-//
-// Written against the pre-refactor component and kept unchanged across the move
-// to a data module, so it proves the extraction did not alter visibility. Each
-// profile holds a realistic slice of keys; the assertion is the exact nav tree,
-// because a *missing* entry and an entry that *appeared* are both regressions
-// and both silent.
-//
-// It captures what AppSidebar hands to NavMain rather than scraping the rendered
-// DOM: only one group is expanded at a time, so the DOM shows almost no children
-// and would "pass" while proving nothing.
+/**
+ * Characterization test for the Main sidebar: who sees which nav entries.
+ *
+ * Written against the pre-refactor component and kept unchanged across the move
+ * to a data module, so it proves the extraction did not alter visibility. Each
+ * profile holds a realistic slice of keys; the assertion is the exact nav tree,
+ * because a *missing* entry and an entry that *appeared* are both regressions
+ * and both silent.
+ *
+ * It captures what AppSidebar hands to NavMain rather than scraping the rendered
+ * DOM: only one group is expanded at a time, so the DOM shows almost no children
+ * and would "pass" while proving nothing.
+ */
 
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -213,10 +215,10 @@ describe("Main sidebar visibility", () => {
 /**
  * Every key the console knows about, derived rather than listed.
  *
- * It used to be a hand-written set, which made "shows everything to a super
- * admin" a promise the fixture could not keep: a nav entry gated on a key
- * nobody had thought to add was simply absent from the snapshot, and absent is
- * exactly what this test cannot distinguish from correct. Deriving it means a
- * new entry appears in the diff the moment it exists.
+ * A hand-written set makes "shows everything to a super admin" a promise the
+ * fixture cannot keep: a nav entry gated on a key nobody thought to add is
+ * simply absent from the snapshot, and absent is exactly what this test cannot
+ * tell apart from correct. Deriving it means a new entry appears in the diff
+ * the moment it exists.
  */
 const SUPER_ADMIN = Object.values(P).map((code) => resolvePermissionKey(code));

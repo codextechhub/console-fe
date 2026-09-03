@@ -1,13 +1,15 @@
 import { useSyncExternalStore } from "react";
 
-// Reading Date.now() directly during render is impure - the React Compiler may
-// memoise the value into stale UI. useSyncExternalStore is the sanctioned way
-// to read a changing external value (here: the wall clock) during render.
-//
-// The snapshot is quantised to the tick interval so it stays referentially
-// stable between ticks (getSnapshot must return the same value until the
-// store "changes"). A single shared interval serves all subscribers and stops
-// when the last one unmounts.
+/**
+ * Reading Date.now() directly during render is impure - the React Compiler may
+ * memoise the value into stale UI. useSyncExternalStore is the sanctioned way
+ * to read a changing external value (here: the wall clock) during render.
+ *
+ * The snapshot is quantised to the tick interval so it stays referentially
+ * stable between ticks (getSnapshot must return the same value until the
+ * store "changes"). A single shared interval serves all subscribers and stops
+ * when the last one unmounts.
+ */
 const TICK_MS = 30_000;
 
 const subscribers = new Set<() => void>();

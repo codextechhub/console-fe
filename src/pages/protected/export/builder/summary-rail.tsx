@@ -1,15 +1,17 @@
-// The 340px summary rail: This export · Estimate · Preview.
-//
-// The one genuinely new layout piece in VS Export. Below xl it stops being a
-// rail and becomes a sticky bottom bar carrying name · columns · rows · size,
-// because on a laptop the work area needs the width more than the rail does.
-//
-// Its defining behaviour is stale-while-recalculating: when the configuration
-// changes, the PREVIOUS figures stay on screen at 60% opacity with a
-// "recalculating" label and aria-busy, rather than blanking or throwing up a
-// spinner. A number that flickers to nothing on every keystroke is worse than a
-// number that is briefly a few seconds old, and the estimate is the thing the
-// user is here to watch.
+/**
+ * The 340px summary rail: This export · Estimate · Preview.
+ *
+ * The one genuinely new layout piece in VS Export. Below xl it stops being a
+ * rail and becomes a sticky bottom bar carrying name · columns · rows · size,
+ * because on a laptop the work area needs the width more than the rail does.
+ *
+ * Its defining behaviour is stale-while-recalculating: when the configuration
+ * changes, the PREVIOUS figures stay on screen at 60% opacity with a
+ * "recalculating" label and aria-busy, rather than blanking or throwing up a
+ * spinner. A number that flickers to nothing on every keystroke is worse than a
+ * number that is briefly a few seconds old, and the estimate is the thing the
+ * user is here to watch.
+ */
 
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";

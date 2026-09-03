@@ -1,8 +1,10 @@
-// The sidebar's highlight rule: exactly one child row is the current page.
-//
-// The bug this guards: a child whose url is a prefix of a sibling's url stayed
-// lit on the sibling's route, so School Onboarding and Go-Live Requests were
-// both grey at once and the sidebar named two current pages.
+/**
+ * The sidebar's highlight rule: exactly one child row is the current page.
+ *
+ * The bug this guards: a child whose url is a prefix of a sibling's url stayed
+ * lit on the sibling's route, so School Onboarding and Go-Live Requests were
+ * both grey at once and the sidebar named two current pages.
+ */
 
 import { describe, expect, it } from "vitest";
 

@@ -1,14 +1,16 @@
-// Export Centre → Files. One row per RUN, not per file.
-//
-// That is deliberate: a run that produced no file is still something a person
-// has to see and act on, and hiding failures behind "Files" is how an export
-// silently stops working. The row therefore leads with the run, and the file is
-// what it did or did not produce.
-//
-// Not the same page as Export → View Queues, which answers "did the worker
-// finish?" over every background task. This answers "what came out?" - rows,
-// size, omissions, expiry, downloads. They read the same work (a run wraps a
-// job) and share one status vocabulary; see docs/EXPORT_BUILD_NOTES.md.
+/**
+ * Export Centre → Files. One row per RUN, not per file.
+ *
+ * That is deliberate: a run that produced no file is still something a person
+ * has to see and act on, and hiding failures behind "Files" is how an export
+ * silently stops working. The row therefore leads with the run, and the file is
+ * what it did or did not produce.
+ *
+ * Not the same page as Export → View Queues, which answers "did the worker
+ * finish?" over every background task. This answers "what came out?" - rows,
+ * size, omissions, expiry, downloads. They read the same work (a run wraps a
+ * job) and share one status vocabulary; see docs/EXPORT_BUILD_NOTES.md.
+ */
 
 import { useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";

@@ -1,13 +1,15 @@
-// The approval roles a tenant is provisioned with, and what each one decides.
-//
-// Books, spend ladders and payout ladders are now published inside the same
-// transaction that creates a tenant's books, and they arrive **blocked, not open**:
-// the approving roles exist with nobody appointed, and the stages never auto-skip.
-// That is deliberate - money must not approve itself - but it means a brand-new
-// school's very first requisition, payout batch or adjustment parks immediately.
-//
-// So the roles are worth listing somewhere an administrator will find them on day
-// one, with the empty ones called out. This module is the list; the panel renders it.
+/**
+ * The approval roles a tenant is provisioned with, and what each one decides.
+ *
+ * Books, spend ladders and payout ladders are now published inside the same
+ * transaction that creates a tenant's books, and they arrive **blocked, not open**:
+ * the approving roles exist with nobody appointed, and the stages never auto-skip.
+ * That is deliberate - money must not approve itself - but it means a brand-new
+ * school's very first requisition, payout batch or adjustment parks immediately.
+ *
+ * So the roles are worth listing somewhere an administrator will find them on day
+ * one, with the empty ones called out. This module is the list; the panel renders it.
+ */
 
 /** A seeded approving role, in the order an administrator should think about them. */
 export interface ApprovalRoleSpec {

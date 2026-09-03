@@ -1,7 +1,9 @@
-// RTK Query endpoints for the Tasks tool - "ToDo - Org Accountability" (vs_todo).
-// Mounted backend-side at .../v1/todo/*. Access is gated to CX staff; what a
-// person sees and who they may assign to is enforced structurally by the
-// organogram on the server, so these endpoints just return ready-to-render data.
+/**
+ * RTK Query endpoints for the Tasks tool - "ToDo - Org Accountability" (vs_todo).
+ * Mounted backend-side at .../v1/todo/*. Access is gated to CX staff; what a
+ * person sees and who they may assign to is enforced structurally by the
+ * organogram on the server, so these endpoints just return ready-to-render data.
+ */
 
 import { generateQueryString } from "@/utils/helpers";
 import { baseApi } from "../base-api";

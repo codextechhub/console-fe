@@ -330,11 +330,13 @@ function Pagination({
 
 // ── Download ──────────────────────────────────────────────────────────────────
 
-// The CSV body never travels in the JSON payload: the API publishes an
-// authorised route instead, and re-asks the permission question on every call.
-// So the download is a fetch of that route rather than a blob built from the
-// response, and its refusals (not ready, expired, not yours) arrive as an error
-// envelope the helper turns into the backend's own words.
+/**
+ * The CSV body never travels in the JSON payload: the API publishes an
+ * authorised route instead, and re-asks the permission question on every call.
+ * So the download is a fetch of that route rather than a blob built from the
+ * response, and its refusals (not ready, expired, not yours) arrive as an error
+ * envelope the helper turns into the backend's own words.
+ */
 async function downloadExport(job: Pick<AuditExportJob, "download_url" | "file_name" | "id">) {
   if (!job.download_url) return;
   try {

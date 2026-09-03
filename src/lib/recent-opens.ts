@@ -1,20 +1,22 @@
-// "Pick up where you left off" - the last few entities the user actually
-// opened, logged locally per user (same storage posture as the action
-// palette's popularity model: localStorage, fail-safe, no backend).
-//
-// Entries expire. "I opened this" and "I still have work here" are different
-// facts, and only the first one is observable from here, so the strip treats
-// recency as a claim with a shelf life rather than a standing truth. Without
-// that, a record opened once and finished with sits on the dashboard looking
-// exactly like one you are halfway through, until eight newer records happen to
-// push it out - which for an occasional user is never.
-//
-// How long an entry lives is bought by returning to it. Opening something once
-// is a glance and lasts a day; coming back to it is the closest local signal we
-// have to "this is what I am working on", and each return buys another day up to
-// the LIFESPAN_DAYS cap. Nothing here is a substitute for knowing whether the
-// underlying record is actually finished (a closed ticket, an approval already
-// approved); that needs its live status, which the dashboard does not load.
+/**
+ * "Pick up where you left off" - the last few entities the user actually
+ * opened, logged locally per user (same storage posture as the action
+ * palette's popularity model: localStorage, fail-safe, no backend).
+ *
+ * Entries expire. "I opened this" and "I still have work here" are different
+ * facts, and only the first one is observable from here, so the strip treats
+ * recency as a claim with a shelf life rather than a standing truth. Without
+ * that, a record opened once and finished with sits on the dashboard looking
+ * exactly like one you are halfway through, until eight newer records happen to
+ * push it out - which for an occasional user is never.
+ *
+ * How long an entry lives is bought by returning to it. Opening something once
+ * is a glance and lasts a day; coming back to it is the closest local signal we
+ * have to "this is what I am working on", and each return buys another day up to
+ * the LIFESPAN_DAYS cap. Nothing here is a substitute for knowing whether the
+ * underlying record is actually finished (a closed ticket, an approval already
+ * approved); that needs its live status, which the dashboard does not load.
+ */
 
 const VERSION = "v1";
 const CAP = 8;

@@ -1,7 +1,9 @@
-// Platform configuration API (backend: vs_config, mounted at /v1/config/).
-// Typed setting definitions + scoped values, capability catalogue,
-// entitlements, overrides, the immutable audit trail and a JSON export.
-// Creation of definitions/capabilities is platform-only server-side.
+/**
+ * Platform configuration API (backend: vs_config, mounted at /v1/config/).
+ * Typed setting definitions + scoped values, capability catalogue,
+ * entitlements, overrides, the immutable audit trail and a JSON export.
+ * Creation of definitions/capabilities is platform-only server-side.
+ */
 
 import { baseApi } from "./base-api";
 import { generateQueryString } from "@/utils/helpers";

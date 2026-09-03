@@ -1,21 +1,23 @@
-// One status pill for asynchronous work, shared by the two surfaces that show
-// it: Export → View Queues (core.BackgroundJob, the *worker's* view) and the
-// Export Centre's Files and run detail (vs_exports.ExportRun, the *outcome's*
-// view). The reconciliation it enforces is written up in
-// docs/EXPORT_BUILD_NOTES.md; the short version:
-//
-//   • A run wraps a job (ExportRun.background_job), so the same export exists on
-//     both surfaces. Two words for one outcome is the confusion this feature
-//     exists to remove - so the job vocabulary's SUCCEEDED is displayed with the
-//     run vocabulary's word, "Completed". The wire tokens are untouched.
-//   • Every status carries a leading glyph as well as a colour, without
-//     exception, so it survives greyscale, colour-blindness and a photocopier.
-//   • Colour comes from StatusPill's VARIANT_BY_STATUS. This is not a parallel
-//     status system - it is that map plus a glyph.
-//
-// Deliberately NOT here: schedule states (Active / Paused). They arrive with
-// schedules themselves, and an unused branch is a claim the product cannot yet
-// honour.
+/**
+ * One status pill for asynchronous work, shared by the two surfaces that show
+ * it: Export → View Queues (core.BackgroundJob, the *worker's* view) and the
+ * Export Centre's Files and run detail (vs_exports.ExportRun, the *outcome's*
+ * view). The reconciliation it enforces is written up in
+ * docs/EXPORT_BUILD_NOTES.md; the short version:
+ *
+ *   • A run wraps a job (ExportRun.background_job), so the same export exists on
+ *     both surfaces. Two words for one outcome is the confusion this feature
+ *     exists to remove - so the job vocabulary's SUCCEEDED is displayed with the
+ *     run vocabulary's word, "Completed". The wire tokens are untouched.
+ *   • Every status carries a leading glyph as well as a colour, without
+ *     exception, so it survives greyscale, colour-blindness and a photocopier.
+ *   • Colour comes from StatusPill's VARIANT_BY_STATUS. This is not a parallel
+ *     status system - it is that map plus a glyph.
+ *
+ * Deliberately NOT here: schedule states (Active / Paused). They arrive with
+ * schedules themselves, and an unused branch is a claim the product cannot yet
+ * honour.
+ */
 
 import { Badge } from "@/components/ui/badge";
 import { statusLabel, statusVariant } from "@/components/finance-ui/status-pill";

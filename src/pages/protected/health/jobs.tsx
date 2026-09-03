@@ -25,13 +25,15 @@ import {
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
-// The API's own tokens, from core.BackgroundJob.Status. This screen used to
-// offer "pending" and "completed", which match no row the backend can produce -
-// the values are QUEUED and SUCCEEDED - so two of the four filters silently
-// returned an empty table. Labels come from runStatusWord, the same helper
-// Export -> View Queues uses, so the two screens cannot drift into two words
-// for one outcome. CANCELLED is deliberately absent: nothing writes it, and a
-// filter that can only ever return nothing is the bug this comment describes.
+/**
+ * The API's own tokens, from core.BackgroundJob.Status. This screen used to
+ * offer "pending" and "completed", which match no row the backend can produce -
+ * the values are QUEUED and SUCCEEDED - so two of the four filters silently
+ * returned an empty table. Labels come from runStatusWord, the same helper
+ * Export -> View Queues uses, so the two screens cannot drift into two words
+ * for one outcome. CANCELLED is deliberately absent: nothing writes it, and a
+ * filter that can only ever return nothing is the bug this comment describes.
+ */
 export const STATUS_OPTIONS = (["QUEUED", "RUNNING", "SUCCEEDED", "FAILED"] as const).map((value) => ({
   value,
   label: runStatusWord(value),

@@ -1,21 +1,23 @@
-// Export → View Queues. One page over core.BackgroundJob: every async task the
-// user started (imports, exports, emails) - plus system/scheduled runs for
-// admins via the All Queues scope. Polls list + summary every 10 s while the
-// tab is visible; a row opens the task's detail in a drawer.
-//
-// This page answers "did the worker finish?". The Export Centre's Files view
-// answers "what came out?" - they are different questions over the same work
-// (ExportRun.background_job points here), NOT two job monitors. They must
-// therefore agree on words: status rendering is delegated to RunStatusPill,
-// which displays this API's SUCCEEDED as "Completed", the word the export run
-// vocabulary uses. See docs/EXPORT_BUILD_NOTES.md.
-//
-// The one place the job row is not the whole truth is an export. A job that
-// SUCCEEDED may have produced a file with columns or rows left out, and the
-// export task reports that back in `result` - so for kind=export this page
-// reads the RUN's status, not the job's. Otherwise a partly-complete export
-// would read here as a clean success, which is the exact confusion the Export
-// Centre exists to remove.
+/**
+ * Export → View Queues. One page over core.BackgroundJob: every async task the
+ * user started (imports, exports, emails) - plus system/scheduled runs for
+ * admins via the All Queues scope. Polls list + summary every 10 s while the
+ * tab is visible; a row opens the task's detail in a drawer.
+ *
+ * This page answers "did the worker finish?". The Export Centre's Files view
+ * answers "what came out?" - they are different questions over the same work
+ * (ExportRun.background_job points here), NOT two job monitors. They must
+ * therefore agree on words: status rendering is delegated to RunStatusPill,
+ * which displays this API's SUCCEEDED as "Completed", the word the export run
+ * vocabulary uses. See docs/EXPORT_BUILD_NOTES.md.
+ *
+ * The one place the job row is not the whole truth is an export. A job that
+ * SUCCEEDED may have produced a file with columns or rows left out, and the
+ * export task reports that back in `result` - so for kind=export this page
+ * reads the RUN's status, not the job's. Otherwise a partly-complete export
+ * would read here as a clean success, which is the exact confusion the Export
+ * Centre exists to remove.
+ */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
@@ -43,11 +45,13 @@ const POLL_MS = 10_000;
 // line up. Everything read as language stays font-mont.
 const NUM = "font-geist-mono tabular-nums";
 
-// ── Display maps ──────────────────────────────────────────────────────────────
-// Labels come from runStatusWord so the filter, the cards and the rows cannot
-// drift apart; the values stay the API's own tokens.
-// CustomNativeSelect renders its own value="" option first, so the "all" state
-// is the placeholder - listing it again here would give the select two of them.
+/**
+ * ── Display maps ──────────────────────────────────────────────────────────────
+ * Labels come from runStatusWord so the filter, the cards and the rows cannot
+ * drift apart; the values stay the API's own tokens.
+ * CustomNativeSelect renders its own value="" option first, so the "all" state
+ * is the placeholder - listing it again here would give the select two of them.
+ */
 const STATUS_OPTIONS = (["QUEUED", "RUNNING", "SUCCEEDED", "FAILED"] as const).map((value) => ({
   value,
   label: runStatusWord(value),

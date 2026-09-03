@@ -8,11 +8,13 @@ import {
   subscribeToConnectivity,
 } from "@/utils/connectivity";
 
-// Losing the connection is a STATE, not an event, so it gets a bar that stays
-// put rather than a toast that slides away while the problem is still there.
-// Bottom-centre keeps it clear of the header, the top progress bar and the
-// top-centre toasters. Mounted once at the app root, so it also covers the auth
-// and public vendor screens.
+/**
+ * Losing the connection is a STATE, not an event, so it gets a bar that stays
+ * put rather than a toast that slides away while the problem is still there.
+ * Bottom-centre keeps it clear of the header, the top progress bar and the
+ * top-centre toasters. Mounted once at the app root, so it also covers the auth
+ * and public vendor screens.
+ */
 export function ConnectivityBanner() {
   const status = useSyncExternalStore(
     subscribeToConnectivity,

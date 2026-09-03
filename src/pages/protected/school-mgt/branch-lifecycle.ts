@@ -1,11 +1,13 @@
-// The branch lifecycle, as the backend defines it.
-//
-// Kept in one module rather than inline in the screen so the edges can be
-// tested without a browser, and so there is one place to correct when the
-// backend adds a state. Every rule here has a backstop in `Branch.transition`
-// and `Branch._assert_may_leave_service`: this exists to stop the console
-// offering an action that can only be refused, not to be the thing enforcing
-// it. The API is the authority and answers 409 either way.
+/**
+ * The branch lifecycle, as the backend defines it.
+ *
+ * Kept in one module rather than inline in the screen so the edges can be
+ * tested without a browser, and so there is one place to correct when the
+ * backend adds a state. Every rule here has a backstop in `Branch.transition`
+ * and `Branch._assert_may_leave_service`: this exists to stop the console
+ * offering an action that can only be refused, not to be the thing enforcing
+ * it. The API is the authority and answers 409 either way.
+ */
 
 export type BranchStatus = "PENDING" | "ACTIVE" | "SUSPENDED" | "INACTIVE" | "CLOSED";
 
@@ -16,10 +18,12 @@ export const OUT_OF_SERVICE: ReadonlySet<string> = new Set<BranchStatus>([
   "CLOSED",
 ]);
 
-// Mirrors Branch.ALLOWED_TRANSITIONS. Two rules shape it: CLOSED is terminal,
-// because a shut-down branch is re-created rather than resurrected, and PENDING
-// is never a target, because "pending activation" is a fact about a branch that
-// has never opened and activation cannot be undone.
+/**
+ * Mirrors Branch.ALLOWED_TRANSITIONS. Two rules shape it: CLOSED is terminal,
+ * because a shut-down branch is re-created rather than resurrected, and PENDING
+ * is never a target, because "pending activation" is a fact about a branch that
+ * has never opened and activation cannot be undone.
+ */
 const ALLOWED: Record<BranchStatus, readonly BranchStatus[]> = {
   PENDING: ["ACTIVE", "INACTIVE", "CLOSED"],
   ACTIVE: ["SUSPENDED", "INACTIVE", "CLOSED"],

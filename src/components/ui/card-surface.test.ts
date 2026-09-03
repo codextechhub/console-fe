@@ -8,11 +8,13 @@ const SOURCES = import.meta.glob("/src/**/*.{ts,tsx}", {
   eager: true,
 }) as Record<string, string>;
 
-// Tints that exist as FILLS. Drawn as a line on a white card they measure
-// 1.02-1.07 against the page, where the house hairline measures 1.14 - so the
-// outline is simply not there. That is how the Bank Accounts KPIs and the
-// Chart of Accounts table shipped looking outline-less while their markup
-// said `border` and `ring`.
+/**
+ * Tints that exist as FILLS. Drawn as a line on a white card they measure
+ * 1.02-1.07 against the page, where the house hairline measures 1.14 - so the
+ * outline is simply not there. That is how the Bank Accounts KPIs and the
+ * Chart of Accounts table shipped looking outline-less while their markup
+ * said `border` and `ring`.
+ */
 const FILL_TINTS = ["gray-03", "gray-04", "gray-50", "gray-100", "slate-50", "slate-100", "white-05"];
 const LINE = new RegExp(`(border(-[trblxyse])?|ring|divide(-[xy])?)-(${FILL_TINTS.join("|")})\\b`);
 

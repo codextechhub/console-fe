@@ -1,16 +1,18 @@
 import { baseApi } from "../base-api";
 import { generateQueryString } from "@/utils/helpers";
 
-// The `/onboarding/` surface, which is a different root from `/i/` and a
-// different permission namespace from the rest of school management.
-//
-// Reinstatement and the go-live queue.
-//
-// The queue and the decisions taken from it assert DIFFERENT tenants, which is
-// the one thing to know before reading further. The list is read as CodeX, so
-// it takes the caller's own tenant and the base query supplies it. Approve and
-// reject act ON a school, so they name that school's slug explicitly - the base
-// query leaves a request that already asserts a tenant alone.
+/**
+ * The `/onboarding/` surface, which is a different root from `/i/` and a
+ * different permission namespace from the rest of school management.
+ *
+ * Reinstatement and the go-live queue.
+ *
+ * The queue and the decisions taken from it assert DIFFERENT tenants, which is
+ * the one thing to know before reading further. The list is read as CodeX, so
+ * it takes the caller's own tenant and the base query supplies it. Approve and
+ * reject act ON a school, so they name that school's slug explicitly - the base
+ * query leaves a request that already asserts a tenant alone.
+ */
 
 export type GoLiveStatus = "PENDING" | "APPROVED" | "REJECTED" | "ACTIVATED" | "FAILED";
 
