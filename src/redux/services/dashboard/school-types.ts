@@ -109,6 +109,16 @@ export interface School {
 export interface SchoolDetail extends School {
   address: string
   website: string
+  /**
+   * Where this school's own people sign in, e.g.
+   * `https://bright-star.xvs.codexng.com`.
+   *
+   * Derived by the backend from one configured host with the slug inserted,
+   * not stored per school, so a tenant registered a minute ago already has one.
+   * Empty when the deployment configures no school host - render it as absent
+   * rather than as a link that goes nowhere.
+   */
+  app_url: string
   motto: string
   term_structure: string
   currency: string

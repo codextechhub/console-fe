@@ -423,6 +423,19 @@ export default function ViewSchool() {
                             </a>
                           ) : "-"}
                         </DetailField>
+                        {/* The school's own workspace, as opposed to the
+                            marketing site above it. Sits here because the pair
+                            reads as one question - where is this school? - and
+                            because until now nothing in the Console named this
+                            address at all: reaching a school meant knowing the
+                            domain and typing the slug by hand. */}
+                        <DetailField label="XVS address">
+                          {school.app_url ? (
+                            <a href={school.app_url} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1 text-primary hover:underline">
+                              <span className="truncate">{school.app_url.replace(/^https?:\/\//, "")}</span><ExternalLink className="size-3.5 shrink-0" />
+                            </a>
+                          ) : "-"}
+                        </DetailField>
                         <DetailField label="School code" value={school.code} />
                       </div>
                     </SectionCard>
