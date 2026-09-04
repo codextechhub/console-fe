@@ -35,6 +35,15 @@
       "@/pages/protected/workflow/components/*": [
             "./node_modules/@xvs/finance/src/components/workflow/*"
       ],
+      "@/pages/protected/workflow/delegations": [
+            "./node_modules/@xvs/finance/src/pages/workflow/delegations"
+      ],
+      "@/pages/protected/workflow/delegations/*": [
+            "./node_modules/@xvs/finance/src/pages/workflow/delegations/*"
+      ],
+      "@/utils/relative-date": [
+            "./node_modules/@xvs/finance/src/utils/relative-date.ts"
+      ],
       "@/pages/protected/procurement/*": [
             "./node_modules/@xvs/finance/src/pages/procurement/*"
       ],

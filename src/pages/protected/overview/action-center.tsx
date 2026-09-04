@@ -18,7 +18,7 @@ import { routesPath } from "@/routes/routes-path";
 import { useAppSelector } from "@/redux/store";
 import type { ConsoleOverview } from "@/redux/services/dashboard/overview-types";
 import type { Task } from "@/redux/services/dashboard/todo-types";
-import { DocumentRef } from "../workflow/components/workflow-ui";
+import { DocumentRef } from "@/pages/protected/workflow/components/workflow-ui";
 import {
   actionableTasks,
   buildActionRows,
