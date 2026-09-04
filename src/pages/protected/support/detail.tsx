@@ -3,7 +3,22 @@
 // by its tickets.* key. House kit: Dialog, Sheet, NativeSelect, Badge.
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowLeft, ChevronDown, Download, FileText, History, Image, Loader2, Lock, MessageSquare, Paperclip, Send, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowUpRight,
+  ChevronDown,
+  Download,
+  FileText,
+  History,
+  Image,
+  Loader2,
+  Lock,
+  MessageSquare,
+  Paperclip,
+  Send,
+  X,
+} from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -460,6 +475,27 @@ export default function TicketDetail() {
             </section>
 
             <aside className="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
+              {ticket.escalated_at && (
+                /* A school triages its own tickets first, so this one reached
+                   the desk because somebody there decided it was beyond them.
+                   Naming that person matters twice over: they are who to ask
+                   what was already tried, and the note they wrote on the way up
+                   is the first reply in the thread rather than a separate
+                   field. */
+                <div className="rounded-md border border-primary/20 bg-primary/5 p-4">
+                  <p className="inline-flex items-center gap-1.5 font-mont text-sm font-semibold text-primary">
+                    <ArrowUpRight className="size-4" />
+                    Escalated by the school
+                  </p>
+                  <p className="mt-1 text-[13px] leading-6 text-gray-01">
+                    {ticket.escalated_by?.name ?? "Somebody"}
+                    {ticket.school_name?.trim() ? ` at ${ticket.school_name}` : ""} sent
+                    this up on {new Date(ticket.escalated_at).toLocaleDateString()}.
+                    What they already tried is in the thread.
+                  </p>
+                </div>
+              )}
+
               <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
                 <div className="flex justify-between">
                   <h2 className="font-semibold">Ticket details</h2>
@@ -480,6 +516,12 @@ export default function TicketDetail() {
                     ["Category", ticket.category],
                     ["Priority", ticket.priority],
                     ["Created", new Date(ticket.created_at).toLocaleString()],
+                    // Kept beside Created rather than replacing it: the gap
+                    // between the two is how long the school worked it before
+                    // giving up, which is worth seeing.
+                    ...(ticket.escalated_at
+                      ? [["Escalated", new Date(ticket.escalated_at).toLocaleString()]]
+                      : []),
                   ].map(([k, v]) => (
                     <div key={k}>
                       <dt className="text-xs text-gray-01">{k}</dt>

@@ -58,6 +58,18 @@ export interface Ticket {
   branch_name: string;
   resolved_at: string | null;
   closed_at: string | null;
+  /**
+   * When a school sent this ticket up, and who sent it.
+   *
+   * Null on CodeX's own tickets, which were never escalated to anybody. It is
+   * never null on a school ticket that reaches this desk, because the desk only
+   * lists escalated ones - a school triages its own first.
+   *
+   * It is also the clock that matters here. A ticket a school raised three
+   * weeks ago and sent up an hour ago is an hour old to CodeX, not three weeks.
+   */
+  escalated_at: string | null;
+  escalated_by: TicketUser | null;
   comments_count: number;
   attachments_count: number;
   created_at: string;

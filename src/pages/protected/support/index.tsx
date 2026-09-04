@@ -6,7 +6,11 @@
  */
 
 import { useMemo, useState } from "react";
-import { BookOpenText, Plus } from "lucide-react";
+import {
+  ArrowUpRight,
+  BookOpenText,
+  Plus,
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -38,7 +42,7 @@ import {
   type Ticket,
 } from "@/redux/services/tickets-api";
 
-const TABLE_HEADERS = ["Ticket", "Requester", "Category", "Priority", "Status", "Assignee", "Updated"];
+const TABLE_HEADERS = ["Ticket", "Requester", "Category", "Priority", "Status", "Assignee", "Reached us", "Updated"];
 
 export default function Support() {
   const nav = useNavigate();
@@ -98,6 +102,24 @@ export default function Support() {
     ),
     status: <TicketStatusBadge status={t.status} />,
     assignee: <span className="text-sm">{t.assignee?.name ?? "Unassigned"}</span>,
+    // When it became CodeX's problem, which is not when it was raised. A school
+    // ticket sits with the school until somebody there sends it up, so a ticket
+    // created three weeks ago and escalated this morning is this morning's
+    // work. Sorting a queue by Updated hides that; this column is the honest
+    // age of the thing.
+    "Reached us": (
+      <span className="text-xs text-gray-01">
+        {t.escalated_at ? (
+          <span className="inline-flex items-center gap-1">
+            <ArrowUpRight className="size-3.5 text-primary" />
+            {new Date(t.escalated_at).toLocaleDateString()}
+          </span>
+        ) : (
+          // CodeX's own ticket: it was never sent up by anybody.
+          <span className="text-gray-05">Ours</span>
+        )}
+      </span>
+    ),
     updated: <span className="text-xs text-gray-01">{new Date(t.updated_at).toLocaleDateString()}</span>,
     _raw: t,
   }));
