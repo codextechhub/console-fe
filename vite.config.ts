@@ -88,6 +88,16 @@ const packageAlias = (command: string) =>
 // both setups.
 const EXCLUDE_FROM_PREBUNDLE = PACKAGE_SPECIFIERS.map(([find]) => find)
 
+// Runtime dependencies the shared package imports and this app's own source
+// never does. Vite decides what to pre-bundle by scanning THIS app's imports, so
+// a package-only dependency is never bundled, and with `preserveSymlinks` a bare
+// import from an npm-linked package resolves upward from the sibling checkout,
+// which carries no node_modules of its own. The screen then dies on load with
+// "failed to resolve import" while the installed setup, where the package sits
+// inside node_modules, works perfectly. Naming them here pre-bundles them out of
+// this app's own node_modules, where they are installed, so both setups resolve.
+const PACKAGE_ONLY_DEPS = ["date-fns"]
+
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
   // Fixed port so the two apps can run side by side: 5173 is the Console (Codex staff).
@@ -105,7 +115,7 @@ export default defineConfig(({ command }) => ({
   ],
   // Consumed as TypeScript source, not as a built dependency: it resolves
   // @/* against THIS app, so Vite must process it rather than pre-bundle it.
-  optimizeDeps: { exclude: EXCLUDE_FROM_PREBUNDLE },
+  optimizeDeps: { exclude: EXCLUDE_FROM_PREBUNDLE, include: PACKAGE_ONLY_DEPS },
   resolve: {
     // See tsconfig: the package is a symlinked sibling checkout.
     preserveSymlinks: true,
