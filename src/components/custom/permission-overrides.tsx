@@ -56,7 +56,8 @@ import {
 } from "@/components/custom/skeletons";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useNow } from "@/hooks/use-now";
-import { P, permissionLabel, permissionModule } from "@/permissions";
+import { P, permissionModule } from "@/permissions";
+import { permissionLabel } from "@/utils/permission-label";
 import { useGetPermissionsQuery } from "@/redux/services/dashboard/rbac-api";
 import {
   useCreatePermissionOverrideMutation,
@@ -277,7 +278,10 @@ function OverridesSection({
           <div className="space-y-2 text-sm text-gray-01">
             <p className="break-words">
               <span className="font-medium text-black-01">
-                {pendingLift ? permissionLabel(pendingLift.permission_key) : ""}
+                {pendingLift ? permissionLabel({
+                  key: pendingLift.permission_key,
+                  description: pendingLift.permission_description,
+                }) : ""}
               </span>{" "}
               <span className="font-mono text-xs">
                 {pendingLift?.permission_key}
@@ -338,7 +342,10 @@ function OverrideRow({
               spent && "text-gray-01 line-through",
             )}
           >
-            {permissionLabel(row.permission_key)}
+            {permissionLabel({
+              key: row.permission_key,
+              description: row.permission_description,
+            })}
           </p>
           <p className="mt-0.5 break-all font-mono text-[11px] text-gray-01">
             {row.permission_key}
@@ -443,7 +450,7 @@ function AddExceptionDrawer({
     .filter((p) => !module || (p.module_key || permissionModule(p.key)) === module)
     .map((p) => ({
       value: p.key,
-      label: `${permissionLabel(p.key)} - ${p.key}`,
+      label: `${permissionLabel(p)} - ${p.key}`,
     }))
     .sort((a, b) => a.value.localeCompare(b.value));
 

@@ -595,51 +595,6 @@ export function resolvePermissionKey(code: PermissionCode): string {
   return REGISTRY[code] ?? "";
 }
 
-/**
- * Human labels for raw backend keys
- *
- * The permission-exceptions screens are the one place that renders keys the
- * user did not pick from a P.* constant (they come back from the API, and for
- * school users they are `school.*` keys this console never gates on). They need
- * a readable label, so derive one from the P.* name where we have it - the
- * constant names are already written as UI capabilities ("MODIFY_SCHOOL" →
- * "Modify school") - and fall back to a title-cased reading of the dotted key.
- */
-
-const LABEL_BY_KEY: Record<string, string> = Object.entries(P).reduce(
-  (acc, [name, code]) => {
-    const key = REGISTRY[code];
-    // First constant wins: deprecated aliases are listed after the live name.
-    if (key && !acc[key]) {
-      // FIN_/PROC_/PAY_ are namespacing on the constant, not part of the
-      // capability's name - "FIN_CREATE_INVOICE" reads as "Create invoice".
-      const words = name
-        .replace(/^(FIN|PROC|PAY)_/, "")
-        .toLowerCase()
-        .replace(/_/g, " ");
-      acc[key] = words.charAt(0).toUpperCase() + words.slice(1);
-    }
-    return acc;
-  },
-  {} as Record<string, string>,
-);
-
-const titleCase = (segment: string) =>
-  segment.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
-/**
- * A readable label for a backend permission key. Uses the P.* registry when the
- * key is one this console knows; otherwise reads the dotted key
- * ("school.students.update" → "Students · Update").
- */
-export function permissionLabel(key: string): string {
-  if (!key) return "";
-  if (LABEL_BY_KEY[key]) return LABEL_BY_KEY[key];
-  const parts = key.split(".");
-  if (parts.length < 2) return key;
-  return `${titleCase(parts[1])} · ${titleCase(parts.slice(2).join(" "))}`.trim();
-}
-
 /** The module segment of a key ("finance.invoice.view" → "finance"). */
 export function permissionModule(key: string): string {
   return key.split(".")[0] || "other";

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { WorkflowInstanceDetail } from "@/redux/services/dashboard/workflow-types";
-import { sourceDocumentLink, sourceDocumentPrompt } from "./source-document-link";
+// The code under test now lives in @xvs/finance, shared with the school app.
+// The test stays here because this is where the runner is, and it is aimed
+// through the same alias every screen resolves, so it exercises what ships
+// rather than a copy that happens to sit beside it.
+import {
+  sourceDocumentLink,
+  sourceDocumentPrompt,
+} from "@/pages/protected/workflow/components/source-document-link";
 
 function instance(
   documentType: string,

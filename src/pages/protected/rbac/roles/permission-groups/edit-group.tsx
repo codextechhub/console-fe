@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { permissionLabel } from "@/utils/permission-label";
 import { useNavigate, useParams } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
@@ -179,8 +180,8 @@ export default function EditPermissionGroup() {
                               }}
                             />
                             <div>
-                              <p className="text-xs font-mono font-medium text-black-01">{perm.key}</p>
-                              {perm.description && <p className="text-xs text-gray-01">{perm.description}</p>}
+                              <p className="text-xs font-medium text-black-01">{permissionLabel(perm)}</p>
+                              <p className="text-xs font-mono text-gray-01">{perm.key}</p>
                             </div>
                           </label>
                         ))}
