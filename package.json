@@ -22,7 +22,7 @@
     "@fontsource/outfit": "^5.2.8",
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.2.0",
-    "@xvs/finance": "github:codextechhub/FinPro#v0.1.20",
+    "@xvs/finance": "github:codextechhub/FinPro#v0.1.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
