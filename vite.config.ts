@@ -55,6 +55,8 @@ const PACKAGE_SPECIFIERS: [find: string, target: string][] = [
   ["@/redux/services/workflow", "redux/services/workflow"],
   ["@/pages/protected/workflow/delegations", "pages/workflow/delegations"],
   ["@/pages/protected/procurement", "pages/procurement"],
+  ["@/pages/protected/data-imports", "pages/data-imports"],
+  ["@/pages/protected/export", "pages/export"],
   ["@/pages/protected/finance", "pages/finance"],
   ["@/components/finance-ui", "components/finance-ui"],
   ["@/redux/services/finance", "redux/services/finance"],

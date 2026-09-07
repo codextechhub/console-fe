@@ -83,6 +83,12 @@
       "@/pages/protected/procurement/*": [
             "./node_modules/@xvs/finance/src/pages/procurement/*"
       ],
+      "@/pages/protected/data-imports/*": [
+            "./node_modules/@xvs/finance/src/pages/data-imports/*"
+      ],
+      "@/pages/protected/export/*": [
+            "./node_modules/@xvs/finance/src/pages/export/*"
+      ],
       "@/pages/protected/finance/*": [
             "./node_modules/@xvs/finance/src/pages/finance/*"
       ],

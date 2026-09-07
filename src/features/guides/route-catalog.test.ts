@@ -4,12 +4,17 @@ import {
   BUDGETS_SECTIONS,
   COLLECTIONS_SECTIONS,
   EXPENSES_SECTIONS,
-  FINANCE_SETTINGS_SECTIONS,
   PAYMENTS_SECTIONS,
   RECEIVABLES_SECTIONS,
   REPORTS_SECTIONS,
   SETUP_SECTIONS,
 } from "@/pages/protected/finance/console-sections";
+// The sections this app ROUTES, which is a narrower question than which ones
+// @xvs/finance defines: the package's list carries "fees", a school's rule
+// about its own academic calendar that CodeX has no use for and does not mount.
+// Reading the package's list here asked the catalogue to name a screen that
+// does not exist, and the guides audit then reported a missing guide for it.
+import { financeSettingsSections } from "@/xvs-host";
 import {
   ANALYTICS_SECTIONS,
   INVENTORY_SECTIONS,
@@ -32,7 +37,7 @@ describe("guide route catalogue", () => {
       ...BUDGETS_SECTIONS.map((section) => `${R.FINANCE.BUDGETS}/${section}`),
       ...PAYMENTS_SECTIONS.map((section) => `${R.FINANCE.PAYMENTS}/${section}`),
       ...REPORTS_SECTIONS.map((section) => `${R.FINANCE.REPORTS}/${section}`),
-      ...FINANCE_SETTINGS_SECTIONS.map((section) => `${R.FINANCE.SETTINGS}/${section}`),
+      ...financeSettingsSections.map((section) => `${R.FINANCE.SETTINGS}/${section}`),
       ...VENDOR_SECTIONS.map((section) => `${R.PROCUREMENT.VENDORS}/${section}`),
       ...INVENTORY_SECTIONS.map((section) => `${R.PROCUREMENT.INVENTORY}/${section}`),
       ...ANALYTICS_SECTIONS.map((section) => `${R.PROCUREMENT.ANALYTICS}/${section}`),

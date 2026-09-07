@@ -21,6 +21,8 @@ export default defineConfig({
       { find: "@/hooks/use-action-param", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/hooks/use-action-param.ts") },
       { find: "@/pages/protected/workflow/components", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/components/workflow") },
       { find: "@/pages/protected/procurement", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/pages/procurement") },
+      { find: "@/pages/protected/data-imports", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/pages/data-imports") },
+      { find: "@/pages/protected/export", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/pages/export") },
       { find: "@/pages/protected/finance", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/pages/finance") },
       { find: "@/components/finance-ui", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/components/finance-ui") },
       { find: "@/redux/services/finance", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/redux/services/finance") },
