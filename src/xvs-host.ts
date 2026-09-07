@@ -69,6 +69,9 @@ export const financeSettingsSections: readonly FinanceSettingsSection[] =
 /** Which Setup pages this app routes: all of them. */
 export const setupSections: readonly SetupSection[] = SETUP_SECTIONS;
 
+/** CodeX authors the shared approval paths every tenant starts on. */
+export const createsWorkflowTemplates = true;
+
 /** No fee due rule exists for the platform, and the section that would show it
  *  is not mounted, so this is never reached. It exists to satisfy the contract
  *  rather than to render. */
