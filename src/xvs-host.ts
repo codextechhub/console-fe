@@ -8,6 +8,11 @@ import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api"
 import { getTenantSlug } from "@/utils/tenant-context";
 import type { HostBranch, HostPerson, HostQueryResult, HostRole } from "@xvs/finance/host";
 
+import {
+  FINANCE_SETTINGS_SECTIONS, SETUP_SECTIONS,
+  type FinanceSettingsSection, type SetupSection,
+} from "@/pages/protected/finance/console-sections";
+
 export { AppLogo } from "@/components/app-logo";
 export { QuickExportButton } from "@/components/custom/quick-export-drawer";
 export { UserAvatar } from "@/components/custom/user-avatar";
@@ -54,3 +59,19 @@ export const rolesHref = routesPath.PROTECTED.ROLES.USER_ASSIGNMENTS;
 
 /** The console has the platform-wide staffing view; it keeps its own tab. */
 export { default as ApprovalRolesTab } from "@/pages/protected/workflow-console/approval-roles-tab";
+
+/** Which Finance Settings sections this app routes. The console runs the full
+ *  set, minus "fees": a fee due date is a school's rule about its own academic
+ *  calendar, and CodeX bills nobody school fees. */
+export const financeSettingsSections: readonly FinanceSettingsSection[] =
+  FINANCE_SETTINGS_SECTIONS.filter((section) => section !== "fees");
+
+/** Which Setup pages this app routes: all of them. */
+export const setupSections: readonly SetupSection[] = SETUP_SECTIONS;
+
+/** No fee due rule exists for the platform, and the section that would show it
+ *  is not mounted, so this is never reached. It exists to satisfy the contract
+ *  rather than to render. */
+export function FeeDuePolicyPanel() {
+  return null;
+}

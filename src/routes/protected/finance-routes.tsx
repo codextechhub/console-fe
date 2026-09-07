@@ -2,9 +2,10 @@ import { lazy } from "react";
 import { type RouteObject } from "react-router";
 import type { DashboardHandle } from "@/components/layout/dashboard-header";
 import { routesPath } from "@/routes/routes-path";
+import { financeSettingsSections } from "@/xvs-host";
 // Static lists, so declaring the paths does not pull in the lazy page chunks.
 import {
-  BUDGETS_SECTIONS, COLLECTIONS_SECTIONS, EXPENSES_SECTIONS, FINANCE_SETTINGS_SECTIONS,
+  BUDGETS_SECTIONS, COLLECTIONS_SECTIONS, EXPENSES_SECTIONS,
   PAYMENTS_SECTIONS, RECEIVABLES_SECTIONS, REPORTS_SECTIONS, SETUP_SECTIONS,
 } from "@/pages/protected/finance/console-sections";
 
@@ -72,7 +73,7 @@ export const financeRoutes: RouteObject[] = [
       })),
       { path: F.AUDIT, element: <FinanceAudit /> },
       { path: F.SETTINGS, element: <FinanceSettings /> },
-      ...FINANCE_SETTINGS_SECTIONS.map((section) => ({
+      ...financeSettingsSections.map((section) => ({
         path: `${F.SETTINGS}/${section}`, element: <FinanceSettings section={section} />,
       })),
     ],
