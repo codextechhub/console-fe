@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiErrorMessage } from "@/utils/api-errors";
 import { permissionLabel } from "@/utils/permission-label";
 import { useNavigate, useParams } from "react-router";
 import { Formik, Form } from "formik";
@@ -26,6 +27,9 @@ const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
   description: Yup.string().trim(),
   status: Yup.string().oneOf(["ACTIVE", "INACTIVE"]).required("Status is required"),
+  // The server refuses a role access change with no reason and records what it
+  // is given, so the save cannot go out without one.
+  reason: Yup.string().trim().required("Say why this is changing"),
 });
 
 export default function EditRole() {
@@ -101,6 +105,7 @@ export default function EditRole() {
             status: role.status ?? "ACTIVE",
             group_ids: attachedGroupIds,
             permission_keys: attachedPermissionKeys,
+            reason: "",
           }}
           validationSchema={schema}
           onSubmit={(values, { setSubmitting }) => {
@@ -112,6 +117,7 @@ export default function EditRole() {
                 status: values.status,
                 group_ids: values.group_ids,
                 permission_keys: values.permission_keys,
+                reason: values.reason.trim(),
               },
             })
               .unwrap()
@@ -119,7 +125,14 @@ export default function EditRole() {
                 toast.success("Role updated successfully.");
                 navigate(routesPath.PROTECTED.ROLES.INDEX);
               })
-              .catch(() => {})
+              .catch((error) => {
+                // Swallowing this is how a refused save looked like a save that
+                // did nothing: the button settled and the screen stayed put with
+                // nothing said. Every refusal gets shown now.
+                toast.error(
+                  apiErrorMessage(error, "We could not save that role. Try again."),
+                );
+              })
               .finally(() => setSubmitting(false));
           }}
         >
@@ -165,6 +178,27 @@ export default function EditRole() {
                         onBlur={handleBlur}
                         className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
                       />
+                    </div>
+
+                    {/* Recorded against whoever saves, so the audit answers why
+                        a role reaches what it reaches and not only who changed
+                        it last. The server refuses the save without one. */}
+                    <div>
+                      <label htmlFor="reason" className="mb-1.5 block text-sm text-gray-01">
+                        Why is this changing?
+                      </label>
+                      <input
+                        id="reason"
+                        name="reason"
+                        value={values.reason}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        placeholder="e.g. Finance handover to the new bursar"
+                        className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      />
+                      {touched.reason && errors.reason && (
+                        <p className="mt-1 text-xs text-red-600">{errors.reason}</p>
+                      )}
                     </div>
 
                     <SearchSelect
