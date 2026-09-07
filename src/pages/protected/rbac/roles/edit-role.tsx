@@ -144,7 +144,7 @@ export default function EditRole() {
             const filteredPerms = permissions;
 
             return (
-              <Form className="space-y-5">
+              <Form className="space-y-5" id="role-form-fields">
                 <div className="grid grid-cols-1 lg:grid-cols-[5fr_6fr] gap-5 items-start">
                   {/* Left - Basic Info */}
                   <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-6 space-y-5")}>
@@ -162,6 +162,7 @@ export default function EditRole() {
                       onChange={handleChange}
                       onBlur={handleBlur}
                       error={touched.name ? errors.name : ""}
+                      data-invalid={touched.name && !!errors.name}
                       disabled={isNameLocked}
                     />
 
@@ -190,6 +191,7 @@ export default function EditRole() {
                       <input
                         id="reason"
                         name="reason"
+                        data-invalid={touched.reason && !!errors.reason}
                         value={values.reason}
                         onChange={handleChange}
                         onBlur={handleBlur}
@@ -342,7 +344,23 @@ export default function EditRole() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={!dirty || isLoading || isSubmitting}>
+                  {/* Formik renders each complaint beside its own field, and
+                      those fields sit above a permission list long enough to
+                      push them off the screen. A refusal read as nothing
+                      happening. After the click, put the first one in view. */}
+                  <Button
+                    type="submit"
+                    disabled={!dirty || isLoading || isSubmitting}
+                    onClick={() => {
+                      requestAnimationFrame(() => {
+                        const first = document.querySelector<HTMLElement>(
+                          "#role-form-fields [data-invalid='true']",
+                        );
+                        first?.scrollIntoView({ behavior: "smooth", block: "center" });
+                        first?.focus({ preventScroll: true });
+                      });
+                    }}
+                  >
                     {isLoading || isSubmitting ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
