@@ -1,5 +1,31 @@
 # CLAUDE.md - console-fe
 
+## The finance and procurement screens are not this app's to edit
+
+Everything under Finance, Procurement and Workflow comes from `@xvs/finance`
+(the `FinPro` repo), shared with the school app. `@/pages/protected/finance/*`
+and its siblings are aliased into `node_modules/@xvs/finance`, so a file that
+looks local is not.
+
+**A fix to a shared screen belongs in FinPro**, released with its `release.sh`.
+
+**And this app cannot be trusted to notice a stale pin.** Its
+`node_modules/@xvs/finance` is a symlink to the FinPro working tree, so an edit
+there is live here the moment it is saved, whether or not the pin in
+`package.json` has anything to do with it. The school app holds a real installed
+copy and sees nothing until its pin moves. The two fail in opposite directions:
+
+> Finance Settings was offering sections the school app does not route. The fix
+> was tagged `v0.1.22` and school-fe was moved onto it; this app was left pinned
+> to `v0.1.21`. Both typechecked clean, because this one was compiling against
+> the symlink. A fresh install anywhere else, CI included, would have fetched
+> `v0.1.21` and quietly not had the fix.
+
+So a green typecheck here says nothing about which version this app ships. Move
+both applications in the same change, with `release.sh`, and commit both
+lockfiles. If an install replaces the symlink, restore it; `release.sh` does that
+too.
+
 ## How-to guide alignment
 
 `docs/HOW_TO_GUIDE_MASTER_PLAN.md` is the canonical plan and coverage contract for
