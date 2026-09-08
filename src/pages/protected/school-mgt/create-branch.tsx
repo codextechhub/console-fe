@@ -143,7 +143,7 @@ export default function CreateBranch() {
                 <CustomInput
                   id="name"
                   label="Branch Name"
-                  placeholder="e.g. Main Campus"
+                  placeholder="e.g. Main Branch"
                   isRequired
                   {...formik.getFieldProps("name")}
                   error={formik.touched.name ? formik.errors.name : ""}

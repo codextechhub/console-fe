@@ -105,7 +105,7 @@ export default function AddSchoolBranch({ defaultValues, onNext, onChange }: Pro
             <CustomInput
               id={`name-${idx}`}
               label="Branch Name"
-              placeholder="e.g., Main Campus"
+              placeholder="e.g., Main Branch"
               isRequired
               value={branch.name}
               onChange={(e) => update(idx, "name", e.target.value)}

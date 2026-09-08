@@ -65,7 +65,7 @@ export function branchTransitionEffect(to: BranchStatus, branchName: string): st
  * The API accepts a blank one. The console does not, for anything that takes a
  * branch out of service: the reason is written into the branch's lifecycle
  * history, which is the record somebody reads months later when they are asking
- * why a campus stopped trading. Returning to service needs no explanation
+ * why a branch stopped trading. Returning to service needs no explanation
  * beyond the fact of it.
  */
 export function branchReasonRequired(to: BranchStatus): boolean {

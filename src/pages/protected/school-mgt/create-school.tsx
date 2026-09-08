@@ -90,7 +90,7 @@ function generateTestData(): PrefillData {
     },
     branches: [
       {
-        name: "Main Campus",
+        name: "Main Branch",
         _type: "Secondary",
         address: `${n} Test Avenue, Victoria Island`,
         email: `branch@${slug}.ng`,
