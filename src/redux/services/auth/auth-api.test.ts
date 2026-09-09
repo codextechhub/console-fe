@@ -57,6 +57,49 @@ describe("auth endpoints assert the tenant they sign in to", () => {
     expect(store.getState().auth).not.toHaveProperty("refresh");
   });
 
+  it("sends a card identifier without putting an email in the request", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({ success: true, data: { access: "card-access" } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const store = makeStore();
+    await store.dispatch(
+      authApi.endpoints.specialLogin.initiate({
+        card_id: "a5ba2bb1-48fc-44ef-9914-2f29ae5182b7",
+        password: "pw",
+      }),
+    );
+
+    const request = fetchMock.mock.calls[0][0] as Request;
+    expect(request.url).toContain("/user/auth/login/");
+    expect(await new Request(request).json()).toEqual({
+      card_id: "a5ba2bb1-48fc-44ef-9914-2f29ae5182b7",
+      password: "pw",
+    });
+    expect(getAccessToken()).toBe("card-access");
+  });
+
+  it("previews a card identifier without placing an email in the URL", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({ success: true, data: { full_name: "Ada Okoye" } }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const store = makeStore();
+    await store.dispatch(
+      authApi.endpoints.specialLoginPreview.initiate(
+        "a5ba2bb1-48fc-44ef-9914-2f29ae5182b7",
+      ),
+    );
+
+    const request = fetchMock.mock.calls[0][0] as Request;
+    expect(request.url).toContain(
+      "card_id=a5ba2bb1-48fc-44ef-9914-2f29ae5182b7",
+    );
+    expect(request.url).not.toContain("email=");
+  });
+
   it("sends the platform tenant slug on a password reset request", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({ success: true, message: "Sent." }),

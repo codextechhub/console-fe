@@ -48,6 +48,9 @@ export default function ActivateAndSignInArticle() {
           <GuideStep title="Enter Password">Enter the password you created. Do not paste passwords into support tickets or chat messages.</GuideStep>
           <GuideStep title="Select Login">A successful login opens Home, or returns you to the protected Console page that originally sent you to login.</GuideStep>
         </GuideSteps>
+        <GuideCallout tone="tip" title="Signing in from a staff ID card">
+          Scan the current ID card and confirm the expected name before entering your password. The card carries a random identifier, not your email address. If a card is lost, copied, or replaced, ask an administrator to rotate its login identifier so the old card stops working.
+        </GuideCallout>
         <GuideCallout title="What you can see after login">
           Your account, roles, permissions, current entity, and branch context determine which areas and actions appear. Signing in confirms identity, but it does not bypass those access rules.
         </GuideCallout>
@@ -59,6 +62,7 @@ export default function ActivateAndSignInArticle() {
           <Problem title="The name or email is wrong" solution="Stop before activation and ask your administrator to correct the account." />
           <Problem title="Activate Account stays unavailable" solution="Check every password rule and make sure Password and Confirm Password match." />
           <Problem title="Login is rejected" solution="Check the email and password. If you no longer know the password, use Forgot password instead of repeatedly guessing." />
+          <Problem title="The ID card cannot be used" solution="Use the latest issued card. For privacy, missing, replaced, locked, suspended, and invalid cards all show the same message; an administrator can check the account and replace the card login." />
         </div>
         <GuideCallout tone="danger" title="Stop repeated attempts">
           Repeated failed sign-ins may lock an account under your organization&apos;s security settings. Use account recovery or contact your administrator when the credentials are uncertain.

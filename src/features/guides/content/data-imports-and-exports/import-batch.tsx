@@ -16,6 +16,7 @@ export default function ImportBatchArticle() {
       </GuideSection>
       <GuideSection id="upload-and-check-scope" title="Upload and check the batch scope">
         <p>Select <strong>New Import</strong>, choose the dataset and template, upload CSV or XLSX, then confirm the sheet name and header row. After upload, read the batch header again: filename, dataset, format, school, template, uploader, row count, and column count must match the intended work.</p>
+        <GuideCallout tone="tip" title="Leaving an unfinished import">A blank New Import screen can be left without a warning. Once you choose a template or file, add a note, or create a batch, Console asks before internal navigation, refresh, or tab close. The warning clears when the import completes.</GuideCallout>
       </GuideSection>
       <GuideSection id="validate-and-resolve" title="Validate and resolve issues">
         <p>Select <strong>Validate</strong>. Validation checks the file without executing the import. Review Errors, Warnings, and Info separately. Critical errors block execution. Correct source values in the file and upload a new batch when the data is wrong; marking an issue as reviewed does not change the source value.</p>

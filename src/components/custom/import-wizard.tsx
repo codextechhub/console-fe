@@ -1,5 +1,9 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import {
+  hasImportWizardWork,
+  useImportWizardNavigationGuard,
+} from "./import-wizard-navigation";
 import {
   useCreateImportBatchMutation,
   useGetImportBatchQuery,
@@ -40,6 +44,8 @@ interface ImportWizardProps {
   returnLabel?: string;
   onCancel?: () => void;
 }
+
+export { hasImportWizardWork } from "./import-wizard-navigation";
 
 // ── Main Wizard ─────────────────────────────────────────────────────────────
 
@@ -84,16 +90,14 @@ export default function ImportWizard({
   });
   const batch = unwrap<ImportBatch>(batchData);
 
-  // Warn on browser refresh/tab close for steps 1-5 (before import commits)
-  useEffect(() => {
-    if (step >= 6) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [step]);
+  const isDirty = hasImportWizardWork({
+    complete: step === 7,
+    templateId,
+    file,
+    notes,
+    batchId,
+  });
+  useImportWizardNavigationGuard(isDirty);
 
   const [uploadError, setUploadError] = useState(false);
   const [uploadErrorMsg, setUploadErrorMsg] = useState<string | null>(null);

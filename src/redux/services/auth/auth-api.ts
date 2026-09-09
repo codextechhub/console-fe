@@ -51,6 +51,27 @@ export const authApi = baseApi.injectEndpoints({
         }
       },
     }),
+    specialLogin: builder.mutation<LoginResponse, { card_id: string; password: string }>({
+      query: (credentials) => ({
+        url: `/user/auth/login/`,
+        method: "POST",
+        body: credentials,
+        credentials: "include" as const,
+        headers: { "X-Auth-Mode": "cookie" },
+      }),
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
+        try {
+          const { data } = await queryFulfilled;
+          resetSessionInvalidation();
+          setAccessToken(data?.data?.access || "");
+          recordActivity();
+          dispatch(setAuthUser(data?.data));
+          markAuthContextFromLogin();
+        } catch {
+          // The mutation result carries the authentication error to the card page.
+        }
+      },
+    }),
     logout: builder.mutation<void, void>({
       query: () => ({
         url: `/user/auth/logout/`,
@@ -108,8 +129,8 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
     specialLoginPreview: builder.query<{ message: string; data: { full_name: string } }, string>({
-      query: (email) => ({
-        url: `/user/auth/special_login/preview/?email=${encodeURIComponent(email)}`,
+      query: (cardId) => ({
+        url: `/user/auth/special_login/preview/?card_id=${encodeURIComponent(cardId)}`,
         method: "GET",
       }),
     }),
@@ -148,6 +169,7 @@ export const authApi = baseApi.injectEndpoints({
 
 export const {
   useLoginMutation,
+  useSpecialLoginMutation,
   useLogoutMutation,
   useForgotPasswordMutation,
   usePasswordResetPreviewQuery,

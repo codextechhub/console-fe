@@ -9,10 +9,9 @@ export const routesPath = {
     RESET_PASSWORD_LINK: (key: string) => `/reset-password/${key}`,
     ACTIVATE: "/activate/:activation_key",
     ACTIVATE_LINK: (key: string) => `/activate/${key}`,
-    // Literal prefix so this can never shadow other "/<segment>/login" URLs
-    // (it previously matched /admin/login, /school/login, etc.).
-    SPECIAL_LOGIN: "/sp-l/:email",
-    SPECIAL_LOGIN_LINK: (email: string) => `/sp-l/${encodeURIComponent(email)}`,
+    // A literal prefix prevents this route from shadowing other login URLs.
+    SPECIAL_LOGIN: "/sp-l/:cardId",
+    SPECIAL_LOGIN_LINK: (cardId: string) => `/sp-l/${encodeURIComponent(cardId)}`,
     VENDOR_RFQ: "/vendor/rfq/:token",
     VENDOR_RFQ_LINK: (token: string) => `/vendor/rfq/${encodeURIComponent(token)}`,
   },
