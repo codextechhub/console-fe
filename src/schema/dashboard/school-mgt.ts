@@ -43,7 +43,6 @@ export const adminStepSchema = Yup.object({
 
 export const packageStepSchema = Yup.object({
   package_plan: Yup.string().required("Package plan is required"),
-  enabled_modules: Yup.array().of(Yup.string()).min(1, "Select at least one module"),
   subscription_expires_at: Yup.string().nullable(),
 });
 

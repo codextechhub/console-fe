@@ -1,16 +1,11 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomDateInput } from "@/components/custom/custom-date-input";
 import { SearchSelect } from "@/components/custom/search-select";
-import { MultiSelectInput } from "@/components/custom/multiselect-input";
 import { Button } from "@/components/ui/button";
-import {
-  useGetModulesQuery,
-  useGetPackagePlansQuery,
-} from "@/redux/services/dashboard/school-mgt-api";
+import { useGetPackagePlansQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { packageStepSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
 import { useEffect } from "react";
-import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import type { PackageStepData } from "../create-school";
 
@@ -25,39 +20,8 @@ export default function PackageSetup({ defaultValues, onSubmit, onChange, isSubm
   const navigate = useNavigate();
 
   const { data: plansRes, isLoading: plansLoading } = useGetPackagePlansQuery();
-  const { data: modulesRes, isLoading: modulesLoading } = useGetModulesQuery();
-
 
   const planOptions = (plansRes?.data ?? []).map((p) => ({ label: p.name, value: p.code }));
-  // /i/modules/ now serves the capability catalogue (vs_config), which names
-  // things `label`; selecting a module grants its plan entitlement on create.
-  // Dependency hint: a module stays off unless its requirements are also
-  // enabled (e.g. Procurement needs Finance), so say so in the option itself.
-  const moduleByKey = new Map((modulesRes?.data ?? []).map((m) => [m.key, m]));
-  const moduleOptions = (modulesRes?.data ?? []).map((m) => ({
-    label: m.dependencies?.length
-      ? `${m.label} (requires ${m.dependencies.map((d) => moduleByKey.get(d)?.label ?? d).join(", ")})`
-      : m.label,
-    value: m.key,
-  }));
-
-  // Picking a module pulls its requirements in with it (transitively), so a
-  // school is never created with a module that would resolve Off. The added
-  // chips appear in the multiselect and a toast says why.
-  const expandWithDependencies = (keys: string[]) => {
-    const out = new Set(keys);
-    const stack = [...keys];
-    while (stack.length) {
-      const key = stack.pop()!;
-      for (const dep of moduleByKey.get(key)?.dependencies ?? []) {
-        if (!out.has(dep)) {
-          out.add(dep);
-          stack.push(dep);
-        }
-      }
-    }
-    return [...out];
-  };
 
   const formik = useFormik<PackageStepData>({
     initialValues: defaultValues,
@@ -78,7 +42,7 @@ export default function PackageSetup({ defaultValues, onSubmit, onChange, isSubm
         <div className="mb-7 space-y-1.5">
           <h4 className="font-medium text-xl text-black-01" data-guide="school-create.package">Package Setup</h4>
           <p className="text-gray-01 font-mont text-xs">
-            Select a package plan and configure the school's module access.
+            Choose the plan this school is on. The plan decides how far into every module it reaches.
           </p>
         </div>
 
@@ -98,33 +62,6 @@ export default function PackageSetup({ defaultValues, onSubmit, onChange, isSubm
               value={formik.values.package_plan}
               onChange={(e) => formik.setFieldValue("package_plan", e.target.value)}
               error={formik.touched.package_plan ? formik.errors.package_plan : ""}
-            />
-
-            <MultiSelectInput
-              id="enabled_modules"
-              label="Enabled Modules"
-              placeholder={modulesLoading ? "Loading..." : "Select modules"}
-              options={moduleOptions}
-              maxCount={3}
-              isRequired
-              defaultValue={formik.values.enabled_modules as string[]}
-              onValueChange={(vals) => {
-                const expanded = expandWithDependencies(vals);
-                const added = expanded.filter((k) => !vals.includes(k));
-                if (added.length) {
-                  toast.info(
-                    `Also added ${added
-                      .map((k) => moduleByKey.get(k)?.label ?? k)
-                      .join(", ")} - required by your selection`,
-                  );
-                }
-                formik.setFieldValue("enabled_modules", expanded);
-              }}
-              error={
-                formik.touched.enabled_modules
-                  ? (formik.errors.enabled_modules as string)
-                  : ""
-              }
             />
 
             <CustomDateInput

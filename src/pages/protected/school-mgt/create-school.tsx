@@ -41,9 +41,16 @@ export interface AdminStepData {
   phone: string;
 }
 
+/**
+ * What a school is sold, which is the plan and nothing else.
+ *
+ * There is no module list. Every school is granted every module and the plan
+ * decides how deep it reaches into each, so ticking modules narrowed nothing:
+ * the same school came out of the wizard whichever boxes were ticked, and the
+ * step invited an operator to believe they had turned Procurement off.
+ */
 export interface PackageStepData {
   package_plan: string;
-  enabled_modules: string[];
   subscription_expires_at: string;
 }
 
@@ -63,7 +70,7 @@ const initialAdmin: AdminStepData = {
 };
 
 const initialPackage: PackageStepData = {
-  package_plan: "", enabled_modules: [], subscription_expires_at: "",
+  package_plan: "", subscription_expires_at: "",
 };
 
 export interface PrefillData {
@@ -111,7 +118,6 @@ function generateTestData(): PrefillData {
     },
     pkg: {
       package_plan: "",
-      enabled_modules: [],
       subscription_expires_at: "2027-12-31",
     },
   };
@@ -165,7 +171,6 @@ function buildPayload(
   if (pkg.package_plan) {
     payload.package_setup_data = {
       package_plan: pkg.package_plan,
-      enabled_modules: pkg.enabled_modules,
       ...(pkg.subscription_expires_at ? { subscription_expires_at: pkg.subscription_expires_at } : {}),
     };
   }

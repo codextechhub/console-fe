@@ -401,7 +401,7 @@ export default function ViewSchool() {
                 <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                   <SummaryCard icon={<Building2 className="size-5" />} label="Branches" value={school.branches.length} hint={school.main_branch?.name ? `Main: ${school.main_branch.name}` : "No main branch set"} />
                   <SummaryCard icon={<PackageCheck className="size-5" />} label="Package" value={school.package_setup?.package_plan.name ?? "Not set"} hint={school.package_setup?.package_plan.billing_cycle ? formatEnum(school.package_setup.package_plan.billing_cycle) : "No billing cycle"} />
-                  <SummaryCard icon={<ShieldCheck className="size-5" />} label="Enabled modules" value={school.package_setup?.enabled_modules.length ?? 0} hint="Available capabilities" />
+                  <SummaryCard icon={<ShieldCheck className="size-5" />} label="Modules" value={school.package_setup?.enabled_modules.length ?? 0} hint="Every school holds all of them; the plan sets the depth" />
                   <SummaryCard icon={<CalendarDays className="size-5" />} label="Activated" value={school.activated_at ? formatStartedTime(school.activated_at) : "Pending"} hint={school.status === "ACTIVE" ? "School is operational" : `Status: ${formatEnum(school.status)}`} />
                 </div>
 
@@ -449,11 +449,14 @@ export default function ViewSchool() {
                             <DetailField label="Subscription expires" value={school.package_setup.subscription_expires_at ? formatStartedTime(school.package_setup.subscription_expires_at) : "No expiry set"} />
                           </div>
                           <div>
-                            <p className="mb-2 font-mont text-xs font-medium text-gray-01">Enabled modules</p>
+                            <p className="mb-2 font-mont text-xs font-medium text-gray-01">Modules and depth</p>
                             <div className="flex flex-wrap gap-2">
+                              {/* The depth is the whole of the answer: the list
+                                  is the same for every school, and how far into
+                                  each module they reach is what the plan bought. */}
                               {school.package_setup.enabled_modules.length > 0 ? school.package_setup.enabled_modules.map((module) => (
-                                <Badge key={module.id} className="bg-pry-01 text-primary">{module.label}</Badge>
-                              )) : <span className="text-sm text-gray-01">No modules enabled.</span>}
+                                <Badge key={module.id} className="bg-pry-01 text-primary">{module.label} &middot; {module.depth_label}</Badge>
+                              )) : <span className="text-sm text-gray-01">This school has not been given its plan yet.</span>}
                             </div>
                           </div>
                         </div>

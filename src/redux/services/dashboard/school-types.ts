@@ -79,10 +79,28 @@ export interface XVSModule {
   is_active: boolean
 }
 
+/**
+ * One module a school holds, with how far into it the plan reaches.
+ *
+ * Present only where a school is in scope. The operator's module picker uses
+ * the same shape with no school, where a depth would mean nothing.
+ */
+export interface SchoolModule extends XVSModule {
+  /** 10 Core, 20 Plus, 30 Advanced. Null means no depth limit at all. */
+  depth: number | null
+  /** "Core", "Plus", "Advanced", or "Unlimited". */
+  depth_label: string
+}
+
 export interface PackageSetup {
   id: string
   package_plan: PackagePlan
-  enabled_modules: XVSModule[]
+  /**
+   * Every module, because every school is granted every module. What differs
+   * between two schools is the depth beside each row, not the length of the
+   * list.
+   */
+  enabled_modules: SchoolModule[]
   subscription_expires_at: string | null
   is_active: boolean
   notes: string
