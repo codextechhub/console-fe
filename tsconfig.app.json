@@ -121,10 +121,10 @@
             "./node_modules/@xvs/finance/src/utils/fls.ts"
       ],
       "@/utils/finance-export": [
-            "./node_modules/@xvs/finance/src/utils/finance-export.ts"
+            "./src/xvs-host/finance-export.ts"
       ],
       "@/utils/finance-documents": [
-            "./node_modules/@xvs/finance/src/utils/finance-documents.ts"
+            "./src/xvs-host/finance-documents.ts"
       ],
       "@/utils/chart-of-accounts": [
             "./node_modules/@xvs/finance/src/utils/chart-of-accounts.ts"

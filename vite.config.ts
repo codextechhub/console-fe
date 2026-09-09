@@ -67,8 +67,6 @@ const PACKAGE_SPECIFIERS: [find: string, target: string][] = [
   ["@/utils/posting-window", "utils/posting-window.ts"],
   ["@/utils/quantity", "utils/quantity.ts"],
   ["@/utils/fls", "utils/fls.ts"],
-  ["@/utils/finance-export", "utils/finance-export.ts"],
-  ["@/utils/finance-documents", "utils/finance-documents.ts"],
   ["@/utils/chart-of-accounts", "utils/chart-of-accounts.ts"],
 ]
 
@@ -100,6 +98,20 @@ const EXCLUDE_FROM_PREBUNDLE = PACKAGE_SPECIFIERS.map(([find]) => find)
 // this app's own node_modules, where they are installed, so both setups resolve.
 const PACKAGE_ONLY_DEPS = ["date-fns"]
 
+const authBoundaryPlugin = () => ({
+  name: "xvs-auth-boundary",
+  enforce: "pre" as const,
+  resolveId(source: string, importer?: string) {
+    if (
+      importer?.includes("/pages/data-imports/batches/")
+      && (source === "./batch-utils" || source === "./components/batch-utils")
+    ) {
+      return path.resolve(__dirname, "./src/xvs-host/import-batch-utils.ts")
+    }
+    return null
+  },
+})
+
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
   // Fixed port so the two apps can run side by side: 5173 is the Console (Codex staff).
@@ -108,6 +120,7 @@ export default defineConfig(({ command }) => ({
   // strictPort makes that failure loud instead of silent.
   server: { port: 5173, strictPort: true },
   plugins: [
+    authBoundaryPlugin(),
     react({
       babel: {
         plugins: [['babel-plugin-react-compiler']],
@@ -123,6 +136,8 @@ export default defineConfig(({ command }) => ({
     preserveSymlinks: true,
     alias: [
       { find: "@xvs-host", replacement: path.resolve(__dirname, "./src/xvs-host.ts") },
+      { find: "@/utils/finance-export", replacement: path.resolve(__dirname, "./src/xvs-host/finance-export.ts") },
+      { find: "@/utils/finance-documents", replacement: path.resolve(__dirname, "./src/xvs-host/finance-documents.ts") },
       ...packageAlias(command),
       { find: "@", replacement: path.resolve(__dirname, "./src") },
     ],

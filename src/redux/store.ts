@@ -12,6 +12,7 @@ import {
   REHYDRATE,
   persistReducer,
   persistStore,
+  createMigrate,
 } from "redux-persist";
 import localStorage from "redux-persist/es/storage";
 import { baseApi } from "./services/base-api";
@@ -24,8 +25,17 @@ import {
 
 const persistConfig = {
   key: "root",
+  version: 1,
   storage: localStorage,
-  whitelist: ["auth", "financeEntity"],
+  whitelist: ["financeEntity"],
+  migrate: createMigrate({
+    1: (state) => {
+      if (!state) return state;
+      const safeState = { ...state };
+      delete (safeState as typeof safeState & { auth?: unknown }).auth;
+      return safeState;
+    },
+  }, { debug: false }),
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

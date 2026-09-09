@@ -9,13 +9,11 @@ import {
   resetAuth,
   setAuthContext,
   setImpersonation,
-  setToken,
   updatePermissions,
   updateTenant,
 } from "../features/auth/auth-slice";
 import type { ActiveImpersonation, AuthTenant } from "../features/auth/auth-types";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
 import { routesPath } from "@/routes/routes-path";
 import { refreshTokenSingleFlight } from "@/utils/token-refresh";
 import { endSession } from "@/utils/end-session";
@@ -29,11 +27,7 @@ import {
   reportTransportFailure,
 } from "@/utils/connectivity";
 import { FINANCE_TAG_TYPES } from "@xvs/finance/redux/tag-types";
-
-const getAccessToken = () => {
-  const token = Cookies.get("token");
-  return token && token !== "undefined" ? token : "";
-};
+import { getAccessToken } from "@/utils/access-token";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -45,6 +39,7 @@ const baseUrl = import.meta.env.VITE_BACKEND_URL;
  */
 const AUTH_ENDPOINTS = new Set([
   "login",
+  "logout",
   "forgotPassword",
   "passwordResetPreview",
   "passwordResetConfirm",
@@ -386,10 +381,6 @@ export const baseQueryInterceptor: BaseQueryFn<
     const refreshed = await refreshTokenSingleFlight();
 
     if (refreshed.ok) {
-      // The singleton already updated cookies. Mirror access into Redux so any
-      // selector reading state.auth.access stays consistent.
-      api.dispatch(setToken(refreshed.access));
-
       // Role may have changed since last login - keep permissions and the
       // cached tenant context fresh.
       const activeImpersonation = readAuth(api.getState).impersonation;

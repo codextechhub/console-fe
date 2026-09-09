@@ -9,9 +9,8 @@ export type AuthContextGateState =
 /**
  * Decide whether tenant-scoped routes are safe to mount.
  *
- * Persisted sessions from before tenant context was introduced can still have
- * a valid token and user while `tenant` is empty. Those sessions must wait for
- * `/me` before any protected query is allowed to run.
+ * A browser-restored session begins with a valid in-memory access token while
+ * `tenant` is empty. It must wait for `/me` before any protected query runs.
  *
  * When `/me` settles without a tenant we distinguish two cases:
  *   - the request errored → likely transient (network/server): offer a retry;

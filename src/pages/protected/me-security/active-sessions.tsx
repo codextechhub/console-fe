@@ -68,7 +68,7 @@ function endReasonLabel(reason: string): string {
 export default function MyActiveSessions() {
   const navigate = useNavigate();
   // The backend doesn't expose refresh_jti on session rows; the login
-  // response's session_id (persisted in the auth slice) is the identity.
+  // response's session_id (kept in memory and restored at refresh) is the identity.
   const sessionId = useAppSelector((s) => s.auth.session_id);
   const isCurrent = (s: LoginSession) => !!sessionId && Number(s.id) === Number(sessionId);
 

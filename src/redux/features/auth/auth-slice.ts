@@ -14,15 +14,11 @@ interface AuthPayload {
   user: User | null;
   school?: AuthSchool | null;
   tenant?: AuthTenant | null;
-  access: string;
-  refresh?: string;
   session_id?: number;
   permissions?: string[];
 }
 
 const initialState: Auth = {
-   access: "",
-   refresh: "",
    session_id: 0,
    user: null,
    school: null,
@@ -40,8 +36,6 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.school = action.payload.school ?? null;
       state.tenant = action.payload.tenant ?? null;
-      state.access = action.payload.access;
-      state.refresh = action.payload.refresh || "";
       state.session_id = action.payload.session_id || 0;
       state.permissions = action.payload.permissions ?? [];
     },
@@ -63,8 +57,8 @@ const authSlice = createSlice({
       state.tenant = action.payload.tenant;
       state.permissions = action.payload.permissions;
     },
-    setToken: (state, action: PayloadAction<string>) => {
-      state.access = action.payload;
+    setSessionId: (state, action: PayloadAction<number>) => {
+      state.session_id = action.payload;
     },
     updatePermissions: (state, action: PayloadAction<string[]>) => {
       state.permissions = action.payload;
@@ -74,7 +68,7 @@ const authSlice = createSlice({
 
 export const {
   setAuthUser,
-  setToken,
+  setSessionId,
   updateAuthUser,
   updateSchool,
   updateTenant,

@@ -8,6 +8,7 @@ vi.mock("sonner", () => ({
 import { authSliceReducer } from "@/redux/features/auth/auth-slice";
 import { baseApi } from "../base-api";
 import { authApi } from "./auth-api";
+import { clearAccessToken, getAccessToken } from "@/utils/access-token";
 
 const makeStore = () =>
   configureStore({
@@ -22,6 +23,8 @@ const jsonResponse = (body: unknown, status = 200) =>
   });
 
 afterEach(() => {
+  clearAccessToken();
+  sessionStorage.clear();
   vi.unstubAllGlobals();
 });
 
@@ -39,6 +42,8 @@ describe("auth endpoints assert the tenant they sign in to", () => {
 
     const request = fetchMock.mock.calls[0][0] as Request;
     expect(request.url).toContain("/user/auth/login/");
+    expect(request.credentials).toBe("include");
+    expect(request.headers.get("X-Auth-Mode")).toBe("cookie");
     // Body key, not the ?tenant= query assertion the authenticated endpoints
     // take - there is no token yet to check one against.
     expect(request.url).not.toContain("tenant=");
@@ -47,6 +52,9 @@ describe("auth endpoints assert the tenant they sign in to", () => {
       password: "pw",
       tenant: "codex",
     });
+    expect(getAccessToken()).toBe("a");
+    expect(store.getState().auth).not.toHaveProperty("access");
+    expect(store.getState().auth).not.toHaveProperty("refresh");
   });
 
   it("sends the platform tenant slug on a password reset request", async () => {
@@ -66,5 +74,19 @@ describe("auth endpoints assert the tenant they sign in to", () => {
       email: "admin@codexng.com",
       tenant: "codex",
     });
+  });
+
+  it("sends no credential in the logout body", async () => {
+    document.cookie = "csrftoken=csrf-value; Path=/";
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ success: true }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const store = makeStore();
+    await store.dispatch(authApi.endpoints.logout.initiate());
+
+    const request = fetchMock.mock.calls[0][0] as Request;
+    expect(request.credentials).toBe("include");
+    expect(request.headers.get("X-CSRFToken")).toBe("csrf-value");
+    expect(await new Request(request).json()).toEqual({});
   });
 });

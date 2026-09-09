@@ -69,8 +69,6 @@ function makeStore(permissions: string[]) {
       getDefault({ serializableCheck: false }).concat(baseApi.middleware),
     preloadedState: {
       auth: {
-        access: "",
-        refresh: "",
         session_id: 0,
         user: null,
         school: null,

@@ -3,10 +3,17 @@ import { baseApi } from "../base-api";
 import { routesPath } from "@/routes/routes-path";
 import { markAuthContextFromLogin } from "@/utils/auth-context-freshness";
 import { recordActivity } from "@/utils/session-activity";
-import { resetSessionInvalidation, setAuthCookies } from "@/utils/token-refresh";
+import { resetSessionInvalidation } from "@/utils/token-refresh";
 import { endSession } from "@/utils/end-session";
+import { setAccessToken } from "@/utils/access-token";
+import { readCsrfToken } from "@/utils/csrf";
 import type { LoginResponse } from "./auth-types";
-import type { AuthSchool, AuthTenant, User } from "@/redux/features/auth/auth-types";
+import type {
+  AuthSchool,
+  AuthTenant,
+  ProxyTargetIdentity,
+  User,
+} from "@/redux/features/auth/auth-types";
 import { PLATFORM_TENANT_SLUG } from "@/utils/tenant-context";
 
 export const authApi = baseApi.injectEndpoints({
@@ -21,6 +28,8 @@ export const authApi = baseApi.injectEndpoints({
         url: `/user/auth/login/`,
         method: "POST",
         body: { ...user, tenant: PLATFORM_TENANT_SLUG },
+        credentials: "include" as const,
+        headers: { "X-Auth-Mode": "cookie" },
       }),
       async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
@@ -29,7 +38,7 @@ export const authApi = baseApi.injectEndpoints({
           // A fresh, valid session - re-enable token refresh in case a prior
           // session in this JS context invalidated it.
           resetSessionInvalidation();
-          setAuthCookies(data?.data?.access || "", data?.data?.refresh || "");
+          setAccessToken(data?.data?.access || "");
           recordActivity();
           dispatch(setAuthUser(data?.data));
           // The context we just stored is authoritative, so Authenticated can
@@ -42,12 +51,13 @@ export const authApi = baseApi.injectEndpoints({
         }
       },
     }),
-    logout: builder.mutation({
-      query: (token) => ({
+    logout: builder.mutation<void, void>({
+      query: () => ({
         url: `/user/auth/logout/`,
         method: "POST",
-         body: token,
-        credentials: "include" as const
+        body: {},
+        credentials: "include" as const,
+        headers: { "X-CSRFToken": readCsrfToken() },
       }),
       async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
@@ -103,7 +113,20 @@ export const authApi = baseApi.injectEndpoints({
         method: "GET",
       }),
     }),
-    getMe: builder.query<{ message: string; data: { user: User; school: AuthSchool | null; tenant: AuthTenant | null; permissions: string[] } }, void>({
+    getMe: builder.query<{
+      message: string;
+      data: {
+        user: User;
+        school: AuthSchool | null;
+        tenant: AuthTenant | null;
+        permissions: string[];
+        active_impersonation?: {
+          id: number;
+          tenant_slug: string;
+          target: ProxyTargetIdentity;
+        };
+      };
+    }, void>({
       query: () => ({ url: `/user/auth/me/`, method: "GET" }),
       async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {

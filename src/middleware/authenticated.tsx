@@ -2,11 +2,14 @@ import {
   selectImpersonation,
   selectTenant,
   selectUser,
+  setAuthContext,
+  setImpersonation,
+  setSessionId,
 } from "@/redux/features/auth/auth-slice";
 import { useGetMeQuery } from "@/redux/services/auth/auth-api";
 import { routesPath } from "@/routes/routes-path";
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Outlet } from "react-router";
 import { evaluateGate } from "@/utils/session-gate";
 import { endSession } from "@/utils/end-session";
@@ -18,6 +21,12 @@ import {
   clearAuthContextFromLogin,
   isAuthContextFromLogin,
 } from "@/utils/auth-context-freshness";
+import {
+  isSessionRestoreBlocked,
+  refreshTokenSingleFlight,
+  type RefreshOutcome,
+} from "@/utils/token-refresh";
+import { getAccessToken } from "@/utils/access-token";
 
 const { LOGIN } = routesPath.AUTH;
 
@@ -36,20 +45,51 @@ const RETRY_BASE_DELAY_MS = 3000;
 const RETRY_MAX_DELAY_MS = 24000;
 
 export default function Authenticated() {
-  const [{ shouldRedirect, refreshExpired, idleTooLong }] = useState(evaluateGate);
+  const [{ idleTooLong }] = useState(evaluateGate);
+  const dispatch = useDispatch();
+  const [restoreState, setRestoreState] = useState<"ready" | "restoring" | "retry" | "invalid">(
+    () => idleTooLong || isSessionRestoreBlocked()
+      ? "invalid"
+      : getAccessToken()
+        ? "ready"
+        : "restoring",
+  );
+  const shouldRedirect = restoreState === "invalid";
   const user = useSelector(selectUser);
   const tenant = useSelector(selectTenant);
   const impersonation = useSelector(selectImpersonation);
+
+  const finishRestore = useCallback((outcome: RefreshOutcome) => {
+    if (outcome.ok) {
+      if (outcome.sessionId) dispatch(setSessionId(outcome.sessionId));
+      setRestoreState("ready");
+      return;
+    }
+    if (outcome.reason === "network_error" || outcome.reason === "server_error") {
+      setRestoreState("retry");
+      return;
+    }
+    endSession("Your session has ended. Please sign in again.");
+    setRestoreState("invalid");
+  }, [dispatch]);
+
+  const restoreSession = useCallback(() => {
+    setRestoreState("restoring");
+    void refreshTokenSingleFlight().then(finishRestore);
+  }, [finishRestore]);
+
+  useEffect(() => {
+    if (restoreState !== "restoring" || getAccessToken()) return;
+    void refreshTokenSingleFlight().then(finishRestore);
+  }, [finishRestore, restoreState]);
 
   useEffect(() => {
     if (!shouldRedirect) return;
     // Only show the expiry banner + clean up when there was an actual session
     // to end. A missing cookie just means "go log in" - no banner needed.
-    if (refreshExpired || idleTooLong) {
+    if (idleTooLong) {
       endSession(
-        idleTooLong
-          ? "Your session expired due to inactivity. Please log in to continue."
-          : "Your session has expired. Please log in to continue."
+        "Your session expired due to inactivity. Please log in to continue."
       );
     }
     // Remember the page they were trying to reach so login can return them
@@ -61,7 +101,7 @@ export default function Authenticated() {
     // logout path consistent and prevents a stale token leaking into the next
     // login attempt.
     window.location.replace(LOGIN);
-  }, [shouldRedirect, refreshExpired, idleTooLong]);
+  }, [shouldRedirect, idleTooLong]);
 
   // Sync permissions on mount - catches role changes that happened while the
   // token was still valid. onQueryStarted in getMe dispatches updatePermissions.
@@ -77,11 +117,41 @@ export default function Authenticated() {
   }, []);
 
   const {
+    data: authContextResponse,
     isLoading: isLoadingContext,
     isFetching: isFetchingContext,
     isError: isContextError,
     refetch: refetchContext,
-  } = useGetMeQuery(undefined, { skip: shouldRedirect || contextFromLogin });
+  } = useGetMeQuery(undefined, {
+    skip: restoreState !== "ready" || contextFromLogin,
+  });
+
+  const restorableImpersonation = authContextResponse?.data.active_impersonation;
+  useEffect(() => {
+    if (!restorableImpersonation || impersonation) return;
+    const actor = {
+      user: authContextResponse.data.user,
+      school: authContextResponse.data.school ?? null,
+      tenant: authContextResponse.data.tenant ?? null,
+      permissions: authContextResponse.data.permissions,
+    };
+    dispatch(setImpersonation({
+      id: restorableImpersonation.id,
+      tenantSlug: restorableImpersonation.tenant_slug,
+      target: restorableImpersonation.target,
+      actor,
+    }));
+    dispatch(setAuthContext({
+      user: null,
+      school: null,
+      tenant: {
+        slug: restorableImpersonation.target.tenant_slug,
+        name: restorableImpersonation.target.tenant_name,
+      },
+      permissions: [],
+    }));
+    void refetchContext();
+  }, [authContextResponse, dispatch, impersonation, refetchContext, restorableImpersonation]);
 
   useEffect(() => {
     document.title = user?.first_name
@@ -89,15 +159,20 @@ export default function Authenticated() {
       : "CX - Intranet";
   }, [user?.first_name]);
 
-  const contextGateState = getAuthContextGateState({
-    shouldRedirect,
-    hasTenant: !!tenant,
-    tenantKind: tenant?.kind,
-    isImpersonating: !!impersonation,
-    isLoading: isLoadingContext,
-    isFetching: isFetchingContext,
-    isError: isContextError,
-  });
+  const isRestoringImpersonation = !!restorableImpersonation && (
+    !impersonation || authContextResponse.data.user.id === impersonation.actor.user?.id
+  );
+  const contextGateState = restoreState === "ready" && !isRestoringImpersonation
+    ? getAuthContextGateState({
+        shouldRedirect,
+        hasTenant: !!tenant,
+        tenantKind: tenant?.kind,
+        isImpersonating: !!impersonation,
+        isLoading: isLoadingContext,
+        isFetching: isFetchingContext,
+        isError: isContextError,
+      })
+    : "loading";
 
   // "logout": /me succeeded but carried no tenant - the context is gone, so the
   // session is effectively logged out. Run the standard logout sequence rather
@@ -122,11 +197,21 @@ export default function Authenticated() {
     window.location.replace(LOGIN);
   }, [contextGateState]);
 
+  if (restoreState === "restoring" || restoreState === "retry") {
+    return (
+      <ContextRecovery
+        gateState={restoreState === "restoring" ? "loading" : "retry"}
+        isFetching={restoreState === "restoring"}
+        refetch={restoreSession}
+      />
+    );
+  }
+
   if (contextGateState === "redirect" || contextGateState === "forbidden") {
     return null;
   }
 
-  // Older persisted sessions pre-date tenant context in the auth slice. Do not
+  // A restored browser session starts with no local tenant context. Do not
   // mount protected screens until /me has hydrated it: otherwise their first
   // requests omit the mandatory `?tenant=` assertion, fail with 400, and stay
   // failed even after the tenant arrives because their query args did not
