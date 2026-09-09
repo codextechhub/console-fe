@@ -135,8 +135,11 @@ export const ticketsApi = baseApi.injectEndpoints({
       query: ({ id, ...body }) => ({ url: `/support/tickets/${id}/assign/`, method: "POST", body }),
       invalidatesTags: ["Tickets"],
     }),
-    // Own tag: eligibility depends on roles/permissions, not ticket state, so
-    // ticket mutations (assign, comment, transition) must not refetch it.
+    // Own tag, because assigning or commenting does not change who is
+    // eligible. Escalation does - the list is empty on a school's ticket until
+    // they send it up - but the desk only opens tickets that are already
+    // escalated or CodeX's own, so that state cannot flip underneath a reader
+    // here.
     getEligibleTicketAssignees: builder.query<{ data: TicketUser[] }, string>({
       query: (id) => `/support/tickets/${id}/eligible-assignees/`,
       providesTags: ["TicketAssignees"],
