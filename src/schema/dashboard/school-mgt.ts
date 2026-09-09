@@ -26,7 +26,6 @@ const branchAdminSchema = Yup.object({
 
 export const branchItemSchema = Yup.object({
   name: Yup.string().required("Branch name is required"),
-  _type: Yup.string().required("Branch type is required"),
   address: Yup.string(),
   email: Yup.string().email("Invalid email"),
   country: Yup.string().required("Country is required"),

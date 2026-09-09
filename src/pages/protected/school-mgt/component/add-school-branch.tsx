@@ -13,7 +13,7 @@ interface Props {
 }
 
 const emptyBranch = (): BranchStepItem => ({
-  name: "", _type: "", address: "", email: "", country: "Nigeria",
+  name: "", address: "", email: "", country: "Nigeria",
   state: "", is_main: false, admin_first_name: "", admin_last_name: "",
   admin_email: "", admin_phone: "",
 });
@@ -52,7 +52,6 @@ export default function AddSchoolBranch({ defaultValues, onNext, onChange }: Pro
     const errs: Record<string, string> = {};
     branches.forEach((b, i) => {
       if (!b.name.trim()) errs[`${i}.name`] = "Branch name is required";
-      if (!b._type.trim()) errs[`${i}._type`] = "Branch type is required";
       if (!b.country.trim()) errs[`${i}.country`] = "Country is required";
       if (!b.admin_first_name.trim()) errs[`${i}.admin_first_name`] = "Admin first name is required";
       if (!b.admin_last_name.trim()) errs[`${i}.admin_last_name`] = "Admin last name is required";
@@ -110,15 +109,6 @@ export default function AddSchoolBranch({ defaultValues, onNext, onChange }: Pro
               value={branch.name}
               onChange={(e) => update(idx, "name", e.target.value)}
               error={errors[`${idx}.name`]}
-            />
-            <CustomInput
-              id={`type-${idx}`}
-              label="Branch Type"
-              placeholder="e.g., Primary, Secondary"
-              isRequired
-              value={branch._type}
-              onChange={(e) => update(idx, "_type", e.target.value)}
-              error={errors[`${idx}._type`]}
             />
             <CustomInput
               id={`address-${idx}`}

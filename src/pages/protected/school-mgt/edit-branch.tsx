@@ -19,7 +19,6 @@ const editBranchSchema = Yup.object({
   // serializers carries no type, and demanding one here would make that branch
   // unpatchable through this form until somebody invented a classification for
   // it. The create form still asks, because there a human is choosing.
-  _type: Yup.string(),
   address: Yup.string(),
   email: Yup.string().email("Enter a valid email"),
   country: Yup.string(),
@@ -28,7 +27,6 @@ const editBranchSchema = Yup.object({
 
 interface EditBranchValues {
   name: string;
-  _type: string;
   address: string;
   email: string;
   country: string;
@@ -52,7 +50,6 @@ export default function EditBranch() {
     enableReinitialize: true,
     initialValues: {
       name: branch?.name ?? "",
-      _type: branch?._type ?? "",
       address: branch?.address ?? "",
       email: branch?.email ?? "",
       country: branch?.country ?? "",
@@ -62,7 +59,6 @@ export default function EditBranch() {
     onSubmit: (values) => {
       const body: Record<string, unknown> = {};
       if (values.name)    body.name    = values.name;
-      if (values._type)   body._type   = values._type;
       if (values.address) body.address = values.address;
       if (values.email)   body.email   = values.email;
       if (values.country) body.country = values.country;
@@ -110,13 +106,6 @@ export default function EditBranch() {
                   isRequired
                   {...formik.getFieldProps("name")}
                   error={formik.touched.name ? formik.errors.name : ""}
-                />
-                <CustomInput
-                  id="_type"
-                  label="Branch Type"
-                  placeholder="e.g. Primary, Secondary"
-                  {...formik.getFieldProps("_type")}
-                  error={formik.touched._type ? formik.errors._type : ""}
                 />
                 <CustomInput
                   id="address"

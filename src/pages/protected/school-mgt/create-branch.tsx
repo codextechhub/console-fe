@@ -16,7 +16,6 @@ import { PageShell } from "@/components/layout/page-shell";
 
 const schema = Yup.object({
   name: Yup.string().required("Branch name is required"),
-  _type: Yup.string().required("Branch type is required"),
   address: Yup.string(),
   email: Yup.string().email("Enter a valid email"),
   country: Yup.string(),
@@ -59,7 +58,6 @@ export default function CreateBranch() {
   const formik = useFormik({
     initialValues: {
       name: "",
-      _type: "",
       address: "",
       email: "",
       country: "Nigeria",
@@ -75,7 +73,6 @@ export default function CreateBranch() {
       try {
         const body = {
           name: values.name,
-          _type: values._type,
           address: values.address,
           email: values.email,
           country: values.country,
@@ -147,14 +144,6 @@ export default function CreateBranch() {
                   isRequired
                   {...formik.getFieldProps("name")}
                   error={formik.touched.name ? formik.errors.name : ""}
-                />
-                <CustomInput
-                  id="_type"
-                  label="Branch Type"
-                  placeholder="e.g. Primary, Secondary"
-                  isRequired
-                  {...formik.getFieldProps("_type")}
-                  error={formik.touched._type ? formik.errors._type : ""}
                 />
                 <CustomInput
                   id="address"

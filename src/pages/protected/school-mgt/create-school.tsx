@@ -22,7 +22,6 @@ export interface SchoolStepData {
 
 export interface BranchStepItem {
   name: string;
-  _type: string;
   address: string;
   email: string;
   country: string;
@@ -60,7 +59,7 @@ const initialSchool: SchoolStepData = {
 };
 
 const initialBranch: BranchStepItem = {
-  name: "", _type: "", address: "", email: "", country: "Nigeria",
+  name: "", address: "", email: "", country: "Nigeria",
   state: "", is_main: true, admin_first_name: "", admin_last_name: "",
   admin_email: "", admin_phone: "",
 };
@@ -98,7 +97,6 @@ function generateTestData(): PrefillData {
     branches: [
       {
         name: "Main Branch",
-        _type: "Secondary",
         address: `${n} Test Avenue, Victoria Island`,
         email: `branch@${slug}.ng`,
         country: "Nigeria",
@@ -153,7 +151,6 @@ function buildPayload(
   if (branches.length > 0) {
     payload.branches = branches.map((b) => ({
       name: b.name,
-      _type: b._type,
       address: b.address || "",
       email: b.email || "",
       country: b.country || "Nigeria",
