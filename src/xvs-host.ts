@@ -5,8 +5,9 @@ import { useGetBranchesQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { routesPath } from "@/routes/routes-path";
 import { useGetAllRolesQuery } from "@/redux/services/dashboard/role-api";
 import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
+import { useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
 import { getTenantSlug } from "@/utils/tenant-context";
-import type { HostBranch, HostPerson, HostQueryResult, HostRole } from "@xvs/finance/host";
+import type { HostBranch, HostPerson, HostPosition, HostQueryResult, HostRole } from "@xvs/finance/host";
 
 import {
   FINANCE_SETTINGS_SECTIONS, SETUP_SECTIONS,
@@ -31,8 +32,43 @@ export function useBranches(): HostQueryResult<HostBranch> {
   return { data: data?.data, isLoading, isError };
 }
 
+/** CodeX's own reporting seats, which an approval step may be pointed at.
+ *
+ *  In the contract rather than the package because the organogram is the
+ *  console's own: platform-scoped, no tenant column, and a platform key on its
+ *  endpoint. A school has none and answers with an empty list, which is why the
+ *  package asks instead of querying - it was reaching this endpoint directly and
+ *  answering 403 to every school administrator who opened the approver picker.
+ */
+export function usePositions(): HostQueryResult<HostPosition> {
+  const { data, isLoading, isError } = useGetPositionsQuery({ page: 1, page_size: 200 });
+  const rows = data?.data?.map((p) => ({
+    code: p.code,
+    title: p.title,
+    is_active: p.is_active,
+    // The live headcount behind the seat, so a seat that currently reaches
+    // nobody is a visible choice rather than a surprise on the members list.
+    holders: p.current_holders?.length ?? 0,
+  }));
+  return { data: rows, isLoading, isError };
+}
+
 export function useDirectory(): HostQueryResult<HostPerson> {
-  const { data, isLoading, isError } = useGetTeamMembersQuery({ page: 1, page_size: 500 });
+  // CodeX's own people, not every account on the platform.
+  //
+  // The user list returns a platform caller's rows unfiltered, by design: the
+  // console administers schools and has to reach their accounts. That reach is
+  // wrong for a picker naming somebody in CodeX's OWN workflow. An approver
+  // group here is a list of CodeX staff who approve CodeX's work, and it was
+  // offering every teacher and bursar on the platform - a school's staff list,
+  // readable from a screen that has nothing to do with that school.
+  //
+  // Everything the package names people for - approver groups, delegations,
+  // organogram positions - is a question about this tenant, so the scope
+  // belongs here rather than at each call site.
+  const { data, isLoading, isError } = useGetTeamMembersQuery({
+    scope: "platform", page: 1, page_size: 500,
+  });
   return { data: data?.data, isLoading, isError };
 }
 
