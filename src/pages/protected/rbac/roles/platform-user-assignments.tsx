@@ -73,8 +73,11 @@ function AssignRoleSheet({
   const [replaceAssignment, { isLoading: isReplacing }] = useReplaceAssignmentMutation();
   const isChange = !!assignmentToChange;
   const isSaving = isLoading || isReplacing;
+  // Platform roles go to platform people. Unscoped, this offered every school
+  // user on the platform as a candidate for a CodeX role, which is the one
+  // direction a role assignment must never be able to go.
   const { data: membersData } = useGetTeamMembersQuery(
-    { page: 1, page_size: 200 },
+    { scope: "platform", page: 1, page_size: 200 },
     { skip: !open || isChange },
   );
   const { data: rolesData } = useGetPlatformRolesQuery({ page: 1, page_size: 200 }, { skip: !open });
