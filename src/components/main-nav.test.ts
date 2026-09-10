@@ -77,7 +77,6 @@ describe("buildMainNav child highlighting", () => {
       R.ORGANOGRAM.MANAGE,
       R.ROLES.INDEX,
       R.ROLES.USER_ASSIGNMENTS,
-      R.ROLES.CHANGE_REQUESTS,
       R.ROLES.TRANSFER_SUPER_ADMIN,
       R.PERMISSIONS.INDEX,
       R.PERMISSIONS.MODULES.INDEX,

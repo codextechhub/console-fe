@@ -119,6 +119,29 @@ export interface ChangeRequestDelta {
   permission_description?: string;
 }
 
+/**
+ * Where a request has got to in its approval ladder.
+ *
+ * `status` says PENDING or APPROVED; this says who it is waiting on. Null for a
+ * request raised before role changes were routed through the approval engine -
+ * those have no ladder to act on and cannot be decided.
+ */
+export interface ChangeRequestApproval {
+  instance_id: string;
+  /** The engine's own status: IN_PROGRESS, APPROVED, REJECTED, and so on. */
+  status: string;
+  /** The stage the ladder is waiting on, empty once it is finished. */
+  stage_label: string;
+  /**
+   * Whether the reader is on this stage's approver list. Read from the frozen
+   * snapshot the server checks when the button is pressed, so a button that
+   * shows is a button that works.
+   */
+  can_act: boolean;
+  /** Whether the reader is the person who raised it. */
+  self_raised: boolean;
+}
+
 export interface ChangeRequest {
   id: string;
   /** Target role primary key (read-only from the backend). */
@@ -136,6 +159,7 @@ export interface ChangeRequest {
   justification: string;
   submitted_at: string;
   decided_at: string | null;
+  approval?: ChangeRequestApproval | null;
 }
 
 export interface PaginatedResponse<T> {

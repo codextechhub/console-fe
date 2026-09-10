@@ -70,7 +70,6 @@ export const routesPath = {
       EDIT_PATH: "/roles/:id/edit",
       EDIT: (id: string) => `/roles/${id}/edit`,
       USER_ASSIGNMENTS: "/roles/user-assignments",
-      CHANGE_REQUESTS: "/roles/change-requests",
       TRANSFER_SUPER_ADMIN: "/roles/transfer-super-admin",
       GROUPS: {
         INDEX: "/roles/permission-groups",

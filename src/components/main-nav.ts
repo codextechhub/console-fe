@@ -189,13 +189,9 @@ export const MAIN_NAV: MainNavEntry[] = [
           (l.startsWith(R.ROLES.INDEX + "/") &&
             !l.startsWith(R.ROLES.GROUPS.INDEX) &&
             !l.startsWith(R.ROLES.USER_ASSIGNMENTS) &&
-            !l.startsWith(R.ROLES.CHANGE_REQUESTS) &&
             !l.startsWith(R.ROLES.TRANSFER_SUPER_ADMIN)),
       },
       { title: "Platform User Assignments", url: R.ROLES.USER_ASSIGNMENTS },
-      // Change Requests - only shown to users who can act on role change
-      // proposals (the backend list endpoint enforces the same).
-      { title: "Change Requests", url: R.ROLES.CHANGE_REQUESTS, permission: P.MODIFY_ROLE },
       // Transfer Super Admin - only shown to users who hold the
       // platform.roles.transfer permission. The backend further restricts
       // execution to the active super admin.

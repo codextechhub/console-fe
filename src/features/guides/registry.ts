@@ -254,10 +254,10 @@ export const GUIDE_REGISTRY = [
     tags: ["role change request", "approval", "permission delta", "super admin", "ownership", "review"],
     aliases: ["approve role change", "deny role change", "transfer super admin", "change permissions request", "apply failed"],
     audiences: ["platform-administrator", "approver"],
-    routes: [R.ROLES.CHANGE_REQUESTS, R.ROLES.TRANSFER_SUPER_ADMIN],
-    actionIds: ["view-role-change-requests", "transfer-super-admin"],
+    routes: [R.ROLES.TRANSFER_SUPER_ADMIN],
+    actionIds: ["transfer-super-admin"],
     access: { mode: "any", permissions: [P.MODIFY_ROLE, P.TRANSFER_SUPER_ADMIN] },
-    primaryRoute: R.ROLES.CHANGE_REQUESTS,
+    primaryRoute: R.ROLES.TRANSFER_SUPER_ADMIN,
     sections: [
       { id: "before-you-start", title: "Before you start" },
       { id: "submit-a-change-request", title: "Submit a change request" },

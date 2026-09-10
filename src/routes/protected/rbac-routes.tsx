@@ -9,7 +9,6 @@ const RolesList = lazy(() => import("@/pages/protected/rbac/roles"));
 const CreateRole = lazy(() => import("@/pages/protected/rbac/roles/create-role"));
 const EditRole = lazy(() => import("@/pages/protected/rbac/roles/edit-role"));
 const PlatformUserAssignments = lazy(() => import("@/pages/protected/rbac/roles/platform-user-assignments"));
-const ChangeRequests = lazy(() => import("@/pages/protected/rbac/roles/change-requests"));
 const TransferSuperAdmin = lazy(() => import("@/pages/protected/rbac/roles/transfer-super-admin"));
 const PermissionGroupsList = lazy(() => import("@/pages/protected/rbac/roles/permission-groups"));
 const CreatePermissionGroup = lazy(() => import("@/pages/protected/rbac/roles/permission-groups/create-group"));
@@ -34,7 +33,6 @@ export const rbacRoutes: RouteObject[] = [
   { path: "/roles/create", element: <CreateRole />, handle: { title: "Create Role", back: routesPath.PROTECTED.ROLES.INDEX } satisfies DashboardHandle },
   { path: "/roles/:id/edit", element: <EditRole />, handle: { title: "Edit Role", back: routesPath.PROTECTED.ROLES.INDEX } satisfies DashboardHandle },
   { path: "/roles/user-assignments", element: <PlatformUserAssignments />, handle: { title: "Platform User Assignments" } satisfies DashboardHandle },
-  { path: "/roles/change-requests", element: <ChangeRequests />, handle: { title: "Change Requests" } satisfies DashboardHandle },
   { path: "/roles/transfer-super-admin", element: <TransferSuperAdmin />, handle: { title: "Transfer Super Admin" } satisfies DashboardHandle },
   { path: "/roles/permission-groups", element: <PermissionGroupsList />, handle: { title: "Permission Groups" } satisfies DashboardHandle },
   { path: "/roles/permission-groups/create", element: <CreatePermissionGroup />, handle: { title: "Create Permission Group", back: routesPath.PROTECTED.ROLES.GROUPS.INDEX } satisfies DashboardHandle },
