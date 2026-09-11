@@ -483,7 +483,7 @@ export const WALKTHROUGH_REGISTRY = [
     permissions: [P.VIEW_WORKFLOW_TEMPLATES, P.MANAGE_WORKFLOW_TEMPLATES],
     prerequisites: [
       "Write the approved stages, conditions, approver sources, rejection result, and notifications.",
-      "Create required roles, approver groups, dynamic rules, and organogram positions first.",
+      "Create required roles, approver groups, Dynamic Roles, and organogram positions first.",
       "Prepare representative requesters and document examples for validation.",
     ],
     version: 1,

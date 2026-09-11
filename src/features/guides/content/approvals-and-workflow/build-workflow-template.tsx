@@ -9,16 +9,17 @@ export default function BuildWorkflowTemplateArticle() {
         <p>A workflow template becomes the approval path for a document type and code. Design and test the path before publishing because new requests take a snapshot of its stages and approvers.</p>
         <GuideChecklist items={[
           "Write the required stages, decision owners, conditions, rejection result, and notification events.",
-          "Create required roles, approver groups, dynamic rules, or organogram positions first.",
+          "Create required roles, approver groups, Dynamic Roles, or organogram positions first.",
           "Choose representative requesters and documents for safe validation.",
           "Confirm whether you are changing the shared Codex version or one school's version.",
         ]} />
         <GuideCallout tone="danger" title="Do not publish an unresolvable path">A stage with no eligible approvers can stall live work. Enable auto-skip only when business policy explicitly allows that stage to disappear.</GuideCallout>
       </GuideSection>
 
-      <GuideSection id="prepare-approver-sources" title="Prepare approver groups and dynamic rules">
+      <GuideSection id="prepare-approver-sources" title="Prepare approver groups and Dynamic Roles">
         <p>On <strong>Approvers</strong>, the Groups tab holds named pools of people, roles, and positions. Role and position members resolve to effective active users when a request starts. Keep the effective count above zero for every live group.</p>
-        <p><strong>Dynamic Role</strong> uses ordered conditions to choose a role from document data. Put specific conditions before the fallback and validate each referenced field and role. Deactivate a group instead of deleting it when a template still uses it; Console blocks deletion of in-use groups.</p>
+        <p>The <strong>Dynamic Role</strong> tab holds named rules that decide who approves. Build one there once, then pick it by name in any stage. Its rules are read top to bottom and the first whose conditions all hold decides. Each condition asks about the document, such as its amount in naira, or about who raised it, such as their role or branch. Each rule sends to a role, a named person, or an approver group, and the fixed <strong>Otherwise</strong> row catches every document no rule does.</p>
+        <p>Use <strong>Try it</strong> on the tab with a requester and an amount before a stage depends on the rules. A shared template cannot use a Dynamic Role, because each school builds its own. Deactivate a group or a Dynamic Role instead of deleting it while a template still uses it; Console blocks deleting either while a stage names it.</p>
       </GuideSection>
 
       <GuideSection id="define-template-details" title="Define template details">
@@ -33,7 +34,7 @@ export default function BuildWorkflowTemplateArticle() {
       <GuideSection id="build-stages" title="Build stages and approvers">
         <GuideSteps>
           <GuideStep title="Add the stage identity">Each stage needs a distinct Code, Label, and Kind. <strong>Approval</strong> waits for votes; <strong>Branch</strong> routes without collecting votes.</GuideStep>
-          <GuideStep title="Choose an approver source">Use Role holders, Approver group, Dynamic Role, or Organogram relative to requester.</GuideStep>
+          <GuideStep title="Choose an approver source">Use Role holders, Approver group, Dynamic Role, or Organogram relative to requester. For a Dynamic Role, pick one by name; its rules appear under the picker in plain words.</GuideStep>
           <GuideStep title="Set scope">For role, group, and dynamic-role sources, choose School, Branch, or Platform. Organogram resolution follows the requester instead.</GuideStep>
           <GuideStep title="Configure organogram resolution">Choose Direct manager, N levels up, Department head, or Specific position. The requester needs a valid active seat and reporting chain.</GuideStep>
           <GuideStep title="Set the advance rule">ANY needs one approval, QUORUM needs the stated number, and UNANIMOUS needs every eligible approver.</GuideStep>
@@ -44,7 +45,7 @@ export default function BuildWorkflowTemplateArticle() {
 
       <GuideSection id="validate-routing" title="Validate routing and resolution">
         <p>Leave <strong>Routing (advanced)</strong> blank for stages to run in order. Advanced routing requires a valid JSON array with source, destination, order, and condition. Use ENTRY or EXIT only as described in the editor.</p>
-        <p>Choose a <strong>Sample requester</strong> to preview relative approvers. If directory access is unavailable, preview uses you. Test each important branch, fallback, scope, group, and organogram path with representative data.</p>
+        <p>Choose a <strong>Sample requester</strong> to preview relative approvers. If directory access is unavailable, preview uses you. Test each important branch, fallback, scope, group, and organogram path with representative data. For a Dynamic Role stage, enter an <strong>Amount to try</strong> and choose who raises it to see which rule decides.</p>
       </GuideSection>
 
       <GuideSection id="publish-and-revise" title="Publish and revise the template">
@@ -60,7 +61,7 @@ export default function BuildWorkflowTemplateArticle() {
       <GuideSection id="common-problems" title="Common problems">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {[
-            ["A stage resolves to nobody", "Check active users, role assignments, group effective members, scope, delegation, organogram seats, and dynamic-rule fallback. Do not switch on auto-skip merely to clear validation."],
+            ["A stage resolves to nobody", "Check active users, role assignments, group effective members, scope, delegation, organogram seats, and the Dynamic Role's Otherwise row and whether it is switched off. Do not switch on auto-skip merely to clear validation."],
             ["A request skips the wrong stage", "Review the stage inclusion condition and advanced route order against the actual document fields."],
             ["A school did not receive an update", "It may run its own version. Shared changes affect only schools still using the Codex version."],
             ["Publishing creates another template", "Changing the document type or code changes the template identity. Reopen the intended template when revising in place."],

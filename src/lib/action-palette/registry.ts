@@ -90,6 +90,8 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-workflow-instances", label: "View workflow instances", aliases: ["all instances"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_INSTANCES }, run: { to: R.WORKFLOW.INSTANCES } },
   { id: "view-team-load", label: "View team load", aliases: [], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_INSTANCES }, run: { to: R.WORKFLOW.TEAM_LOAD } },
   { id: "view-approver-groups", label: "View approvers", aliases: ["approver groups", "approver pools", "approval groups"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_APPROVER_GROUPS }, run: { to: R.WORKFLOW.APPROVER_GROUPS } },
+  { id: "view-dynamic-roles", label: "View Dynamic Roles", aliases: ["approval rules", "role chosen by document", "approval thresholds"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_APPROVER_GROUPS }, run: { to: `${R.WORKFLOW.APPROVER_GROUPS}?tab=rules` } },
+  { id: "create-dynamic-role", label: "Create Dynamic Role", aliases: ["new dynamic role", "add approval rule"], console: "Main", group: "Workflow", kind: "do", gate: { perm: P.MANAGE_APPROVER_GROUPS }, run: { to: `${R.WORKFLOW.APPROVER_GROUPS}?tab=rules&action=new` } },
   { id: "view-workflow-templates", label: "View workflow templates", aliases: [], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_TEMPLATES }, run: { to: R.WORKFLOW.TEMPLATES } },
   { id: "create-workflow-template", label: "Create workflow template", aliases: ["new workflow"], console: "Main", group: "Workflow", kind: "do", gate: { perm: P.MANAGE_WORKFLOW_TEMPLATES }, run: { to: R.WORKFLOW.TEMPLATE_NEW } },
 
