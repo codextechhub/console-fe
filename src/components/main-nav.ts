@@ -297,8 +297,8 @@ export const MAIN_NAV: MainNavEntry[] = [
       // All Instances + Team Load - admin monitoring, gated by view permission.
       { title: "All Instances", url: R.WORKFLOW.INSTANCES, permission: P.VIEW_WORKFLOW_INSTANCES },
       { title: "Team Load", url: R.WORKFLOW.TEAM_LOAD, permission: P.VIEW_WORKFLOW_INSTANCES },
-      // Approver groups - the named pools stages route to.
-      { title: "Approver Groups", url: R.WORKFLOW.APPROVER_GROUPS, permission: P.VIEW_APPROVER_GROUPS },
+      // Approvers - the groups and dynamic-role rules a stage can route to.
+      { title: "Approvers", url: R.WORKFLOW.APPROVER_GROUPS, permission: P.VIEW_APPROVER_GROUPS },
       { title: "Templates", url: R.WORKFLOW.TEMPLATES, permission: P.VIEW_WORKFLOW_TEMPLATES },
     ],
   },

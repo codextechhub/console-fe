@@ -17,7 +17,7 @@ export default function BuildWorkflowTemplateArticle() {
       </GuideSection>
 
       <GuideSection id="prepare-approver-sources" title="Prepare approver groups and dynamic rules">
-        <p>In <strong>Approver Groups</strong>, a named pool can include people, roles, and positions. Role and position members resolve to effective active users when a request starts. Keep the effective count above zero for every live group.</p>
+        <p>On <strong>Approvers</strong>, the Groups tab holds named pools of people, roles, and positions. Role and position members resolve to effective active users when a request starts. Keep the effective count above zero for every live group.</p>
         <p><strong>Dynamic Role</strong> uses ordered conditions to choose a role from document data. Put specific conditions before the fallback and validate each referenced field and role. Deactivate a group instead of deleting it when a template still uses it; Console blocks deletion of in-use groups.</p>
       </GuideSection>
 

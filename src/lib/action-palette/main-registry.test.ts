@@ -1,6 +1,6 @@
 /**
  * Coverage for the Main-console screens that shipped after the palette did and
- * went unsearchable until now: the Export Centre beyond Queues, Approver Groups,
+ * went unsearchable until now: the Export Centre beyond Queues, Approvers,
  * Provider Webhooks, How-to Guides, the Settings sections, the Notification
  * administration panels, and Create task.
  *

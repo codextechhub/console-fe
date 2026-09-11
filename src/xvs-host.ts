@@ -2,7 +2,6 @@
 // See packages/xvs-finance/src/host.ts for what each member is for.
 
 import { useGetBranchesQuery } from "@/redux/services/dashboard/school-mgt-api";
-import { routesPath } from "@/routes/routes-path";
 import { useGetAllRolesQuery } from "@/redux/services/dashboard/role-api";
 import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
 import { useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
@@ -89,12 +88,6 @@ export function useRoles(): HostQueryResult<HostRole> {
 
 /** The console's own recently-opened trail. */
 export { useLogRecentOpen } from "@/hooks/use-log-recent-open";
-
-/** Where the console lists who holds which role. */
-export const rolesHref = routesPath.PROTECTED.ROLES.USER_ASSIGNMENTS;
-
-/** The console has the platform-wide staffing view; it keeps its own tab. */
-export { default as ApprovalRolesTab } from "@/pages/protected/workflow-console/approval-roles-tab";
 
 /** Which Finance Settings sections this app routes. The console runs the full
  *  set, minus "fees": a fee due date is a school's rule about its own academic

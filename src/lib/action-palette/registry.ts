@@ -89,7 +89,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-delegations", label: "View delegations", aliases: ["delegate approvals"], console: "Main", group: "Workflow", kind: "view", gate: null, run: { to: R.WORKFLOW.DELEGATIONS } },
   { id: "view-workflow-instances", label: "View workflow instances", aliases: ["all instances"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_INSTANCES }, run: { to: R.WORKFLOW.INSTANCES } },
   { id: "view-team-load", label: "View team load", aliases: [], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_INSTANCES }, run: { to: R.WORKFLOW.TEAM_LOAD } },
-  { id: "view-approver-groups", label: "View approver groups", aliases: ["approver pools", "approval groups"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_APPROVER_GROUPS }, run: { to: R.WORKFLOW.APPROVER_GROUPS } },
+  { id: "view-approver-groups", label: "View approvers", aliases: ["approver groups", "approver pools", "approval groups"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_APPROVER_GROUPS }, run: { to: R.WORKFLOW.APPROVER_GROUPS } },
   { id: "view-workflow-templates", label: "View workflow templates", aliases: [], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_TEMPLATES }, run: { to: R.WORKFLOW.TEMPLATES } },
   { id: "create-workflow-template", label: "Create workflow template", aliases: ["new workflow"], console: "Main", group: "Workflow", kind: "do", gate: { perm: P.MANAGE_WORKFLOW_TEMPLATES }, run: { to: R.WORKFLOW.TEMPLATE_NEW } },
 
