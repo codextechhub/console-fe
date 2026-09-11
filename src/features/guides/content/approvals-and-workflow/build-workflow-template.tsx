@@ -33,7 +33,7 @@ export default function BuildWorkflowTemplateArticle() {
       <GuideSection id="build-stages" title="Build stages and approvers">
         <GuideSteps>
           <GuideStep title="Add the stage identity">Each stage needs a distinct Code, Label, and Kind. <strong>Approval</strong> waits for votes; <strong>Branch</strong> routes without collecting votes.</GuideStep>
-          <GuideStep title="Choose an approver source">Use Role holders, Approver group, Role chosen by document, or Organogram relative to requester.</GuideStep>
+          <GuideStep title="Choose an approver source">Use Role holders, Approver group, Dynamic Role, or Organogram relative to requester.</GuideStep>
           <GuideStep title="Set scope">For role, group, and dynamic-role sources, choose School, Branch, or Platform. Organogram resolution follows the requester instead.</GuideStep>
           <GuideStep title="Configure organogram resolution">Choose Direct manager, N levels up, Department head, or Specific position. The requester needs a valid active seat and reporting chain.</GuideStep>
           <GuideStep title="Set the advance rule">ANY needs one approval, QUORUM needs the stated number, and UNANIMOUS needs every eligible approver.</GuideStep>
