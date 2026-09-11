@@ -1,5 +1,5 @@
-import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
+import { FormSectionLabel } from "@/components/custom/form-section-label";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
 import {
@@ -111,10 +111,7 @@ export default function EditSchool() {
               </p>
             </div>
 
-            <p className="inline-flex items-center text-gray-05 text-sm mb-4">
-              School Information
-              <figure className="size-fit ml-2">{svgIcons.infoIcon}</figure>
-            </p>
+            <FormSectionLabel>School Information</FormSectionLabel>
 
             <form onSubmit={formik.handleSubmit}>
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">

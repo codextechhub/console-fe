@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
+import { FormSectionLabel } from "@/components/custom/form-section-label";
 import PromptModal from "@/components/modal/prompt-modal";
 import { Button } from "@/components/ui/button";
 import useToggleModal from "@/hooks/use-toggle";
@@ -218,10 +218,7 @@ export default function CreateAdmin() {
               </p>
             </div>
 
-            <p className="inline-flex items-center text-gray-05 text-sm mb-4">
-              User Group
-              <figure className="size-fit ml-2">{svgIcons.infoIcon}</figure>
-            </p>
+            <FormSectionLabel>User Group</FormSectionLabel>
 
             <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
               <CustomInput

@@ -1,5 +1,5 @@
-import { svgIcons } from "@/assets/svg";
 import { CustomInput } from "@/components/custom/custom-input";
+import { FormSectionLabel } from "@/components/custom/form-section-label";
 import { Button } from "@/components/ui/button";
 import { routesPath } from "@/routes/routes-path";
 import { useNavigate, useParams } from "react-router";
@@ -64,10 +64,7 @@ export default function EditAdmin() {
                 </p>
               </div>
 
-              <p className="inline-flex items-center text-gray-05 text-sm mb-4">
-                User Group
-                <figure className="size-fit ml-2">{svgIcons.infoIcon}</figure>
-              </p>
+              <FormSectionLabel>User Group</FormSectionLabel>
 
               <div className="grid md:grid-cols-2 gap-x-8 gap-y-6">
                 <CustomInput
