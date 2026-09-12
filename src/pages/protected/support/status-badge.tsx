@@ -7,7 +7,7 @@ const STATUS_BADGE: Record<TicketStatus, string> = {
   ASSIGNED: "bg-violet-500/10 text-violet-600",
   IN_PROGRESS: "bg-yellow-01/10 text-yellow-01",
   RESOLVED: "bg-green-01/10 text-green-01",
-  CLOSED: "bg-gray-05/10 text-gray-05",
+  CLOSED: "bg-gray-05/10 text-gray-06-text",
 };
 
 export function TicketStatusBadge({ status }: { status: TicketStatus }) {

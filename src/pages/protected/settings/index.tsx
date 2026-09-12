@@ -1796,15 +1796,15 @@ function EntitlementScheduleEditor({ cap, school, entitlement }: { cap: Capabili
 // Plain wording per audit action code; tone follows the change's weight.
 const AUDIT_ACTIONS: Record<string, { label: string; className: string }> = {
   "config.value.updated": { label: "Setting changed", className: "bg-primary/10 text-primary" },
-  "config.value.cleared": { label: "Setting reset", className: "bg-gray-05/10 text-gray-05" },
+  "config.value.cleared": { label: "Setting reset", className: "bg-gray-05/10 text-gray-06-text" },
   "config.definition.created": { label: "Setting created", className: "bg-green-01/10 text-green-01" },
   "config.definition.updated": { label: "Setting updated", className: "bg-primary/10 text-primary" },
-  "config.definition.archived": { label: "Setting archived", className: "bg-gray-05/10 text-gray-05" },
+  "config.definition.archived": { label: "Setting archived", className: "bg-gray-05/10 text-gray-06-text" },
   "config.capability.created": { label: "Feature created", className: "bg-green-01/10 text-green-01" },
   "config.capability.updated": { label: "Feature updated", className: "bg-primary/10 text-primary" },
-  "config.capability.archived": { label: "Feature archived", className: "bg-gray-05/10 text-gray-05" },
+  "config.capability.archived": { label: "Feature archived", className: "bg-gray-05/10 text-gray-06-text" },
   "config.entitlement.updated": { label: "Plan grant changed", className: "bg-primary/10 text-primary" },
-  "config.entitlement.cleared": { label: "Plan grant reset", className: "bg-gray-05/10 text-gray-05" },
+  "config.entitlement.cleared": { label: "Plan grant reset", className: "bg-gray-05/10 text-gray-06-text" },
   "config.override.updated": { label: "Forced status changed", className: "bg-yellow-01/10 text-yellow-01" },
   "config.integration.connection_tested": { label: "Connection tested", className: "bg-primary/10 text-primary" },
   "config.audit.export_queued": { label: "Audit export queued", className: "bg-yellow-01/10 text-yellow-01" },
@@ -1875,7 +1875,7 @@ function Audit() {
   const tableData = (q.data?.data ?? []).map((x) => {
     const action = AUDIT_ACTIONS[x.action] ?? {
       label: x.action.replace("config.", "").replaceAll(".", " "),
-      className: "bg-gray-05/10 text-gray-05",
+      className: "bg-gray-05/10 text-gray-06-text",
     };
     return {
       _id: x.id,
