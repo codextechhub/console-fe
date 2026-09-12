@@ -101,6 +101,12 @@ export const setupSections: readonly SetupSection[] = SETUP_SECTIONS;
 /** CodeX authors the shared approval paths every tenant starts on. */
 export const createsWorkflowTemplates = true;
 
+/** What staff call the party that publishes the shared approval paths.
+ *
+ *  Themselves. A template's owner is CodeX to the people who author it, and the
+ *  same screens name it XVS when a school reads them. */
+export const platformName = "CodeX";
+
 /** No fee due rule exists for the platform, and the section that would show it
  *  is not mounted, so this is never reached. It exists to satisfy the contract
  *  rather than to render. */
