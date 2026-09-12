@@ -51,6 +51,7 @@ const PACKAGE_SPECIFIERS: [find: string, target: string][] = [
   ["@/pages/protected/workflow/my-submissions", "pages/workflow/my-submissions"],
   ["@/pages/protected/workflow/instances", "pages/workflow/instances"],
   ["@/pages/protected/workflow/approver-groups", "pages/workflow/approver-groups"],
+  ["@/pages/protected/workflow/notifications", "pages/workflow/notifications"],
   ["@/pages/protected/workflow/templates", "pages/workflow/templates"],
   ["@/redux/services/workflow", "redux/services/workflow"],
   ["@/pages/protected/workflow/delegations", "pages/workflow/delegations"],

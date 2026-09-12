@@ -156,6 +156,7 @@ export const routesPath = {
       TEAM_LOAD: "/workflow/team-load",
       DELEGATIONS: "/workflow/delegations",
       APPROVER_GROUPS: "/workflow/approver-groups",
+      NOTIFICATIONS: "/workflow/notifications",
       TEMPLATES: "/workflow/templates",
       TEMPLATE_NEW: "/workflow/templates/new",
       TEMPLATE_DETAIL_PATH: "/workflow/templates/:id",

@@ -186,6 +186,7 @@ exports[`Main sidebar visibility > shows everything to a super admin 1`] = `
   "Workflow > Team Load",
   "Workflow > Approvers",
   "Workflow > Templates",
+  "Workflow > Notifications",
   "Audit & Security [group]",
   "Audit & Security > Security Dashboard",
   "Audit & Security > Events Explorer",

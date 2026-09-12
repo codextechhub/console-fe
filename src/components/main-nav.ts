@@ -300,6 +300,8 @@ export const MAIN_NAV: MainNavEntry[] = [
       // Approvers - the groups and dynamic-role rules a stage can route to.
       { title: "Approvers", url: R.WORKFLOW.APPROVER_GROUPS, permission: P.VIEW_APPROVER_GROUPS },
       { title: "Templates", url: R.WORKFLOW.TEMPLATES, permission: P.VIEW_WORKFLOW_TEMPLATES },
+      // Whether approvals write to people, answered once per tenant.
+      { title: "Notifications", url: R.WORKFLOW.NOTIFICATIONS, permission: P.MANAGE_WORKFLOW_TEMPLATES },
     ],
   },
   {
