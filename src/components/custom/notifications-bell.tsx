@@ -97,9 +97,7 @@ export function NotificationsBell() {
                     <span className="block truncate text-sm font-medium">{n.subject}</span>
                     <span className="mt-0.5 line-clamp-2 block text-xs text-gray-01">{n.body}</span>
                     <span className="mt-1 block text-[10px] text-gray-400">
-                      {n.event_type_key === "workflow.final_approved"
-                        ? formatRelativeDate(n.created_at)
-                        : `${n.event_type_label} · ${formatRelativeDate(n.created_at)}`}
+                      {`${n.event_type_label} · ${formatRelativeDate(n.created_at)}`}
                     </span>
                   </span>
                 </button>

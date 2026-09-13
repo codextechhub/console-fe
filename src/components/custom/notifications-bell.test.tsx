@@ -83,7 +83,10 @@ describe("NotificationsBell clearing", () => {
       '[aria-label="Clear Vendor Payment Approved"]',
     );
     expect(clearOne).not.toBeNull();
-    expect(document.body.textContent).not.toContain("Workflow fully approved");
+    // Every row carries its category beside the time. The subject is the
+    // notification's own title, so the label below it says which kind of event
+    // produced it rather than repeating the headline.
+    expect(document.body.textContent).toContain("Workflow fully approved");
     expect(clearOne?.className).toContain("sm:opacity-0");
     expect(clearOne?.className).toContain("sm:group-hover:opacity-100");
 
