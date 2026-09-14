@@ -8,7 +8,8 @@ export default function ReviewAndActOnApprovalArticle() {
       <GuideSection id="before-you-start" title="Before you start">
         <p>Use this guide when an item is waiting in <strong>Pending Approvals</strong>. You can act only when the active stage names you, or a valid delegation puts the item in your queue.</p>
         <GuideChecklist items={[
-          "Open the source document and confirm its amount, owner, dates, attachments, and business purpose.",
+          "Read Summary and the document-specific Details shown inside the approval.",
+          "Open the source document only when you need attachments, current state, or evidence not included in Details.",
           "Read the active stage label and the approval rule shown beside the workflow.",
           "Resolve conflicts of interest or missing evidence before recording a decision.",
         ]} />
@@ -24,9 +25,10 @@ export default function ReviewAndActOnApprovalArticle() {
       </GuideSection>
 
       <GuideSection id="review-the-request" title="Review the request">
-        <p>Read the document panel, the visible workflow stages, and <strong>Activity</strong>. Skipped stages are omitted from progress. If a returned request was resubmitted, Console uses the newest attempt and its refreshed approver list.</p>
-        <p>Use the prominent <strong>View full document</strong> button below the summary to open the source area narrowed to that document. Finance records and procurement requisitions, purchase orders, vendor invoices, and vendor payments open their matching source record and safely switch to its ledger entity, including for approvals created before source links were added. Its guidance follows the workflow status: active requests ask you to review before deciding, while completed, returned, rejected, withdrawn, and cancelled requests describe the recorded outcome. If the source area denies access, ask an authorized owner to review the evidence instead of acting from the summary alone.</p>
-        <GuideCallout tone="warning" title="Do not approve from the title alone">The queue is a prompt to review, not evidence that the underlying document is complete. Return to the source module when the document panel does not contain enough detail.</GuideCallout>
+        <p>Start with the concise <strong>Summary</strong>, then inspect <strong>Details</strong> directly below it. Details adds supporting evidence without repeating the Summary. Each document type chooses the layout that fits its evidence: labelled fields, a line-item table, or an added and removed change list. Restricted permission changes are marked individually. The details are the request snapshot captured for this approval, so they do not silently change while you review.</p>
+        <p>Read the visible workflow stages and <strong>Activity</strong> beside those details. Skipped stages are omitted from progress. If a returned request was resubmitted, Console uses the newest attempt and its refreshed approver list.</p>
+        <p><strong>View full document</strong> is a smaller secondary action below Details. Use it when you need attachments, the source record's current state, or evidence that the built-in layout does not carry. Older approvals may not have a built-in detail snapshot, so their source link remains the review fallback. If the source area denies access, ask an authorized owner to review the missing evidence instead of acting from the summary alone.</p>
+        <GuideCallout tone="warning" title="Do not approve from the title alone">The queue and summary identify the request. The document-specific Details, required attachments, workflow rule, and activity provide the evidence for your decision.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="choose-a-decision" title="Choose a decision">
@@ -49,6 +51,7 @@ export default function ReviewAndActOnApprovalArticle() {
           {[
             ["The request disappeared from my queue", "It may have advanced, ended, been withdrawn, or received your earlier vote. Search its source record or ask an authorized workflow administrator to inspect the instance."],
             ["Console says I am not eligible", "Confirm the active stage, current attempt, approver group or role, and any active delegation. Do not ask someone to bypass the queue."],
+            ["Details are unavailable", "Use View full document to inspect the source evidence. Report the workflow instance ID if a new approval should have details but they are missing or cannot be displayed."],
             ["View full document shows no match", "Clear any extra source-area filters, confirm the active entity, and search the displayed document reference. Report the workflow instance ID if the link opens another module or a missing page."],
             ["The stage is stalled", "An approver source may resolve to nobody, a quorum may be unreachable, or an inclusion condition may be wrong. An administrator should inspect the instance and template."],
             ["I made the wrong decision", "Do not add a compensating vote. Contact an administrator with reverse-action access so the original action stays visible in the audit trail."],

@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
 import type { WorkflowInstanceDetail } from "@/redux/services/dashboard/workflow-types";
-// The code under test now lives in @xvs/finance, shared with the school app.
-// The test stays here because this is where the runner is, and it is aimed
-// through the same alias every screen resolves, so it exercises what ships
-// rather than a copy that happens to sit beside it.
 import {
   sourceDocumentLink,
   sourceDocumentPrompt,
@@ -56,8 +52,31 @@ describe("sourceDocumentLink", () => {
     );
   });
 
+  it("prefers the top-level source link from the approval contract", () => {
+    const value = instance(
+      "procurement.requisition",
+      "PR-0042",
+      "/procurement/requisitions?document=old&entity=TES",
+    );
+    value.source_document_link =
+      "/procurement/requisitions?document=42&entity=TES";
+
+    expect(sourceDocumentLink(value)).toBe(
+      "/procurement/requisitions?document=42&entity=TES",
+    );
+  });
+
   it("returns null when no source route is available", () => {
     expect(sourceDocumentLink(instance("custom.request", "REQ-1", ""))).toBeNull();
+  });
+
+  it.each([
+    "https://example.com/collect-session",
+    "//example.com/collect-session",
+    "javascript:alert('x')",
+  ])("rejects an unsafe source link: %s", (storedLink) => {
+    expect(sourceDocumentLink(instance("custom.request", "REQ-1", storedLink)))
+      .toBeNull();
   });
 });
 

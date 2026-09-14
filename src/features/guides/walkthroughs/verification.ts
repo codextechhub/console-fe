@@ -14,7 +14,6 @@ const VERSION_ONE_WALKTHROUGHS = [
   "walkthrough.roles.maintain-permission-catalogue",
   "walkthrough.organogram.build-structure",
   "walkthrough.organogram.maintain-staff-profiles",
-  "walkthrough.workflow.review-and-act",
   "walkthrough.workflow.delegate-and-track",
   "walkthrough.workflow.build-template",
   "walkthrough.finance.configure-foundations",
@@ -85,6 +84,12 @@ export const WALKTHROUGH_VERIFICATION_RECORDS: readonly WalkthroughVerificationR
     walkthroughId: "walkthrough.finance.create-and-manage-payment-plan",
     version: 2,
     verifiedAt: "2026-08-25",
+    missingTargetIds: [],
+  },
+  {
+    walkthroughId: "walkthrough.workflow.review-and-act",
+    version: 2,
+    verifiedAt: "2026-09-14",
     missingTargetIds: [],
   },
   ...VERSION_ONE_WALKTHROUGHS.map((walkthroughId) => ({

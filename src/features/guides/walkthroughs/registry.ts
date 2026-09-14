@@ -387,9 +387,9 @@ export const WALKTHROUGH_REGISTRY = [
     permissions: [],
     prerequisites: [
       "Confirm you are acting as yourself or through an authorized active delegation.",
-      "Open the source record and gather the evidence required by the approval policy.",
+      "Know which attachments or source evidence your approval policy requires beyond the built-in details.",
     ],
-    version: 1,
+    version: 2,
     steps: [
       {
         id: "welcome",
@@ -409,7 +409,7 @@ export const WALKTHROUGH_REGISTRY = [
         id: "queue",
         target: "workflow-approvals.queue",
         title: "Verify the request before Review",
-        body: "Use the requester, document reference, active stage, and waiting time to identify the item. Review the source document and activity before making any decision.",
+        body: "Use the requester, document reference, active stage, and waiting time to identify the item. In Review, inspect Summary, Details, the workflow, and activity before making any decision.",
         placement: "left",
         advance: "manual",
       },
@@ -422,7 +422,7 @@ export const WALKTHROUGH_REGISTRY = [
       {
         id: "complete",
         title: "The walkthrough stops before the decision",
-        body: "Open Review yourself, verify the document, workflow stage, approval rule, and audit history, then choose and confirm the authorized outcome. Never approve only to clear a queue.",
+        body: "Open Review yourself, verify the built-in details, workflow stage, approval rule, and audit history, then use the source record for any attachments or deeper evidence. Choose and confirm only the authorized outcome.",
         advance: "next",
       },
     ],

@@ -360,6 +360,7 @@ article would require more than roughly twelve decision-bearing steps.
 ### 7.5 Approvals and workflow
 
 - Review, approve, reject, or return an approval.
+- Inspect document-specific details inside an approval and open the source record only for deeper evidence.
 - Track a personal submission.
 - Delegate approval responsibility.
 - Inspect all workflow instances and team load.
