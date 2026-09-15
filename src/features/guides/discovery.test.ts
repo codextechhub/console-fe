@@ -32,6 +32,14 @@ describe("guide discovery", () => {
     expect(canDiscoverGuide(guide, roleEditor)).toBe(true);
   });
 
+  it("shows field access guidance to either Field Access key and hides it from role viewers alone", () => {
+    const guide = byId("roles.manage-field-access");
+
+    expect(canDiscoverGuide(guide, [P.VIEW_ROLES].map(resolvePermissionKey))).toBe(false);
+    expect(canDiscoverGuide(guide, [P.VIEW_FIELD_ACCESS].map(resolvePermissionKey))).toBe(true);
+    expect(canDiscoverGuide(guide, [P.MANAGE_FIELD_ACCESS].map(resolvePermissionKey))).toBe(true);
+  });
+
   it("filters before audience selection so restricted titles never leak", () => {
     const visible = visibleGuides(GUIDE_REGISTRY, []);
 

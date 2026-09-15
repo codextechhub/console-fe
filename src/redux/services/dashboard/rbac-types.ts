@@ -19,9 +19,68 @@ export interface PlatformRole {
 }
 
 export interface PlatformRoleDetail extends PlatformRole {
+  held_by_me: boolean;
   role_permissions: Array<{ permission_key: string; granted: boolean }>;
   role_groups: Array<{ group: PermissionGroupList }>;
 }
+
+export interface AccessCataloguePermission {
+  key: string;
+  label: string;
+  action: string;
+  sensitivity: "NORMAL" | "SENSITIVE" | "CRITICAL";
+  is_restricted: boolean;
+  available: boolean;
+  band: string | null;
+  depth_label: string | null;
+  unavailable_reason: string | null;
+}
+
+export interface AccessCatalogueField {
+  key: string;
+  name: string;
+  api_names: string[];
+  label: string;
+  group: string;
+  description: string;
+  sensitive: boolean;
+  writable: boolean;
+  default: { read: boolean; write: boolean };
+}
+
+export interface AccessCatalogueResource {
+  resource: string;
+  label: string;
+  available: boolean;
+  permissions: AccessCataloguePermission[];
+  fields: AccessCatalogueField[];
+}
+
+export interface AccessCatalogueModule {
+  module: string;
+  label: string;
+  available: boolean;
+  resources: AccessCatalogueResource[];
+}
+
+export interface RoleFieldAccessEntry extends AccessCatalogueField {
+  module: string;
+  resource: string;
+  read: boolean;
+  write: boolean;
+  source: "default" | "role";
+  set_by_name: string | null;
+  set_at: string | null;
+}
+
+export interface RoleFieldAccessResponse {
+  role: { key: string; name: string; branch_name: string | null };
+  fields: RoleFieldAccessEntry[];
+}
+
+export type RoleFieldAccessChange =
+  | { field: string; reset: true }
+  | { field: string; read?: boolean; write?: boolean };
 
 export interface PermissionGroupList {
   id: string;

@@ -1,8 +1,11 @@
 import { generateQueryString } from "@/utils/helpers";
 import { getTenantSlug } from "@/utils/tenant-context";
+import { fetchAllPages } from "@/utils/fetch-all-pages";
+import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { baseApi } from "../base-api";
 import type {
   ChangeRequest,
+  AccessCatalogueModule,
   PaginatedResponse,
   Permission,
   PermissionAction,
@@ -14,6 +17,8 @@ import type {
   PermissionResource,
   PlatformRole,
   PlatformRoleDetail,
+  RoleFieldAccessChange,
+  RoleFieldAccessResponse,
   UserAssignment,
 } from "./rbac-types";
 
@@ -29,9 +34,69 @@ export const rbacApi = baseApi.injectEndpoints({
       providesTags: ["PlatformRoles"],
     }),
 
+    /**
+     * Every role the tenant holds, for pickers that must offer all of them.
+     *
+     * The roles list is paginated with at most 100 rows a page and has no
+     * search, so a single request silently drops later roles once a tenant
+     * outgrows one page. This walks every page at the largest size instead.
+     */
+    getFieldAccessRoles: builder.query<PlatformRole[], void>({
+      queryFn: (_arg, _api, _extra, baseQuery) =>
+        fetchAllPages<PlatformRole, FetchBaseQueryError>(async (page) => {
+          const { data, error } = await baseQuery({
+            url: `/rbac/tenants/${getTenantSlug()}/roles/`,
+            method: "GET",
+            params: { page, page_size: 100 },
+          });
+          return error ? { error } : { data: data as PaginatedResponse<PlatformRole> };
+        }),
+      providesTags: ["PlatformRoles"],
+    }),
+
     getPlatformRoleDetail: builder.query<{ data: PlatformRoleDetail }, string>({
       query: (key) => ({ url: `/rbac/tenants/${getTenantSlug()}/roles/${encodeURIComponent(key)}/`, method: "GET" }),
       providesTags: ["PlatformRoles"],
+    }),
+
+    getAccessCatalogue: builder.query<
+      { data: AccessCatalogueModule[] },
+      { tenantSlug?: string; module?: string; resource?: string; search?: string } | void
+    >({
+      query: (args) => {
+        const { tenantSlug, ...params } = args ?? {};
+        const slug = tenantSlug || getTenantSlug();
+        return {
+          url: `/rbac/tenants/${slug}/access-catalogue/`,
+          method: "GET",
+          params: tenantSlug ? { ...params, tenant: slug } : params,
+        };
+      },
+      providesTags: ["AccessCatalogue"],
+    }),
+
+    getRoleFieldAccess: builder.query<
+      { data: RoleFieldAccessResponse },
+      { key: string; module?: string; resource?: string; search?: string; state?: "hidden" | "read_only" | "full" }
+    >({
+      query: ({ key, ...params }) => ({
+        url: `/rbac/tenants/${getTenantSlug()}/roles/${encodeURIComponent(key)}/field-access/`,
+        method: "GET",
+        params,
+      }),
+      providesTags: (_result, _error, { key }) => [{ type: "RoleFieldAccess", id: key }],
+    }),
+
+    updateRoleFieldAccess: builder.mutation<
+      { data: RoleFieldAccessResponse },
+      { key: string; changes: RoleFieldAccessChange[] }
+    >({
+      query: ({ key, changes }) => ({
+        url: `/rbac/tenants/${getTenantSlug()}/roles/${encodeURIComponent(key)}/field-access/`,
+        method: "PATCH",
+        body: { changes },
+      }),
+      invalidatesTags: (_result, _error, { key }) => [{ type: "RoleFieldAccess", id: key }],
     }),
 
     createPlatformRole: builder.mutation<{ data: PlatformRoleDetail }, Record<string, unknown>>({
@@ -256,7 +321,11 @@ export const rbacApi = baseApi.injectEndpoints({
 
 export const {
   useGetPlatformRolesQuery,
+  useGetFieldAccessRolesQuery,
   useGetPlatformRoleDetailQuery,
+  useGetAccessCatalogueQuery,
+  useGetRoleFieldAccessQuery,
+  useUpdateRoleFieldAccessMutation,
   useCreatePlatformRoleMutation,
   useUpdatePlatformRoleMutation,
   useDeletePlatformRoleMutation,

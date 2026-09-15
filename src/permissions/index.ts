@@ -111,6 +111,10 @@ const REGISTRY_BASE: Record<string, string> = {
   "101301": "platform.team_overrides.view",
   "101308": "platform.team_overrides.manage",
 
+  // ── platform / field access  (MM=10, RR=18) ───────────────────────────────
+  "101801": "platform.field_access.view",
+  "101808": "platform.field_access.manage",
+
   // ── platform / requirements document library  (MM=10, RR=14) ───────────────
   // CX-internal product specs (the MRD and the per-module FRDs). The backend
   // additionally requires the caller's home tenant to be the platform one, so
@@ -387,6 +391,10 @@ export const P = {
   REVOKE_ROLE:          "100404",  // delete a platform role template
   ASSIGN_ROLE:          "100411",  // assign or revoke platform roles from users
   TRANSFER_SUPER_ADMIN: "100412",  // transfer the super admin role to another user
+
+  // ── Field Access ───────────────────────────────────────────────────────────
+  VIEW_FIELD_ACCESS:    "101801",  // see which fields each role may read or write
+  MANAGE_FIELD_ACCESS:  "101808",  // change a role's field switches
 
   // ── Permission Registry ────────────────────────────────────────────────────
   VIEW_PERMISSIONS:     "100501",  // view the global permission registry

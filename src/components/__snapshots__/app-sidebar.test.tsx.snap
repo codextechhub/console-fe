@@ -161,6 +161,7 @@ exports[`Main sidebar visibility > shows everything to a super admin 1`] = `
   "Roles [group]",
   "Roles > Platform Roles",
   "Roles > Platform User Assignments",
+  "Roles > Field Access",
   "Roles > Transfer Super Admin",
   "Permissions [group]",
   "Permissions > All Permissions",

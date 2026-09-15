@@ -17,6 +17,7 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Roles and permissions | Create and assign a role | `roles.create-and-assign` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains role composition and stops before role creation, assignment, change, or revocation |
 | Roles and permissions | Review permission changes and transfer Super Admin | `roles.review-changes-and-transfer-super-admin` | High | Published | Published | Console product team | 2026-08-13 | Ownership walkthrough verifies the current owner, successor, and immediate effect, then stops before transfer and confirmation |
 | Roles and permissions | Maintain the permission catalogue and groups | `roles.maintain-permission-catalogue` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains key composition and backend enforcement, then stops before permission creation or downstream catalogue changes |
+| Roles and permissions | Set field access for a role and add field exceptions | `roles.manage-field-access` | High | Published | Published | Console product team | 2026-09-15 | Covers role, module, and resource choice, Read and Write switches, Write including Read, defaults, Reset to default, no approval for a switch change, the restricted manage permission, audit, and one-person field exceptions. Console screens do not read these switches yet, so the article says a saved switch hides or greys nothing; it must be revised when field enforcement ships. Walkthrough explains the switches and stops before Save |
 | Roles and permissions | Diagnose missing access | `troubleshooting.permission-denied` | Medium | Published | Not required | Console product team | 2026-08-21 | Permission and scope diagnosis is read-only and cross-linked from access-sensitive guides; a walkthrough would add no ordered workflow or safety boundary |
 | Organogram and tasks | Build the organogram | `organogram.build-structure` | Medium | Published | Published | Console product team | 2026-08-14 | Walkthrough explains the safe unit, position, and matrix order and never creates, edits, moves, or deletes structure |
 | Organogram and tasks | Maintain staff profiles | `organogram.maintain-staff-profiles` | Medium | Published | Published | Console product team | 2026-08-14 | Walkthrough explains identity, seat, employment, and payroll boundaries and never reads fields, creates a profile, or changes an assignment |
@@ -576,3 +577,26 @@ editor, assignment, approval, or automated repair action.
   production build, 66 clean accessibility routes, 132 clean responsive route
   checks, and 90 clean walkthrough viewport runs. The build retains only the
   existing dynamic-import and large-chunk advisory warnings.
+
+## Field Access coverage (2026-09-15)
+
+- Roles and permissions publishes a fourth task guide, set field access for a
+  role, mapped to the Field Access route and the View field access action.
+- The article covers choosing a role, module, and resource, searching field
+  labels, the Read and Write switches, Write always including Read, defaults
+  (normal fields open, sensitive fields closed), Reset to default, saving without
+  approval, the restricted manage permission and its role change request, audit,
+  and one-person field exceptions on school user and staff profile details.
+- Console screens do not read the switches yet. The article states that a saved
+  switch hides or greys nothing, and must be revised in the same change that
+  ships field enforcement.
+- Guide discovery uses any Field Access key. The registry's access rule cannot
+  express the screen's own gate (roles view plus either Field Access key), and
+  requiring roles view with only one of the two keys would hide the guide from a
+  role that holds manage without view.
+- The walkthrough explains the scope selectors, search, switch rules, defaults,
+  and the Save boundary. It branches around an empty resource and a read-only
+  viewer, and never flips a switch, resets a field, saves, or opens an exception.
+- The role creation guide and its walkthrough now describe the Module and
+  Resource permission picker with readable labels instead of key search. Its
+  targets are unchanged, so its walkthrough version is unchanged.

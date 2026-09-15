@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PermissionGate from "@/components/custom/permission-gate";
 import PermissionOverrides from "@/components/custom/permission-overrides";
+import FieldAccessOverrides from "@/components/custom/field-access-overrides";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useAppSelector } from "@/redux/store";
@@ -251,6 +252,12 @@ export default function StaffDetail() {
             <Payroll profile={profile} />
 
             <PermissionOverrides
+              userId={profile.user.id}
+              tenantSlug={tenantSlug}
+              userName={profile.user.full_name}
+              className="rounded-2xl border-slate-200 p-5"
+            />
+            <FieldAccessOverrides
               userId={profile.user.id}
               tenantSlug={tenantSlug}
               userName={profile.user.full_name}

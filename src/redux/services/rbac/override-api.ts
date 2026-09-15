@@ -17,6 +17,8 @@
 import { baseApi } from "../base-api";
 
 export type OverrideMode = "DENY" | "ALLOW";
+export type FieldAccessKind = "READ" | "WRITE";
+export type FieldAccessMode = "ALLOW" | "DENY";
 
 export interface PermissionOverride {
   id: number;
@@ -56,6 +58,29 @@ export interface PermissionOverrideListRes {
   data: PermissionOverride[];
 }
 
+export interface UserFieldAccessOverride {
+  id: number;
+  user_id: string;
+  field: string;
+  field_key: string;
+  field_label: string;
+  access: FieldAccessKind;
+  mode: FieldAccessMode;
+  reason: string;
+  expires_at: string | null;
+  is_expired: boolean;
+  role_state: { read: boolean; write: boolean };
+  created_by_id: string | null;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type UserFieldAccessOverrideListRes = Omit<
+  PermissionOverrideListRes,
+  "data"
+> & { data: UserFieldAccessOverride[] };
+
 export interface OverrideScope {
   /** Tenant slug that OWNS the target user (school slug for a school user). */
   tenantSlug: string;
@@ -73,6 +98,11 @@ const listUrl = ({ tenantSlug, userId }: OverrideScope) =>
   `/rbac/tenants/${encodeURIComponent(String(tenantSlug))}/users/${encodeURIComponent(
     String(userId),
   )}/permission-overrides/`;
+
+const fieldListUrl = ({ tenantSlug, userId }: OverrideScope) =>
+  `/rbac/tenants/${encodeURIComponent(String(tenantSlug))}/users/${encodeURIComponent(
+    String(userId),
+  )}/field-access-overrides/`;
 
 export const overrideApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -120,6 +150,55 @@ export const overrideApi = baseApi.injectEndpoints({
         { type: "UserPermissionOverrides" as const, id: `${tenantSlug}:${userId}` },
       ],
     }),
+
+    getUserFieldAccessOverrides: builder.query<
+      UserFieldAccessOverrideListRes,
+      OverrideScope & { access?: FieldAccessKind; mode?: FieldAccessMode }
+    >({
+      query: ({ tenantSlug, userId, ...params }) => ({
+        url: fieldListUrl({ tenantSlug, userId }),
+        method: "GET",
+        params: { ...params, tenant: tenantSlug },
+      }),
+      providesTags: (_res, _err, { tenantSlug, userId }) => [
+        { type: "UserFieldAccessOverrides" as const, id: `${tenantSlug}:${userId}` },
+      ],
+    }),
+
+    createUserFieldAccessOverride: builder.mutation<
+      { data: UserFieldAccessOverride },
+      OverrideScope & {
+        field: string;
+        access: FieldAccessKind;
+        mode: FieldAccessMode;
+        reason: string;
+        expires_at: string | null;
+      }
+    >({
+      query: ({ tenantSlug, userId, ...body }) => ({
+        url: fieldListUrl({ tenantSlug, userId }),
+        method: "POST",
+        body,
+        params: { tenant: tenantSlug },
+      }),
+      invalidatesTags: (_res, _err, { tenantSlug, userId }) => [
+        { type: "UserFieldAccessOverrides" as const, id: `${tenantSlug}:${userId}` },
+      ],
+    }),
+
+    deleteUserFieldAccessOverride: builder.mutation<
+      { success: boolean; message: string },
+      OverrideScope & { id: number }
+    >({
+      query: ({ tenantSlug, userId, id }) => ({
+        url: `${fieldListUrl({ tenantSlug, userId })}${id}/`,
+        method: "DELETE",
+        params: { tenant: tenantSlug },
+      }),
+      invalidatesTags: (_res, _err, { tenantSlug, userId }) => [
+        { type: "UserFieldAccessOverrides" as const, id: `${tenantSlug}:${userId}` },
+      ],
+    }),
   }),
 });
 
@@ -127,4 +206,7 @@ export const {
   useGetPermissionOverridesQuery,
   useCreatePermissionOverrideMutation,
   useDeletePermissionOverrideMutation,
+  useGetUserFieldAccessOverridesQuery,
+  useCreateUserFieldAccessOverrideMutation,
+  useDeleteUserFieldAccessOverrideMutation,
 } = overrideApi;

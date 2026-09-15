@@ -4,6 +4,7 @@ import { useGetTeamMembersDetailsQuery } from "@/redux/services/dashboard/team-m
 import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import PermissionOverrides, { useCanViewPermissionExceptions } from "@/components/custom/permission-overrides";
+import FieldAccessOverrides from "@/components/custom/field-access-overrides";
 import { formatRelativeDate } from "@/utils/helpers";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Building2, CalendarDays, GitBranch, KeyRound, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
@@ -127,6 +128,11 @@ export function SchoolUserDetail({
                 </section>
 
                 <PermissionOverrides
+                  userId={user?.id}
+                  tenantSlug={tenantSlug}
+                  userName={detail?.full_name || user?.full_name}
+                />
+                <FieldAccessOverrides
                   userId={user?.id}
                   tenantSlug={tenantSlug}
                   userName={detail?.full_name || user?.full_name}

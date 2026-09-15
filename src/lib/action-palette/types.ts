@@ -23,6 +23,7 @@ export type ActionGate =
   | null
   | { perm: PermissionCode }
   | { any: PermissionCode[] }
+  | { required: PermissionCode[]; any: PermissionCode[] }
   | { all: PermissionCode[] }
   | { module: string[] };
 

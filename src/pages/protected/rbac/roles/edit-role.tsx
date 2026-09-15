@@ -1,22 +1,21 @@
 import { useState } from "react";
 import { apiErrorMessage } from "@/utils/api-errors";
-import { permissionLabel } from "@/utils/permission-label";
 import { useNavigate, useParams } from "react-router";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
+import { AccessCataloguePicker } from "@/components/custom/access-catalogue-picker";
 import { SearchSelect } from "@/components/custom/search-select";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetPlatformRoleDetailQuery,
   useUpdatePlatformRoleMutation,
   useGetPermissionGroupsQuery,
-  useGetPermissionsQuery,
+  useGetAccessCatalogueQuery,
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
 import { Loader2, Search } from "lucide-react";
-import { useDebounce } from "@/hooks/use-debounce";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { PageShell } from "@/components/layout/page-shell";
@@ -41,17 +40,10 @@ export default function EditRole() {
   const { data: groupsData } = useGetPermissionGroupsQuery({ page_size: 100 });
   const [updateRole, { isLoading }] = useUpdatePlatformRoleMutation();
   const [groupSearch, setGroupSearch] = useState("");
-  const [permSearch, setPermSearch] = useState("");
-  const debouncedPermSearch = useDebounce(permSearch, 350);
-  const { data: permissionsData } = useGetPermissionsQuery({
-    page_size: 100,
-    is_active: "true",
-    ...(debouncedPermSearch.trim() ? { search: debouncedPermSearch.trim() } : {}),
-  });
+  const catalogue = useGetAccessCatalogueQuery();
 
   const role = roleData?.data;
   const groups = groupsData?.data ?? [];
-  const permissions = (permissionsData?.data ?? []).filter((p) => p.is_active);
   const attachedGroupIds = role?.role_groups?.map((rg) => rg.group.id) ?? [];
   const attachedPermissionKeys = role?.role_permissions?.filter((rp) => rp.granted).map((rp) => rp.permission_key) ?? [];
 
@@ -140,8 +132,6 @@ export default function EditRole() {
             const filteredGroups = groupSearch
               ? groups.filter((g) => g.name.toLowerCase().includes(groupSearch.toLowerCase()))
               : groups;
-
-            const filteredPerms = permissions;
 
             return (
               <Form className="space-y-5" id="role-form-fields">
@@ -293,47 +283,17 @@ export default function EditRole() {
                     )}
                   </div>
 
-                  <div className="relative">
-                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="Search permissions by key or description..."
-                      value={permSearch}
-                      onChange={(e) => setPermSearch(e.target.value)}
-                      className="w-full h-9 pl-8 pr-3 rounded-md border border-gray-200 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    />
-                  </div>
-
-                  {permissions.length === 0 ? (
-                    <p className="text-sm text-gray-01 italic">No permissions available.</p>
-                  ) : filteredPerms.length === 0 ? (
-                    <p className="text-sm text-gray-01 italic">No permissions match your search.</p>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 overflow-y-auto max-h-[400px] pr-1">
-                      {filteredPerms.map((perm) => (
-                        <label
-                          key={perm.key}
-                          className="flex items-start gap-3 p-3 rounded-md border border-white-02 hover:border-primary/30 hover:bg-primary/5 cursor-pointer transition-colors"
-                        >
-                          <input
-                            type="checkbox"
-                            className="mt-0.5 accent-primary shrink-0"
-                            checked={values.permission_keys.includes(perm.key)}
-                            onChange={(e) => {
-                              const next = e.target.checked
-                                ? [...values.permission_keys, perm.key]
-                                : values.permission_keys.filter((k) => k !== perm.key);
-                              setFieldValue("permission_keys", next);
-                            }}
-                          />
-                          <div className="min-w-0">
-                            <p className="text-xs font-medium text-black-01 line-clamp-1">{permissionLabel(perm)}</p>
-                            <p className="text-xs font-mono text-gray-01 mt-0.5 truncate">{perm.key}</p>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  )}
+                  <AccessCataloguePicker
+                    modules={catalogue.data?.data ?? []}
+                    selected={new Set(values.permission_keys)}
+                    loading={catalogue.isLoading}
+                    onToggle={(key) => {
+                      const next = values.permission_keys.includes(key)
+                        ? values.permission_keys.filter((entry) => entry !== key)
+                        : [...values.permission_keys, key];
+                      void setFieldValue("permission_keys", next);
+                    }}
+                  />
                 </div>
 
                 <div className="flex gap-3 justify-end pt-2">

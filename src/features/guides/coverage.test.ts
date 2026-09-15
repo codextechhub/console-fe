@@ -63,6 +63,7 @@ describe("guide coverage reporting", () => {
       { id: "role-setup", route: "/roles/create", actionId: "create-role", risk: "high" },
       { id: "permission-setup", route: "/permissions/create", actionId: "create-permission", risk: "high" },
       { id: "super-admin-transfer", route: "/roles/transfer-super-admin", actionId: "transfer-super-admin", risk: "high" },
+      { id: "field-access", route: "/roles/field-access", actionId: "view-field-access", risk: "high" },
     ];
     expect(buildGuideCoverageReport(
       GUIDE_REGISTRY,

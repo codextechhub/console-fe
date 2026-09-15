@@ -16,6 +16,12 @@ function passesGateWithSet(
 ): boolean {
   if (gate === null) return true;
   if ("perm" in gate) return held.has(resolvePermissionKey(gate.perm));
+  if ("required" in gate) {
+    return (
+      gate.required.every((code) => held.has(resolvePermissionKey(code))) &&
+      gate.any.some((code) => held.has(resolvePermissionKey(code)))
+    );
+  }
   if ("any" in gate) {
     return gate.any.some((code) => held.has(resolvePermissionKey(code)));
   }

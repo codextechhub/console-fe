@@ -87,6 +87,12 @@ export const WALKTHROUGH_VERIFICATION_RECORDS: readonly WalkthroughVerificationR
     missingTargetIds: [],
   },
   {
+    walkthroughId: "walkthrough.roles.manage-field-access",
+    version: 1,
+    verifiedAt: "2026-09-15",
+    missingTargetIds: [],
+  },
+  {
     walkthroughId: "walkthrough.workflow.review-and-act",
     version: 2,
     verifiedAt: "2026-09-14",

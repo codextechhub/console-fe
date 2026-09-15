@@ -185,6 +185,14 @@ describe("Main sidebar visibility", () => {
     expect(await renderNav(keys(P.VIEW_REQUIREMENTS_DOCS))).toMatchSnapshot();
   });
 
+  it("shows Field Access only with the roles view key and a Field Access key", async () => {
+    const entry = "Roles > Field Access";
+    expect(await renderNav(keys(P.VIEW_ROLES))).not.toContain(entry);
+    expect(await renderNav(keys(P.VIEW_FIELD_ACCESS))).not.toContain(entry);
+    expect(await renderNav(keys(P.VIEW_ROLES, P.VIEW_FIELD_ACCESS))).toContain(entry);
+    expect(await renderNav(keys(P.VIEW_ROLES, P.MANAGE_FIELD_ACCESS))).toContain(entry);
+  });
+
   it("shows everything to a super admin", async () => {
     expect(await renderNav(SUPER_ADMIN)).toMatchSnapshot();
   });

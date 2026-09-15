@@ -32,9 +32,9 @@ export default function CreateAndAssignRoleArticle() {
           <GuideStep title="Review existing roles">On <strong>Roles Management</strong>, use All Roles, Active Roles, System Roles, Locked Roles, and <strong>Search roles...</strong>. Do not duplicate an existing role.</GuideStep>
           <GuideStep title="Open Create New Role">Select <strong>Add New Role</strong>. Enter <strong>Role Name</strong>, an explanatory Description, and the intended Status.</GuideStep>
           <GuideStep title="Choose permission groups">Search <strong>Permission Groups</strong> and select only groups whose complete contents match the job.</GuideStep>
-          <GuideStep title="Add individual permissions">Use <strong>Individual Permissions</strong> only for required access not already represented by the selected groups.</GuideStep>
+          <GuideStep title="Add individual permissions">Use <strong>Individual Permissions</strong> only for required access not already represented by the selected groups. Choose a Module, then a Resource, and tick that resource&apos;s permissions by their readable labels. <strong>Search permission labels</strong> narrows the chosen resource. A permission marked <strong>Approval required</strong> is restricted, and one unavailable on the current plan stays visible with its reason but cannot be ticked.</GuideStep>
           <GuideStep title="Edit from the current access set">When editing an existing role, record its current groups, direct permissions, status, affected users, and whether it is protected. Compare every addition and removal with the approved change before saving.</GuideStep>
-          <GuideStep title="Review and save">Check the selected counts and permission keys. Select <strong>Create Role</strong> or <strong>Save changes</strong> only after the full access set is approved.</GuideStep>
+          <GuideStep title="Review and save">Check the selected counts and permission labels. Select <strong>Create Role</strong> or <strong>Save changes</strong> only after the full access set is approved.</GuideStep>
         </GuideSteps>
         <GuideCallout tone="danger" title="Editing changes every active assignment">A saved permission or group change affects every user who holds the role. Confirm the complete resulting access set and the rollback path, not only the boxes that changed.</GuideCallout>
       </GuideSection>
@@ -56,7 +56,8 @@ export default function CreateAndAssignRoleArticle() {
       <GuideSection id="common-problems" title="Common problems">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {[
-            ["A permission is not available", "Confirm it is active and that your search matches its full key or description."],
+            ["A permission is not available", "Choose the module and resource it belongs to, then search its label. A permission the current plan does not include shows the reason instead of a tick box."],
+            ["A field needs a different Read or Write setting", "Field switches are set on Field Access, not in the role form."],
             ["The user already has the role", "Duplicate active assignments are blocked. Review their existing assignments instead."],
             ["Existing roles could not be checked", "Refresh and retry. Assignment remains disabled because adding access without seeing current roles is unsafe."],
             ["Super Admin cannot be changed", "Use Transfer Super Admin. It has a separate ownership and confirmation boundary."],

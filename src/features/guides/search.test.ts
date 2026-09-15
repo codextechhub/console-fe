@@ -79,6 +79,12 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "add dependency")[0]?.guide.id).toBe(
       "roles.maintain-permission-catalogue",
     );
+    expect(searchGuides(GUIDE_REGISTRY, "field exception")[0]?.guide.id).toBe(
+      "roles.manage-field-access",
+    );
+    expect(searchGuides(GUIDE_REGISTRY, "read write fields")[0]?.guide.id).toBe(
+      "roles.manage-field-access",
+    );
   });
 
   it("finds organogram and task workflows using current interface language", () => {

@@ -10,6 +10,7 @@ const CreateRole = lazy(() => import("@/pages/protected/rbac/roles/create-role")
 const EditRole = lazy(() => import("@/pages/protected/rbac/roles/edit-role"));
 const PlatformUserAssignments = lazy(() => import("@/pages/protected/rbac/roles/platform-user-assignments"));
 const TransferSuperAdmin = lazy(() => import("@/pages/protected/rbac/roles/transfer-super-admin"));
+const FieldAccess = lazy(() => import("@/pages/protected/rbac/field-access"));
 const PermissionGroupsList = lazy(() => import("@/pages/protected/rbac/roles/permission-groups"));
 const CreatePermissionGroup = lazy(() => import("@/pages/protected/rbac/roles/permission-groups/create-group"));
 const EditPermissionGroup = lazy(() => import("@/pages/protected/rbac/roles/permission-groups/edit-group"));
@@ -34,6 +35,7 @@ export const rbacRoutes: RouteObject[] = [
   { path: "/roles/:id/edit", element: <EditRole />, handle: { title: "Edit Role", back: routesPath.PROTECTED.ROLES.INDEX } satisfies DashboardHandle },
   { path: "/roles/user-assignments", element: <PlatformUserAssignments />, handle: { title: "Platform User Assignments" } satisfies DashboardHandle },
   { path: "/roles/transfer-super-admin", element: <TransferSuperAdmin />, handle: { title: "Transfer Super Admin" } satisfies DashboardHandle },
+  { path: "/roles/field-access", element: <FieldAccess />, handle: { title: "Field Access" } satisfies DashboardHandle },
   { path: "/roles/permission-groups", element: <PermissionGroupsList />, handle: { title: "Permission Groups" } satisfies DashboardHandle },
   { path: "/roles/permission-groups/create", element: <CreatePermissionGroup />, handle: { title: "Create Permission Group", back: routesPath.PROTECTED.ROLES.GROUPS.INDEX } satisfies DashboardHandle },
   { path: "/roles/permission-groups/:id/edit", element: <EditPermissionGroup />, handle: { title: "Edit Permission Group", back: routesPath.PROTECTED.ROLES.GROUPS.INDEX } satisfies DashboardHandle },

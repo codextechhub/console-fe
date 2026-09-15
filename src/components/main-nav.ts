@@ -84,6 +84,7 @@ export interface MainNavChild {
   match?: (location: string) => boolean;
   permission?: NavPermission;
   permissionMode?: "any" | "all";
+  requiredPermissions?: PermissionCode[];
 }
 
 export interface MainNavEntry {
@@ -94,6 +95,7 @@ export interface MainNavEntry {
   match: (location: string) => boolean;
   permission?: NavPermission;
   permissionMode?: "any" | "all";
+  requiredPermissions?: PermissionCode[];
   /** Whole-console visibility by raw backend key prefix. */
   modulePrefixes?: string[];
   /** Leaf items that open a separate console show a trailing chevron. */
@@ -189,9 +191,17 @@ export const MAIN_NAV: MainNavEntry[] = [
           (l.startsWith(R.ROLES.INDEX + "/") &&
             !l.startsWith(R.ROLES.GROUPS.INDEX) &&
             !l.startsWith(R.ROLES.USER_ASSIGNMENTS) &&
-            !l.startsWith(R.ROLES.TRANSFER_SUPER_ADMIN)),
+            !l.startsWith(R.ROLES.TRANSFER_SUPER_ADMIN) &&
+            !l.startsWith(R.ROLES.FIELD_ACCESS)),
+        permission: P.VIEW_ROLES,
       },
-      { title: "Platform User Assignments", url: R.ROLES.USER_ASSIGNMENTS },
+      { title: "Platform User Assignments", url: R.ROLES.USER_ASSIGNMENTS, permission: P.VIEW_ROLES },
+      {
+        title: "Field Access",
+        url: R.ROLES.FIELD_ACCESS,
+        permission: [P.VIEW_FIELD_ACCESS, P.MANAGE_FIELD_ACCESS],
+        requiredPermissions: [P.VIEW_ROLES],
+      },
       // Transfer Super Admin - only shown to users who hold the
       // platform.roles.transfer permission. The backend further restricts
       // execution to the active super admin.
@@ -473,11 +483,17 @@ export function buildMainNav(gate: NavGate, location: string): BuiltNavItem[] {
 
   for (const entry of MAIN_NAV) {
     if (!passesGate(gate, entry.permission, entry.permissionMode)) continue;
+    if (entry.requiredPermissions && !gate.hasAllPermissions(...entry.requiredPermissions)) continue;
     if (entry.modulePrefixes && !gate.hasModuleAccess(...entry.modulePrefixes)) continue;
 
     const wantsGroup = !!entry.items && passesGate(gate, entry.groupWhen);
     const visibleChildren = wantsGroup
-      ? entry.items!.filter((child) => passesGate(gate, child.permission, child.permissionMode))
+      ? entry.items!.filter(
+          (child) =>
+            passesGate(gate, child.permission, child.permissionMode) &&
+            (!child.requiredPermissions ||
+              gate.hasAllPermissions(...child.requiredPermissions)),
+        )
       : [];
     // Only children this viewer can see compete: a hidden sibling must not be
     // able to unlight the row the viewer is actually standing on.

@@ -56,6 +56,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-roles", label: "View roles", aliases: ["platform roles"], console: "Main", group: "Roles", kind: "view", gate: { perm: P.VIEW_ROLES }, run: { to: R.ROLES.INDEX } },
   { id: "create-role", label: "Create role", aliases: ["define role", "new role"], console: "Main", group: "Roles", kind: "do", gate: { perm: P.DEFINE_ROLE }, run: { to: R.ROLES.CREATE } },
   { id: "view-role-assignments", label: "View role assignments", aliases: ["user assignments", "who has what role"], console: "Main", group: "Roles", kind: "view", gate: { perm: P.VIEW_ROLES }, run: { to: R.ROLES.USER_ASSIGNMENTS } },
+  { id: "view-field-access", label: "View field access", aliases: ["field permissions", "read write fields"], console: "Main", group: "Roles", kind: "view", gate: { required: [P.VIEW_ROLES], any: [P.VIEW_FIELD_ACCESS, P.MANAGE_FIELD_ACCESS] }, run: { to: R.ROLES.FIELD_ACCESS } },
   { id: "transfer-super-admin", label: "Transfer super admin", aliases: [], console: "Main", group: "Roles", kind: "do", gate: { perm: P.TRANSFER_SUPER_ADMIN }, run: { to: R.ROLES.TRANSFER_SUPER_ADMIN } },
 
   // ── Main · Permissions ───────────────────────────────────────────────────
