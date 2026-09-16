@@ -38,7 +38,7 @@ export default function ManageFieldAccessArticle() {
         <GuideSteps>
           <GuideStep title="Open Field Access">In the sidebar, open <strong>Roles</strong> and select <strong>Field Access</strong>, or search for <strong>View field access</strong>.</GuideStep>
           <GuideStep title="Choose the role">Select the <strong>Role</strong>. Choosing another role discards switches you have not saved.</GuideStep>
-          <GuideStep title="Narrow to the fields">Choose the <strong>Module</strong> and <strong>Resource</strong>. Only modules and resources that carry fields are listed. Use <strong>Search field labels</strong> to find a field inside that resource. Fields are grouped under headings such as Banking or Contact.</GuideStep>
+          <GuideStep title="Narrow to the fields">Type or pick a module in the <strong>Module</strong> box. The <strong>Resource</strong> box opens once a module is chosen; pick a resource there and its fields appear. Only modules and resources that carry fields are offered, and choosing another module clears the resource. Use <strong>Search field labels</strong> to find a field inside that resource. Fields are grouped under headings such as Banking or Contact.</GuideStep>
           <GuideStep title="Set Read and Write">Turn the <strong>Read</strong> and <strong>Write</strong> switches for each field. A changed field shows <strong>Unsaved</strong> until you save, and returning it to its saved value clears that badge.</GuideStep>
           <GuideStep title="Save the changes">Select <strong>Save changes</strong>. Only the fields you changed are sent, and the list is reloaded from the saved result. You see <strong>Field access saved.</strong> when it succeeds.</GuideStep>
         </GuideSteps>
@@ -58,7 +58,7 @@ export default function ManageFieldAccessArticle() {
         <p>A field exception changes one field for one person, on top of their roles. It appears as <strong>Field exceptions</strong> beside permission exceptions on a school user&apos;s details and on a staff profile, for anyone who can view roles and view user exceptions. For a school user, the field list is that school&apos;s own.</p>
         <GuideSteps>
           <GuideStep title="Open Add exception">In <strong>Field exceptions</strong>, select <strong>Add exception</strong>. The control is never offered on your own profile.</GuideStep>
-          <GuideStep title="Choose the field">Choose the <strong>Module</strong>, <strong>Resource</strong>, and <strong>Field</strong>.</GuideStep>
+          <GuideStep title="Choose the field">Pick a module in the <strong>Module</strong> box, then a resource in the <strong>Resource</strong> box. The <strong>Field</strong> box appears once both are chosen; search it for the field.</GuideStep>
           <GuideStep title="Choose access and mode">Choose <strong>Read</strong> or <strong>Write</strong>, then <strong>Allow</strong> or <strong>Deny</strong>. Write is unavailable for a field nobody can change.</GuideStep>
           <GuideStep title="Give a reason and an optional expiry">Enter the required <strong>Reason</strong>. Set <strong>Expires on</strong> when the need has an end date, or leave it empty.</GuideStep>
           <GuideStep title="Apply">Select <strong>Apply exception</strong>. If the person already has an exception for the same field and access, the button reads <strong>Replace exception</strong> and the new one replaces the old.</GuideStep>
