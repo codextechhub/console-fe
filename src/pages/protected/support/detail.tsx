@@ -59,6 +59,11 @@ import { useDashboardTitle } from "@/components/layout/dashboard-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FollowTicketControl } from "./follow-ticket-control";
 import { PageShell } from "@/components/layout/page-shell";
+import {
+  buildTicketConversationDays,
+  conversationCommentBody,
+  partitionTicketAttachments,
+} from "./attachment-placement";
 
 // Mirrors backend VALID_STATUS_TRANSITIONS (vs_tickets/constants.py).
 const transitions: Record<TicketStatus, TicketStatus[]> = {
@@ -82,7 +87,24 @@ function formatFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function TicketAttachmentCard({ ticketId, attachment }: { ticketId: string; attachment: TicketAttachment }) {
+function formatConversationTime(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Time unknown";
+  return date.toLocaleTimeString("en-NG", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function TicketAttachmentCard({
+  ticketId,
+  attachment,
+  compact = false,
+}: {
+  ticketId: string;
+  attachment: TicketAttachment;
+  compact?: boolean;
+}) {
   const [download, state] = useDownloadTicketAttachmentMutation();
   const [previewUrl, setPreviewUrl] = useState("");
   const isImage = attachment.content_type.startsWith("image/");
@@ -127,12 +149,27 @@ function TicketAttachmentCard({ ticketId, attachment }: { ticketId: string; atta
     <button
       type="button"
       onClick={save}
-      className="mt-3 flex w-full max-w-sm items-center gap-3 overflow-hidden rounded-lg border border-gray-200 bg-gray-50/70 p-2.5 text-left hover:border-primary/30 hover:bg-primary/5"
+      className={cn(
+        "flex w-full items-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50/70 text-left hover:border-primary/30 hover:bg-primary/5",
+        compact ? "mt-1.5 max-w-xs gap-2 p-2" : "mt-3 max-w-sm gap-3 p-2.5",
+      )}
     >
       {isImage && previewUrl ? (
-        <img src={previewUrl} alt={attachment.original_filename} className="size-14 shrink-0 rounded-md object-cover" />
+        <img
+          src={previewUrl}
+          alt={attachment.original_filename}
+          className={cn(
+            "shrink-0 rounded-md object-cover",
+            compact ? "size-10" : "size-14",
+          )}
+        />
       ) : (
-        <span className="grid size-10 shrink-0 place-items-center rounded-md bg-white text-primary">
+        <span
+          className={cn(
+            "grid shrink-0 place-items-center rounded-md bg-white text-primary",
+            compact ? "size-8" : "size-10",
+          )}
+        >
           {isImage ? <Image className="size-5" /> : <FileText className="size-5" />}
         </span>
       )}
@@ -159,7 +196,24 @@ export default function TicketDetail() {
       : null,
   );
   const hasTicket = Boolean(ticket);
-  const commentCount = ticket?.comments?.length ?? 0;
+  const ticketLevelAttachments = (ticket?.attachments ?? []).filter(
+    (attachment) => !attachment.comment_id,
+  );
+  const attachmentPlacement = partitionTicketAttachments(
+    ticketLevelAttachments,
+    ticket?.created_at ?? "",
+  );
+  const conversationDays = buildTicketConversationDays(
+    ticket?.comments ?? [],
+    attachmentPlacement.conversation,
+  );
+  const conversationItemCount = conversationDays.reduce(
+    (dayTotal, day) => dayTotal + day.groups.reduce(
+      (groupTotal, group) => groupTotal + group.items.length,
+      0,
+    ),
+    0,
+  );
   const canManage = hasPermission(P.MANAGE_TICKETS);
   const canAssign = hasPermission(P.ASSIGN_TICKET);
   const canInternal = hasPermission(P.POST_INTERNAL_NOTE);
@@ -184,7 +238,7 @@ export default function TicketDetail() {
   const activeConversationRef = useRef("");
   const staysAtLatestRef = useRef(true);
   const forceLatestOnUpdateRef = useRef(false);
-  const knownCommentCountRef = useRef(0);
+  const knownConversationItemCountRef = useRef(0);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const [newMessagesBelow, setNewMessagesBelow] = useState(0);
 
@@ -200,12 +254,12 @@ export default function TicketDetail() {
   useEffect(() => {
     if (!hasTicket) return;
     const isOpeningTicket = activeConversationRef.current !== id;
-    const previousCommentCount = knownCommentCountRef.current;
+    const previousItemCount = knownConversationItemCountRef.current;
     const newlyArrivedCount = isOpeningTicket
       ? 0
-      : Math.max(0, commentCount - previousCommentCount);
+      : Math.max(0, conversationItemCount - previousItemCount);
     activeConversationRef.current = id;
-    knownCommentCountRef.current = commentCount;
+    knownConversationItemCountRef.current = conversationItemCount;
     const shouldFollowLatest = (
       isOpeningTicket
       || staysAtLatestRef.current
@@ -226,7 +280,7 @@ export default function TicketDetail() {
       scrollConversationToLatest(isOpeningTicket ? "auto" : "smooth");
     });
     return () => cancelAnimationFrame(frame);
-  }, [commentCount, hasTicket, id]);
+  }, [conversationItemCount, hasTicket, id]);
 
   if (ticketQuery.isLoading)
     return (
@@ -243,10 +297,7 @@ export default function TicketDetail() {
       </>
     );
 
-  // A file may be sent without text (it attaches to the ticket itself), but an
-  // internal note needs text: a ticket-level attachment has no visibility flag,
-  // so a file-only "internal" send would be visible to the requester.
-  const canSend = !!body.trim() || (!!pendingFile && !internal);
+  const canSend = !!body.trim() || !!pendingFile;
   const isSending = commentState.isLoading || uploadState.isLoading;
 
   const send = async () => {
@@ -255,8 +306,9 @@ export default function TicketDetail() {
     const text = body.trim();
     try {
       let commentId: string | undefined;
-      if (text) {
-        const created = await comment({ id, body: text, visibility: internal ? "INTERNAL" : "PUBLIC" }).unwrap();
+      const commentBody = conversationCommentBody(text, Boolean(pendingFile));
+      if (commentBody) {
+        const created = await comment({ id, body: commentBody, visibility: internal ? "INTERNAL" : "PUBLIC" }).unwrap();
         forceLatestOnUpdateRef.current = true;
         setBody("");
         commentId = created.data.id;
@@ -304,26 +356,16 @@ export default function TicketDetail() {
                   </div>
                   <TicketStatusBadge status={ticket.status} />
                 </div>
-                <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-gray-600">
+                <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-gray-600 lg:hidden">
                   {ticket.description}
                 </p>
-                {!!ticket.attachments?.filter((attachment) => !attachment.comment_id).length && (
-                  <div className="mt-4 border-t border-white-02 pt-3">
-                    <p className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-01">
-                      <Paperclip className="size-3.5" /> Ticket attachments
-                    </p>
-                    {ticket.attachments.filter((attachment) => !attachment.comment_id).map((attachment) => (
-                      <TicketAttachmentCard key={attachment.id} ticketId={id} attachment={attachment} />
-                    ))}
-                  </div>
-                )}
               </div>
 
               <div className="p-4 sm:p-6 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
                 <div className="flex shrink-0 flex-wrap items-center gap-2">
                   <MessageSquare className="size-4" />
                   <h2 className="font-semibold">Conversation</h2>
-                  <span className="text-xs text-gray-01">{ticket.comments?.length ?? 0}</span>
+                  <span className="text-xs text-gray-01">{conversationItemCount}</span>
                   <div className="ml-auto">
                     <FollowTicketControl
                       following={ticket.is_following !== false}
@@ -361,29 +403,93 @@ export default function TicketDetail() {
                       }}
                       className="absolute inset-0 space-y-4 overflow-y-auto overscroll-contain p-3 sm:p-4"
                     >
-                      {ticket.comments?.map((c) => (
-                        <div
-                          key={c.id}
-                          className={cn(
-                            "rounded-lg border border-white-02 bg-white p-4",
-                            c.visibility === "INTERNAL" && "border-amber-200 bg-amber-50/60",
-                          )}
-                        >
-                          <div className="flex justify-between gap-3">
-                            <p className="text-sm font-semibold">{c.author.name}</p>
-                            <p className="text-xs text-gray-01">{new Date(c.created_at).toLocaleString()}</p>
+                      {conversationDays.map((day) => (
+                        <section key={day.key} className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <span className="h-px flex-1 bg-gray-200" />
+                            <time className="shrink-0 text-[11px] font-medium text-gray-01">
+                              {Number.isFinite(day.date.getTime())
+                                ? day.date.toLocaleDateString("en-NG", {
+                                    day: "numeric",
+                                    month: "long",
+                                    year: "numeric",
+                                  })
+                                : "Date unknown"}
+                            </time>
+                            <span className="h-px flex-1 bg-gray-200" />
                           </div>
-                          {c.visibility === "INTERNAL" && (
-                            <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-amber-700">
-                              <Lock className="size-3" />
-                              Internal note
-                            </p>
-                          )}
-                          <p className="mt-2 whitespace-pre-wrap text-sm leading-6">{c.body}</p>
-                          {c.attachments.map((attachment) => (
-                            <TicketAttachmentCard key={attachment.id} ticketId={id} attachment={attachment} />
+
+                          {day.groups.map((group, groupIndex) => (
+                            <div
+                              key={`${day.key}-${group.author.id}-${groupIndex}`}
+                              className="space-y-1.5"
+                            >
+                              <div className="flex items-baseline gap-3">
+                                <p className="min-w-0 text-sm font-semibold">
+                                  {group.author.name}
+                                </p>
+                                <time className="ml-auto shrink-0 text-[11px] text-gray-01">
+                                  {formatConversationTime(
+                                    group.items.at(-1)?.createdAt ?? "",
+                                  )}
+                                </time>
+                              </div>
+                              <div className="space-y-1">
+                                {group.items.map((item) => {
+                                  if (item.kind === "attachment") {
+                                    return (
+                                      <div
+                                        key={item.id}
+                                        className="rounded-md border border-white-02 bg-white px-3 py-2"
+                                      >
+                                        <TicketAttachmentCard
+                                          ticketId={id}
+                                          attachment={item.attachment}
+                                          compact
+                                        />
+                                      </div>
+                                    );
+                                  }
+
+                                  const commentItem = item.comment;
+                                  return (
+                                    <div
+                                      key={item.id}
+                                      className={cn(
+                                        "rounded-md border border-white-02 bg-white px-3 py-2",
+                                        commentItem.visibility === "INTERNAL"
+                                          && "border-amber-200 bg-amber-50/60",
+                                      )}
+                                    >
+                                      {commentItem.visibility === "INTERNAL" && (
+                                        <p className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700">
+                                          <Lock className="size-3" />
+                                          Internal note
+                                        </p>
+                                      )}
+                                      <p
+                                        className={cn(
+                                          "whitespace-pre-wrap text-sm leading-5",
+                                          commentItem.visibility === "INTERNAL" && "mt-1",
+                                        )}
+                                      >
+                                        {commentItem.body}
+                                      </p>
+                                      {commentItem.attachments.map((attachment) => (
+                                        <TicketAttachmentCard
+                                          key={attachment.id}
+                                          ticketId={id}
+                                          attachment={attachment}
+                                          compact
+                                        />
+                                      ))}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           ))}
-                        </div>
+                        </section>
                       ))}
                     </div>
 
@@ -461,12 +567,6 @@ export default function TicketDetail() {
                         </button>
                       </div>
                     )}
-                    {pendingFile && internal && !body.trim() && (
-                      <p className="mt-1.5 text-[11px] text-gray-01">
-                        Write the note text to send this file with an internal note - a file sent
-                        alone is visible to everyone on the ticket.
-                      </p>
-                    )}
                   </div> : (
                     <p className="shrink-0 border-t border-gray-200 bg-white p-4 text-sm text-gray-01">You can view this ticket, but you cannot reply to its conversation.</p>
                   )}
@@ -475,6 +575,13 @@ export default function TicketDetail() {
             </section>
 
             <aside className="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
+              <div className={cn(INFORMATION_CARD_SURFACE, "hidden rounded-md p-5 lg:block")}>
+                <h2 className="font-semibold">Description</h2>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-600">
+                  {ticket.description}
+                </p>
+              </div>
+
               {ticket.escalated_at && (
                 /* A school triages its own tickets first, so this one reached
                    the desk because somebody there decided it was beyond them.
@@ -530,6 +637,23 @@ export default function TicketDetail() {
                   ))}
                 </dl>
               </div>
+
+              {attachmentPlacement.initial.length > 0 && (
+                <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
+                  <h2 className="inline-flex items-center gap-1.5 font-semibold">
+                    <Paperclip className="size-4 text-primary" />
+                    Files attached
+                  </h2>
+                  <p className="mt-1 text-xs leading-5 text-gray-01">
+                    Included when this ticket was raised.
+                  </p>
+                  <div className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1">
+                    {attachmentPlacement.initial.map((attachment) => (
+                      <TicketAttachmentCard key={attachment.id} ticketId={id} attachment={attachment} />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {canAssign && (
                 <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
