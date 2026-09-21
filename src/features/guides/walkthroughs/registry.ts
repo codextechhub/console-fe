@@ -236,53 +236,6 @@ export const WALKTHROUGH_REGISTRY = [
     ],
   },
   {
-    id: "walkthrough.roles.maintain-permission-catalogue",
-    guideId: "roles.maintain-permission-catalogue",
-    route: R.PERMISSIONS.CREATE,
-    permissions: [P.CREATE_PERMISSION],
-    prerequisites: [
-      "Confirm the backend already enforces the proposed permission key.",
-      "Agree its module, resource, action, sensitivity, restrictions, and dependencies.",
-    ],
-    version: 1,
-    steps: [
-      {
-        id: "welcome",
-        title: "Treat the catalogue as a security contract",
-        body: "This walkthrough explains permission composition and classification. It never chooses catalogue values, creates a key, changes dependencies, or edits a permission group.",
-        advance: "next",
-      },
-      {
-        id: "permission-key",
-        target: "permission-create.key",
-        title: "Compose the exact authorization key",
-        body: "Select the approved module, one of its resources, and the action. Check the preview against the backend permission check and prevent duplicate keys.",
-        placement: "bottom",
-        advance: "manual",
-      },
-      {
-        id: "classification",
-        target: "permission-create.classification",
-        title: "Classify the consequence",
-        body: "Describe what the permission allows, choose Normal, Sensitive, or Critical, decide whether it is Restricted, and choose whether it starts Active.",
-        placement: "top",
-        advance: "manual",
-      },
-      {
-        id: "backend-boundary",
-        title: "Frontend visibility is not authorization",
-        body: "Before creation, verify the backend rejects an unauthorized request and enforces tenant or entity scope. A key used only to hide a button does not secure the operation.",
-        advance: "manual",
-      },
-      {
-        id: "complete",
-        title: "Creation remains a deliberate action",
-        body: "The walkthrough stops before Create Permission. After creation, add required dependencies, review groups and roles, and test both permitted and denied requests.",
-        advance: "next",
-      },
-    ],
-  },
-  {
     id: "walkthrough.roles.manage-field-access",
     guideId: "roles.manage-field-access",
     route: R.ROLES.FIELD_ACCESS,

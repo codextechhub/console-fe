@@ -74,37 +74,21 @@ export const routesPath = {
       FIELD_ACCESS: "/roles/field-access",
       GROUPS: {
         INDEX: "/roles/permission-groups",
-        CREATE: "/roles/permission-groups/create",
-        EDIT_PATH: "/roles/permission-groups/:id/edit",
-        EDIT: (id: string) => `/roles/permission-groups/${id}/edit`,
       },
     },
     PERMISSIONS: {
       INDEX: "/permissions",
-      CREATE: "/permissions/create",
-      EDIT_PATH: "/permissions/:key/edit",
-      EDIT: (key: string) => `/permissions/${encodeURIComponent(key)}/edit`,
       MODULES: {
         INDEX: "/permissions/modules",
-        CREATE: "/permissions/modules/create",
-        EDIT_PATH: "/permissions/modules/:name/edit",
-        EDIT: (name: string) => `/permissions/modules/${name}/edit`,
       },
       RESOURCES: {
         INDEX: "/permissions/resources",
-        CREATE: "/permissions/resources/create",
-        EDIT_PATH: "/permissions/resources/:id/edit",
-        EDIT: (id: string) => `/permissions/resources/${id}/edit`,
       },
       ACTIONS: {
         INDEX: "/permissions/actions",
-        CREATE: "/permissions/actions/create",
-        EDIT_PATH: "/permissions/actions/:name/edit",
-        EDIT: (name: string) => `/permissions/actions/${name}/edit`,
       },
       DEPENDENCIES: {
         INDEX: "/permissions/dependencies",
-        CREATE: "/permissions/dependencies/create",
       },
     },
     DATA_IMPORTS: {

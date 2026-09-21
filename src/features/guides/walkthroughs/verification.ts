@@ -11,7 +11,6 @@ export type WalkthroughVerificationRecord = {
 const VERSION_ONE_WALKTHROUGHS = [
   "walkthrough.roles.create-and-assign",
   "walkthrough.roles.transfer-super-admin",
-  "walkthrough.roles.maintain-permission-catalogue",
   "walkthrough.organogram.build-structure",
   "walkthrough.organogram.maintain-staff-profiles",
   "walkthrough.workflow.delegate-and-track",

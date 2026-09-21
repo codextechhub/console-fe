@@ -28,6 +28,7 @@ const ROW = {
   user_id: "42",
   permission: "finance.invoice.create",
   permission_key: "finance.invoice.create",
+  permission_label: "Raise an invoice",
   permission_description: "Raise an invoice",
   permission_sensitivity: "SENSITIVE",
   mode: "DENY",
@@ -161,7 +162,8 @@ describe("PermissionOverrides read-only vs manage", () => {
   it("offers no add button and no row actions without the manage key", async () => {
     await mount([VIEW_KEY]);
 
-    expect(container.textContent).toContain("finance.invoice.create");
+    expect(container.textContent).toContain("Raise an invoice");
+    expect(container.textContent).not.toContain("finance.invoice.create");
     expect(container.textContent).not.toContain("Add exception");
     expect(
       container.querySelector('[aria-label^="Lift exception"]'),
@@ -173,7 +175,7 @@ describe("PermissionOverrides read-only vs manage", () => {
 
     expect(container.textContent).toContain("Add exception");
     expect(
-      container.querySelector('[aria-label="Lift exception on finance.invoice.create"]'),
+      container.querySelector('[aria-label="Lift exception on Raise an invoice"]'),
     ).not.toBeNull();
   });
 });

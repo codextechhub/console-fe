@@ -41,8 +41,8 @@ describe("contextual guides", () => {
     expect(fieldAccess.guides.map((guide) => guide.id)).toEqual(["roles.manage-field-access"]);
     expect(fieldAccess.walkthroughs.map((guide) => guide.walkthroughId)).toEqual(["walkthrough.roles.manage-field-access"]);
 
-    const permissionCreate = contextualGuideContext(GUIDE_REGISTRY, "/permissions/create", ["platform.permissions.create"]);
-    expect(permissionCreate.guides.map((guide) => guide.id)).toEqual(["roles.maintain-permission-catalogue"]);
+    const permissionRegistry = contextualGuideContext(GUIDE_REGISTRY, "/permissions", ["platform.permissions.view"]);
+    expect(permissionRegistry.guides.map((guide) => guide.id)).toEqual(["roles.maintain-permission-catalogue"]);
 
     const organogramManage = contextualGuideContext(GUIDE_REGISTRY, "/organogram/manage", ["platform.organogram.manage"]);
     expect(organogramManage.guides.map((guide) => guide.id)).toEqual(["organogram.build-structure"]);

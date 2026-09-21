@@ -343,9 +343,9 @@ article would require more than roughly twelve decision-bearing steps.
 - Assign roles to platform users.
 - Review role change requests.
 - Transfer super administrator ownership.
-- Browse and maintain the permission catalogue.
+- Browse the backend-owned permission catalogue.
 - Create and edit permission modules, resources, actions, and dependencies.
-- Create and edit permission groups.
+- Review backend-owned permission groups and use them in custom roles.
 - Diagnose why a user cannot see or perform an action.
 
 ### 7.4 Organogram and tasks

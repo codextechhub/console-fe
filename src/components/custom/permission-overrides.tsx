@@ -278,13 +278,7 @@ function OverridesSection({
           <div className="space-y-2 text-sm text-gray-01">
             <p className="break-words">
               <span className="font-medium text-black-01">
-                {pendingLift ? permissionLabel({
-                  key: pendingLift.permission_key,
-                  description: pendingLift.permission_description,
-                }) : ""}
-              </span>{" "}
-              <span className="font-mono text-xs">
-                {pendingLift?.permission_key}
+                {pendingLift?.permission_label ?? ""}
               </span>
             </p>
             <p>
@@ -342,13 +336,7 @@ function OverrideRow({
               spent && "text-gray-01 line-through",
             )}
           >
-            {permissionLabel({
-              key: row.permission_key,
-              description: row.permission_description,
-            })}
-          </p>
-          <p className="mt-0.5 break-all font-mono text-[11px] text-gray-01">
-            {row.permission_key}
+            {row.permission_label}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -364,7 +352,7 @@ function OverrideRow({
             <button
               type="button"
               onClick={onLift}
-              aria-label={`Lift exception on ${row.permission_key}`}
+              aria-label={`Lift exception on ${row.permission_label}`}
               className="inline-flex items-center gap-1 rounded-md border border-white-02 px-1.5 py-1 text-[11px] font-semibold text-gray-01 transition-colors hover:border-destructive/40 hover:text-destructive"
             >
               <Trash2 className="size-3" /> Lift
@@ -442,17 +430,20 @@ function AddExceptionDrawer({
   );
 
   const catalogueRows = Array.isArray(catalogue?.data) ? catalogue.data : [];
-  const modules = Array.from(
-    new Set(catalogueRows.map((p) => p.module_key || permissionModule(p.key))),
-  ).sort();
+  const moduleOptions = Array.from(
+    new Map(catalogueRows.map((p) => {
+      const value = p.module_key || permissionModule(p.key);
+      return [value, { value, label: p.module_label || value }];
+    })).values(),
+  ).sort((a, b) => a.label.localeCompare(b.label));
 
   const options = catalogueRows
     .filter((p) => !module || (p.module_key || permissionModule(p.key)) === module)
     .map((p) => ({
       value: p.key,
-      label: `${permissionLabel(p)} - ${p.key}`,
+      label: p.label || permissionLabel(p),
     }))
-    .sort((a, b) => a.value.localeCompare(b.value));
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   const alreadyOverridden = existing.find((row) => row.permission_key === permission);
 
@@ -525,7 +516,7 @@ function AddExceptionDrawer({
                 id="override-module"
                 label="Module"
                 placeholder="All modules"
-                options={modules.map((m) => ({ value: m, label: m }))}
+                options={moduleOptions}
                 loading={loadingCatalogue}
                 value={module}
                 onChange={(e) => {

@@ -73,10 +73,6 @@ const REGISTRY_BASE: Record<string, string> = {
 
   // ── platform / permissions registry  (MM=10, RR=05) ──────────────────────
   "100501": "platform.permissions.view",
-  "100502": "platform.permissions.create",
-  "100503": "platform.permissions.update",
-  "100504": "platform.permissions.delete",
-  "100508": "platform.permissions.manage",
 
   // ── platform / audit  (MM=10, RR=06) ──────────────────────────────────────
   "100606": "platform.audit.export",
@@ -398,10 +394,6 @@ export const P = {
 
   // ── Permission Registry ────────────────────────────────────────────────────
   VIEW_PERMISSIONS:     "100501",  // view the global permission registry
-  CREATE_PERMISSION:    "100502",  // add new permissions, modules, resources, or actions
-  MODIFY_PERMISSION:    "100503",  // edit permission metadata
-  DELETE_PERMISSION:    "100504",  // delete a permission from the registry
-  MANAGE_PERMISSIONS:   "100508",  // manage groups, dependencies, and vocabulary
 
   // ── Audit & Compliance ─────────────────────────────────────────────────────
   EXPORT_AUDIT:         "100606",  // export audit data to file

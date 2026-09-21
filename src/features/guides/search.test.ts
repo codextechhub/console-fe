@@ -76,7 +76,7 @@ describe("guide search", () => {
     expect(searchGuides(GUIDE_REGISTRY, "transfer super admin")[0]?.guide.id).toBe(
       "roles.review-changes-and-transfer-super-admin",
     );
-    expect(searchGuides(GUIDE_REGISTRY, "add dependency")[0]?.guide.id).toBe(
+    expect(searchGuides(GUIDE_REGISTRY, "permission dependency")[0]?.guide.id).toBe(
       "roles.maintain-permission-catalogue",
     );
     expect(searchGuides(GUIDE_REGISTRY, "field exception")[0]?.guide.id).toBe(

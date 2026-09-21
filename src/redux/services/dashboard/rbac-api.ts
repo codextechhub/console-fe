@@ -125,21 +125,6 @@ export const rbacApi = baseApi.injectEndpoints({
       providesTags: ["PermissionGroups"],
     }),
 
-    createPermissionGroup: builder.mutation<{ data: PermissionGroupDetail }, Record<string, unknown>>({
-      query: (body) => ({ url: `/rbac/vision/permission-groups/`, method: "POST", body }),
-      invalidatesTags: ["PermissionGroups"],
-    }),
-
-    updatePermissionGroup: builder.mutation<{ data: PermissionGroupDetail }, { id: string; body: Record<string, unknown> }>({
-      query: ({ id, body }) => ({ url: `/rbac/vision/permission-groups/${id}/`, method: "PATCH", body }),
-      invalidatesTags: ["PermissionGroups"],
-    }),
-
-    deletePermissionGroup: builder.mutation<void, string>({
-      query: (id) => ({ url: `/rbac/vision/permission-groups/${id}/`, method: "DELETE" }),
-      invalidatesTags: ["PermissionGroups"],
-    }),
-
     // ── Permissions ────────────────────────────────────────────────────────────
     getPermissions: builder.query<PaginatedResponse<Permission>, Record<string, string | number>>({
       query: (params) => ({ url: `/rbac/vision/permissions/${generateQueryString(params)}`, method: "GET" }),
@@ -149,21 +134,6 @@ export const rbacApi = baseApi.injectEndpoints({
     getPermissionDetail: builder.query<{ data: PermissionDetail }, string>({
       query: (key) => ({ url: `/rbac/vision/permissions/${encodeURIComponent(key)}/`, method: "GET" }),
       providesTags: ["Permissions"],
-    }),
-
-    createPermission: builder.mutation<{ data: Permission }, Record<string, unknown>>({
-      query: (body) => ({ url: `/rbac/vision/permissions/`, method: "POST", body }),
-      invalidatesTags: ["Permissions"],
-    }),
-
-    updatePermission: builder.mutation<{ data: Permission }, { key: string; body: Record<string, unknown> }>({
-      query: ({ key, body }) => ({ url: `/rbac/vision/permissions/${encodeURIComponent(key)}/`, method: "PATCH", body }),
-      invalidatesTags: ["Permissions"],
-    }),
-
-    deletePermission: builder.mutation<void, string>({
-      query: (key) => ({ url: `/rbac/vision/permissions/${encodeURIComponent(key)}/`, method: "DELETE" }),
-      invalidatesTags: ["Permissions"],
     }),
 
     // ── Permission Modules ─────────────────────────────────────────────────────
@@ -177,21 +147,6 @@ export const rbacApi = baseApi.injectEndpoints({
       providesTags: ["PermissionModules"],
     }),
 
-    createPermissionModule: builder.mutation<{ data: PermissionModule }, Record<string, unknown>>({
-      query: (body) => ({ url: `/rbac/vision/permission-modules/`, method: "POST", body }),
-      invalidatesTags: ["PermissionModules"],
-    }),
-
-    updatePermissionModule: builder.mutation<{ data: PermissionModule }, { name: string; body: Record<string, unknown> }>({
-      query: ({ name, body }) => ({ url: `/rbac/vision/permission-modules/${name}/`, method: "PATCH", body }),
-      invalidatesTags: ["PermissionModules"],
-    }),
-
-    deletePermissionModule: builder.mutation<void, string>({
-      query: (name) => ({ url: `/rbac/vision/permission-modules/${name}/`, method: "DELETE" }),
-      invalidatesTags: ["PermissionModules"],
-    }),
-
     // ── Permission Resources ───────────────────────────────────────────────────
     getPermissionResources: builder.query<PaginatedResponse<PermissionResource>, Record<string, string | number>>({
       query: (params) => ({ url: `/rbac/vision/permission-resources/${generateQueryString(params)}`, method: "GET" }),
@@ -201,21 +156,6 @@ export const rbacApi = baseApi.injectEndpoints({
     getPermissionResourceDetail: builder.query<{ data: PermissionResource }, string>({
       query: (id) => ({ url: `/rbac/vision/permission-resources/${id}/`, method: "GET" }),
       providesTags: ["PermissionResources"],
-    }),
-
-    createPermissionResource: builder.mutation<{ data: PermissionResource }, Record<string, unknown>>({
-      query: (body) => ({ url: `/rbac/vision/permission-resources/`, method: "POST", body }),
-      invalidatesTags: ["PermissionResources"],
-    }),
-
-    updatePermissionResource: builder.mutation<{ data: PermissionResource }, { id: string; body: Record<string, unknown> }>({
-      query: ({ id, body }) => ({ url: `/rbac/vision/permission-resources/${id}/`, method: "PATCH", body }),
-      invalidatesTags: ["PermissionResources"],
-    }),
-
-    deletePermissionResource: builder.mutation<void, string>({
-      query: (id) => ({ url: `/rbac/vision/permission-resources/${id}/`, method: "DELETE" }),
-      invalidatesTags: ["PermissionResources"],
     }),
 
     // ── Permission Actions ─────────────────────────────────────────────────────
@@ -229,35 +169,10 @@ export const rbacApi = baseApi.injectEndpoints({
       providesTags: ["PermissionActions"],
     }),
 
-    createPermissionAction: builder.mutation<{ data: PermissionAction }, Record<string, unknown>>({
-      query: (body) => ({ url: `/rbac/vision/permission-actions/`, method: "POST", body }),
-      invalidatesTags: ["PermissionActions"],
-    }),
-
-    updatePermissionAction: builder.mutation<{ data: PermissionAction }, { name: string; body: Record<string, unknown> }>({
-      query: ({ name, body }) => ({ url: `/rbac/vision/permission-actions/${name}/`, method: "PATCH", body }),
-      invalidatesTags: ["PermissionActions"],
-    }),
-
-    deletePermissionAction: builder.mutation<void, string>({
-      query: (name) => ({ url: `/rbac/vision/permission-actions/${name}/`, method: "DELETE" }),
-      invalidatesTags: ["PermissionActions"],
-    }),
-
     // ── Permission Dependencies ────────────────────────────────────────────────
     getPermissionDependencies: builder.query<PaginatedResponse<PermissionDependency>, Record<string, string | number>>({
       query: (params) => ({ url: `/rbac/vision/permission-dependencies/${generateQueryString(params)}`, method: "GET" }),
       providesTags: ["PermissionDependencies"],
-    }),
-
-    createPermissionDependency: builder.mutation<{ data: PermissionDependency }, { permission_key: string; depends_on_key: string }>({
-      query: (body) => ({ url: `/rbac/vision/permission-dependencies/`, method: "POST", body }),
-      invalidatesTags: ["PermissionDependencies"],
-    }),
-
-    deletePermissionDependency: builder.mutation<void, string>({
-      query: (id) => ({ url: `/rbac/vision/permission-dependencies/${id}/`, method: "DELETE" }),
-      invalidatesTags: ["PermissionDependencies"],
     }),
 
     // ── Tenant Role Assignments (was /rbac/platform/role-assignments/) ──────────
@@ -331,32 +246,15 @@ export const {
   useDeletePlatformRoleMutation,
   useGetPermissionGroupsQuery,
   useGetPermissionGroupDetailQuery,
-  useCreatePermissionGroupMutation,
-  useUpdatePermissionGroupMutation,
-  useDeletePermissionGroupMutation,
   useGetPermissionsQuery,
   useGetPermissionDetailQuery,
-  useCreatePermissionMutation,
-  useUpdatePermissionMutation,
-  useDeletePermissionMutation,
   useGetPermissionModulesQuery,
   useGetPermissionModuleDetailQuery,
-  useCreatePermissionModuleMutation,
-  useUpdatePermissionModuleMutation,
-  useDeletePermissionModuleMutation,
   useGetPermissionResourcesQuery,
   useGetPermissionResourceDetailQuery,
-  useCreatePermissionResourceMutation,
-  useUpdatePermissionResourceMutation,
-  useDeletePermissionResourceMutation,
   useGetPermissionActionsQuery,
   useGetPermissionActionDetailQuery,
-  useCreatePermissionActionMutation,
-  useUpdatePermissionActionMutation,
-  useDeletePermissionActionMutation,
   useGetPermissionDependenciesQuery,
-  useCreatePermissionDependencyMutation,
-  useDeletePermissionDependencyMutation,
   useGetUserAssignmentsQuery,
   useAssignRoleMutation,
   useRevokeAssignmentMutation,

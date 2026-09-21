@@ -26,6 +26,7 @@ export interface PermissionOverride {
   /** Dotted permission key (the FK's to_field). */
   permission: string;
   permission_key: string;
+  permission_label: string;
   permission_description: string | null;
   permission_sensitivity: "NORMAL" | "SENSITIVE" | "CRITICAL" | null;
   mode: OverrideMode;

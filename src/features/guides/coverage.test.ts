@@ -61,7 +61,6 @@ describe("guide coverage reporting", () => {
   it("counts implemented high-risk roles walkthroughs", () => {
     const targets: GuideCoverageTarget[] = [
       { id: "role-setup", route: "/roles/create", actionId: "create-role", risk: "high" },
-      { id: "permission-setup", route: "/permissions/create", actionId: "create-permission", risk: "high" },
       { id: "super-admin-transfer", route: "/roles/transfer-super-admin", actionId: "transfer-super-admin", risk: "high" },
       { id: "field-access", route: "/roles/field-access", actionId: "view-field-access", risk: "high" },
     ];

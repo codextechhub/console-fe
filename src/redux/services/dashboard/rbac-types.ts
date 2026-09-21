@@ -100,8 +100,11 @@ export interface PermissionGroupDetail extends PermissionGroupList {
 export interface Permission {
   key: string;
   module_key: string;
+  module_label: string;
   resource_key: string;
+  resource_label: string;
   action_key: string;
+  label: string;
   description?: string;
   sensitivity_level: "NORMAL" | "SENSITIVE" | "CRITICAL";
   is_restricted: boolean;
@@ -118,6 +121,7 @@ export interface PermissionDetail extends Permission {
 
 export interface PermissionModule {
   name: string;
+  label?: string;
   description?: string;
   is_active: boolean;
   created_at: string;
@@ -127,7 +131,9 @@ export interface PermissionModule {
 export interface PermissionResource {
   id: string;
   module: string;
+  module_label: string;
   name: string;
+  label?: string;
   description?: string;
   is_active: boolean;
   permissions_count: number;
@@ -147,7 +153,9 @@ export interface PermissionAction {
 export interface PermissionDependency {
   id: string;
   permission_key: string;
+  permission_label: string;
   depends_on_key: string;
+  depends_on_label: string;
   created_at: string;
 }
 

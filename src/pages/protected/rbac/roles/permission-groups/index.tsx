@@ -1,30 +1,22 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router";
-import { Plus, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
-import { routesPath } from "@/routes/routes-path";
-import { useGetPermissionGroupsQuery, useDeletePermissionGroupMutation } from "@/redux/services/dashboard/rbac-api";
+import { useGetPermissionGroupsQuery } from "@/redux/services/dashboard/rbac-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
-import { toast } from "sonner";
 import type { PermissionGroupList } from "@/redux/services/dashboard/rbac-types";
-import PermissionGate from "@/components/custom/permission-gate";
-import { usePermissions } from "@/hooks/use-permissions";
-import { P } from "@/permissions";
 import { PageShell } from "@/components/layout/page-shell";
 
-const TABLE_HEADERS = ["Group Name", "System", "Status", "Permissions", "Created", "Action"];
+const TABLE_HEADERS = ["Group Name", "Status", "Permissions", "Created"];
 
-type CardFilter = "all" | "active" | "system" | "custom";
+type CardFilter = "all" | "active";
 
 export default function PermissionGroupsList() {
-  const navigate = useNavigate();
-  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
@@ -34,8 +26,6 @@ export default function PermissionGroupsList() {
     const p: Record<string, string | number> = { ...query };
     if (debouncedSearch) p.search = debouncedSearch;
     if (cardFilter === "active") p.is_active = "true";
-    if (cardFilter === "system") p.is_system = "true";
-    if (cardFilter === "custom") p.is_system = "false";
     return p;
   }, [query, debouncedSearch, cardFilter]);
 
@@ -44,22 +34,13 @@ export default function PermissionGroupsList() {
   });
 
   const { data: activeData } = useGetPermissionGroupsQuery({ page: 1, page_size: 1, is_active: "true" });
-  const { data: systemData } = useGetPermissionGroupsQuery({ page: 1, page_size: 1, is_system: "true" });
-  const { data: customData } = useGetPermissionGroupsQuery({ page: 1, page_size: 1, is_system: "false" });
-
-  const [deleteGroup] = useDeletePermissionGroupMutation();
-
   const groups = data?.data ?? [];
   const totalGroups = data?.pagination?.totalItems ?? 0;
   const activeCount = activeData?.pagination?.totalItems ?? 0;
-  const systemCount = systemData?.pagination?.totalItems ?? 0;
-  const customCount = customData?.pagination?.totalItems ?? 0;
 
   const metricCards = [
     { title: "All Groups", value: totalGroups, key: "all" as CardFilter, active: cardFilter === "all" },
     { title: "Active", value: activeCount, key: "active" as CardFilter, active: cardFilter === "active" },
-    { title: "System Groups", value: systemCount, key: "system" as CardFilter, active: cardFilter === "system" },
-    { title: "Custom Groups", value: customCount, key: "custom" as CardFilter, active: cardFilter === "custom" },
   ];
 
   const tableData = groups.map((group: PermissionGroupList) => ({
@@ -71,11 +52,6 @@ export default function PermissionGroupsList() {
         )}
       </div>
     ),
-    system: group.is_system ? (
-      <Badge variant="active" className="text-xs">System</Badge>
-    ) : (
-      <span className="text-xs text-gray-01">Custom</span>
-    ),
     status: (
       <Badge variant={group.is_active ? "active" : "inactive"}>
         {group.is_active ? "Active" : "Inactive"}
@@ -83,26 +59,17 @@ export default function PermissionGroupsList() {
     ),
     permissions: <span className="font-medium">{group.permissions_count}</span>,
     created: formatRelativeDate(group.created_at),
-    _id: group.id,
-    _system: group.is_system,
   }));
 
   return (
     <>
       <PageShell className="space-y-5 text-black-01">
-        <div className="flex items-center justify-between">
-          <div>
+        <div>
             <p className="font-semibold font-mont text-gray-01">Permission Groups</p>
-            <p className="text-xs text-gray-01 mt-0.5">Bundles of permissions that can be assigned to roles.</p>
-          </div>
-          <PermissionGate permission={P.MANAGE_PERMISSIONS}>
-            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.ROLES.GROUPS.CREATE)}>
-              <Plus /> Add New Group
-            </Button>
-          </PermissionGate>
+            <p className="text-xs text-gray-01 mt-0.5">Backend-defined bundles that can be assigned to custom roles.</p>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5">
           {metricCards.map((card, idx) => (
             <div
               key={idx}
@@ -153,25 +120,6 @@ export default function PermissionGroupsList() {
             tableHeaderList={TABLE_HEADERS}
             tableBodyList={tableData}
             loading={isLoading}
-            dropDown
-            dropDownList={(row: { _id: string; _system: boolean }) => [
-              ...(hasPermission(P.MANAGE_PERMISSIONS) ? [{
-                label: "Edit",
-                className: "",
-                onActionClick: () => navigate(routesPath.PROTECTED.ROLES.GROUPS.EDIT(row._id)),
-              }] : []),
-              ...(hasPermission(P.MANAGE_PERMISSIONS) && !row._system
-                ? [{
-                    label: "Delete",
-                    className: "text-destructive focus:text-destructive focus:bg-destructive/10",
-                    onActionClick: () =>
-                      deleteGroup(row._id)
-                        .unwrap()
-                        .then(() => toast.success("Group deleted."))
-                        .catch(() => {}),
-                  }]
-                : []),
-            ]}
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}
             currentPage={data?.pagination?.currentPage}

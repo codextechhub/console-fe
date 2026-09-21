@@ -1,24 +1,18 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router";
-import { Plus, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
-import PermissionGate from "@/components/custom/permission-gate";
-import { usePermissions } from "@/hooks/use-permissions";
-import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
-import { routesPath } from "@/routes/routes-path";
-import { useGetPermissionsQuery, useDeletePermissionMutation } from "@/redux/services/dashboard/rbac-api";
+import { useGetPermissionsQuery } from "@/redux/services/dashboard/rbac-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
-import { toast } from "sonner";
 import type { Permission } from "@/redux/services/dashboard/rbac-types";
 import { PageShell } from "@/components/layout/page-shell";
 
-const TABLE_HEADERS = ["Key", "Module", "Action Type", "Sensitivity", "Restricted", "Status", "Created", "Action"];
+const TABLE_HEADERS = ["Permission", "Module", "Resource", "Sensitivity", "Restricted", "Status", "Created"];
 
 const SENSITIVITY_BADGE: Record<string, "active" | "suspended" | "locked" | "inactive"> = {
   NORMAL: "active",
@@ -29,8 +23,6 @@ const SENSITIVITY_BADGE: Record<string, "active" | "suspended" | "locked" | "ina
 type CardFilter = "all" | "active" | "restricted" | "critical";
 
 export default function PermissionsList() {
-  const navigate = useNavigate();
-  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
@@ -54,8 +46,6 @@ export default function PermissionsList() {
   const { data: restrictedData } = useGetPermissionsQuery({ page: 1, page_size: 1, is_restricted: "true" });
   const { data: criticalData } = useGetPermissionsQuery({ page: 1, page_size: 1, sensitivity_level: "CRITICAL" });
 
-  const [deletePermission] = useDeletePermissionMutation();
-
   const perms = data?.data ?? [];
   const totalPerms = allData?.pagination?.totalItems ?? 0;
 
@@ -71,9 +61,9 @@ export default function PermissionsList() {
   ];
 
   const tableData = perms.map((perm: Permission) => ({
-    key: <span className="font-mono text-xs font-medium text-black-01">{perm.key}</span>,
-    module: <span className="capitalize text-xs">{perm.module_key}</span>,
-    action: <span className="capitalize text-xs">{perm.action_key}</span>,
+    permission: <span className="text-xs font-medium text-black-01">{perm.label}</span>,
+    module: <span className="text-xs">{perm.module_label}</span>,
+    resource: <span className="text-xs">{perm.resource_label}</span>,
     sensitivity: (
       <Badge variant={SENSITIVITY_BADGE[perm.sensitivity_level] ?? "inactive"} className="text-xs capitalize">
         {perm.sensitivity_level?.toLowerCase()}
@@ -90,22 +80,14 @@ export default function PermissionsList() {
       </Badge>
     ),
     created: formatRelativeDate(perm.created_at),
-    _key: perm.key,
   }));
 
   return (
     <>
       <PageShell className="space-y-5 text-black-01">
-        <div className="flex items-center justify-between">
-          <div>
+        <div>
             <p className="font-semibold font-mont text-gray-01">Permission Registry</p>
-            <p className="text-xs text-gray-01 mt-0.5">All granular permissions available on the platform.</p>
-          </div>
-          <PermissionGate permission={P.CREATE_PERMISSION}>
-            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.CREATE)}>
-              <Plus /> Add Permission
-            </Button>
-          </PermissionGate>
+            <p className="text-xs text-gray-01 mt-0.5">Backend-defined access available for roles and personal exceptions.</p>
         </div>
 
         <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
@@ -159,23 +141,6 @@ export default function PermissionsList() {
             tableHeaderList={TABLE_HEADERS}
             tableBodyList={tableData}
             loading={isLoading}
-            dropDown
-            dropDownList={(row: { _key: string }) => [
-              ...(hasPermission(P.MODIFY_PERMISSION) ? [{
-                label: "Edit",
-                className: "",
-                onActionClick: () => navigate(routesPath.PROTECTED.PERMISSIONS.EDIT(row._key)),
-              }] : []),
-              ...(hasPermission(P.DELETE_PERMISSION) ? [{
-                label: "Delete",
-                className: "text-destructive focus:text-destructive focus:bg-destructive/10",
-                onActionClick: () =>
-                  deletePermission(row._key)
-                    .unwrap()
-                    .then(() => toast.success("Permission deleted."))
-                    .catch(() => {}),
-              }] : []),
-            ]}
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}
             currentPage={data?.pagination?.currentPage}

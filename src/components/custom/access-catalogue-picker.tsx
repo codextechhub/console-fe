@@ -112,7 +112,6 @@ export function AccessCataloguePicker({
                 return (
                   <label
                     key={permission.key}
-                    title={permission.key}
                     className={cn(
                       "flex min-w-0 items-start gap-3 rounded-md border border-white-02 p-3",
                       disabled ? "cursor-default bg-gray-03/50" : "cursor-pointer hover:border-primary/40",

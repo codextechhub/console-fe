@@ -1,33 +1,22 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router";
-import { Plus, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
-import { routesPath } from "@/routes/routes-path";
-import {
-  useGetPermissionModulesQuery,
-  useDeletePermissionModuleMutation,
-} from "@/redux/services/dashboard/rbac-api";
+import { useGetPermissionModulesQuery } from "@/redux/services/dashboard/rbac-api";
 import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
-import { toast } from "sonner";
 import type { PermissionModule } from "@/redux/services/dashboard/rbac-types";
-import PermissionGate from "@/components/custom/permission-gate";
-import { usePermissions } from "@/hooks/use-permissions";
-import { P } from "@/permissions";
 import { PageShell } from "@/components/layout/page-shell";
 
-const TABLE_HEADERS = ["Module Name", "Description", "Status", "Created", "Action"];
+const TABLE_HEADERS = ["Module", "Description", "Status", "Created"];
 
 type CardFilter = "all" | "active" | "inactive";
 
 export default function PermissionModulesList() {
-  const navigate = useNavigate();
-  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
@@ -48,8 +37,6 @@ export default function PermissionModulesList() {
   const { data: activeData } = useGetPermissionModulesQuery({ page: 1, page_size: 1, is_active: "true" });
   const { data: inactiveData } = useGetPermissionModulesQuery({ page: 1, page_size: 1, is_active: "false" });
 
-  const [deleteModule] = useDeletePermissionModuleMutation();
-
   const modules = data?.data ?? [];
   const totalModules = data?.pagination?.totalItems ?? 0;
 
@@ -63,7 +50,7 @@ export default function PermissionModulesList() {
   ];
 
   const tableData = modules.map((mod: PermissionModule) => ({
-    name: <span className="font-mono font-medium text-sm text-black-01">{mod.name}</span>,
+    name: <span className="font-medium text-sm text-black-01">{mod.label || mod.name}</span>,
     description: <span className="text-xs text-gray-01">{mod.description || "-"}</span>,
     status: (
       <Badge variant={mod.is_active ? "active" : "inactive"}>
@@ -71,22 +58,14 @@ export default function PermissionModulesList() {
       </Badge>
     ),
     created: formatRelativeDate(mod.created_at),
-    _name: mod.name,
   }));
 
   return (
     <>
       <PageShell className="space-y-5 text-black-01">
-        <div className="flex items-center justify-between">
-          <div>
+        <div>
             <p className="font-semibold font-mont text-gray-01">Permission Modules</p>
-            <p className="text-xs text-gray-01 mt-0.5">Top-level categories that group permission resources.</p>
-          </div>
-          <PermissionGate permission={P.CREATE_PERMISSION}>
-            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.MODULES.CREATE)}>
-              <Plus /> Add Module
-            </Button>
-          </PermissionGate>
+            <p className="text-xs text-gray-01 mt-0.5">Backend-defined categories that organise access.</p>
         </div>
 
         <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
@@ -140,23 +119,6 @@ export default function PermissionModulesList() {
             tableHeaderList={TABLE_HEADERS}
             tableBodyList={tableData}
             loading={isLoading}
-            dropDown
-            dropDownList={(row: { _name: string }) => [
-              ...(hasPermission(P.MODIFY_PERMISSION) ? [{
-                label: "Edit",
-                className: "",
-                onActionClick: () => navigate(routesPath.PROTECTED.PERMISSIONS.MODULES.EDIT(row._name)),
-              }] : []),
-              ...(hasPermission(P.DELETE_PERMISSION) ? [{
-                label: "Delete",
-                className: "text-destructive focus:text-destructive focus:bg-destructive/10",
-                onActionClick: () =>
-                  deleteModule(row._name)
-                    .unwrap()
-                    .then(() => toast.success("Module deleted."))
-                    .catch(() => {}),
-              }] : []),
-            ]}
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}
             currentPage={data?.pagination?.currentPage}

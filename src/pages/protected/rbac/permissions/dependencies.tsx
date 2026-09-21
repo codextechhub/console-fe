@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router";
-import { Plus, RefreshCw, ArrowRight, Link } from "lucide-react";
+import { RefreshCw, ArrowRight, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -12,25 +11,10 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "react-haiku";
-import { toast } from "sonner";
-import {
-  useGetPermissionDependenciesQuery,
-  useDeletePermissionDependencyMutation,
-} from "@/redux/services/dashboard/rbac-api";
+import { useGetPermissionDependenciesQuery } from "@/redux/services/dashboard/rbac-api";
 import type { PermissionDependency } from "@/redux/services/dashboard/rbac-types";
-import { routesPath } from "@/routes/routes-path";
-import PermissionGate from "@/components/custom/permission-gate";
-import { usePermissions } from "@/hooks/use-permissions";
-import { P } from "@/permissions";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
 
@@ -46,6 +30,14 @@ function DependencyChainSheet({
   allDeps: PermissionDependency[];
   onClose: () => void;
 }) {
+  const labels = useMemo(() => {
+    const result = new Map<string, string>();
+    for (const dependency of allDeps) {
+      result.set(dependency.permission_key, dependency.permission_label);
+      result.set(dependency.depends_on_key, dependency.depends_on_label);
+    }
+    return result;
+  }, [allDeps]);
   const requires = useMemo(() => {
     if (!permissionKey) return [];
     const out = new Set<string>();
@@ -75,7 +67,7 @@ function DependencyChainSheet({
       <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-white-02">
           <SheetTitle className="text-base font-semibold text-black-01">Dependency Chain</SheetTitle>
-          <SheetDescription className="font-mono text-xs text-gray-01">{permissionKey}</SheetDescription>
+          <SheetDescription>{permissionKey ? labels.get(permissionKey) : ""}</SheetDescription>
         </SheetHeader>
 
         <ScrollArea className="flex-1">
@@ -90,7 +82,7 @@ function DependencyChainSheet({
                     {requires.map((k) => (
                       <div key={k} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
                         <Link className="size-3.5 text-gray-01 shrink-0" />
-                        <span className="font-mono text-xs text-black-01">{k}</span>
+                        <span className="text-xs font-medium text-black-01">{labels.get(k) || "Permission"}</span>
                       </div>
                     ))}
                   </div>
@@ -106,7 +98,7 @@ function DependencyChainSheet({
                     {requiredBy.map((k) => (
                       <div key={k} className="flex items-center gap-2 bg-white border border-white-02 rounded-md px-3 py-2">
                         <Link className="size-3.5 text-gray-01 shrink-0" />
-                        <span className="font-mono text-xs text-black-01">{k}</span>
+                        <span className="text-xs font-medium text-black-01">{labels.get(k) || "Permission"}</span>
                       </div>
                     ))}
                   </div>
@@ -124,63 +116,12 @@ function DependencyChainSheet({
   );
 }
 
-// ── Delete Confirm ─────────────────────────────────────────────────────────────
-function DeleteDependencyDialog({
-  item,
-  onClose,
-}: {
-  item: PermissionDependency | null;
-  onClose: () => void;
-}) {
-  const [deleteDep, { isLoading }] = useDeletePermissionDependencyMutation();
-
-  const handleConfirm = () => {
-    if (!item) return;
-    deleteDep(item.id)
-      .unwrap()
-      .then(() => { toast.success("Dependency removed."); onClose(); })
-      .catch(() => {});
-  };
-
-  return (
-    <Dialog open={!!item} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-destructive">Remove this dependency?</DialogTitle>
-        </DialogHeader>
-        <div className="py-2 space-y-3">
-          {item && (
-            <div className="flex items-center gap-2 bg-gray-50 border border-white-02 rounded-md px-4 py-3">
-              <span className="font-mono text-xs font-semibold text-black-01">{item.permission_key}</span>
-              <ArrowRight className="size-3.5 text-gray-01 shrink-0" />
-              <span className="font-mono text-xs font-semibold text-black-01">{item.depends_on_key}</span>
-            </div>
-          )}
-          <p className="text-sm text-gray-01">
-            Roles using <span className="font-mono font-semibold text-black-01">{item?.permission_key}</span> will no longer require{" "}
-            <span className="font-mono font-semibold text-black-01">{item?.depends_on_key}</span>.
-          </p>
-        </div>
-        <DialogFooter className="gap-3">
-          <Button variant="outline" size="lg" onClick={onClose} disabled={isLoading}>Cancel</Button>
-          <Button variant="destructive" size="lg" onClick={handleConfirm} disabled={isLoading}>
-            {isLoading ? "Removing..." : "Remove"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function PermissionDependencies() {
-  const navigate = useNavigate();
-  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 600);
   const [query, setQuery] = useState({ page: 1 });
   const [chainKey, setChainKey] = useState<string | null>(null);
-  const [deleteItem, setDeleteItem] = useState<PermissionDependency | null>(null);
 
   const params = useMemo(() => ({
     ...query,
@@ -194,35 +135,27 @@ export default function PermissionDependencies() {
   const deps = data?.data ?? [];
 
   const tableData = deps.map((d: PermissionDependency) => ({
-    permission: <span className="font-mono text-xs font-semibold text-black-01">{d.permission_key}</span>,
+    permission: <span className="text-xs font-semibold text-black-01">{d.permission_label}</span>,
     arrow: <ArrowRight className="size-3.5 text-gray-01" />,
-    dependsOn: <span className="font-mono text-xs font-semibold text-black-01">{d.depends_on_key}</span>,
+    dependsOn: <span className="text-xs font-semibold text-black-01">{d.depends_on_label}</span>,
     _raw: d,
-    _id: d.id,
   }));
 
   return (
     <>
       <PageShell className="space-y-5 text-black-01">
-        <div className="flex items-center justify-between">
-          <div>
+        <div>
             <p className="font-semibold font-mont text-gray-01">Permission Dependencies</p>
             <p className="text-xs text-gray-01 mt-0.5">
               Some permissions require other permissions to be present. Dependencies are validated when assigning roles.
             </p>
-          </div>
-          <PermissionGate permission={P.MANAGE_PERMISSIONS}>
-            <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.PERMISSIONS.DEPENDENCIES.CREATE)}>
-              <Plus /> Add Dependency
-            </Button>
-          </PermissionGate>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <CustomInput
             id="search-deps"
             canSearch
-            placeholder="Search permission or depends_on key..."
+            placeholder="Search permission labels..."
             className="h-10"
             containerClass="w-full sm:max-w-[320px]"
             value={search}
@@ -257,11 +190,6 @@ export default function PermissionDependencies() {
                 className: "",
                 onActionClick: () => setChainKey(row._raw.permission_key),
               },
-              ...(hasPermission(P.MANAGE_PERMISSIONS) ? [{
-                label: "Remove",
-                className: "text-destructive focus:text-destructive focus:bg-destructive/10",
-                onActionClick: () => setDeleteItem(row._raw),
-              }] : []),
             ]}
             perPage={data?.pagination?.pageSize}
             totalPage={data?.pagination?.totalPages}
@@ -276,8 +204,6 @@ export default function PermissionDependencies() {
         allDeps={deps}
         onClose={() => setChainKey(null)}
       />
-
-      <DeleteDependencyDialog item={deleteItem} onClose={() => setDeleteItem(null)} />
     </>
   );
 }
