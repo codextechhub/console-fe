@@ -159,11 +159,14 @@ export interface StaffProfileBrief {
 }
 
 /**
- * Full profile. Payroll fields (bank_name / account_name / account_number) are
- * FLS-gated: when the caller lacks platform.staff_payroll.view (and is not the
- * owner), the backend OMITS those keys entirely and lists them in
- * `_stripped_fields` - they are absent, not masked. Treat their absence as
- * "restricted", and use `_stripped_fields` to render the restricted notice.
+ * Full profile.
+ *
+ * The payroll bank fields (bank_name, account_name, account_number) are the
+ * Field Access fields of `platform.staff_profile`. One the caller may not read
+ * is absent from the payload, not masked, and `_read_only_fields` names those
+ * present that the caller may not change. A staff member always reads and
+ * writes their own, so decide from this record, through `useFieldAccess`,
+ * rather than from the signed-in user's map.
  */
 export interface StaffProfile {
   profile_view: "full";
@@ -197,11 +200,11 @@ export interface StaffProfile {
   date_joined: string | null;
   date_exited: string | null;
   is_active_employee: boolean;
-  // FLS-gated payroll - present only when authorised.
+  // Present only when the caller may read them.
   bank_name?: string;
   account_name?: string;
   account_number?: string;
-  _stripped_fields?: string[];
+  _read_only_fields?: string[];
   created_at: string;
   updated_at: string;
 }

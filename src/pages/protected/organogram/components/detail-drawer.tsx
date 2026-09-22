@@ -1,15 +1,16 @@
 /**
- * Right-side slide-over for People & Positions. Payroll uses REAL field-level
- * security: the backend omits bank/account fields (and lists them in
- * _stripped_fields) when the caller lacks platform.staff_payroll.view and is not
- * the owner. So "restricted" keys off field absence - there is no masked value.
+ * Right-side slide-over for People & Positions.
+ *
+ * The payroll bank fields follow Field Access: a field the viewer may not read
+ * is absent from the profile and is not drawn, and the Payroll section goes
+ * with them when none is left. See `lib/staff-payroll`.
  */
 
 import { useMemo } from "react";
 import {
   AtSign, Banknote, Briefcase, Building2, CalendarDays, Contact, CornerLeftUp,
-  GitBranch, Hash, HeartHandshake, History, IdCard, Landmark, Lock, LockOpen,
-  Mail, MapPin, Network, Pencil, Phone, ShieldAlert, ShieldCheck, Spline,
+  GitBranch, Hash, HeartHandshake, History, IdCard, Landmark,
+  Mail, MapPin, Network, Pencil, Phone, ShieldCheck, Spline,
   UserCheck, Users, X,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
@@ -22,6 +23,7 @@ import {
   useGetAssignmentsQuery, useGetStaffProfileQuery,
 } from "@/redux/services/dashboard/organogram-api";
 import { fmtDate, yearsSince, type ProfileMap } from "../lib/org-helpers";
+import { useVisiblePayrollFields, type PayrollFieldName } from "../lib/staff-payroll";
 import { ActingBadge, DeptChip, EmpBadge, OrgAvatar, StatusPill } from "./org-primitives";
 
 export type DetailTarget =
@@ -61,54 +63,31 @@ function SectionHead({ icon: Icon, accent, children }: { icon: React.ElementType
   );
 }
 
-// ── Payroll (FLS) ─────────────────────────────────────────────────────────────
+// ── Payroll ───────────────────────────────────────────────────────────────────
+
+const PAYROLL_ICONS: Record<PayrollFieldName, React.ElementType> = {
+  bank_name: Landmark,
+  account_name: Users,
+  account_number: Hash,
+};
 
 function PayrollSection({ profile }: { profile: StaffProfile }) {
-  const stripped = profile._stripped_fields ?? [];
-  // Authorised when the backend actually sent at least one payroll field.
-  const unlocked =
-    profile.bank_name !== undefined ||
-    profile.account_name !== undefined ||
-    profile.account_number !== undefined;
+  const fields = useVisiblePayrollFields(profile);
+  if (!fields.length) return null;
 
   return (
-    <div>
+    <div className="mt-2">
       <SectionHead icon={Banknote} accent="text-teal-600">
         Payroll
         <span className="ml-1 rounded bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-rose-500 ring-1 ring-rose-200">SENSITIVE</span>
       </SectionHead>
-      {unlocked ? (
-        <div className="rounded-xl border border-teal-200 bg-teal-50/50 p-3.5">
-          <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-teal-700">
-            <LockOpen className="size-3" />
-            Visible - payroll access granted
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field icon={Landmark} label="Bank">{profile.bank_name || "-"}</Field>
-            <Field icon={Users} label="Account name">{profile.account_name || "-"}</Field>
-            <Field icon={Hash} label="Account number" mono>{profile.account_number || "-"}</Field>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
-          <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
-            <Lock className="size-3" />
-            Restricted
-          </div>
-          <div className="grid grid-cols-2 gap-3 opacity-70">
-            <Field icon={Landmark} label="Bank"><span className="select-none tracking-widest text-slate-400">••••••••</span></Field>
-            <Field icon={Users} label="Account name"><span className="select-none tracking-widest text-slate-400">••••••••••</span></Field>
-            <Field icon={Hash} label="Account number" mono><span className="select-none tracking-widest text-slate-400">••••••••</span></Field>
-          </div>
-          <div className="mt-3 flex items-start gap-2 rounded-lg bg-white px-2.5 py-2 text-[11.5px] text-slate-500 ring-1 ring-slate-200">
-            <ShieldAlert className="mt-0.5 size-3.5 shrink-0 text-amber-500" />
-            <span>
-              Requires <span className="font-mono font-semibold text-slate-600">platform.staff_payroll.view</span>.
-              {stripped.length > 0 && " These fields were withheld by the server."}
-            </span>
-          </div>
-        </div>
-      )}
+      <div className="grid grid-cols-2 gap-3 rounded-xl border border-teal-200 bg-teal-50/50 p-3.5">
+        {fields.map((field) => (
+          <Field key={field.name} icon={PAYROLL_ICONS[field.name]} label={field.label} mono={field.name === "account_number"}>
+            {field.value || "-"}
+          </Field>
+        ))}
+      </div>
     </div>
   );
 }
@@ -300,7 +279,7 @@ function PersonDetail({ user, ctx }: { user: UserInline; ctx: DrawerCtx }) {
             </>
           )}
 
-          <div className="mt-2"><PayrollSection profile={profile} /></div>
+          <PayrollSection profile={profile} />
         </>
       )}
     </div>

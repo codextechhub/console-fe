@@ -67,7 +67,6 @@ const PACKAGE_SPECIFIERS: [find: string, target: string][] = [
   ["@/utils/money", "utils/money.ts"],
   ["@/utils/posting-window", "utils/posting-window.ts"],
   ["@/utils/quantity", "utils/quantity.ts"],
-  ["@/utils/fls", "utils/fls.ts"],
   ["@/utils/chart-of-accounts", "utils/chart-of-accounts.ts"],
 ]
 

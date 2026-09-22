@@ -364,7 +364,7 @@ export const WALKTHROUGH_REGISTRY = [
       "Confirm the CX staff account already exists and has no staff profile.",
       "Create the intended position first and obtain approval for sensitive profile data.",
     ],
-    version: 1,
+    version: 2,
     steps: [
       {
         id: "welcome",
@@ -389,10 +389,19 @@ export const WALKTHROUGH_REGISTRY = [
         advance: "manual",
       },
       {
+        // Field Access can hide every payroll field from a role, and the
+        // Payroll section goes with them, so the tour steps around it.
+        id: "payroll-branch",
+        kind: "branch",
+        target: "staff-profile.payroll",
+        whenPresent: "payroll",
+        whenMissing: "complete",
+      },
+      {
         id: "payroll",
         target: "staff-profile.payroll",
-        title: "Payroll access remains separate",
-        body: "Bank fields appear only with payroll-manage access. Keep those values out of general profile notes, tasks, screenshots, and support tickets.",
+        title: "Payroll follows Field Access",
+        body: "Bank name, Account name, and Account number appear only when Field Access lets your role read them, and are greyed when it does not let you change them. Keep those values out of general profile notes, tasks, screenshots, and support tickets.",
         placement: "top",
         advance: "manual",
       },

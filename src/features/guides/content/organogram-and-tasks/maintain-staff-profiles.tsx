@@ -16,8 +16,8 @@ export default function MaintainStaffProfilesArticle() {
       </GuideSection>
 
       <GuideSection id="understand-profile-access" title="Understand profile access">
-        <p>Colleagues may receive a brief work profile containing the person&apos;s seat, department, manager, employment type, and work email. Authorized profile viewers receive the full HR record. Payroll bank fields are withheld unless the caller has the separate payroll-view permission.</p>
-        <GuideCallout tone="warning" title="Profile access is layered">Permission to view or edit a staff profile does not automatically grant access to payroll fields. Console and the backend enforce that sensitive boundary separately.</GuideCallout>
+        <p>Colleagues may receive a brief work profile containing the person&apos;s seat, department, manager, employment type, and work email. Authorized profile viewers receive the full HR record. Payroll bank fields follow Field Access: each one appears only when your role may read it.</p>
+        <GuideCallout tone="warning" title="Profile access is layered">Permission to view or edit a staff profile does not grant access to payroll fields. Whether a role reads or changes Bank name, Account name, and Account number is set on the Field Access screen, and a staff member always sees and edits their own.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="create-a-profile" title="Create a staff profile">
@@ -41,7 +41,7 @@ export default function MaintainStaffProfilesArticle() {
       </GuideSection>
 
       <GuideSection id="protect-payroll-details" title="Protect payroll details">
-        <p>The Payroll section shows Bank name, Account name, and Account number only to an authorized viewer. Editing those values requires the separate payroll-manage permission. Do not copy bank details into ordinary notes, task descriptions, or support tickets.</p>
+        <p>The Payroll section shows each of Bank name, Account name, and Account number only when your role may read it, and leaves the section out when none is left. A field your role may read but not change is greyed and is never sent when you save. Do not copy bank details into ordinary notes, task descriptions, or support tickets.</p>
       </GuideSection>
 
       <GuideSection id="common-problems" title="Common problems">
@@ -50,7 +50,7 @@ export default function MaintainStaffProfilesArticle() {
             ["The user is not available", "Confirm the account is an existing CX staff user and does not already have a staff profile."],
             ["The intended seat is missing", "Create or activate the position in Manage Organogram before creating the profile."],
             ["The profile saved but the seat did not", "Use Assignments to set the primary position again. The profile record can succeed before the separate assignment call fails."],
-            ["Payroll details are restricted", "Ask for the specific payroll-view or payroll-manage access only when the job requires it."],
+            ["Payroll details are missing or greyed", "Your role does not read or change those fields. Ask a Field Access administrator for a switch or a one-person exception only when the job requires it."],
           ].map(([title, body]) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="flex items-start gap-2 text-sm font-semibold text-black-01"><CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" /> {title}</p><p className="mt-2 text-xs leading-5 text-gray-01">{body}</p></div>)}
         </div>
       </GuideSection>

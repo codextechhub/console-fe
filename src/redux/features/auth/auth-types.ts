@@ -1,3 +1,16 @@
+/**
+ * The `field_access` map as the login response and `/user/auth/me/` send it.
+ *
+ * Stored in this mutable shape because the store's reducers cannot hold the
+ * read-only arrays of the finance package's `FieldAccessMap`. Every reader
+ * gets it back as a `FieldAccessMap`, which this shape satisfies.
+ */
+export type FieldAccessPayload = Record<string, {
+  hidden?: string[]
+  read_only?: string[]
+  open_on_create?: string[]
+}>
+
 export interface Auth {
   session_id?: number
   user?: User | null
@@ -7,6 +20,14 @@ export interface Auth {
   /** When set, requests run as an impersonated target: overrides the tenant assertion + sends the session header. */
   impersonation?: ActiveImpersonation | null
   permissions?: string[]
+  /**
+   * Which fields the effective user may not read or change, keyed by
+   * `module.resource`, exactly as the login response and `/user/auth/me/`
+   * send it. An absent resource or name means full access, so `{}` is a user
+   * with no restrictions. It always describes the same person as
+   * `permissions`: the proxied target while impersonating, the actor otherwise.
+   */
+  field_access?: FieldAccessPayload
 }
 
 export interface AuthSchool {
@@ -50,6 +71,8 @@ export interface AuthContextSnapshot {
   school: AuthSchool | null
   tenant: AuthTenant | null
   permissions: string[]
+  /** Required, so a writer can never swap identities and keep the old map. */
+  field_access: FieldAccessPayload
 }
 
 export interface User {

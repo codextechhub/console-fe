@@ -12,7 +12,6 @@ const VERSION_ONE_WALKTHROUGHS = [
   "walkthrough.roles.create-and-assign",
   "walkthrough.roles.transfer-super-admin",
   "walkthrough.organogram.build-structure",
-  "walkthrough.organogram.maintain-staff-profiles",
   "walkthrough.workflow.delegate-and-track",
   "walkthrough.workflow.build-template",
   "walkthrough.finance.configure-foundations",
@@ -89,6 +88,12 @@ export const WALKTHROUGH_VERIFICATION_RECORDS: readonly WalkthroughVerificationR
     walkthroughId: "walkthrough.roles.manage-field-access",
     version: 1,
     verifiedAt: "2026-09-15",
+    missingTargetIds: [],
+  },
+  {
+    walkthroughId: "walkthrough.organogram.maintain-staff-profiles",
+    version: 2,
+    verifiedAt: "2026-09-21",
     missingTargetIds: [],
   },
   {

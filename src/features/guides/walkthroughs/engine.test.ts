@@ -40,6 +40,12 @@ describe("walkthrough engine", () => {
     expect(loadWalkthroughProgress(storage, "42:direct", { ...walkthrough, version: walkthrough.version + 1 })).toBeNull();
   });
 
+  it("steps past Payroll when Field Access hides every bank field", () => {
+    const staff = WALKTHROUGH_REGISTRY.find((item) => item.id === "walkthrough.organogram.maintain-staff-profiles")!;
+    expect(followingContentStep(staff, "employment", () => true)?.id).toBe("payroll");
+    expect(followingContentStep(staff, "employment", (target) => target !== "staff-profile.payroll")?.id).toBe("complete");
+  });
+
   it("branches around an unavailable optional page target", () => {
     expect(followingContentStep(walkthrough, "welcome", () => true)?.id).toBe("todays-focus");
     // Nothing on the page: the focus panel branch falls through to the quick

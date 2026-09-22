@@ -1,7 +1,9 @@
 import type { RootStateType } from "@/redux/store";
 import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
+import type { FieldAccessMap } from "@/components/finance-ui/field-access";
 import {
   type ActiveImpersonation,
+  type FieldAccessPayload,
   type Auth,
   type AuthContextSnapshot,
   type AuthSchool,
@@ -16,7 +18,14 @@ interface AuthPayload {
   tenant?: AuthTenant | null;
   session_id?: number;
   permissions?: string[];
+  field_access?: FieldAccessPayload;
 }
+
+/**
+ * The map of a user with no field restrictions. One frozen instance, so a
+ * selector falling back to it hands every render the same reference.
+ */
+const EMPTY_FIELD_ACCESS: FieldAccessPayload = Object.freeze({});
 
 const initialState: Auth = {
    session_id: 0,
@@ -25,6 +34,7 @@ const initialState: Auth = {
    tenant: null,
    impersonation: null,
    permissions: [],
+   field_access: EMPTY_FIELD_ACCESS,
 };
 
 const authSlice = createSlice({
@@ -38,6 +48,7 @@ const authSlice = createSlice({
       state.tenant = action.payload.tenant ?? null;
       state.session_id = action.payload.session_id || 0;
       state.permissions = action.payload.permissions ?? [];
+      state.field_access = action.payload.field_access ?? EMPTY_FIELD_ACCESS;
     },
     updateAuthUser: (state, action: PayloadAction<Partial<User>>) => {
       state.user = { ...(state.user as User), ...action.payload };
@@ -56,12 +67,18 @@ const authSlice = createSlice({
       state.school = action.payload.school;
       state.tenant = action.payload.tenant;
       state.permissions = action.payload.permissions;
+      state.field_access = action.payload.field_access;
     },
     setSessionId: (state, action: PayloadAction<number>) => {
       state.session_id = action.payload;
     },
-    updatePermissions: (state, action: PayloadAction<string[]>) => {
-      state.permissions = action.payload;
+    /** Refreshes what the user may do, keeping the two halves in step. */
+    updatePermissions: (
+      state,
+      action: PayloadAction<{ permissions: string[]; field_access?: FieldAccessPayload }>,
+    ) => {
+      state.permissions = action.payload.permissions;
+      state.field_access = action.payload.field_access ?? EMPTY_FIELD_ACCESS;
     },
   },
 });
@@ -95,3 +112,10 @@ export const selectIsPlatformTenant = (state: RootStateType) =>
   state.auth.tenant?.kind === "PLATFORM";
 export const selectImpersonation = (state: RootStateType) => state.auth.impersonation ?? null;
 export const selectPermissions = (state: RootStateType) => state.auth.permissions ?? [];
+
+/**
+ * The effective user's Field Access map, as received. Falls back to the one
+ * shared empty map, so a reader never sees a new object for "no restrictions".
+ */
+export const selectFieldAccess = (state: RootStateType): FieldAccessMap =>
+  state.auth.field_access ?? EMPTY_FIELD_ACCESS;

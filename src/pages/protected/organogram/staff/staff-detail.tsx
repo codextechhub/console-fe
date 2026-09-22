@@ -1,17 +1,20 @@
-// Staff profile - brief for ordinary colleagues, full for authorised HR/admin
-// viewers. Reached two ways:
-//   /organogram/staff/:id/view            - by profile id (org chart drawer)
-//   /organogram/staff/by-user/:userId/view - by USER id (Team Management's
-//                                            "View Details" knows users only)
-// Payroll uses real FLS: bank fields are absent unless the caller holds
-// platform.staff_payroll.view (or is owner). The only account action here is
-// Change Email (beside the email address) - everything else lives in Team
-// Management's row actions.
+/**
+ * Staff profile: brief for ordinary colleagues, full for authorised HR and
+ * admin viewers. Reached two ways:
+ *   /organogram/staff/:id/view             by profile id (org chart drawer)
+ *   /organogram/staff/by-user/:userId/view by user id (Team Management's
+ *                                          "View Details" knows users only)
+ *
+ * The payroll bank fields follow Field Access on this record: one the viewer
+ * may not read is not drawn, and the Payroll card goes when none is left (see
+ * `lib/staff-payroll`). The only account action here is Change Email, beside
+ * the address; everything else lives in Team Management's row actions.
+ */
 
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { Banknote, Lock, LockOpen, Mail, Pencil, ShieldAlert } from "lucide-react";
+import { Banknote, Mail, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PermissionGate from "@/components/custom/permission-gate";
@@ -31,6 +34,7 @@ import { useChangeUserEmailMutation } from "@/redux/services/dashboard/team-mgt-
 import type { StaffProfile, StaffProfileBrief } from "@/redux/services/dashboard/organogram-types";
 import { OrgAvatar, StatusPill, EmpBadge } from "../components/org-primitives";
 import { fmtDate } from "../lib/org-helpers";
+import { useVisiblePayrollFields } from "../lib/staff-payroll";
 import { PageShell } from "@/components/layout/page-shell";
 
 function Row({ label, value }: { label: string; value?: React.ReactNode }) {
@@ -52,26 +56,23 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 }
 
 function Payroll({ profile }: { profile: StaffProfile }) {
-  const unlocked = profile.bank_name !== undefined || profile.account_name !== undefined || profile.account_number !== undefined;
+  const fields = useVisiblePayrollFields(profile);
+  if (!fields.length) return null;
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5">
       <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold font-mont text-black-01">
         <Banknote className="size-4 text-teal-600" /> Payroll
         <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-rose-500 ring-1 ring-rose-200">SENSITIVE</span>
       </h3>
-      {unlocked ? (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="sm:col-span-3 mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-teal-700"><LockOpen className="size-3" /> Payroll access granted</div>
-          <Row label="Bank" value={profile.bank_name} />
-          <Row label="Account name" value={profile.account_name} />
-          <Row label="Account number" value={<span className="font-mono">{profile.account_number}</span>} />
-        </div>
-      ) : (
-        <div className="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-xs text-gray-01 ring-1 ring-slate-200">
-          <Lock className="mt-0.5 size-3.5 shrink-0 text-slate-400" />
-          <span className="flex items-center gap-1.5"><ShieldAlert className="size-3.5 text-amber-500" /> Restricted - requires <span className="font-mono font-semibold">platform.staff_payroll.view</span>.</span>
-        </div>
-      )}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {fields.map((field) => (
+          <Row
+            key={field.name}
+            label={field.label}
+            value={field.value && field.name === "account_number" ? <span className="font-mono">{field.value}</span> : field.value}
+          />
+        ))}
+      </div>
     </section>
   );
 }

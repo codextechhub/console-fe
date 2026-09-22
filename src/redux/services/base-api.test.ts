@@ -282,3 +282,56 @@ describe("a 404 on an account action", () => {
     expect(String(toastError.mock.calls[0][0])).not.toMatch(/another school/i);
   });
 });
+
+/**
+ * A 403 `field_write_denied` belongs to the form that sent it: the form shows
+ * each message beside its field, so the interceptor neither toasts nor closes
+ * the drawer the form sits in. Every other 403 keeps the generic handling.
+ */
+describe("a 403 on a save", () => {
+  const refuse = (code: string) =>
+    new Response(JSON.stringify({
+      success: false,
+      message: "You do not have permission to perform this action.",
+      error: {
+        code,
+        detail: { account_number: ["You do not have permission to change this field."] },
+      },
+    }), {
+      status: 403,
+      headers: { "content-type": "application/json" },
+    });
+
+  const save = async (code: string) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(refuse(code)));
+    const { baseQueryInterceptor } = await import("./base-api");
+    return baseQueryInterceptor(
+      { url: "/user/platform-staff-profiles/7/", method: "PATCH", body: { account_number: "0123456789" } },
+      {
+        endpoint: "updateStaffProfile",
+        getState: () => ({ auth: { tenant: { slug: "codex" } } }),
+        dispatch: vi.fn(),
+        signal: new AbortController().signal,
+        abort: vi.fn(),
+        extra: undefined,
+        type: "mutation" as const,
+      },
+      {},
+    );
+  };
+
+  it("leaves a refused field write to the form", async () => {
+    const result = await save("field_write_denied");
+
+    expect(result.error?.status).toBe(403);
+    expect(toastError).not.toHaveBeenCalled();
+    expect(dismissOpenDrawerForError).not.toHaveBeenCalled();
+  });
+
+  it("still toasts any other refusal", async () => {
+    await save("permission_denied");
+
+    expect(toastError).toHaveBeenCalledOnce();
+    expect(dismissOpenDrawerForError).toHaveBeenCalledOnce();
+  });
+});

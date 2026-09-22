@@ -75,6 +75,7 @@ export function ProxyUserDialog({
       school: auth.school ?? null,
       tenant: auth.tenant ?? null,
       permissions: auth.permissions ?? [],
+      field_access: auth.field_access ?? {},
     };
     let startedSessionId: number | null = null;
     try {
@@ -100,6 +101,7 @@ export function ProxyUserDialog({
           school: null,
           tenant: { slug: target.tenant_slug, name: target.tenant_name },
           permissions: [],
+          field_access: {},
         }));
         dispatch(clearSelectedEntity());
         onOpenChange(false);
@@ -117,6 +119,7 @@ export function ProxyUserDialog({
         dispatch(setAuthContext({
           user: me.data.user,
           permissions: me.data.permissions,
+          field_access: me.data.field_access ?? {},
           school: me.data.school ?? null,
           tenant: me.data.tenant ?? null,
         }));

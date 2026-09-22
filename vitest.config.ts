@@ -31,7 +31,6 @@ export default defineConfig({
       { find: "@/utils/money", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/utils/money.ts") },
       { find: "@/utils/posting-window", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/utils/posting-window.ts") },
       { find: "@/utils/quantity", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/utils/quantity.ts") },
-      { find: "@/utils/fls", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/utils/fls.ts") },
       { find: "@/utils/finance-export", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/utils/finance-export.ts") },
       { find: "@/utils/finance-documents", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/utils/finance-documents.ts") },
       { find: "@/utils/chart-of-accounts", replacement: path.resolve(__dirname, "./node_modules/@xvs/finance/src/utils/chart-of-accounts.ts") },

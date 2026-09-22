@@ -1,4 +1,4 @@
-import type { AuthSchool, AuthTenant, User } from "@/redux/features/auth/auth-types";
+import type { AuthSchool, AuthTenant, FieldAccessPayload, User } from "@/redux/features/auth/auth-types";
 
 export interface ResponseMessage {
     status: boolean;
@@ -13,5 +13,6 @@ export interface LoginResponse extends ResponseMessage {
     school: AuthSchool | null
     tenant: AuthTenant | null
     permissions: string[]
+    field_access?: FieldAccessPayload
   }
 }

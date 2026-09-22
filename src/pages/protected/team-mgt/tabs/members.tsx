@@ -6,6 +6,8 @@ import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useFieldAccess } from "@/components/finance-ui/field-access";
+import { TEAM_FIELD_RESOURCE } from "../team-field-access";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import { useNavigate } from "react-router";
@@ -99,6 +101,7 @@ export default function MembersTab({
   const debouncedValue = useDebounce(value, 1000);
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
+  const access = useFieldAccess(TEAM_FIELD_RESOURCE);
   const [filterOpen, setFilterOpen] = useState(false);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const [selectedSchoolUser, setSelectedSchoolUser] = useState<TeamMember | null>(null);
@@ -435,15 +438,17 @@ export default function MembersTab({
                   setDraftFilters((p) => ({ ...p, date_to: v }))
                 }
               />
-              <CustomInput
-                id="filter-invited-by"
-                label="Invited By"
-                placeholder="Search by name..."
-                value={draftFilters.invited_by}
-                onChange={(e) =>
-                  setDraftFilters((p) => ({ ...p, invited_by: e.target.value }))
-                }
-              />
+              {!access.isHidden("invited_by_name") && (
+                <CustomInput
+                  id="filter-invited-by"
+                  label="Invited By"
+                  placeholder="Search by name..."
+                  value={draftFilters.invited_by}
+                  onChange={(e) =>
+                    setDraftFilters((p) => ({ ...p, invited_by: e.target.value }))
+                  }
+                />
+              )}
           </div>
           </ScrollArea>
           <SheetFooter>

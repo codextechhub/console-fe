@@ -260,7 +260,7 @@ When adding a new section to the app, work through this checklist:
 ```ts
 import { usePermissions } from "@/hooks/use-permissions";
 
-const { permissions, hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
+const { hasPermission, hasAnyPermission, hasAllPermissions, hasModuleAccess, fieldAccess } = usePermissions();
 
 hasPermission(P.BROWSE_SCHOOLS)                                  // single key
 hasAnyPermission(P.BROWSE_SCHOOLS, P.ACCESS_SYSTEM_DATA)         // at least one
@@ -302,71 +302,63 @@ The frontend checks the flat `permissions[]` array. If a superuser's login respo
 
 ---
 
-## Field-Level Security (FLS) - Hiding Stripped Response Fields
+## Field Access - hiding and greying individual fields
 
-The backend serializer mixin (`FieldSecurityMixin` in `vs_rbac/fls.py`) can strip individual fields from an API response when the requesting user lacks the required read permission. Instead of sending the field at all, the backend appends a `_stripped_fields` array to the response listing every field it removed.
+An administrator turns **Read** and **Write** on or off per role, per field, on
+the Field Access screen. The backend applies those switches to every response
+and every save, and each screen follows them through one hook and one wrapper
+from the shared finance package, never a check of its own:
 
-```json
-{
-  "name": "John Doe",
-  "email": "john@school.com",
-  "_stripped_fields": ["medical_notes", "guardian_contacts"]
-}
-```
+- `useFieldAccess(resource, record?)` from `@/components/finance-ui/field-access`
+  answers `isHidden(name)`, `isReadOnly(name)`, `anyVisible(...names)` and
+  `writableOnly(body)` for one `module.resource` (for example
+  `"platform.staff_profile"`).
+- `AccessField` from `@/components/finance-ui/access-field` wraps one form
+  field: it renders nothing when the field is hidden, and a greyed, disabled
+  field when it is read-only.
 
-This lets the frontend distinguish two different states:
+What the backend sends:
 
-| State | What it means | What to show |
-|-------|--------------|-------------|
-| Field in `_stripped_fields` | User has no permission to see it | Hide the element entirely |
-| Field absent / null / empty, not stripped | Field exists, no data yet | Render `"-"` |
+| Source | What it says | Used for |
+|--------|--------------|----------|
+| Login and `/user/auth/me/` `field_access` | `{ "module.resource": { hidden?, read_only?, open_on_create? } }`. Absent means full access. | Create forms and list columns, where no record exists yet |
+| A detail response | A field the user may not read is absent. `_read_only_fields` names fields present that the user may not change. | Every existing record. It wins over the map, because it carries rules the map cannot, such as a staff member always editing their own bank details |
+| A refused save | 403 with `error.code` `field_write_denied` and per-field messages in `error.detail` | `fieldWriteErrors(error)` turns it into messages the form shows under each field. The base API sends no toast for it |
 
-### Usage
+The auth slice stores `field_access` exactly as received, beside `permissions`,
+and `usePermissions()` returns it as `fieldAccess`. While impersonating it holds
+the target person's map, just as `permissions` holds their grants.
 
-Import from `@/utils/fls`:
+### Rules
+
+- **Hidden means not there.** No label, no lock, no "Restricted" text, no empty
+  space and no table column. A section whose fields are all hidden disappears.
+- **Read-only means greyed and never sent.** Build the save body through
+  `access.writableOnly(...)`.
+- **Decide from the record when there is one.** Pass it to `useFieldAccess`.
+- **Tables match headers to cells by position**, so drop a hidden column's
+  header and its cell together.
 
 ```tsx
-import { isStripped, strippedFields } from "@/utils/fls";
+const access = useFieldAccess("platform.staff_profile", profile);
 
-// Single field check
-{!isStripped(student, "medical_notes") && (
-  <Row label="Medical Notes" value={student.medical_notes ?? "-"} />
+{access.anyVisible("bank_name", "account_number") && (
+  <Section title="Payroll">
+    <AccessField access={access} name="account_number" errors={fieldErrors}>
+      <CustomInput name="account_number" label="Account number" value={values.account_number} onChange={handleChange} />
+    </AccessField>
+  </Section>
 )}
 
-// Multiple fields - build a Set once to avoid repeated .includes() calls
-const stripped = strippedFields(student);
-
-<Row label="Medical Notes"        hidden={stripped.has("medical_notes")}        value={student.medical_notes ?? "-"} />
-<Row label="Guardian Contacts"    hidden={stripped.has("guardian_contacts")}    value={student.guardian_contacts ?? "-"} />
-<Row label="Disciplinary Notes"   hidden={stripped.has("disciplinary_notes")}   value={student.disciplinary_notes ?? "-"} />
+onSubmit(access.writableOnly(payload));
 ```
 
-### Typing API responses
+### Rule: backend and frontend change together
 
-Wrap any RTK Query response type with `WithFls<T>` to make `_stripped_fields` visible to TypeScript:
-
-```ts
-import type { WithFls } from "@/utils/fls";
-
-type StudentDetail = WithFls<{
-  name: string;
-  email: string;
-  medical_notes?: string | null;
-  guardian_contacts?: string | null;
-}>;
-```
-
-### When to apply
-
-Only relevant for serializers that use `FieldSecurityMixin`. If a serializer does not declare `read_permissions`, its responses will never contain `_stripped_fields` and you can use the normal `?? "-"` pattern for missing values.
-
-### Rule: backend and frontend must be updated in the same PR
-
-Whenever a serializer gains a `read_permissions` entry, the corresponding frontend page **must** be updated in the same PR to guard those fields with `isStripped` / `strippedFields`.
-
-The two are always coupled. If the backend strips a field but the frontend does not guard it, the field silently disappears - the user sees no label, no dash, no explanation. `_stripped_fields` is the contract between them; one side without the other is a bug.
-
-When writing the PR description, list which fields were added to `read_permissions` so the reviewer can verify the frontend side was updated too.
+When a backend serializer registers a new Field Access field, the screens that
+show or send it adopt the hook in the same change. A registered field a screen
+does not guard still disappears when hidden, but leaves its label, its column
+header or an empty section behind.
 
 ---
 

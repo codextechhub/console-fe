@@ -6,6 +6,8 @@ import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import PermissionOverrides, { useCanViewPermissionExceptions } from "@/components/custom/permission-overrides";
 import FieldAccessOverrides from "@/components/custom/field-access-overrides";
 import { formatRelativeDate } from "@/utils/helpers";
+import { useFieldAccess } from "@/components/finance-ui/field-access";
+import { TEAM_FIELD_RESOURCE } from "./team-field-access";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Building2, CalendarDays, GitBranch, KeyRound, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
 
@@ -51,6 +53,8 @@ export function SchoolUserDetail({
     skip: !user?.id,
   });
   const detail = data?.data;
+  // Sign-in and invitation facts are Field Access fields: absent means hidden.
+  const access = useFieldAccess(TEAM_FIELD_RESOURCE, detail ?? user);
 
   // Permission overrides are addressed by the TARGET's tenant slug, and a
   // school user's rows carry only school_id/school_name. The schools list is
@@ -121,8 +125,12 @@ export function SchoolUserDetail({
                   <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-01">Account activity</h3>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <DetailField icon={CalendarDays} label="Created" value={(detail?.created_at || user?.created_at) ? formatRelativeDate(detail?.created_at || user!.created_at) : "-"} />
-                    <DetailField icon={CalendarDays} label="Last login" value={detail?.last_login_at ? formatRelativeDate(detail.last_login_at) : "Never"} />
-                    <DetailField icon={UserRound} label="Invited by" value={detail?.invited_by_name || user?.invited_by_name} />
+                    {!access.isHidden("last_login_at") && (
+                      <DetailField icon={CalendarDays} label="Last login" value={detail?.last_login_at ? formatRelativeDate(detail.last_login_at) : "Never"} />
+                    )}
+                    {!access.isHidden("invited_by_name") && (
+                      <DetailField icon={UserRound} label="Invited by" value={detail?.invited_by_name || user?.invited_by_name} />
+                    )}
                     <DetailField icon={CalendarDays} label="Last updated" value={detail?.updated_at ? formatRelativeDate(detail.updated_at) : "-"} />
                   </div>
                 </section>

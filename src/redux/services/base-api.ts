@@ -12,7 +12,7 @@ import {
   updatePermissions,
   updateTenant,
 } from "../features/auth/auth-slice";
-import type { ActiveImpersonation, AuthTenant } from "../features/auth/auth-types";
+import type { ActiveImpersonation, AuthTenant, FieldAccessPayload } from "../features/auth/auth-types";
 import { toast } from "sonner";
 import { routesPath } from "@/routes/routes-path";
 import { refreshTokenSingleFlight } from "@/utils/token-refresh";
@@ -30,6 +30,15 @@ import { FINANCE_TAG_TYPES } from "@xvs/finance/redux/tag-types";
 import { getAccessToken } from "@/utils/access-token";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+/**
+ * The code of a 403 refusing a write to fields the user may not change.
+ *
+ * The form that sent it shows the per-field messages from `error.detail` beside
+ * each field (see `fieldWriteErrors` in the finance package), so the
+ * interceptor stays silent for it.
+ */
+const FIELD_WRITE_DENIED = "field_write_denied";
 
 /**
  * Endpoints that must never carry a (possibly stale) Bearer token. Sending one
@@ -204,11 +213,15 @@ const forceLogoutAndRedirect = (api: Parameters<BaseQueryFn>[1]) => {
 };
 
 // `/user/auth/me/` is tenant-exempt, so this raw fetch needs no `?tenant=`.
-// It refreshes both the permission set and the cached tenant context.
+// It refreshes the permission set, the Field Access map and the tenant context.
 const fetchFreshMe = async (
   accessToken: string,
   impersonation: ActiveImpersonation | null,
-): Promise<{ permissions: string[] | null; tenant: AuthTenant | null }> => {
+): Promise<{
+  permissions: string[] | null;
+  fieldAccess: FieldAccessPayload | null;
+  tenant: AuthTenant | null;
+}> => {
   try {
     const response = await fetch(`${baseUrl}/user/auth/me/`, {
       headers: {
@@ -219,14 +232,15 @@ const fetchFreshMe = async (
           : {}),
       },
     });
-    if (!response.ok) return { permissions: null, tenant: null };
+    if (!response.ok) return { permissions: null, fieldAccess: null, tenant: null };
     const data = await response.json();
     return {
       permissions: data?.data?.permissions ?? null,
+      fieldAccess: data?.data?.field_access ?? null,
       tenant: data?.data?.tenant ?? null,
     };
   } catch {
-    return { permissions: null, tenant: null };
+    return { permissions: null, fieldAccess: null, tenant: null };
   }
 };
 
@@ -385,7 +399,12 @@ export const baseQueryInterceptor: BaseQueryFn<
       // cached tenant context fresh.
       const activeImpersonation = readAuth(api.getState).impersonation;
       const fresh = await fetchFreshMe(refreshed.access, activeImpersonation);
-      if (fresh.permissions) api.dispatch(updatePermissions(fresh.permissions));
+      if (fresh.permissions) {
+        api.dispatch(updatePermissions({
+          permissions: fresh.permissions,
+          field_access: fresh.fieldAccess ?? {},
+        }));
+      }
       if (fresh.tenant) api.dispatch(updateTenant(fresh.tenant));
 
       const retry = await baseQueryWithTenant(args, api, extraOptions);
@@ -424,6 +443,10 @@ export const baseQueryInterceptor: BaseQueryFn<
   }
 
   if (res?.status === 403) {
+    // A refused field write is answered on the form, beside each field it
+    // names, so no toast and no drawer dismissal: closing the drawer would
+    // take those messages away with it.
+    if (res?.data?.error?.code === FIELD_WRITE_DENIED) return result;
     if (!isAuthRoute(args)) {
       notify(apiErrorMessage(
         res?.data,

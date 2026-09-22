@@ -1,13 +1,14 @@
-// Staff profile create/edit (admin). Create needs a CX-staff user + seat;
-// edit patches the existing profile. Payroll editing is gated by
-// platform.staff_payroll.manage.
+/**
+ * Staff profile create and edit (admin). Create needs a CX staff user and a
+ * seat; edit patches the existing profile. Which payroll fields appear and may
+ * change is Field Access, decided inside `StaffProfileForm`.
+ */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { P } from "@/permissions";
-import { usePermissions } from "@/hooks/use-permissions";
+import { fieldWriteErrors, type FieldErrors } from "@/components/finance-ui/field-access";
 import { routesPath } from "@/routes/routes-path";
 import {
   useCreateAssignmentMutation,
@@ -24,8 +25,7 @@ export default function StaffForm() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
-  const { hasPermission } = usePermissions();
-  const payrollEditable = hasPermission(P.MANAGE_STAFF_PAYROLL);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors | null>(null);
 
   const {
     data: profileRes, isLoading: loadingProfile, isError: profileFailed,
@@ -95,10 +95,12 @@ export default function StaffForm() {
             initial={profile}
             users={userOptions}
             positions={positionOptions}
-            payrollEditable={payrollEditable}
             submitting={creating || updating || assigning}
+            fieldErrors={fieldErrors}
             onCancel={back}
             onSubmit={(payload, positionId) => {
+              setFieldErrors(null);
+              const showRefusal = (error: unknown) => setFieldErrors(fieldWriteErrors(error));
               if (isEdit) {
                 updateProfile({ id: id as string, body: payload })
                   .unwrap()
@@ -107,7 +109,7 @@ export default function StaffForm() {
                     toast.success("Profile updated.");
                     back();
                   })
-                  .catch(() => {});
+                  .catch(showRefusal);
               } else {
                 createProfile(payload)
                   .unwrap()
@@ -117,7 +119,7 @@ export default function StaffForm() {
                     toast.success("Profile created.");
                     navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_VIEW(res.data.id));
                   })
-                  .catch(() => {});
+                  .catch(showRefusal);
               }
             }}
           />

@@ -17,10 +17,10 @@ Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 | Roles and permissions | Create and assign a role | `roles.create-and-assign` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains role composition and stops before role creation, assignment, change, or revocation |
 | Roles and permissions | Review permission changes and transfer Super Admin | `roles.review-changes-and-transfer-super-admin` | High | Published | Published | Console product team | 2026-08-13 | Ownership walkthrough verifies the current owner, successor, and immediate effect, then stops before transfer and confirmation |
 | Roles and permissions | Maintain the permission catalogue and groups | `roles.maintain-permission-catalogue` | High | Published | Published | Console product team | 2026-08-13 | Walkthrough explains key composition and backend enforcement, then stops before permission creation or downstream catalogue changes |
-| Roles and permissions | Set field access for a role and add field exceptions | `roles.manage-field-access` | High | Published | Published | Console product team | 2026-09-15 | Covers role, module, and resource choice, Read and Write switches, Write including Read, defaults, Reset to default, no approval for a switch change, the restricted manage permission, audit, and one-person field exceptions. Console screens do not read these switches yet, so the article says a saved switch hides or greys nothing; it must be revised when field enforcement ships. Walkthrough explains the switches and stops before Save |
+| Roles and permissions | Set field access for a role and add field exceptions | `roles.manage-field-access` | High | Published | Published | Console product team | 2026-09-21 | Covers role, module, and resource choice, Read and Write switches, Write including Read, defaults, Reset to default, no approval for a switch change, the restricted manage permission, audit, and one-person field exceptions. Says what a saved switch does on screen (Read off hides the field with no label, column, or empty section; Write off greys it and it is never sent), the staff owner rule, the screens that follow the switches, and when a change reaches someone. Walkthrough explains the switches and stops before Save |
 | Roles and permissions | Diagnose missing access | `troubleshooting.permission-denied` | Medium | Published | Not required | Console product team | 2026-08-21 | Permission and scope diagnosis is read-only and cross-linked from access-sensitive guides; a walkthrough would add no ordered workflow or safety boundary |
 | Organogram and tasks | Build the organogram | `organogram.build-structure` | Medium | Published | Published | Console product team | 2026-08-14 | Walkthrough explains the safe unit, position, and matrix order and never creates, edits, moves, or deletes structure |
-| Organogram and tasks | Maintain staff profiles | `organogram.maintain-staff-profiles` | Medium | Published | Published | Console product team | 2026-08-14 | Walkthrough explains identity, seat, employment, and payroll boundaries and never reads fields, creates a profile, or changes an assignment |
+| Organogram and tasks | Maintain staff profiles | `organogram.maintain-staff-profiles` | Medium | Published | Published | Console product team | 2026-09-21 | Payroll bank fields follow Field Access, with the owner rule. Walkthrough explains identity, seat, employment, and payroll boundaries, branches past Payroll when Field Access hides every payroll field, and never reads fields, creates a profile, or changes an assignment |
 | Organogram and tasks | Create and complete tasks | `tasks.create-and-complete` | Low | Published | Not required | Console product team | 2026-08-14 | The short form and completion control are covered by the article; assignment and completion remain explicit user actions |
 | Approvals and workflow | Review and act on an approval | `workflow.review-and-act` | High | Published | Published | Console product team | 2026-08-23 | Article explains that the prominent View full document action opens the matching source area, uses status-aware guidance, and supports recovery from a missing match; walkthrough explains queue, evidence, stage rules, and outcomes, then stops before opening or recording a decision |
 | Approvals and workflow | Delegate and track approvals | `workflow.delegate-and-track` | High | Published | Published | Console product team | 2026-08-14 | Walkthrough explains bounded delegation and tracking, and never saves, revokes, withdraws, resubmits, cancels, or reverses work |
@@ -587,9 +587,8 @@ editor, assignment, approval, or automated repair action.
   (normal fields open, sensitive fields closed), Reset to default, saving without
   approval, the restricted manage permission and its role change request, audit,
   and one-person field exceptions on school user and staff profile details.
-- Console screens do not read the switches yet. The article states that a saved
-  switch hides or greys nothing, and must be revised in the same change that
-  ships field enforcement.
+- Console screens follow the switches (see Field Access enforcement coverage
+  below), and the article describes what a saved switch does on them.
 - Guide discovery uses any Field Access key. The registry's access rule cannot
   express the screen's own gate (roles view plus either Field Access key), and
   requiring roles view with only one of the two keys would hide the guide from a
@@ -600,3 +599,23 @@ editor, assignment, approval, or automated repair action.
 - The role creation guide and its walkthrough now describe the Module and
   Resource permission picker with readable labels instead of key search. Its
   targets are unchanged, so its walkthrough version is unchanged.
+
+## Field Access enforcement coverage (2026-09-21)
+
+- Console screens hide and grey Field Access fields. A hidden field is not
+  drawn at all; a read-only field is greyed, disabled, and never sent. A 403
+  `field_write_denied` is shown under the refused field instead of as a toast.
+- Screens that follow the switches: staff payroll bank fields on the
+  Organisation Chart person panel, the staff profile page, the staff profile
+  form, and My Profile; sign-in and invitation details in Team Management
+  lists, filters, and school user details; the import batch data preview; and
+  the shared finance, procurement, and payments screens.
+- The Field Access article replaces its "saving hides nothing" warning with
+  what a switch does on screen, adds a Where the switches apply section, and
+  says when a change reaches someone. The walkthrough copy made no claim about
+  enforcement, so its version is unchanged.
+- The staff profile article and its walkthrough describe payroll access as
+  Field Access with the owner rule, replacing the retired payroll permissions.
+  The walkthrough gains a branch past Payroll for a role that reads none of
+  the bank fields, so its version moves to 2 and it was driven again on
+  desktop, phone, and tablet.

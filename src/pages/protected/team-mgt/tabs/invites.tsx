@@ -32,29 +32,73 @@ import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/so
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import { SchoolUserDetail } from "../school-user-detail";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useFieldAccess } from "@/components/finance-ui/field-access";
+import { TEAM_FIELD_RESOURCE } from "../team-field-access";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const CX_TABLE_HEADER = [
-  "Full Name",
-  "Email",
-  "Role",
-  "Status",
-  "Email Sent",
-  "Days Left",
-  "Date Created",
-  "Action",
+/**
+ * One column of an invites table. `field` names the Field Access field the
+ * column shows, so a viewer who may not read it gets no column at all. The
+ * table matches headers to cells by position, so both are built from here.
+ */
+interface InviteColumn {
+  key: string;
+  header: string;
+  field?: string;
+  cell: (item: TeamMember) => React.ReactNode;
+}
+
+const emailStatusCell = (item: TeamMember) => item?.invitation_email_status ? (
+  <Badge variant={EMAIL_STATUS_VARIANT[item.invitation_email_status] ?? "pending"} className="min-w-16">
+    {item.invitation_email_status}
+  </Badge>
+) : "---";
+
+const CX_COLUMNS: InviteColumn[] = [
+  { key: "name", header: "Full Name", cell: (item) => <p className="capitalize truncate">{item?.full_name?.trim() || "---"}</p> },
+  { key: "email", header: "Email", cell: (item) => item?.email?.trim() || "---" },
+  { key: "role", header: "Role", cell: (item) => item?.role?.trim() || "---" },
+  {
+    key: "status",
+    header: "Status",
+    cell: (item) => (
+      <Badge variant={item.status?.toLowerCase() as "active"} className="min-w-19.25">
+        {item?.status?.trim() || "---"}
+      </Badge>
+    ),
+  },
+  { key: "emailSent", header: "Email Sent", field: "invitation_email_status", cell: emailStatusCell },
+  {
+    key: "daysLeft",
+    header: "Days Left",
+    field: "invitation_expires_at",
+    cell: (item) => (
+      <span className={daysLeft(item?.invitation_expires_at) === "Expired" ? "text-destructive font-medium text-xs" : "text-xs"}>
+        {daysLeft(item?.invitation_expires_at)}
+      </span>
+    ),
+  },
+  { key: "date", header: "Date Created", cell: (item) => item?.created_at ? formatRelativeDate(item.created_at) : "---" },
 ];
 
-const SCHOOL_TABLE_HEADER = [
-  "User",
-  "School",
-  "Branch",
-  "Role",
-  "Email Delivery",
-  "Expires",
-  "Invited By",
-  "Date Created",
-  "Action",
+const SCHOOL_COLUMNS: InviteColumn[] = [
+  {
+    key: "user",
+    header: "User",
+    cell: (item) => (
+      <div className="min-w-40">
+        <p className="capitalize truncate">{item?.full_name?.trim() || "---"}</p>
+        <p className="mt-0.5 truncate text-xs font-normal text-gray-01">{item?.email?.trim() || "---"}</p>
+      </div>
+    ),
+  },
+  { key: "school", header: "School", cell: (item) => item?.school_name?.trim() || "---" },
+  { key: "branch", header: "Branch", cell: (item) => item?.branch_name?.trim() || "School-wide" },
+  { key: "role", header: "Role", cell: (item) => item?.role?.trim() || "---" },
+  { key: "emailSent", header: "Email Delivery", field: "invitation_email_status", cell: emailStatusCell },
+  { key: "daysLeft", header: "Expires", field: "invitation_expires_at", cell: (item) => daysLeft(item?.invitation_expires_at) },
+  { key: "invitedBy", header: "Invited By", field: "invited_by_name", cell: (item) => item?.invited_by_name?.trim() || "---" },
+  { key: "date", header: "Date Created", cell: (item) => item?.created_at ? formatRelativeDate(item.created_at) : "---" },
 ];
 
 const INITIAL_FILTERS = {
@@ -74,6 +118,12 @@ const SORT_OPTIONS = [
 
 export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
   const { hasPermission } = usePermissions();
+  const access = useFieldAccess(TEAM_FIELD_RESOURCE);
+  const columns = useMemo(
+    () => (scope === "school" ? SCHOOL_COLUMNS : CX_COLUMNS)
+      .filter((column) => !column.field || !access.isHidden(column.field)),
+    [access, scope],
+  );
   const [value, setValue] = useState("");
   const debouncedValue = useDebounce(value, 1000);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -209,8 +259,8 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
       />
 
       <CustomTable
-        tableHeaderList={scope === "school" ? SCHOOL_TABLE_HEADER : CX_TABLE_HEADER}
-        tableBodyList={isError ? [] : FORMAT_TABLE_DATA(data?.data, scope)}
+        tableHeaderList={[...columns.map((column) => column.header), "Action"]}
+        tableBodyList={isError ? [] : FORMAT_TABLE_DATA(data?.data, columns)}
         emptyText={
           isError ? "Failed to load data. Please try again." : undefined
         }
@@ -303,15 +353,17 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
                   setDraftFilters((p) => ({ ...p, date_to: v }))
                 }
               />
-              <CustomInput
-                id="filter-invited-by"
-                label="Invited By"
-                placeholder="Search by name..."
-                value={draftFilters.invited_by}
-                onChange={(e) =>
-                  setDraftFilters((p) => ({ ...p, invited_by: e.target.value }))
-                }
-              />
+              {!access.isHidden("invited_by_name") && (
+                <CustomInput
+                  id="filter-invited-by"
+                  label="Invited By"
+                  placeholder="Search by name..."
+                  value={draftFilters.invited_by}
+                  onChange={(e) =>
+                    setDraftFilters((p) => ({ ...p, invited_by: e.target.value }))
+                  }
+                />
+              )}
           </div>
           </ScrollArea>
           <SheetFooter>
@@ -359,58 +411,8 @@ const daysLeft = (expiresAt?: string): string => {
   return `${days}d left`;
 };
 
-const FORMAT_TABLE_DATA = (data: TeamMember[] | undefined, scope: "cx" | "school") => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return data?.map((item: any) => scope === "school" ? {
-    user: (
-      <div className="min-w-40">
-        <p className="capitalize truncate">{item?.full_name?.trim() || "---"}</p>
-        <p className="mt-0.5 truncate text-xs font-normal text-gray-01">{item?.email?.trim() || "---"}</p>
-      </div>
-    ),
-    school: item?.school_name?.trim() || "---",
-    branch: item?.branch_name?.trim() || "School-wide",
-    role: item?.role?.trim() || "---",
-    emailSent: item?.invitation_email_status ? (
-      <Badge variant={EMAIL_STATUS_VARIANT[item.invitation_email_status] ?? "pending"} className="min-w-16">
-        {item.invitation_email_status}
-      </Badge>
-    ) : "---",
-    daysLeft: daysLeft(item?.invitation_expires_at),
-    invitedBy: item?.invited_by_name?.trim() || "---",
-    date: item?.created_at ? formatRelativeDate(item.created_at) : "---",
-    _slug: item?.id,
-  } : ({
-    name: <p className="capitalize truncate">{item?.full_name?.trim() || "---"}</p>,
-    email: item?.email?.trim() || "---",
-    role: item?.role?.trim() || "---",
-    status: (
-      <Badge variant={item.status?.toLowerCase()} className="min-w-19.25">
-        {item?.status?.trim() || "---"}
-      </Badge>
-    ),
-    emailSent: item?.invitation_email_status ? (
-      <Badge
-        variant={EMAIL_STATUS_VARIANT[item.invitation_email_status] ?? "pending"}
-        className="min-w-16"
-      >
-        {item.invitation_email_status}
-      </Badge>
-    ) : (
-      "---"
-    ),
-    daysLeft: (
-      <span
-        className={
-          daysLeft(item?.invitation_expires_at) === "Expired"
-            ? "text-destructive font-medium text-xs"
-            : "text-xs"
-        }
-      >
-        {daysLeft(item?.invitation_expires_at)}
-      </span>
-    ),
-    date: item?.created_at ? formatRelativeDate(item?.created_at) : "---",
+const FORMAT_TABLE_DATA = (data: TeamMember[] | undefined, columns: InviteColumn[]) =>
+  data?.map((item) => ({
+    ...Object.fromEntries(columns.map((column) => [column.key, column.cell(item)])),
     _slug: item?.id,
   }));
-};

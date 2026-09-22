@@ -25,6 +25,7 @@ const PROCUREMENT_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
 const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
 const O2_REVIEWED_AT = "2026-08-25";
 const FIELD_ACCESS_REVIEWED_AT = "2026-09-15";
+const FIELD_ENFORCEMENT_REVIEWED_AT = "2026-09-21";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -326,6 +327,7 @@ export const GUIDE_REGISTRY = [
     sections: [
       { id: "before-you-start", title: "Before you start" },
       { id: "understand-switches", title: "Understand Read, Write, and defaults" },
+      { id: "where-switches-apply", title: "Where the switches apply" },
       { id: "change-a-role", title: "Change a role's switches" },
       { id: "reset-to-default", title: "Reset a field to its default" },
       { id: "who-can-change", title: "Who can change switches" },
@@ -337,7 +339,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.roles.manage-field-access",
     estimatedMinutes: 8,
     owner: OWNER,
-    reviewedAt: FIELD_ACCESS_REVIEWED_AT,
+    reviewedAt: FIELD_ENFORCEMENT_REVIEWED_AT,
     risk: "high",
     status: "published",
     article: () => import("./content/roles-and-permissions/manage-field-access"),
@@ -401,7 +403,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.organogram.maintain-staff-profiles",
     estimatedMinutes: 9,
     owner: OWNER,
-    reviewedAt: ACTION_GAP_REVIEWED_AT,
+    reviewedAt: FIELD_ENFORCEMENT_REVIEWED_AT,
     risk: "medium",
     status: "published",
     article: () => import("./content/organogram-and-tasks/maintain-staff-profiles"),

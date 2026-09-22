@@ -5,9 +5,10 @@ import { GuideCallout, GuideChecklist, GuideSection, GuideStep, GuideSteps } fro
 /**
  * How-to article for the Field Access screen and one-person field exceptions.
  *
- * It describes switches as stored settings. Console screens do not read the
- * switches, so the article never says a saved switch hides or greys a field;
- * it must change in the same release that makes screens obey them.
+ * It describes what a saved switch does on the screens that follow Field
+ * Access, and when a change reaches them. Its list of those screens must match
+ * the screens that use `useFieldAccess`, so a screen that starts or stops
+ * following the switches changes this article with it.
  */
 export default function ManageFieldAccessArticle() {
   return (
@@ -19,7 +20,7 @@ export default function ManageFieldAccessArticle() {
           "Check whether the field is marked Sensitive before opening it for a role.",
           "For a one-person exception, confirm the person, the field, the reason, and when it should end.",
         ]} />
-        <GuideCallout tone="warning" title="What saving does today">Saving stores the switch and records it in the audit trail. Console screens do not read these switches, so a saved change does not hide or grey a field on any screen.</GuideCallout>
+        <GuideCallout tone="warning" title="A saved switch changes what people see">Turning Read off removes the field from that role&apos;s screens completely: no label, no column, and no placeholder, and a section with nothing left in it disappears. Turning Write off leaves the field visible but greyed, and saving the form never sends it. Agree the change before you save it.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="understand-switches" title="Understand Read, Write, and defaults">
@@ -32,6 +33,18 @@ export default function ManageFieldAccessArticle() {
           ].map(([title, body]) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}
         </div>
         <p className="mt-3">Some fields cannot be changed by anyone, such as values issued by a provider. They show a Read switch and no Write switch. A person with several roles receives the most generous setting any of those roles gives.</p>
+        <p className="mt-3">A staff member always sees and edits their own payroll bank details, whatever their roles say, so switching those fields off never takes a person&apos;s own away from them.</p>
+      </GuideSection>
+
+      <GuideSection id="where-switches-apply" title="Where the switches apply">
+        <p>The switches apply on every screen that shows or saves a registered field, including:</p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>Payroll bank details on staff profiles: the Organisation Chart person panel, the staff profile page, the staff profile form, and My Profile.</li>
+          <li>Sign-in and invitation details in Team Management: last login, invited by, invitation email status, and invitation expiry, in lists, filters, and school user details.</li>
+          <li>The data preview of an import batch.</li>
+          <li>Finance, procurement, and payments screens, such as vendor contacts and banking, bank account numbers, payroll figures, virtual accounts, and payouts.</li>
+        </ul>
+        <GuideCallout tone="info" title="When a change reaches someone">A record reflects the change the next time it loads. Lists and add forms follow the person&apos;s own copy of their switches, which refreshes when they reload Console or sign in again.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="change-a-role" title="Change a role's switches">
@@ -74,7 +87,7 @@ export default function ManageFieldAccessArticle() {
             ["No fields match this selection", "Clear Search field labels. Only fields developers have registered appear, so a field that is not listed cannot be restricted yet."],
             ["Write has no switch", "The field is not changeable by anyone, so only Read can be set."],
             ["Add exception is missing", "You are on your own profile, or your roles let you view user exceptions but not manage them."],
-            ["A saved change shows nothing different on screen", "Expected. Console screens do not read these switches, so no field is hidden or greyed by saving one."],
+            ["A saved change shows nothing different on screen", "Ask the person to reload Console. Check that none of their other roles, and no field exception, still opens the field, and that the field is not their own payroll bank detail."],
             ["Save failed", "Nothing was stored. Read the error, keep your unsaved switches, and try again."],
           ].map(([title, body]) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="flex items-start gap-2 text-sm font-semibold text-black-01"><CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" /> {title}</p><p className="mt-2 text-xs leading-5 text-gray-01">{body}</p></div>)}
         </div>

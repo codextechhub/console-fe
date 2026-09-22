@@ -11,6 +11,7 @@ import type { LoginResponse } from "./auth-types";
 import type {
   AuthSchool,
   AuthTenant,
+  FieldAccessPayload,
   ProxyTargetIdentity,
   User,
 } from "@/redux/features/auth/auth-types";
@@ -141,6 +142,7 @@ export const authApi = baseApi.injectEndpoints({
         school: AuthSchool | null;
         tenant: AuthTenant | null;
         permissions: string[];
+        field_access?: FieldAccessPayload;
         active_impersonation?: {
           id: number;
           tenant_slug: string;
@@ -155,6 +157,7 @@ export const authApi = baseApi.injectEndpoints({
           dispatch(setAuthContext({
             user: data.data.user,
             permissions: data.data.permissions,
+            field_access: data.data.field_access ?? {},
             school: data.data.school ?? null,
             tenant: data.data.tenant ?? null,
           }));

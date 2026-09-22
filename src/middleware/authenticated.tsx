@@ -103,8 +103,8 @@ export default function Authenticated() {
     window.location.replace(LOGIN);
   }, [shouldRedirect, idleTooLong]);
 
-  // Sync permissions on mount - catches role changes that happened while the
-  // token was still valid. onQueryStarted in getMe dispatches updatePermissions.
+  // Sync permissions and Field Access on mount, catching role changes made
+  // while the token was still valid. getMe's onQueryStarted stores them.
   //
   // Skipped for exactly one case: the store was written by a login response a
   // moment ago, which carries the identical context, so the request would only
@@ -134,6 +134,7 @@ export default function Authenticated() {
       school: authContextResponse.data.school ?? null,
       tenant: authContextResponse.data.tenant ?? null,
       permissions: authContextResponse.data.permissions,
+      field_access: authContextResponse.data.field_access ?? {},
     };
     dispatch(setImpersonation({
       id: restorableImpersonation.id,
@@ -149,6 +150,7 @@ export default function Authenticated() {
         name: restorableImpersonation.target.tenant_name,
       },
       permissions: [],
+      field_access: {},
     }));
     void refetchContext();
   }, [authContextResponse, dispatch, impersonation, refetchContext, restorableImpersonation]);

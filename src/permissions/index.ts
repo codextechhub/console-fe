@@ -95,9 +95,7 @@ const REGISTRY_BASE: Record<string, string> = {
   "101002": "platform.staff_profile.create",
   "101003": "platform.staff_profile.update",
 
-  // ── platform / staff payroll (FLS-gated)  (MM=10, RR=11) ───────────────────
-  "101101": "platform.staff_payroll.view",
-  "101108": "platform.staff_payroll.manage",
+  // ── platform / health  (MM=10, RR=12) ─────────────────────────────────────
   "101201": "platform.health.view",
   "101208": "platform.health.manage",
 
@@ -276,7 +274,6 @@ const REGISTRY_BASE: Record<string, string> = {
   "201601": "finance.costcenter.view",
   "201701": "finance.dimension.view",
   "201801": "finance.bankaccount.view",
-  "201839": "finance.bankaccount.view_sensitive",
   "201901": "finance.expenseclaim.view",
   "202001": "finance.pettycash.view",
   "202002": "finance.pettycash.create",
@@ -287,7 +284,6 @@ const REGISTRY_BASE: Record<string, string> = {
   "202901": "finance.pettycashvoucher.view",
   "202101": "finance.tax.view",
   "202201": "finance.payrollrun.view",
-  "202239": "finance.payrollrun.view_sensitive",
   "202301": "finance.budget.view",
   "202303": "finance.budget.edit",
   "202401": "finance.fixedasset.view",
@@ -295,7 +291,7 @@ const REGISTRY_BASE: Record<string, string> = {
   "202601": "finance.customer.view",
   "202701": "finance.feestructure.view",
   // salary roster / structures - own resource so editing them isn't conflated with
-  // running payroll (pay-figure FLS visibility stays on finance.payrollrun.view_sensitive)
+  // running payroll
   "203001": "finance.salary.view",
   "203101": "finance.writeoff.view",
   "203105": "finance.writeoff.approve",
@@ -323,9 +319,7 @@ const REGISTRY_BASE: Record<string, string> = {
   //     · 06 webhook · 07 unattributed_webhook.
   "800101": "payments.collection.view",
   "800201": "payments.virtual_account.view",
-  "800239": "payments.virtual_account.view_sensitive",
   "800301": "payments.payout.view",
-  "800339": "payments.payout.view_sensitive",
   "800401": "payments.report.view",
   // bulk-payout-batch approval (maker-checker over the highest-risk cash-out path)
   "800505": "payments.payout_batch.approve",
@@ -443,9 +437,6 @@ export const P = {
   CREATE_STAFF_PROFILE: "101002",  // create a staff profile for a CX user
   MODIFY_STAFF_PROFILE: "101003",  // edit a staff profile
 
-  // ── Staff payroll (sensitive, field-level secured) ─────────────────────────
-  VIEW_STAFF_PAYROLL:   "101101",  // read bank/account details on staff profiles
-  MANAGE_STAFF_PAYROLL: "101108",  // edit bank/account details on staff profiles
   VIEW_HEALTH: "101201",
   MANAGE_HEALTH: "101208",
 
@@ -537,7 +528,6 @@ export const P = {
   FIN_VIEW_COST_CENTERS:    "201601",
   FIN_VIEW_DIMENSIONS:      "201701",
   FIN_VIEW_BANK_ACCOUNTS:   "201801",
-  FIN_VIEW_BANK_SENSITIVE:  "201839",
   FIN_VIEW_EXPENSE_CLAIMS:  "201901",
   FIN_VIEW_PETTY_CASH:      "202001",
   FIN_CREATE_PETTY_CASH:    "202002",
@@ -547,7 +537,6 @@ export const P = {
   FIN_VIEW_PETTY_CASH_VOUCHER:   "202901",
   FIN_VIEW_TAX:             "202101",
   FIN_VIEW_PAYROLL:         "202201",
-  FIN_VIEW_PAYROLL_SENSITIVE:"202239",
   FIN_VIEW_SALARIES:        "203001",
   FIN_VIEW_BUDGETS:         "202301",
   FIN_EDIT_BUDGET:          "202303",
@@ -572,9 +561,7 @@ export const P = {
   // ── Payments ────────────────────────────────────────────────────────────────
   PAY_VIEW_COLLECTIONS:     "800101",
   PAY_VIEW_VIRTUAL_ACCOUNTS: "800201",
-  PAY_VIEW_VA_SENSITIVE:    "800239",
   PAY_VIEW_PAYOUTS:         "800301",
-  PAY_VIEW_PAYOUT_SENSITIVE:"800339",
   PAY_VIEW_PAYMENT_REPORTS: "800401",
   PAY_APPROVE_PAYOUT_BATCH: "800505",  // approve a routed batch (done in the workflow inbox)
   PAY_APPROVE_PAYOUT_BATCH_HIGH_VALUE: "800544",

@@ -1,5 +1,17 @@
-// Shared staff-profile form used by My Profile (self) and admin create/edit.
-// Builds a StaffProfileWritePayload and hands it to the parent's onSubmit.
+/**
+ * Shared staff-profile form, used by My Profile (self) and admin create/edit.
+ * Builds a StaffProfileWritePayload and hands it to the parent's onSubmit.
+ *
+ * The payroll bank fields follow Field Access. On an existing profile the
+ * record decides, because a staff member always reads and writes their own; on
+ * the create form, where no record exists yet, the signed-in user's map does.
+ * A field the user may not read is not drawn, and the Payroll section goes with
+ * it when none is left; one they may read but not change is greyed and
+ * disabled. The payload is filtered through the same answer, so a field the
+ * user may not change is never sent. Should the backend still refuse a field
+ * (403 `field_write_denied`), the parent passes the messages back as
+ * `fieldErrors` and each appears under its field.
+ */
 
 import { useRef, useState, useMemo, useEffect } from "react";
 import { Formik, Form } from "formik";
@@ -9,12 +21,15 @@ import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, Loader2, Lock } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 import type { StaffProfile, StaffProfileWritePayload } from "@/redux/services/dashboard/organogram-types";
 import { useUploadStaffProfilePhotoMutation } from "@/redux/services/dashboard/organogram-api";
 import { useFetchAuthMediaQuery } from "@/redux/services/media-api";
 import { avatarColor, initialsOf } from "../lib/org-helpers";
 import { cn } from "@/lib/utils";
+import { useFieldAccess, type FieldErrors } from "@/components/finance-ui/field-access";
+import { AccessField } from "@/components/finance-ui/access-field";
+import { PAYROLL_FIELDS, STAFF_PROFILE_RESOURCE } from "../lib/staff-payroll";
 
 const MARITAL = [
   { value: "SINGLE", label: "Single" },
@@ -106,8 +121,8 @@ export function StaffProfileForm({
   initial,
   users = [],
   positions = [],
-  payrollEditable,
   submitting,
+  fieldErrors,
   onSubmit,
   onCancel,
 }: {
@@ -115,8 +130,9 @@ export function StaffProfileForm({
   initial: StaffProfile | null;
   users?: { value: string; label: string }[];
   positions?: { value: string; label: string }[];
-  payrollEditable: boolean;
   submitting: boolean;
+  /** Per-field messages from a refused save, from `fieldWriteErrors`. */
+  fieldErrors?: FieldErrors | null;
   // positionId is handed back separately so the parent can route seat changes
   // through the assignments service (effective-dated history), not a silent
   // overwrite of profile.position.
@@ -125,6 +141,13 @@ export function StaffProfileForm({
 }) {
   const isAdmin = mode !== "me";
   const isCreate = mode === "admin-create";
+  const access = useFieldAccess(STAFF_PROFILE_RESOURCE, isCreate ? null : initial);
+  const payrollNames = PAYROLL_FIELDS.map((field) => field.name);
+  const payrollVisible = access.anyVisible(...payrollNames);
+  // A refusal naming a field this form does not draw still needs saying.
+  const unplacedErrors = Object.entries(fieldErrors ?? {})
+    .filter(([name]) => !payrollNames.includes(name as (typeof payrollNames)[number]))
+    .map(([, message]) => message);
 
   // Profile photo is STAGED (picked but not uploaded) and committed only when
   // the user clicks Save changes - so a mis-pick can be replaced or abandoned.
@@ -177,12 +200,10 @@ export function StaffProfileForm({
           payload.date_exited = values.date_exited || null;
         }
         if (isCreate) payload.user_id = values.user_id;
-        if (payrollEditable) {
-          payload.bank_name = values.bank_name;
-          payload.account_name = values.account_name;
-          payload.account_number = values.account_number;
-        }
-        onSubmit(payload, isAdmin ? values.position_id : "");
+        payload.bank_name = values.bank_name;
+        payload.account_name = values.account_name;
+        payload.account_number = values.account_number;
+        onSubmit(access.writableOnly(payload, { creating: isCreate }), isAdmin ? values.position_id : "");
         setSubmitting(false);
       }}
     >
@@ -272,24 +293,28 @@ export function StaffProfileForm({
           )}
 
           {/* Payroll */}
-          <Section
-            title="Payroll"
-            subtitle={payrollEditable ? "Sensitive - bank details." : undefined}
-            guideTarget="staff-profile.payroll"
-          >
-            {payrollEditable ? (
-              <>
-                <CustomInput id="bank_name" name="bank_name" label="Bank name" value={values.bank_name} onChange={handleChange} onBlur={handleBlur} />
-                <CustomInput id="account_name" name="account_name" label="Account name" value={values.account_name} onChange={handleChange} onBlur={handleBlur} />
-                <CustomInput id="account_number" name="account_number" label="Account number" value={values.account_number} onChange={handleChange} onBlur={handleBlur} />
-              </>
-            ) : (
-              <div className="sm:col-span-2 flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2.5 text-xs text-gray-01 ring-1 ring-slate-200">
-                <Lock className="mt-0.5 size-3.5 shrink-0 text-amber-500" />
-                Payroll details require <span className="font-mono font-semibold">platform.staff_payroll.manage</span> to edit.
-              </div>
-            )}
-          </Section>
+          {payrollVisible && (
+            <Section title="Payroll" subtitle="Sensitive - bank details." guideTarget="staff-profile.payroll">
+              {PAYROLL_FIELDS.map(({ name, label }) => (
+                <AccessField key={name} access={access} name={name} creating={isCreate} errors={fieldErrors}>
+                  <CustomInput
+                    id={name}
+                    name={name}
+                    label={label}
+                    value={values[name]}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </AccessField>
+              ))}
+            </Section>
+          )}
+
+          {unplacedErrors.length > 0 && (
+            <div role="alert" className="rounded-lg bg-red-50 px-3 py-2.5 text-xs text-destructive ring-1 ring-red-200">
+              {unplacedErrors.map((message) => <p key={message}>{message}</p>)}
+            </div>
+          )}
 
           <div className="flex items-center gap-3">
             {/* A staged photo counts as an unsaved change, so the button enables
