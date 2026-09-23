@@ -74,6 +74,9 @@ export const routesPath = {
       FIELD_ACCESS: "/roles/field-access",
       GROUPS: {
         INDEX: "/roles/permission-groups",
+        CREATE: "/roles/permission-groups/create",
+        EDIT_PATH: "/roles/permission-groups/:id/edit",
+        EDIT: (id: string) => `/roles/permission-groups/${id}/edit`,
       },
     },
     PERMISSIONS: {

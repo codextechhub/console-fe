@@ -73,6 +73,9 @@ const REGISTRY_BASE: Record<string, string> = {
 
   // ── platform / permissions registry  (MM=10, RR=05) ──────────────────────
   "100501": "platform.permissions.view",
+  "100502": "platform.permission_groups.create",
+  "100503": "platform.permission_groups.update",
+  "100504": "platform.permission_groups.delete",
 
   // ── platform / audit  (MM=10, RR=06) ──────────────────────────────────────
   "100606": "platform.audit.export",
@@ -387,7 +390,10 @@ export const P = {
   MANAGE_FIELD_ACCESS:  "101808",  // change a role's field switches
 
   // ── Permission Registry ────────────────────────────────────────────────────
-  VIEW_PERMISSIONS:     "100501",  // view the global permission registry
+  VIEW_PERMISSIONS:          "100501",  // view the global permission registry
+  CREATE_PERMISSION_GROUP:   "100502",  // create administrator-owned permission groups
+  UPDATE_PERMISSION_GROUP:   "100503",  // edit administrator-owned permission groups
+  DELETE_PERMISSION_GROUP:   "100504",  // delete administrator-owned permission groups
 
   // ── Audit & Compliance ─────────────────────────────────────────────────────
   EXPORT_AUDIT:         "100606",  // export audit data to file

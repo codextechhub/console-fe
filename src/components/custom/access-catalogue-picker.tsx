@@ -22,6 +22,7 @@ interface Props {
   selected: Set<string>;
   onToggle: (key: string) => void;
   readOnly?: boolean;
+  disableRestricted?: boolean;
   loading?: boolean;
 }
 
@@ -50,6 +51,7 @@ export function AccessCataloguePicker({
   selected,
   onToggle,
   readOnly = false,
+  disableRestricted = false,
   loading = false,
 }: Props) {
   const scope = useCatalogueScope(modules);
@@ -108,7 +110,8 @@ export function AccessCataloguePicker({
           <ScrollArea className="max-h-[430px] min-w-0 pr-3">
             <div className="grid gap-2">
               {permissions.map((permission) => {
-                const disabled = readOnly || !permission.available;
+                const restrictedForGroup = disableRestricted && permission.is_restricted;
+                const disabled = readOnly || !permission.available || restrictedForGroup;
                 return (
                   <label
                     key={permission.key}
@@ -136,6 +139,12 @@ export function AccessCataloguePicker({
                         <span className="mt-1 flex items-start gap-1 text-xs text-gray-01">
                           <AlertCircle className="mt-px size-3 shrink-0" />
                           {permission.unavailable_reason || "Unavailable on the current plan."}
+                        </span>
+                      )}
+                      {restrictedForGroup && (
+                        <span className="mt-1 flex items-start gap-1 text-xs text-gray-01">
+                          <AlertCircle className="mt-px size-3 shrink-0" />
+                          Restricted permissions must be granted individually through the role approval flow.
                         </span>
                       )}
                     </span>

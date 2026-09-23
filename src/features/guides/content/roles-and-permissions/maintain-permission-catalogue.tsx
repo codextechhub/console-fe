@@ -11,7 +11,7 @@ export default function MaintainPermissionCatalogueArticle() {
           "Use the catalogue to understand available access before creating or changing a custom role.",
           "Check sensitivity and restricted status before requesting a grant.",
           "Use a permission group only when its complete bundle matches the person's job.",
-          "Ask the backend team to add or change a permission definition, dependency, default group, or default role.",
+          "Ask the backend team to add or change a permission definition, dependency, or default role.",
         ]} />
       </GuideSection>
 
@@ -20,10 +20,10 @@ export default function MaintainPermissionCatalogueArticle() {
           {[
             ["Module", "The broad product area, such as Finance or Procurement."],
             ["Resource", "The protected record or workflow inside a module."],
-            ["Action", "The controlled operation, such as view, create, update, approve, or manage."],
+            ["Action", "The controlled operation, such as view, create, update, approve, or delete."],
             ["Permission", "A readable access choice backed by a stable internal key."],
             ["Dependency", "Another permission that must also be granted when a permission is used."],
-            ["Permission group", "A backend-defined bundle that can be attached to a custom role."],
+            ["Permission group", "An administrator-created bundle that can be attached to a custom role."],
           ].map(([title, body]) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}
         </div>
       </GuideSection>
@@ -53,8 +53,10 @@ export default function MaintainPermissionCatalogueArticle() {
 
       <GuideSection id="review-permission-groups" title="Review permission groups">
         <GuideSteps>
-          <GuideStep title="Find the matching job bundle">Search <strong>Permission Groups</strong> by its readable name and description.</GuideStep>
+          <GuideStep title="Create a reusable bundle">Open <strong>Permission Groups</strong>, choose <strong>Add Group</strong>, and select the complete set of readable permissions administrators should assign together.</GuideStep>
+          <GuideStep title="Include dependencies">When a permission requires another permission, include both. The backend refuses an incomplete group.</GuideStep>
           <GuideStep title="Use the whole bundle deliberately">A custom role receives every permission in an attached group. Use individual permissions when only part of a bundle fits.</GuideStep>
+          <GuideStep title="Maintain administrator groups">Edit an existing group when its job changes, or delete it when administrators should no longer use that shortcut.</GuideStep>
         </GuideSteps>
       </GuideSection>
 
@@ -71,7 +73,7 @@ export default function MaintainPermissionCatalogueArticle() {
 
       <GuideSection id="completion-check" title="Completion check">
         <GuideCallout tone="tip" title="You are done when">The custom role or personal exception uses the intended readable permissions, includes dependencies, has the right branch scope, and does not bypass restricted-access approval.</GuideCallout>
-        <p className="flex items-center gap-2 text-sm font-medium text-emerald-700"><CheckCircle2 className="size-4" /> Permission definitions and default bundles remain unchanged in the console.</p>
+        <p className="flex items-center gap-2 text-sm font-medium text-emerald-700"><CheckCircle2 className="size-4" /> Permission definitions remain unchanged, while administrator-owned groups reflect the reusable bundles the role catalogue needs.</p>
       </GuideSection>
     </div>
   );

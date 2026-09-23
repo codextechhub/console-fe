@@ -199,8 +199,9 @@ const CustomTable = ({
   const ghostColumns = Math.max(1, tableHeaderList?.length ?? 1);
   // Cards own the phone viewport whenever the table would be card-shaped -
   // including while loading, so the phone never flips table -> cards on arrival.
-  const showCards =
-    mobile === "cards" && (loading || tableBodyList?.length > 0);
+  const hasRows = tableBodyList?.length > 0;
+  const showCards = mobile === "cards" && (loading || hasRows);
+  const showCardEmpty = mobile === "cards" && !loading && !hasRows;
 
   return (
     <>
@@ -276,8 +277,17 @@ const CustomTable = ({
           })}
         </div>
       )}
+      {showCardEmpty && (
+        <div className={cn(INFORMATION_CARD_SURFACE, "grid h-56 place-content-center overflow-hidden rounded-md md:hidden")}>
+          <div className="grid size-40 place-content-center rounded-full border border-primary">
+            <p className="text-xs text-gray-01">
+              {emptyText || "No available data."}
+            </p>
+          </div>
+        </div>
+      )}
       {/* table component start here ------ */}
-      <Table containerClassName={cn(INFORMATION_CARD_SURFACE, "overflow-hidden rounded-md", showCards && "max-md:hidden")}>
+      <Table containerClassName={cn(INFORMATION_CARD_SURFACE, "overflow-hidden rounded-md", (showCards || showCardEmpty) && "max-md:hidden")}>
         {tableHeaderList?.length > 0 && (
           <TableHeader className="border-0">
             <TableRow>

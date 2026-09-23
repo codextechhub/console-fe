@@ -23,13 +23,16 @@ const TABLE_HEADERS = ["Permission", "", "Depends On", "Action"];
 // ── Dependency Chain Sheet ─────────────────────────────────────────────────────
 function DependencyChainSheet({
   permissionKey,
-  allDeps,
   onClose,
 }: {
   permissionKey: string | null;
-  allDeps: PermissionDependency[];
   onClose: () => void;
 }) {
+  const graph = useGetPermissionDependenciesQuery(
+    { graph_for: permissionKey ?? "", page_size: 100 },
+    { skip: !permissionKey },
+  );
+  const allDeps = useMemo(() => graph.data?.data ?? [], [graph.data?.data]);
   const labels = useMemo(() => {
     const result = new Map<string, string>();
     for (const dependency of allDeps) {
@@ -201,7 +204,6 @@ export default function PermissionDependencies() {
 
       <DependencyChainSheet
         permissionKey={chainKey}
-        allDeps={deps}
         onClose={() => setChainKey(null)}
       />
     </>

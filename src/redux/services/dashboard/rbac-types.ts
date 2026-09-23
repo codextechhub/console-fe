@@ -86,7 +86,6 @@ export interface PermissionGroupList {
   id: string;
   name: string;
   description?: string;
-  is_system: boolean;
   is_active: boolean;
   permissions_count: number;
   created_at: string;
@@ -114,7 +113,7 @@ export interface Permission {
 }
 
 export interface PermissionDetail extends Permission {
-  groups?: Array<{ id: string; name: string; is_system?: boolean }>;
+  groups?: Array<{ id: string; name: string }>;
   dependencies?: Array<{ key: string; description?: string }>;
   dependents?: Array<{ key: string; description?: string }>;
 }

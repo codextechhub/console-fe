@@ -66,6 +66,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-permission-actions", label: "View permission actions", aliases: ["actions vocabulary"], console: "Main", group: "Permissions", kind: "view", gate: { perm: P.VIEW_PERMISSIONS }, run: { to: R.PERMISSIONS.ACTIONS.INDEX } },
   { id: "view-permission-dependencies", label: "View permission dependencies", aliases: ["dependencies"], console: "Main", group: "Permissions", kind: "view", gate: { perm: P.VIEW_PERMISSIONS }, run: { to: R.PERMISSIONS.DEPENDENCIES.INDEX } },
   { id: "view-permission-groups", label: "View permission groups", aliases: ["groups"], console: "Main", group: "Permissions", kind: "view", gate: { perm: P.VIEW_PERMISSIONS }, run: { to: R.ROLES.GROUPS.INDEX } },
+  { id: "create-permission-group", label: "Create permission group", aliases: ["new group", "bundle permissions"], console: "Main", group: "Permissions", kind: "do", gate: { perm: P.CREATE_PERMISSION_GROUP }, run: { to: R.ROLES.GROUPS.CREATE } },
 
   // ── Main · Data Imports ──────────────────────────────────────────────────
   { id: "view-import-batches", label: "View import batches", aliases: ["imports", "batches"], console: "Main", group: "Data Imports", kind: "view", gate: { perm: P.VIEW_IMPORT_BATCHES }, run: { to: R.DATA_IMPORTS.BATCHES.INDEX } },

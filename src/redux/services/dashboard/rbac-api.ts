@@ -125,6 +125,21 @@ export const rbacApi = baseApi.injectEndpoints({
       providesTags: ["PermissionGroups"],
     }),
 
+    createPermissionGroup: builder.mutation<{ data: PermissionGroupDetail }, Record<string, unknown>>({
+      query: (body) => ({ url: "/rbac/vision/permission-groups/", method: "POST", body }),
+      invalidatesTags: ["PermissionGroups"],
+    }),
+
+    updatePermissionGroup: builder.mutation<{ data: PermissionGroupDetail }, { id: string; body: Record<string, unknown> }>({
+      query: ({ id, body }) => ({ url: `/rbac/vision/permission-groups/${id}/`, method: "PATCH", body }),
+      invalidatesTags: ["PermissionGroups"],
+    }),
+
+    deletePermissionGroup: builder.mutation<void, string>({
+      query: (id) => ({ url: `/rbac/vision/permission-groups/${id}/`, method: "DELETE" }),
+      invalidatesTags: ["PermissionGroups"],
+    }),
+
     // ── Permissions ────────────────────────────────────────────────────────────
     getPermissions: builder.query<PaginatedResponse<Permission>, Record<string, string | number>>({
       query: (params) => ({ url: `/rbac/vision/permissions/${generateQueryString(params)}`, method: "GET" }),
@@ -246,6 +261,9 @@ export const {
   useDeletePlatformRoleMutation,
   useGetPermissionGroupsQuery,
   useGetPermissionGroupDetailQuery,
+  useCreatePermissionGroupMutation,
+  useUpdatePermissionGroupMutation,
+  useDeletePermissionGroupMutation,
   useGetPermissionsQuery,
   useGetPermissionDetailQuery,
   useGetPermissionModulesQuery,
