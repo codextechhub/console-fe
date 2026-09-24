@@ -612,7 +612,7 @@ alone.
 | `POST /finance/payment-plans/<id>/activate/` · `…/refresh/` · `…/cancel/` | `finance.paymentplan.activate` / `.cancel` |
 | `GET /finance/concessions/` (`?kind=&status=&search=&page=`; paginated) · `POST` · `…/<id>/post/` | `finance.concession.view` / `.create` / `.post` |
 | `GET /finance/concessions/summary/` (posted YTD · draft pending · active count) | `finance.concession.view` |
-| `GET /finance/dunning/summary/` (4 aging buckets) · `GET/POST /dunning-policies/` · `PATCH /dunning-policies/<id>/` (update + stages) | `finance.dunning.view` / `.manage` |
+| `GET /finance/dunning/summary/` (4 aging buckets) · `GET/POST /dunning-policies/` · `PATCH /dunning-policies/<id>/` (update + stages) | `finance.dunning.view` / `.create` / `.update` |
 | `POST /finance/dunning/generate/` (raise notices) · `GET /dunning-notices/` · `…/<id>/cancel/` (send is deferred - no comms service) | `finance.dunning.generate` / `.send` |
 | `GET/POST /finance/fee-structures/` (`?search=&is_active=`; items) · `…/<code>/generate/` | `finance.feestructure.view` / `.create` / `.generate` |
 | `GET/POST /finance/invoices/<id>/email/` (preview + history / send) | `finance.invoice.email` |

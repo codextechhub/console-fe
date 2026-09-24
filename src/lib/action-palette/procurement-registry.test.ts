@@ -80,7 +80,7 @@ describe("Procurement search vocabulary", () => {
     P.PROC_VIEW_CONTRACTS,
     P.PROC_CREATE_CONTRACT,
     P.PROC_VIEW_STOCK,
-    P.PROC_MANAGE_STOCK,
+    P.PROC_CREATE_STOCK,
     P.PROC_VIEW_PROC_REPORTS,
     P.PROC_CREATE_VENDOR_ASSESSMENT,
     P.PROC_VIEW_SETTINGS,
@@ -127,7 +127,7 @@ describe("Procurement action visibility", () => {
 
   it("does not confuse stock viewing with stock management", () => {
     const viewKey = resolvePermissionKey(P.PROC_VIEW_STOCK);
-    const manageKey = resolvePermissionKey(P.PROC_MANAGE_STOCK);
+    const manageKey = resolvePermissionKey(P.PROC_CREATE_STOCK);
 
     expect(matchedIds("new inventory item", [viewKey])).not.toContain("create-stock-item");
     expect(matchedIds("new inventory item", [manageKey])).toContain("create-stock-item");

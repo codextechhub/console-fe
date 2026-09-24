@@ -84,7 +84,7 @@ const CATALOGUE: AccessCatalogueModule[] = [
         fields: [],
         permissions: [
           permission("academics.calendar.view", "View calendar"),
-          permission("academics.calendar.manage", "Manage calendar"),
+          permission("academics.calendar.delete", "Manage calendar"),
         ],
       },
       {

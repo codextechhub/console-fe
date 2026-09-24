@@ -77,6 +77,15 @@ describe("Main-console actions added for post-palette screens", () => {
     }
   });
 
+  it("opens organogram administration for each allowed action", () => {
+    const action = byId("manage-organogram");
+    expect("to" in action.run && action.run.to).toBe(R.ORGANOGRAM.MANAGE);
+    expect(passesActionGate(action.gate, UNRELATED)).toBe(false);
+    for (const key of [P.CREATE_ORGANOGRAM, P.UPDATE_ORGANOGRAM, P.DELETE_ORGANOGRAM, P.ASSIGN_ORGANOGRAM]) {
+      expect(passesActionGate(action.gate, [resolvePermissionKey(key)])).toBe(true);
+    }
+  });
+
   it("Settings is findable by every key that opens it from the nav", () => {
     // A gate omitting these two lets their holders reach Settings by clicking
     // and never by typing.

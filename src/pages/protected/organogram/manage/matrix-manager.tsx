@@ -1,5 +1,5 @@
 // Matrix (dotted-line) reports CRUD (admin). Add/remove dotted relationships
-// between two positions. Gated by P.MANAGE_ORGANOGRAM at the page level.
+// between two positions. Each write requires its matching action.
 
 import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
@@ -15,6 +15,8 @@ import {
   useGetMatrixReportsQuery, useGetPositionsQuery,
 } from "@/redux/services/dashboard/organogram-api";
 import type { MatrixReport, MatrixReportWritePayload } from "@/redux/services/dashboard/organogram-types";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 const HEADERS = ["Position", "Dotted-reports to", "Relationship", ""];
 
@@ -26,6 +28,9 @@ interface FormState {
 const empty: FormState = { position_id: "", reports_to_id: "", relationship_label: "" };
 
 export default function MatrixManager() {
+  const { hasPermission } = usePermissions();
+  const canCreate = hasPermission(P.CREATE_ORGANOGRAM);
+  const canDelete = hasPermission(P.DELETE_ORGANOGRAM);
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching } = useGetMatrixReportsQuery({ page, page_size: 20 });
   const { data: posRes } = useGetPositionsQuery({ page_size: 100 });
@@ -63,19 +68,19 @@ export default function MatrixManager() {
       position: <span className="text-sm font-medium text-black-01">{m.position.title}</span>,
       reports_to: <span className="text-sm">{m.reports_to.title}</span>,
       relationship: <span className="text-sm text-gray-01">{m.relationship_label || "-"}</span>,
-      actions: (
+      actions: canDelete ? (
         <button className="rounded p-1.5 text-gray-01 hover:bg-destructive/10 hover:text-destructive" onClick={(e) => { e.stopPropagation(); setToDelete(m); }} title="Remove"><Trash2 className="size-4" /></button>
-      ),
+      ) : null,
       _raw: m,
     })),
-    [items],
+    [items, canDelete],
   );
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-xs text-gray-01">Dotted-line relationships, separate from the solid reporting line. One per position pair.</p>
-        <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Matrix Line</Button>
+        {canCreate && <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Matrix Line</Button>}
       </div>
 
       <CustomTable

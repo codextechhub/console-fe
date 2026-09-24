@@ -44,7 +44,7 @@ describe("contextual guides", () => {
     const permissionRegistry = contextualGuideContext(GUIDE_REGISTRY, "/permissions", ["platform.permissions.view"]);
     expect(permissionRegistry.guides.map((guide) => guide.id)).toEqual(["roles.maintain-permission-catalogue"]);
 
-    const organogramManage = contextualGuideContext(GUIDE_REGISTRY, "/organogram/manage", ["platform.organogram.manage"]);
+    const organogramManage = contextualGuideContext(GUIDE_REGISTRY, "/organogram/manage", ["platform.organogram.create"]);
     expect(organogramManage.guides.map((guide) => guide.id)).toEqual(["organogram.build-structure"]);
 
     const staffCreate = contextualGuideContext(GUIDE_REGISTRY, "/organogram/staff/create", ["platform.staff_profile.create"]);

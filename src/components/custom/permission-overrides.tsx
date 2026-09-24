@@ -7,7 +7,7 @@
  *
  * ── VISIBILITY (the security crux) ───────────────────────────────────────────
  * The whole section renders ONLY when the VIEWER holds
- * P.VIEW_PERMISSION_EXCEPTIONS or P.MANAGE_PERMISSION_EXCEPTIONS. A user
+ * P.VIEW_PERMISSION_EXCEPTIONS or P.CREATE_PERMISSION_EXCEPTION. A user
  * browsing their own profile without those keys must see no trace: no section,
  * no heading, no count, no empty state, no skeleton - and no request. That is
  * why the gate lives in the exported wrapper and the RTK Query hook lives in a
@@ -123,7 +123,8 @@ export function useCanViewPermissionExceptions(): boolean {
   const { hasAnyPermission } = usePermissions();
   return hasAnyPermission(
     P.VIEW_PERMISSION_EXCEPTIONS,
-    P.MANAGE_PERMISSION_EXCEPTIONS,
+    P.CREATE_PERMISSION_EXCEPTION,
+    P.DELETE_PERMISSION_EXCEPTION,
   );
 }
 
@@ -146,7 +147,8 @@ export default function PermissionOverrides({
       userId={userId}
       tenantSlug={tenantSlug}
       userName={userName}
-      canManage={hasPermission(P.MANAGE_PERMISSION_EXCEPTIONS)}
+      canCreate={hasPermission(P.CREATE_PERMISSION_EXCEPTION)}
+      canDelete={hasPermission(P.DELETE_PERMISSION_EXCEPTION)}
       className={className}
     />
   );
@@ -159,13 +161,15 @@ function OverridesSection({
   userId,
   tenantSlug,
   userName,
-  canManage,
+  canCreate,
+  canDelete,
   className,
 }: {
   userId: string | number;
   tenantSlug: string;
   userName?: string | null;
-  canManage: boolean;
+  canCreate: boolean;
+  canDelete: boolean;
   className?: string;
 }) {
   const now = useNow();
@@ -213,7 +217,7 @@ function OverridesSection({
             roles.
           </p>
         </div>
-        {canManage && (
+        {canCreate && (
           <Button
             variant="outline"
             size="sm"
@@ -248,7 +252,7 @@ function OverridesSection({
                 key={row.id}
                 row={row}
                 now={now}
-                canManage={canManage}
+                canDelete={canDelete}
                 onLift={() => setPendingLift(row)}
               />
             ))}
@@ -256,7 +260,7 @@ function OverridesSection({
         )}
       </div>
 
-      {canManage && (
+      {canCreate && (
         <AddExceptionDrawer
           open={addOpen}
           onOpenChange={setAddOpen}
@@ -310,12 +314,12 @@ function OverridesSection({
 function OverrideRow({
   row,
   now,
-  canManage,
+  canDelete,
   onLift,
 }: {
   row: PermissionOverride;
   now: number;
-  canManage: boolean;
+  canDelete: boolean;
   onLift: () => void;
 }) {
   const expiry = expiryLabel(row.expires_at, now);
@@ -348,7 +352,7 @@ function OverrideRow({
             )}
             {MODE_LABEL[row.mode]}
           </Badge>
-          {canManage && (
+          {canDelete && (
             <button
               type="button"
               onClick={onLift}
@@ -393,7 +397,7 @@ function OverrideRow({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Add exception drawer (mounted only when the viewer holds `.manage`).
+// Add exception drawer for viewers with create permission.
 // ─────────────────────────────────────────────────────────────────────────────
 function AddExceptionDrawer({
   open,

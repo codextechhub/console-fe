@@ -322,7 +322,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["platform-administrator"],
     routes: [R.ROLES.FIELD_ACCESS],
     actionIds: ["view-field-access"],
-    access: { mode: "any", permissions: [P.VIEW_FIELD_ACCESS, P.MANAGE_FIELD_ACCESS] },
+    access: { mode: "any", permissions: [P.VIEW_FIELD_ACCESS, P.UPDATE_FIELD_ACCESS] },
     primaryRoute: R.ROLES.FIELD_ACCESS,
     sections: [
       { id: "before-you-start", title: "Before you start" },
@@ -355,7 +355,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["platform-administrator"],
     routes: [R.ORGANOGRAM.INDEX, R.ORGANOGRAM.MANAGE],
     actionIds: ["view-org-chart", "manage-organogram"],
-    access: { mode: "any", permissions: [P.MANAGE_ORGANOGRAM] },
+    access: { mode: "any", permissions: [P.CREATE_ORGANOGRAM] },
     primaryRoute: R.ORGANOGRAM.MANAGE,
     sections: [
       { id: "before-you-start", title: "Before you start" },
@@ -515,7 +515,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["platform-administrator", "approver"],
     routes: [R.WORKFLOW.APPROVER_GROUPS, R.WORKFLOW.TEMPLATES, R.WORKFLOW.TEMPLATE_NEW, R.WORKFLOW.TEMPLATE_DETAIL_PATH, R.WORKFLOW.TEMPLATE_EDIT_PATH],
     actionIds: ["view-workflow-templates", "create-workflow-template", "view-approver-groups", "view-dynamic-roles", "create-dynamic-role"],
-    access: { mode: "all", permissions: [P.VIEW_WORKFLOW_TEMPLATES, P.MANAGE_WORKFLOW_TEMPLATES] },
+    access: { mode: "all", permissions: [P.VIEW_WORKFLOW_TEMPLATES, P.UPDATE_WORKFLOW_TEMPLATE] },
     primaryRoute: R.WORKFLOW.TEMPLATE_NEW,
     sections: [
       { id: "before-you-start", title: "Before you start" },
@@ -1119,7 +1119,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["finance-officer", "approver"],
     routes: [R.FINANCE.BUDGETS, `${R.FINANCE.BUDGETS}/tax`, R.FINANCE.PAYROLL],
     actionIds: ["view-tax-remittance", "view-payroll"],
-    access: { mode: "any", permissions: [P.FIN_VIEW_TAX, P.FIN_MANAGE_TAX, P.FIN_FILE_TAX, P.FIN_PAY_TAX] },
+    access: { mode: "any", permissions: [P.FIN_VIEW_TAX, P.FIN_CREATE_TAX, P.FIN_FILE_TAX, P.FIN_PAY_TAX] },
     primaryRoute: `${R.FINANCE.BUDGETS}/tax`,
     sections: [
       { id: "before-you-start", title: "Before you start" },
@@ -1217,7 +1217,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["procurement-officer", "finance-officer", "approver"],
     routes: [R.PROCUREMENT.VENDORS, `${R.PROCUREMENT.VENDORS}/vendors`],
     actionIds: ["view-vendors", "create-vendor"],
-    access: { mode: "any", permissions: [P.PROC_VIEW_VENDORS, P.PROC_CREATE_VENDOR, P.PROC_UPDATE_VENDOR, P.PROC_MANAGE_VENDOR] },
+    access: { mode: "any", permissions: [P.PROC_VIEW_VENDORS, P.PROC_CREATE_VENDOR, P.PROC_UPDATE_VENDOR, P.PROC_VERIFY_VENDOR] },
     primaryRoute: `${R.PROCUREMENT.VENDORS}/vendors`,
     sections: [
       { id: "before-you-start", title: "Before you start" },
@@ -1354,7 +1354,7 @@ export const GUIDE_REGISTRY = [
       P.PROC_VIEW_GOODS_RECEIPTS, P.PROC_CREATE_GOODS_RECEIPT,
       P.PROC_VIEW_VENDOR_INVOICES, P.PROC_CREATE_VENDOR_INVOICE,
       P.PROC_VIEW_VENDOR_PAYMENTS, P.PROC_CREATE_VENDOR_PAYMENT,
-      P.PROC_APPROVE_SPEND, P.PROC_MANAGE_APPROVALS, P.PROC_APPROVE_SPEND_SENIOR,
+      P.PROC_APPROVE_SPEND, P.PROC_VIEW_APPROVALS, P.PROC_APPROVE_SPEND_SENIOR,
     ] },
     primaryRoute: R.PROCUREMENT.REQUISITIONS,
     sections: [
@@ -1389,7 +1389,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["procurement-officer", "platform-administrator"],
     routes: [R.PROCUREMENT.INVENTORY, `${R.PROCUREMENT.INVENTORY}/items`, `${R.PROCUREMENT.INVENTORY}/movements`, `${R.PROCUREMENT.INVENTORY}/locations`],
     actionIds: ["view-stock-items", "create-stock-item", "view-stock-movements", "view-stock-locations", "create-stock-location"],
-    access: { mode: "any", permissions: [P.PROC_VIEW_STOCK, P.PROC_MANAGE_STOCK, P.PROC_ISSUE_STOCK, P.PROC_ADJUST_STOCK] },
+    access: { mode: "any", permissions: [P.PROC_VIEW_STOCK, P.PROC_CREATE_STOCK, P.PROC_ISSUE_STOCK, P.PROC_ADJUST_STOCK] },
     primaryRoute: `${R.PROCUREMENT.INVENTORY}/items`,
     sections: [
       { id: "before-you-start", title: "Before you start" },
@@ -1528,7 +1528,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["platform-administrator", "support-and-operations"],
     routes: [R.DATA_IMPORTS.TEMPLATES.INDEX, R.DATA_IMPORTS.TEMPLATES.NEW, R.DATA_IMPORTS.TEMPLATES.VIEW_PATH, R.DATA_IMPORTS.TEMPLATES.EDIT_PATH],
     actionIds: ["view-import-templates", "create-import-template"],
-    access: { mode: "any", permissions: [P.VIEW_IMPORT_TEMPLATES, P.CREATE_IMPORT_TEMPLATE, P.MANAGE_IMPORT_TEMPLATES] },
+    access: { mode: "any", permissions: [P.VIEW_IMPORT_TEMPLATES, P.CREATE_IMPORT_TEMPLATE, P.UPDATE_IMPORT_TEMPLATE] },
     primaryRoute: R.DATA_IMPORTS.TEMPLATES.INDEX,
     sections: [
       { id: "before-you-start", title: "Before you start" },
@@ -1730,7 +1730,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["platform-administrator", "support-and-operations"],
     routes: [R.AUDIT.EXPORTS, R.AUDIT.EXPORT_NEW, R.AUDIT.COMPLIANCE_RULES, R.AUDIT.COMPLIANCE_RULE_CREATE, R.AUDIT.COMPLIANCE_RULE_EDIT_PATH],
     actionIds: ["view-audit-exports", "new-audit-export", "view-compliance-rules", "create-compliance-rule"],
-    access: { mode: "any", permissions: [P.EXPORT_AUDIT, P.MANAGE_AUDIT] },
+    access: { mode: "any", permissions: [P.EXPORT_AUDIT, P.VIEW_AUDIT, P.CREATE_AUDIT_RULE, P.UPDATE_AUDIT_RULE, P.DELETE_AUDIT_RULE] },
     primaryRoute: R.AUDIT.EXPORTS,
     sections: [
       { id: "before-you-start", title: "Before you start" },

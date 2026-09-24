@@ -93,7 +93,7 @@ phrases/aliases first, then we implement.
 | Action | Aliases | Kind | Gate | Destination |
 |---|---|---|---|---|
 | View org chart | organogram, org structure | view | - | `/organogram` |
-| Manage organogram | edit org chart, departments, positions | do | `MANAGE_ORGANOGRAM` | `/organogram/manage` |
+| Manage organogram | edit org chart, departments, positions | do | `CREATE_ORGANOGRAM`, `UPDATE_ORGANOGRAM`, `DELETE_ORGANOGRAM`, or `ASSIGN_ORGANOGRAM` | `/organogram/manage` |
 | Create staff profile | new staff, add staff profile | do | `CREATE_STAFF_PROFILE` | `/organogram/staff/create` |
 
 ### Tasks
@@ -121,7 +121,7 @@ phrases/aliases first, then we implement.
 | View permission actions | actions vocabulary | view | `VIEW_PERMISSIONS` | `/permissions/actions` |
 | View permission dependencies | dependencies | view | `VIEW_PERMISSIONS` | `/permissions/dependencies` |
 | View permission groups | groups | view | `VIEW_PERMISSIONS` | `/roles/permission-groups` |
-| Create permission group | new group | do | `MANAGE_PERMISSIONS` | `/roles/permission-groups/create` |
+| Create permission group | new group | do | `CREATE_PERMISSION_GROUP` | `/roles/permission-groups/create` |
 
 ### Data Imports
 | Action | Aliases | Kind | Gate | Destination |
@@ -145,7 +145,7 @@ phrases/aliases first, then we implement.
 | View workflow instances | all instances | view | `VIEW_WORKFLOW_INSTANCES` | `/workflow/instances` |
 | View team load | - | view | `VIEW_WORKFLOW_INSTANCES` | `/workflow/team-load` |
 | View workflow templates | - | view | `VIEW_WORKFLOW_TEMPLATES` | `/workflow/templates` |
-| Create workflow template | new workflow | do | `MANAGE_WORKFLOW_TEMPLATES` | `/workflow/templates/new` |
+| Create workflow template | new workflow | do | `UPDATE_WORKFLOW_TEMPLATE` | `/workflow/templates/new` |
 
 ### Audit & Security
 | Action | Aliases | Kind | Gate | Destination |
@@ -160,8 +160,8 @@ phrases/aliases first, then we implement.
 | View proxy sessions | impersonations | view | `VIEW_AUDIT` | `/audit/impersonations` |
 | View audit exports | - | view | `EXPORT_AUDIT` | `/audit/exports` |
 | New audit export | export audit | do | `EXPORT_AUDIT` | `/audit/exports/new` |
-| View compliance rules | - | view | `MANAGE_AUDIT` | `/audit/compliance-rules` |
-| Create compliance rule | new rule | do | `MANAGE_AUDIT` | `/audit/compliance-rules/create` |
+| View compliance rules | - | view | `VIEW_AUDIT` | `/audit/compliance-rules` |
+| Create compliance rule | new rule | do | `CREATE_AUDIT_RULE` | `/audit/compliance-rules/create` |
 
 ### Health
 | Action | Aliases | Kind | Gate | Destination |
@@ -308,7 +308,7 @@ phrases/aliases first, then we implement.
 | View contracts | - | view | `PROC_VIEW_CONTRACTS` | `/procurement/contracts` |
 | Create contract | new contract | do | `PROC_CREATE_CONTRACT` | `/procurement/contracts?action=new` |
 | View stock items | inventory, inventory items, stock | view | `PROC_VIEW_STOCK` | `/procurement/inventory/items` |
-| Create stock item | new stock item, new inventory item | do | `PROC_MANAGE_STOCK` | `/procurement/inventory/items?action=new` |
+| Create stock item | new stock item, new inventory item | do | `PROC_CREATE_STOCK` | `/procurement/inventory/items?action=new` |
 | View stock movements | movements, inventory movements, stock ledger | view | `PROC_VIEW_STOCK` | `/procurement/inventory/movements` |
 | View procurement analytics | procurement reports, purchasing analytics | view | `PROC_VIEW_PROC_REPORTS` | `/procurement/analytics` |
 | View AP aging | - | view | `PROC_VIEW_PROC_REPORTS` | `/procurement/analytics/ap-aging` |
@@ -383,7 +383,7 @@ it points at its first child rather than a screen of its own.
 
 **On changing `main-nav.ts`.** `app-sidebar.test.tsx` pins who sees what: 27
 snapshots across permission profiles (no keys, auditor with and without the export
-and manage keys, health telemetry vs payments webhooks alone, each console prefix,
+and action keys, health telemetry vs payments webhooks alone, each console prefix,
 and the active-highlight rules for eight routes). They were captured against the
 pre-extraction component and passed unchanged after it, which is what makes them
 evidence rather than decoration. A gate you delete shows up there as a diff.

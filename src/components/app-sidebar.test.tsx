@@ -122,10 +122,10 @@ describe("Main sidebar visibility", () => {
   });
 
   it("shows the auditor profile", async () => {
-    expect(await renderNav(keys(P.VIEW_AUDIT, P.EXPORT_AUDIT, P.MANAGE_AUDIT))).toMatchSnapshot();
+    expect(await renderNav(keys(P.VIEW_AUDIT, P.EXPORT_AUDIT, P.CREATE_AUDIT_RULE))).toMatchSnapshot();
   });
 
-  it("shows an auditor without the export or manage keys", async () => {
+  it("shows an auditor with view permission alone", async () => {
     expect(await renderNav(keys(P.VIEW_AUDIT))).toMatchSnapshot();
   });
 
@@ -174,7 +174,7 @@ describe("Main sidebar visibility", () => {
   });
 
   it("shows organogram manage only with the manage key", async () => {
-    expect(await renderNav(keys(P.MANAGE_ORGANOGRAM))).toMatchSnapshot();
+    expect(await renderNav(keys(P.CREATE_ORGANOGRAM))).toMatchSnapshot();
   });
 
   it("shows settings for a security-settings holder", async () => {
@@ -190,7 +190,7 @@ describe("Main sidebar visibility", () => {
     expect(await renderNav(keys(P.VIEW_ROLES))).not.toContain(entry);
     expect(await renderNav(keys(P.VIEW_FIELD_ACCESS))).not.toContain(entry);
     expect(await renderNav(keys(P.VIEW_ROLES, P.VIEW_FIELD_ACCESS))).toContain(entry);
-    expect(await renderNav(keys(P.VIEW_ROLES, P.MANAGE_FIELD_ACCESS))).toContain(entry);
+    expect(await renderNav(keys(P.VIEW_ROLES, P.UPDATE_FIELD_ACCESS))).toContain(entry);
   });
 
   it("shows everything to a super admin", async () => {

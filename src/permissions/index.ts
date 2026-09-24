@@ -14,7 +14,7 @@
  *                       90=config    91=tickets   92=exports
  *   RR = resource       01 02 03 … (assigned sequentially per module)
  *   AA = action         01=view   02=create  03=update  04=delete
- *                       05=approve  06=export  08=manage
+ *                       05=approve  06=export  08=legacy slot
  *                       09=suspend  10=reactivate  11=assign  12=transfer
  *   Finance/Procurement document actions extend the AA vocabulary:
  *                       13=post  14=reverse  15=settle  16=pay  17=reconcile
@@ -47,13 +47,14 @@ const REGISTRY_BASE: Record<string, string> = {
   "100102": "platform.schools.create",
   "100103": "platform.schools.update",
   "100104": "platform.schools.delete",
-  "100108": "platform.schools.manage",
+  "100108": "platform.schools.configure",
+  "100155": "platform.schools.transition",
 
   // ── platform / branches  (MM=10, RR=02) ───────────────────────────────────
   "100201": "platform.branches.view",
   "100202": "platform.branches.create",
   "100203": "platform.branches.update",
-  "100208": "platform.branches.manage",
+  "100208": "platform.branches.transition",
 
   // ── platform / team  (MM=10, RR=03) ───────────────────────────────────────
   "100301": "platform.team.view",
@@ -79,7 +80,9 @@ const REGISTRY_BASE: Record<string, string> = {
 
   // ── platform / audit  (MM=10, RR=06) ──────────────────────────────────────
   "100606": "platform.audit.export",
-  "100608": "platform.audit.manage",
+  "100608": "platform.audit.create",
+    "100603": "platform.audit.update",
+    "100604": "platform.audit.delete",
 
   // ── platform / security  (MM=10, RR=08) ───────────────────────────────────
   "100801": "platform.security.view",
@@ -91,7 +94,10 @@ const REGISTRY_BASE: Record<string, string> = {
 
   // ── platform / organogram  (MM=10, RR=09) ─────────────────────────────────
   "100901": "platform.organogram.view",
-  "100908": "platform.organogram.manage",
+  "100908": "platform.organogram.create",
+    "100903": "platform.organogram.update",
+    "100904": "platform.organogram.delete",
+    "100911": "platform.organogram.assign",
 
   // ── platform / staff profile  (MM=10, RR=10) ──────────────────────────────
   "101001": "platform.staff_profile.view",
@@ -100,17 +106,19 @@ const REGISTRY_BASE: Record<string, string> = {
 
   // ── platform / health  (MM=10, RR=12) ─────────────────────────────────────
   "101201": "platform.health.view",
-  "101208": "platform.health.manage",
+  "101208": "platform.health.create",
+    "101203": "platform.health.update",
 
   // ── platform / per-user permission exceptions  (MM=10, RR=13) ──────────────
   // CRITICAL + restricted. Seeing that a user HAS exceptions is itself
   // sensitive - without `.view` the affected user must not learn they exist.
   "101301": "platform.team_overrides.view",
-  "101308": "platform.team_overrides.manage",
+  "101308": "platform.team_overrides.create",
+    "101304": "platform.team_overrides.delete",
 
   // ── platform / field access  (MM=10, RR=18) ───────────────────────────────
   "101801": "platform.field_access.view",
-  "101808": "platform.field_access.manage",
+  "101808": "platform.field_access.update",
 
   // ── platform / requirements document library  (MM=10, RR=14) ───────────────
   // CX-internal product specs (the MRD and the per-module FRDs). The backend
@@ -160,23 +168,29 @@ const REGISTRY_BASE: Record<string, string> = {
   "900201": "config.value.view",
   "900203": "config.value.update",
   "900301": "config.capability.view",
-  "900308": "config.capability.manage",
+  "900308": "config.capability.create",
+    "900303": "config.capability.update",
+    "900361": "config.capability.archive",
   "900401": "config.entitlement.view",
-  "900408": "config.entitlement.manage",
+  "900408": "config.entitlement.update",
+    "900404": "config.entitlement.delete",
   "900501": "config.override.view",
-  "900508": "config.override.manage",
+  "900508": "config.override.update",
   "900601": "config.audit.view",
   "900606": "config.audit.export",
   "900702": "config.export.create",
   "900801": "config.security.view",
-  "900808": "config.security.manage",
+  "900808": "config.security.update",
   "900901": "config.integration.view",
-  "900908": "config.integration.manage",
+  "900908": "config.integration.update",
+    "900959": "config.integration.trigger",
 
   // ── support tickets  (MM=91) ──────────────────────────────────────────────
   "910101": "tickets.ticket.view",
   "910103": "tickets.ticket.update",
-  "910108": "tickets.ticket.manage",
+  "910108": "tickets.ticket.triage",
+    "910155": "tickets.ticket.transition",
+    "910157": "tickets.ticket.escalate",
   "910111": "tickets.ticket.assign",
   "910205": "tickets.comment.post",
   "910305": "tickets.internal_note.post",
@@ -205,7 +219,7 @@ const REGISTRY_BASE: Record<string, string> = {
   // ── imports / templates  (MM=50, RR=01) ──────────────────────────────────
   "500101": "import.templates.view",
   "500102": "import.templates.create",
-  "500108": "import.templates.manage",
+  "500108": "import.templates.update",
 
   // ── imports / batches  (MM=50, RR=02) ────────────────────────────────────
   "500201": "import.batches.view",
@@ -231,7 +245,8 @@ const REGISTRY_BASE: Record<string, string> = {
   "500801": "import.notifications.view",
 
   // ── workflow / templates  (MM=60, RR=01) ─────────────────────────────────
-  "600108": "workflow.template.manage",
+  "600108": "workflow.template.update",
+    "600162": "workflow.template.publish",
 
   // ── workflow / instances  (MM=60, RR=02) ─────────────────────────────────
   "600201": "workflow.instance.view",
@@ -243,7 +258,9 @@ const REGISTRY_BASE: Record<string, string> = {
 
   // ── workflow / approver groups  (MM=60, RR=04) ───────────────────────────
   "600401": "workflow.group.view",
-  "600408": "workflow.group.manage",      // create groups and edit membership
+  "600408": "workflow.group.create",
+    "600403": "workflow.group.update",
+    "600404": "workflow.group.delete",
 
   // ── FINANCE  (MM=20) ───────────────────────────────────────────────────────
   // Resource map (RR): 01 entity · 02 account · 03 period · 04 journal ·
@@ -281,7 +298,6 @@ const REGISTRY_BASE: Record<string, string> = {
   "202001": "finance.pettycash.view",
   "202002": "finance.pettycash.create",
   "202003": "finance.pettycash.update",
-  "202008": "finance.pettycash.manage",       // orphan - superseded by the split below
   "202013": "finance.pettycash.post",         // orphan - now finance.pettycashvoucher.post
   // petty cash *voucher* - split out as its own resource (RR=29)
   "202901": "finance.pettycashvoucher.view",
@@ -314,7 +330,8 @@ const REGISTRY_BASE: Record<string, string> = {
   "700901": "procurement.goods_receipt.view",
   "701101": "procurement.vendor_payment.view",
   "701205": "procurement.approval.approve",
-  "701208": "procurement.approval.manage",
+  "701208": "procurement.approval.view",
+    "701203": "procurement.approval.update",
   "701238": "procurement.approval.approve_senior",
 
   // ── PAYMENTS  (MM=80) ────────────────────────────────────────────────────────
@@ -361,13 +378,14 @@ export const P = {
   ONBOARD_SCHOOL:       "100102",  // register and add a new school
   MODIFY_SCHOOL:        "100103",  // edit school info and settings
   DECOMMISSION_SCHOOL:  "100104",  // permanently remove a school record
-  MANAGE_SCHOOL:        "100108",  // reset config, take a school out of service
+  CONFIGURE_SCHOOL:        "100108",  // reset config, take a school out of service
+  TRANSITION_SCHOOL: "100155",
 
   // ── Branch Management ──────────────────────────────────────────────────────
   BROWSE_BRANCHES:      "100201",  // view branches under a school
   ADD_BRANCH:           "100202",  // add a new branch to a school
   MODIFY_BRANCH:        "100203",  // edit branch details
-  MANAGE_BRANCH:        "100208",  // transition branch lifecycle (active → suspended → closed)
+  TRANSITION_BRANCH:        "100208",  // transition branch lifecycle (active → suspended → closed)
 
   // ── Team Management ────────────────────────────────────────────────────────
   ACCESS_TEAM_PANEL:    "100301",  // view staff list and member profiles
@@ -387,7 +405,7 @@ export const P = {
 
   // ── Field Access ───────────────────────────────────────────────────────────
   VIEW_FIELD_ACCESS:    "101801",  // see which fields each role may read or write
-  MANAGE_FIELD_ACCESS:  "101808",  // change a role's field switches
+  UPDATE_FIELD_ACCESS:  "101808",  // change a role's field switches
 
   // ── Permission Registry ────────────────────────────────────────────────────
   VIEW_PERMISSIONS:          "100501",  // view the global permission registry
@@ -397,7 +415,8 @@ export const P = {
 
   // ── Audit & Compliance ─────────────────────────────────────────────────────
   EXPORT_AUDIT:         "100606",  // export audit data to file
-  MANAGE_AUDIT:         "100608",  // create and manage compliance rules
+  CREATE_AUDIT_RULE:         "100608",  // create and manage compliance rules
+  UPDATE_AUDIT_RULE: "100603", DELETE_AUDIT_RULE: "100604",
 
   // ── Security ───────────────────────────────────────────────────────────────
   VIEW_SECURITY:        "100801",  // view live sessions, login attempts, lockouts, impersonations
@@ -407,7 +426,7 @@ export const P = {
   // ── Data Imports ───────────────────────────────────────────────────────────
   VIEW_IMPORT_TEMPLATES:   "500101",  // browse system import templates
   CREATE_IMPORT_TEMPLATE:  "500102",  // CX_STAFF: define new templates
-  MANAGE_IMPORT_TEMPLATES: "500108",  // CX_STAFF: edit drafts, publish, retire
+  UPDATE_IMPORT_TEMPLATE: "500108",  // CX_STAFF: edit drafts, publish, retire
   VIEW_IMPORT_BATCHES:     "500201",  // browse import batches
   UPLOAD_IMPORT_BATCH:     "500202",  // upload a new batch
   EDIT_IMPORT_BATCH:       "500203",  // edit batch metadata (notes, sheet, header row)
@@ -423,20 +442,23 @@ export const P = {
   VIEW_IMPORT_NOTIFICATIONS: "500801", // view per-batch notification log
 
   // ── Workflow & Approvals ─────────────────────────────────────────────────────
-  MANAGE_WORKFLOW_TEMPLATES: "600108",  // publish/edit workflow templates
+  UPDATE_WORKFLOW_TEMPLATE: "600108",  // publish/edit workflow templates
+  PUBLISH_WORKFLOW_TEMPLATE: "600162",
   VIEW_WORKFLOW_INSTANCES:   "600201",  // view all workflow instances (admin monitoring)
   SUBMIT_WORKFLOW:           "600202",  // submit a document for approval
   CANCEL_WORKFLOW:           "600204",  // admin-cancel a stuck instance
   REVERSE_WORKFLOW_ACTION:   "600305",  // admin-reverse a recorded approver vote
   VIEW_APPROVER_GROUPS:      "600401",  // browse the named approver pools
-  MANAGE_APPROVER_GROUPS:    "600408",  // create groups, add/remove members
+  CREATE_APPROVER_GROUP:    "600408",  // create groups, add/remove members
+  UPDATE_APPROVER_GROUP: "600403", DELETE_APPROVER_GROUP: "600404",
 
   // ── Dashboard ──────────────────────────────────────────────────────────────
   VIEW_DASHBOARD:       "100701",  // view admin dashboard metrics and statistics
 
   // ── Organogram ─────────────────────────────────────────────────────────────
   VIEW_ORGANOGRAM:      "100901",  // view the organogram summary/KPI strip
-  MANAGE_ORGANOGRAM:    "100908",  // create/edit departments, positions, assignments, matrix lines
+  CREATE_ORGANOGRAM:    "100908",  // create/edit departments, positions, assignments, matrix lines
+  UPDATE_ORGANOGRAM: "100903", DELETE_ORGANOGRAM: "100904", ASSIGN_ORGANOGRAM: "100911",
 
   // ── Staff profiles ─────────────────────────────────────────────────────────
   VIEW_STAFF_PROFILE:   "101001",  // view CX-staff HR/personal profiles
@@ -444,7 +466,8 @@ export const P = {
   MODIFY_STAFF_PROFILE: "101003",  // edit a staff profile
 
   VIEW_HEALTH: "101201",
-  MANAGE_HEALTH: "101208",
+  CREATE_HEALTH_INCIDENT: "101208",
+  UPDATE_HEALTH_INCIDENT: "101203",
 
   // Background task monitor. VIEW_TASK_MONITOR opens the redacted queue;
   // VIEW_RAW_TASK_DIAGNOSTIC opens one run's unredacted failure text and is
@@ -459,7 +482,8 @@ export const P = {
   // school case additionally asserts ?tenant=<school-slug>). The school-side
   // keys (school.user_overrides.*) belong to school-fe, not this console.
   VIEW_PERMISSION_EXCEPTIONS:   "101301",  // see a user's permission exceptions
-  MANAGE_PERMISSION_EXCEPTIONS: "101308",  // add or lift a permission exception
+  CREATE_PERMISSION_EXCEPTION: "101308",  // add or lift a permission exception
+  DELETE_PERMISSION_EXCEPTION: "101304",
 
   // ── Requirements library ───────────────────────────────────────────────────
   VIEW_REQUIREMENTS_DOCS: "101401",  // browse and download the MRD / module FRDs
@@ -477,12 +501,15 @@ export const P = {
   VIEW_CONFIG_DEFINITIONS: "900101", CREATE_CONFIG_DEFINITION: "900102",
   UPDATE_CONFIG_DEFINITION: "900103", ARCHIVE_CONFIG_DEFINITION: "900104",
   VIEW_CONFIG_VALUES: "900201", UPDATE_CONFIG_VALUES: "900203",
-  VIEW_CAPABILITIES: "900301", MANAGE_CAPABILITIES: "900308",
-  VIEW_ENTITLEMENTS: "900401", MANAGE_ENTITLEMENTS: "900408",
-  VIEW_CONFIG_OVERRIDES: "900501", MANAGE_CONFIG_OVERRIDES: "900508",
+  VIEW_CAPABILITIES: "900301", CREATE_CAPABILITY: "900308",
+  UPDATE_CAPABILITY: "900303", ARCHIVE_CAPABILITY: "900361",
+  VIEW_ENTITLEMENTS: "900401", UPDATE_ENTITLEMENT: "900408",
+  DELETE_ENTITLEMENT: "900404",
+  VIEW_CONFIG_OVERRIDES: "900501", UPDATE_CONFIG_OVERRIDE: "900508",
   VIEW_CONFIG_AUDIT: "900601", EXPORT_CONFIG_AUDIT: "900606", EXPORT_CONFIG: "900702",
-  VIEW_SECURITY_SETTINGS: "900801", MANAGE_SECURITY_SETTINGS: "900808",
-  VIEW_INTEGRATION_SETTINGS: "900901", MANAGE_INTEGRATION_SETTINGS: "900908",
+  VIEW_SECURITY_SETTINGS: "900801", UPDATE_SECURITY_SETTINGS: "900808",
+  VIEW_INTEGRATION_SETTINGS: "900901", UPDATE_INTEGRATION_SETTINGS: "900908",
+  TRIGGER_INTEGRATION: "900959",
 
   // ── Export Centre ──────────────────────────────────────────────────────────
   // Whole-console visibility uses VIEW_EXPORT_RUNS: seeing the Files list is the
@@ -496,7 +523,8 @@ export const P = {
   EXPORT_SENSITIVE_FIELDS: "920506", VIEW_EXPORT_ACTIVITY: "920601",
 
   // ── Support ────────────────────────────────────────────────────────────────
-  VIEW_TICKETS: "910101", UPDATE_TICKET: "910103", MANAGE_TICKETS: "910108",
+  VIEW_TICKETS: "910101", UPDATE_TICKET: "910103", TRIAGE_TICKET: "910108",
+  TRANSITION_TICKET: "910155", ESCALATE_TICKET: "910157",
   ASSIGN_TICKET: "910111", POST_TICKET_COMMENT: "910205",
   POST_INTERNAL_NOTE: "910305", ATTACH_TICKET_FILE: "910402",
   VIEW_TICKET_AUDIT: "910501", VIEW_TICKET_REPORTS: "910601",
@@ -538,7 +566,6 @@ export const P = {
   FIN_VIEW_PETTY_CASH:      "202001",
   FIN_CREATE_PETTY_CASH:    "202002",
   FIN_UPDATE_PETTY_CASH:    "202003",
-  FIN_MANAGE_PETTY_CASH:    "202008",   // deprecated - see the split keys below
   FIN_POST_PETTY_CASH:      "202013",   // deprecated - use FIN_POST_PETTY_CASH_VOUCHER
   FIN_VIEW_PETTY_CASH_VOUCHER:   "202901",
   FIN_VIEW_TAX:             "202101",
@@ -561,7 +588,8 @@ export const P = {
   // and stays available after the bill is posted.
   PROC_VIEW_VENDOR_PAYMENTS:"701101",
   PROC_APPROVE_SPEND:       "701205",
-  PROC_MANAGE_APPROVALS:    "701208",
+  PROC_VIEW_APPROVALS:    "701208",
+  PROC_UPDATE_APPROVALS: "701203",
   PROC_APPROVE_SPEND_SENIOR:"701238",
 
   // ── Payments ────────────────────────────────────────────────────────────────

@@ -281,7 +281,7 @@ export default function ViewBranch() {
                     <DetailField label="Branch designation" value={branch.is_main ? "Main branch" : "Additional branch"} />
                   </div>
 
-                  <PermissionGate permission={P.MANAGE_BRANCH}>
+                  <PermissionGate permission={P.TRANSITION_BRANCH}>
                     <div className="mt-5 border-t border-gray-200/80 pt-4">
                       <p className="font-mont text-xs font-medium text-gray-01">Change status</p>
                       {transitions.length === 0 ? (

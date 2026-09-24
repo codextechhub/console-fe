@@ -1,5 +1,5 @@
 /**
- * Positions (seats) CRUD (admin). Gated by P.MANAGE_ORGANOGRAM at the page level.
+ * Positions (seats) CRUD for permitted organogram actions.
  *
  * Renders as a collapsible tree ordered by the solid "reports to" line.
  * Clicking a row that has direct reports collapses/expands them - no arrow
@@ -24,6 +24,8 @@ import {
 import type { Position, PositionWritePayload } from "@/redux/services/dashboard/organogram-types";
 import { childNodes, divisionsOf, nodeOption, singleId } from "./org-cascade";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 // ── Tree builder ─────────────────────────────────────────────────────────────
 
@@ -77,6 +79,9 @@ function PosRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { hasPermission } = usePermissions();
+  const canEdit = hasPermission(P.UPDATE_ORGANOGRAM);
+  const canDelete = hasPermission(P.DELETE_ORGANOGRAM);
   const { node, depth, isLast, guides } = item;
   const hasChildren = node.children.length > 0;
   const filled = node.headcount - node.open_seats;
@@ -135,16 +140,16 @@ function PosRow({
           {node.is_active ? "Active" : "Inactive"}
         </Badge>
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
+          {canEdit && <button
             className="rounded p-1 text-gray-01 hover:bg-pry-01/40 hover:text-primary"
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
             title="Edit"
-          ><Pencil className="size-3.5" /></button>
-          <button
+          ><Pencil className="size-3.5" /></button>}
+          {canDelete && <button
             className="rounded p-1 text-gray-01 hover:bg-destructive/10 hover:text-destructive"
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             title="Delete"
-          ><Trash2 className="size-3.5" /></button>
+          ><Trash2 className="size-3.5" /></button>}
         </div>
       </div>
     </div>
@@ -175,6 +180,8 @@ function Hint({ children }: { children: React.ReactNode }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function PositionManager() {
+  const { hasPermission } = usePermissions();
+  const canCreate = hasPermission(P.CREATE_ORGANOGRAM);
   // Both allPosRes and allNodesRes drive the tree; no paginated query needed.
   const { data: allPosRes, isLoading } = useGetPositionsQuery({
     page_size: 100,
@@ -318,7 +325,7 @@ export default function PositionManager() {
         <InfoHint ariaLabel="About organisation positions" className="text-gray-01">
           Seats in the org chart ordered by the solid reporting line. Click a row to expand or collapse its direct reports.
         </InfoHint>
-        <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Position</Button>
+        {canCreate && <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Position</Button>}
       </div>
 
       {/* ── Tree view ── */}

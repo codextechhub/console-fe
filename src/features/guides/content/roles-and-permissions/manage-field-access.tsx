@@ -14,7 +14,7 @@ export default function ManageFieldAccessArticle() {
   return (
     <div className="space-y-10">
       <GuideSection id="before-you-start" title="Before you start">
-        <p>This task is for a platform administrator who can view roles and holds a Field Access permission. Viewing switches needs the Field Access view permission; changing them needs the Field Access manage permission.</p>
+        <p>This task is for a platform administrator who can view roles and holds a Field Access permission. Viewing switches needs the Field Access view permission; changing them needs the Field Access update permission.</p>
         <GuideChecklist items={[
           "Agree which role needs a different field setting and the job reason for it.",
           "Check whether the field is marked Sensitive before opening it for a role.",
@@ -63,8 +63,8 @@ export default function ManageFieldAccessArticle() {
       </GuideSection>
 
       <GuideSection id="who-can-change" title="Who can change switches">
-        <p>Anyone with the Field Access view permission sees the switches greyed and cannot change them. The Field Access manage permission unlocks the switches, Reset to default, and Save.</p>
-        <GuideCallout tone="danger" title="The manage permission is restricted">Adding Field Access manage to a role you hold goes through a role change request, because otherwise someone who can edit roles could give themselves the power to open sensitive fields with nobody approving. It cannot be added through a permission group, and a role carrying it can only be assigned by someone who holds it.</GuideCallout>
+        <p>Anyone with the Field Access view permission sees the switches greyed and cannot change them. The Field Access update permission unlocks the switches, Reset to default, and Save.</p>
+        <GuideCallout tone="danger" title="The update permission is restricted">Adding Field Access update to a role you hold goes through a role change request, because otherwise someone who can edit roles could give themselves the power to open sensitive fields with nobody approving. It cannot be added through a permission group, and a role carrying it can only be assigned by someone who holds it.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="field-exceptions" title="Add or lift a field exception">

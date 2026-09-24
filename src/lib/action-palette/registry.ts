@@ -41,7 +41,7 @@ export const ACTIONS: ActionDef[] = [
 
   // ── Main · Organogram ────────────────────────────────────────────────────
   { id: "view-org-chart", label: "View org chart", aliases: ["organogram", "org structure"], console: "Main", group: "Organogram", kind: "view", gate: null, run: { to: R.ORGANOGRAM.INDEX } },
-  { id: "manage-organogram", label: "Manage organogram", aliases: ["edit org chart", "departments", "positions"], console: "Main", group: "Organogram", kind: "do", gate: { perm: P.MANAGE_ORGANOGRAM }, run: { to: R.ORGANOGRAM.MANAGE } },
+  { id: "manage-organogram", label: "Manage organogram", aliases: ["edit org chart", "departments", "positions"], console: "Main", group: "Organogram", kind: "do", gate: { any: [P.CREATE_ORGANOGRAM, P.UPDATE_ORGANOGRAM, P.DELETE_ORGANOGRAM, P.ASSIGN_ORGANOGRAM] }, run: { to: R.ORGANOGRAM.MANAGE } },
   { id: "create-staff-profile", label: "Create staff profile", aliases: ["new staff", "add staff profile"], console: "Main", group: "Organogram", kind: "do", gate: { perm: P.CREATE_STAFF_PROFILE }, run: { to: R.ORGANOGRAM.STAFF_CREATE } },
 
   // ── Main · Tasks ─────────────────────────────────────────────────────────
@@ -56,7 +56,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-roles", label: "View roles", aliases: ["platform roles"], console: "Main", group: "Roles", kind: "view", gate: { perm: P.VIEW_ROLES }, run: { to: R.ROLES.INDEX } },
   { id: "create-role", label: "Create role", aliases: ["define role", "new role"], console: "Main", group: "Roles", kind: "do", gate: { perm: P.DEFINE_ROLE }, run: { to: R.ROLES.CREATE } },
   { id: "view-role-assignments", label: "View role assignments", aliases: ["user assignments", "who has what role"], console: "Main", group: "Roles", kind: "view", gate: { perm: P.VIEW_ROLES }, run: { to: R.ROLES.USER_ASSIGNMENTS } },
-  { id: "view-field-access", label: "View field access", aliases: ["field permissions", "read write fields"], console: "Main", group: "Roles", kind: "view", gate: { required: [P.VIEW_ROLES], any: [P.VIEW_FIELD_ACCESS, P.MANAGE_FIELD_ACCESS] }, run: { to: R.ROLES.FIELD_ACCESS } },
+  { id: "view-field-access", label: "View field access", aliases: ["field permissions", "read write fields"], console: "Main", group: "Roles", kind: "view", gate: { required: [P.VIEW_ROLES], any: [P.VIEW_FIELD_ACCESS, P.UPDATE_FIELD_ACCESS] }, run: { to: R.ROLES.FIELD_ACCESS } },
   { id: "transfer-super-admin", label: "Transfer super admin", aliases: [], console: "Main", group: "Roles", kind: "do", gate: { perm: P.TRANSFER_SUPER_ADMIN }, run: { to: R.ROLES.TRANSFER_SUPER_ADMIN } },
 
   // ── Main · Permissions ───────────────────────────────────────────────────
@@ -90,11 +90,11 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-workflow-instances", label: "View workflow instances", aliases: ["all instances"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_INSTANCES }, run: { to: R.WORKFLOW.INSTANCES } },
   { id: "view-team-load", label: "View team load", aliases: [], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_INSTANCES }, run: { to: R.WORKFLOW.TEAM_LOAD } },
   { id: "view-approver-groups", label: "View approvers", aliases: ["approver groups", "approver pools", "approval groups"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_APPROVER_GROUPS }, run: { to: R.WORKFLOW.APPROVER_GROUPS } },
-  { id: "view-workflow-notifications", label: "View workflow notifications", aliases: ["approval emails", "notify approvers", "stop notifications"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.MANAGE_WORKFLOW_TEMPLATES }, run: { to: R.WORKFLOW.NOTIFICATIONS } },
+  { id: "view-workflow-notifications", label: "View workflow notifications", aliases: ["approval emails", "notify approvers", "stop notifications"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.UPDATE_WORKFLOW_TEMPLATE }, run: { to: R.WORKFLOW.NOTIFICATIONS } },
   { id: "view-dynamic-roles", label: "View Dynamic Roles", aliases: ["approval rules", "role chosen by document", "approval thresholds"], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_APPROVER_GROUPS }, run: { to: `${R.WORKFLOW.APPROVER_GROUPS}?tab=rules` } },
-  { id: "create-dynamic-role", label: "Create Dynamic Role", aliases: ["new dynamic role", "add approval rule"], console: "Main", group: "Workflow", kind: "do", gate: { perm: P.MANAGE_APPROVER_GROUPS }, run: { to: `${R.WORKFLOW.APPROVER_GROUPS}?tab=rules&action=new` } },
+  { id: "create-dynamic-role", label: "Create Dynamic Role", aliases: ["new dynamic role", "add approval rule"], console: "Main", group: "Workflow", kind: "do", gate: { perm: P.CREATE_APPROVER_GROUP }, run: { to: `${R.WORKFLOW.APPROVER_GROUPS}?tab=rules&action=new` } },
   { id: "view-workflow-templates", label: "View workflow templates", aliases: [], console: "Main", group: "Workflow", kind: "view", gate: { perm: P.VIEW_WORKFLOW_TEMPLATES }, run: { to: R.WORKFLOW.TEMPLATES } },
-  { id: "create-workflow-template", label: "Create workflow template", aliases: ["new workflow"], console: "Main", group: "Workflow", kind: "do", gate: { perm: P.MANAGE_WORKFLOW_TEMPLATES }, run: { to: R.WORKFLOW.TEMPLATE_NEW } },
+  { id: "create-workflow-template", label: "Create workflow template", aliases: ["new workflow"], console: "Main", group: "Workflow", kind: "do", gate: { perm: P.UPDATE_WORKFLOW_TEMPLATE }, run: { to: R.WORKFLOW.TEMPLATE_NEW } },
 
   // ── Main · Audit & Security ──────────────────────────────────────────────
   { id: "view-security-dashboard", label: "View security dashboard", aliases: ["audit", "security"], console: "Main", group: "Audit & Security", kind: "view", gate: { perm: P.VIEW_AUDIT }, run: { to: R.AUDIT.DASHBOARD } },
@@ -107,8 +107,8 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-proxy-sessions", label: "View proxy sessions", aliases: ["impersonations"], console: "Main", group: "Audit & Security", kind: "view", gate: { perm: P.VIEW_AUDIT }, run: { to: R.AUDIT.IMPERSONATIONS } },
   { id: "view-audit-exports", label: "View audit exports", aliases: [], console: "Main", group: "Audit & Security", kind: "view", gate: { perm: P.EXPORT_AUDIT }, run: { to: R.AUDIT.EXPORTS } },
   { id: "new-audit-export", label: "New audit export", aliases: ["export audit"], console: "Main", group: "Audit & Security", kind: "do", gate: { perm: P.EXPORT_AUDIT }, run: { to: R.AUDIT.EXPORT_NEW } },
-  { id: "view-compliance-rules", label: "View compliance rules", aliases: [], console: "Main", group: "Audit & Security", kind: "view", gate: { perm: P.MANAGE_AUDIT }, run: { to: R.AUDIT.COMPLIANCE_RULES } },
-  { id: "create-compliance-rule", label: "Create compliance rule", aliases: ["new rule"], console: "Main", group: "Audit & Security", kind: "do", gate: { perm: P.MANAGE_AUDIT }, run: { to: R.AUDIT.COMPLIANCE_RULE_CREATE } },
+  { id: "view-compliance-rules", label: "View compliance rules", aliases: [], console: "Main", group: "Audit & Security", kind: "view", gate: { perm: P.VIEW_AUDIT }, run: { to: R.AUDIT.COMPLIANCE_RULES } },
+  { id: "create-compliance-rule", label: "Create compliance rule", aliases: ["new rule"], console: "Main", group: "Audit & Security", kind: "do", gate: { perm: P.CREATE_AUDIT_RULE }, run: { to: R.AUDIT.COMPLIANCE_RULE_CREATE } },
 
   // ── Main · Health ────────────────────────────────────────────────────────
   { id: "view-system-health", label: "View system health", aliases: ["health", "command center"], console: "Main", group: "Health", kind: "view", gate: { perm: P.VIEW_HEALTH }, run: { to: R.HEALTH.INDEX } },
@@ -266,10 +266,10 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-contracts", label: "View contracts", aliases: ["contract", "procurement contracts", "supplier contracts"], console: "Procurement", group: "Sourcing", kind: "view", gate: { perm: P.PROC_VIEW_CONTRACTS }, run: { to: PR.CONTRACTS } },
   { id: "create-contract", label: "Create contract", aliases: ["new contract", "new supplier contract"], console: "Procurement", group: "Sourcing", kind: "do", gate: { perm: P.PROC_CREATE_CONTRACT }, run: { to: withAction(PR.CONTRACTS) } },
   { id: "view-stock-items", label: "View stock items", aliases: ["inventory", "inventory items", "stock", "stock list"], console: "Procurement", group: "Inventory", kind: "view", gate: { perm: P.PROC_VIEW_STOCK }, run: { to: `${PR.INVENTORY}/items` } },
-  { id: "create-stock-item", label: "Create stock item", aliases: ["new stock item", "new inventory item", "add inventory item"], console: "Procurement", group: "Inventory", kind: "do", gate: { perm: P.PROC_MANAGE_STOCK }, run: { to: withAction(`${PR.INVENTORY}/items`) } },
+  { id: "create-stock-item", label: "Create stock item", aliases: ["new stock item", "new inventory item", "add inventory item"], console: "Procurement", group: "Inventory", kind: "do", gate: { perm: P.PROC_CREATE_STOCK }, run: { to: withAction(`${PR.INVENTORY}/items`) } },
   { id: "view-stock-movements", label: "View stock movements", aliases: ["movements", "inventory movements", "stock ledger", "inventory ledger"], console: "Procurement", group: "Inventory", kind: "view", gate: { perm: P.PROC_VIEW_STOCK }, run: { to: `${PR.INVENTORY}/movements` } },
   { id: "view-stock-locations", label: "View stock locations", aliases: ["locations", "stock locations", "stores", "warehouses", "stockrooms"], console: "Procurement", group: "Inventory", kind: "view", gate: { perm: P.PROC_VIEW_STOCK }, run: { to: `${PR.INVENTORY}/locations` } },
-  { id: "create-stock-location", label: "Create stock location", aliases: ["new stock location", "new store", "add store", "add warehouse"], console: "Procurement", group: "Inventory", kind: "do", gate: { perm: P.PROC_MANAGE_STOCK }, run: { to: withAction(`${PR.INVENTORY}/locations`) } },
+  { id: "create-stock-location", label: "Create stock location", aliases: ["new stock location", "new store", "add store", "add warehouse"], console: "Procurement", group: "Inventory", kind: "do", gate: { perm: P.PROC_CREATE_STOCK }, run: { to: withAction(`${PR.INVENTORY}/locations`) } },
   { id: "view-procurement-analytics", label: "View procurement analytics", aliases: ["procurement reports", "purchasing analytics"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_PROC_REPORTS }, run: { to: PR.ANALYTICS } },
   { id: "view-ap-aging", label: "View AP aging", aliases: ["accounts payable aging", "payables aging", "supplier aging"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_PROC_REPORTS }, run: { to: `${PR.ANALYTICS}/ap-aging` } },
   { id: "view-grir-control", label: "View GR/IR control", aliases: ["grir", "goods received invoice received", "receipt invoice reconciliation"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_PROC_REPORTS }, run: { to: `${PR.ANALYTICS}/grir` } },

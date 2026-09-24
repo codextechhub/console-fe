@@ -1,6 +1,6 @@
 /**
  * Org nodes CRUD (admin): Division → Department → Team.
- * Gated by P.MANAGE_ORGANOGRAM at the page level; backend enforces tiering.
+ * Each write control requires its matching organogram action.
  *
  * The hierarchy renders as a collapsible tree: clicking a Division row
  * collapses/expands its departments; clicking a Department row does the same
@@ -26,6 +26,8 @@ import {
 import type { OrgNode, OrgNodeKind, OrgNodeWritePayload } from "@/redux/services/dashboard/organogram-types";
 import { childNodes, divisionsOf, nodeOption, singleId, suggestCode } from "./org-cascade";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 
 // ── Tree builder ─────────────────────────────────────────────────────────────
 
@@ -85,6 +87,9 @@ function OrgRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { hasPermission } = usePermissions();
+  const canEdit = hasPermission(P.UPDATE_ORGANOGRAM);
+  const canDelete = hasPermission(P.DELETE_ORGANOGRAM);
   const headText   = node.head?.full_name ?? node.head_position?.title;
   const headVacant = !node.head?.full_name && !!node.head_position?.title;
   const childCount = node.children_count;
@@ -152,16 +157,16 @@ function OrgRow({
           {node.is_active ? "Active" : "Inactive"}
         </Badge>
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
+          {canEdit && <button
             className="rounded p-1 text-gray-01 hover:bg-pry-01/40 hover:text-primary"
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
             title="Edit"
-          ><Pencil className="size-3.5" /></button>
-          <button
+          ><Pencil className="size-3.5" /></button>}
+          {canDelete && <button
             className="rounded p-1 text-gray-01 hover:bg-destructive/10 hover:text-destructive"
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             title="Delete"
-          ><Trash2 className="size-3.5" /></button>
+          ><Trash2 className="size-3.5" /></button>}
         </div>
       </div>
     </div>
@@ -192,6 +197,8 @@ function Hint({ children }: { children: React.ReactNode }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function OrgNodeManager() {
+  const { hasPermission } = usePermissions();
+  const canCreate = hasPermission(P.CREATE_ORGANOGRAM);
   const { data: allNodesRes, isLoading } = useGetOrgNodesQuery({ page_size: 100 });
   const { data: posRes } = useGetPositionsQuery({ page_size: 100 });
 
@@ -336,7 +343,7 @@ export default function OrgNodeManager() {
         <InfoHint ariaLabel="About organisation units" className="text-gray-01">
           Tiered org units: Division → Department → Team. Click a row to expand or collapse its children. Set a head position whose current holder leads the unit.
         </InfoHint>
-        <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Org Node</Button>
+        {canCreate && <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Org Node</Button>}
       </div>
 
       {/* ── Tree view ── */}

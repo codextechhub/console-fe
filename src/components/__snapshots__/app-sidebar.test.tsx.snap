@@ -76,7 +76,7 @@ exports[`Main sidebar visibility > shows a role viewer without the modify or tra
 ]
 `;
 
-exports[`Main sidebar visibility > shows an auditor without the export or manage keys 1`] = `
+exports[`Main sidebar visibility > shows an auditor with view permission alone 1`] = `
 [
   "Home [leaf]",
   "Organogram [group]",
@@ -97,6 +97,7 @@ exports[`Main sidebar visibility > shows an auditor without the export or manage
   "Audit & Security > Account Lockouts",
   "Audit & Security > Password Activity",
   "Audit & Security > Proxy Sessions",
+  "Audit & Security > Compliance Rules",
   "Notifications [leaf]",
   "Support [group]",
   "Support > Support Centre",

@@ -576,7 +576,7 @@ function SecuritySettings() {
   const query = useGetSecuritySettingsQuery(scope);
   const [save, saveState] = useUpdateSecuritySettingsMutation();
   const [draft, setDraft] = useState<SecuritySettingsData["settings"] | null>(null);
-  const canSave = hasPermission(P.MANAGE_SECURITY_SETTINGS);
+  const canSave = hasPermission(P.UPDATE_SECURITY_SETTINGS);
   const values = draft ?? query.data?.data.settings;
 
   if (query.isLoading) return <Busy />;
@@ -712,7 +712,8 @@ function IntegrationSettings() {
   const [testConnection, testState] = useTestIntegrationConnectionMutation();
   const [testResult, setTestResult] = useState<Partial<Record<"email" | "payments", boolean>>>({});
   const [draft, setDraft] = useState<IntegrationSettingsData["settings"] | null>(null);
-  const canSave = hasPermission(P.MANAGE_INTEGRATION_SETTINGS);
+  const canSave = hasPermission(P.UPDATE_INTEGRATION_SETTINGS);
+  const canTest = hasPermission(P.TRIGGER_INTEGRATION);
   const values = draft ?? query.data?.data.settings;
 
   if (query.isLoading) return <Busy />;
@@ -813,14 +814,14 @@ function IntegrationSettings() {
           label="Email transport"
           description={status?.email.host || "No SMTP host reported"}
           badge={<PolicyBadge kind={testResult.email === false ? "default" : status?.email.configured ? "configured" : "default"}>{testResult.email === true ? "Test passed" : testResult.email === false ? "Test failed" : status?.email.configured ? "Configured" : "Needs deployment setup"}</PolicyBadge>}
-          value={canSave ? <Button variant="outline" size="sm" disabled={testState.isLoading || !status?.email.configured} onClick={() => runConnectionTest("email")}><PlugZap className="size-3.5" />Test SMTP</Button> : <span className="font-mont text-xs text-gray-05">Credentials in deployment</span>}
+          value={canTest ? <Button variant="outline" size="sm" disabled={testState.isLoading || !status?.email.configured} onClick={() => runConnectionTest("email")}><PlugZap className="size-3.5" />Test SMTP</Button> : <span className="font-mont text-xs text-gray-05">Credentials in deployment</span>}
         />
         <SettingsRow
           icon={CreditCard}
           label={`${status?.payments.provider || "Payment"} payments`}
           description="Runs a read-only provider credential check. It never creates a charge, transfer, or customer."
           badge={<PolicyBadge kind={testResult.payments === false ? "default" : status?.payments.configured ? "configured" : "default"}>{testResult.payments === true ? "Test passed" : testResult.payments === false ? "Test failed" : status?.payments.configured ? "Configured" : "Needs deployment setup"}</PolicyBadge>}
-          value={canSave ? <Button variant="outline" size="sm" disabled={testState.isLoading || !status?.payments.configured} onClick={() => runConnectionTest("payments")}><PlugZap className="size-3.5" />Test payment</Button> : <span className="font-mont text-xs text-gray-05">Keys in deployment</span>}
+          value={canTest ? <Button variant="outline" size="sm" disabled={testState.isLoading || !status?.payments.configured} onClick={() => runConnectionTest("payments")}><PlugZap className="size-3.5" />Test payment</Button> : <span className="font-mont text-xs text-gray-05">Keys in deployment</span>}
         />
         <SettingsRow icon={Network} label="Public application URL" description={status?.public_application.base_url || "Not configured"} badge={<PolicyBadge kind="enforced">Deployment-owned</PolicyBadge>} />
       </SettingsPanel>
@@ -1221,7 +1222,7 @@ function Features() {
     { page_size: "100", ...scope },
     { skip: !canViewOverrides },
   );
-  const canCreate = hasPermission(P.MANAGE_CAPABILITIES);
+  const canCreate = hasPermission(P.CREATE_CAPABILITY);
 
   if (catalogue.isLoading || effective.isLoading) return <Busy />;
 
@@ -1269,7 +1270,7 @@ function Features() {
           data={entitlementCalendar.data?.data}
           loading={entitlementCalendar.isLoading}
           scopeLabel={school || "All schools and platform"}
-          canManage={hasPermission(P.MANAGE_ENTITLEMENTS)}
+          canManage={hasPermission(P.UPDATE_ENTITLEMENT)}
         />
       ) : null}
 
@@ -1508,8 +1509,9 @@ function FeatureRow({
   const [setOver, overState] = useSetOverrideMutation();
   const canViewEntitlements = hasPermission(P.VIEW_ENTITLEMENTS);
   const canViewOverrides = hasPermission(P.VIEW_CONFIG_OVERRIDES);
-  const canEntitle = canViewEntitlements && hasPermission(P.MANAGE_ENTITLEMENTS);
-  const canOverride = canViewOverrides && hasPermission(P.MANAGE_CONFIG_OVERRIDES);
+  const canEntitle = canViewEntitlements && hasPermission(P.UPDATE_ENTITLEMENT);
+  const canResetEntitlement = canViewEntitlements && hasPermission(P.DELETE_ENTITLEMENT);
+  const canOverride = canViewOverrides && hasPermission(P.UPDATE_CONFIG_OVERRIDE);
   const scopeBody: Record<string, string> = school ? { tenant: school } : {};
 
   const inPlan = entitlement?.state === "GRANTED";
@@ -1562,7 +1564,7 @@ function FeatureRow({
               <Button
                 variant="white"
                 size="sm"
-                disabled={!canEntitle || resetState.isLoading}
+                disabled={!canResetEntitlement || resetState.isLoading}
                 onClick={async () => {
                   try {
                     await resetEntitlement({
@@ -1728,7 +1730,7 @@ function FeatureDetail({
                 </p>
               </div>
 
-              {hasPermission(P.MANAGE_CAPABILITIES) && (
+              {hasPermission(P.ARCHIVE_CAPABILITY) && (
                 <ArchiveButton
                   label={cap.label}
                   onConfirm={() => {
@@ -1748,7 +1750,7 @@ function FeatureDetail({
 
 function EntitlementScheduleEditor({ cap, school, entitlement }: { cap: Capability; school: string; entitlement?: Entitlement }) {
   const { hasPermission } = usePermissions();
-  const canManage = hasPermission(P.MANAGE_ENTITLEMENTS);
+  const canManage = hasPermission(P.UPDATE_ENTITLEMENT);
   const [startsAt, setStartsAt] = useState(() => toLocalDateTimeValue(entitlement?.starts_at));
   const [endsAt, setEndsAt] = useState(() => toLocalDateTimeValue(entitlement?.ends_at));
   const [minimumScheduleDate] = useState(() => toLocalDateTimeValue(new Date().toISOString()));

@@ -214,7 +214,7 @@ export default function TicketDetail() {
     ),
     0,
   );
-  const canManage = hasPermission(P.MANAGE_TICKETS);
+  const canTransition = hasPermission(P.TRANSITION_TICKET);
   const canAssign = hasPermission(P.ASSIGN_TICKET);
   const canInternal = hasPermission(P.POST_INTERNAL_NOTE);
   const canAudit = hasPermission(P.VIEW_TICKET_AUDIT);
@@ -679,7 +679,7 @@ export default function TicketDetail() {
                 </div>
               )}
 
-              {canManage && (
+              {canTransition && (
                 <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5")}>
                   <h2 className="font-semibold">Update status</h2>
                   <p className="mt-1 text-xs text-gray-01">Only valid workflow transitions are available.</p>

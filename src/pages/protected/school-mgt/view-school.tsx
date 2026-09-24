@@ -340,14 +340,14 @@ export default function ViewSchool() {
                     the console's to switch off here - the backend refuses both,
                     and Return to Onboarding above is the suspended case. */}
                 {school.status === "ACTIVE" && (
-                  <PermissionGate permission={P.MANAGE_SCHOOL}>
+                  <PermissionGate permission={P.TRANSITION_SCHOOL}>
                     <Button variant="outline-dest" onClick={() => { setServiceReason(""); setServiceMove("INACTIVE"); }}>
                       <PauseCircle className="size-4" /> Take Out of Service
                     </Button>
                   </PermissionGate>
                 )}
                 {school.status === "INACTIVE" && (
-                  <PermissionGate permission={P.MANAGE_SCHOOL}>
+                  <PermissionGate permission={P.TRANSITION_SCHOOL}>
                     <Button variant="outline" onClick={() => { setServiceReason(""); setServiceMove("ACTIVE"); }}>
                       <PlayCircle className="size-4" /> Return to Service
                     </Button>

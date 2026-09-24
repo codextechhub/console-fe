@@ -1,6 +1,6 @@
 /**
  * The security-critical test in this file is the FIRST one: a viewer without
- * platform.team_overrides.view/.manage must see no trace of the section AND
+ * platform.team_overrides.view/create/delete must see no trace of the section AND
  * must fire no request. Everything else (read-only vs manage, render states,
  * drawer validation) hangs off that gate.
  */
@@ -21,7 +21,8 @@ vi.mock("sonner", () => ({
 }));
 
 const VIEW_KEY = "platform.team_overrides.view";
-const MANAGE_KEY = "platform.team_overrides.manage";
+const CREATE_KEY = "platform.team_overrides.create";
+const DELETE_KEY = "platform.team_overrides.delete";
 
 const ROW = {
   id: 7,
@@ -158,8 +159,8 @@ describe("PermissionOverrides visibility gate", () => {
   });
 });
 
-describe("PermissionOverrides read-only vs manage", () => {
-  it("offers no add button and no row actions without the manage key", async () => {
+describe("PermissionOverrides action permissions", () => {
+  it("offers no add button and no row actions with view alone", async () => {
     await mount([VIEW_KEY]);
 
     expect(container.textContent).toContain("Raise an invoice");
@@ -170,13 +171,20 @@ describe("PermissionOverrides read-only vs manage", () => {
     ).toBeNull();
   });
 
-  it("offers the add button and a lift action with the manage key", async () => {
-    await mount([VIEW_KEY, MANAGE_KEY]);
+  it("offers the add button with create but no lift action", async () => {
+    await mount([VIEW_KEY, CREATE_KEY]);
 
     expect(container.textContent).toContain("Add exception");
     expect(
       container.querySelector('[aria-label="Lift exception on Raise an invoice"]'),
-    ).not.toBeNull();
+    ).toBeNull();
+  });
+
+  it("offers the lift action with delete but no add button", async () => {
+    await mount([VIEW_KEY, DELETE_KEY]);
+
+    expect(container.textContent).not.toContain("Add exception");
+    expect(container.querySelector('[aria-label="Lift exception on Raise an invoice"]')).not.toBeNull();
   });
 });
 
@@ -228,7 +236,7 @@ describe("PermissionOverrides render states", () => {
 
 describe("Add exception drawer", () => {
   it("blocks submission until a reason is given", async () => {
-    await mount([VIEW_KEY, MANAGE_KEY]);
+    await mount([VIEW_KEY, CREATE_KEY]);
 
     const addButton = Array.from(container.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("Add exception"),
@@ -256,7 +264,7 @@ describe("Add exception drawer", () => {
   });
 
   it("defaults the mode toggle to Deny", async () => {
-    await mount([VIEW_KEY, MANAGE_KEY]);
+    await mount([VIEW_KEY, CREATE_KEY]);
     const addButton = Array.from(container.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("Add exception"),
     );

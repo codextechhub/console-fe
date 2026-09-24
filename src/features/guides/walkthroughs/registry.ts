@@ -310,7 +310,7 @@ export const WALKTHROUGH_REGISTRY = [
     id: "walkthrough.organogram.build-structure",
     guideId: "organogram.build-structure",
     route: R.ORGANOGRAM.MANAGE,
-    permissions: [P.MANAGE_ORGANOGRAM],
+    permissions: [P.CREATE_ORGANOGRAM],
     prerequisites: [
       "Agree the division, department, team, and position hierarchy before entering it.",
       "Identify the approved solid reporting lines separately from matrix relationships.",
@@ -513,7 +513,7 @@ export const WALKTHROUGH_REGISTRY = [
     id: "walkthrough.workflow.build-template",
     guideId: "workflow.build-template",
     route: R.WORKFLOW.TEMPLATE_NEW,
-    permissions: [P.VIEW_WORKFLOW_TEMPLATES, P.MANAGE_WORKFLOW_TEMPLATES],
+    permissions: [P.VIEW_WORKFLOW_TEMPLATES, P.UPDATE_WORKFLOW_TEMPLATE],
     prerequisites: [
       "Write the approved stages, conditions, approver sources, rejection result, and notifications.",
       "Create required roles, approver groups, Dynamic Roles, and organogram positions first.",
@@ -1388,7 +1388,7 @@ export const WALKTHROUGH_REGISTRY = [
     id: "walkthrough.audit.export-and-compliance",
     guideId: "audit.export-and-compliance",
     route: R.AUDIT.EXPORTS,
-    permissions: [P.EXPORT_AUDIT, P.MANAGE_AUDIT],
+    permissions: [P.EXPORT_AUDIT, P.CREATE_AUDIT_RULE],
     prerequisites: [
       "Confirm the evidence question, authorised recipient, tenant, date window, secure storage location, and handling period.",
       "For rule changes, prepare the approved scope, old and new policy, affected evidence, owner, effective time, and rollback plan.",

@@ -37,7 +37,7 @@ describe("guide discovery", () => {
 
     expect(canDiscoverGuide(guide, [P.VIEW_ROLES].map(resolvePermissionKey))).toBe(false);
     expect(canDiscoverGuide(guide, [P.VIEW_FIELD_ACCESS].map(resolvePermissionKey))).toBe(true);
-    expect(canDiscoverGuide(guide, [P.MANAGE_FIELD_ACCESS].map(resolvePermissionKey))).toBe(true);
+    expect(canDiscoverGuide(guide, [P.UPDATE_FIELD_ACCESS].map(resolvePermissionKey))).toBe(true);
   });
 
   it("filters before audience selection so restricted titles never leak", () => {
@@ -175,7 +175,7 @@ describe("guide discovery", () => {
     const auditReader = [resolvePermissionKey(P.VIEW_AUDIT)];
     const securityReader = [resolvePermissionKey(P.VIEW_AUDIT)];
     const exportReader = [resolvePermissionKey(P.EXPORT_AUDIT)];
-    const ruleManager = [resolvePermissionKey(P.MANAGE_AUDIT)];
+    const ruleManager = [resolvePermissionKey(P.CREATE_AUDIT_RULE)];
 
     expect(visibleGuides(GUIDE_REGISTRY, auditReader).map((guide) => guide.id)).toContain("audit.investigate-event");
     expect(visibleGuides(GUIDE_REGISTRY, securityReader).map((guide) => guide.id)).toContain("audit.review-security-operations");

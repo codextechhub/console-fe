@@ -1,7 +1,7 @@
 /**
  * Organogram → Manage. Tabbed CRUD for Org Units / Positions / Matrix.
  *
- * Gated on P.MANAGE_ORGANOGRAM at the page itself, not only in the sidebar.
+ * The page admits holders of a concrete organogram write action.
  * Hiding the nav link left the route reachable by typing the URL, and this
  * page is where establishment size lives: the position list shows headcount
  * and how many seats of each are unfilled, which the org chart deliberately
@@ -32,9 +32,9 @@ type TabId = (typeof TABS)[number]["id"];
 export default function OrganogramManage() {
   const [tab, setTab] = useState<TabId>("units");
   const navigate = useNavigate();
-  const { hasPermission } = usePermissions();
+  const { hasAnyPermission } = usePermissions();
 
-  if (!hasPermission(P.MANAGE_ORGANOGRAM)) {
+  if (!hasAnyPermission(P.CREATE_ORGANOGRAM, P.UPDATE_ORGANOGRAM, P.DELETE_ORGANOGRAM, P.ASSIGN_ORGANOGRAM)) {
     return (
       <PageAccessDenied
         onBack={() => navigate(routesPath.PROTECTED.ORGANOGRAM.INDEX)}

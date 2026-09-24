@@ -156,7 +156,7 @@ specific verb key.
 | Goods Receipts | `goods-receipts/` (+ `<id>/`, `<id>/post/`) | `procurement.goods_receipt.view` / `.update` / `.post` |
 | Vendor Invoices | `vendor-invoices/` (+ `summary/`, `<id>/`, `<id>/match/`, `<id>/submit/`, `<id>/post/`) | `procurement.vendor_invoice.view` / `.create` / `.update` / `.match` / `.submit` / `.post` |
 | Vendor Payments | `vendor-payments/` (+ `eligible-invoices/`, `<id>/`, `<id>/submit/`, `<id>/post/`, `<id>/cancel/`, `<id>/reverse/`) | `procurement.vendor_payment.view` / `.create` / `.update` / `.submit` / `.post` / `.cancel` / `.reverse` |
-| Approvals | `approvals/` (+ `<workflow_id>/`, `<workflow_id>/actions/`, `default-templates/`) backed by vs_workflow | Actor eligibility snapshot + entity entitlement; template setup uses `procurement.approval.manage` |
+| Approvals | `approvals/` (+ `<workflow_id>/`, `<workflow_id>/actions/`, `default-templates/`) backed by vs_workflow | Actor eligibility snapshot + entity entitlement; template setup uses `procurement.approval.update` |
 | Contracts | `contracts/` (+ `renewals/`, `<id>/`, `activate/`, `renew/`, `terminate/`, `milestones/<id>/complete/`) | `procurement.contract.view` / `.update` / `.activate` / `.renew` / `.terminate` |
 | Stock Items | `stock-items/` (+ `<id>/`, `<id>/issue/`, `<id>/adjust/`) | `procurement.stock.view` / `.issue` / `.adjust` |
 | Stock Movements | `stock-movements/` | `procurement.stock.view` |
@@ -276,7 +276,7 @@ category; and only real workflow document types are included.
   snapshots. They delegate votes directly to `vs_workflow` so row locking, requester
   self-approval protection, delegated eligibility, quorum/threshold rules, skipped
   stages, returns, terminal decisions, callbacks and audit remain authoritative.
-  `procurement.approval.manage` is only for provisioning templates; it is deliberately
+  `procurement.approval.update` is only for provisioning templates; it is deliberately
   not required to open the personal queue because a frozen delegation can make a user
   eligible without the source RBAC grant. List/detail responses re-resolve the real
   document inside `?entity=`, bulk-load generic targets to avoid N+1 queries, paginate

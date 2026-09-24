@@ -79,7 +79,9 @@ function Pagination({
 export default function ComplianceRules() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
-  const canManage = hasPermission(P.MANAGE_AUDIT);
+  const canCreate = hasPermission(P.CREATE_AUDIT_RULE);
+  const canUpdate = hasPermission(P.UPDATE_AUDIT_RULE);
+  const canDelete = hasPermission(P.DELETE_AUDIT_RULE);
 
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState("");
@@ -155,7 +157,7 @@ export default function ComplianceRules() {
             <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
               <RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Refresh
             </Button>
-            <PermissionGate permission={P.MANAGE_AUDIT}>
+            <PermissionGate permission={P.CREATE_AUDIT_RULE}>
               <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.AUDIT.COMPLIANCE_RULE_CREATE)}>
                 <Plus /> New rule
               </Button>
@@ -242,7 +244,9 @@ export default function ComplianceRules() {
                       <RuleRow
                         key={r.id}
                         rule={r}
-                        canManage={canManage}
+                        canCreate={canCreate}
+                        canUpdate={canUpdate}
+                        canDelete={canDelete}
                         onEdit={() => navigate(routesPath.PROTECTED.AUDIT.COMPLIANCE_RULE_EDIT(r.id))}
                         onToggleActive={() => handleToggleActive(r)}
                         onDuplicate={() => handleDuplicate(r)}
@@ -280,17 +284,19 @@ export default function ComplianceRules() {
 // ── Row component ─────────────────────────────────────────────────────────────
 
 function RuleRow({
-  rule: r, canManage, onEdit, onToggleActive, onDuplicate, onDelete,
+  rule: r, canCreate, canUpdate, canDelete, onEdit, onToggleActive, onDuplicate, onDelete,
 }: {
   rule: ComplianceRule;
-  canManage: boolean;
+  canCreate: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
   onEdit: () => void;
   onToggleActive: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }) {
   return (
-    <tr className="hover:bg-primary/5 transition-colors cursor-pointer" onClick={onEdit}>
+    <tr className="hover:bg-primary/5 transition-colors" onClick={canUpdate ? onEdit : undefined}>
 
       {/* Name + description */}
       <td className="px-3 py-3 max-w-[280px]">
@@ -342,10 +348,10 @@ function RuleRow({
       </td>
 
       {/* Active toggle */}
-      <td className="px-3 py-3" onClick={(e) => { e.stopPropagation(); if (canManage) onToggleActive(); }}>
+      <td className="px-3 py-3" onClick={(e) => { e.stopPropagation(); if (canUpdate) onToggleActive(); }}>
         <Switch
           checked={r.is_active}
-          disabled={!canManage}
+          disabled={!canUpdate}
           onCheckedChange={onToggleActive}
           data-size="sm"
         />
@@ -358,7 +364,7 @@ function RuleRow({
 
       {/* DotMenu */}
       <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
-        {canManage && (
+        {(canCreate || canUpdate || canDelete) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="grid size-7 place-content-center rounded-md hover:bg-gray-100 transition-colors">
@@ -366,19 +372,19 @@ function RuleRow({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" style={{ width: 180 }}>
-              <DropdownMenuItem onClick={onEdit}>
+              {canUpdate && <DropdownMenuItem onClick={onEdit}>
                 <Edit2 className="size-3.5 mr-2" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onDuplicate}>
+              </DropdownMenuItem>}
+              {canCreate && <DropdownMenuItem onClick={onDuplicate}>
                 <Copy className="size-3.5 mr-2" /> Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
+              </DropdownMenuItem>}
+              {canDelete && <DropdownMenuSeparator />}
+              {canDelete && <DropdownMenuItem
                 onClick={onDelete}
                 className="text-destructive focus:text-destructive focus:bg-destructive/10"
               >
                 <Trash2 className="size-3.5 mr-2" /> Delete
-              </DropdownMenuItem>
+              </DropdownMenuItem>}
             </DropdownMenuContent>
           </DropdownMenu>
         )}

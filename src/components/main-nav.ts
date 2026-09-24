@@ -163,8 +163,7 @@ export const MAIN_NAV: MainNavEntry[] = [
       // Staff Directory retired - profiles are reached from Team Management
       // (View Details) or by clicking a person in the org chart.
       { title: "Org Chart", url: R.ORGANOGRAM.INDEX, match: (l) => l === R.ORGANOGRAM.INDEX },
-      // Manage - structural CRUD, gated by its own manage permission.
-      { title: "Manage", url: R.ORGANOGRAM.MANAGE, permission: P.MANAGE_ORGANOGRAM },
+      { title: "Manage", url: R.ORGANOGRAM.MANAGE, permission: [P.CREATE_ORGANOGRAM, P.UPDATE_ORGANOGRAM, P.DELETE_ORGANOGRAM, P.ASSIGN_ORGANOGRAM] },
     ],
   },
   {
@@ -199,7 +198,7 @@ export const MAIN_NAV: MainNavEntry[] = [
       {
         title: "Field Access",
         url: R.ROLES.FIELD_ACCESS,
-        permission: [P.VIEW_FIELD_ACCESS, P.MANAGE_FIELD_ACCESS],
+        permission: [P.VIEW_FIELD_ACCESS, P.UPDATE_FIELD_ACCESS],
         requiredPermissions: [P.VIEW_ROLES],
       },
       // Transfer Super Admin - only shown to users who hold the
@@ -311,7 +310,7 @@ export const MAIN_NAV: MainNavEntry[] = [
       { title: "Approvers", url: R.WORKFLOW.APPROVER_GROUPS, permission: P.VIEW_APPROVER_GROUPS },
       { title: "Templates", url: R.WORKFLOW.TEMPLATES, permission: P.VIEW_WORKFLOW_TEMPLATES },
       // Whether approvals write to people, answered once per tenant.
-      { title: "Notifications", url: R.WORKFLOW.NOTIFICATIONS, permission: P.MANAGE_WORKFLOW_TEMPLATES },
+      { title: "Notifications", url: R.WORKFLOW.NOTIFICATIONS, permission: P.UPDATE_WORKFLOW_TEMPLATE },
     ],
   },
   {
@@ -331,8 +330,8 @@ export const MAIN_NAV: MainNavEntry[] = [
       { title: "Proxy Sessions", url: R.AUDIT.IMPERSONATIONS },
       // Audit Exports - the backend requires platform.audit.export to list jobs.
       { title: "Audit Exports", url: R.AUDIT.EXPORTS, permission: P.EXPORT_AUDIT },
-      // Compliance Rules - the backend requires platform.audit.manage to list.
-      { title: "Compliance Rules", url: R.AUDIT.COMPLIANCE_RULES, permission: P.MANAGE_AUDIT },
+      // Compliance Rules use the audit view permission for listing.
+      { title: "Compliance Rules", url: R.AUDIT.COMPLIANCE_RULES, permission: P.VIEW_AUDIT },
     ],
   },
   {
