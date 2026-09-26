@@ -28,6 +28,7 @@ const FIELD_ACCESS_REVIEWED_AT = "2026-09-15";
 const RECORD_HISTORY_REVIEWED_AT = "2026-09-26";
 const MENU_GATE_REVIEWED_AT = "2026-09-26";
 const BRANCH_BUDGETS_REVIEWED_AT = "2026-09-26";
+const FINANCE_OVERVIEW_REVIEWED_AT = "2026-09-26";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -943,7 +944,7 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["finance.invoice-and-allocate-receipt", "finance.reconcile-bank-statement", "finance.close-lock-or-reopen-period"],
     estimatedMinutes: 8,
     owner: OWNER,
-    reviewedAt: FINAL_ROUTE_GAP_REVIEWED_AT,
+    reviewedAt: FINANCE_OVERVIEW_REVIEWED_AT,
     risk: "medium",
     featured: true,
     status: "published",

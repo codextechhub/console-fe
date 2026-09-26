@@ -17,7 +17,7 @@ export default function RunFinancialReportsArticle() {
 
       <GuideSection id="choose-the-report" title="Choose the report">
         <GuideSteps>
-          <GuideStep title="Finance Overview">Use the Finance landing dashboard for live entity-level signals such as revenue, collection, aging, cash, payables, approvals, and fiscal runway. Treat each card as a starting point and open its source report or document before deciding.</GuideStep>
+          <GuideStep title="Finance Overview">Use the Finance landing dashboard for live signals: cash, receivables, collections, payables, net income, aging, bank accounts, the budget, overdue payers, what falls due in the next 30 days, and the period close. The switch at the top (This term, This month, Year to date) changes the collection figures; This term counts the fees billed for the term and what has been paid against them, whenever it arrived. Needs your attention lists what to act on, such as unmatched bank lines, tax coming due, and payment plans behind. Treat each card as a starting point and open its source report or document before deciding.</GuideStep>
           <GuideStep title="Trial Balance">Check debit and credit totals by account and investigate imbalance or unexpected account movements before relying on other statements.</GuideStep>
           <GuideStep title="Income Statement">Review revenue, expenses, and net income over a period. Compare like-for-like periods and confirm unusual movements against source evidence.</GuideStep>
           <GuideStep title="Balance Sheet">Review assets, liabilities, and equity at a point in time. Assets must equal liabilities plus equity.</GuideStep>
