@@ -1536,7 +1536,7 @@ export const WALKTHROUGH_REGISTRY = [
     steps: [
       { id: "welcome", title: "Preserve the approved planning baseline", body: "This walkthrough explains budget construction, approval, variance, and revision. It never creates, edits, deletes, or approves a budget or line.", advance: "next" },
       { id: "workspace", target: "finance-budgets.heading", title: "Choose one planning scope", body: "Verify the entity, fiscal year, owner, assumptions, and version before comparing lines or actuals.", placement: "bottom", advance: "manual" },
-      { id: "controls", target: "finance-budgets.controls", title: "Build lines in the chart's shape", body: "Each line combines an income or expense account, optional cost centre, and period amount. Check signs, phasing, duplicates, totals, and ownership before approval.", placement: "bottom", advance: "manual" },
+      { id: "controls", target: "finance-budgets.controls", title: "Build lines in the chart's shape", body: "A budget is school-wide or one branch's, and a branch budget is measured against that branch's postings only. Each line combines an income or expense account, optional cost centre, and period amount. Check signs, phasing, duplicates, totals, and ownership before approval.", placement: "bottom", advance: "manual" },
       { id: "complete", title: "Approval and deletion remain explicit", body: "The walkthrough stops before New budget, line changes, Approve, and Delete. Preserve approved baselines and trace variance to posted source transactions.", advance: "next" },
     ],
   },

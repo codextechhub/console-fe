@@ -27,6 +27,7 @@ const O2_REVIEWED_AT = "2026-08-25";
 const FIELD_ACCESS_REVIEWED_AT = "2026-09-15";
 const RECORD_HISTORY_REVIEWED_AT = "2026-09-26";
 const MENU_GATE_REVIEWED_AT = "2026-09-26";
+const BRANCH_BUDGETS_REVIEWED_AT = "2026-09-26";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -1052,8 +1053,8 @@ export const GUIDE_REGISTRY = [
     title: "Build, approve, and monitor a budget",
     summary: "Define a budget period, add account and cost-centre lines, approve the plan, and investigate variance without changing actuals.",
     category: "finance-and-payments",
-    tags: ["budget", "forecast", "variance", "heatmap", "cost centre", "planned", "actual"],
-    aliases: ["create budget", "approve budget", "budget variance", "overspend", "forecast", "budget heatmap", "delete budget line"],
+    tags: ["budget", "forecast", "variance", "heatmap", "cost centre", "planned", "actual", "branch"],
+    aliases: ["create budget", "approve budget", "budget variance", "overspend", "forecast", "budget heatmap", "delete budget line", "branch budget", "school-wide budget"],
     audiences: ["finance-officer", "approver"],
     routes: [R.FINANCE.BUDGETS, `${R.FINANCE.BUDGETS}/budgets`],
     actionIds: ["view-budgets", "create-budget"],
@@ -1073,7 +1074,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.build-and-approve-budget",
     estimatedMinutes: 9,
     owner: OWNER,
-    reviewedAt: C6C_REVIEWED_AT,
+    reviewedAt: BRANCH_BUDGETS_REVIEWED_AT,
     risk: "high",
     status: "published",
     article: () => import("./content/finance-and-payments/build-and-approve-budget"),
