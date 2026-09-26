@@ -315,7 +315,6 @@ exports[`Main sidebar visibility > shows payments webhooks alone 1`] = `
   "Tasks [leaf]",
   "Data Exports [group]",
   "Data Exports > View Queues",
-  "Finance [leaf]",
   "Workflow [group]",
   "Workflow > Approvals",
   "Workflow > My Submissions",

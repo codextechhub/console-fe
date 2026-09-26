@@ -5,6 +5,8 @@
  * (or a variant); the target screen opens its drawer via useActionParam.
  */
 
+import { financeNav } from "@/pages/protected/finance/finance-nav";
+import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { routesPath } from "@/routes/routes-path";
 import { P } from "@/permissions";
 import type { ActionDef } from "./types";
@@ -161,7 +163,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-requirements-documents", label: "View requirements documents", aliases: ["mrd", "frd", "requirements", "product specs", "documents"], console: "Main", group: "Support", kind: "view", gate: { perm: P.VIEW_REQUIREMENTS_DOCS }, run: { to: R.DOCUMENTS.INDEX } },
 
   // ── Finance · Ledger & Setup ─────────────────────────────────────────────
-  { id: "view-finance-dashboard", label: "View finance dashboard", aliases: ["finance"], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { module: ["finance.", "payments."] }, run: { to: F.INDEX } },
+  { id: "view-finance-dashboard", label: "View finance dashboard", aliases: ["finance"], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { console: financeNav }, run: { to: F.INDEX } },
   { id: "view-chart-of-accounts", label: "View chart of accounts", aliases: ["accounts", "coa"], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { perm: P.FIN_VIEW_ACCOUNTS }, run: { to: `${F.SETUP}/accounts` } },
   { id: "create-gl-account", label: "Create GL account", aliases: ["new account"], console: "Finance", group: "Ledger & Setup", kind: "do", gate: { perm: P.FIN_CREATE_ACCOUNT }, run: { to: withAction(`${F.SETUP}/accounts`) } },
   { id: "view-general-ledger", label: "View general ledger", aliases: ["gl", "journals"], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { perm: P.FIN_VIEW_JOURNALS }, run: { to: F.LEDGER } },
@@ -169,7 +171,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-entities", label: "View entities", aliases: ["ledger entities"], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { perm: P.FIN_VIEW_ENTITIES }, run: { to: `${F.SETUP}/entities` } },
   { id: "create-entity", label: "Create entity", aliases: ["new entity"], console: "Finance", group: "Ledger & Setup", kind: "do", gate: { perm: P.FIN_CREATE_ENTITY }, run: { to: withAction(`${F.SETUP}/entities`) } },
   { id: "view-fiscal-periods", label: "View fiscal periods", aliases: ["periods"], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { perm: P.FIN_VIEW_PERIODS }, run: { to: `${F.SETUP}/periods` } },
-  { id: "view-currencies-fx", label: "View currencies & FX", aliases: ["fx rates", "currencies"], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { perm: P.FIN_VIEW_CURRENCIES }, run: { to: `${F.SETUP}/currencies` } },
+  { id: "view-currencies-fx", label: "View currencies & FX", aliases: ["fx rates", "currencies"], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { any: [P.FIN_VIEW_CURRENCIES, P.FIN_VIEW_FX_RATES] }, run: { to: `${F.SETUP}/currencies` } },
   { id: "view-tax-codes", label: "View tax codes", aliases: [], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { perm: P.FIN_VIEW_TAX_CODES }, run: { to: `${F.SETUP}/tax-codes` } },
   { id: "create-tax-code", label: "Create tax code", aliases: ["new tax code"], console: "Finance", group: "Ledger & Setup", kind: "do", gate: { perm: P.FIN_CREATE_TAX_CODE }, run: { to: withAction(`${F.SETUP}/tax-codes`) } },
   { id: "view-cost-centres", label: "View cost centres", aliases: ["cost centers"], console: "Finance", group: "Ledger & Setup", kind: "view", gate: { perm: P.FIN_VIEW_COST_CENTERS }, run: { to: `${F.SETUP}/cost-centers` } },
@@ -224,8 +226,8 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-transactions-log", label: "View transactions log", aliases: ["transactions"], console: "Finance", group: "Payments", kind: "view", gate: { perm: P.PAY_VIEW_PAYMENT_REPORTS }, run: { to: `${F.PAYMENTS}/transactions` } },
   // Labelled "Needs Attention" in the Finance sidebar. Entity-scoped webhook
   // exceptions, unlike the platform-scope Provider Webhooks screen under Health.
-  // Prefix gate, matching the nav entry's `payments.webhook.` prefixes.
-  { id: "view-payment-webhooks", label: "View payments needs attention", aliases: ["needs attention", "webhook exceptions", "failed webhooks"], console: "Finance", group: "Payments", kind: "view", gate: { module: ["payments.webhook."] }, run: { to: `${F.PAYMENTS}/webhooks` } },
+  // Gated like the nav entry, on the list's own view key.
+  { id: "view-payment-webhooks", label: "View payments needs attention", aliases: ["needs attention", "webhook exceptions", "failed webhooks"], console: "Finance", group: "Payments", kind: "view", gate: { perm: P.PAY_VIEW_WEBHOOKS }, run: { to: `${F.PAYMENTS}/webhooks` } },
 
   // ── Finance · Reports & Close ────────────────────────────────────────────
   { id: "view-trial-balance", label: "View trial balance", aliases: ["tb"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/trial-balance` } },
@@ -234,11 +236,11 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-cash-flow", label: "View cash flow", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/cash-flow` } },
   { id: "view-changes-in-equity", label: "View changes in equity", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/changes-in-equity` } },
   { id: "view-cost-dimension-analysis", label: "View cost & dimension analysis", aliases: ["analytics"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/analytics` } },
-  { id: "view-finance-audit-trail", label: "View finance audit trail", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_FINANCE_AUDIT }, run: { to: F.AUDIT } },
+  { id: "view-finance-audit-trail", label: "View finance audit trail", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_AUDIT }, run: { to: F.AUDIT } },
   { id: "view-finance-settings", label: "View finance settings", aliases: ["finance configuration", "accounting defaults"], console: "Finance", group: "Administration", kind: "view", gate: { any: [P.FIN_VIEW_SETTINGS] }, run: { to: F.SETTINGS } },
 
   // ── Procurement · Procure to Pay ─────────────────────────────────────────
-  { id: "view-procurement-dashboard", label: "View procurement dashboard", aliases: ["procurement"], console: "Procurement", group: "Procure to Pay", kind: "view", gate: { module: ["procurement."] }, run: { to: PR.INDEX } },
+  { id: "view-procurement-dashboard", label: "View procurement dashboard", aliases: ["procurement"], console: "Procurement", group: "Procure to Pay", kind: "view", gate: { console: procurementNav }, run: { to: PR.INDEX } },
   // Eligibility comes from the entity-scoped queue, as it does for the sidebar.
   { id: "view-procurement-approvals", label: "View procurement approvals", aliases: ["procurement approval inbox", "purchase approvals", "spend approvals"], console: "Procurement", group: "Procure to Pay", kind: "view", gate: null, run: { to: PR.APPROVALS } },
   { id: "view-requisitions", label: "View requisitions", aliases: ["pr", "prs", "purchase requisition", "purchase requisitions", "procurement requests"], console: "Procurement", group: "Procure to Pay", kind: "view", gate: { perm: P.PROC_VIEW_REQUISITIONS }, run: { to: PR.REQUISITIONS } },
@@ -271,10 +273,10 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-stock-locations", label: "View stock locations", aliases: ["locations", "stock locations", "stores", "warehouses", "stockrooms"], console: "Procurement", group: "Inventory", kind: "view", gate: { perm: P.PROC_VIEW_STOCK }, run: { to: `${PR.INVENTORY}/locations` } },
   { id: "create-stock-location", label: "Create stock location", aliases: ["new stock location", "new store", "add store", "add warehouse"], console: "Procurement", group: "Inventory", kind: "do", gate: { perm: P.PROC_CREATE_STOCK }, run: { to: withAction(`${PR.INVENTORY}/locations`) } },
   { id: "view-procurement-analytics", label: "View procurement analytics", aliases: ["procurement reports", "purchasing analytics"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_PROC_REPORTS }, run: { to: PR.ANALYTICS } },
-  { id: "view-ap-aging", label: "View AP aging", aliases: ["accounts payable aging", "payables aging", "supplier aging"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_PROC_REPORTS }, run: { to: `${PR.ANALYTICS}/ap-aging` } },
-  { id: "view-grir-control", label: "View GR/IR control", aliases: ["grir", "goods received invoice received", "receipt invoice reconciliation"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_PROC_REPORTS }, run: { to: `${PR.ANALYTICS}/grir` } },
-  { id: "view-spend-analytics", label: "View spend analytics", aliases: ["spend", "procurement spend", "spend analysis"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_PROC_REPORTS }, run: { to: `${PR.ANALYTICS}/spend` } },
-  { id: "view-vendor-performance", label: "View vendor performance", aliases: ["supplier performance", "vendor analytics", "supplier analytics"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_PROC_REPORTS }, run: { to: `${PR.ANALYTICS}/performance` } },
+  { id: "view-ap-aging", label: "View AP aging", aliases: ["accounts payable aging", "payables aging", "supplier aging"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_ANALYTICS }, run: { to: `${PR.ANALYTICS}/ap-aging` } },
+  { id: "view-grir-control", label: "View GR/IR control", aliases: ["grir", "goods received invoice received", "receipt invoice reconciliation"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_ANALYTICS }, run: { to: `${PR.ANALYTICS}/grir` } },
+  { id: "view-spend-analytics", label: "View spend analytics", aliases: ["spend", "procurement spend", "spend analysis"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_ANALYTICS }, run: { to: `${PR.ANALYTICS}/spend` } },
+  { id: "view-vendor-performance", label: "View vendor performance", aliases: ["supplier performance", "vendor analytics", "supplier analytics"], console: "Procurement", group: "Analytics", kind: "view", gate: { perm: P.PROC_VIEW_ANALYTICS }, run: { to: `${PR.ANALYTICS}/performance` } },
   { id: "create-vendor-assessment", label: "Create vendor assessment", aliases: ["new vendor assessment", "new supplier assessment", "assess vendor"], console: "Procurement", group: "Analytics", kind: "do", gate: { perm: P.PROC_CREATE_VENDOR_ASSESSMENT }, run: { to: withAction(`${PR.ANALYTICS}/performance`) } },
   { id: "view-procurement-settings", label: "View procurement settings", aliases: ["purchasing configuration", "procurement defaults"], console: "Procurement", group: "Administration", kind: "view", gate: { any: [P.PROC_VIEW_SETTINGS] }, run: { to: PR.SETTINGS } },
 ];

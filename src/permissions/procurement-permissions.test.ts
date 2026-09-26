@@ -27,3 +27,23 @@ describe("Procurement permission registry", () => {
     expect(resolvePermissionKey(P.PROC_UPDATE_SETTINGS)).toBe("procurement.settings.update");
   });
 });
+
+/**
+ * The finance, procurement and payments codes belong to @xvs/finance. A second
+ * copy here drifted before: it kept eleven codes for approval keys the backend
+ * had retired, and gated screens on them.
+ */
+describe("engine permission codes", () => {
+  it("takes every finance, procurement and payments code from the shared package", async () => {
+    const { P: PACKAGE_CODES } = await import("@xvs/finance/permissions");
+    const packageNames = new Set(Object.keys(PACKAGE_CODES));
+    const local = Object.entries(P).filter(([name, code]) =>
+      /^(finance|procurement|payments)\./.test(resolvePermissionKey(code)) && !packageNames.has(name),
+    );
+    expect(local).toEqual([]);
+  });
+
+  it("resolves every code to a backend key", () => {
+    expect(Object.entries(P).filter(([, code]) => !resolvePermissionKey(code))).toEqual([]);
+  });
+});

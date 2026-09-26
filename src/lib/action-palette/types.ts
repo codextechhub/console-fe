@@ -5,6 +5,7 @@
  * approved vocabulary this registry implements.
  */
 
+import type { ConsoleNavGroup } from "@/components/finance-ui/console-nav";
 import type { PermissionCode } from "@/permissions";
 
 // Which console an action belongs to - drives the grouped headers in the
@@ -17,7 +18,10 @@ export type ActionConsole = "Main" | "Finance" | "Procurement";
  * - any:    hasAnyPermission(...codes)
  * - all:    hasAllPermissions(...codes)
  * - module: hasModuleAccess(...prefixes) - visible with ANY backend key under a
- *           prefix (the one place raw keys are used, matching the sidebar).
+ *           prefix.
+ * - console: visible when that console's menu holds a screen the reader can
+ *           open, the same rule that decides whether the main menu offers it.
+ *           Used by the console dashboards, which carry no permission of their own.
  */
 export type ActionGate =
   | null
@@ -25,7 +29,8 @@ export type ActionGate =
   | { any: PermissionCode[] }
   | { required: PermissionCode[]; any: PermissionCode[] }
   | { all: PermissionCode[] }
-  | { module: string[] };
+  | { module: string[] }
+  | { console: ConsoleNavGroup[] };
 
 // What running an action does. Most navigate; a couple invoke a header command
 // (proxy dialog / logout confirm) that only the header can open.

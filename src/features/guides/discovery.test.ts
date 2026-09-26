@@ -150,12 +150,12 @@ describe("guide discovery", () => {
   it("publishes C7b guides only inside the caller's procurement permissions", () => {
     const requisitionReader = [resolvePermissionKey(P.PROC_VIEW_REQUISITIONS)];
     const stockReader = [resolvePermissionKey(P.PROC_VIEW_STOCK)];
-    const reportReader = [resolvePermissionKey(P.PROC_VIEW_PROC_REPORTS)];
+    const analyticsReader = [resolvePermissionKey(P.PROC_VIEW_ANALYTICS)];
     const settingsReader = [resolvePermissionKey(P.PROC_VIEW_SETTINGS)];
 
     expect(visibleGuides(GUIDE_REGISTRY, requisitionReader).map((guide) => guide.id)).toContain("procurement.complete-procure-to-pay");
     expect(visibleGuides(GUIDE_REGISTRY, stockReader).map((guide) => guide.id)).toContain("procurement.stock-locations");
-    expect(visibleGuides(GUIDE_REGISTRY, reportReader).map((guide) => guide.id)).toContain("procurement.review-analytics");
+    expect(visibleGuides(GUIDE_REGISTRY, analyticsReader).map((guide) => guide.id)).toContain("procurement.review-analytics");
     expect(visibleGuides(GUIDE_REGISTRY, settingsReader).map((guide) => guide.id)).toContain("procurement.configure-settings");
   });
 

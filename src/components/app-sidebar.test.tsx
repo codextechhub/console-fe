@@ -144,7 +144,7 @@ describe("Main sidebar visibility", () => {
     expect(await renderNav(keys(P.CONFIGURE_NOTIFICATION_TEMPLATES))).toMatchSnapshot();
   });
 
-  // Console visibility is by raw key prefix, not a specific key.
+  // A console door appears when a screen inside it opens for the reader.
   it("shows the finance console for any finance key", async () => {
     expect(await renderNav(["finance.report.view"])).toMatchSnapshot();
   });

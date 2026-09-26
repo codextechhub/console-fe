@@ -1,4 +1,5 @@
-import { resolvePermissionKey } from "@/permissions";
+import { consoleOffersScreens } from "@/components/finance-ui/console-nav";
+import { resolvePermissionKey, type PermissionCode } from "@/permissions";
 import type { ActionDef, ActionGate } from "./types";
 
 /** Evaluate an action gate against raw permission keys returned by the API. */
@@ -30,6 +31,14 @@ function passesGateWithSet(
   }
   if ("module" in gate) {
     return permissions.some((key) => gate.module.some((prefix) => key.startsWith(prefix)));
+  }
+  if ("console" in gate) {
+    return consoleOffersScreens(gate.console, {
+      hasAnyPermission: (...codes: PermissionCode[]) =>
+        codes.some((code) => held.has(resolvePermissionKey(code))),
+      hasModuleAccess: (...prefixes: string[]) =>
+        permissions.some((key) => prefixes.some((prefix) => key.startsWith(prefix))),
+    });
   }
   return false;
 }

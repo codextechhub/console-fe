@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { filterActionsForPermissions } from "./gate";
 import { scoreAction } from "./match";
 import { ACTIONS } from "./registry";
+import { BACKEND_KEY_CATALOGUE } from "@xvs/finance/backend-key-catalogue";
+import type { ConsoleNavGroup } from "@/components/finance-ui/console-nav";
 import type { ActionDef } from "./types";
 import { P, resolvePermissionKey } from "@/permissions";
 import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
@@ -23,7 +25,35 @@ function matchedIds(query: string, permissions: readonly string[] = []): string[
     .map((action) => action.id);
 }
 
+/**
+ * Every "View ..." action for a menu screen must show exactly when the menu
+ * shows that screen: for each key that opens the screen, and never for a
+ * reader holding every other key in the catalogue. Returns the mismatches.
+ */
+function gateMismatches(nav: ConsoleNavGroup[], actions: ActionDef[]): string[] {
+  const visible = (id: string, keys: readonly string[]) =>
+    filterActionsForPermissions(actions, keys).some((action) => action.id === id);
+  const problems: string[] = [];
+  for (const entry of nav.flatMap((g) => g.items.flatMap((i) => (i.children?.length ? i.children : [i])))) {
+    if (!entry.permissions?.length) continue;
+    const action = actions.find((a) => a.kind === "view" && "to" in a.run && a.run.to === entry.url);
+    if (!action) continue;
+    const keys = entry.permissions.map((code) => resolvePermissionKey(code));
+    for (const key of keys) {
+      if (!visible(action.id, [key])) problems.push(`${action.id} hidden from ${key}, which opens ${entry.title}`);
+    }
+    if (visible(action.id, BACKEND_KEY_CATALOGUE.filter((key) => !keys.includes(key)))) {
+      problems.push(`${action.id} shown without ${keys.join(" or ")}, which ${entry.title} needs`);
+    }
+  }
+  return problems;
+}
+
 describe("Procurement action-palette destinations", () => {
+  it("shows each screen's view action exactly when the menu shows the screen", () => {
+    expect(gateMismatches(procurementNav, procurementActions)).toEqual([]);
+  });
+
   it("covers every Procurement sidebar destination", () => {
     const viewDestinations = new Set(
       procurementActions
@@ -82,6 +112,7 @@ describe("Procurement search vocabulary", () => {
     P.PROC_VIEW_STOCK,
     P.PROC_CREATE_STOCK,
     P.PROC_VIEW_PROC_REPORTS,
+    P.PROC_VIEW_ANALYTICS,
     P.PROC_CREATE_VENDOR_ASSESSMENT,
     P.PROC_VIEW_SETTINGS,
   ].map(resolvePermissionKey);

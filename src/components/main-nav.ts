@@ -20,8 +20,9 @@
  *     exclude a sibling's prefix).
  *   * **Gates are fields, not control flow.** Entry-level `permission` decides
  *     whether the entry appears at all; a child's `permission` decides that child.
- *     `modulePrefixes` gates by raw backend key prefix, for whole-console entries
- *     where one specific key would be too narrow.
+ *     `consoleNav` gates a door into Finance or Procurement on that console's own
+ *     menu: the door appears only when a screen behind it would open for the
+ *     reader, so nobody is offered a console that holds nothing of theirs.
  *
  * ── Adding a destination touches four other places ───────────────────────────
  *
@@ -50,6 +51,9 @@ import {
 import {
   HomeIcon, SchoolIcon, TeamMgtIcon, RolesIcon, PermissionsIcon, DataImportsIcon,
 } from "@/assets/navbar-svg";
+import { consoleOffersScreens, type ConsoleNavGroup } from "@/components/finance-ui/console-nav";
+import { financeNav } from "@/pages/protected/finance/finance-nav";
+import { procurementNav } from "@/pages/protected/procurement/procurement-nav";
 import { P, type PermissionCode } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 
@@ -96,8 +100,11 @@ export interface MainNavEntry {
   permission?: NavPermission;
   permissionMode?: "any" | "all";
   requiredPermissions?: PermissionCode[];
-  /** Whole-console visibility by raw backend key prefix. */
-  modulePrefixes?: string[];
+  /**
+   * A door into a separate console: shown only when that console's menu holds
+   * a screen this reader can open (see `consoleOffersScreens`).
+   */
+  consoleNav?: ConsoleNavGroup[];
   /** Leaf items that open a separate console show a trailing chevron. */
   affordance?: boolean;
   items?: MainNavChild[];
@@ -280,7 +287,7 @@ export const MAIN_NAV: MainNavEntry[] = [
     url: R.FINANCE.INDEX,
     icon: Landmark,
     match: (l) => l.startsWith(moduleRoot(R.FINANCE.INDEX)),
-    modulePrefixes: ["finance.", "payments."],
+    consoleNav: financeNav,
     affordance: true,
   },
   {
@@ -288,7 +295,7 @@ export const MAIN_NAV: MainNavEntry[] = [
     url: R.PROCUREMENT.INDEX,
     icon: ShoppingCart,
     match: (l) => l.startsWith(moduleRoot(R.PROCUREMENT.INDEX)),
-    modulePrefixes: ["procurement."],
+    consoleNav: procurementNav,
     affordance: true,
   },
   {
@@ -483,7 +490,7 @@ export function buildMainNav(gate: NavGate, location: string): BuiltNavItem[] {
   for (const entry of MAIN_NAV) {
     if (!passesGate(gate, entry.permission, entry.permissionMode)) continue;
     if (entry.requiredPermissions && !gate.hasAllPermissions(...entry.requiredPermissions)) continue;
-    if (entry.modulePrefixes && !gate.hasModuleAccess(...entry.modulePrefixes)) continue;
+    if (entry.consoleNav && !consoleOffersScreens(entry.consoleNav, gate)) continue;
 
     const wantsGroup = !!entry.items && passesGate(gate, entry.groupWhen);
     const visibleChildren = wantsGroup

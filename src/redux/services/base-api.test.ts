@@ -335,3 +335,37 @@ describe("a 403 on a save", () => {
     expect(dismissOpenDrawerForError).toHaveBeenCalledOnce();
   });
 });
+
+/**
+ * A refused read is left to the screen that asked. A report loading the
+ * periods behind its filter must not tell the reader they were refused
+ * something they never asked for, nor close the drawer they are working in.
+ */
+describe("a 403 on a read", () => {
+  it("stays quiet and leaves the error to the query", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      success: false,
+      message: "You do not have permission to perform this action.",
+      error: { code: "permission_denied", detail: { detail: "You do not have permission to perform this action." } },
+    }), { status: 403, headers: { "content-type": "application/json" } })));
+    const { baseQueryInterceptor } = await import("./base-api");
+
+    const result = await baseQueryInterceptor(
+      { url: "/finance/periods/?entity=HOLYCROSS", method: "GET" },
+      {
+        endpoint: "getPeriods",
+        getState: () => ({ auth: { tenant: { slug: "codex" } } }),
+        dispatch: vi.fn(),
+        signal: new AbortController().signal,
+        abort: vi.fn(),
+        extra: undefined,
+        type: "query" as const,
+      },
+      {},
+    );
+
+    expect(result.error?.status).toBe(403);
+    expect(toastError).not.toHaveBeenCalled();
+    expect(dismissOpenDrawerForError).not.toHaveBeenCalled();
+  });
+});

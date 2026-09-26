@@ -299,6 +299,18 @@ const baseQueryWithTenant: BaseQueryFn<
   return baseQuery(finalArgs, api, extraOptions);
 };
 
+/**
+ * The app's response interceptor. Of its rules, one concerns permission
+ * refusals: only a refused action raises the permission toast.
+ *
+ * Screens load more than their own list: a report asks for the fiscal periods,
+ * cost centres and dimensions behind its filters, a drawer asks for related
+ * records. When one of those reads is refused, a red "You do not have
+ * permission" toast tells the reader they tried something they never tried,
+ * and a screen that works reads as broken. The query's own error state is
+ * where a refused read belongs; a refused save, post or send still toasts,
+ * because the reader asked for it.
+ */
 export const baseQueryInterceptor: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -447,6 +459,9 @@ export const baseQueryInterceptor: BaseQueryFn<
     // names, so no toast and no drawer dismissal: closing the drawer would
     // take those messages away with it.
     if (res?.data?.error?.code === FIELD_WRITE_DENIED) return result;
+    // A refused read is the screen's to answer (a restricted panel, an empty
+    // filter), not a toast: see the doc block on baseQueryInterceptor.
+    if (api.type === "query") return result;
     if (!isAuthRoute(args)) {
       notify(apiErrorMessage(
         res?.data,

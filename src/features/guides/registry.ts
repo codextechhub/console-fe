@@ -26,6 +26,7 @@ const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
 const O2_REVIEWED_AT = "2026-08-25";
 const FIELD_ACCESS_REVIEWED_AT = "2026-09-15";
 const FIELD_ENFORCEMENT_REVIEWED_AT = "2026-09-21";
+const MENU_GATE_REVIEWED_AT = "2026-09-26";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -1354,7 +1355,7 @@ export const GUIDE_REGISTRY = [
       P.PROC_VIEW_GOODS_RECEIPTS, P.PROC_CREATE_GOODS_RECEIPT,
       P.PROC_VIEW_VENDOR_INVOICES, P.PROC_CREATE_VENDOR_INVOICE,
       P.PROC_VIEW_VENDOR_PAYMENTS, P.PROC_CREATE_VENDOR_PAYMENT,
-      P.PROC_APPROVE_SPEND, P.PROC_VIEW_APPROVALS, P.PROC_APPROVE_SPEND_SENIOR,
+      P.PROC_VIEW_APPROVALS,
     ] },
     primaryRoute: R.PROCUREMENT.REQUISITIONS,
     sections: [
@@ -1372,7 +1373,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.procurement.complete-procure-to-pay",
     estimatedMinutes: 13,
     owner: OWNER,
-    reviewedAt: PROCUREMENT_ROUTE_GAP_REVIEWED_AT,
+    reviewedAt: MENU_GATE_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
@@ -1421,7 +1422,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["procurement-officer", "finance-officer", "approver"],
     routes: [R.PROCUREMENT.INDEX, R.PROCUREMENT.ANALYTICS, `${R.PROCUREMENT.ANALYTICS}/ap-aging`, `${R.PROCUREMENT.ANALYTICS}/grir`, `${R.PROCUREMENT.ANALYTICS}/spend`, `${R.PROCUREMENT.ANALYTICS}/performance`],
     actionIds: ["view-procurement-analytics", "view-ap-aging", "view-grir-control", "view-spend-analytics", "view-vendor-performance", "create-vendor-assessment"],
-    access: { mode: "any", permissions: [P.PROC_VIEW_PROC_REPORTS, P.PROC_CREATE_VENDOR_ASSESSMENT] },
+    access: { mode: "any", permissions: [P.PROC_VIEW_ANALYTICS, P.PROC_CREATE_VENDOR_ASSESSMENT] },
     primaryRoute: `${R.PROCUREMENT.ANALYTICS}/ap-aging`,
     sections: [
       { id: "before-you-start", title: "Before you start" },
@@ -1436,7 +1437,7 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["procurement.complete-procure-to-pay", "procurement.add-and-govern-vendor", "procurement.stock-locations"],
     estimatedMinutes: 8,
     owner: OWNER,
-    reviewedAt: PROCUREMENT_ROUTE_GAP_REVIEWED_AT,
+    reviewedAt: MENU_GATE_REVIEWED_AT,
     risk: "medium",
     status: "published",
     article: () => import("./content/procurement-and-inventory/review-analytics"),
@@ -1665,7 +1666,7 @@ export const GUIDE_REGISTRY = [
     audiences: ["platform-administrator", "support-and-operations"],
     routes: [R.AUDIT.DASHBOARD, R.AUDIT.EVENTS, R.AUDIT.ENTITY_TRAILS, R.AUDIT.ENTITY_TRAIL_DETAIL_PATH, R.FINANCE.AUDIT],
     actionIds: ["view-security-dashboard", "view-audit-events", "view-entity-trails", "view-finance-audit-trail"],
-    access: { mode: "any", permissions: [P.VIEW_AUDIT, P.FIN_VIEW_FINANCE_AUDIT] },
+    access: { mode: "any", permissions: [P.VIEW_AUDIT, P.FIN_VIEW_AUDIT] },
     primaryRoute: R.AUDIT.EVENTS,
     sections: [
       { id: "before-you-start", title: "Before you start" },

@@ -53,10 +53,10 @@ describe("contextual guides", () => {
     const tasks = contextualGuideContext(GUIDE_REGISTRY, "/tasks", []);
     expect(tasks.guides.map((guide) => guide.id)).toEqual(["tasks.create-and-complete"]);
 
-    const procurementOverview = contextualGuideContext(GUIDE_REGISTRY, "/procurement", ["procurement.report.view"]);
+    const procurementOverview = contextualGuideContext(GUIDE_REGISTRY, "/procurement", ["procurement.analytics.view"]);
     expect(procurementOverview.guides.map((guide) => guide.id)).toEqual(["procurement.review-analytics"]);
 
-    const procurementApprovals = contextualGuideContext(GUIDE_REGISTRY, "/procurement/approvals", ["procurement.approval.approve"]);
+    const procurementApprovals = contextualGuideContext(GUIDE_REGISTRY, "/procurement/approvals", ["procurement.approval.view"]);
     expect(procurementApprovals.guides.map((guide) => guide.id)).toEqual(["procurement.complete-procure-to-pay"]);
 
     const rfqs = contextualGuideContext(GUIDE_REGISTRY, "/procurement/sourcing/rfqs", ["procurement.rfq.view"]);
@@ -71,7 +71,7 @@ describe("contextual guides", () => {
     const stock = contextualGuideContext(GUIDE_REGISTRY, "/procurement/inventory/items", ["procurement.stock.view"]);
     expect(stock.guides.map((guide) => guide.id)).toEqual(["procurement.stock-locations"]);
 
-    const analytics = contextualGuideContext(GUIDE_REGISTRY, "/procurement/analytics/grir", ["procurement.report.view"]);
+    const analytics = contextualGuideContext(GUIDE_REGISTRY, "/procurement/analytics/grir", ["procurement.analytics.view"]);
     expect(analytics.guides.map((guide) => guide.id)).toEqual(["procurement.review-analytics"]);
 
     const settings = contextualGuideContext(GUIDE_REGISTRY, "/procurement/settings/matching", ["procurement.settings.view"]);
