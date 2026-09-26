@@ -103,3 +103,34 @@ describe("CustomTable loading skeleton", () => {
     expect(html).not.toContain('aria-hidden="true"');
   });
 });
+
+/**
+ * A list that failed to load must say so, not claim to be empty: an empty
+ * table after a failed load left a browser reload as the only way out.
+ */
+describe("CustomTable error state", () => {
+  it("says the list failed and offers to try again", () => {
+    const html = renderToStaticMarkup(
+      <CustomTable tableHeaderList={HEADERS} tableBodyList={[]} error onRetry={() => {}} />,
+    );
+    expect(html).toContain("This list could not be loaded.");
+    expect(html).toContain("Try again");
+    expect(html).not.toContain("No available data.");
+  });
+
+  it("uses the caller's sentence when one is given", () => {
+    const html = renderToStaticMarkup(
+      <CustomTable tableHeaderList={HEADERS} tableBodyList={[]} error="The schools could not be loaded." />,
+    );
+    expect(html).toContain("The schools could not be loaded.");
+    expect(html).not.toContain("Try again");
+  });
+
+  it("keeps rows that are already on screen", () => {
+    const html = renderToStaticMarkup(
+      <CustomTable tableHeaderList={["Name"]} tableBodyList={[{ name: "Bright Star" }]} error />,
+    );
+    expect(html).toContain("Bright Star");
+    expect(html).not.toContain("This list could not be loaded.");
+  });
+});

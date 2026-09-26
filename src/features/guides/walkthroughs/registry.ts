@@ -124,7 +124,7 @@ export const WALKTHROUGH_REGISTRY = [
         id: "package-boundary",
         target: "school-create.package",
         title: "Package choices control access and limits",
-        body: "On Package Setup, use only the approved plan, modules, capacities, and expiry. Console may add required module dependencies. Review earlier steps with Back before you submit.",
+        body: "On Package Setup, use only the approved plan and expiry. The plan decides how far into every module the school reaches. Review earlier steps with Back before you submit.",
         placement: "top",
         search: "?step=plan",
         advance: "manual",

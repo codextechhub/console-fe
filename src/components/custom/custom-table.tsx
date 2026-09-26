@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { EllipsisVertical } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   SkeletonCard,
   SkeletonLoadingLabel,
@@ -26,6 +27,44 @@ import {
 /** Ghost rows shown while a list loads - enough to fill the fold, not so many
  *  that the page grows past the real result. */
 const GHOST_ROWS = 6;
+
+const LOAD_FAILED = "This list could not be loaded.";
+
+/**
+ * What a table shows with no rows: the empty sentence, or, when the load
+ * failed, that it failed and a way to try again. A failed load drawn as an
+ * empty list tells the reader there is nothing there, and leaves a browser
+ * reload as the only way to find out otherwise.
+ */
+function EmptyState({
+  emptyText,
+  error,
+  onRetry,
+}: {
+  emptyText?: string;
+  error?: boolean | string;
+  onRetry?: () => void;
+}) {
+  if (error) {
+    return (
+      <div role="alert" className="mx-auto flex max-w-72 flex-col items-center gap-3 px-4 text-center">
+        <p className="font-mont text-sm font-medium text-black-01">
+          {typeof error === "string" ? error : LOAD_FAILED}
+        </p>
+        {onRetry && (
+          <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+            Try again
+          </Button>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div className="size-40 mx-auto rounded-full border border-primary grid place-content-center">
+      <p className="text-xs text-gray-01">{emptyText || "No available data."}</p>
+    </div>
+  );
+}
 
 interface myComponentProps {
   tableHeaderList: string[];
@@ -46,6 +85,12 @@ interface myComponentProps {
   disabledDropdown?: boolean;
   loadingText?: string;
   emptyText?: string;
+  /** Set when the list failed to load. The empty state then says so, with a
+   *  way to try again, instead of claiming there is nothing to show. A string
+   *  replaces the default sentence. */
+  error?: boolean | string;
+  /** Offered beside the error as "Try again". */
+  onRetry?: () => void;
   /** Phone rendering (<md). "cards" (default) stacks each row as a label/value
    *  card built from the header/cell pairs; "scroll" keeps the table with
    *  horizontal scroll. */
@@ -70,6 +115,8 @@ const CustomTable = ({
   hidePagination,
   loadingText,
   emptyText,
+  error,
+  onRetry,
   mobile = "cards",
 }: myComponentProps) => {
   //   pagination here ------
@@ -279,11 +326,7 @@ const CustomTable = ({
       )}
       {showCardEmpty && (
         <div className={cn(INFORMATION_CARD_SURFACE, "grid h-56 place-content-center overflow-hidden rounded-md md:hidden")}>
-          <div className="grid size-40 place-content-center rounded-full border border-primary">
-            <p className="text-xs text-gray-01">
-              {emptyText || "No available data."}
-            </p>
-          </div>
+          <EmptyState emptyText={emptyText} error={error} onRetry={onRetry} />
         </div>
       )}
       {/* table component start here ------ */}
@@ -392,11 +435,7 @@ const CustomTable = ({
                       colSpan={tableHeaderList?.length + 1}
                       className="h-56 text-center hover:bg-transparent"
                     >
-                      <div className="size-40 mx-auto rounded-full border border-primary grid place-content-center">
-                        <p className="text-xs text-gray-01">
-                          {emptyText ? emptyText : "No available data."}
-                        </p>
-                      </div>
+                      <EmptyState emptyText={emptyText} error={error} onRetry={onRetry} />
                     </TableCell>
                   </TableRow>
                 </>

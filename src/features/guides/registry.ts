@@ -30,6 +30,7 @@ const MENU_GATE_REVIEWED_AT = "2026-09-26";
 const BRANCH_BUDGETS_REVIEWED_AT = "2026-09-26";
 const FINANCE_OVERVIEW_REVIEWED_AT = "2026-09-26";
 const PROCUREMENT_OVERVIEW_REVIEWED_AT = "2026-09-26";
+const SCHOOL_CREATION_REVIEWED_AT = "2026-09-26";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -134,7 +135,7 @@ export const GUIDE_REGISTRY = [
     summary: "Register a school, choose its package, add its first branch, and confirm its setup.",
     category: "schools-and-users",
     tags: ["school", "branch", "administrator", "onboarding", "package", "modules"],
-    aliases: ["onboard school", "register school", "school setup", "add new school", "school admin"],
+    aliases: ["onboard school", "register school", "school setup", "add new school", "school admin", "school creation progress"],
     audiences: ["platform-administrator"],
     routes: [R.SCHOOL_MGT.INDEX, R.SCHOOL_MGT.CREATE],
     actionIds: ["view-schools", "create-school", "view-go-live-requests"],
@@ -153,7 +154,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.schools.create-and-configure",
     estimatedMinutes: 10,
     owner: OWNER,
-    reviewedAt: C5_REVIEWED_AT,
+    reviewedAt: SCHOOL_CREATION_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",

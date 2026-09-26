@@ -3,6 +3,7 @@ import { baseApi } from "../base-api";
 import type {
   SchoolsRes,
   SchoolDetailRes,
+  SchoolCreationJobRes,
   SchoolStatsRes,
   BranchesRes,
   BranchDetailRes,
@@ -30,9 +31,19 @@ export const schoolMgtApi = baseApi.injectEndpoints({
       providesTags: (_res, _err, slug) => [{ type: "Schools", id: slug }],
     }),
 
-    createSchool: builder.mutation<SchoolDetailRes, Record<string, unknown>>({
+    // Starts the creation job and answers with its state. Nothing is
+    // invalidated here: the school exists only once the job succeeds, and the
+    // creation screen invalidates "Schools" then.
+    createSchool: builder.mutation<SchoolCreationJobRes, Record<string, unknown>>({
       query: (body) => ({ url: `/i/create/`, method: "POST", body }),
-      invalidatesTags: ["Schools"],
+    }),
+
+    // Polled while a creation runs. Silent: a job not written yet answers 404
+    // for its first moment, and a missed poll is simply retried by the next.
+    getSchoolCreationJob: builder.query<SchoolCreationJobRes, string>({
+      query: (jobId) => ({ url: `/i/create/${jobId}/`, method: "GET" }),
+      extraOptions: { silent: true },
+      keepUnusedDataFor: 0,
     }),
 
     updateSchool: builder.mutation<SchoolDetailRes, { slug: string; body: Record<string, unknown> }>({
@@ -150,6 +161,7 @@ export const {
   useGetSchoolStatsQuery,
   useGetSchoolDetailQuery,
   useCreateSchoolMutation,
+  useGetSchoolCreationJobQuery,
   useUpdateSchoolMutation,
   useGetBranchesQuery,
   useGetBranchDetailQuery,

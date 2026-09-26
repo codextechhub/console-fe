@@ -1,9 +1,9 @@
-import PromptModal from "@/components/modal/prompt-modal";
 import { useCreateSchoolMutation } from "@/redux/services/dashboard/school-mgt-api";
-import { routesPath } from "@/routes/routes-path";
+import type { SchoolCreationJob } from "@/redux/services/dashboard/school-types";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import AddSchool from "./component/add-school";
+import SchoolCreationDialog from "./component/school-creation-dialog";
 import AddSchoolAdmin from "./component/add-school-admin";
 import AddSchoolBranch from "./component/add-school-branch";
 import PackageSetup from "./component/package-setup";
@@ -175,6 +175,25 @@ function buildPayload(
   return payload;
 }
 
+/** A school creation in flight, from the moment Submit is pressed. */
+interface Creation {
+  jobId?: string;
+  name: string;
+  postedJob?: SchoolCreationJob;
+  postLost?: boolean;
+}
+
+/**
+ * The creation job's id, generated here so the progress box can poll from the
+ * moment the request is sent. `randomUUID` exists only in a secure context;
+ * without it the server mints the id and polling starts when it answers.
+ */
+function newJobId(): string | undefined {
+  return typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : undefined;
+}
+
 export default function CreateSchool() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -185,7 +204,8 @@ export default function CreateSchool() {
   const [adminData, setAdminData] = useState<AdminStepData>(initialAdmin);
   const [packageData, setPackageData] = useState<PackageStepData>(initialPackage);
 
-  const [createSchool, { isLoading: submitting }] = useCreateSchoolMutation();
+  const [createSchool] = useCreateSchoolMutation();
+  const [creation, setCreation] = useState<Creation | null>(null);
 
 
   // Fills the LATER steps from the school step's own test data, so one press
@@ -212,15 +232,23 @@ export default function CreateSchool() {
     navigate({ search: "?step=plan" });
   };
 
-  const [showSuccess, setShowSuccess] = useState(false);
-
   const handleSubmit = (data: PackageStepData) => {
     setPackageData(data);
-    const payload = buildPayload(schoolData, branches, adminData, data);
+    const jobId = newJobId();
+    const payload = { ...buildPayload(schoolData, branches, adminData, data), ...(jobId ? { job_id: jobId } : {}) };
+    setCreation({ jobId, name: schoolData.name });
     createSchool(payload)
       .unwrap()
-      .then(() => setShowSuccess(true))
-      .catch(() => {}); // errors are shown by the global baseQueryInterceptor
+      .then((res) => setCreation((c) => c && { ...c, jobId: res.data.job_id, postedJob: res.data }))
+      .catch((error: { status?: unknown }) => {
+        // No HTTP answer: the job may exist, so the box keeps looking for it.
+        if (typeof error?.status !== "number") {
+          setCreation((c) => c && { ...c, postLost: true });
+          return;
+        }
+        // A refusal is toasted by the global interceptor; back to the form.
+        setCreation(null);
+      });
   };
 
   const renderStep = () => {
@@ -230,7 +258,7 @@ export default function CreateSchool() {
       case "admin":
         return <AddSchoolAdmin defaultValues={adminData} onNext={handleAdminNext} onChange={setAdminData} />;
       case "plan":
-        return <PackageSetup defaultValues={packageData} onSubmit={handleSubmit} onChange={setPackageData} isSubmitting={submitting} />;
+        return <PackageSetup defaultValues={packageData} onSubmit={handleSubmit} onChange={setPackageData} isSubmitting={creation !== null} />;
       default:
         return <AddSchool defaultValues={schoolData} onNext={handleSchoolNext} onChange={setSchoolData} onPrefill={handlePrefill} generateTestData={generateTestData} />;
     }
@@ -242,15 +270,16 @@ export default function CreateSchool() {
           to be separated by the "Fill test data" bar that sat here. With the
           bar gone they stacked into a 44px gap above the heading. */}
       <section className="px-4.5 pb-6">{renderStep()}</section>
-      <PromptModal
-        isOpen={showSuccess}
-        onConfirm={() => {
-          setShowSuccess(false);
-          navigate(routesPath.PROTECTED.SCHOOL_MGT.INDEX + "?status=pending", { replace: true });
-        }}
-        title="School created successfully"
-        description="The school has been set up and invitations have been sent to the administrators. You can continue to the dashboard."
-      />
+      {creation && (
+        <SchoolCreationDialog
+          key={creation.jobId ?? "pending"}
+          schoolName={creation.name}
+          jobId={creation.jobId}
+          postedJob={creation.postedJob}
+          postLost={creation.postLost ?? false}
+          onBackToForm={() => setCreation(null)}
+        />
+      )}
     </>
   );
 }

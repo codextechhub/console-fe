@@ -63,17 +63,20 @@ export default function SchoolManagement() {
   const ordering = buildOrdering(sort.sortColumn, sort.sortOrder);
   if (ordering) queryParams.ordering = ordering;
 
-  const { data: schoolsRes, isLoading, refetch, isFetching } = useGetSchoolsQuery(queryParams);
+  const { data: schoolsRes, isLoading, isError, refetch, isFetching } = useGetSchoolsQuery(queryParams);
   const { data: statsRes, refetch: refetchStats } = useGetSchoolStatsQuery();
+  const reload = () => { refetch(); refetchStats(); };
 
   const stats = statsRes?.data;
+  // A count that has not arrived is unknown, not zero.
+  const count = (value?: number) => value ?? "-";
 
   const metricCards = [
-    { title: "All Schools", value: stats?.all ?? 0, query: "", active: !filter_status },
-    { title: "Active Schools", value: stats?.active ?? 0, query: "active", active: filter_status === "active" },
-    { title: "Pending Schools", value: stats?.pending ?? 0, query: "pending", active: filter_status === "pending" },
-    { title: "Inactive Schools", value: stats?.inactive ?? 0, query: "inactive", active: filter_status === "inactive" },
-    { title: "Suspended Schools", value: stats?.suspended ?? 0, query: "suspended", active: filter_status === "suspended" },
+    { title: "All Schools", value: count(stats?.all), query: "", active: !filter_status },
+    { title: "Active Schools", value: count(stats?.active), query: "active", active: filter_status === "active" },
+    { title: "Pending Schools", value: count(stats?.pending), query: "pending", active: filter_status === "pending" },
+    { title: "Inactive Schools", value: count(stats?.inactive), query: "inactive", active: filter_status === "inactive" },
+    { title: "Suspended Schools", value: count(stats?.suspended), query: "suspended", active: filter_status === "suspended" },
   ];
 
   const tableData = schoolsRes?.data?.map((item: School, idx: number) => ({
@@ -172,7 +175,7 @@ export default function SchoolManagement() {
               variant="white"
               size="lg"
               className="[&_svg]:size-5 font-medium font-mont"
-              onClick={() => { refetch(); refetchStats(); }}
+              onClick={reload}
               disabled={isFetching}
             >
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
@@ -204,7 +207,9 @@ export default function SchoolManagement() {
         <CustomTable
           tableHeaderList={TABLE_HEADERS}
           tableBodyList={tableData ?? []}
-          loading={isLoading}
+          loading={isLoading || (isError && isFetching)}
+          error={isError && !isFetching && "The schools could not be loaded. Check your connection and try again."}
+          onRetry={reload}
           currentPage={schoolsRes?.pagination?.currentPage}
           totalPage={schoolsRes?.pagination?.totalPages}
           perPage={schoolsRes?.pagination?.pageSize}

@@ -176,6 +176,33 @@ export interface SchoolDetailRes {
   data: SchoolDetail
 }
 
+/**
+ * A school being created, as the creation job reports it.
+ *
+ * Creating a school runs on the server as a background job. `steps` lists the
+ * steps this creation runs, in order (a school without an administrator or a
+ * plan skips those), `done` the ones finished, and `current` the one running.
+ * A failed job keeps `current` on the step it stopped on and says why in
+ * `message`; nothing it did is kept. `school` is set once it has succeeded.
+ */
+export type SchoolCreationStatus = "QUEUED" | "RUNNING" | "SUCCEEDED" | "FAILED" | "CANCELLED"
+
+export interface SchoolCreationJob {
+  job_id: string
+  status: SchoolCreationStatus
+  steps: string[]
+  done: string[]
+  current: string | null
+  school: { slug: string; label: string } | null
+  message: string | null
+}
+
+export interface SchoolCreationJobRes {
+  success: boolean
+  message: string
+  data: SchoolCreationJob
+}
+
 export interface SchoolStatsRes {
   success: boolean
   message: string

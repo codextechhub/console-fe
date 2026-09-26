@@ -15,6 +15,8 @@ const SILENT_ENDPOINTS = new Set([
   "getNotifications",
   "getUnreadCount",
   "acknowledgeNotificationRoute",
+  // Polled by the school creation dialog, which draws its own progress.
+  "getSchoolCreationJob",
 ]);
 
 const NAVIGATION_START_EVENT = "app:navigation-start";

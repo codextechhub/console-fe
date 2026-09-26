@@ -13,7 +13,7 @@ export default function CreateAndConfigureSchoolArticle() {
           "Agree the package plan, enabled modules, and subscription expiry date.",
           "Check that administrator emails do not already belong to another account.",
         ]} />
-        <GuideCallout tone="warning" title="One submission creates several records">The final Submit action creates the school, its branches and administrator records, package access, and invitations. Review every step before submitting. The walkthrough opens each wizard view so its guidance matches the visible section and preserves what you have entered, but it never reads, fills, validates, or submits a field.</GuideCallout>
+        <GuideCallout tone="warning" title="One submission creates several records">The final Submit action creates the school, its branches and administrator records, package access, finance books, onboarding checklist, and invitations, all or nothing. Review every step before submitting. The walkthrough opens each wizard view so its guidance matches the visible section and preserves what you have entered, but it never reads, fills, validates, or submits a field.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="add-school-details" title="Add school details">
@@ -41,16 +41,16 @@ export default function CreateAndConfigureSchoolArticle() {
       <GuideSection id="configure-package" title="Configure the package">
         <GuideSteps>
           <GuideStep title="Select the package plan">Choose the approved <strong>Package Plan</strong>. Do not guess a commercial entitlement.</GuideStep>
-          <GuideStep title="Choose enabled modules">Select the approved <strong>Enabled Modules</strong>. Console adds required dependencies and tells you which modules were included.</GuideStep>
-          <GuideStep title="Set limits and expiry">Enter the student, teacher, and administrator capacities and choose <strong>Subscription Expires</strong>.</GuideStep>
+          <GuideStep title="Set the expiry">Choose <strong>Subscription Expires</strong>. Every school receives every module; the plan decides how far into each one it reaches.</GuideStep>
           <GuideStep title="Review, then submit">Use <strong>Back</strong> to correct earlier details. Select <strong>Submit</strong> only when the complete setup is approved.</GuideStep>
+          <GuideStep title="Watch the setup finish">A progress box lists each step the server runs: the school record, roles, administrator accounts, branches, the plan, the finance books, the onboarding checklist and the invitation emails. Each step is ticked as the server finishes it. The school keeps being set up if you leave the page.</GuideStep>
         </GuideSteps>
         <GuideFigure title="What the final setup controls" caption="The package choices determine which capabilities and capacity the school receives.">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[
               { icon: School, title: "School and branches", body: "Identity, location, academic defaults, and main-branch designation." },
               { icon: UsersRound, title: "Administrators", body: "Primary and branch administrator records and invitations." },
-              { icon: PackageCheck, title: "Package access", body: "Plan, modules, and any module dependencies." },
+              { icon: PackageCheck, title: "Package access", body: "The plan, which sets how far the school reaches into every module." },
               { icon: ShieldCheck, title: "Subscription", body: "When the subscription expires, and whether the setup is active." },
             ].map(({ icon: Icon, title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><Icon className="size-5 text-primary" /><p className="mt-3 text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}
           </div>
@@ -61,15 +61,16 @@ export default function CreateAndConfigureSchoolArticle() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {[
             { title: "Continue does not move forward", body: "Check the required fields on the current step. Email addresses must be valid, and one branch must be marked as main." },
-            { title: "A module was added automatically", body: "The selected module depends on another capability. Console adds that dependency so the school is not created with unusable access." },
             { title: "A package option is missing", body: "Stop and confirm the approved package catalogue. Do not substitute a different plan just to finish onboarding." },
-            { title: "Submission fails", body: "Keep the form open, note the safe error message, and check for a duplicate slug or administrator email before contacting Support." },
+            { title: "Submit is refused straight away", body: "A field needs correcting, often a slug or administrator email already in use. The form stays filled in; fix the field and submit again." },
+            { title: "The progress box stops on a step", body: "The box names the step and the reason. Nothing from that attempt is kept, so choose Back to the form, correct the details, and submit again. Contact Support if the same step keeps failing." },
+            { title: "The box cannot confirm the school", body: "The request got no answer, so Console cannot tell whether the school was made. Check School Onboarding before submitting again, or the school may be created twice." },
           ].map(({ title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="flex items-start gap-2 text-sm font-semibold text-black-01"><CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" /> {title}</p><p className="mt-2 text-xs leading-5 text-gray-01">{body}</p></div>)}
         </div>
       </GuideSection>
 
       <GuideSection id="completion-check" title="Completion check">
-        <GuideCallout tone="tip" title="You are done when">Console shows <strong>School created successfully</strong>, sends the administrator invitations, and returns you to School Onboarding with the pending-school filter selected.</GuideCallout>
+        <GuideCallout tone="tip" title="You are done when">The progress box shows every step ticked and says the school <strong>is ready</strong>, with the administrator invitations queued. Choose <strong>Open the school</strong> to review it, or <strong>Go to School Onboarding</strong> to see it among the pending schools.</GuideCallout>
         <p className="flex items-center gap-2 text-sm font-medium text-emerald-700"><CheckCircle2 className="size-4" /> Open the school record and verify its main branch, package, enabled modules, capacities, and invitation status.</p>
       </GuideSection>
     </div>
