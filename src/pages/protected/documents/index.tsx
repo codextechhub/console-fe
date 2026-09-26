@@ -136,7 +136,7 @@ export default function DocumentsPage() {
           </p>
         </div>
         <div className="relative w-full sm:w-64">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-03" />
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-gray-05" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -209,7 +209,7 @@ export default function DocumentsPage() {
                   className="flex flex-wrap items-center justify-between gap-3 py-3"
                 >
                   <div className="flex min-w-0 items-center gap-2.5">
-                    <FileText className="size-4 shrink-0 text-gray-03" />
+                    <FileText className="size-4 shrink-0 text-gray-05" />
                     <div className="min-w-0">
                       <p className="font-mont text-sm font-semibold text-black-01">
                         <span className={NUM}>v{version.version}</span>

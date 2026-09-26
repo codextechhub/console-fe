@@ -171,7 +171,7 @@ function DatePickerInput({
           )}
         >
           <span className="truncate">{selected ? displayDate(selected) : (placeholder ?? "Select date")}</span>
-          <CalendarDays className="size-4 shrink-0 text-gray-04" aria-hidden="true" />
+          <CalendarDays className="size-4 shrink-0 text-gray-05" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto overflow-hidden rounded-xl p-0" align="start">

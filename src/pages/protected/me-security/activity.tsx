@@ -133,7 +133,7 @@ function EventRow({
       <span className="text-xs text-gray-01 font-mont w-24 text-right shrink-0">
         {formatRelativeDate(event.event_at)}
       </span>
-      <ChevronRight className="size-3.5 text-gray-03 group-hover:text-primary transition-colors shrink-0" />
+      <ChevronRight className="size-3.5 text-gray-05 group-hover:text-primary transition-colors shrink-0" />
     </div>
   );
 }

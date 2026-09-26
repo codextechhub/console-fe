@@ -105,7 +105,7 @@ function Loading() {
 
 function InvalidLink() {
   return <div className="rounded-xl bg-white p-8 text-center shadow-sm">
-    <LockKeyhole className="mx-auto size-10 text-gray-04" />
+    <LockKeyhole className="mx-auto size-10 text-gray-02" />
     <h1 className="mt-4 font-mont text-xl font-semibold">Invitation unavailable</h1>
     <p className="mt-2 text-sm text-gray-05">This quotation link is invalid or has been replaced. Ask the buyer to resend it.</p>
   </div>;
@@ -158,7 +158,7 @@ function Verification({ token, preview, onVerified }: {
       <div>
         <label className="font-mont text-xs font-semibold text-gray-01">Invitation email</label>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-          <div className="relative min-w-0 flex-1"><Mail className="absolute left-3 top-3 size-4 text-gray-04" /><Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@vendor.com" className="h-10 pl-9" /></div>
+          <div className="relative min-w-0 flex-1"><Mail className="absolute left-3 top-3 size-4 text-gray-05" /><Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@vendor.com" className="h-10 pl-9" /></div>
           <Button onClick={request} disabled={!email || requestState.isLoading} loading={requestState.isLoading}>Send code</Button>
         </div>
       </div>
@@ -371,7 +371,7 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
 
     <section className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-mont text-base font-semibold">Supporting documents</h2><p className="mt-1 text-xs text-gray-05">Up to five PDF or image files, 500KB each.</p></div>{!readOnly && <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm font-medium hover:bg-gray-02"><UploadCloud className="size-4" />{uploadState.isLoading ? "Uploading..." : "Upload file"}<input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="sr-only" disabled={uploadState.isLoading} onChange={(event) => void uploadFile(event.target.files?.[0])} /></label>}</div>
-      <div className="mt-4 space-y-2">{data.attachments.length ? data.attachments.map((file) => <div key={file.id} className="flex items-center gap-3 rounded-lg border border-white-02 p-3"><Paperclip className="size-4 text-gray-04" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-gray-05">{Math.ceil(file.size / 1024)}KB · Revision {file.revision}</p></div><Button size="sm" variant="outline" onClick={() => void openAttachment(file.id, file.name)}>Open</Button></div>) : <p className="rounded-lg bg-[#f8fafc] p-4 text-center text-sm text-gray-05">No supporting documents uploaded.</p>}</div>
+      <div className="mt-4 space-y-2">{data.attachments.length ? data.attachments.map((file) => <div key={file.id} className="flex items-center gap-3 rounded-lg border border-white-02 p-3"><Paperclip className="size-4 text-gray-05" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-gray-05">{Math.ceil(file.size / 1024)}KB · Revision {file.revision}</p></div><Button size="sm" variant="outline" onClick={() => void openAttachment(file.id, file.name)}>Open</Button></div>) : <p className="rounded-lg bg-[#f8fafc] p-4 text-center text-sm text-gray-05">No supporting documents uploaded.</p>}</div>
     </section>
 
     <section className="flex flex-col-reverse gap-3 rounded-xl bg-white p-5 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
