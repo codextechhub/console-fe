@@ -597,7 +597,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.configure-foundations",
     estimatedMinutes: 11,
     owner: OWNER,
-    reviewedAt: FINAL_ROUTE_GAP_REVIEWED_AT,
+    reviewedAt: FINANCE_OVERVIEW_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",

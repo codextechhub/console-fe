@@ -59,7 +59,7 @@ export default function ConfigureFinanceFoundationsArticle() {
       </GuideSection>
 
       <GuideSection id="map-posting-defaults" title="Map posting defaults and policies">
-        <p>Open Finance Settings for the active entity. Accounting defaults map stable posting roles to active, postable accounts of the expected type. Document and banking policies control defaults used by invoices, collections, reconciliation, receipt allocation, and cash alerts.</p>
+        <p>Open Finance Settings for the active entity. Accounting defaults map stable posting roles to active, postable accounts of the expected type. Document and banking policies control defaults used by invoices, collections, reconciliation, receipt allocation, and cash alerts. The term collection target under Documents is the share of a term&rsquo;s fees the school aims to have collected by the end of the term; the dashboard&rsquo;s collection curve draws it as the target line.</p>
         <GuideCallout tone="warning" title="A saved mapping takes effect immediately">
           Review the named consumer beside every setting. Changing a control-account mapping can affect the next document posted by Finance or Procurement, so record the approval and verify the resulting journal in a safe environment first.
         </GuideCallout>
