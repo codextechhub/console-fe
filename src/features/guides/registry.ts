@@ -29,6 +29,7 @@ const RECORD_HISTORY_REVIEWED_AT = "2026-09-26";
 const MENU_GATE_REVIEWED_AT = "2026-09-26";
 const BRANCH_BUDGETS_REVIEWED_AT = "2026-09-26";
 const FINANCE_OVERVIEW_REVIEWED_AT = "2026-09-26";
+const PROCUREMENT_OVERVIEW_REVIEWED_AT = "2026-09-26";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -1422,7 +1423,7 @@ export const GUIDE_REGISTRY = [
     summary: "Use AP aging, GR/IR, spend, and vendor performance reports to find the source document that needs attention.",
     category: "procurement-and-inventory",
     tags: ["analytics", "AP aging", "GR/IR", "spend", "vendor performance", "assessment", "overdue", "control account"],
-    aliases: ["procurement reports", "supplier aging", "goods received not invoiced", "invoiced not received", "top supplier spend", "vendor scorecard", "late delivery"],
+    aliases: ["procurement reports", "supplier aging", "goods received not invoiced", "invoiced not received", "top supplier spend", "vendor scorecard", "late delivery", "procurement dashboard", "purchase to payment", "committed vs spent", "control exceptions", "contracts ending soon"],
     audiences: ["procurement-officer", "finance-officer", "approver"],
     routes: [R.PROCUREMENT.INDEX, R.PROCUREMENT.ANALYTICS, `${R.PROCUREMENT.ANALYTICS}/ap-aging`, `${R.PROCUREMENT.ANALYTICS}/grir`, `${R.PROCUREMENT.ANALYTICS}/spend`, `${R.PROCUREMENT.ANALYTICS}/performance`],
     actionIds: ["view-procurement-analytics", "view-ap-aging", "view-grir-control", "view-spend-analytics", "view-vendor-performance", "create-vendor-assessment"],
@@ -1430,6 +1431,7 @@ export const GUIDE_REGISTRY = [
     primaryRoute: `${R.PROCUREMENT.ANALYTICS}/ap-aging`,
     sections: [
       { id: "before-you-start", title: "Before you start" },
+      { id: "read-the-overview", title: "Read the Procurement overview" },
       { id: "use-ap-aging", title: "Use AP aging to plan settlement" },
       { id: "clear-grir", title: "Investigate GR/IR differences" },
       { id: "read-spend", title: "Read posted spend without overstating it" },
@@ -1441,7 +1443,7 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["procurement.complete-procure-to-pay", "procurement.add-and-govern-vendor", "procurement.stock-locations"],
     estimatedMinutes: 8,
     owner: OWNER,
-    reviewedAt: MENU_GATE_REVIEWED_AT,
+    reviewedAt: PROCUREMENT_OVERVIEW_REVIEWED_AT,
     risk: "medium",
     status: "published",
     article: () => import("./content/procurement-and-inventory/review-analytics"),
