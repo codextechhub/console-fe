@@ -29,6 +29,7 @@ const BRANCH_BUDGETS_REVIEWED_AT = "2026-09-26";
 const FINANCE_OVERVIEW_REVIEWED_AT = "2026-09-26";
 const PROCUREMENT_OVERVIEW_REVIEWED_AT = "2026-09-26";
 const SCHOOL_CREATION_REVIEWED_AT = "2026-09-26";
+const REQUIREMENTS_VIEWER_REVIEWED_AT = "2026-09-26";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -1960,13 +1961,14 @@ export const GUIDE_REGISTRY = [
   {
     id: "platform.requirements-library",
     slug: "find-and-download-requirements-documents",
-    title: "Find and download requirements documents",
-    summary: "Browse the MRD and the module FRDs, download the current version, and pull up an earlier revision.",
+    title: "Find, view and download requirements documents",
+    summary: "Browse the MRD and the module FRDs, read any version inside Console, download the Word file, and pull up an earlier revision.",
     category: "platform-health-and-settings",
     tags: ["documents", "requirements", "MRD", "FRD", "specifications"],
     aliases: [
       "requirements document", "module requirements", "functional requirements",
       "product specs", "where are the docs", "download FRD", "MRD",
+      "view FRD", "preview document", "read document online", "open docx",
     ],
     audiences: ["platform-administrator", "support-and-operations"],
     routes: [R.DOCUMENTS.INDEX],
@@ -1976,6 +1978,7 @@ export const GUIDE_REGISTRY = [
     sections: [
       { id: "before-you-start", title: "Before you start" },
       { id: "find-a-document", title: "Find a document" },
+      { id: "view-a-document", title: "View a document" },
       { id: "download-a-document", title: "Download a document" },
       { id: "read-an-earlier-version", title: "Read an earlier version" },
       { id: "common-problems", title: "Common problems" },
@@ -1984,9 +1987,9 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["troubleshooting.permission-denied", "troubleshooting.search-filter-and-download"],
     estimatedMinutes: 3,
     owner: OWNER,
-    reviewedAt: DOCS_REVIEWED_AT,
-    // Read-only: the screen browses and downloads, and writes nothing. No
-    // walkthrough - there is no consequential action to guide anyone through.
+    reviewedAt: REQUIREMENTS_VIEWER_REVIEWED_AT,
+    // Read-only: the screen browses, previews and downloads, and writes nothing.
+    // No walkthrough - there is no consequential action to guide anyone through.
     risk: "low",
     status: "published",
     article: () => import("./content/platform-health-and-settings/requirements-library"),

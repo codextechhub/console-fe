@@ -11,13 +11,14 @@
  * is a thing to navigate rather than a thing that helps, and the module number
  * is already the order the team refers to these documents in.
  *
- * Everything here downloads; nothing previews. A .docx cannot render in a
- * browser tab anyway, and the backend sends Content-Disposition: attachment, so
- * a click saves the file and the reader opens it beside the console.
+ * Every file can be viewed or downloaded. View opens the document in a reader
+ * over the page (see DocumentViewer); Download saves the .docx as the server
+ * sends it. Both fetch with the signed-in session, because the endpoint needs
+ * the bearer token and a plain link would arrive unauthenticated.
  */
 
 import { useMemo, useState } from "react";
-import { Download, FileText, Search } from "lucide-react";
+import { Download, Eye, FileText, Search } from "lucide-react";
 import KpiCard from "@/components/custom/kpi-card";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { DataTable, type Column } from "@/components/finance-ui/data-table";
@@ -32,6 +33,7 @@ import type { RequirementsDocument } from "@/redux/services/dashboard/documents-
 import { formatBytes } from "@/utils/format-bytes";
 import { errorStatus } from "@/utils/api-errors";
 import { useDocumentDownload } from "./use-document-download";
+import { DocumentViewer, type ViewerTarget } from "./document-viewer";
 import { PageShell } from "@/components/layout/page-shell";
 
 const NUM = "font-geist-mono tabular-nums";
@@ -65,6 +67,7 @@ export default function DocumentsPage() {
 
   const [query, setQuery] = useState("");
   const [openDoc, setOpenDoc] = useState<RequirementsDocument | null>(null);
+  const [viewing, setViewing] = useState<ViewerTarget | null>(null);
 
   const { data, isLoading, isError, error, refetch } = useGetRequirementsDocumentsQuery(undefined, {
     skip: !canView,
@@ -110,18 +113,31 @@ export default function DocumentsPage() {
       header: "",
       align: "right",
       cell: (doc) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          loading={busyKey === doc.slug}
-          onClick={(e) => {
-            e.stopPropagation();
-            save(doc);
-          }}
-          className="font-mont"
-        >
-          Download
-        </Button>
+        <div className="flex flex-wrap justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setViewing({ doc });
+            }}
+            className="font-mont"
+          >
+            View
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            loading={busyKey === doc.slug}
+            onClick={(e) => {
+              e.stopPropagation();
+              save(doc);
+            }}
+            className="font-mont"
+          >
+            Download
+          </Button>
+        </div>
       ),
     },
   ];
@@ -168,7 +184,7 @@ export default function DocumentsPage() {
         onRowClick={(doc) => setOpenDoc(doc)}
         // Cards through tablet, not just phone. Five columns plus the expanded
         // sidebar leaves too little room at ~820px: the table stays inside its
-        // own scroller so the page never overflows, but the Download action ends
+        // own scroller so the page never overflows, but the row actions end
         // up clipped off the right edge, which reads as broken rather than as
         // scrollable.
         cardBreakpoint="lg"
@@ -224,22 +240,35 @@ export default function DocumentsPage() {
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    loading={busyKey === `${openDoc.slug}@${version.version}`}
-                    onClick={() => save(openDoc, version.version)}
-                    className="font-mont"
-                  >
-                    <Download className="size-3.5" />
-                    Download
-                  </Button>
+                  <div className="flex flex-wrap gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setViewing({ doc: openDoc, version: version.version })}
+                      className="font-mont"
+                    >
+                      <Eye className="size-3.5" />
+                      View
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      loading={busyKey === `${openDoc.slug}@${version.version}`}
+                      onClick={() => save(openDoc, version.version)}
+                      className="font-mont"
+                    >
+                      <Download className="size-3.5" />
+                      Download
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
           </div>
         )}
       </DetailDrawer>
+
+      <DocumentViewer target={viewing} onClose={() => setViewing(null)} />
     </PageShell>
   );
 }

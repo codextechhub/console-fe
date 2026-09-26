@@ -13,31 +13,45 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { useLazyDownloadRequirementsDocumentQuery } from "@/redux/services/dashboard/documents-api";
+import { useDownloadRequirementsDocumentMutation } from "@/redux/services/dashboard/documents-api";
 import { apiErrorMessage } from "@/utils/api-errors";
 import type { RequirementsDocument } from "@/redux/services/dashboard/documents-types";
 
+/**
+ * The filename the server sends for a document version, falling back to the
+ * slug. Resolved on the client because a blob carries no name of its own.
+ * Omitting `version` means the current one.
+ */
+export function documentFilename(doc: RequirementsDocument, version?: string): string {
+  const target = version ? doc.versions.find((v) => v.version === version) : doc.versions[0];
+  return target?.filename ?? `${doc.slug}.docx`;
+}
+
+/**
+ * Hands an object URL to the browser as a file save. Does not revoke the URL:
+ * the caller owns it, because the viewer keeps its copy alive for as long as the
+ * document is open on screen.
+ */
+export function saveObjectUrl(url: string, filename: string): void {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 export function useDocumentDownload() {
-  const [download] = useLazyDownloadRequirementsDocumentQuery();
+  const [download] = useDownloadRequirementsDocumentMutation();
   // Keyed per button, so the row spinner and the drawer's per-version spinners
   // never fire together: "<slug>" is the row, "<slug>@<version>" a history entry.
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   const save = async (doc: RequirementsDocument, version?: string) => {
     setBusyKey(version ? `${doc.slug}@${version}` : doc.slug);
-    // The filename the server will send. Resolved here too so the saved file is
-    // named correctly even though the blob itself carries no name.
-    const target = version
-      ? doc.versions.find((v) => v.version === version)
-      : doc.versions[0];
     try {
       const url = await download({ slug: doc.slug, version }).unwrap();
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = target?.filename ?? `${doc.slug}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      saveObjectUrl(url, documentFilename(doc, version));
       URL.revokeObjectURL(url);
     } catch (error) {
       toast.error(apiErrorMessage(error, "That document could not be downloaded."));

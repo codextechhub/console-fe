@@ -27,11 +27,21 @@ export const documentsApi = baseApi.injectEndpoints({
       providesTags: ["RequirementsDocuments"],
     }),
 
-    // A query, not a mutation: downloading a document changes nothing on the
-    // server, so there is no cache to invalidate. Declared with
-    // `forceRefetch`-free defaults but read through `lazy` at the call site, so
-    // the bytes are fetched on click rather than on render.
-    downloadRequirementsDocument: builder.query<
+    /**
+     * Fetches one document's bytes and returns them as an object URL.
+     *
+     * A mutation although it changes nothing on the server, because every call
+     * must own its own URL. A query deduplicates concurrent calls with the same
+     * arguments and hands each caller the same URL, so the first caller to revoke
+     * it breaks the others: close and reopen the viewer before the file arrives
+     * and the second viewer is left holding a dead `blob:` string. A mutation
+     * sends one request per call, and each caller revokes only what it received.
+     *
+     * The URL rather than the Blob, because RTK Query keeps results in the Redux
+     * store and a 1.3 MB Blob there holds the file in memory and trips the
+     * serializability check.
+     */
+    downloadRequirementsDocument: builder.mutation<
       string,
       { slug: string; version?: string }
     >({
@@ -43,18 +53,12 @@ export const documentsApi = baseApi.injectEndpoints({
         responseHandler: (response: Response) =>
           response.ok ? response.blob() : response.json(),
       }),
-      // Hand back an object URL rather than the Blob: RTK Query caches what a
-      // query returns, and parking a 1.3 MB file in the Redux store holds it in
-      // memory and trips the serializability check. The caller revokes it.
       transformResponse: (blob: Blob) => URL.createObjectURL(blob),
-      // Never cached: the object URL is revoked by the caller straight after the
-      // save, so a cached entry would be a dead `blob:` string on the next click.
-      keepUnusedDataFor: 0,
     }),
   }),
 });
 
 export const {
   useGetRequirementsDocumentsQuery,
-  useLazyDownloadRequirementsDocumentQuery,
+  useDownloadRequirementsDocumentMutation,
 } = documentsApi;
