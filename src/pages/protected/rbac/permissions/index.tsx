@@ -41,17 +41,20 @@ export default function PermissionsList() {
     refetchOnMountOrArgChange: true,
   });
 
-  const { data: allData } = useGetPermissionsQuery({ page: 1, page_size: 1 });
-  const { data: activeData } = useGetPermissionsQuery({ page: 1, page_size: 1, is_active: "true" });
-  const { data: restrictedData } = useGetPermissionsQuery({ page: 1, page_size: 1, is_restricted: "true" });
-  const { data: criticalData } = useGetPermissionsQuery({ page: 1, page_size: 1, sensitivity_level: "CRITICAL" });
+  const { data: allData, refetch: refetchAll } = useGetPermissionsQuery({ page: 1, page_size: 1 });
+  const { data: activeData, refetch: refetchActive } = useGetPermissionsQuery({ page: 1, page_size: 1, is_active: "true" });
+  const { data: restrictedData, refetch: refetchRestricted } = useGetPermissionsQuery({ page: 1, page_size: 1, is_restricted: "true" });
+  const { data: criticalData, refetch: refetchCritical } = useGetPermissionsQuery({ page: 1, page_size: 1, sensitivity_level: "CRITICAL" });
+
+  const reload = () => { refetch(); refetchAll(); refetchActive(); refetchRestricted(); refetchCritical(); };
 
   const perms = data?.data ?? [];
-  const totalPerms = allData?.pagination?.totalItems ?? 0;
+  // A count that has not arrived is unknown, not zero.
+  const totalPerms = allData?.pagination?.totalItems ?? "-";
 
-  const activeCount = activeData?.pagination?.totalItems ?? 0;
-  const restrictedCount = restrictedData?.pagination?.totalItems ?? 0;
-  const criticalCount = criticalData?.pagination?.totalItems ?? 0;
+  const activeCount = activeData?.pagination?.totalItems ?? "-";
+  const restrictedCount = restrictedData?.pagination?.totalItems ?? "-";
+  const criticalCount = criticalData?.pagination?.totalItems ?? "-";
 
   const metricCards = [
     { title: "All Permissions", value: totalPerms, key: "all" as CardFilter, active: cardFilter === "all" },
@@ -121,7 +124,7 @@ export default function PermissionsList() {
             <Button
               variant="white" size="lg"
               className="[&_svg]:size-5 font-medium font-mont"
-              onClick={() => refetch()}
+              onClick={reload}
               disabled={isFetching}
             >
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
@@ -129,24 +132,17 @@ export default function PermissionsList() {
           </div>
         </div>
 
-        {isError ? (
-          <div className="flex h-56 flex-col items-center justify-center gap-3">
-            <p className="text-sm font-medium text-destructive">Failed to load permissions.</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="size-3.5" /> Retry
-            </Button>
-          </div>
-        ) : (
-          <CustomTable
-            tableHeaderList={TABLE_HEADERS}
-            tableBodyList={tableData}
-            loading={isLoading}
-            perPage={data?.pagination?.pageSize}
-            totalPage={data?.pagination?.totalPages}
-            currentPage={data?.pagination?.currentPage}
-            onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
-          />
-        )}
+        <CustomTable
+          tableHeaderList={TABLE_HEADERS}
+          tableBodyList={tableData}
+          loading={isLoading || (isError && isFetching)}
+          error={isError && !isFetching && "The permissions could not be loaded. Check your connection and try again."}
+          onRetry={reload}
+          perPage={data?.pagination?.pageSize}
+          totalPage={data?.pagination?.totalPages}
+          currentPage={data?.pagination?.currentPage}
+          onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
+        />
       </PageShell>
     </>
   );

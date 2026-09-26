@@ -359,28 +359,21 @@ export default function AuditEventsExplorer() {
               value={filters.search}
               onChange={(e) => updateFilters({ search: e.target.value })}
             />
-            {isError ? (
-              <div className={cn(INFORMATION_CARD_SURFACE, "flex h-56 flex-col items-center justify-center gap-3 rounded-md")}>
-                <p className="text-sm font-medium text-destructive">Failed to load events.</p>
-                <Button variant="outline" size="sm" onClick={() => refetch()}>
-                  <RefreshCw className="size-3.5" /> Retry
-                </Button>
-              </div>
-            ) : (
-              <CustomTable
-                tableHeaderList={TABLE_HEADERS}
-                tableBodyList={tableData}
-                loading={isLoading}
-                onRowClick={(row: { _event: AuditEventListItem }) => setSelectedEvent(row._event)}
-                dropDown
-                actionButton="View"
-                actionButtonOnClick={(row) => setSelectedEvent((row as { _event: AuditEventListItem })._event)}
-                perPage={data?.pagination?.pageSize}
-                totalPage={data?.pagination?.totalPages}
-                currentPage={data?.pagination?.currentPage}
-                onPageChange={(p) => setPage(p as number)}
-              />
-            )}
+            <CustomTable
+              tableHeaderList={TABLE_HEADERS}
+              tableBodyList={tableData}
+              loading={isLoading || (isError && isFetching)}
+              error={isError && !isFetching && "The events could not be loaded. Check your connection and try again."}
+              onRetry={refetch}
+              onRowClick={(row: { _event: AuditEventListItem }) => setSelectedEvent(row._event)}
+              dropDown
+              actionButton="View"
+              actionButtonOnClick={(row) => setSelectedEvent((row as { _event: AuditEventListItem })._event)}
+              perPage={data?.pagination?.pageSize}
+              totalPage={data?.pagination?.totalPages}
+              currentPage={data?.pagination?.currentPage}
+              onPageChange={(p) => setPage(p as number)}
+            />
           </div>
         </div>
 

@@ -969,6 +969,7 @@ function SystemSettings() {
   const [creating, setCreating] = useState(false);
 
   if (defs.isLoading || values.isLoading) return <Busy />;
+  if (defs.isError || values.isError) return <SettingsLoadError retry={() => { defs.refetch(); values.refetch(); }} />;
 
   const explicit = new Map((values.data?.data ?? []).map((v) => [v.key, v]));
   const rows = (defs.data?.data ?? []).filter(
@@ -1225,6 +1226,7 @@ function Features() {
   const canCreate = hasPermission(P.CREATE_CAPABILITY);
 
   if (catalogue.isLoading || effective.isLoading) return <Busy />;
+  if (catalogue.isError || effective.isError) return <SettingsLoadError retry={() => { catalogue.refetch(); effective.refetch(); }} />;
 
   const enabled = new Map((effective.data?.data ?? []).map((e) => [e.key, e.enabled]));
   const entByKey = new Map((entitlements.data?.data ?? []).map((e) => [e.capability_key, e]));
@@ -2062,7 +2064,9 @@ function Audit() {
       <CustomTable
         tableHeaderList={["Action", "Target", "Actor", "Reason", "Date"]}
         tableBodyList={tableData}
-        loading={q.isLoading}
+        loading={q.isLoading || (q.isError && q.isFetching)}
+        error={q.isError && !q.isFetching && "The audit history could not be loaded. Check your connection and try again."}
+        onRetry={q.refetch}
         emptyText="No changes recorded in this window."
         totalPage={q.data?.pagination?.totalPages}
         currentPage={q.data?.pagination?.currentPage}

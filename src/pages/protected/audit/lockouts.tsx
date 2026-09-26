@@ -14,8 +14,6 @@ import type { AccountLockout } from "@/redux/services/dashboard/security-types";
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 import { PageShell } from "@/components/layout/page-shell";
-import { cn } from "@/lib/utils";
-import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const TABLE_HEADERS = ["User", "Locked until", "Reason", "Failure count", "Last failure IP", "Last failure", "Status", "Action"];
 
@@ -120,18 +118,12 @@ export default function AccountLockouts() {
           ))}
         </div>
 
-        {isError ? (
-          <div className={cn(INFORMATION_CARD_SURFACE, "flex h-56 flex-col items-center justify-center gap-3 rounded-md")}>
-            <p className="text-sm font-medium text-destructive">Failed to load lockouts.</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="size-3.5" /> Retry
-            </Button>
-          </div>
-        ) : (
-          <CustomTable
+        <CustomTable
             tableHeaderList={TABLE_HEADERS}
             tableBodyList={tableData}
-            loading={isLoading}
+            loading={isLoading || (isError && isFetching)}
+            error={isError && !isFetching && "The lockouts could not be loaded. Check your connection and try again."}
+            onRetry={refetch}
             dropDown
             dropDownList={(row: { _lockout: AccountLockout }) =>
               hasPermission(P.REACTIVATE_TEAM_MEMBER) && row._lockout.is_locked
@@ -149,7 +141,6 @@ export default function AccountLockouts() {
             currentPage={data?.pagination?.currentPage}
             onPageChange={(p) => setPage(p as number)}
           />
-        )}
 
         <PromptModal
           isOpen={!!confirmUnlock}

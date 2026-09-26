@@ -148,7 +148,9 @@ export default function JobsPage() {
       </div>
       <HealthTable
         headers={["Task", "Queue", "Tenant", "Status", "Duration", "Created"]}
-        loading={tasks.isLoading}
+        loading={tasks.isLoading || (tasks.isError && tasks.isFetching)}
+        error={tasks.isError && !tasks.isFetching && "The background jobs could not be loaded. Check your connection and try again."}
+        onRetry={tasks.refetch}
         onRowClick={
           canOpenRuns
             ? (index) => setOpenJobId((tasks.data?.data ?? [])[index]?.id ?? null)

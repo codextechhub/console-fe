@@ -7,7 +7,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { ChevronRight, Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";
+import { ChevronRight, Pencil, Plus, RefreshCw, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -183,7 +183,7 @@ export default function PositionManager() {
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission(P.CREATE_ORGANOGRAM);
   // Both allPosRes and allNodesRes drive the tree; no paginated query needed.
-  const { data: allPosRes, isLoading } = useGetPositionsQuery({
+  const { data: allPosRes, isLoading, isError, refetch } = useGetPositionsQuery({
     page_size: 100,
     ordering: "-updated_at",
   });
@@ -332,6 +332,13 @@ export default function PositionManager() {
       <div className="rounded-lg border border-white-02 overflow-hidden">
         {isLoading && flatItems.length === 0 ? (
           <div className="py-12 text-center text-sm text-gray-01">Loading…</div>
+        ) : isError && flatItems.length === 0 ? (
+          <div className="flex min-h-56 flex-col items-center justify-center gap-3 text-center">
+            <p className="text-sm font-medium text-destructive">The positions could not be loaded. Check your connection and try again.</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              <RefreshCw className="size-3.5" /> Try again
+            </Button>
+          </div>
         ) : flatItems.length === 0 ? (
           <div className="py-12 text-center text-sm text-gray-01">
             No positions yet. Create the org structure first, then add positions.

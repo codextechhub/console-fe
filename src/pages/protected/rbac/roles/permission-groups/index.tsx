@@ -42,13 +42,15 @@ export default function PermissionGroupsList() {
     refetchOnMountOrArgChange: true,
   });
 
-  const { data: activeData } = useGetPermissionGroupsQuery({ page: 1, page_size: 1, is_active: "true" });
-  const { data: inactiveData } = useGetPermissionGroupsQuery({ page: 1, page_size: 1, is_active: "false" });
+  const { data: activeData, refetch: refetchActive } = useGetPermissionGroupsQuery({ page: 1, page_size: 1, is_active: "true" });
+  const { data: inactiveData, refetch: refetchInactive } = useGetPermissionGroupsQuery({ page: 1, page_size: 1, is_active: "false" });
   const [deleteGroup] = useDeletePermissionGroupMutation();
+  const reload = () => { refetch(); refetchActive(); refetchInactive(); };
   const groups = data?.data ?? [];
-  const totalGroups = data?.pagination?.totalItems ?? 0;
-  const activeCount = activeData?.pagination?.totalItems ?? 0;
-  const inactiveCount = inactiveData?.pagination?.totalItems ?? 0;
+  // A count that has not arrived is unknown, not zero.
+  const totalGroups = data?.pagination?.totalItems ?? "-";
+  const activeCount = activeData?.pagination?.totalItems ?? "-";
+  const inactiveCount = inactiveData?.pagination?.totalItems ?? "-";
 
   const metricCards = [
     { title: "All Groups", value: totalGroups, key: "all" as CardFilter, active: cardFilter === "all" },
@@ -121,7 +123,7 @@ export default function PermissionGroupsList() {
             <Button
               variant="white" size="lg"
               className="[&_svg]:size-5 font-medium font-mont"
-              onClick={() => refetch()}
+              onClick={reload}
               disabled={isFetching}
             >
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
@@ -129,18 +131,12 @@ export default function PermissionGroupsList() {
           </div>
         </div>
 
-        {isError ? (
-          <div className="flex h-56 flex-col items-center justify-center gap-3">
-            <p className="text-sm font-medium text-destructive">Failed to load groups. Please try again.</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="size-3.5" /> Retry
-            </Button>
-          </div>
-        ) : (
-          <CustomTable
+        <CustomTable
             tableHeaderList={TABLE_HEADERS}
             tableBodyList={tableData}
-            loading={isLoading}
+            loading={isLoading || (isError && isFetching)}
+            error={isError && !isFetching && "The permission groups could not be loaded. Check your connection and try again."}
+            onRetry={reload}
             dropDown
             dropDownList={(row: { _id: string }) => [
               ...(hasPermission(P.UPDATE_PERMISSION_GROUP) ? [
@@ -167,7 +163,6 @@ export default function PermissionGroupsList() {
             currentPage={data?.pagination?.currentPage}
             onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
           />
-        )}
       </PageShell>
     </>
   );

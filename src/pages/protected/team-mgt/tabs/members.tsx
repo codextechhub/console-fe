@@ -268,20 +268,12 @@ export default function MembersTab({
         className="mt-3"
       />
 
-      {isError ? (
-        <div className="flex h-56 flex-col items-center justify-center gap-3">
-          <p className="text-sm font-medium text-destructive">
-            Failed to load members. Please try again.
-          </p>
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
-            <RefreshCw className="size-3.5" /> Retry
-          </Button>
-        </div>
-      ) : (
-        <CustomTable
+      <CustomTable
           tableHeaderList={scope === "school" ? SCHOOL_TABLE_HEADER : CX_TABLE_HEADER}
           tableBodyList={FORMAT_TABLE_DATA(data?.data, scope)}
-          loading={isLoading}
+          loading={isLoading || (isError && isFetching)}
+          error={isError && !isFetching && "The members could not be loaded. Check your connection and try again."}
+          onRetry={refetch}
           dropDown
           dropDownList={(row: { _slug: string; _status: string }) => {
             const statusAction = () => {
@@ -376,7 +368,6 @@ export default function MembersTab({
             setQuery((prev) => ({ ...prev, page: page as number }))
           }
         />
-      )}
 
       <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
         <SheetContent className="flex flex-col">

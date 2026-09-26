@@ -32,7 +32,7 @@ export default function MatrixManager() {
   const canCreate = hasPermission(P.CREATE_ORGANOGRAM);
   const canDelete = hasPermission(P.DELETE_ORGANOGRAM);
   const [page, setPage] = useState(1);
-  const { data, isLoading, isFetching } = useGetMatrixReportsQuery({ page, page_size: 20 });
+  const { data, isLoading, isFetching, isError, refetch } = useGetMatrixReportsQuery({ page, page_size: 20 });
   const { data: posRes } = useGetPositionsQuery({ page_size: 100 });
 
   const [createMatrix, { isLoading: creating }] = useCreateMatrixReportMutation();
@@ -87,6 +87,8 @@ export default function MatrixManager() {
         tableHeaderList={HEADERS}
         tableBodyList={tableData}
         loading={isLoading || isFetching}
+        error={isError && !isFetching && "The matrix lines could not be loaded. Check your connection and try again."}
+        onRetry={refetch}
         currentPage={page}
         totalPage={data?.pagination.totalPages ?? 0}
         onPageChange={(p) => setPage(Number(p))}

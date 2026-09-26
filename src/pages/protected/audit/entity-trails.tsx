@@ -12,8 +12,6 @@ import type { EntityTrail } from "@/redux/services/dashboard/audit-types";
 import { EntityCell } from "./components/audit-cells";
 import { auditEntityTrailRowKey } from "./audit-constants";
 import { PageShell } from "@/components/layout/page-shell";
-import { cn } from "@/lib/utils";
-import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
 const TABLE_HEADERS = ["Entity", "ID", "Events", "First seen", "Last seen", "Action"];
 
@@ -91,18 +89,12 @@ export default function EntityTrailsList() {
           </select>
         </div>
 
-        {isError ? (
-          <div className={cn(INFORMATION_CARD_SURFACE, "flex h-56 flex-col items-center justify-center gap-3 rounded-md")}>
-            <p className="text-sm font-medium text-destructive">Failed to load entity trails.</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="size-3.5" /> Retry
-            </Button>
-          </div>
-        ) : (
-          <CustomTable
+        <CustomTable
             tableHeaderList={TABLE_HEADERS}
             tableBodyList={tableData}
-            loading={isLoading}
+            loading={isLoading || (isError && isFetching)}
+            error={isError && !isFetching && "The entity trails could not be loaded. Check your connection and try again."}
+            onRetry={refetch}
             onRowClick={(row: { _type: string; _entityId: string }) =>
               navigate(routesPath.PROTECTED.AUDIT.ENTITY_TRAIL_DETAIL(row._type, row._entityId))
             }
@@ -119,7 +111,6 @@ export default function EntityTrailsList() {
             currentPage={data?.pagination?.currentPage}
             onPageChange={(p) => setPage(p as number)}
           />
-        )}
       </PageShell>
     </>
   );

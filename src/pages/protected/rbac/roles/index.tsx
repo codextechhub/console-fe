@@ -43,18 +43,21 @@ export default function RolesList() {
     refetchOnMountOrArgChange: true,
   });
 
-  const { data: activeData } = useGetPlatformRolesQuery({ page: 1, page_size: 1, status: "ACTIVE" });
-  const { data: systemData } = useGetPlatformRolesQuery({ page: 1, page_size: 1, is_system_role: "true" });
-  const { data: lockedData } = useGetPlatformRolesQuery({ page: 1, page_size: 1, is_locked: "true" });
+  const { data: activeData, refetch: refetchActive } = useGetPlatformRolesQuery({ page: 1, page_size: 1, status: "ACTIVE" });
+  const { data: systemData, refetch: refetchSystem } = useGetPlatformRolesQuery({ page: 1, page_size: 1, is_system_role: "true" });
+  const { data: lockedData, refetch: refetchLocked } = useGetPlatformRolesQuery({ page: 1, page_size: 1, is_locked: "true" });
+
+  const reload = () => { refetch(); refetchActive(); refetchSystem(); refetchLocked(); };
 
   const [deleteRole] = useDeletePlatformRoleMutation();
 
   const roles = data?.data ?? [];
-  const totalRoles = data?.pagination?.totalItems ?? 0;
+  // A count that has not arrived is unknown, not zero.
+  const totalRoles = data?.pagination?.totalItems ?? "-";
 
-  const activeCount = activeData?.pagination?.totalItems ?? 0;
-  const systemCount = systemData?.pagination?.totalItems ?? 0;
-  const lockedCount = lockedData?.pagination?.totalItems ?? 0;
+  const activeCount = activeData?.pagination?.totalItems ?? "-";
+  const systemCount = systemData?.pagination?.totalItems ?? "-";
+  const lockedCount = lockedData?.pagination?.totalItems ?? "-";
 
   const metricCards = [
     { title: "All Roles", value: totalRoles, key: "all" as CardFilter, active: cardFilter === "all" },
@@ -141,7 +144,7 @@ export default function RolesList() {
             <Button
               variant="white" size="lg"
               className="[&_svg]:size-5 font-medium font-mont"
-              onClick={() => refetch()}
+              onClick={reload}
               disabled={isFetching}
             >
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
@@ -149,18 +152,12 @@ export default function RolesList() {
           </div>
         </div>
 
-        {isError ? (
-          <div className="flex h-56 flex-col items-center justify-center gap-3">
-            <p className="text-sm font-medium text-destructive">Failed to load roles. Please try again.</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="size-3.5" /> Retry
-            </Button>
-          </div>
-        ) : (
-          <CustomTable
+        <CustomTable
             tableHeaderList={TABLE_HEADERS}
             tableBodyList={tableData}
-            loading={isLoading}
+            loading={isLoading || (isError && isFetching)}
+            error={isError && !isFetching && "The roles could not be loaded. Check your connection and try again."}
+            onRetry={reload}
             dropDown
             dropDownList={(row: { _key: string; _system: boolean; _locked: boolean }) => [
               ...(hasPermission(P.MODIFY_ROLE) ? [{
@@ -185,7 +182,6 @@ export default function RolesList() {
             currentPage={data?.pagination?.currentPage}
             onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
           />
-        )}
       </PageShell>
     </>
   );

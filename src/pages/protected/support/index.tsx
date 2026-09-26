@@ -215,7 +215,9 @@ export default function Support() {
         <CustomTable
           tableHeaderList={TABLE_HEADERS}
           tableBodyList={tableData}
-          loading={list.isLoading}
+          loading={list.isLoading || (list.isError && list.isFetching)}
+          error={list.isError && !list.isFetching && "The tickets could not be loaded. Check your connection and try again."}
+          onRetry={list.refetch}
           emptyText="No tickets match these filters."
           onRowClick={(row) =>
             nav(routesPath.PROTECTED.SUPPORT.DETAIL((row as { _raw: Ticket })._raw.id))

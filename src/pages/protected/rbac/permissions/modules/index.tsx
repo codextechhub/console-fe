@@ -34,14 +34,17 @@ export default function PermissionModulesList() {
     refetchOnMountOrArgChange: true,
   });
 
-  const { data: activeData } = useGetPermissionModulesQuery({ page: 1, page_size: 1, is_active: "true" });
-  const { data: inactiveData } = useGetPermissionModulesQuery({ page: 1, page_size: 1, is_active: "false" });
+  const { data: activeData, refetch: refetchActive } = useGetPermissionModulesQuery({ page: 1, page_size: 1, is_active: "true" });
+  const { data: inactiveData, refetch: refetchInactive } = useGetPermissionModulesQuery({ page: 1, page_size: 1, is_active: "false" });
+
+  const reload = () => { refetch(); refetchActive(); refetchInactive(); };
 
   const modules = data?.data ?? [];
-  const totalModules = data?.pagination?.totalItems ?? 0;
+  // A count that has not arrived is unknown, not zero.
+  const totalModules = data?.pagination?.totalItems ?? "-";
 
-  const activeCount = activeData?.pagination?.totalItems ?? 0;
-  const inactiveCount = inactiveData?.pagination?.totalItems ?? 0;
+  const activeCount = activeData?.pagination?.totalItems ?? "-";
+  const inactiveCount = inactiveData?.pagination?.totalItems ?? "-";
 
   const metricCards = [
     { title: "Total Modules", value: totalModules, key: "all" as CardFilter, active: cardFilter === "all" },
@@ -99,7 +102,7 @@ export default function PermissionModulesList() {
             <Button
               variant="white" size="lg"
               className="[&_svg]:size-5 font-medium font-mont"
-              onClick={() => refetch()}
+              onClick={reload}
               disabled={isFetching}
             >
               <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
@@ -107,24 +110,17 @@ export default function PermissionModulesList() {
           </div>
         </div>
 
-        {isError ? (
-          <div className="flex h-56 flex-col items-center justify-center gap-3">
-            <p className="text-sm font-medium text-destructive">Failed to load modules.</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="size-3.5" /> Retry
-            </Button>
-          </div>
-        ) : (
-          <CustomTable
-            tableHeaderList={TABLE_HEADERS}
-            tableBodyList={tableData}
-            loading={isLoading}
-            perPage={data?.pagination?.pageSize}
-            totalPage={data?.pagination?.totalPages}
-            currentPage={data?.pagination?.currentPage}
-            onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
-          />
-        )}
+        <CustomTable
+          tableHeaderList={TABLE_HEADERS}
+          tableBodyList={tableData}
+          loading={isLoading || (isError && isFetching)}
+          error={isError && !isFetching && "The modules could not be loaded. Check your connection and try again."}
+          onRetry={reload}
+          perPage={data?.pagination?.pageSize}
+          totalPage={data?.pagination?.totalPages}
+          currentPage={data?.pagination?.currentPage}
+          onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
+        />
       </PageShell>
     </>
   );

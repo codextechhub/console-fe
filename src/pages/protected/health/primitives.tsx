@@ -164,6 +164,8 @@ export function HealthTable({
   headers,
   rows,
   loading,
+  error,
+  onRetry,
   emptyText = "No data for this view.",
   onRowClick,
   totalPage,
@@ -173,6 +175,10 @@ export function HealthTable({
   headers: string[];
   rows: React.ReactNode[][];
   loading?: boolean;
+  /** Set when the backing query failed. The table then says so with a way to
+   *  retry, instead of drawing a failed load as an empty list. */
+  error?: boolean | string;
+  onRetry?: () => void;
   emptyText?: string;
   onRowClick?: (index: number) => void;
   totalPage?: number;
@@ -188,6 +194,8 @@ export function HealthTable({
       tableHeaderList={headers}
       tableBodyList={tableData}
       loading={loading}
+      error={error}
+      onRetry={onRetry}
       emptyText={emptyText}
       onRowClick={onRowClick ? (row) => onRowClick((row as { _index: number })._index) : undefined}
       totalPage={totalPage}

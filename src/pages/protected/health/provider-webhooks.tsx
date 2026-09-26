@@ -71,7 +71,7 @@ export default function ProviderWebhooksPage() {
     ...(search ? { search } : {}),
   }), [page, status, search]);
 
-  const { data, isLoading, isFetching, refetch } = useGetUnattributedWebhooksQuery(params, {
+  const { data, isLoading, isFetching, isError, refetch } = useGetUnattributedWebhooksQuery(params, {
     skip: !canView,
   });
   const [replay] = useReplayUnattributedWebhookMutation();
@@ -132,7 +132,9 @@ export default function ProviderWebhooksPage() {
           "Received", "Provider", "Event", "Provider reference", "Status", "Why it is here",
           ...(canReplay ? ["Action"] : []),
         ]}
-        loading={isLoading}
+        loading={isLoading || (isError && isFetching)}
+        error={isError && !isFetching && "The unattributed events could not be loaded. Check your connection and try again."}
+        onRetry={refetch}
         rows={rows.map((event) => [
           <span className="tabular-nums text-gray-01">{fmtDateTime(event.created_at)}</span>,
           event.provider,

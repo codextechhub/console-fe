@@ -260,12 +260,11 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
 
       <CustomTable
         tableHeaderList={[...columns.map((column) => column.header), "Action"]}
-        tableBodyList={isError ? [] : FORMAT_TABLE_DATA(data?.data, columns)}
-        emptyText={
-          isError ? "Failed to load data. Please try again." : undefined
-        }
-        loading={isLoading}
-        dropDown={!isError}
+        tableBodyList={FORMAT_TABLE_DATA(data?.data, columns)}
+        loading={isLoading || (isError && isFetching)}
+        error={isError && !isFetching && "The invites could not be loaded. Check your connection and try again."}
+        onRetry={refetch}
+        dropDown
         dropDownList={(row: { _slug: string }) => {
           const resendAction = {
             label: "Resend Invite",

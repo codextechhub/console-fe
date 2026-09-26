@@ -74,7 +74,9 @@ export default function IncidentsPage() {
         <HealthTable
           onRowClick={(index) => setSelectedIncident(incidentRows[index].id)}
           headers={["Incident", "Severity", "Status", "Owner", "Tenants", "Started"]}
-          loading={incidents.isLoading}
+          loading={incidents.isLoading || (incidents.isError && incidents.isFetching)}
+          error={incidents.isError && !incidents.isFetching && "The incidents could not be loaded. Check your connection and try again."}
+          onRetry={incidents.refetch}
           rows={incidentRows.map((i) => [
             <div>
               <p className="text-sm font-medium">{i.title}</p>
@@ -96,7 +98,9 @@ export default function IncidentsPage() {
       {view === "alerts" && (
         <HealthTable
           headers={["Alert", "Rule", "Service", "Value", "Threshold", "Fired"]}
-          loading={alerts.isLoading}
+          loading={alerts.isLoading || (alerts.isError && alerts.isFetching)}
+          error={alerts.isError && !alerts.isFetching && "The alerts could not be loaded. Check your connection and try again."}
+          onRetry={alerts.refetch}
           rows={(alerts.data?.data ?? []).map((a) => [
             <div>
               <p className="text-sm font-medium">{a.title}</p>
@@ -118,7 +122,9 @@ export default function IncidentsPage() {
       {view === "rules" && (
         <HealthTable
           headers={["Rule", "Metric", "Condition", "Target", "Channel", "Status"]}
-          loading={rules.isLoading}
+          loading={rules.isLoading || (rules.isError && rules.isFetching)}
+          error={rules.isError && !rules.isFetching && "The alert rules could not be loaded. Check your connection and try again."}
+          onRetry={rules.refetch}
           rows={(rules.data?.data ?? []).map((r) => [
             r.name,
             r.metric,

@@ -174,32 +174,25 @@ export default function PermissionDependencies() {
           </Button>
         </div>
 
-        {isError ? (
-          <div className="flex h-56 flex-col items-center justify-center gap-3">
-            <p className="text-sm font-medium text-destructive">Failed to load dependencies. Please try again.</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="size-3.5" /> Retry
-            </Button>
-          </div>
-        ) : (
-          <CustomTable
-            tableHeaderList={TABLE_HEADERS}
-            tableBodyList={tableData}
-            loading={isLoading}
-            dropDown
-            dropDownList={(row: { _raw: PermissionDependency }) => [
-              {
-                label: "View Chain",
-                className: "",
-                onActionClick: () => setChainKey(row._raw.permission_key),
-              },
-            ]}
-            perPage={data?.pagination?.pageSize}
-            totalPage={data?.pagination?.totalPages}
-            currentPage={data?.pagination?.currentPage}
-            onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
-          />
-        )}
+        <CustomTable
+          tableHeaderList={TABLE_HEADERS}
+          tableBodyList={tableData}
+          loading={isLoading || (isError && isFetching)}
+          error={isError && !isFetching && "The dependencies could not be loaded. Check your connection and try again."}
+          onRetry={refetch}
+          dropDown
+          dropDownList={(row: { _raw: PermissionDependency }) => [
+            {
+              label: "View Chain",
+              className: "",
+              onActionClick: () => setChainKey(row._raw.permission_key),
+            },
+          ]}
+          perPage={data?.pagination?.pageSize}
+          totalPage={data?.pagination?.totalPages}
+          currentPage={data?.pagination?.currentPage}
+          onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
+        />
       </PageShell>
 
       <DependencyChainSheet

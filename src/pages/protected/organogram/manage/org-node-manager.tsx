@@ -8,7 +8,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { ChevronRight, Pencil, Plus, Trash2, TriangleAlert } from "lucide-react";
+import { ChevronRight, Pencil, Plus, RefreshCw, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -199,7 +199,7 @@ function Hint({ children }: { children: React.ReactNode }) {
 export default function OrgNodeManager() {
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission(P.CREATE_ORGANOGRAM);
-  const { data: allNodesRes, isLoading } = useGetOrgNodesQuery({ page_size: 100 });
+  const { data: allNodesRes, isLoading, isError, refetch } = useGetOrgNodesQuery({ page_size: 100 });
   const { data: posRes } = useGetPositionsQuery({ page_size: 100 });
 
   const [createNode, { isLoading: creating }] = useCreateOrgNodeMutation();
@@ -350,6 +350,13 @@ export default function OrgNodeManager() {
       <div className="rounded-lg border border-white-02 overflow-hidden">
         {isLoading && isEmpty ? (
           <div className="py-12 text-center text-sm text-gray-01">Loading…</div>
+        ) : isError && isEmpty ? (
+          <div className="flex min-h-56 flex-col items-center justify-center gap-3 text-center">
+            <p className="text-sm font-medium text-destructive">The org units could not be loaded. Check your connection and try again.</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              <RefreshCw className="size-3.5" /> Try again
+            </Button>
+          </div>
         ) : isEmpty ? (
           <div className="py-12 text-center text-sm text-gray-01">
             No org units yet. Create a Division to get started.

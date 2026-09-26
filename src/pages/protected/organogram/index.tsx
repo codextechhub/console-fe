@@ -6,9 +6,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Ban, Briefcase, Building2, ChevronsDownUp, Filter, Info, Maximize,
-  Minus, PlaneTakeoff, Plus, Search, Sparkles, Users, X,
+  Minus, PlaneTakeoff, Plus, RefreshCw, Search, Sparkles, Users, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { P } from "@/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { routesPath } from "@/routes/routes-path";
@@ -52,7 +53,7 @@ export default function OrganogramPage() {
   const navigate = useNavigate();
   const { hasPermission } = usePermissions();
 
-  const { data: treeRes, isLoading: treeLoading } = useGetPositionTreeQuery();
+  const { data: treeRes, isLoading: treeLoading, isError: treeError, refetch: refetchTree } = useGetPositionTreeQuery();
   const { data: positionsRes } = useGetPositionsQuery(LARGE);
   const { data: orgNodesRes } = useGetOrgNodesQuery(LARGE);
   const { data: profilesRes } = useGetStaffProfilesQuery(LARGE);
@@ -482,6 +483,13 @@ export default function OrganogramPage() {
             )}
             {treeLoading ? (
               <div className="mx-auto w-full max-w-3xl space-y-2">{[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-16 animate-pulse rounded-2xl bg-slate-100" />)}</div>
+            ) : treeError && tree.length === 0 ? (
+              <div className="mx-auto flex min-h-56 w-full max-w-3xl flex-col items-center justify-center gap-3 text-center">
+                <p className="text-sm font-medium text-destructive">The organogram could not be loaded. Check your connection and try again.</p>
+                <Button variant="outline" size="sm" onClick={() => refetchTree()}>
+                  <RefreshCw className="size-3.5" /> Try again
+                </Button>
+              </div>
             ) : viewTree.length === 0 ? (
               <div className="mx-auto w-full max-w-3xl rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 px-10 py-16 text-center">
                 <Info className="mx-auto mb-2 size-6 text-slate-300" />

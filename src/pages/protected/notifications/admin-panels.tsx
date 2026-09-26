@@ -144,7 +144,9 @@ export function HistoryPanel() {
       <CustomTable
         tableHeaderList={["Recipient", "Event", "Channel", "Status", "Created"]}
         tableBodyList={tableData}
-        loading={q.isLoading}
+        loading={q.isLoading || (q.isError && q.isFetching)}
+        error={q.isError && !q.isFetching && "The delivery history could not be loaded. Check your connection and try again."}
+        onRetry={q.refetch}
         emptyText="No deliveries match these filters."
         totalPage={q.data?.pagination?.totalPages}
         currentPage={q.data?.pagination?.currentPage}
