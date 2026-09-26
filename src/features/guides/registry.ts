@@ -21,7 +21,6 @@ const C11_REVIEWED_AT = "2026-08-25";
 const C12_REVIEWED_AT = "2026-08-25";
 const FINANCE_RECOVERY_REVIEWED_AT = "2026-08-25";
 const ACTION_GAP_REVIEWED_AT = "2026-08-25";
-const PROCUREMENT_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
 const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
 const O2_REVIEWED_AT = "2026-08-25";
 const FIELD_ACCESS_REVIEWED_AT = "2026-09-15";
@@ -1424,7 +1423,7 @@ export const GUIDE_REGISTRY = [
     summary: "Use AP aging, GR/IR, spend, and vendor performance reports to find the source document that needs attention.",
     category: "procurement-and-inventory",
     tags: ["analytics", "AP aging", "GR/IR", "spend", "vendor performance", "assessment", "overdue", "control account"],
-    aliases: ["procurement reports", "supplier aging", "goods received not invoiced", "invoiced not received", "top supplier spend", "vendor scorecard", "late delivery", "procurement dashboard", "purchase to payment", "committed vs spent", "control exceptions", "contracts ending soon"],
+    aliases: ["procurement reports", "supplier aging", "goods received not invoiced", "invoiced not received", "top supplier spend", "vendor scorecard", "late delivery", "procurement dashboard", "purchase to payment", "committed vs spent", "control exceptions", "contracts ending soon", "spend and suppliers", "competition savings", "how long buying takes"],
     audiences: ["procurement-officer", "finance-officer", "approver"],
     routes: [R.PROCUREMENT.INDEX, R.PROCUREMENT.ANALYTICS, `${R.PROCUREMENT.ANALYTICS}/ap-aging`, `${R.PROCUREMENT.ANALYTICS}/grir`, `${R.PROCUREMENT.ANALYTICS}/spend`, `${R.PROCUREMENT.ANALYTICS}/performance`],
     actionIds: ["view-procurement-analytics", "view-ap-aging", "view-grir-control", "view-spend-analytics", "view-vendor-performance", "create-vendor-assessment"],
@@ -1456,7 +1455,7 @@ export const GUIDE_REGISTRY = [
     summary: "Set entity defaults, eligibility, competition, matching, accounting, and approval controls without rewriting existing documents.",
     category: "procurement-and-inventory",
     tags: ["settings", "policy", "KYC", "requisition lead time", "receipt evidence", "RFQ minimum", "matching tolerance", "non-PO invoice", "account mapping", "approval workflow"],
-    aliases: ["procurement configuration", "purchasing policy", "change match tolerance", "allow non po invoice", "require purchase order", "minimum vendor bids", "procurement defaults"],
+    aliases: ["procurement configuration", "purchasing policy", "change match tolerance", "allow non po invoice", "require purchase order", "minimum vendor bids", "procurement defaults", "non po spend limit"],
     audiences: ["platform-administrator", "procurement-officer", "finance-officer"],
     routes: [
       R.PROCUREMENT.SETTINGS,
@@ -1487,7 +1486,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.procurement.configure-settings",
     estimatedMinutes: 11,
     owner: OWNER,
-    reviewedAt: PROCUREMENT_ROUTE_GAP_REVIEWED_AT,
+    reviewedAt: PROCUREMENT_OVERVIEW_REVIEWED_AT,
     risk: "high",
     status: "published",
     article: () => import("./content/procurement-and-inventory/configure-settings"),
