@@ -13,7 +13,6 @@ const C6A_REVIEWED_AT = "2026-08-25";
 const C6B_REVIEWED_AT = "2026-08-25";
 const C6C_REVIEWED_AT = "2026-08-25";
 const C7A_REVIEWED_AT = "2026-08-25";
-const C7B_REVIEWED_AT = "2026-08-25";
 const C8_REVIEWED_AT = "2026-08-25";
 const C9_REVIEWED_AT = "2026-08-25";
 const C10_REVIEWED_AT = "2026-08-25";
@@ -1391,7 +1390,7 @@ export const GUIDE_REGISTRY = [
     summary: "Register controlled stock, keep quantities and weighted-average value by store, and review every receipt, issue, and adjustment.",
     category: "procurement-and-inventory",
     tags: ["inventory", "stock", "location", "store", "branch", "issue", "adjustment", "weighted average", "reorder", "movement ledger"],
-    aliases: ["stock locations", "second store", "annex store", "multi-branch stock", "warehouses", "issue stock", "adjust stock", "stock count", "low stock", "inventory movement"],
+    aliases: ["stock locations", "second store", "annex store", "multi-branch stock", "warehouses", "issue stock", "adjust stock", "stock count", "low stock", "inventory movement", "issue to department", "restock requisition", "reorder"],
     audiences: ["procurement-officer", "platform-administrator"],
     routes: [R.PROCUREMENT.INVENTORY, `${R.PROCUREMENT.INVENTORY}/items`, `${R.PROCUREMENT.INVENTORY}/movements`, `${R.PROCUREMENT.INVENTORY}/locations`],
     actionIds: ["view-stock-items", "create-stock-item", "view-stock-movements", "view-stock-locations", "create-stock-location"],
@@ -1411,7 +1410,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.procurement.manage-stock-and-movements",
     estimatedMinutes: 10,
     owner: OWNER,
-    reviewedAt: C7B_REVIEWED_AT,
+    reviewedAt: PROCUREMENT_OVERVIEW_REVIEWED_AT,
     risk: "high",
     status: "published",
     article: () => import("./content/procurement-and-inventory/manage-stock-and-movements"),
@@ -1423,7 +1422,7 @@ export const GUIDE_REGISTRY = [
     summary: "Use AP aging, GR/IR, spend, and vendor performance reports to find the source document that needs attention.",
     category: "procurement-and-inventory",
     tags: ["analytics", "AP aging", "GR/IR", "spend", "vendor performance", "assessment", "overdue", "control account"],
-    aliases: ["procurement reports", "supplier aging", "goods received not invoiced", "invoiced not received", "top supplier spend", "vendor scorecard", "late delivery", "procurement dashboard", "purchase to payment", "committed vs spent", "control exceptions", "contracts ending soon", "spend and suppliers", "competition savings", "how long buying takes"],
+    aliases: ["procurement reports", "supplier aging", "goods received not invoiced", "invoiced not received", "top supplier spend", "vendor scorecard", "late delivery", "procurement dashboard", "purchase to payment", "committed vs spent", "control exceptions", "contracts ending soon", "spend and suppliers", "competition savings", "how long buying takes", "stock and receiving", "expected deliveries"],
     audiences: ["procurement-officer", "finance-officer", "approver"],
     routes: [R.PROCUREMENT.INDEX, R.PROCUREMENT.ANALYTICS, `${R.PROCUREMENT.ANALYTICS}/ap-aging`, `${R.PROCUREMENT.ANALYTICS}/grir`, `${R.PROCUREMENT.ANALYTICS}/spend`, `${R.PROCUREMENT.ANALYTICS}/performance`],
     actionIds: ["view-procurement-analytics", "view-ap-aging", "view-grir-control", "view-spend-analytics", "view-vendor-performance", "create-vendor-assessment"],
