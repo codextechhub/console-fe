@@ -37,7 +37,7 @@ import {
   useGetPlatformRolesQuery,
 } from "@/redux/services/dashboard/rbac-api";
 import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
-import type { UserAssignment } from "@/redux/services/dashboard/rbac-types";
+import { isPendingGrant, type UserAssignment } from "@/redux/services/dashboard/rbac-types";
 import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
@@ -127,8 +127,9 @@ function AssignRoleSheet({
 
     request
       .unwrap()
-      .then(() => {
-        toast.success(formerAssignment ? "Role changed successfully." : "Role assigned successfully.");
+      .then((result) => {
+        if (isPendingGrant(result.data)) toast.info(result.message);
+        else toast.success(formerAssignment ? "Role changed successfully." : "Role assigned successfully.");
         closeAndReset();
       })
       .catch(() => {});

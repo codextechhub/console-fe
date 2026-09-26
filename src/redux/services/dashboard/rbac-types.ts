@@ -164,6 +164,30 @@ export interface PermissionDependency {
   created_at: string;
 }
 
+/**
+ * A role grant waiting on the approval ladder.
+ *
+ * Granting a role that carries restricted permissions the caller does not
+ * hold answers 202 with this instead of an assignment; it confers nothing
+ * until approved. When changing a role, the grant being replaced stays in
+ * force until then.
+ */
+export interface RoleGrantRequest {
+  id: number;
+  status: "PENDING";
+  role_key: string;
+  role_name: string;
+  replaces_id: number | null;
+  replaces_role_name: string | null;
+}
+
+/** True when an assignment answer is a request waiting for approval, not a grant. */
+export function isPendingGrant(
+  row: UserAssignment | RoleGrantRequest,
+): row is RoleGrantRequest {
+  return "status" in row && row.status === "PENDING";
+}
+
 export interface UserAssignment {
   id: string;
   user_id: string;

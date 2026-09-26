@@ -20,6 +20,7 @@ import type {
   RoleFieldAccessChange,
   RoleFieldAccessResponse,
   UserAssignment,
+  RoleGrantRequest,
 } from "./rbac-types";
 
 export const rbacApi = baseApi.injectEndpoints({
@@ -196,7 +197,7 @@ export const rbacApi = baseApi.injectEndpoints({
       providesTags: ["UserAssignments"],
     }),
 
-    assignRole: builder.mutation<{ data: UserAssignment }, { user_id: string; role_id: string }>({
+    assignRole: builder.mutation<{ data: UserAssignment | RoleGrantRequest; message: string }, { user_id: string; role_id: string }>({
       query: ({ user_id, role_id }) => ({ url: `/rbac/tenants/${getTenantSlug()}/role-assignments/`, method: "POST", body: { user: user_id, role: role_id } }),
       invalidatesTags: ["UserAssignments"],
     }),
@@ -206,7 +207,7 @@ export const rbacApi = baseApi.injectEndpoints({
       invalidatesTags: ["UserAssignments"],
     }),
 
-    replaceAssignment: builder.mutation<{ data: UserAssignment }, { id: string; role_id: string; reason_note?: string }>({
+    replaceAssignment: builder.mutation<{ data: UserAssignment | RoleGrantRequest; message: string }, { id: string; role_id: string; reason_note?: string }>({
       query: ({ id, role_id, reason_note }) => ({
         url: `/rbac/tenants/${getTenantSlug()}/role-assignments/${id}/replace/`,
         method: "POST",
