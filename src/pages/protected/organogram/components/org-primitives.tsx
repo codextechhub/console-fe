@@ -53,7 +53,9 @@ export function OrgAvatar({
   );
 }
 
-export function StatusPill({ status }: { status: EmploymentStatus }) {
+/** The employment status chip; nothing when the viewer may not read the status. */
+export function StatusPill({ status }: { status?: EmploymentStatus }) {
+  if (!status) return null;
   const s = STATUS_META[status];
   return (
     <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1", s.soft, s.text)}>
@@ -63,7 +65,7 @@ export function StatusPill({ status }: { status: EmploymentStatus }) {
   );
 }
 
-export function EmpBadge({ type }: { type: EmploymentType | "" }) {
+export function EmpBadge({ type }: { type?: EmploymentType | "" }) {
   if (!type) return null;
   const e = EMP_TYPE_META[type];
   return <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1", e.cls)}>{e.label}</span>;

@@ -25,7 +25,7 @@ const PROCUREMENT_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
 const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
 const O2_REVIEWED_AT = "2026-08-25";
 const FIELD_ACCESS_REVIEWED_AT = "2026-09-15";
-const FIELD_ENFORCEMENT_REVIEWED_AT = "2026-09-21";
+const RECORD_HISTORY_REVIEWED_AT = "2026-09-26";
 const MENU_GATE_REVIEWED_AT = "2026-09-26";
 const OWNER = "Console product team";
 
@@ -318,8 +318,8 @@ export const GUIDE_REGISTRY = [
     title: "Set field access for a role",
     summary: "Set a role's Read and Write switches field by field, reset a field to its default, and add or lift a one-person field exception.",
     category: "roles-and-permissions",
-    tags: ["field access", "read", "write", "sensitive field", "field exception", "default", "reset to default"],
-    aliases: ["field permissions", "read write fields", "field level access", "restrict a field", "field exception", "reset field to default", "sensitive fields"],
+    tags: ["field access", "read", "write", "sensitive field", "field exception", "default", "reset to default", "name fields"],
+    aliases: ["field permissions", "read write fields", "field level access", "restrict a field", "field exception", "reset field to default", "sensitive fields", "hide a name", "restrict student name", "restrict guardian details"],
     audiences: ["platform-administrator"],
     routes: [R.ROLES.FIELD_ACCESS],
     actionIds: ["view-field-access"],
@@ -340,7 +340,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.roles.manage-field-access",
     estimatedMinutes: 8,
     owner: OWNER,
-    reviewedAt: FIELD_ENFORCEMENT_REVIEWED_AT,
+    reviewedAt: RECORD_HISTORY_REVIEWED_AT,
     risk: "high",
     status: "published",
     article: () => import("./content/roles-and-permissions/manage-field-access"),
@@ -384,8 +384,8 @@ export const GUIDE_REGISTRY = [
     title: "Maintain staff profiles and seat assignments",
     summary: "Create or update a CX staff profile, assign its primary seat, and protect sensitive payroll details.",
     category: "organogram-and-tasks",
-    tags: ["staff profile", "employee ID", "position", "seat assignment", "employment", "payroll", "position history"],
-    aliases: ["create staff profile", "edit employee profile", "assign seat", "change position", "bank details", "HR profile"],
+    tags: ["staff profile", "employee ID", "position", "seat assignment", "employment", "payroll", "position history", "as at", "record history"],
+    aliases: ["create staff profile", "edit employee profile", "assign seat", "change position", "bank details", "HR profile", "profile on a past date", "what the profile said before", "point in time view"],
     audiences: ["platform-administrator", "support-and-operations"],
     routes: [R.ORGANOGRAM.STAFF_CREATE, R.ORGANOGRAM.STAFF_VIEW_PATH, R.ORGANOGRAM.STAFF_BY_USER_PATH, R.ORGANOGRAM.STAFF_EDIT_PATH],
     actionIds: ["create-staff-profile"],
@@ -396,15 +396,16 @@ export const GUIDE_REGISTRY = [
       { id: "understand-profile-access", title: "Understand profile access" },
       { id: "create-a-profile", title: "Create a staff profile" },
       { id: "update-a-profile", title: "Update a profile and seat" },
+      { id: "read-as-at", title: "Read a profile as at an earlier date" },
       { id: "protect-payroll-details", title: "Protect payroll details" },
       { id: "common-problems", title: "Common problems" },
       { id: "completion-check", title: "Completion check" },
     ],
     relatedGuideIds: ["organogram.build-structure", "schools.invite-and-manage-users", "roles.manage-field-access", "tasks.create-and-complete"],
     walkthroughId: "walkthrough.organogram.maintain-staff-profiles",
-    estimatedMinutes: 9,
+    estimatedMinutes: 10,
     owner: OWNER,
-    reviewedAt: FIELD_ENFORCEMENT_REVIEWED_AT,
+    reviewedAt: RECORD_HISTORY_REVIEWED_AT,
     risk: "medium",
     status: "published",
     article: () => import("./content/organogram-and-tasks/maintain-staff-profiles"),

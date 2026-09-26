@@ -1,3 +1,4 @@
+import type { AsAtMeta } from "@/lib/as-at";
 /**
  * Types for the CX-staff organogram (vs_user app: OrgNode / Position /
  * PositionAssignment / MatrixReport) and the platform staff profile.
@@ -141,64 +142,74 @@ export interface StaffProfileListItem {
 }
 
 /** Work-only profile returned to an ordinary colleague in the same tenant. */
+/**
+ * What a colleague without HR access sees.
+ *
+ * The work fields and the name on `user` are Field Access fields of
+ * `platform.staff_profile`, absent when the viewer may not read them.
+ */
 export interface StaffProfileBrief {
   profile_view: "brief";
   id: number;
   user: UserInline;
-  profile_photo: string | null;
-  employee_id: string | null;
-  job_title: string;
+  profile_photo?: string | null;
+  employee_id?: string | null;
+  job_title?: string;
   position: PositionInline | null;
   org_node: OrgNodeInline | null;
   department: OrgNodeInline | null;
   division: OrgNodeInline | null;
   current_line_manager: UserInline | null;
-  employment_type: EmploymentType | "";
-  employment_status: EmploymentStatus;
+  employment_type?: EmploymentType | "";
+  employment_status?: EmploymentStatus;
   is_active_employee: boolean;
+  /** The first day this profile can be read as at; null before it is first recorded. */
+  history_starts: string | null;
+  /** Present only on a profile read as at an earlier day. */
+  as_at?: AsAtMeta;
 }
 
 /**
  * Full profile.
  *
- * The payroll bank fields (bank_name, account_name, account_number) are the
- * Field Access fields of `platform.staff_profile`. One the caller may not read
- * is absent from the payload, not masked, and `_read_only_fields` names those
- * present that the caller may not change. A staff member always reads and
- * writes their own, so decide from this record, through `useFieldAccess`,
- * rather than from the signed-in user's map.
+ * Every personal, contact, next-of-kin, employment and payroll field, and the
+ * name on `user`, is a Field Access field of `platform.staff_profile`. One the
+ * caller may not read is absent from the payload, not masked, and
+ * `_read_only_fields` names those present that the caller may not change. A
+ * staff member always reads and writes their own, so decide from this record,
+ * through `useFieldAccess`, rather than from the signed-in user's map.
  */
 export interface StaffProfile {
   profile_view: "full";
   id: number;
   user: UserInline;
-  date_of_birth: string | null;
-  marital_status: MaritalStatus | "";
-  nationality: string;
-  state_of_origin: string;
-  profile_photo: string | null;
+  date_of_birth?: string | null;
+  marital_status?: MaritalStatus | "";
+  nationality?: string;
+  state_of_origin?: string;
+  profile_photo?: string | null;
   bio: string;
-  personal_email: string;
-  alternate_phone: string;
-  residential_address: string;
-  city: string;
-  state: string;
-  nok_name: string;
-  nok_relationship: string;
-  nok_phone: string;
-  nok_address: string;
-  employee_id: string | null;
-  job_title: string;
+  personal_email?: string;
+  alternate_phone?: string;
+  residential_address?: string;
+  city?: string;
+  state?: string;
+  nok_name?: string;
+  nok_relationship?: string;
+  nok_phone?: string;
+  nok_address?: string;
+  employee_id?: string | null;
+  job_title?: string;
   position: PositionInline | null;
   // Derived from the primary position's org node (read-only).
   org_node: OrgNodeInline | null;
   department: OrgNodeInline | null;
   division: OrgNodeInline | null;
   current_line_manager: UserInline | null;
-  employment_type: EmploymentType | "";
-  employment_status: EmploymentStatus;
-  date_joined: string | null;
-  date_exited: string | null;
+  employment_type?: EmploymentType | "";
+  employment_status?: EmploymentStatus;
+  date_joined?: string | null;
+  date_exited?: string | null;
   is_active_employee: boolean;
   // Present only when the caller may read them.
   bank_name?: string;
@@ -207,6 +218,10 @@ export interface StaffProfile {
   _read_only_fields?: string[];
   created_at: string;
   updated_at: string;
+  /** The first day this profile can be read as at; null before it is first recorded. */
+  history_starts: string | null;
+  /** Present only on a profile read as at an earlier day. */
+  as_at?: AsAtMeta;
 }
 
 export type StaffProfileDetail = StaffProfile | StaffProfileBrief;

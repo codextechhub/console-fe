@@ -32,18 +32,20 @@ export default function ManageFieldAccessArticle() {
             ["Set for role", "The role has its own saved setting, which replaces the default until you reset it."],
           ].map(([title, body]) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}
         </div>
-        <p className="mt-3">Some fields cannot be changed by anyone, such as values issued by a provider. They show a Read switch and no Write switch. A person with several roles receives the most generous setting any of those roles gives.</p>
+        <p className="mt-3">Some fields cannot be changed by anyone, such as values issued by a provider or a staff member&apos;s exit date, which only the status change that ends employment sets. They show a Read switch and no Write switch. A person with several roles receives the most generous setting any of those roles gives.</p>
         <p className="mt-3">A staff member always sees and edits their own payroll bank details, whatever their roles say, so switching those fields off never takes a person&apos;s own away from them.</p>
       </GuideSection>
 
       <GuideSection id="where-switches-apply" title="Where the switches apply">
         <p>The switches apply on every screen that shows or saves a registered field, including:</p>
         <ul className="list-disc space-y-2 pl-5">
-          <li>Payroll bank details on staff profiles: the Organisation Chart person panel, the staff profile page, the staff profile form, and My Profile.</li>
+          <li>CX staff profiles: the name, personal, contact, next-of-kin, employment, and payroll bank details, on the Organisation Chart person panel, the staff list, the staff profile page, the staff profile form, and My Profile. Correcting a CX staff member&apos;s name in Team Management asks the same name switches.</li>
+          <li>In the school app: a student&apos;s, a staff member&apos;s, and a guardian&apos;s record, including the first, middle, and last name, date of birth, gender, contact details, photograph, emergency contact, admission or staff number, and employment details, on the profile, the directory, the search box, and the edit and add forms.</li>
           <li>Sign-in and invitation details in Team Management: last login, invited by, invitation email status, and invitation expiry, in lists, filters, and school user details.</li>
           <li>The data preview of an import batch.</li>
           <li>Finance, procurement, and payments screens, such as vendor contacts and banking, bank account numbers, payroll figures, virtual accounts, and payouts.</li>
         </ul>
+        <p className="mt-3">A name switch covers the person&apos;s own record wherever that record is shown, and the full name is built from only the parts the role may read. A name printed on another module&apos;s document, such as an invoice or a class list, is not that record and is not changed by the switch.</p>
         <GuideCallout tone="info" title="When a change reaches someone">A record reflects the change the next time it loads. Lists and add forms follow the person&apos;s own copy of their switches, which refreshes when they reload Console or sign in again.</GuideCallout>
       </GuideSection>
 

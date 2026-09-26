@@ -1,5 +1,40 @@
 ## Undone (Ask questions for clarity where needed)
 
+# 50. **Field Access for customer, vendor, bank, school and branch fields (approved 2026-09-26, not built).**
+The approved list: customer name, billing email, phone and address
+(`vs_finance.serializers.CustomerSerializer`, no mixin yet); vendor name,
+category, payment terms, KYC status, risk and on hold (`procurement.vendor`,
+`vs_procurement/field_access.py`); vendor contact name, email and phone
+(`VendorContactSerializer`, currently one all-or-nothing `contacts` switch);
+bank account name and bank name (`finance.bankaccount`); school name, address
+and registration ID (`vs_schools.School`); branch name, address and email
+(`vs_tenants.Branch`). Blocked on two things: FinPro had another session's
+large edit in flight across nearly every finance and procurement screen, so its
+customer/vendor/bank screens could not be changed and released cleanly; and the
+school and branch fields are edited both from the console (platform keys) and
+from the school app (tenant keys), while a registry field has exactly one scope,
+and a registry field has exactly one scope. DECIDED 2026-09-26: the school and
+branch switches govern the school's side (TENANT scope), so a school decides
+which of its own roles may change its name, address and branch details; CodeX
+staff stay governed by their platform keys. Still blocked on FinPro.
+
+# 51. **`sync_field_registry` emits an audit action type the vocabulary refuses.**
+`apps/vs_rbac/management/commands/sync_field_registry.py` writes
+`FIELD_REGISTRY_SYNCED` to the platform audit trail, and `AuditActionType` does
+not hold it, so every sync logs `vs_audit emit_audit_event failed ... is not a
+valid choice` and the platform event is dropped (the RBAC audit row is fine).
+Register the action type, or mirror to an existing one. Found 2026-09-26.
+
+# 52. **Record history follow-ups (2026-09-26).**
+(a) `UserFieldAccessOverride` is not tracked by `vs_history`, so a staff
+profile read As at hides the Field exceptions panel instead of showing the
+exceptions in force that day. (b) A CX staff profile read As at shows the
+seat it named that day, but the unit, department, division and line manager
+around it from today's organisation; compose them from `PositionAssignment`'s
+effective dates. (c) The guardian and student spreadsheet imports still send a
+one-line guardian name, so every imported guardian arrives flagged "check
+name"; give the templates first, middle and last name columns.
+
 ## Done
 
 # 49. **Per-branch payroll can now be seen, not only obeyed (2026-08-21).**

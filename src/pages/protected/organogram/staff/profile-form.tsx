@@ -242,17 +242,29 @@ export function StaffProfileForm({
                 onChange={handleChange}
                 placeholder="Select a seat"
               />
-              <CustomInput id="employee_id" name="employee_id" label="Employee ID" value={values.employee_id} onChange={handleChange} onBlur={handleBlur} placeholder="CX-0001" />
-              <CustomInput id="job_title" name="job_title" label="Job title" value={values.job_title} onChange={handleChange} onBlur={handleBlur} error={touched.job_title ? errors.job_title : undefined} />
+              <AccessField access={access} name="employee_id" creating={isCreate} errors={fieldErrors}>
+                <CustomInput id="employee_id" name="employee_id" label="Employee ID" value={values.employee_id} onChange={handleChange} onBlur={handleBlur} placeholder="CX-0001" />
+              </AccessField>
+              <AccessField access={access} name="job_title" creating={isCreate} errors={fieldErrors}>
+                <CustomInput id="job_title" name="job_title" label="Job title" value={values.job_title} onChange={handleChange} onBlur={handleBlur} error={touched.job_title ? errors.job_title : undefined} />
+              </AccessField>
             </Section>
           )}
 
           {/* Personal */}
           <Section title="Personal">
-            <CustomInput id="date_of_birth" name="date_of_birth" type="date" label="Date of birth" value={values.date_of_birth} onChange={handleChange} onBlur={handleBlur} />
-            <SearchSelect label="Marital status" name="marital_status" options={MARITAL} value={values.marital_status} onChange={handleChange} placeholder="Select" clearable />
-            <CustomInput id="nationality" name="nationality" label="Nationality" value={values.nationality} onChange={handleChange} onBlur={handleBlur} />
-            <CustomInput id="state_of_origin" name="state_of_origin" label="State of origin" value={values.state_of_origin} onChange={handleChange} onBlur={handleBlur} />
+            <AccessField access={access} name="date_of_birth" creating={isCreate} errors={fieldErrors}>
+              <CustomInput id="date_of_birth" name="date_of_birth" type="date" label="Date of birth" value={values.date_of_birth} onChange={handleChange} onBlur={handleBlur} />
+            </AccessField>
+            <AccessField access={access} name="marital_status" creating={isCreate} errors={fieldErrors}>
+              <SearchSelect label="Marital status" name="marital_status" options={MARITAL} value={values.marital_status} onChange={handleChange} placeholder="Select" clearable />
+            </AccessField>
+            <AccessField access={access} name="nationality" creating={isCreate} errors={fieldErrors}>
+              <CustomInput id="nationality" name="nationality" label="Nationality" value={values.nationality} onChange={handleChange} onBlur={handleBlur} />
+            </AccessField>
+            <AccessField access={access} name="state_of_origin" creating={isCreate} errors={fieldErrors}>
+              <CustomInput id="state_of_origin" name="state_of_origin" label="State of origin" value={values.state_of_origin} onChange={handleChange} onBlur={handleBlur} />
+            </AccessField>
             <div className="sm:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-black-01">Bio</label>
               <Textarea name="bio" value={values.bio} onChange={handleChange} onBlur={handleBlur} rows={3} placeholder="Short bio…" />
@@ -261,34 +273,60 @@ export function StaffProfileForm({
 
           {/* Contact */}
           <Section title="Contact">
-            <CustomInput id="personal_email" name="personal_email" type="email" label="Personal email" value={values.personal_email} onChange={handleChange} onBlur={handleBlur} error={touched.personal_email ? errors.personal_email : undefined} />
-            <CustomInput id="alternate_phone" name="alternate_phone" label="Alternate phone" value={values.alternate_phone} onChange={handleChange} onBlur={handleBlur} />
-            <CustomInput id="city" name="city" label="City" value={values.city} onChange={handleChange} onBlur={handleBlur} />
-            <CustomInput id="state" name="state" label="State" value={values.state} onChange={handleChange} onBlur={handleBlur} />
-            <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-black-01">Residential address</label>
-              <Textarea name="residential_address" value={values.residential_address} onChange={handleChange} onBlur={handleBlur} rows={2} />
-            </div>
+            <AccessField access={access} name="personal_email" creating={isCreate} errors={fieldErrors}>
+              <CustomInput id="personal_email" name="personal_email" type="email" label="Personal email" value={values.personal_email} onChange={handleChange} onBlur={handleBlur} error={touched.personal_email ? errors.personal_email : undefined} />
+            </AccessField>
+            <AccessField access={access} name="alternate_phone" creating={isCreate} errors={fieldErrors}>
+              <CustomInput id="alternate_phone" name="alternate_phone" label="Alternate phone" value={values.alternate_phone} onChange={handleChange} onBlur={handleBlur} />
+            </AccessField>
+            <AccessField access={access} name="city" creating={isCreate} errors={fieldErrors}>
+              <CustomInput id="city" name="city" label="City" value={values.city} onChange={handleChange} onBlur={handleBlur} />
+            </AccessField>
+            <AccessField access={access} name="state" creating={isCreate} errors={fieldErrors}>
+              <CustomInput id="state" name="state" label="State" value={values.state} onChange={handleChange} onBlur={handleBlur} />
+            </AccessField>
+            <AccessField access={access} name="residential_address" creating={isCreate} errors={fieldErrors} className="sm:col-span-2">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-black-01">Residential address</label>
+                <Textarea name="residential_address" value={values.residential_address} onChange={handleChange} onBlur={handleBlur} rows={2} />
+              </div>
+            </AccessField>
           </Section>
 
           {/* Next of kin */}
           <Section title="Next of kin">
-            <CustomInput id="nok_name" name="nok_name" label="Name" value={values.nok_name} onChange={handleChange} onBlur={handleBlur} />
-            <CustomInput id="nok_relationship" name="nok_relationship" label="Relationship" value={values.nok_relationship} onChange={handleChange} onBlur={handleBlur} />
-            <CustomInput id="nok_phone" name="nok_phone" label="Phone" value={values.nok_phone} onChange={handleChange} onBlur={handleBlur} />
-            <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-black-01">Address</label>
-              <Textarea name="nok_address" value={values.nok_address} onChange={handleChange} onBlur={handleBlur} rows={2} />
-            </div>
+            <AccessField access={access} name="nok_name" creating={isCreate} errors={fieldErrors}>
+              <CustomInput id="nok_name" name="nok_name" label="Name" value={values.nok_name} onChange={handleChange} onBlur={handleBlur} />
+            </AccessField>
+            <AccessField access={access} name="nok_relationship" creating={isCreate} errors={fieldErrors}>
+              <CustomInput id="nok_relationship" name="nok_relationship" label="Relationship" value={values.nok_relationship} onChange={handleChange} onBlur={handleBlur} />
+            </AccessField>
+            <AccessField access={access} name="nok_phone" creating={isCreate} errors={fieldErrors}>
+              <CustomInput id="nok_phone" name="nok_phone" label="Phone" value={values.nok_phone} onChange={handleChange} onBlur={handleBlur} />
+            </AccessField>
+            <AccessField access={access} name="nok_address" creating={isCreate} errors={fieldErrors} className="sm:col-span-2">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-black-01">Address</label>
+                <Textarea name="nok_address" value={values.nok_address} onChange={handleChange} onBlur={handleBlur} rows={2} />
+              </div>
+            </AccessField>
           </Section>
 
           {/* Employment (admin only) */}
           {isAdmin && (
             <Section title="Employment" guideTarget="staff-profile.employment">
-              <SearchSelect label="Employment type" name="employment_type" options={EMP_TYPE} value={values.employment_type} onChange={handleChange} placeholder="Select" clearable />
-              <SearchSelect label="Employment status" name="employment_status" options={EMP_STATUS} value={values.employment_status} onChange={handleChange} placeholder="Select" />
-              <CustomInput id="date_joined" name="date_joined" type="date" label="Date joined" value={values.date_joined} onChange={handleChange} onBlur={handleBlur} />
-              <CustomInput id="date_exited" name="date_exited" type="date" label="Date exited" value={values.date_exited} onChange={handleChange} onBlur={handleBlur} />
+              <AccessField access={access} name="employment_type" creating={isCreate} errors={fieldErrors}>
+                <SearchSelect label="Employment type" name="employment_type" options={EMP_TYPE} value={values.employment_type} onChange={handleChange} placeholder="Select" clearable />
+              </AccessField>
+              <AccessField access={access} name="employment_status" creating={isCreate} errors={fieldErrors}>
+                <SearchSelect label="Employment status" name="employment_status" options={EMP_STATUS} value={values.employment_status} onChange={handleChange} placeholder="Select" />
+              </AccessField>
+              <AccessField access={access} name="date_joined" creating={isCreate} errors={fieldErrors}>
+                <CustomInput id="date_joined" name="date_joined" type="date" label="Date joined" value={values.date_joined} onChange={handleChange} onBlur={handleBlur} />
+              </AccessField>
+              <AccessField access={access} name="date_exited" creating={isCreate} errors={fieldErrors}>
+                <CustomInput id="date_exited" name="date_exited" type="date" label="Date exited" value={values.date_exited} onChange={handleChange} onBlur={handleBlur} />
+              </AccessField>
             </Section>
           )}
 

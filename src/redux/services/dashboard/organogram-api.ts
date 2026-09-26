@@ -1,3 +1,4 @@
+import { recordQuery, type RecordArg } from "@/lib/as-at";
 // RTK Query endpoints for the CX-staff organogram (vs_user app).
 // Mounted backend-side at .../v1/user/organogram/* and .../v1/user/platform-staff-profiles/*.
 
@@ -127,8 +128,8 @@ export const organogramApi = baseApi.injectEndpoints({
       query: (params) => ({ url: `/user/platform-staff-profiles/${generateQueryString(params ?? {})}`, method: "GET" }),
       providesTags: ["StaffProfiles"],
     }),
-    getStaffProfile: builder.query<DataEnvelope<StaffProfileDetail>, number | string>({
-      query: (id) => ({ url: `/user/platform-staff-profiles/${id}/`, method: "GET" }),
+    getStaffProfile: builder.query<DataEnvelope<StaffProfileDetail>, RecordArg>({
+      query: (arg) => recordQuery((id) => `/user/platform-staff-profiles/${id}/`, arg),
       providesTags: ["StaffProfiles"],
     }),
     getMyStaffProfile: builder.query<DataEnvelope<StaffProfile>, void>({
