@@ -18,24 +18,45 @@ branch switches govern the school's side (TENANT scope), so a school decides
 which of its own roles may change its name, address and branch details; CodeX
 staff stay governed by their platform keys. Still blocked on FinPro.
 
-# 51. **`sync_field_registry` emits an audit action type the vocabulary refuses.**
-`apps/vs_rbac/management/commands/sync_field_registry.py` writes
-`FIELD_REGISTRY_SYNCED` to the platform audit trail, and `AuditActionType` does
-not hold it, so every sync logs `vs_audit emit_audit_event failed ... is not a
-valid choice` and the platform event is dropped (the RBAC audit row is fine).
-Register the action type, or mirror to an existing one. Found 2026-09-26.
-
-# 52. **Record history follow-ups (2026-09-26).**
-(a) `UserFieldAccessOverride` is not tracked by `vs_history`, so a staff
-profile read As at hides the Field exceptions panel instead of showing the
-exceptions in force that day. (b) A CX staff profile read As at shows the
-seat it named that day, but the unit, department, division and line manager
-around it from today's organisation; compose them from `PositionAssignment`'s
-effective dates. (c) The guardian and student spreadsheet imports still send a
-one-line guardian name, so every imported guardian arrives flagged "check
-name"; give the templates first, middle and last name columns.
-
 ## Done
+
+# 52. **Record history follow-ups: field exceptions, the organisation, guardian import names (2026-09-26).**
+(a) Field exceptions keep a history. `UserFieldAccessOverride` is tracked by
+`vs_history`, and both exception lists (field and permission) answer
+`?as_at=` through one shared read in `_UserPermissionOverrideBase`. A past
+view shows the exceptions in force that day, read-only, with `role_state` and
+`granted_by_role` null because role switches keep no history. The school app's
+staff Access tab and the console's CX staff page show the panels on past days
+instead of hiding them; a refused day shows the API's sentence in the panel,
+not a toast. A list has no single record to ask when its history began, so
+`vs_history.TrackingStart` records when tracking reached each model and
+`require_list_history` refuses a day before it: without that, a day between
+the account's history and the exceptions' would have answered "none".
+(b) A CX staff profile read as at a day composes its organisation for that
+day: the seat from `PositionAssignment`'s dates, the team, department and
+division from recorded versions of `Position` and `OrgNode` (now tracked), and
+the line manager as whoever held the manager's seat that day. Before the
+organisation's own history starts those rows are left empty with a note naming
+the first known day, never filled in from today.
+(c) The students and guardians import templates carry Guardian First, Middle
+and Last Name (migration `vs_import_data` 0020). A guardian named in parts
+arrives with no name to check; a file with only the one-line Guardian Name
+still imports, with a per-row warning, and that guardian is split and flagged
+as before. First and last are both required once any part is given.
+Verified against the running app with backdated history (restored afterwards):
+console past view at 390px and 820px, school Access tab past view.
+
+# 51. **Unregistered audit action types were dropped from the platform trail (2026-09-26).**
+Not only `FIELD_REGISTRY_SYNCED`: five RBAC events reached the RBAC log and
+vanished from the central trail, because `AuditEvent` refuses a type outside
+`AuditActionType` and `emit_audit_event` swallows the refusal. They were the
+catalogue sync, a role's field switch changed or reset, and a field exception
+created or lifted; the permission-group create, update and delete used dotted
+names and now use CREATE, UPDATE and DELETE. The five are registered
+(migration `vs_audit` 0016), and `record_rbac_audit` now refuses an
+unregistered type with an error, so the next one fails its first test instead
+of disappearing. A source scan test checks every literal action type passed to
+either emitter.
 
 # 49. **Per-branch payroll can now be seen, not only obeyed (2026-08-21).**
 Both gaps recorded here earlier the same day are closed, backend and frontend.

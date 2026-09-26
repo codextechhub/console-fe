@@ -308,4 +308,13 @@ describe("override copy helpers", () => {
       "only from this exception",
     );
   });
+
+  it("makes no role comparison on a past view, where roles keep no history", () => {
+    expect(contextLine({ mode: "DENY", granted_by_role: null })).toBe(
+      "Denied for this user personally.",
+    );
+    expect(contextLine({ mode: "ALLOW", granted_by_role: null })).toBe(
+      "Granted to this user personally.",
+    );
+  });
 });

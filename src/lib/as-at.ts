@@ -22,6 +22,11 @@ export interface AsAtMeta {
   history_starts: string;
   /** The photograph held that day has been replaced since, so it is not shown. */
   photo_retired?: boolean;
+  /**
+   * The first day a CX staff profile's unit, department, division and line
+   * manager can be answered for; before it they are left empty.
+   */
+  organisation_history_starts?: string | null;
 }
 
 /** A record id, optionally with the day it is read as at. */

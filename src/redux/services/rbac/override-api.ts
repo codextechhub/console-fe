@@ -36,9 +36,10 @@ export interface PermissionOverride {
   /**
    * Does any of the target's active roles currently grant this key? The context
    * flag: true on a DENY means the exception is carving real access out; false
-   * means their roles do not grant it anyway (a pre-emptive deny).
+   * means their roles do not grant it anyway (a pre-emptive deny). Null on a
+   * list read as at an earlier day, since a role's permissions keep no history.
    */
-  granted_by_role: boolean;
+  granted_by_role: boolean | null;
   created_by_id: string | null;
   created_by_name: string | null;
   created_at: string;
@@ -70,7 +71,8 @@ export interface UserFieldAccessOverride {
   reason: string;
   expires_at: string | null;
   is_expired: boolean;
-  role_state: { read: boolean; write: boolean };
+  /** What the roles alone say about the field; null on a past view. */
+  role_state: { read: boolean; write: boolean } | null;
   created_by_id: string | null;
   created_by_name: string | null;
   created_at: string;
@@ -109,13 +111,15 @@ export const overrideApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getPermissionOverrides: builder.query<
       PermissionOverrideListRes,
-      OverrideScope & { mode?: OverrideMode; page?: number; page_size?: number }
+      OverrideScope & { mode?: OverrideMode; page?: number; page_size?: number; asAt?: string }
     >({
-      query: ({ tenantSlug, userId, ...params }) => ({
+      query: ({ tenantSlug, userId, asAt, ...params }) => ({
         url: listUrl({ tenantSlug, userId }),
         method: "GET",
-        params: { ...params, tenant: tenantSlug },
+        params: { ...params, tenant: tenantSlug, ...(asAt ? { as_at: asAt } : {}) },
       }),
+      // The panel shows a refused read in place, such as a day before history.
+      extraOptions: { silent: true },
       // Cache per (tenant, user): lifting an exception on one user must not
       // blow away another user's list.
       providesTags: (_res, _err, { tenantSlug, userId }) => [
@@ -154,13 +158,15 @@ export const overrideApi = baseApi.injectEndpoints({
 
     getUserFieldAccessOverrides: builder.query<
       UserFieldAccessOverrideListRes,
-      OverrideScope & { access?: FieldAccessKind; mode?: FieldAccessMode }
+      OverrideScope & { access?: FieldAccessKind; mode?: FieldAccessMode; asAt?: string }
     >({
-      query: ({ tenantSlug, userId, ...params }) => ({
+      query: ({ tenantSlug, userId, asAt, ...params }) => ({
         url: fieldListUrl({ tenantSlug, userId }),
         method: "GET",
-        params: { ...params, tenant: tenantSlug },
+        params: { ...params, tenant: tenantSlug, ...(asAt ? { as_at: asAt } : {}) },
       }),
+      // The panel shows a refused read in place, such as a day before history.
+      extraOptions: { silent: true },
       providesTags: (_res, _err, { tenantSlug, userId }) => [
         { type: "UserFieldAccessOverrides" as const, id: `${tenantSlug}:${userId}` },
       ],

@@ -67,6 +67,7 @@ import {
   type PermissionOverride,
 } from "@/redux/services/rbac/override-api";
 import { formatRelativeDate } from "@/utils/helpers";
+import { useAsAt } from "@/lib/as-at";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -103,6 +104,11 @@ export function expiryLabel(expiresAt: string | null, now: number): string | nul
  * user's roles. `granted_by_role` is the backend's computed flag.
  */
 export function contextLine(row: Pick<PermissionOverride, "mode" | "granted_by_role">): string {
+  if (row.granted_by_role === null) {
+    return row.mode === "DENY"
+      ? "Denied for this user personally."
+      : "Granted to this user personally.";
+  }
   if (row.mode === "DENY") {
     return row.granted_by_role
       ? "A role grants this - it is denied for this user."
@@ -128,9 +134,18 @@ export function useCanViewPermissionExceptions(): boolean {
   );
 }
 
+/** The API's own sentence for a refusal, such as a day before history starts. */
+export function apiErrorMessage(error: unknown): string | undefined {
+  const data = (error as { data?: { message?: unknown } } | undefined)?.data;
+  return typeof data?.message === "string" ? data.message : undefined;
+}
+
 /**
  * Public entry point - the permission gate. Renders nothing (and mounts no
  * query) unless the viewer may see exceptions.
+ *
+ * Inside a profile read as at an earlier day the list is the one that stood
+ * that day, read-only, and expiry is judged at the end of that day.
  */
 export default function PermissionOverrides({
   userId,
@@ -140,6 +155,7 @@ export default function PermissionOverrides({
 }: Props) {
   const { hasPermission } = usePermissions();
   const canView = useCanViewPermissionExceptions();
+  const asAt = useAsAt();
   if (!canView || !userId || !tenantSlug) return null;
 
   return (
@@ -147,8 +163,9 @@ export default function PermissionOverrides({
       userId={userId}
       tenantSlug={tenantSlug}
       userName={userName}
-      canCreate={hasPermission(P.CREATE_PERMISSION_EXCEPTION)}
-      canDelete={hasPermission(P.DELETE_PERMISSION_EXCEPTION)}
+      asAt={asAt}
+      canCreate={hasPermission(P.CREATE_PERMISSION_EXCEPTION) && !asAt}
+      canDelete={hasPermission(P.DELETE_PERMISSION_EXCEPTION) && !asAt}
       className={className}
     />
   );
@@ -161,6 +178,7 @@ function OverridesSection({
   userId,
   tenantSlug,
   userName,
+  asAt,
   canCreate,
   canDelete,
   className,
@@ -168,20 +186,24 @@ function OverridesSection({
   userId: string | number;
   tenantSlug: string;
   userName?: string | null;
+  asAt?: string;
   canCreate: boolean;
   canDelete: boolean;
   className?: string;
 }) {
-  const now = useNow();
+  const liveNow = useNow();
+  const now = asAt ? new Date(`${asAt}T23:59:59`).getTime() : liveNow;
   const [addOpen, setAddOpen] = useState(false);
   const [pendingLift, setPendingLift] = useState<PermissionOverride | null>(null);
 
-  const { data, isLoading, isError } = useGetPermissionOverridesQuery({
+  const { currentData, isFetching, isError, error } = useGetPermissionOverridesQuery({
     tenantSlug,
     userId,
     page_size: 50,
+    asAt,
   });
-  const rows = Array.isArray(data?.data) ? data.data : [];
+  const rows = Array.isArray(currentData?.data) ? currentData.data : [];
+  const isLoading = isFetching && !currentData;
 
   const [liftOverride, { isLoading: lifting }] = useDeletePermissionOverrideMutation();
 
@@ -213,8 +235,9 @@ function OverridesSection({
             Permission exceptions
           </h3>
           <p className="mt-1 text-xs text-gray-01">
-            Access granted or withheld for this user personally, on top of their
-            roles.
+            {asAt
+              ? "Access granted or withheld for this user personally, as it stood that day."
+              : "Access granted or withheld for this user personally, on top of their roles."}
           </p>
         </div>
         {canCreate && (
@@ -239,7 +262,7 @@ function OverridesSection({
           </div>
         ) : isError ? (
           <p className="rounded-md bg-gray-03 px-3 py-6 text-center text-sm text-gray-01">
-            Could not load permission exceptions.
+            {apiErrorMessage(error) ?? "Could not load permission exceptions."}
           </p>
         ) : rows.length === 0 ? (
           <p className="rounded-md bg-gray-03 px-3 py-6 text-center text-sm text-gray-01">

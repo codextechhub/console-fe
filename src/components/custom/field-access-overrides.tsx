@@ -40,6 +40,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { usePermissions } from "@/hooks/use-permissions";
+import { apiErrorMessage } from "@/components/custom/permission-overrides";
+import { useAsAt } from "@/lib/as-at";
 import { cn } from "@/lib/utils";
 import { P } from "@/permissions";
 import { selectUser } from "@/redux/features/auth/auth-slice";
@@ -93,8 +95,6 @@ export function modulesWithFields(modules: AccessCatalogueModule[]): AccessCatal
  * decided elsewhere, so the sentence never claims a visible effect.
  */
 export function fieldExceptionEffect(row: UserFieldAccessOverride): string {
-  const roleAllows =
-    row.access === "READ" ? row.role_state.read : row.role_state.write;
   const expiry = row.expires_at && !row.is_expired
     ? ` until ${formatExpiry(row.expires_at)}`
     : "";
@@ -102,6 +102,13 @@ export function fieldExceptionEffect(row: UserFieldAccessOverride): string {
   const kind = row.access === "READ" ? "Read" : "Write";
 
   if (row.is_expired) return "Expired. This person's roles decide the access again.";
+  if (!row.role_state) {
+    return row.mode === "ALLOW"
+      ? `${kind} is allowed for this person${expiry}.`
+      : `${kind} is denied for this person${expiry}.`;
+  }
+  const roleAllows =
+    row.access === "READ" ? row.role_state.read : row.role_state.write;
   if (row.mode === "ALLOW") {
     return roleAllows
       ? `The role already allows ${kind}. The exception keeps ${kind} allowed${expiry}.`
@@ -112,7 +119,13 @@ export function fieldExceptionEffect(row: UserFieldAccessOverride): string {
     : `The role already denies ${kind}. The denial stays in place${expiry}.`;
 }
 
-/** Field exceptions sit beside permission exceptions and share their guards. */
+/**
+ * Field exceptions sit beside permission exceptions and share their guards.
+ *
+ * Inside a profile read as at an earlier day the list is the one that stood
+ * that day, read-only, without the comparison with the person's roles: role
+ * switches keep no history, so there is nothing true to compare against.
+ */
 export default function FieldAccessOverrides({
   userId,
   tenantSlug,
@@ -130,6 +143,7 @@ export default function FieldAccessOverrides({
     );
   const isSelf =
     userId != null && String(userId) === String(signedInUser?.id ?? "");
+  const asAt = useAsAt();
 
   if (!canView || !userId || !tenantSlug) return null;
 
@@ -138,10 +152,11 @@ export default function FieldAccessOverrides({
       userId={userId}
       tenantSlug={tenantSlug}
       userName={userName}
+      asAt={asAt}
       canCreate={
-        hasPermission(P.CREATE_PERMISSION_EXCEPTION) && !isSelf
+        hasPermission(P.CREATE_PERMISSION_EXCEPTION) && !isSelf && !asAt
       }
-      canDelete={hasPermission(P.DELETE_PERMISSION_EXCEPTION) && !isSelf}
+      canDelete={hasPermission(P.DELETE_PERMISSION_EXCEPTION) && !isSelf && !asAt}
       className={className}
     />
   );
@@ -151,6 +166,7 @@ function FieldExceptionsSection({
   userId,
   tenantSlug,
   userName,
+  asAt,
   canCreate,
   canDelete,
   className,
@@ -158,6 +174,7 @@ function FieldExceptionsSection({
   userId: string | number;
   tenantSlug: string;
   userName?: string | null;
+  asAt?: string;
   canCreate: boolean;
   canDelete: boolean;
   className?: string;
@@ -165,8 +182,8 @@ function FieldExceptionsSection({
   const [addOpen, setAddOpen] = useState(false);
   const [pendingLift, setPendingLift] =
     useState<UserFieldAccessOverride | null>(null);
-  const query = useGetUserFieldAccessOverridesQuery({ tenantSlug, userId });
-  const rows = Array.isArray(query.data?.data) ? query.data.data : [];
+  const query = useGetUserFieldAccessOverridesQuery({ tenantSlug, userId, asAt });
+  const rows = Array.isArray(query.currentData?.data) ? query.currentData.data : [];
   const [lift, lifting] = useDeleteUserFieldAccessOverrideMutation();
 
   const confirmLift = async () => {
@@ -193,7 +210,9 @@ function FieldExceptionsSection({
             Field exceptions
           </h3>
           <p className="mt-1 text-xs text-gray-01">
-            Read or Write access changed for this person alone, on top of their roles.
+            {asAt
+              ? "Read or Write access changed for this person alone, as it stood that day."
+              : "Read or Write access changed for this person alone, on top of their roles."}
           </p>
         </div>
         {canCreate && (
@@ -204,7 +223,7 @@ function FieldExceptionsSection({
       </div>
 
       <div className="mt-4">
-        {query.isLoading ? (
+        {query.isFetching && !query.currentData ? (
           <div className="rounded-md border border-white-02">
             <SkeletonLoadingLabel text="Loading field exceptions..." />
             {[0, 1].map((index) => (
@@ -213,7 +232,7 @@ function FieldExceptionsSection({
           </div>
         ) : query.isError ? (
           <p className="rounded-md bg-gray-03 px-3 py-6 text-center text-sm text-gray-01">
-            Could not load field exceptions.
+            {apiErrorMessage(query.error) ?? "Could not load field exceptions."}
           </p>
         ) : rows.length === 0 ? (
           <p className="rounded-md bg-gray-03 px-3 py-6 text-center text-sm text-gray-01">

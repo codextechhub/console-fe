@@ -25,7 +25,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import PermissionGate from "@/components/custom/permission-gate";
 import { AsAtBanner, AsAtControl, LiveOnly } from "@/components/custom/as-at-control";
 import { useFieldAccess } from "@/components/finance-ui/field-access";
-import { AsAtContext, useAsAtParam } from "@/lib/as-at";
+import { AsAtContext, type AsAtMeta, useAsAtParam } from "@/lib/as-at";
 import PermissionOverrides from "@/components/custom/permission-overrides";
 import FieldAccessOverrides from "@/components/custom/field-access-overrides";
 import { P } from "@/permissions";
@@ -75,6 +75,27 @@ function useShownRows(record: object) {
       );
 }
 
+/**
+ * A row explaining empty organisation fields on a past view.
+ *
+ * Seats and units keep history from the day tracking reached them. On an
+ * earlier day the API leaves the unit, department, division and line manager
+ * empty rather than showing today's, and this row says why.
+ */
+function organisationRow(profile: { as_at?: AsAtMeta }) {
+  const meta = profile.as_at;
+  if (!meta) return [];
+  const starts = meta.organisation_history_starts;
+  if (starts && meta.date >= starts) return [];
+  return [{
+    label: "Department and line manager",
+    value: starts
+      ? `Recorded from ${fmtDate(starts)}. Earlier days are not known.`
+      : "Not recorded for this day.",
+    wide: true,
+  }];
+}
+
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -122,6 +143,7 @@ function BriefProfile({ profile }: { profile: StaffProfileBrief }) {
             { label: "Division", value: profile.division?.name },
             ...(profile.org_node?.kind === "TEAM" ? [{ label: "Team", value: profile.org_node.name }] : []),
             { label: "Line manager", value: profile.current_line_manager?.full_name },
+            ...organisationRow(profile),
             { field: "employment_type", label: "Employment type", value: <EmpBadge type={profile.employment_type} /> },
           ])}
         </Card>
@@ -240,6 +262,7 @@ export default function StaffDetail() {
                   { label: "Seat", value: profile.position ? `${profile.position.title} · ${profile.position.code}` : "-" },
                   { label: "Department", value: profile.department?.name },
                   { label: "Line manager", value: profile.current_line_manager?.full_name },
+                  ...organisationRow(profile),
                   { field: "date_joined", label: "Date joined", value: fmtDate(profile.date_joined ?? null) },
                   { field: "date_exited", label: "Date exited", value: fmtDate(profile.date_exited ?? null) },
                 ])}
@@ -320,20 +343,18 @@ export default function StaffDetail() {
 
             <Payroll profile={profile} />
 
-            <LiveOnly>
-              <PermissionOverrides
-                userId={profile.user.id}
-                tenantSlug={tenantSlug}
-                userName={profile.user.full_name}
-                className="rounded-2xl border-slate-200 p-5"
-              />
-              <FieldAccessOverrides
-                userId={profile.user.id}
-                tenantSlug={tenantSlug}
-                userName={profile.user.full_name}
-                className="rounded-2xl border-slate-200 p-5"
-              />
-            </LiveOnly>
+            <PermissionOverrides
+              userId={profile.user.id}
+              tenantSlug={tenantSlug}
+              userName={profile.user.full_name}
+              className="rounded-2xl border-slate-200 p-5"
+            />
+            <FieldAccessOverrides
+              userId={profile.user.id}
+              tenantSlug={tenantSlug}
+              userName={profile.user.full_name}
+              className="rounded-2xl border-slate-200 p-5"
+            />
 
             {/* Change email modal */}
             <Dialog open={emailModal} onOpenChange={(open) => { setEmailModal(open); if (!open) setNewEmail(""); }}>

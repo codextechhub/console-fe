@@ -79,6 +79,7 @@ export default function ManageFieldAccessArticle() {
           <GuideStep title="Apply">Select <strong>Apply exception</strong>. If the person already has an exception for the same field and access, the button reads <strong>Replace exception</strong> and the new one replaces the old.</GuideStep>
         </GuideSteps>
         <p className="mt-3">Each exception explains how it compares with the person&apos;s roles, for example that the role does not allow Read and Read is allowed for this person until a date. To remove one, select <strong>Lift</strong> and confirm <strong>Lift exception</strong>.</p>
+        <p className="mt-3">On a staff profile read <strong>As at</strong> an earlier day, the panel lists the exceptions that were in force that day, read-only and without the comparison with the person&apos;s roles, since role switches keep no history. A day before exceptions were first recorded shows the day their history starts instead.</p>
         <GuideCallout tone="warning" title="A denial wins">A Deny exception beats every role and any Allow exception. Allow Write also allows Read, and Deny Read also denies Write. Creating, replacing, and lifting exceptions are all audited, and an expired exception simply stops counting.</GuideCallout>
       </GuideSection>
 
