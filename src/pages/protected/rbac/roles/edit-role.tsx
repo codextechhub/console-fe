@@ -21,6 +21,8 @@ import { P } from "@/permissions";
 import { PageShell } from "@/components/layout/page-shell";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
+import { catalogueLabels, restrictedAdditions, sentForApproval } from "./restricted-approval";
+import { RestrictedApprovalNotes } from "./restricted-approval-notes";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
@@ -101,6 +103,7 @@ export default function EditRole() {
           }}
           validationSchema={schema}
           onSubmit={(values, { setSubmitting }) => {
+            const adding = restrictedAdditions(catalogue.data?.data ?? [], values.permission_keys, role);
             updateRole({
               key: roleKey!,
               body: {
@@ -113,8 +116,10 @@ export default function EditRole() {
               },
             })
               .unwrap()
-              .then(() => {
-                toast.success("Role updated successfully.");
+              .then((result) => {
+                const sent = (result.data.pending_additions ?? [])
+                  .filter((entry) => adding.includes(entry.permission_key)).length;
+                toast.success(`Role updated successfully.${sentForApproval(sent)}`);
                 navigate(routesPath.PROTECTED.ROLES.INDEX);
               })
               .catch((error) => {
@@ -192,6 +197,12 @@ export default function EditRole() {
                         <p className="mt-1 text-xs text-red-600">{errors.reason}</p>
                       )}
                     </div>
+
+                    <RestrictedApprovalNotes
+                      labels={catalogueLabels(catalogue.data?.data ?? [])}
+                      adding={restrictedAdditions(catalogue.data?.data ?? [], values.permission_keys, role)}
+                      waiting={(role.pending_additions ?? []).map((entry) => entry.permission_key)}
+                    />
 
                     <SearchSelect
                       id="status"

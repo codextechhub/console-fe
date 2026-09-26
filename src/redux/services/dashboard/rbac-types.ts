@@ -20,6 +20,12 @@ export interface PlatformRole {
 
 export interface PlatformRoleDetail extends PlatformRole {
   held_by_me: boolean;
+  /**
+   * Restricted permissions asked for on this role and still waiting on the
+   * approval ladder. A save never grants a restricted permission the role does
+   * not already hold: it grants the rest and raises a request for these.
+   */
+  pending_additions: Array<{ permission_key: string; request_id: string }>;
   role_permissions: Array<{ permission_key: string; granted: boolean }>;
   role_groups: Array<{ group: PermissionGroupList }>;
 }

@@ -13,6 +13,9 @@ import {
   useGetAccessCatalogueQuery,
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
+import { apiErrorMessage } from "@/utils/api-errors";
+import { catalogueLabels, restrictedAdditions, sentForApproval } from "./restricted-approval";
+import { RestrictedApprovalNotes } from "./restricted-approval-notes";
 import { Search } from "lucide-react";
 import { PageShell } from "@/components/layout/page-shell";
 import { cn } from "@/lib/utils";
@@ -22,6 +25,11 @@ const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
   description: Yup.string().trim(),
   status: Yup.string().oneOf(["ACTIVE", "INACTIVE"]).required("Status is required"),
+  // The server refuses a role that grants anything without a reason, and
+  // records the one it is given.
+  reason: Yup.string().trim().when(["permission_keys", "group_ids"], ([keys, groups], field) =>
+    keys?.length || groups?.length ? field.required("Say why this role is needed") : field,
+  ),
 });
 
 export default function CreateRole() {
@@ -47,22 +55,27 @@ export default function CreateRole() {
             status: "ACTIVE",
             group_ids: [] as string[],
             permission_keys: [] as string[],
+            reason: "",
           }}
           validationSchema={schema}
           onSubmit={(values, { setSubmitting }) => {
+            const reason = values.reason.trim();
             createRole({
               name: values.name,
               description: values.description,
               status: values.status,
               group_ids: values.group_ids,
               permission_keys: values.permission_keys,
+              ...(reason ? { reason } : {}),
             })
               .unwrap()
-              .then(() => {
-                toast.success("Role created successfully.");
+              .then((result) => {
+                toast.success(`Role created successfully.${sentForApproval(result.data.pending_additions?.length ?? 0)}`);
                 navigate(routesPath.PROTECTED.ROLES.INDEX);
               })
-              .catch(() => {})
+              .catch((error) => {
+                toast.error(apiErrorMessage(error, "We could not create that role. Try again."));
+              })
               .finally(() => setSubmitting(false));
           }}
         >
@@ -107,6 +120,30 @@ export default function CreateRole() {
                         className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
                       />
                     </div>
+
+                    <div>
+                      <label htmlFor="reason" className="mb-1.5 block text-xs font-medium text-black-01 font-mont">
+                        Why is this role needed?
+                      </label>
+                      <input
+                        id="reason"
+                        name="reason"
+                        value={values.reason}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        placeholder="e.g. Finance handover to the new bursar"
+                        className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-black-01 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      />
+                      {touched.reason && errors.reason && (
+                        <p className="mt-1 text-xs text-red-600">{errors.reason}</p>
+                      )}
+                    </div>
+
+                    <RestrictedApprovalNotes
+                      labels={catalogueLabels(catalogue.data?.data ?? [])}
+                      adding={restrictedAdditions(catalogue.data?.data ?? [], values.permission_keys)}
+                      waiting={[]}
+                    />
 
                     <SearchSelect
                       id="status"
