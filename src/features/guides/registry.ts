@@ -914,6 +914,7 @@ export const GUIDE_REGISTRY = [
     aliases: [
       "run financial report", "p and l", "p&l", "statement of financial position",
       "trial balance out of balance", "compare periods", "cost centre report", "dimension analysis",
+      "cash runway", "cash movement", "tax calendar", "spending by cost centre",
     ],
     audiences: ["finance-officer", "approver"],
     routes: [
