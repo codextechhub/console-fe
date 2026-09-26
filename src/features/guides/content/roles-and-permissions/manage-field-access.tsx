@@ -52,7 +52,7 @@ export default function ManageFieldAccessArticle() {
       <GuideSection id="change-a-role" title="Change a role's switches">
         <GuideSteps>
           <GuideStep title="Open Field Access">In the sidebar, open <strong>Roles</strong> and select <strong>Field Access</strong>, or search for <strong>View field access</strong>.</GuideStep>
-          <GuideStep title="Choose the role">Select the <strong>Role</strong>. Choosing another role discards switches you have not saved.</GuideStep>
+          <GuideStep title="Choose the role">Type or pick a role in the <strong>Role</strong> box. It opens on the first role listed. Choosing a different role discards switches you have not saved.</GuideStep>
           <GuideStep title="Narrow to the fields">Type or pick a module in the <strong>Module</strong> box. The <strong>Resource</strong> box opens once a module is chosen; pick a resource there and its fields appear. Only modules and resources that carry fields are offered, and choosing another module clears the resource. Use <strong>Search field labels</strong> to find a field inside that resource. Fields are grouped under headings such as Banking or Contact.</GuideStep>
           <GuideStep title="Set Read and Write">Turn the <strong>Read</strong> and <strong>Write</strong> switches for each field. A changed field shows <strong>Unsaved</strong> until you save, and returning it to its saved value clears that badge.</GuideStep>
           <GuideStep title="Save the changes">Select <strong>Save changes</strong>. Only the fields you changed are sent, and the list is reloaded from the saved result. You see <strong>Field access saved.</strong> when it succeeds.</GuideStep>
