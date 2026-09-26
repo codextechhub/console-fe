@@ -269,7 +269,7 @@ const PROFILE_FIELDS: Array<{
   { key: "tagline", label: "Tagline", description: "Short line displayed below the platform name.", placeholder: "Technology for better schools" },
   { key: "address", label: "Contact address", description: "Postal or office address printed on documents.", placeholder: "12 Marina, Lagos" },
   { key: "email", label: "Contact email", description: "Public billing or support email printed on documents.", placeholder: "billing@example.com", type: "email" },
-  { key: "phone", label: "Contact phone", description: "Public phone number printed on documents.", placeholder: "+234..." },
+  { key: "phone", label: "Contact phone", description: "Public phone number printed on documents.", placeholder: "e.g. 08012345678" },
   { key: "website", label: "Website", description: "Public website printed on documents.", placeholder: "https://example.com", type: "url" },
   { key: "logo_url", label: "Logo URL", description: "Public image URL used on platform-issued documents.", placeholder: "https://example.com/logo.png", type: "url" },
 ];

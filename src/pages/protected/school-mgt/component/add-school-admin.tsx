@@ -1,5 +1,6 @@
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
+import { PHONE_PLACEHOLDER } from "@/schema/dashboard";
 import { adminStepSchema } from "@/schema/dashboard/school-mgt";
 import { useFormik } from "formik";
 import { useEffect } from "react";
@@ -65,7 +66,7 @@ export default function AddSchoolAdmin({ defaultValues, onNext, onChange }: Prop
           <CustomInput
             id="phone"
             label="Phone Number"
-            placeholder="+2347033327493"
+            placeholder={PHONE_PLACEHOLDER}
             {...formik.getFieldProps("phone")}
             error={formik.touched.phone ? formik.errors.phone : ""}
           />

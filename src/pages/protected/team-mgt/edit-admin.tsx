@@ -5,6 +5,7 @@ import { routesPath } from "@/routes/routes-path";
 import { useNavigate, useParams } from "react-router";
 import { SearchSelect } from "@/components/custom/search-select";
 import { useFormik } from "formik";
+import { PHONE_PLACEHOLDER } from "@/schema/dashboard";
 import { editTeamMemberSchema } from "@/schema/dashboard/team-mgt";
 import {
   useUpdateTeamMemberMutation,
@@ -107,7 +108,7 @@ export default function EditAdmin() {
                 <CustomInput
                   id="phone"
                   label="Phone Number"
-                  placeholder="Enter phone number e.g., +23481..."
+                  placeholder={PHONE_PLACEHOLDER}
                   isRequired
                   {...formik.getFieldProps("phone")}
                   error={formik.touched.phone ? formik.errors.phone : undefined}

@@ -10,6 +10,7 @@ import { SearchSelect } from "@/components/custom/search-select";
 import { useAllRoles } from "@/hooks/use-all-roles";
 import { useFormik } from "formik";
 import { useMemo } from "react";
+import { PHONE_PLACEHOLDER } from "@/schema/dashboard";
 import { createTeamMemberSchema } from "@/schema/dashboard/team-mgt";
 import {
   useCreateTeamMemberMutation,
@@ -265,7 +266,7 @@ export default function CreateAdmin() {
               <CustomInput
                 id="phone"
                 label="Phone Number"
-                placeholder="e.g., 08012345678 or +2348012345678"
+                placeholder={PHONE_PLACEHOLDER}
                 isRequired
                 {...formik.getFieldProps("phone")}
                 error={formik.touched.phone ? formik.errors.phone : undefined}

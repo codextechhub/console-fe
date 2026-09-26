@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { PHONE_PLACEHOLDER, phoneSchema } from "@/schema/dashboard";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ const schema = Yup.object({
   admin_first_name: Yup.string().required("Admin first name is required"),
   admin_last_name: Yup.string().required("Admin last name is required"),
   admin_email: Yup.string().email("Enter a valid email").required("Admin email is required"),
-  admin_phone: Yup.string(),
+  admin_phone: phoneSchema,
 });
 
 const COUNTRIES = [
@@ -221,7 +222,7 @@ export default function CreateBranch() {
                 <CustomInput
                   id="admin_phone"
                   label="Admin Phone"
-                  placeholder="+2347033327493"
+                  placeholder={PHONE_PLACEHOLDER}
                   {...formik.getFieldProps("admin_phone")}
                   error={formik.touched.admin_phone ? formik.errors.admin_phone : ""}
                 />

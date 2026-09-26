@@ -1,5 +1,5 @@
 import * as Yup from "yup";
-import { firstNameSchema, lastNameSchema } from ".";
+import { firstNameSchema, lastNameSchema, phoneSchema } from ".";
 
 export const createTeamMemberSchema = Yup.object({
    first_name: firstNameSchema,
@@ -7,13 +7,7 @@ export const createTeamMemberSchema = Yup.object({
   email: Yup.string().email("Invalid email address").required("Email is required"),
   gender: Yup.string().required("Gender is required"),
   role: Yup.string().required("Role is required"),
-  phone: Yup
-    .string()
-    .required("Phone number is required")
-    .matches(
-      /^(?:\+[1-9]\d{7,14}|0\d{9,10})$/,
-      "Enter an international or Nigerian local number (e.g. +2347033327493 or 08012345678)"
-    ),
+  phone: phoneSchema.required("Phone number is required"),
   // Seat is required - its title becomes the job title. Other HR fields optional.
   position: Yup.string().required("Position is required"),
   job_title: Yup.string().max(150, "Job title is too long"),
@@ -29,11 +23,5 @@ export const editTeamMemberSchema = Yup.object({
    first_name: firstNameSchema,
   last_name: lastNameSchema,
   gender: Yup.string().required("Gender is required"),
-  phone: Yup
-    .string()
-    .required("Phone number is required")
-    .matches(
-      /^(?:\+[1-9]\d{7,14}|0\d{9,10})$/,
-      "Enter an international or Nigerian local number (e.g. +2347033327493 or 08012345678)"
-    ),
+  phone: phoneSchema.required("Phone number is required"),
 });

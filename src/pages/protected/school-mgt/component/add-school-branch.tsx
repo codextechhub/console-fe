@@ -5,6 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import type { BranchStepItem } from "../create-school";
 import { useEffect, useState } from "react";
+import { isValidPhone, PHONE_ERROR, PHONE_PLACEHOLDER } from "@/schema/dashboard";
 
 interface Props {
   defaultValues: BranchStepItem[];
@@ -60,6 +61,7 @@ export default function AddSchoolBranch({ defaultValues, onNext, onChange }: Pro
       } else if (!EMAIL_RE.test(b.admin_email)) {
         errs[`${i}.admin_email`] = "Enter a valid email address";
       }
+      if (!isValidPhone(b.admin_phone)) errs[`${i}.admin_phone`] = PHONE_ERROR;
     });
     if (!branches.some((b) => b.is_main)) errs["main"] = "One branch must be marked as main";
     setErrors(errs);
@@ -174,9 +176,10 @@ export default function AddSchoolBranch({ defaultValues, onNext, onChange }: Pro
             <CustomInput
               id={`aphone-${idx}`}
               label="Admin Phone"
-              placeholder="+2347033327493"
+              placeholder={PHONE_PLACEHOLDER}
               value={branch.admin_phone}
               onChange={(e) => update(idx, "admin_phone", e.target.value)}
+              error={errors[`${idx}.admin_phone`]}
             />
 
             <div className="inline-flex items-center gap-6">

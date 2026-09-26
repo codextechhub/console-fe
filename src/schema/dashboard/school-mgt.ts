@@ -1,9 +1,5 @@
 import * as Yup from "yup";
-
-const phoneSchema = Yup.string().matches(
-  /^\+[1-9]\d{1,14}$/,
-  "Phone must be in international format (e.g. +2347033327493)",
-);
+import { phoneSchema } from ".";
 
 export const schoolStepSchema = Yup.object({
   name: Yup.string().required("School name is required"),
@@ -21,7 +17,7 @@ const branchAdminSchema = Yup.object({
   admin_first_name: Yup.string().required("Admin first name is required"),
   admin_last_name: Yup.string().required("Admin last name is required"),
   admin_email: Yup.string().email("Invalid email").required("Admin email is required"),
-  admin_phone: phoneSchema.optional(),
+  admin_phone: phoneSchema,
 });
 
 export const branchItemSchema = Yup.object({
@@ -37,7 +33,7 @@ export const adminStepSchema = Yup.object({
   first_name: Yup.string().required("First name is required"),
   last_name: Yup.string().required("Last name is required"),
   email: Yup.string().email("Invalid email").required("Email is required"),
-  phone: phoneSchema.optional(),
+  phone: phoneSchema,
 });
 
 export const packageStepSchema = Yup.object({
