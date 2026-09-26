@@ -66,22 +66,6 @@ export const securityApi = baseApi.injectEndpoints({
       invalidatesTags: ["AccountLockouts", "LoginSessions"],
     }),
 
-    // ── Auth events (password & account activity admin view) ────────────────
-    getAuthEvents: builder.query<PaginatedResponse<{
-      id: string;
-      event: string;
-      created_at: string;
-      actor_user_id?: string;
-      target_user_id?: string;
-      school_id?: string;
-      ip_address?: string;
-      user_agent?: string;
-      metadata?: Record<string, unknown>;
-    }>, Record<string, string | number>>({
-      query: (params) => ({ url: `/user/auth-events/${generateQueryString(params)}`, method: "GET" }),
-      providesTags: ["AuthAttempts"],
-    }),
-
     // ── Impersonation sessions ──────────────────────────────────────────────
     getProxyTargets: builder.query<PaginatedResponse<ProxyTarget>, { tenant_slug: string; search: string; page?: number; page_size?: number }>({
       query: ({ tenant_slug, ...params }) => ({
@@ -159,7 +143,6 @@ export const {
   useGetAccountLockoutsQuery,
   useUnlockAccountMutation,
   useGetMySecurityStatsQuery,
-  useGetAuthEventsQuery,
   useGetImpersonationsQuery,
   useGetProxyTargetsQuery,
   useStartImpersonationMutation,
