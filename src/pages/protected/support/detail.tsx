@@ -96,6 +96,74 @@ function formatConversationTime(value: string) {
   });
 }
 
+/** The time a message was sent, in the small grey type the thread uses. */
+function MessageTime({ value, className }: { value: string; className?: string }) {
+  return (
+    <time
+      dateTime={value}
+      className={cn("shrink-0 whitespace-nowrap text-[11px] leading-5 text-gray-01", className)}
+    >
+      {formatConversationTime(value)}
+    </time>
+  );
+}
+
+/**
+ * A message's text with its time on the right-hand end of the last line.
+ *
+ * The time is pinned to the bottom-right corner, and an invisible spacer the
+ * width of the time trails the text. When the last line has room, the spacer
+ * sits beside the words and the time lines up with them; when the last line is
+ * full, the spacer wraps and the time drops onto a short line of its own
+ * underneath, so it never covers the text.
+ */
+function TimedText({
+  text,
+  time,
+  className,
+}: {
+  text: string;
+  time: string;
+  className?: string;
+}) {
+  return (
+    <div className="relative">
+      <p className={cn("whitespace-pre-wrap break-words text-sm leading-5", className)}>
+        {text}
+        <span aria-hidden="true" className="inline-block w-12" />
+      </p>
+      <MessageTime value={time} className="absolute bottom-0 right-0" />
+    </div>
+  );
+}
+
+/** Files at the foot of a message, with its time level with the last file. */
+function TimedFiles({
+  ticketId,
+  files,
+  time,
+}: {
+  ticketId: string;
+  files: TicketAttachment[];
+  time: string;
+}) {
+  return (
+    <div className="flex items-end gap-2">
+      <div className="min-w-0 flex-1">
+        {files.map((attachment) => (
+          <TicketAttachmentCard
+            key={attachment.id}
+            ticketId={ticketId}
+            attachment={attachment}
+            compact
+          />
+        ))}
+      </div>
+      <MessageTime value={time} />
+    </div>
+  );
+}
+
 function TicketAttachmentCard({
   ticketId,
   attachment,
@@ -375,11 +443,11 @@ export default function TicketDetail() {
                           await setFollowing({ id, following }).unwrap();
                           toast.success(
                             following
-                              ? "You are following this ticket"
-                              : "Ticket notifications stopped",
+                              ? "You will be notified about this ticket."
+                              : "Notifications muted.",
                           );
                         } catch {
-                          toast.error("Unable to update ticket notifications");
+                          toast.error("We could not change your notifications.");
                         }
                       }}
                     />
@@ -424,16 +492,9 @@ export default function TicketDetail() {
                               key={`${day.key}-${group.author.id}-${groupIndex}`}
                               className="space-y-1.5"
                             >
-                              <div className="flex items-baseline gap-3">
-                                <p className="min-w-0 text-sm font-semibold">
-                                  {group.author.name}
-                                </p>
-                                <time className="ml-auto shrink-0 text-[11px] text-gray-01">
-                                  {formatConversationTime(
-                                    group.items.at(-1)?.createdAt ?? "",
-                                  )}
-                                </time>
-                              </div>
+                              <p className="min-w-0 text-sm font-semibold">
+                                {group.author.name}
+                              </p>
                               <div className="space-y-1">
                                 {group.items.map((item) => {
                                   if (item.kind === "attachment") {
@@ -442,10 +503,10 @@ export default function TicketDetail() {
                                         key={item.id}
                                         className="rounded-md border border-white-02 bg-white px-3 py-2"
                                       >
-                                        <TicketAttachmentCard
+                                        <TimedFiles
                                           ticketId={id}
-                                          attachment={item.attachment}
-                                          compact
+                                          files={[item.attachment]}
+                                          time={item.createdAt}
                                         />
                                       </div>
                                     );
@@ -467,22 +528,31 @@ export default function TicketDetail() {
                                           Internal note
                                         </p>
                                       )}
-                                      <p
-                                        className={cn(
-                                          "whitespace-pre-wrap text-sm leading-5",
-                                          commentItem.visibility === "INTERNAL" && "mt-1",
-                                        )}
-                                      >
-                                        {commentItem.body}
-                                      </p>
-                                      {commentItem.attachments.map((attachment) => (
-                                        <TicketAttachmentCard
-                                          key={attachment.id}
-                                          ticketId={id}
-                                          attachment={attachment}
-                                          compact
+                                      {commentItem.attachments.length > 0 ? (
+                                        <>
+                                          <p
+                                            className={cn(
+                                              "whitespace-pre-wrap break-words text-sm leading-5",
+                                              commentItem.visibility === "INTERNAL" && "mt-1",
+                                            )}
+                                          >
+                                            {commentItem.body}
+                                          </p>
+                                          <TimedFiles
+                                            ticketId={id}
+                                            files={commentItem.attachments}
+                                            time={item.createdAt}
+                                          />
+                                        </>
+                                      ) : (
+                                        <TimedText
+                                          text={commentItem.body}
+                                          time={item.createdAt}
+                                          className={cn(
+                                            commentItem.visibility === "INTERNAL" && "mt-1",
+                                          )}
                                         />
-                                      ))}
+                                      )}
                                     </div>
                                   );
                                 })}

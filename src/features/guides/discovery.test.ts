@@ -214,8 +214,8 @@ describe("guide discovery", () => {
       "workflow.delegate-and-track",
     ]);
     expect(recentlyReviewedGuides(visible, 2).map((guide) => guide.id)).toEqual([
+      "troubleshooting.prepare-support-ticket",
       "workflow.review-and-act",
-      "getting-started.activate-and-sign-in",
     ]);
   });
 });

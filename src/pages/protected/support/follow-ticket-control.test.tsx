@@ -22,7 +22,7 @@ afterEach(async () => {
 });
 
 describe("FollowTicketControl", () => {
-  it("offers to follow a ticket and sends the enabled state", async () => {
+  it("offers to unmute a muted ticket and sends the following state", async () => {
     const onChange = vi.fn();
     await act(async () => {
       root.render(
@@ -31,15 +31,15 @@ describe("FollowTicketControl", () => {
     });
 
     const button = container.querySelector("button");
-    expect(button?.textContent).toContain("Follow ticket");
-    expect(button?.getAttribute("aria-pressed")).toBe("false");
+    expect(button?.textContent).toContain("Unmute");
+    expect(button?.getAttribute("aria-pressed")).toBe("true");
     expect(container.textContent).not.toContain("Notifications");
     expect(container.textContent).not.toContain("Commenting follows this ticket automatically");
     await act(async () => button?.click());
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
-  it("offers to stop notifications without hiding the ticket", async () => {
+  it("offers to mute a followed ticket without hiding it", async () => {
     const onChange = vi.fn();
     await act(async () => {
       root.render(
@@ -48,8 +48,8 @@ describe("FollowTicketControl", () => {
     });
 
     const button = container.querySelector("button");
-    expect(button?.textContent).toContain("Stop notifications");
-    expect(button?.getAttribute("aria-pressed")).toBe("true");
+    expect(button?.textContent).toBe("Mute");
+    expect(button?.getAttribute("aria-pressed")).toBe("false");
     await act(async () => button?.click());
     expect(onChange).toHaveBeenCalledWith(false);
   });
