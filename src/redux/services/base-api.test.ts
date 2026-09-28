@@ -369,3 +369,57 @@ describe("a 403 on a read", () => {
     expect(dismissOpenDrawerForError).not.toHaveBeenCalled();
   });
 });
+
+describe("a post with no approval route", () => {
+  const refusal = () => new Response(JSON.stringify({
+    success: false,
+    message: "This journal has an approval path with no steps, so nobody will review it.",
+    error: { code: "APPROVAL_NOT_CONFIGURED" },
+  }), { status: 409, headers: { "content-type": "application/json" } });
+  const posted = () => new Response(JSON.stringify({ success: true, data: { id: 9 } }), {
+    status: 200, headers: { "content-type": "application/json" },
+  });
+  const api = {
+    endpoint: "postJournal",
+    getState: () => ({ auth: { tenant: { slug: "codex" } } }),
+    dispatch: vi.fn(),
+    signal: new AbortController().signal,
+    abort: vi.fn(),
+    extra: undefined,
+    type: "mutation" as const,
+  };
+  const post = { url: "/finance/journals/9/post/?entity=CREST", method: "POST", body: { memo: "x" } };
+
+  it("asks, and resends the same post with the confirmation and reason", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(refusal()).mockResolvedValueOnce(posted());
+    vi.stubGlobal("fetch", fetchMock);
+    const { subscribeToApprovalConfirm } = await import("@/lib/approval-confirm");
+    const stop = subscribeToApprovalConfirm((pending) => pending?.settle("Steps not built yet"));
+    const { baseQueryInterceptor } = await import("./base-api");
+
+    const result = await baseQueryInterceptor(post, api, {});
+    stop();
+
+    expect(result.error).toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const resent = fetchMock.mock.calls[1][0] as Request;
+    expect(await resent.json()).toEqual({
+      memo: "x", confirm_without_approval: true, reason: "Steps not built yet",
+    });
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  it("returns the refusal untouched when the reader declines", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(refusal());
+    vi.stubGlobal("fetch", fetchMock);
+    const { subscribeToApprovalConfirm } = await import("@/lib/approval-confirm");
+    const stop = subscribeToApprovalConfirm((pending) => pending?.settle(null));
+    const { baseQueryInterceptor } = await import("./base-api");
+
+    const result = await baseQueryInterceptor(post, api, {});
+    stop();
+
+    expect(result.error?.status).toBe(409);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});

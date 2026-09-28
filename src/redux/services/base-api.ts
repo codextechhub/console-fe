@@ -28,6 +28,7 @@ import {
 } from "@/utils/connectivity";
 import { FINANCE_TAG_TYPES } from "@xvs/finance/redux/tag-types";
 import { getAccessToken } from "@/utils/access-token";
+import { askToPostWithoutApproval } from "@/lib/approval-confirm";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -368,6 +369,33 @@ export const baseQueryInterceptor: BaseQueryFn<
     reportRequestSuccess();
   } else if (res?.status === "FETCH_ERROR" || res?.status === "TIMEOUT_ERROR") {
     reportTransportFailure({ notifyOnBlip: !silent && !isAuthRoute(args) });
+  }
+
+  // An empty approval route: a question to ask, not an error to report. Answered
+  // yes, the same request is sent again with the confirmation and the reason,
+  // and its result becomes this call's, so the screen that posted simply
+  // succeeds. Answered no, the refusal is returned untouched.
+  if (
+    res?.status === 409 &&
+    res?.data?.error?.code === "APPROVAL_NOT_CONFIGURED" &&
+    typeof args !== "string"
+  ) {
+    const reason = await askToPostWithoutApproval(
+      String(res?.data?.message ?? "Nobody will review this document."),
+    );
+    if (reason === null) return result;
+    return baseQueryWithTenant(
+      {
+        ...args,
+        body: {
+          ...((args.body as Record<string, unknown>) ?? {}),
+          confirm_without_approval: true,
+          reason,
+        },
+      },
+      api,
+      extraOptions,
+    );
   }
 
   if (res?.status === 409) {

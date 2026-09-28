@@ -17,6 +17,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/store";
 import { useTokenRefresh } from "@/hooks/use-token-refresh";
 import { useSessionTimeout } from "@/hooks/use-session-timeout";
 import { SessionTimeoutModal } from "@/components/session-timeout-modal";
+import { ApprovalConfirmDialog } from "@/components/approval-confirm-dialog";
 import { startNavigationProgress, TopProgressBar } from "@/components/custom/top-progress-bar";
 import { NotificationsBell } from "@/components/custom/notifications-bell";
 import { useLogout } from "@/hooks/use-logout";
@@ -899,6 +900,7 @@ export default function DashboardLayout() {
             <Outlet />
           </div>
         </SidebarInset>
+        <ApprovalConfirmDialog />
       </SidebarProvider>
     </DashboardHeaderContext>
     </WalkthroughProvider>
