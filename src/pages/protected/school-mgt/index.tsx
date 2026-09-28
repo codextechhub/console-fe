@@ -236,7 +236,7 @@ export default function SchoolManagement() {
         datasetType="schools"
         title="Bulk upload schools"
         description="Upload, validate and publish schools without leaving School Management."
-        returnLabel="School Management"
+        returnLabel="Back to School Management"
         onClose={() => setBulkImportOpen(false)}
         onFinished={() => {
           void refetch();

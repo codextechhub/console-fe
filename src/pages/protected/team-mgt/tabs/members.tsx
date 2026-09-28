@@ -469,7 +469,7 @@ export default function MembersTab({
           datasetType="cx_users"
           title="Bulk upload CX users"
           description="Upload, validate and publish CX users without leaving the users screen."
-          returnLabel="CX Users"
+          returnLabel="Back to CX Users"
           onClose={() => setBulkImportOpen(false)}
           onFinished={() => { void refetch(); }}
         />

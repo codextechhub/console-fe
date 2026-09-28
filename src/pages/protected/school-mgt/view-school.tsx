@@ -581,7 +581,7 @@ export default function ViewSchool() {
         datasetType="branches"
         title="Bulk upload school branches"
         description="Upload, validate and publish branches without leaving this school."
-        returnLabel="School Branches"
+        returnLabel="Back to School Branches"
         onClose={() => setBulkImportOpen(false)}
         onFinished={() => { void refetch(); }}
       />
