@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import {
-  CheckCircle2, Clock3, FileCheck2, FileText, Loader2, LockKeyhole,
+  CheckCircle2, ChevronLeft, ChevronRight, Clock3, FileCheck2, FileText, Loader2, LockKeyhole,
   Mail, Paperclip, Save, Send, ShieldCheck, UploadCloud,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AuthToaster } from "@/components/ui/sonner";
@@ -43,6 +44,7 @@ type Draft = {
 
 const smallestUnit = (value: string) => Math.round(Number(value || 0) * 100);
 const majorUnit = (value: number) => (value / 100).toFixed(2);
+const displayQuantity = (value: string) => value.includes(".") ? value.replace(/0+$/, "").replace(/\.$/, "") : value;
 const money = (value: number, currency: string) => new Intl.NumberFormat(undefined, {
   style: "currency", currency: currency || "NGN",
 }).format(value / 100);
@@ -147,7 +149,7 @@ function Verification({ token, preview, onVerified }: {
         <div>
           <p className="font-mont text-xs font-semibold uppercase tracking-wide text-primary">{preview.rfq_number}</p>
           <h1 className="mt-1 font-mont text-xl font-semibold">Quotation invitation for {preview.vendor_name}</h1>
-          <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-05"><Clock3 className="size-3.5" /> {preview.deadline_display}</p>
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-05"><Clock3 className="size-3.5" /> Quotation closes: {preview.deadline_display}</p>
         </div>
       </div>
     </div>
@@ -184,7 +186,7 @@ function toDraft(form: PublicRfqForm): Draft {
       return {
         rfq_line: line.id,
         description: saved?.description || line.description,
-        quantity: saved?.quantity || line.quantity,
+        quantity: saved?.response_type === "NO_BID" ? "0" : displayQuantity(saved?.quantity || line.quantity),
         unitPrice: saved ? majorUnit(saved.unit_price) : "",
         response_type: saved?.response_type || "",
       };
@@ -198,6 +200,7 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
   const [savedAt, setSavedAt] = useState("");
   const [dirty, setDirty] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
+  const [imageIndex, setImageIndex] = useState<number | null>(null);
   const initialized = useRef(true);
   const [save, saveState] = useSavePublicRfqDraftMutation();
   const [submit, submitState] = useSubmitPublicRfqMutation();
@@ -205,6 +208,7 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
   const [decline, declineState] = useDeclinePublicRfqMutation();
   const [acknowledge, acknowledgeState] = useAcknowledgePublicRfqAmendmentMutation();
   const [upload, uploadState] = useUploadPublicRfqAttachmentMutation();
+  const imageFiles = data.attachments.filter((file) => file.content_type.startsWith("image/"));
 
   const payload = useMemo(() => ({
     reference: draft.reference,
@@ -220,16 +224,18 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
     })),
   }), [draft]);
 
-  const saveNow = useCallback(async (quiet = false) => {
-    if (!data.invitation.can_edit) return;
+  const saveNow = useCallback(async (quiet = false): Promise<boolean> => {
+    if (!data.invitation.can_edit) return false;
     try {
       const response = await save({ token, session, body: payload }).unwrap();
       setData(response.data);
       setDirty(false);
       setSavedAt(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
       if (!quiet) toast.success("Draft saved.");
+      return true;
     } catch (error) {
       if (!quiet) toast.error(apiErrorMessage(error, "Could not save the draft."));
+      return false;
     }
   }, [data.invitation.can_edit, payload, save, session, token]);
 
@@ -253,8 +259,17 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
       toast.error("Answer every requested line before submitting.");
       return;
     }
+    if (draft.lines.some((line) => line.response_type !== "NO_BID" &&
+      (!line.quantity || !Number.isFinite(Number(line.quantity)) || Number(line.quantity) <= 0 ||
+        !line.unitPrice || !Number.isFinite(Number(line.unitPrice)) || Number(line.unitPrice) < 0))) {
+      toast.error("Enter a quantity offered and unit price for every quoted item.");
+      return;
+    }
     try {
-      if (dirty) await saveNow(true);
+      if (dirty && !(await saveNow(true))) {
+        toast.error("Save the quotation before submitting. Check the quantities and prices.");
+        return;
+      }
       const response = await submit({ token, session }).unwrap();
       setData(response.data);
       setDraft(toDraft(response.data));
@@ -304,7 +319,7 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
       toast.error(apiErrorMessage(error, "Could not acknowledge the amendment."));
     }
   };
-  const openAttachment = async (id: number, name: string) => {
+  const downloadAttachment = async (id: number, name: string) => {
     try {
       const response = await fetch(`${backendUrl}/procurement/public/rfqs/${token}/attachments/${id}/`, {
         headers: { "X-RFQ-Session": session },
@@ -313,8 +328,6 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
       const url = URL.createObjectURL(await response.blob());
       const link = document.createElement("a");
       link.href = url;
-      link.target = "_blank";
-      link.rel = "noreferrer";
       link.download = name;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -329,12 +342,12 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
     <section className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="font-mont text-xs font-semibold uppercase tracking-wide text-primary">{data.rfq.number} · Version {data.rfq.version}</p>
+          <p className="font-mont text-xs font-semibold uppercase tracking-wide text-primary">{data.rfq.number} · RFQ version {data.rfq.version}{data.rfq.version === 1 ? " (original request)" : " (amended request)"}</p>
           <h1 className="mt-1 font-mont text-2xl font-semibold">{data.rfq.title || "Request for quotation"}</h1>
           <p className="mt-1 text-sm text-gray-05">Prepared for {data.vendor.name}</p>
         </div>
         <div className={`rounded-lg px-3 py-2 text-xs font-semibold ${data.invitation.expired ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"}`}>
-          <Clock3 className="mr-1.5 inline size-3.5" />{data.rfq.deadline_display}
+          <Clock3 className="mr-1.5 inline size-3.5" />Quotation closes: {data.rfq.deadline_display}
         </div>
       </div>
       {data.rfq.notes && <p className="mt-4 rounded-lg bg-[#f8fafc] p-3 text-sm leading-6 text-gray-01">{data.rfq.notes}</p>}
@@ -345,7 +358,7 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
     <section className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><h2 className="font-mont text-base font-semibold">Commercial details</h2><p className="mt-1 text-xs text-gray-05">Fields save automatically while the quotation is editable.</p></div>
-        <span className="text-xs text-gray-05">{saveState.isLoading ? "Saving..." : savedAt ? `Saved at ${savedAt}` : "Not saved yet"}</span>
+        {!readOnly && <span className="text-xs text-gray-05">{saveState.isLoading ? "Saving..." : dirty ? "Unsaved changes" : savedAt ? `Saved at ${savedAt}` : "Not saved yet"}</span>}
       </div>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Field label="Quotation reference"><Input value={draft.reference} onChange={(event) => updateHeader("reference", event.target.value)} disabled={readOnly} /></Field>
@@ -357,12 +370,13 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
 
     <section className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
       <h2 className="font-mont text-base font-semibold">Requested items</h2>
-      <p className="mt-1 text-xs text-gray-05">Answer every line as quoted, alternative offered, or not available.</p>
+      <p className="mt-1 text-xs text-gray-05">Answer every line as quoted, alternative offered, or not available. Enter how many you can supply, even if it is less than requested.</p>
       <div className="mt-4 space-y-3">{draft.lines.map((line, index) => <div key={line.rfq_line} className="rounded-lg border border-white-02 p-4">
-        <div className="flex items-start gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{index + 1}</span><div className="min-w-0"><p className="font-mont text-sm font-semibold">{data.rfq.lines[index]?.description}</p><p className="mt-1 text-xs text-gray-05">Requested quantity: {data.rfq.lines[index]?.quantity}</p></div></div>
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-4">
-          <Field label="Response"><select className="h-10 w-full rounded-md border border-input bg-white px-3 text-sm disabled:bg-gray-03" value={line.response_type} onChange={(event) => updateLine(index, { response_type: event.target.value as ResponseKind })} disabled={readOnly}><option value="">Choose response</option><option value="QUOTED">Quoted</option><option value="ALTERNATIVE">Alternative offered</option><option value="NO_BID">Not available / no-bid</option></select></Field>
+        <div className="flex items-start gap-3"><span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary">{index + 1}</span><div className="min-w-0"><p className="font-mont text-sm font-semibold">{data.rfq.lines[index]?.description}</p><p className="mt-1 text-xs text-gray-05">Requested quantity: {displayQuantity(data.rfq.lines[index]?.quantity || "0")}</p></div></div>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-5">
+          <Field label="Response"><select className="h-10 w-full rounded-md border border-input bg-white px-3 text-sm disabled:bg-gray-03" value={line.response_type} onChange={(event) => { const response_type = event.target.value as ResponseKind; updateLine(index, { response_type, quantity: response_type === "NO_BID" ? "0" : line.quantity === "0" ? displayQuantity(data.rfq.lines[index].quantity) : line.quantity }); }} disabled={readOnly}><option value="">Choose response</option><option value="QUOTED">Quoted</option><option value="ALTERNATIVE">Alternative offered</option><option value="NO_BID">Not available / no-bid</option></select></Field>
           <Field label="Description" className="sm:col-span-2"><Input value={line.description} onChange={(event) => updateLine(index, { description: event.target.value })} disabled={readOnly || line.response_type !== "ALTERNATIVE"} /></Field>
+          <Field label="Quantity offered"><Input type="number" min="0.0001" step="any" value={line.quantity} onChange={(event) => updateLine(index, { quantity: event.target.value })} disabled={readOnly || !line.response_type || line.response_type === "NO_BID"} /></Field>
           <Field label={`Unit price (${data.rfq.currency})`}><Input type="number" min="0" step="0.01" value={line.unitPrice} onChange={(event) => updateLine(index, { unitPrice: event.target.value })} disabled={readOnly || !line.response_type || line.response_type === "NO_BID"} /></Field>
         </div>
       </div>)}</div>
@@ -371,14 +385,76 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
 
     <section className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-mont text-base font-semibold">Supporting documents</h2><p className="mt-1 text-xs text-gray-05">Up to five PDF or image files, 500KB each.</p></div>{!readOnly && <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm font-medium hover:bg-gray-02"><UploadCloud className="size-4" />{uploadState.isLoading ? "Uploading..." : "Upload file"}<input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="sr-only" disabled={uploadState.isLoading} onChange={(event) => void uploadFile(event.target.files?.[0])} /></label>}</div>
-      <div className="mt-4 space-y-2">{data.attachments.length ? data.attachments.map((file) => <div key={file.id} className="flex items-center gap-3 rounded-lg border border-white-02 p-3"><Paperclip className="size-4 text-gray-05" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-gray-05">{Math.ceil(file.size / 1024)}KB · Revision {file.revision}</p></div><Button size="sm" variant="outline" onClick={() => void openAttachment(file.id, file.name)}>Open</Button></div>) : <p className="rounded-lg bg-[#f8fafc] p-4 text-center text-sm text-gray-05">No supporting documents uploaded.</p>}</div>
+      <div className="mt-4 space-y-2">{data.attachments.length ? data.attachments.map((file) => <div key={file.id} className="flex items-center gap-3 rounded-lg border border-white-02 p-3"><Paperclip className="size-4 text-gray-05" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-gray-05">{Math.ceil(file.size / 1024)}KB · Revision {file.revision}</p></div>{file.content_type.startsWith("image/") ? <Button size="sm" variant="outline" onClick={() => setImageIndex(imageFiles.findIndex((image) => image.id === file.id))}>View image</Button> : <Button size="sm" variant="outline" onClick={() => void downloadAttachment(file.id, file.name)}>Download PDF</Button>}</div>) : <p className="rounded-lg bg-[#f8fafc] p-4 text-center text-sm text-gray-05">No supporting documents uploaded.</p>}</div>
     </section>
 
     <section className="flex flex-col-reverse gap-3 rounded-xl bg-white p-5 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
       {data.invitation.can_edit && <><div className="mr-auto flex min-w-0 flex-1 flex-col gap-2 sm:max-w-md sm:flex-row"><Input value={declineReason} onChange={(event) => setDeclineReason(event.target.value)} placeholder="Optional reason for declining" /><Button variant="outline" onClick={declineNow} loading={declineState.isLoading}>Decline</Button></div><Button variant="outline" onClick={() => void saveNow()} loading={saveState.isLoading}><Save className="size-4" /> Save draft</Button><Button onClick={submitNow} disabled={data.invitation.requires_acknowledgement} loading={submitState.isLoading}><Send className="size-4" /> Submit quotation</Button></>}
       {data.invitation.can_revise && <Button onClick={reviseNow} loading={reviseState.isLoading}><FileCheck2 className="size-4" /> Withdraw and revise</Button>}
     </section>
+    {imageIndex !== null && <AttachmentImageViewer files={imageFiles} index={imageIndex} onIndexChange={setImageIndex} onClose={() => setImageIndex(null)} token={token} session={session} />}
   </div>;
+}
+
+/** Displays session-protected vendor images without exposing the session token in a URL. */
+function AttachmentImageViewer({ files, index, onIndexChange, onClose, token, session }: {
+  files: PublicRfqForm["attachments"];
+  index: number;
+  onIndexChange: (index: number) => void;
+  onClose: () => void;
+  token: string;
+  session: string;
+}) {
+  const file = files[index];
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft" && index > 0) onIndexChange(index - 1);
+      if (event.key === "ArrowRight" && index < files.length - 1) onIndexChange(index + 1);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [files.length, index, onIndexChange]);
+
+  return <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <DialogContent className="max-h-[calc(100vh-2rem)] overflow-hidden p-4 sm:max-w-[min(960px,calc(100vw-2rem))] sm:p-6">
+      <div className="min-w-0 pr-8"><DialogTitle className="truncate">{file?.name || "Image"}</DialogTitle><DialogDescription>Image {index + 1} of {files.length}</DialogDescription></div>
+      <div className="flex min-h-48 items-center justify-center overflow-hidden rounded-lg bg-[#f4f7fb] sm:min-h-80">
+        {file && <VendorAttachmentImage key={file.id} file={file} token={token} session={session} />}
+      </div>
+      {files.length > 1 && <div className="flex flex-wrap items-center justify-between gap-3"><Button variant="outline" disabled={index === 0} onClick={() => onIndexChange(index - 1)}><ChevronLeft className="size-4" /> Previous</Button><span className="text-xs text-gray-05">{index + 1} / {files.length}</span><Button variant="outline" disabled={index === files.length - 1} onClick={() => onIndexChange(index + 1)}>Next <ChevronRight className="size-4" /></Button></div>}
+    </DialogContent>
+  </Dialog>;
+}
+
+/** Loads one protected image and releases its object URL when the viewer changes files. */
+function VendorAttachmentImage({ file, token, session }: {
+  file: PublicRfqForm["attachments"][number]; token: string; session: string;
+}) {
+  const [imageUrl, setImageUrl] = useState("");
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let objectUrl = "";
+    void fetch(`${backendUrl}/procurement/public/rfqs/${token}/attachments/${file.id}/`, {
+      headers: { "X-RFQ-Session": session }, signal: controller.signal,
+    }).then(async (response) => {
+      if (!response.ok) throw new Error("Attachment unavailable");
+      const blob = await response.blob();
+      if (!blob.type.startsWith("image/")) throw new Error("Attachment is not an image");
+      objectUrl = URL.createObjectURL(blob);
+      if (!controller.signal.aborted) setImageUrl(objectUrl);
+    }).catch(() => {
+      if (!controller.signal.aborted) setError(true);
+    });
+    return () => {
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [file, session, token]);
+
+  return error ? <p className="p-6 text-center text-sm text-gray-05">Could not load this image. Close the viewer and try again.</p> : imageUrl ? <img src={imageUrl} alt={file.name} className="max-h-[70vh] max-w-full object-contain" /> : <Loader2 className="size-6 animate-spin text-gray-05" />;
 }
 
 function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
