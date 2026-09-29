@@ -6,6 +6,8 @@ import { useGetAllRolesQuery } from "@/redux/services/dashboard/role-api";
 import { useGetTeamMembersQuery } from "@/redux/services/dashboard/team-mgt-api";
 import { useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api";
 import { getTenantSlug } from "@/utils/tenant-context";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
 import type { HostBranch, HostPerson, HostPosition, HostQueryResult, HostRole } from "@xvs/finance/host";
 
 import {
@@ -35,9 +37,7 @@ export function useBranches(): HostQueryResult<HostBranch> {
  *
  *  In the contract rather than the package because the organogram is the
  *  console's own: platform-scoped, no tenant column, and a platform key on its
- *  endpoint. A school has none and answers with an empty list, which is why the
- *  package asks instead of querying - it was reaching this endpoint directly and
- *  answering 403 to every school administrator who opened the approver picker.
+ *  endpoint. The school app answers with the school's own chart instead.
  */
 export function usePositions(): HostQueryResult<HostPosition> {
   const { data, isLoading, isError } = useGetPositionsQuery({ page: 1, page_size: 200 });
@@ -50,6 +50,13 @@ export function usePositions(): HostQueryResult<HostPosition> {
     holders: p.current_holders?.length ?? 0,
   }));
   return { data: rows, isLoading, isError };
+}
+
+/** Whether the reader may route an approval step through CodeX's organogram:
+ *  the chart's own read key.
+ */
+export function useCanUseOrganogram(): boolean {
+  return usePermissions().hasPermission(P.VIEW_ORGANOGRAM);
 }
 
 export function useDirectory(): HostQueryResult<HostPerson> {
