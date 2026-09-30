@@ -8,7 +8,24 @@ import { useGetPositionsQuery } from "@/redux/services/dashboard/organogram-api"
 import { getTenantSlug } from "@/utils/tenant-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
-import type { HostBranch, HostPerson, HostPosition, HostQueryResult, HostRole } from "@xvs/finance/host";
+import type {
+  HostBranch, HostPerson, HostPosition, HostQueryResult, HostRole,
+} from "@xvs/finance/host";
+
+/**
+ * The reader's branch reach, as the package's `useReaderReach` host member
+ * reads it. Declared here rather than imported, so this host still compiles
+ * against a package version that does not ask for the member yet: a member
+ * the contract does not name is simply unused.
+ */
+interface HostReaderReach {
+  /** Whether the reader acts for the whole school. */
+  wholeSchool: boolean;
+  /** The reader's branches, or null for a whole-school reader. */
+  branchIds: number[] | null;
+  /** Whether every branch in `ids` is one the reader covers; empty is the whole school. */
+  covers: (ids: number[]) => boolean;
+}
 
 import {
   FINANCE_SETTINGS_SECTIONS, SETUP_SECTIONS,
@@ -91,6 +108,22 @@ export function useRoles(): HostQueryResult<HostRole> {
     assigned_users_count: role.assigned_users_count ?? 0,
   }));
   return { data: rows, isLoading, isError };
+}
+
+/** A platform operator acts for the whole of the tenant they work in.
+ *
+ *  Console staff are not posted to branches, and the approval paths, groups
+ *  and Dynamic Roles they configure are the platform's, so nothing they may
+ *  change is narrowed to a branch. One constant answer, so `covers` keeps its
+ *  identity across renders. */
+const WHOLE_TENANT_REACH: HostReaderReach = {
+  wholeSchool: true,
+  branchIds: null,
+  covers: () => true,
+};
+
+export function useReaderReach(): HostReaderReach {
+  return WHOLE_TENANT_REACH;
 }
 
 /** The console's own recently-opened trail. */
