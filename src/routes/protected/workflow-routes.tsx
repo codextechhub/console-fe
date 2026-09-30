@@ -26,7 +26,7 @@ export const workflowRoutes: RouteObject[] = [
   { path: W.APPROVAL_DETAIL_PATH, element: <ApprovalDetail />, handle: { title: "Approval", back: true } satisfies DashboardHandle },
   { path: W.MY_SUBMISSIONS, element: <MySubmissions />, handle: { title: "My Submissions" } satisfies DashboardHandle },
   { path: W.SUBMISSION_DETAIL_PATH, element: <SubmissionDetail />, handle: { title: "Submission", back: true } satisfies DashboardHandle },
-  { path: W.INSTANCES, element: <AllInstances />, handle: { title: "All Instances" } satisfies DashboardHandle },
+  { path: W.INSTANCES, element: <AllInstances />, handle: { title: "Manage Approvals" } satisfies DashboardHandle },
   { path: W.INSTANCE_DETAIL_PATH, element: <InstanceDetail />, handle: { title: "Instance", back: true } satisfies DashboardHandle },
   { path: W.TEAM_LOAD, element: <TeamLoad />, handle: { title: "Team Load" } satisfies DashboardHandle },
   { path: W.DELEGATIONS, element: <Delegations />, handle: { title: "Delegations" } satisfies DashboardHandle },

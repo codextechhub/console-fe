@@ -310,8 +310,8 @@ export const MAIN_NAV: MainNavEntry[] = [
       { title: "Approvals", url: R.WORKFLOW.APPROVALS },
       { title: "My Submissions", url: R.WORKFLOW.MY_SUBMISSIONS },
       { title: "Delegations", url: R.WORKFLOW.DELEGATIONS },
-      // All Instances + Team Load - admin monitoring, gated by view permission.
-      { title: "All Instances", url: R.WORKFLOW.INSTANCES, permission: P.VIEW_WORKFLOW_INSTANCES },
+      // Manage Approvals + Team Load - every request in the tenant, gated by view permission.
+      { title: "Manage Approvals", url: R.WORKFLOW.INSTANCES, permission: P.VIEW_WORKFLOW_INSTANCES },
       { title: "Team Load", url: R.WORKFLOW.TEAM_LOAD, permission: P.VIEW_WORKFLOW_INSTANCES },
       // Approvers - the groups and dynamic-role rules a stage can route to.
       { title: "Approvers", url: R.WORKFLOW.APPROVER_GROUPS, permission: P.VIEW_APPROVER_GROUPS },

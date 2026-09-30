@@ -34,8 +34,8 @@ export default function DelegateAndTrackApprovalsArticle() {
         <GuideCallout tone="danger" title="Delegation transfers decision authority">It does not transfer your account, role, or password. Never share credentials. Revoke an Active or Scheduled delegation when coverage is no longer authorized.</GuideCallout>
       </GuideSection>
 
-      <GuideSection id="monitor-workflow-load" title="Monitor workflow instances and team load">
-        <p>Users with workflow-instance access can use <strong>All Instances</strong> to filter every request by document type or status, and <strong>Team Load</strong> to compare active-stage counts by document type. Open an instance to inspect its document, stages, approver snapshots, and audit history.</p>
+      <GuideSection id="monitor-workflow-load" title="Manage Approvals and team load">
+        <p>Users with workflow-instance access can use <strong>Manage Approvals</strong> to filter every request by document type, status, stage, who raised it, who it waits on and how long it has waited, and <strong>Team Load</strong> to compare active-stage counts by document type. Open a request to inspect its document, stages, approvers, and audit history. Users who may also change approvers can swap, add or remove who approves a stage that has not finished, assign an upcoming stage in advance, or select several requests and replace one approver with another across all of them. Every change needs a reason and is kept in the request's history.</p>
         <GuideCallout tone="warning" title="Administrative recovery is exceptional"><strong>Cancel</strong> permanently ends a non-terminal instance and requires a reason. <strong>Reverse action</strong> preserves the original vote, records the reversal, and reopens the affected stage. Use these only with documented authority.</GuideCallout>
       </GuideSection>
 
@@ -55,7 +55,7 @@ export default function DelegateAndTrackApprovalsArticle() {
           "If a delegate is missing, confirm the person is active, the current date is inside the period, and the document type matches exactly.",
           "If both people appear unexpectedly, check whether Exclusive delegation was left off.",
           "If Resubmit is unavailable, confirm you own the request and its status is Returned.",
-          "If All Instances or Team Load is missing, request the workflow-instance viewing permission instead of relying on another user's session.",
+          "If Manage Approvals or Team Load is missing, request the workflow-instance viewing permission instead of relying on another user's session.",
         ]} />
       </GuideSection>
 

@@ -504,7 +504,7 @@ export const WALKTHROUGH_REGISTRY = [
       {
         id: "complete",
         title: "Track the result without bypassing the workflow",
-        body: "Use My Submissions for your requests and authorized All Instances or Team Load views for administration. Cancellation and vote reversal remain exceptional, reasoned, explicit actions.",
+        body: "Use My Submissions for your requests and authorized Manage Approvals or Team Load views for administration. Cancellation and vote reversal remain exceptional, reasoned, explicit actions.",
         advance: "next",
       },
     ],
