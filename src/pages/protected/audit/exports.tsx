@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNow } from "@/hooks/use-now";
 import { useNavigate } from "react-router";
 import {
-  CheckCircle2, Circle, Clock, Download, Loader2, Plus, RefreshCw, MoreVertical, XCircle,
+  CheckCircle2, Circle, Clock, Eye, Loader2, Plus, RefreshCw, MoreVertical, XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,7 @@ import {
 } from "@/redux/services/dashboard/audit-api";
 import type { AuditExportJob } from "@/redux/services/dashboard/audit-types";
 import { formatRelativeDate } from "@/utils/helpers";
-import { downloadAuthorisedFile } from "@/utils/attachment-download";
+import { previewAuthorisedFile } from "@/utils/attachment-download";
 import { toast } from "sonner";
 import { routesPath } from "@/routes/routes-path";
 import { ActorCell } from "./components/audit-cells";
@@ -263,7 +263,7 @@ function ExportDetailDrawer({
                       size="sm"
                       onClick={() => { onClose(); downloadExport(job); }}
                     >
-                      <Download className="size-3.5" /> Download CSV
+                      <Eye className="size-3.5" /> View CSV
                     </Button>
                   )}
                   <Button
@@ -340,7 +340,7 @@ function Pagination({
 async function downloadExport(job: Pick<AuditExportJob, "download_url" | "file_name" | "id">) {
   if (!job.download_url) return;
   try {
-    await downloadAuthorisedFile(job.download_url, job.file_name || `audit_export_${job.id}.csv`);
+    await previewAuthorisedFile(job.download_url, job.file_name || `audit_export_${job.id}.csv`);
   } catch (error) {
     toast.error(error instanceof Error ? error.message : "That export could not be downloaded.");
   }
@@ -597,7 +597,7 @@ function ExportRow({
             </DropdownMenuItem>
             {canDownload && (
               <DropdownMenuItem onClick={onDownload}>
-                <Download className="size-3.5 mr-2" /> Download CSV
+                <Eye className="size-3.5 mr-2" /> View CSV
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />

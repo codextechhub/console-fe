@@ -6,7 +6,7 @@ import {
   CalendarDays,
   CalendarClock,
   CreditCard,
-  Download,
+  Eye,
   FileCog,
   History,
   Loader2,
@@ -116,6 +116,7 @@ import {
 import CustomTable from "@/components/custom/custom-table";
 import { UserAvatar } from "@/components/custom/user-avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { showBlobPreview } from "@xvs/finance/components/finance-ui/file-preview-dialog";
 import { ConfigDialog } from "./config-dialog";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
@@ -168,14 +169,10 @@ export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
 
   const download = async () => {
     const result = await exportConfig().unwrap();
-    const url = URL.createObjectURL(
+    showBlobPreview(
+      `configuration-${new Date().toISOString().slice(0, 10)}.json`,
       new Blob([JSON.stringify(result.data, null, 2)], { type: "application/json" }),
     );
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `configuration-${new Date().toISOString().slice(0, 10)}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
   };
 
   return (
@@ -232,8 +229,8 @@ function PlatformOverview({
         description="Start with the platform identity and school onboarding defaults, then review access, audit and the low-level catalogue."
         action={canExport ? (
           <Button variant="outline" disabled={exporting} onClick={onExport}>
-            <Download className="size-4" />
-            {exporting ? "Exporting..." : "Export snapshot"}
+            <Eye className="size-4" />
+            {exporting ? "Opening..." : "View snapshot"}
           </Button>
         ) : undefined}
       />
@@ -1922,12 +1919,7 @@ function Audit() {
         return;
       }
       const csv = await exportAudit(filters).unwrap();
-      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `configuration-audit-${new Date().toISOString().slice(0, 10)}.csv`;
-      anchor.click();
-      URL.revokeObjectURL(url);
+      showBlobPreview(`configuration-audit-${new Date().toISOString().slice(0, 10)}.csv`, new Blob([csv], { type: "text/csv;charset=utf-8" }));
     } catch {
       toast.error("Filtered audit history could not be exported");
     }
@@ -1985,12 +1977,7 @@ function Audit() {
   const downloadQueuedExport = async (job: ConfigAuditExportJob) => {
     try {
       const blob = await downloadAuditExport(job.id).unwrap();
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = job.file_name || `configuration-audit-${job.id}.csv`;
-      anchor.click();
-      URL.revokeObjectURL(url);
+      showBlobPreview(job.file_name || `configuration-audit-${job.id}.csv`, blob);
     } catch {
       toast.error("This export is unavailable or has expired");
     }
@@ -2022,7 +2009,7 @@ function Audit() {
               </AlertDialogContent>
             </AlertDialog>
           ) : null}
-          {canExport ? <Button variant="outline" disabled={exportState.isFetching || queueState.isLoading} onClick={downloadAudit}><Download className="size-4" />{queueState.isLoading ? "Queueing..." : exportState.isFetching ? "Exporting..." : (q.data?.pagination?.totalItems ?? 0) > 5_000 ? "Queue full export" : "Export filtered"}</Button> : null}
+          {canExport ? <Button variant="outline" disabled={exportState.isFetching || queueState.isLoading} onClick={downloadAudit}><Eye className="size-4" />{queueState.isLoading ? "Queueing..." : exportState.isFetching ? "Opening..." : (q.data?.pagination?.totalItems ?? 0) > 5_000 ? "Queue full export" : "View filtered export"}</Button> : null}
           <div className="w-full sm:w-44">
             <NativeSelect value={days} onChange={(event) => { setDays(event.target.value); setPage(1); }}>
               <option value="7">Last 7 days</option>
@@ -2088,7 +2075,7 @@ function Audit() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <AuditExportStatus job={job} />
-                  {job.download_available ? <Button size="sm" variant="outline" disabled={downloadState.isFetching} onClick={() => downloadQueuedExport(job)}><Download className="size-3.5" />Download</Button> : null}
+                  {job.download_available ? <Button size="sm" variant="outline" disabled={downloadState.isFetching} onClick={() => downloadQueuedExport(job)}><Eye className="size-3.5" />View</Button> : null}
                 </div>
               </div>
             ))}

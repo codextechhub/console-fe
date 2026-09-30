@@ -44,7 +44,7 @@ import {
 } from "@/redux/services/dashboard/exports-api";
 import type { DatasetField, ExportFormat } from "@/redux/services/dashboard/exports-types";
 import { routesPath } from "@/routes/routes-path";
-import { useFileDownload } from "@/pages/protected/export/use-file-download";
+import { openExportFilePreview } from "@xvs/finance/pages/export/use-file-preview";
 import { apiErrorMessage, errorStatus } from "@/utils/api-errors";
 import { formatBytes } from "@/utils/format-bytes";
 
@@ -165,11 +165,6 @@ export function QuickExportDrawer({
   // summary rail uses, so the number in the drawer is produced the same way as
   // everywhere else rather than guessed from a per-column byte count.
   const [reprice, { data: repriced, isLoading: repricing }] = usePreviewExportMutation();
-  // The same audited download the Files screen uses. Downloading through it (not
-  // by returning bytes from /quick/) is what keeps "who took this file" complete:
-  // the endpoint re-authorises the downloader and logs the attempt either way.
-  const { save, busyId } = useFileDownload();
-  const saving = busyId != null;
 
   const plan = data?.data;
   const status = errorStatus(error);
@@ -272,11 +267,11 @@ export function QuickExportDrawer({
 
   const capExceeded = plan?.warnings.some((w) => w.code === "ROW_CAP_EXCEEDED") ?? false;
 
-  // A small file is produced inline and downloaded here and then, so the button
-  // promises a download rather than a queue. This is a PREDICTION from the
-  // estimate: the server re-checks the real size and quietly queues instead if
-  // it turns out bigger, which is why the submit handler reads what actually
-  // came back rather than assuming a file did.
+  /**
+   * The estimate predicts whether the export opens immediately or is queued.
+   * The server checks the actual size again, so the submit handler follows its
+   * response instead of assuming the estimate describes the finished file.
+   */
   const expectSync = !!plan && plan.estimated_bytes <= SYNC_MAX_BYTES;
 
   const submit = async () => {
@@ -304,11 +299,11 @@ export function QuickExportDrawer({
       // the server may have queued it anyway (too big), or the run may have
       // failed, in which case it is terminal with no file.
       if (run?.file?.id && run.file.is_downloadable) {
-        await save({ id: run.file.id, name: run.file.name }, run.id);
+        openExportFilePreview(run.file);
         toast.success(
           run.status === "COMPLETED_WITH_OMISSIONS"
-            ? "Downloaded. Some data was left out - open the run to see what."
-            : "Export downloaded.",
+            ? "Partial file ready to view. Open the run to see what was omitted."
+            : "Export ready to view.",
           run.status === "COMPLETED_WITH_OMISSIONS" && run.id
             ? { action: { label: "View", onClick: () => navigate(routesPath.PROTECTED.EXPORT.RUN(run.id)) } }
             : undefined,
@@ -342,7 +337,7 @@ export function QuickExportDrawer({
     }
   };
 
-  return (
+  return <>
     <DetailDrawer
       open={open}
       onOpenChange={handleOpenChange}
@@ -369,14 +364,14 @@ export function QuickExportDrawer({
             // sideways and back again. Cancel is the button you reach for when a
             // run is taking too long - it must not move while you reach for it.
             className="min-w-40"
-            disabled={!plan || running || saving || isFetching || capExceeded || !chosen.length}
+            disabled={!plan || running || isFetching || capExceeded || !chosen.length}
           >
-            {running || saving
+            {running
               ? (expectSync ? "Preparing…" : "Queueing…")
               : plan && !plan.exact
                 ? "Run anyway"
                 : expectSync
-                  ? "Download export"
+                  ? "View export"
                   : "Run export"}
           </Button>
         </>
@@ -622,7 +617,7 @@ export function QuickExportDrawer({
         </div>
       ) : null}
     </DetailDrawer>
-  );
+  </>;
 }
 
 /** The button a list screen actually places in its toolbar.

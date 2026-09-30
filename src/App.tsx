@@ -3,6 +3,7 @@ import { router } from "./routes";
 import { TooltipProvider } from "./components/ui/tooltip.tsx";
 import AppProvider from "./redux/provider.tsx";
 import { ConnectivityBanner } from "./components/custom/connectivity-banner.tsx";
+import { FilePreviewHost } from "@xvs/finance/components/finance-ui/file-preview-dialog";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
       <AppProvider>
         <TooltipProvider>
           <RouterProvider router={router} />
+          <FilePreviewHost />
           {/* Outside the router so it survives route errors and covers the
               auth and public screens too. */}
           <ConnectivityBanner />

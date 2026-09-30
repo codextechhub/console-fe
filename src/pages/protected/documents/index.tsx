@@ -11,14 +11,13 @@
  * is a thing to navigate rather than a thing that helps, and the module number
  * is already the order the team refers to these documents in.
  *
- * Every file can be viewed or downloaded. View opens the document in a reader
- * over the page (see DocumentViewer); Download saves the .docx as the server
- * sends it. Both fetch with the signed-in session, because the endpoint needs
- * the bearer token and a plain link would arrive unauthenticated.
+ * Every file opens in the document reader, which offers the original .docx for
+ * download. The reader fetches with the signed-in session because the endpoint
+ * needs a bearer token.
  */
 
 import { useMemo, useState } from "react";
-import { Download, Eye, FileText, Search } from "lucide-react";
+import { Eye, FileText, Search } from "lucide-react";
 import KpiCard from "@/components/custom/kpi-card";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { DataTable, type Column } from "@/components/finance-ui/data-table";
@@ -32,7 +31,6 @@ import { useGetRequirementsDocumentsQuery } from "@/redux/services/dashboard/doc
 import type { RequirementsDocument } from "@/redux/services/dashboard/documents-types";
 import { formatBytes } from "@/utils/format-bytes";
 import { errorStatus } from "@/utils/api-errors";
-import { useDocumentDownload } from "./use-document-download";
 import { DocumentViewer, type ViewerTarget } from "./document-viewer";
 import { PageShell } from "@/components/layout/page-shell";
 
@@ -73,7 +71,6 @@ export default function DocumentsPage() {
     skip: !canView,
   });
 
-  const { save, busyKey } = useDocumentDownload();
 
   const documents = useMemo(() => data?.data.results ?? [], [data]);
   const visible = useMemo(() => documents.filter((d) => matches(d, query)), [documents, query]);
@@ -124,18 +121,6 @@ export default function DocumentsPage() {
             className="font-mont"
           >
             View
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            loading={busyKey === doc.slug}
-            onClick={(e) => {
-              e.stopPropagation();
-              save(doc);
-            }}
-            className="font-mont"
-          >
-            Download
           </Button>
         </div>
       ),
@@ -249,16 +234,6 @@ export default function DocumentsPage() {
                     >
                       <Eye className="size-3.5" />
                       View
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      loading={busyKey === `${openDoc.slug}@${version.version}`}
-                      onClick={() => save(openDoc, version.version)}
-                      className="font-mont"
-                    >
-                      <Download className="size-3.5" />
-                      Download
                     </Button>
                   </div>
                 </li>

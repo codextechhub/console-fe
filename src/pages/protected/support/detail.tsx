@@ -2,13 +2,13 @@
 // actions (edit, assignment, status transitions, audit history), each gated
 // by its tickets.* key. House kit: Dialog, Sheet, NativeSelect, Badge.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowLeft,
   ArrowUpRight,
   ChevronDown,
-  Download,
+  Eye,
   FileText,
   History,
   Image,
@@ -58,6 +58,7 @@ import { isPrimaryShortcut } from "@/utils/keyboard-shortcuts";
 import { useDashboardTitle } from "@/components/layout/dashboard-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FollowTicketControl } from "./follow-ticket-control";
+import { FilePreviewDialog, type PreviewFile } from "@xvs/finance/components/finance-ui/file-preview-dialog";
 import { PageShell } from "@/components/layout/page-shell";
 import {
   buildTicketConversationDays,
@@ -155,6 +156,7 @@ function TimedFiles({
             key={attachment.id}
             ticketId={ticketId}
             attachment={attachment}
+            siblings={files}
             compact
           />
         ))}
@@ -167,15 +169,34 @@ function TimedFiles({
 function TicketAttachmentCard({
   ticketId,
   attachment,
+  siblings,
   compact = false,
 }: {
   ticketId: string;
   attachment: TicketAttachment;
+  siblings: TicketAttachment[];
   compact?: boolean;
 }) {
   const [download, state] = useDownloadTicketAttachmentMutation();
   const [previewUrl, setPreviewUrl] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const isImage = attachment.content_type.startsWith("image/");
+  const files = useMemo<PreviewFile[]>(() => siblings.map((row) => {
+    const load = async (signal?: AbortSignal) => {
+      const url = await download({ id: ticketId, attachmentId: row.id }).unwrap();
+      try {
+        const response = await fetch(url, { signal });
+        return await response.blob();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    };
+    return {
+      id: row.id, name: row.original_filename, contentType: row.content_type, size: row.size,
+      loadPreview: load,
+      loadDownload: load,
+    };
+  }), [download, siblings, ticketId]);
 
   useEffect(() => {
     if (!isImage) return;
@@ -198,25 +219,11 @@ function TicketAttachmentCard({
     };
   }, [attachment.id, download, isImage, ticketId]);
 
-  const save = async () => {
-    try {
-      // Images were already fetched for the preview - reuse that object URL
-      // instead of downloading the file a second time.
-      const url = previewUrl || (await download({ id: ticketId, attachmentId: attachment.id }).unwrap());
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = attachment.original_filename;
-      anchor.click();
-      if (!previewUrl) URL.revokeObjectURL(url);
-    } catch {
-      toast.error("Unable to download this attachment");
-    }
-  };
-
   return (
+    <>
     <button
       type="button"
-      onClick={save}
+      onClick={() => setSelectedIndex(files.findIndex((row) => row.id === attachment.id))}
       className={cn(
         "flex w-full items-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50/70 text-left hover:border-primary/30 hover:bg-primary/5",
         compact ? "mt-1.5 max-w-xs gap-2 p-2" : "mt-3 max-w-sm gap-3 p-2.5",
@@ -245,8 +252,10 @@ function TicketAttachmentCard({
         <span className="block truncate text-xs font-medium text-black-01">{attachment.original_filename}</span>
         <span className="mt-0.5 block text-[11px] text-gray-01">{formatFileSize(attachment.size)}</span>
       </span>
-      {state.isLoading ? <Loader2 className="size-4 shrink-0 animate-spin" /> : <Download className="size-4 shrink-0 text-gray-01" />}
+      {state.isLoading ? <Loader2 className="size-4 shrink-0 animate-spin" /> : <Eye className="size-4 shrink-0 text-gray-01" />}
     </button>
+    <FilePreviewDialog files={files} index={selectedIndex} onIndexChange={setSelectedIndex} onClose={() => setSelectedIndex(null)} />
+    </>
   );
 }
 
@@ -719,7 +728,7 @@ export default function TicketDetail() {
                   </p>
                   <div className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1">
                     {attachmentPlacement.initial.map((attachment) => (
-                      <TicketAttachmentCard key={attachment.id} ticketId={id} attachment={attachment} />
+                      <TicketAttachmentCard key={attachment.id} ticketId={id} attachment={attachment} siblings={attachmentPlacement.initial} />
                     ))}
                   </div>
                 </div>

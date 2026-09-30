@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  RefreshCw, ChevronRight, Download, X,
+  RefreshCw, ChevronRight, Eye, X,
   Globe, Clock, User, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
+import { showBlobPreview } from "@xvs/finance/components/finance-ui/file-preview-dialog";
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -46,12 +47,7 @@ function exportToCsv(events: AuditEventListItem[], tab: string) {
     .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
     .join("\n");
   const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `my-activity-${tab}-${Date.now()}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  showBlobPreview(`my-activity-${tab}-${Date.now()}.csv`, blob);
 }
 
 // ── severity & module maps ─────────────────────────────────────────────────
@@ -247,7 +243,7 @@ export default function MyActivity() {
               onClick={() => exportToCsv(events, activeTab)}
               disabled={events.length === 0}
             >
-              <Download className="size-3.5" /> Download CSV
+              <Eye className="size-3.5" /> View CSV
             </Button>
             <Button
               variant="white"

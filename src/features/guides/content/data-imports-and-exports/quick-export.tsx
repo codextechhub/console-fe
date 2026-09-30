@@ -51,9 +51,9 @@ export default function QuickExportArticle() {
           <GuideStep title="Name the file and pick a format">
             The name is filled in for you and can be changed. Choose Excel or CSV.
           </GuideStep>
-          <GuideStep title="Select Download export, or Run export">
+          <GuideStep title="Select View export, or Run export">
             Small files are produced there and then, and the button says
-            <strong> Download export</strong> - the file saves as soon as it is ready.
+            <strong> View export</strong>. Check the file details, then use Download in the viewer to save it.
             Larger ones say <strong>Run export</strong> and are queued instead; use View on
             the confirmation, or go to Export to collect them.
           </GuideStep>
@@ -171,7 +171,7 @@ export default function QuickExportArticle() {
             solution="Files are removed 30 days after they are produced. Run the export again to get a fresh copy."
           />
           <Problem
-            title="It said Download export but nothing downloaded"
+            title="It said View export but no viewer opened"
             solution="The file turned out larger than the estimate suggested, so it was queued instead. The message tells you which happened - collect it under Export."
           />
           <Problem

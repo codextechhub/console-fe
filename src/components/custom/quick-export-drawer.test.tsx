@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
   plan: vi.fn(),
   runQuick: vi.fn(),
   reprice: vi.fn(),
-  save: vi.fn(),
+  open: vi.fn(),
   hasAllPermissions: vi.fn(),
 }));
 
@@ -30,8 +30,8 @@ vi.mock("@/redux/services/dashboard/exports-api", () => ({
   usePreviewExportMutation: () => [mocks.reprice, { data: undefined, isLoading: false }],
 }));
 
-vi.mock("@/pages/protected/export/use-file-download", () => ({
-  useFileDownload: () => ({ save: mocks.save, busyId: null }),
+vi.mock("@xvs/finance/pages/export/use-file-preview", () => ({
+  openExportFilePreview: mocks.open,
 }));
 
 vi.mock("@/hooks/use-permissions", () => ({
@@ -156,13 +156,13 @@ describe("QuickExportDrawer honesty contract", () => {
     expect(text).toContain("Run anyway");
   });
 
-  it("shows no warning and offers a direct download for a small file", () => {
+  it("shows no warning and offers a viewer for a small file", () => {
     mocks.plan.mockReturnValue(planData());
     render();
     const text = document.body.textContent ?? "";
     expect(text).not.toContain("This file will contain more than the table shows");
     // Small enough to run inline, so the button promises the file, not a queue.
-    expect(text).toContain("Download export");
+    expect(text).toContain("View export");
     expect(text).toContain("42");
   });
 
@@ -182,7 +182,7 @@ describe("QuickExportDrawer honesty contract", () => {
         );
       });
       const run = Array.from(document.body.querySelectorAll("button")).find(
-        (b) => /^Download export$/.test(b.textContent?.trim() ?? ""),
+        (b) => /^View export$/.test(b.textContent?.trim() ?? ""),
       );
       await act(async () => { run!.click(); });
       const key = mocks.runQuick.mock.calls[0][0].client_key;
@@ -220,7 +220,7 @@ describe("QuickExportDrawer honesty contract", () => {
     await act(async () => { sensitive.click(); });
 
     const run = Array.from(document.body.querySelectorAll("button")).find(
-      (b) => /^(Download|Run) export$/.test(b.textContent?.trim() ?? ""),
+      (b) => /^(View|Run) export$/.test(b.textContent?.trim() ?? ""),
     );
     await act(async () => { run!.click(); });
     expect(mocks.runQuick.mock.calls[0][0].columns).toContain("customer_email");
@@ -228,7 +228,7 @@ describe("QuickExportDrawer honesty contract", () => {
 
   // The server may queue instead of running inline; the drawer must react to
   // what came back rather than to what it asked for.
-  it("downloads the file when the run came back complete", async () => {
+  it("opens the file viewer when the run came back complete", async () => {
     mocks.plan.mockReturnValue(planData());
     mocks.runQuick.mockReturnValue({
       unwrap: () => Promise.resolve({
@@ -238,30 +238,30 @@ describe("QuickExportDrawer honesty contract", () => {
     });
     render();
     const run = Array.from(document.body.querySelectorAll("button")).find(
-      (b) => b.textContent?.trim() === "Download export",
+      (b) => b.textContent?.trim() === "View export",
     );
     await act(async () => { run!.click(); });
-    expect(mocks.save).toHaveBeenCalledWith({ id: 99, name: "invoices.xlsx" }, 7);
+    expect(mocks.open).toHaveBeenCalledWith(expect.objectContaining({ id: 99, name: "invoices.xlsx" }));
   });
 
-  it("does not claim a download when the server queued it instead", async () => {
+  it("does not open a viewer when the server queued it instead", async () => {
     mocks.plan.mockReturnValue(planData());
     mocks.runQuick.mockReturnValue({
       unwrap: () => Promise.resolve({ message: "Export queued successfully.", data: { id: 7, status: "QUEUED", file: null } }),
     });
     render();
     const run = Array.from(document.body.querySelectorAll("button")).find(
-      (b) => b.textContent?.trim() === "Download export",
+      (b) => b.textContent?.trim() === "View export",
     );
     await act(async () => { run!.click(); });
-    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.open).not.toHaveBeenCalled();
   });
 
   it("submits the server's config rather than anything re-derived on the client", async () => {
     mocks.plan.mockReturnValue(planData());
     render();
     const run = Array.from(document.body.querySelectorAll("button")).find(
-      (b) => b.textContent?.trim() === "Download export",
+      (b) => b.textContent?.trim() === "View export",
     );
     expect(run).toBeTruthy();
     await act(async () => { run!.click(); });
@@ -371,7 +371,7 @@ describe("QuickExportDrawer keeps the user's choices, not a copy of the plan", (
       const text = b.textContent?.trim() ?? "";
       return typeof label === "string" ? text === label : label.test(text);
     })!;
-  const runButton = () => byText(/^(Download|Run) export$/);
+  const runButton = () => byText(/^(View|Run) export$/);
 
   // Typing as React sees it. Assigning `.value` straight onto the node is
   // swallowed by React's value tracker, so go through the native setter and

@@ -1,6 +1,7 @@
 import { appendTenantQuery } from "./tenant-context";
 import { apiErrorMessage } from "./api-errors";
 import { getAccessToken } from "./access-token";
+import { showBlobPreview } from "@xvs/finance/components/finance-ui/file-preview-dialog";
 
 /**
  * Two things make an attachment URL not directly openable in an <a href>:
@@ -30,6 +31,19 @@ export function buildAttachmentUrl(storedUrl: string, base: string = apiBase): s
   return `${mediaOrigin(base)}${path}`;
 }
 
+/** Return protected media bytes to a caller that owns their preview lifetime. */
+export async function fetchAttachmentBlob(storedUrl: string, signal?: AbortSignal): Promise<Blob> {
+  const token = getAccessToken();
+  const response = await fetch(buildAttachmentUrl(storedUrl), {
+    headers: token && token !== "undefined" ? { Authorization: `Bearer ${token}` } : {},
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(response.status === 404 ? "That file is no longer available." : "Could not open the file.");
+  }
+  return response.blob();
+}
+
 /**
  * Fetch an attachment with the caller's token and open it in a new tab.
  *
@@ -40,18 +54,7 @@ export async function openAttachment(storedUrl: string, filename: string) {
   const win = window.open("", "_blank");
   if (!win) throw new Error("Allow pop-ups for this site to open the file.");
   try {
-    const token = getAccessToken();
-    const response = await fetch(buildAttachmentUrl(storedUrl), {
-      headers: token && token !== "undefined" ? { Authorization: `Bearer ${token}` } : {},
-    });
-    if (!response.ok) {
-      throw new Error(
-        response.status === 404
-          ? "That file is no longer available."
-          : "Could not open the file.",
-      );
-    }
-    const url = URL.createObjectURL(await response.blob());
+    const url = URL.createObjectURL(await fetchAttachmentBlob(storedUrl));
     win.location.href = url;
     // Long enough for the tab to load it; the browser holds its own reference after.
     window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
@@ -94,4 +97,9 @@ export async function downloadAuthorisedFile(path: string, filename: string): Pr
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+/** Show authenticated file details with a download action. */
+export async function previewAuthorisedFile(path: string, filename: string): Promise<void> {
+  showBlobPreview(filename, await fetchAttachmentBlob(appendTenantQuery(path)));
 }

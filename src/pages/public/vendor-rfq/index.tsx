@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import {
-  CheckCircle2, ChevronLeft, ChevronRight, Clock3, FileCheck2, FileText, Loader2, LockKeyhole,
+  CheckCircle2, Clock3, FileCheck2, FileText, Loader2, LockKeyhole,
   Mail, Paperclip, Save, Send, ShieldCheck, UploadCloud,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { FilePreviewDialog, type PreviewFile } from "@xvs/finance/components/finance-ui/file-preview-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AuthToaster } from "@/components/ui/sonner";
@@ -50,6 +50,15 @@ const money = (value: number, currency: string) => new Intl.NumberFormat(undefin
 }).format(value / 100);
 const backendUrl = String(import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");
 const logoUrl = (value?: string) => value ? `${backendUrl}${value.replace(/^\/v1/, "")}` : "";
+
+/** Vendor attachments use a verified session rather than the staff bearer token. */
+async function fetchVendorAttachment(token: string, session: string, id: number, signal?: AbortSignal): Promise<Blob> {
+  const response = await fetch(`${backendUrl}/procurement/public/rfqs/${token}/attachments/${id}/`, {
+    headers: { "X-RFQ-Session": session }, signal,
+  });
+  if (!response.ok) throw new Error("Attachment unavailable");
+  return response.blob();
+}
 
 function sessionKey(token: string) {
   return `vendor-rfq-session:${token}`;
@@ -200,7 +209,7 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
   const [savedAt, setSavedAt] = useState("");
   const [dirty, setDirty] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
-  const [imageIndex, setImageIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const initialized = useRef(true);
   const [save, saveState] = useSavePublicRfqDraftMutation();
   const [submit, submitState] = useSubmitPublicRfqMutation();
@@ -208,7 +217,14 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
   const [decline, declineState] = useDeclinePublicRfqMutation();
   const [acknowledge, acknowledgeState] = useAcknowledgePublicRfqAmendmentMutation();
   const [upload, uploadState] = useUploadPublicRfqAttachmentMutation();
-  const imageFiles = data.attachments.filter((file) => file.content_type.startsWith("image/"));
+  const previewFiles = useMemo<PreviewFile[]>(() => data.attachments.map((file) => ({
+    id: file.id,
+    name: file.name,
+    contentType: file.content_type,
+    size: file.size,
+    loadPreview: (signal) => fetchVendorAttachment(token, session, file.id, signal),
+    loadDownload: () => fetchVendorAttachment(token, session, file.id),
+  })), [data.attachments, session, token]);
 
   const payload = useMemo(() => ({
     reference: draft.reference,
@@ -319,23 +335,6 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
       toast.error(apiErrorMessage(error, "Could not acknowledge the amendment."));
     }
   };
-  const downloadAttachment = async (id: number, name: string) => {
-    try {
-      const response = await fetch(`${backendUrl}/procurement/public/rfqs/${token}/attachments/${id}/`, {
-        headers: { "X-RFQ-Session": session },
-      });
-      if (!response.ok) throw new Error("Attachment unavailable");
-      const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = name;
-      link.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch {
-      toast.error("Could not open the attachment.");
-    }
-  };
-
   if (data.invitation.expired && !data.latest_submission) return <Expired form={data} />;
   const readOnly = !data.invitation.can_edit;
   return <div className="space-y-5">
@@ -385,76 +384,15 @@ function QuotationWorkspace({ token, session, initial }: { token: string; sessio
 
     <section className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-mont text-base font-semibold">Supporting documents</h2><p className="mt-1 text-xs text-gray-05">Up to five PDF or image files, 500KB each.</p></div>{!readOnly && <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm font-medium hover:bg-gray-02"><UploadCloud className="size-4" />{uploadState.isLoading ? "Uploading..." : "Upload file"}<input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" className="sr-only" disabled={uploadState.isLoading} onChange={(event) => void uploadFile(event.target.files?.[0])} /></label>}</div>
-      <div className="mt-4 space-y-2">{data.attachments.length ? data.attachments.map((file) => <div key={file.id} className="flex items-center gap-3 rounded-lg border border-white-02 p-3"><Paperclip className="size-4 text-gray-05" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-gray-05">{Math.ceil(file.size / 1024)}KB · Revision {file.revision}</p></div>{file.content_type.startsWith("image/") ? <Button size="sm" variant="outline" onClick={() => setImageIndex(imageFiles.findIndex((image) => image.id === file.id))}>View image</Button> : <Button size="sm" variant="outline" onClick={() => void downloadAttachment(file.id, file.name)}>Download PDF</Button>}</div>) : <p className="rounded-lg bg-[#f8fafc] p-4 text-center text-sm text-gray-05">No supporting documents uploaded.</p>}</div>
+      <div className="mt-4 space-y-2">{data.attachments.length ? data.attachments.map((file, index) => <div key={file.id} className="flex items-center gap-3 rounded-lg border border-white-02 p-3"><Paperclip className="size-4 text-gray-05" /><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-gray-05">{Math.ceil(file.size / 1024)}KB · Revision {file.revision}</p></div><Button size="sm" variant="outline" onClick={() => setSelectedIndex(index)}>{file.content_type.startsWith("image/") ? "View image" : file.content_type === "application/pdf" ? "View PDF" : "View file"}</Button></div>) : <p className="rounded-lg bg-[#f8fafc] p-4 text-center text-sm text-gray-05">No supporting documents uploaded.</p>}</div>
     </section>
 
     <section className="flex flex-col-reverse gap-3 rounded-xl bg-white p-5 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
       {data.invitation.can_edit && <><div className="mr-auto flex min-w-0 flex-1 flex-col gap-2 sm:max-w-md sm:flex-row"><Input value={declineReason} onChange={(event) => setDeclineReason(event.target.value)} placeholder="Optional reason for declining" /><Button variant="outline" onClick={declineNow} loading={declineState.isLoading}>Decline</Button></div><Button variant="outline" onClick={() => void saveNow()} loading={saveState.isLoading}><Save className="size-4" /> Save draft</Button><Button onClick={submitNow} disabled={data.invitation.requires_acknowledgement} loading={submitState.isLoading}><Send className="size-4" /> Submit quotation</Button></>}
       {data.invitation.can_revise && <Button onClick={reviseNow} loading={reviseState.isLoading}><FileCheck2 className="size-4" /> Withdraw and revise</Button>}
     </section>
-    {imageIndex !== null && <AttachmentImageViewer files={imageFiles} index={imageIndex} onIndexChange={setImageIndex} onClose={() => setImageIndex(null)} token={token} session={session} />}
+    <FilePreviewDialog files={previewFiles} index={selectedIndex} onIndexChange={setSelectedIndex} onClose={() => setSelectedIndex(null)} />
   </div>;
-}
-
-/** Displays session-protected vendor images without exposing the session token in a URL. */
-function AttachmentImageViewer({ files, index, onIndexChange, onClose, token, session }: {
-  files: PublicRfqForm["attachments"];
-  index: number;
-  onIndexChange: (index: number) => void;
-  onClose: () => void;
-  token: string;
-  session: string;
-}) {
-  const file = files[index];
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "ArrowLeft" && index > 0) onIndexChange(index - 1);
-      if (event.key === "ArrowRight" && index < files.length - 1) onIndexChange(index + 1);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [files.length, index, onIndexChange]);
-
-  return <Dialog open onOpenChange={(open) => !open && onClose()}>
-    <DialogContent className="max-h-[calc(100vh-2rem)] overflow-hidden p-4 sm:max-w-[min(960px,calc(100vw-2rem))] sm:p-6">
-      <div className="min-w-0 pr-8"><DialogTitle className="truncate">{file?.name || "Image"}</DialogTitle><DialogDescription>Image {index + 1} of {files.length}</DialogDescription></div>
-      <div className="flex min-h-48 items-center justify-center overflow-hidden rounded-lg bg-[#f4f7fb] sm:min-h-80">
-        {file && <VendorAttachmentImage key={file.id} file={file} token={token} session={session} />}
-      </div>
-      {files.length > 1 && <div className="flex flex-wrap items-center justify-between gap-3"><Button variant="outline" disabled={index === 0} onClick={() => onIndexChange(index - 1)}><ChevronLeft className="size-4" /> Previous</Button><span className="text-xs text-gray-05">{index + 1} / {files.length}</span><Button variant="outline" disabled={index === files.length - 1} onClick={() => onIndexChange(index + 1)}>Next <ChevronRight className="size-4" /></Button></div>}
-    </DialogContent>
-  </Dialog>;
-}
-
-/** Loads one protected image and releases its object URL when the viewer changes files. */
-function VendorAttachmentImage({ file, token, session }: {
-  file: PublicRfqForm["attachments"][number]; token: string; session: string;
-}) {
-  const [imageUrl, setImageUrl] = useState("");
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    let objectUrl = "";
-    void fetch(`${backendUrl}/procurement/public/rfqs/${token}/attachments/${file.id}/`, {
-      headers: { "X-RFQ-Session": session }, signal: controller.signal,
-    }).then(async (response) => {
-      if (!response.ok) throw new Error("Attachment unavailable");
-      const blob = await response.blob();
-      if (!blob.type.startsWith("image/")) throw new Error("Attachment is not an image");
-      objectUrl = URL.createObjectURL(blob);
-      if (!controller.signal.aborted) setImageUrl(objectUrl);
-    }).catch(() => {
-      if (!controller.signal.aborted) setError(true);
-    });
-    return () => {
-      controller.abort();
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [file, session, token]);
-
-  return error ? <p className="p-6 text-center text-sm text-gray-05">Could not load this image. Close the viewer and try again.</p> : imageUrl ? <img src={imageUrl} alt={file.name} className="max-h-[70vh] max-w-full object-contain" /> : <Loader2 className="size-6 animate-spin text-gray-05" />;
 }
 
 function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
