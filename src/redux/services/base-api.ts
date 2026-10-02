@@ -29,6 +29,8 @@ import {
 import { FINANCE_TAG_TYPES } from "@xvs/finance/redux/tag-types";
 import { getAccessToken } from "@/utils/access-token";
 import { askToPostWithoutApproval } from "@/lib/approval-confirm";
+import { refusalMessage } from "@xvs/finance/lib/api-errors";
+import type { TenantDisplay } from "@xvs/finance/utils/dates";
 
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -40,6 +42,67 @@ const baseUrl = import.meta.env.VITE_BACKEND_URL;
  * interceptor stays silent for it.
  */
 const FIELD_WRITE_DENIED = "field_write_denied";
+
+/**
+ * The 409 codes a screen already shows itself, so the interceptor does not
+ * toast them a second time.
+ *
+ * Every other refused action (409) toasts; see {@link conflictMessage}. A code
+ * belongs here only when the backend sends it as 409 AND a screen answers it,
+ * inline or in a toast of its own. Some of these ride on endpoints marked
+ * `silent` as well; they are listed regardless, so this set is the whole
+ * answer to "which conflicts do the screens own". Codes are matched in either
+ * envelope spelling (`error.code` or a top-level `code`).
+ *
+ * A code listed here is silent on every endpoint that sends it, so before
+ * adding one, check that no other screen receives it without showing it.
+ */
+export const SCREEN_OWNED_CONFLICTS: ReadonlySet<string> = new Set([
+  // Asked as a question before this rule runs; a declined question is the reader's own answer.
+  "APPROVAL_NOT_CONFIGURED",
+  // Approver Groups keeps its delete dialog open and offers deactivation.
+  "APPROVER_GROUP_IN_USE",
+  // Dynamic Roles says in its delete dialog which stage still uses the role.
+  "DYNAMIC_ROLE_IN_USE",
+  // The no-approver prompt reports it as good news: the document went for review.
+  "NOT_PARKED",
+]);
+
+/** Said when a refused action carries no sentence of its own. */
+const CONFLICT_FALLBACK = "That could not be done right now. Refresh the page and try again.";
+
+/** The machine code on a refusal, from `error.code` or a top-level `code`. */
+const conflictCode = (data: unknown): string => {
+  const body = (data ?? {}) as { code?: unknown; error?: { code?: unknown } | null };
+  const code = body.error?.code ?? body.code;
+  return typeof code === "string" ? code : "";
+};
+
+/**
+ * The signed-in tenant's date preferences, read loosely.
+ *
+ * The console's own tenant carries no `display`, so its dates take the
+ * package defaults; while proxying, the session's tenant is the school's and
+ * carries that school's preferences.
+ */
+const readTenantDisplay = (getState: () => unknown): TenantDisplay | null => {
+  const display = (getState() as { auth?: { tenant?: { display?: unknown } | null } })
+    ?.auth?.tenant?.display;
+  return display && typeof display === "object" ? (display as TenantDisplay) : null;
+};
+
+/**
+ * The sentence for a refused action (HTTP 409).
+ *
+ * The finance package words the refusals its engines own, such as a delete of
+ * a record the law requires to be kept (`RECORD_RETAINED`), with the date in
+ * the tenant's own format, so that is asked first. Otherwise the top-level
+ * message stands: it is the backend's complete explanation, while
+ * `error.detail` holds context such as a period label that may be "<none>".
+ */
+const conflictMessage = (res: { data?: unknown }, getState: () => unknown): string =>
+  refusalMessage(res, readTenantDisplay(getState)) ??
+  apiErrorMessage(res?.data, CONFLICT_FALLBACK);
 
 /**
  * Endpoints that must never carry a (possibly stale) Bearer token. Sending one
@@ -301,8 +364,8 @@ const baseQueryWithTenant: BaseQueryFn<
 };
 
 /**
- * The app's response interceptor. Of its rules, one concerns permission
- * refusals: only a refused action raises the permission toast.
+ * The app's response interceptor. Of its rules, two concern refusals, and
+ * they share one principle: only a refused action raises a toast.
  *
  * Screens load more than their own list: a report asks for the fiscal periods,
  * cost centres and dimensions behind its filters, a drawer asks for related
@@ -311,6 +374,13 @@ const baseQueryWithTenant: BaseQueryFn<
  * and a screen that works reads as broken. The query's own error state is
  * where a refused read belongs; a refused save, post or send still toasts,
  * because the reader asked for it.
+ *
+ * The same holds for a conflict (409), where the server refuses an action
+ * because of the state of the record: a kept record cannot be deleted, a
+ * closed period cannot take a posting. Screens leave the toast to this
+ * interceptor, so a conflict it dropped would be a click that does nothing.
+ * It toasts unless the code is one a screen shows itself
+ * ({@link SCREEN_OWNED_CONFLICTS}).
  */
 export const baseQueryInterceptor: BaseQueryFn<
   string | FetchArgs,
@@ -399,13 +469,10 @@ export const baseQueryInterceptor: BaseQueryFn<
   }
 
   if (res?.status === 409) {
-    // Domain conflicts carry useful structured context in `error.detail`
-    // (period ids/statuses, lifecycle state, available balances), but the
-    // top-level message is the backend's complete user-facing explanation.
-    // Prefer it so a missing period does not degrade to a toast like "<none>".
-    if (!isAuthRoute(args)) {
-      notify(apiErrorMessage(res?.data));
-    }
+    if (SCREEN_OWNED_CONFLICTS.has(conflictCode(res?.data))) return result;
+    // A refused read is the screen's to answer: see the doc block above.
+    if (api.type === "query") return result;
+    if (!isAuthRoute(args)) notify(conflictMessage(res, api.getState));
     return result;
   }
 

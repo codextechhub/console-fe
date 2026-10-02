@@ -423,3 +423,104 @@ describe("a post with no approval route", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
+
+/**
+ * A refused action (409) is said out loud, or the click looks broken. Tobi, a
+ * CodeX operator proxying into Lagoon View, deletes last year's supplier bill;
+ * the law keeps it until the end of 2032, and they are told so in that school's
+ * date format. A conflict a screen already shows itself, or one on a read
+ * nobody asked for, stays quiet.
+ */
+describe("a refused action (409)", () => {
+  const conflict = (body: unknown) =>
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(body), {
+        status: 409,
+        headers: { "content-type": "application/json" },
+      }),
+    ));
+
+  /** A request against a school that writes dates as 31/12/2032. */
+  const stub = (type: "query" | "mutation") => ({
+    endpoint: type === "query" ? "getVendorInvoices" : "deleteVendorInvoice",
+    getState: () => ({
+      auth: { tenant: { slug: "lagoon-view", display: { date_format: "DD_MM_YYYY" } } },
+    }),
+    dispatch: vi.fn(),
+    signal: new AbortController().signal,
+    abort: vi.fn(),
+    extra: undefined,
+    type,
+  });
+
+  it("toasts the server's message", async () => {
+    conflict({
+      success: false,
+      message: "This period is being closed. Try again when the close has finished.",
+      error: { code: "PERIOD_CLOSE_ERROR", detail: {} },
+    });
+    const { baseQueryInterceptor } = await import("./base-api");
+
+    const result = await baseQueryInterceptor("/finance/periods/4/close/", stub("mutation"), {});
+
+    expect(result.error?.status).toBe(409);
+    expect(toastError).toHaveBeenCalledOnce();
+    expect(toastError).toHaveBeenCalledWith(
+      "This period is being closed. Try again when the close has finished.",
+    );
+  });
+
+  it("words a kept record's refusal with the date in the school's format", async () => {
+    conflict({
+      success: false,
+      message: "Supplier bill VI-0042 is a record the law requires to be kept until 2032-12-31, so it cannot be deleted.",
+      error: { code: "RECORD_RETAINED", detail: { retained_until: "2032-12-31" } },
+    });
+    const { baseQueryInterceptor } = await import("./base-api");
+
+    await baseQueryInterceptor(
+      { url: "/procurement/vendor-invoices/42/", method: "DELETE" },
+      stub("mutation"),
+      {},
+    );
+
+    expect(toastError).toHaveBeenCalledOnce();
+    expect(toastError).toHaveBeenCalledWith(
+      "This record is kept until 31/12/2032 and can't be deleted.",
+    );
+  });
+
+  it("stays quiet on a refused read", async () => {
+    conflict({
+      success: false,
+      message: "That record changed while it was being read.",
+      error: { code: "SOMETHING_CHANGED", detail: {} },
+    });
+    const { baseQueryInterceptor } = await import("./base-api");
+
+    const result = await baseQueryInterceptor("/procurement/vendor-invoices/", stub("query"), {});
+
+    expect(result.error?.status).toBe(409);
+    expect(toastError).not.toHaveBeenCalled();
+    expect(dismissOpenDrawerForError).not.toHaveBeenCalled();
+  });
+
+  it("stays quiet on a code the screen shows itself", async () => {
+    conflict({
+      success: false,
+      message: "This group is used by one or more workflow stages.",
+      error: { code: "APPROVER_GROUP_IN_USE", detail: { stages: ["PO:hod"] } },
+    });
+    const { baseQueryInterceptor } = await import("./base-api");
+
+    const result = await baseQueryInterceptor(
+      { url: "/workflow/approver-groups/7/", method: "DELETE" },
+      stub("mutation"),
+      {},
+    );
+
+    expect(result.error?.status).toBe(409);
+    expect(toastError).not.toHaveBeenCalled();
+    expect(dismissOpenDrawerForError).not.toHaveBeenCalled();
+  });
+});
