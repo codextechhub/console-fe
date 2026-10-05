@@ -26,6 +26,18 @@ export default function InvoiceAndAllocateReceiptArticle() {
         </GuideSteps>
       </GuideSection>
 
+      <GuideSection id="import-opening-balances" title="Bring in bills unpaid before go-live">
+        <p>When the books start on Console, customers may already owe on bills raised earlier. On <strong>Customers / Payers</strong>, select <strong>Import opening balances</strong>. It needs the opening balance import key.</p>
+        <GuideSteps>
+          <GuideStep title="Fill in the template">Select <strong>Download a template</strong>. Use one row per unpaid bill, at most 500 rows: <strong>customer</strong> (its code), <strong>invoice_date</strong>, <strong>due_date</strong>, <strong>amount</strong> (naira still owed), <strong>reference</strong>, <strong>period</strong>, <strong>narration</strong>, and at a school with several branches, <strong>branch</strong> (its name). Dates are YYYY-MM-DD or DD/MM/YYYY.</GuideStep>
+          <GuideStep title="Import it">Select <strong>Choose a CSV file</strong>, then <strong>Import</strong>. If any row is refused, nothing is imported: fix the rows it names and choose the file again.</GuideStep>
+        </GuideSteps>
+        <p>Each bill keeps its own date and branch, so it ages as the original did. A bill dated on or after the day the books went live is refused here; raise it as an ordinary invoice.</p>
+        <GuideCallout tone="info" title="An example">
+          Bright Star goes live on 1 September. Ola Bankole still owes ₦120,000 on a bill dated 10 May at Ikeja. Their row carries that date and Ikeja, so the debt ages from May at Ikeja rather than looking new on 1 September.
+        </GuideCallout>
+      </GuideSection>
+
       <GuideSection id="create-and-issue-the-invoice" title="Create and issue the invoice">
         <GuideChecklist items={[
           "Select the intended customer and active entity.",
