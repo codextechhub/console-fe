@@ -649,8 +649,8 @@ editor, assignment, approval, or automated repair action.
   Settings, Receivables. The invoice guide gains importing opening balances.
 - The payroll guide covers Finance Settings, Payroll (which it now owns instead of
   the foundations guide), tax and pension details, earlier pay, voluntary
-  deductions, payslips and the annual PAYE return, and says branch where it said
-  site.
+  deductions, payslips and the annual PAYE return, and calls every branch a
+  branch.
 - The close guide drops its "Do not force a close" advice in favour of a section
   on force close and its required reason, and covers branch-by-branch closing,
   Re-open year, archiving, Sealed Figures and record keeping. It owns Finance
