@@ -30,6 +30,7 @@ const FINANCE_OVERVIEW_REVIEWED_AT = "2026-09-26";
 const PROCUREMENT_OVERVIEW_REVIEWED_AT = "2026-09-26";
 const SCHOOL_CREATION_REVIEWED_AT = "2026-09-26";
 const REQUIREMENTS_VIEWER_REVIEWED_AT = "2026-09-26";
+const BRANCH_FINANCE_REVIEWED_AT = "2026-10-05";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -1192,21 +1193,21 @@ export const GUIDE_REGISTRY = [
     id: "finance.send-payouts-and-resolve-settlements",
     slug: "send-payouts-and-resolve-settlement-failures",
     title: "Send payouts and resolve settlement failures",
-    summary: "Prepare a payout or approval batch, follow provider confirmation, reconcile settlement evidence, and recover failed events without double-paying.",
+    summary: "Prepare a payout or approval batch, follow provider confirmation, book the provider's settlement of online payments, and recover failed events without double-paying.",
     category: "finance-and-payments",
     tags: ["payout", "batch", "disbursement", "settlement", "provider", "webhook", "failed", "reversed", "beneficiary"],
-    aliases: ["send payout", "pay vendor", "bulk disbursement", "payout batch", "payout failed", "settlement pending", "replay webhook", "payment reversed"],
+    aliases: ["send payout", "pay vendor", "bulk disbursement", "payout batch", "payout failed", "settlement pending", "replay webhook", "payment reversed", "book settlement", "gateway clearing", "paystack settlement", "provider fee"],
     audiences: ["finance-officer", "approver", "support-and-operations"],
     routes: [R.FINANCE.PAYMENTS, `${R.FINANCE.PAYMENTS}/payouts`, `${R.FINANCE.PAYMENTS}/batches`, `${R.FINANCE.PAYMENTS}/settlement`, `${R.FINANCE.PAYMENTS}/transactions`, `${R.FINANCE.PAYMENTS}/webhooks`, `${R.FINANCE.PAYMENTS}/held-settlements`, `${R.FINANCE.PAYMENTS}/held-reconciliations`],
     actionIds: ["view-payouts", "new-payout", "view-payout-batches", "view-settlement", "view-transactions-log", "view-payment-webhooks"],
-    access: { mode: "any", permissions: [P.PAY_VIEW_PAYOUTS, P.PAY_CREATE_PAYOUT, P.PAY_VIEW_PAYMENT_REPORTS, P.PAY_VIEW_WEBHOOKS] },
+    access: { mode: "any", permissions: [P.PAY_VIEW_PAYOUTS, P.PAY_CREATE_PAYOUT, P.PAY_VIEW_PAYMENT_REPORTS, P.PAY_CREATE_SETTLEMENT, P.PAY_VIEW_WEBHOOKS] },
     primaryRoute: `${R.FINANCE.PAYMENTS}/payouts`,
     sections: [
       { id: "before-you-start", title: "Before you start" },
       { id: "prepare-the-beneficiary", title: "Prepare the beneficiary and payable" },
       { id: "send-one-or-build-a-batch", title: "Send one payout or build a batch" },
       { id: "follow-provider-status", title: "Follow provider and posting status" },
-      { id: "reconcile-settlement", title: "Reconcile settlement evidence" },
+      { id: "reconcile-settlement", title: "Book the provider's settlement" },
       { id: "recover-a-failure", title: "Recover a failure without double-paying" },
       { id: "common-problems", title: "Common problems" },
       { id: "completion-check", title: "Completion check" },
@@ -1215,7 +1216,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.send-payouts-and-resolve-settlements",
     estimatedMinutes: 10,
     owner: OWNER,
-    reviewedAt: C6C_REVIEWED_AT,
+    reviewedAt: BRANCH_FINANCE_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
