@@ -199,7 +199,7 @@ phrases/aliases first, then we implement.
 | New journal entry | create journal, post journal | do | `FIN_SUBMIT_JOURNAL` *(confirm)* | `/finance/ledger?action=new` |
 | View entities | ledger entities | view | `FIN_VIEW_ENTITIES` | `/finance/setup/entities` |
 | Create entity | new entity | do | `FIN_CREATE_ENTITY` | `…/entities?action=new` |
-| View fiscal periods | periods | view | `FIN_VIEW_PERIODS` | `/finance/setup/periods` |
+| View fiscal periods | periods, reopen year, force close, archive year | view | `FIN_VIEW_PERIODS` | `/finance/setup/periods` |
 | View currencies & FX | fx rates | view | `FIN_VIEW_CURRENCIES` | `/finance/setup/currencies` |
 | View tax codes | - | view | `FIN_VIEW_TAX_CODES` | `/finance/setup/tax-codes` |
 | Create tax code | new tax code | do | `FIN_CREATE_TAX_CODE` | `…/tax-codes?action=new` |
@@ -210,7 +210,7 @@ phrases/aliases first, then we implement.
 ### Receivables
 | Action | Aliases | Kind | Gate | Destination |
 |---|---|---|---|---|
-| View customers | payers, customer list | view | `FIN_VIEW_CUSTOMERS` | `/finance/receivables/customers` |
+| View customers | payers, customer list, opening balances, payer links | view | `FIN_VIEW_CUSTOMERS` | `/finance/receivables/customers` |
 | Create customer | new payer | do | `FIN_CREATE_CUSTOMER` | `…/customers?action=new` |
 | View AR invoices | invoices, receivables | view | `FIN_VIEW_INVOICES` | `/finance/receivables/invoices` |
 | Create AR invoice | new invoice, raise invoice | do | `FIN_CREATE_INVOICE` | `…/invoices?action=new` |
@@ -232,21 +232,21 @@ phrases/aliases first, then we implement.
 ### Operations
 | Action | Aliases | Kind | Gate | Destination |
 |---|---|---|---|---|
-| View bank accounts | banking | view | `FIN_VIEW_BANK_ACCOUNTS` | `/finance/banking` |
+| View bank accounts | banking, split by branch, bank transfer, owner capital | view | `FIN_VIEW_BANK_ACCOUNTS` | `/finance/banking` |
 | Create bank account | new bank account | do | `FIN_CREATE_BANK_ACCOUNT` | `/finance/banking?action=new` |
 | View bank reconciliation | recon | view | `FIN_VIEW_BANK_ACCOUNTS` | `/finance/bank-reconciliation` |
 | Import bank statement | upload statement | do | `FIN_IMPORT_STATEMENT` | `/finance/bank-reconciliation?action=import` |
 | View expense claims | expenses, claims | view | `FIN_VIEW_EXPENSE_CLAIMS` | `/finance/expenses/claims` |
 | Create expense claim | new claim, raise expense | do | `FIN_CREATE_EXPENSE_CLAIM` | `…/claims?action=new` |
-| View petty cash | - | view | `FIN_VIEW_PETTY_CASH` | `/finance/expenses/petty-cash` |
+| View petty cash | reduce float, close petty cash fund, petty cash return | view | `FIN_VIEW_PETTY_CASH` | `/finance/expenses/petty-cash` |
 | New petty cash voucher | petty cash voucher | do | `FIN_CREATE_PETTY_CASH_VOUCHER` | `…/petty-cash?action=new-voucher` |
-| View payroll | payroll runs | view | `FIN_VIEW_PAYROLL` | `/finance/payroll` |
+| View payroll | payroll runs, earlier pay, previous employer, staff loan, payslips, pay history | view | `FIN_VIEW_PAYROLL` | `/finance/payroll` |
 | Create payroll run | new payroll | do | `FIN_CREATE_PAYROLL` | `/finance/payroll?action=new` |
 | View budgets | forecasts | view | `FIN_VIEW_BUDGETS` | `/finance/budgets/budgets` |
 | Create budget | new budget | do | `FIN_CREATE_BUDGET` | `…/budgets?action=new` |
 | View fixed assets | assets | view | `FIN_VIEW_FIXED_ASSETS` | `/finance/budgets/assets` |
 | Create fixed asset | new asset | do | `FIN_CREATE_FIXED_ASSET` | `…/assets?action=new` |
-| View tax remittance | tax | view | `FIN_VIEW_TAX` | `/finance/budgets/tax` |
+| View tax remittance | tax, annual PAYE return, branch share | view | `FIN_VIEW_TAX` | `/finance/budgets/tax` |
 
 ### Payments
 | Action | Aliases | Kind | Gate | Destination |
@@ -257,7 +257,7 @@ phrases/aliases first, then we implement.
 | View payouts | payments out | view | `PAY_VIEW_PAYOUTS` | `/finance/payments/payouts` |
 | **New payout** | **new payment**, raise payment, send money | do | `PAY_CREATE_PAYOUT` | `…/payouts?action=new` |
 | View payout batches | batches | view | `PAY_VIEW_PAYOUTS` | `/finance/payments/batches` |
-| View settlement | - | view | `PAY_VIEW_PAYMENT_REPORTS` | `/finance/payments/settlement` |
+| View settlement | book settlement | view | `PAY_VIEW_PAYMENT_REPORTS` | `/finance/payments/settlement` |
 | View transactions log | transactions | view | `PAY_VIEW_PAYMENT_REPORTS` | `/finance/payments/transactions` |
 
 ### Reports & Close
@@ -269,7 +269,19 @@ phrases/aliases first, then we implement.
 | View cash flow | - | view | `FIN_VIEW_REPORTS` | `/finance/reports/cash-flow` |
 | View changes in equity | - | view | `FIN_VIEW_REPORTS` | `/finance/reports/changes-in-equity` |
 | View cost & dimension analysis | analytics | view | `FIN_VIEW_REPORTS` | `/finance/reports/analytics` |
+| View periods and close | month end, close the month | view | `FIN_VIEW_PERIODS` | `/finance/reports/periods` *(not in the sidebar)* |
 | View finance audit trail | - | view | `FIN_VIEW_FINANCE_AUDIT` | `/finance/audit` |
+
+### Administration
+Finance Settings sections, each served at its own address but not listed in the
+sidebar, so the sidebar coverage test cannot see them.
+
+| Action | Aliases | Kind | Gate | Destination |
+|---|---|---|---|---|
+| View receivables settings | credit on new bills, concession limit, provision bands, deposit rules, payer payment split | view | `FIN_VIEW_SETTINGS` | `/finance/settings/receivables` |
+| View finance payroll settings | PAYE method, pension rates, earlier pay required, voluntary deductions | view | `FIN_VIEW_SETTINGS` | `/finance/settings/payroll` |
+| View record keeping | retention, archive age, how the next year opens | view | `FIN_VIEW_SETTINGS` | `/finance/settings/fiscal-calendar` |
+| View online payment settings | custody, held or direct, collection accounts, subaccount | view | all `FIN_VIEW_SETTINGS`, `PAY_VIEW_PAYMENT_SETTINGS` | `/finance/settings/banking-cash` |
 
 ---
 
@@ -285,9 +297,10 @@ phrases/aliases first, then we implement.
 | Create requisition | new requisition, raise PR, new PR | do | `PROC_CREATE_REQUISITION` | `…/requisitions?action=new` |
 | View purchase orders | PO, POs, purchase order | view | `PROC_VIEW_PURCHASE_ORDERS` | `/procurement/purchase-orders` |
 | Create purchase order | new PO | do | `PROC_CREATE_PURCHASE_ORDER` | `…/purchase-orders?action=new` |
-| View goods receipts | GRN, GRNs, goods receipt notes | view | `PROC_VIEW_GOODS_RECEIPTS` | `/procurement/goods-receipts` |
+| View goods receipts | GRN, GRNs, goods receipt notes, return goods | view | `PROC_VIEW_GOODS_RECEIPTS` | `/procurement/goods-receipts` |
 | Post goods receipt | new GRN, receive goods | do | `PROC_CREATE_GOODS_RECEIPT` | `…/goods-receipts?action=new` |
-| View vendor invoices | AP invoice(s), supplier invoice(s) | view | `PROC_VIEW_VENDOR_INVOICES` | `/procurement/vendor-invoices` |
+| View vendor invoices | AP invoice(s), supplier invoice(s), supplier credit note, void bill, opening bills | view | `PROC_VIEW_VENDOR_INVOICES` | `/procurement/vendor-invoices` |
+| View supplier credit notes | vendor credit note(s) | view | `PROC_VIEW_VENDOR_CREDIT_NOTES` | `/procurement/vendor-invoices?view=credit-notes` *(not in the sidebar)* |
 | Create vendor invoice | new vendor invoice, new AP invoice | do | `PROC_CREATE_VENDOR_INVOICE` | `…/vendor-invoices?action=new` |
 | View vendor payments | AP payment(s), supplier payment(s) | view | `PROC_VIEW_VENDOR_PAYMENTS` | `/procurement/vendor-payments` |
 | New vendor payment | pay vendor, **new payment** | do | `PROC_CREATE_VENDOR_PAYMENT` | `…/vendor-payments?action=new` |
@@ -301,13 +314,13 @@ phrases/aliases first, then we implement.
 | Create category | new category | do | `PROC_CREATE_CATEGORY` | `…/categories?action=new` |
 | View catalog | catalog items | view | `PROC_VIEW_CATALOG` | `/procurement/vendors/catalog` |
 | Add catalog item | new item | do | `PROC_CREATE_CATALOG_ITEM` | `…/catalog?action=new` |
-| View RFQs | RFQ, request(s) for quotation | view | `PROC_VIEW_RFQS` | `/procurement/sourcing/rfqs` |
+| View RFQs | RFQ, request(s) for quotation, buy together | view | `PROC_VIEW_RFQS` | `/procurement/sourcing/rfqs` |
 | Create RFQ | new RFQ | do | `PROC_CREATE_RFQ` | `…/rfqs?action=new` |
 | View quotations | quote(s), vendor quotes, supplier quotations | view | `PROC_VIEW_QUOTATIONS` | `/procurement/sourcing/quotations` |
 | Create quotation | new quote | do | `PROC_CREATE_QUOTATION` | `…/quotations?action=new` |
 | View contracts | - | view | `PROC_VIEW_CONTRACTS` | `/procurement/contracts` |
 | Create contract | new contract | do | `PROC_CREATE_CONTRACT` | `/procurement/contracts?action=new` |
-| View stock items | inventory, inventory items, stock | view | `PROC_VIEW_STOCK` | `/procurement/inventory/items` |
+| View stock items | inventory, inventory items, stock, transfer stock | view | `PROC_VIEW_STOCK` | `/procurement/inventory/items` |
 | Create stock item | new stock item, new inventory item | do | `PROC_CREATE_STOCK` | `/procurement/inventory/items?action=new` |
 | View stock movements | movements, inventory movements, stock ledger | view | `PROC_VIEW_STOCK` | `/procurement/inventory/movements` |
 | View procurement analytics | procurement reports, purchasing analytics | view | `PROC_VIEW_PROC_REPORTS` | `/procurement/analytics` |

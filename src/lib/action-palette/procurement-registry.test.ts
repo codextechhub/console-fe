@@ -175,3 +175,30 @@ describe("Procurement action visibility", () => {
     expect(matchedIds("purchase approvals", [])).toContain("view-procurement-approvals");
   });
 });
+
+describe("Supplier credit notes", () => {
+  it("opens the credit notes list on the Vendor Invoices screen", () => {
+    const action = byId("view-vendor-credit-notes");
+    expect(action.kind).toBe("view");
+    expect("to" in action.run && action.run.to).toBe(`${PR.VENDOR_INVOICES}?view=credit-notes`);
+  });
+
+  it("is offered on the key the credit notes list checks, not the bills key", () => {
+    // A reader holding only the credit notes key lands on that list; one
+    // holding only the bills key would be shown bills.
+    expect(matchedIds("supplier credit notes", [resolvePermissionKey(P.PROC_VIEW_VENDOR_CREDIT_NOTES)]))
+      .toContain("view-vendor-credit-notes");
+    expect(matchedIds("supplier credit notes", [resolvePermissionKey(P.PROC_VIEW_VENDOR_INVOICES)]))
+      .not.toContain("view-vendor-credit-notes");
+  });
+
+  it.each([
+    ["vendor credit note", "view-vendor-credit-notes"],
+    ["void bill", "view-vendor-invoices"],
+    ["return goods", "view-goods-receipts"],
+    ["transfer stock", "view-stock-items"],
+    ["buy together", "view-rfqs"],
+  ])("finds %s as %s", (query, id) => {
+    expect(matchedIds(query, BACKEND_KEY_CATALOGUE)).toContain(id);
+  });
+});
