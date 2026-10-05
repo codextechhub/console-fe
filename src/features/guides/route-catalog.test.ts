@@ -4,16 +4,13 @@ import {
   BUDGETS_SECTIONS,
   COLLECTIONS_SECTIONS,
   EXPENSES_SECTIONS,
+  INTER_BRANCH_PATH,
+  INTER_BRANCH_SECTIONS,
   PAYMENTS_SECTIONS,
   RECEIVABLES_SECTIONS,
   REPORTS_SECTIONS,
   SETUP_SECTIONS,
 } from "@/pages/protected/finance/console-sections";
-// The sections this app ROUTES, which is a narrower question than which ones
-// @xvs/finance defines: the package's list carries "fees", a school's rule
-// about its own academic calendar that CodeX has no use for and does not mount.
-// Reading the package's list here asked the catalogue to name a screen that
-// does not exist, and the guides audit then reported a missing guide for it.
 import { financeSettingsSections } from "@/xvs-host";
 import {
   ANALYTICS_SECTIONS,
@@ -26,6 +23,19 @@ import { routesPath } from "@/routes/routes-path";
 
 import { GUIDE_ROUTE_PATTERN_SET } from "./route-catalog";
 
+/**
+ * The guide route catalogue against the section lists the route table mounts.
+ *
+ * Every area that declares one route per section is read from the same list its
+ * routes are built from, so a section mounted without a catalogue entry fails
+ * here by name, and the guides coverage check can then ask for a guide for it.
+ *
+ * Finance Settings is read from the host's `financeSettingsSections`, the
+ * sections this app routes, rather than the package's full list: the package
+ * also defines "fees", a school's rule about its own academic calendar that
+ * the console does not mount.
+ */
+
 describe("guide route catalogue", () => {
   it("catalogues every named console section without permissive section wildcards", () => {
     const R = routesPath.PROTECTED;
@@ -34,6 +44,8 @@ describe("guide route catalogue", () => {
       ...RECEIVABLES_SECTIONS.map((section) => `${R.FINANCE.RECEIVABLES}/${section}`),
       ...COLLECTIONS_SECTIONS.map((section) => `${R.FINANCE.COLLECTIONS}/${section}`),
       ...EXPENSES_SECTIONS.map((section) => `${R.FINANCE.EXPENSES}/${section}`),
+      INTER_BRANCH_PATH,
+      ...INTER_BRANCH_SECTIONS.map((section) => `${INTER_BRANCH_PATH}/${section}`),
       ...BUDGETS_SECTIONS.map((section) => `${R.FINANCE.BUDGETS}/${section}`),
       ...PAYMENTS_SECTIONS.map((section) => `${R.FINANCE.PAYMENTS}/${section}`),
       ...REPORTS_SECTIONS.map((section) => `${R.FINANCE.REPORTS}/${section}`),
@@ -45,7 +57,7 @@ describe("guide route catalogue", () => {
       ...SETTINGS_SECTIONS.map((section) => `${R.SETTINGS.INDEX}/${section}`),
     ];
 
-    expect(namedRoutes.every((route) => GUIDE_ROUTE_PATTERN_SET.has(route))).toBe(true);
+    expect(namedRoutes.filter((route) => !GUIDE_ROUTE_PATTERN_SET.has(route))).toEqual([]);
     expect([...GUIDE_ROUTE_PATTERN_SET].filter((route) => route.endsWith("/:section"))).toEqual([]);
   });
 });

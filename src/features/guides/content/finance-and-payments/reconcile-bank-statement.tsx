@@ -34,6 +34,31 @@ export default function ReconcileBankStatementArticle() {
         ]} />
       </GuideSection>
 
+      <GuideSection id="record-bank-money" title="Record bank money with no customer or supplier">
+        <p>Under the accounts on <strong>Bank Accounts</strong>, two tabs record money that is not a receipt, a bill or payroll:</p>
+        <GuideSteps>
+          <GuideStep title="Bank transaction">Select <strong>Bank transaction</strong> for money in or out with no customer or supplier behind it: owner&rsquo;s capital, a loan, drawings, interest or charges. Choose <strong>Money in</strong> or <strong>Money out</strong>, the bank account, amount, date, and the ordinary account it came from or paid for, with a <strong>Narration</strong>. Receivables, payables, tax and other accounts kept by their own documents are refused, with the document to use instead.</GuideStep>
+          <GuideStep title="Bank transfer">Select <strong>Bank transfer</strong> to move money between two accounts of the same branch. <strong>To</strong> only offers accounts of the <strong>From</strong> account&rsquo;s branch. Money between branches is an inter-branch transfer instead.</GuideStep>
+        </GuideSteps>
+        <p>A document may wait for approval under Workflow, Approvals, reading <strong>Pending Approval</strong>; it reaches the books once approved. One that was rejected reads <strong>Rejected</strong> and never reached the books; record it again if the money still needs recording. A posted one can be voided until its bank line is reconciled; for a transfer, while either side is reconciled it is refused. Unmatch the line first.</p>
+        <GuideCallout tone="warning" title="Give every account its branch">
+          At books with several branches, an account that has not been given a branch cannot move money. Give it its branch first, or split a shared account by branch.
+        </GuideCallout>
+      </GuideSection>
+
+      <GuideSection id="split-by-branch" title="Split a shared bank account by branch">
+        <p>When one real bank account has served several branches, <strong>Split by branch</strong> retires it and opens a bank account for each branch, sharing its book balance between them. It is offered on an active account with no branch, at books with several branches, to someone who covers the whole school and holds the bank account update key.</p>
+        <GuideSteps>
+          <GuideStep title="Share the balance">For each branch included, enter its <strong>Agreed share</strong> (tick <strong>This share is an overdraft</strong> where it is), the new bank account name, and the new ledger code and name. The shares must add up exactly to the book balance; <strong>Left to place</strong> shows what remains. Mark one <strong>Main account</strong> and any collection account.</GuideStep>
+          <GuideStep title="Choose how differences are treated">Where a branch&rsquo;s own entries on the shared account differ from its agreed share, choose <strong>Debt between branches (usual)</strong>, so the branch that kept more owes the branch that kept less, or <strong>Permanent move through retained earnings</strong>, so nothing is owed. The drawer cannot read each branch&rsquo;s entries on the account beforehand: the differences are worked out when the split is made and listed afterwards, under <strong>Now owed between branches</strong>.</GuideStep>
+          <GuideStep title="Date it and cite the agreement">Set the <strong>Split date</strong> (nothing may be booked on the account after it) and the <strong>Agreement reference</strong>, then <strong>Split account</strong>. This cannot be undone.</GuideStep>
+        </GuideSteps>
+        <GuideCallout tone="info" title="An example">
+          Bright Star&rsquo;s shared GTBank account holds ₦10,000,000. The bursars agree Ikeja ₦6,000,000 and Lekki ₦4,000,000, but Ikeja&rsquo;s own entries on it come to ₦6,500,000. Under Debt between branches, Ikeja opens with ₦6,000,000 and owes Lekki ₦500,000, shown on Inter-branch Balances until Ikeja repays it with a cash transfer.
+        </GuideCallout>
+        <p>The old account stays as read-only history. Differences booked as debts between branches are never voided; the branch that owes repays with a cash transfer.</p>
+      </GuideSection>
+
       <GuideSection id="import-the-statement" title="Import the statement">
         <GuideSteps>
           <GuideStep title="Use the account template">Download or follow the expected columns and formats. Keep one bank line per real statement entry with its date, amount, direction, reference, and description.</GuideStep>

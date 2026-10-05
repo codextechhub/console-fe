@@ -65,6 +65,27 @@ export default function ConfigureFinanceFoundationsArticle() {
         </GuideCallout>
       </GuideSection>
 
+      <GuideSection id="settings-in-other-guides" title="Settings explained in their own guides">
+        <p>Some Finance Settings sections decide how one area works, and the guide for that area explains them:</p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li><strong>Banking and cash, Online payments</strong>: who holds online payments and each branch&rsquo;s collection account. See Send payouts and settle online payments.</li>
+          <li><strong>Receivables</strong>: credit on new bills, the concession limit, fees billed ahead, doubtful debt bands, deposits and payer payments. See Release fees billed ahead, hold deposits, and provide for doubtful debts.</li>
+          <li><strong>Payroll</strong>: PAYE source, statutory rates, payslips, earlier pay and voluntary deductions. See Run, post, and pay payroll.</li>
+          <li><strong>Fiscal calendar</strong>: how the next year opens, record keeping and the archive age. See Close, lock, or reopen a fiscal period.</li>
+        </ul>
+      </GuideSection>
+
+      <GuideSection id="tax-tables" title="Keep the national tax tables">
+        <p><strong>Tax Tables</strong>, under Ledger &amp; Setup, holds the national payroll tax data every school&rsquo;s payroll reads: <strong>PAYE tables</strong> (bands and reliefs for each tax year), <strong>States</strong> (each PAYE state and its revenue service) and <strong>Pension administrators</strong>. Only platform staff change them, so the screen opens to the statutory create and update keys; anyone else reads <strong>Read only. Platform staff keep these tables.</strong></p>
+        <GuideSteps>
+          <GuideStep title="Add the new year's table">Select <strong>Add</strong> followed by the year, for example <strong>Add 2027 table</strong>. Enter <strong>Exempt income up to</strong> (naira a year), the <strong>Minimum tax rate</strong>, the <strong>Bands</strong> of annual taxable income with their rates, and the <strong>Reliefs</strong>, then mark it <strong>In use</strong>.</GuideStep>
+          <GuideStep title="Add a state or administrator">Select <strong>Add state</strong> or <strong>Add administrator</strong>. A code is fixed once added, so check it first.</GuideStep>
+        </GuideSteps>
+        <GuideCallout tone="warning" title="A change reaches the next payroll run">
+          A month already priced keeps the table it used. Check the bands against the published law before a school&rsquo;s next run, because every school&rsquo;s PAYE follows them.
+        </GuideCallout>
+      </GuideSection>
+
       <GuideSection id="verify-the-foundation" title="Verify the foundation before live work">
         <GuideChecklist items={[
           "The entity picker shows the intended code, name, and base currency.",
