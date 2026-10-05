@@ -5,7 +5,7 @@ import { routesPath } from "@/routes/routes-path";
 import { financeSettingsSections } from "@/xvs-host";
 // Static lists, so declaring the paths does not pull in the lazy page chunks.
 import {
-  BUDGETS_SECTIONS, COLLECTIONS_SECTIONS, EXPENSES_SECTIONS,
+  BUDGETS_SECTIONS, COLLECTIONS_SECTIONS, EXPENSES_SECTIONS, INTER_BRANCH_PATH, INTER_BRANCH_SECTIONS,
   PAYMENTS_SECTIONS, RECEIVABLES_SECTIONS, REPORTS_SECTIONS, SETUP_SECTIONS,
 } from "@/pages/protected/finance/console-sections";
 
@@ -18,6 +18,7 @@ const Banking = lazy(() => import("@/pages/protected/finance/banking"));
 const BankReconciliation = lazy(() => import("@/pages/protected/finance/bank-reconciliation"));
 const Expenses = lazy(() => import("@/pages/protected/finance/expenses"));
 const Payroll = lazy(() => import("@/pages/protected/finance/payroll"));
+const InterBranch = lazy(() => import("@/pages/protected/finance/inter-branch"));
 const BudgetsAssetsTax = lazy(() => import("@/pages/protected/finance/budgets"));
 const Setup = lazy(() => import("@/pages/protected/finance/setup"));
 const Payments = lazy(() => import("@/pages/protected/finance/payments"));
@@ -59,6 +60,10 @@ export const financeRoutes: RouteObject[] = [
         path: `${F.EXPENSES}/${section}`, element: <Expenses section={section} />,
       })),
       { path: F.PAYROLL, element: <Payroll /> },
+      { path: INTER_BRANCH_PATH, element: <InterBranch /> },
+      ...INTER_BRANCH_SECTIONS.map((section) => ({
+        path: `${INTER_BRANCH_PATH}/${section}`, element: <InterBranch section={section} />,
+      })),
       { path: F.BUDGETS, element: <BudgetsAssetsTax /> },
       ...BUDGETS_SECTIONS.map((section) => ({
         path: `${F.BUDGETS}/${section}`, element: <BudgetsAssetsTax section={section} />,
