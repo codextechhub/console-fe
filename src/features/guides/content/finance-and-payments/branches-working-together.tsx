@@ -65,7 +65,7 @@ export default function BranchesWorkingTogetherArticle() {
         </GuideSteps>
         <p>Recording needs the key to record receipts. A held receipt can be voided only while it has not been forwarded and is not matched to a bank statement line; once forwarded, void the forwarding transfer first.</p>
         <GuideCallout tone="info" title="An example">
-          Mr Okafor pays ₦300,000 at Ikeja&rsquo;s desk for Emeka&rsquo;s Lekki bill. Ikeja records it as held for Lekki, then forwards it. At Lekki it settles Emeka&rsquo;s bill, and nothing is owed between the branches.
+          Chidi Okafor pays ₦300,000 at Ikeja&rsquo;s desk for Emeka&rsquo;s Lekki bill. Ikeja records it as held for Lekki, then forwards it. At Lekki it settles Emeka&rsquo;s bill, and nothing is owed between the branches.
         </GuideCallout>
       </GuideSection>
 
