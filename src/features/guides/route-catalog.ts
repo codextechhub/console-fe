@@ -1,7 +1,9 @@
+import { INTER_BRANCH_PATH } from "@/pages/protected/finance/console-sections";
 import { routesPath } from "@/routes/routes-path";
 
 const A = routesPath.AUTH;
 const R = routesPath.PROTECTED;
+const IB = INTER_BRANCH_PATH;
 
 export const GUIDE_ROUTE_PATTERNS = [
   A.LOGIN,
@@ -91,6 +93,12 @@ export const GUIDE_ROUTE_PATTERNS = [
   `${R.FINANCE.EXPENSES}/claims`,
   `${R.FINANCE.EXPENSES}/petty-cash`,
   R.FINANCE.PAYROLL,
+  IB,
+  `${IB}/transfers`,
+  `${IB}/balances`,
+  `${IB}/held-receipts`,
+  `${IB}/recharges`,
+  `${IB}/cost-rules`,
   R.FINANCE.BUDGETS,
   `${R.FINANCE.BUDGETS}/budgets`,
   `${R.FINANCE.BUDGETS}/assets`,

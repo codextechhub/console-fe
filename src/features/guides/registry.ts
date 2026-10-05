@@ -1,3 +1,4 @@
+import { INTER_BRANCH_PATH } from "@/pages/protected/finance/console-sections";
 import { P } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 
@@ -5,6 +6,7 @@ import type { GuideRecord } from "./types";
 
 const A = routesPath.AUTH;
 const R = routesPath.PROTECTED;
+const IB = INTER_BRANCH_PATH;
 const REVIEWED_AT = "2026-08-25";
 const C4_REVIEWED_AT = "2026-08-25";
 const C5_REVIEWED_AT = "2026-08-25";
@@ -1221,6 +1223,44 @@ export const GUIDE_REGISTRY = [
     featured: true,
     status: "published",
     article: () => import("./content/finance-and-payments/send-payouts-and-resolve-settlements"),
+  },
+  {
+    id: "finance.branches-working-together",
+    slug: "send-money-and-share-costs-between-branches",
+    title: "Send money and share costs between branches",
+    summary: "Send or ask for money between branches, see who owes whom, forward money collected for another branch, share costs, move stock, and move a customer's balance.",
+    category: "finance-and-payments",
+    tags: ["branch", "inter-branch", "transfer", "recharge", "held receipt", "shared cost", "stock transfer", "customer balance"],
+    aliases: [
+      "between branches", "inter-branch transfer", "send money to branch", "ask branch for money", "who owes whom",
+      "branch balances", "held receipt", "forward receipt", "money collected for another branch", "recharge cost",
+      "shared cost rule", "move balance to branch", "move customer to another branch", "transfer stock between branches",
+    ],
+    audiences: ["finance-officer", "approver"],
+    routes: [IB, `${IB}/transfers`, `${IB}/balances`, `${IB}/held-receipts`, `${IB}/recharges`, `${IB}/cost-rules`],
+    actionIds: ["view-inter-branch-transfers", "view-inter-branch-balances", "view-held-receipts", "view-recharges", "view-shared-cost-rules"],
+    access: { mode: "any", permissions: [P.FIN_VIEW_INTERBRANCH, P.FIN_VIEW_PAYMENTS] },
+    primaryRoute: `${IB}/transfers`,
+    sections: [
+      { id: "before-you-start", title: "Before you start" },
+      { id: "transfers-register", title: "Read the transfers register" },
+      { id: "send-or-ask", title: "Send money, or ask for it" },
+      { id: "who-owes-whom", title: "See who owes whom" },
+      { id: "held-receipts", title: "Money collected for another branch" },
+      { id: "shared-costs", title: "Share a cost" },
+      { id: "stock-transfer", title: "Move stock to another branch's store" },
+      { id: "move-a-balance", title: "Move a customer's balance to another branch" },
+      { id: "void-a-transfer", title: "Void a transfer" },
+      { id: "common-problems", title: "Common problems" },
+      { id: "completion-check", title: "Completion check" },
+    ],
+    relatedGuideIds: ["finance.reconcile-bank-statement", "finance.close-lock-or-reopen-period", "procurement.stock-locations", "workflow.review-and-act"],
+    estimatedMinutes: 10,
+    owner: OWNER,
+    reviewedAt: BRANCH_FINANCE_REVIEWED_AT,
+    risk: "high",
+    status: "published",
+    article: () => import("./content/finance-and-payments/branches-working-together"),
   },
   {
     id: "procurement.add-and-govern-vendor",
