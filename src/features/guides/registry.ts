@@ -555,6 +555,7 @@ export const GUIDE_REGISTRY = [
     aliases: [
       "set up finance", "finance configuration", "new ledger entity", "create account",
       "account mapping", "fx rate", "tax code", "cost center", "analysis dimension",
+      "tax tables", "paye bands", "paye states", "pension administrators", "pfa",
     ],
     audiences: ["finance-officer", "platform-administrator"],
     routes: [
@@ -578,12 +579,12 @@ export const GUIDE_REGISTRY = [
     actionIds: [
       "view-entities", "create-entity", "view-chart-of-accounts", "create-gl-account",
       "view-currencies-fx", "view-tax-codes", "create-tax-code", "view-cost-centres",
-      "create-cost-centre", "view-dimensions", "view-finance-settings",
+      "create-cost-centre", "view-dimensions", "view-tax-tables", "view-finance-settings",
     ],
     access: { mode: "any", permissions: [
       P.FIN_VIEW_ENTITIES, P.FIN_VIEW_ACCOUNTS, P.FIN_VIEW_CURRENCIES,
       P.FIN_VIEW_TAX_CODES, P.FIN_VIEW_COST_CENTERS, P.FIN_VIEW_DIMENSIONS,
-      P.FIN_VIEW_SETTINGS,
+      P.FIN_VIEW_SETTINGS, P.FIN_CREATE_STATUTORY, P.FIN_UPDATE_STATUTORY,
     ] },
     primaryRoute: `${R.FINANCE.SETUP}/entities`,
     sections: [
@@ -593,15 +594,17 @@ export const GUIDE_REGISTRY = [
       { id: "build-the-chart", title: "Build and check the chart of accounts" },
       { id: "add-reference-data", title: "Add currencies, tax, cost centres, and dimensions" },
       { id: "map-posting-defaults", title: "Map posting defaults and policies" },
+      { id: "settings-in-other-guides", title: "Settings explained in their own guides" },
+      { id: "tax-tables", title: "Keep the national tax tables" },
       { id: "verify-the-foundation", title: "Verify the foundation before live work" },
       { id: "common-problems", title: "Common problems" },
       { id: "completion-check", title: "Completion check" },
     ],
-    relatedGuideIds: ["finance.create-and-post-journal", "finance.close-lock-or-reopen-period", "workflow.build-template"],
+    relatedGuideIds: ["finance.create-and-post-journal", "finance.close-lock-or-reopen-period", "finance.run-payroll", "finance.send-payouts-and-resolve-settlements", "finance.deferred-income-deposits-and-doubtful-debts", "workflow.build-template"],
     walkthroughId: "walkthrough.finance.configure-foundations",
     estimatedMinutes: 11,
     owner: OWNER,
-    reviewedAt: FINANCE_OVERVIEW_REVIEWED_AT,
+    reviewedAt: BRANCH_FINANCE_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
