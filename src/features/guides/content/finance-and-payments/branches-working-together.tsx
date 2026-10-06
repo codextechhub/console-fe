@@ -61,7 +61,7 @@ export default function BranchesWorkingTogetherArticle() {
         <p>When a customer pays at one branch for another branch&rsquo;s bill, the branch that took the money cannot settle that bill. It holds the money instead, booked to Held for other branches (2190), and forwards it.</p>
         <GuideSteps>
           <GuideStep title="Record it">In <strong>Held Receipts</strong>, select <strong>Record money for another branch</strong>. Choose where it was <strong>Collected at</strong>, the account it was <strong>Paid into</strong>, the branch it is <strong>For</strong>, the <strong>Customer who paid</strong>, the amount and the day it was <strong>Received on</strong>. It reads <strong>Held</strong>.</GuideStep>
-          <GuideStep title="Forward it">Open it and select <strong>Forward to</strong> the other branch. It follows the approval route for money sent between branches and reads <strong>Forwarding</strong>, then <strong>Forwarded</strong>. Once sent, it becomes a receipt at the other branch and settles the customer&rsquo;s bills there.</GuideStep>
+          <GuideStep title="Forward it">Open it and select <strong>Forward to</strong> the other branch. It follows the approval route for money sent between branches and reads <strong>Forwarding</strong>, then <strong>Forwarded</strong>. Once sent, it becomes a receipt at the other branch and settles the customer&rsquo;s bills there. If its approval ends without sending it, the receipt is held again and can be forwarded again.</GuideStep>
         </GuideSteps>
         <p>Recording needs the key to record receipts. A held receipt can be voided only while it has not been forwarded and is not matched to a bank statement line; once forwarded, void the forwarding transfer first.</p>
         <GuideCallout tone="info" title="An example">
@@ -115,6 +115,7 @@ export default function BranchesWorkingTogetherArticle() {
           <li>The screen says One branch: there is no other branch to deal with, so nothing here applies.</li>
           <li>A request has been waiting for days: it waits for the asked branch to Send or Decline. Nothing is booked until then.</li>
           <li>A send reads Waiting for approval: it is in the sending branch&rsquo;s approval route under Workflow, Approvals.</li>
+          <li>A send reads Not sent: its approval was rejected, withdrawn or cancelled, and no money moved.</li>
           <li>Void is missing: the kind is never voided from the register, or you lack the void key. Read the note on the transfer.</li>
           <li>Book recharge stays off after picking a rule: the rule says the paying branch absorbs that cost. Change the rule to recharge it first.</li>
           <li>The month will not close: a pair on Inter-branch Balances disagrees. Find the transfer booked on one side only.</li>
