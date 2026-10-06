@@ -21,6 +21,15 @@ export default function DelegateAndTrackApprovalsArticle() {
           <GuideStep title="Correct a returned request">Amend the record in its source module, then select <strong>Resubmit</strong>. Console resumes at the returned stage with a fresh approver list.</GuideStep>
           <GuideStep title="Withdraw only when the request should stop">The owner may withdraw a Submitted, In Progress, or Returned instance. Withdrawal ends that instance; restarting begins in the source module.</GuideStep>
         </GuideSteps>
+        <p><strong>Finance and Procurement documents</strong> are corrected and resumed on their own screen, without coming back here. Open the document, for example the requisition in Procurement or the credit note in Receivables. A note headed <strong>Sent back to you</strong> says who sent it back, when, and why. Under it:</p>
+        <GuideChecklist items={[
+          "Edit corrects the document in place. Your role must also hold the edit permission for that kind of document.",
+          "Resume sends the corrected version back into the same approval, at the stage that sent it back. The approvers then see the corrected version.",
+        ]} />
+        <p>Edit is offered on requisitions, purchase orders, vendor invoices, vendor payments, vendor credit notes, credit and debit notes, concessions, manual journals, and bank transactions and transfers. On an expense claim the sender attaches or removes receipts instead. Refunds, write-offs, credit transfers, doubtful-debt provision runs, inter-branch sends and journals raised by another document can only be resumed as they are: to change one, withdraw it here and send it again from its own screen.</p>
+        <GuideCallout tone="info" title="Only the person who sent it gets Edit and Resume">
+          Ngozi Ibe sends back a stationery requisition that Tunde Bello sent for approval, asking for a cheaper supplier. Tunde opens the requisition, selects <strong>Edit</strong>, changes the supplier, then selects <strong>Resume</strong>. Amaka Obi, who may also edit requisitions, sees the note headed <strong>Sent back</strong> but neither button, and so does Ngozi. While a document is with its approvers, nobody can change it: its screen says <em>With the approver.</em>
+        </GuideCallout>
       </GuideSection>
 
       <GuideSection id="create-a-delegation" title="Create a delegation">
@@ -42,7 +51,7 @@ export default function DelegateAndTrackApprovalsArticle() {
       <GuideSection id="diagnose-workflow-status" title="Diagnose workflow status">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {[
-            ["Returned", "The owner must correct the source record and resubmit. A return is not a new request."],
+            ["Returned", "The owner must correct the source record and resubmit. A return is not a new request. A Finance or Procurement document reads Sent back on its own screen, and its sender corrects it there with Edit and sends it on with Resume."],
             ["Rejected", "Check the stage's On rejection rule. Terminal rejection cannot be resubmitted on that instance."],
             ["Skipped", "The stage condition was false, or the template allowed an empty approver result to be skipped."],
             ["Stalled or unavailable", "Check active approver resolution, group membership, dynamic rules, organogram seats, scope, quorum, delegation dates, and permission access."],
@@ -55,6 +64,7 @@ export default function DelegateAndTrackApprovalsArticle() {
           "If a delegate is missing, confirm the person is active, the current date is inside the period, and the document type matches exactly.",
           "If both people appear unexpectedly, check whether Exclusive delegation was left off.",
           "If Resubmit is unavailable, confirm you own the request and its status is Returned.",
+          "If Edit and Resume are missing on a document sent back, only the person who sent it for approval gets them, and Edit also needs the edit permission for that kind of document.",
           "If Manage Approvals or Team Load is missing, request the workflow-instance viewing permission instead of relying on another user's session.",
         ]} />
       </GuideSection>

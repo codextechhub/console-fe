@@ -55,10 +55,11 @@ export default function CreateAndPostJournalArticle() {
 
       <GuideSection id="post-or-submit" title="Post a direct entry or submit a draft">
         <GuideSteps>
-          <GuideStep title="Direct entry">Select Post entry only after the full review. A successful response creates the posted journal and updates ledger reports immediately.</GuideStep>
+          <GuideStep title="Direct entry">Select Post entry only after the full review. Where the school has no approval route for journals, a successful response creates the posted journal and updates ledger reports immediately. Where it has one, the entry waits for approval instead, and the message says so.</GuideStep>
           <GuideStep title="Existing draft">Open a Draft row and select Submit if it should enter the shared approval workflow. It posts only after the configured final approval.</GuideStep>
           <GuideStep title="Check the result">Reopen the journal, confirm its document number, status, date, source, totals, lines, tags, creator, and posting time. Use the audit and reports when independent confirmation is required.</GuideStep>
         </GuideSteps>
+        <p>If an approver sends a journal back, the person who sent it for approval sees <strong>Sent back to you</strong> on it, with the approver&rsquo;s reason. On a manual journal, <strong>Edit</strong> opens the entry to correct it; select <strong>Save changes</strong>, then <strong>Resume</strong> to send the corrected version back into the same approval. A journal raised by another document can only be resumed as it is. Nobody else gets these buttons.</p>
       </GuideSection>
 
       <GuideSection id="reverse-or-void" title="Reverse or void safely">

@@ -44,6 +44,7 @@ export default function ReviewAndActOnApprovalArticle() {
 
       <GuideSection id="understand-the-result" title="Understand the result">
         <p>After approval, Console states whether your vote completed the stage, moved the request to another stage, or fully approved it. A rejection may become terminal. A returned request stays available to its owner for amendment and resubmission.</p>
+        <p>A returned Finance or Procurement document is corrected on its own screen with <strong>Edit</strong> and sent back with <strong>Resume</strong>. Only the person who sent it for approval gets those buttons, not the approver who returned it and not their colleagues. When it reaches your queue again, it shows the corrected version, so review it again before deciding.</p>
       </GuideSection>
 
       <GuideSection id="common-problems" title="Common problems">
