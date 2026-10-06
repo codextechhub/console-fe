@@ -59,7 +59,7 @@ export default function CreateAndPostJournalArticle() {
           <GuideStep title="Existing draft">Open a Draft row and select Submit if it should enter the shared approval workflow. It posts only after the configured final approval.</GuideStep>
           <GuideStep title="Check the result">Reopen the journal, confirm its document number, status, date, source, totals, lines, tags, creator, and posting time. Use the audit and reports when independent confirmation is required.</GuideStep>
         </GuideSteps>
-        <p>If an approver sends a journal back, the person who sent it for approval sees <strong>Sent back to you</strong> on it, with the approver&rsquo;s reason. On a manual journal, <strong>Edit</strong> opens the entry to correct it; select <strong>Save changes</strong>, then <strong>Resume</strong> to send the corrected version back into the same approval. A journal raised by another document can only be resumed as it is. Nobody else gets these buttons. Meanwhile its status reads <strong>Sent back</strong>, on its row and when you open it, and it stays under <strong>Drafts</strong>.</p>
+        <p>If an approver sends a journal back, the person who sent it for approval sees <strong>Sent back to you</strong> on it, with the approver&rsquo;s reason. On a manual journal, <strong>Edit</strong> opens the entry to correct it; select <strong>Save changes</strong>, then <strong>Resume</strong> to send the corrected version back into the same approval. A journal raised by another document can only be resumed as it is. Nobody else gets these buttons. Meanwhile its status reads <strong>Sent back</strong>, on its row and when you open it, and it is listed under the <strong>Sent back</strong> tab as well as under <strong>Drafts</strong>.</p>
       </GuideSection>
 
       <GuideSection id="reverse-or-void" title="Reverse or void safely">
@@ -74,6 +74,7 @@ export default function CreateAndPostJournalArticle() {
           {[
             { title: "Post entry is disabled", body: "Make both totals equal and greater than zero, and select an account for every non-zero line." },
             { title: "The date is unavailable", body: "The date is outside the open posting window. Ask the authorized owner to create or reopen the correct period." },
+            { title: "Submit or Resume is refused for a closed month", body: "A journal is checked against its own branch's month when it is sent or resumed. If Ikeja Branch has closed September 2026, an Ikeja journal dated in September is refused at once, and the message names Ikeja Branch and September 2026; a Lekki journal with the same date still goes. Re-open the month for that branch, or use a date in a month it still has open. At a one-branch school the message names only the month." },
             { title: "An account is missing", body: "Only active postable accounts in the selected entity are available. Check the chart and entity scope." },
             { title: "Reverse is not shown", body: "You may lack reverse permission, the journal may not be posted, or its source requires the original document to be voided instead." },
           ].map(({ title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}
