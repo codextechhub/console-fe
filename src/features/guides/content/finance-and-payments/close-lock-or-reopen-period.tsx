@@ -50,7 +50,7 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="inspect-the-checklist" title="Inspect the close checklist">
-        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action.</p>
+        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action. Each check is named in plain words, for example <strong>Earlier months closed</strong>, <strong>Trial balance balances</strong> or <strong>Payables agree with the ledger</strong>, with what it found beside it.</p>
         <GuideChecklist items={[
           "Every earlier month is closed (while months close in order).",
           "Trial balance is balanced.",
@@ -77,7 +77,11 @@ export default function CloseLockOrReopenPeriodArticle() {
         <GuideCallout tone="info" title="An example">
           Lekki has closed July but not August. Lekki&rsquo;s September close is refused and names August; Ikeja, which has closed August, closes its September. To correct Ikeja&rsquo;s August afterwards, Ikeja&rsquo;s September is re-opened first.
         </GuideCallout>
-        <p>Force close does not get past the order. A school that closes months out of turn can turn it off in <strong>Finance Settings, Fiscal calendar</strong>, under <strong>Closing months</strong>; that needs the settings update key and someone who covers the whole school.</p>
+        <p>Under <strong>All branches</strong>, <strong>Earlier months closed</strong> answers branch by branch: it names each branch whose earlier month is still open, and the branches that can close now. While some branch can still close the month it is a warning, not a blocker, so that branch&rsquo;s close, and a force close of it, stay available. It blocks only when no branch still to close the month can close it.</p>
+        <GuideCallout tone="info" title="An example under All branches">
+          Ikeja has closed August and Lekki has not. Viewing September under All branches, the check reads that Lekki has not closed August yet, and that Ikeja can close September now. Halima Sule closes September from the same view, choosing Ikeja in the dialog; Lekki&rsquo;s waits for its August.
+        </GuideCallout>
+        <p>Force close does not get past the order at the branch it closes. A school that closes months out of turn can turn it off in <strong>Finance Settings, Fiscal calendar</strong>, under <strong>Closing months</strong>; that needs the settings update key and someone who covers the whole school.</p>
       </GuideSection>
 
       <GuideSection id="force-close" title="Force a month closed over a failing check">
@@ -136,6 +140,7 @@ export default function CloseLockOrReopenPeriodArticle() {
             { title: "Re-open is refused for a later month", body: "Months re-open from the latest back. Re-open the later month the message names first; a locked later month means this one can no longer be re-opened." },
             { title: "Close fiscal year is disabled", body: "Every period must stop ordinary posting, the calendar must be complete, and the final period must not be locked." },
             { title: "A posting date is rejected", body: "The period may be closed or no fiscal calendar covers the date. Use the approved period action rather than changing the transaction date." },
+            { title: "A document is refused when sent or resumed", body: "A journal, credit note or other finance document is checked against its own branch's month when it is sent for approval or resumed. If Ikeja Branch has closed September 2026, an Ikeja document dated in September is refused at once, with a message naming Ikeja Branch and September 2026, while Lekki's still go. At a one-branch school the message names only the month. Re-open that branch's month, or use a date it still has open." },
             { title: "Re-open or Lock is missing", body: "The current status may not allow the action, the final year is not closed, or your account lacks the specific permission." },
             { title: "The confirm button stays off", body: "Under All branches every period action asks which branch it is for. Choose the branch in the dialog." },
             { title: "Re-open year is off", body: "The year is archived. Unarchive it first. A locked year cannot be re-opened at all." },
