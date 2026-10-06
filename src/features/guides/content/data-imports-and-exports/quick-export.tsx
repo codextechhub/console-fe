@@ -115,9 +115,9 @@ export default function QuickExportArticle() {
           organisation&apos;s date format.
         </p>
         <p>
-          Three screens are bounded on purpose, because their tables are the largest in the
+          Two screens are bounded on purpose, because their tables are the largest in the
           platform: the <strong>General Ledger</strong> exports the last 31 days, and
-          <strong> sign-in sessions</strong> and <strong>audit events</strong> the last 90.
+          <strong> sign-in sessions</strong> the last 90.
           There the sentence reads, for example, <em>Includes general ledger postings from
           5 Sep 2026 to 6 Oct 2026, the last 31 days. Set the dates in the builder to include
           earlier ones.</em> On the General Ledger, choosing a period on the screen first
