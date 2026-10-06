@@ -22,7 +22,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
         <GuideSteps>
           <GuideStep title="Check the customer">Confirm the customer code, legal or display name, email address, status, opening balance, and any school or payer relationship before billing.</GuideStep>
           <GuideStep title="Check the fee structure">For repeated billing, verify every fee line, amount, tax code, revenue account, effective period, and target population before generating invoices.</GuideStep>
-          <GuideStep title="Confirm posting dependencies">The active entity needs open fiscal periods and valid AR, revenue, tax, cash, customer-credit, write-off, and refund mappings for the actions you intend to use.</GuideStep>
+          <GuideStep title="Confirm posting dependencies">The active entity needs open fiscal periods and valid accounts receivable (what customers owe), revenue, tax, cash, customer-credit, write-off, and refund mappings for the actions you intend to use.</GuideStep>
         </GuideSteps>
       </GuideSection>
 
@@ -70,7 +70,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
           "The allocation summary agrees with the approved remittance advice.",
         ]} />
         <GuideCallout tone="danger" title="Apply allocation is a posting action">
-          Applying the split changes open balances and posts the reclassification between customer credit and AR. The walkthrough explains the controls but never selects Apply allocation.
+          Applying the split changes open balances and posts the move from customer credit to what the customer owes on those invoices. The walkthrough explains the controls but never selects Apply allocation.
         </GuideCallout>
       </GuideSection>
 
@@ -87,7 +87,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
         <GuideChecklist items={[
           "Invoice total, settlements, credited amount, and balance due reconcile.",
           "Receipt amount, allocated amount, refunded amount, and remaining credit reconcile.",
-          "AR control equals the receivables sub-ledger for the entity and period.",
+          "The AR control account (what customers owe) equals the receivables sub-ledger for the entity and period.",
           "Cash, revenue, tax, customer-credit, refund, and write-off postings use the intended accounts.",
           "The invoice, receipt, statement, and audit history tell the same story.",
         ]} />

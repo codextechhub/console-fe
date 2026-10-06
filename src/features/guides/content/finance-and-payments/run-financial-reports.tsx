@@ -45,7 +45,7 @@ export default function RunFinancialReportsArticle() {
         </GuideCallout>
         <GuideChecklist items={[
           "Trial Balance debit equals credit.",
-          "AR, AP, bank, payroll, inventory, tax, and other control accounts reconcile to their source records.",
+          "AR (what customers owe), AP (what is owed to suppliers), bank, payroll, inventory, tax, and other control accounts reconcile to their source records.",
           "Balance Sheet assets equal liabilities plus equity.",
           "Cash Flow opening plus net movement equals closing cash.",
           "Closing equity agrees with the Balance Sheet.",

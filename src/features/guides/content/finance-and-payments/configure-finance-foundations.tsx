@@ -44,7 +44,7 @@ export default function ConfigureFinanceFoundationsArticle() {
             { icon: ListTree, title: "Use the code line", body: "Account codes have four digits. 1 is Assets, 2 Liabilities, 3 Equity, 4 Income, and 5 Expenses. The first digit fixes the account type." },
             { icon: Landmark, title: "Separate groups from posting accounts", body: "A postable account accepts journal lines. A non-postable account groups child accounts and reports their rolled balance." },
             { icon: Tags, title: "Keep parents in the same type", body: "Console only offers parent accounts in the same code line. Use subtypes to describe the account without changing its accounting class." },
-            { icon: Settings2, title: "Protect control accounts", body: "Accounts used by AR, AP, cash, inventory, tax, payroll, and other services must stay aligned with Finance Settings." },
+            { icon: Settings2, title: "Protect control accounts", body: "Accounts used by AR (what customers owe), AP (what is owed to suppliers), cash, inventory, tax, payroll, and other services must stay aligned with Finance Settings." },
           ].map(({ icon: Icon, title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><Icon className="size-5 text-primary" /><p className="mt-3 text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}
         </div>
       </GuideSection>
