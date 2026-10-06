@@ -50,13 +50,13 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="inspect-the-checklist" title="Inspect the close checklist">
-        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action. Each check is named in plain words, for example <strong>Earlier months closed</strong>, <strong>Trial balance balances</strong> or <strong>Payables agree with the ledger</strong>, with what it found beside it.</p>
+        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action. Each check is named in plain words, for example <strong>Earlier months closed</strong>, <strong>Debits and credits balance</strong> or <strong>Payables agree with the ledger</strong>, with what it found beside it.</p>
         <GuideChecklist items={[
           "Every earlier month is closed (while months close in order).",
           "Trial balance is balanced.",
           "Draft journals are resolved or deliberately handled.",
           "AR and AP reconcile to their control accounts.",
-          "GR/IR differences are understood and evidenced.",
+          "Goods received but not yet billed are understood and evidenced.",
           "Required depreciation has been posted.",
           "Branches agree on what they owe each other.",
           "Sealed figures from earlier closes are unchanged.",
