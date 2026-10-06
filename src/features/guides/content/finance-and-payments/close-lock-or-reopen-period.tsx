@@ -50,16 +50,17 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="inspect-the-checklist" title="Inspect the close checklist">
-        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action. Each check is named with its accounting term and the plain words beside it, for example <strong>Earlier months closed</strong>, <strong>Trial balance agrees (debits equal credits)</strong> or <strong>AP reconciled (what is owed to suppliers)</strong>, with what it found beside it.</p>
+        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action. A check named by an accounting term carries the plain words beside it, for example <strong>Trial balance agrees (debits equal credits)</strong> or <strong>AP reconciled (what is owed to suppliers)</strong>; one already in plain words, such as <strong>Earlier months closed</strong>, stands alone. Each shows what it found.</p>
         <GuideChecklist items={[
-          "Every earlier month is closed (while months close in order).",
-          "Trial balance is balanced.",
-          "Draft journals are resolved or deliberately handled.",
+          "Earlier months closed: every earlier month is closed (while months close in order).",
+          "Trial balance agrees (debits equal credits).",
+          "No draft journals left in the month: drafts are resolved or deliberately handled.",
           "AR reconciled (what customers owe) and AP reconciled (what is owed to suppliers): each matches its control account.",
-          "Goods received but not yet billed are understood and evidenced.",
-          "Required depreciation has been posted.",
+          "GR/IR explained (goods received, not yet billed): every difference is understood and evidenced.",
+          "Depreciation posted and Deferred income released (fees billed ahead, now earned): the close does both itself for what is due.",
+          "Gateway clearing current (online payments paid into the bank): a warning when online payments have waited too long for the provider.",
           "Inter-branch balances agree (what branches owe each other).",
-          "Sealed figures from earlier closes are unchanged.",
+          "Closed figures unchanged: the figures sealed by earlier closes still match the ledger.",
           "Every remaining warning has an owner and explanation.",
         ]} />
       </GuideSection>
@@ -124,12 +125,12 @@ export default function CloseLockOrReopenPeriodArticle() {
 
       <GuideSection id="sealed-figures" title="Check the sealed figures">
         <p>Every month close, month lock and year close stores each account&rsquo;s balance per branch as a seal. <strong>Sealed Figures</strong>, under Reports &amp; Close, recomputes every closed month and year from the ledger and compares it with its seal when you select <strong>Verify sealed figures</strong>. Each seal reads <strong>Matches</strong> or <strong>Differs</strong>, with the accounts and branches that moved.</p>
-        <p>It needs the seal view key and someone who covers the whole school, because the seals cover every branch. The check only reports; it repairs nothing. The close checklist also warns when a seal no longer matches.</p>
+        <p>It needs the seal view key and someone who covers the whole school, because the seals cover every branch. The check only reports; it repairs nothing. The close checklist also warns, under <strong>Closed figures unchanged</strong>, when a seal no longer matches.</p>
       </GuideSection>
 
       <GuideSection id="record-keeping" title="Set how long records are kept">
         <p>Open <strong>Finance Settings, Fiscal calendar</strong>. <strong>Record keeping</strong> shows the <strong>Statutory floor</strong>, set by CodeX for every school, and the <strong>Period in force</strong>, the longer of the floor and the school&rsquo;s own choice. A school may keep its records longer, never shorter. Records are kept from the end of each fiscal year, and a kept record cannot be deleted, whatever its screen offers.</p>
-        <p><strong>Archive a closed year after (years)</strong> sets the archive age. The same section sets how the next fiscal year opens: automatically, or with a warning only, and how many days ahead. Saving needs the settings update key and someone who covers the whole school.</p>
+        <p><strong>Archive a closed year after (years)</strong> sets the archive age. The same section, under <strong>Opening the next year</strong>, sets how the next fiscal year opens, <strong>Open the next fiscal year automatically</strong> or <strong>Warn finance staff only</strong>, and how many days ahead. Saving needs the settings update key and someone who covers the whole school.</p>
       </GuideSection>
 
       <GuideSection id="common-problems" title="Common problems">

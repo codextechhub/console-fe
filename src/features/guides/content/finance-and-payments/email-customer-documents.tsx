@@ -20,7 +20,7 @@ export default function EmailCustomerDocumentsArticle() {
 
       <GuideSection id="choose-the-document" title="Choose the correct document">
         <GuideSteps>
-          <GuideStep title="Invoice">Open Customer Invoices, select the posted invoice, check its customer and balance, then choose Email invoice.</GuideStep>
+          <GuideStep title="Invoice">Open Customer Invoices (<strong>Invoices</strong> under Receivables), select the posted invoice, check its customer and balance, then choose Email invoice.</GuideStep>
           <GuideStep title="Receipt">Open Receipts &amp; Allocation, select the posted receipt, check its customer and amount, then choose Email receipt.</GuideStep>
           <GuideStep title="Statement">Open Customers, select the customer statement, set the intended period when offered, then choose the statement email action.</GuideStep>
         </GuideSteps>
