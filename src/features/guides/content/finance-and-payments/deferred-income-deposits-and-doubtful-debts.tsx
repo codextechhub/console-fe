@@ -15,10 +15,10 @@ export default function DeferredIncomeDepositsAndDoubtfulDebtsArticle() {
         <ul className="list-disc space-y-2 pl-5">
           <li><strong>Apply customer credit to new bills automatically</strong>: when on, a customer&rsquo;s unused credit settles each new bill as it posts.</li>
           <li><strong>Concessions above this need a second person</strong>: counted per bill, so two ₦6,000 discounts on one bill make ₦12,000.</li>
-          <li><strong>Release method</strong> for fees billed ahead: spread monthly, or all at period start.</li>
+          <li><strong>Release method</strong> for fees billed ahead: <strong>Spread evenly over each month of the service period</strong>, or <strong>All in the month the service period starts</strong>.</li>
           <li>The <strong>Doubtful debts</strong> bands: <strong>Over (days)</strong> and <strong>Provide (%)</strong>, up to 10 bands. An older band&rsquo;s rate cannot be lower than a younger band&rsquo;s.</li>
           <li><strong>Set a leaver&rsquo;s deposit against their unpaid bills</strong>, and <strong>Forfeit unclaimed deposits after (years)</strong>, counted from the day the customer left.</li>
-          <li><strong>Payments from a payer</strong>: how one payment is split, and whose credit any surplus becomes.</li>
+          <li><strong>Payments from a payer</strong>: <strong>Split the payment</strong> (<strong>Oldest bill first, across every customer</strong>, <strong>In proportion to what each customer owes</strong>, or <strong>As the bursar enters it for each customer</strong>), and <strong>What no bill takes becomes credit of</strong> (<strong>The customer with the most recent bill</strong> or <strong>The payer&rsquo;s own account</strong>).</li>
         </ul>
         <p><strong>Save receivables policy</strong> saves all of them together, and only changed values are written to the audit history.</p>
       </GuideSection>
@@ -27,7 +27,7 @@ export default function DeferredIncomeDepositsAndDoubtfulDebtsArticle() {
         <p>A fee billed before the period it pays for sits in Deferred income and is released to revenue month by month. <strong>Deferred Income</strong> shows what is <strong>Waiting to be released</strong>, what has been <strong>Released to income</strong>, and what falls due each month.</p>
         <GuideSteps>
           <GuideStep title="Release what is due">Select <strong>Release due income</strong>, set <strong>Release up to</strong> (today or earlier), and select <strong>Release</strong>. It moves every month&rsquo;s share due by that date to revenue, one journal per branch. Running it again releases nothing twice.</GuideStep>
-          <GuideStep title="Undo a month if needed">Select <strong>Undo a month&rsquo;s release</strong> and pick an open month. Its release journals are reversed and the shares wait to be released again. A closed month keeps its releases, and the form says which branch has closed it.</GuideStep>
+          <GuideStep title="Undo a month if needed">Select <strong>Undo a month&rsquo;s release</strong> and pick an open month, named in words such as September 2026. Its release journals are reversed and the shares wait to be released again. A closed month keeps its releases, and the form says which branch has closed it.</GuideStep>
         </GuideSteps>
         <GuideCallout tone="info" title="An example">
           Bright Star bills ₦400,000 on 20 January for a term running to 30 April, spread monthly. On 31 January, Nkechi Ude releases due income up to that day, and January&rsquo;s share moves from Deferred income to revenue at the branch that billed it. The rest waits for February, March and April.

@@ -48,7 +48,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
           "After issue or posting, reopen the invoice and verify its document number, balance, lines, and GL postings.",
         ]} />
         <GuideCallout tone="danger" title="Posting changes the customer's balance">
-          A posted invoice debits Accounts Receivable and credits revenue and tax as configured. Do not issue a draft until the customer, scope, dates, accounts, and amount have been checked.
+          A posted invoice debits Accounts receivable (what customers owe) and credits revenue and tax as configured. Do not issue a draft until the customer, scope, dates, accounts, and amount have been checked.
         </GuideCallout>
       </GuideSection>
 
@@ -61,7 +61,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
       </GuideSection>
 
       <GuideSection id="allocate-the-receipt" title="Allocate the receipt">
-        <p>Open the receipt from Receipts &amp; Allocation. Console can suggest oldest-first or largest-first allocation across the customer's open invoices and posted debit notes, or you can enter an approved split manually.</p>
+        <p>Open the receipt from Receipts &amp; Allocation. Console can suggest oldest-first or largest-first allocation across the customer's open invoices and posted debit notes (the school's default is set in Finance Settings, Banking and cash, as <strong>Oldest due first</strong> or <strong>Largest balance first</strong>), or you can enter an approved split manually.</p>
         <GuideChecklist items={[
           "The receipt belongs to the same customer as every selected open item.",
           "No line exceeds that item's open balance.",
@@ -87,7 +87,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
         <GuideChecklist items={[
           "Invoice total, settlements, credited amount, and balance due reconcile.",
           "Receipt amount, allocated amount, refunded amount, and remaining credit reconcile.",
-          "The AR control account (what customers owe) equals the receivables sub-ledger for the entity and period.",
+          "The Accounts receivable (what customers owe) control account equals the receivables sub-ledger (each customer's balance) for the entity and period.",
           "Cash, revenue, tax, customer-credit, refund, and write-off postings use the intended accounts.",
           "The invoice, receipt, statement, and audit history tell the same story.",
         ]} />

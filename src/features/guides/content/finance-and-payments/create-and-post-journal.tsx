@@ -29,7 +29,7 @@ export default function CreateAndPostJournalArticle() {
 
       <GuideSection id="prepare-the-entry" title="Prepare the entry">
         <GuideSteps>
-          <GuideStep title="Confirm entity and posting date">The active entity owns the journal. Choose a date inside an open posting period. Never move the date only to avoid a closed period.</GuideStep>
+          <GuideStep title="Confirm entity and posting date">The active entity owns the journal. Choose a date inside an open posting period. Never move the date only to avoid a closed period. A refused date says why, naming the month in words, such as <em>September 2026 is closed.</em> The journal list&rsquo;s <strong>Period</strong> column names each journal&rsquo;s month the same way.</GuideStep>
           <GuideStep title="Write a useful narration">State the business reason and link it to approved evidence. Add the external or internal reference when one exists.</GuideStep>
           <GuideStep title="Prepare balanced lines">For every line, identify one active postable account, debit or credit side, amount, and any required cost centre or dimensions.</GuideStep>
         </GuideSteps>
