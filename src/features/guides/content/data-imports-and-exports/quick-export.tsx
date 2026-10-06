@@ -26,6 +26,8 @@ export default function QuickExportArticle() {
           <GuideStep title="Set your filters">
             Narrow the table using its own search, status tabs and dropdowns until it shows
             what you want. The export reads these, so this step decides what ends up in the file.
+            On Finance and Procurement lists that includes <strong>Sent back</strong>, so a
+            list filtered to Sent back exports only what an approver sent back.
           </GuideStep>
           <GuideStep title="Select Export">
             A panel opens on the right showing what the file would contain before anything runs.
@@ -78,7 +80,7 @@ export default function QuickExportArticle() {
           is hiding. Two common cases:
         </p>
         <GuideChecklist items={[
-          "Customers filtered to Overdue or In credit. Both are worked out from each customer's live balance rather than stored on the customer, so the export cannot filter on them. Export Invoices instead if you need the overdue set.",
+          "Purchase orders on the Partly received tab. The export cannot filter by how much of an order has been received, so the file holds every order the other filters match.",
           "Sign-in sessions filtered by school, or to sessions that ended today. Neither is part of the sessions export.",
         ]} />
         <GuideCallout tone="warning" title="Check the file before you send it on">
