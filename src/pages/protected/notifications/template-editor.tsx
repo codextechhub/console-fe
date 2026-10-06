@@ -88,6 +88,9 @@ function CreateTemplate() {
 
   const events = data?.data ?? [];
   const chosen = events.find((e) => e.event_type === eventType);
+  // The picker groups events under the product area the backend names.
+  const areas = new Map<string, typeof events>();
+  for (const e of events) areas.set(e.source_module_label, [...(areas.get(e.source_module_label) ?? []), e]);
 
   const start = async () => {
     if (!eventType || !channel) return;
@@ -131,10 +134,14 @@ function CreateTemplate() {
               }}
             >
               <option value="">Choose an event…</option>
-              {events.map((e) => (
-                <option key={e.event_type} value={e.event_type}>
-                  {e.event_type_label} ({e.event_type_key})
-                </option>
+              {[...areas.entries()].map(([area, rows]) => (
+                <optgroup key={area} label={area}>
+                  {rows.map((e) => (
+                    <option key={e.event_type} value={e.event_type}>
+                      {e.event_type_label}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </NativeSelect>
           </label>
@@ -261,7 +268,10 @@ function Editor({ template }: { template: NotificationTemplate }) {
               </Badge>
             )}
           </div>
-          <p className="mt-0.5 font-mono text-[11px] text-gray-01">{template.event_type_key}</p>
+          {/* Labelled reference: the key a developer searches to trace the event. */}
+          <p className="mt-0.5 text-[11px] text-gray-01">
+            {template.source_module_label} · Event key <span className="font-mono">{template.event_type_key}</span>
+          </p>
         </div>
 
         <div className="flex items-center gap-3">

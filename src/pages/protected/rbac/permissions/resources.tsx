@@ -39,7 +39,7 @@ export default function PermissionResources() {
   const resources = data?.data ?? [];
   const moduleOptions = [
     { value: "all", label: "All Modules" },
-    ...(modulesData?.data ?? []).map((m) => ({ value: m.name, label: m.label || m.name })),
+    ...(modulesData?.data ?? []).map((m) => ({ value: m.name, label: m.readable_label })),
   ];
   const statusOptions = [
     { value: "all", label: "All Statuses" },
@@ -48,7 +48,7 @@ export default function PermissionResources() {
   ];
 
   const tableData = resources.map((r: PermissionResource) => ({
-    resource: <span className="text-xs font-semibold text-black-01">{r.label || r.name}</span>,
+    resource: <span className="text-xs font-semibold text-black-01">{r.readable_label}</span>,
     module: <Badge variant="default">{r.module_label}</Badge>,
     description: <span className="text-xs text-gray-01 max-w-64 truncate block">{r.description || "-"}</span>,
     permissions: r.permissions_count > 0

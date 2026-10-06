@@ -50,8 +50,9 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="inspect-the-checklist" title="Inspect the close checklist">
-        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close.</p>
+        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action.</p>
         <GuideChecklist items={[
+          "Every earlier month is closed (while months close in order).",
           "Trial balance is balanced.",
           "Draft journals are resolved or deliberately handled.",
           "AR and AP reconcile to their control accounts.",
@@ -69,6 +70,14 @@ export default function CloseLockOrReopenPeriodArticle() {
           <GuideStep title="Resolve blockers">Open the records behind every blocker and correct the source. Do not create offsetting entries merely to make the checklist green. A force close exists for an agreed exception, below; it is not a way round a fix that can be made.</GuideStep>
           <GuideStep title="Run close steps">After review, the authorized user selects Run close steps and confirms. The period becomes Closed and the audit trail records the action.</GuideStep>
         </GuideSteps>
+      </GuideSection>
+
+      <GuideSection id="close-in-order" title="Months close in order">
+        <p>By default a month closes only once every earlier month is closed, and re-opens only while every later month is open. The order runs across the year end: January waits for December of the year before, though that fiscal year may stay open for the auditors. At books with several branches each branch keeps its own order.</p>
+        <GuideCallout tone="info" title="An example">
+          Lekki has closed July but not August. Lekki&rsquo;s September close is refused and names August; Ikeja, which has closed August, closes its September. To correct Ikeja&rsquo;s August afterwards, Ikeja&rsquo;s September is re-opened first.
+        </GuideCallout>
+        <p>Force close does not get past the order. A school that closes months out of turn can turn it off in <strong>Finance Settings, Fiscal calendar</strong>, under <strong>Closing months</strong>; that needs the settings update key and someone who covers the whole school.</p>
       </GuideSection>
 
       <GuideSection id="force-close" title="Force a month closed over a failing check">
@@ -122,7 +131,9 @@ export default function CloseLockOrReopenPeriodArticle() {
       <GuideSection id="common-problems" title="Common problems">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {[
-            { title: "The close is blocked", body: "Open the checklist and resolve each item marked Blocks the close. Warning-only items do not cause the refusal." },
+            { title: "The close is blocked", body: "Open the checklist and resolve each item marked Blocks the close. Warning-only and Done by the close items do not cause the refusal." },
+            { title: "A month is refused for an earlier one", body: "Months close in order. Close the earlier month the message names first; force close does not get past it." },
+            { title: "Re-open is refused for a later month", body: "Months re-open from the latest back. Re-open the later month the message names first; a locked later month means this one can no longer be re-opened." },
             { title: "Close fiscal year is disabled", body: "Every period must stop ordinary posting, the calendar must be complete, and the final period must not be locked." },
             { title: "A posting date is rejected", body: "The period may be closed or no fiscal calendar covers the date. Use the approved period action rather than changing the transaction date." },
             { title: "Re-open or Lock is missing", body: "The current status may not allow the action, the final year is not closed, or your account lacks the specific permission." },

@@ -36,8 +36,11 @@ export interface NotificationHistory {
   event_type_key: string;
   event_type_label: string;
   channel: "in_app" | "email";
+  channel_label: string;
   subject: string;
   status: "PENDING" | "SENT" | "FAILED";
+  /** "Pending", "Sent", "Failed" - the status as a person reads it. */
+  status_label: string;
   retry_count: number;
   failure_reason: string;
   recipient_name: string;
@@ -63,7 +66,10 @@ export interface NotificationSetting {
   event_type_key: string;
   event_type_label: string;
   source_module: string;
+  /** The product area the event belongs to ("Procurement"); group headings use it. */
+  source_module_label: string;
   channel: "in_app" | "email";
+  channel_label: string;
   is_enabled: boolean;
   is_transactional: boolean;
   /**
@@ -73,6 +79,8 @@ export interface NotificationSetting {
    * override, and a transactional or inactive event always reports "default".
    */
   source: "tenant" | "platform" | "default";
+  /** `source` in words ("Platform default"). */
+  source_label: string;
 }
 
 export interface NotificationEventType {
@@ -81,7 +89,9 @@ export interface NotificationEventType {
   label: string;
   description: string;
   source_module: string;
+  source_module_label: string;
   supported_channels: ("in_app" | "email")[];
+  supported_channel_labels: string[];
   default_enabled: boolean;
   is_transactional: boolean;
   is_active: boolean;
@@ -92,6 +102,8 @@ export interface NotificationTemplate {
   event_type: string;
   event_type_key: string;
   event_type_label: string;
+  /** The product area the template's event belongs to ("Finance"). */
+  source_module_label: string;
   channel: "in_app" | "email";
   subject: string;
   body: string;
@@ -153,6 +165,7 @@ export interface AvailableTemplateEvent {
   event_type_key: string;
   event_type_label: string;
   source_module: string;
+  source_module_label: string;
   description: string;
   channels: ("in_app" | "email")[];
 }

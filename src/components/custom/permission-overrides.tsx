@@ -57,7 +57,6 @@ import {
 import { usePermissions } from "@/hooks/use-permissions";
 import { useNow } from "@/hooks/use-now";
 import { P, permissionModule } from "@/permissions";
-import { permissionLabel } from "@/utils/permission-label";
 import { useGetPermissionsQuery } from "@/redux/services/dashboard/rbac-api";
 import {
   useCreatePermissionOverrideMutation,
@@ -460,7 +459,7 @@ function AddExceptionDrawer({
   const moduleOptions = Array.from(
     new Map(catalogueRows.map((p) => {
       const value = p.module_key || permissionModule(p.key);
-      return [value, { value, label: p.module_label || value }];
+      return [value, { value, label: p.module_label }];
     })).values(),
   ).sort((a, b) => a.label.localeCompare(b.label));
 
@@ -468,7 +467,7 @@ function AddExceptionDrawer({
     .filter((p) => !module || (p.module_key || permissionModule(p.key)) === module)
     .map((p) => ({
       value: p.key,
-      label: p.label || permissionLabel(p),
+      label: p.label,
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
 

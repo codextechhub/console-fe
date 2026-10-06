@@ -136,8 +136,11 @@ const ALL_SECTIONS: Array<ConsoleSettingsSection & { permissions?: PermissionCod
   { key: "advanced", title: "Advanced catalogue", description: "Typed configuration", icon: FileCog, permissions: [P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CONFIG_VALUES], requireAll: true },
 ];
 
-/** "notifications" → "Notifications", "parent_portal" → "Parent Portal". */
-const pretty = (s: string) => s.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
+/** The connections this screen tests, by the code its own buttons send. */
+const CONNECTION_LABELS: Record<"email" | "payments", string> = {
+  email: "Email connection",
+  payments: "Payment provider connection",
+};
 
 /** `section` comes from the route table; see sections.ts. */
 export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
@@ -237,7 +240,7 @@ function PlatformOverview({
 
       <SettingsPanel title="Protected platform boundaries" description="These safeguards are visible for clarity, but are enforced in backend services and are not editable here.">
         <SettingsRow icon={LockKeyhole} label="Tenant and branch isolation" description="A request cannot cross into another school or branch by changing an identifier." badge={<PolicyBadge kind="enforced" />} />
-        <SettingsRow icon={ShieldCheck} label="Backend permission checks" description="Viewing and saving are separately controlled by config.value.view and config.value.update." badge={<PolicyBadge kind="enforced" />} />
+        <SettingsRow icon={ShieldCheck} label="Backend permission checks" description="Viewing settings and changing them are separate permissions, so a person can read a value without being able to change it." badge={<PolicyBadge kind="enforced" />} />
         <SettingsRow icon={History} label="Immutable settings audit" description="Every successful value change records the actor, reason and before-and-after values." badge={<PolicyBadge kind="enforced" />} />
       </SettingsPanel>
 
@@ -748,10 +751,10 @@ function IntegrationSettings() {
     try {
       const result = await testConnection({ connection }).unwrap();
       setTestResult((current) => ({ ...current, [connection]: result.data.connected }));
-      if (result.data.connected) toast.success(`${pretty(connection)} connection succeeded`);
+      if (result.data.connected) toast.success(`${CONNECTION_LABELS[connection]} succeeded`);
       else toast.error(result.data.message);
     } catch {
-      toast.error(`${pretty(connection)} connection test could not run`);
+      toast.error(`${CONNECTION_LABELS[connection]} test could not run`);
     }
   };
 
@@ -815,7 +818,7 @@ function IntegrationSettings() {
         />
         <SettingsRow
           icon={CreditCard}
-          label={`${status?.payments.provider || "Payment"} payments`}
+          label={status?.payments.provider_label ? `${status.payments.provider_label} payments` : "Payment provider"}
           description="Runs a read-only provider credential check. It never creates a charge, transfer, or customer."
           badge={<PolicyBadge kind={testResult.payments === false ? "default" : status?.payments.configured ? "configured" : "default"}>{testResult.payments === true ? "Test passed" : testResult.payments === false ? "Test failed" : status?.payments.configured ? "Configured" : "Needs deployment setup"}</PolicyBadge>}
           value={canTest ? <Button variant="outline" size="sm" disabled={testState.isLoading || !status?.payments.configured} onClick={() => runConnectionTest("payments")}><PlugZap className="size-3.5" />Test payment</Button> : <span className="font-mont text-xs text-gray-05">Keys in deployment</span>}
@@ -972,11 +975,10 @@ function SystemSettings() {
   const rows = (defs.data?.data ?? []).filter(
     (d) => !search || `${d.label} ${d.key} ${d.description}`.toLowerCase().includes(search.toLowerCase()),
   );
-  // Group by the key's module prefix ("notifications.email_max_retries" → Notifications).
+  // Grouped under the section heading the backend names for each setting.
   const groups = new Map<string, ConfigDefinition[]>();
   for (const d of rows) {
-    const g = pretty(d.key.includes(".") ? d.key.split(".")[0] : "general");
-    groups.set(g, [...(groups.get(g) ?? []), d]);
+    groups.set(d.group_label, [...(groups.get(d.group_label) ?? []), d]);
   }
 
   return (
@@ -1107,7 +1109,6 @@ function SettingRow({
         {def.consumer ? (
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-gray-05">
             <PolicyBadge kind="configured">Used by {def.consumer.service}</PolicyBadge>
-            <code title={def.consumer.consumer} className="max-w-full truncate rounded bg-gray-02 px-1.5 py-0.5">{def.consumer.consumer}</code>
             <span className="basis-full leading-4">{def.consumer.impact}</span>
           </div>
         ) : (
@@ -1133,7 +1134,7 @@ function SettingRow({
               try {
                 const result = await resetValue({ key: def.key, reason: "Reset from Advanced Settings" }).unwrap();
                 setDraft(result.data.effective_value == null ? "" : String(result.data.effective_value));
-                toast.success(`${def.label} reset to ${result.data.source}`);
+                toast.success(`${def.label} reset. Now using: ${result.data.source_label}`);
               } catch {
                 toast.error(`${def.label} could not be reset`);
               }
@@ -1228,18 +1229,17 @@ function Features() {
   const enabled = new Map((effective.data?.data ?? []).map((e) => [e.key, e.enabled]));
   const entByKey = new Map((entitlements.data?.data ?? []).map((e) => [e.capability_key, e]));
   const overrideByKey = new Map((overrides.data?.data ?? []).map((o) => [o.capability_key, o]));
-  const labelByKey = new Map((catalogue.data?.data ?? []).map((c) => [c.key, c.label]));
   // A feature with any dependency off at this scope resolves Off no matter
   // what its own levers say - the rows must explain that.
   const depsStatus = (c: Capability) =>
-    (c.dependencies ?? []).map((key) => ({
-      label: labelByKey.get(key) ?? pretty(key),
+    (c.dependency_details ?? []).map(({ key, label }) => ({
+      label,
       on: enabled.get(key) ?? false,
     }));
 
   const groups = new Map<string, Capability[]>();
   for (const c of catalogue.data?.data ?? []) {
-    const g = KIND_GROUP[c.kind] ?? pretty(c.kind.toLowerCase());
+    const g = KIND_GROUP[c.kind] ?? "Other features";
     groups.set(g, [...(groups.get(g) ?? []), c]);
   }
 
@@ -1445,7 +1445,7 @@ function EntitlementCalendarRow({ entry, selected, selectable, onToggle }: { ent
     ? "Within 90 days"
     : entry.warning === "scheduled"
     ? "Activation"
-    : pretty(entry.status);
+    : entry.status_label;
 
   return (
     <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:px-5">
@@ -1453,7 +1453,7 @@ function EntitlementCalendarRow({ entry, selected, selectable, onToggle }: { ent
       <CalendarDays className="hidden size-4 shrink-0 text-gray-05 sm:block" />
       <div className="min-w-0 flex-1">
         <p className="truncate font-mont text-sm font-medium text-gray-01">{entry.capability_label}</p>
-        <p className="mt-0.5 truncate font-mont text-xs text-gray-05">{entry.scope === "platform" ? "Platform" : entry.tenant_name || entry.tenant_slug}</p>
+        <p className="mt-0.5 truncate font-mont text-xs text-gray-05">{entry.scope === "platform" ? "Platform" : entry.tenant_name}</p>
       </div>
       <div className="flex flex-wrap items-center gap-2 sm:justify-end">
         <span className="font-mont text-xs text-gray-05">{date ? new Date(date).toLocaleString() : "No date"}</span>
@@ -1709,7 +1709,7 @@ function FeatureDetail({
                       {!canViewEntitlements
                         ? "Protected by entitlement-view permission"
                         : entitlement
-                        ? `${entitlement.state} · via ${entitlement.source} · updated ${new Date(entitlement.updated_at).toLocaleDateString()}`
+                        ? `${entitlement.state_label} · ${entitlement.source_label} · updated ${new Date(entitlement.updated_at).toLocaleDateString()}`
                         : "None recorded"}
                     </dd>
                   </div>
@@ -1719,7 +1719,7 @@ function FeatureDetail({
                       {!canViewOverrides
                         ? "Protected by override-view permission"
                         : override && override.state !== "INHERIT"
-                        ? `${override.state === "ENABLED" ? "Forced on" : "Forced off"}${override.reason ? ` - “${override.reason}”` : ""} · updated ${new Date(override.updated_at).toLocaleDateString()}`
+                        ? `${override.state_label}${override.reason ? ` - “${override.reason}”` : ""} · updated ${new Date(override.updated_at).toLocaleDateString()}`
                         : "None - follows the plan"}
                     </dd>
                   </div>
@@ -1794,23 +1794,27 @@ function EntitlementScheduleEditor({ cap, school, entitlement }: { cap: Capabili
 
 // ── Audit ─────────────────────────────────────────────────────────────────────
 
-// Plain wording per audit action code; tone follows the change's weight.
-const AUDIT_ACTIONS: Record<string, { label: string; className: string }> = {
-  "config.value.updated": { label: "Setting changed", className: "bg-primary/10 text-primary" },
-  "config.value.cleared": { label: "Setting reset", className: "bg-gray-05/10 text-gray-06-text" },
-  "config.definition.created": { label: "Setting created", className: "bg-green-01/10 text-green-01" },
-  "config.definition.updated": { label: "Setting updated", className: "bg-primary/10 text-primary" },
-  "config.definition.archived": { label: "Setting archived", className: "bg-gray-05/10 text-gray-06-text" },
-  "config.capability.created": { label: "Feature created", className: "bg-green-01/10 text-green-01" },
-  "config.capability.updated": { label: "Feature updated", className: "bg-primary/10 text-primary" },
-  "config.capability.archived": { label: "Feature archived", className: "bg-gray-05/10 text-gray-06-text" },
-  "config.entitlement.updated": { label: "Plan grant changed", className: "bg-primary/10 text-primary" },
-  "config.entitlement.cleared": { label: "Plan grant reset", className: "bg-gray-05/10 text-gray-06-text" },
-  "config.override.updated": { label: "Forced status changed", className: "bg-yellow-01/10 text-yellow-01" },
-  "config.integration.connection_tested": { label: "Connection tested", className: "bg-primary/10 text-primary" },
-  "config.audit.export_queued": { label: "Audit export queued", className: "bg-yellow-01/10 text-yellow-01" },
-  "config.audit.export_completed": { label: "Audit export completed", className: "bg-green-01/10 text-green-01" },
-  "config.audit.export_downloaded": { label: "Audit export downloaded", className: "bg-primary/10 text-primary" },
+// Badge tone per audit action code, following the change's weight. The words
+// come from the event's own `action_label`; this table only colours them.
+const NEUTRAL_TONE = "bg-gray-05/10 text-gray-06-text";
+const AUDIT_ACTION_TONES: Record<string, string> = {
+  "config.value.updated": "bg-primary/10 text-primary",
+  "config.value.cleared": NEUTRAL_TONE,
+  "config.definition.created": "bg-green-01/10 text-green-01",
+  "config.definition.updated": "bg-primary/10 text-primary",
+  "config.definition.archived": NEUTRAL_TONE,
+  "config.capability.created": "bg-green-01/10 text-green-01",
+  "config.capability.updated": "bg-primary/10 text-primary",
+  "config.capability.archived": NEUTRAL_TONE,
+  "config.entitlement.updated": "bg-primary/10 text-primary",
+  "config.entitlement.cleared": NEUTRAL_TONE,
+  "config.depth_grant.updated": "bg-primary/10 text-primary",
+  "config.depth_grant.cleared": NEUTRAL_TONE,
+  "config.override.updated": "bg-yellow-01/10 text-yellow-01",
+  "config.integration.connection_tested": "bg-primary/10 text-primary",
+  "config.audit.export_queued": "bg-yellow-01/10 text-yellow-01",
+  "config.audit.export_completed": "bg-green-01/10 text-green-01",
+  "config.audit.export_downloaded": "bg-primary/10 text-primary",
 };
 
 function Audit() {
@@ -1874,15 +1878,12 @@ function Audit() {
   }, [activeExportJobs, exportJobData, refetchExportJobs]);
 
   const tableData = (q.data?.data ?? []).map((x) => {
-    const action = AUDIT_ACTIONS[x.action] ?? {
-      label: x.action.replace("config.", "").replaceAll(".", " "),
-      className: "bg-gray-05/10 text-gray-06-text",
-    };
+    const tone = AUDIT_ACTION_TONES[x.action] ?? NEUTRAL_TONE;
     return {
       _id: x.id,
       _event: x,
       action: (
-        <Badge className={`font-mont text-xs ${action.className}`}>{action.label}</Badge>
+        <Badge className={`font-mont text-xs ${tone}`}>{x.action_label}</Badge>
       ),
       target: <span className="text-sm font-medium">{x.target_label || "-"}</span>,
       actor: x.actor ? (
@@ -2021,7 +2022,7 @@ function Audit() {
           <div className="w-full sm:w-52">
             <NativeSelect value={actionFilter} onChange={(event) => { setActionFilter(event.target.value); setPage(1); }}>
               <option value="">All change types</option>
-              {(facets.data?.data.actions ?? Object.keys(AUDIT_ACTIONS)).map((value) => <option key={value} value={value}>{AUDIT_ACTIONS[value]?.label ?? pretty(value.replace("config.", ""))}</option>)}
+              {(facets.data?.data.action_options ?? []).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </NativeSelect>
           </div>
           <div className="w-full sm:w-52">
@@ -2113,11 +2114,10 @@ function Audit() {
 
 function AuditExportStatus({ job }: { job: ConfigAuditExportJob }) {
   const variant = job.status === "COMPLETED" ? "success" : job.status === "FAILED" ? "rejected" : "pending";
-  return <Badge variant={variant} className="font-mont text-xs">{pretty(job.status.toLowerCase())}</Badge>;
+  return <Badge variant={variant} className="font-mont text-xs">{job.status_label}</Badge>;
 }
 
 function AuditDetail({ event }: { event: ConfigAudit }) {
-  const action = AUDIT_ACTIONS[event.action]?.label ?? event.action;
   const keys = Array.from(new Set([
     ...Object.keys((event.before_data as Record<string, unknown>) || {}),
     ...Object.keys((event.after_data as Record<string, unknown>) || {}),
@@ -2128,20 +2128,20 @@ function AuditDetail({ event }: { event: ConfigAudit }) {
   return (
     <div className="space-y-5 p-5">
       <div>
-        <Badge className="bg-primary/10 font-mont text-xs text-primary">{action}</Badge>
-        <h3 className="mt-3 font-mont text-base font-semibold text-gray-01">{event.target_label || event.target_type}</h3>
+        <Badge className="bg-primary/10 font-mont text-xs text-primary">{event.action_label}</Badge>
+        <h3 className="mt-3 font-mont text-base font-semibold text-gray-01">{event.target_label || event.target_type_label}</h3>
         <p className="mt-1 font-mont text-xs text-gray-05">{new Date(event.created_at).toLocaleString()}</p>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <AuditFact label="Changed by" value={event.actor?.full_name || "System"} />
         <AuditFact label="Actor email" value={event.actor?.email || "Not applicable"} />
-        <AuditFact label="Target type" value={event.target_type} />
+        <AuditFact label="Kind of record" value={event.target_type_label} />
         <AuditFact label="Reason" value={event.reason || "No reason supplied"} />
       </div>
       <SettingsPanel title="Before and after" description="Secret-reference values are redacted before audit records are stored.">
         {keys.length ? keys.map((key) => (
           <div key={key} className="grid grid-cols-1 gap-3 px-4 py-4 sm:px-5 md:grid-cols-[150px_1fr_1fr]">
-            <p className="font-mont text-xs font-semibold text-gray-01">{pretty(key)}</p>
+            <p className="font-mont text-xs font-semibold text-gray-01">{event.field_labels?.[key] ?? "Other recorded detail"}</p>
             <AuditSnapshot label="Before" value={before[key]} />
             <AuditSnapshot label="After" value={after[key]} />
           </div>

@@ -5,6 +5,12 @@
  *
  * `initial.key` prefills the value form when a System Settings row's Edit
  * action opens the dialog.
+ *
+ * Every picker shows the backend's words for a stored value ("Whole number"
+ * for INTEGER, "Each branch" for branch), read from the definition and
+ * capability choice endpoints. The only code a person types here is a new
+ * definition's or feature's key, because that key is what the product's code
+ * reads and nothing else can supply it.
  */
 
 import { useState } from "react";
@@ -25,8 +31,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   useCreateCapabilityMutation,
   useCreateConfigDefinitionMutation,
+  useGetCapabilityChoicesQuery,
+  useGetConfigDefinitionChoicesQuery,
   useGetConfigDefinitionsQuery,
   useSetConfigValuesMutation,
+  type LabelledOption,
 } from "@/redux/services/config-api";
 
 export type ConfigDialogMode = "definition" | "value" | "capability";
@@ -35,6 +44,16 @@ export interface ConfigDialogInitial {
   /** Definition key to prefill (mode "value"). */
   key?: string;
 }
+
+const YES_NO: LabelledOption[] = [
+  { value: "false", label: "No" },
+  { value: "true", label: "Yes" },
+];
+
+const ON_OFF: LabelledOption[] = [
+  { value: "true", label: "On" },
+  { value: "false", label: "Off" },
+];
 
 const TITLES: Record<ConfigDialogMode, string> = {
   definition: "New setting",
@@ -68,6 +87,8 @@ export function ConfigDialog({
 }) {
   // The definitions list backs the key picker + type-aware value input.
   const defs = useGetConfigDefinitionsQuery({ page_size: "100" }, { skip: mode !== "value" });
+  const definitionChoices = useGetConfigDefinitionChoicesQuery(undefined, { skip: mode !== "definition" });
+  const capabilityChoices = useGetCapabilityChoicesQuery(undefined, { skip: mode !== "capability" });
 
   const [createDef, { isLoading: creatingDef }] = useCreateConfigDefinitionMutation();
   const [setValue, { isLoading: settingValue }] = useSetConfigValuesMutation();
@@ -106,7 +127,7 @@ export function ConfigDialog({
         value_type: form.value_type,
         default_value: parse(form.default_value, form.value_type),
         validation_rules: {},
-        allowed_scopes: form.allowed_scopes.split(",").map((x) => x.trim()),
+        allowed_scopes: form.allowed_scopes.split(",").filter(Boolean),
         sensitivity: form.sensitivity,
         is_active: true,
       }).unwrap();
@@ -168,24 +189,45 @@ export function ConfigDialog({
                   </Field>
                   <div className="grid grid-cols-2 gap-3">
                     <Select
-                      label="Value type"
+                      label="Kind of value"
                       value={form.value_type}
                       onChange={set("value_type")}
-                      options={["STRING", "INTEGER", "DECIMAL", "BOOLEAN", "JSON", "CHOICE", "SECRET_REFERENCE"]}
+                      options={definitionChoices.data?.data.value_types ?? []}
                     />
                     <Select
                       label="Sensitivity"
                       value={form.sensitivity}
                       onChange={set("sensitivity")}
-                      options={["PUBLIC", "INTERNAL", "SECRET_REFERENCE"]}
+                      options={definitionChoices.data?.data.sensitivities ?? []}
                     />
                   </div>
                   <Field label="Default value">
                     <Input value={form.default_value} onChange={set("default_value")} />
                   </Field>
-                  <Field label="Allowed scopes (comma separated)">
-                    <Input value={form.allowed_scopes} onChange={set("allowed_scopes")} />
-                  </Field>
+                  <fieldset className="grid gap-1 text-sm font-medium">
+                    <legend>Where it can be set</legend>
+                    <div className="flex flex-wrap gap-4 pt-1">
+                      {(definitionChoices.data?.data.allowed_scopes ?? []).map((scope) => {
+                        const chosen = form.allowed_scopes.split(",").filter(Boolean);
+                        return (
+                          <label key={scope.value} className="flex items-center gap-2 font-normal">
+                            <input
+                              type="checkbox"
+                              className="size-4 accent-primary"
+                              checked={chosen.includes(scope.value)}
+                              onChange={(ev) => {
+                                const next = ev.target.checked
+                                  ? [...chosen, scope.value]
+                                  : chosen.filter((x) => x !== scope.value);
+                                setForm((x) => ({ ...x, allowed_scopes: next.join(",") }));
+                              }}
+                            />
+                            {scope.label}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
                 </>
               )}
 
@@ -194,7 +236,9 @@ export function ConfigDialog({
                   {initial?.key ? (
                     // Opened from a settings row - the setting is already chosen.
                     <div>
-                      <p className="text-sm font-medium">{pickedDef?.label ?? initial.key}</p>
+                      <p className="text-sm font-medium">
+                        {pickedDef?.label ?? (defs.isLoading ? "Loading setting…" : "This setting is no longer available")}
+                      </p>
                       {pickedDef?.description && (
                         <p className="text-xs text-gray-01">{pickedDef.description}</p>
                       )}
@@ -204,10 +248,18 @@ export function ConfigDialog({
                       label="Setting"
                       value={form.key}
                       onChange={set("key")}
-                      options={(defs.data?.data ?? []).map((x) => x.key)}
+                      options={(defs.data?.data ?? []).map((x) => ({
+                        value: x.key,
+                        label: `${x.group_label}: ${x.label}`,
+                      }))}
                     />
                   )}
-                  <ValueInput valueType={pickedDef?.value_type} value={form.value} onChange={set("value")} />
+                  <ValueInput
+                    valueType={pickedDef?.value_type}
+                    valueTypeLabel={pickedDef?.value_type_label}
+                    value={form.value}
+                    onChange={set("value")}
+                  />
                   <Field label="Reason">
                     <Input value={form.reason} onChange={set("reason")} />
                   </Field>
@@ -226,19 +278,24 @@ export function ConfigDialog({
                     <Textarea value={form.description} onChange={set("description")} />
                   </Field>
                   <div className="grid grid-cols-2 gap-3">
-                    <Select label="Kind" value={form.kind} onChange={set("kind")} options={["MODULE", "FEATURE"]} />
+                    <Select
+                      label="Kind"
+                      value={form.kind}
+                      onChange={set("kind")}
+                      options={capabilityChoices.data?.data.kinds ?? []}
+                    />
                     <Select
                       label="On by default"
                       value={form.default_enabled}
                       onChange={set("default_enabled")}
-                      options={["false", "true"]}
+                      options={YES_NO}
                     />
                   </div>
                   <Select
                     label="Requires a plan (entitlement)"
                     value={form.requires_entitlement}
                     onChange={set("requires_entitlement")}
-                    options={["false", "true"]}
+                    options={YES_NO}
                   />
                 </>
               )}
@@ -260,19 +317,25 @@ export function ConfigDialog({
   );
 }
 
-/** Value input matched to the definition's declared type. */
+/**
+ * Value input matched to the definition's declared type. `valueType` picks
+ * the control; `valueTypeLabel` is the backend's word for it, shown to the
+ * person ("Value (Whole number)").
+ */
 function ValueInput({
   valueType,
+  valueTypeLabel,
   value,
   onChange,
 }: {
   valueType?: string;
+  valueTypeLabel?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }) {
-  const label = valueType ? `Value (${valueType.toLowerCase()})` : "Value";
+  const label = valueTypeLabel ? `Value (${valueTypeLabel})` : "Value";
   if (valueType === "BOOLEAN")
-    return <Select label={label} value={value} onChange={onChange} options={["true", "false"]} />;
+    return <Select label={label} value={value} onChange={onChange} options={ON_OFF} />;
   if (valueType === "INTEGER" || valueType === "DECIMAL")
     return (
       <Field label={label}>
@@ -316,14 +379,16 @@ function Select({
   label: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  options: string[];
+  options: LabelledOption[];
 }) {
   return (
     <Field label={label}>
       <NativeSelect required value={value} onChange={onChange}>
         <option value="">Select…</option>
         {options.map((x) => (
-          <option key={x}>{x}</option>
+          <option key={x.value} value={x.value}>
+            {x.label}
+          </option>
         ))}
       </NativeSelect>
     </Field>

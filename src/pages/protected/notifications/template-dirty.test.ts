@@ -7,6 +7,7 @@ const stored: NotificationTemplate = {
   event_type: "e1",
   event_type_key: "ticket.created",
   event_type_label: "Ticket created",
+  source_module_label: "Support tickets",
   channel: "email",
   subject: "New ticket {{ ticket_number }}",
   body: "Hello,\n\nA ticket was raised.",

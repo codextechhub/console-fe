@@ -68,8 +68,8 @@ export default function PermissionsList() {
     module: <span className="text-xs">{perm.module_label}</span>,
     resource: <span className="text-xs">{perm.resource_label}</span>,
     sensitivity: (
-      <Badge variant={SENSITIVITY_BADGE[perm.sensitivity_level] ?? "inactive"} className="text-xs capitalize">
-        {perm.sensitivity_level?.toLowerCase()}
+      <Badge variant={SENSITIVITY_BADGE[perm.sensitivity_level] ?? "inactive"} className="text-xs">
+        {perm.sensitivity_label}
       </Badge>
     ),
     restricted: perm.is_restricted ? (

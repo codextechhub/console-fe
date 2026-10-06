@@ -201,7 +201,7 @@ export default function EditRole() {
                     <RestrictedApprovalNotes
                       labels={catalogueLabels(catalogue.data?.data ?? [])}
                       adding={restrictedAdditions(catalogue.data?.data ?? [], values.permission_keys, role)}
-                      waiting={(role.pending_additions ?? []).map((entry) => entry.permission_key)}
+                      waiting={role.pending_additions ?? []}
                     />
 
                     <SearchSelect

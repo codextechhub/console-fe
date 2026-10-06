@@ -25,7 +25,7 @@ export interface PlatformRoleDetail extends PlatformRole {
    * approval ladder. A save never grants a restricted permission the role does
    * not already hold: it grants the rest and raises a request for these.
    */
-  pending_additions: Array<{ permission_key: string; request_id: string }>;
+  pending_additions: Array<{ permission_key: string; permission_label: string; request_id: string }>;
   role_permissions: Array<{ permission_key: string; granted: boolean }>;
   role_groups: Array<{ group: PermissionGroupList }>;
 }
@@ -112,6 +112,8 @@ export interface Permission {
   label: string;
   description?: string;
   sensitivity_level: "NORMAL" | "SENSITIVE" | "CRITICAL";
+  /** "Critical" - the level as a person reads it. */
+  sensitivity_label: string;
   is_restricted: boolean;
   is_active: boolean;
   created_at: string;
@@ -127,6 +129,8 @@ export interface PermissionDetail extends Permission {
 export interface PermissionModule {
   name: string;
   label?: string;
+  /** The stored label, or the backend's reading of the slug; never blank. */
+  readable_label: string;
   description?: string;
   is_active: boolean;
   created_at: string;
@@ -139,6 +143,8 @@ export interface PermissionResource {
   module_label: string;
   name: string;
   label?: string;
+  /** The stored label, or the backend's reading of the slug; never blank. */
+  readable_label: string;
   description?: string;
   is_active: boolean;
   permissions_count: number;
@@ -148,6 +154,8 @@ export interface PermissionResource {
 
 export interface PermissionAction {
   name: string;
+  /** "Bulk export" - the action as a person reads it. */
+  readable_label: string;
   description?: string;
   is_active: boolean;
   permissions_count: number;

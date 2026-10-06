@@ -34,7 +34,7 @@ export default function PermissionActions() {
   const actions = data?.data ?? [];
 
   const tableData = actions.map((a: PermissionAction) => ({
-    name: <span className="text-xs font-semibold text-black-01 capitalize">{a.name.replaceAll("_", " ")}</span>,
+    name: <span className="text-xs font-semibold text-black-01">{a.readable_label}</span>,
     description: <span className="text-xs text-gray-01 max-w-64 truncate block">{a.description || "-"}</span>,
     permissions: a.permissions_count > 0
       ? <Badge variant="default">{a.permissions_count}</Badge>

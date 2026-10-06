@@ -8,18 +8,30 @@
 import { baseApi } from "./base-api";
 import { generateQueryString } from "@/utils/helpers";
 
+/** A stored machine value with the words a screen shows for it. */
+export interface LabelledOption {
+  value: string;
+  label: string;
+}
+
 export interface ConfigDefinition {
   id: string;
   key: string;
   label: string;
   description: string;
+  /** Section heading the setting is listed under ("Dates and times"). */
+  group_label: string;
   value_type: string;
+  /** "Whole number", "On or off" - the value type as a person reads it. */
+  value_type_label: string;
   default_value: unknown;
   validation_rules: Record<string, unknown>;
   allowed_scopes: string[];
+  allowed_scope_labels: string[];
   sensitivity: string;
+  sensitivity_label: string;
   is_active: boolean;
-  consumer: { service: string; consumer: string; impact: string } | null;
+  consumer: { service: string; impact: string } | null;
   updated_at: string;
 }
 
@@ -40,11 +52,14 @@ export interface Capability {
   label: string;
   description: string;
   kind: string;
+  kind_label: string;
   requires_entitlement: boolean;
   default_enabled: boolean;
   is_active: boolean;
   metadata: Record<string, unknown>;
   dependencies: string[];
+  /** Each required capability's key with the name a person reads. */
+  dependency_details: Array<{ key: string; label: string }>;
   updated_at: string;
 }
 
@@ -54,7 +69,10 @@ export interface Entitlement {
   capability_key: string;
   school: string | null;
   state: string;
+  state_label: string;
   source: string;
+  /** Where the grant came from, in words ("Set by an operator"). */
+  source_label: string;
   starts_at: string | null;
   ends_at: string | null;
   updated_at: string;
@@ -70,6 +88,7 @@ export interface EntitlementCalendarEntry {
   starts_at: string | null;
   ends_at: string | null;
   status: "active" | "scheduled" | "expired";
+  status_label: string;
   warning: "none" | "notice" | "warning" | "critical" | "scheduled" | "expired";
   days_until_expiry: number | null;
 }
@@ -95,14 +114,21 @@ export interface Override {
   school: string | null;
   branch: string | null;
   state: string;
+  state_label: string;
   reason: string;
   updated_at: string;
 }
 
 export interface ConfigAudit {
   id: string;
+  /** Stored action code; filters and saved views are keyed on it. */
   action: string;
+  /** "Setting changed" - what the screen shows for `action`. */
+  action_label: string;
+  /** Stored record kind; filters and saved views are keyed on it. */
   target_type: string;
+  /** "Setting value" - what the screen shows for `target_type`. */
+  target_type_label: string;
   target_id: string;
   /** Human name of the audited object ("" when the target was deleted). */
   target_label: string;
@@ -111,6 +137,8 @@ export interface ConfigAudit {
   actor: { id: string; full_name: string; email: string } | null;
   before_data: unknown;
   after_data: unknown;
+  /** The words for every field name in either snapshot. */
+  field_labels: Record<string, string>;
   reason: string;
   created_at: string;
 }
@@ -170,9 +198,24 @@ export interface SecuritySettingsData {
 
 export interface ConfigAuditFacets {
   actions: string[];
+  action_options: LabelledOption[];
   target_types: string[];
+  target_type_options: LabelledOption[];
   actors: Array<{ id: string; full_name: string; email: string }>;
-  targets: Array<{ type: string; id: string; label: string }>;
+  targets: Array<{ type: string; type_label: string; id: string; label: string }>;
+}
+
+export interface ConfigDefinitionChoices {
+  value_types: LabelledOption[];
+  sensitivities: LabelledOption[];
+  allowed_scopes: LabelledOption[];
+}
+
+export interface CapabilityChoices {
+  kinds: LabelledOption[];
+  entitlement_states: LabelledOption[];
+  entitlement_sources: LabelledOption[];
+  override_states: LabelledOption[];
 }
 
 export interface ConfigAuditSavedView {
@@ -197,6 +240,7 @@ export interface ConfigAuditSavedView {
 export interface ConfigAuditExportJob {
   id: string;
   status: "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED";
+  status_label: string;
   filters: Record<string, string>;
   scope_key: string;
   tenant_slug: string | null;
@@ -223,7 +267,13 @@ export interface IntegrationSettingsData {
   sources: Record<string, "database" | "environment" | "default">;
   status: {
     email: { configured: boolean; host: string; credentials_managed_by: "deployment" };
-    payments: { provider: string; configured: boolean; credentials_managed_by: "deployment" };
+    payments: {
+      provider: string;
+      /** The provider's own name ("Paystack"). */
+      provider_label: string;
+      configured: boolean;
+      credentials_managed_by: "deployment";
+    };
     public_application: { base_url: string; managed_by: "deployment" };
   };
 }
@@ -280,6 +330,10 @@ export const configApi = baseApi.injectEndpoints({
       query: (body) => ({ url: "/config/integration-settings/test/", method: "POST", body }),
     }),
     // ── Definitions (the typed settings catalogue) ──────────────────────────
+    // The labelled options the new-setting form offers (value types, sensitivities, scopes).
+    getConfigDefinitionChoices: builder.query<{ data: ConfigDefinitionChoices }, void>({
+      query: () => "/config/definition-choices/",
+    }),
     getConfigDefinitions: builder.query<Page<ConfigDefinition>, Record<string, string> | void>({
       query: (params) => `/config/definitions/${generateQueryString(params ?? {})}`,
       providesTags: ["Config"],
@@ -326,7 +380,16 @@ export const configApi = baseApi.injectEndpoints({
       invalidatesTags: ["Config"],
     }),
     resetConfigValue: builder.mutation<
-      { data: { key: string; cleared: boolean; effective_value: unknown; source: string } },
+      {
+        data: {
+          key: string;
+          cleared: boolean;
+          effective_value: unknown;
+          source: string;
+          /** The value that now applies, in words ("Built-in default"). */
+          source_label: string;
+        };
+      },
       { key: string; reason: string; tenant?: string; branch?: string }
     >({
       query: ({ key, tenant, branch, ...body }) => ({
@@ -343,6 +406,10 @@ export const configApi = baseApi.injectEndpoints({
     }),
 
     // ── Capabilities / entitlements / overrides ────────────────────────────
+    // The labelled options the feature screens offer (kinds, grant and forced states).
+    getCapabilityChoices: builder.query<{ data: CapabilityChoices }, void>({
+      query: () => "/config/capability-choices/",
+    }),
     getCapabilities: builder.query<Page<Capability>, Record<string, string> | void>({
       query: (params) => `/config/capabilities/${generateQueryString(params ?? {})}`,
       providesTags: ["Config"],
@@ -513,6 +580,7 @@ export const {
   useGetIntegrationSettingsQuery,
   useUpdateIntegrationSettingsMutation,
   useTestIntegrationConnectionMutation,
+  useGetConfigDefinitionChoicesQuery,
   useGetConfigDefinitionsQuery,
   useCreateConfigDefinitionMutation,
   useUpdateConfigDefinitionMutation,
@@ -521,6 +589,7 @@ export const {
   useGetEffectiveConfigQuery,
   useSetConfigValuesMutation,
   useResetConfigValueMutation,
+  useGetCapabilityChoicesQuery,
   useGetCapabilitiesQuery,
   useGetEffectiveCapabilitiesQuery,
   useCreateCapabilityMutation,

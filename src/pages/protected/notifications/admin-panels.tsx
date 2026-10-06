@@ -35,10 +35,6 @@ import {
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 
-/** "vs_finance" → "Finance", "task_completed" → "Task Completed". */
-const label = (s: string) =>
-  s.replace(/^vs_/, "").replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
 const groupBy = <T,>(items: T[], key: (item: T) => string) =>
   items.reduce<Record<string, T[]>>((out, item) => {
     (out[key(item)] ??= []).push(item);
@@ -73,13 +69,13 @@ export function HistoryPanel() {
       </div>
     ),
     event: <span className="text-sm">{r.event_type_label}</span>,
-    channel: <span className="text-sm capitalize">{r.channel.replace("_", "-")}</span>,
+    channel: <span className="text-sm">{r.channel_label}</span>,
     status: (
       <Badge
         variant={r.status === "SENT" ? "success" : r.status === "FAILED" ? "rejected" : "pending"}
         className="font-mont text-xs"
       >
-        {r.status}
+        {r.status_label}
       </Badge>
     ),
     created: <span className="text-xs text-gray-01">{new Date(r.created_at).toLocaleString()}</span>,
@@ -113,9 +109,9 @@ export function HistoryPanel() {
             }}
           >
             <option value="">All statuses (last 7 days)</option>
-            <option>PENDING</option>
-            <option>SENT</option>
-            <option>FAILED</option>
+            <option value="PENDING">Pending</option>
+            <option value="SENT">Sent</option>
+            <option value="FAILED">Failed</option>
           </NativeSelect>
         </div>
         {/* Platform is the only scope the backend narrows on, so this stays a
@@ -163,7 +159,7 @@ export function SettingsPanel() {
   const q = useGetNotificationSettingsQuery();
   const [update, { isLoading }] = useUpdateNotificationSettingsMutation();
   const grouped = useMemo(
-    () => groupBy<NotificationSetting>(q.data?.data ?? [], (x) => x.source_module),
+    () => groupBy<NotificationSetting>(q.data?.data ?? [], (x) => x.source_module_label),
     [q.data],
   );
 
@@ -171,9 +167,9 @@ export function SettingsPanel() {
 
   return (
     <div data-guide="notifications-admin.settings" className={cn(INFORMATION_CARD_SURFACE, "divide-y divide-white-02 rounded-md")}>
-      {Object.entries(grouped).map(([module, rows]) => (
-        <div key={module} className="p-5">
-          <h3 className="font-mont font-semibold">{label(module)}</h3>
+      {Object.entries(grouped).map(([area, rows]) => (
+        <div key={area} className="p-5">
+          <h3 className="font-mont font-semibold">{area}</h3>
           <div className="mt-3 divide-y divide-white-02 rounded-lg border border-white-02">
             {rows.map((r) => {
               // In-app rows are always-on by product policy; transactional
@@ -184,7 +180,7 @@ export function SettingsPanel() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium">{r.event_type_label}</p>
                     <p className="text-xs text-gray-01">
-                      {r.channel === "in_app" ? "In-app feed" : "Email delivery"} · inherited from {r.source}
+                      {r.channel === "in_app" ? "In-app feed" : "Email delivery"} · {r.source_label}
                     </p>
                   </div>
                   <span
@@ -267,7 +263,7 @@ export function TemplatesPanel() {
               <p className="mt-4 font-mont font-semibold">
                 {t.subject || t.event_type_label || "Untitled template"}
               </p>
-              <p className="mt-1 text-xs text-gray-01">{t.event_type_key}</p>
+              <p className="mt-1 text-xs text-gray-01">{t.source_module_label}</p>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {t.channel === "email" && (
                   <Badge
@@ -299,16 +295,16 @@ export function EventsPanel() {
   // the catalogue only documents notifications that can actually fire.
   const grouped = groupBy<NotificationEventType>(
     (q.data?.data ?? []).filter((x) => x.is_active),
-    (x) => x.source_module,
+    (x) => x.source_module_label,
   );
 
   if (q.isLoading) return <Busy />;
 
   return (
     <div data-guide="notifications-admin.events" className={cn(INFORMATION_CARD_SURFACE, "divide-y divide-white-02 rounded-md")}>
-      {Object.entries(grouped).map(([module, events]) => (
-        <div className="p-5" key={module}>
-          <h3 className="font-mont font-semibold">{label(module)}</h3>
+      {Object.entries(grouped).map(([area, events]) => (
+        <div className="p-5" key={area}>
+          <h3 className="font-mont font-semibold">{area}</h3>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             {events.map((e) => (
               <div key={e.id} className="rounded-lg border border-white-02 p-4">
@@ -321,7 +317,7 @@ export function EventsPanel() {
                   )}
                 </div>
                 <p className="mt-1 text-xs leading-5 text-gray-01">{e.description}</p>
-                <p className="mt-3 text-[11px] text-gray-01">{e.supported_channels.map(label).join(" · ")}</p>
+                <p className="mt-3 text-[11px] text-gray-01">{e.supported_channel_labels.join(" · ")}</p>
               </div>
             ))}
           </div>

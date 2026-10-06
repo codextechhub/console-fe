@@ -714,7 +714,7 @@ export const WALKTHROUGH_REGISTRY = [
         id: "checklist",
         target: "finance-periods.checklist",
         title: "Separate blockers from warning-only checks",
-        body: "A failed blocker must be resolved before close. A warning remains visible for judgment but does not stop close. Reconcile the source records and evidence rather than forcing an offsetting entry.",
+        body: "A failed blocker must be resolved before close. A warning remains visible for judgment but does not stop close. An item marked Done by the close is work the close does itself. Reconcile the source records and evidence rather than forcing an offsetting entry.",
         placement: "left",
         advance: "manual",
       },

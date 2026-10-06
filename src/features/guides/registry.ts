@@ -676,6 +676,7 @@ export const GUIDE_REGISTRY = [
       { id: "understand-period-statuses", title: "Understand period statuses" },
       { id: "inspect-the-checklist", title: "Inspect the close checklist" },
       { id: "soft-close-or-close", title: "Soft-close or run the period close" },
+      { id: "close-in-order", title: "Months close in order" },
       { id: "force-close", title: "Force a month closed over a failing check" },
       { id: "close-the-fiscal-year", title: "Close the fiscal year" },
       { id: "reopen-or-lock", title: "Reopen or permanently lock" },
