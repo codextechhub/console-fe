@@ -22,6 +22,19 @@ describe("apiErrorMessage", () => {
     })).toBe("Enter a valid date.");
   });
 
+  it("shows the server's sentence for several field errors, each field named in words", () => {
+    expect(apiErrorMessage({
+      status: 400,
+      data: {
+        message: "Line 2, gross amount: Enter an amount above zero.; Line 3, account: Choose an account.",
+        error: {
+          code: "REQUEST_ERROR",
+          detail: { lines: [{}, { gross_amount: ["Enter an amount above zero."] }, { account: ["Choose an account."] }] },
+        },
+      },
+    })).toBe("Line 2, gross amount: Enter an amount above zero.; Line 3, account: Choose an account.");
+  });
+
   it("never falls back to the machine code", () => {
     expect(apiErrorMessage({
       message: "",
