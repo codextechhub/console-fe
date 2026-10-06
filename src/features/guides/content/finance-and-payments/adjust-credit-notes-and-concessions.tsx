@@ -38,6 +38,7 @@ export default function AdjustCreditNotesAndConcessionsArticle() {
           <GuideStep title="Review the allowance posting">Confirm the allowance account, amount, and preview. The posting debits discounts and allowances and credits Accounts Receivable.</GuideStep>
           <GuideStep title="Save or continue">Save draft when evidence or review is incomplete. Otherwise Console posts directly below the configured threshold or submits for approval when the amount is gated.</GuideStep>
         </GuideSteps>
+        <p>The tiles above the list give <strong>Posted (YTD)</strong>, <strong>Draft (pending)</strong>, <strong>Sent back</strong> and <strong>Active concessions</strong>. Active concessions counts only the concessions in force: posted and not voided. A draft, one awaiting approval, one sent back and one voided are not counted, so the figure matches what the <strong>Posted</strong> filter lists.</p>
       </GuideSection>
 
       <GuideSection id="follow-approval-and-posting" title="Follow approval and posting">

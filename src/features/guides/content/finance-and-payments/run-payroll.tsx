@@ -74,7 +74,7 @@ export default function RunPayrollArticle() {
       </GuideSection>
 
       <GuideSection id="correct-a-run" title="Correct or cancel a payroll run">
-        <GuideCallout tone="warning" title="The correction depends on status">Cancel a draft to discard it. Void a calculated run to reverse its accrual journal. A paid run cannot be voided until the disbursement is reversed through the approved recovery process.</GuideCallout>
+        <GuideCallout tone="warning" title="The correction depends on status">Cancel a draft to discard it. Void a calculated run to reverse the journal it posted, which booked the salary expense and what is owed for it. A paid run cannot be voided until the disbursement is reversed through the approved recovery process.</GuideCallout>
         <p>Under per-branch payroll, two runs may share a pay period only when both cover different branches. A whole-school run overlaps every branch run, so raising one blocks the branches for that period, and raising a branch&rsquo;s run blocks the whole-school one. Cancelling the run raised in error is how the correct one becomes available; a cancelled run no longer counts as an overlap.</p>
       </GuideSection>
 

@@ -55,7 +55,7 @@ export default function CloseLockOrReopenPeriodArticle() {
           "Every earlier month is closed (while months close in order).",
           "Trial balance is balanced.",
           "Draft journals are resolved or deliberately handled.",
-          "AR and AP reconcile to their control accounts.",
+          "Receivables agree with the ledger and Payables agree with the ledger: AR (what customers owe) and AP (what is owed to suppliers) match their control accounts.",
           "Goods received but not yet billed are understood and evidenced.",
           "Required depreciation has been posted.",
           "Branches agree on what they owe each other.",

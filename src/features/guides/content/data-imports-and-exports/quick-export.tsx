@@ -77,10 +77,9 @@ export default function QuickExportArticle() {
         </p>
         <p>
           Take this seriously. It means the file will contain rows the table in front of you
-          is hiding. Two common cases:
+          is hiding. A common case:
         </p>
         <GuideChecklist items={[
-          "Purchase orders on the Partly received tab. The export cannot filter by how much of an order has been received, so the file holds every order the other filters match.",
           "Sign-in sessions filtered by school, or to sessions that ended today. Neither is part of the sessions export.",
         ]} />
         <GuideCallout tone="warning" title="Check the file before you send it on">
@@ -89,12 +88,12 @@ export default function QuickExportArticle() {
         </GuideCallout>
         <GuideFigure
           title="What the drawer is telling you"
-          caption="The three states you will see. Only the first means the file matches the table exactly."
+          caption="The three states you will see, and what each means for the file."
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[
               { icon: Filter, title: "Carried", body: "Green chips. These filters crossed into the export, so the file matches the table." },
-              { icon: ListFilter, title: "Added", body: "A note under the chips. The export needed a date window the screen did not have, so the file is narrower." },
+              { icon: ListFilter, title: "Added", body: "A sentence under the chips. The export needed a date range the screen did not send, and the sentence names the dates the file covers: the whole list, or on a screen bounded on purpose, only the recent part." },
               { icon: CircleAlert, title: "Not carried", body: "The yellow panel. A screen filter could not be expressed, so the file is wider." },
             ].map(({ icon: Icon, title, body }) => (
               <div key={title} className="rounded-xl border border-gray-200 bg-white p-4">
@@ -109,11 +108,24 @@ export default function QuickExportArticle() {
 
       <GuideSection id="dates-and-row-counts" title="Date windows and row counts">
         <p>
-          Some exports refuse to mean &quot;everything ever recorded&quot;. When a screen has
-          no date filter of its own, the export adds one and says how far back it goes,
-          usually the last 365 days. Ledger postings default to a much tighter window
-          because that table is the largest in the platform. You can widen either in the
-          builder.
+          An export covers everything the list shows, however far back the list goes. When
+          the export needs a date range and the screen sent none, the drawer says in a
+          sentence which dates the file covers, for example <em>Includes every one of the
+          invoices the list shows, from 3 Feb 2021 to 6 Oct 2026</em>, in your
+          organisation&apos;s date format.
+        </p>
+        <p>
+          Three screens are bounded on purpose, because their tables are the largest in the
+          platform: the <strong>General Ledger</strong> exports the last 31 days, and
+          <strong> sign-in sessions</strong> and <strong>audit events</strong> the last 90.
+          There the sentence reads, for example, <em>Includes general ledger postings from
+          5 Sep 2026 to 6 Oct 2026, the last 31 days. Set the dates in the builder to include
+          earlier ones.</em> On the General Ledger, choosing a period on the screen first
+          carries those dates instead.
+        </p>
+        <p>
+          A date range ending on a day includes the whole of that day, so a range ending on
+          30 September takes everything recorded at any time on the 30th.
         </p>
         <GuideCallout title="The General Ledger export counts differently on purpose">
           The Journal Entries screen lists one row per <strong>entry</strong>. The export
@@ -166,7 +178,7 @@ export default function QuickExportArticle() {
           />
           <Problem
             title="The row count does not match the screen"
-            solution="Check the Filters section for a filter that could not be carried. On the General Ledger this is expected, because the export lists journal lines rather than entries."
+            solution="Check the Filters section for a filter that could not be carried, and for a sentence saying the file covers only the last 31 or 90 days. On the General Ledger more rows are expected, because the export lists journal lines rather than entries."
           />
           <Problem
             title="The file is gone"
