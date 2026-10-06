@@ -61,7 +61,7 @@ export default function DeferredIncomeDepositsAndDoubtfulDebtsArticle() {
           <li>The month will not close: some of its deferred income is still unreleased. Release due income first.</li>
           <li>A leaver&rsquo;s deposit was not set against their bills: the setting is off, or Credit to refund was chosen.</li>
           <li>A provision run is waiting: it needs a second person&rsquo;s approval under Workflow, Approvals.</li>
-          <li>A provision run came back from the approver: whoever sent it for approval sees Sent back to you and Resume, which sends it back as it is. A run has no Edit: to change one, withdraw it under Workflow, My Submissions and submit it again.</li>
+          <li>A provision run came back from the approver: it reads Sent back, on its row and when you open it. Whoever sent it for approval sees Sent back to you and Resume, which sends it back as it is. A run has no Edit: to change one, withdraw it under Workflow, My Submissions and submit it again.</li>
           <li>The settings are greyed: they bind every branch, so changing them needs the update key and whole-school reach.</li>
         </ul>
       </GuideSection>

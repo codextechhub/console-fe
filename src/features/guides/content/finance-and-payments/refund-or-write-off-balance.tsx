@@ -40,7 +40,7 @@ export default function RefundOrWriteOffBalanceArticle() {
 
       <GuideSection id="follow-approval-and-posting" title="Follow approval and posting">
         <p>Choose Save draft only when work is incomplete. Choose Submit for approval whenever the current rule requires a second person. Post now appears only when the active rule permits direct posting, and the created document's server result remains authoritative. Refunds move cash and write-offs concede income, so never split one action into smaller documents to avoid approval.</p>
-        <p>If an approver sends one back, the person who sent it for approval sees <strong>Sent back to you</strong> and <strong>Resume</strong>, which sends it back to the approver as it is. A refund or write-off has no Edit: to change one, withdraw it under Workflow, My Submissions and submit it again.</p>
+        <p>If an approver sends one back, its detail panel shows <strong>Sent back</strong> as its status, and <strong>Submit for approval</strong> is not offered on it. The person who sent it for approval sees <strong>Sent back to you</strong>, with the approver&rsquo;s reason, and <strong>Resume</strong>, which sends it back to the approver as it is. A refund or write-off has no Edit: to change one, withdraw it under Workflow, My Submissions and submit it again.</p>
         <GuideCallout title="Stop before the final action">The interactive walkthrough can open the form and explain the preview. It never processes a refund, posts a write-off, saves a draft, or submits an approval.</GuideCallout>
       </GuideSection>
 

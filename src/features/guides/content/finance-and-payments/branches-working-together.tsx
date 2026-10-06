@@ -116,7 +116,7 @@ export default function BranchesWorkingTogetherArticle() {
           <li>A request has been waiting for days: it waits for the asked branch to Send or Decline. Nothing is booked until then.</li>
           <li>A send reads Waiting for approval: it is in the sending branch&rsquo;s approval route under Workflow, Approvals.</li>
           <li>A send reads Not sent: its approval was rejected, withdrawn or cancelled, and no money moved.</li>
-          <li>A send came back from the approver: whoever sent it for approval sees Sent back to you and Resume, which sends it back as it is. A send has no Edit: to change one, withdraw it under Workflow, My Submissions and send it again.</li>
+          <li>A send came back from the approver: it reads Sent back in the register, where the stage filter lists it under Requested or sent back. Whoever sent it for approval sees Sent back to you and Resume, which sends it back as it is. A send has no Edit: to change one, withdraw it under Workflow, My Submissions and send it again.</li>
           <li>Void is missing: the kind is never voided from the register, or you lack the void key. Read the note on the transfer.</li>
           <li>Book recharge stays off after picking a rule: the rule says the paying branch absorbs that cost. Change the rule to recharge it first.</li>
           <li>The month will not close: a pair on Inter-branch Balances disagrees. Find the transfer booked on one side only.</li>
