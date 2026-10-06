@@ -1302,8 +1302,8 @@ export const GUIDE_REGISTRY = [
     tags: ["payout", "batch", "disbursement", "settlement", "provider", "webhook", "failed", "reversed", "beneficiary", "custody", "held settlement", "held reconciliation"],
     aliases: ["send payout", "pay vendor", "bulk disbursement", "payout batch", "batch awaiting approval", "sent back batch", "partly completed batch", "payout failed", "settlement pending", "replay webhook", "payment reversed", "book settlement", "gateway clearing", "paystack settlement", "provider fee", "who holds online payments", "held or direct", "collection subaccount", "held settlements", "submit settlement for approval", "held money check", "paystack balance swept", "provider sweeps"],
     audiences: ["finance-officer", "approver", "support-and-operations"],
-    routes: [R.FINANCE.PAYMENTS, `${R.FINANCE.PAYMENTS}/payouts`, `${R.FINANCE.PAYMENTS}/batches`, `${R.FINANCE.PAYMENTS}/settlement`, `${R.FINANCE.PAYMENTS}/transactions`, `${R.FINANCE.PAYMENTS}/webhooks`, `${R.FINANCE.PAYMENTS}/held-settlements`, `${R.FINANCE.PAYMENTS}/held-reconciliations`, `${R.FINANCE.SETTINGS}/banking-cash`],
-    actionIds: ["view-payouts", "new-payout", "view-payout-batches", "view-settlement", "view-held-settlements", "view-held-reconciliations", "view-transactions-log", "view-payment-webhooks"],
+    routes: [R.FINANCE.PAYMENTS, `${R.FINANCE.PAYMENTS}/payouts`, `${R.FINANCE.PAYMENTS}/batches`, `${R.FINANCE.PAYMENTS}/settlement`, `${R.FINANCE.PAYMENTS}/transactions`, `${R.FINANCE.PAYMENTS}/provider-activity`, `${R.FINANCE.PAYMENTS}/webhooks`, `${R.FINANCE.PAYMENTS}/held-settlements`, `${R.FINANCE.PAYMENTS}/held-reconciliations`, `${R.FINANCE.SETTINGS}/banking-cash`],
+    actionIds: ["view-payouts", "new-payout", "view-payout-batches", "view-settlement", "view-held-settlements", "view-held-reconciliations", "view-transactions-log", "view-provider-activity", "view-payment-webhooks"],
     access: { mode: "any", permissions: [
       P.PAY_VIEW_PAYOUTS, P.PAY_CREATE_PAYOUT, P.PAY_VIEW_PAYMENT_REPORTS, P.PAY_CREATE_SETTLEMENT, P.PAY_VIEW_WEBHOOKS,
       P.PAY_VIEW_PAYMENT_SETTINGS, P.PAY_VIEW_PLATFORM_SETTLEMENTS, P.PAY_SUBMIT_PLATFORM_SETTLEMENT,

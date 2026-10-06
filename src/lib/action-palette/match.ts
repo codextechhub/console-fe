@@ -64,7 +64,7 @@ function candidatesFor(action: ActionDef): Candidate[] {
 
 // Do the query tokens match, in order, as prefixes of distinct words of the
 // candidate (words consumed left to right, never reused)? "v inv" matches
-// "view ar invoices" (v→view, inv→invoices, skipping "ar").
+// "view vendor invoices" (v→view, inv→invoices, skipping "vendor").
 function tokensMatchInOrder(queryTokens: string[], wordTokens: string[]): boolean {
   let w = 0;
   for (const qt of queryTokens) {
@@ -121,7 +121,7 @@ export function scoreAction(action: ActionDef, query: string): MatchResult | nul
       consider(TIER.INITIALS, 30 + labelBonus + leadingHit - Math.min(cand.tokens.length, 10));
       continue;
     }
-    // Substring, ignoring spaces so "arinv" finds "AR invoices".
+    // Substring, ignoring spaces so "arinv" finds the alias "ar invoices".
     if (cand.text.replace(/\s+/g, "").includes(qCompact)) {
       consider(TIER.SUBSTRING, 10 + labelBonus);
     }

@@ -49,8 +49,25 @@ describe("scoreAction - token / initials matching", () => {
   it("'cr sch' matches Create School", () => {
     expect(matchesInclude("cr sch", "create-school")).toBe(true);
   });
-  it("tokens may skip words: 'v inv' matches View AR invoices", () => {
+  it("tokens may skip words: 'v inv' matches View invoices", () => {
     expect(matchesInclude("v inv", "view-ar-invoices")).toBe(true);
+  });
+  // The provider's request log and the money that moved are two screens, each found by its own words.
+  it("finds payment provider activity by 'paystack log', 'failed payment' and 'payment attempts'", () => {
+    expect(matchesInclude("paystack log", "view-provider-activity")).toBe(true);
+    expect(matchesInclude("failed payment", "view-provider-activity")).toBe(true);
+    expect(matchesInclude("payment attempts", "view-provider-activity")).toBe(true);
+    expect(matchesInclude("provider log", "view-provider-activity")).toBe(true);
+    expect(matchesInclude("money in and out", "view-transactions-log")).toBe(true);
+    expect(matchesInclude("money in and out", "view-provider-activity")).toBe(false);
+  });
+  // A menu renamed into plain words is still found by the words it used to say.
+  it("finds a renamed screen by its old name: 'ap aging', 'ar invoices', 'gr/ir'", () => {
+    expect(matchesInclude("ap aging", "view-ap-aging")).toBe(true);
+    expect(matchesInclude("unpaid bills", "view-ap-aging")).toBe(true);
+    expect(matchesInclude("ar invoices", "view-ar-invoices")).toBe(true);
+    expect(matchesInclude("gr/ir", "view-grir-control")).toBe(true);
+    expect(matchesInclude("goods not yet billed", "view-grir-control")).toBe(true);
   });
   it("single letter 'v' matches view actions via initials", () => {
     expect(matchesInclude("v", "view-home")).toBe(true);

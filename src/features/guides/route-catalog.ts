@@ -108,6 +108,7 @@ export const GUIDE_ROUTE_PATTERNS = [
   `${R.FINANCE.PAYMENTS}/batches`,
   `${R.FINANCE.PAYMENTS}/settlement`,
   `${R.FINANCE.PAYMENTS}/transactions`,
+  `${R.FINANCE.PAYMENTS}/provider-activity`,
   `${R.FINANCE.PAYMENTS}/webhooks`,
   `${R.FINANCE.PAYMENTS}/held-settlements`,
   `${R.FINANCE.PAYMENTS}/held-reconciliations`,

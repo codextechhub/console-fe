@@ -12,7 +12,7 @@ export default function RunPayrollArticle() {
       <GuideSection id="payroll-settings" title="Choose the payroll settings">
         <p>Open <strong>Finance Settings, Payroll</strong>. Changes apply from the next run generated. Saving needs the settings update key and someone who covers the whole school, because the policy binds every branch.</p>
         <ul className="list-disc space-y-2 pl-5">
-          <li><strong>Where PAYE comes from</strong>: <strong>Computed from the tax table</strong>, or <strong>Supplied by the school</strong>. A person&rsquo;s PAYE can still be set by hand on their salary record, with a reason.</li>
+          <li><strong>Where PAYE comes from</strong>: <strong>Computed from the national tax table</strong>, or <strong>Taken from the salary structure or roster</strong>. A person&rsquo;s PAYE can still be set by hand on their salary record, with a reason.</li>
           <li><strong>Deductions and contributions</strong>: a rate and an on/off switch for employee and employer pension, NHF, NSITF and the ITF levy.</li>
           <li><strong>Payslips</strong>: <strong>Show payslips in the app</strong> (staff read their own under My payslips) and <strong>Email payslips</strong> (each person is emailed a PDF).</li>
           <li><strong>Earlier pay</strong>: <strong>Earlier pay required</strong> and <strong>Payroll moved here on</strong>; see Record earlier pay below.</li>

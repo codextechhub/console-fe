@@ -50,15 +50,15 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="inspect-the-checklist" title="Inspect the close checklist">
-        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action. Each check is named in plain words, for example <strong>Earlier months closed</strong>, <strong>Debits and credits balance</strong> or <strong>Payables agree with the ledger</strong>, with what it found beside it.</p>
+        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action. Each check is named with its accounting term and the plain words beside it, for example <strong>Earlier months closed</strong>, <strong>Trial balance agrees (debits equal credits)</strong> or <strong>AP reconciled (what is owed to suppliers)</strong>, with what it found beside it.</p>
         <GuideChecklist items={[
           "Every earlier month is closed (while months close in order).",
           "Trial balance is balanced.",
           "Draft journals are resolved or deliberately handled.",
-          "Receivables agree with the ledger and Payables agree with the ledger: AR (what customers owe) and AP (what is owed to suppliers) match their control accounts.",
+          "AR reconciled (what customers owe) and AP reconciled (what is owed to suppliers): each matches its control account.",
           "Goods received but not yet billed are understood and evidenced.",
           "Required depreciation has been posted.",
-          "Branches agree on what they owe each other.",
+          "Inter-branch balances agree (what branches owe each other).",
           "Sealed figures from earlier closes are unchanged.",
           "Every remaining warning has an owner and explanation.",
         ]} />
