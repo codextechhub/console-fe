@@ -50,7 +50,7 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="inspect-the-checklist" title="Inspect the close checklist">
-        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action. Each check is named with its accounting term and the plain words beside it, for example <strong>Earlier months closed</strong>, <strong>Trial balance agrees (debits equal credits)</strong> or <strong>AP reconciled (what is owed to suppliers)</strong>, with what it found beside it.</p>
+        <p>Select a period to load its current checklist. Passed items are ready. Failed blockers must be resolved. Warning-only items remain visible for judgment but do not prevent the close. Items marked <strong>Done by the close</strong> are work the close does itself before it checks, such as posting depreciation that has fallen due and releasing deferred income, so they need no action. A check named by an accounting term carries the plain words beside it, for example <strong>Trial balance agrees (debits equal credits)</strong> or <strong>AP reconciled (what is owed to suppliers)</strong>; one already in plain words, such as <strong>Earlier months closed</strong>, stands alone. Each shows what it found.</p>
         <GuideChecklist items={[
           "Every earlier month is closed (while months close in order).",
           "Trial balance is balanced.",
