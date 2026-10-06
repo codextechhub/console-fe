@@ -32,7 +32,7 @@ export default function DeferredIncomeDepositsAndDoubtfulDebtsArticle() {
         <GuideCallout tone="info" title="An example">
           Bright Star bills ₦400,000 on 20 January for a term running to 30 April, spread monthly. On 31 January, Nkechi Ude releases due income up to that day, and January&rsquo;s share moves from Deferred income to revenue at the branch that billed it. The rest waits for February, March and April.
         </GuideCallout>
-        <p>A month cannot be closed while its share is unreleased.</p>
+        <p>Closing a month releases its share due by the month&rsquo;s end before the checks run, so the close checklist shows <strong>Deferred income released (fees billed ahead, now earned)</strong> as <strong>Done by the close</strong>.</p>
       </GuideSection>
 
       <GuideSection id="hold-and-return-deposits" title="Hold, return, and forfeit deposits">
@@ -58,7 +58,7 @@ export default function DeferredIncomeDepositsAndDoubtfulDebtsArticle() {
         <ul className="list-disc space-y-2 pl-5">
           <li>Release, Forfeit or New provision run is missing: you lack the key, or (in a school&rsquo;s own app) you do not cover the whole school.</li>
           <li>Release up to refuses a date: income is released for days that have passed, not ahead.</li>
-          <li>The month will not close: some of its deferred income is still unreleased. Release due income first.</li>
+          <li>Deferred income released reads Done by the close: nothing is wrong. The close releases the month&rsquo;s share before it checks.</li>
           <li>A leaver&rsquo;s deposit was not set against their bills: the setting is off, or Credit to refund was chosen.</li>
           <li>A provision run is waiting: it needs a second person&rsquo;s approval under Workflow, Approvals.</li>
           <li>A provision run came back from the approver: it reads Sent back, on its row and when you open it, and the filter above the runs offers All runs or Sent back, to list only those. Whoever sent it for approval sees Sent back to you and Resume, which sends it back as it is. A run has no Edit: to change one, withdraw it under Workflow, My Submissions and submit it again.</li>
