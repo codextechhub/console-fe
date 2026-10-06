@@ -166,6 +166,28 @@ describe("QuickExportDrawer honesty contract", () => {
     expect(text).toContain("42");
   });
 
+  // The ledger exports its last 31 days when the screen sends no dates; the
+  // server's sentence says so, once, as written, and the window is not repeated
+  // as an added filter.
+  it("shows the server's date window sentence as written, once", () => {
+    const sentence = "Includes general ledger postings from 5 Sep 2026 to 6 Oct 2026, the last 31 days. Set the dates in the builder to include earlier ones.";
+    mocks.plan.mockReturnValue(planData({
+      carried: [],
+      added: [{ id: "posting_date", label: "Posting date", reason: sentence }],
+      date_window: { id: "posting_date", label: "Posting date", start: "2026-09-05", end: "2026-10-06", whole_list: false, sentence },
+    }));
+    render();
+    const text = document.body.textContent ?? "";
+    expect(text.split(sentence).length - 1).toBe(1);
+    expect(text).toContain("covers everything in the dates below");
+  });
+
+  it("says a list with no dates of its own exports everything it shows", () => {
+    mocks.plan.mockReturnValue(planData({ carried: [], date_window: null }));
+    render();
+    expect(document.body.textContent).toContain("covers everything the list shows");
+  });
+
   // The backend caps client_key at 64 chars and returns the in-flight run for a
   // repeated key inside 60s. If two different filter sets produced the same key,
   // the second export would silently hand back the first one's file.

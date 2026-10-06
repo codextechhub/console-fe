@@ -14,7 +14,10 @@
  *
  *   carried  - filters that made it across, so the file matches the table
  *   added    - filters the export needed that the screen never had, in practice
- *              a required date window. The file is NARROWER than the screen.
+ *              a required date range. `date_window` names the dates in the
+ *              server's own sentence, shown as written: by default every row
+ *              the list shows, or the recent part on a screen bounded on
+ *              purpose (the ledger's last 31 days).
  *   unmapped - filters that could NOT be carried. The file is WIDER. This is the
  *              one the drawer refuses to bury: it goes above the estimate, in a
  *              warning panel, and the run button reads "Run anyway".
@@ -528,12 +531,19 @@ export function QuickExportDrawer({
               </div>
             ) : (
               <p className="font-mont text-[11px] leading-relaxed text-gray-05">
-                No filters are set on this screen, so the export covers everything the
-                date window below allows.
+                {plan.date_window && !plan.date_window.whole_list
+                  ? "No filters are set on this screen, so the export covers everything in the dates below."
+                  : "No filters are set on this screen, so the export covers everything the list shows."}
               </p>
             )}
 
-            {plan.added.map((a) => (
+            {plan.date_window ? (
+              <p className="mt-2 font-mont text-[11px] leading-relaxed text-gray-05">
+                {plan.date_window.sentence}
+              </p>
+            ) : null}
+
+            {plan.added.filter((a) => a.id !== plan.date_window?.id).map((a) => (
               <p
                 key={a.id}
                 className="mt-2 font-mont text-[11px] leading-relaxed text-gray-05"
