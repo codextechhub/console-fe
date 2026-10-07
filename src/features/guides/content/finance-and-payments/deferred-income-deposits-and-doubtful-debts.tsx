@@ -30,7 +30,7 @@ export default function DeferredIncomeDepositsAndDoubtfulDebtsArticle() {
           <GuideStep title="Undo a month if needed">Select <strong>Undo a month&rsquo;s release</strong> and pick an open month, named in words such as September 2026. Its release journals are reversed and the shares wait to be released again. A closed month keeps its releases, and the form says which branch has closed it.</GuideStep>
         </GuideSteps>
         <GuideCallout tone="info" title="An example">
-          Bright Star bills ₦400,000 on 20 January for a term running to 30 April, spread monthly. On 31 January, Nkechi Ude releases due income up to that day, and January&rsquo;s share moves from Deferred income to revenue at the branch that billed it. The rest waits for February, March and April.
+          Bright Star bills ₦400,000 on 20 January for a term running to 30 April, released by <strong>Spread evenly over each month of the service period</strong>. On 31 January, Nkechi Ude releases due income up to that day, and January&rsquo;s share moves from Deferred income to revenue at the branch that billed it. The rest waits for February, March and April.
         </GuideCallout>
         <p>Closing a month releases its share due by the month&rsquo;s end before the checks run, so the close checklist shows <strong>Deferred income released (fees billed ahead, now earned)</strong> as <strong>Done by the close</strong>.</p>
       </GuideSection>
