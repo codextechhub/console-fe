@@ -27,6 +27,7 @@ export default function RunFinancialReportsArticle() {
           <GuideStep title="Changes in Equity">Explain opening equity, profit, contributions, distributions, and closing equity, then reconcile closing values to the balance sheet.</GuideStep>
           <GuideStep title="Cost and Dimension Analysis">Slice posted account activity by cost centre or an approved dimension such as fund or project. Untagged lines do not appear in a selected axis.</GuideStep>
         </GuideSteps>
+        <p>Above its figures, each report names the time it covers. A month is named in words, such as <strong>September 2026</strong>. With no month chosen, Trial Balance and Cost and Dimension Analysis read <strong>All periods</strong>, and Cash Flow and Changes in Equity read <strong>Year to date</strong>. The Income Statement names a whole year as <strong>FY 2026</strong>, and the year so far as <strong>2026 fiscal year</strong>.</p>
       </GuideSection>
 
       <GuideSection id="set-scope-and-comparison" title="Set scope and comparison">
@@ -54,7 +55,7 @@ export default function RunFinancialReportsArticle() {
       </GuideSection>
 
       <GuideSection id="export-and-share" title="Export and share evidence">
-        <p>Use the report's CSV, XLSX, or PDF export after the scope and totals have been checked. Name the file with the entity, report, period, basis, and version date. Share it only through the approved channel and retain the parameters and close status used to produce it.</p>
+        <p>Use the report's CSV, XLSX, or PDF export after the scope and totals have been checked. The file&rsquo;s heading names the month in words, as the screen does. Name the file with the entity, report, period, basis, and version date. Share it only through the approved channel and retain the parameters and close status used to produce it.</p>
       </GuideSection>
 
       <GuideSection id="common-problems" title="Common problems">
