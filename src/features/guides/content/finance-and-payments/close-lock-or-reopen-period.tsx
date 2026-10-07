@@ -124,7 +124,7 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="sealed-figures" title="Check the sealed figures">
-        <p>Every month close, month lock and year close stores each account&rsquo;s balance per branch as a seal. <strong>Sealed Figures</strong>, under Reports &amp; Close, recomputes every closed month and year from the ledger and compares it with its seal when you select <strong>Verify sealed figures</strong>. Each seal reads <strong>Matches</strong> or <strong>Differs</strong>, with the accounts and branches that moved.</p>
+        <p>Every month close, month lock and year close stores each account&rsquo;s balance per branch as a seal. <strong>Closed figures</strong>, under Reports &amp; Close, recomputes every closed month and year from the ledger and compares it with its seal when you select <strong>Verify sealed figures</strong>. Each seal reads <strong>Matches</strong> or <strong>Differs</strong>, with the accounts and branches that moved.</p>
         <p>It needs the seal view key and someone who covers the whole school, because the seals cover every branch. The check only reports; it repairs nothing. The close checklist also warns, under <strong>Closed figures unchanged</strong>, when a seal no longer matches.</p>
       </GuideSection>
 

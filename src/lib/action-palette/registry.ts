@@ -251,7 +251,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-cash-flow", label: "View cash flow", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/cash-flow` } },
   { id: "view-changes-in-equity", label: "View changes in equity", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/changes-in-equity` } },
   { id: "view-cost-dimension-analysis", label: "View cost & dimension analysis", aliases: ["analytics"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/analytics` } },
-  { id: "view-sealed-figures", label: "View sealed figures", aliases: ["verify seals", "sealed figures"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_SEALS }, run: { to: `${F.REPORTS}/seals` } },
+  { id: "view-closed-figures", label: "View closed figures", aliases: ["verify seals", "sealed figures"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_SEALS }, run: { to: `${F.REPORTS}/seals` } },
   // The close workbench: served at its own address, not in the sidebar.
   { id: "view-periods-and-close", label: "View periods and close", aliases: ["month end", "close the month"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_PERIODS }, run: { to: `${F.REPORTS}/periods` } },
   { id: "view-finance-audit-trail", label: "View finance audit trail", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_AUDIT }, run: { to: F.AUDIT } },

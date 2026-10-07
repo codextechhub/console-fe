@@ -49,8 +49,8 @@ describe("scoreAction - token / initials matching", () => {
   it("'cr sch' matches Create School", () => {
     expect(matchesInclude("cr sch", "create-school")).toBe(true);
   });
-  it("tokens may skip words: 'v inv' matches View invoices", () => {
-    expect(matchesInclude("v inv", "view-ar-invoices")).toBe(true);
+  it("tokens may skip words: 'v rec' matches View bank reconciliation", () => {
+    expect(matchesInclude("v rec", "view-bank-reconciliation")).toBe(true);
   });
   // The provider's request log and the money that moved are two screens, each found by its own words.
   it("finds payment provider activity by 'paystack log', 'failed payment' and 'payment attempts'", () => {
@@ -68,6 +68,13 @@ describe("scoreAction - token / initials matching", () => {
     expect(matchesInclude("ar invoices", "view-ar-invoices")).toBe(true);
     expect(matchesInclude("gr/ir", "view-grir-control")).toBe(true);
     expect(matchesInclude("goods not yet billed", "view-grir-control")).toBe(true);
+  });
+  // The check that closed months have not moved is Closed figures, and still found as Sealed Figures.
+  it("finds Closed figures by its name and by its old one, 'sealed figures'", () => {
+    expect(byId("view-closed-figures").label).toBe("View closed figures");
+    expect(matchesInclude("closed figures", "view-closed-figures")).toBe(true);
+    expect(matchesInclude("sealed figures", "view-closed-figures")).toBe(true);
+    expect(matchesInclude("verify seals", "view-closed-figures")).toBe(true);
   });
   it("single letter 'v' matches view actions via initials", () => {
     expect(matchesInclude("v", "view-home")).toBe(true);

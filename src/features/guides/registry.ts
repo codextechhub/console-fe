@@ -663,7 +663,7 @@ export const GUIDE_REGISTRY = [
       `${R.FINANCE.REPORTS}/seals`,
       `${R.FINANCE.SETTINGS}/fiscal-calendar`,
     ],
-    actionIds: ["view-fiscal-periods", "view-sealed-figures"],
+    actionIds: ["view-fiscal-periods", "view-closed-figures"],
     access: { mode: "any", permissions: [
       P.FIN_VIEW_PERIODS, P.FIN_CLOSE_PERIOD, P.FIN_REOPEN_PERIOD, P.FIN_LOCK_PERIOD, P.FIN_FORCE_CLOSE_PERIOD,
       P.FIN_REOPEN_FISCAL_YEAR, P.FIN_ARCHIVE_FISCAL_YEAR, P.FIN_VIEW_SEALS, P.FIN_VIEW_SETTINGS,
