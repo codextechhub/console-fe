@@ -60,7 +60,7 @@ export default function CloseLockOrReopenPeriodArticle() {
           "Depreciation posted and Deferred income released (fees billed ahead, now earned): the close does both itself for what is due.",
           "Gateway clearing current (online payments paid into the bank): a warning when online payments have waited too long for the provider.",
           "Inter-branch balances agree (what branches owe each other).",
-          "Closed figures unchanged: the figures sealed by earlier closes still match the ledger.",
+          "Closed figures unchanged: the figures stored by earlier closes still match the ledger.",
           "Every remaining warning has an owner and explanation.",
         ]} />
       </GuideSection>
@@ -124,8 +124,8 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="sealed-figures" title="Check the closed figures">
-        <p>Every month close, month lock and year close stores each account&rsquo;s balance per branch as a seal. <strong>Closed figures</strong>, under Reports &amp; Close, recomputes every closed month and year from the ledger and compares it with its seal when you select <strong>Verify sealed figures</strong>. Each seal reads <strong>Matches</strong> or <strong>Differs</strong>, with the accounts and branches that moved.</p>
-        <p>It needs the seal view key and someone who covers the whole school, because the seals cover every branch. The check only reports; it repairs nothing. The close checklist also warns, under <strong>Closed figures unchanged</strong>, when a seal no longer matches.</p>
+        <p>Every month close, month lock and year close stores each account&rsquo;s balance per branch. <strong>Closed figures</strong>, under Reports &amp; Close, recomputes every closed month and year from the ledger and compares it with the figures stored when it closed, when you select <strong>Verify closed figures</strong>. Each closed month and year reads <strong>Matches</strong> or <strong>Differs</strong>, with the accounts and branches that moved, showing each account&rsquo;s <strong>Closed debit</strong> and <strong>Closed credit</strong> beside what the ledger says now.</p>
+        <p>It needs the closed figures view key and someone who covers the whole school, because the figures cover every branch. The check only reports; it repairs nothing. The close checklist also warns, under <strong>Closed figures unchanged</strong>, when closed figures no longer match.</p>
       </GuideSection>
 
       <GuideSection id="record-keeping" title="Set how long records are kept">

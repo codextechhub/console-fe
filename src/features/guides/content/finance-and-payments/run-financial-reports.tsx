@@ -27,7 +27,7 @@ export default function RunFinancialReportsArticle() {
           <GuideStep title="Changes in Equity">Explain opening equity, profit, contributions, distributions, and closing equity, then reconcile closing values to the balance sheet.</GuideStep>
           <GuideStep title="Cost and Dimension Analysis">Slice posted account activity by cost centre or an approved dimension such as fund or project. Untagged lines do not appear in a selected axis.</GuideStep>
         </GuideSteps>
-        <p>Above its figures, each report names the time it covers. A month is named in words, such as <strong>September 2026</strong>. With no month chosen, Trial Balance and Cost and Dimension Analysis read <strong>All periods</strong>, and Cash Flow and Changes in Equity read <strong>Year to date</strong>. The Income Statement names a whole year as <strong>FY 2026</strong>, and the year so far as <strong>2026 fiscal year</strong>.</p>
+        <p>Above its figures, each report names the time it covers. A month is named in words, such as <strong>September 2026</strong>. With no month chosen, Trial Balance and Cost and Dimension Analysis read <strong>All periods</strong>, Cash Flow reads <strong>Year to date</strong>, and Changes in Equity reads <strong>Inception to date</strong>, because it starts from the first entry on record. The Income Statement names its year as <strong>FY2026</strong>. Each downloaded file is headed with the same words as its screen.</p>
       </GuideSection>
 
       <GuideSection id="set-scope-and-comparison" title="Set scope and comparison">
