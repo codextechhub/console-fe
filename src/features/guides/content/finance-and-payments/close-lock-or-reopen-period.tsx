@@ -125,7 +125,7 @@ export default function CloseLockOrReopenPeriodArticle() {
 
       <GuideSection id="sealed-figures" title="Check the closed figures">
         <p>Every month close, month lock and year close stores each account&rsquo;s balance per branch. Select <strong>Verify closed figures</strong> on <strong>Closed figures</strong>, under Reports &amp; Close, and it recomputes every closed month and year from the ledger and compares each with the figures stored when it closed. Each closed month and year reads <strong>Matches</strong> or <strong>Differs</strong>, with the accounts and branches that moved, showing each account&rsquo;s <strong>Closed debit</strong> and <strong>Closed credit</strong> beside <strong>Debit now</strong> and <strong>Credit now</strong>, what the ledger says today.</p>
-        <p>It needs the key the role editor lists as <strong>View sealed period figures</strong>, held by someone who covers the whole school, because the figures cover every branch. The check only reports; it repairs nothing. The close checklist also warns, under <strong>Closed figures unchanged</strong>, when closed figures no longer match.</p>
+        <p>It needs the key the role editor lists as <strong>View sealed period figures</strong>, held by someone who covers the whole school, because the figures cover every branch. The check only reports; it repairs nothing. The close checklist also warns, under <strong>Closed figures unchanged</strong>, when closed figures from this year or the year before no longer match, and gives a reader who may run the full check a <strong>Verify closed figures</strong> link to this screen.</p>
       </GuideSection>
 
       <GuideSection id="record-keeping" title="Set how long records are kept">
