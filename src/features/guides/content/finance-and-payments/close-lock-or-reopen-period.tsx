@@ -124,8 +124,8 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="sealed-figures" title="Check the closed figures">
-        <p>Every month close, month lock and year close stores each account&rsquo;s balance per branch. <strong>Closed figures</strong>, under Reports &amp; Close, recomputes every closed month and year from the ledger and compares it with the figures stored when it closed, when you select <strong>Verify closed figures</strong>. Each closed month and year reads <strong>Matches</strong> or <strong>Differs</strong>, with the accounts and branches that moved, showing each account&rsquo;s <strong>Closed debit</strong> and <strong>Closed credit</strong> beside what the ledger says now.</p>
-        <p>It needs the closed figures view key and someone who covers the whole school, because the figures cover every branch. The check only reports; it repairs nothing. The close checklist also warns, under <strong>Closed figures unchanged</strong>, when closed figures no longer match.</p>
+        <p>Every month close, month lock and year close stores each account&rsquo;s balance per branch. Select <strong>Verify closed figures</strong> on <strong>Closed figures</strong>, under Reports &amp; Close, and it recomputes every closed month and year from the ledger and compares each with the figures stored when it closed. Each closed month and year reads <strong>Matches</strong> or <strong>Differs</strong>, with the accounts and branches that moved, showing each account&rsquo;s <strong>Closed debit</strong> and <strong>Closed credit</strong> beside <strong>Debit now</strong> and <strong>Credit now</strong>, what the ledger says today.</p>
+        <p>It needs the key the role editor lists as <strong>View sealed period figures</strong>, held by someone who covers the whole school, because the figures cover every branch. The check only reports; it repairs nothing. The close checklist also warns, under <strong>Closed figures unchanged</strong>, when closed figures no longer match.</p>
       </GuideSection>
 
       <GuideSection id="record-keeping" title="Set how long records are kept">
