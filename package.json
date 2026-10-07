@@ -21,6 +21,7 @@
     "@fontsource/montserrat": "^5.2.8",
     "@fontsource/outfit": "^5.2.8",
     "@reduxjs/toolkit": "^2.11.2",
+    "@sentry/react": "^11.5.0",
     "@tailwindcss/vite": "^4.2.0",
     "@xvs/finance": "github:codextechhub/FinPro#v0.7.60",
     "class-variance-authority": "^0.7.1",

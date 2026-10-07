@@ -1,4 +1,7 @@
 const baseUrl = import.meta.env.VITE_BACKEND_URL;
+// A deployment that shares a parent domain with its twin names its own CSRF
+// cookie; this matches the backend's CSRF_COOKIE_NAME.
+const csrfCookieName = import.meta.env.VITE_CSRF_COOKIE_NAME || "csrftoken";
 
 function readCookie(name: string): string {
   const prefix = `${encodeURIComponent(name)}=`;
@@ -10,7 +13,7 @@ function readCookie(name: string): string {
 }
 
 export function readCsrfToken(): string {
-  return readCookie("csrftoken");
+  return readCookie(csrfCookieName);
 }
 
 /** Ensure browser-auth mutations can send Django's double-submit CSRF token. */
