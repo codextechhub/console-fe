@@ -1026,11 +1026,13 @@ export const GUIDE_REGISTRY = [
       `${R.FINANCE.REPORTS}/balance-sheet`,
       `${R.FINANCE.REPORTS}/cash-flow`,
       `${R.FINANCE.REPORTS}/changes-in-equity`,
+      `${R.FINANCE.REPORTS}/statutory-pack`,
       `${R.FINANCE.REPORTS}/analytics`,
     ],
     actionIds: [
       "view-trial-balance", "view-income-statement", "view-balance-sheet",
       "view-cash-flow", "view-changes-in-equity", "view-cost-dimension-analysis",
+      "view-statutory-pack",
     ],
     access: { mode: "all", permissions: [P.FIN_VIEW_REPORTS] },
     primaryRoute: `${R.FINANCE.REPORTS}/trial-balance`,

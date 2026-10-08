@@ -250,6 +250,7 @@ export const ACTIONS: ActionDef[] = [
   { id: "view-balance-sheet", label: "View balance sheet", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/balance-sheet` } },
   { id: "view-cash-flow", label: "View cash flow", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/cash-flow` } },
   { id: "view-changes-in-equity", label: "View changes in equity", aliases: [], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/changes-in-equity` } },
+  { id: "view-statutory-pack", label: "View statutory pack", aliases: ["IFRS", "filing", "annual accounts"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/statutory-pack` } },
   { id: "view-cost-dimension-analysis", label: "View cost & dimension analysis", aliases: ["analytics"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/analytics` } },
   { id: "view-closed-figures", label: "View closed figures", aliases: ["verify seals", "sealed figures"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_SEALS }, run: { to: `${F.REPORTS}/seals` } },
   // The close workbench: served at its own address, not in the sidebar.

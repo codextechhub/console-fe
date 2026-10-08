@@ -72,6 +72,16 @@ describe("Finance action-palette destinations", () => {
     expect(filterActionsForPermissions(financeActions, [])).toEqual([]);
   });
 
+  it.each(["statutory pack", "IFRS", "filing", "annual accounts"])(
+    "finds the statutory pack by %s",
+    (query) => {
+      const action = financeActions.find((candidate) => candidate.id === "view-statutory-pack");
+      expect(action).toBeDefined();
+      expect(scoreAction(action!, query)).toBeTruthy();
+      expect("to" in action!.run ? action!.run.to : null).toBe("/finance/reports/statutory-pack");
+    },
+  );
+
   it("opens direct journal entry only for its immediate-post permission", () => {
     const direct = (permissions: readonly string[]) => filterActionsForPermissions(financeActions, permissions)
       .some((action) => action.id === "new-journal-entry");
