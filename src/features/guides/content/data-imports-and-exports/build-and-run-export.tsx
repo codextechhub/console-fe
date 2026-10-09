@@ -9,6 +9,7 @@ export default function BuildAndRunExportArticle() {
       </GuideSection>
       <GuideSection id="choose-data-and-scope" title="Choose the dataset and scope">
         <p>Open <strong>Exports</strong>, select <strong>New export</strong>, then choose the module and dataset. Only authorised catalogue entries appear. If the dataset requires an entity, choose it explicitly and confirm that Whole organisation is not selected by mistake.</p>
+        <GuideCallout tone="info" title="Use the portable CodeX datasets for a platform move">Export <strong>Organogram units</strong>, <strong>Organogram positions</strong>, <strong>Matrix reporting lines</strong>, then <strong>User accounts</strong>. Choose system values so codes and role keys remain importable. <strong>User accounts</strong> contains only CodeX staff in the platform tenant; <strong>School user accounts</strong> is the separate cross-school directory and is not a CX users import source.</GuideCallout>
       </GuideSection>
       <GuideSection id="select-fields-and-filters" title="Select fields and filters">
         <GuideSteps>

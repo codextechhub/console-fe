@@ -161,7 +161,9 @@ describe("guide search", () => {
   it("finds C8 workflows using import, export, and recovery language", () => {
     expect(searchGuides(GUIDE_REGISTRY, "validate rows")[0]?.guide.id).toBe("data.import-batch");
     expect(searchGuides(GUIDE_REGISTRY, "publish template")[0]?.guide.id).toBe("data.import-templates");
+    expect(searchGuides(GUIDE_REGISTRY, "import organogram")[0]?.guide.id).toBe("data.import-templates");
     expect(searchGuides(GUIDE_REGISTRY, "restricted column")[0]?.guide.id).toBe("data.build-and-run-export");
+    expect(searchGuides(GUIDE_REGISTRY, "school user accounts")[0]?.guide.id).toBe("data.build-and-run-export");
     expect(searchGuides(GUIDE_REGISTRY, "rollback import")[0]?.guide.id).toBe("data.recover-import-export");
   });
 

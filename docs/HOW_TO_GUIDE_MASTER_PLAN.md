@@ -408,10 +408,12 @@ article would require more than roughly twelve decision-bearing steps.
 ### 7.8 Data imports and exports
 
 - Choose or create an import template.
+- Move the CodeX organogram and staff between environments in dependency order.
 - Prepare, upload, validate, correct, commit, and review an import batch.
 - Understand partial failures and row-level errors.
 - Build, save, edit, and run an export.
 - Select datasets, fields, filters, and output formats.
+- Distinguish CodeX user accounts from the cross-school user directory.
 - Track queues, inspect runs, download files, and recover from failed exports.
 - Create and review audit exports.
 

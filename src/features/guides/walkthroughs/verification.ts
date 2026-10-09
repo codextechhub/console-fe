@@ -26,8 +26,6 @@ const VERSION_ONE_WALKTHROUGHS = [
   "walkthrough.procurement.manage-stock-and-movements",
   "walkthrough.procurement.configure-settings",
   "walkthrough.data.import-batch",
-  "walkthrough.data.import-templates",
-  "walkthrough.data.build-and-run-export",
   "walkthrough.data.recover-import-export",
   "walkthrough.audit.investigate-event",
   "walkthrough.audit.review-security-operations",
@@ -48,6 +46,18 @@ const VERSION_ONE_WALKTHROUGHS = [
 ] as const;
 
 export const WALKTHROUGH_VERIFICATION_RECORDS: readonly WalkthroughVerificationRecord[] = [
+  {
+    walkthroughId: "walkthrough.data.import-templates",
+    version: 2,
+    verifiedAt: "2026-10-09",
+    missingTargetIds: [],
+  },
+  {
+    walkthroughId: "walkthrough.data.build-and-run-export",
+    version: 2,
+    verifiedAt: "2026-10-09",
+    missingTargetIds: [],
+  },
   {
     walkthroughId: "walkthrough.getting-started.console-basics",
     version: 2,

@@ -12,6 +12,7 @@ export default function ImportTemplatesArticle() {
           <GuideStep title="Choose a stable code and format">Codes become operational references. Treat a published code and its field meanings as stable.</GuideStep>
           <GuideStep title="State what the import does">Use the description and instructions to explain create versus update behaviour, scope, prerequisites, identifiers, date and money formats, and what will be rejected.</GuideStep>
         </GuideSteps>
+        <GuideCallout tone="info" title="Load the CodeX organogram in dependency order">Import organogram units first, with divisions before departments and teams. Import positions next, with each manager before the positions that report to it. Import matrix reporting lines after all positions exist, then import CX users so their position codes can resolve. Keep exported codes and role keys unchanged when moving this structure between environments.</GuideCallout>
       </GuideSection>
       <GuideSection id="design-columns" title="Design columns and operator guidance">
         <p>Give each column an exact heading, destination field, type, required state, order, and useful example. Identify the field that distinguishes one record from another. Avoid ambiguous headings such as Name or Value where a precise business term exists.</p>

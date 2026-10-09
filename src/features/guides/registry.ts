@@ -16,6 +16,7 @@ const C6B_REVIEWED_AT = "2026-08-25";
 const C6C_REVIEWED_AT = "2026-08-25";
 const C7A_REVIEWED_AT = "2026-08-25";
 const C8_REVIEWED_AT = "2026-08-25";
+const PLATFORM_DATA_REVIEWED_AT = "2026-10-09";
 const C9_REVIEWED_AT = "2026-08-25";
 const C10_REVIEWED_AT = "2026-08-25";
 const C11_REVIEWED_AT = "2026-08-25";
@@ -1698,8 +1699,8 @@ export const GUIDE_REGISTRY = [
     title: "Create and maintain import templates",
     summary: "Define a stable dataset contract, columns, validation guidance, download state, and lifecycle before operators upload data.",
     category: "data-imports-and-exports",
-    tags: ["import template", "dataset", "columns", "CSV", "XLSX", "draft", "publish", "retire", "validation"],
-    aliases: ["new import template", "template columns", "download upload template", "publish template", "retire template", "change spreadsheet format"],
+    tags: ["import template", "dataset", "columns", "CSV", "XLSX", "draft", "publish", "retire", "validation", "organogram", "positions", "matrix reporting"],
+    aliases: ["new import template", "template columns", "download upload template", "publish template", "retire template", "change spreadsheet format", "import organogram", "import positions", "import matrix reporting lines"],
     audiences: ["platform-administrator", "support-and-operations"],
     routes: [R.DATA_IMPORTS.TEMPLATES.INDEX, R.DATA_IMPORTS.TEMPLATES.NEW, R.DATA_IMPORTS.TEMPLATES.VIEW_PATH, R.DATA_IMPORTS.TEMPLATES.EDIT_PATH],
     actionIds: ["view-import-templates", "create-import-template"],
@@ -1718,7 +1719,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.data.import-templates",
     estimatedMinutes: 10,
     owner: OWNER,
-    reviewedAt: C8_REVIEWED_AT,
+    reviewedAt: PLATFORM_DATA_REVIEWED_AT,
     risk: "high",
     status: "published",
     article: () => import("./content/data-imports-and-exports/import-templates"),
@@ -1729,8 +1730,8 @@ export const GUIDE_REGISTRY = [
     title: "Build, save, and run an export",
     summary: "Choose an authorised dataset and scope, select fields and filters, preview the result, then save or queue a reusable export.",
     category: "data-imports-and-exports",
-    tags: ["export", "builder", "dataset", "columns", "filters", "CSV", "Excel", "JSON", "sensitive fields", "schedule"],
-    aliases: ["new export", "saved export", "export builder", "run export", "download file", "export filtered data", "restricted column"],
+    tags: ["export", "builder", "dataset", "columns", "filters", "CSV", "Excel", "JSON", "sensitive fields", "schedule", "organogram", "CX users", "school users"],
+    aliases: ["new export", "saved export", "export builder", "run export", "download file", "export filtered data", "restricted column", "export organogram", "export positions", "move platform data", "school user accounts"],
     audiences: ["platform-administrator", "finance-officer", "procurement-officer", "support-and-operations"],
     routes: [R.EXPORT.SAVED, R.EXPORT.NEW, R.EXPORT.EDIT_PATH, R.EXPORT.FILES, R.EXPORT.RUN_PATH],
     actionIds: ["view-saved-exports", "create-export", "view-export-files"],
@@ -1750,7 +1751,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.data.build-and-run-export",
     estimatedMinutes: 11,
     owner: OWNER,
-    reviewedAt: C8_REVIEWED_AT,
+    reviewedAt: PLATFORM_DATA_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
