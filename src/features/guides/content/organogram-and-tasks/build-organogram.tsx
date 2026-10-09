@@ -32,11 +32,21 @@ export default function BuildOrganogramArticle() {
       <GuideSection id="create-org-units" title="Create org units">
         <GuideSteps>
           <GuideStep title="Open Manage Organogram">Go to <strong>Organogram</strong>, select <strong>Manage</strong>, and stay on <strong>Org Units</strong>.</GuideStep>
-          <GuideStep title="Create the division">Select <strong>New Org Node</strong>, choose <strong>Division</strong>, and enter the approved Name and Code. A division has no parent.</GuideStep>
+          <GuideStep title="Create the division">Select <strong>New org unit</strong>, choose <strong>Division</strong>, and enter the approved Name and Code. A division has no parent.</GuideStep>
           <GuideStep title="Add departments">Create another org node, choose <strong>Department</strong>, then select its Division.</GuideStep>
           <GuideStep title="Add teams">Choose <strong>Team</strong>, then select its Division and Department. The department list follows the selected division.</GuideStep>
           <GuideStep title="Review the hierarchy">Expand the rows and confirm every department and team appears under the intended parent before adding seats.</GuideStep>
         </GuideSteps>
+      </GuideSection>
+
+      <GuideSection id="bulk-upload-the-structure" title="Bulk upload the structure">
+        <GuideSteps>
+          <GuideStep title="Open the matching import drawer">On each tab, open <strong>New org unit</strong>, <strong>New position</strong>, or <strong>New matrix line</strong>, then select <strong>Bulk upload</strong>. The drawer selects and locks that tab&apos;s official template.</GuideStep>
+          <GuideStep title="Load each layer in order">Upload Org Units first, Positions second, and Matrix Reporting Lines last. Download and fill the selected official template for each batch.</GuideStep>
+          <GuideStep title="Review before importing">Resolve header and validation issues, confirm the preview belongs to the intended dataset, then start the import. The wizard does not combine the three layers into one file.</GuideStep>
+          <GuideStep title="Return and inspect">Return to Manage Organogram after each completed batch and check the tree before loading the next dependent layer.</GuideStep>
+        </GuideSteps>
+        <GuideCallout tone="warning" title="Codes connect the files">Position rows refer to org-unit codes, and matrix rows refer to position codes. A misspelt or not-yet-imported code is refused instead of creating a detached relationship.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="create-positions" title="Create positions and reporting lines">

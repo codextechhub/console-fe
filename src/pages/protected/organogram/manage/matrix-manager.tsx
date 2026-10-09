@@ -1,8 +1,12 @@
-// Matrix (dotted-line) reports CRUD (admin). Add/remove dotted relationships
-// between two positions. Each write requires its matching action.
+/**
+ * Matrix reporting-line management.
+ *
+ * A dotted relationship connects two different positions without replacing
+ * either position's solid manager. Each write requires its matching action.
+ */
 
-import { useMemo, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
+import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import CustomTable from "@/components/custom/custom-table";
 import { Button } from "@/components/ui/button";
@@ -27,9 +31,12 @@ interface FormState {
 }
 const empty: FormState = { position_id: "", reports_to_id: "", relationship_label: "" };
 
-export default function MatrixManager() {
+export interface MatrixManagerHandle {
+  openCreate: () => void;
+}
+
+const MatrixManager = forwardRef<MatrixManagerHandle>(function MatrixManager(_, ref) {
   const { hasPermission } = usePermissions();
-  const canCreate = hasPermission(P.CREATE_ORGANOGRAM);
   const canDelete = hasPermission(P.DELETE_ORGANOGRAM);
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching, isError, refetch } = useGetMatrixReportsQuery({ page, page_size: 20 });
@@ -46,6 +53,7 @@ export default function MatrixManager() {
   const [toDelete, setToDelete] = useState<MatrixReport | null>(null);
 
   const openCreate = () => { setForm(empty); setOpen(true); };
+  useImperativeHandle(ref, () => ({ openCreate }));
 
   const canSubmit = form.position_id && form.reports_to_id && form.position_id !== form.reports_to_id;
   const submit = () => {
@@ -78,11 +86,6 @@ export default function MatrixManager() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-01">Dotted-line relationships, separate from the solid reporting line. One per position pair.</p>
-        {canCreate && <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Matrix Line</Button>}
-      </div>
-
       <CustomTable
         tableHeaderList={HEADERS}
         tableBodyList={tableData}
@@ -126,4 +129,6 @@ export default function MatrixManager() {
       />
     </div>
   );
-}
+});
+
+export default MatrixManager;

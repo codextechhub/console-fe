@@ -7,8 +7,8 @@
  * for its teams. No arrow indicator - just click the row.
  */
 
-import { useMemo, useState } from "react";
-import { ChevronRight, Pencil, Plus, RefreshCw, Trash2, TriangleAlert } from "lucide-react";
+import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
+import { ChevronRight, Pencil, RefreshCw, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -16,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { InfoHint } from "@/components/finance-ui";
 import PromptModal from "@/components/modal/prompt-modal";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -196,9 +195,11 @@ function Hint({ children }: { children: React.ReactNode }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function OrgNodeManager() {
-  const { hasPermission } = usePermissions();
-  const canCreate = hasPermission(P.CREATE_ORGANOGRAM);
+export interface OrgNodeManagerHandle {
+  openCreate: () => void;
+}
+
+const OrgNodeManager = forwardRef<OrgNodeManagerHandle>(function OrgNodeManager(_, ref) {
   const { data: allNodesRes, isLoading, isError, refetch } = useGetOrgNodesQuery({ page_size: 100 });
   const { data: posRes } = useGetPositionsQuery({ page_size: 100 });
 
@@ -254,6 +255,7 @@ export default function OrgNodeManager() {
     setForm(initial);
     setOpen(true);
   };
+  useImperativeHandle(ref, () => ({ openCreate }));
   const openEdit = (n: OrgNode) => {
     setEditing(n);
     setCodeTouched(true);
@@ -333,19 +335,10 @@ export default function OrgNodeManager() {
       .catch(() => {});
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   const isEmpty = divisions.length === 0 && orphans.length === 0;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <InfoHint ariaLabel="About organisation units" className="text-gray-01">
-          Tiered org units: Division → Department → Team. Click a row to expand or collapse its children. Set a head position whose current holder leads the unit.
-        </InfoHint>
-        {canCreate && <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Org Node</Button>}
-      </div>
-
       {/* ── Tree view ── */}
       <div className="rounded-lg border border-white-02 overflow-hidden">
         {isLoading && isEmpty ? (
@@ -422,7 +415,7 @@ export default function OrgNodeManager() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Org Node" : "New Org Node"}</DialogTitle>
+            <DialogTitle>{editing ? "Edit org unit" : "New org unit"}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">
             <CustomInput id="n-name" label="Name" isRequired value={form.name} onChange={(e) => setName(e.target.value)} />
@@ -520,4 +513,6 @@ export default function OrgNodeManager() {
       />
     </div>
   );
-}
+});
+
+export default OrgNodeManager;

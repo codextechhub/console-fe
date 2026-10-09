@@ -315,7 +315,7 @@ export const WALKTHROUGH_REGISTRY = [
       "Agree the division, department, team, and position hierarchy before entering it.",
       "Identify the approved solid reporting lines separately from matrix relationships.",
     ],
-    version: 1,
+    version: 2,
     steps: [
       {
         id: "welcome",
@@ -328,6 +328,14 @@ export const WALKTHROUGH_REGISTRY = [
         target: "organogram-manage.tab.units",
         title: "Create the parent chain first",
         body: "Use Org Units to create divisions, then departments inside divisions, then teams inside departments. Confirm each parent before selecting Create.",
+        placement: "bottom",
+        advance: "manual",
+      },
+      {
+        id: "bulk-upload",
+        target: "organogram-manage.new-org-unit",
+        title: "Upload a prepared structure in the same safe order",
+        body: "Each tab has a New action with Bulk upload beneath it. The drawer selects and locks the matching Org Units, Positions, or Matrix Reporting Lines template. Import those layers in that order. The walkthrough never uploads or starts an import.",
         placement: "bottom",
         advance: "manual",
       },

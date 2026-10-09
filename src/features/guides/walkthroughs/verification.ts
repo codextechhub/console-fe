@@ -11,7 +11,6 @@ export type WalkthroughVerificationRecord = {
 const VERSION_ONE_WALKTHROUGHS = [
   "walkthrough.roles.create-and-assign",
   "walkthrough.roles.transfer-super-admin",
-  "walkthrough.organogram.build-structure",
   "walkthrough.workflow.delegate-and-track",
   "walkthrough.workflow.build-template",
   "walkthrough.finance.configure-foundations",
@@ -46,6 +45,12 @@ const VERSION_ONE_WALKTHROUGHS = [
 ] as const;
 
 export const WALKTHROUGH_VERIFICATION_RECORDS: readonly WalkthroughVerificationRecord[] = [
+  {
+    walkthroughId: "walkthrough.organogram.build-structure",
+    version: 2,
+    verifiedAt: "2026-10-09",
+    missingTargetIds: [],
+  },
   {
     walkthroughId: "walkthrough.data.import-templates",
     version: 2,

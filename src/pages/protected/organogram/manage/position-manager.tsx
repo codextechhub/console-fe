@@ -6,15 +6,14 @@
  * indicator, just the click. Vertical guide lines connect siblings at each depth.
  */
 
-import { useMemo, useState } from "react";
-import { ChevronRight, Pencil, Plus, RefreshCw, Trash2, TriangleAlert } from "lucide-react";
+import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
+import { ChevronRight, Pencil, RefreshCw, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { InfoHint } from "@/components/finance-ui";
 import PromptModal from "@/components/modal/prompt-modal";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -179,9 +178,11 @@ function Hint({ children }: { children: React.ReactNode }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function PositionManager() {
-  const { hasPermission } = usePermissions();
-  const canCreate = hasPermission(P.CREATE_ORGANOGRAM);
+export interface PositionManagerHandle {
+  openCreate: () => void;
+}
+
+const PositionManager = forwardRef<PositionManagerHandle>(function PositionManager(_, ref) {
   // Both allPosRes and allNodesRes drive the tree; no paginated query needed.
   const { data: allPosRes, isLoading, isError, refetch } = useGetPositionsQuery({
     page_size: 100,
@@ -260,6 +261,7 @@ export default function PositionManager() {
     setForm({ ...empty, ...(division_id ? cascadeFromDivision(division_id) : {}) });
     setOpen(true);
   };
+  useImperativeHandle(ref, () => ({ openCreate }));
   const openEdit = (p: Position) => {
     setEditing(p);
     const node = allNodes.find((n) => n.id === p.org_node?.id);
@@ -321,13 +323,6 @@ export default function PositionManager() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <InfoHint ariaLabel="About organisation positions" className="text-gray-01">
-          Seats in the org chart ordered by the solid reporting line. Click a row to expand or collapse its direct reports.
-        </InfoHint>
-        {canCreate && <Button size="sm" onClick={openCreate}><Plus className="size-4" /> New Position</Button>}
-      </div>
-
       {/* ── Tree view ── */}
       <div className="rounded-lg border border-white-02 overflow-hidden">
         {isLoading && flatItems.length === 0 ? (
@@ -444,4 +439,6 @@ export default function PositionManager() {
       />
     </div>
   );
-}
+});
+
+export default PositionManager;

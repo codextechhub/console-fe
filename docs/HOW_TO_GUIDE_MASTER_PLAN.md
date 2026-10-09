@@ -351,7 +351,7 @@ article would require more than roughly twelve decision-bearing steps.
 ### 7.4 Organogram and tasks
 
 - Read and navigate the org chart.
-- Build departments, positions, reporting lines, and matrix relationships.
+- Build or bulk upload org units, positions, reporting lines, and matrix relationships.
 - Create and maintain a staff profile.
 - Understand cascading organogram changes.
 - View personal and team task accountability.

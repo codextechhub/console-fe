@@ -8,7 +8,6 @@ const A = routesPath.AUTH;
 const R = routesPath.PROTECTED;
 const IB = INTER_BRANCH_PATH;
 const REVIEWED_AT = "2026-08-25";
-const C4_REVIEWED_AT = "2026-08-25";
 const C5_REVIEWED_AT = "2026-08-25";
 const DOCS_REVIEWED_AT = "2026-08-25";
 const C6A_REVIEWED_AT = "2026-08-25";
@@ -355,10 +354,10 @@ export const GUIDE_REGISTRY = [
     id: "organogram.build-structure",
     slug: "build-the-organogram",
     title: "Build the organogram",
-    summary: "Create org units, positions, solid reporting lines, and matrix relationships in the right order.",
+    summary: "Create or bulk upload org units, positions, solid reporting lines, and matrix relationships in the right order.",
     category: "organogram-and-tasks",
-    tags: ["organogram", "division", "department", "team", "position", "seat", "solid line", "matrix line"],
-    aliases: ["org chart", "reporting lines", "company structure", "new org node", "new position", "dotted line"],
+    tags: ["organogram", "division", "department", "team", "position", "seat", "solid line", "matrix line", "bulk upload"],
+    aliases: ["org chart", "reporting lines", "company structure", "new org node", "new org unit", "new position", "dotted line", "bulk upload org chart"],
     audiences: ["platform-administrator"],
     routes: [R.ORGANOGRAM.INDEX, R.ORGANOGRAM.MANAGE],
     actionIds: ["view-org-chart", "manage-organogram"],
@@ -368,6 +367,7 @@ export const GUIDE_REGISTRY = [
       { id: "before-you-start", title: "Before you start" },
       { id: "understand-the-structure", title: "Understand the structure" },
       { id: "create-org-units", title: "Create org units" },
+      { id: "bulk-upload-the-structure", title: "Bulk upload the structure" },
       { id: "create-positions", title: "Create positions and reporting lines" },
       { id: "add-matrix-lines", title: "Add matrix lines" },
       { id: "review-the-chart", title: "Review the chart" },
@@ -378,7 +378,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.organogram.build-structure",
     estimatedMinutes: 11,
     owner: OWNER,
-    reviewedAt: C4_REVIEWED_AT,
+    reviewedAt: "2026-10-09",
     risk: "medium",
     featured: true,
     status: "published",
