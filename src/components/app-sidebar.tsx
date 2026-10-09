@@ -55,7 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="flex items-center justify-center"
               >
                 {/* Collapsed to the icon rail there is no width for the wordmark
-                    to turn into, so it stays a plain shield there. */}
+                    to turn into, so it stays a plain mark there. */}
                 <AppLogo animate={!isCollapsed} />
               </Link>
             </SidebarMenuItem>

@@ -69,7 +69,7 @@ export default function NotFound() {
       <header className="bg-white border-b border-gray-200 py-3 px-4 sm:px-6 flex items-center gap-4">
         <div className="flex items-center gap-2">
           <img
-            src="/image/logo.png"
+            src="/svg/logo-blue.svg"
             alt="XVS logo"
             className="h-12 w-auto"
           />

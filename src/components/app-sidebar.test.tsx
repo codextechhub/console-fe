@@ -101,6 +101,16 @@ async function renderNav(held: string[], location = "/overview"): Promise<string
 }
 
 describe("Main sidebar visibility", () => {
+  it("renders the animated blue CodeX mark in the menu header", async () => {
+    await renderNav([]);
+
+    const dashboardLink = container.querySelector('a[aria-label="Go to dashboard"]');
+    expect(dashboardLink?.querySelector(".app-logo__card")).not.toBeNull();
+    expect(dashboardLink?.querySelector("img")?.getAttribute("src")).toBe(
+      "/image/codex-mark-blue.png",
+    );
+  });
+
   it("shows only the ungated entries to a user with no permissions", async () => {
     expect(await renderNav([])).toMatchSnapshot();
   });

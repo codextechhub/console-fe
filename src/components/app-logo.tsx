@@ -6,25 +6,27 @@ import { INK, PEN, WORDMARK_RATIO, WORDMARK_VIEWBOX } from "./app-logo-wordmark"
 const DEFAULT_SIZE = 40;
 
 /**
- * The wordmark is set a little shorter than the shield so the two faces carry
+ * The wordmark is set a little shorter than the front mark so the two faces carry
  * similar visual weight - matching their heights makes the calligraphy tower.
  */
 const WORDMARK_SCALE = 0.78;
 
 type AppLogoProps = {
-  /** Height of the mark in px (the shield's height). Default 40. */
+  /** Height of the front mark in px. Default 40. */
   size?: number;
   /**
    * Turn the hover animation off where there is no room for the wordmark - the
-   * collapsed icon sidebar being the case that matters. The shield still renders.
+   * collapsed icon sidebar being the case that matters. The mark still renders.
    */
   animate?: boolean;
+  /** White on a blue surface, blue everywhere else. */
+  surface?: "blue" | "other";
   /** Colour of the calligraphy; it paints with `currentColor`. */
   className?: string;
 };
 
 /**
- * The XVS shield, which turns over on hover to write "CodeX" in calligraphy and
+ * The CodeX mark, which turns over on hover to write "CodeX" in calligraphy and
  * turns back when the pointer leaves.
  *
  * Everything here is CSS (see `.app-logo` in index.css): the flip is a transition
@@ -37,30 +39,42 @@ type AppLogoProps = {
  * This renders the visual only. Callers own the link, so the click keeps doing
  * whatever it did before; hover lives on the box, so it works either way.
  */
-export function AppLogo({ size = DEFAULT_SIZE, animate = true, className }: AppLogoProps) {
+export function AppLogo({
+  size = DEFAULT_SIZE,
+  animate = true,
+  surface = "other",
+  className,
+}: AppLogoProps) {
   // Masks are referenced by id, and the logo renders more than once per page.
   const maskId = useId();
+  const logoSrc = surface === "blue"
+    ? "/image/codex-mark-white.png"
+    : "/image/codex-mark-blue.png";
 
   if (!animate) {
     return (
       <img
-        src="/image/logo.png"
-        alt="XVS"
-        className="w-auto"
-        style={{ height: size }}
+        src={logoSrc}
+        alt="CodeX"
+        className="object-contain"
+        style={{ height: size, width: size }}
       />
     );
   }
 
   return (
     <span
-      className={cn("app-logo text-primary", className)}
+      className={cn(
+        "app-logo",
+        surface === "blue" ? "text-white" : "text-primary",
+        className,
+      )}
       // The box is as wide as the wider face so the header cannot shift as it turns.
       style={{ height: size, width: size * WORDMARK_RATIO * WORDMARK_SCALE }}
     >
       <span className="app-logo__card">
         <span className="app-logo__face">
-          <img src="/image/logo.png" alt="XVS" className="h-full w-auto" />
+          <img src={logoSrc} alt="CodeX" className="h-full w-auto" />
         </span>
 
         <span className="app-logo__face app-logo__face--back">
