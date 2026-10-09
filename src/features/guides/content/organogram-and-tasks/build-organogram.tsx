@@ -43,10 +43,10 @@ export default function BuildOrganogramArticle() {
         <GuideSteps>
           <GuideStep title="Open the matching import drawer">On each tab, open <strong>New org unit</strong>, <strong>New position</strong>, or <strong>New matrix line</strong>, then select <strong>Bulk upload</strong>. The drawer selects and locks that tab&apos;s official template.</GuideStep>
           <GuideStep title="Load each layer in order">Upload Org Units first, Positions second, and Matrix Reporting Lines last. Download and fill the selected official template for each batch.</GuideStep>
-          <GuideStep title="Review before importing">Resolve header and validation issues, confirm the preview belongs to the intended dataset, then start the import. The wizard does not combine the three layers into one file.</GuideStep>
+          <GuideStep title="Review before importing">Resolve every row and header issue, confirm the preview belongs to the intended dataset, then start the import. Validation checks required values and formats as well as hierarchy tiers, normalized duplicate codes, sibling names, missing or later references, tenant role keys, headcount limits, solid-line cycles, and duplicate or self-referencing matrix lines. The wizard does not combine the three layers into one file.</GuideStep>
           <GuideStep title="Return and inspect">Return to Manage Organogram after each completed batch and check the tree before loading the next dependent layer.</GuideStep>
         </GuideSteps>
-        <GuideCallout tone="warning" title="Codes connect the files">Position rows refer to org-unit codes, and matrix rows refer to position codes. A misspelt or not-yet-imported code is refused instead of creating a detached relationship.</GuideCallout>
+        <GuideCallout tone="warning" title="Codes connect the files">Position rows refer to org-unit codes, and matrix rows refer to position codes. A misspelt, later, or rejected dependency is refused instead of creating a detached relationship. Correct the earliest invalid row first because later rows may depend on it.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="create-positions" title="Create positions and reporting lines">
@@ -78,6 +78,7 @@ export default function BuildOrganogramArticle() {
           {[
             ["A department or team has no parent option", "Create the required division first. For a team, the selected division must also contain a department."],
             ["A position cannot be created", "Confirm that a complete Division, Department, and Team chain exists and that Title and Code are present."],
+            ["A bulk-upload row fails validation", "Read the named row and column, then correct the earliest invalid parent or manager first. Later rows are not allowed to depend on a row that validation has rejected."],
             ["A node or position cannot be deleted", "Remove or re-parent dependent children first. Seats with assignment history are protected from deletion."],
             ["The task hierarchy looks wrong", "Check the position's solid Reports to line. Matrix lines do not determine task assignment bounds."],
           ].map(([title, body]) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="flex items-start gap-2 text-sm font-semibold text-black-01"><CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" /> {title}</p><p className="mt-2 text-xs leading-5 text-gray-01">{body}</p></div>)}
