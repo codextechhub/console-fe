@@ -665,3 +665,17 @@ editor, assignment, approval, or automated repair action.
 - The procure-to-pay guide covers voiding a bill, supplier credit notes, goods
   returns and opening supplier bills.
 - The RFQ guide covers buying together across branches.
+
+## Finance navigation and account names (2026-10-10)
+
+- Finance keeps Dashboard and Settings as direct destinations. Ledger & Setup,
+  Receivables, Operations, Between Branches, Payments, and Reports & Close stay
+  as fixed section labels. One menu beneath those labels opens at a time to show
+  its destination links.
+- Payments separates held-money operator work under Platform Controls. Permission,
+  branch and custody gates still remove destinations a reader cannot open.
+- Every Finance and Procurement destination has one short page-title explanation.
+  The title help replaces long lessons without changing the longer task guides.
+- Account labels use the account name only: Accounts receivable, Accounts payable,
+  GR/IR clearing, WHT payable, Gateway clearing and Bank charges. Updated Finance
+  and Procurement guides use the same labels.

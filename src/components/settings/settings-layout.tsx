@@ -121,6 +121,7 @@ function useFitToWindow(ref: RefObject<HTMLElement | null>, enabled: boolean, re
  */
 export function ConsoleSettingsLayout({
   title,
+  titleHelp,
   description,
   basePath,
   activeSection,
@@ -132,6 +133,7 @@ export function ConsoleSettingsLayout({
   children,
 }: {
   title: string;
+  titleHelp?: ReactNode;
   description: string;
   basePath: string;
   activeSection: string;
@@ -292,7 +294,10 @@ export function ConsoleSettingsLayout({
     <PageShell className="space-y-5 px-4.5 pb-6 pt-14 text-black-01 sm:py-6">
       <div data-guide={guideTargetPrefix ? `${guideTargetPrefix}.heading` : undefined} className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="font-mont text-xl font-semibold text-gray-01">{title}</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-mont text-xl font-semibold text-gray-01">{title}</h1>
+            {titleHelp}
+          </div>
           <p className="mt-1 max-w-3xl font-mont text-xs leading-5 text-gray-05">{description}</p>
         </div>
         {scopeLabel ? (

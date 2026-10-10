@@ -17,7 +17,7 @@ export default function RefundOrWriteOffBalanceArticle() {
       <GuideSection id="separate-refund-and-write-off" title="Separate a refund from a write-off">
         <GuideSteps>
           <GuideStep title="Refund customer credit">Use when receipts, overpayments, or unapplied credit leave a genuine refundable balance. The posting debits customer credit and credits the selected bank account.</GuideStep>
-          <GuideStep title="Write off bad debt">Use when an open invoice balance has been authorised as uncollectible. The posting debits bad-debt expense and credits Accounts receivable (what customers owe) for that invoice.</GuideStep>
+          <GuideStep title="Write off bad debt">Use when an open invoice balance has been authorised as uncollectible. The posting debits bad-debt expense and credits Accounts receivable for that invoice.</GuideStep>
         </GuideSteps>
       </GuideSection>
 
@@ -34,7 +34,7 @@ export default function RefundOrWriteOffBalanceArticle() {
         <GuideSteps>
           <GuideStep title="Select the customer and exact invoice">Only posted invoices with a balance due are eligible. A write-off is invoice-specific and cannot predate the debt it clears.</GuideStep>
           <GuideStep title="Confirm the approved amount">Do not exceed the open balance or combine unrelated invoices. Preserve collection attempts and the authorised bad-debt decision.</GuideStep>
-          <GuideStep title="Review the expense treatment">Use the approved bad-debt expense account or the configured default. Confirm that the preview debits expense and credits Accounts receivable (what customers owe).</GuideStep>
+          <GuideStep title="Review the expense treatment">Use the approved bad-debt expense account or the configured default. Confirm that the preview debits expense and credits Accounts receivable.</GuideStep>
         </GuideSteps>
       </GuideSection>
 

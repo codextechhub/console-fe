@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Check, Upload, AlertTriangle, Eye, ChevronRight, ChevronLeft, X, FileSpreadsheet, Play, ExternalLink } from "lucide-react";
+import { Check, Upload, AlertTriangle, Eye, Download, ChevronRight, ChevronLeft, X, FileSpreadsheet, Play, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,7 @@ import {
 } from "@/redux/services/dashboard/import-api";
 import type { DatasetType, ImportBatch, ImportTemplate, ValidationSeverity } from "@/redux/services/dashboard/import-types";
 import { showBlobPreview } from "@xvs/finance/components/finance-ui/file-preview-dialog";
-import { fetchAttachmentBlob } from "@/utils/attachment-download";
+import { downloadObjectUrl, fetchAttachmentBlob } from "@/utils/attachment-download";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -408,16 +408,20 @@ function TemplateCard({ template }: { template: ImportTemplate }) {
   const [downloadTemplate, { isLoading: isDownloading }] = useDownloadImportTemplateMutation();
   const format = template.default_file_format === "xls" ? "xlsx" : template.default_file_format;
 
-  const handlePreview = async () => {
+  const handleDownload = async () => {
+    let blobUrl: string;
     try {
-      // Use the shared API client so the bearer token, impersonation header,
-      // and mandatory tenant assertion are applied consistently.
-      const blobUrl = await downloadTemplate({ id: template.id, format }).unwrap();
-      const blob = await fetch(blobUrl).then((response) => response.blob());
-      URL.revokeObjectURL(blobUrl);
-      showBlobPreview(`${template.code}_template.${format}`, blob);
+      blobUrl = await downloadTemplate({ id: template.id, format }).unwrap();
     } catch {
-      toast.error("Template could not be opened. Please try again.");
+      toast.error("Template could not be downloaded. Please try again.");
+      return;
+    }
+    try {
+      downloadObjectUrl(blobUrl, `${template.code}_template.${format}`);
+    } catch {
+      toast.error("Template could not be downloaded. Please try again.");
+    } finally {
+      URL.revokeObjectURL(blobUrl);
     }
   };
 
@@ -432,10 +436,10 @@ function TemplateCard({ template }: { template: ImportTemplate }) {
         <button
           type="button"
           className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-60"
-          onClick={handlePreview}
+          onClick={handleDownload}
           disabled={isDownloading}
         >
-          <Eye className="size-3" /> {isDownloading ? "Opening…" : "View template"}
+          <Download className="size-3" /> {isDownloading ? "Downloading…" : "Download template"}
         </button>
       </div>
       <div className="flex gap-4 flex-wrap text-xs text-gray-01">

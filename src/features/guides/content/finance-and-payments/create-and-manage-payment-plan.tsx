@@ -31,7 +31,7 @@ export default function CreateAndManagePaymentPlanArticle() {
       <GuideSection id="record-an-installment" title="Record an installment">
         <GuideSteps>
           <GuideStep title="Open the active plan">Confirm the plan number, invoice, outstanding total, next unpaid installment, and due date.</GuideStep>
-          <GuideStep title="Record the real receipt">Enter the amount, posting date, method, and approved deposit account. This posts a real receipt against the invoice, debiting bank or cash and crediting Accounts receivable (what customers owe).</GuideStep>
+          <GuideStep title="Record the real receipt">Enter the amount, posting date, method, and approved deposit account. This posts a real receipt against the invoice, debiting bank or cash and crediting Accounts receivable.</GuideStep>
           <GuideStep title="Verify automatic progress">Console refreshes the plan from the invoice settlements. Confirm the installment is Paid or Partial, the outstanding total changed, and the receipt email result is traceable.</GuideStep>
         </GuideSteps>
       </GuideSection>

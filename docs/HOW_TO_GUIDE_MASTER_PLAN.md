@@ -641,3 +641,6 @@ but an unowned published guide fails registry validation.
 8. Product changes and affected guide changes ship together.
 9. The system records the complete workflow inventory, not merely screen descriptions.
 10. A coverage and freshness report makes omissions visible.
+11. Finance navigation uses fixed section labels with one expandable menu open at
+    a time, and every Finance and Procurement destination carries one short
+    page-title explanation.

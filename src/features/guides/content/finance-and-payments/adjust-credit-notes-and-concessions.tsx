@@ -17,8 +17,8 @@ export default function AdjustCreditNotesAndConcessionsArticle() {
       <GuideSection id="choose-the-right-adjustment" title="Choose the right adjustment">
         <GuideSteps>
           <GuideStep title="Credit note">Reduces a customer's balance and reverses recognised revenue. It may target an invoice, apply to the oldest open invoices, or remain as customer credit for later allocation or refund.</GuideStep>
-          <GuideStep title="Debit note">Adds a new charge, increases Accounts receivable (what customers owe), and credits the selected income account. It cannot be applied as customer credit.</GuideStep>
-          <GuideStep title="Concession">Records an approved waiver, discount, or scholarship against one posted invoice. It reduces recognised revenue through the allowance account and clears the same amount from Accounts receivable (what customers owe).</GuideStep>
+          <GuideStep title="Debit note">Adds a new charge, increases Accounts receivable, and credits the selected income account. It cannot be applied as customer credit.</GuideStep>
+          <GuideStep title="Concession">Records an approved waiver, discount, or scholarship against one posted invoice. It reduces recognised revenue through the allowance account and clears the same amount from Accounts receivable.</GuideStep>
         </GuideSteps>
       </GuideSection>
 
@@ -35,7 +35,7 @@ export default function AdjustCreditNotesAndConcessionsArticle() {
         <GuideSteps>
           <GuideStep title="Choose the policy type">Use waiver, discount, or scholarship according to the approved policy and evidence. The visible label does not replace the reason.</GuideStep>
           <GuideStep title="Select one open invoice">A concession cannot predate the invoice and cannot exceed its open balance. Console can accept either a fixed amount or a percentage and shows the calculated equivalent.</GuideStep>
-          <GuideStep title="Review the allowance posting">Confirm the allowance account, amount, and preview. The posting debits discounts and allowances and credits Accounts receivable (what customers owe).</GuideStep>
+          <GuideStep title="Review the allowance posting">Confirm the allowance account, amount, and preview. The posting debits discounts and allowances and credits Accounts receivable.</GuideStep>
           <GuideStep title="Save or continue">Save draft when evidence or review is incomplete. Otherwise Console posts directly below the configured threshold or submits for approval when the amount is gated.</GuideStep>
         </GuideSteps>
         <p>The tiles above the list give <strong>Posted (YTD)</strong>, <strong>Draft (pending)</strong>, <strong>Sent back</strong> and <strong>Active concessions</strong>. Active concessions counts only the concessions in force: posted and not voided. A draft, one awaiting approval, one sent back and one voided are not counted, so the figure matches what the <strong>Posted</strong> filter lists.</p>

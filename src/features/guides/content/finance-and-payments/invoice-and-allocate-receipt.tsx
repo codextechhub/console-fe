@@ -48,7 +48,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
           "After issue or posting, reopen the invoice and verify its document number, balance, lines, and GL postings.",
         ]} />
         <GuideCallout tone="danger" title="Posting changes the customer's balance">
-          A posted invoice debits Accounts receivable (what customers owe) and credits revenue and tax as configured. Do not issue a draft until the customer, scope, dates, accounts, and amount have been checked.
+          A posted invoice debits Accounts receivable and credits revenue and tax as configured. Do not issue a draft until the customer, scope, dates, accounts, and amount have been checked.
         </GuideCallout>
       </GuideSection>
 
@@ -87,7 +87,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
         <GuideChecklist items={[
           "Invoice total, settlements, credited amount, and balance due reconcile.",
           "Receipt amount, allocated amount, refunded amount, and remaining credit reconcile.",
-          "The Accounts receivable (what customers owe) control account equals the receivables sub-ledger (each customer's balance) for the entity and period.",
+          "The Accounts receivable control account equals the receivables sub-ledger (each customer's balance) for the entity and period.",
           "Cash, revenue, tax, customer-credit, refund, and write-off postings use the intended accounts.",
           "The invoice, receipt, statement, and audit history tell the same story.",
         ]} />

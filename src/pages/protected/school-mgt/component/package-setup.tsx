@@ -9,6 +9,7 @@ import { useFormik } from "formik";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import type { PackageStepData } from "../create-school";
+import { packagePlanOptions } from "./package-plan-options";
 
 interface Props {
   defaultValues: PackageStepData;
@@ -23,12 +24,7 @@ export default function PackageSetup({ defaultValues, onSubmit, onChange, isSubm
   const { data: plansRes, isLoading: plansLoading } = useGetPackagePlansQuery();
 
   const plans = plansRes?.data ?? [];
-  const planOptions = plans.map((p) => ({
-    label: p.price_per_student == null
-      ? `${p.name} (quoted rate)`
-      : `${p.name} (${p.currency} ${(p.price_per_student / 100).toLocaleString("en-NG")} per student / ${p.billing_cycle.toLowerCase()})`,
-    value: p.code,
-  }));
+  const planOptions = packagePlanOptions(plans);
   const formik = useFormik<PackageStepData>({
     initialValues: defaultValues,
     validationSchema: packageStepSchema,
