@@ -20,7 +20,7 @@ import { routesPath } from "@/routes/routes-path";
 import type { ActionDef } from "./types";
 
 const R = routesPath.PROTECTED;
-const UNRELATED = [resolvePermissionKey(P.BROWSE_SCHOOLS)];
+const UNRELATED = [resolvePermissionKey(P.VIEW_WORKFLOW_INSTANCES)];
 
 function byId(id: string): ActionDef {
   const action = ACTIONS.find((candidate) => candidate.id === id);
@@ -41,6 +41,7 @@ describe("Main-console actions added for post-palette screens", () => {
     ["view-notification-templates", `${R.NOTIFICATIONS_ADMIN}?panel=templates`, P.CONFIGURE_NOTIFICATION_TEMPLATES],
     ["view-settings-platform-profile", `${R.SETTINGS.INDEX}/platform-profile`, P.VIEW_CONFIG_VALUES],
     ["view-settings-school-onboarding", `${R.SETTINGS.INDEX}/school-onboarding`, P.VIEW_CONFIG_VALUES],
+    ["view-settings-subscription-pricing", `${R.SETTINGS.INDEX}/subscription-pricing`, P.BROWSE_SCHOOLS],
     ["view-settings-security", `${R.SETTINGS.INDEX}/security`, P.VIEW_SECURITY_SETTINGS],
     ["view-settings-integrations", `${R.SETTINGS.INDEX}/integrations`, P.VIEW_INTEGRATION_SETTINGS],
     ["view-settings-features", `${R.SETTINGS.INDEX}/features`, P.VIEW_CAPABILITIES],
@@ -90,7 +91,7 @@ describe("Main-console actions added for post-palette screens", () => {
     // A gate omitting these two lets their holders reach Settings by clicking
     // and never by typing.
     const action = byId("view-settings");
-    for (const key of [P.VIEW_SECURITY_SETTINGS, P.VIEW_INTEGRATION_SETTINGS]) {
+    for (const key of [P.VIEW_SECURITY_SETTINGS, P.VIEW_INTEGRATION_SETTINGS, P.BROWSE_SCHOOLS]) {
       expect(passesActionGate(action.gate, [resolvePermissionKey(key)])).toBe(true);
     }
   });

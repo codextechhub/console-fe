@@ -20,6 +20,10 @@ export default function ConfigurePlatformArticle() {
           <GuideStep title="Test with an approved scenario">After saving, use a controlled onboarding case to prove the default appears only where the school did not provide its own value.</GuideStep>
         </GuideSteps>
       </GuideSection>
+      <GuideSection id="set-subscription-pricing" title="Set subscription pricing">
+        <p>Basic, Standard, and Premium each carry one per-student catalogue rate for one billing cycle. Changing a rate affects school agreements created after the change; it never rewrites a saved school agreement or an invoice. Enterprise remains a per-school quote entered during onboarding.</p>
+        <GuideCallout tone="warning" title="A rate change is not a correction to old invoices">If Bright Star joined Standard at ₦5,000 per student and the catalogue later moves to ₦5,500, Bright Star keeps its saved agreement until an authorised plan or contract change. Do not edit historical invoices to imitate the new catalogue.</GuideCallout>
+      </GuideSection>
       <GuideSection id="govern-security-baselines" title="Govern security baselines">
         <p>Runtime security settings control live authentication, invitation, recovery, lockout, and proxy-session behaviour. School and branch overrides may tighten the parent baseline but cannot weaken it. Validate every numeric boundary and expect an immediate support and access impact after save or reset.</p>
       </GuideSection>
@@ -32,7 +36,7 @@ export default function ConfigurePlatformArticle() {
       <GuideSection id="common-problems" title="Common problems">
         <ul className="list-disc space-y-2 pl-5"><li>A section is missing: the reader lacks its view permission; do not infer that the setting does not exist.</li><li>Save is unavailable: the page can be read without the matching action permission.</li><li>A value looks unchanged: check the source badge and effective value because a parent or environment fallback may still win.</li><li>An existing school did not change: onboarding defaults are for omitted values on new records, not a bulk migration.</li><li>A security override is rejected: the proposed child value may weaken the enforced parent boundary.</li><li>A feature remains unavailable: check capability dependencies, entitlement dates, scope, override precedence, and the user's own permission.</li></ul>
       </GuideSection>
-      <GuideSection id="completion-check" title="Completion check"><GuideChecklist items={["The current effective value and its source were recorded", "The smallest correct scope was selected", "The proposal has an owner, reason, validation, and rollback plan", "Onboarding impact on new versus existing schools is understood", "Security, capability, and entitlement dependencies were checked", "The saved result and immutable audit record were verified"]} /></GuideSection>
+      <GuideSection id="completion-check" title="Completion check"><GuideChecklist items={["The current effective value and its source were recorded", "The smallest correct scope was selected", "The proposal has an owner, reason, validation, and rollback plan", "Onboarding impact on new versus existing schools is understood", "Subscription rate impact on future versus saved agreements is understood", "Security, capability, and entitlement dependencies were checked", "The saved result and immutable audit record were verified"]} /></GuideSection>
     </div>
   );
 }

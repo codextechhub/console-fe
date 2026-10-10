@@ -8,18 +8,18 @@ export default function CreateAndConfigureSchoolArticle() {
       <GuideSection id="before-you-start" title="Before you start">
         <p>This task is for a platform administrator who can onboard schools. Prepare the school&apos;s legal and contact details, the first branch and its administrator, the primary school administrator, and the approved package limits.</p>
         <GuideChecklist items={[
-          "Confirm the school name, ownership type, address, term structure, and currency.",
+          "Confirm the school name, billing email, phone, address, ownership type, term structure, and currency.",
           "Confirm which branch is the main branch and use working administrator email addresses.",
-          "Agree the package plan, enabled modules, and subscription expiry date.",
+          "Agree the package plan, subscription start date, optional minimum student commitment, and expiry date.",
           "Check that administrator emails do not already belong to another account.",
         ]} />
-        <GuideCallout tone="warning" title="One submission creates several records">The final Submit action creates the school, its branches and administrator records, package access, finance books, onboarding checklist, and invitations, all or nothing. Review every step before submitting. The walkthrough opens each wizard view so its guidance matches the visible section and preserves what you have entered, but it never reads, fills, validates, or submits a field.</GuideCallout>
+        <GuideCallout tone="warning" title="One submission creates several records">The final Submit action creates the school, its CodeX billing customer, branches and administrator records, package access, finance books, onboarding checklist, and invitations, all or nothing. Review every step before submitting. The walkthrough opens each wizard view so its guidance matches the visible section and preserves what you have entered, but it never reads, fills, validates, or submits a field.</GuideCallout>
       </GuideSection>
 
       <GuideSection id="add-school-details" title="Add school details">
         <GuideSteps>
           <GuideStep title="Open School Management">Select <strong>Add New School</strong>, then <strong>Add Manual</strong>. The form opens at <strong>Add a New School</strong>.</GuideStep>
-          <GuideStep title="Enter the identity">Complete <strong>School Name</strong>, <strong>School Slug</strong>, <strong>School Address</strong>, and <strong>Ownership Type</strong>. The slug becomes a stable part of the school&apos;s Console address, so use the agreed value.</GuideStep>
+          <GuideStep title="Enter the identity and billing contact">Complete <strong>School Name</strong>, <strong>School Email</strong>, <strong>School Phone</strong>, <strong>School Slug</strong>, <strong>School Address</strong>, and <strong>Ownership Type</strong>. The contact details register the school in CodeX billing, while the slug becomes a stable part of the school&apos;s Console address.</GuideStep>
           <GuideStep title="Set the academic defaults">Complete <strong>Term Structure</strong> and <strong>Currency</strong>. Add the website, motto, and registration ID when available, then select <strong>Continue</strong>.</GuideStep>
         </GuideSteps>
       </GuideSection>
@@ -41,9 +41,10 @@ export default function CreateAndConfigureSchoolArticle() {
       <GuideSection id="configure-package" title="Configure the package">
         <GuideSteps>
           <GuideStep title="Select the package plan">Choose the approved <strong>Package Plan</strong>. Do not guess a commercial entitlement.</GuideStep>
-          <GuideStep title="Set the expiry">Choose <strong>Subscription Expires</strong>. Every school receives every module; the plan decides how far into each one it reaches.</GuideStep>
+          <GuideStep title="Set the subscription dates">Confirm <strong>Subscription Start Date</strong>, which defaults to the registration day, and choose <strong>Subscription Expires</strong>. Every school receives every module; the plan decides how far into each one it reaches.</GuideStep>
+          <GuideStep title="Confirm the billing basis">The selected tier shows its per-student rate. Enterprise requires the agreed quoted rate. Leave <strong>Minimum Billable Students</strong> at zero to wait for active enrolled students before the first invoice, or enter the contracted minimum.</GuideStep>
           <GuideStep title="Review, then submit">Use <strong>Back</strong> to correct earlier details. Select <strong>Submit</strong> only when the complete setup is approved.</GuideStep>
-          <GuideStep title="Watch the setup finish">A progress box lists each step the server runs: the school record, roles, administrator accounts, branches, the plan, the finance books, the onboarding checklist and the invitation emails. Each step is ticked as the server finishes it. The school keeps being set up if you leave the page.</GuideStep>
+          <GuideStep title="Watch the setup finish">A progress box lists each step the server runs: the school record, roles, administrator accounts, branches, the plan, CodeX billing registration, the finance books, the onboarding checklist and the invitation emails. Each step is ticked as the server finishes it. The school keeps being set up if you leave the page.</GuideStep>
         </GuideSteps>
         <GuideFigure title="What the final setup controls" caption="The package choices determine which capabilities and capacity the school receives.">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -51,7 +52,7 @@ export default function CreateAndConfigureSchoolArticle() {
               { icon: School, title: "School and branches", body: "Identity, location, academic defaults, and main-branch designation." },
               { icon: UsersRound, title: "Administrators", body: "Primary and branch administrator records and invitations." },
               { icon: PackageCheck, title: "Package access", body: "The plan, which sets how far the school reaches into every module." },
-              { icon: ShieldCheck, title: "Subscription", body: "When the subscription expires, and whether the setup is active." },
+              { icon: ShieldCheck, title: "Subscription", body: "Start date, expiry, agreed per-student rate, minimum commitment, and active state." },
             ].map(({ icon: Icon, title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><Icon className="size-5 text-primary" /><p className="mt-3 text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}
           </div>
         </GuideFigure>

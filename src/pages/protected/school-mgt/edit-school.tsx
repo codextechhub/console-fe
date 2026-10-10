@@ -17,6 +17,8 @@ import { PageShell } from "@/components/layout/page-shell";
 
 interface EditSchoolValues {
   slug: string;
+  email: string;
+  phone: string;
   ownership_type: string;
   address: string;
   website: string;
@@ -46,6 +48,8 @@ export default function EditSchool() {
     enableReinitialize: true,
     initialValues: {
       slug: school?.slug ?? "",
+      email: school?.email ?? "",
+      phone: school?.phone ?? "",
       ownership_type: school?.ownership_type ?? "",
       address: school?.address ?? "",
       website: school?.website ?? "",
@@ -63,6 +67,8 @@ export default function EditSchool() {
       // an ordinary edit into a refusal.
       const nextSlug = values.slug.trim();
       if (!isLive && nextSlug && nextSlug !== school?.slug) body.slug = nextSlug;
+      if (values.email) body.email = values.email;
+      if (values.phone) body.phone = values.phone;
       if (values.ownership_type) body.ownership_type = values.ownership_type;
       if (values.address) body.address = values.address;
       if (values.website) body.website = values.website;
@@ -145,6 +151,24 @@ export default function EditSchool() {
                   value={formik.values.ownership_type}
                   onChange={(e) => formik.setFieldValue("ownership_type", e.target.value)}
                   error={formik.touched.ownership_type ? formik.errors.ownership_type : ""}
+                />
+                <CustomInput
+                  id="email"
+                  type="email"
+                  label="School Email"
+                  placeholder="billing@school.example"
+                  isRequired
+                  {...formik.getFieldProps("email")}
+                  error={formik.touched.email ? formik.errors.email : ""}
+                />
+                <CustomInput
+                  id="phone"
+                  type="tel"
+                  label="School Phone"
+                  placeholder="e.g., +234 800 000 0000"
+                  isRequired
+                  {...formik.getFieldProps("phone")}
+                  error={formik.touched.phone ? formik.errors.phone : ""}
                 />
                 <CustomInput
                   id="address"

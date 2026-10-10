@@ -12,6 +12,7 @@ export const SCHOOL_CREATION_STEP_LABELS: Record<string, string> = {
   school_admin: "Creating the school administrator's account",
   branches: "Opening the branches and their administrators",
   plan: "Applying the package plan",
+  customer: "Registering the school for CodeX billing",
   books: "Opening the finance books",
   onboarding: "Preparing the onboarding checklist",
   invitations: "Queuing the invitation emails",

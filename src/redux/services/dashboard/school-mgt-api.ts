@@ -148,6 +148,19 @@ export const schoolMgtApi = baseApi.injectEndpoints({
 
     getPackagePlans: builder.query<PackagePlansRes, void>({
       query: () => ({ url: `/i/package-plans/`, method: "GET" }),
+      providesTags: ["PackagePlans"],
+    }),
+
+    updatePackagePlanPrice: builder.mutation<
+      { success: boolean; message: string; data: { price_per_student: number } },
+      { code: string; price_per_student: number }
+    >({
+      query: ({ code, price_per_student }) => ({
+        url: `/i/package-plans/${code}/price/`,
+        method: "PATCH",
+        body: { price_per_student },
+      }),
+      invalidatesTags: ["PackagePlans"],
     }),
 
     getModules: builder.query<ModulesRes, void>({
@@ -170,5 +183,6 @@ export const {
   useSetSchoolServiceStateMutation,
   useTransitionBranchMutation,
   useGetPackagePlansQuery,
+  useUpdatePackagePlanPriceMutation,
   useGetModulesQuery,
 } = schoolMgtApi;

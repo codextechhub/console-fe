@@ -307,6 +307,7 @@ progress with the direct user session.
 | Investigate failed payment or webhook | Cross-screen operational diagnosis | Read-only guidance; retry remains an explicit user action |
 | Investigate an audit event | Filters, entity trail, session context | Read-only guidance |
 | Configure finance or procurement settings | Large downstream effects | One section per chapter; never saves automatically |
+| Configure subscription tier pricing | Changes future school agreements | Explains catalogue versus saved rates and never saves automatically |
 
 ## 7. Complete guide inventory by category
 
@@ -328,6 +329,7 @@ article would require more than roughly twelve decision-bearing steps.
 
 - Browse, search, filter, and sort schools.
 - Create and configure a school.
+- Set per-student subscription tier pricing and understand Enterprise quotes.
 - View and edit a school.
 - Create, view, and edit a branch.
 - Add a school administrator.

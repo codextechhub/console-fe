@@ -1,5 +1,6 @@
 import { svgIcons } from "@/assets/svg";
 import { CustomDateInput } from "@/components/custom/custom-date-input";
+import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
 import { useGetPackagePlansQuery } from "@/redux/services/dashboard/school-mgt-api";
@@ -21,8 +22,13 @@ export default function PackageSetup({ defaultValues, onSubmit, onChange, isSubm
 
   const { data: plansRes, isLoading: plansLoading } = useGetPackagePlansQuery();
 
-  const planOptions = (plansRes?.data ?? []).map((p) => ({ label: p.name, value: p.code }));
-
+  const plans = plansRes?.data ?? [];
+  const planOptions = plans.map((p) => ({
+    label: p.price_per_student == null
+      ? `${p.name} (quoted rate)`
+      : `${p.name} (${p.currency} ${(p.price_per_student / 100).toLocaleString("en-NG")} per student / ${p.billing_cycle.toLowerCase()})`,
+    value: p.code,
+  }));
   const formik = useFormik<PackageStepData>({
     initialValues: defaultValues,
     validationSchema: packageStepSchema,
@@ -31,6 +37,7 @@ export default function PackageSetup({ defaultValues, onSubmit, onChange, isSubm
       onSubmit(values);
     },
   });
+  const selectedPlan = plans.find((plan) => plan.code === formik.values.package_plan);
 
   useEffect(() => {
     onChange(formik.values);
@@ -65,13 +72,49 @@ export default function PackageSetup({ defaultValues, onSubmit, onChange, isSubm
             />
 
             <CustomDateInput
+              id="subscription_starts_at"
+              label="Subscription Start Date"
+              placeholder="Select start date"
+              isRequired
+              value={formik.values.subscription_starts_at}
+              onValueChange={(date) => formik.setFieldValue("subscription_starts_at", date)}
+            />
+
+            <CustomDateInput
               id="subscription_expires_at"
               label="Subscription Expires"
               placeholder="Select expiry date"
               value={formik.values.subscription_expires_at}
               onValueChange={(date) => formik.setFieldValue("subscription_expires_at", date)}
             />
+
+            {selectedPlan?.price_per_student == null && selectedPlan ? (
+              <CustomInput
+                id="agreed_price_per_student"
+                type="number"
+                min="1"
+                label={`Agreed Price per Student (${selectedPlan.currency})`}
+                placeholder="Enter the quoted rate"
+                isRequired
+                {...formik.getFieldProps("agreed_price_per_student")}
+                error={formik.touched.agreed_price_per_student ? formik.errors.agreed_price_per_student : ""}
+              />
+            ) : null}
+
+            <CustomInput
+              id="minimum_billable_students"
+              type="number"
+              min="0"
+              label="Minimum Billable Students"
+              placeholder="0"
+              {...formik.getFieldProps("minimum_billable_students")}
+              error={formik.touched.minimum_billable_students ? formik.errors.minimum_billable_students : ""}
+            />
           </div>
+
+          <p className="mt-4 max-w-2xl font-mont text-xs text-gray-01">
+            Students with Active status are counted on each billing date. Leave the minimum at zero to wait until students are imported before the first invoice.
+          </p>
 
           <div className="mt-10 inline-flex items-center gap-4">
             <Button

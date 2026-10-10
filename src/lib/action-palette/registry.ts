@@ -141,7 +141,7 @@ export const ACTIONS: ActionDef[] = [
   // the page's own hasAnyPermission check. Omitting the security or integration
   // keys lets a holder of only one of those reach Settings from the nav and
   // never find it by typing.
-  { id: "view-settings", label: "View settings", aliases: ["configuration", "settings overview"], console: "Main", group: "Settings", kind: "view", gate: { any: [P.VIEW_CONFIG_VALUES, P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CAPABILITIES, P.VIEW_ENTITLEMENTS, P.VIEW_CONFIG_OVERRIDES, P.VIEW_CONFIG_AUDIT, P.VIEW_SECURITY_SETTINGS, P.VIEW_INTEGRATION_SETTINGS] }, run: { to: R.SETTINGS.INDEX } },
+  { id: "view-settings", label: "View settings", aliases: ["configuration", "settings overview"], console: "Main", group: "Settings", kind: "view", gate: { any: [P.VIEW_CONFIG_VALUES, P.VIEW_CONFIG_DEFINITIONS, P.VIEW_CAPABILITIES, P.VIEW_ENTITLEMENTS, P.VIEW_CONFIG_OVERRIDES, P.VIEW_CONFIG_AUDIT, P.VIEW_SECURITY_SETTINGS, P.VIEW_INTEGRATION_SETTINGS, P.BROWSE_SCHOOLS] }, run: { to: R.SETTINGS.INDEX } },
   // The console's sections, each a declared route (settings/sections.ts). Gates
   // are the per-section ones from ALL_SECTIONS in settings/index.tsx; the two
   // sections with no gate of their own (Overview, Administration) take the page's
@@ -149,6 +149,7 @@ export const ACTIONS: ActionDef[] = [
   // separate action - both land on the same screen.
   { id: "view-settings-platform-profile", label: "View platform profile", aliases: ["issuer identity", "organisation profile"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_CONFIG_VALUES }, run: { to: `${R.SETTINGS.INDEX}/platform-profile` } },
   { id: "view-settings-school-onboarding", label: "View school onboarding settings", aliases: ["tenant defaults", "onboarding defaults"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_CONFIG_VALUES }, run: { to: `${R.SETTINGS.INDEX}/school-onboarding` } },
+  { id: "view-settings-subscription-pricing", label: "View subscription pricing", aliases: ["tier prices", "per student pricing", "basic standard premium price"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.BROWSE_SCHOOLS }, run: { to: `${R.SETTINGS.INDEX}/subscription-pricing` } },
   { id: "view-settings-payroll", label: "View payroll scope", aliases: ["payroll", "per branch payroll", "central payroll", "payroll settings"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_CONFIG_VALUES }, run: { to: `${R.SETTINGS.INDEX}/payroll` } },
   { id: "view-settings-security", label: "View security settings", aliases: ["lockout", "runtime protection", "proxy safeguards"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_SECURITY_SETTINGS }, run: { to: `${R.SETTINGS.INDEX}/security` } },
   { id: "view-settings-integrations", label: "View integration settings", aliases: ["integrations", "email delivery", "connections"], console: "Main", group: "Settings", kind: "view", gate: { perm: P.VIEW_INTEGRATION_SETTINGS }, run: { to: `${R.SETTINGS.INDEX}/integrations` } },

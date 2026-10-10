@@ -30,7 +30,6 @@ const VERSION_ONE_WALKTHROUGHS = [
   "walkthrough.audit.review-security-operations",
   "walkthrough.audit.export-and-compliance",
   "walkthrough.platform.investigate-health",
-  "walkthrough.platform.configure-platform",
   "walkthrough.platform.administer-notifications",
   "walkthrough.platform.manage-integrations",
   "walkthrough.finance.run-payroll",
@@ -45,6 +44,12 @@ const VERSION_ONE_WALKTHROUGHS = [
 ] as const;
 
 export const WALKTHROUGH_VERIFICATION_RECORDS: readonly WalkthroughVerificationRecord[] = [
+  {
+    walkthroughId: "walkthrough.platform.configure-platform",
+    version: 2,
+    verifiedAt: "2026-10-10",
+    missingTargetIds: [],
+  },
   {
     walkthroughId: "walkthrough.organogram.build-structure",
     version: 2,

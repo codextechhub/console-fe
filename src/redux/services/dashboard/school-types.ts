@@ -60,6 +60,10 @@ export interface PackagePlan {
   code: string
   description: string
   billing_cycle: string
+  currency: string
+  price_per_student: number | null
+  default_depth: number | null
+  default_depth_label: string
   max_students: number | null
   max_teachers: number | null
   max_admins: number | null
@@ -102,6 +106,9 @@ export interface PackageSetup {
    */
   enabled_modules: SchoolModule[]
   subscription_expires_at: string | null
+  subscription_starts_at: string
+  agreed_price_per_student: number | null
+  minimum_billable_students: number
   is_active: boolean
   notes: string
   created_at: string
@@ -125,6 +132,8 @@ export interface School {
 }
 
 export interface SchoolDetail extends School {
+  email: string
+  phone: string
   address: string
   website: string
   /**

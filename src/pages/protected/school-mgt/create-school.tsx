@@ -10,6 +10,8 @@ import PackageSetup from "./component/package-setup";
 
 export interface SchoolStepData {
   name: string;
+  email: string;
+  phone: string;
   slug: string;
   ownership_type: string;
   address: string;
@@ -50,11 +52,14 @@ export interface AdminStepData {
  */
 export interface PackageStepData {
   package_plan: string;
+  subscription_starts_at: string;
   subscription_expires_at: string;
+  agreed_price_per_student: string;
+  minimum_billable_students: string;
 }
 
 const initialSchool: SchoolStepData = {
-  name: "", slug: "", ownership_type: "", address: "",
+  name: "", email: "", phone: "", slug: "", ownership_type: "", address: "",
   website: "", motto: "", term_structure: "", currency: "", registration_id: "",
 };
 
@@ -69,8 +74,15 @@ const initialAdmin: AdminStepData = {
 };
 
 const initialPackage: PackageStepData = {
-  package_plan: "", subscription_expires_at: "",
+  package_plan: "", subscription_starts_at: localToday(), subscription_expires_at: "",
+  agreed_price_per_student: "", minimum_billable_students: "",
 };
+
+function localToday(): string {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+}
 
 export interface PrefillData {
   school: SchoolStepData;
@@ -85,6 +97,8 @@ function generateTestData(): PrefillData {
   return {
     school: {
       name: `Test School ${n}`,
+      email: `billing@${slug}.ng`,
+      phone: `+23490${n}0000`,
       slug,
       ownership_type: "PRIVATE",
       address: `${n} Test Avenue, Victoria Island`,
@@ -116,7 +130,10 @@ function generateTestData(): PrefillData {
     },
     pkg: {
       package_plan: "",
+      subscription_starts_at: localToday(),
       subscription_expires_at: "2027-12-31",
+      agreed_price_per_student: "",
+      minimum_billable_students: "",
     },
   };
 }
@@ -129,6 +146,8 @@ function buildPayload(
 ) {
   const payload: Record<string, unknown> = {
     name: school.name,
+    email: school.email,
+    phone: school.phone,
     ownership_type: school.ownership_type,
     address: school.address,
     term_structure: school.term_structure,
@@ -168,7 +187,12 @@ function buildPayload(
   if (pkg.package_plan) {
     payload.package_setup_data = {
       package_plan: pkg.package_plan,
+      subscription_starts_at: pkg.subscription_starts_at,
       ...(pkg.subscription_expires_at ? { subscription_expires_at: pkg.subscription_expires_at } : {}),
+      ...(pkg.agreed_price_per_student
+        ? { agreed_price_per_student: Math.round(Number(pkg.agreed_price_per_student) * 100) }
+        : {}),
+      minimum_billable_students: Number(pkg.minimum_billable_students || 0),
     };
   }
 

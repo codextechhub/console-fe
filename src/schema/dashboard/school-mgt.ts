@@ -3,6 +3,8 @@ import { phoneSchema } from ".";
 
 export const schoolStepSchema = Yup.object({
   name: Yup.string().required("School name is required"),
+  email: Yup.string().email("Invalid email").required("School email is required"),
+  phone: phoneSchema.required("School phone is required"),
   slug: Yup.string().matches(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   ownership_type: Yup.string().required("Ownership type is required"),
   address: Yup.string().required("Address is required"),
@@ -38,7 +40,21 @@ export const adminStepSchema = Yup.object({
 
 export const packageStepSchema = Yup.object({
   package_plan: Yup.string().required("Package plan is required"),
+  subscription_starts_at: Yup.string().required("Subscription start date is required"),
   subscription_expires_at: Yup.string().nullable(),
+  agreed_price_per_student: Yup.number()
+    .transform((value, original) => original === "" ? null : value)
+    .positive("Enter a rate greater than zero")
+    .nullable()
+    .when("package_plan", {
+      is: "enterprise",
+      then: (schema) => schema.required("Agreed price is required for Enterprise"),
+    }),
+  minimum_billable_students: Yup.number()
+    .transform((value, original) => original === "" ? null : value)
+    .integer()
+    .min(0, "Minimum cannot be negative")
+    .nullable(),
 });
 
 export const editSchoolSchema = Yup.object({
@@ -47,6 +63,8 @@ export const editSchoolSchema = Yup.object({
   // input the API accepts. Reserved names and collisions are the server's
   // answer to give, and it gives them per field.
   slug: Yup.string(),
+  email: Yup.string().email("Invalid email").required("School email is required"),
+  phone: phoneSchema.required("School phone is required"),
   ownership_type: Yup.string().required("Ownership type is required"),
   address: Yup.string().required("Address is required"),
   term_structure: Yup.string().required("Term structure is required"),

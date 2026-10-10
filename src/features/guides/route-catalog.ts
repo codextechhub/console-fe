@@ -207,6 +207,7 @@ export const GUIDE_ROUTE_PATTERNS = [
   `${R.SETTINGS.INDEX}/overview`,
   `${R.SETTINGS.INDEX}/platform-profile`,
   `${R.SETTINGS.INDEX}/school-onboarding`,
+  `${R.SETTINGS.INDEX}/subscription-pricing`,
   `${R.SETTINGS.INDEX}/payroll`,
   `${R.SETTINGS.INDEX}/security`,
   `${R.SETTINGS.INDEX}/integrations`,

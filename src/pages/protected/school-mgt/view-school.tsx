@@ -410,6 +410,8 @@ export default function ViewSchool() {
                     <SectionCard title="School information" description="Identity, registration and academic setup" icon={<Building2 className="size-4.5" />}>
                       <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
                         <DetailField label="School name" value={school.name} />
+                        <DetailField label="School email" value={school.email} />
+                        <DetailField label="School phone" value={school.phone} />
                         <DetailField label="Registration ID" value={school.registration_id} />
                         <DetailField label="Ownership" value={formatEnum(school.ownership_type)} />
                         <DetailField label="Term structure" value={formatEnum(school.term_structure)} />

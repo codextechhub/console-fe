@@ -117,6 +117,24 @@ export default function AddSchool({ defaultValues, onNext, onChange, onPrefill, 
             error={formik.touched.slug ? formik.errors.slug : ""}
           />
           <CustomInput
+            id="email"
+            type="email"
+            label="School Email"
+            placeholder="billing@school.example"
+            isRequired
+            {...formik.getFieldProps("email")}
+            error={formik.touched.email ? formik.errors.email : ""}
+          />
+          <CustomInput
+            id="phone"
+            type="tel"
+            label="School Phone"
+            placeholder="e.g., +234 800 000 0000"
+            isRequired
+            {...formik.getFieldProps("phone")}
+            error={formik.touched.phone ? formik.errors.phone : ""}
+          />
+          <CustomInput
             id="address"
             label="School Address"
             placeholder="Enter school address"

@@ -62,7 +62,12 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { DEFAULT_SETTINGS_SECTION, type SettingsSection } from "./sections";
 import { P, type PermissionCode } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
-import { useGetBranchesQuery, useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
+import {
+  useGetBranchesQuery,
+  useGetPackagePlansQuery,
+  useGetSchoolsQuery,
+  useUpdatePackagePlanPriceMutation,
+} from "@/redux/services/dashboard/school-mgt-api";
 import {
   useArchiveCapabilityMutation,
   useArchiveConfigDefinitionMutation,
@@ -127,6 +132,7 @@ const ALL_SECTIONS: Array<ConsoleSettingsSection & { permissions?: PermissionCod
   { key: "overview", title: "Overview", description: "Configuration health", icon: Settings2 },
   { key: "platform-profile", title: "Platform profile", description: "Issuer identity", icon: Building2, permissions: [P.VIEW_CONFIG_VALUES] },
   { key: "school-onboarding", title: "School onboarding", description: "New tenant defaults", icon: Sparkles, permissions: [P.VIEW_CONFIG_VALUES] },
+  { key: "subscription-pricing", title: "Subscription pricing", description: "Per-student tier rates", icon: CreditCard, permissions: [P.BROWSE_SCHOOLS] },
   { key: "payroll", title: "Payroll", description: "Central or per branch", icon: Landmark, permissions: [P.VIEW_CONFIG_VALUES] },
   { key: "security", title: "Security", description: "Runtime protection", icon: ShieldCheck, permissions: [P.VIEW_SECURITY_SETTINGS] },
   { key: "integrations", title: "Integrations", description: "Connections and delivery", icon: Network, permissions: [P.VIEW_INTEGRATION_SETTINGS] },
@@ -163,6 +169,7 @@ export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
     P.VIEW_CONFIG_AUDIT,
     P.VIEW_SECURITY_SETTINGS,
     P.VIEW_INTEGRATION_SETTINGS,
+    P.BROWSE_SCHOOLS,
   )) return <PageAccessDenied />;
 
   // Only sections that exist reach this component, so this fallback is now purely
@@ -197,6 +204,7 @@ export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
       ) : null}
       {activeSection === "platform-profile" ? <PlatformProfile /> : null}
       {activeSection === "school-onboarding" ? <SchoolOnboarding /> : null}
+      {activeSection === "subscription-pricing" ? <SubscriptionPricing /> : null}
       {activeSection === "payroll" ? <PayrollScope /> : null}
       {activeSection === "security" ? <SecuritySettings /> : null}
       {activeSection === "integrations" ? <IntegrationSettings /> : null}
@@ -247,6 +255,7 @@ function PlatformOverview({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {canViewValues ? <SettingsOverviewCard icon={Building2} title="Platform profile" description="Set the identity printed when CodeX issues Finance documents." to={`${S}/platform-profile`} status={`${configuredProfileFields} of 7 saved`} tone={configuredProfileFields > 0 ? "ready" : "attention"} /> : null}
         {canViewValues ? <SettingsOverviewCard icon={Sparkles} title="School onboarding" description="Choose the defaults applied only when a new school or branch omits a value." to={`${S}/school-onboarding`} status="New records only" tone="ready" /> : null}
+        {hasPermission(P.BROWSE_SCHOOLS) ? <SettingsOverviewCard icon={CreditCard} title="Subscription pricing" description="Set the per-student catalogue rate for each subscription tier." to={`${S}/subscription-pricing`} status="Future subscriptions" tone="ready" /> : null}
         {hasPermission(P.VIEW_SECURITY_SETTINGS) ? <SettingsOverviewCard icon={ShieldCheck} title="Security" description="Control live lockout, recovery, invitation and proxy-session safeguards." to={`${S}/security`} status="Special permission" tone="attention" /> : null}
         {hasPermission(P.VIEW_INTEGRATION_SETTINGS) ? <SettingsOverviewCard icon={Network} title="Integrations" description="Manage email delivery defaults and review deployment-owned connection readiness." to={`${S}/integrations`} status="Special permission" /> : null}
         {hasPermission(P.VIEW_CAPABILITIES) ? <SettingsOverviewCard icon={SlidersHorizontal} title="Features and access" description="Manage product entitlements, dependencies and scoped feature overrides." to={`${S}/features`} status="Live controls" /> : null}
@@ -402,6 +411,94 @@ function SchoolOnboarding() {
           value={<Input className="w-full sm:w-64" disabled={!canSave} value={values.branch_country} onChange={(event) => setDraft({ ...values, branch_country: event.target.value })} />}
           badge={<SourceBadge source={query.data?.data.sources.onboarding.branch_country} />}
         />
+      </SettingsPanel>
+    </div>
+  );
+}
+
+function SubscriptionPricing() {
+  const { hasPermission } = usePermissions();
+  const query = useGetPackagePlansQuery();
+  const [updatePrice, updateState] = useUpdatePackagePlanPriceMutation();
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const canSave = hasPermission(P.CONFIGURE_SCHOOL);
+
+  useEffect(() => {
+    if (!query.data) return;
+    setDraft(Object.fromEntries(
+      query.data.data.map((plan) => [
+        plan.code,
+        plan.price_per_student == null ? "" : String(plan.price_per_student / 100),
+      ]),
+    ));
+  }, [query.data]);
+
+  if (query.isLoading) return <Busy />;
+  if (query.isError || !query.data) return <SettingsLoadError retry={query.refetch} />;
+
+  const save = async (code: string) => {
+    const naira = Number(draft[code]);
+    if (!Number.isFinite(naira) || naira <= 0) {
+      toast.error("Enter a per-student rate greater than zero");
+      return;
+    }
+    try {
+      await updatePrice({ code, price_per_student: Math.round(naira * 100) }).unwrap();
+      toast.success("Subscription rate saved");
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Subscription rate could not be saved"));
+    }
+  };
+
+  return (
+    <div data-guide="platform-settings.subscription-pricing" className="space-y-5">
+      <SettingsSectionHeader
+        title="Subscription pricing"
+        description="Each catalogue rate covers one student for one billing cycle at the depth included in that tier. Changes apply to future school agreements and never rewrite a saved agreement or invoice."
+      />
+      <SettingsPanel
+        title="Per-student tier rates"
+        description="Rates are entered in naira. Enterprise stays quoted separately for each school."
+      >
+        {query.data.data.map((plan) => {
+          const quoted = plan.price_per_student == null;
+          return (
+            <SettingsRow
+              key={plan.code}
+              icon={CreditCard}
+              label={plan.name}
+              description={`${plan.default_depth_label} depth, billed ${plan.billing_cycle.toLowerCase()}.`}
+              badge={quoted ? <PolicyBadge kind="enforced">Per-school quote</PolicyBadge> : undefined}
+              value={quoted ? (
+                <p className="font-mont text-sm text-gray-01">Set during school creation</p>
+              ) : (
+                <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
+                  <div className="relative min-w-0 flex-1 sm:w-48 sm:flex-none">
+                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-05">₦</span>
+                    <Input
+                      aria-label={`${plan.name} price per student`}
+                      className="pl-7"
+                      type="number"
+                      min="1"
+                      disabled={!canSave}
+                      value={draft[plan.code] ?? ""}
+                      onChange={(event) => setDraft((current) => ({ ...current, [plan.code]: event.target.value }))}
+                    />
+                  </div>
+                  {canSave ? (
+                    <Button
+                      size="sm"
+                      disabled={updateState.isLoading || Number(draft[plan.code]) * 100 === plan.price_per_student}
+                      onClick={() => save(plan.code)}
+                    >
+                      Save
+                    </Button>
+                  ) : null}
+                </div>
+              )}
+            />
+          );
+        })}
       </SettingsPanel>
     </div>
   );

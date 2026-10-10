@@ -631,6 +631,7 @@ export const baseApi = createApi({
     "GoLiveRequests",
     "Role",
     "Schools",
+    "PackagePlans",
     "Branches",
     "PlatformRoles",
     "PermissionGroups",
