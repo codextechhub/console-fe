@@ -21,6 +21,9 @@ export default function BranchesWorkingTogetherArticle() {
         <GuideCallout tone="info" title="Console operators act for the whole school">
           In a school&rsquo;s own app, someone who works at one branch is offered fewer actions: a void, for example, needs somebody who works in both branches. A Console operator covers every branch, so you are offered every action your keys allow. Take the same care the branch rule exists for.
         </GuideCallout>
+        <GuideCallout tone="info" title="Field Access still applies">
+          The Inter-branch resource under Field Access controls the fields inside all five Between Branches screens. A role may open the screen but have Amount hidden, or see an account without being able to change it. Hidden fields and their table columns disappear; read-only inputs are greyed and are not sent.
+        </GuideCallout>
       </GuideSection>
 
       <GuideSection id="transfers-register" title="Read the transfers register">
