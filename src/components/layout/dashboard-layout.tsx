@@ -870,6 +870,7 @@ export default function DashboardLayout() {
   );
 
   const header = resolveHeader(handle, override, locationKey);
+  const showEntitySwitcher = handle.sidebar === "finance" || handle.sidebar === "procurement";
 
   return (
     <WalkthroughProvider>
@@ -888,15 +889,12 @@ export default function DashboardLayout() {
           <DashboardHeader
             back={header.back}
             title={header.title}
-            showEntitySwitcher={handle.sidebar === "finance" || handle.sidebar === "procurement"}
+            showEntitySwitcher={showEntitySwitcher}
             pathname={pathname}
           />
           <DashboardToaster />
-          {/* grid-cols-1 (minmax(0,1fr)) zeroes the track's min-content floor so a
-              page's <main> can never be stretched past the viewport by wide
-              nowrap content (tables) - each page's own overflow-x-auto then
-              clips it. Without this every page needed its own min-w-0. */}
-          <div className="grid grid-cols-1 min-w-0 pt-0">
+          {/* Keep wide children within the viewport and clear the mobile entity switcher. */}
+          <div className={`grid grid-cols-1 min-w-0 ${showEntitySwitcher ? "pt-8 lg:pt-0" : "pt-0"}`}>
             <Outlet />
           </div>
         </SidebarInset>
