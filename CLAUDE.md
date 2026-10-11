@@ -46,6 +46,51 @@ auto-submit financial postings, approvals, payments, imports, invitations,
 permission changes, proxy sessions, or destructive actions. They must not bypass
 authorization, validation, confirmation, or tenant scoping.
 
+## Field Access is part of every feature contract
+
+Every new or changed user-visible business field must receive an explicit
+Field Access decision in the same change. This includes fields in forms,
+drawers, detail panels, tables, cards, exports, imports, documents, emails and
+derived summaries. A screen permission answers whether somebody may open the
+resource; it does not answer which fields inside that resource they may read or
+change.
+
+Default to including the field. Give a stored or submitted field separate Read
+and Write control. Give a computed, generated, status, audit or other
+server-owned field Read control and mark it non-writable. Do not create switches
+for transport-only values such as internal IDs, pagination data or protocol
+metadata, but make sure a display label, nested object or derived value cannot
+leak a hidden field under another response name.
+
+When the correct boundary is genuinely unclear, ask the user directly before
+building it. Show one concrete case and ask whether the fields should have
+separate switches or one deliberately grouped switch. For example: "Bright
+Star School records an inter-branch transfer from Ikeja Branch to Lekki Branch.
+Should Amount, Purpose and the two bank accounts each have their own switches,
+or should the bank accounts share one Banking details switch?" Do not silently
+exclude a field because it seems harmless.
+
+Field Access work is end-to-end:
+
+- Register the backend field under the resource that owns its meaning, with a
+  human label, group, scope, sensitivity, writable state and every API alias.
+- Enforce reads on every serializer, nested payload, export, document, email and
+  hand-built response that carries it. Enforce writes on every create, update,
+  import, bulk action and alternate endpoint that can change it.
+- Make every frontend rendering follow the shared Field Access hook: remove a
+  hidden field completely, grey a read-only field, omit it from the submitted
+  body and remove paired table headers and empty sections.
+- Add regression coverage at the registry/enforcement boundary and for the real
+  screen or workflow. Cover hidden, read-only, writable and alias or nested
+  paths as applicable.
+- Update the field-access guide and coverage record when the administrator's
+  choices, labels, grouping or affected screens change.
+
+Before finishing any product change, report `Field Access impact:` followed by
+the fields added, changed or reviewed. If there is no impact, say
+`Field Access impact: none` and give the reason. Documentation-only and Git-only
+requests do not require this statement.
+
 If a completed product change has no guide impact, say `Guide impact: none` with a
 brief reason in the final summary. Documentation-only and Git-only requests do not
 require this statement.

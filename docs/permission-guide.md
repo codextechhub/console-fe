@@ -360,6 +360,25 @@ show or send it adopt the hook in the same change. A registered field a screen
 does not guard still disappears when hidden, but leaves its label, its column
 header or an empty section behind.
 
+### Rule: every business field gets a decision
+
+Treat Field Access as part of the feature contract, not as a later security
+pass. Every new or changed field a person can see or submit gets an explicit
+decision in the same change. Include it by default:
+
+- stored and submitted fields get Read and Write switches;
+- computed, generated, status, audit and other server-owned fields get a Read
+  switch and are declared non-writable;
+- internal IDs, pagination values and protocol metadata do not get switches;
+- a label, nested object, export column or derived value that carries a field's
+  meaning follows the same switch through `api_names` or the appropriate
+  hand-built response guard.
+
+When grouping is ambiguous, ask before implementation. For example, an
+inter-branch transfer's Amount and Purpose normally have separate switches,
+while the source account's ID and display name are two API names for one Bank
+account switch, not two independent administrator choices.
+
 ---
 
 ## Architecture Diagram
