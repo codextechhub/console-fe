@@ -20,7 +20,7 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="work-by-branch" title="Work branch by branch">
-        <p>Open <strong>Fiscal Periods</strong> (or <strong>Periods &amp; Close</strong> under Reports). At books with several branches, the <strong>Branch</strong> picker offers <strong>All branches</strong> and each branch. A one-branch school sees no picker and is never asked.</p>
+        <p>Go to <strong>Finance</strong> → <strong>Ledger &amp; Setup</strong> → <strong>Books</strong> → <strong>Fiscal Periods</strong>. At books with several branches, the <strong>Branch</strong> picker offers <strong>All branches</strong> and each branch. A one-branch school sees no picker and is never asked.</p>
         <GuideSteps>
           <GuideStep title="Read the school's calendar">Under <strong>All branches</strong>, the calendar is the school&rsquo;s, and <strong>Each branch&rsquo;s year</strong> shows where every branch stands. Open a period to see <strong>Each branch</strong> with its own month status.</GuideStep>
           <GuideStep title="Pick a branch to act">Choose a branch to see its own months, or stay on All branches: every close, soft close, force close, re-open, lock, year close and year re-open there asks which branch it is for, and its confirm button stays off until you choose.</GuideStep>
@@ -82,7 +82,7 @@ export default function CloseLockOrReopenPeriodArticle() {
         <GuideCallout tone="info" title="An example under All branches">
           Ikeja has closed August and Lekki has not. Viewing September under All branches, the check reads that Lekki has not closed August yet, and that Ikeja can close September now. Halima Sule closes September from the same view, choosing Ikeja in the dialog; Lekki&rsquo;s waits for its August.
         </GuideCallout>
-        <p>Force close does not get past the order at the branch it closes. A school that closes months out of turn can turn it off in <strong>Finance Settings, Fiscal calendar</strong>, under <strong>Closing months</strong>; that needs the settings update key and someone who covers the whole school.</p>
+        <p>Force close does not get past the order at the branch it closes. A school that closes months out of turn can turn it off through <strong>Finance</strong> → <strong>Administration</strong> → <strong>Settings</strong> → <strong>Books</strong> → <strong>Fiscal calendar</strong>, under <strong>Closing months</strong>; that needs the settings update key and someone who covers the whole school.</p>
       </GuideSection>
 
       <GuideSection id="force-close" title="Force a month closed over a failing check">
@@ -124,12 +124,12 @@ export default function CloseLockOrReopenPeriodArticle() {
       </GuideSection>
 
       <GuideSection id="sealed-figures" title="Check the closed figures">
-        <p>Every month close, month lock and year close stores each account&rsquo;s balance per branch. Select <strong>Verify closed figures</strong> on <strong>Closed figures</strong>, under Reports &amp; Close, and it recomputes every closed month and year from the ledger and compares each with the figures stored when it closed. Each closed month and year reads <strong>Matches</strong> or <strong>Differs</strong>, with the accounts and branches that moved, showing each account&rsquo;s <strong>Closed debit</strong> and <strong>Closed credit</strong> beside <strong>Debit now</strong> and <strong>Credit now</strong>, what the ledger says today.</p>
+        <p>Every month close, month lock and year close stores each account&rsquo;s balance per branch. Go to <strong>Finance</strong> → <strong>Reports &amp; Close</strong> → <strong>Close &amp; Assurance</strong> → <strong>Closed figures</strong>, then select <strong>Verify closed figures</strong>. It recomputes every closed month and year from the ledger and compares each with the figures stored when it closed. Each closed month and year reads <strong>Matches</strong> or <strong>Differs</strong>, with the accounts and branches that moved, showing each account&rsquo;s <strong>Closed debit</strong> and <strong>Closed credit</strong> beside <strong>Debit now</strong> and <strong>Credit now</strong>, what the ledger says today.</p>
         <p>It needs the key the role editor lists as <strong>View sealed period figures</strong>, held by someone who covers the whole school, because the figures cover every branch. The check only reports; it repairs nothing. The close checklist also warns, under <strong>Closed figures unchanged</strong>, when closed figures from this year or the year before no longer match, and gives a reader who may run the full check a <strong>Verify closed figures</strong> link to this screen.</p>
       </GuideSection>
 
       <GuideSection id="record-keeping" title="Set how long records are kept">
-        <p>Open <strong>Finance Settings, Fiscal calendar</strong>. <strong>Record keeping</strong> shows the <strong>Statutory floor</strong>, set by CodeX for every school, and the <strong>Period in force</strong>, the longer of the floor and the school&rsquo;s own choice. A school may keep its records longer, never shorter. Records are kept from the end of each fiscal year, and a kept record cannot be deleted, whatever its screen offers.</p>
+        <p>Go to <strong>Finance</strong> → <strong>Administration</strong> → <strong>Settings</strong> → <strong>Books</strong> → <strong>Fiscal calendar</strong>. <strong>Record keeping</strong> shows the <strong>Statutory floor</strong>, set by CodeX for every school, and the <strong>Period in force</strong>, the longer of the floor and the school&rsquo;s own choice. A school may keep its records longer, never shorter. Records are kept from the end of each fiscal year, and a kept record cannot be deleted, whatever its screen offers.</p>
         <p><strong>Archive a closed year after (years)</strong> sets the archive age. The same section, under <strong>Opening the next year</strong>, sets how the next fiscal year opens, <strong>Open the next fiscal year automatically</strong> or <strong>Warn finance staff only</strong>, and how many days ahead. Saving needs the settings update key and someone who covers the whole school.</p>
       </GuideSection>
 

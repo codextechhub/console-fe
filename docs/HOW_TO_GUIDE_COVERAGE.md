@@ -5,6 +5,11 @@ for guide metadata; this file records delivery state and known gaps in plain lan
 
 Status values: `planned`, `draft`, `published`, `retired`, or `not required`.
 
+Navigation review, 2026-10-11: Finance and Procurement guide headers resolve
+their visible menu path from the live sidebar definitions. Instructions that
+named the former flat Finance menu were updated to include the section, menu,
+and sub-menu a reader must open. Guide search also indexes those path names.
+
 | Category | Workflow | Guide ID | Risk | Article | Walkthrough | Owner | Last review | Known gap |
 |---|---|---|---|---|---|---|---|---|
 | Getting started | Console basics, navigation, access context, notifications, and help | `getting-started.console-basics` | Low | Published | Published | Console product team | 2026-08-17 | Guide articles open at the top and contents links smoothly reveal their sections |

@@ -1,5 +1,6 @@
 import { GUIDE_CATEGORIES } from "./categories";
 import type { GuideRecord, ScoredGuide } from "./types";
+import { guideMenuPath } from "./menu-path";
 
 const normalize = (value: string) => value
   .toLocaleLowerCase()
@@ -37,7 +38,7 @@ function scoreGuide(guide: GuideRecord, query: string): Pick<ScoredGuide, "match
     { values: [...guide.aliases], score: 310 },
     { values: guide.sections?.map((section) => section.title) ?? [], score: 300 },
     { values: [...guide.tags], score: 290 },
-    { values: [guide.summary], score: 280 },
+    { values: [guide.summary, guideMenuPath(guide)?.join(" ") ?? ""], score: 280 },
     { values: [category?.title ?? ""], score: 270 },
     { values: [...guide.routes], score: 260 },
     { values: guide.audiences.map((audience) => audience.replaceAll("-", " ")), score: 260 },

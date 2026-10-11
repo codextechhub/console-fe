@@ -128,7 +128,6 @@ export function ConsoleSettingsLayout({
   sections,
   groups = [],
   fitScreen = false,
-  scopeLabel,
   guideTargetPrefix,
   children,
 }: {
@@ -140,7 +139,6 @@ export function ConsoleSettingsLayout({
   sections: ConsoleSettingsSection[];
   groups?: ConsoleSettingsGroup[];
   fitScreen?: boolean;
-  scopeLabel?: string | null;
   guideTargetPrefix?: string;
   children: ReactNode;
 }) {
@@ -292,7 +290,7 @@ export function ConsoleSettingsLayout({
 
   return (
     <PageShell className="space-y-5 px-4.5 pb-6 pt-14 text-black-01 sm:py-6">
-      <div data-guide={guideTargetPrefix ? `${guideTargetPrefix}.heading` : undefined} className="flex flex-wrap items-start justify-between gap-3">
+      <div data-guide={guideTargetPrefix ? `${guideTargetPrefix}.heading` : undefined}>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <h1 className="font-mont text-xl font-semibold text-gray-01">{title}</h1>
@@ -300,12 +298,6 @@ export function ConsoleSettingsLayout({
           </div>
           <p className="mt-1 max-w-3xl font-mont text-xs leading-5 text-gray-05">{description}</p>
         </div>
-        {scopeLabel ? (
-          <Badge variant="outline" className="max-w-full gap-1.5 px-2.5 py-1 font-mont text-xs">
-            <span className="size-1.5 shrink-0 rounded-full bg-green-01" />
-            <span className="truncate">{scopeLabel}</span>
-          </Badge>
-        ) : null}
       </div>
 
       <div

@@ -50,7 +50,7 @@ export default function BranchesWorkingTogetherArticle() {
       </GuideSection>
 
       <GuideSection id="who-owes-whom" title="See who owes whom">
-        <p>Open <strong>Inter-branch Balances</strong>. <strong>Who owes whom</strong> shows each pair of branches once, with the amount and whether <strong>Both books</strong> <strong>Agree</strong> or <strong>Disagree</strong>. Select <strong>Transfers</strong> on a pair to open the register narrowed to that pair.</p>
+        <p>Go to <strong>Finance</strong> → <strong>Between Branches</strong> → <strong>Balances &amp; Shared Costs</strong> → <strong>Inter-branch Balances</strong>. <strong>Who owes whom</strong> shows each pair of branches once, with the amount and whether <strong>Both books</strong> <strong>Agree</strong> or <strong>Disagree</strong>. Select <strong>Transfers</strong> on a pair to open the register narrowed to that pair.</p>
         <p><strong>Money held for another branch</strong> lists money one branch collected for another and has not yet forwarded. Above both, a line says whether the inter-branch account nets to zero across every branch, as it should.</p>
         <GuideCallout tone="warning" title="A disagreement stops the month closing">
           A pair marked Disagree has something booked on one side only. The month will not close until it is found. Open the pair&rsquo;s transfers and look for the one with a single journal.

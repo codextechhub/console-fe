@@ -59,7 +59,7 @@ export default function ConfigureFinanceFoundationsArticle() {
       </GuideSection>
 
       <GuideSection id="map-posting-defaults" title="Map posting defaults and policies">
-        <p>Open Finance Settings for the active entity. Accounting defaults map stable posting roles to active, postable accounts of the expected type. Document and banking policies control defaults used by invoices, collections, reconciliation, receipt allocation, and cash alerts. The term collection target under Documents is the share of a term&rsquo;s fees the school aims to have collected by the end of the term; the dashboard&rsquo;s collection curve draws it as the target line.</p>
+        <p>Go to <strong>Finance</strong> → <strong>Administration</strong> → <strong>Settings</strong> for the active entity. Accounting defaults map stable posting roles to active, postable accounts of the expected type. Document and banking policies control defaults used by invoices, collections, reconciliation, receipt allocation, and cash alerts. The term collection target under Documents is the share of a term&rsquo;s fees the school aims to have collected by the end of the term; the dashboard&rsquo;s collection curve draws it as the target line.</p>
         <GuideCallout tone="warning" title="A saved mapping takes effect immediately">
           Review the named consumer beside every setting. Changing a control-account mapping can affect the next document posted by Finance or Procurement, so record the approval and verify the resulting journal in a safe environment first.
         </GuideCallout>
@@ -76,7 +76,7 @@ export default function ConfigureFinanceFoundationsArticle() {
       </GuideSection>
 
       <GuideSection id="tax-tables" title="Keep the national tax tables">
-        <p><strong>Tax Tables</strong>, under Ledger &amp; Setup, holds the national payroll tax data every school&rsquo;s payroll reads: <strong>PAYE tables</strong> (bands and reliefs for each tax year), <strong>States</strong> (each PAYE state and its revenue service) and <strong>Pension administrators</strong>. Only platform staff change them, so the screen opens to the statutory create and update keys; anyone else reads <strong>Read only. Platform staff keep these tables.</strong></p>
+        <p>Go to <strong>Finance</strong> → <strong>Ledger &amp; Setup</strong> → <strong>Tax &amp; Currency</strong> → <strong>Tax Tables</strong>. It holds the national payroll tax data every school&rsquo;s payroll reads: <strong>PAYE tables</strong> (bands and reliefs for each tax year), <strong>States</strong> (each PAYE state and its revenue service) and <strong>Pension administrators</strong>. Only platform staff change them, so the screen opens to the statutory create and update keys; anyone else reads <strong>Read only. Platform staff keep these tables.</strong></p>
         <GuideSteps>
           <GuideStep title="Add the new year's table">Select <strong>Add</strong> followed by the year, for example <strong>Add 2027 table</strong>. Enter <strong>Exempt income up to</strong> (naira a year), the <strong>Minimum tax rate</strong>, the <strong>Bands</strong> of annual taxable income with their rates, and the <strong>Reliefs</strong>, then mark it <strong>In use</strong>.</GuideStep>
           <GuideStep title="Add a state or administrator">Select <strong>Add state</strong> or <strong>Add administrator</strong>. A code is fixed once added, so check it first.</GuideStep>

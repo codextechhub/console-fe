@@ -1,11 +1,12 @@
 import { createElement, lazy, Suspense, useEffect, useLayoutEffect, useState, type MouseEvent } from "react";
-import { ArrowLeft, ArrowRight, BookOpenText, Check, CheckCircle2, Clock3, ExternalLink, Flag, Loader2, PlayCircle, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpenText, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Flag, Loader2, PlayCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { Button } from "@/components/ui/button";
 import { GUIDE_CATEGORIES, GUIDE_REGISTRY, canDiscoverGuide, findWalkthrough, useWalkthrough, type GuideRecord } from "@/features/guides";
 import { resetGuideArticleScroll, scrollToGuideSection } from "@/features/guides/article-navigation";
+import { guideMenuPath } from "@/features/guides/menu-path";
 import { selectPermissions } from "@/redux/features/auth/auth-slice";
 import { useAppSelector } from "@/redux/store";
 import { useRecordGuideAnalyticsMutation } from "@/redux/services/guide-analytics-api";
@@ -53,6 +54,7 @@ export default function GuideArticlePage() {
 
   const category = GUIDE_CATEGORIES.find((candidate) => candidate.id === guide.category);
   const related = GUIDE_RECORDS.filter((candidate) => guide.relatedGuideIds?.includes(candidate.id) && canDiscoverGuide(candidate, permissions));
+  const menuPath = guideMenuPath(guide);
 
   return (
     <PageShell className="gap-6 text-black-01 sm:px-6 lg:grid-cols-[minmax(0,1fr)_15rem] lg:px-8 xl:grid-cols-[minmax(0,1fr)_17rem]" grid>
@@ -62,6 +64,17 @@ export default function GuideArticlePage() {
           <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.09em] text-gray-01"><span>{category?.title}</span><span className="size-1 rounded-full bg-gray-300" /><span>{guide.estimatedMinutes ?? 5} min read</span></div>
           <h1 className="mt-3 max-w-3xl font-mont text-3xl font-semibold tracking-tight sm:text-4xl">{guide.title}</h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-01 sm:text-base">{guide.summary}</p>
+          {menuPath && (
+            <nav aria-label="Menu path" className="mt-4 flex max-w-full flex-wrap items-center gap-x-1 gap-y-1 text-xs text-gray-01">
+              <span className="mr-1 font-semibold text-black-01">Find it:</span>
+              {menuPath.map((label, index) => (
+                <span key={`${label}-${index}`} className="inline-flex min-w-0 items-center gap-1">
+                  {index > 0 && <ChevronRight aria-hidden="true" className="size-3 shrink-0 text-gray-300" />}
+                  <span>{label}</span>
+                </span>
+              ))}
+            </nav>
+          )}
           <div className="mt-5 flex flex-wrap gap-2">
             {guide.primaryRoute && <Button asChild><Link to={guide.primaryRoute}>Open Console screen <ExternalLink className="size-4" /></Link></Button>}
             {guide.walkthroughId && findWalkthrough(guide.walkthroughId) && <Button variant="outline" onClick={() => startWalkthrough(guide.walkthroughId!)}><PlayCircle className="size-4" /> Start walkthrough</Button>}

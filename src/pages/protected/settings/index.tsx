@@ -192,7 +192,6 @@ export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
       basePath={S}
       activeSection={activeSection}
       sections={visible}
-      scopeLabel="Platform-wide"
       guideTargetPrefix="platform-settings"
     >
       {activeSection === "overview" ? (

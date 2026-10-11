@@ -4,14 +4,14 @@ export default function DeferredIncomeDepositsAndDoubtfulDebtsArticle() {
   return (
     <div className="space-y-10">
       <GuideSection id="before-you-start" title="Before you start">
-        <p>Three screens keep the receivables honest about money that is not yet income: <strong>Deferred Income</strong> for fees billed before the period they pay for, <strong>Deposits</strong> for refundable deposits held for a customer, and <strong>Doubtful Debts</strong> for the allowance against debts that may not be paid. <strong>Finance Settings, Receivables</strong> sets how each one behaves.</p>
+        <p>Three screens keep the receivables honest about money that is not yet income: <strong>Deferred Income</strong> under Revenue Timing for fees billed before the period they pay for, <strong>Deposits</strong> under Money Received for refundable deposits held for a customer, and <strong>Doubtful Debts</strong> under Collection Follow-up for the allowance against debts that may not be paid. They are all in <strong>Finance</strong> → <strong>Receivables</strong>. Finance Settings controls how each one behaves.</p>
         <GuideCallout tone="info" title="Several of these act for every branch at once">
           Releasing deferred income, forfeiting deposits and running doubtful debts each post one journal per branch, so only someone who covers the whole school runs them. A Console operator covers every branch, so you are offered them whenever your keys allow.
         </GuideCallout>
       </GuideSection>
 
       <GuideSection id="receivables-settings" title="Check the receivables settings">
-        <p>Open <strong>Finance Settings, Receivables</strong>. These settings apply to every branch, so saving needs the settings update key and someone who covers the whole school; anyone else reads them.</p>
+        <p>Go to <strong>Finance</strong> → <strong>Administration</strong> → <strong>Settings</strong>, then open <strong>Billing and cash</strong> → <strong>Receivables</strong>. These settings apply to every branch, so saving needs the settings update key and someone who covers the whole school; anyone else reads them.</p>
         <ul className="list-disc space-y-2 pl-5">
           <li><strong>Apply customer credit to new bills automatically</strong>: when on, a customer&rsquo;s unused credit settles each new bill as it posts.</li>
           <li><strong>Concessions above this need a second person</strong>: counted per bill, so two ₦6,000 discounts on one bill make ₦12,000.</li>

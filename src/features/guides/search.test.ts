@@ -100,6 +100,9 @@ describe("guide search", () => {
   });
 
   it("finds C6a finance workflows using accounting and recovery language", () => {
+    expect(searchGuides(GUIDE_REGISTRY, "organisation analysis entities")[0]?.guide.id).toBe(
+      "finance.configure-foundations",
+    );
     expect(searchGuides(GUIDE_REGISTRY, "account mapping")[0]?.guide.id).toBe(
       "finance.configure-foundations",
     );

@@ -10,28 +10,28 @@ const IB = INTER_BRANCH_PATH;
 const REVIEWED_AT = "2026-08-25";
 const C5_REVIEWED_AT = "2026-08-25";
 const DOCS_REVIEWED_AT = "2026-08-25";
-const C6A_REVIEWED_AT = "2026-08-25";
-const C6B_REVIEWED_AT = "2026-10-10";
-const C6C_REVIEWED_AT = "2026-10-10";
-const C7A_REVIEWED_AT = "2026-08-25";
+const C6A_REVIEWED_AT = "2026-10-11";
+const C6B_REVIEWED_AT = "2026-10-11";
+const C6C_REVIEWED_AT = "2026-10-11";
+const C7A_REVIEWED_AT = "2026-10-11";
 const C8_REVIEWED_AT = "2026-08-25";
 const PLATFORM_DATA_REVIEWED_AT = "2026-10-09";
 const C9_REVIEWED_AT = "2026-08-25";
 const C10_REVIEWED_AT = "2026-08-25";
 const C11_REVIEWED_AT = "2026-08-25";
 const C12_REVIEWED_AT = "2026-08-25";
-const FINANCE_RECOVERY_REVIEWED_AT = "2026-08-25";
+const FINANCE_RECOVERY_REVIEWED_AT = "2026-10-11";
 const ACTION_GAP_REVIEWED_AT = "2026-08-25";
 const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
 const O2_REVIEWED_AT = "2026-08-25";
 const FIELD_ACCESS_REVIEWED_AT = "2026-09-15";
 const RECORD_HISTORY_REVIEWED_AT = "2026-09-26";
-const BRANCH_BUDGETS_REVIEWED_AT = "2026-09-26";
-const FINANCE_OVERVIEW_REVIEWED_AT = "2026-09-26";
-const PROCUREMENT_OVERVIEW_REVIEWED_AT = "2026-10-10";
+const BRANCH_BUDGETS_REVIEWED_AT = "2026-10-11";
+const FINANCE_OVERVIEW_REVIEWED_AT = "2026-10-11";
+const PROCUREMENT_OVERVIEW_REVIEWED_AT = "2026-10-11";
 const SCHOOL_CREATION_REVIEWED_AT = "2026-09-26";
 const REQUIREMENTS_VIEWER_REVIEWED_AT = "2026-09-26";
-const BRANCH_FINANCE_REVIEWED_AT = "2026-10-10";
+const BRANCH_FINANCE_REVIEWED_AT = "2026-10-11";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -1120,7 +1120,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.submit-and-settle-expense-claim",
     estimatedMinutes: 9,
     owner: OWNER,
-    reviewedAt: "2026-08-25",
+    reviewedAt: "2026-10-11",
     risk: "high",
     status: "published",
     article: () => import("./content/finance-and-payments/submit-and-settle-expense-claim"),
@@ -2366,7 +2366,7 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["finance.collect-online-payments", "finance.send-payouts-and-resolve-settlements", "platform.investigate-health", "platform.manage-integrations", "troubleshooting.prepare-support-ticket"],
     estimatedMinutes: 8,
     owner: OWNER,
-    reviewedAt: C12_REVIEWED_AT,
+    reviewedAt: "2026-10-11",
     risk: "high",
     status: "published",
     article: () => import("./content/troubleshooting/payment-provider-and-health"),

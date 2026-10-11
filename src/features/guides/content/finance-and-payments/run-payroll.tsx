@@ -10,7 +10,7 @@ export default function RunPayrollArticle() {
       </GuideSection>
 
       <GuideSection id="payroll-settings" title="Choose the payroll settings">
-        <p>Open <strong>Finance Settings, Payroll</strong>. Changes apply from the next run generated. Saving needs the settings update key and someone who covers the whole school, because the policy binds every branch.</p>
+        <p>Go to <strong>Finance</strong> → <strong>Administration</strong> → <strong>Settings</strong> → <strong>Payroll</strong>. Changes apply from the next run generated. Saving needs the settings update key and someone who covers the whole school, because the policy binds every branch.</p>
         <ul className="list-disc space-y-2 pl-5">
           <li><strong>Where PAYE comes from</strong>: <strong>Computed from the national tax table</strong>, or <strong>Taken from the salary structure or roster</strong>. A person&rsquo;s PAYE can still be set by hand on their salary record, with a reason.</li>
           <li><strong>Deductions and contributions</strong>: a rate and an on/off switch for employee and employer pension, NHF, NSITF and the ITF levy.</li>
@@ -46,7 +46,7 @@ export default function RunPayrollArticle() {
 
       <GuideSection id="deductions" title="Voluntary deductions">
         <p>On a salary record, the <strong>Deductions</strong> tab holds amounts the person agreed to have taken from pay, such as a staff loan. Select <strong>Add deduction</strong>, choose the <strong>Kind</strong>, the amount <strong>Each month</strong>, and either <strong>Stop at a total</strong> or a <strong>Last run on or before</strong> date. It comes off every run until then. <strong>Stop</strong> ends it from the next run; what was already deducted stays on the runs that took it.</p>
-        <p>The kinds come from Finance Settings, Payroll; if none exist yet, someone who covers the whole school adds them there.</p>
+        <p>The kinds come from <strong>Finance</strong> → <strong>Administration</strong> → <strong>Settings</strong> → <strong>Payroll</strong>; if none exist yet, someone who covers the whole school adds them there.</p>
       </GuideSection>
 
       <GuideSection id="generate-and-review" title="Generate and review the payroll run">

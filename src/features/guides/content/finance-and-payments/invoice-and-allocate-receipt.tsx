@@ -61,7 +61,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
       </GuideSection>
 
       <GuideSection id="allocate-the-receipt" title="Allocate the receipt">
-        <p>Open the receipt from Receipts &amp; Allocation. Console can suggest oldest-first or largest-first allocation across the customer's open invoices and posted debit notes (the school's default is set in Finance Settings, Banking and cash, as <strong>Oldest due first</strong> or <strong>Largest balance first</strong>), or you can enter an approved split manually.</p>
+        <p>Open the receipt from <strong>Finance</strong> → <strong>Receivables</strong> → <strong>Money Received</strong> → <strong>Receipts &amp; Allocation</strong>. Console can suggest oldest-first or largest-first allocation across the customer's open invoices and posted debit notes. Set the school&rsquo;s default through <strong>Finance</strong> → <strong>Administration</strong> → <strong>Settings</strong> → <strong>Billing and cash</strong> → <strong>Banking and cash</strong>, as <strong>Oldest due first</strong> or <strong>Largest balance first</strong>, or enter an approved split manually.</p>
         <GuideChecklist items={[
           "The receipt belongs to the same customer as every selected open item.",
           "No line exceeds that item's open balance.",
