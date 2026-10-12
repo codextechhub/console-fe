@@ -1,22 +1,26 @@
 ## Undone (Ask questions for clarity where needed)
 
-# 50. **Field Access for customer, vendor, bank, school and branch fields (approved 2026-09-26, not built).**
+# 50. **Field Access for customer, vendor, bank, school and branch fields (approved 2026-09-26, partly built).**
 The approved list: customer name, billing email, phone and address
 (`vs_finance.serializers.CustomerSerializer`, no mixin yet); vendor name,
 category, payment terms, KYC status, risk and on hold (`procurement.vendor`,
 `vs_procurement/field_access.py`); vendor contact name, email and phone
 (`VendorContactSerializer`, currently one all-or-nothing `contacts` switch);
-bank account name and bank name (`finance.bankaccount`); school name, address
+bank account name and bank name (`finance.bankaccount`); school address
 and registration ID (`vs_schools.School`); branch name, address and email
 (`vs_tenants.Branch`). Blocked on two things: FinPro had another session's
 large edit in flight across nearly every finance and procurement screen, so its
 customer/vendor/bank screens could not be changed and released cleanly; and the
 school and branch fields are edited both from the console (platform keys) and
-from the school app (tenant keys), while a registry field has exactly one scope,
-and a registry field has exactly one scope. DECIDED 2026-09-26: the school and
-branch switches govern the school's side (TENANT scope), so a school decides
-which of its own roles may change its name, address and branch details; CodeX
-staff stay governed by their platform keys. Still blocked on FinPro.
+from the school app (tenant keys), while a registry field has exactly one scope.
+DECIDED 2026-10-12: tenant switches govern the school's own profile Address and
+Registration number, while CodeX staff stay governed by platform keys. School
+name remains public before sign-in and outside tenant Field Access. Branch name,
+address and email are sensitive, CodeX-owned fields: schools can read but cannot
+edit them. IN REVIEW 2026-10-12: school profile Address and Registration number
+are registered and enforced in the backend and school app. School-role Read
+controls for branch values across exposing responses are still outstanding.
+The customer, vendor and bank work remains blocked on FinPro.
 
 ## Done
 

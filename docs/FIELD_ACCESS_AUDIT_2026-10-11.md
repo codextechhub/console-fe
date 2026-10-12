@@ -31,6 +31,19 @@ Current registered product areas are:
 - bank-account number;
 - payroll line and salary figures.
 
+## Progress after the audit
+
+- Inter-branch transfers, held receipts, shared-cost recharges and shared-cost
+  rules now have end-to-end Field Access in the backend and shared finance
+  screens.
+- School profile Address and Registration number are implemented in the current
+  review wave. Hidden values leave the profile response and form, read-only
+  values remain visible but disabled, and only writable values are submitted.
+- School name stays public before sign-in and outside tenant Field Access.
+  Branch name, address and email are sensitive, CodeX-owned fields. Schools can
+  read but not edit them. School-role Read controls for those branch values
+  remain to be built across the responses that expose them.
+
 The gap is coverage, not the evaluator. An unregistered field remains readable
 and writable to anybody who has the resource permission.
 

@@ -24,7 +24,7 @@ const FINANCE_RECOVERY_REVIEWED_AT = "2026-10-11";
 const ACTION_GAP_REVIEWED_AT = "2026-08-25";
 const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
 const O2_REVIEWED_AT = "2026-08-25";
-const FIELD_ACCESS_REVIEWED_AT = "2026-09-15";
+const FIELD_ACCESS_REVIEWED_AT = "2026-10-12";
 const RECORD_HISTORY_REVIEWED_AT = "2026-09-26";
 const BRANCH_BUDGETS_REVIEWED_AT = "2026-10-11";
 const FINANCE_OVERVIEW_REVIEWED_AT = "2026-10-11";
@@ -323,8 +323,8 @@ export const GUIDE_REGISTRY = [
     title: "Set field access for a role",
     summary: "Set a role's Read and Write switches field by field, reset a field to its default, and add or lift a one-person field exception.",
     category: "roles-and-permissions",
-    tags: ["field access", "read", "write", "sensitive field", "field exception", "default", "reset to default", "name fields"],
-    aliases: ["field permissions", "read write fields", "field level access", "restrict a field", "field exception", "reset field to default", "sensitive fields", "hide a name", "restrict student name", "restrict guardian details"],
+    tags: ["field access", "read", "write", "sensitive field", "field exception", "default", "reset to default", "name fields", "school profile"],
+    aliases: ["field permissions", "read write fields", "field level access", "restrict a field", "field exception", "reset field to default", "sensitive fields", "hide a name", "hide school address", "school profile field access", "restrict student name", "restrict guardian details"],
     audiences: ["platform-administrator"],
     routes: [R.ROLES.FIELD_ACCESS],
     actionIds: ["view-field-access"],
