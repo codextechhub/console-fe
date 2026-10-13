@@ -1,3 +1,5 @@
+import { AccessField } from "@/components/finance-ui/access-field";
+import { fieldWriteErrors, useFieldAccess, type FieldErrors } from "@/components/finance-ui/field-access";
 import { CustomInput } from "@/components/custom/custom-input";
 import { FormSectionLabel } from "@/components/custom/form-section-label";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -14,6 +16,7 @@ import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { apiErrorMessage, apiFieldError, errorStatus } from "@/utils/api-errors";
 import { PageShell } from "@/components/layout/page-shell";
+import { SCHOOLS_FIELD_RESOURCE } from "./school-field-access";
 
 interface EditSchoolValues {
   slug: string;
@@ -28,6 +31,15 @@ interface EditSchoolValues {
   registration_id: string;
 }
 
+/**
+ * Correct a registered school's details.
+ *
+ * The billing email and phone are `platform.schools` Field Access fields,
+ * writable here only when the role's Write switch allows it (they are always
+ * accepted when a school is first registered). A hidden one is not drawn, a
+ * read-only one is greyed and left out of the saved body, and a refusal the
+ * backend still gives appears under its input.
+ */
 export default function EditSchool() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -37,6 +49,10 @@ export default function EditSchool() {
 
 
   const school = data?.data;
+  const access = useFieldAccess(SCHOOLS_FIELD_RESOURCE, school);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors | null>(null);
+  // A hidden contact field has no input, so its "required" rule must not apply.
+  const hiddenContact = (["email", "phone"] as const).filter((name) => access.isHidden(name));
   // A school's address is editable right up to go-live and frozen for ever
   // after, because the slug is where its users sign in. This is the same test
   // the backend applies (School._has_been_live), read off the same two fields,
@@ -58,7 +74,7 @@ export default function EditSchool() {
       currency: school?.currency ?? "",
       registration_id: school?.registration_id ?? "",
     },
-    validationSchema: editSchoolSchema,
+    validationSchema: hiddenContact.length ? editSchoolSchema.omit(hiddenContact) : editSchoolSchema,
     onSubmit: (values) => {
       setSlugError("");
       const body: Record<string, unknown> = {};
@@ -77,7 +93,8 @@ export default function EditSchool() {
       if (values.currency) body.currency = values.currency;
       if (values.registration_id) body.registration_id = values.registration_id;
 
-      updateSchool({ slug: slug ?? "", body })
+      setFieldErrors(null);
+      updateSchool({ slug: slug ?? "", body: access.writableOnly(body) })
         .unwrap()
         .then((res) => {
           toast.success("School updated successfully!");
@@ -86,6 +103,11 @@ export default function EditSchool() {
           navigate(routesPath.PROTECTED.SCHOOL_MGT.VIEW(res?.data?.slug || slug || ""));
         })
         .catch((err) => {
+          const refused = fieldWriteErrors(err);
+          if (refused) {
+            setFieldErrors(refused);
+            return;
+          }
           // Reserved names and collisions come back keyed on the field, which
           // reads better under the input than as another toast. The endpoint
           // opts out of the global 400 toast for that reason, so anything
@@ -152,24 +174,28 @@ export default function EditSchool() {
                   onChange={(e) => formik.setFieldValue("ownership_type", e.target.value)}
                   error={formik.touched.ownership_type ? formik.errors.ownership_type : ""}
                 />
-                <CustomInput
-                  id="email"
-                  type="email"
-                  label="School Email"
-                  placeholder="billing@school.example"
-                  isRequired
-                  {...formik.getFieldProps("email")}
-                  error={formik.touched.email ? formik.errors.email : ""}
-                />
-                <CustomInput
-                  id="phone"
-                  type="tel"
-                  label="School Phone"
-                  placeholder="e.g., +234 800 000 0000"
-                  isRequired
-                  {...formik.getFieldProps("phone")}
-                  error={formik.touched.phone ? formik.errors.phone : ""}
-                />
+                <AccessField access={access} name="email" errors={fieldErrors}>
+                  <CustomInput
+                    id="email"
+                    type="email"
+                    label="School Email"
+                    placeholder="billing@school.example"
+                    isRequired
+                    {...formik.getFieldProps("email")}
+                    error={formik.touched.email ? formik.errors.email : ""}
+                  />
+                </AccessField>
+                <AccessField access={access} name="phone" errors={fieldErrors}>
+                  <CustomInput
+                    id="phone"
+                    type="tel"
+                    label="School Phone"
+                    placeholder="e.g., +234 800 000 0000"
+                    isRequired
+                    {...formik.getFieldProps("phone")}
+                    error={formik.touched.phone ? formik.errors.phone : ""}
+                  />
+                </AccessField>
                 <CustomInput
                   id="address"
                   label="School Address"

@@ -58,7 +58,7 @@ export function buildSignalCards(signals: ConsoleOverview["signals"]): SignalCar
       key: "fiscal_runway",
       icon: CalendarX,
       title: expired ? "Fiscal calendar expired" : "Fiscal calendar ending",
-      stat: expired ? "Expired" : `${days_remaining} days left`,
+      stat: expired ? "Expired" : days_remaining == null ? "Ending soon" : `${days_remaining} days left`,
       message: expired
         ? `${entity_name} can no longer post until the next fiscal year exists.`
         : `${entity_name}'s posting calendar runs out soon.`,

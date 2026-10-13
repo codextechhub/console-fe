@@ -62,3 +62,38 @@ describe("expanded signals", () => {
     expect(cards.every((c) => c.severity === "amber")).toBe(true);
   });
 });
+
+describe("signals hidden by Field Access", () => {
+  const all = {
+    fiscal_runway: { entity_name: "CodeX", status: "EXPIRING" as const, days_remaining: 12, calendar_end: "2026-08-24" },
+    overdue_invoices: { count: 4 },
+    unallocated_credit: { count: 2 },
+    draft_journals: { count: 1 },
+  };
+
+  it("drops the card of each finance signal the server omitted, leaving the others", () => {
+    for (const hidden of ["fiscal_runway", "overdue_invoices", "unallocated_credit"] as const) {
+      const { [hidden]: _omitted, ...rest } = all;
+      void _omitted;
+      const keys = buildSignalCards(rest).map((c) => c.key);
+      expect(keys).not.toContain(hidden);
+      expect(keys).toHaveLength(3);
+    }
+  });
+
+  it("never renders a zero, undefined or NaN stat for what remains", () => {
+    const cards = buildSignalCards({ draft_journals: all.draft_journals });
+    expect(cards).toHaveLength(1);
+    for (const card of cards) {
+      expect(card.stat).not.toMatch(/undefined|NaN|null/);
+      expect(card.message).not.toMatch(/undefined|NaN|null/);
+    }
+  });
+
+  it("words a runway with no day count without printing null", () => {
+    const card = buildSignalCards({
+      fiscal_runway: { entity_name: "CodeX", status: "EXPIRING", days_remaining: null, calendar_end: null },
+    })[0];
+    expect(card.stat).toBe("Ending soon");
+  });
+});

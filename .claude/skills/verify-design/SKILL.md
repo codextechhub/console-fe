@@ -101,8 +101,11 @@ Logging in writes `vs_user_loginsession` / `vs_user_authattempt` /
 ```bash
 bash .claude/skills/verify-design/scrub.sh
 ```
-Deletes exactly the rows created since the baseline and resets `last_login`.
-The drive is read-only, so business tables are never written.
+Deletes the login-session and auth-attempt rows created since the baseline and
+resets `last_login`. The audit log is append-only (database triggers refuse any
+delete or update), so the `LOGIN_SUCCESS` audit rows cannot be removed: the
+script leaves them and prints how many it left. The drive is read-only, so
+business tables are never written.
 
 ### 8. Report
 Which screens rendered cleanly, any console errors (quote them), any screen

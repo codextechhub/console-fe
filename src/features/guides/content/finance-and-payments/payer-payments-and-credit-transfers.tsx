@@ -5,6 +5,7 @@ export default function PayerPaymentsAndCreditTransfersArticle() {
     <div className="space-y-10">
       <GuideSection id="before-you-start" title="Before you start">
         <p>A parent or sponsor often pays once for several children. Record that money once, as a <strong>payer payment</strong>, and it is split into one receipt per child, each settling only that child&rsquo;s own bills. When one customer has credit another should use, a <strong>credit transfer</strong> moves it, with a second person&rsquo;s approval.</p>
+        <p>Field Access can close a field to a role. Without Write on the payer, bank account, amount or date, <strong>Record payer payment</strong> is not offered, and without Read on the payer, customer or active choice a customer&rsquo;s <strong>Payers</strong> tab is not offered. When the amount is closed, each customer&rsquo;s share shows no credit or bills.</p>
         <GuideChecklist items={[
           "The payer has a customer account of their own.",
           "Each child they pay for has a customer account.",

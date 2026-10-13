@@ -22,6 +22,7 @@ export default function ConfigurePlatformArticle() {
       </GuideSection>
       <GuideSection id="set-subscription-pricing" title="Set subscription pricing">
         <p>Basic, Standard, and Premium each carry one per-student catalogue rate for one billing cycle. Changing a rate affects school agreements created after the change; it never rewrites a saved school agreement or an invoice. Enterprise remains a per-school quote entered during onboarding.</p>
+        <p>Field Access can limit the catalogue rate for a role. Where the role may not read it, the Subscription pricing section is not listed and its card is missing from the overview. Where the role may read but not change it, the rates are greyed and there is no Save button. The rate is separate from the price agreed with one school, which has its own switch.</p>
         <GuideCallout tone="warning" title="A rate change is not a correction to old invoices">If Bright Star joined Standard at ₦5,000 per student and the catalogue later moves to ₦5,500, Bright Star keeps its saved agreement until an authorised plan or contract change. Do not edit historical invoices to imitate the new catalogue.</GuideCallout>
       </GuideSection>
       <GuideSection id="govern-security-baselines" title="Govern security baselines">

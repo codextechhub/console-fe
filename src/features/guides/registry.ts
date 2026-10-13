@@ -11,7 +11,6 @@ const REVIEWED_AT = "2026-08-25";
 const C5_REVIEWED_AT = "2026-08-25";
 const DOCS_REVIEWED_AT = "2026-08-25";
 const C6A_REVIEWED_AT = "2026-10-11";
-const C6B_REVIEWED_AT = "2026-10-11";
 const C6C_REVIEWED_AT = "2026-10-11";
 const C7A_REVIEWED_AT = "2026-10-11";
 const C8_REVIEWED_AT = "2026-08-25";
@@ -23,15 +22,17 @@ const C12_REVIEWED_AT = "2026-08-25";
 const FINANCE_RECOVERY_REVIEWED_AT = "2026-10-11";
 const ACTION_GAP_REVIEWED_AT = "2026-08-25";
 const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
+const AUDIT_TRAIL_REVIEWED_AT = "2026-10-13";
 const O2_REVIEWED_AT = "2026-08-25";
 const FIELD_ACCESS_REVIEWED_AT = "2026-10-12";
 const RECORD_HISTORY_REVIEWED_AT = "2026-09-26";
 const BRANCH_BUDGETS_REVIEWED_AT = "2026-10-11";
 const FINANCE_OVERVIEW_REVIEWED_AT = "2026-10-11";
 const PROCUREMENT_OVERVIEW_REVIEWED_AT = "2026-10-11";
-const SCHOOL_CREATION_REVIEWED_AT = "2026-09-26";
+const SCHOOL_FIELD_ACCESS_REVIEWED_AT = "2026-10-12";
 const REQUIREMENTS_VIEWER_REVIEWED_AT = "2026-09-26";
 const BRANCH_FINANCE_REVIEWED_AT = "2026-10-11";
+const CLOSE_FIELD_ACCESS_REVIEWED_AT = "2026-10-12";
 const OWNER = "Console product team";
 
 export const GUIDE_REGISTRY = [
@@ -155,7 +156,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.schools.create-and-configure",
     estimatedMinutes: 10,
     owner: OWNER,
-    reviewedAt: SCHOOL_CREATION_REVIEWED_AT,
+    reviewedAt: SCHOOL_FIELD_ACCESS_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
@@ -323,8 +324,8 @@ export const GUIDE_REGISTRY = [
     title: "Set field access for a role",
     summary: "Set a role's Read and Write switches field by field, reset a field to its default, and add or lift a one-person field exception.",
     category: "roles-and-permissions",
-    tags: ["field access", "read", "write", "sensitive field", "field exception", "default", "reset to default", "name fields", "school profile"],
-    aliases: ["field permissions", "read write fields", "field level access", "restrict a field", "field exception", "reset field to default", "sensitive fields", "hide a name", "hide school address", "school profile field access", "restrict student name", "restrict guardian details"],
+    tags: ["field access", "read", "write", "sensitive field", "field exception", "default", "reset to default", "name fields", "school profile", "customers", "bank accounts"],
+    aliases: ["field permissions", "read write fields", "field level access", "restrict a field", "field exception", "reset field to default", "sensitive fields", "hide a name", "hide school address", "school profile field access", "hide subscription price", "hide school billing email", "hide branch address", "hide deferred income figures", "hide deposit customer", "receivables field access", "restrict student name", "restrict guardian details", "hide vendor category", "hide vendor payment terms", "hide vendor kyc status", "hide vendor hold", "vendor contact field access", "hide vendor contact phone", "vendor field access", "hide bank transaction amount", "hide transfer between accounts", "bank document field access", "branch split field access", "hide shared bank balance", "payer payment field access", "hide payer link", "hide payer payment amount", "petty cash return field access", "hide petty cash count", "hide dashboard card", "dashboard field access", "hide close check", "hide month close state", "hide year close state", "hide archive state", "hide closed figures", "customer field access", "hide customer balance", "hide customer billing email", "hide customer phone", "hide customer account status", "hide statement balance", "bank account field access", "hide bank name", "hide bank account balance", "hide statement balance on bank account", "hide primary collection account"],
     audiences: ["platform-administrator"],
     routes: [R.ROLES.FIELD_ACCESS],
     actionIds: ["view-field-access"],
@@ -345,7 +346,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.roles.manage-field-access",
     estimatedMinutes: 8,
     owner: OWNER,
-    reviewedAt: RECORD_HISTORY_REVIEWED_AT,
+    reviewedAt: FIELD_ACCESS_REVIEWED_AT,
     risk: "high",
     status: "published",
     article: () => import("./content/roles-and-permissions/manage-field-access"),
@@ -692,7 +693,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.close-lock-or-reopen-period",
     estimatedMinutes: 14,
     owner: OWNER,
-    reviewedAt: BRANCH_FINANCE_REVIEWED_AT,
+    reviewedAt: CLOSE_FIELD_ACCESS_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
@@ -742,7 +743,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.invoice-and-allocate-receipt",
     estimatedMinutes: 11,
     owner: OWNER,
-    reviewedAt: BRANCH_FINANCE_REVIEWED_AT,
+    reviewedAt: FIELD_ACCESS_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
@@ -956,7 +957,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.email-customer-documents",
     estimatedMinutes: 6,
     owner: OWNER,
-    reviewedAt: C6B_REVIEWED_AT,
+    reviewedAt: FIELD_ACCESS_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
@@ -1000,7 +1001,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.reconcile-bank-statement",
     estimatedMinutes: 13,
     owner: OWNER,
-    reviewedAt: BRANCH_FINANCE_REVIEWED_AT,
+    reviewedAt: FIELD_ACCESS_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
@@ -1381,7 +1382,7 @@ export const GUIDE_REGISTRY = [
     title: "Add and govern a procurement vendor",
     summary: "Create a supplier master, protect sensitive details, set purchasing eligibility, and review its commercial history.",
     category: "procurement-and-inventory",
-    tags: ["vendor", "supplier", "KYC", "bank details", "payment terms", "on hold", "risk", "contacts"],
+    tags: ["vendor", "supplier", "KYC", "bank details", "payment terms", "on hold", "risk", "contacts", "field access"],
     aliases: ["add supplier", "register vendor", "supplier master", "vendor kyc", "put vendor on hold", "vendor bank details", "vendor rejected"],
     audiences: ["procurement-officer", "finance-officer", "approver"],
     routes: [R.PROCUREMENT.VENDORS, `${R.PROCUREMENT.VENDORS}/vendors`],
@@ -1402,7 +1403,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.procurement.add-and-govern-vendor",
     estimatedMinutes: 9,
     owner: OWNER,
-    reviewedAt: C7A_REVIEWED_AT,
+    reviewedAt: FIELD_ACCESS_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
@@ -1687,7 +1688,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.data.import-batch",
     estimatedMinutes: 12,
     owner: OWNER,
-    reviewedAt: "2026-09-09",
+    reviewedAt: "2026-10-12",
     risk: "high",
     featured: true,
     status: "published",
@@ -1857,7 +1858,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.audit.investigate-event",
     estimatedMinutes: 11,
     owner: OWNER,
-    reviewedAt: FINAL_ROUTE_GAP_REVIEWED_AT,
+    reviewedAt: AUDIT_TRAIL_REVIEWED_AT,
     risk: "high",
     featured: true,
     status: "published",
@@ -1989,7 +1990,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.platform.configure-platform",
     estimatedMinutes: 13,
     owner: OWNER,
-    reviewedAt: FINAL_ROUTE_GAP_REVIEWED_AT,
+    reviewedAt: SCHOOL_FIELD_ACCESS_REVIEWED_AT,
     risk: "high",
     status: "published",
     article: () => import("./content/platform-health-and-settings/configure-platform"),

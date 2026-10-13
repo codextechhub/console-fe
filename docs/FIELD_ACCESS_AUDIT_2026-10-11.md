@@ -26,9 +26,9 @@ Current registered product areas are:
 - platform team and staff profile fields;
 - school student, guardian and staff record fields;
 - import payload and uploaded-file fields;
-- vendor contact, tax and banking fields;
+- vendor contact, tax, banking, category, payment terms and compliance fields, and the people at a vendor (name, email, phone and routing choices);
 - virtual-account and payout banking fields;
-- bank-account number;
+- the customer master (`finance.customer`) and the bank account master (`finance.bankaccount`), with the bank documents, branch split, payer links, payer payments and petty cash returns;
 - payroll line and salary figures.
 
 ## Progress after the audit
@@ -36,13 +36,117 @@ Current registered product areas are:
 - Inter-branch transfers, held receipts, shared-cost recharges and shared-cost
   rules now have end-to-end Field Access in the backend and shared finance
   screens.
+- Receivables Deferred Income, Doubtful Debts, Deposits and the Receivables
+  policy in Finance settings now have end-to-end Field Access in the backend
+  and the shared finance screens. Hidden figures, columns, filters and facts
+  leave the screens, read-only values are greyed and left out of submitted
+  bodies, and a list filter on a hidden field is neither shown nor sent.
+- Procurement vendors (`procurement.vendor`) and the people at a vendor
+  (`procurement.vendor_contact`) have end-to-end Field Access in the backend and
+  the shared procurement screens. The vendor adds category, payment terms, KYC
+  status, risk and hold as open fields beside the sensitive contact, tax and
+  banking ones; the single Contact people switch is replaced by a switch for
+  each person's name, email and phone and for primary contact, receives
+  quotation requests, receives purchase orders and active, and earlier choices
+  were carried onto the new switches. The vendor list (columns, On Hold tab, KYC
+  filter, summary cards), the vendor drawer and form, an RFQ's invited vendors,
+  the order email preview, and the spend, unpaid bills, vendor performance and
+  dashboard reports drop what a role may not read, read-only values are greyed
+  and left out of submitted bodies, and a contact's email decides whether
+  people can be added or removed. Owner decision: the vendor name has no switch.
+- Bank documents (`finance.banktransaction`, `finance.banktransfer`), the branch
+  split of a shared bank account (`finance.bankaccount`), payer links
+  (`finance.payer_link`), payer payments (`finance.payer_payment`) and petty cash
+  returns (`finance.pettycash_return`) now have end-to-end Field Access in the
+  backend and the shared finance screens. Hidden columns, facts, share columns,
+  filters and sections leave the screens, read-only inputs are greyed and left
+  out of submitted bodies, and a refusal appears beside the control it names.
+  The bank account and the other side of an entry are submitted under write
+  aliases that follow the names the response carries, and a detail response does
+  not list those aliases in `_read_only_fields`, so the screens ask about the
+  name the alias follows as well. A new document, a correction, Split by branch,
+  Record payer payment and a petty cash return are not offered, or cannot be
+  sent, when a field they cannot do without is closed to the reader. The status
+  filter of the bank lists, the fund and status filters of returns and the
+  payer filter of payer payments are neither shown nor sent when their field is
+  hidden. The split form leaves out the shared balance, the
+  amount left to place and the branch table when those figures are hidden.
+- The finance dashboards, the month and year close, the year archive and the
+  closed-figures check (`finance.dashboard`, `finance.period`, `finance.fiscalyear`,
+  `finance.seal`) have end-to-end Read switches in the backend and the shared
+  finance screens (area 9 of the priority list). Every card of the overview,
+  receivables and cash tabs, a month's close state, the checklist progress and each
+  close check, a year's close state, archive state and carried-over result, and each
+  part of the closed-figures result are server-owned and so Read only. A card a
+  switch closes is a missing key, where a card a role's permission keys withhold
+  stays `null`: the tabs leave out the card with no shell or placeholder and the
+  tiles and cards that remain fill their rows (including the school app's own
+  dashboard page), the close strip recounts from the checks it was sent, months and
+  years without a state draw no pill, count, progress, readiness card or archive
+  action, a checklist drawer offers no close action it cannot judge, and the closed
+  figures draw only the parts of each seal that arrive. A role that may not read a
+  year's close or archive state no longer sends `?status=` or `?include_archived=`,
+  which the server refuses: the new budget's fiscal year picker, the Show archived
+  years switch and the closed-figures year picker follow. Messages that would name
+  a hidden state are neutral.
 - School profile Address and Registration number are implemented in the current
   review wave. Hidden values leave the profile response and form, read-only
   values remain visible but disabled, and only writable values are submitted.
 - School name stays public before sign-in and outside tenant Field Access.
-  Branch name, address and email are sensitive, CodeX-owned fields. Schools can
-  read but not edit them. School-role Read controls for those branch values
-  remain to be built across the responses that expose them.
+  Branch address and email now have school-role Read switches (`school.branches`),
+  and are read-only for every school role because only CodeX edits a branch.
+  Owner decision: the branch name has no switch, and neither do vendor and
+  customer names. Hidden branch values leave the branches list, drawer and
+  location line in the school app; no edit control exists for them.
+- Customer school terms and the billing contact (`platform.schools`) have
+  end-to-end Field Access in the backend and Console: catalogue price per
+  student, agreed price, minimum billable students, package plan, subscription
+  dates, uplifts, notes and the billing email and phone. Subscription pricing,
+  the school record, the edit form and the create wizard follow the switches.
+  Console has no screen for the plan page or uplifts yet, so those responses
+  have no frontend to change.
+- The customer master and the bank account master (areas 11 and 13 of the
+  priority list) have end-to-end Field Access in the backend and the shared
+  finance screens. A customer's billing email, phone and address, receivable
+  account, opening balance, source record and active flag are typed in and have
+  Read and Write; its created date, balance, account status, paid to date, open
+  bills, pays-for count and the open bill, debit note, transaction and statement
+  lists are server-owned and have Read only. A bank account's bank, currency,
+  ledger account and the active, main and collection flags have Read and Write
+  (the account number is Sensitive); its provider code and subaccount, book and
+  statement balances, reconciliation progress and recent activity have Read
+  only, and the difference between the books and the statement needs both
+  balances. The billing email also travels as the recipient of a customer
+  document email, so the panel names the destination in words and the history
+  gives a count when it is closed. The customer list (columns, KPI cards, status
+  tabs), drawer (stat cards, tabs, statement without a running balance), forms,
+  customer pickers, the bank account list, drawer, reconciliation runs and
+  workbench, the cash-by-account dashboard card and the primary collection
+  account choice in Finance settings follow the switches. The `is_active` and
+  `status` list filters of customers are neither shown nor sent when their field
+  is hidden. Owner decision: a customer's code and name and a bank account's
+  name have no switch.
+- Owner decision: branch names and document numbers have no Field Access switch
+  anywhere in finance. The inter-branch, deferred income, provision, deposit,
+  bank document, branch split, payer payment and petty cash return screens
+  always show them, with no neutral wording and no suppressed filter, and the
+  backend registrations that carried them are removed. The Field Access guide
+  states the decision and no guide describes a branch or number switch.
+- Leak-fix pass: the backend now leaves out figures that restate another
+  switch (a customer's balance, the age analysis, a bank account's book and
+  statement balances, year-close journal lines, the provision bands, the payer
+  split default, entitlement dates and the overview signals), and the shared
+  screens follow each omission without a placeholder. The ageing strip of
+  Dunning shows counts alone when the balance is hidden and no strip when the
+  account status is; the refunds figures, the refund and batch pickers and the
+  credit transfer form say why no customer credit is listed rather than
+  reporting none; the receipt allocation drawer offers automatic allocation
+  alone, with no typed split or summary, when the open items or their balances
+  are hidden; income given back, the chart of accounts and its group totals
+  (a total is dash when a part is hidden), the bank statement columns and the
+  statement edit action, entitlement windows and the schedule editor, and the
+  overview tiles drop what they cannot show. The customer statement report has
+  no screen yet, so only its backend response changed.
 
 The gap is coverage, not the evaluator. An unregistered field remains readable
 and writable to anybody who has the resource permission.
@@ -80,8 +184,8 @@ These are server-owned and need Read switches rather than Write switches.
   seal verification results.
 - Finance overview, receivables, collections, cash, spend and compliance cards,
   trends and exception lists.
-- Inter-branch journals, transfer stage, approval state, timestamps and document
-  numbers.
+- Inter-branch journals, transfer stage, approval state and timestamps (document
+  numbers and branch names have no switch).
 - Shared bank split calculations, branch allocations and differences.
 
 ### Priority 2: earlier four-week additions that need a resource-by-resource pass

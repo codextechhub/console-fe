@@ -28,7 +28,7 @@ export default function InviteAndManageUsersArticle() {
         <GuideSteps>
           <GuideStep title="Open the form">From CX Users, select <strong>Add New CX User</strong>, then <strong>Create new user</strong>.</GuideStep>
           <GuideStep title="Enter the user group">Complete First Name, Last Name, Email Address, Role Title, Phone Number, and Gender.</GuideStep>
-          <GuideStep title="Assign the seat">Choose <strong>Position (seat)</strong>. Console fills Job Title and shows the derived Division, Department, and Team. Add optional HR details if approved.</GuideStep>
+          <GuideStep title="Assign the seat">Choose <strong>Position (seat)</strong>. Console fills Job Title and shows the derived Division, Department, and Team. Add optional HR details if approved. Employee ID, Job Title, Employment Type, and Date Joined follow Field Access: one your role may not read is not on the form, and one it may read but not set is greyed and is not sent. First Name and Last Name are always open when adding someone.</GuideStep>
           <GuideStep title="Submit or park the record">Select <strong>Submit for Approval</strong> when complete. Use <strong>Save as draft</strong> only when the identity is known but the role, seat, or remaining details still need work.</GuideStep>
         </GuideSteps>
         <GuideCallout tone="warning" title="Submission does not always send an invitation immediately">A CX-staff request can enter the platform-user creation approval workflow. When that happens, the user receives an invitation only after approval. Track the request under <strong>My Submissions</strong>.</GuideCallout>
@@ -53,6 +53,7 @@ export default function InviteAndManageUsersArticle() {
           {[
             { title: "Add New CX User is missing", body: "Your account may view the team without having invitation permission. Ask an administrator to check Invite Team Member." },
             { title: "Submit for Approval is disabled", body: "Complete the required identity, role, phone, gender, and position fields, and resolve any validation message." },
+            { title: "A detail is missing or greyed on the Add form", body: "Your role's Field Access does not let you read or set it. Ask an administrator to check the staff profile switches for your role. If a save is refused anyway, the reason appears under the field, or above the buttons when the form does not show that detail." },
             { title: "The invitation has not arrived", body: "First check whether the request is still awaiting approval. Then confirm the email and invitation status before resending." },
             { title: "View Details cannot find a profile", body: "The CX user may not yet have a connected staff profile. Check their activation and position, then contact Support with safe identifiers only when needed." },
           ].map(({ title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="flex items-start gap-2 text-sm font-semibold text-black-01"><CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" /> {title}</p><p className="mt-2 text-xs leading-5 text-gray-01">{body}</p></div>)}

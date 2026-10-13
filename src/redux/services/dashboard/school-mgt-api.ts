@@ -151,8 +151,15 @@ export const schoolMgtApi = baseApi.injectEndpoints({
       providesTags: ["PackagePlans"],
     }),
 
+    /**
+     * Change one plan's catalogue rate. The endpoint answers with the saved
+     * object itself, not the usual `{ success, message, data }` envelope.
+     * A refusal for a role that may not change the rate is a 403
+     * `field_write_denied`, which the Settings panel shows beside the input,
+     * so the global interceptor stays silent for it.
+     */
     updatePackagePlanPrice: builder.mutation<
-      { success: boolean; message: string; data: { price_per_student: number } },
+      { price_per_student: number },
       { code: string; price_per_student: number }
     >({
       query: ({ code, price_per_student }) => ({

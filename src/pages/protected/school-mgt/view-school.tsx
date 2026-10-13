@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useFieldAccess } from "@/components/finance-ui/field-access";
 import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
@@ -57,6 +58,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { SortBar, handleSortToggle } from "@/components/custom/sort-bar";
 import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 import { PageShell } from "@/components/layout/page-shell";
+import { SCHOOLS_FIELD_RESOURCE } from "./school-field-access";
 
 const BRANCH_TABLE_HEADERS = [
   "S/N",
@@ -200,6 +202,12 @@ export default function ViewSchool() {
       });
   };
   const school = data?.data;
+  // The billing contact sits on the school; the plan and its dates on its package.
+  const contactAccess = useFieldAccess(SCHOOLS_FIELD_RESOURCE, school);
+  const setup = school?.package_setup ?? null;
+  const termsAccess = useFieldAccess(SCHOOLS_FIELD_RESOURCE, setup);
+  const showPlan = !termsAccess.isHidden("package_plan") && !!setup?.package_plan;
+  const showExpiry = !termsAccess.isHidden("subscription_expires_at");
   useLogRecentOpen(
     school && slug
       ? { kind: "school", id: slug, label: school.name, to: routesPath.PROTECTED.SCHOOL_MGT.VIEW(slug) }
@@ -398,10 +406,12 @@ export default function ViewSchool() {
 
             {activeTab === "overview" && (
               <div role="tabpanel" className="grid min-w-0 grid-cols-1 gap-5">
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <div className={cn("grid grid-cols-2 gap-3", showPlan ? "lg:grid-cols-4" : "lg:grid-cols-3")}>
                   <SummaryCard icon={<Building2 className="size-5" />} label="Branches" value={school.branches.length} hint={school.main_branch?.name ? `Main: ${school.main_branch.name}` : "No main branch set"} />
-                  <SummaryCard icon={<PackageCheck className="size-5" />} label="Package" value={school.package_setup?.package_plan.name ?? "Not set"} hint={school.package_setup?.package_plan.billing_cycle ? formatEnum(school.package_setup.package_plan.billing_cycle) : "No billing cycle"} />
-                  <SummaryCard icon={<ShieldCheck className="size-5" />} label="Modules" value={school.package_setup?.enabled_modules.length ?? 0} hint="Every school holds all of them; the plan sets the depth" />
+                  {showPlan && setup?.package_plan ? (
+                    <SummaryCard icon={<PackageCheck className="size-5" />} label="Package" value={setup.package_plan.name} hint={setup.package_plan.billing_cycle ? formatEnum(setup.package_plan.billing_cycle) : "No billing cycle"} />
+                  ) : null}
+                  <SummaryCard icon={<ShieldCheck className="size-5" />} label="Modules" value={setup?.enabled_modules.length ?? 0} hint="Every school holds all of them; the plan sets the depth" />
                   <SummaryCard icon={<CalendarDays className="size-5" />} label="Activated" value={school.activated_at ? formatStartedTime(school.activated_at) : "Pending"} hint={school.status === "ACTIVE" ? "School is operational" : `Status: ${formatEnum(school.status)}`} />
                 </div>
 
@@ -410,8 +420,8 @@ export default function ViewSchool() {
                     <SectionCard title="School information" description="Identity, registration and academic setup" icon={<Building2 className="size-4.5" />}>
                       <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
                         <DetailField label="School name" value={school.name} />
-                        <DetailField label="School email" value={school.email} />
-                        <DetailField label="School phone" value={school.phone} />
+                        {!contactAccess.isHidden("email") && <DetailField label="School email" value={school.email} />}
+                        {!contactAccess.isHidden("phone") && <DetailField label="School phone" value={school.phone} />}
                         <DetailField label="Registration ID" value={school.registration_id} />
                         <DetailField label="Ownership" value={formatEnum(school.ownership_type)} />
                         <DetailField label="Term structure" value={formatEnum(school.term_structure)} />
@@ -443,21 +453,30 @@ export default function ViewSchool() {
                     </SectionCard>
 
                     <SectionCard title="Package and access" description="Subscription and enabled modules" icon={<PackageCheck className="size-4.5" />}>
-                      {school.package_setup ? (
+                      {setup ? (
                         <div className="grid min-w-0 grid-cols-1 gap-5">
-                          <div className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3">
-                            <DetailField label="Plan" value={school.package_setup.package_plan.name} />
-                            <DetailField label="Billing cycle" value={formatEnum(school.package_setup.package_plan.billing_cycle)} />
-                            <DetailField label="Subscription expires" value={school.package_setup.subscription_expires_at ? formatStartedTime(school.package_setup.subscription_expires_at) : "No expiry set"} />
-                          </div>
+                          {(showPlan || showExpiry) && (
+                            <div className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3">
+                              {showPlan && setup.package_plan && (
+                                <>
+                                  <DetailField label="Plan" value={setup.package_plan.name} />
+                                  <DetailField label="Billing cycle" value={formatEnum(setup.package_plan.billing_cycle)} />
+                                </>
+                              )}
+                              {showExpiry && (
+                                <DetailField label="Subscription expires" value={setup.subscription_expires_at ? formatStartedTime(setup.subscription_expires_at) : "No expiry set"} />
+                              )}
+                            </div>
+                          )}
                           <div>
-                            <p className="mb-2 font-mont text-xs font-medium text-gray-01">Modules and depth</p>
+                            <p className="mb-2 font-mont text-xs font-medium text-gray-01">{showPlan ? "Modules and depth" : "Modules"}</p>
                             <div className="flex flex-wrap gap-2">
                               {/* The depth is the whole of the answer: the list
                                   is the same for every school, and how far into
-                                  each module they reach is what the plan bought. */}
-                              {school.package_setup.enabled_modules.length > 0 ? school.package_setup.enabled_modules.map((module) => (
-                                <Badge key={module.id} className="bg-pry-01 text-primary">{module.label} &middot; {module.depth_label}</Badge>
+                                  each module they reach is what the plan bought.
+                                  It is the plan's depth, so it goes with the plan. */}
+                              {setup.enabled_modules.length > 0 ? setup.enabled_modules.map((module) => (
+                                <Badge key={module.id} className="bg-pry-01 text-primary">{module.label}{showPlan ? <> &middot; {module.depth_label}</> : null}</Badge>
                               )) : <span className="text-sm text-gray-01">This school has not been given its plan yet.</span>}
                             </div>
                           </div>

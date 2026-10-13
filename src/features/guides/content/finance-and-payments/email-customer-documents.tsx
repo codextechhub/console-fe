@@ -56,7 +56,8 @@ export default function EmailCustomerDocumentsArticle() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {[
             { title: "Email action is missing", body: "The document may not be posted, or your role may not include the specific invoice, receipt, or statement email permission." },
-            { title: "No recipient is shown", body: "The customer has no usable email address. Correct the customer record before attempting delivery." },
+            { title: "No recipient is shown", body: "The To line reads No recipient, so the customer has no usable email address. Correct the customer record before attempting delivery." },
+            { title: "To reads The customer's billing email", body: "Field Access has closed the billing email to your role. The panel says where the document goes in words, and the history shows how many addresses it went to and never which. Ask a platform administrator to open the field if you must check the address." },
             { title: "Send is disabled", body: "Wait for the preview to load and read the blocked reason. Do not bypass it with another document type." },
             { title: "The customer did not receive it", body: "Check delivery status and address, ask them to inspect filtering, then follow the approved retry or support path." },
           ].map(({ title, body }) => <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="text-sm font-semibold text-black-01">{title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{body}</p></div>)}

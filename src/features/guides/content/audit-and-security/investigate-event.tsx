@@ -23,7 +23,7 @@ export default function InvestigateEventArticle() {
       </GuideSection>
       <GuideSection id="follow-the-entity-trail" title="Follow the entity trail">
         <p>Open Entity Trails or filter the Explorer by the exact entity type and ID. Read the lifecycle in time order and identify the last known-good state, the first unexpected event, related attempts, and any corrective event. Similar labels are not enough: confirm the stable entity reference.</p>
-        <p>For an entity-scoped Finance mutation, use the Finance Audit Trail to filter by action, record type, actor, status, and date. Open the row to compare its immutable before and after values, then connect the document reference to the broader security event or entity trail when the investigation crosses systems.</p>
+        <p>For an entity-scoped Finance mutation, use the Finance Audit Trail to filter by action, record type, actor, status, and date. Open the row to read its sentence, the reason the person gave when there is one, and a What changed list of the before and after values your role may read; amounts appear as money, and a value your role may not see is left out rather than blanked. Then connect the document reference to the broader security event or entity trail when the investigation crosses systems.</p>
       </GuideSection>
       <GuideSection id="preserve-and-escalate" title="Preserve and escalate evidence">
         <p>Record safe event and request references, exact filters, timestamps with timezone, expected and observed outcomes, and the evidence already checked. Export only the bounded event set when a file is required. Do not paste tokens, passwords, full personal data, or raw metadata into a ticket.</p>

@@ -1,3 +1,4 @@
+import { fieldWriteErrors, useFieldAccess, type FieldErrors } from "@/components/finance-ui/field-access";
 import { useCreateSchoolMutation } from "@/redux/services/dashboard/school-mgt-api";
 import type { SchoolCreationJob } from "@/redux/services/dashboard/school-types";
 import { useState } from "react";
@@ -7,6 +8,8 @@ import SchoolCreationDialog from "./component/school-creation-dialog";
 import AddSchoolAdmin from "./component/add-school-admin";
 import AddSchoolBranch from "./component/add-school-branch";
 import PackageSetup from "./component/package-setup";
+import { packageSetupBody } from "./component/package-setup-body";
+import { SCHOOLS_FIELD_RESOURCE } from "./school-field-access";
 
 export interface SchoolStepData {
   name: string;
@@ -142,7 +145,7 @@ function buildPayload(
   school: SchoolStepData,
   branches: BranchStepItem[],
   admin: AdminStepData,
-  pkg: PackageStepData,
+  packageSetup: Record<string, unknown> | undefined,
 ) {
   const payload: Record<string, unknown> = {
     name: school.name,
@@ -184,17 +187,7 @@ function buildPayload(
     }));
   }
 
-  if (pkg.package_plan) {
-    payload.package_setup_data = {
-      package_plan: pkg.package_plan,
-      subscription_starts_at: pkg.subscription_starts_at,
-      ...(pkg.subscription_expires_at ? { subscription_expires_at: pkg.subscription_expires_at } : {}),
-      ...(pkg.agreed_price_per_student
-        ? { agreed_price_per_student: Math.round(Number(pkg.agreed_price_per_student) * 100) }
-        : {}),
-      minimum_billable_students: Number(pkg.minimum_billable_students || 0),
-    };
-  }
+  if (packageSetup) payload.package_setup_data = packageSetup;
 
   return payload;
 }
@@ -230,6 +223,8 @@ export default function CreateSchool() {
 
   const [createSchool] = useCreateSchoolMutation();
   const [creation, setCreation] = useState<Creation | null>(null);
+  const access = useFieldAccess(SCHOOLS_FIELD_RESOURCE);
+  const [packageRefusals, setPackageRefusals] = useState<FieldErrors | null>(null);
 
 
   // Fills the LATER steps from the school step's own test data, so one press
@@ -258,8 +253,12 @@ export default function CreateSchool() {
 
   const handleSubmit = (data: PackageStepData) => {
     setPackageData(data);
+    setPackageRefusals(null);
     const jobId = newJobId();
-    const payload = { ...buildPayload(schoolData, branches, adminData, data), ...(jobId ? { job_id: jobId } : {}) };
+    const payload = {
+      ...buildPayload(schoolData, branches, adminData, packageSetupBody(data, access)),
+      ...(jobId ? { job_id: jobId } : {}),
+    };
     setCreation({ jobId, name: schoolData.name });
     createSchool(payload)
       .unwrap()
@@ -270,7 +269,9 @@ export default function CreateSchool() {
           setCreation((c) => c && { ...c, postLost: true });
           return;
         }
-        // A refusal is toasted by the global interceptor; back to the form.
+        // A refusal of a term the role may not set is shown beside its control;
+        // any other refusal is toasted by the global interceptor.
+        setPackageRefusals(fieldWriteErrors(error));
         setCreation(null);
       });
   };
@@ -282,7 +283,7 @@ export default function CreateSchool() {
       case "admin":
         return <AddSchoolAdmin defaultValues={adminData} onNext={handleAdminNext} onChange={setAdminData} />;
       case "plan":
-        return <PackageSetup defaultValues={packageData} onSubmit={handleSubmit} onChange={setPackageData} isSubmitting={creation !== null} />;
+        return <PackageSetup defaultValues={packageData} onSubmit={handleSubmit} onChange={setPackageData} isSubmitting={creation !== null} fieldErrors={packageRefusals} />;
       default:
         return <AddSchool defaultValues={schoolData} onNext={handleSchoolNext} onChange={setSchoolData} onPrefill={handlePrefill} generateTestData={generateTestData} />;
     }

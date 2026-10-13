@@ -287,3 +287,27 @@ describe("rankQueues", () => {
     expect(order).toEqual(["approvals", "tasks"]);
   });
 });
+
+describe("buildActionRows with finance signals hidden", () => {
+  const signals = {
+    fiscal_runway: { entity_name: "CodeX", status: "EXPIRED" as const, days_remaining: -3, calendar_end: "2026-08-01" },
+    overdue_invoices: { count: 4 },
+    unallocated_credit: { count: 2 },
+  };
+
+  it("recomputes the row groups from the signals that are present", () => {
+    const full = partitionRows(buildActionRows(overview({ signals })));
+    expect(full.watch.map((r) => r.key).sort()).toEqual(["fiscal_runway", "overdue_invoices", "unallocated_credit"]);
+
+    const { fiscal_runway: _a, unallocated_credit: _b, ...onlyOverdue } = signals;
+    void _a;
+    void _b;
+    const narrowed = partitionRows(buildActionRows(overview({ signals: onlyOverdue })));
+    expect(narrowed.watch.map((r) => r.key)).toEqual(["overdue_invoices"]);
+    expect(narrowed.mine).toEqual([]);
+  });
+
+  it("yields no rows at all when every signal is hidden", () => {
+    expect(buildActionRows(overview({ signals: {} }))).toEqual([]);
+  });
+});

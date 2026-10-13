@@ -17,6 +17,7 @@ export default function ManagePettyCashArticle() {
       <GuideCallout tone="info" title="An example">
         Ikeja&rsquo;s fund has a ₦100,000 float and the books say it holds ₦80,000. Amaka Okafor, the custodian, counts ₦79,000 and the float is cut to ₦50,000. Amaka writes &ldquo;coins missing&rdquo; for the ₦1,000 short, which goes to Cash over and short. ₦29,000 is banked, and the tin keeps ₦50,000.
       </GuideCallout>
+      <p>Field Access can close a field of a return to a role. A return cannot be sent when the cash counted, the date, the new float, the bank account or the reason it needs is closed to Write, and the form says so; a return field closed to Read, such as its fund or status, also leaves that filter off the Returns tab.</p>
       <p>A float cut to nothing is a closure: use <strong>Close fund</strong> instead. If the count finds no more than the new float, there is nothing to bank; change the float with <strong>Edit fund</strong> instead.</p>
     </GuideSection>
     <GuideSection id="close-the-fund" title="Close a fund, and reopen it">

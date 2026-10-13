@@ -24,6 +24,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
           <GuideStep title="Check the fee structure">For repeated billing, verify every fee line, amount, tax code, revenue account, effective period, and target population before generating invoices.</GuideStep>
           <GuideStep title="Confirm posting dependencies">The active entity needs open fiscal periods and valid accounts receivable (what customers owe), revenue, tax, cash, customer-credit, write-off, and refund mappings for the actions you intend to use.</GuideStep>
         </GuideSteps>
+        <p>A customer&apos;s code and name are always shown. The billing email, phone and address, the balance, the account status, the statement and the other figures on <strong>Customers / Payers</strong> each follow Field Access, so a role may see a customer without its balance, or its balance without the contact details. A closed value leaves the list, the drawer and the New customer form, a statement shows no running balance when the balance is closed, and the billing email, phone and opening balance are always asked for on a new customer.</p>
       </GuideSection>
 
       <GuideSection id="import-opening-balances" title="Bring in bills unpaid before go-live">

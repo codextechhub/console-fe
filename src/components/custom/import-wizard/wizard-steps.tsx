@@ -20,7 +20,7 @@ import {
   useDownloadImportTemplateMutation,
   importDownloadUrls,
 } from "@/redux/services/dashboard/import-api";
-import type { DatasetType, ImportBatch, ImportTemplate, ValidationSeverity } from "@/redux/services/dashboard/import-types";
+import type { DatasetType, ImportBatch, ImportJobRowResult, ImportTemplate, ValidationSeverity } from "@/redux/services/dashboard/import-types";
 import { showBlobPreview } from "@xvs/finance/components/finance-ui/file-preview-dialog";
 import { downloadObjectUrl, fetchAttachmentBlob } from "@/utils/attachment-download";
 
@@ -1233,6 +1233,9 @@ export function CompleteStep({
             })()}
             {isFailed && "The import job failed. Check the details for error information."}
           </p>
+          {isFailed && job?.last_error_message && (
+            <p role="alert" className="mt-1.5 text-xs text-destructive">{job.last_error_message}</p>
+          )}
         </div>
       </div>
 
@@ -1287,7 +1290,14 @@ export function CompleteStep({
                 <span className="text-[10px] font-mono bg-red-100 text-destructive rounded px-1.5 py-0.5 shrink-0 mt-0.5">
                   Row {r.row_number}
                 </span>
-                <p className="text-xs text-gray-600">{r.status_message || "No reason provided."}</p>
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-600">{r.status_message || "No reason provided."}</p>
+                  {refusedFields(r).length > 0 && (
+                    <p className="mt-0.5 text-[10px] font-mono text-gray-400">
+                      field: <b className="text-gray-600">{refusedFields(r).join(", ")}</b>
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
             {failedRows.length > PREVIEW_LIMIT && (
@@ -1386,6 +1396,16 @@ export function CompleteStep({
       </div>
     </div>
   );
+}
+
+/**
+ * The fields a failed row was refused for, when the server names them in
+ * `error_details.field_write_denied`. Absent when the viewer may not read the
+ * row's error details, in which case the row's message stands alone.
+ */
+export function refusedFields(row: Pick<ImportJobRowResult, "error_details">): string[] {
+  const named = row.error_details?.field_write_denied;
+  return Array.isArray(named) ? named.filter((name): name is string => typeof name === "string") : [];
 }
 
 function StatCard({ label, value, icon, iconBg }: { label: string; value: number; icon: React.ReactNode; iconBg: string }) {

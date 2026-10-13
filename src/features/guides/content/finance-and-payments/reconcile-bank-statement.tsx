@@ -104,6 +104,7 @@ export default function ReconcileBankStatementArticle() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {[
             { title: "No account is available", body: "Create or activate the bank account, map it to the correct cash GL account, and confirm your entity and permission." },
+            { title: "A field or balance card is missing", body: "Field Access has closed it for your role. A bank account's bank, currency, ledger account and flags, its balances, its reconciliation progress and its recent activity each have their own switch, and the difference between the books and the statement needs both balances, so closing either takes it away. A new account always asks for the ledger account." },
             { title: "Automatic matching finds nothing", body: "Check date tolerance, amount direction, grouping policy, and whether the corresponding book transactions are posted." },
             { title: "Match is disabled", body: "Select bank and book lines whose totals are equal. Then verify they represent the same business evidence." },
             { title: "The difference remains", body: "Trace unmatched lines, duplicates, missing source entries, charges, interest, and timing items. Do not force a balancing match." },

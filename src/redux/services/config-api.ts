@@ -73,8 +73,16 @@ export interface Entitlement {
   source: string;
   /** Where the grant came from, in words ("Set by an operator"). */
   source_label: string;
-  starts_at: string | null;
-  ends_at: string | null;
+  /**
+   * Activation time. Absent (not null) on a plan-written grant when the caller
+   * may not read the school's `subscription_starts_at`; null means no start.
+   */
+  starts_at?: string | null;
+  /**
+   * Expiry time. Absent (not null) on a plan-written grant when the caller may
+   * not read the school's `subscription_expires_at`; null means it never expires.
+   */
+  ends_at?: string | null;
   updated_at: string;
 }
 
@@ -85,12 +93,15 @@ export interface EntitlementCalendarEntry {
   tenant_slug: string;
   tenant_name: string;
   scope: "platform" | "school";
-  starts_at: string | null;
-  ends_at: string | null;
+  /** Absent when the caller may not read this plan-written window's start. */
+  starts_at?: string | null;
+  /** Absent when the caller may not read this plan-written window's expiry. */
+  ends_at?: string | null;
   status: "active" | "scheduled" | "expired";
   status_label: string;
   warning: "none" | "notice" | "warning" | "critical" | "scheduled" | "expired";
-  days_until_expiry: number | null;
+  /** Absent with `ends_at`; null when the grant has no expiry. */
+  days_until_expiry?: number | null;
 }
 
 export interface EntitlementCalendarData {

@@ -18,9 +18,16 @@ Registration number, while CodeX staff stay governed by platform keys. School
 name remains public before sign-in and outside tenant Field Access. Branch name,
 address and email are sensitive, CodeX-owned fields: schools can read but cannot
 edit them. IN REVIEW 2026-10-12: school profile Address and Registration number
-are registered and enforced in the backend and school app. School-role Read
-controls for branch values across exposing responses are still outstanding.
-The customer, vendor and bank work remains blocked on FinPro.
+are registered and enforced in the backend and school app.
+DECIDED 2026-10-12 (coverage wave): branch name, vendor name, customer name and
+code, bank account name, petty cash fund name and document numbers have NO
+switch; they are identifying labels and always show. Branch address and email
+have school-role Read switches, open by default. BUILT 2026-10-13: the whole approved
+list is built end to end (backend 02953ab5, FinPro 010ec87, console-fe and
+school-fe) as part of the Field Access coverage wave. Remaining steps: release
+FinPro and move both apps to the tag, run the backend deploy steps (seeds, `sync_field_registry`, `rebuild_approval_snapshots`).
+Fields found beyond this list are recorded, not built, in the backend's
+`docs/rbac/field_access_remaining_fields.md`.
 
 ## Done
 

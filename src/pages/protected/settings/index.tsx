@@ -9,7 +9,6 @@ import {
   Eye,
   FileCog,
   History,
-  Loader2,
   LockKeyhole,
   Mail,
   Network,
@@ -58,15 +57,18 @@ import {
   SettingsSectionHeader,
   type ConsoleSettingsSection,
 } from "@/components/settings/settings-layout";
+import { useFieldAccess } from "@/components/finance-ui/field-access";
 import { usePermissions } from "@/hooks/use-permissions";
+import { SCHOOLS_FIELD_RESOURCE } from "../school-mgt/school-field-access";
 import { DEFAULT_SETTINGS_SECTION, type SettingsSection } from "./sections";
+import { Busy, SettingsLoadError } from "./panel-states";
+import { SubscriptionPricing } from "./subscription-pricing";
+import { calendarEntryDate, canEditSchedule, entitlementTiming } from "./entitlement-window";
 import { P, type PermissionCode } from "@/permissions";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetBranchesQuery,
-  useGetPackagePlansQuery,
   useGetSchoolsQuery,
-  useUpdatePackagePlanPriceMutation,
 } from "@/redux/services/dashboard/school-mgt-api";
 import {
   useArchiveCapabilityMutation,
@@ -153,12 +155,15 @@ export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
   section?: SettingsSection;
 }) {
   const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions();
+  const schoolFields = useFieldAccess(SCHOOLS_FIELD_RESOURCE);
+  // A role that may not read the catalogue rate has no pricing section to open.
+  const pricingHidden = schoolFields.isHidden("price_per_student");
   const visible = ALL_SECTIONS.filter(
-    (item) => !item.permissions || (
+    (item) => (item.key !== "subscription-pricing" || !pricingHidden) && (!item.permissions || (
       item.requireAll
         ? hasAllPermissions(...item.permissions)
         : hasAnyPermission(...item.permissions)
-    ),
+    )),
   );
   const [exportConfig, { isFetching }] = useLazyExportConfigQuery();
 
@@ -197,6 +202,7 @@ export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
       {activeSection === "overview" ? (
         <PlatformOverview
           canExport={hasPermission(P.EXPORT_CONFIG)}
+          showPricing={!pricingHidden}
           exporting={isFetching}
           onExport={download}
         />
@@ -217,10 +223,13 @@ export default function Settings({ section = DEFAULT_SETTINGS_SECTION }: {
 
 function PlatformOverview({
   canExport,
+  showPricing,
   exporting,
   onExport,
 }: {
   canExport: boolean;
+  /** False when Field Access hides the catalogue rate the pricing section edits. */
+  showPricing: boolean;
   exporting: boolean;
   onExport: () => void;
 }) {
@@ -254,7 +263,7 @@ function PlatformOverview({
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {canViewValues ? <SettingsOverviewCard icon={Building2} title="Platform profile" description="Set the identity printed when CodeX issues Finance documents." to={`${S}/platform-profile`} status={`${configuredProfileFields} of 7 saved`} tone={configuredProfileFields > 0 ? "ready" : "attention"} /> : null}
         {canViewValues ? <SettingsOverviewCard icon={Sparkles} title="School onboarding" description="Choose the defaults applied only when a new school or branch omits a value." to={`${S}/school-onboarding`} status="New records only" tone="ready" /> : null}
-        {hasPermission(P.BROWSE_SCHOOLS) ? <SettingsOverviewCard icon={CreditCard} title="Subscription pricing" description="Set the per-student catalogue rate for each subscription tier." to={`${S}/subscription-pricing`} status="Future subscriptions" tone="ready" /> : null}
+        {showPricing && hasPermission(P.BROWSE_SCHOOLS) ? <SettingsOverviewCard icon={CreditCard} title="Subscription pricing" description="Set the per-student catalogue rate for each subscription tier." to={`${S}/subscription-pricing`} status="Future subscriptions" tone="ready" /> : null}
         {hasPermission(P.VIEW_SECURITY_SETTINGS) ? <SettingsOverviewCard icon={ShieldCheck} title="Security" description="Control live lockout, recovery, invitation and proxy-session safeguards." to={`${S}/security`} status="Special permission" tone="attention" /> : null}
         {hasPermission(P.VIEW_INTEGRATION_SETTINGS) ? <SettingsOverviewCard icon={Network} title="Integrations" description="Manage email delivery defaults and review deployment-owned connection readiness." to={`${S}/integrations`} status="Special permission" /> : null}
         {hasPermission(P.VIEW_CAPABILITIES) ? <SettingsOverviewCard icon={SlidersHorizontal} title="Features and access" description="Manage product entitlements, dependencies and scoped feature overrides." to={`${S}/features`} status="Live controls" /> : null}
@@ -410,94 +419,6 @@ function SchoolOnboarding() {
           value={<Input className="w-full sm:w-64" disabled={!canSave} value={values.branch_country} onChange={(event) => setDraft({ ...values, branch_country: event.target.value })} />}
           badge={<SourceBadge source={query.data?.data.sources.onboarding.branch_country} />}
         />
-      </SettingsPanel>
-    </div>
-  );
-}
-
-function SubscriptionPricing() {
-  const { hasPermission } = usePermissions();
-  const query = useGetPackagePlansQuery();
-  const [updatePrice, updateState] = useUpdatePackagePlanPriceMutation();
-  const [draft, setDraft] = useState<Record<string, string>>({});
-  const canSave = hasPermission(P.CONFIGURE_SCHOOL);
-
-  useEffect(() => {
-    if (!query.data) return;
-    setDraft(Object.fromEntries(
-      query.data.data.map((plan) => [
-        plan.code,
-        plan.price_per_student == null ? "" : String(plan.price_per_student / 100),
-      ]),
-    ));
-  }, [query.data]);
-
-  if (query.isLoading) return <Busy />;
-  if (query.isError || !query.data) return <SettingsLoadError retry={query.refetch} />;
-
-  const save = async (code: string) => {
-    const naira = Number(draft[code]);
-    if (!Number.isFinite(naira) || naira <= 0) {
-      toast.error("Enter a per-student rate greater than zero");
-      return;
-    }
-    try {
-      await updatePrice({ code, price_per_student: Math.round(naira * 100) }).unwrap();
-      toast.success("Subscription rate saved");
-    } catch (error) {
-      toast.error(apiErrorMessage(error, "Subscription rate could not be saved"));
-    }
-  };
-
-  return (
-    <div data-guide="platform-settings.subscription-pricing" className="space-y-5">
-      <SettingsSectionHeader
-        title="Subscription pricing"
-        description="Each catalogue rate covers one student for one billing cycle at the depth included in that tier. Changes apply to future school agreements and never rewrite a saved agreement or invoice."
-      />
-      <SettingsPanel
-        title="Per-student tier rates"
-        description="Rates are entered in naira. Enterprise stays quoted separately for each school."
-      >
-        {query.data.data.map((plan) => {
-          const quoted = plan.price_per_student == null;
-          return (
-            <SettingsRow
-              key={plan.code}
-              icon={CreditCard}
-              label={plan.name}
-              description={`${plan.default_depth_label} depth, billed ${plan.billing_cycle.toLowerCase()}.`}
-              badge={quoted ? <PolicyBadge kind="enforced">Per-school quote</PolicyBadge> : undefined}
-              value={quoted ? (
-                <p className="font-mont text-sm text-gray-01">Set during school creation</p>
-              ) : (
-                <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap">
-                  <div className="relative min-w-0 flex-1 sm:w-48 sm:flex-none">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-05">₦</span>
-                    <Input
-                      aria-label={`${plan.name} price per student`}
-                      className="pl-7"
-                      type="number"
-                      min="1"
-                      disabled={!canSave}
-                      value={draft[plan.code] ?? ""}
-                      onChange={(event) => setDraft((current) => ({ ...current, [plan.code]: event.target.value }))}
-                    />
-                  </div>
-                  {canSave ? (
-                    <Button
-                      size="sm"
-                      disabled={updateState.isLoading || Number(draft[plan.code]) * 100 === plan.price_per_student}
-                      onClick={() => save(plan.code)}
-                    >
-                      Save
-                    </Button>
-                  ) : null}
-                </div>
-              )}
-            />
-          );
-        })}
       </SettingsPanel>
     </div>
   );
@@ -1006,24 +927,6 @@ function ScopePicker({ value, onChange }: { value: string; onChange: (schoolId: 
   );
 }
 
-function Busy() {
-  return (
-    <div className={cn(INFORMATION_CARD_SURFACE, "grid h-48 place-content-center rounded-md")}>
-      <Loader2 className="size-6 animate-spin text-primary" />
-    </div>
-  );
-}
-
-function SettingsLoadError({ retry }: { retry: () => void }) {
-  return (
-    <div className="grid min-h-48 place-content-center rounded-xl border border-white-02 bg-white p-6 text-center">
-      <p className="font-mont text-sm font-semibold text-gray-01">Settings could not be loaded</p>
-      <p className="mt-1 font-mont text-xs text-gray-05">Check your access or try the request again.</p>
-      <Button className="mx-auto mt-4" variant="outline" size="sm" onClick={retry}>Try again</Button>
-    </div>
-  );
-}
-
 // Destructive archive action behind the house confirm dialog.
 function ArchiveButton({ label, onConfirm }: { label: string; onConfirm: () => void }) {
   return (
@@ -1523,7 +1426,7 @@ function RenewalMetric({ label, value, tone = "default" }: { label: string; valu
 }
 
 function EntitlementCalendarRow({ entry, selected, selectable, onToggle }: { entry: EntitlementCalendarEntry; selected: boolean; selectable: boolean; onToggle: () => void }) {
-  const date = entry.status === "scheduled" ? entry.starts_at : entry.ends_at;
+  const date = calendarEntryDate(entry);
   const warningVariant = entry.warning === "expired" || entry.warning === "critical"
     ? "rejected"
     : entry.warning === "warning" || entry.warning === "notice"
@@ -1552,7 +1455,7 @@ function EntitlementCalendarRow({ entry, selected, selectable, onToggle }: { ent
         <p className="mt-0.5 truncate font-mont text-xs text-gray-05">{entry.scope === "platform" ? "Platform" : entry.tenant_name}</p>
       </div>
       <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-        <span className="font-mont text-xs text-gray-05">{date ? new Date(date).toLocaleString() : "No date"}</span>
+        {date ? <span className="font-mont text-xs text-gray-05">{date}</span> : null}
         <Badge variant={warningVariant} className="font-mont text-xs">{warningLabel}</Badge>
       </div>
     </div>
@@ -1560,17 +1463,6 @@ function EntitlementCalendarRow({ entry, selected, selectable, onToggle }: { ent
 }
 
 type DepStatus = { label: string; on: boolean };
-
-function entitlementTiming(entitlement?: Entitlement) {
-  if (!entitlement || entitlement.state !== "GRANTED") return "Not granted";
-  const now = Date.now();
-  if (entitlement.starts_at && new Date(entitlement.starts_at).getTime() > now) {
-    return `Starts ${new Date(entitlement.starts_at).toLocaleString()}`;
-  }
-  if (entitlement.ends_at && new Date(entitlement.ends_at).getTime() <= now) return "Expired";
-  if (entitlement.ends_at) return `Expires ${new Date(entitlement.ends_at).toLocaleString()}`;
-  return "Active now";
-}
 
 function toLocalDateTimeValue(value?: string | null) {
   if (!value) return "";
@@ -1851,6 +1743,7 @@ function EntitlementScheduleEditor({ cap, school, entitlement }: { cap: Capabili
   const [minimumScheduleDate] = useState(() => toLocalDateTimeValue(new Date().toISOString()));
   const [save, saveState] = useSetEntitlementMutation();
   const invalid = Boolean(startsAt && endsAt && new Date(startsAt).getTime() >= new Date(endsAt).getTime());
+  const editable = canEditSchedule(entitlement);
 
   const submit = async () => {
     try {
@@ -1878,12 +1771,18 @@ function EntitlementScheduleEditor({ cap, school, entitlement }: { cap: Capabili
         </div>
         <PolicyBadge kind={entitlement?.state === "GRANTED" ? "configured" : "default"}>{entitlementTiming(entitlement)}</PolicyBadge>
       </div>
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="space-y-1 font-mont text-xs text-gray-01">Starts at (optional)<Input type="datetime-local" disabled={!canManage} value={startsAt} onChange={(event) => setStartsAt(event.target.value)} /></label>
-        <label className="space-y-1 font-mont text-xs text-gray-01">Expires at (optional)<Input type="datetime-local" min={minimumScheduleDate} disabled={!canManage} value={endsAt} onChange={(event) => setEndsAt(event.target.value)} /></label>
-      </div>
-      {invalid ? <p className="mt-2 font-mont text-xs text-destructive">Expiry must be after activation.</p> : null}
-      {canManage ? <Button className="mt-4" size="sm" disabled={invalid || saveState.isLoading || Boolean(endsAt && endsAt < minimumScheduleDate)} onClick={submit}><Save className="size-3.5" />{saveState.isLoading ? "Saving..." : "Save schedule"}</Button> : null}
+      {editable ? (
+        <>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="space-y-1 font-mont text-xs text-gray-01">Starts at (optional)<Input type="datetime-local" disabled={!canManage} value={startsAt} onChange={(event) => setStartsAt(event.target.value)} /></label>
+          <label className="space-y-1 font-mont text-xs text-gray-01">Expires at (optional)<Input type="datetime-local" min={minimumScheduleDate} disabled={!canManage} value={endsAt} onChange={(event) => setEndsAt(event.target.value)} /></label>
+        </div>
+        {invalid ? <p className="mt-2 font-mont text-xs text-destructive">Expiry must be after activation.</p> : null}
+        {canManage ? <Button className="mt-4" size="sm" disabled={invalid || saveState.isLoading || Boolean(endsAt && endsAt < minimumScheduleDate)} onClick={submit}><Save className="size-3.5" />{saveState.isLoading ? "Saving..." : "Save schedule"}</Button> : null}
+        </>
+      ) : (
+        <p className="mt-3 text-xs leading-5 text-gray-05">This window follows the school&apos;s subscription, so it is not edited here.</p>
+      )}
     </div>
   );
 }

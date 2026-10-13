@@ -54,6 +54,13 @@ export interface SchoolBranding {
   updated_at: string
 }
 
+/**
+ * One plan in the catalogue.
+ *
+ * `price_per_student` is a Field Access field of `platform.schools`: it is
+ * absent when the caller's role may not read the catalogue rate, and null when
+ * the plan is quoted school by school.
+ */
 export interface PackagePlan {
   id: string
   name: string
@@ -61,7 +68,7 @@ export interface PackagePlan {
   description: string
   billing_cycle: string
   currency: string
-  price_per_student: number | null
+  price_per_student?: number | null
   default_depth: number | null
   default_depth_label: string
   max_students: number | null
@@ -96,21 +103,29 @@ export interface SchoolModule extends XVSModule {
   depth_label: string
 }
 
+/**
+ * What a school is on and what it pays.
+ *
+ * Every field below the id is a Field Access field of `platform.schools` and is
+ * absent when the caller's role may not read it: `package_plan` (with the
+ * billing cycle and depth it carries), the two subscription dates, the agreed
+ * price, the minimum billable students and the notes.
+ */
 export interface PackageSetup {
   id: string
-  package_plan: PackagePlan
+  package_plan?: PackagePlan
   /**
    * Every module, because every school is granted every module. What differs
    * between two schools is the depth beside each row, not the length of the
    * list.
    */
   enabled_modules: SchoolModule[]
-  subscription_expires_at: string | null
-  subscription_starts_at: string
-  agreed_price_per_student: number | null
-  minimum_billable_students: number
+  subscription_expires_at?: string | null
+  subscription_starts_at?: string
+  agreed_price_per_student?: number | null
+  minimum_billable_students?: number
   is_active: boolean
-  notes: string
+  notes?: string
   created_at: string
   updated_at: string
 }
@@ -118,6 +133,10 @@ export interface PackageSetup {
 export interface School {
   id: number
   name: string
+  /** Billing email: absent when the caller's role may not read it. */
+  email?: string
+  /** Billing phone: absent when the caller's role may not read it. */
+  phone?: string
   slug: string
   code: string
   ownership_type: string
@@ -132,8 +151,8 @@ export interface School {
 }
 
 export interface SchoolDetail extends School {
-  email: string
-  phone: string
+  /** Names the fields present in this payload that the caller may not change. */
+  _read_only_fields?: string[]
   address: string
   website: string
   /**
