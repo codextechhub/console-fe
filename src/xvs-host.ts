@@ -138,6 +138,11 @@ export const financeSettingsSections: readonly FinanceSettingsSection[] =
 /** Which Setup pages this app routes: all of them. */
 export const setupSections: readonly SetupSection[] = SETUP_SECTIONS;
 
+/** The console has no extra per-reader gate for its host-owned sections. */
+export function useFinanceSettingsSectionAccess(): (section: FinanceSettingsSection) => boolean {
+  return () => true;
+}
+
 /** CodeX authors the shared approval paths every tenant starts on. */
 export const createsWorkflowTemplates = true;
 
