@@ -26,6 +26,7 @@ export const branchItemSchema = Yup.object({
   name: Yup.string().required("Branch name is required"),
   address: Yup.string(),
   email: Yup.string().email("Invalid email"),
+  phone: phoneSchema,
   country: Yup.string().required("Country is required"),
   state: Yup.string(),
   is_main: Yup.boolean(),

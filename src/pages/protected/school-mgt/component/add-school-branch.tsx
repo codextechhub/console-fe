@@ -5,7 +5,9 @@ import { Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import type { BranchStepItem } from "../create-school";
 import { useEffect, useState } from "react";
-import { isValidPhone, PHONE_ERROR, PHONE_PLACEHOLDER } from "@/schema/dashboard";
+import {
+  BRANCH_PHONE_HINT, isValidPhone, MAIN_BRANCH_PHONE_HINT, PHONE_ERROR, PHONE_PLACEHOLDER,
+} from "@/schema/dashboard";
 
 interface Props {
   defaultValues: BranchStepItem[];
@@ -14,7 +16,7 @@ interface Props {
 }
 
 const emptyBranch = (): BranchStepItem => ({
-  name: "", address: "", email: "", country: "Nigeria",
+  name: "", address: "", email: "", phone: "", country: "Nigeria",
   state: "", is_main: false, admin_first_name: "", admin_last_name: "",
   admin_email: "", admin_phone: "",
 });
@@ -61,6 +63,7 @@ export default function AddSchoolBranch({ defaultValues, onNext, onChange }: Pro
       } else if (!EMAIL_RE.test(b.admin_email)) {
         errs[`${i}.admin_email`] = "Enter a valid email address";
       }
+      if (!isValidPhone(b.phone)) errs[`${i}.phone`] = PHONE_ERROR;
       if (!isValidPhone(b.admin_phone)) errs[`${i}.admin_phone`] = PHONE_ERROR;
     });
     if (!branches.some((b) => b.is_main)) errs["main"] = "One branch must be marked as main";
@@ -126,6 +129,15 @@ export default function AddSchoolBranch({ defaultValues, onNext, onChange }: Pro
               placeholder="Enter email"
               value={branch.email}
               onChange={(e) => update(idx, "email", e.target.value)}
+            />
+            <CustomInput
+              id={`phone-${idx}`}
+              label="Branch Phone"
+              placeholder={PHONE_PLACEHOLDER}
+              hint={branch.is_main ? MAIN_BRANCH_PHONE_HINT : BRANCH_PHONE_HINT}
+              value={branch.phone}
+              onChange={(e) => update(idx, "phone", e.target.value)}
+              error={errors[`${idx}.phone`]}
             />
             <CustomInput
               id={`country-${idx}`}

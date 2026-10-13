@@ -67,6 +67,12 @@ export const PHONE_ERROR = "Enter a valid phone number, e.g. 08012345678 or +234
 
 export const PHONE_PLACEHOLDER = "e.g. 08012345678 or +2348012345678";
 
+/** Under a branch's phone field: what the number is for. */
+export const BRANCH_PHONE_HINT = "WhatsApp alerts for this branch's payment terminal go to this number.";
+
+/** Added under {@link BRANCH_PHONE_HINT} on a school's main branch, which falls back to the school's phone. */
+export const MAIN_BRANCH_PHONE_HINT = `Leave blank to use the school's phone. ${BRANCH_PHONE_HINT}`;
+
 /** True for an empty value (phone is optional unless a schema says so) or a valid number. */
 export const isValidPhone = (value: string | undefined | null): boolean =>
   !value || PHONE_PATTERN.test(value);

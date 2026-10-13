@@ -29,6 +29,7 @@ export default function CreateAndConfigureSchoolArticle() {
         <GuideSteps>
           <GuideStep title="Describe the location">Enter <strong>Branch Name</strong>, <strong>Branch Type</strong>, country, and the available address, email, and state information.</GuideStep>
           <GuideStep title="Add the branch administrator">Enter the branch administrator&apos;s first name, last name, and email. Their phone number is optional.</GuideStep>
+          <GuideStep title="Give each branch a phone"><strong>Branch Phone</strong> is optional. It is the number that receives WhatsApp alerts for that branch&apos;s payment terminal. On the main branch, leave it blank to use the school&apos;s phone.</GuideStep>
           <GuideStep title="Check the main branch">Keep <strong>Main Branch</strong> on for the primary location. If you select <strong>Add Another Branch</strong>, verify that only the intended location remains the main branch, then select <strong>Continue</strong>.</GuideStep>
         </GuideSteps>
       </GuideSection>

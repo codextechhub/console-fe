@@ -237,6 +237,7 @@ export default function ViewBranch() {
                     <DetailField label="Email">
                       {branch.email ? <a href={`mailto:${branch.email}`} className="inline-flex max-w-full items-center gap-1.5 text-primary hover:underline"><Mail className="size-3.5 shrink-0" /><span className="truncate">{branch.email}</span></a> : "-"}
                     </DetailField>
+                    <DetailField label="Phone" value={branch.phone || "-"} />
                     <DetailField label="Opened" value={branch.opened_at ? formatStartedTime(branch.opened_at) : "Not recorded"} />
                     <DetailField label="Activated" value={branch.activated_at ? formatStartedTime(branch.activated_at) : "Not activated"} />
                   </div>
