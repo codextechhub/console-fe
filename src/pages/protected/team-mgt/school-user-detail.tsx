@@ -1,157 +1,266 @@
-import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useGetTeamMembersDetailsQuery } from "@/redux/services/dashboard/team-mgt-api";
-import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
-import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
-import PermissionOverrides, { useCanViewPermissionExceptions } from "@/components/custom/permission-overrides";
-import FieldAccessOverrides from "@/components/custom/field-access-overrides";
-import { formatRelativeDate } from "@/utils/helpers";
-import { useFieldAccess } from "@/components/finance-ui/field-access";
-import { TEAM_FIELD_RESOURCE } from "./team-field-access";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Building2, CalendarDays, GitBranch, KeyRound, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router";
+import {
+  Building2,
+  CalendarClock,
+  Clock3,
+  GitBranch,
+  KeyRound,
+  Mail,
+  Pencil,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 
-/**
- * The persona column is gone from the API: which side of the platform boundary
- * an account sits on is a fact about its tenant, and what the person actually
- * does is their role. Two accounts both reading "Staff" were a principal and a
- * Year 4 teacher, which is exactly what the role says and the persona did not.
- */
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import FieldAccessOverrides from "@/components/custom/field-access-overrides";
+import PermissionOverrides, { useCanViewPermissionExceptions } from "@/components/custom/permission-overrides";
+import { useFieldAccess } from "@/components/finance-ui/field-access";
+import { PageShell } from "@/components/layout/page-shell";
+import {
+  ProfileCard,
+  ProfileEmptyState,
+  ProfileField,
+  ProfileFields,
+  ProfileHero,
+  ProfilePanel,
+  ProfileTabs,
+  ProfileTimeline,
+  type ProfileTab,
+  type ProfileTabId,
+} from "@/components/profile/profile-system";
+import { UserAvatar } from "@/components/custom/user-avatar";
+import { usePermissions } from "@/hooks/use-permissions";
+import { P } from "@/permissions";
+import { routesPath } from "@/routes/routes-path";
+import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
+import { useGetTeamMembersDetailsQuery } from "@/redux/services/dashboard/team-mgt-api";
+import { formatRelativeDate } from "@/utils/helpers";
+import { TEAM_FIELD_RESOURCE } from "./team-field-access";
+import { getSchoolProfileName, getSchoolProfileTenantSlug } from "./school-user-profile";
+
 const TENANT_KIND_LABELS: Record<string, string> = {
   PLATFORM: "CX Staff",
   SCHOOL: "School User",
 };
 
-function DetailField({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof UserRound;
-  label: string;
-  value?: string | number | null;
-}) {
-  return (
-    <div className="rounded-md border border-white-02 bg-white p-3.5">
-      <div className="mb-1.5 flex items-center gap-2 text-xs text-gray-01">
-        <Icon className="size-3.5" />
-        <span>{label}</span>
-      </div>
-      <p className="break-words text-sm font-medium text-black-01">{value || "-"}</p>
-    </div>
-  );
-}
+const SCHOOL_PROFILE_TABS: ProfileTab[] = [
+  { id: "overview", label: "Overview" },
+  { id: "access", label: "Access" },
+  { id: "activity", label: "Activity" },
+  { id: "history", label: "History" },
+];
 
-export function SchoolUserDetail({
-  user,
-  onClose,
-}: {
-  user: TeamMember | null;
-  onClose: () => void;
-}) {
-  const { data, isLoading } = useGetTeamMembersDetailsQuery(user?.id ?? "", {
-    skip: !user?.id,
-  });
+/**
+ * Full-page school-user profile.
+ *
+ * It uses the same identity, tab, card, and field components as CX staff
+ * profiles, while keeping school placement and account access separate from
+ * CX employment and payroll data. Account facts continue to follow Field
+ * Access, and per-user access exceptions stay scoped to the owning school.
+ */
+export default function SchoolUserDetail() {
+  const { id = "" } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
+  const [activeTab, setActiveTab] = useState<ProfileTabId>("overview");
+  const { data, isLoading, isError, refetch } = useGetTeamMembersDetailsQuery(id, { skip: !id });
   const detail = data?.data;
-  // Sign-in and invitation facts are Field Access fields: absent means hidden.
-  const access = useFieldAccess(TEAM_FIELD_RESOURCE, detail ?? user);
+  const access = useFieldAccess(TEAM_FIELD_RESOURCE, detail ?? {});
 
-  // Permission overrides are addressed by the TARGET's tenant slug, and a
-  // school user's rows carry only school_id/school_name. The schools list is
-  // where the console reads a school's slug for `?tenant=` everywhere else
-  // (see settings/index.tsx ScopePicker) - reusing the identical query arg the
-  // members tab already issues means this hits the existing RTK cache entry
-  // rather than adding a request.
   const canSeeExceptions = useCanViewPermissionExceptions();
-  const schoolId = detail?.school_id ?? user?.school_id;
   const { data: schoolsRes } = useGetSchoolsQuery(
     { page_size: 100 },
-    { skip: !user || !canSeeExceptions },
+    { skip: !detail?.school_id || Boolean(detail?.tenant_slug) || !canSeeExceptions },
   );
-  const tenantSlug =
-    (schoolsRes?.data ?? []).find((school) => String(school.id) === String(schoolId))?.slug ?? "";
+  const tenantSlug = detail
+    ? getSchoolProfileTenantSlug(detail, schoolsRes?.data ?? [])
+    : "";
+
+  if (isLoading || (!detail && !isError)) {
+    return (
+      <PageShell className="space-y-4">
+        <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />
+        <div className="h-12 animate-pulse rounded-xl bg-slate-100" />
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="h-56 animate-pulse rounded-2xl bg-slate-100" />
+          <div className="h-56 animate-pulse rounded-2xl bg-slate-100" />
+        </div>
+      </PageShell>
+    );
+  }
+
+  if (isError || !detail) {
+    return (
+      <PageShell>
+        <ProfileEmptyState>
+          <p>This school-user profile could not be loaded.</p>
+          <Button variant="outline" className="mt-4" onClick={() => void refetch()}>Try again</Button>
+        </ProfileEmptyState>
+      </PageShell>
+    );
+  }
+
+  const tenantLabel = TENANT_KIND_LABELS[detail.tenant_kind] || detail.tenant_kind || "School User";
+  const schoolName = getSchoolProfileName(detail);
+  const status = detail.status || "Inactive";
+  const activityItems = [
+    !access.isHidden("last_login_at")
+      ? {
+          id: "last-login",
+          title: detail.last_login_at ? "Signed in" : "No sign-in recorded",
+          detail: detail.last_login_at ? formatRelativeDate(detail.last_login_at) : "This account has not signed in yet.",
+          current: Boolean(detail.last_login_at),
+        }
+      : null,
+    !access.isHidden("invitation_email_status") && detail.invitation_email_status
+      ? {
+          id: "invitation",
+          title: `Invitation ${detail.invitation_email_status.toLowerCase()}`,
+          detail: !access.isHidden("invited_by_name") && detail.invited_by_name
+            ? `Invited by ${detail.invited_by_name}`
+            : "Invitation delivery state",
+        }
+      : null,
+    {
+      id: "created",
+      title: "Account created",
+      detail: formatRelativeDate(detail.created_at),
+    },
+  ].filter((item): item is NonNullable<typeof item> => item !== null);
+
+  const historyItems = [
+    detail.updated_at
+      ? { id: "updated", title: "Profile updated", detail: formatRelativeDate(detail.updated_at), current: true }
+      : null,
+    !access.isHidden("invitation_expires_at") && detail.invitation_expires_at
+      ? { id: "invite-expiry", title: "Invitation expiry", detail: formatRelativeDate(detail.invitation_expires_at) }
+      : null,
+    { id: "created", title: "Account created", detail: formatRelativeDate(detail.created_at) },
+  ].filter((item): item is NonNullable<typeof item> => item !== null);
 
   return (
-    <Sheet open={Boolean(user)} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-xl">
-        <ScrollArea className="min-h-0 flex-1">
-          <div className="flex flex-col gap-4">
-            <SheetHeader className="border-b border-white-02 pb-4">
-              <SheetTitle>School User Details</SheetTitle>
-              <SheetDescription>Read-only identity, placement, access, and account activity.</SheetDescription>
-            </SheetHeader>
+    <PageShell className="space-y-5 text-black-01">
+      <ProfileHero
+        avatar={<UserAvatar userId={detail.id} name={detail.full_name} className="size-16 sm:size-18" fallbackClassName="text-lg" />}
+        name={detail.full_name || "Unnamed user"}
+        title={detail.role || "School user"}
+        email={detail.email}
+        badges={(
+          <>
+            <Badge variant={status.toLowerCase() as "active"}>{status}</Badge>
+            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">{tenantLabel}</span>
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+              {detail.branch_name || "School-wide"}
+            </span>
+          </>
+        )}
+        facts={[
+          { label: "School", value: schoolName, icon: Building2 },
+          ...(!access.isHidden("last_login_at")
+            ? [{ label: "Last active", value: detail.last_login_at ? formatRelativeDate(detail.last_login_at) : "Never", icon: Clock3 }]
+            : []),
+        ]}
+        actions={(
+          <>
+            {canSeeExceptions ? (
+              <Button variant="outline" onClick={() => setActiveTab("access")}>
+                <ShieldCheck className="size-4" /> Manage access
+              </Button>
+            ) : null}
+            {hasPermission(P.MODIFY_TEAM_MEMBER) ? (
+              <Button onClick={() => navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(detail.id, "schools"))}>
+                <Pencil className="size-4" /> Edit profile
+              </Button>
+            ) : null}
+          </>
+        )}
+      />
 
-            {isLoading ? (
-              <div className="space-y-3 p-4">
-                {Array.from({ length: 7 }).map((_, index) => (
-                  <div key={index} className="h-16 animate-pulse rounded-md bg-gray-06" />
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-6 p-4">
-                <section className="flex items-start justify-between gap-4 rounded-md bg-primary/5 p-4">
-                  <div className="min-w-0">
-                    <p className="truncate text-base font-semibold text-black-01">
-                      {detail?.full_name || user?.full_name || "Unnamed user"}
-                    </p>
-                    <p className="mt-1 truncate text-xs text-gray-01">{detail?.email || user?.email}</p>
-                  </div>
-                  <Badge variant={(detail?.status || user?.status || "inactive").toLowerCase() as "active"}>
-                    {detail?.status || user?.status || "-"}
-                  </Badge>
-                </section>
+      <ProfileTabs tabs={SCHOOL_PROFILE_TABS} active={activeTab} onChange={setActiveTab} />
 
-                <section>
-                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-01">Identity</h3>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <DetailField icon={UserRound} label="Full name" value={detail?.full_name || user?.full_name} />
-                    <DetailField icon={Mail} label="Email" value={detail?.email || user?.email} />
-                    <DetailField icon={Phone} label="Phone" value={detail?.phone} />
-                    <DetailField icon={UserRound} label="Gender" value={detail?.gender} />
-                  </div>
-                </section>
+      {activeTab === "overview" ? (
+        <ProfilePanel id="overview" className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <ProfileCard title="School placement" icon={Building2}>
+            <ProfileFields>
+              <ProfileField label="School" value={schoolName} />
+              <ProfileField label="Branch" value={detail.branch_name || "School-wide"} />
+              <ProfileField label="Assigned role" value={detail.role} />
+              <ProfileField label="Account type" value={tenantLabel} />
+            </ProfileFields>
+          </ProfileCard>
 
-                <section>
-                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-01">School placement</h3>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <DetailField icon={Building2} label="School" value={detail?.school_name || user?.school_name} />
-                    <DetailField icon={GitBranch} label="Branch" value={detail?.branch_name || user?.branch_name} />
-                    <DetailField icon={ShieldCheck} label="Account type" value={TENANT_KIND_LABELS[detail?.tenant_kind || user?.tenant_kind || ""] || detail?.tenant_kind || user?.tenant_kind} />
-                    <DetailField icon={KeyRound} label="Assigned role" value={detail?.role || user?.role} />
-                  </div>
-                </section>
+          <ProfileCard title="Contact" icon={Mail}>
+            <ProfileFields>
+              <ProfileField label="Email" value={detail.email} />
+              <ProfileField label="Phone" value={detail.phone} />
+              <ProfileField label="Gender" value={detail.gender} />
+              <ProfileField label="Branch scope" value={detail.branch_name || "All branches"} />
+            </ProfileFields>
+          </ProfileCard>
 
-                <section>
-                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-01">Account activity</h3>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <DetailField icon={CalendarDays} label="Created" value={(detail?.created_at || user?.created_at) ? formatRelativeDate(detail?.created_at || user!.created_at) : "-"} />
-                    {!access.isHidden("last_login_at") && (
-                      <DetailField icon={CalendarDays} label="Last login" value={detail?.last_login_at ? formatRelativeDate(detail.last_login_at) : "Never"} />
-                    )}
-                    {!access.isHidden("invited_by_name") && (
-                      <DetailField icon={UserRound} label="Invited by" value={detail?.invited_by_name || user?.invited_by_name} />
-                    )}
-                    <DetailField icon={CalendarDays} label="Last updated" value={detail?.updated_at ? formatRelativeDate(detail.updated_at) : "-"} />
-                  </div>
-                </section>
+          <ProfileCard title="Account summary" icon={UserRound}>
+            <ProfileFields>
+              <ProfileField label="Status" value={status} />
+              <ProfileField label="Role" value={detail.role} />
+              <ProfileField label="Created" value={formatRelativeDate(detail.created_at)} />
+              <ProfileField label="Last updated" value={detail.updated_at ? formatRelativeDate(detail.updated_at) : "-"} />
+            </ProfileFields>
+          </ProfileCard>
 
-                <PermissionOverrides
-                  userId={user?.id}
-                  tenantSlug={tenantSlug}
-                  userName={detail?.full_name || user?.full_name}
-                />
-                <FieldAccessOverrides
-                  userId={user?.id}
-                  tenantSlug={tenantSlug}
-                  userName={detail?.full_name || user?.full_name}
-                />
-              </div>
-            )}
+          <ProfileCard title="Placement at a glance" icon={GitBranch}>
+            <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-700">
+              <span className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">{schoolName}</span>
+              <span className="text-slate-300">/</span>
+              <span className="rounded-lg bg-primary/5 px-3 py-2 text-primary ring-1 ring-primary/15">
+                {detail.branch_name || "School-wide"}
+              </span>
+              <span className="text-slate-300">/</span>
+              <span className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">{detail.role || "No role"}</span>
+            </div>
+          </ProfileCard>
+        </ProfilePanel>
+      ) : null}
 
-          </div>
-        </ScrollArea>
-      </SheetContent>
-    </Sheet>
+      {activeTab === "access" ? (
+        <ProfilePanel id="access" className="space-y-5">
+          <ProfileCard title="Account access" icon={KeyRound}>
+            <ProfileFields columns={3}>
+              <ProfileField label="Assigned role" value={detail.role} />
+              <ProfileField label="School scope" value={schoolName} />
+              <ProfileField label="Branch scope" value={detail.branch_name || "School-wide"} />
+            </ProfileFields>
+          </ProfileCard>
+          <PermissionOverrides userId={detail.id} tenantSlug={tenantSlug} userName={detail.full_name} className="rounded-2xl border-slate-200 p-5" />
+          <FieldAccessOverrides userId={detail.id} tenantSlug={tenantSlug} userName={detail.full_name} className="rounded-2xl border-slate-200 p-5" />
+        </ProfilePanel>
+      ) : null}
+
+      {activeTab === "activity" ? (
+        <ProfilePanel id="activity" className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <ProfileCard title="Account activity" icon={Clock3}>
+            {activityItems.length ? <ProfileTimeline items={activityItems} /> : <p className="text-sm text-gray-01">No account activity is available.</p>}
+          </ProfileCard>
+          <ProfileCard title="Invitation and security" icon={ShieldCheck}>
+            <ProfileFields>
+              {!access.isHidden("last_login_at") ? <ProfileField label="Last sign-in" value={detail.last_login_at ? formatRelativeDate(detail.last_login_at) : "Never"} /> : null}
+              {!access.isHidden("password_changed_at") ? <ProfileField label="Password changed" value={detail.password_changed_at ? formatRelativeDate(detail.password_changed_at) : "No change recorded"} /> : null}
+              {!access.isHidden("invited_by_name") ? <ProfileField label="Invited by" value={detail.invited_by_name} /> : null}
+              {!access.isHidden("invitation_email_status") ? <ProfileField label="Invitation status" value={detail.invitation_email_status} /> : null}
+            </ProfileFields>
+          </ProfileCard>
+        </ProfilePanel>
+      ) : null}
+
+      {activeTab === "history" ? (
+        <ProfilePanel id="history">
+          <ProfileCard title="Profile history" icon={CalendarClock} className="max-w-3xl">
+            <ProfileTimeline items={historyItems} />
+          </ProfileCard>
+        </ProfilePanel>
+      ) : null}
+    </PageShell>
   );
 }
 

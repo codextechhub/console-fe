@@ -44,7 +44,7 @@ export default function InviteAndManageUsersArticle() {
       </GuideSection>
 
       <GuideSection id="open-a-staff-profile" title="Open a staff profile">
-        <p>For a CX member, select <strong>View Details</strong> to open the staff profile connected to that user. The profile explains their organogram position and employment context. For a school user, <strong>View Details</strong> opens the school-user detail panel instead.</p>
+        <p>For a CX member, select <strong>View Details</strong> to open the staff profile connected to that user. The same profile design opens when that person is selected from workspace search, and the signed-in owner sees it under <strong>My Profile</strong>. For a school user, <strong>View Details</strong> opens a full profile page with school placement, contact, access, activity, and history tabs.</p>
         <GuideCallout title="An account and a staff profile answer different questions">Use Users for access and invitation state. Use the staff profile for position, reporting structure, and employment details.</GuideCallout>
       </GuideSection>
 

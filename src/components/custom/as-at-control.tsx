@@ -33,8 +33,8 @@ export function AsAtControl({
 }) {
   const today = todayIso();
   return (
-    <div className="grid justify-items-start gap-1" data-guide="as-at-control">
-      <label className="flex min-w-0 items-center gap-2 text-[13px] text-gray-05">
+    <div className="flex min-w-0 items-center" data-guide="as-at-control">
+      <label className="flex min-w-0 flex-wrap items-center gap-2 text-[13px] text-gray-05">
         <History className="size-4 shrink-0 text-gray-05" aria-hidden="true" />
         <span className="shrink-0 font-medium text-gray-01">As at</span>
         <DatePickerInput
@@ -47,11 +47,6 @@ export function AsAtControl({
           onChange={(event) => onChange(event.target.value === today ? undefined : event.target.value)}
         />
       </label>
-      <span className="text-[11px] text-gray-05">
-        {historyStarts
-          ? `History from ${longDate(historyStarts)}`
-          : "No history recorded yet"}
-      </span>
     </div>
   );
 }

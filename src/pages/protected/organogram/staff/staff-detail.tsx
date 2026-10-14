@@ -19,7 +19,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { Banknote, Mail, Pencil } from "lucide-react";
+import { Banknote, Briefcase, Building2, Clock3, Contact, Mail, Pencil, ShieldCheck, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PermissionGate from "@/components/custom/permission-gate";
@@ -44,14 +44,29 @@ import { OrgAvatar, StatusPill, EmpBadge } from "../components/org-primitives";
 import { fmtDate } from "../lib/org-helpers";
 import { STAFF_PROFILE_RESOURCE, useVisiblePayrollFields } from "../lib/staff-payroll";
 import { PageShell } from "@/components/layout/page-shell";
+import {
+  ProfileCard,
+  ProfileField,
+  ProfileFields,
+  ProfileHero,
+  ProfilePanel,
+  ProfileTabs,
+  ProfileTimeline,
+  type ProfileTab,
+  type ProfileTabId,
+} from "@/components/profile/profile-system";
+
+const FULL_PROFILE_TABS: ProfileTab[] = [
+  { id: "overview", label: "Overview" },
+  { id: "access", label: "Access" },
+  { id: "activity", label: "Activity" },
+  { id: "history", label: "History" },
+];
+
+const BRIEF_PROFILE_TABS: ProfileTab[] = [{ id: "overview", label: "Overview" }];
 
 function Row({ label, value }: { label: string; value?: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</span>
-      <span className="text-sm text-black-01">{value || "-"}</span>
-    </div>
-  );
+  return <ProfileField label={label} value={value} />;
 }
 
 /**
@@ -96,25 +111,16 @@ function organisationRow(profile: { as_at?: AsAtMeta }) {
   }];
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5">
-      <h3 className="mb-4 text-sm font-semibold font-mont text-black-01">{title}</h3>
-      <div className="grid gap-4 sm:grid-cols-2">{children}</div>
-    </section>
-  );
-}
-
 function Payroll({ profile }: { profile: StaffProfile }) {
   const fields = useVisiblePayrollFields(profile);
   if (!fields.length) return null;
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5">
-      <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold font-mont text-black-01">
-        <Banknote className="size-4 text-teal-600" /> Payroll
-        <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-rose-500 ring-1 ring-rose-200">SENSITIVE</span>
-      </h3>
-      <div className="grid gap-4 sm:grid-cols-3">
+    <ProfileCard
+      title="Payroll"
+      icon={Banknote}
+      badge={<span className="rounded bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-rose-500 ring-1 ring-rose-200">SENSITIVE</span>}
+    >
+      <ProfileFields columns={3}>
         {fields.map((field) => (
           <Row
             key={field.name}
@@ -122,8 +128,8 @@ function Payroll({ profile }: { profile: StaffProfile }) {
             value={field.value && field.name === "account_number" ? <span className="font-mono">{field.value}</span> : field.value}
           />
         ))}
-      </div>
-    </section>
+      </ProfileFields>
+    </ProfileCard>
   );
 }
 
@@ -135,7 +141,8 @@ function BriefProfile({ profile }: { profile: StaffProfileBrief }) {
         This is the work information available to colleagues in your workspace.
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
-        <Card title="Work profile">
+        <ProfileCard title="Work profile" icon={Building2}>
+          <ProfileFields>
           {rows([
             { field: "employee_id", label: "Employee ID", value: <span className="font-mono">{profile.employee_id}</span> },
             { label: "Seat", value: profile.position ? `${profile.position.title} · ${profile.position.code}` : "-" },
@@ -146,10 +153,11 @@ function BriefProfile({ profile }: { profile: StaffProfileBrief }) {
             ...organisationRow(profile),
             { field: "employment_type", label: "Employment type", value: <EmpBadge type={profile.employment_type} /> },
           ])}
-        </Card>
-        <Card title="Contact">
-          <Row label="Work email" value={profile.user.email} />
-        </Card>
+          </ProfileFields>
+        </ProfileCard>
+        <ProfileCard title="Contact" icon={Contact}>
+          <ProfileFields><Row label="Work email" value={profile.user.email} /></ProfileFields>
+        </ProfileCard>
       </div>
     </>
   );
@@ -157,6 +165,7 @@ function BriefProfile({ profile }: { profile: StaffProfileBrief }) {
 
 export default function StaffDetail() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<ProfileTabId>("overview");
   const { hasPermission } = usePermissions();
   const { id, userId } = useParams<{ id?: string; userId?: string }>();
   // CX staff live in the caller's own (platform) tenant, so the override
@@ -226,135 +235,178 @@ export default function StaffDetail() {
           <div className="space-y-3">{[0, 1, 2, 3].map((i) => <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-100" />)}</div>
         ) : (
           <>
-            <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5">
-              <OrgAvatar user={profile.user} size={60} status={profile.employment_status} />
-              <div className="min-w-0 flex-1">
-                <div className="text-lg font-bold text-black-01">{profile.user.full_name}</div>
-                <div className="text-sm text-gray-01">{profile.job_title || profile.position?.title || "-"}{profile.department?.name ? ` · ${profile.department.name}` : ""}</div>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
+            <ProfileHero
+              avatar={<OrgAvatar user={profile.user} size={72} status={profile.employment_status} />}
+              name={profile.user.full_name}
+              title={profile.job_title || profile.position?.title || "CX staff"}
+              email={profile.user.email}
+              badges={(
+                <>
                   <StatusPill status={profile.employment_status} />
+                  <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">CX Staff</span>
                   <EmpBadge type={profile.employment_type} />
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                {profile.profile_view === "full" && (
-                  <LiveOnly>
-                    <PermissionGate permission={P.MODIFY_STAFF_PROFILE}>
-                      <Button variant="outline" onClick={() => navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_EDIT(profile.id))}>
-                        <Pencil className="size-4" /> Edit
-                      </Button>
-                    </PermissionGate>
-                  </LiveOnly>
-                )}
-                <AsAtControl historyStarts={profile.history_starts} value={asAt} onChange={setAsAt} />
-              </div>
-            </div>
+                </>
+              )}
+              facts={[
+                { label: "Department", value: profile.department?.name || "-", icon: Building2 },
+                { label: "Last updated", value: fmtDate(profile.profile_view === "full" ? profile.updated_at : null), icon: Clock3 },
+              ]}
+              actions={(
+                <>
+                  {profile.profile_view === "full" ? (
+                    <LiveOnly>
+                      <PermissionGate permission={P.MODIFY_STAFF_PROFILE}>
+                        <Button variant="outline" onClick={() => navigate(routesPath.PROTECTED.ORGANOGRAM.STAFF_EDIT(profile.id))}>
+                          <Pencil className="size-4" /> Edit profile
+                        </Button>
+                      </PermissionGate>
+                    </LiveOnly>
+                  ) : null}
+                  <AsAtControl historyStarts={profile.history_starts} value={asAt} onChange={setAsAt} />
+                </>
+              )}
+            />
+
+            <ProfileTabs
+              tabs={profile.profile_view === "full" ? FULL_PROFILE_TABS : BRIEF_PROFILE_TABS}
+              active={profile.profile_view === "brief" ? "overview" : activeTab}
+              onChange={setActiveTab}
+            />
 
             {profile.profile_view === "brief" ? (
-              <BriefProfile profile={profile} />
+              <ProfilePanel id="overview"><BriefProfile profile={profile} /></ProfilePanel>
             ) : (
               <>
-            <div className="grid gap-5 lg:grid-cols-2">
-              <Card title="Employment">
-                {rows([
-                  { field: "employee_id", label: "Employee ID", value: <span className="font-mono">{profile.employee_id}</span> },
-                  { field: "job_title", label: "Job title", value: profile.job_title },
-                  { label: "Seat", value: profile.position ? `${profile.position.title} · ${profile.position.code}` : "-" },
-                  { label: "Department", value: profile.department?.name },
-                  { label: "Line manager", value: profile.current_line_manager?.full_name },
-                  ...organisationRow(profile),
-                  { field: "date_joined", label: "Date joined", value: fmtDate(profile.date_joined ?? null) },
-                  { field: "date_exited", label: "Date exited", value: fmtDate(profile.date_exited ?? null) },
-                ])}
-              </Card>
+            {activeTab === "overview" ? (
+              <ProfilePanel id="overview" className="space-y-5">
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                  <ProfileCard title="Employment" icon={Briefcase}>
+                    <ProfileFields>
+                      {rows([
+                        { field: "employee_id", label: "Employee ID", value: <span className="font-mono">{profile.employee_id}</span> },
+                        { field: "job_title", label: "Job title", value: profile.job_title },
+                        { label: "Seat", value: profile.position ? `${profile.position.title} · ${profile.position.code}` : "-" },
+                        { label: "Department", value: profile.department?.name },
+                        { label: "Line manager", value: profile.current_line_manager?.full_name },
+                        ...organisationRow(profile),
+                        { field: "date_joined", label: "Date joined", value: fmtDate(profile.date_joined ?? null) },
+                        { field: "date_exited", label: "Date exited", value: fmtDate(profile.date_exited ?? null) },
+                      ])}
+                    </ProfileFields>
+                  </ProfileCard>
 
-              <Card title="Personal">
-                {rows([
-                  { field: "date_of_birth", label: "Date of birth", value: fmtDate(profile.date_of_birth ?? null) },
-                  { field: "marital_status", label: "Marital status", value: profile.marital_status },
-                  { field: "nationality", label: "Nationality", value: profile.nationality },
-                  { field: "state_of_origin", label: "State of origin", value: profile.state_of_origin },
-                  { label: "Bio", value: profile.bio, wide: true },
-                ])}
-              </Card>
+                  <ProfileCard title="Personal" icon={UserRound}>
+                    <ProfileFields>
+                      {rows([
+                        { field: "date_of_birth", label: "Date of birth", value: fmtDate(profile.date_of_birth ?? null) },
+                        { field: "marital_status", label: "Marital status", value: profile.marital_status },
+                        { field: "nationality", label: "Nationality", value: profile.nationality },
+                        { field: "state_of_origin", label: "State of origin", value: profile.state_of_origin },
+                        { label: "Bio", value: profile.bio, wide: true },
+                      ])}
+                    </ProfileFields>
+                  </ProfileCard>
 
-              <Card title="Contact">
-                <Row
-                  label="Work email"
-                  value={
-                    <span className="inline-flex flex-wrap items-center gap-2">
-                      {profile.user.email}
-                      {canChangeEmail && (
-                        <button
-                          onClick={() => setEmailModal(true)}
-                          className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-1.5 py-0.5 text-[11px] font-semibold text-gray-06 transition-colors hover:border-primary/40 hover:text-primary"
-                          title="Change email address"
-                        >
-                          <Mail className="size-3" /> Change
-                        </button>
-                      )}
-                    </span>
-                  }
-                />
-                {rows([
-                  { field: "personal_email", label: "Personal email", value: profile.personal_email },
-                  { field: "alternate_phone", label: "Alternate phone", value: profile.alternate_phone },
-                  { field: "city", label: "City", value: profile.city },
-                  { field: "state", label: "State", value: profile.state },
-                  { field: "residential_address", label: "Residential address", value: profile.residential_address, wide: true },
-                ])}
-              </Card>
+                  <ProfileCard title="Contact" icon={Contact}>
+                    <ProfileFields>
+                      <Row
+                        label="Work email"
+                        value={
+                          <span className="inline-flex flex-wrap items-center gap-2">
+                            {profile.user.email}
+                            {canChangeEmail ? (
+                              <button
+                                onClick={() => setEmailModal(true)}
+                                className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-1.5 py-0.5 text-[11px] font-semibold text-gray-06 transition-colors hover:border-primary/40 hover:text-primary"
+                                title="Change email address"
+                              >
+                                <Mail className="size-3" /> Change
+                              </button>
+                            ) : null}
+                          </span>
+                        }
+                      />
+                      {rows([
+                        { field: "personal_email", label: "Personal email", value: profile.personal_email },
+                        { field: "alternate_phone", label: "Alternate phone", value: profile.alternate_phone },
+                        { field: "city", label: "City", value: profile.city },
+                        { field: "state", label: "State", value: profile.state },
+                        { field: "residential_address", label: "Residential address", value: profile.residential_address, wide: true },
+                      ])}
+                    </ProfileFields>
+                  </ProfileCard>
 
-              <Card title="Next of kin">
-                {rows([
-                  { field: "nok_name", label: "Name", value: profile.nok_name },
-                  { field: "nok_relationship", label: "Relationship", value: profile.nok_relationship },
-                  { field: "nok_phone", label: "Phone", value: profile.nok_phone },
-                  { field: "nok_address", label: "Address", value: profile.nok_address, wide: true },
-                ])}
-              </Card>
-            </div>
-
-            <section className="rounded-2xl border border-slate-200 bg-white p-5">
-              <h3 className="mb-4 text-sm font-semibold font-mont text-black-01">Position history</h3>
-              {history.length ? (
-                <div className="flex flex-col gap-2">
-                  {history.map((a) => {
-                    const current = a.end_date === null;
-                    return (
-                      <div key={a.id} className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${current ? "border-indigo-200 bg-indigo-50/40" : "border-slate-200 bg-white"}`}>
-                        <span className={`h-2 w-2 shrink-0 rounded-full ${current ? "bg-indigo-500" : "bg-slate-300"}`} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="truncate text-[13px] font-medium text-slate-700">{a.position.title}</span>
-                            {a.is_acting && <span className="rounded bg-amber-100 px-1 text-[9px] font-bold text-amber-700">ACTING</span>}
-                            {a.is_primary && <span className="rounded bg-slate-100 px-1 text-[9px] font-bold text-slate-500">PRIMARY</span>}
-                          </div>
-                          <div className="text-[11.5px] text-slate-400">{fmtDate(a.start_date)} – {current ? "Present" : fmtDate(a.end_date)}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <ProfileCard title="Next of kin" icon={UserRound}>
+                    <ProfileFields>
+                      {rows([
+                        { field: "nok_name", label: "Name", value: profile.nok_name },
+                        { field: "nok_relationship", label: "Relationship", value: profile.nok_relationship },
+                        { field: "nok_phone", label: "Phone", value: profile.nok_phone },
+                        { field: "nok_address", label: "Address", value: profile.nok_address, wide: true },
+                      ])}
+                    </ProfileFields>
+                  </ProfileCard>
                 </div>
-              ) : (
-                <p className="text-sm text-gray-01">No assignment history yet.</p>
-              )}
-            </section>
+                <Payroll profile={profile} />
+              </ProfilePanel>
+            ) : null}
 
-            <Payroll profile={profile} />
+            {activeTab === "access" ? (
+              <ProfilePanel id="access" className="space-y-5">
+                <ProfileCard title="Access context" icon={ShieldCheck}>
+                  <ProfileFields columns={3}>
+                    <ProfileField label="Tenant" value="Console (CX)" />
+                    <ProfileField label="Department" value={profile.department?.name} />
+                    <ProfileField label="Position" value={profile.position?.title} />
+                  </ProfileFields>
+                </ProfileCard>
+                <PermissionOverrides userId={profile.user.id} tenantSlug={tenantSlug} userName={profile.user.full_name} className="rounded-2xl border-slate-200 p-5" />
+                <FieldAccessOverrides userId={profile.user.id} tenantSlug={tenantSlug} userName={profile.user.full_name} className="rounded-2xl border-slate-200 p-5" />
+              </ProfilePanel>
+            ) : null}
 
-            <PermissionOverrides
-              userId={profile.user.id}
-              tenantSlug={tenantSlug}
-              userName={profile.user.full_name}
-              className="rounded-2xl border-slate-200 p-5"
-            />
-            <FieldAccessOverrides
-              userId={profile.user.id}
-              tenantSlug={tenantSlug}
-              userName={profile.user.full_name}
-              className="rounded-2xl border-slate-200 p-5"
-            />
+            {activeTab === "activity" ? (
+              <ProfilePanel id="activity" className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <ProfileCard title="Profile activity" icon={Clock3}>
+                  <ProfileTimeline items={[
+                    { id: "updated", title: "Profile updated", detail: fmtDate(profile.updated_at), current: true },
+                    { id: "created", title: "Profile created", detail: fmtDate(profile.created_at) },
+                  ]} />
+                </ProfileCard>
+                <ProfileCard title="Current work state" icon={Briefcase}>
+                  <ProfileFields>
+                    <ProfileField label="Employment status" value={profile.employment_status} />
+                    <ProfileField label="Employment type" value={profile.employment_type} />
+                    <ProfileField label="Work email" value={profile.user.email} />
+                    <ProfileField label="Line manager" value={profile.current_line_manager?.full_name} />
+                  </ProfileFields>
+                </ProfileCard>
+              </ProfilePanel>
+            ) : null}
+
+            {activeTab === "history" ? (
+              <ProfilePanel id="history">
+                <ProfileCard title="Position history" icon={Briefcase} className="max-w-3xl">
+                  {history.length ? (
+                    <ProfileTimeline items={history.map((assignment) => {
+                      const current = assignment.end_date === null;
+                      return {
+                        id: assignment.id,
+                        title: assignment.position.title,
+                        detail: `${fmtDate(assignment.start_date)} – ${current ? "Present" : fmtDate(assignment.end_date)}`,
+                        current,
+                        badge: (
+                          <>
+                            {assignment.is_acting ? <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">ACTING</span> : null}
+                            {assignment.is_primary ? <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-500">PRIMARY</span> : null}
+                          </>
+                        ),
+                      };
+                    })} />
+                  ) : <p className="text-sm text-gray-01">No assignment history yet.</p>}
+                </ProfileCard>
+              </ProfilePanel>
+            ) : null}
 
             {/* Change email modal */}
             <Dialog open={emailModal} onOpenChange={(open) => { setEmailModal(open); if (!open) setNewEmail(""); }}>

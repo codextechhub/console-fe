@@ -59,6 +59,8 @@ export const routesPath = {
       CX: "/users/cx",
       SCHOOL: "/users/schools",
       LEGACY: "/team-management",
+      SCHOOL_USER_VIEW_PATH: "/users/schools/:id/view",
+      SCHOOL_USER_VIEW: (id: string | number) => `/users/schools/${id}/view`,
       EDIT_PATH: "/users/:scope/:id/edit",
       EDIT: (id: string, scope: "cx" | "schools" = "cx") => `/users/${scope}/${id}/edit`,
       CREATE: "/users/cx/create",

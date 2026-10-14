@@ -7,7 +7,7 @@ import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { routesPath } from "@/routes/routes-path";
 import {
   useGetTeamMembersQuery,
@@ -30,7 +30,6 @@ import { CustomDateInput } from "@/components/custom/custom-date-input";
 import { useAllRoles } from "@/hooks/use-all-roles";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
-import { SchoolUserDetail } from "../school-user-detail";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useFieldAccess } from "@/components/finance-ui/field-access";
 import { TEAM_FIELD_RESOURCE } from "../team-field-access";
@@ -117,6 +116,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
+  const navigate = useNavigate();
   const { hasPermission } = usePermissions();
   const access = useFieldAccess(TEAM_FIELD_RESOURCE);
   const columns = useMemo(
@@ -127,7 +127,6 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
   const [value, setValue] = useState("");
   const debouncedValue = useDebounce(value, 1000);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [selectedSchoolUser, setSelectedSchoolUser] = useState<TeamMember | null>(null);
   const [appliedFilters, setAppliedFilters] = useState(INITIAL_FILTERS);
   const [draftFilters, setDraftFilters] = useState(INITIAL_FILTERS);
   const [sort, setSort] = useState({ sortColumn: "", sortOrder: "" as "asc" | "desc" | "" });
@@ -283,10 +282,7 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
               {
                 label: "View Details",
                 className: "",
-                onActionClick: () => {
-                  const selected = data?.data?.find((item) => item.id === row._slug) ?? null;
-                  setSelectedSchoolUser(selected);
-                },
+                onActionClick: () => navigate(routesPath.PROTECTED.TEAM_MGT.SCHOOL_USER_VIEW(row._slug)),
               },
               ...(hasPermission(P.INVITE_TEAM_MEMBER) ? [resendAction] : []),
             ];
@@ -382,9 +378,6 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
         </SheetContent>
       </Sheet>
 
-      {scope === "school" && (
-        <SchoolUserDetail user={selectedSchoolUser} onClose={() => setSelectedSchoolUser(null)} />
-      )}
     </>
   );
 }

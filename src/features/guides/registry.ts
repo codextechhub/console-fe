@@ -25,7 +25,7 @@ const FINAL_ROUTE_GAP_REVIEWED_AT = "2026-08-25";
 const AUDIT_TRAIL_REVIEWED_AT = "2026-10-13";
 const O2_REVIEWED_AT = "2026-08-25";
 const FIELD_ACCESS_REVIEWED_AT = "2026-10-12";
-const RECORD_HISTORY_REVIEWED_AT = "2026-09-26";
+const PROFILE_SYSTEM_REVIEWED_AT = "2026-10-12";
 const BRANCH_BUDGETS_REVIEWED_AT = "2026-10-11";
 const FINANCE_OVERVIEW_REVIEWED_AT = "2026-10-11";
 const PROCUREMENT_OVERVIEW_REVIEWED_AT = "2026-10-11";
@@ -201,7 +201,7 @@ export const GUIDE_REGISTRY = [
     tags: ["users", "cx users", "school users", "invitation", "approval", "staff profile", "access"],
     aliases: ["add team member", "invite cx user", "edit user", "unlock user", "suspend user", "user invite status"],
     audiences: ["platform-administrator", "support-and-operations"],
-    routes: [R.TEAM_MGT.CX, R.TEAM_MGT.SCHOOL, R.TEAM_MGT.CREATE, R.TEAM_MGT.EDIT_PATH],
+    routes: [R.TEAM_MGT.CX, R.TEAM_MGT.SCHOOL, R.TEAM_MGT.SCHOOL_USER_VIEW_PATH, R.TEAM_MGT.CREATE, R.TEAM_MGT.EDIT_PATH],
     actionIds: ["view-cx-users", "view-school-users", "invite-cx-user"],
     access: { mode: "any", permissions: [P.ACCESS_TEAM_PANEL, P.INVITE_TEAM_MEMBER, P.MODIFY_TEAM_MEMBER] },
     primaryRoute: R.TEAM_MGT.CX,
@@ -217,7 +217,7 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["schools.create-and-configure", "schools.manage-schools-and-branches", "roles.manage-field-access", "troubleshooting.account-and-invitation"],
     estimatedMinutes: 8,
     owner: OWNER,
-    reviewedAt: REVIEWED_AT,
+    reviewedAt: PROFILE_SYSTEM_REVIEWED_AT,
     risk: "medium",
     status: "published",
     article: () => import("./content/schools-and-users/invite-and-manage-users"),
@@ -412,7 +412,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.organogram.maintain-staff-profiles",
     estimatedMinutes: 10,
     owner: OWNER,
-    reviewedAt: RECORD_HISTORY_REVIEWED_AT,
+    reviewedAt: PROFILE_SYSTEM_REVIEWED_AT,
     risk: "medium",
     status: "published",
     article: () => import("./content/organogram-and-tasks/maintain-staff-profiles"),
@@ -2128,7 +2128,7 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["account.secure-account", "organogram.maintain-staff-profiles", "audit.export-and-compliance"],
     estimatedMinutes: 6,
     owner: OWNER,
-    reviewedAt: C11_REVIEWED_AT,
+    reviewedAt: PROFILE_SYSTEM_REVIEWED_AT,
     risk: "low",
     status: "published",
     article: () => import("./content/account-and-personal-security/maintain-profile-and-privacy"),

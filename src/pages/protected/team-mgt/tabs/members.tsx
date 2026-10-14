@@ -43,7 +43,6 @@ import { CustomDateInput } from "@/components/custom/custom-date-input";
 import { useAllRoles } from "@/hooks/use-all-roles";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
-import { SchoolUserDetail } from "../school-user-detail";
 import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -104,7 +103,6 @@ export default function MembersTab({
   const access = useFieldAccess(TEAM_FIELD_RESOURCE);
   const [filterOpen, setFilterOpen] = useState(false);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
-  const [selectedSchoolUser, setSelectedSchoolUser] = useState<TeamMember | null>(null);
   const [appliedFilters, setAppliedFilters] = useState(INITIAL_FILTERS);
   const [draftFilters, setDraftFilters] = useState(INITIAL_FILTERS);
   // Drafts tab lists status=DRAFT; the members list hides drafts and invites.
@@ -338,10 +336,7 @@ export default function MembersTab({
               return [{
                 label: "View Details",
                 className: "",
-                onActionClick: () => {
-                  const selected = data?.data?.find((item) => item.id === row._slug) ?? null;
-                  setSelectedSchoolUser(selected);
-                },
+                onActionClick: () => navigate(routesPath.PROTECTED.TEAM_MGT.SCHOOL_USER_VIEW(row._slug)),
               }];
             }
             return [
@@ -458,10 +453,6 @@ export default function MembersTab({
           </SheetFooter>
         </SheetContent>
       </Sheet>
-
-      {scope === "school" && (
-        <SchoolUserDetail user={selectedSchoolUser} onClose={() => setSelectedSchoolUser(null)} />
-      )}
 
       {scope === "cx" && !isDrafts ? (
         <BulkImportDrawer

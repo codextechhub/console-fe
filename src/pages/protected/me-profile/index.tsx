@@ -10,7 +10,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Banknote, Briefcase, Building2, ChevronRight, Pencil, Users } from "lucide-react";
+import { Banknote, Briefcase, Building2, ChevronRight, Clock3, Contact, Pencil, ShieldCheck, UserRound, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   useGetMyAssignmentsQuery,
@@ -24,27 +24,30 @@ import { fmtDate } from "../organogram/lib/org-helpers";
 import { useVisiblePayrollFields } from "../organogram/lib/staff-payroll";
 import { fieldWriteErrors, type FieldErrors } from "@/components/finance-ui/field-access";
 import { PageShell } from "@/components/layout/page-shell";
+import { routesPath } from "@/routes/routes-path";
+import { useNavigate } from "react-router";
+import {
+  ProfileCard,
+  ProfileField,
+  ProfileFields,
+  ProfileHero,
+  ProfilePanel,
+  ProfileTabs,
+  ProfileTimeline,
+  type ProfileTab,
+  type ProfileTabId,
+} from "@/components/profile/profile-system";
+
+const PROFILE_TABS: ProfileTab[] = [
+  { id: "overview", label: "Overview" },
+  { id: "access", label: "Access" },
+  { id: "activity", label: "Activity" },
+  { id: "history", label: "History" },
+];
 
 // ── Read-view primitives (same family as staff-detail) ───────────────────────
 function Row({ label, value }: { label: string; value?: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</span>
-      <span className="text-sm text-black-01">{value || "-"}</span>
-    </div>
-  );
-}
-
-function Card({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5">
-      <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold font-mont text-black-01">
-        {icon}
-        {title}
-      </h3>
-      <div className="grid gap-4 sm:grid-cols-2">{children}</div>
-    </section>
-  );
+  return <ProfileField label={label} value={value} />;
 }
 
 // ── Org structure chain: Division → Department → Team → Seat ─────────────────
@@ -88,14 +91,12 @@ function PayrollCard({ profile }: { profile: StaffProfile }) {
   const fields = useVisiblePayrollFields(profile);
   if (!fields.length) return null;
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5">
-      <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold font-mont text-black-01">
-        <Banknote className="size-4 text-teal-600" /> Payroll
-        <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-rose-500 ring-1 ring-rose-200">
-          SENSITIVE
-        </span>
-      </h3>
-      <div className="grid gap-4 sm:grid-cols-3">
+    <ProfileCard
+      title="Payroll"
+      icon={Banknote}
+      badge={<span className="rounded bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-rose-500 ring-1 ring-rose-200">SENSITIVE</span>}
+    >
+      <ProfileFields columns={3}>
         {fields.map((field) => (
           <Row
             key={field.name}
@@ -103,16 +104,18 @@ function PayrollCard({ profile }: { profile: StaffProfile }) {
             value={field.value && field.name === "account_number" ? <span className="font-mono">{field.value}</span> : field.value}
           />
         ))}
-      </div>
-    </section>
+      </ProfileFields>
+    </ProfileCard>
   );
 }
 
 export default function MyProfile() {
+  const navigate = useNavigate();
   const { data, isLoading } = useGetMyStaffProfileQuery();
   const [updateProfile, { isLoading: saving }] = useUpdateMyStaffProfileMutation();
   const profile = data?.data ?? null;
   const [editing, setEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState<ProfileTabId>("overview");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors | null>(null);
 
   const { data: assignmentsRes } = useGetMyAssignmentsQuery(undefined, {
@@ -123,22 +126,6 @@ export default function MyProfile() {
   return (
     <>
       <PageShell className="space-y-5 text-black-01">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="font-semibold font-mont text-gray-01">My Profile</p>
-            <p className="text-xs text-gray-01 mt-0.5">
-              {editing
-                ? "Update your personal, contact, next-of-kin and payroll details."
-                : "Your employment record - where you sit in the organisation and your personal details."}
-            </p>
-          </div>
-          {!editing && profile && (
-            <Button onClick={() => setEditing(true)}>
-              <Pencil className="size-4" /> Edit Profile
-            </Button>
-          )}
-        </div>
-
         {isLoading ? (
           <div className="space-y-3">
             {[0, 1, 2, 3].map((i) => (
@@ -151,30 +138,31 @@ export default function MyProfile() {
           </div>
         ) : (
           <>
-            {/* Identity header (both modes) */}
-            <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5">
-              <OrgAvatar user={profile.user} size={60} status={profile.employment_status} />
-              <div className="min-w-0 flex-1">
-                <div className="text-lg font-bold text-black-01">{profile.user.full_name}</div>
-                <div className="text-sm text-gray-01">
-                  {profile.job_title || profile.position?.title || "-"}
-                  {profile.department?.name ? ` · ${profile.department.name}` : ""}
-                </div>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
+            <ProfileHero
+              avatar={<OrgAvatar user={profile.user} size={72} status={profile.employment_status} />}
+              name={profile.user.full_name}
+              title={profile.job_title || profile.position?.title || "CX staff"}
+              email={profile.user.email}
+              badges={(
+                <>
                   <StatusPill status={profile.employment_status} />
+                  <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">CX Staff</span>
                   <EmpBadge type={profile.employment_type} />
-                  {profile.employee_id && (
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-slate-600">
-                      {profile.employee_id}
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="text-right text-xs text-gray-01">
-                <div className="uppercase tracking-wide text-[10px] text-slate-400">Last updated</div>
-                <div className="text-black-01">{fmtDate(profile.updated_at)}</div>
-              </div>
-            </div>
+                  {profile.employee_id ? (
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-600">{profile.employee_id}</span>
+                  ) : null}
+                </>
+              )}
+              facts={[
+                { label: "Department", value: profile.department?.name || "-", icon: Building2 },
+                { label: "Last updated", value: fmtDate(profile.updated_at), icon: Clock3 },
+              ]}
+              actions={!editing ? (
+                <Button onClick={() => setEditing(true)}>
+                  <Pencil className="size-4" /> Edit profile
+                </Button>
+              ) : undefined}
+            />
 
             {editing ? (
               <StaffProfileForm
@@ -196,105 +184,128 @@ export default function MyProfile() {
               />
             ) : (
               <>
-                {/* Organisation - where this person sits in the structure */}
-                <section className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold font-mont text-black-01">
-                    <Building2 className="size-4 text-indigo-500" /> Organisation
-                  </h3>
-                  <OrgChain profile={profile} />
-                  <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <Row
-                      label="Seat"
-                      value={profile.position ? `${profile.position.title} · ${profile.position.code}` : undefined}
-                    />
-                    <Row label="Job title" value={profile.job_title} />
-                    <Row
-                      label="Line manager"
-                      value={
-                        profile.current_line_manager ? (
-                          <span className="inline-flex items-center gap-1.5">
-                            <Users className="size-3.5 text-slate-400" />
-                            {profile.current_line_manager.full_name}
-                          </span>
-                        ) : undefined
-                      }
-                    />
-                    <Row label="Employment type" value={<EmpBadge type={profile.employment_type} />} />
-                    <Row label="Date joined" value={fmtDate(profile.date_joined)} />
-                    {profile.date_exited && <Row label="Date exited" value={fmtDate(profile.date_exited)} />}
-                  </div>
-                </section>
+                <ProfileTabs tabs={PROFILE_TABS} active={activeTab} onChange={setActiveTab} />
 
-                <div className="grid gap-5 lg:grid-cols-2">
-                  <Card title="Personal">
-                    <Row label="Date of birth" value={fmtDate(profile.date_of_birth)} />
-                    <Row label="Marital status" value={profile.marital_status} />
-                    <Row label="Nationality" value={profile.nationality} />
-                    <Row label="State of origin" value={profile.state_of_origin} />
-                    <div className="sm:col-span-2">
-                      <Row label="Bio" value={profile.bio} />
+                {activeTab === "overview" ? (
+                  <ProfilePanel id="overview" className="space-y-5">
+                    <ProfileCard title="Organisation" icon={Building2}>
+                      <OrgChain profile={profile} />
+                      <div className="mt-5">
+                        <ProfileFields columns={3}>
+                          <Row label="Seat" value={profile.position ? `${profile.position.title} · ${profile.position.code}` : undefined} />
+                          <Row label="Job title" value={profile.job_title} />
+                          <Row
+                            label="Line manager"
+                            value={profile.current_line_manager ? (
+                              <span className="inline-flex items-center gap-1.5">
+                                <Users className="size-3.5 text-slate-400" />
+                                {profile.current_line_manager.full_name}
+                              </span>
+                            ) : undefined}
+                          />
+                          <Row label="Employment type" value={<EmpBadge type={profile.employment_type} />} />
+                          <Row label="Date joined" value={fmtDate(profile.date_joined)} />
+                          {profile.date_exited ? <Row label="Date exited" value={fmtDate(profile.date_exited)} /> : null}
+                        </ProfileFields>
+                      </div>
+                    </ProfileCard>
+
+                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                      <ProfileCard title="Personal" icon={UserRound}>
+                        <ProfileFields>
+                          <Row label="Date of birth" value={fmtDate(profile.date_of_birth)} />
+                          <Row label="Marital status" value={profile.marital_status} />
+                          <Row label="Nationality" value={profile.nationality} />
+                          <Row label="State of origin" value={profile.state_of_origin} />
+                          <ProfileField label="Bio" value={profile.bio} wide />
+                        </ProfileFields>
+                      </ProfileCard>
+
+                      <ProfileCard title="Contact" icon={Contact}>
+                        <ProfileFields>
+                          <Row label="Work email" value={profile.user.email} />
+                          <Row label="Personal email" value={profile.personal_email} />
+                          <Row label="Alternate phone" value={profile.alternate_phone} />
+                          <Row label="City and state" value={[profile.city, profile.state].filter(Boolean).join(", ")} />
+                          <ProfileField label="Residential address" value={profile.residential_address} wide />
+                        </ProfileFields>
+                      </ProfileCard>
+
+                      <ProfileCard title="Next of kin" icon={UserRound}>
+                        <ProfileFields>
+                          <Row label="Name" value={profile.nok_name} />
+                          <Row label="Relationship" value={profile.nok_relationship} />
+                          <Row label="Phone" value={profile.nok_phone} />
+                          <ProfileField label="Address" value={profile.nok_address} wide />
+                        </ProfileFields>
+                      </ProfileCard>
+
+                      <PayrollCard profile={profile} />
                     </div>
-                  </Card>
+                  </ProfilePanel>
+                ) : null}
 
-                  <Card title="Contact">
-                    <Row label="Work email" value={profile.user.email} />
-                    <Row label="Personal email" value={profile.personal_email} />
-                    <Row label="Alternate phone" value={profile.alternate_phone} />
-                    <Row label="Location" value={[profile.city, profile.state].filter(Boolean).join(", ")} />
-                    <div className="sm:col-span-2">
-                      <Row label="Residential address" value={profile.residential_address} />
-                    </div>
-                  </Card>
+                {activeTab === "access" ? (
+                  <ProfilePanel id="access" className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <ProfileCard title="Your access context" icon={ShieldCheck}>
+                      <ProfileFields>
+                        <ProfileField label="Account type" value="CX Staff" />
+                        <ProfileField label="Department" value={profile.department?.name} />
+                        <ProfileField label="Position" value={profile.position?.title} />
+                        <ProfileField label="Employment status" value={profile.employment_status} />
+                      </ProfileFields>
+                    </ProfileCard>
+                    <ProfileCard title="Security and privacy" icon={ShieldCheck}>
+                      <p className="text-sm leading-6 text-gray-01">Passwords, sessions, login history, and personal-data controls are kept in My Security.</p>
+                      <Button variant="outline" className="mt-4" onClick={() => navigate(routesPath.PROTECTED.ME_SECURITY.OVERVIEW)}>
+                        Open My Security
+                      </Button>
+                    </ProfileCard>
+                  </ProfilePanel>
+                ) : null}
 
-                  <Card title="Next of kin">
-                    <Row label="Name" value={profile.nok_name} />
-                    <Row label="Relationship" value={profile.nok_relationship} />
-                    <Row label="Phone" value={profile.nok_phone} />
-                    <div className="sm:col-span-2">
-                      <Row label="Address" value={profile.nok_address} />
-                    </div>
-                  </Card>
+                {activeTab === "activity" ? (
+                  <ProfilePanel id="activity" className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    <ProfileCard title="Profile activity" icon={Clock3}>
+                      <ProfileTimeline items={[
+                        { id: "updated", title: "Profile updated", detail: fmtDate(profile.updated_at), current: true },
+                        { id: "created", title: "Profile created", detail: fmtDate(profile.created_at) },
+                      ]} />
+                    </ProfileCard>
+                    <ProfileCard title="Current work state" icon={Briefcase}>
+                      <ProfileFields>
+                        <ProfileField label="Employment status" value={profile.employment_status} />
+                        <ProfileField label="Employment type" value={profile.employment_type} />
+                        <ProfileField label="Work email" value={profile.user.email} />
+                        <ProfileField label="Line manager" value={profile.current_line_manager?.full_name} />
+                      </ProfileFields>
+                    </ProfileCard>
+                  </ProfilePanel>
+                ) : null}
 
-                  <PayrollCard profile={profile} />
-                </div>
-
-                {/* Position history (effective-dated assignments) */}
-                <section className="rounded-2xl border border-slate-200 bg-white p-5">
-                  <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold font-mont text-black-01">
-                    <Briefcase className="size-4 text-slate-500" /> Position history
-                  </h3>
-                  {history.length ? (
-                    <div className="flex flex-col gap-2">
-                      {history.map((a) => {
-                        const current = a.end_date === null;
-                        return (
-                          <div
-                            key={a.id}
-                            className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${current ? "border-indigo-200 bg-indigo-50/40" : "border-slate-200 bg-white"}`}
-                          >
-                            <span className={`h-2 w-2 shrink-0 rounded-full ${current ? "bg-indigo-500" : "bg-slate-300"}`} />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="truncate text-[13px] font-medium text-slate-700">{a.position.title}</span>
-                                {a.is_acting && (
-                                  <span className="rounded bg-amber-100 px-1 text-[9px] font-bold text-amber-700">ACTING</span>
-                                )}
-                                {a.is_primary && (
-                                  <span className="rounded bg-slate-100 px-1 text-[9px] font-bold text-slate-500">PRIMARY</span>
-                                )}
-                              </div>
-                              <div className="text-[11.5px] text-slate-400">
-                                {fmtDate(a.start_date)} – {current ? "Present" : fmtDate(a.end_date)}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-01">No assignment history yet.</p>
-                  )}
-                </section>
+                {activeTab === "history" ? (
+                  <ProfilePanel id="history">
+                    <ProfileCard title="Position history" icon={Briefcase} className="max-w-3xl">
+                      {history.length ? (
+                        <ProfileTimeline items={history.map((assignment) => {
+                          const current = assignment.end_date === null;
+                          return {
+                            id: assignment.id,
+                            title: assignment.position.title,
+                            detail: `${fmtDate(assignment.start_date)} – ${current ? "Present" : fmtDate(assignment.end_date)}`,
+                            current,
+                            badge: (
+                              <>
+                                {assignment.is_acting ? <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">ACTING</span> : null}
+                                {assignment.is_primary ? <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-500">PRIMARY</span> : null}
+                              </>
+                            ),
+                          };
+                        })} />
+                      ) : <p className="text-sm text-gray-01">No assignment history yet.</p>}
+                    </ProfileCard>
+                  </ProfilePanel>
+                ) : null}
               </>
             )}
           </>

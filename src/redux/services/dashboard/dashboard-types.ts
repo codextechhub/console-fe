@@ -19,6 +19,8 @@ export interface TeamMember {
    * principal and a Year 4 teacher, which a reviewer cannot act on.
    */
   tenant_kind: string
+  tenant_name?: string
+  tenant_slug?: string
   role: string
   status: string
   school_id?: string

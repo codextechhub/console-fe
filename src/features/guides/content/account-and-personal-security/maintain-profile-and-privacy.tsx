@@ -9,7 +9,7 @@ export default function MaintainProfileAndPrivacyArticle() {
       </GuideSection>
 
       <GuideSection id="read-your-profile" title="Read your profile">
-        <p>The read view groups organisation position, employment status, personal details, contact information, next of kin, payroll details, and position history. The organisation chain and assignment history explain where you sit now and how that seat changed over time.</p>
+        <p>The profile uses Overview, Access, Activity, and History tabs. Overview groups organisation position, employment status, personal details, contact information, next of kin, and payroll details. Access links to the account security controls, Activity shows the profile record dates and current work state, and History explains how your seat changed over time.</p>
       </GuideSection>
 
       <GuideSection id="update-permitted-details" title="Update permitted details">

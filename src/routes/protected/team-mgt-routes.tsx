@@ -9,6 +9,7 @@ import type { DashboardHandle } from "@/components/layout/dashboard-header";
 const TeamManagement = lazy(() => import("@/pages/protected/team-mgt"));
 const CreateAdmin = lazy(() => import("@/pages/protected/team-mgt/create-admin"));
 const EditAdmin = lazy(() => import("@/pages/protected/team-mgt/edit-admin"));
+const SchoolUserDetail = lazy(() => import("@/pages/protected/team-mgt/school-user-detail"));
 
 export const teamMgtRoutes: RouteObject[] = [
   { path: routesPath.PROTECTED.TEAM_MGT.CX, Component: TeamManagement, handle: { title: "CX Users" } satisfies DashboardHandle },
@@ -18,5 +19,6 @@ export const teamMgtRoutes: RouteObject[] = [
     element: <Navigate to={routesPath.PROTECTED.TEAM_MGT.CX} replace />,
   },
   { path: routesPath.PROTECTED.TEAM_MGT.CREATE, Component: CreateAdmin, handle: { title: "CX Users", back: true } satisfies DashboardHandle },
+  { path: routesPath.PROTECTED.TEAM_MGT.SCHOOL_USER_VIEW_PATH, Component: SchoolUserDetail, handle: { title: "School User Profile", back: true } satisfies DashboardHandle },
   { path: routesPath.PROTECTED.TEAM_MGT.EDIT_PATH, Component: EditAdmin, handle: { title: "CX Users", back: true } satisfies DashboardHandle },
 ];
