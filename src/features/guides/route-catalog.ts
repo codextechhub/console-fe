@@ -115,6 +115,7 @@ export const GUIDE_ROUTE_PATTERNS = [
   `${R.FINANCE.PAYMENTS}/terminal-payments`,
   `${R.FINANCE.PAYMENTS}/held-settlements`,
   `${R.FINANCE.PAYMENTS}/held-reconciliations`,
+  `${R.FINANCE.PAYMENTS}/provider-top-ups`,
   R.FINANCE.REPORTS,
   `${R.FINANCE.REPORTS}/trial-balance`,
   `${R.FINANCE.REPORTS}/income-statement`,
