@@ -624,6 +624,12 @@ editor, assignment, approval, or automated repair action.
   vendor list, drawer, form, an RFQ's invited vendors, the order email preview
   and the spend, unpaid bills, performance and dashboard reports leave out what
   a role may not read, and the vendor name has no switch.
+- Procurement approval history follows a third read-only resource. Document
+  title, decision, approval stage, decision time, who the approver acted for
+  and reversal time each have a Read switch. A former branch approver keeps
+  only the decision receipt, with no title; amount, requester, comment,
+  attachments and the full approval trail continue to require current branch reach. The
+  document reference has no switch because it identifies the receipt.
 - Between Branches now follows one Inter-branch resource across transfers,
   balances, held receipts, recharges, and shared-cost rules. Read switches
   remove matching columns, facts, nested results, and balance figures; Write

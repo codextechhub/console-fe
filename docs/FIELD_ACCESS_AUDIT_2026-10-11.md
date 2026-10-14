@@ -54,6 +54,13 @@ Current registered product areas are:
   dashboard reports drop what a role may not read, read-only values are greyed
   and left out of submitted bodies, and a contact's email decides whether
   people can be added or removed. Owner decision: the vendor name has no switch.
+- Procurement decision receipts (`procurement.approval`) have separate
+  read-only switches for document title, decision, approval stage, decision
+  time, who the approver acted for and reversal time. A person who moves to
+  another branch keeps that narrow receipt without the title, while the amount, requester,
+  comment, attachments and full approval trail remain behind current branch
+  reach and the source document's Field Access rules. The document reference
+  has no switch because it identifies the receipt.
 - Bank documents (`finance.banktransaction`, `finance.banktransfer`), the branch
   split of a shared bank account (`finance.bankaccount`), payer links
   (`finance.payer_link`), payer payments (`finance.payer_payment`) and petty cash
