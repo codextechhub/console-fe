@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { PHONE_PLACEHOLDER, phoneSchema } from "@/schema/dashboard";
+import { BRANCH_PHONE_HINT, PHONE_PLACEHOLDER, phoneSchema } from "@/schema/dashboard";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ const schema = Yup.object({
   name: Yup.string().required("Branch name is required"),
   address: Yup.string(),
   email: Yup.string().email("Enter a valid email"),
+  phone: phoneSchema,
   country: Yup.string(),
   state: Yup.string(),
   is_main: Yup.boolean(),
@@ -61,6 +62,7 @@ export default function CreateBranch() {
       name: "",
       address: "",
       email: "",
+      phone: "",
       country: "Nigeria",
       state: "",
       is_main: false,
@@ -76,6 +78,7 @@ export default function CreateBranch() {
           name: values.name,
           address: values.address,
           email: values.email,
+          phone: values.phone.trim(),
           country: values.country,
           state: values.state,
           is_main: values.is_main,
@@ -160,6 +163,14 @@ export default function CreateBranch() {
                   placeholder="Enter email"
                   {...formik.getFieldProps("email")}
                   error={formik.touched.email ? formik.errors.email : ""}
+                />
+                <CustomInput
+                  id="phone"
+                  label="Branch Phone"
+                  placeholder={PHONE_PLACEHOLDER}
+                  hint={BRANCH_PHONE_HINT}
+                  {...formik.getFieldProps("phone")}
+                  error={formik.touched.phone ? formik.errors.phone : ""}
                 />
                 <CustomInput
                   id="state"

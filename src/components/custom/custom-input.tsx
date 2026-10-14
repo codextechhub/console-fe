@@ -10,6 +10,8 @@ interface CustomInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   id: string;
   error?: string;
+  /** A line of guidance under the field. Replaced by the error while one shows. */
+  hint?: string;
   isRequired?: boolean;
   loading?: boolean;
   canSearch?: boolean;
@@ -24,6 +26,7 @@ export const CustomInput = React.forwardRef<HTMLInputElement, CustomInputProps>(
       id,
       type,
       error,
+      hint,
       className,
       isRequired,
       loading,
@@ -72,6 +75,7 @@ export const CustomInput = React.forwardRef<HTMLInputElement, CustomInputProps>(
             type={isPasswordType && showPassword ? "text" : type}
             className={cn(className, { "pr-10": isPasswordType })}
             ref={ref}
+            aria-describedby={hint && !error ? `${id}-hint` : undefined}
             {...props}
             aria-invalid={error ? true : false}
           />
@@ -114,9 +118,11 @@ export const CustomInput = React.forwardRef<HTMLInputElement, CustomInputProps>(
             </Button>
           )}
         </div>
-        {error && (
+        {error ? (
           <p className="text-xs font-medium text-destructive/70">{error}</p>
-        )}
+        ) : hint ? (
+          <p id={`${id}-hint`} className="text-xs text-gray-01">{hint}</p>
+        ) : null}
       </div>
     );
   },

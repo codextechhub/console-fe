@@ -43,6 +43,8 @@ export interface Branch {
 export interface BranchDetail extends Branch {
   address: string
   email: string
+  /** The branch's own number, where its payment terminal's WhatsApp alerts go. "" when none is set. */
+  phone?: string
   opened_at: string | null
   activated_at: string | null
   primary_admin: BranchPrimaryAdmin | null

@@ -11,6 +11,7 @@ import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import * as Yup from "yup";
+import { BRANCH_PHONE_HINT, PHONE_PLACEHOLDER, phoneSchema } from "@/schema/dashboard";
 import { PageShell } from "@/components/layout/page-shell";
 
 const editBranchSchema = Yup.object({
@@ -21,6 +22,7 @@ const editBranchSchema = Yup.object({
   // it. The create form still asks, because there a human is choosing.
   address: Yup.string(),
   email: Yup.string().email("Enter a valid email"),
+  phone: phoneSchema,
   country: Yup.string(),
   state: Yup.string(),
 });
@@ -29,6 +31,7 @@ interface EditBranchValues {
   name: string;
   address: string;
   email: string;
+  phone: string;
   country: string;
   state: string;
 }
@@ -52,6 +55,7 @@ export default function EditBranch() {
       name: branch?.name ?? "",
       address: branch?.address ?? "",
       email: branch?.email ?? "",
+      phone: branch?.phone ?? "",
       country: branch?.country ?? "",
       state: branch?.state ?? "",
     },
@@ -61,6 +65,8 @@ export default function EditBranch() {
       if (values.name)    body.name    = values.name;
       if (values.address) body.address = values.address;
       if (values.email)   body.email   = values.email;
+      // Sent whenever it differs from what the branch holds, so an emptied field clears the number.
+      if (values.phone.trim() !== (branch?.phone ?? "")) body.phone = values.phone.trim();
       if (values.country) body.country = values.country;
       if (values.state)   body.state   = values.state;
 
@@ -118,6 +124,14 @@ export default function EditBranch() {
                   placeholder="Enter branch email"
                   {...formik.getFieldProps("email")}
                   error={formik.touched.email ? formik.errors.email : ""}
+                />
+                <CustomInput
+                  id="phone"
+                  label="Branch Phone"
+                  placeholder={PHONE_PLACEHOLDER}
+                  hint={BRANCH_PHONE_HINT}
+                  {...formik.getFieldProps("phone")}
+                  error={formik.touched.phone ? formik.errors.phone : ""}
                 />
                 <CustomInput
                   id="state"

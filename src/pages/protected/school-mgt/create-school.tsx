@@ -9,6 +9,7 @@ import AddSchoolAdmin from "./component/add-school-admin";
 import AddSchoolBranch from "./component/add-school-branch";
 import PackageSetup from "./component/package-setup";
 import { packageSetupBody } from "./component/package-setup-body";
+import { buildPayload } from "./component/school-payload";
 import { SCHOOLS_FIELD_RESOURCE } from "./school-field-access";
 
 export interface SchoolStepData {
@@ -29,6 +30,7 @@ export interface BranchStepItem {
   name: string;
   address: string;
   email: string;
+  phone: string;
   country: string;
   state: string;
   is_main: boolean;
@@ -67,7 +69,7 @@ const initialSchool: SchoolStepData = {
 };
 
 const initialBranch: BranchStepItem = {
-  name: "", address: "", email: "", country: "Nigeria",
+  name: "", address: "", email: "", phone: "", country: "Nigeria",
   state: "", is_main: true, admin_first_name: "", admin_last_name: "",
   admin_email: "", admin_phone: "",
 };
@@ -116,6 +118,7 @@ function generateTestData(): PrefillData {
         name: "Main Branch",
         address: `${n} Test Avenue, Victoria Island`,
         email: `branch@${slug}.ng`,
+        phone: "",
         country: "Nigeria",
         state: "Lagos",
         is_main: true,
@@ -139,57 +142,6 @@ function generateTestData(): PrefillData {
       minimum_billable_students: "",
     },
   };
-}
-
-function buildPayload(
-  school: SchoolStepData,
-  branches: BranchStepItem[],
-  admin: AdminStepData,
-  packageSetup: Record<string, unknown> | undefined,
-) {
-  const payload: Record<string, unknown> = {
-    name: school.name,
-    email: school.email,
-    phone: school.phone,
-    ownership_type: school.ownership_type,
-    address: school.address,
-    term_structure: school.term_structure,
-    currency: school.currency,
-  };
-  if (school.slug) payload.slug = school.slug;
-  if (school.website) payload.website = school.website;
-  if (school.motto) payload.motto = school.motto;
-  if (school.registration_id) payload.registration_id = school.registration_id;
-
-  if (admin.first_name && admin.email) {
-    payload.primary_admin_data = {
-      full_name: `${admin.first_name} ${admin.last_name}`.trim(),
-      email: admin.email,
-      phone: admin.phone || "",
-      role_label: "SCHOOL_ADMIN",
-    };
-  }
-
-  if (branches.length > 0) {
-    payload.branches = branches.map((b) => ({
-      name: b.name,
-      address: b.address || "",
-      email: b.email || "",
-      country: b.country || "Nigeria",
-      state: b.state || "",
-      is_main: b.is_main,
-      primary_admin_data: {
-        full_name: `${b.admin_first_name} ${b.admin_last_name}`.trim(),
-        email: b.admin_email,
-        phone: b.admin_phone || "",
-        role_label: "BRANCH_ADMIN",
-      },
-    }));
-  }
-
-  if (packageSetup) payload.package_setup_data = packageSetup;
-
-  return payload;
 }
 
 /** A school creation in flight, from the moment Submit is pressed. */
