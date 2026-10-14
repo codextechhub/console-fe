@@ -1273,9 +1273,9 @@ export const GUIDE_REGISTRY = [
     tags: ["collection", "online payment", "gateway", "virtual account", "provider", "customer", "webhook", "settlement"],
     aliases: ["payment collection", "gateway payment", "virtual account", "customer paid online", "parent says they paid", "checkout failed", "payment provider activity", "collection pending", "provider reference", "payment webhook failed"],
     audiences: ["finance-officer", "support-and-operations"],
-    routes: [R.FINANCE.COLLECTIONS, `${R.FINANCE.COLLECTIONS}/gateway`, `${R.FINANCE.COLLECTIONS}/virtual-accounts`, `${R.FINANCE.PAYMENTS}/provider-activity`, `${R.FINANCE.PAYMENTS}/webhooks`],
-    actionIds: ["view-collections", "view-virtual-accounts", "create-virtual-account", "view-provider-activity", "view-payment-webhooks"],
-    access: { mode: "any", permissions: [P.PAY_VIEW_COLLECTIONS, P.PAY_VIEW_VIRTUAL_ACCOUNTS, P.PAY_CREATE_VIRTUAL_ACCOUNT, P.PAY_VIEW_PAYMENT_REPORTS, P.PAY_VIEW_WEBHOOKS] },
+    routes: [R.FINANCE.COLLECTIONS, `${R.FINANCE.COLLECTIONS}/gateway`, `${R.FINANCE.COLLECTIONS}/virtual-accounts`, `${R.FINANCE.PAYMENTS}/provider-activity`, `${R.FINANCE.PAYMENTS}/webhooks`, `${R.FINANCE.PAYMENTS}/terminals`, `${R.FINANCE.PAYMENTS}/terminal-payments`],
+    actionIds: ["view-collections", "view-virtual-accounts", "create-virtual-account", "view-provider-activity", "view-payment-webhooks", "view-payment-terminals", "view-terminal-payments"],
+    access: { mode: "any", permissions: [P.PAY_VIEW_COLLECTIONS, P.PAY_VIEW_VIRTUAL_ACCOUNTS, P.PAY_CREATE_VIRTUAL_ACCOUNT, P.PAY_VIEW_PAYMENT_REPORTS, P.PAY_VIEW_WEBHOOKS, P.PAY_VIEW_TERMINALS, P.PAY_VIEW_TERMINAL_PAYMENTS] },
     primaryRoute: R.FINANCE.COLLECTIONS,
     sections: [
       { id: "before-you-start", title: "Before you start" },

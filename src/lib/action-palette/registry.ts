@@ -244,6 +244,8 @@ export const ACTIONS: ActionDef[] = [
   // exceptions, unlike the platform-scope Provider Webhooks screen under Health.
   // Gated like the nav entry, on the list's own view key.
   { id: "view-payment-webhooks", label: "View payments needs attention", aliases: ["needs attention", "webhook exceptions", "failed webhooks"], console: "Finance", group: "Payments", kind: "view", gate: { perm: P.PAY_VIEW_WEBHOOKS }, run: { to: `${F.PAYMENTS}/webhooks` } },
+  { id: "view-payment-terminals", label: "View payment terminals", aliases: ["branch terminals", "card machine", "pos"], console: "Finance", group: "Payments", kind: "view", gate: { perm: P.PAY_VIEW_TERMINALS }, run: { to: `${F.PAYMENTS}/terminals` } },
+  { id: "view-terminal-payments", label: "View terminal payments", aliases: ["paid at a terminal", "match a terminal payment"], console: "Finance", group: "Payments", kind: "view", gate: { perm: P.PAY_VIEW_TERMINAL_PAYMENTS }, run: { to: `${F.PAYMENTS}/terminal-payments` } },
 
   // ── Finance · Reports & Close ────────────────────────────────────────────
   { id: "view-trial-balance", label: "View trial balance", aliases: ["tb"], console: "Finance", group: "Reports & Close", kind: "view", gate: { perm: P.FIN_VIEW_REPORTS }, run: { to: `${F.REPORTS}/trial-balance` } },
