@@ -469,6 +469,7 @@ export function SettingsOverviewCard({ icon: Icon, title, description, to, statu
 
 export interface SettingsAuditRow {
   id: string | number;
+  action_display?: string;
   message: string;
   /** The free-text reason a person gave for the change; empty or absent when there is none. */
   reason?: string | null;
@@ -500,7 +501,7 @@ const touchedCount = (row: SettingsAuditRow) =>
 
 export function SettingsAuditHistory({ rows }: { rows: SettingsAuditRow[] }) {
   return (
-    <SettingsPanel title="Recent changes" description="The latest saved changes for this entity. The full immutable record remains in the Finance audit trail.">
+    <SettingsPanel title="Recent changes" description="The latest saved changes across every settings section for this entity. The full immutable record remains in the audit trail.">
       {rows.length === 0 ? (
         <SettingsRow icon={History} label="No settings changes yet" description="The first successful save will appear here with its author and before-and-after values." />
       ) : rows.map((row) => {
@@ -514,7 +515,7 @@ export function SettingsAuditHistory({ rows }: { rows: SettingsAuditRow[] }) {
                 {row.reason ? <p className="mt-0.5 whitespace-pre-line break-words font-mont text-xs text-gray-01">Reason: {row.reason}</p> : null}
                 <p className="mt-0.5 font-mont text-xs text-gray-05">{row.actor ?? "System"} · {new Date(row.created_at).toLocaleString()}</p>
               </div>
-              <PolicyBadge kind="configured">Saved</PolicyBadge>
+              <PolicyBadge kind="configured">{row.action_display ?? "Saved"}</PolicyBadge>
             </div>
             {changes.length > 0 ? (
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">

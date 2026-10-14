@@ -75,6 +75,10 @@ export default function ConfigureFinanceFoundationsArticle() {
         </ul>
       </GuideSection>
 
+      <GuideSection id="review-recent-changes" title="Review recent settings changes">
+        <p>Open <strong>Recent changes</strong> from the Finance Settings menu to review the newest saved changes across every Finance settings section for the active entity. Each row names the settings area, the person who saved it, the time, and the before-and-after values. The individual settings sections stay focused on their controls, while the full immutable record remains in the Finance audit trail.</p>
+      </GuideSection>
+
       <GuideSection id="tax-tables" title="Keep the national tax tables">
         <p>Go to <strong>Finance</strong> → <strong>Ledger &amp; Setup</strong> → <strong>Tax &amp; Currency</strong> → <strong>Tax Tables</strong>. It holds the national payroll tax data every school&rsquo;s payroll reads: <strong>PAYE tables</strong> (bands and reliefs for each tax year), <strong>States</strong> (each PAYE state and its revenue service) and <strong>Pension administrators</strong>. Only platform staff change them, so the screen opens to the statutory create and update keys; anyone else reads <strong>Read only. Platform staff keep these tables.</strong></p>
         <GuideSteps>

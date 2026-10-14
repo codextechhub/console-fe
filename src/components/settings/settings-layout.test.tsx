@@ -29,6 +29,7 @@ afterEach(() => {
 
 const row = (over: Partial<SettingsAuditRow>): SettingsAuditRow => ({
   id: 1,
+  action_display: "Finance document settings updated",
   message: "Updated 1 finance document setting(s).",
   actor: "ada@lagoonview.test",
   created_at: "2026-10-05T09:00:00Z",
@@ -44,6 +45,7 @@ describe("SettingsAuditHistory", () => {
     })]} />));
     expect(container.textContent).toContain("Term collection target");
     expect(container.textContent).toContain("75% → 80%");
+    expect(container.textContent).toContain("Finance document settings updated");
     expect(container.textContent).not.toContain("term collection target pct");
     expect(container.textContent).not.toContain("term_collection_target_pct");
   });
