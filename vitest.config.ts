@@ -41,6 +41,13 @@ export default defineConfig({
     // happy-dom provides document.cookie / sessionStorage / localStorage for
     // the auth-session utilities under test.
     environment: "happy-dom",
+    // Node 25 and later put their own `localStorage` on the global object,
+    // undefined without `--localstorage-file`, and happy-dom does not replace
+    // a global that already exists. Turning Node's off leaves happy-dom's.
+    // Only a Node that knows the flag gets it; an older one would refuse to start.
+    execArgv: process.allowedNodeEnvironmentFlags.has("--no-experimental-webstorage")
+      ? ["--no-experimental-webstorage"]
+      : [],
     // Vitest excludes node_modules from discovery by default, and the
     // package now lives there. Without overriding it the suite silently
     // shrinks by 34 files, which reads as a smaller passing run.
