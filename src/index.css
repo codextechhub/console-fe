@@ -216,14 +216,6 @@
   .loading-mark__sweep { animation: none; }
   .loading-mark .loading-mark__base { opacity: 1; }
 }
-
-/* The same mark for markup that cannot render a component, the shared
-   finance screens' `<div class="loader" />` among them. */
-.loader {
-  width: 64px;
-  height: 60px;
-  background: url("/image/codex-loading-blue.svg") center / contain no-repeat;
-}
 @keyframes signal-wave {
   0%, 100% { opacity: 0.1; }
   50% { opacity: 1; }
