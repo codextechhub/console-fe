@@ -1,6 +1,6 @@
 import { useState, useMemo, type ComponentProps } from "react";
 import { useNavigate } from "react-router";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
@@ -17,6 +17,7 @@ import { useDebounce } from "react-haiku";
 import { toast } from "sonner";
 import type { PlatformRole } from "@/redux/services/dashboard/rbac-types";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const TABLE_HEADERS = ["Role Name", "Status", "System", "Locked", "Users", "Permissions", "Created", "Action"];
 
@@ -147,7 +148,7 @@ export default function RolesList() {
               onClick={reload}
               disabled={isFetching}
             >
-              <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+              <RefreshIcon spinning={isFetching} /> Refresh
             </Button>
           </div>
         </div>

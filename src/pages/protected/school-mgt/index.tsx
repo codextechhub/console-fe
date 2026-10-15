@@ -23,13 +23,14 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { formatEnum } from "@/utils/helpers";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useDebounce } from "react-haiku";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/sort-bar";
 import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const TABLE_HEADERS = ["S/N", "School Name", "Location", "Total Students", "Type", "Status", "Action"];
 
@@ -178,7 +179,7 @@ export default function SchoolManagement() {
               onClick={reload}
               disabled={isFetching}
             >
-              <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+              <RefreshIcon spinning={isFetching} /> Refresh
             </Button>
             {/* Forwards the same params the list query ran, so the file matches
                 the status tab that is open. This export covers every school on

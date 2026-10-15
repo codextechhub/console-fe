@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { RefreshCw, ArrowRight, Link } from "lucide-react";
+import { ArrowRight, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -11,12 +11,12 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
 import { useDebounce } from "react-haiku";
 import { useGetPermissionDependenciesQuery } from "@/redux/services/dashboard/rbac-api";
 import type { PermissionDependency } from "@/redux/services/dashboard/rbac-types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const TABLE_HEADERS = ["Permission", "", "Depends On", "Action"];
 
@@ -170,7 +170,7 @@ export default function PermissionDependencies() {
             onClick={() => refetch()}
             disabled={isFetching}
           >
-            <RefreshCw className={cn(isFetching && "animate-spin")} /> Refresh
+            <RefreshIcon spinning={isFetching} /> Refresh
           </Button>
         </div>
 

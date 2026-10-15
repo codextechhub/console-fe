@@ -1,11 +1,9 @@
 import { useState, useMemo } from "react";
-import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
-import { cn } from "@/lib/utils";
 import { useDebounce } from "react-haiku";
 import {
   useGetPermissionResourcesQuery,
@@ -13,6 +11,7 @@ import {
 } from "@/redux/services/dashboard/rbac-api";
 import type { PermissionResource } from "@/redux/services/dashboard/rbac-types";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const TABLE_HEADERS = ["Resource", "Module", "Description", "Permissions", "Status"];
 
@@ -98,7 +97,7 @@ export default function PermissionResources() {
               onClick={() => refetch()}
               disabled={isFetching}
             >
-              <RefreshCw className={cn(isFetching && "animate-spin")} /> Refresh
+              <RefreshIcon spinning={isFetching} /> Refresh
             </Button>
           </div>
         </div>

@@ -22,6 +22,7 @@ import {
 } from "@/components/charts/audit-charts";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const FEED_FILTERS = ["All", "Critical only", "Failed/Denied", "Last hour", "Last 24h"] as const;
 type FeedFilter = (typeof FEED_FILTERS)[number];
@@ -90,7 +91,7 @@ export default function AuditDashboard() {
           </div>
           <div className="inline-flex items-center gap-3.5">
             <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-              <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+              <RefreshIcon spinning={isFetching} /> Refresh
             </Button>
             <PermissionGate permission={P.EXPORT_AUDIT}>
               <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.AUDIT.EXPORT_NEW)}>

@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +13,7 @@ import type { AccountLockout } from "@/redux/services/dashboard/security-types";
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const TABLE_HEADERS = ["User", "Locked until", "Reason", "Failure count", "Last failure IP", "Last failure", "Status", "Action"];
 
@@ -78,7 +78,7 @@ export default function AccountLockouts() {
             <p className="text-xs text-gray-01 mt-0.5">Locked accounts and their lockout history.</p>
           </div>
           <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+            <RefreshIcon spinning={isFetching} /> Refresh
           </Button>
         </div>
 

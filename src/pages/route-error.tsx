@@ -4,6 +4,7 @@ import { WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { routesPath } from "@/routes/routes-path";
 import { isStaleChunkError, reloadForStaleChunk } from "@/utils/stale-chunk";
+import { LoadingMark } from "@/components/custom/loading-mark";
 
 // Router-level error boundary. Without one, any uncaught render error unmounts
 // the entire app into react-router's default stack-trace screen - including in
@@ -54,7 +55,7 @@ export default function RouteError() {
   if (staleChunk) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white-05 px-6 text-center">
-        <div className="loader" />
+        <LoadingMark />
         <p className="text-sm text-gray-01">A new version is available - reloading…</p>
       </div>
     );

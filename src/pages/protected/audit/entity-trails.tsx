@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -12,6 +11,7 @@ import type { EntityTrail } from "@/redux/services/dashboard/audit-types";
 import { EntityCell } from "./components/audit-cells";
 import { auditEntityTrailRowKey } from "./audit-constants";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const TABLE_HEADERS = ["Entity", "ID", "Events", "First seen", "Last seen", "Action"];
 
@@ -63,7 +63,7 @@ export default function EntityTrailsList() {
             <p className="text-xs text-gray-01 mt-0.5">Every audited entity with its full lifecycle.</p>
           </div>
           <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+            <RefreshIcon spinning={isFetching} /> Refresh
           </Button>
         </div>
 

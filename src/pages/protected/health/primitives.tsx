@@ -2,7 +2,7 @@
 // status colouring, KPI cards (house KpiCard underneath), table wrapper
 // (house CustomTable underneath), and the detail-drawer scaffolding.
 
-import { Database, RefreshCw, X, XCircle } from "lucide-react";
+import { Database, X, XCircle } from "lucide-react";
 import CustomTable from "@/components/custom/custom-table";
 import KpiCard from "@/components/custom/kpi-card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import type { HealthStatus } from "@/redux/services/health-api";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 // Live-ish screens poll gently; paused while the tab is unfocused.
 export const HEALTH_POLL = { pollingInterval: 30_000, skipPollingIfUnfocused: true } as const;
@@ -101,7 +102,7 @@ export function PageIntro({
         )}
         {onRefresh && (
           <Button variant="white" size="lg" onClick={onRefresh} disabled={refreshing}>
-            <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
+            <RefreshIcon spinning={refreshing} className="size-4" />
             Refresh
           </Button>
         )}

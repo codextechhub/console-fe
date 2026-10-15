@@ -198,37 +198,31 @@
   }
 }
 
-/* HTML: <div class="loader"></div> */
-.loader {
-  width: 60px;
-  aspect-ratio: 4;
-  --_g: no-repeat radial-gradient(circle closest-side, var(--color-primary) 90%, #0000);
-  background:
-    var(--_g) 0% 50%,
-    var(--_g) 50% 50%,
-    var(--_g) 100% 50%;
-  background-size: calc(100% / 3) 100%;
-  animation: l7 1s infinite linear;
+/* The CodeX loading mark (see LoadingMark): a band of light sweeps across the
+   faint logo. Inside a button the resting logo is stronger, to survive the
+   disabled fade. Reduced motion stills the band and shows the logo at full
+   strength, so the wait still reads as the brand rather than as a blank. */
+.loading-mark__sweep {
+  animation: loading-mark-sweep 1.6s cubic-bezier(.45, 0, .55, 1) infinite;
 }
-@keyframes l7 {
-  33% {
-    background-size:
-      calc(100% / 3) 0%,
-      calc(100% / 3) 100%,
-      calc(100% / 3) 100%;
-  }
-  50% {
-    background-size:
-      calc(100% / 3) 100%,
-      calc(100% / 3) 0%,
-      calc(100% / 3) 100%;
-  }
-  66% {
-    background-size:
-      calc(100% / 3) 100%,
-      calc(100% / 3) 100%,
-      calc(100% / 3) 0%;
-  }
+@keyframes loading-mark-sweep {
+  0% { transform: translateX(-34px); }
+  100% { transform: translateX(64px); }
+}
+.loading-mark--in-button .loading-mark__base {
+  opacity: .6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-mark__sweep { animation: none; }
+  .loading-mark .loading-mark__base { opacity: 1; }
+}
+
+/* The same mark for markup that cannot render a component, the shared
+   finance screens' `<div class="loader" />` among them. */
+.loader {
+  width: 64px;
+  height: 60px;
+  background: url("/image/codex-loading-blue.svg") center / contain no-repeat;
 }
 @keyframes signal-wave {
   0%, 100% { opacity: 0.1; }

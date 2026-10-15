@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNow } from "@/hooks/use-now";
 import { useNavigate, useSearchParams } from "react-router";
-import { Download, RefreshCw, Filter } from "lucide-react";
+import { Download, Filter } from "lucide-react";
 import { friendlyAction } from "./audit-constants";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,7 @@ import {
 } from "./event-filter-contract";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const TABLE_HEADERS = ["Sev", "Status", "When", "Module", "Action Type", "Actor", "Entity", "Action"];
 
@@ -168,7 +169,7 @@ export default function AuditEventsExplorer() {
           </div>
           <div className="inline-flex items-center gap-3.5">
             <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-              <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+              <RefreshIcon spinning={isFetching} /> Refresh
             </Button>
             <PermissionGate permission={P.EXPORT_AUDIT}>
               <Button size="lg" onClick={exportFiltered}>

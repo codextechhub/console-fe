@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { QuickExportButton } from "@/components/custom/quick-export-drawer";
-import { Plus, RefreshCw, SlidersHorizontal } from "lucide-react";
+import { Plus, SlidersHorizontal } from "lucide-react";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
@@ -45,6 +45,7 @@ import { SortBar, buildOrdering, handleSortToggle } from "@/components/custom/so
 import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const CX_TABLE_HEADER = [
   "Full Name",
@@ -230,7 +231,7 @@ export default function MembersTab({
             onClick={() => refetch()}
             disabled={isFetching}
           >
-            <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+            <RefreshIcon spinning={isFetching} /> Refresh
           </Button>
           <Button
             variant="white"

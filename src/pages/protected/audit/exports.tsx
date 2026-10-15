@@ -27,6 +27,7 @@ import { P } from "@/permissions";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
+import { LoadingMark, RefreshIcon } from "@/components/custom/loading-mark";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -163,7 +164,7 @@ function ExportDetailDrawer({
 
             {isLoading ? (
               <div className="flex h-60 items-center justify-center">
-                <Loader2 className="size-5 animate-spin text-gray-400" />
+                <LoadingMark className="size-10" />
               </div>
             ) : job ? (
               <div className="px-5 py-5 space-y-5">
@@ -389,7 +390,7 @@ export default function AuditExports() {
           </div>
           <div className="inline-flex items-center gap-3.5">
             <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-              <RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Refresh
+              <RefreshIcon spinning={isFetching} className="size-4" /> Refresh
             </Button>
             <PermissionGate permission={P.EXPORT_AUDIT}>
               <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.AUDIT.EXPORT_NEW)}>

@@ -43,6 +43,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const TABLE_HEADERS = ["User", "Role", "Status", "Assigned By", "Assigned", "Revoked", "Action"];
 
@@ -614,7 +615,7 @@ export default function PlatformUserAssignments() {
               onClick={() => refetch()}
               disabled={isFetching}
             >
-              <RefreshCw className={cn(isFetching && "animate-spin")} /> Refresh
+              <RefreshIcon spinning={isFetching} /> Refresh
             </Button>
           </div>
         </div>

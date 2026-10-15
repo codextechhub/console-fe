@@ -7,7 +7,7 @@
 
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
-import { FileText, Loader2, Mail, Plus } from "lucide-react";
+import { FileText, Mail, Plus } from "lucide-react";
 import { toast } from "sonner";
 import CustomTable from "@/components/custom/custom-table";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,7 @@ import {
 } from "./history-params";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
+import { LoadingMark } from "@/components/custom/loading-mark";
 
 const groupBy = <T,>(items: T[], key: (item: T) => string) =>
   items.reduce<Record<string, T[]>>((out, item) => {
@@ -332,7 +333,7 @@ export function EventsPanel() {
 function Busy() {
   return (
     <div className="grid h-48 place-content-center">
-      <Loader2 className="size-6 animate-spin text-primary" />
+      <LoadingMark className="size-10" />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { RefreshCw, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 
 import CustomTable from "@/components/custom/custom-table";
 import { SearchSelect } from "@/components/custom/search-select";
@@ -27,6 +27,7 @@ import {
 import { formatEnum, formatStartedTime } from "@/utils/helpers";
 import { toast } from "sonner";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const TABLE_HEADERS = [
   "School",
@@ -165,7 +166,7 @@ export default function GoLiveQueue() {
               onClick={() => refetch()}
               disabled={isFetching}
             >
-              <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+              <RefreshIcon spinning={isFetching} /> Refresh
             </Button>
           </div>
         </div>

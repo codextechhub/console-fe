@@ -15,7 +15,7 @@ import { evaluateGate } from "@/utils/session-gate";
 import { endSession } from "@/utils/end-session";
 import { captureReturnTo } from "@/utils/return-to";
 import { Button } from "@/components/ui/button";
-import { LoaderCircle, RefreshCw, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { getAuthContextGateState } from "@/utils/auth-context-gate";
 import {
   clearAuthContextFromLogin,
@@ -27,6 +27,7 @@ import {
   type RefreshOutcome,
 } from "@/utils/token-refresh";
 import { getAccessToken } from "@/utils/access-token";
+import { LoadingMark, RefreshIcon } from "@/components/custom/loading-mark";
 
 const { LOGIN } = routesPath.AUTH;
 
@@ -291,8 +292,8 @@ function ContextRecovery({
   if (gateState === "loading" || autoRetrying) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-        <div className="flex items-center gap-2 text-sm text-gray-01" role="status">
-          <LoaderCircle className="size-4 animate-spin" />
+        <div className="flex flex-col items-center gap-3 text-sm text-gray-01" role="status">
+          <LoadingMark label={null} />
           {autoRetrying ? "Reconnecting…" : "Preparing your workspace…"}
         </div>
       </main>
@@ -323,7 +324,7 @@ function ContextRecovery({
             }}
             disabled={isFetching}
           >
-            <RefreshCw className={isFetching ? "size-4 animate-spin" : "size-4"} />
+            <RefreshIcon spinning={isFetching} className="size-4" />
             Retry
           </Button>
         </div>

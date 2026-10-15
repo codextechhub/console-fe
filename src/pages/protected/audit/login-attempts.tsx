@@ -22,6 +22,7 @@ import type { AuthAttempt } from "@/redux/services/dashboard/security-types";
 import { routesPath } from "@/routes/routes-path";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -261,7 +262,7 @@ export default function LoginAttempts() {
             <p className="text-xs text-gray-01 mt-0.5">Forensic view of authentication outcomes.</p>
           </div>
           <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Refresh
+            <RefreshIcon spinning={isFetching} className="size-4" /> Refresh
           </Button>
         </div>
 

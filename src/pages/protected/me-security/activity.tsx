@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-  RefreshCw, ChevronRight, Eye, X,
+  ChevronRight, Eye, X,
   Globe, Clock, User, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import type { AuditEventListItem } from "@/redux/services/dashboard/audit-types"
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
 import { showBlobPreview } from "@xvs/finance/components/finance-ui/file-preview-dialog";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -251,7 +252,7 @@ export default function MyActivity() {
               onClick={() => refetch()}
               disabled={isFetching}
             >
-              <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+              <RefreshIcon spinning={isFetching} /> Refresh
             </Button>
           </div>
         </div>

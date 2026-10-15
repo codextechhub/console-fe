@@ -2,7 +2,7 @@ import { Badge, badgeVariants } from "@/components/ui/badge";
 import type { VariantProps } from "class-variance-authority";
 import { Button } from "@/components/ui/button";
 import { QuickExportButton } from "@/components/custom/quick-export-drawer";
-import { Plus, RefreshCw, SlidersHorizontal } from "lucide-react";
+import { Plus, SlidersHorizontal } from "lucide-react";
 import { CustomInput } from "@/components/custom/custom-input";
 import CustomTable from "@/components/custom/custom-table";
 import PermissionGate from "@/components/custom/permission-gate";
@@ -34,6 +34,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useFieldAccess } from "@/components/finance-ui/field-access";
 import { TEAM_FIELD_RESOURCE } from "../team-field-access";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 /**
  * One column of an invites table. `field` names the Field Access field the
@@ -222,7 +223,7 @@ export default function InvitesTab({ scope }: { scope: "cx" | "school" }) {
             onClick={() => refetch()}
             disabled={isFetching}
           >
-            <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+            <RefreshIcon spinning={isFetching} /> Refresh
           </Button>
           <Button
             variant="white"

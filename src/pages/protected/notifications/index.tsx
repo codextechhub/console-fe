@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Bell, CheckCheck, Loader2, Settings2 } from "lucide-react";
+import { Bell, CheckCheck, Settings2 } from "lucide-react";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
 import { NotificationEventIcon } from "@/components/custom/notification-event-icon";
@@ -23,6 +23,7 @@ import {
   useMarkAllNotificationsReadMutation,
   useMarkNotificationsReadMutation,
 } from "@/redux/services/notifications-api";
+import { LoadingMark } from "@/components/custom/loading-mark";
 
 type Filter = "unread" | "read" | "all";
 
@@ -152,7 +153,7 @@ export default function Notifications() {
         <section className={cn(INFORMATION_CARD_SURFACE, "rounded-md")}>
           {isLoading ? (
             <div className="grid h-72 place-content-center">
-              <Loader2 className="size-6 animate-spin text-primary" />
+              <LoadingMark className="size-10" />
             </div>
           ) : isError ? (
             <div className="py-20 text-center">

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router";
-import { RefreshCw, ExternalLink, Download, X } from "lucide-react";
+import { ExternalLink, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ActorCell } from "./components/audit-cells";
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { friendlyAction } from "./audit-constants";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const SEV_DOT: Record<string, string> = {
   CRITICAL: "bg-red-500",
@@ -148,7 +149,7 @@ export default function EntityTrailDetail() {
               </>
             )}
             <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-              <RefreshCw className={cn("size-3.5", isFetching && "animate-spin")} /> Refresh
+              <RefreshIcon spinning={isFetching} className="size-3.5" /> Refresh
             </Button>
           </div>
         </div>

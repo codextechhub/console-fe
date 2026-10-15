@@ -1,5 +1,5 @@
 import { createElement, lazy, Suspense, useEffect, useLayoutEffect, useState, type MouseEvent } from "react";
-import { ArrowLeft, ArrowRight, BookOpenText, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Flag, Loader2, PlayCircle, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpenText, Check, CheckCircle2, ChevronRight, Clock3, ExternalLink, Flag, PlayCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
 import PageAccessDenied from "@/components/custom/page-access-denied";
@@ -12,6 +12,7 @@ import { useAppSelector } from "@/redux/store";
 import { useRecordGuideAnalyticsMutation } from "@/redux/services/guide-analytics-api";
 import { routesPath } from "@/routes/routes-path";
 import { PageShell } from "@/components/layout/page-shell";
+import { LoadingMark } from "@/components/custom/loading-mark";
 
 const GUIDE_RECORDS: readonly GuideRecord[] = GUIDE_REGISTRY;
 const GUIDE_ARTICLES = new Map(
@@ -83,7 +84,7 @@ export default function GuideArticlePage() {
         </header>
 
         <div className="mt-6 rounded-3xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
-          <Suspense fallback={<div className="grid min-h-80 place-items-center"><Loader2 className="size-5 animate-spin text-primary" /></div>}>{createElement(Article)}</Suspense>
+          <Suspense fallback={<div className="grid min-h-80 place-items-center"><LoadingMark className="size-10" /></div>}>{createElement(Article)}</Suspense>
         </div>
 
         {related.length > 0 && <section className="mt-6"><h2 className="font-mont text-lg font-semibold">Related guides</h2><div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">{related.map((item) => item.status === "published" ? <Link key={item.id} to={routesPath.PROTECTED.SUPPORT.GUIDE_DETAIL(item.slug)} className="rounded-2xl border border-gray-200 bg-white p-4 transition hover:border-primary/30"><p className="text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs leading-5 text-gray-01">{item.summary}</p></Link> : <div key={item.id} className="rounded-2xl border border-gray-200 bg-white p-4"><p className="text-sm font-semibold">{item.title}</p><p className="mt-1 text-xs text-gray-01">Planned for a later category release.</p></div>)}</div></section>}

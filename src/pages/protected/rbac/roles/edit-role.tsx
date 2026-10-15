@@ -15,7 +15,7 @@ import {
   useGetAccessCatalogueQuery,
 } from "@/redux/services/dashboard/rbac-api";
 import { toast } from "sonner";
-import { Loader2, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { P } from "@/permissions";
 import { PageShell } from "@/components/layout/page-shell";
@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
 import { catalogueLabels, restrictedAdditions, sentForApproval } from "./restricted-approval";
 import { RestrictedApprovalNotes } from "./restricted-approval-notes";
+import { LoadingMark } from "@/components/custom/loading-mark";
 
 const schema = Yup.object({
   name: Yup.string().trim().required("Role name is required"),
@@ -60,7 +61,7 @@ export default function EditRole() {
     return (
       <>
         <div className="flex h-96 items-center justify-center">
-          <Loader2 className="animate-spin size-6 text-primary" />
+          <LoadingMark />
         </div>
       </>
     );

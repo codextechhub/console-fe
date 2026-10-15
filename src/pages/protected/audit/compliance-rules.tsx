@@ -26,6 +26,7 @@ import type { ComplianceRule } from "@/redux/services/dashboard/audit-types";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -155,7 +156,7 @@ export default function ComplianceRules() {
           </div>
           <div className="inline-flex items-center gap-3.5">
             <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-              <RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Refresh
+              <RefreshIcon spinning={isFetching} className="size-4" /> Refresh
             </Button>
             <PermissionGate permission={P.CREATE_AUDIT_RULE}>
               <Button size="lg" onClick={() => navigate(routesPath.PROTECTED.AUDIT.COMPLIANCE_RULE_CREATE)}>

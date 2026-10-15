@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import CustomTable from "@/components/custom/custom-table";
@@ -11,6 +10,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { useDebounce } from "react-haiku";
 import type { Permission } from "@/redux/services/dashboard/rbac-types";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 const TABLE_HEADERS = ["Permission", "Module", "Resource", "Sensitivity", "Restricted", "Status", "Created"];
 
@@ -127,7 +127,7 @@ export default function PermissionsList() {
               onClick={reload}
               disabled={isFetching}
             >
-              <RefreshCw className={isFetching ? "animate-spin" : ""} /> Refresh
+              <RefreshIcon spinning={isFetching} /> Refresh
             </Button>
           </div>
         </div>

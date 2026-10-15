@@ -65,6 +65,7 @@ import {
   conversationCommentBody,
   partitionTicketAttachments,
 } from "./attachment-placement";
+import { LoadingMark } from "@/components/custom/loading-mark";
 
 // Mirrors backend VALID_STATUS_TRANSITIONS (vs_tickets/constants.py).
 const transitions: Record<TicketStatus, TicketStatus[]> = {
@@ -363,7 +364,7 @@ export default function TicketDetail() {
     return (
       <>
         <div className="grid h-[70vh] place-content-center">
-          <Loader2 className="animate-spin text-primary" />
+          <LoadingMark />
         </div>
       </>
     );
@@ -857,7 +858,7 @@ export default function TicketDetail() {
                   </SheetHeader>
                   <div className="mt-6 space-y-5">
                     {audit.isLoading ? (
-                      <Loader2 className="animate-spin" />
+                      <LoadingMark className="size-10" />
                     ) : (
                       audit.data?.data.map((a) => (
                         <div className="border-l-2 border-primary/30 pl-4" key={a.id}>

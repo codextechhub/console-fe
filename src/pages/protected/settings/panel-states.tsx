@@ -1,13 +1,13 @@
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
+import { LoadingMark } from "@/components/custom/loading-mark";
 
 /** The placeholder a Settings panel shows while its data loads. */
 export function Busy() {
   return (
     <div className={cn(INFORMATION_CARD_SURFACE, "grid h-48 place-content-center rounded-md")}>
-      <Loader2 className="size-6 animate-spin text-primary" />
+      <LoadingMark className="size-10" />
     </div>
   );
 }

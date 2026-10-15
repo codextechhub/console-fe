@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 // ── Countdown ─────────────────────────────────────────────────────────────────
 
@@ -336,7 +337,7 @@ export default function Impersonations() {
             </p>
           </div>
           <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Refresh
+            <RefreshIcon spinning={isFetching} className="size-4" /> Refresh
           </Button>
         </div>
 

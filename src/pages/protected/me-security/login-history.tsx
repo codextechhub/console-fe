@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNow } from "@/hooks/use-now";
 import {
   Check, CornerDownLeft, Eye, EyeOff, Flag,
-  LogOut, Monitor, RefreshCw, ShieldX, Smartphone, Tablet, X,
+  LogOut, Monitor, ShieldX, Smartphone, Tablet, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import { useNavigate } from "react-router";
 import { routesPath } from "@/routes/routes-path";
 import { toast } from "sonner";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -234,7 +235,7 @@ export default function MyLoginHistory() {
               Something look wrong?
             </Button>
             <Button variant="white" size="sm" onClick={() => refetch()} disabled={isFetching}>
-              <RefreshCw className={`size-3.5 ${isFetching ? "animate-spin" : ""}`} />
+              <RefreshIcon spinning={isFetching} className="size-3.5" />
               Refresh
             </Button>
           </div>

@@ -33,6 +33,7 @@ import {
 } from "@/pages/protected/finance/console-sections";
 
 export { AppLogo } from "@/components/app-logo";
+export { LoadingMark } from "@/components/custom/loading-mark";
 export { QuickExportButton } from "@/components/custom/quick-export-drawer";
 export { UserAvatar } from "@/components/custom/user-avatar";
 export { useDashboardTitle } from "@/components/layout/dashboard-header";

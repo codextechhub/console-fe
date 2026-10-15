@@ -8,7 +8,13 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <!-- The boot screen: shown from the first paint after a load or refresh
+         until React mounts and replaces the contents of #root. -->
+    <div id="root">
+      <div style="display:flex;min-height:100vh;align-items:center;justify-content:center;background:#F7F7F7">
+        <img src="/image/codex-loading-blue.svg" width="64" height="60" alt="Loading" />
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

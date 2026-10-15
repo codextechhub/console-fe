@@ -49,6 +49,7 @@ import {
   useUpdateNotificationTemplateMutation,
   type NotificationTemplate,
 } from "@/redux/services/notifications-api";
+import { LoadingMark } from "@/components/custom/loading-mark";
 
 type Mode = "edit" | "create";
 
@@ -447,7 +448,7 @@ function Editor({ template }: { template: NotificationTemplate }) {
 
             {!preview ? (
               <div className="mt-4 grid h-64 place-content-center">
-                <Loader2 className="size-6 animate-spin text-primary" />
+                <LoadingMark className="size-10" />
               </div>
             ) : isEmail ? (
               <div className="mt-4">
@@ -637,7 +638,7 @@ function BackLink() {
 function PageBusy() {
   return (
     <main className="grid h-[60vh] place-content-center">
-      <Loader2 className="size-6 animate-spin text-primary" />
+      <LoadingMark />
     </main>
   );
 }

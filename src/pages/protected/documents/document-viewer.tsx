@@ -39,6 +39,7 @@ import type { RequirementsDocument } from "@/redux/services/dashboard/documents-
 import { apiErrorMessage } from "@/utils/api-errors";
 import { formatBytes } from "@/utils/format-bytes";
 import { documentFilename, saveObjectUrl } from "./use-document-download";
+import { LoadingMark } from "@/components/custom/loading-mark";
 
 /** A document plus the version to show; no version means the current one. */
 export interface ViewerTarget {
@@ -195,7 +196,7 @@ function ViewerBody({ target }: { target: ViewerTarget }) {
 
         {state.status === "loading" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-xs text-gray-06-text">
-            <span className="size-6 animate-spin rounded-full border-2 border-gray-300 border-t-primary" />
+            <LoadingMark label={null} className="size-10" />
             Opening document...
           </div>
         )}

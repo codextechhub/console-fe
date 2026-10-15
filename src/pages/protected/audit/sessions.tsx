@@ -47,6 +47,7 @@ import { routesPath } from "@/routes/routes-path";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 // ── Modal state ──────────────────────────────────────────────────────────────
 
@@ -204,7 +205,7 @@ export default function LiveSessions() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Button variant="white" size="lg" onClick={() => refetch()} disabled={isFetching}>
-              <RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Refresh
+              <RefreshIcon spinning={isFetching} className="size-4" /> Refresh
             </Button>
             {/* Was a button with no onClick at all - visible, enabled, inert.
                 Now the real server-side export, carrying this screen's filters. */}

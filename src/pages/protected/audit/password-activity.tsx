@@ -27,6 +27,7 @@ import { FRIENDLY_ACTION } from "./audit-constants";
 import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { PageShell } from "@/components/layout/page-shell";
+import { RefreshIcon } from "@/components/custom/loading-mark";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -187,7 +188,7 @@ export default function PasswordActivity() {
             <p className="text-xs text-gray-01 mt-0.5">Identity-related events across XVS.</p>
           </div>
           <Button variant="white" size="lg" onClick={() => { refetch(); refetchResets(); }} disabled={isFetching}>
-            <RefreshCw className={cn("size-4", isFetching && "animate-spin")} /> Refresh
+            <RefreshIcon spinning={isFetching} className="size-4" /> Refresh
           </Button>
         </div>
 
