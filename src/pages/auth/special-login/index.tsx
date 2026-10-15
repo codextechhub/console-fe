@@ -9,6 +9,7 @@ import { consumeReturnTo } from "@/utils/return-to";
 import { humanizeAuthError } from "@/utils/auth-errors";
 import { CustomInput } from "@/components/custom/custom-input";
 import { Button } from "@/components/ui/button";
+import { LoadingMark } from "@/components/custom/loading-mark";
 
 export default function SpecialLogin() {
   const { cardId: rawCardId } = useParams<{ cardId: string }>();
@@ -53,7 +54,7 @@ export default function SpecialLogin() {
   if (isPreviewing) {
     return (
       <div className="grid place-content-center min-h-40">
-        <div className="loader" />
+        <LoadingMark />
       </div>
     );
   }

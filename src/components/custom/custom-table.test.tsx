@@ -52,7 +52,7 @@ describe("CustomTable loading skeleton", () => {
 
   it("shows no spinner", () => {
     const doc = renderLoading();
-    expect(doc.querySelector(".loader")).toBeNull();
+    expect(doc.querySelector(".loading-mark")).toBeNull();
   });
 
   it("announces loading once for the whole surface, not per ghost row", () => {

@@ -35,8 +35,8 @@ export type LoadingMarkProps = {
  * button while it fetches.
  *
  * The drawing matches `public/image/codex-loading-{blue,white}.svg`, which
- * serve the places React cannot reach (the boot screen in `index.html` and
- * the `.loader` class). This copy is inline rather than an `<img>` so it sits
+ * serve the one place React cannot reach, the boot screen in `index.html`.
+ * This copy is inline rather than an `<img>` so it sits
  * in a button as an `svg` child and takes the button's icon sizing and
  * padding. Clip and gradient ids come from `useId`, because a page can show
  * several marks at once. The motion lives in `.loading-mark` in index.css,
