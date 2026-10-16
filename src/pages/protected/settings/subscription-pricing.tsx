@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -42,28 +42,24 @@ export function SubscriptionPricing() {
   const access = useFieldAccess(SCHOOLS_FIELD_RESOURCE);
   const query = useGetPackagePlansQuery();
   const [updatePrice, updateState] = useUpdatePackagePlanPriceMutation();
-  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [edits, setEdits] = useState<Record<string, string>>({});
   const [refusal, setRefusal] = useState<{ code: string; errors: FieldErrors } | null>(null);
   const canSave = hasPermission(P.CONFIGURE_SCHOOL) && !access.isReadOnly(PRICE);
-
-  useEffect(() => {
-    if (!query.data) return;
-    setDraft(Object.fromEntries(
-      query.data.data.map((plan) => [
-        plan.code,
-        plan.price_per_student == null ? "" : String(plan.price_per_student / 100),
-      ]),
-    ));
-  }, [query.data]);
 
   if (query.isLoading) return <Busy />;
   if (query.isError || !query.data) return <SettingsLoadError retry={query.refetch} />;
 
   const plans = query.data.data.filter((plan) => PRICE in plan);
+  // The reader's own edit, else the saved rate in naira.
+  const shown = (code: string) => {
+    if (code in edits) return edits[code];
+    const saved = plans.find((plan) => plan.code === code)?.price_per_student;
+    return saved == null ? "" : String(saved / 100);
+  };
   const hidden = access.isHidden(PRICE) || plans.length === 0;
 
   const save = async (code: string) => {
-    const naira = Number(draft[code]);
+    const naira = Number(shown(code));
     if (!Number.isFinite(naira) || naira <= 0) {
       toast.error("Enter a per-student rate greater than zero");
       return;
@@ -71,6 +67,7 @@ export function SubscriptionPricing() {
     setRefusal(null);
     try {
       await updatePrice({ code, price_per_student: Math.round(naira * 100) }).unwrap();
+      setEdits((current) => { const next = { ...current }; delete next[code]; return next; });
       toast.success("Subscription rate saved");
     } catch (error) {
       const refused = fieldWriteErrors(error);
@@ -122,15 +119,15 @@ export function SubscriptionPricing() {
                           type="number"
                           min="1"
                           disabled={!canSave}
-                          value={draft[plan.code] ?? ""}
-                          onChange={(event) => setDraft((current) => ({ ...current, [plan.code]: event.target.value }))}
+                          value={shown(plan.code)}
+                          onChange={(event) => setEdits((current) => ({ ...current, [plan.code]: event.target.value }))}
                         />
                       </div>
                     </AccessField>
                     {canSave ? (
                       <Button
                         size="sm"
-                        disabled={updateState.isLoading || Number(draft[plan.code]) * 100 === plan.price_per_student}
+                        disabled={updateState.isLoading || Number(shown(plan.code)) * 100 === plan.price_per_student}
                         onClick={() => save(plan.code)}
                       >
                         Save
