@@ -5,10 +5,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   changePassword: vi.fn(),
   handleLogout: vi.fn(),
+  auth: {
+    user: { id: "42", email: "ada@codexng.com", password_changed_at: null },
+    impersonation: null as null | { target: { full_name: string } },
+  },
 }));
 
 vi.mock("@/redux/store", () => ({
-  useAppSelector: () => ({ id: "42", email: "ada@codexng.com", password_changed_at: null }),
+  useAppSelector: (select: (state: { auth: typeof mocks.auth }) => unknown) => select({ auth: mocks.auth }),
 }));
 
 vi.mock("@/redux/services/dashboard/security-api", () => ({
@@ -34,6 +38,7 @@ describe("MyPassword", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
+    mocks.auth.impersonation = null;
   });
 
   afterEach(() => {
@@ -159,6 +164,19 @@ describe("MyPassword", () => {
     expect(container.querySelector("[role=alert]")?.textContent).toBe(
       "Could not reach the server. Please check your connection and try again.",
     );
+  });
+
+  it("withholds the form while proxying and says how to reach the operator's own", () => {
+    mocks.auth.impersonation = { target: { full_name: "Tunde Bakare" } };
+    render();
+
+    expect(container.querySelector("#old_password")).toBeNull();
+    expect(button("Update password")).toBeUndefined();
+    expect(container.textContent).toContain("Exit proxy to change your password");
+    expect(container.textContent).toContain(
+      "You are proxying as Tunde Bakare, and only they can change their password.",
+    );
+    expect(container.textContent).toContain("Password reset history");
   });
 
   it("flags a mismatch before anything is sent and keeps Update off", () => {

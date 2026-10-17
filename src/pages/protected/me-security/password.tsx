@@ -1,5 +1,5 @@
 import { useState, useMemo, type FormEvent } from "react";
-import { CircleCheck, Key } from "lucide-react";
+import { CircleCheck, Key, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -83,9 +83,15 @@ type PasswordField = keyof PasswordFieldErrors;
  * toast, and anything that names no box (offline, throttled, a server fault)
  * shows in the form itself. After a change the page says that every device,
  * this one included, is signed out, and offers to sign in again at once.
+ *
+ * While proxying, the session acts as the person proxied, so a change here
+ * would be to their password, not the operator's. The form is withheld and
+ * the page says how to reach the operator's own; the email and reset history
+ * stay, as reads of the proxied account like every other screen in proxy.
  */
 export default function MyPassword() {
   const user = useAppSelector((s) => s.auth.user);
+  const impersonation = useAppSelector((s) => s.auth.impersonation);
 
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -157,131 +163,147 @@ export default function MyPassword() {
         </div>
 
         {/* ── Change password card ───────────────────────────────────────────── */}
-        <form
-          noValidate
-          onSubmit={handleSubmitPw}
-          className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}
-        >
-          <div>
-            <p className="text-sm font-semibold">Change password</p>
-            {passwordChangedAt && (
+        {impersonation ? (
+          <div
+            role="note"
+            className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 flex items-start gap-3")}
+          >
+            <UsersRound className="mt-0.5 size-5 shrink-0 text-blue-600" />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Exit proxy to change your password</p>
               <p className="text-xs text-gray-01 mt-0.5">
-                Last changed {formatRelativeDate(passwordChangedAt)}
+                You are proxying as {impersonation.target.full_name}, and only they can change
+                their password. Exit proxy from the account menu, then come back here to change yours.
               </p>
-            )}
+            </div>
           </div>
-
-          {/* Current password - full width */}
-          <CustomInput
-            id="old_password"
-            label="Current password"
-            type="password"
-            autoComplete="current-password"
-            value={oldPassword}
-            onChange={(e) => edit("current_password", setOldPassword)(e.target.value)}
-            error={errors.current_password}
-          />
-
-          {/* New + confirm - 2-column */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        ) : (
+          <form
+            noValidate
+            onSubmit={handleSubmitPw}
+            className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}
+          >
             <div>
-              <CustomInput
-                id="new_password"
-                label="New password"
-                type="password"
-                autoComplete="new-password"
-                value={newPassword}
-                onChange={(e) => edit("password", setNewPassword)(e.target.value)}
-                placeholder="At least 12 characters"
-                error={errors.password}
-              />
-              {/* Strength bar */}
-              {newPassword.length > 0 && (
-                <div className="mt-2">
-                  <div className="flex gap-0.5 h-1 rounded overflow-hidden bg-gray-100">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <div
-                        key={i}
-                        className={`flex-1 transition-colors ${
-                          i <= strength.score
-                            ? strength.score < 3
-                              ? "bg-amber-400"
-                              : "bg-green-500"
-                            : "bg-gray-100"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span className="text-[11px] text-gray-01">Strength</span>
-                    <span
-                      className={`text-[11px] font-medium ${
-                        strength.score < 3 ? "text-amber-600" : "text-green-600"
-                      }`}
-                    >
-                      {strength.label}
-                    </span>
-                  </div>
-                </div>
+              <p className="text-sm font-semibold">Change password</p>
+              {passwordChangedAt && (
+                <p className="text-xs text-gray-01 mt-0.5">
+                  Last changed {formatRelativeDate(passwordChangedAt)}
+                </p>
               )}
             </div>
 
-            <div>
-              <CustomInput
-                id="confirm_password"
-                label="Confirm new password"
-                type="password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => edit("confirm_password", setConfirmPassword)(e.target.value)}
-                placeholder="Re-enter new password"
-                error={errors.confirm_password || (mismatch ? MISMATCH_MESSAGE : undefined)}
-              />
-            </div>
-          </div>
+            {/* Current password - full width */}
+            <CustomInput
+              id="old_password"
+              label="Current password"
+              type="password"
+              autoComplete="current-password"
+              value={oldPassword}
+              onChange={(e) => edit("current_password", setOldPassword)(e.target.value)}
+              error={errors.current_password}
+            />
 
-          {/* Policy checklist */}
-          <PasswordRequirements password={newPassword} />
+            {/* New + confirm - 2-column */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <CustomInput
+                  id="new_password"
+                  label="New password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => edit("password", setNewPassword)(e.target.value)}
+                  placeholder="At least 12 characters"
+                  error={errors.password}
+                />
+                {/* Strength bar */}
+                {newPassword.length > 0 && (
+                  <div className="mt-2">
+                    <div className="flex gap-0.5 h-1 rounded overflow-hidden bg-gray-100">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div
+                          key={i}
+                          className={`flex-1 transition-colors ${
+                            i <= strength.score
+                              ? strength.score < 3
+                                ? "bg-amber-400"
+                                : "bg-green-500"
+                              : "bg-gray-100"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex justify-between mt-1">
+                      <span className="text-[11px] text-gray-01">Strength</span>
+                      <span
+                        className={`text-[11px] font-medium ${
+                          strength.score < 3 ? "text-amber-600" : "text-green-600"
+                        }`}
+                      >
+                        {strength.label}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
-          {formError && (
-            <p role="alert" className="text-xs font-medium text-destructive">
-              {formError}
-            </p>
-          )}
-
-          {changed && (
-            <div
-              role="status"
-              className="flex items-start gap-2 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900"
-            >
-              <CircleCheck className="mt-0.5 size-4 shrink-0" />
-              <div className="min-w-0 space-y-2">
-                <p>
-                  <strong>Password changed.</strong> {SIGNED_OUT_EVERYWHERE_MESSAGE}
-                </p>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={isLoggingOut}
-                  onClick={handleLogout}
-                >
-                  Sign in again now
-                </Button>
+              <div>
+                <CustomInput
+                  id="confirm_password"
+                  label="Confirm new password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => edit("confirm_password", setConfirmPassword)(e.target.value)}
+                  placeholder="Re-enter new password"
+                  error={errors.confirm_password || (mismatch ? MISMATCH_MESSAGE : undefined)}
+                />
               </div>
             </div>
-          )}
 
-          {/* Footer row */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-            <p className="text-xs text-gray-01">
-              Updating signs you out on every device, this one included.
-            </p>
-            <Button type="submit" size="sm" disabled={!canSubmitPw} className="shrink-0">
-              {changingPw ? "Saving…" : "Update password"}
-            </Button>
-          </div>
-        </form>
+            {/* Policy checklist */}
+            <PasswordRequirements password={newPassword} />
+
+            {formError && (
+              <p role="alert" className="text-xs font-medium text-destructive">
+                {formError}
+              </p>
+            )}
+
+            {changed && (
+              <div
+                role="status"
+                className="flex items-start gap-2 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900"
+              >
+                <CircleCheck className="mt-0.5 size-4 shrink-0" />
+                <div className="min-w-0 space-y-2">
+                  <p>
+                    <strong>Password changed.</strong> {SIGNED_OUT_EVERYWHERE_MESSAGE}
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={isLoggingOut}
+                    onClick={handleLogout}
+                  >
+                    Sign in again now
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Footer row */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <p className="text-xs text-gray-01">
+                Updating signs you out on every device, this one included.
+              </p>
+              <Button type="submit" size="sm" disabled={!canSubmitPw} className="shrink-0">
+                {changingPw ? "Saving…" : "Update password"}
+              </Button>
+            </div>
+          </form>
+        )}
 
         {/* ── Email address card (read-only) ────────────────────────────────── */}
         <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 flex items-center justify-between gap-4")}>
