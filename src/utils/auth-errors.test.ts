@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { humanizeAuthError } from "./auth-errors";
+import { humanizeAuthError, passwordFieldErrors } from "./auth-errors";
 
 const FALLBACK = "Something went wrong. Please try again.";
 
@@ -69,5 +69,55 @@ describe("humanizeAuthError", () => {
   it("returns fallback for an empty/unknown error", () => {
     expect(humanizeAuthError({}, FALLBACK)).toBe(FALLBACK);
     expect(humanizeAuthError(undefined, FALLBACK)).toBe(FALLBACK);
+  });
+});
+
+describe("passwordFieldErrors", () => {
+  it("reads each box's refusal from the flat error the change view sends", () => {
+    const err = {
+      status: 400,
+      data: {
+        message: "Invalid request.",
+        error: {
+          current_password: ["Current password is incorrect."],
+          password: ["This password is too short.", "This password is too common."],
+          confirm_password: ["Passwords do not match."],
+        },
+      },
+    };
+    expect(passwordFieldErrors(err)).toEqual({
+      current_password: "Current password is incorrect.",
+      password: "This password is too short. This password is too common.",
+      confirm_password: "Passwords do not match.",
+    });
+  });
+
+  it("reads field errors nested under error.detail", () => {
+    const err = { status: 400, data: { error: { detail: { password: "New password must differ from current password." } } } };
+    expect(passwordFieldErrors(err)).toEqual({
+      password: "New password must differ from current password.",
+    });
+  });
+
+  it("puts the service's field-less policy refusal under the new password", () => {
+    const err = {
+      status: 400,
+      data: {
+        message: "Password change failed.",
+        error: { error_code: "PASSWORD_POLICY_VIOLATION", messages: ["This password is too common."] },
+      },
+    };
+    expect(passwordFieldErrors(err)).toEqual({ password: "This password is too common." });
+  });
+
+  it("never shows a machine code as a box's refusal", () => {
+    const err = { status: 400, data: { error: { password: ["PASSWORD_POLICY_VIOLATION"] } } };
+    expect(passwordFieldErrors(err)).toEqual({});
+  });
+
+  it("is empty for a refusal that names no box", () => {
+    expect(passwordFieldErrors({ status: "FETCH_ERROR", error: "Failed to fetch" })).toEqual({});
+    expect(passwordFieldErrors({ status: 500, data: { error: { code: "SERVER_ERROR" } } })).toEqual({});
+    expect(passwordFieldErrors(undefined)).toEqual({});
   });
 });

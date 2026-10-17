@@ -122,6 +122,8 @@ export const securityApi = baseApi.injectEndpoints({
     // ── Self-service password change ────────────────────────────────────────
     changeMyPassword: builder.mutation<{ message: string }, { current_password: string; password: string; confirm_password: string }>({
       query: (body) => ({ url: `/user/auth/password/change/`, method: "POST", body }),
+      // The form shows every refusal itself, so the interceptor raises no toast.
+      extraOptions: { silent: true },
     }),
 
     // ── Self-service password reset history ────────────────────────────────

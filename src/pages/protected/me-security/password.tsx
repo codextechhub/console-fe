@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Key } from "lucide-react";
+import { useState, useMemo, type FormEvent } from "react";
+import { CircleCheck, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -10,8 +10,13 @@ import {
   useGetMyPasswordResetsQuery,
 } from "@/redux/services/dashboard/security-api";
 import { useAppSelector } from "@/redux/store";
+import { useLogout } from "@/hooks/use-logout";
 import { formatRelativeDate } from "@/utils/helpers";
-import { toast } from "sonner";
+import {
+  humanizeAuthError,
+  passwordFieldErrors,
+  type PasswordFieldErrors,
+} from "@/utils/auth-errors";
 import { PageShell } from "@/components/layout/page-shell";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
@@ -45,17 +50,53 @@ function passwordStrength(p: string): { score: number; label: string } {
   return { score: s, label: STRENGTH_LABELS[s] };
 }
 
+export const MISMATCH_MESSAGE = "Passwords do not match.";
+
+/**
+ * What the server does on a successful change, said in plain words.
+ *
+ * `PasswordService.change` blacklists every refresh token the account holds,
+ * this device's included, so no sign-in survives it. Each device keeps its
+ * current access token, which lives for up to 15 minutes, and is then asked
+ * to sign in again. Saying "other devices" alone would leave the reader
+ * surprised when this one signs them out too. school-fe's change-password
+ * form says the same.
+ */
+export const SIGNED_OUT_EVERYWHERE_MESSAGE =
+  "Every device signed in to your account has been signed out, this one included. " +
+  "Each will ask for your new password within 15 minutes. " +
+  "Sign in again now so nothing you are doing here is cut off.";
+
+const FALLBACK_REFUSAL = "Your password could not be changed. Try again.";
+
+type PasswordField = keyof PasswordFieldErrors;
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
+/**
+ * Password & sign-in: the signed-in person changes their own password,
+ * reads their masked email and reviews their reset history.
+ *
+ * Every refusal of a change lands under the box it is about: a wrong current
+ * password under Current password, a policy refusal under New password, a
+ * mismatch under Confirm. The request is silent, so the interceptor raises no
+ * toast, and anything that names no box (offline, throttled, a server fault)
+ * shows in the form itself. After a change the page says that every device,
+ * this one included, is signed out, and offers to sign in again at once.
+ */
 export default function MyPassword() {
   const user = useAppSelector((s) => s.auth.user);
 
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState<PasswordFieldErrors>({});
+  const [formError, setFormError] = useState("");
+  const [changed, setChanged] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
   const [changePassword, { isLoading: changingPw }] = useChangeMyPasswordMutation();
+  const { handleLogout, isLoggingOut } = useLogout();
   const { data: resetsData } = useGetMyPasswordResetsQuery(undefined, {
     skip: !showHistory,
     refetchOnMountOrArgChange: true,
@@ -63,21 +104,40 @@ export default function MyPassword() {
 
   const strength = useMemo(() => passwordStrength(newPassword), [newPassword]);
 
+  const mismatch = confirmPassword.length > 0 && confirmPassword !== newPassword;
   const canSubmitPw =
     oldPassword.length > 0 &&
     passwordMeetsPolicy(newPassword) &&
-    newPassword === confirmPassword;
+    newPassword === confirmPassword &&
+    !changingPw;
 
-  const handleSubmitPw = () => {
-    changePassword({ current_password: oldPassword, password: newPassword, confirm_password: confirmPassword })
-      .unwrap()
-      .then(() => {
-        toast.success("Password updated. You may be asked to sign in again on other devices.");
-        setOldPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-      })
-      .catch(() => {});
+  const edit = (field: PasswordField, set: (value: string) => void) => (value: string) => {
+    set(value);
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+    setFormError("");
+    setChanged(false);
+  };
+
+  const handleSubmitPw = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!canSubmitPw) return;
+    setErrors({});
+    setFormError("");
+    try {
+      await changePassword({
+        current_password: oldPassword,
+        password: newPassword,
+        confirm_password: confirmPassword,
+      }).unwrap();
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setChanged(true);
+    } catch (err) {
+      const perField = passwordFieldErrors(err);
+      if (Object.keys(perField).length > 0) setErrors(perField);
+      else setFormError(humanizeAuthError(err, FALLBACK_REFUSAL));
+    }
   };
 
   const resets = Array.isArray(resetsData?.data) ? resetsData.data : [];
@@ -97,7 +157,11 @@ export default function MyPassword() {
         </div>
 
         {/* ── Change password card ───────────────────────────────────────────── */}
-        <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}>
+        <form
+          noValidate
+          onSubmit={handleSubmitPw}
+          className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 space-y-4")}
+        >
           <div>
             <p className="text-sm font-semibold">Change password</p>
             {passwordChangedAt && (
@@ -112,8 +176,10 @@ export default function MyPassword() {
             id="old_password"
             label="Current password"
             type="password"
+            autoComplete="current-password"
             value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
+            onChange={(e) => edit("current_password", setOldPassword)(e.target.value)}
+            error={errors.current_password}
           />
 
           {/* New + confirm - 2-column */}
@@ -123,9 +189,11 @@ export default function MyPassword() {
                 id="new_password"
                 label="New password"
                 type="password"
+                autoComplete="new-password"
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e) => edit("password", setNewPassword)(e.target.value)}
                 placeholder="At least 12 characters"
+                error={errors.password}
               />
               {/* Strength bar */}
               {newPassword.length > 0 && (
@@ -163,34 +231,57 @@ export default function MyPassword() {
                 id="confirm_password"
                 label="Confirm new password"
                 type="password"
+                autoComplete="new-password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => edit("confirm_password", setConfirmPassword)(e.target.value)}
                 placeholder="Re-enter new password"
+                error={errors.confirm_password || (mismatch ? MISMATCH_MESSAGE : undefined)}
               />
-              {confirmPassword.length > 0 && confirmPassword !== newPassword && (
-                <p className="text-xs text-destructive mt-1">Passwords do not match.</p>
-              )}
             </div>
           </div>
 
           {/* Policy checklist */}
           <PasswordRequirements password={newPassword} />
 
-          {/* Footer row */}
-          <div className="flex items-center justify-between gap-4 pt-1">
-            <p className="text-xs text-gray-01">
-              Changing your password will sign you out of all other devices.
+          {formError && (
+            <p role="alert" className="text-xs font-medium text-destructive">
+              {formError}
             </p>
-            <Button
-              size="sm"
-              onClick={handleSubmitPw}
-              disabled={!canSubmitPw || changingPw}
-              className="shrink-0"
+          )}
+
+          {changed && (
+            <div
+              role="status"
+              className="flex items-start gap-2 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-900"
             >
+              <CircleCheck className="mt-0.5 size-4 shrink-0" />
+              <div className="min-w-0 space-y-2">
+                <p>
+                  <strong>Password changed.</strong> {SIGNED_OUT_EVERYWHERE_MESSAGE}
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={isLoggingOut}
+                  onClick={handleLogout}
+                >
+                  Sign in again now
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Footer row */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <p className="text-xs text-gray-01">
+              Updating signs you out on every device, this one included.
+            </p>
+            <Button type="submit" size="sm" disabled={!canSubmitPw} className="shrink-0">
               {changingPw ? "Saving…" : "Update password"}
             </Button>
           </div>
-        </div>
+        </form>
 
         {/* ── Email address card (read-only) ────────────────────────────────── */}
         <div className={cn(INFORMATION_CARD_SURFACE, "rounded-md p-5 flex items-center justify-between gap-4")}>

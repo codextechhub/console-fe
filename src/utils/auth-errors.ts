@@ -170,3 +170,49 @@ export function humanizeAuthError(err: unknown, fallback: string): string {
   // 6. Anything else → the caller's fallback. Never the raw payload.
   return fallback;
 }
+
+/** The boxes on the change-password form, named as the server names them. */
+export interface PasswordFieldErrors {
+  current_password?: string;
+  password?: string;
+  confirm_password?: string;
+}
+
+const PASSWORD_FIELDS = ["current_password", "password", "confirm_password"] as const;
+
+/** One sentence from a DRF field value, which is a string or a list of them. */
+const fieldSentence = (value: unknown): string => {
+  const parts = typeof value === "string"
+    ? [value]
+    : Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return parts.map((part) => part.trim()).filter((part) => part && !isCodeLike(part)).join(" ");
+};
+
+/**
+ * The refusals of a password change that belong under one of its boxes, or an
+ * empty object when the server objected to something else.
+ *
+ * `PasswordChangeView` puts its serializer's field errors straight on `error`
+ * (`error.current_password`, `error.password`, `error.confirm_password`), and
+ * other views nest them under `error.detail`, so both are read. A policy
+ * refusal raised by `PasswordService.change` itself names no field and
+ * arrives as `error.messages`; it can only be about the new password, so it
+ * goes there. Django's validator sentences ("This password is too common.")
+ * are shown as written; a machine code never is.
+ */
+export function passwordFieldErrors(err: unknown): PasswordFieldErrors {
+  const root = asRecord(err);
+  const data = asRecord(root?.data) ?? root;
+  const errorObj = asRecord(data?.error);
+  const nested = asRecord(errorObj?.detail);
+  const out: PasswordFieldErrors = {};
+  for (const field of PASSWORD_FIELDS) {
+    const text = fieldSentence(errorObj?.[field]) || fieldSentence(nested?.[field]);
+    if (text) out[field] = text;
+  }
+  if (!out.password) {
+    const policy = fieldSentence(errorObj?.messages);
+    if (policy) out.password = policy;
+  }
+  return out;
+}

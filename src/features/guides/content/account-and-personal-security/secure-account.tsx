@@ -17,7 +17,7 @@ export default function SecureAccountArticle() {
           <GuideStep title="Use a trusted device">Open <strong>Password &amp; sign-in</strong> from a device and network you trust. Confirm that you are not operating through a proxy session.</GuideStep>
           <GuideStep title="Enter the current password">Console requires the current password before accepting a replacement. If you cannot supply it, use the password-reset flow instead.</GuideStep>
           <GuideStep title="Create a unique replacement">Follow the live password checklist and strength indicator. Do not reuse a password from email, banking, social media, or another workplace system.</GuideStep>
-          <GuideStep title="Save and sign in again where needed">Select <strong>Update password</strong>. Other devices are signed out, so reopen only the sessions you still need.</GuideStep>
+          <GuideStep title="Save, then sign in again">Select <strong>Update password</strong>. A refusal, such as a wrong current password or a password the policy rejects, appears under the box it is about. Once the change is saved, every device signed in to your account is signed out, this one included, and each asks for the new password within 15 minutes. Select <strong>Sign in again now</strong> so nothing you are doing is cut off, then sign in on the other devices you still use.</GuideStep>
         </GuideSteps>
         <GuideCallout title="Reset history is evidence, not a reset control">The history panel lists reset requests and whether each one is pending, used, or expired. An unexpected pending request should be reported even when your password still works.</GuideCallout>
       </GuideSection>

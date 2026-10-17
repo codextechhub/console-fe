@@ -17,7 +17,6 @@ const C8_REVIEWED_AT = "2026-08-25";
 const PLATFORM_DATA_REVIEWED_AT = "2026-10-09";
 const C9_REVIEWED_AT = "2026-08-25";
 const C10_REVIEWED_AT = "2026-08-25";
-const C11_REVIEWED_AT = "2026-08-25";
 const C12_REVIEWED_AT = "2026-08-25";
 const FINANCE_RECOVERY_REVIEWED_AT = "2026-10-11";
 const ACTION_GAP_REVIEWED_AT = "2026-08-25";
@@ -2094,7 +2093,7 @@ export const GUIDE_REGISTRY = [
     relatedGuideIds: ["getting-started.reset-password", "account.maintain-profile-and-privacy", "audit.review-security-operations"],
     estimatedMinutes: 7,
     owner: OWNER,
-    reviewedAt: C11_REVIEWED_AT,
+    reviewedAt: "2026-10-17",
     risk: "medium",
     status: "published",
     article: () => import("./content/account-and-personal-security/secure-account"),
