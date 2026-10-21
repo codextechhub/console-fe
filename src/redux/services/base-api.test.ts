@@ -370,6 +370,49 @@ describe("a 403 on a read", () => {
   });
 });
 
+/**
+ * A read that finds nothing is left to the screen too. An approver's vote
+ * refreshes the approval still open in their drawer, and the server answers
+ * that it no longer waits on them; that answer is not a failure to report.
+ * A save aimed at a missing record still toasts.
+ */
+describe("a 404", () => {
+  const call = async (type: "query" | "mutation") => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      success: false,
+      message: "No pending Procurement approval with this id exists in the selected entity.",
+      error: {},
+    }), { status: 404, headers: { "content-type": "application/json" } })));
+    const { baseQueryInterceptor } = await import("./base-api");
+    return baseQueryInterceptor(
+      { url: "/procurement/approvals/7/?entity=HOLYCROSS", method: type === "query" ? "GET" : "POST" },
+      {
+        endpoint: type === "query" ? "getProcurementApproval" : "recordProcurementApprovalAction",
+        getState: () => ({ auth: { tenant: { slug: "codex" } } }),
+        dispatch: vi.fn(),
+        signal: new AbortController().signal,
+        abort: vi.fn(),
+        extra: undefined,
+        type,
+      },
+      {},
+    );
+  };
+
+  it("on a read stays quiet and leaves the error to the query", async () => {
+    const result = await call("query");
+
+    expect(result.error?.status).toBe(404);
+    expect(toastError).not.toHaveBeenCalled();
+  });
+
+  it("on an action still toasts", async () => {
+    await call("mutation");
+
+    expect(toastError).toHaveBeenCalledOnce();
+  });
+});
+
 describe("a post with no approval route", () => {
   const refusal = () => new Response(JSON.stringify({
     success: false,
