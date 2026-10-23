@@ -33,6 +33,7 @@ import {
 import { GUIDE_CATEGORIES, findWalkthrough, useWalkthrough, type GuidePageContext, type SafeTicketContext } from "@/features/guides";
 import { routesPath } from "@/routes/routes-path";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { headerIconButtonClass } from "@/components/layout/dashboard-header";
 import {
   useCreateTicketMutation,
   useUploadTicketAttachmentMutation,
@@ -256,7 +257,7 @@ export function SupportTicketComposer({
           data-guide="header.page-help"
           aria-label="Help for this page"
           onClick={() => setTicketOpen(true)}
-          className="relative grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700 transition hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
+          className={`${headerIconButtonClass} focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20`}
         >
           <Headset className="size-4.5 stroke-[2.15]" />
         </button>

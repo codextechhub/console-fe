@@ -40,6 +40,7 @@ import { useRecordGuideAnalyticsMutation } from "@/redux/services/guide-analytic
 import { isPrimaryShortcut, isPrimaryShiftShortcut } from "@/utils/keyboard-shortcuts";
 import {
   DashboardHeaderContext,
+  headerIconButtonClass,
   mergeHandles,
   resolveHeader,
   type DashboardHeaderApi,
@@ -670,7 +671,7 @@ function DashboardHeader({
           aria-label={mobileSearchOpen ? "Close workspace search" : "Search the workspace"}
           aria-expanded={mobileSearchOpen}
           onClick={() => setMobileSearchOpen((open) => !open)}
-          className="grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700 lg:hidden"
+          className={`${headerIconButtonClass} lg:hidden`}
         >
           <Search className="size-4.5" />
         </button>

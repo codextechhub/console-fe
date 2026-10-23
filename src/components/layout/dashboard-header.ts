@@ -20,6 +20,17 @@
 
 import { createContext, useContext, useEffect, useRef } from "react";
 
+/**
+ * The round icon button in the console header: search, notifications, help.
+ *
+ * One class for all of them, outlined with the same thin ring as the account
+ * avatar beside them, so the row reads as one set and a new button cannot
+ * arrive looking different. The ring is drawn outside the box and takes no
+ * space from it.
+ */
+export const headerIconButtonClass =
+  "relative grid size-8.5 shrink-0 place-content-center rounded-full bg-gray-04 text-gray-700 ring-1 ring-pry-01 transition hover:bg-primary/10 hover:text-primary hover:ring-primary/25";
+
 /** Which left navigation the shell renders for this route. */
 export type SidebarKind = "global" | "finance" | "procurement";
 

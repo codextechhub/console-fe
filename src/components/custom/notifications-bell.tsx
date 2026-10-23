@@ -9,6 +9,7 @@ import { formatRelativeDate } from "@/utils/helpers";
 import { routesPath } from "@/routes/routes-path";
 import { useNotifications } from "@/hooks/use-notifications";
 import { NotificationEventIcon } from "@/components/custom/notification-event-icon";
+import { headerIconButtonClass } from "@/components/layout/dashboard-header";
 import {
   useMarkAllNotificationsReadMutation,
   useMarkNotificationsReadMutation,
@@ -30,7 +31,7 @@ export function NotificationsBell() {
         <button
           type="button"
           aria-label={count ? `${count} unread notifications` : "Notifications"}
-          className="relative grid size-8.5 place-content-center rounded-full bg-gray-04 text-gray-700"
+          className={headerIconButtonClass}
         >
           <Bell className="size-4.5" />
           {count > 0 && (
