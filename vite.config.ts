@@ -98,7 +98,7 @@ const EXCLUDE_FROM_PREBUNDLE = PACKAGE_SPECIFIERS.map(([find]) => find)
 // "failed to resolve import" while the installed setup, where the package sits
 // inside node_modules, works perfectly. Naming them here pre-bundles them out of
 // this app's own node_modules, where they are installed, so both setups resolve.
-const PACKAGE_ONLY_DEPS = ["date-fns"]
+const PACKAGE_ONLY_DEPS = ["date-fns", "qrcode.react"]
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
