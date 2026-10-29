@@ -1,9 +1,9 @@
 import * as Yup from "yup";
-import { phoneSchema } from ".";
+import { emailSchema, phoneSchema } from ".";
 
 export const schoolStepSchema = Yup.object({
   name: Yup.string().required("School name is required"),
-  email: Yup.string().email("Invalid email").required("School email is required"),
+  email: emailSchema("Invalid email").required("School email is required"),
   phone: phoneSchema.required("School phone is required"),
   slug: Yup.string().matches(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   ownership_type: Yup.string().required("Ownership type is required"),
@@ -18,14 +18,14 @@ export const schoolStepSchema = Yup.object({
 const branchAdminSchema = Yup.object({
   admin_first_name: Yup.string().required("Admin first name is required"),
   admin_last_name: Yup.string().required("Admin last name is required"),
-  admin_email: Yup.string().email("Invalid email").required("Admin email is required"),
+  admin_email: emailSchema("Enter a valid email address").required("Admin email is required"),
   admin_phone: phoneSchema,
 });
 
 export const branchItemSchema = Yup.object({
   name: Yup.string().required("Branch name is required"),
   address: Yup.string(),
-  email: Yup.string().email("Invalid email"),
+  email: emailSchema("Enter a valid email address"),
   phone: phoneSchema,
   country: Yup.string().required("Country is required"),
   state: Yup.string(),
@@ -35,7 +35,7 @@ export const branchItemSchema = Yup.object({
 export const adminStepSchema = Yup.object({
   first_name: Yup.string().required("First name is required"),
   last_name: Yup.string().required("Last name is required"),
-  email: Yup.string().email("Invalid email").required("Email is required"),
+  email: emailSchema("Invalid email").required("Email is required"),
   phone: phoneSchema,
 });
 
@@ -64,7 +64,7 @@ export const editSchoolSchema = Yup.object({
   // input the API accepts. Reserved names and collisions are the server's
   // answer to give, and it gives them per field.
   slug: Yup.string(),
-  email: Yup.string().email("Invalid email").required("School email is required"),
+  email: emailSchema("Invalid email").required("School email is required"),
   phone: phoneSchema.required("School phone is required"),
   ownership_type: Yup.string().required("Ownership type is required"),
   address: Yup.string().required("Address is required"),

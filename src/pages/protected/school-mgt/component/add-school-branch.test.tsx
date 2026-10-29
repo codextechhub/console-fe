@@ -79,4 +79,31 @@ describe("school creation: branch phone", () => {
 
     expect(onNext.mock.calls[0][0][0]).toMatchObject({ phone: "08051112222" });
   });
+  it("holds the form back for a branch email the server would refuse", async () => {
+    render([{ ...FILLED, email: "lekki@brightstar" }]);
+
+    await act(async () => button("Continue")?.click());
+
+    expect(onNext).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("Enter a valid email address");
+  });
+
+  it("holds the form back for two branches with the same name", async () => {
+    render([FILLED, { ...FILLED, is_main: false, name: " ikeja branch ", admin_email: "segun@bright-star.test" }]);
+
+    await act(async () => button("Continue")?.click());
+
+    expect(onNext).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("Another branch already has this name.");
+  });
+
+  it("still asks for the admin's name and email", async () => {
+    render([{ ...FILLED, admin_first_name: "", admin_email: "" }]);
+
+    await act(async () => button("Continue")?.click());
+
+    expect(onNext).not.toHaveBeenCalled();
+    expect(container.textContent).toContain("Admin first name is required");
+    expect(container.textContent).toContain("Admin email is required");
+  });
 });

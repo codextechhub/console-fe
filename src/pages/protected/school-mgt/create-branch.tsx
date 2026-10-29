@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { BRANCH_PHONE_HINT, PHONE_PLACEHOLDER, phoneSchema } from "@/schema/dashboard";
+import { BRANCH_PHONE_HINT, PHONE_PLACEHOLDER, emailSchema, phoneSchema } from "@/schema/dashboard";
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
@@ -17,13 +17,13 @@ import { PageShell } from "@/components/layout/page-shell";
 const schema = Yup.object({
   name: Yup.string().required("Branch name is required"),
   address: Yup.string(),
-  email: Yup.string().email("Enter a valid email"),
+  email: emailSchema("Enter a valid email"),
   phone: phoneSchema,
   country: Yup.string(),
   state: Yup.string(),
   admin_first_name: Yup.string().required("Admin first name is required"),
   admin_last_name: Yup.string().required("Admin last name is required"),
-  admin_email: Yup.string().email("Enter a valid email").required("Admin email is required"),
+  admin_email: emailSchema("Enter a valid email").required("Admin email is required"),
   admin_phone: phoneSchema,
 });
 

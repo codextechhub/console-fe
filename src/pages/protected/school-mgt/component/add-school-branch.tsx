@@ -5,9 +5,9 @@ import { Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import type { BranchStepItem } from "../create-school";
 import { useEffect, useState } from "react";
-import {
-  BRANCH_PHONE_HINT, isValidPhone, MAIN_BRANCH_PHONE_HINT, PHONE_ERROR, PHONE_PLACEHOLDER,
-} from "@/schema/dashboard";
+import * as Yup from "yup";
+import { BRANCH_PHONE_HINT, MAIN_BRANCH_PHONE_HINT, PHONE_PLACEHOLDER } from "@/schema/dashboard";
+import { branchItemSchema } from "@/schema/dashboard/school-mgt";
 
 interface Props {
   defaultValues: BranchStepItem[];
@@ -49,22 +49,30 @@ export default function AddSchoolBranch({ defaultValues, onNext, onChange }: Pro
     setBranches(next);
   };
 
-  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+  /**
+   * Each branch against `branchItemSchema`, the one statement of a branch's
+   * rules, then the two rules that need every branch at once.
+   */
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
     branches.forEach((b, i) => {
-      if (!b.name.trim()) errs[`${i}.name`] = "Branch name is required";
-      if (!b.country.trim()) errs[`${i}.country`] = "Country is required";
-      if (!b.admin_first_name.trim()) errs[`${i}.admin_first_name`] = "Admin first name is required";
-      if (!b.admin_last_name.trim()) errs[`${i}.admin_last_name`] = "Admin last name is required";
-      if (!b.admin_email.trim()) {
-        errs[`${i}.admin_email`] = "Admin email is required";
-      } else if (!EMAIL_RE.test(b.admin_email)) {
-        errs[`${i}.admin_email`] = "Enter a valid email address";
+      try {
+        branchItemSchema.validateSync(b, { abortEarly: false });
+      } catch (error) {
+        if (!(error instanceof Yup.ValidationError)) throw error;
+        for (const issue of error.inner) {
+          const key = `${i}.${issue.path}`;
+          if (issue.path && !errs[key]) errs[key] = issue.message;
+        }
       }
-      if (!isValidPhone(b.phone)) errs[`${i}.phone`] = PHONE_ERROR;
-      if (!isValidPhone(b.admin_phone)) errs[`${i}.admin_phone`] = PHONE_ERROR;
+    });
+    // The server refuses two branches of the same name in one school, so say so before Submit.
+    const seen = new Set<string>();
+    branches.forEach((b, i) => {
+      const name = b.name.trim().toLowerCase();
+      if (!name) return;
+      if (seen.has(name)) errs[`${i}.name`] = "Another branch already has this name.";
+      seen.add(name);
     });
     if (!branches.some((b) => b.is_main)) errs["main"] = "One branch must be marked as main";
     setErrors(errs);
@@ -129,6 +137,7 @@ export default function AddSchoolBranch({ defaultValues, onNext, onChange }: Pro
               placeholder="Enter email"
               value={branch.email}
               onChange={(e) => update(idx, "email", e.target.value)}
+              error={errors[`${idx}.email`]}
             />
             <CustomInput
               id={`phone-${idx}`}

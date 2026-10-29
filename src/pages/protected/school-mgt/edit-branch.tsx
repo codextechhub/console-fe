@@ -11,7 +11,7 @@ import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import * as Yup from "yup";
-import { BRANCH_PHONE_HINT, PHONE_PLACEHOLDER, phoneSchema } from "@/schema/dashboard";
+import { BRANCH_PHONE_HINT, PHONE_PLACEHOLDER, emailSchema, phoneSchema } from "@/schema/dashboard";
 import { PageShell } from "@/components/layout/page-shell";
 
 const editBranchSchema = Yup.object({
@@ -21,7 +21,7 @@ const editBranchSchema = Yup.object({
   // unpatchable through this form until somebody invented a classification for
   // it. The create form still asks, because there a human is choosing.
   address: Yup.string(),
-  email: Yup.string().email("Enter a valid email"),
+  email: emailSchema("Enter a valid email"),
   phone: phoneSchema,
   country: Yup.string(),
   state: Yup.string(),

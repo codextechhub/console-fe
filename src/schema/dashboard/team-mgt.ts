@@ -1,10 +1,10 @@
 import * as Yup from "yup";
-import { firstNameSchema, lastNameSchema, phoneSchema } from ".";
+import { emailSchema, firstNameSchema, lastNameSchema, phoneSchema } from ".";
 
 export const createTeamMemberSchema = Yup.object({
    first_name: firstNameSchema,
   last_name: lastNameSchema,
-  email: Yup.string().email("Invalid email address").required("Email is required"),
+  email: emailSchema("Invalid email address").required("Email is required"),
   gender: Yup.string().required("Gender is required"),
   role: Yup.string().required("Role is required"),
   phone: phoneSchema.required("Phone number is required"),

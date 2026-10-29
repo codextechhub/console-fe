@@ -16,6 +16,7 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
+import { emailSchema } from "@/schema/dashboard";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { Button } from "@/components/ui/button";
 import { CustomInput } from "@/components/custom/custom-input";
@@ -109,7 +110,7 @@ function toFormValues(p: StaffProfile | null | undefined): ProfileFormValues {
 }
 
 const schema = Yup.object({
-  personal_email: Yup.string().email("Enter a valid email").nullable(),
+  personal_email: emailSchema("Enter a valid email").nullable(),
   nationality: Yup.string().max(80),
   job_title: Yup.string().max(150),
 });

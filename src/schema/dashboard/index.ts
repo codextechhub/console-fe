@@ -80,3 +80,17 @@ export const isValidPhone = (value: string | undefined | null): boolean =>
 /** Optional phone field; chain `.required(...)` where a number is mandatory. */
 export const phoneSchema = Yup.string()
   .test("phone-format", PHONE_ERROR, (value) => isValidPhone(value));
+
+/**
+ * An email address the server will accept.
+ *
+ * Yup's `email()` takes `lekki@brightstar`, a domain with no dot, which the
+ * server's validator refuses, so a form that trusted it sent the address and
+ * was turned away after Submit with the reader's answers already in. This adds
+ * the dot after the @ that the server requires. Blank passes: chain
+ * `.required(...)` where an address is mandatory.
+ */
+export const emailSchema = (message: string) =>
+  Yup.string()
+    .email(message)
+    .test("email-domain", message, (value) => !value || /@[^@\s]+\.[^@\s]+$/.test(value));
