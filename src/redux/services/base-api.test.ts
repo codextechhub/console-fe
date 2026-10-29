@@ -585,3 +585,59 @@ describe("which requests count as signing in", () => {
     expect(isAuthRoute({ url: "/gradebook/scales/5/activate/" })).toBe(false);
   });
 });
+
+describe("a request the server never answers", () => {
+  /** A server that takes the request and never answers it, until the app gives up. */
+  const silent = () => {
+    const fetcher = vi.fn((input: Request | string, init?: RequestInit) => {
+      const signal = input instanceof Request ? input.signal : init?.signal;
+      return new Promise<Response>((_, reject) => {
+        // As a browser does: the fetch fails with the reason the signal gave up.
+        signal?.addEventListener("abort", () => reject(signal.reason));
+      });
+    });
+    vi.stubGlobal("fetch", fetcher);
+    return fetcher;
+  };
+
+  const apiFor = (endpoint: string, type: "query" | "mutation") => ({
+    endpoint,
+    getState: () => ({ auth: { tenant: { slug: "codex" } } }),
+    dispatch: vi.fn(),
+    signal: new AbortController().signal,
+    abort: vi.fn(),
+    extra: undefined,
+    type,
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  it("is given up after 45 seconds", async () => {
+    const fetcher = silent();
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const { baseQueryInterceptor } = await import("./base-api");
+    const pending = baseQueryInterceptor("/schools/", apiFor("getSchools", "query"), {});
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalled());
+    await vi.advanceTimersByTimeAsync(45_000);
+    const result = await pending;
+    expect(result.error?.status).toBe("TIMEOUT_ERROR");
+  });
+
+  it("gives an upload five minutes before giving up", async () => {
+    const fetcher = silent();
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const { baseQueryInterceptor } = await import("./base-api");
+    let settled = false;
+    const pending = Promise.resolve(baseQueryInterceptor(
+      { url: "/imports/batches/", method: "POST", body: new FormData() },
+      apiFor("createBatch", "mutation"),
+      {},
+    )).finally(() => { settled = true; });
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalled());
+    await vi.advanceTimersByTimeAsync(240_000);
+    expect(settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(60_000);
+    const result = await pending;
+    expect(result.error?.status).toBe("TIMEOUT_ERROR");
+  });
+});

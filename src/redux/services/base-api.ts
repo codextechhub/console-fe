@@ -28,6 +28,7 @@ import {
 } from "@/utils/connectivity";
 import { FINANCE_TAG_TYPES } from "@xvs/finance/redux/tag-types";
 import { getAccessToken } from "@/utils/access-token";
+import { REQUEST_TIMEOUT_MS, UPLOAD_TIMEOUT_MS, timeoutSignal } from "@/utils/request-timeout";
 import { askToPostWithoutApproval } from "@/lib/approval-confirm";
 import { refusalMessage } from "@xvs/finance/lib/api-errors";
 import type { TenantDisplay } from "@xvs/finance/utils/dates";
@@ -222,6 +223,7 @@ const readAuth = (getState: () => unknown): {
 
 export const baseQuery = fetchBaseQuery({
   baseUrl,
+  timeout: REQUEST_TIMEOUT_MS,
   prepareHeaders: (headers, { endpoint, getState }) => {
     const accessToken = getAccessToken();
     if (accessToken && !AUTH_ENDPOINTS.has(endpoint)) {
@@ -295,6 +297,7 @@ const fetchFreshMe = async (
           ? { "X-Impersonation-Session": String(impersonation.id) }
           : {}),
       },
+      signal: timeoutSignal(),
     });
     if (!response.ok) return { permissions: null, fieldAccess: null, tenant: null };
     const data = await response.json();
@@ -368,8 +371,14 @@ const baseQueryWithTenant: BaseQueryFn<
     const slug = impersonation?.tenantSlug || tenantSlug;
     if (slug) finalArgs = injectTenant(args, slug);
   }
-  return baseQuery(finalArgs, api, extraOptions);
+  return baseQuery(timed(finalArgs), api, extraOptions);
 };
+
+/** An upload is given longer than other requests (see `UPLOAD_TIMEOUT_MS`). */
+const timed = (args: string | FetchArgs): string | FetchArgs =>
+  typeof args !== "string" && args.body instanceof FormData && args.timeout === undefined
+    ? { ...args, timeout: UPLOAD_TIMEOUT_MS }
+    : args;
 
 /**
  * The app's response interceptor. Of its rules, three concern refusals, and
