@@ -43,6 +43,9 @@ const CODE_MESSAGES: Record<string, string> = {
     "This invite link has already been used. Please log in.",
   INVITATION_EXPIRED:
     "This invite link has expired. Please contact your administrator for a new one.",
+  // The account behind the link changed after it was sent, e.g. its hire was withdrawn.
+  INVITATION_NOT_ACTIONABLE:
+    "This invite link can no longer be used. Please contact your administrator.",
 
   // Password reset (vs_user/services/password.py)
   RESET_KEY_INVALID:
@@ -74,6 +77,7 @@ const SAFE_MESSAGES = new Set<string>([
   "This invitation link is invalid.",
   "This invitation link has already been used. Please log in.",
   "This invitation link has expired. Please contact your administrator.",
+  "This invitation link is no longer valid.",
   "Invalid or expired reset link.",
   "Invalid or expired key. Contact your administrator for assistance.",
   "Reset key has expired. Try again.",
