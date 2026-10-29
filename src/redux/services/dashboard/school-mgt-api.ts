@@ -170,6 +170,20 @@ export const schoolMgtApi = baseApi.injectEndpoints({
       invalidatesTags: ["PackagePlans"],
     }),
 
+    /**
+     * Move a school onto another plan, re-granting every module at its depth.
+     * The dialog says every refusal itself, beside the field it concerns where
+     * there is one, so the interceptor stays silent.
+     */
+    changeSchoolPlan: builder.mutation<
+      { message: string },
+      { slug: string; body: Record<string, unknown> }
+    >({
+      query: ({ slug, body }) => ({ url: `/i/${slug}/plan/`, method: "PATCH", body }),
+      invalidatesTags: (_res, _err, { slug }) => [{ type: "Schools", id: slug }, "Schools"],
+      extraOptions: { silent: true },
+    }),
+
     getModules: builder.query<ModulesRes, void>({
       query: () => ({ url: `/i/modules/`, method: "GET" }),
     }),
@@ -191,5 +205,6 @@ export const {
   useTransitionBranchMutation,
   useGetPackagePlansQuery,
   useUpdatePackagePlanPriceMutation,
+  useChangeSchoolPlanMutation,
   useGetModulesQuery,
 } = schoolMgtApi;

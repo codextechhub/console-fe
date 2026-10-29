@@ -110,8 +110,11 @@ Current registered product areas are:
   student, agreed price, minimum billable students, package plan, subscription
   dates, uplifts, notes and the billing email and phone. Subscription pricing,
   the school record, the edit form and the create wizard follow the switches.
-  Console has no screen for the plan page or uplifts yet, so those responses
-  have no frontend to change.
+  Changing a school's plan is a dialog on the school record (Change plan on
+  Package and access): the package plan, agreed price and subscription expiry
+  follow the same switches, a read-only plan hides the action, and a refused
+  term the dialog does not draw is shown on the plan field. Uplifts have no
+  Console screen yet, so that response has no frontend to change.
 - The customer master and the bank account master (areas 11 and 13 of the
   priority list) have end-to-end Field Access in the backend and the shared
   finance screens. A customer's billing email, phone and address, receivable

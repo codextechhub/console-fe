@@ -59,6 +59,7 @@ import { SortBar, handleSortToggle } from "@/components/custom/sort-bar";
 import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 import { PageShell } from "@/components/layout/page-shell";
 import { SCHOOLS_FIELD_RESOURCE } from "./school-field-access";
+import { ChangePlanDialog } from "./component/change-plan-dialog";
 
 const BRANCH_TABLE_HEADERS = [
   "S/N",
@@ -138,6 +139,7 @@ export default function ViewSchool() {
   const [search, setSearch] = useState("");
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const [confirmReinstate, setConfirmReinstate] = useState(false);
+  const [changingPlan, setChangingPlan] = useState(false);
   // null when no service-state change is being confirmed.
   const [serviceMove, setServiceMove] = useState<"ACTIVE" | "INACTIVE" | null>(null);
   const [serviceReason, setServiceReason] = useState("");
@@ -208,6 +210,8 @@ export default function ViewSchool() {
   const termsAccess = useFieldAccess(SCHOOLS_FIELD_RESOURCE, setup);
   const showPlan = !termsAccess.isHidden("package_plan") && !!setup?.package_plan;
   const showExpiry = !termsAccess.isHidden("subscription_expires_at");
+  // A school created without a package has no plan to move, and the server refuses it.
+  const canChangePlan = !!setup?.package_plan && !termsAccess.isReadOnly("package_plan");
   useLogRecentOpen(
     school && slug
       ? { kind: "school", id: slug, label: school.name, to: routesPath.PROTECTED.SCHOOL_MGT.VIEW(slug) }
@@ -452,7 +456,18 @@ export default function ViewSchool() {
                       </div>
                     </SectionCard>
 
-                    <SectionCard title="Package and access" description="Subscription and enabled modules" icon={<PackageCheck className="size-4.5" />}>
+                    <SectionCard
+                      title="Package and access"
+                      description="Subscription and enabled modules"
+                      icon={<PackageCheck className="size-4.5" />}
+                      action={canChangePlan ? (
+                        <PermissionGate permission={P.CONFIGURE_SCHOOL}>
+                          <Button variant="outline" size="sm" onClick={() => setChangingPlan(true)}>
+                            Change plan
+                          </Button>
+                        </PermissionGate>
+                      ) : undefined}
+                    >
                       {setup ? (
                         <div className="grid min-w-0 grid-cols-1 gap-5">
                           {(showPlan || showExpiry) && (
@@ -690,6 +705,17 @@ export default function ViewSchool() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {setup && canChangePlan && slug ? (
+        <ChangePlanDialog
+          open={changingPlan}
+          onOpenChange={setChangingPlan}
+          slug={slug}
+          schoolName={data?.data?.name ?? "This school"}
+          setup={setup}
+          access={termsAccess}
+        />
+      ) : null}
     </>
   );
 }

@@ -28,6 +28,8 @@ vi.mock("@/redux/services/dashboard/school-mgt-api", () => ({
     refetch: vi.fn(),
   }),
   useSetSchoolServiceStateMutation: () => [vi.fn(), { isLoading: false }],
+  useChangeSchoolPlanMutation: () => [vi.fn(), { isLoading: false }],
+  useGetPackagePlansQuery: () => ({ data: { data: [] }, isLoading: false }),
 }));
 
 vi.mock("@/redux/services/dashboard/onboarding-api", () => ({
@@ -177,5 +179,23 @@ describe("school detail Field Access", () => {
 
     expect(document.body.textContent).toContain("billing@bright-star.test");
     expect(document.querySelector('input[type="email"]')).toBeNull();
+  });
+  it("offers Change plan to a role that may change the plan", () => {
+    const document = render(FULL);
+
+    const buttons = Array.from(document.querySelectorAll("button")).map((b) => b.textContent);
+    expect(buttons).toContain("Change plan");
+  });
+
+  it("offers no Change plan where the plan is read-only, or the school has none", () => {
+    mocks.fieldAccess = { "platform.schools": { hidden: [], read_only: ["package_plan"] } };
+    const readOnly = render(FULL);
+    mocks.fieldAccess = {};
+    const noPlan = render({ ...FULL, package_setup: without(FULL.package_setup!, "package_plan") });
+
+    for (const document of [readOnly, noPlan]) {
+      const buttons = Array.from(document.querySelectorAll("button")).map((b) => b.textContent);
+      expect(buttons).not.toContain("Change plan");
+    }
   });
 });
