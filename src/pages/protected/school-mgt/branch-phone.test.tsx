@@ -154,3 +154,31 @@ describe("add branch: phone", () => {
     expect(container.textContent).not.toContain("Leave blank to use the school's phone");
   });
 });
+
+describe("add branch: main branch", () => {
+  const render = () => act(() => root.render(
+    <MemoryRouter initialEntries={["/school-management/bright-star/branches/create"]}>
+      <Routes>
+        <Route path="/school-management/:slug/branches/create" element={<CreateBranch />} />
+      </Routes>
+    </MemoryRouter>,
+  ));
+
+  it("offers no main-branch switch, because the school already has its main branch", () => {
+    render();
+
+    expect(container.querySelector("[role=switch]")).toBeNull();
+    expect(container.textContent).toContain("choose Make Main Branch");
+  });
+
+  it("never asks the server to make the new branch the main one", async () => {
+    render();
+    await type("name", "Ajah Branch");
+    await type("admin_first_name", "Femi");
+    await type("admin_last_name", "Bello");
+    await type("admin_email", "femi@bright-star.test");
+    await press("Create Branch");
+
+    expect(mocks.create.mock.calls[0][0].body).not.toHaveProperty("is_main");
+  });
+});

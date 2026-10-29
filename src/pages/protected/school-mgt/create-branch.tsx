@@ -5,7 +5,6 @@ import { BRANCH_PHONE_HINT, PHONE_PLACEHOLDER, phoneSchema } from "@/schema/dash
 import { CustomInput } from "@/components/custom/custom-input";
 import { SearchSelect } from "@/components/custom/search-select";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import PageAccessDenied from "@/components/custom/page-access-denied";
 import { useDashboardBack } from "@/components/layout/dashboard-header";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -22,7 +21,6 @@ const schema = Yup.object({
   phone: phoneSchema,
   country: Yup.string(),
   state: Yup.string(),
-  is_main: Yup.boolean(),
   admin_first_name: Yup.string().required("Admin first name is required"),
   admin_last_name: Yup.string().required("Admin last name is required"),
   admin_email: Yup.string().email("Enter a valid email").required("Admin email is required"),
@@ -38,6 +36,14 @@ const COUNTRIES = [
   { label: "United States", value: "United States" },
 ];
 
+/**
+ * Add a branch to a school that already exists.
+ *
+ * Every school is created with its main branch, and the server keeps exactly
+ * one, so a branch added here is always an additional one. Moving the main
+ * designation is a separate act on the branch page (Make Main Branch), which
+ * demotes the old main branch in the same step.
+ */
 export default function CreateBranch() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -65,7 +71,6 @@ export default function CreateBranch() {
       phone: "",
       country: "Nigeria",
       state: "",
-      is_main: false,
       admin_first_name: "",
       admin_last_name: "",
       admin_email: "",
@@ -81,7 +86,6 @@ export default function CreateBranch() {
           phone: values.phone.trim(),
           country: values.country,
           state: values.state,
-          is_main: values.is_main,
           primary_admin_data: {
             full_name: `${values.admin_first_name.trim()} ${values.admin_last_name.trim()}`.trim(),
             email: values.admin_email,
@@ -188,16 +192,10 @@ export default function CreateBranch() {
                   onChange={(e) => formik.setFieldValue("country", e.target.value)}
                   error={formik.touched.country ? formik.errors.country : ""}
                 />
-                <div className="col-span-full flex items-center gap-4">
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-mont font-medium text-gray-06">Main Branch</p>
-                    <p className="text-xs text-gray-01">Mark this as the school's main branch</p>
-                  </div>
-                  <Switch
-                    checked={formik.values.is_main}
-                    onCheckedChange={(v) => formik.setFieldValue("is_main", v)}
-                  />
-                </div>
+                <p className="col-span-full text-xs text-gray-01">
+                  A new branch joins as an additional branch. To make it the main branch, open it once
+                  it is created and choose Make Main Branch.
+                </p>
               </div>
             </div>
 
