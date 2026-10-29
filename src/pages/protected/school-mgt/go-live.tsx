@@ -25,6 +25,7 @@ import {
   type GoLiveRequest,
 } from "@/redux/services/dashboard/onboarding-api";
 import { formatEnum, formatStartedTime } from "@/utils/helpers";
+import { apiErrorMessage } from "@/utils/api-errors";
 import { toast } from "sonner";
 import { PageShell } from "@/components/layout/page-shell";
 import { RefreshIcon } from "@/components/custom/loading-mark";
@@ -59,6 +60,19 @@ const STATUS_TONE: Record<string, "active" | "pending" | "rejected" | "inactive"
 };
 
 type Decision = { request: GoLiveRequest; kind: "approve" | "reject" };
+
+/**
+ * The reference a failed activation is filed under, or "" for any other refusal.
+ *
+ * The backend rolls a failed activation back, marks the request FAILED and
+ * returns this reference beside its sentence. It is the only thing the
+ * reviewer can quote to whoever investigates.
+ */
+function failureReference(error: unknown): string {
+  const detail = (error as { data?: { error?: { detail?: { failure_reference?: unknown } } } })
+    ?.data?.error?.detail;
+  return typeof detail?.failure_reference === "string" ? detail.failure_reference : "";
+}
 
 export default function GoLiveQueue() {
   // The queue opens on what is waiting, because that is what it is for.
@@ -106,9 +120,18 @@ export default function GoLiveQueue() {
       approveGoLive({ id: request.id, slug: request.tenant_slug })
         .unwrap()
         .then(() => done(`${request.school_name} is now live.`))
-        .catch(() => {
-          // The interceptor surfaces the backend's own refusal - a request that
-          // is no longer pending answers 409 - so the dialog stays open under it.
+        .catch((error: unknown) => {
+          const reference = failureReference(error);
+          const message = apiErrorMessage(error, "The request could not be approved.");
+          if (!reference) {
+            // A refusal such as a request no longer pending: the dialog stays open under it.
+            toast.error(message);
+            return;
+          }
+          // The request is now FAILED and the school back to ready, so the dialog has nothing left to decide.
+          closeDecision();
+          refetch();
+          toast.error(`${message} Reference: ${reference}`);
         });
       return;
     }
@@ -140,7 +163,14 @@ export default function GoLiveQueue() {
     preferred: formatStartedTime(row.preferred_go_live_at),
     requestedBy: row.requested_by_name || "---",
     status: (
-      <Badge variant={STATUS_TONE[row.status] ?? "inactive"}>{formatEnum(row.status)}</Badge>
+      <div className="min-w-0">
+        <Badge variant={STATUS_TONE[row.status] ?? "inactive"}>{formatEnum(row.status)}</Badge>
+        {row.status === "FAILED" && row.failure_reference ? (
+          <p className="mt-1 font-mont text-[11px] text-gray-01 break-all">
+            Reference {row.failure_reference}
+          </p>
+        ) : null}
+      </div>
     ),
     reviewed: row.reviewed_at
       ? `${formatStartedTime(row.reviewed_at)}${row.reviewed_by_name ? ` by ${row.reviewed_by_name}` : ""}`

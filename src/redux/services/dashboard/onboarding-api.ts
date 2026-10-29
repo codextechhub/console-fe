@@ -120,6 +120,9 @@ export const onboardingApi = baseApi.injectEndpoints({
       }),
       // The school goes live, so its record and the school list are stale too.
       invalidatesTags: ["GoLiveRequests", "Schools"],
+      // The queue says every refusal itself, because a failed activation has
+      // to be read with its reference, which only the screen has.
+      extraOptions: { silent: true },
     }),
 
     /** Decline, with a reason the school reads. The backend refuses a blank one. */

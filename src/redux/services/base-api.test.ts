@@ -641,3 +641,59 @@ describe("a request the server never answers", () => {
     expect(result.error?.status).toBe("TIMEOUT_ERROR");
   });
 });
+
+describe("baseQueryInterceptor: server failures", () => {
+  const api = {
+    endpoint: "rejectSomething",
+    getState: () => ({ auth: { tenant: { slug: "codex" } } }),
+    dispatch: vi.fn(),
+    signal: new AbortController().signal,
+    abort: vi.fn(),
+    extra: undefined,
+    type: "mutation" as const,
+  };
+
+  const respond = (body: unknown) => vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+    new Response(JSON.stringify(body), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    }),
+  ));
+
+  it("shows a typed failure's own sentence instead of the generic one", async () => {
+    respond({
+      success: false,
+      message: "Activation could not be completed. The school was not changed.",
+      error: { code: "GOLIVE_ACTIVATION_FAILED", detail: { failure_reference: "GL-7F3A" } },
+    });
+
+    const { baseQueryInterceptor } = await import("./base-api");
+    await baseQueryInterceptor({ url: "/onboarding/go-live/1/approve/", method: "POST" }, api, {});
+
+    expect(toastError).toHaveBeenCalledWith(
+      "Activation could not be completed. The school was not changed.",
+    );
+  });
+
+  it("keeps the generic sentence for an unhandled server error", async () => {
+    respond({
+      success: false,
+      message: "An unexpected error occurred.",
+      error: { code: "SERVER_ERROR" },
+    });
+
+    const { baseQueryInterceptor } = await import("./base-api");
+    await baseQueryInterceptor({ url: "/anything/", method: "POST" }, api, {});
+
+    expect(toastError).toHaveBeenCalledWith("A server error occurred. Please try again later.");
+  });
+
+  it("keeps the generic sentence for a server error with no code", async () => {
+    respond({ message: "Traceback (most recent call last)" });
+
+    const { baseQueryInterceptor } = await import("./base-api");
+    await baseQueryInterceptor({ url: "/anything/", method: "POST" }, api, {});
+
+    expect(toastError).toHaveBeenCalledWith("A server error occurred. Please try again later.");
+  });
+});

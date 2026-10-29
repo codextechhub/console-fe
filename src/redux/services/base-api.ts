@@ -69,6 +69,9 @@ export const SCREEN_OWNED_CONFLICTS: ReadonlySet<string> = new Set([
   "NOT_PARKED",
 ]);
 
+/** Said for a server failure that carries no sentence of its own. */
+const SERVER_ERROR_MESSAGE = "A server error occurred. Please try again later.";
+
 /** Said when a refused action carries no sentence of its own. */
 const CONFLICT_FALLBACK = "That could not be done right now. Refresh the page and try again.";
 
@@ -625,7 +628,14 @@ export const baseQueryInterceptor: BaseQueryFn<
     const gatewayDown = res.status === 502 || res.status === 503 || res.status === 504;
     // Auth pages surface their own error state (friendly panel / inline copy).
     if (!isAuthRoute(args) && !gatewayDown) {
-      notify("A server error occurred. Please try again later.");
+      // A typed domain failure (its own code, not the generic SERVER_ERROR)
+      // carries a sentence written for the reader, so that is what they see.
+      const code = conflictCode(res?.data);
+      notify(
+        code && code !== "SERVER_ERROR"
+          ? apiErrorMessage(res?.data, SERVER_ERROR_MESSAGE)
+          : SERVER_ERROR_MESSAGE,
+      );
     }
     return result;
   }
