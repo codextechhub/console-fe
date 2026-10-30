@@ -6,13 +6,18 @@ import { consumeReturnTo } from "@/utils/return-to";
 import { humanizeAuthError } from "@/utils/auth-errors";
 import { loginSchema } from "@/schema/auth";
 import { useFormik } from "formik";
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
+import type { TwoStepChallenge } from "@/redux/services/auth/auth-types";
+import { TwoStepStep } from "./two-step";
+import { twoStepChallengeOf } from "./two-step-challenge";
 import { Link, useNavigate } from "react-router";
 
 export default function Login() {
   const navigate = useNavigate();
   const [login, { isLoading }] = useLoginMutation();
   const [apiError, setApiError] = useState("");
+  // Set when the password was right and the server wants a two-step code.
+  const [twoStep, setTwoStep] = useState<TwoStepChallenge | null>(null);
   // Cleared on animationend, so a second rejection re-triggers the nudge.
   const [rejected, setRejected] = useState(false);
   // Read once at mount (lazy initialiser); the effect only clears the flag so
@@ -21,6 +26,15 @@ export default function Login() {
 
   useEffect(() => {
     sessionStorage.removeItem("_auth_banner");
+  }, []);
+
+  const signedIn = () => {
+    navigate(consumeReturnTo() ?? routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
+  };
+  // Back to the password: a second step that expired, or "someone else".
+  const startAgain = useCallback((message?: string) => {
+    setTwoStep(null);
+    setApiError(message ?? "");
   }, []);
 
   const formik = useFormik({
@@ -33,10 +47,10 @@ export default function Login() {
       setApiError("");
       login(values)
         .unwrap()
-        .then(() => {
-          navigate(consumeReturnTo() ?? routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
-        })
+        .then(signedIn)
         .catch((err) => {
+          const challenge = twoStepChallengeOf(err);
+          if (challenge) return setTwoStep(challenge);
           setApiError(
             humanizeAuthError(err, "Invalid credentials. Please try again."),
           );
@@ -44,6 +58,10 @@ export default function Login() {
         });
     },
   });
+
+  if (twoStep) {
+    return <TwoStepStep challenge={twoStep} onSignedIn={signedIn} onStartAgain={startAgain} />;
+  }
 
   return (
     <div

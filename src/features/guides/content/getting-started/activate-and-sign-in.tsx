@@ -46,8 +46,12 @@ export default function ActivateAndSignInArticle() {
         <GuideSteps>
           <GuideStep title="Enter Email">Use the same email address shown during activation.</GuideStep>
           <GuideStep title="Enter Password">Enter the password you created. Do not paste passwords into support tickets or chat messages.</GuideStep>
-          <GuideStep title="Select Login">A successful login opens Home, or returns you to the protected Console page that originally sent you to login.</GuideStep>
+          <GuideStep title="Select Login">Every CodeX account then asks for a code from an authenticator app. The first time, scan the QR code with Google Authenticator, Microsoft Authenticator or any app like them, type the 6-digit code it shows, and save the ten backup codes before you continue.</GuideStep>
+          <GuideStep title="Enter your code">Type the code your app shows now; each lasts 30 seconds and works once. A successful sign-in opens Home, or returns you to the protected Console page that originally sent you to login.</GuideStep>
         </GuideSteps>
+        <GuideCallout tone="warning" title="Lost your phone">
+          Select <strong>Lost your phone? Use a backup code</strong> and type one of your saved backup codes. If you have none left, ask another administrator to select <strong>Reset two-step sign-in</strong> on your row in Team management, then set up the app again at your next sign-in. Five wrong codes send you back to your password.
+        </GuideCallout>
         <GuideCallout tone="tip" title="Signing in from a staff ID card">
           Scan the current ID card and confirm the expected name before entering your password. The card carries a random identifier, not your email address. If a card is lost, copied, or replaced, ask an administrator to rotate its login identifier so the old card stops working.
         </GuideCallout>

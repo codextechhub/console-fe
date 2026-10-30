@@ -20,6 +20,9 @@ vi.mock("@/redux/services/dashboard/security-api", () => ({
   useGetMyPasswordResetsQuery: () => ({ data: undefined }),
 }));
 
+// The two-step card reads its own request and has its own tests.
+vi.mock("./two-step-card", () => ({ TwoStepCard: () => null }));
+
 vi.mock("@/hooks/use-logout", () => ({
   useLogout: () => ({ handleLogout: mocks.handleLogout, isLoggingOut: false }),
 }));

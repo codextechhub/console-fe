@@ -23,6 +23,7 @@ import {
   useSuspendTeamMemberMutation,
   useReactivateTeamMemberMutation,
   useUnlockTeamMemberMutation,
+  useResetUserTwoStepMutation,
 } from "@/redux/services/dashboard/team-mgt-api";
 import { useMemo, useState } from "react";
 import type { TeamMember } from "@/redux/services/dashboard/dashboard-types";
@@ -46,6 +47,7 @@ import { useGetSchoolsQuery } from "@/redux/services/dashboard/school-mgt-api";
 import BulkImportDrawer from "@/components/custom/bulk-import-drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RefreshIcon } from "@/components/custom/loading-mark";
+import PromptModal from "@/components/modal/prompt-modal";
 
 const CX_TABLE_HEADER = [
   "Full Name",
@@ -155,6 +157,9 @@ export default function MembersTab({
   const [suspendUser] = useSuspendTeamMemberMutation();
   const [reactivateUser] = useReactivateTeamMemberMutation();
   const [unlockUser] = useUnlockTeamMemberMutation();
+  const [resetTwoStep, { isLoading: resettingTwoStep }] = useResetUserTwoStepMutation();
+  // The member whose lost authenticator is being reset, while the prompt is open.
+  const [twoStepResetFor, setTwoStepResetFor] = useState<string | null>(null);
 
   const handleOpenFilter = () => {
     setDraftFilters(appliedFilters);
@@ -355,6 +360,14 @@ export default function MembersTab({
                   navigate(routesPath.PROTECTED.TEAM_MGT.EDIT(row._slug, scope === "cx" ? "cx" : "schools")),
               }] : []),
               ...(action ? [action] : []),
+              // For a lost phone. Never your own: another administrator resets yours.
+              ...(scope === "cx" &&
+              hasPermission(P.MODIFY_TEAM_MEMBER) &&
+              String(currentUser?.id) !== String(row._slug) ? [{
+                label: "Reset two-step sign-in",
+                className: "",
+                onActionClick: () => setTwoStepResetFor(row._slug),
+              }] : []),
             ];
           }}
           perPage={data?.pagination?.pageSize}
@@ -466,6 +479,27 @@ export default function MembersTab({
           onFinished={() => { void refetch(); }}
         />
       ) : null}
+      <PromptModal
+        isOpen={twoStepResetFor !== null}
+        onClose={() => setTwoStepResetFor(null)}
+        onCancel={() => setTwoStepResetFor(null)}
+        canCancel
+        title="Reset two-step sign-in?"
+        description="Use this when they have lost the phone with their authenticator app. Their app and backup codes stop working, and they set up a new app the next time they sign in."
+        onConfirmText="Reset two-step sign-in"
+        loading={resettingTwoStep}
+        onConfirm={() => {
+          if (twoStepResetFor === null) return;
+          resetTwoStep(twoStepResetFor)
+            .unwrap()
+            .then(() => {
+              setTwoStepResetFor(null);
+              toast.success("Two-step sign-in reset. They will set it up again at their next sign-in.");
+            })
+            // The request layer shows the refusal; the prompt stays open to try again.
+            .catch(() => {});
+        }}
+      />
     </>
   );
 }

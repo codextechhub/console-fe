@@ -24,6 +24,12 @@
 const CODE_MESSAGES: Record<string, string> = {
   // Login / credentials (vs_user/services/auth.py)
   INVALID_CREDENTIALS: "Invalid credentials. Please try again.",
+  // Two-step sign-in
+  TWO_STEP_CODE_INVALID:
+    "That code is not right. Check your authenticator app and try again.",
+  TWO_STEP_CHALLENGE_INVALID:
+    "This sign-in has expired. Enter your email and password again.",
+  TWO_STEP_SET_UP_NOT_STARTED: "Scan the QR code before entering a code.",
   ACCOUNT_LOCKED:
     "Your account is locked. Please contact your administrator or reset your password.",
   ACCOUNT_SUSPENDED:

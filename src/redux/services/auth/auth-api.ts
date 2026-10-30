@@ -7,7 +7,7 @@ import { resetSessionInvalidation } from "@/utils/token-refresh";
 import { endSession } from "@/utils/end-session";
 import { setAccessToken } from "@/utils/access-token";
 import { readCsrfToken } from "@/utils/csrf";
-import type { LoginResponse } from "./auth-types";
+import type { LoginResponse, MyTwoStep, TwoStepSetUpResponse } from "./auth-types";
 import type {
   AuthSchool,
   AuthTenant,
@@ -16,6 +16,25 @@ import type {
   User,
 } from "@/redux/features/auth/auth-types";
 import { PLATFORM_TENANT_SLUG } from "@/utils/tenant-context";
+
+/**
+ * Make a finished sign-in this console's session.
+ *
+ * Shared by the password step, the ID card and the two-step code step, which
+ * all answer alike.
+ */
+export function adoptSignIn(data: LoginResponse, dispatch: (action: unknown) => unknown): void {
+  // A fresh, valid session - re-enable token refresh in case a prior
+  // session in this JS context invalidated it.
+  resetSessionInvalidation();
+  setAccessToken(data?.data?.access || "");
+  recordActivity();
+  dispatch(setAuthUser(data?.data));
+  // The context we just stored is authoritative, so Authenticated can
+  // skip its mount-time /me sync for this one mount - see
+  // auth-context-freshness.
+  markAuthContextFromLogin();
+}
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -34,23 +53,80 @@ export const authApi = baseApi.injectEndpoints({
       }),
       async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
-          const result = await queryFulfilled;
-          const {data} = result;
-          // A fresh, valid session - re-enable token refresh in case a prior
-          // session in this JS context invalidated it.
-          resetSessionInvalidation();
-          setAccessToken(data?.data?.access || "");
-          recordActivity();
-          dispatch(setAuthUser(data?.data));
-          // The context we just stored is authoritative, so Authenticated can
-          // skip its mount-time /me sync for this one mount - see
-          // auth-context-freshness.
-          markAuthContextFromLogin();
+          const { data } = await queryFulfilled;
+          adoptSignIn(data, dispatch);
         } catch {
           // Login failed - the mutation hook surfaces the error to the page;
-          // nothing to clean up because nothing was written yet.
+          // nothing to clean up because nothing was written yet. A refusal
+          // asking for a two-step code is one of these: it carries no session.
         }
       },
+    }),
+    /**
+     * The second step of a sign-in: a code from the authenticator app, or one
+     * backup code, for the challenge the password step was refused with.
+     * Answers as `login` does and is adopted the same way.
+     */
+    twoStepVerify: builder.mutation<
+      LoginResponse,
+      { challenge: string; code?: string; recovery_code?: string }
+    >({
+      query: (body) => ({
+        url: `/user/auth/two-step/verify/`,
+        method: "POST",
+        body,
+        credentials: "include" as const,
+        headers: { "X-Auth-Mode": "cookie" },
+      }),
+      async onQueryStarted(_, { queryFulfilled, dispatch }) {
+        try {
+          const { data } = await queryFulfilled;
+          adoptSignIn(data, dispatch);
+        } catch {
+          // A wrong code; the page shows it.
+        }
+      },
+    }),
+    /** A new secret to scan, for a sign-in refused with TWO_STEP_SET_UP_REQUIRED. */
+    twoStepSetUp: builder.mutation<TwoStepSetUpResponse, { challenge: string }>({
+      query: (body) => ({
+        url: `/user/auth/two-step/set-up/`,
+        method: "POST",
+        body,
+        credentials: "include" as const,
+      }),
+    }),
+    /**
+     * The first code from the new authenticator. Answers as `login` does, plus
+     * the backup codes. Not adopted here: the page shows the backup codes
+     * first and adopts the sign-in when they are saved, because a signed-in
+     * console leaves the sign-in page at once.
+     */
+    twoStepConfirm: builder.mutation<
+      LoginResponse & { data: { recovery_codes: string[] } },
+      { challenge: string; code: string }
+    >({
+      query: (body) => ({
+        url: `/user/auth/two-step/set-up/confirm/`,
+        method: "POST",
+        body,
+        credentials: "include" as const,
+        headers: { "X-Auth-Mode": "cookie" },
+      }),
+    }),
+    /** Whether the signed-in person's two-step sign-in is set up, and how many backup codes are left. */
+    getMyTwoStep: builder.query<{ message: string; data: MyTwoStep }, void>({
+      query: () => ({ url: `/user/auth/me/two-step/`, method: "GET" }),
+      providesTags: ["MyTwoStep"],
+    }),
+    /** Ten new backup codes for a code from the app; silent, the card shows a refusal. */
+    renewMyBackupCodes: builder.mutation<
+      { message: string; data: { recovery_codes: string[] } },
+      { code: string }
+    >({
+      query: (body) => ({ url: `/user/auth/me/two-step/recovery-codes/`, method: "POST", body }),
+      extraOptions: { silent: true },
+      invalidatesTags: ["MyTwoStep"],
     }),
     specialLogin: builder.mutation<LoginResponse, { card_id: string; password: string }>({
       query: (credentials) => ({
@@ -63,11 +139,7 @@ export const authApi = baseApi.injectEndpoints({
       async onQueryStarted(_, { queryFulfilled, dispatch }) {
         try {
           const { data } = await queryFulfilled;
-          resetSessionInvalidation();
-          setAccessToken(data?.data?.access || "");
-          recordActivity();
-          dispatch(setAuthUser(data?.data));
-          markAuthContextFromLogin();
+          adoptSignIn(data, dispatch);
         } catch {
           // The mutation result carries the authentication error to the card page.
         }
@@ -173,6 +245,11 @@ export const authApi = baseApi.injectEndpoints({
 export const {
   useLoginMutation,
   useSpecialLoginMutation,
+  useTwoStepVerifyMutation,
+  useTwoStepSetUpMutation,
+  useTwoStepConfirmMutation,
+  useGetMyTwoStepQuery,
+  useRenewMyBackupCodesMutation,
   useLogoutMutation,
   useForgotPasswordMutation,
   usePasswordResetPreviewQuery,

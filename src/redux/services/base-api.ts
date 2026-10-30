@@ -116,6 +116,9 @@ const conflictMessage = (res: { data?: unknown }, getState: () => unknown): stri
  */
 const AUTH_ENDPOINTS = new Set([
   "login",
+  "twoStepVerify",
+  "twoStepSetUp",
+  "twoStepConfirm",
   "logout",
   "forgotPassword",
   "passwordResetPreview",
@@ -148,6 +151,8 @@ const TENANT_EXEMPT_ENDPOINTS = new Set([
   "getMySecurityStats",
   "getMyPasswordResets",
   "changeMyPassword",
+  "getMyTwoStep",
+  "renewMyBackupCodes",
 ]);
 
 /**
@@ -166,6 +171,7 @@ const ACCOUNT_ACTION_ENDPOINTS = new Set([
   "suspendTeamMember",
   "reactivateTeamMember",
   "unlockTeamMember",
+  "resetUserTwoStep",
   "adminPasswordReset",
   "changeUserEmail",
   "resendInvite",
@@ -324,6 +330,10 @@ const fetchFreshMe = async (
  */
 const AUTH_URLS = [
   "login",
+  // The second step of a sign-in: a wrong code is the page's to show, and
+  // never a reason to renew a session there is not yet.
+  "two-step/verify",
+  "two-step/set-up",
   "reset-password",
   "password/reset",
   "forgot-password",
@@ -664,6 +674,8 @@ export const baseApi = createApi({
     // refuses a tag the base api has not declared.
     ...FINANCE_TAG_TYPES,
     "Users",
+    // The signed-in person's own two-step sign-in, on Password & Sign-in.
+    "MyTwoStep",
     "GoLiveRequests",
     "Role",
     "Schools",

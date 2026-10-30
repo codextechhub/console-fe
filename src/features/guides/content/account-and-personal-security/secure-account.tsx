@@ -22,6 +22,14 @@ export default function SecureAccountArticle() {
         <GuideCallout title="Reset history is evidence, not a reset control">The history panel lists reset requests and whether each one is pending, used, or expired. An unexpected pending request should be reported even when your password still works.</GuideCallout>
       </GuideSection>
 
+      <GuideSection id="two-step-sign-in" title="Two-step sign-in">
+        <p>Below the password, <strong>Two-step sign-in</strong> says that a code from your authenticator app is asked for after your password, and how many backup codes you have left. Every CodeX account uses it, because the Console reaches every school.</p>
+        <GuideSteps>
+          <GuideStep title="Make new backup codes">Select <strong>Make new backup codes</strong> and type the code your app shows now. Ten new codes replace every old one; copy them somewhere safe away from this device, then select <strong>I have saved them</strong>.</GuideStep>
+          <GuideStep title="A new phone">Ask another administrator to reset your two-step sign-in from Team management. You set up the new phone at your next sign-in. Nobody can reset their own.</GuideStep>
+        </GuideSteps>
+      </GuideSection>
+
       <GuideSection id="review-and-end-sessions" title="Review and end sessions">
         <p>Open <strong>Active sessions</strong> and compare the browser, operating system, masked IP address, sign-in time, and last-active time. The current device is identified separately. End one unfamiliar session, or use <strong>Sign out of all other sessions</strong> when several devices are uncertain. Both actions require your explicit confirmation.</p>
       </GuideSection>

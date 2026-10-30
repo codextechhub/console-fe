@@ -20,6 +20,7 @@ import {
 import { PageShell } from "@/components/layout/page-shell";
 import { cn } from "@/lib/utils";
 import { INFORMATION_CARD_SURFACE } from "@/components/ui/card-surface";
+import { TwoStepCard } from "./two-step-card";
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -377,6 +378,7 @@ export default function MyPassword() {
           )}
         </div>
 
+        {impersonation ? null : <TwoStepCard />}
       </PageShell>
     </>
   );

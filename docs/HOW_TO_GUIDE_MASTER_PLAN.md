@@ -445,6 +445,7 @@ article would require more than roughly twelve decision-bearing steps.
 
 - View and update a personal profile.
 - Change a password safely.
+- Set up two-step sign-in, keep backup codes, and recover from a lost phone.
 - Review and end active sessions.
 - Review personal login history and activity.
 - Understand privacy and personal-data controls.

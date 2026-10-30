@@ -3,7 +3,10 @@ import {
   useSpecialLoginPreviewQuery,
   useSpecialLoginMutation,
 } from "@/redux/services/auth/auth-api";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import type { TwoStepChallenge } from "@/redux/services/auth/auth-types";
+import { TwoStepStep } from "../login/two-step";
+import { twoStepChallengeOf } from "../login/two-step-challenge";
 import { routesPath } from "@/routes/routes-path";
 import { consumeReturnTo } from "@/utils/return-to";
 import { humanizeAuthError } from "@/utils/auth-errors";
@@ -18,6 +21,12 @@ export default function SpecialLogin() {
 
   const [password, setPassword] = useState("");
   const [apiError, setApiError] = useState("");
+  // Set when the password was right and the server wants a two-step code.
+  const [twoStep, setTwoStep] = useState<TwoStepChallenge | null>(null);
+  const startAgain = useCallback((message?: string) => {
+    setTwoStep(null);
+    setApiError(message ?? "");
+  }, []);
 
   const {
     data,
@@ -35,16 +44,19 @@ export default function SpecialLogin() {
     );
   })();
 
+  const signedIn = () =>
+    navigate(consumeReturnTo() ?? routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) return;
     setApiError("");
     login({ card_id: cardId, password })
       .unwrap()
-      .then(() =>
-        navigate(consumeReturnTo() ?? routesPath.PROTECTED.OVERVIEW.INDEX, { replace: true }),
-      )
+      .then(signedIn)
       .catch((err) => {
+        const challenge = twoStepChallengeOf(err);
+        if (challenge) return setTwoStep(challenge);
         setApiError(
           humanizeAuthError(err, "Invalid credentials. Please try again."),
         );
@@ -77,6 +89,10 @@ export default function SpecialLogin() {
         </Link>
       </div>
     );
+  }
+
+  if (twoStep) {
+    return <TwoStepStep challenge={twoStep} onSignedIn={signedIn} onStartAgain={startAgain} />;
   }
 
   const fullName = data?.data?.full_name ?? "";

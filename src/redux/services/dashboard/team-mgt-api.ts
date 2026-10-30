@@ -78,6 +78,14 @@ export const teamMgtApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Users"],
     }),
+    /** Clear a lost authenticator; they set up again at their next sign-in. Never your own. */
+    resetUserTwoStep: builder.mutation<{ message: string }, number | string>({
+      query: (user_id) => ({
+        url: `/user/${user_id}/two-step/reset/`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Users"],
+    }),
     adminPasswordReset: builder.mutation({
       query: (user_id) => ({
         url: `/user/${user_id}/password-reset/`,
@@ -105,6 +113,7 @@ export const {
   useSuspendTeamMemberMutation,
   useReactivateTeamMemberMutation,
   useUnlockTeamMemberMutation,
+  useResetUserTwoStepMutation,
   useAdminPasswordResetMutation,
   useChangeUserEmailMutation,
 } = teamMgtApi;
