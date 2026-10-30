@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import type { PlatformRole } from "@/redux/services/dashboard/rbac-types";
 import { PageShell } from "@/components/layout/page-shell";
 import { RefreshIcon } from "@/components/custom/loading-mark";
+import PromptModal from "@/components/modal/prompt-modal";
 
 const TABLE_HEADERS = ["Role Name", "Status", "System", "Locked", "Users", "Permissions", "Created", "Action"];
 
@@ -50,7 +51,9 @@ export default function RolesList() {
 
   const reload = () => { refetch(); refetchActive(); refetchSystem(); refetchLocked(); };
 
-  const [deleteRole] = useDeletePlatformRoleMutation();
+  const [deleteRole, { isLoading: deleting }] = useDeletePlatformRoleMutation();
+  // The role waiting for its deletion to be confirmed.
+  const [toDelete, setToDelete] = useState<{ key: string; name: string; users: number } | null>(null);
 
   const roles = data?.data ?? [];
   // A count that has not arrived is unknown, not zero.
@@ -95,6 +98,8 @@ export default function RolesList() {
     perms: <span className="font-medium">{role.permissions_count}</span>,
     created: formatRelativeDate(role.created_at),
     _key: role.key,
+    _name: role.name,
+    _users: role.assigned_users_count,
     _system: role.is_system_role,
     _locked: role.is_locked,
   }));
@@ -160,7 +165,7 @@ export default function RolesList() {
             error={isError && !isFetching && "The roles could not be loaded. Check your connection and try again."}
             onRetry={reload}
             dropDown
-            dropDownList={(row: { _key: string; _system: boolean; _locked: boolean }) => [
+            dropDownList={(row: { _key: string; _name: string; _users: number; _system: boolean; _locked: boolean }) => [
               ...(hasPermission(P.MODIFY_ROLE) ? [{
                 label: "Edit",
                 className: "",
@@ -170,11 +175,7 @@ export default function RolesList() {
                 ? [{
                     label: "Delete",
                     className: "text-destructive focus:text-destructive focus:bg-destructive/10",
-                    onActionClick: () =>
-                      deleteRole(row._key)
-                        .unwrap()
-                        .then(() => toast.success("Role deleted."))
-                        .catch(() => {}),
+                    onActionClick: () => setToDelete({ key: row._key, name: row._name, users: row._users }),
                   }]
                 : []),
             ]}
@@ -184,6 +185,31 @@ export default function RolesList() {
             onPageChange={(page) => setQuery((prev) => ({ ...prev, page: page as number }))}
           />
       </PageShell>
+      <PromptModal
+        isOpen={toDelete !== null}
+        onClose={() => setToDelete(null)}
+        onCancel={() => setToDelete(null)}
+        canCancel
+        title={`Delete ${toDelete?.name || "this role"}?`}
+        description={
+          toDelete?.users
+            ? `${toDelete.users} ${toDelete.users === 1 ? "person holds" : "people hold"} this role and will lose what it allows. This cannot be undone.`
+            : "Nobody holds this role. This cannot be undone."
+        }
+        onConfirmText="Delete role"
+        loading={deleting}
+        onConfirm={() => {
+          if (!toDelete) return;
+          deleteRole(toDelete.key)
+            .unwrap()
+            .then(() => {
+              toast.success("Role deleted.");
+              setToDelete(null);
+            })
+            // The request layer shows the refusal; the prompt stays open.
+            .catch(() => {});
+        }}
+      />
     </>
   );
 }

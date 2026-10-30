@@ -28,6 +28,7 @@ import PermissionGate from "@/components/custom/permission-gate";
 import { P } from "@/permissions";
 import { PageShell } from "@/components/layout/page-shell";
 import { RefreshIcon } from "@/components/custom/loading-mark";
+import PromptModal from "@/components/modal/prompt-modal";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -163,10 +164,17 @@ export default function PasswordActivity() {
 
   const resetPage = () => setPage(1);
 
-  const handleRevoke = (id: number) => {
-    revokeReset({ id })
+  // The reset link waiting for its revoking to be confirmed.
+  const [toRevoke, setToRevoke] = useState<{ id: number; who: string } | null>(null);
+  const handleRevoke = () => {
+    if (!toRevoke) return;
+    revokeReset({ id: toRevoke.id })
       .unwrap()
-      .then(() => toast.success("Reset token revoked."))
+      .then(() => {
+        toast.success("Reset link revoked.");
+        setToRevoke(null);
+      })
+      // The request layer shows the refusal; the prompt stays open.
       .catch(() => {});
   };
 
@@ -433,7 +441,7 @@ export default function PasswordActivity() {
                           size="sm"
                           className="h-6 text-[10px] px-2"
                           disabled={revoking}
-                          onClick={() => handleRevoke(r.id)}
+                          onClick={() => setToRevoke({ id: r.id, who: r.user.full_name || r.user.email })}
                         >
                           <XCircle className="size-3" /> Revoke
                         </Button>
@@ -460,6 +468,18 @@ export default function PasswordActivity() {
           </div>
         )}
       </PageShell>
+
+      <PromptModal
+        isOpen={toRevoke !== null}
+        onClose={() => setToRevoke(null)}
+        onCancel={() => setToRevoke(null)}
+        canCancel
+        title="Revoke this reset link?"
+        description={`The password reset link sent to ${toRevoke?.who ?? "this person"} stops working. They can ask for a new one from the sign-in page.`}
+        onConfirmText="Revoke link"
+        loading={revoking}
+        onConfirm={handleRevoke}
+      />
 
       {/* Change email modal */}
       <Dialog open={emailModal} onOpenChange={(open) => { setEmailModal(open); if (!open) setNewEmail(""); }}>

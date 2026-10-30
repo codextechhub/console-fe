@@ -39,7 +39,7 @@ export default function InviteAndManageUsersArticle() {
           <GuideStep title="Review invitations">Open the <strong>Invites</strong> tab to understand the current status. Resend only when the address is correct and the earlier invitation should no longer be used.</GuideStep>
           <GuideStep title="Finish a draft">Open <strong>Drafts</strong>, select <strong>Resume</strong>, complete the missing role or position, and submit it for approval.</GuideStep>
           <GuideStep title="Edit a CX user">From Members, choose <strong>Edit</strong> when permitted. Changing a profile does not grant permissions outside the assigned role.</GuideStep>
-          <GuideStep title="Resolve status problems">An authorized administrator can <strong>Suspend</strong> an active user, <strong>Reactivate</strong> a suspended user, or <strong>Unlock</strong> a locked user. Never change status before confirming the person and reason.</GuideStep>
+          <GuideStep title="Resolve status problems">An authorized administrator can <strong>Suspend</strong> an active user, <strong>Reactivate</strong> a suspended user, <strong>Unlock</strong> a locked user, or <strong>Reset two-step sign-in</strong> for someone who lost their phone. Each one opens a prompt naming the person and saying what happens, and nothing changes until you confirm it there. Never confirm before checking the person and the reason.</GuideStep>
         </GuideSteps>
       </GuideSection>
 

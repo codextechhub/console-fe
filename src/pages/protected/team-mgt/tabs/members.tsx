@@ -157,9 +157,24 @@ export default function MembersTab({
   const [suspendUser] = useSuspendTeamMemberMutation();
   const [reactivateUser] = useReactivateTeamMemberMutation();
   const [unlockUser] = useUnlockTeamMemberMutation();
-  const [resetTwoStep, { isLoading: resettingTwoStep }] = useResetUserTwoStepMutation();
-  // The member whose lost authenticator is being reset, while the prompt is open.
-  const [twoStepResetFor, setTwoStepResetFor] = useState<string | null>(null);
+  const [resetTwoStep] = useResetUserTwoStepMutation();
+  // An account action waiting for its confirmation. Each one changes whether
+  // somebody can sign in, so none happens on a single click from the menu.
+  const [confirming, setConfirming] = useState<Confirmation | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
+  const runConfirmed = () => {
+    if (!confirming) return;
+    setConfirmBusy(true);
+    confirming
+      .run()
+      .then(() => {
+        toast.success(confirming.done);
+        setConfirming(null);
+      })
+      // The request layer shows the refusal; the prompt stays open to try again.
+      .catch(() => {})
+      .finally(() => setConfirmBusy(false));
+  };
 
   const handleOpenFilter = () => {
     setDraftFilters(appliedFilters);
@@ -279,7 +294,8 @@ export default function MembersTab({
           error={isError && !isFetching && "The members could not be loaded. Check your connection and try again."}
           onRetry={refetch}
           dropDown
-          dropDownList={(row: { _slug: string; _status: string }) => {
+          dropDownList={(row: { _slug: string; _status: string; _name: string }) => {
+            const who = row._name || "this person";
             const statusAction = () => {
               if (row._status === "ACTIVE") {
                 if (String(currentUser?.id) === String(row._slug)) return null;
@@ -289,10 +305,13 @@ export default function MembersTab({
                   className:
                     "text-destructive focus:text-destructive focus:bg-destructive/10",
                   onActionClick: () =>
-                    suspendUser(row._slug)
-                      .unwrap()
-                      .then(() => toast.success("User suspended successfully."))
-                      .catch(() => {}),
+                    setConfirming({
+                      title: `Suspend ${who}?`,
+                      description: "They are signed out and cannot sign in until someone reactivates them. Their record and history are kept.",
+                      confirmText: "Suspend",
+                      done: "User suspended.",
+                      run: () => suspendUser(row._slug).unwrap(),
+                    }),
                 };
               }
               if (row._status === "SUSPENDED") {
@@ -302,10 +321,13 @@ export default function MembersTab({
                   className:
                     "text-green-600 focus:text-green-600 focus:bg-green-50",
                   onActionClick: () =>
-                    reactivateUser(row._slug)
-                      .unwrap()
-                      .then(() => toast.success("User reactivated successfully."))
-                      .catch(() => {}),
+                    setConfirming({
+                      title: `Reactivate ${who}?`,
+                      description: "They can sign in again with their existing password and roles.",
+                      confirmText: "Reactivate",
+                      done: "User reactivated.",
+                      run: () => reactivateUser(row._slug).unwrap(),
+                    }),
                 };
               }
               if (row._status === "LOCKED") {
@@ -315,10 +337,13 @@ export default function MembersTab({
                   className:
                     "text-amber-600 focus:text-amber-600 focus:bg-amber-50",
                   onActionClick: () =>
-                    unlockUser(row._slug)
-                      .unwrap()
-                      .then(() => toast.success("User unlocked successfully."))
-                      .catch(() => {}),
+                    setConfirming({
+                      title: `Unlock ${who}?`,
+                      description: "The lockout from wrong passwords is cleared and they can try again now. Check it was them first, not someone guessing their password.",
+                      confirmText: "Unlock",
+                      done: "User unlocked.",
+                      run: () => unlockUser(row._slug).unwrap(),
+                    }),
                 };
               }
               return null;
@@ -366,7 +391,14 @@ export default function MembersTab({
               String(currentUser?.id) !== String(row._slug) ? [{
                 label: "Reset two-step sign-in",
                 className: "",
-                onActionClick: () => setTwoStepResetFor(row._slug),
+                onActionClick: () =>
+                  setConfirming({
+                    title: `Reset two-step sign-in for ${who}?`,
+                    description: "Use this when they have lost the phone with their authenticator app. Their app and backup codes stop working, and they set up a new app the next time they sign in.",
+                    confirmText: "Reset two-step sign-in",
+                    done: "Two-step sign-in reset. They will set it up again at their next sign-in.",
+                    run: () => resetTwoStep(row._slug).unwrap(),
+                  }),
               }] : []),
             ];
           }}
@@ -480,25 +512,15 @@ export default function MembersTab({
         />
       ) : null}
       <PromptModal
-        isOpen={twoStepResetFor !== null}
-        onClose={() => setTwoStepResetFor(null)}
-        onCancel={() => setTwoStepResetFor(null)}
+        isOpen={confirming !== null}
+        onClose={() => setConfirming(null)}
+        onCancel={() => setConfirming(null)}
         canCancel
-        title="Reset two-step sign-in?"
-        description="Use this when they have lost the phone with their authenticator app. Their app and backup codes stop working, and they set up a new app the next time they sign in."
-        onConfirmText="Reset two-step sign-in"
-        loading={resettingTwoStep}
-        onConfirm={() => {
-          if (twoStepResetFor === null) return;
-          resetTwoStep(twoStepResetFor)
-            .unwrap()
-            .then(() => {
-              setTwoStepResetFor(null);
-              toast.success("Two-step sign-in reset. They will set it up again at their next sign-in.");
-            })
-            // The request layer shows the refusal; the prompt stays open to try again.
-            .catch(() => {});
-        }}
+        title={confirming?.title ?? ""}
+        description={confirming?.description ?? ""}
+        onConfirmText={confirming?.confirmText}
+        loading={confirmBusy}
+        onConfirm={runConfirmed}
       />
     </>
   );
@@ -524,6 +546,7 @@ const FORMAT_TABLE_DATA = (data: TeamMember[] | undefined, scope: "cx" | "school
     date: item?.created_at ? formatRelativeDate(item.created_at) : "---",
     _slug: item?.id,
     _status: item?.status,
+    _name: item?.full_name?.trim() || "",
   } : ({
     name: <p className="capitalize truncate">{item?.full_name?.trim() || "---"}</p>,
     email: item?.email?.trim() || "---",
@@ -536,5 +559,15 @@ const FORMAT_TABLE_DATA = (data: TeamMember[] | undefined, scope: "cx" | "school
     date: item?.created_at ? formatRelativeDate(item?.created_at) : "---",
     _slug: item?.id,
     _status: item?.status,
+    _name: item?.full_name?.trim() || "",
   }));
+};
+
+/** An account action waiting to be confirmed, with the words its prompt and toast use. */
+type Confirmation = {
+  title: string;
+  description: string;
+  confirmText: string;
+  done: string;
+  run: () => Promise<unknown>;
 };
