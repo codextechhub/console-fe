@@ -1,31 +1,30 @@
 # AGENTS.md - console-fe
 
-## Holistic problem solving
+## The finance and procurement screens are not this app's to edit
 
-When the user asks for a problem to be fixed, trace it to its root cause and
-fix the shared source of the failure where practical. Review adjacent flows,
-callers, and equivalent modules for the same failure mode; do not stop at a
-one-off patch that only hides the reported symptom. Keep the work within the
-requested scope, preserve established behaviour, and add regression coverage
-at the lowest shared boundary so future instances are prevented.
+Everything under Finance, Procurement and Workflow comes from `@xvs/finance`
+(the `FinPro` repo), shared with the school app. `@/pages/protected/finance/*`
+and its siblings are aliased into `node_modules/@xvs/finance`, so a file that
+looks local is not.
 
-## Verification follows the current change
+**A fix to a shared screen belongs in FinPro**, released with its `release.sh`.
 
-Verification is triggered by work performed in the **current request**, not by
-pre-existing changes in the worktree or work completed in an earlier request.
+**And this app cannot be trusted to notice a stale pin.** Its
+`node_modules/@xvs/finance` is a symlink to the FinPro working tree, so an edit
+there is live here the moment it is saved, whether or not the pin in
+`package.json` has anything to do with it. The school app holds a real installed
+copy and sees nothing until its pin moves. The two fail in opposite directions:
 
-- Git-only and read-only requests - for example inspect, explain, diagnose,
-  stage, commit, branch, push, or report status - do not authorize rerunning
-  tests, builds, `/verify-design`, or responsive audits unless the user
-  explicitly asks for them.
-- If the current request changes no code, do not run tests or builds merely for
-  reassurance. Use only the read-only checks needed to complete the request.
-- If the current request changes code but does not change a screen or visual
-  behaviour, run only proportionate code checks. Do not run `/verify-design` or
-  responsive visual verification.
-- Run screen/design verification only when the current request actually creates
-  or changes a user-visible screen, layout, interaction, or responsive behaviour,
-  or when the user explicitly requests visual verification.
+> Finance Settings was offering sections the school app does not route. The fix
+> was tagged `v0.1.22` and school-fe was moved onto it; this app was left pinned
+> to `v0.1.21`. Both typechecked clean, because this one was compiling against
+> the symlink. A fresh install anywhere else, CI included, would have fetched
+> `v0.1.21` and quietly not had the fix.
+
+So a green typecheck here says nothing about which version this app ships. Move
+both applications in the same change, with `release.sh`, and commit both
+lockfiles. If an install replaces the symlink, restore it; `release.sh` does that
+too.
 
 ## How-to guide alignment
 
@@ -46,6 +45,24 @@ Walkthroughs may explain and highlight consequential actions, but must never
 auto-submit financial postings, approvals, payments, imports, invitations,
 permission changes, proxy sessions, or destructive actions. They must not bypass
 authorization, validation, confirmation, or tenant scoping.
+
+## Verification follows the current change
+
+Verification is triggered by work performed in the **current request**, not by
+pre-existing changes in the worktree or work completed in an earlier request.
+
+- Git-only and read-only requests - for example inspect, explain, diagnose,
+  stage, commit, branch, push, or report status - do not authorize rerunning
+  tests, builds, `/verify-design`, or responsive audits unless the user
+  explicitly asks for them.
+- If the current request changes no code, do not run tests or builds merely for
+  reassurance. Use only the read-only checks needed to complete the request.
+- If the current request changes code but does not change a screen or visual
+  behaviour, run only proportionate code checks. Do not run `/verify-design` or
+  responsive visual verification.
+- Run screen/design verification only when the current request actually creates
+  or changes a user-visible screen, layout, interaction, or responsive behaviour,
+  or when the user explicitly requests visual verification.
 
 ## Field Access is part of every feature contract
 
@@ -148,17 +165,16 @@ an empty heading is worse than no heading, and never pad a section to fill it ou
   produced.
 - **What you decided** - decisions taken and locked, one line each. Only if
   decisions were actually made.
-- **What was fixed** - resolved defects, written in the past tense. Include only
-  when knowing the original cause is useful and it has not already been explained.
-- **What still needs attention** - only defects, risks, or incomplete work that
-  remain after the task. Omit this section entirely when nothing remains.
+- **What we found wrong in the code** - real defects and gaps, grouped under short
+  themes once there are more than about four. **Only if there are findings** - if
+  nothing is wrong, leave this out entirely rather than writing "nothing found".
 - **Where to go next** - the order of the next steps, and which of them are
   unblocked right now.
 
 That list is closed. Do not invent a heading for something that does not fit one
 of them: put it under the heading it belongs to, and if it belongs under none of
-them, leave it out of the breakdown entirely. A section the user did not ask for
-is one they must decode before they can tell whether it needs them.
+them, leave it out of the breakdown entirely. A section I did not ask for is one
+I have to decode before I can tell whether it needs me.
 
 How to write it:
 
@@ -176,19 +192,19 @@ How to write it:
 
 ## Asking, suggesting and disputing: use a real example
 
-When you need a decision from the user, **ask the question directly**. Do not bury
-it in a paragraph, do not quietly answer it yourself and move on, and do not hand
-over a list of considerations in place of the question.
+When you need a decision from me, **ask the question directly**. Do not bury it in
+a paragraph, do not quietly answer it yourself and move on, and do not hand me a
+list of considerations in place of the question.
 
-Then **show the consequence with a real example** - named people, a named school,
-a specific sequence of events. The example is what makes a choice obvious, so it
-is not decoration and it is not optional.
+Then **show me the consequence with a real example** - named people, a named
+school, a specific sequence of events. The example is what makes a choice
+obvious, so it is not decoration and it is not optional.
 
 This applies equally to three things:
 
-- **questions** - what needs deciding;
-- **suggestions** - something you think should be done;
-- **disputes** - something you think is wrong, including a decision already taken.
+- **questions** - what you need me to decide;
+- **suggestions** - something you think we should do;
+- **disputes** - something you think is wrong, including something I decided.
 
 Write the example the way it would actually happen:
 
@@ -205,18 +221,16 @@ Not:
 
 The second one is true and nobody can act on it. Abstractions hide the size of a
 thing in both directions - they make a small risk sound alarming and a serious one
-sound routine. A concrete case is the only way it can be weighed.
+sound routine. A concrete case is the only way I can weigh it.
 
 Keep it short. One example, the shortest one that still shows the consequence.
 Where a choice has two sides, show the bad case **and** the good case, not only
 the side you favour.
 
 ## Verifying screens
-After building or changing a screen **in the current request**, run
-`/verify-design` (project skill) to drive it in the real running app and **look
-at the screenshots** - build-green ≠ works. Do not invoke it for a later
-Git-only, read-only, or commit request that merely encounters those existing
-screen changes in the worktree. It scrubs its own test-login rows afterward.
+After building or changing any screen, run `/verify-design` (project skill) to
+drive it in the real running app and **look at the screenshots** - build-green ≠
+works. It scrubs its own test-login rows afterward.
 
 ## Responsive views - every screen must work on phone AND desktop
 
@@ -238,8 +252,8 @@ Build to the house conventions (full list: `docs/FINANCE_BUILD_NOTES.md`
 - In a flex row, a `flex-1` wrapper needs `min-w-0` or descendant `truncate`
   silently stops working.
 
-**Verify, don't assume.** After screen work performed in the current request,
-alongside `/verify-design` run the overflow probe:
+**Verify, don't assume.** After any screen work, alongside `/verify-design` run
+the overflow probe:
 `cd .claude/skills/verify-design && BASE_URL=<vite-url> ROUTES="/your/routes" node ./_mobile_audit.mjs`
 It drives each route logged-in at 390px (phone) and 820px (tablet), screenshots
 both, and reports page-level horizontal overflow with the offending elements
@@ -255,6 +269,24 @@ lines, receipt allocation, bulk editors) stays desktop-first: on a phone it
 must be *usable* (no overflow, nothing broken or unreachable), but don't spend
 effort optimizing it or redesigning it phone-first, and never degrade the
 desktop experience to make it fit.
+
+## Fixing problems: root cause, not symptom
+
+When I ask you to fix a problem, treat the reported issue as one *instance* of
+a potentially wider defect - fix it holistically:
+
+1. **Trace it to its source.** Ask why the bug exists - a wrong assumption, a
+   missing invariant, a fragile pattern - not just where it surfaced.
+2. **Fix the class, not the case.** If the same root cause can bite elsewhere
+   (other screens, endpoints, callers of the same helper), fix it at the choke
+   point they all share, or sweep the other occurrences in the same change.
+3. **Name the root.** In the summary/commit, state the underlying cause and
+   where else it applied, so the fix is reviewable as a class-fix, not a patch.
+
+A fix that only silences the reported symptom while the source remains is not
+done - that includes suppressing errors, special-casing one caller, or adding
+a guard where the real problem is upstream. The goal is that future problems
+from the same source never happen.
 
 ## Comments: short inline, the story in the doc block
 
