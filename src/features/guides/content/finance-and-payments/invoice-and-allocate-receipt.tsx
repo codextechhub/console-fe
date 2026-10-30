@@ -40,6 +40,7 @@ export default function InvoiceAndAllocateReceiptArticle() {
       </GuideSection>
 
       <GuideSection id="create-and-issue-the-invoice" title="Create and issue the invoice">
+        <p>In <strong>New invoice</strong>, choose <strong>Charge</strong> or <strong>Refundable deposit</strong> for each line. A charge can have optional <strong>Pays for</strong> dates: these name the service period the charge covers, not the payment dates. If the invoice is issued before that period starts, its income waits in Deferred Income until it is earned. A refundable deposit has no Pays for dates because it is held for the customer rather than earned.</p>
         <GuideChecklist items={[
           "Select the intended customer and active entity.",
           "Use the approved invoice and due dates inside valid periods.",

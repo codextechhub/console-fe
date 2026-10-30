@@ -711,6 +711,7 @@ export const GUIDE_REGISTRY = [
       "raise customer invoice", "record customer payment", "apply receipt", "unallocated receipt",
       "customer credit", "invoice payment", "allocate oldest first", "reverse receipt",
       "fee waiver", "payment plan", "customer balance", "import opening balances", "opening balances", "arrears before go-live",
+      "pays for dates", "invoice charge or refundable deposit", "service period on invoice",
     ],
     audiences: ["finance-officer"],
     routes: [
@@ -744,7 +745,7 @@ export const GUIDE_REGISTRY = [
     walkthroughId: "walkthrough.finance.invoice-and-allocate-receipt",
     estimatedMinutes: 11,
     owner: OWNER,
-    reviewedAt: FIELD_ACCESS_REVIEWED_AT,
+    reviewedAt: "2026-10-30",
     risk: "high",
     featured: true,
     status: "published",
