@@ -298,6 +298,7 @@ function SourceBadge({ source }: { source?: "database" | "environment" | "defaul
 }
 
 function PlatformProfile() {
+  const access = useFieldAccess("platform.profile");
   const { hasPermission } = usePermissions();
   const query = useGetPlatformSettingsQuery();
   const [save, saveState] = useUpdatePlatformSettingsMutation();
@@ -312,7 +313,7 @@ function PlatformProfile() {
 
   const submit = async () => {
     try {
-      await save({ profile: values, reason: "Updated platform issuer identity" }).unwrap();
+      await save({ profile: access.writableOnly(values), reason: "Updated platform issuer identity" }).unwrap();
       await query.refetch();
       setDraft(null);
       toast.success("Platform profile saved");
@@ -334,7 +335,7 @@ function PlatformProfile() {
         ) : <PolicyBadge kind="enforced">Read only</PolicyBadge>}
       />
       <SettingsPanel title="Issuer identity" description="Clear an optional field and save to return that field to its deployment fallback.">
-        {PROFILE_FIELDS.map((field) => (
+        {PROFILE_FIELDS.filter((field) => field.key === "name" || !access.isHidden(field.key)).map((field) => (
           <div key={field.key} className="grid grid-cols-1 gap-3 px-4 py-4 sm:px-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,420px)] lg:items-center">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -346,7 +347,7 @@ function PlatformProfile() {
             <Input
               id={`platform-${field.key}`}
               type={field.type ?? "text"}
-              disabled={!canSave}
+              disabled={!canSave || access.isReadOnly(field.key)}
               value={values[field.key]}
               placeholder={field.placeholder}
               onChange={(event) => setDraft({ ...values, [field.key]: event.target.value })}
@@ -359,6 +360,7 @@ function PlatformProfile() {
 }
 
 function SchoolOnboarding() {
+  const access = useFieldAccess("platform.profile");
   const { hasPermission } = usePermissions();
   const query = useGetPlatformSettingsQuery();
   const [save, saveState] = useUpdatePlatformSettingsMutation();
@@ -374,7 +376,9 @@ function SchoolOnboarding() {
 
   const submit = async () => {
     try {
-      await save({ onboarding: values, reason: "Updated school onboarding defaults" }).unwrap();
+      await save({ onboarding: Object.fromEntries(
+        Object.entries(values).filter(([name]) => !access.isReadOnly(`default_${name}`)),
+      ), reason: "Updated school onboarding defaults" }).unwrap();
       await query.refetch();
       setDraft(null);
       toast.success("School onboarding defaults saved");
@@ -388,7 +392,7 @@ function SchoolOnboarding() {
     choices: Array<{ value: string; label: string }>,
   ) => (
     <NativeSelect
-      disabled={!canSave}
+      disabled={!canSave || access.isReadOnly(`default_${key}`)}
       value={values[key]}
       onChange={(event) => setDraft({ ...values, [key]: event.target.value })}
     >
@@ -409,16 +413,16 @@ function SchoolOnboarding() {
         ) : <PolicyBadge kind="enforced">Read only</PolicyBadge>}
       />
       <SettingsPanel title="New school defaults" description="Defaults are platform-wide and apply at creation time only.">
-        <SettingsRow icon={Building2} label="Ownership type" description="Classification used when ownership is omitted." value={selectField("ownership_type", options?.ownership_types ?? [])} badge={<SourceBadge source={query.data?.data.sources.onboarding.ownership_type} />} />
-        <SettingsRow icon={BookOpenCheck} label="Academic structure" description="Term or semester structure used when omitted." value={selectField("term_structure", options?.term_structures ?? [])} badge={<SourceBadge source={query.data?.data.sources.onboarding.term_structure} />} />
-        <SettingsRow icon={Settings2} label="Billing currency" description="School billing currency used when omitted." value={selectField("currency", options?.currencies ?? [])} badge={<SourceBadge source={query.data?.data.sources.onboarding.currency} />} />
-        <SettingsRow
+        {!access.isHidden("default_ownership_type") && <SettingsRow icon={Building2} label="Ownership type" description="Classification used when ownership is omitted." value={selectField("ownership_type", options?.ownership_types ?? [])} badge={<SourceBadge source={query.data?.data.sources.onboarding.ownership_type} />} />}
+        {!access.isHidden("default_term_structure") && <SettingsRow icon={BookOpenCheck} label="Academic structure" description="Term or semester structure used when omitted." value={selectField("term_structure", options?.term_structures ?? [])} badge={<SourceBadge source={query.data?.data.sources.onboarding.term_structure} />} />}
+        {!access.isHidden("default_currency") && <SettingsRow icon={Settings2} label="Billing currency" description="School billing currency used when omitted." value={selectField("currency", options?.currencies ?? [])} badge={<SourceBadge source={query.data?.data.sources.onboarding.currency} />} />}
+        {!access.isHidden("default_branch_country") && <SettingsRow
           icon={Building2}
           label="Branch country"
           description="Country used for new inline and standalone branches when omitted."
-          value={<Input className="w-full sm:w-64" disabled={!canSave} value={values.branch_country} onChange={(event) => setDraft({ ...values, branch_country: event.target.value })} />}
+          value={<Input className="w-full sm:w-64" disabled={!canSave || access.isReadOnly("default_branch_country")} value={values.branch_country} onChange={(event) => setDraft({ ...values, branch_country: event.target.value })} />}
           badge={<SourceBadge source={query.data?.data.sources.onboarding.branch_country} />}
-        />
+        />}
       </SettingsPanel>
     </div>
   );
@@ -1195,6 +1199,7 @@ function SettingRow({
 const KIND_GROUP: Record<string, string> = { MODULE: "Modules", FEATURE: "Features" };
 
 function Features() {
+  const entitlementAccess = useFieldAccess("platform.entitlements");
   const { hasPermission } = usePermissions();
   const [school, setSchool] = useState("");
   const [detail, setDetail] = useState<Capability | null>(null);
@@ -1214,7 +1219,7 @@ function Features() {
       window_days: "90",
       ...(school ? { tenant: school } : { all_tenants: "true" }),
     },
-    { skip: !canViewEntitlements },
+    { skip: !canViewEntitlements || entitlementAccess.isHidden("calendar") },
   );
   const overrides = useGetOverridesQuery(
     { page_size: "100", ...scope },
@@ -1263,12 +1268,12 @@ function Features() {
         </div>
       </div>
 
-      {canViewEntitlements ? (
+      {canViewEntitlements && !entitlementAccess.isHidden("calendar") ? (
         <EntitlementRenewalCalendar
           data={entitlementCalendar.data?.data}
           loading={entitlementCalendar.isLoading}
           scopeLabel={school || "All schools and platform"}
-          canManage={hasPermission(P.UPDATE_ENTITLEMENT)}
+          canManage={hasPermission(P.UPDATE_ENTITLEMENT) && !entitlementAccess.isReadOnly("window")}
         />
       ) : null}
 
@@ -1490,6 +1495,7 @@ function FeatureRow({
   override?: Override;
   openDetail: () => void;
 }) {
+  const entitlementAccess = useFieldAccess("platform.entitlements");
   const { hasPermission } = usePermissions();
   const [setEnt, entState] = useSetEntitlementMutation();
   const [resetEntitlement, resetState] = useResetEntitlementMutation();
@@ -1539,8 +1545,7 @@ function FeatureRow({
                   capability: cap.key,
                   state: v ? "GRANTED" : "DENIED",
                   source: "MANUAL",
-                  starts_at: null,
-                  ends_at: null,
+                  ...(!entitlementAccess.isReadOnly("window") ? { starts_at: null, ends_at: null } : {}),
                   reason: "Changed from the Features switchboard",
                   ...scopeBody,
                 }).unwrap();
@@ -1573,7 +1578,7 @@ function FeatureRow({
                 {school ? "Inherit" : "Reset"}
               </Button>
             ) : null}
-            {entitlement?.state === "GRANTED" ? <span className="text-[11px] text-gray-05">{entitlementTiming(entitlement)}</span> : null}
+            {entitlement?.state === "GRANTED" && !entitlementAccess.isHidden("window") ? <span className="text-[11px] text-gray-05">{entitlementTiming(entitlement)}</span> : null}
           </div>
         ) : (
           <span className="text-xs text-gray-01">No plan needed</span>
@@ -1736,8 +1741,9 @@ function FeatureDetail({
 }
 
 function EntitlementScheduleEditor({ cap, school, entitlement }: { cap: Capability; school: string; entitlement?: Entitlement }) {
+  const entitlementAccess = useFieldAccess("platform.entitlements");
   const { hasPermission } = usePermissions();
-  const canManage = hasPermission(P.UPDATE_ENTITLEMENT);
+  const canManage = hasPermission(P.UPDATE_ENTITLEMENT) && !entitlementAccess.isReadOnly("window");
   const [startsAt, setStartsAt] = useState(() => toLocalDateTimeValue(entitlement?.starts_at));
   const [endsAt, setEndsAt] = useState(() => toLocalDateTimeValue(entitlement?.ends_at));
   const [minimumScheduleDate] = useState(() => toLocalDateTimeValue(new Date().toISOString()));
@@ -1769,9 +1775,9 @@ function EntitlementScheduleEditor({ cap, school, entitlement }: { cap: Capabili
           <p className="flex items-center gap-2 font-mont text-xs font-semibold text-gray-01"><CalendarClock className="size-4" />ENTITLEMENT SCHEDULE</p>
           <p className="mt-1 text-xs leading-5 text-gray-05">Activation and expiry are checked whenever access is evaluated. No background job or manual switch is required.</p>
         </div>
-        <PolicyBadge kind={entitlement?.state === "GRANTED" ? "configured" : "default"}>{entitlementTiming(entitlement)}</PolicyBadge>
+        {!entitlementAccess.isHidden("window") ? <PolicyBadge kind={entitlement?.state === "GRANTED" ? "configured" : "default"}>{entitlementTiming(entitlement)}</PolicyBadge> : null}
       </div>
-      {editable ? (
+      {editable && !entitlementAccess.isHidden("window") ? (
         <>
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="space-y-1 font-mont text-xs text-gray-01">Starts at (optional)<Input type="datetime-local" disabled={!canManage} value={startsAt} onChange={(event) => setStartsAt(event.target.value)} /></label>
