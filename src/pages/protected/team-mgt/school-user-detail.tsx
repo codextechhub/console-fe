@@ -194,7 +194,7 @@ export default function SchoolUserDetail() {
           <ProfileCard title="Contact" icon={Mail}>
             <ProfileFields>
               <ProfileField label="Email" value={detail.email} />
-              <ProfileField label="Phone" value={detail.phone} />
+              {!access.isHidden("phone") && <ProfileField label="Phone" value={detail.phone} />}
               <ProfileField label="Gender" value={detail.gender} />
               <ProfileField label="Branch scope" value={detail.branch_name || "All branches"} />
             </ProfileFields>

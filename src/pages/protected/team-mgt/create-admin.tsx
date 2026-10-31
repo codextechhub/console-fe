@@ -25,6 +25,7 @@ import { useDashboardTitle } from "@/components/layout/dashboard-header";
 import { fieldWriteErrors, useFieldAccess, type FieldErrors } from "@/components/finance-ui/field-access";
 import { AccessField } from "@/components/finance-ui/access-field";
 import { STAFF_PROFILE_RESOURCE } from "@/pages/protected/organogram/lib/staff-payroll";
+import { TEAM_FIELD_RESOURCE } from "./team-field-access";
 
 const EMPLOYMENT_TYPE_OPTIONS = [
   { value: "FULL_TIME", label: "Full-time" },
@@ -94,6 +95,7 @@ export default function CreateAdmin() {
   const [pendingApproval, setPendingApproval] = useState(false);
 
   const access = useFieldAccess(STAFF_PROFILE_RESOURCE);
+  const teamAccess = useFieldAccess(TEAM_FIELD_RESOURCE, draft);
   const accessMode = { creating: !isResume };
   const [fieldErrors, setFieldErrors] = useState<FieldErrors | null>(null);
   const unplacedErrors = Object.entries(fieldErrors ?? {})
@@ -119,19 +121,21 @@ export default function CreateAdmin() {
       employment_type: "",
       date_joined: "",
     },
-    validationSchema: createTeamMemberSchema,
+    validationSchema: teamAccess.isReadOnly("phone", accessMode)
+      ? createTeamMemberSchema.omit(["phone"])
+      : createTeamMemberSchema,
     onSubmit: (values) => {
       // Resume: update the draft's editable fields, then submit it for approval.
       if (isResume && draftId) {
         setFieldErrors(null);
         updateTeamMember({
           id: draftId,
-          body: access.writableOnly({
+          body: teamAccess.writableOnly(access.writableOnly({
             first_name: values.first_name,
             last_name: values.last_name,
             phone: values.phone,
             gender: values.gender,
-          }, accessMode),
+          }, accessMode), accessMode),
         })
           .unwrap()
           .then(() => submitDraft({
@@ -164,7 +168,7 @@ export default function CreateAdmin() {
       if (values.date_joined) payload.date_joined = values.date_joined;
 
       setFieldErrors(null);
-      createTeamMember(access.writableOnly(payload, accessMode))
+      createTeamMember(teamAccess.writableOnly(access.writableOnly(payload, accessMode), accessMode))
         .unwrap()
         .then((res) => {
           const workflow = (res as { workflow_instance?: { status?: string } })?.workflow_instance;
@@ -191,12 +195,12 @@ export default function CreateAdmin() {
     if (isResume && draftId) {
       updateTeamMember({
         id: draftId,
-        body: access.writableOnly({
+        body: teamAccess.writableOnly(access.writableOnly({
           first_name: v.first_name.trim(),
           last_name: v.last_name.trim(),
           phone: v.phone,
           gender: v.gender,
-        }, accessMode),
+        }, accessMode), accessMode),
       })
         .unwrap()
         .then(() => {
@@ -223,7 +227,7 @@ export default function CreateAdmin() {
     if (v.employment_type) payload.employment_type = v.employment_type;
     if (v.date_joined) payload.date_joined = v.date_joined;
 
-    createTeamMember(access.writableOnly(payload, accessMode))
+    createTeamMember(teamAccess.writableOnly(access.writableOnly(payload, accessMode), accessMode))
       .unwrap()
       .then(() => {
         toast.success("Saved as draft. You can complete and submit it later.");
@@ -304,14 +308,15 @@ export default function CreateAdmin() {
                 {...formik.getFieldProps("role")}
                 error={formik.touched.role ? formik.errors.role : undefined}
               />
-              <CustomInput
+              {!teamAccess.isHidden("phone", accessMode) && <CustomInput
                 id="phone"
                 label="Phone Number"
                 placeholder={PHONE_PLACEHOLDER}
-                isRequired
+                isRequired={!teamAccess.isReadOnly("phone", accessMode)}
+                disabled={teamAccess.isReadOnly("phone", accessMode)}
                 {...formik.getFieldProps("phone")}
                 error={formik.touched.phone ? formik.errors.phone : undefined}
-              />
+              />}
               <SearchSelect
                 id="gender"
                 label="Gender"

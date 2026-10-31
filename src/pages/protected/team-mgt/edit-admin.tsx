@@ -13,6 +13,8 @@ import {
 } from "@/redux/services/dashboard/team-mgt-api";
 import { toast } from "sonner";
 import { useDashboardTitle } from "@/components/layout/dashboard-header";
+import { useFieldAccess } from "@/components/finance-ui/field-access";
+import { TEAM_FIELD_RESOURCE } from "./team-field-access";
 
 export default function EditAdmin() {
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ export default function EditAdmin() {
   );
   const [updateTeamMember, { isLoading: updating }] =
     useUpdateTeamMemberMutation();
+  const access = useFieldAccess(TEAM_FIELD_RESOURCE, teamMember?.data);
 
 
   const formik = useFormik({
@@ -38,9 +41,11 @@ export default function EditAdmin() {
       gender: teamMember?.data?.gender || "",
     },
     enableReinitialize: true,
-    validationSchema: editTeamMemberSchema,
+    validationSchema: access.isReadOnly("phone")
+      ? editTeamMemberSchema.omit(["phone"])
+      : editTeamMemberSchema,
     onSubmit: (values) => {
-      updateTeamMember({ id: params?.id, body: values })
+      updateTeamMember({ id: params?.id, body: access.writableOnly(values) })
         .unwrap()
         .then(() => {
           toast.success("Team member updated successfully!");
@@ -105,14 +110,15 @@ export default function EditAdmin() {
                   value={teamMember?.data?.role || ""}
                   disabled
                 />
-                <CustomInput
+                {!access.isHidden("phone") && <CustomInput
                   id="phone"
                   label="Phone Number"
                   placeholder={PHONE_PLACEHOLDER}
-                  isRequired
+                  isRequired={!access.isReadOnly("phone")}
+                  disabled={access.isReadOnly("phone")}
                   {...formik.getFieldProps("phone")}
                   error={formik.touched.phone ? formik.errors.phone : undefined}
-                />
+                />}
                 <SearchSelect
                   id="gender"
                   label="Gender"

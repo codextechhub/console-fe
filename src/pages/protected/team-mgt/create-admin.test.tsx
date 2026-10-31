@@ -106,12 +106,12 @@ describe("add CX staff Field Access", () => {
       await settle();
     });
   };
-  const fillIdentity = async () => {
+  const fillIdentity = async (withPhone = true) => {
     await type("first_name", "Emeka");
     await type("last_name", "Osegbo");
     await type("email", "emeka.osegbo@codexng.test");
     await type("role", "support_agent");
-    await type("phone", "08031234567");
+    if (withPhone) await type("phone", "08031234567");
     await type("gender", "MALE");
     await type("position", "4");
   };
@@ -169,6 +169,23 @@ describe("add CX staff Field Access", () => {
       expect(body).toHaveProperty("job_title", "Support Engineer");
     }
     expect(mocks.create.mock.calls[1][0]).toHaveProperty("save_as_draft", true);
+  });
+
+  it("hides a closed account phone and omits it from both create paths", async () => {
+    mocks.fieldAccess = {
+      "platform.team": { hidden: ["phone"], read_only: ["phone"] },
+    };
+    render();
+
+    expect(field("phone")).toBeNull();
+    await fillIdentity(false);
+    await press("Submit for Approval");
+    await press("Save as draft");
+
+    expect(mocks.create).toHaveBeenCalledTimes(2);
+    for (const [body] of mocks.create.mock.calls) {
+      expect(body).not.toHaveProperty("phone");
+    }
   });
 
   it("greys a read-only detail and leaves it out of the body", async () => {
